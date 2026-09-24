@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { LOGO_SCOPE_ID, logoInline } from '../lib/logoInline';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
 import { asNavLabelMode, setNavLabels, useNavLabels, type NavLabelMode } from '../lib/navLabels';
 import { useTooltip } from './ui';
+import { usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
@@ -101,9 +102,9 @@ function useDrawAndStrike(): {
 export const navBase =
   'glim-nav-row relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
-// The 2px nudge makes hover readable on a quiet rail.
+// The 2px nudge toward the content makes hover readable on a quiet rail.
 export const navInactive =
-  'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5';
+  'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5 motion-safe:hover:rtl:-translate-x-0.5';
 
 // In rainbow mode the glyph takes the row's hue.
 export const navHued = 'glim-hue glim-hue-icon';
@@ -241,6 +242,22 @@ export function Sidebar() {
   // Declared outside the conditional sign-out row, since hooks cannot be.
   const signOutTip = useTooltip<HTMLButtonElement>(mode === 'glyph' ? t('auth.signOut') : undefined);
   const { role: _signOutRole, tabIndex: _signOutTabIndex, ...signOutTipProps } = signOutTip.triggerProps;
+
+  // Beside a phone's page the rail would take more than half its width.
+  const phone = usePhoneLayout();
+  if (phone) {
+    return (
+      <PhoneBar
+        mode={mode}
+        locked={locked}
+        showInstances={!hideInstances}
+        showAccounts={!hideAccounts}
+        active={active}
+        collected={collected}
+      />
+    );
+  }
+
   return (
     // A card with the card radius and no shadow (GlimStone 1.8.0), on its own
     // sidebar surface token. overflow-hidden keeps the logo inside the rounded
@@ -256,7 +273,7 @@ export function Sidebar() {
       <NavLink
         to="/"
         end
-        className={`flex flex-col items-center gap-2 hover:opacity-90 transition-opacity ${narrow ? 'px-2 py-4' : 'px-4 py-6'}`}
+        className={`flex flex-col items-center gap-2 ${narrow ? 'px-2 py-4' : 'px-4 py-6'}`}
         onPointerDown={egg.onPointerDown}
         onPointerUp={egg.onPointerUp}
         onPointerLeave={egg.onPointerCancel}
@@ -291,14 +308,7 @@ export function Sidebar() {
             <button
               aria-label={mode === 'glyph' ? t('auth.signOut') : undefined}
               {...(mode === 'glyph' ? signOutTipProps : {})}
-              onClick={async () => {
-                try {
-                  await logout();
-                  location.reload();
-                } catch {
-                  // The sidebar has nowhere to show the error.
-                }
-              }}
+              onClick={() => void signOut()}
               // Not an Item, since it navigates nowhere, but styled as a rail
               // row. text-start because a <button> centres its text.
               className={`${navHued} ${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
@@ -313,5 +323,170 @@ export function Sidebar() {
         <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
       </div>
     </aside>
+  );
+}
+
+async function signOut(): Promise<void> {
+  try {
+    await logout();
+    location.reload();
+  } catch {
+    // The sidebar has nowhere to show the error.
+  }
+}
+
+// A segment of the phone's bar, shared with EventBell's. flex-1 and min-w-0
+// make the segments equal whatever their words, so the filled one keeps its
+// shape from page to page (GlimStone, "The bottom bar").
+export const barSegment =
+  'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-control)] px-0.5 text-[11px] font-medium leading-[14px] transition-colors duration-150 select-none';
+export const barIdle = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
+
+/**
+ * BarBody is a segment's glyph over its word, or either alone, as the label
+ * mode says. A phone has no pointer to hover with, so in `hover` mode only the
+ * current segment keeps its word, as the rail's active row does. A segment
+ * without a word names itself through the caller's aria-label.
+ */
+export function BarBody({
+  icon,
+  label,
+  mode,
+  current = false,
+  badge = 0,
+}: {
+  icon: ReactNode;
+  label: string;
+  mode: NavLabelMode;
+  current?: boolean;
+  badge?: number;
+}) {
+  const glyph = mode !== 'text';
+  const word = mode === 'text' || mode === 'both' || (mode === 'hover' && current);
+  // On the glyph's corner, or on the segment's when there is no glyph.
+  const count = badge > 0 && (
+    <span
+      key={badge}
+      className={`kl-count glim-num absolute rounded-[var(--radius-pill)] bg-carbon-surface3 px-1 py-px text-[11px] font-semibold
+        leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
+        ${glyph ? '-top-1.5 start-3.5' : 'end-0.5 top-0.5'}`}
+    >
+      {badge > 99 ? '99+' : badge}
+    </span>
+  );
+  return (
+    <>
+      {glyph && (
+        <span className="relative flex [&>svg]:h-5 [&>svg]:w-5">
+          {icon}
+          {count}
+        </span>
+      )}
+      {word && <span className="max-w-full truncate">{label}</span>}
+      {!glyph && count}
+    </>
+  );
+}
+
+/** BarItem is one destination of the phone's bar. */
+function BarItem({
+  to,
+  end,
+  label,
+  icon,
+  badge,
+  hue,
+  mode,
+}: {
+  to: string;
+  end?: boolean;
+  label: string;
+  icon: ReactNode;
+  badge?: number;
+  hue: number;
+  mode: NavLabelMode;
+}) {
+  // Named when a segment may show no word: always in glyph mode, and all but
+  // the current one in hover mode.
+  const named = mode === 'glyph' || mode === 'hover';
+  const tip = useTooltip<HTMLAnchorElement>(named ? label : undefined);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <NavLink
+        to={to}
+        end={end}
+        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        aria-label={named ? label : undefined}
+        {...(named ? tipHoverProps : {})}
+        className={({ isActive }) => `${navHued} ${barSegment} ${isActive ? navActive : barIdle}`}
+      >
+        {({ isActive }) => <BarBody icon={icon} label={label} mode={mode} current={isActive} badge={badge} />}
+      </NavLink>
+      {tip.node}
+    </>
+  );
+}
+
+function BarSignOut({ hue, mode }: { hue: number; mode: NavLabelMode }) {
+  const { t } = useT();
+  const label = t('auth.signOut');
+  const named = mode === 'glyph' || mode === 'hover';
+  const tip = useTooltip<HTMLButtonElement>(named ? label : undefined);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={named ? label : undefined}
+        {...(named ? tipHoverProps : {})}
+        onClick={() => void signOut()}
+        className={`${navHued} ${barSegment} ${barIdle}`}
+        style={hueVars(rainbowAt(hue)) as CSSProperties}
+      >
+        <BarBody icon={<IconSignOut />} label={label} mode={mode} />
+      </button>
+      {tip.node}
+    </>
+  );
+}
+
+/**
+ * PhoneBar is the rail at phone width: a card along the bottom, where a thumb
+ * reaches it (GlimStone, "The bottom bar"). The rail's entries in the rail's
+ * order and colours, one segment each. Its height is fixed, so a change of
+ * label mode never moves the page above it.
+ */
+function PhoneBar({
+  mode,
+  locked,
+  showInstances,
+  showAccounts,
+  active,
+  collected,
+}: {
+  mode: NavLabelMode;
+  locked: boolean;
+  showInstances: boolean;
+  showAccounts: boolean;
+  active: number;
+  collected: number;
+}) {
+  const { t } = useT();
+  let hue = 0;
+  const nextHue = () => hue++;
+  return (
+    // order-last draws it under the page while it stays ahead of the page in
+    // the document, where the rail is.
+    <nav className="order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
+      <BarItem to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
+      <BarItem to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+      <BarItem to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
+      {showInstances && <BarItem to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
+      {showAccounts && <BarItem to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
+      <EventBell hue={nextHue()} bar />
+      {locked && <BarSignOut hue={nextHue()} mode={mode} />}
+      <BarItem to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+    </nav>
   );
 }

@@ -320,3 +320,197 @@ func TestTheDefaultBoundaryIsTheWholeFilesystem(t *testing.T) {
 		t.Errorf("the default boundary is %v, want just %q", roots, want)
 	}
 }
+
+// postFolder asks for a new folder and decodes the answer, which is JSON
+// whether the folder was made or not.
+func postFolder(t *testing.T, srv *httptest.Server, parent, name string) (int, map[string]string) {
+	t.Helper()
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/folders", map[string]string{"parent": parent, "name": name})
+	var out map[string]string
+	if err := json.Unmarshal(raw, &out); err != nil {
+		t.Fatalf("POST /api/folders answered %d with %q, which is not JSON", code, raw)
+	}
+	return code, out
+}
+
+func TestANewFolderIsCreatedAndOfferedByTheChooser(t *testing.T) {
+	base := t.TempDir()
+	_, srv := foldersServer(t)
+
+	code, out := postFolder(t, srv, base, "Filme 2026")
+	if code != http.StatusCreated {
+		t.Fatalf("creating a folder answered %d: %v", code, out)
+	}
+	want := filepath.Join(base, "Filme 2026")
+	if out["path"] != want {
+		t.Errorf("the new folder came back as %q, want %q", out["path"], want)
+	}
+	if fi, err := os.Stat(want); err != nil || !fi.IsDir() {
+		t.Fatalf("%q was reported as created but is not a folder: %v", want, err)
+	}
+	got := getFolders(t, srv, base)
+	if len(got.Entries) != 1 || got.Entries[0].Path != want {
+		t.Errorf("the chooser does not offer the new folder: %+v", got.Entries)
+	}
+}
+
+func TestCreatingAFolderThatExistsIsAConflict(t *testing.T) {
+	base := t.TempDir()
+	if err := os.Mkdir(filepath.Join(base, "taken"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(base, "notes.txt"), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, srv := foldersServer(t)
+
+	for _, name := range []string{"taken", "notes.txt"} {
+		code, out := postFolder(t, srv, base, name)
+		if code != http.StatusConflict || out["code"] != "exists" {
+			t.Errorf("creating %q where something of that name exists answered %d %v, want 409 exists", name, code, out)
+		}
+	}
+}
+
+func TestAFolderNameMustBeOnePlainName(t *testing.T) {
+	root := t.TempDir()
+	base := filepath.Join(root, "here")
+	if err := os.Mkdir(base, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	elsewhere := filepath.Join(t.TempDir(), "elsewhere")
+	_, srv := foldersServer(t)
+
+	cases := map[string]string{
+		"":                       "empty",
+		"   ":                    "empty",
+		".":                      "dots",
+		"..":                     "dots",
+		"../escape":              "separator",
+		`..\escape`:              "separator",
+		"a/b":                    "separator",
+		elsewhere:                "separator",
+		"<jd:date>":              "character",
+		"a:b":                    "character",
+		"what?":                  "character",
+		"tab\there":              "character",
+		"ends in a dot.":         "trailing",
+		"ends in a space ":       "trailing",
+		"CON":                    "reserved",
+		"nul.old":                "reserved",
+		"Lpt1":                   "reserved",
+		strings.Repeat("a", 256): "tooLong",
+	}
+	for name, want := range cases {
+		code, out := postFolder(t, srv, base, name)
+		if code != http.StatusBadRequest || out["code"] != want {
+			t.Errorf("the name %q answered %d %v, want 400 %s", name, code, out, want)
+		}
+	}
+
+	if items, err := os.ReadDir(base); err != nil || len(items) != 0 {
+		t.Errorf("refused names still left something behind: %v %v", items, err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "escape")); err == nil {
+		t.Error("a name with .. in it created a folder above the one asked for")
+	}
+	if _, err := os.Stat(elsewhere); err == nil {
+		t.Error("an absolute name created a folder outside the one asked for")
+	}
+}
+
+func TestCreatingOutsideTheRootsIsRefused(t *testing.T) {
+	allowed, forbidden := t.TempDir(), t.TempDir()
+	t.Setenv(envBrowseRoots, allowed)
+	_, srv := foldersServer(t)
+
+	code, out := postFolder(t, srv, forbidden, "new")
+	if code != http.StatusForbidden || out["code"] != "outside" {
+		t.Errorf("creating in %q outside the roots answered %d %v, want 403 outside", forbidden, code, out)
+	}
+	// The two temporary folders are siblings, so this climbs out of allowed
+	// into forbidden unless the path is cleaned before the check.
+	sep := string(filepath.Separator)
+	climb := allowed + sep + ".." + sep + filepath.Base(forbidden)
+	if code, out := postFolder(t, srv, climb, "new"); code != http.StatusForbidden {
+		t.Errorf("creating in %q answered %d %v, want 403", climb, code, out)
+	}
+	if _, err := os.Stat(filepath.Join(forbidden, "new")); err == nil {
+		t.Fatal("a folder was created outside the roots")
+	}
+	// The allowed root still works, or the checks above would pass on a route
+	// that refuses everything.
+	if code, out := postFolder(t, srv, allowed, "new"); code != http.StatusCreated {
+		t.Errorf("creating inside the allowed root answered %d %v", code, out)
+	}
+}
+
+func TestCreatingThroughASymlinkOutOfTheBoundaryIsRefused(t *testing.T) {
+	allowed, forbidden := t.TempDir(), t.TempDir()
+	if err := os.Symlink(forbidden, filepath.Join(allowed, "escape")); err != nil {
+		t.Skipf("symlinks are not available here: %v", err)
+	}
+	t.Setenv(envBrowseRoots, allowed)
+	_, srv := foldersServer(t)
+
+	code, out := postFolder(t, srv, filepath.Join(allowed, "escape"), "new")
+	if code != http.StatusForbidden || out["code"] != "outside" {
+		t.Errorf("creating through a link out of the boundary answered %d %v, want 403 outside", code, out)
+	}
+	if _, err := os.Stat(filepath.Join(forbidden, "new")); err == nil {
+		t.Fatal("a folder was created at the far end of the link")
+	}
+	// The link's own name is taken, and naming it does not follow it.
+	if code, out := postFolder(t, srv, allowed, "escape"); code != http.StatusConflict {
+		t.Errorf("creating a folder named like the link answered %d %v, want 409", code, out)
+	}
+}
+
+func TestCreatingInAParentThatIsNotThereIsRefused(t *testing.T) {
+	base := t.TempDir()
+	_, srv := foldersServer(t)
+
+	if code, out := postFolder(t, srv, filepath.Join(base, "gone"), "new"); code != http.StatusNotFound || out["code"] != "missing" {
+		t.Errorf("creating in a missing folder answered %d %v, want 404 missing", code, out)
+	}
+	if code, out := postFolder(t, srv, "downloads", "new"); code != http.StatusBadRequest || out["code"] != "parent" {
+		t.Errorf("creating in a relative folder answered %d %v, want 400 parent", code, out)
+	}
+	if _, err := os.Stat(filepath.Join(base, "gone")); err == nil {
+		t.Error("the missing parent was created along the way")
+	}
+}
+
+func TestAFolderThatMayNotBeWrittenToSaysSo(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a read-only mode does not stop creating folders on Windows")
+	}
+	if os.Geteuid() == 0 {
+		t.Skip("root creates folders whatever the mode says")
+	}
+	locked := filepath.Join(t.TempDir(), "locked")
+	if err := os.Mkdir(locked, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
+	_, srv := foldersServer(t)
+
+	code, out := postFolder(t, srv, locked, "new")
+	if code != http.StatusForbidden || out["code"] != "denied" {
+		t.Errorf("creating in a read-only folder answered %d %v, want 403 denied", code, out)
+	}
+	if !strings.Contains(out["error"], locked) {
+		t.Errorf("the refusal %q does not name the folder", out["error"])
+	}
+}
+
+func TestCreatingAFolderNeedsASessionAndStaysOnThisMachine(t *testing.T) {
+	reg := newRegistry()
+	registerFolders(reg, testApp(t))
+	if reg.open("/api/folders") {
+		t.Error("the folder routes answer without a session")
+	}
+	if relayForwardable(http.MethodPost, "/api/folders") {
+		t.Error("POST /api/folders is forwardable to a peer, where it would create folders on the peer's disk")
+	}
+}

@@ -35,6 +35,7 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { fmtDate } from '../lib/format';
+import { resolverLabel } from '../lib/resolverLabels';
 import {
   Button,
   Card,
@@ -42,6 +43,7 @@ import {
   ErrorCard,
   Field,
   InfoBubble,
+  LinkBadge,
   LoadingCard,
   Modal,
   PageHeader,
@@ -51,6 +53,7 @@ import {
   Toggle,
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
+import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import {
   ConfirmRemoveLogin,
   HosterLoginDialog,
@@ -60,6 +63,7 @@ import {
 } from '../components/HosterLoginSection';
 import {
   IconAccounts,
+  IconChevronStart,
   IconClose,
   IconGrip,
   IconExternalLink,
@@ -570,13 +574,14 @@ function CredentialDialog({
       ) : (
         <div className="flex flex-col gap-4">
           {mode === 'new' && (
-            <button
-              type="button"
+            <Button
+              kind="secondary"
+              labelled
+              icon={<IconChevronStart className="rtl:-scale-x-100" />}
+              title={t('accounts.changeAccount')}
               onClick={() => setPicked(null)}
-              className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
-            >
-              {t('accounts.changeAccount')}
-            </button>
+              className="self-start"
+            />
           )}
 
           {fromEnv ? (
@@ -622,14 +627,7 @@ function CredentialDialog({
               )}
 
               {picked.whereUrl && (
-                <a
-                  href={picked.whereUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
-                >
-                  {t('accounts.whereToFind')}
-                </a>
+                <LinkBadge href={picked.whereUrl} title={t('accounts.whereToFind')} className="self-start" />
               )}
 
               {verifyResult && (
@@ -711,19 +709,6 @@ function ServicePicker({
 // an account: the order belongs to the registry (internal/resolver), and the
 // sidecar is configured by KL_JD without a credential.
 
-/** Locale keys for resolvers whose label is a descriptive phrase. */
-const RESOLVER_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
-  direct: 'accounts.routing.resolver.direct',
-  http: 'accounts.routing.resolver.http',
-  torrent: 'accounts.routing.resolver.torrent',
-};
-
-/** Resolvers named after a product, which stay untranslated. */
-const RESOLVER_PROPER_NAMES: Record<string, string> = {
-  ytdlp: 'yt-dlp',
-  jd: 'JDownloader',
-};
-
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
 
@@ -757,10 +742,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   const byId = new Map(catalogue.map((s) => [s.id, s]));
   const labelFor = (id: string) => {
     if (id.startsWith(LOGIN_ROW)) return id.slice(LOGIN_ROW.length);
-    const known = byId.get(id)?.label ?? RESOLVER_PROPER_NAMES[id];
-    if (known) return known;
-    const key = RESOLVER_LABEL_KEYS[id];
-    return key ? t(key) : id;
+    return byId.get(id)?.label ?? resolverLabel(id, t);
   };
 
   return (
@@ -858,30 +840,42 @@ function PriorityLadder({
   const { t } = useT();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  /** The arrangement shown while a drag is in flight; null at rest. */
-  const [live, setLive] = useState<string[] | null>(null);
-  const [dragId, setDragId] = useState<string | null>(null);
+  // The order a save is writing, drawn until the server answers, so a dropped
+  // row does not jump back to its old place and then forward again.
+  const [pending, setPending] = useState<string[] | null>(null);
   const list = useRef<HTMLOListElement>(null);
-
-  const order = live ?? rows.map((r) => r.id);
-  const byId = new Map(rows.map((r) => [r.id, r] as const));
-  const shown = order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
 
   async function store(next: string[]) {
     setBusy(true);
+    if (next.length > 0) setPending(next);
     try {
       onSaved(await saveResolverPriority(next));
     } catch (e) {
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
     } finally {
       setBusy(false);
-      setLive(null);
+      setPending(null);
     }
   }
 
+  // Only the grip starts a drag, so a mouse arms it by moving; the rows are
+  // measured one by one, since a login row is taller than a service row.
+  const drag = useReorder({
+    ids: pending ?? rows.map((r) => r.id),
+    container: list,
+    attr: 'data-ladder-id',
+    axis: 'y',
+    arm: 'move',
+    enabled: !busy,
+    onReorder: (next) => void store(next),
+  });
+
+  const byId = new Map(rows.map((r) => [r.id, r] as const));
+  const shown = drag.order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
+
   /** moved moves `id` to position `to`, clamped, and returns the new order or null. */
   function moved(id: string, to: number): string[] | null {
-    const ids = [...order];
+    const ids = [...drag.order];
     const from = ids.indexOf(id);
     if (from < 0) return null;
     const at = Math.max(0, Math.min(ids.length - 1, to));
@@ -893,83 +887,38 @@ function PriorityLadder({
 
   return (
     <div className="flex flex-col gap-3">
-      <ol ref={list} className="flex flex-col gap-1.5">
-        {shown.map((r, i) => (
-          <li
-            key={r.id}
-            className={`flex items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm text-carbon-textSub transition-colors ${
-              dragId === r.id ? 'bg-carbon-surface2' : ''
-            }`}
-          >
-            {/* Only the grip starts a drag. Pointer events rather than HTML5
-                drag, so the list follows every move and works under a finger;
-                a real button, so the arrow keys move the row. */}
-            <LadderGrip
-              label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-              disabled={busy}
-              onKeyDown={(e) => {
-                if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                e.preventDefault();
-                const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
-                if (next) void store(next);
-              }}
-              onPointerDown={(e) => {
-                if (busy || e.button !== 0) return;
-                e.preventDefault();
-                // The row geometry is read before the first move, since the live
-                // layout soon shows the preview.
-                const items = [...(list.current?.children ?? [])] as HTMLElement[];
-                if (items.length < 2) return;
-                const first = items[0].getBoundingClientRect();
-                const second = items[1].getBoundingClientRect();
-                const top = first.top;
-                const height = second.top - first.top;
-                if (height <= 0) return;
-
-                // Listeners on the document without setPointerCapture, which
-                // raised a spurious pointercancel in Chromium (see Tabs.tsx).
-                // The arrangement lives here, not in state, so no re-render
-                // hands a move a stale copy.
-                let arrangement = order;
-                setDragId(r.id);
-                setLive(order);
-
-                const onMove = (ev: PointerEvent) => {
-                  const to = Math.round((ev.clientY - top) / height);
-                  const ids = [...arrangement];
-                  const from = ids.indexOf(r.id);
-                  const at = Math.max(0, Math.min(ids.length - 1, to));
-                  if (from < 0 || at === from) return;
-                  ids.splice(from, 1);
-                  ids.splice(at, 0, r.id);
-                  arrangement = ids;
-                  setLive(ids);
-                };
-                const done = () => {
-                  document.removeEventListener('pointermove', onMove);
-                  document.removeEventListener('pointerup', done);
-                  document.removeEventListener('pointercancel', cancel);
-                  setDragId(null);
-                  // A press without movement is a click, not a reorder.
-                  if (arrangement.join() !== rows.map((x) => x.id).join()) void store(arrangement);
-                  else setLive(null);
-                };
-                const cancel = () => {
-                  document.removeEventListener('pointermove', onMove);
-                  document.removeEventListener('pointerup', done);
-                  document.removeEventListener('pointercancel', cancel);
-                  setDragId(null);
-                  setLive(null);
-                };
-                document.addEventListener('pointermove', onMove);
-                document.addEventListener('pointerup', done);
-                document.addEventListener('pointercancel', cancel);
-              }}
-            />
-            <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-            <LadderName id={r.id} label={labelFor(r.id)} />
-          </li>
-        ))}
+      {/* The list is the rows' offsetParent, the layout a drag measures in. */}
+      <ol ref={list} className="relative flex flex-col gap-1.5">
+        {shown.map((r, i) => {
+          const look = drag.look(r.id);
+          const carried = look === LIFT || look === SETTLE;
+          const wiggling = drag.held !== null && drag.held !== r.id;
+          return (
+            <li
+              key={r.id}
+              data-ladder-id={r.id}
+              // A carried row floats over the others, so it takes a ground of
+              // its own. select-none keeps a drag from selecting the names.
+              className={`flex select-none items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm
+                text-carbon-textSub ${carried ? 'bg-carbon-surface2' : ''} ${wiggling ? 'glim-tab-wiggle' : ''} ${look}`}
+            >
+              {/* A real button, so the arrow keys move the row. */}
+              <LadderGrip
+                label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
+                disabled={busy}
+                onKeyDown={(e) => {
+                  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                  e.preventDefault();
+                  const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
+                  if (next) void store(next);
+                }}
+                onPointerDown={(e) => drag.press(e, r.id)}
+              />
+              <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
+              <LadderName id={r.id} label={labelFor(r.id)} />
+            </li>
+          );
+        })}
       </ol>
       <div className="flex items-center gap-2">
         <Button

@@ -28,10 +28,11 @@ import { RetryNote, retryPending } from './RetryCountdown';
 import { useTooltip } from './ui';
 import {
   NO_PRESET_MENUS,
-  VariantPicker,
+  VariantDropdown,
   audioPickers,
   audioSummary,
   presetMenusOf,
+  probedFormats,
   videoPickers,
   videoSummary,
   type PickerProps,
@@ -327,12 +328,12 @@ export function EnabledSwitch({
           on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
         } ${shake > 0 ? 'glim-shake' : ''}`}
       >
-        {/* left-0 is load-bearing: without it the knob starts from its static
+        {/* start-0 is load-bearing: without it the knob starts from its static
             position, which the button's inherited text-align centres, and the
             knob then slides out past the track. */}
         <span
-          className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
-            on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-carbon-textMuted'
+          className={`absolute start-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+            on ? 'translate-x-4 rtl:-translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 rtl:-translate-x-0.5 bg-carbon-textMuted'
           }`}
         />
       </button>
@@ -1128,10 +1129,10 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   // resolves later.
   let pair: [PickerProps, PickerProps | null] | null = null;
   if (kind === 'video') {
-    const probed = (task.availableVideoFormats?.length ?? 0) > 0;
+    const probed = probedFormats(task.availableVideoFormats);
     const p = videoPickers({
       pick: sub,
-      formats: probed ? task.availableVideoFormats! : menus.videoFormats,
+      formats: probed ?? menus.videoFormats,
       tracks: probed ? (task.availableVideoTracks ?? []) : null,
       caps: task.availableQualities?.length ? task.availableQualities : menus.qualities,
       t: ctx.t,
@@ -1139,11 +1140,11 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     });
     pair = [p.format, p.quality];
   } else if (kind === 'audio') {
-    const probed = (task.availableAudioFormats?.length ?? 0) > 0;
+    const probed = probedFormats(task.availableAudioFormats);
     const p = audioPickers({
       pick: sub,
       bitrate: task.audioBitrate ?? '',
-      formats: probed ? task.availableAudioFormats! : menus.audioFormats,
+      formats: probed ?? menus.audioFormats,
       tracks: probed ? (task.availableAudioTracks ?? []) : null,
       conversions: task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates,
       t: ctx.t,
@@ -1158,8 +1159,8 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     // of two boxes with one letter in each, which is not.
     <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
-      {pair && <VariantPicker {...pair[0]} disabled={busy} shake={shakeFirst} />}
-      {pair?.[1] && <VariantPicker {...pair[1]} disabled={busy} shake={shakeSecond} />}
+      {pair && <VariantDropdown picker={pair[0]} disabled={busy} shake={shakeFirst} />}
+      {pair?.[1] && <VariantDropdown picker={pair[1]} disabled={busy} shake={shakeSecond} />}
     </span>
   );
 }
@@ -1416,17 +1417,17 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'variant',
     labelKey: 'columns.variant',
-    // Sized for the row every yt-dlp package has, not for the one row in five
-    // that carries the most. Measured in all 42 locales, four of the five kinds
-    // fit in 90px and only the audio row, with its second picker, wants 216.
-    // 144 carries the video row in every language (143 at most, Lithuanian)
-    // and lets the audio row wrap, which it can since the pickers are shrink-0
-    // and the cell flex-wrap.
+    // Sized for the row every yt-dlp package has, the video row with its
+    // format and quality pickers. 229 carries it on one line in English and
+    // German, the widest pick included; in a language with a longer word for
+    // Auto (287 in Lithuanian) the quality picker wraps, which it can since the
+    // pickers are shrink-0 and the cell flex-wrap. Measurements are in
+    // check-column-widths.mjs.
     //
     // minWidth is about the widest single control, because a picker cannot
     // shrink and the cell clips rather than squeezes it: the widest measured is
-    // Finnish "Automaattinen" at 107px, 123px with the padding.
-    width: 144,
+    // Finnish "Automaattinen", 130px with the padding.
+    width: 229,
     minWidth: 132,
     align: 'start',
     hideable: true,

@@ -95,6 +95,14 @@ var jdKindByClass = map[string]Kind{
 	"HCaptchaChallenge":           KindWidget,
 }
 
+// jdWidgetVendorByClass names the vendor behind each KindWidget class. JD's
+// rawtoken payload has the same fields for both, so the class is the only
+// place the vendor shows.
+var jdWidgetVendorByClass = map[string]string{
+	"RecaptchaV2Challenge": VendorRecaptcha,
+	"HCaptchaChallenge":    VendorHCaptcha,
+}
+
 // classify turns one JD challenge class name into a Kind, defaulting to
 // KindUnsupported for anything jdKindByClass does not list.
 func classify(challengeType string) Kind {
@@ -394,6 +402,8 @@ func (s *JDSource) List(ctx context.Context) ([]Challenge, error) {
 // build turns one jdCaptchaJob into a Challenge, fetching whatever payload
 // its Kind needs.
 func (s *JDSource) build(ctx context.Context, c jdCaptchaAPI, job jdCaptchaJob) (Challenge, error) {
+	// ChallengeType first: JD rewrites Type to RecaptchaV2Challenge for an
+	// hCaptcha when it believes MyJDownloader's web interface is asking.
 	className := job.ChallengeType
 	if className == "" {
 		className = job.Type
@@ -431,6 +441,7 @@ func (s *JDSource) build(ctx context.Context, c jdCaptchaAPI, job jdCaptchaJob) 
 			return Challenge{}, err
 		}
 		ch.Payload = &WidgetPayload{
+			Vendor:      jdWidgetVendorByClass[className],
 			SiteKey:     tok.SiteKey,
 			SiteURL:     tok.SiteURL,
 			ContextURL:  tok.ContextURL,

@@ -4,6 +4,9 @@ package app
 // "add a login" picker offers.
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -43,7 +46,7 @@ func TestDebridServicesAreFilteredDespiteWWW(t *testing.T) {
 func TestMultihosterListStillMatchesJD(t *testing.T) {
 	// Names as JD's listPremiumHoster returns them, plus two ordinary hosts.
 	fromJD := []string{
-		"mega-debrid.eu", "zevera.com", "put.io", "simply-debrid.com", "deepbrid.com",
+		"mega-debrid.eu", "zevera.com", "leechall.io", "simply-debrid.com", "deepbrid.com",
 		"ddownload.com", "rapidgator.net",
 	}
 	if got := multihosterCount(fromJD); got != 5 {
@@ -78,10 +81,37 @@ func TestAMultihosterLoginIsMarkedAsOne(t *testing.T) {
 	}
 }
 
-func TestClosedMultihostersAreNotOffered(t *testing.T) {
-	for _, host := range []string{"debridplanet.com", "www.simply-debrid.com"} {
-		if !closedMultihosters[serviceKey(host)] {
-			t.Errorf("%s is offered although the service is closed", host)
+// The picker takes JD's list, leaves out the multihosters that have closed and
+// offers put.io, a storage service with its own files, as an ordinary hoster.
+func TestHosterPickerLeavesOutClosedMultihosters(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/accounts/listPremiumHoster" {
+			_, _ = w.Write([]byte(`{"data":["dailyleech.com","www.multivip.net","debridplanet.com",` +
+				`"simply-debrid.com","put.io","leechall.io","ddownload.com"]}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"data":null}`))
+	}))
+	defer srv.Close()
+	t.Setenv("KL_JD", srv.URL)
+	a := newQueueApp(t)
+
+	offered := map[string]bool{}
+	for _, h := range a.HosterHosts(context.Background()) {
+		offered[h.ID] = h.Multihoster
+	}
+	for _, closed := range []string{"dailyleech.com", "www.multivip.net", "debridplanet.com", "simply-debrid.com"} {
+		if _, ok := offered[closed]; ok {
+			t.Errorf("%s is offered although the service is closed", closed)
+		}
+	}
+	want := map[string]bool{"put.io": false, "leechall.io": true, "ddownload.com": false}
+	for host, multi := range want {
+		got, ok := offered[host]
+		if !ok {
+			t.Errorf("%s is missing from the picker", host)
+		} else if got != multi {
+			t.Errorf("%s multihoster = %v, want %v", host, got, multi)
 		}
 	}
 }

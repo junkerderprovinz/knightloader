@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
-import { navBase, navHued, navInactive, NavLabel } from './Sidebar';
+import { BarBody, barIdle, barSegment, navBase, navHued, navInactive, NavLabel } from './Sidebar';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
@@ -65,6 +65,21 @@ function placePanel(r: DOMRect, w: number, rtl: boolean): { left: number; bottom
 }
 
 /**
+ * placeAbove stands the panel on the phone's bottom bar, centred on the bell as
+ * far as the window allows.
+ */
+function placeAbove(r: DOMRect, w: number): { left: number; bottom: number; maxHeight: number } {
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const vh = document.documentElement.clientHeight || window.innerHeight;
+  const bottom = vh - r.top + MARGIN;
+  return {
+    left: Math.max(MARGIN, Math.min(vw - MARGIN - w, r.left + r.width / 2 - w / 2)),
+    bottom,
+    maxHeight: vh - bottom - MARGIN,
+  };
+}
+
+/**
  * EventRow is one line of the log. The tone colours only the dot, so a failure
  * stands out among hundreds of rows. A row is a button only when its event has
  * a target to jump to.
@@ -107,11 +122,11 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
 }
 
 /**
- * EventBell is the sidebar row that opens the event panel. It takes a rail
- * `hue` like every other row; the caller counts it so a hidden row leaves no
- * gap in the sequence.
+ * EventBell is the sidebar row that opens the event panel, or with `bar` the
+ * phone bar's segment. It takes a rail `hue` like every other row; the caller
+ * counts it so a hidden row leaves no gap in the sequence.
  */
-export function EventBell({ hue }: { hue: number }) {
+export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -169,7 +184,9 @@ export function EventBell({ hue }: { hue: number }) {
       const row = wrapRef.current;
       const panel = panelRef.current;
       if (!row || !panel) return;
-      setPos(placePanel(row.getBoundingClientRect(), panel.offsetWidth, getComputedStyle(row).direction === 'rtl'));
+      const r = row.getBoundingClientRect();
+      const w = panel.offsetWidth;
+      setPos(bar ? placeAbove(r, w) : placePanel(r, w, getComputedStyle(row).direction === 'rtl'));
     };
     place();
     window.addEventListener('resize', place);
@@ -177,7 +194,7 @@ export function EventBell({ hue }: { hue: number }) {
       window.removeEventListener('resize', place);
       setPos(null);
     };
-  }, [open]);
+  }, [open, bar]);
 
   const counts = useMemo(() => {
     const m = new Map<EventFamily, number>();
@@ -231,36 +248,48 @@ export function EventBell({ hue }: { hue: number }) {
   // In the button's name rather than an aria-live region, which would announce
   // every event a third time.
   const spoken = unread > 0 ? `${name} (${t('events.unread', { n: unread })})` : t('events.open');
-  // No tooltip in hover mode, where the row reveals its own label.
-  const tip = useTooltip<HTMLButtonElement>(mode === 'hover' ? undefined : spoken);
+  // No tooltip on the rail in hover mode, where the row reveals its own label;
+  // the bar has no such reveal.
+  const tipped = bar || mode !== 'hover';
+  const tip = useTooltip<HTMLButtonElement>(tipped ? spoken : undefined);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   return (
-    <div ref={wrapRef}>
+    <div ref={wrapRef} className={bar ? 'flex min-w-0 flex-1' : undefined}>
       <button
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={centred || unread > 0 ? spoken : undefined}
-        {...(mode === 'hover' ? {} : tipHoverProps)}
+        {...(tipped ? tipHoverProps : {})}
         onClick={() => setEventsPanelOpen(!open)}
         // Not an Item, since it navigates nowhere. text-start because a
         // <button> centres its text where an <a> does not.
-        className={`${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`}
+        className={
+          bar
+            ? `${navHued} ${barSegment} ${barIdle}`
+            : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
+        }
         style={hueVars(rainbowAt(hue)) as CSSProperties}
       >
-        {mode !== 'text' && <IconBell />}
-        <NavLabel label={name} mode={mode} />
-        {/* Sidebar Item's badge, pinned to the corner in the centred modes so
-            the glyph stays centred. */}
-        {unread > 0 && (
-          <span
-            className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px]
-              font-semibold leading-none text-carbon-textSub
-              ${centred ? 'absolute end-1 top-1' : ''}`}
-          >
-            {unread > 99 ? '99+' : unread}
-          </span>
+        {bar ? (
+          <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />
+        ) : (
+          <>
+            {mode !== 'text' && <IconBell />}
+            <NavLabel label={name} mode={mode} />
+            {/* Sidebar Item's badge, pinned to the corner in the centred modes so
+                the glyph stays centred. */}
+            {unread > 0 && (
+              <span
+                className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px]
+                  font-semibold leading-none text-carbon-textSub
+                  ${centred ? 'absolute end-1 top-1' : ''}`}
+              >
+                {unread > 99 ? '99+' : unread}
+              </span>
+            )}
+          </>
         )}
       </button>
       {tip.node}

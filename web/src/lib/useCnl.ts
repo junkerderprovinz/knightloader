@@ -5,8 +5,8 @@ import { connectWS } from './api';
 /**
  * useCnl is the Click'n'Load listener's state for the collector's switch.
  * It fetches on its own, because FeatureCtx only exists inside the settings
- * shell. `row` is null while loading and where the server has no such module
- * (the desktop build, an older instance); callers then render nothing.
+ * shell. `row` is null while loading and where the server has no such module,
+ * such as an older instance; callers then render nothing.
  */
 export function useCnl(): {
   row: Feature | null;

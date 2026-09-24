@@ -68,8 +68,12 @@ export function Dashboard() {
       >
         <div>
           <div className="glim-eyebrow">{t('overview.totalSpeed')}</div>
+          {/* The figure keeps its own order in a right-to-left page, where a
+              number followed by a Latin unit would otherwise read unit first;
+              the inner span isolates it and the line still starts at the start
+              edge. */}
           <div className="glim-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
-            {fmtSpeed(counts.speed) || '0 B/s'}
+            <span dir="ltr">{fmtSpeed(counts.speed) || '0 B/s'}</span>
           </div>
           <div className="mt-4">
             <Counters counts={counts} />
@@ -101,7 +105,9 @@ export function Dashboard() {
                       />
                     </div>
                   </div>
-                  <span className="glim-num text-xs text-carbon-textSub">{fmtBytes(x.size)}</span>
+                  <span className="glim-num text-xs text-carbon-textSub" dir="ltr">
+                    {fmtBytes(x.size)}
+                  </span>
                   <StatusPill status={x.status} />
                 </div>
               ))}

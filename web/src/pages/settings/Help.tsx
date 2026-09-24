@@ -50,7 +50,7 @@ function Topic({
 
 function Bullets({ items }: { items: string[] }) {
   return (
-    <ul className="flex flex-col gap-1.5 pl-4">
+    <ul className="flex flex-col gap-1.5 ps-4">
       {items.map((it, i) => (
         <li key={i} className="list-disc marker:text-carbon-textMuted">
           {it}

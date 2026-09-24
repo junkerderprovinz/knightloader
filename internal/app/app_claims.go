@@ -38,7 +38,9 @@ func (c *hostClaims) set(hosters, media map[string]bool) {
 // fileHoster reports whether host is a file hoster: one JD fetches ahead of a
 // plain GET (jd.FileHoster), one on the curated list, or one a debrid service
 // or TorBox lists. These are the hosts the automatic order already gives to a
-// hoster backend before the direct download.
+// hoster backend before the direct download. The first two know a hoster by any
+// of its domains (internal/hostalias); the debrid lists name the aliases
+// themselves.
 func (c *hostClaims) fileHoster(host string) bool {
 	if jd.FileHoster(host) || hosterauth.Curated(host) {
 		return true

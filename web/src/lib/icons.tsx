@@ -187,6 +187,16 @@ export const IconFolderOpen = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconFolderPlus = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.5 6.5A1.5 1.5 0 0 1 4 5h3.2l1.4 1.8H16a1.5 1.5 0 0 1 1.5 1.5v6.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5zM9 8.3h2v2h2v2h-2v2H9v-2H7v-2h2z"
+    />
+  </svg>
+);
+
 export const IconArrowUp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M8.5 17.5v-7.5H4l6-6 6 6h-4.5v7.5z" />
@@ -546,6 +556,13 @@ export const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
 export const IconChevronEnd = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M13.4 10 7 16.4l-1.7-1.7L10 10 5.3 5.3 7 3.6 13.4 10Z" />
+  </svg>
+);
+
+/** Back to the previous step. Points left; mirror it with rtl:-scale-x-100. */
+export const IconChevronStart = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6.6 10 13 3.6l1.7 1.7L10 10l4.7 4.7-1.7 1.7L6.6 10Z" />
   </svg>
 );
 

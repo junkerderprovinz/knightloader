@@ -127,6 +127,18 @@
   height: var(--btn-h-key);
 }
 
+/* What the phone's bottom bar takes from the foot of the window: the bar's 3rem
+   and the frame's 1rem under it. A toast or banner pinned to the foot stands
+   this much higher. The width is lib/phoneLayout.ts's. */
+:root {
+  --phone-bar-space: 0px;
+}
+@media (max-width: 767.98px) {
+  :root {
+    --phone-bar-space: 4rem;
+  }
+}
+
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -563,6 +575,29 @@ body {
   pointer-events: none;
 }
 
+/* A carried list row (TaskList.tsx) floats over the rows it passes, so it
+   paints the card's ground under its see-through mark. In rainbow mode the
+   wash and the mark are inset shadows, which would take the lift's shadow's
+   place, so the lift's shadow is listed beside them. */
+[data-row-kind='task'].glim-drag-lift,
+[data-row-kind='task'].glim-drag-settle {
+  background-color: var(--carbon-surface);
+}
+.glim-row-selected.glim-drag-lift,
+.glim-row-selected.glim-drag-settle {
+  background-color: color-mix(in oklab, var(--accent-fixed) 22%, var(--carbon-surface));
+}
+[data-rainbow] .glim-tint.glim-drag-lift.glim-drag-lift,
+[data-rainbow] .glim-tint.glim-drag-lift.glim-drag-lift:hover {
+  box-shadow: var(--drag-lift-shadow);
+}
+[data-rainbow] .glim-tint.glim-active.glim-drag-lift.glim-drag-lift {
+  box-shadow: inset 0 0 0 999px var(--item-hue-soft), var(--drag-lift-shadow);
+}
+[data-rainbow] .glim-tint.glim-row-selected.glim-drag-lift.glim-drag-lift {
+  box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent), var(--drag-lift-shadow);
+}
+
 /* The keyboard-focused list row (components/listKeyboard.ts). The rows sit in
    clipping containers, so the ring is drawn inside the row instead of 2px
    outside it. */
@@ -680,12 +715,13 @@ body {
   margin-top: 0.75rem;
 }
 
-/* Long-press-to-wiggle reorder (Tabs.tsx, `reorderable`), named after
-   CannonadeCommand's nav rail so the gesture is the same across the house.
-   Every tab but the held one wiggles. 0.7deg matches the phone
-   (mobile/src/components/DragList.tsx). The angles are fractions of one token
-   so the asymmetric swing survives a change of amplitude. The animation itself
-   is in the motion engine's gate below, so the Motion setting reaches it. */
+/* Long-press-to-wiggle reorder (components/dragLift.ts: the settings rail and
+   the priority card), named after CannonadeCommand's nav rail so the gesture
+   is the same across the house. Every item but the held one wiggles. 0.7deg
+   matches the phone (mobile/src/components/DragList.tsx). The angles are
+   fractions of one token so the asymmetric swing survives a change of
+   amplitude. The animation itself is in the motion engine's gate below, so the
+   Motion setting reaches it. */
 @keyframes glim-tab-wiggle {
   0%   { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
   25%  { transform: rotate(calc(.875 * var(--motion-wiggle-deg))) translateY(-0.5px); }
@@ -712,7 +748,8 @@ body {
 
    The lift is a state rather than motion, so its shadow and the gap stay at
    every level; reduced motion and "off" drop only the scale, and the slide
-   durations fall to zero with the motion tokens they read. */
+   durations fall to zero with the motion tokens they read. Storm outranks an
+   OS request for reduced motion, the scale included. */
 :root {
   --drag-lift-scale: 1.03;
   /* The card elevation alone barely shows under something one row tall. */
@@ -722,7 +759,7 @@ body {
   --drag-settle-ease: var(--motion-page-ease, ease);
 }
 @media (prefers-reduced-motion: reduce) {
-  :root { --drag-lift-scale: 1; }
+  :root:not([data-motion="storm"]) { --drag-lift-scale: 1; }
 }
 :root[data-motion="off"] { --drag-lift-scale: 1; }
 
@@ -806,8 +843,8 @@ body {
 }
 
 @keyframes glim-indeterminate {
-  0%   { left: -35%; }
-  100% { left: 100%; }
+  0%   { inset-inline-start: -35%; }
+  100% { inset-inline-start: 100%; }
 }
 /* Translation only. The route wrapper plays this while the cards inside it
    animate their own transforms, and a scale on an ancestor makes the engine

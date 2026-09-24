@@ -69,7 +69,7 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	addAtTop := cfg.AddAtTop
 	// The timetable's answer without the manual switch, which tells a halt the
 	// user set from a configured window.
-	scheduledPause := schedule.Compile(cfg.Schedule).At(time.Now(), schedule.State{Limit: cfg.SpeedLimit}).Paused
+	scheduledPause := a.sched.Suspension().At(schedule.Compile(cfg.Schedule), time.Now(), schedule.State{Limit: cfg.SpeedLimit}).Paused
 	var out StartResult
 	a.mu.Lock()
 	var toStart []*core.Task
@@ -1166,6 +1166,11 @@ type ScheduleState struct {
 	// Next is when the answer changes, so a UI can say "throttled until
 	// 06:00"; nil when it never changes, as with an empty timetable.
 	Next *time.Time `json:"next"`
+	// Suspended says the timetable is set aside (SuspendSchedule), and
+	// SuspendedUntil when it applies again by itself; nil while it waits to be
+	// lifted by hand.
+	Suspended      bool       `json:"suspended"`
+	SuspendedUntil *time.Time `json:"suspendedUntil,omitempty"`
 }
 
 // ScheduleState reports the timetable and the state it currently implies. The
@@ -1176,9 +1181,17 @@ func (a *App) ScheduleState() ScheduleState {
 	s := schedule.Compile(entries)
 	base := a.scheduleBase()
 	now := time.Now()
-	out := ScheduleState{Entries: entries, State: s.At(now, base)}
-	if n, ok := s.Next(now, base); ok {
+	sp := a.sched.Suspension()
+	out := ScheduleState{Entries: entries, State: sp.At(s, now, base)}
+	if n, ok := sp.Next(s, now, base); ok {
 		out.Next = &n
+	}
+	if sp.Covers(now) {
+		out.Suspended = true
+		if !sp.Until.IsZero() {
+			until := sp.Until
+			out.SuspendedUntil = &until
+		}
 	}
 	if out.Entries == nil {
 		out.Entries = []schedule.Entry{}

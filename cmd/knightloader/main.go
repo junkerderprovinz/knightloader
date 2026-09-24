@@ -14,7 +14,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
-	"sync"
 	"syscall"
 	"time"
 
@@ -116,62 +115,8 @@ func main() {
 	a.StartHosterAuth()
 	a.StartAccountHealthNow()
 
-	// KL_CNL=0 disables the listener at boot, any other value overrides the
-	// port. A taken port (a running JD, say) leaves Click'n'Load unavailable
-	// but is not fatal. The settings switch can start and stop it at runtime,
-	// and turning it on after KL_CNL=0 falls back to 9666.
-	cnlPort := envInt("KL_CNL", 9666)
-	bindPort := cnlPort
-	if bindPort <= 0 {
-		bindPort = 9666
-	}
-	var cnlMu sync.Mutex
-	var cnlServer *cnl.Server
-	startCnL := func() error {
-		cnlMu.Lock()
-		defer cnlMu.Unlock()
-		if cnlServer != nil {
-			return nil
-		}
-		c := cnl.New(a)
-		if err := c.Start(bindPort); err != nil {
-			return err
-		}
-		cnlServer = c
-		return nil
-	}
-	stopCnL := func() {
-		cnlMu.Lock()
-		defer cnlMu.Unlock()
-		if cnlServer == nil {
-			return
-		}
-		cnlServer.Close()
-		cnlServer = nil
-	}
-	if cnlPort > 0 {
-		if err := startCnL(); err != nil {
-			log.Printf("Click'n'Load not available on :%d (%v)", cnlPort, err)
-		} else {
-			log.Printf("Click'n'Load listening on 127.0.0.1:%d", cnlPort)
-		}
-	}
-	defer stopCnL()
-	a.CnLPort = func() int {
-		cnlMu.Lock()
-		defer cnlMu.Unlock()
-		if cnlServer == nil {
-			return 0
-		}
-		return bindPort
-	}
-	a.CnLToggle = func(on bool) error {
-		if on {
-			return startCnL()
-		}
-		stopCnL()
-		return nil
-	}
+	a.CnL = cnl.Listen(a)
+	defer a.CnL.Stop()
 
 	// Buffered by one and sent without blocking, so a double-clicked quit does
 	// not stall the second caller; one pending shutdown is as good as two.

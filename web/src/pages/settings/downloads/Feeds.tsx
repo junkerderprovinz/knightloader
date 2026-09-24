@@ -375,7 +375,7 @@ function FeedRow({
           type="button"
           onClick={onToggle}
           aria-expanded={open}
-          className="flex min-w-0 items-center gap-3 text-left"
+          className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           {/* Truncated, with the whole address in the tooltip. */}

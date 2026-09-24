@@ -28,6 +28,7 @@ import { RATE_UNITS, fmtRateValue, joinRate, splitRate, type RateUnit } from '..
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
+import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
 import { NeutralSwitch } from './controls';
 
 /**
@@ -70,6 +71,24 @@ interface ScheduleState {
   entries: ScheduleEntry[];
   state: ScheduleStateValue;
   next: string | null;
+  suspended: boolean;
+  suspendedUntil?: string;
+}
+
+/**
+ * What the status card shows, polled apart from the rows being edited.
+ * `schedules` counts the saved rows, not the ones on screen.
+ */
+type Live = Pick<ScheduleState, 'state' | 'next' | 'suspended' | 'suspendedUntil'> & { schedules: number };
+
+function liveOf(s: ScheduleState): Live {
+  return {
+    state: s.state,
+    next: s.next,
+    suspended: s.suspended,
+    suspendedUntil: s.suspendedUntil,
+    schedules: s.entries.length,
+  };
 }
 
 interface ScheduleRowError {
@@ -282,14 +301,14 @@ export function ScheduleCards({ hue }: { hue: number }) {
 
   // Polled on its own and never written into `rows`, so a poll cannot discard
   // unsaved edits.
-  const [live, setLive] = useState<Pick<ScheduleState, 'state' | 'next'> | null>(null);
+  const [live, setLive] = useState<Live | null>(null);
   useEffect(() => {
-    if (loaded) setLive({ state: loaded.state, next: loaded.next });
+    if (loaded) setLive(liveOf(loaded));
   }, [loaded]);
   useEffect(() => {
     const iv = setInterval(() => {
       fetchSchedule()
-        .then((s) => setLive({ state: s.state, next: s.next }))
+        .then((s) => setLive(liveOf(s)))
         .catch(() => {
           /* The banner keeps its last answer through a failed poll. */
         });
@@ -373,7 +392,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
         taken = true;
         refused.current = null;
         setLoaded(result.state);
-        setLive({ state: result.state.state, next: result.state.next });
+        setLive(liveOf(result.state));
         toast(t('settings.saved'), 'ok');
         return;
       }
@@ -427,7 +446,21 @@ export function ScheduleCards({ hue }: { hue: number }) {
 
   return (
     <>
-      <StateBanner hue={hue} live={live} locale={locale} />
+      <StateBanner
+        hue={hue}
+        live={live}
+        locale={locale}
+        // The suspend routes answer with the suspension; the card's sentences
+        // come from the full state, read again.
+        onSuspension={() =>
+          void fetchSchedule().then(
+            (s) => setLive(liveOf(s)),
+            () => {
+              /* the next poll catches up */
+            },
+          )
+        }
+      />
 
       <Card hue={hue + 1} className="flex flex-col gap-4">
         <SectionTitle
@@ -487,37 +520,58 @@ function ErrorState({ message, retry, retryLabel }: { message: string; retry: ()
   );
 }
 
-/** StateBanner shows the server's current state and next change, never recomputed here. */
+/**
+ * StateBanner shows the server's current state and next change, never
+ * recomputed here, and the dropdown that sets every schedule aside for a while.
+ */
 function StateBanner({
   hue,
   live,
   locale,
+  onSuspension,
 }: {
   hue: number;
-  live: Pick<ScheduleState, 'state' | 'next'> | null;
+  live: Live | null;
   locale: string;
+  onSuspension: () => void;
 }) {
   const { t } = useT();
   if (!live) return null;
-  const { state, next } = live;
-  const nowText = state.paused
-    ? t('settings.schedule.stateNow.paused')
-    : state.limit > 0
-      ? t('settings.schedule.stateNow.limited', { rate: fmtRate(state.limit) })
-      : t('settings.schedule.stateNow.running');
+  const { state, next, suspended, suspendedUntil, schedules } = live;
+  const nowText = suspended
+    ? suspendedUntil
+      ? t('settings.schedule.stateNow.suspendedUntil', { when: fmtUntil(new Date(suspendedUntil)) })
+      : t('settings.schedule.stateNow.suspendedOpen')
+    : state.paused
+      ? t('settings.schedule.stateNow.paused')
+      : state.limit > 0
+        ? t('settings.schedule.stateNow.limited', { rate: fmtRate(state.limit) })
+        : t('settings.schedule.stateNow.running');
   const changeText = next
     ? t('settings.schedule.nextChange', { when: fmtWhen(new Date(next), locale) })
     : t('settings.schedule.noNextChange');
-  const active = state.paused || state.limit > 0;
+  const active = suspended || state.paused || state.limit > 0;
   return (
-      <Card hue={hue} className="flex items-center gap-3">
-        <SectionTitle>{t('settings.schedule.statusTitle')}</SectionTitle>
-        <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
+    <Card hue={hue} className="flex flex-wrap items-center gap-x-6 gap-y-4">
+      <SectionTitle>{t('settings.schedule.statusTitle')}</SectionTitle>
+      <div className="flex min-w-0 flex-1 basis-64 items-center gap-3">
+        <span
+          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`}
+          aria-hidden
+        />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm text-carbon-text">{nowText}</span>
           <span className="text-xs text-carbon-textMuted">{changeText}</span>
         </div>
-      </Card>
+      </div>
+      <div className="w-full sm:w-64">
+        <ScheduleSuspendField
+          state={{ suspended, suspendedUntil }}
+          onState={onSuspension}
+          blocked={schedules === 0 ? t('settings.schedule.suspendNone') : undefined}
+        />
+      </div>
+    </Card>
   );
 }
 
@@ -587,7 +641,10 @@ function EntryRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own when the card is too narrow
+          for them beside the summary, so a labelled row never squeezes the
+          name and its times to nothing. */}
+      <div className="group flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch
           on={!entry.disabled}
           onChange={(v) => onChange({ disabled: !v })}
@@ -599,21 +656,27 @@ function EntryRow({
           onClick={onToggle}
           aria-expanded={open}
           aria-label={t('settings.schedule.edit')}
-          className={`flex min-w-0 items-center gap-3 text-left ${entry.disabled ? 'opacity-55' : ''}`}
+          className={`flex min-w-0 flex-1 basis-48 items-center gap-3 text-start ${entry.disabled ? 'opacity-55' : ''}`}
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="shrink-0 text-carbon-textMuted">{actionIcon(entry.action)}</span>
-          <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{description}</span>
-          <span className="hidden min-w-0 max-w-[10rem] truncate text-xs text-carbon-textMuted lg:block">
-            {preset !== 'custom' ? t(`settings.schedule.preset.${preset}`) : daysSummary(entry.days, labels)}
-          </span>
-          <span dir="ltr" className="hidden shrink-0 text-xs text-carbon-textMuted sm:block">
-            {nextText}
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="truncate text-sm text-carbon-text">{description}</span>
+            <span className="flex min-w-0 gap-3 text-xs text-carbon-textMuted">
+              <span className="min-w-0 truncate">
+                {preset !== 'custom' ? t(`settings.schedule.preset.${preset}`) : daysSummary(entry.days, labels)}
+              </span>
+              {nextText && (
+                <span dir="auto" className="min-w-0 truncate">
+                  {nextText}
+                </span>
+              )}
+            </span>
           </span>
         </button>
-        {/* `labelled`, so the actions follow the Beschriftung setting; the
-            description truncates instead. */}
-        <div className="flex items-center gap-1.5">
+        {/* `labelled`, so the actions follow the Beschriftung setting. On a
+            line of their own they wrap too, rather than run out of the card. */}
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
             icon={<IconEdit width={16} height={16} />}

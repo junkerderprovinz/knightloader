@@ -289,7 +289,7 @@ function ConnectionRow({
           onClick={onToggle}
           aria-expanded={open}
           aria-label={cx('settings.connections.edit')}
-          className="flex min-w-0 items-center gap-3 text-left"
+          className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="w-16 shrink-0 text-[11px] font-medium uppercase tracking-wide text-carbon-textSub">

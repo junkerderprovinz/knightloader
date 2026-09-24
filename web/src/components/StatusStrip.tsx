@@ -129,7 +129,7 @@ export function StatusStrip() {
   if (rows.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-5 z-30">
+    <div className="fixed top-20 end-5 z-30">
       <div role="status" aria-live="polite" className="glim-card glim-fade flex min-w-[190px] flex-col gap-2 px-3.5 py-3">
         {rows.map((s) => {
           const countdown = countdownOf(s);

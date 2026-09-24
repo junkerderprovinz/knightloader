@@ -96,7 +96,9 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
   return (
     // h-full on the Card too: the row's items-stretch only reaches the wrapper.
     <div role="group" aria-label={cx('collector.stats.label')} className="h-full">
-      <Card hue={1} className="flex h-full w-fit min-w-[13rem] flex-col gap-3">
+      {/* Fitted to its figures beside the other cards, and full width once
+          the row stacks. */}
+      <Card hue={1} className="flex h-full min-w-[13rem] flex-col gap-3 lg:w-fit">
         <SectionTitle>{cx('collector.stats.label')}</SectionTitle>
         <Tabs
           select="one"

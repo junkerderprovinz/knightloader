@@ -15,25 +15,26 @@
 // rows, Chromium at 1600x950) in all 42 shipped locales, measuring the cell's
 // content on one line plus the cell's own 16px of padding:
 //
-//   video row       max 142.9  (lt: "Vaizdo įrašas" + the 1080p picker)
-//   audio row       max 215.9  (bg) - label + format picker + bitrate picker
-//   audio, worst    max 221.7  (bg, with the widest static format id "vorbis"
-//                               and the widest bitrate label the menu can show)
-//   thumbnail       max  89.8  (he)
-//   subtitle        max  77.2  (da)
-//   description     max  80.7  (eu)
-//   widest single   max 123.4  (fi: the "Automaattinen" picker + padding) -
-//   control                     a picker cannot shrink (shrink-0), so below
+//   video row       max 287.1  (lt: "Vaizdo įrašas" and two pickers reading
+//                               "Automatinis"); 228.3 in English and German,
+//                               with "webm (vp9)" and "2160p60"
+//   audio row       max 229.7  (pl: label, format picker and bitrate picker,
+//                               with "vorbis" and the widest bitrate label)
+//   the other kinds max  86.8  (he)
+//   widest single   max 129.1  (fi: the "Automaattinen" picker and padding).
+//   control                     A picker cannot shrink (shrink-0), so below
 //                               this the cell's own overflow clips it.
 //
 // The rules that follow from them, and nothing beyond them:
 //
-//   1. variant.minWidth >= 124. The floor is the widest single control rather
+//   1. variant.minWidth >= 130. The floor is the widest single control rather
 //      than the whole row: wrapping saves a narrow column, clipping does not,
 //      and a picker is clipped rather than shrunk.
-//   2. 143 <= variant.width <= 222. The lower bound is the video row, which
-//      every yt-dlp package has exactly one of; below it the commonest picker
-//      row wraps by default. The upper bound is the widest cell this column can
+//   2. 229 <= variant.width <= 288. The lower bound is the video row, which
+//      every yt-dlp package has exactly one of, on one line in English and
+//      German. In a language with a longer word for Auto its quality picker
+//      wraps under the format picker, rather than the column growing by 60px
+//      in every language. The upper bound is the widest cell this column can
 //      ever hold in any language; above it the column is reserving room for
 //      content that does not exist.
 //   3. In each list, the name column's default is the widest default of that
@@ -91,9 +92,9 @@ function blankComments(src) {
 const text = blankComments(readFileSync(file, 'utf8'));
 
 // Measured, on the live instance, in all 42 locales. See the header.
-const WRAP_FLOOR = 124; // widest single control + the cell's padding (fi)
-const COMMON_ROW = 143; // widest one-line video row (lt)
-const WIDEST_ROW = 222; // widest one-line audio row there can be (bg)
+const WRAP_FLOOR = 130; // widest single control + the cell's padding (fi)
+const COMMON_ROW = 229; // widest one-line video row in English and German
+const WIDEST_ROW = 288; // widest one-line video row there can be (lt)
 
 const problems = [];
 

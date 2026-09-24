@@ -1,6 +1,6 @@
 import { EmptyState } from '../../components/ui';
 import { useFeatures } from './context';
-import { label, useTx } from './tx';
+import { label, moduleReason, useTx } from './tx';
 
 /**
  * EmptyPage stands in for a registered sub-page that has no controls yet. The
@@ -21,7 +21,7 @@ export function EmptyPage({ id }: { id: string }) {
           <EmptyState
             key={m.id}
             title={label(tx, 'settings.module.', m.id)}
-            hint={m.reason}
+            hint={moduleReason(tx, m)}
           />
         ))}
       </div>

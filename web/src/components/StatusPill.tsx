@@ -66,7 +66,7 @@ export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Tas
   const { t } = useT();
   return (
     <span className="text-[11px] text-carbon-textMuted">
-      {resolverLabel(resolver)}
+      {resolverLabel(resolver, t)}
       {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
     </span>
   );

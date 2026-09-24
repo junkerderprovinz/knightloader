@@ -1,9 +1,10 @@
 import type { RowDragKey } from './listRows';
 
 // The arithmetic of dragging rows and packages in the download list: what the
-// pointer aims at, the order a drop would produce, and how far each row slides
-// to preview it. The preview and the drop share previewOrder, so the drop lands
-// where the preview showed. web/check-row-drag.mjs tests these functions.
+// pointer aims at, the order a drop would produce, how far each row slides to
+// preview it, and where the carried block is drawn. The preview and the drop
+// share previewOrder, so the drop lands where the preview showed.
+// web/check-row-drag.mjs tests these functions.
 
 /** One drawn row's box, frozen when the drag started. */
 export interface RowSlot {
@@ -182,5 +183,40 @@ export function stackOffsets(
     const next = slots[i + 1];
     y += g.bottom - g.top + (next ? next.top - slots[i].bottom : 0);
   }
+  return out;
+}
+
+/**
+ * carriedOffsets maps each carried row to the offset that draws the block under
+ * the pointer: stacked as `landing` would land it, moved by the pointer's
+ * travel since the press on `pressed`, and kept between `top` and `bottom` so a
+ * drag never grows a scrollbar. Rows the snapshot never measured are left out.
+ */
+export function carriedOffsets(
+  slots: readonly RowSlot[],
+  landing: ReadonlyMap<string, number>,
+  carried: ReadonlySet<string>,
+  pressed: string,
+  travel: number,
+  bounds: { top: number; bottom: number },
+  key: (unit: RowDragKey) => string,
+): Map<string, number> {
+  const base = travel - (landing.get(pressed) ?? 0);
+  const out = new Map<string, number>();
+  let top = Infinity;
+  let bottom = -Infinity;
+  for (const slot of slots) {
+    const k = key(slot.unit);
+    if (!carried.has(k)) continue;
+    const dy = (landing.get(k) ?? 0) + base;
+    out.set(k, dy);
+    top = Math.min(top, slot.top + dy);
+    bottom = Math.max(bottom, slot.bottom + dy);
+  }
+  let shift = 0;
+  if (top < bounds.top) shift = bounds.top - top;
+  // A block taller than the list keeps its top in view.
+  else if (bottom > bounds.bottom) shift = Math.max(bounds.bottom - bottom, bounds.top - top);
+  if (shift !== 0) for (const [k, dy] of out) out.set(k, dy + shift);
   return out;
 }

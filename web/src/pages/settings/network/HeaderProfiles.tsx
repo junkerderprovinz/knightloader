@@ -136,7 +136,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             >
               <button
                 type="button"
-                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                className="flex min-w-0 flex-1 items-center gap-3 text-start"
                 onClick={() => {
                   setError('');
                   setDraft(draftFor(p));

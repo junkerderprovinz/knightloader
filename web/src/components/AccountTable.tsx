@@ -140,7 +140,9 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
   const open = rows.find((r) => r.key === menuKey);
 
   return (
-    <div className="glim-well overflow-x-auto p-0">
+    // relative keeps the sr-only header cell inside this scroller. Placed
+    // against the page, it would widen the whole page on a phone.
+    <div className="glim-well relative overflow-x-auto p-0">
       <table className="w-full min-w-[46rem] border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">

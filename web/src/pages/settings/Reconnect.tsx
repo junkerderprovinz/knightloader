@@ -67,7 +67,7 @@ interface ReconnectConfig {
 }
 
 /** GET /api/reconnect. */
-interface ReconnectState {
+export interface ReconnectState {
   busy: boolean;
   configured: boolean;
   /** The server's English sentence, used when the code has no translation. */
@@ -83,7 +83,7 @@ interface ReconnectState {
  * useReasonText translates the reason code and falls back to the server's
  * English sentence for a code this build does not know.
  */
-function useReasonText(state: ReconnectState | null): string {
+export function useReasonText(state: ReconnectState | null): string {
   const { t } = useT();
   if (!state) return '';
   const code = state.reasonCode;
@@ -94,12 +94,30 @@ function useReasonText(state: ReconnectState | null): string {
   return text === key ? (state.reason ?? '') : text;
 }
 
+export async function fetchReconnectState(): Promise<ReconnectState> {
+  const r = await fetch('/api/reconnect');
+  if (!r.ok) throw new Error(String(r.status));
+  return (await r.json()) as ReconnectState;
+}
+
 /** POST /api/reconnect. */
-interface RunResult {
+export interface RunResult {
   oldIp: string;
   newIp: string;
   checks: number;
   tookMs: number;
+}
+
+/**
+ * runReconnect runs one reconnect with the saved settings. Null means another
+ * run already holds the router, which is not a failure: its result belongs to
+ * whoever started it.
+ */
+export async function runReconnect(): Promise<RunResult | null> {
+  const r = await fetch('/api/reconnect', { method: 'POST' });
+  if (r.status === 409) return null;
+  if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
+  return (await r.json()) as RunResult;
 }
 
 /** One line the import could not map. Mirrors reconnect.Problem. */
@@ -186,9 +204,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
     let alive = true;
     const read = async () => {
       try {
-        const r = await fetch('/api/reconnect');
-        if (!r.ok) throw new Error(String(r.status));
-        const s = (await r.json()) as ReconnectState;
+        const s = await fetchReconnectState();
         if (alive) setState(s);
       } catch {
         if (alive) setState(null);
@@ -800,14 +816,9 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
     setResult(null);
     setNote(null);
     try {
-      const r = await fetch('/api/reconnect', { method: 'POST' });
-      if (r.status === 409) {
-        // Another run is already doing this, so it is not reported as a failure.
-        setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
-        return;
-      }
-      if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      setResult((await r.json()) as RunResult);
+      const res = await runReconnect();
+      if (res) setResult(res);
+      else setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
     } catch (e) {
       setNote({ tone: 'fail', text: t('settings.reconnect.runFailed', { reason: String(e).replace(/^Error:\s*/, '') }) });
     } finally {
@@ -836,7 +847,7 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
           disabled={busy || disabled}
           icon={<IconRetry width={16} height={16} />}
         >
-          {running ? t('settings.reconnect.running') : t('settings.reconnect.run')}
+          {running ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
         </Button>
       </div>
 

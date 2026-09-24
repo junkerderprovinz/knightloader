@@ -17,7 +17,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
+import { IconAccounts, IconChevronStart, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -389,13 +389,14 @@ export function HosterLoginDialog({
         <div className="flex flex-col gap-4">
           {/* Only while adding from this list; an edit stays on its host. */}
           {!editing && !initial && (
-            <button
-              type="button"
+            <Button
+              kind="secondary"
+              labelled
+              icon={<IconChevronStart className="rtl:-scale-x-100" />}
+              title={t('accounts.changeAccount')}
               onClick={() => setPicked(null)}
-              className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
-            >
-              {t('accounts.changeAccount')}
-            </button>
+              className="self-start"
+            />
           )}
 
           <Field label={t('accounts.usernameField')}>

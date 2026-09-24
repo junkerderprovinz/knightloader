@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { fetchVolumeStats, type VolumeBucket, type VolumeStats } from '../lib/api';
-import { useT } from '../lib/i18n';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { IconDownloads } from '../lib/icons';
 import { resolverLabel } from '../lib/resolverLabels';
 import { useResource } from '../lib/useResource';
@@ -35,14 +35,9 @@ function bucketLabel(key: string, fmt: Intl.DateTimeFormat): string {
  * total minus the named bands, not the sum of the tail, because some rows have
  * no host or backend and every view must stack to the same height.
  */
-function buildSeries(
-  buckets: VolumeBucket[],
-  split: Split,
-  totalLabel: string,
-  otherLabel: string,
-): VolumeSeries[] {
+function buildSeries(buckets: VolumeBucket[], split: Split, t: (key: TranslationKey) => string): VolumeSeries[] {
   if (split === 'total') {
-    return [{ id: 'total', label: totalLabel, values: buckets.map((b) => b.bytes) }];
+    return [{ id: 'total', label: t('volume.split.total'), values: buckets.map((b) => b.bytes) }];
   }
 
   // Go marshals an empty map as null.
@@ -62,7 +57,7 @@ function buildSeries(
 
   const series: VolumeSeries[] = named.map((key) => ({
     id: key,
-    label: split === 'backend' ? resolverLabel(key) : key,
+    label: split === 'backend' ? resolverLabel(key, t) : key,
     values: buckets.map((b) => share(b)[key] ?? 0),
   }));
 
@@ -70,7 +65,7 @@ function buildSeries(
     const claimed = named.reduce((sum, key) => sum + (share(b)[key] ?? 0), 0);
     return Math.max(0, b.bytes - claimed);
   });
-  if (rest.some((v) => v > 0)) series.push({ id: '__other', label: otherLabel, values: rest });
+  if (rest.some((v) => v > 0)) series.push({ id: '__other', label: t('volume.other'), values: rest });
 
   return series;
 }
@@ -101,7 +96,7 @@ export function VolumeCard({ hue }: { hue?: number }) {
   const buckets = useMemo(() => (range === 'days' ? data?.days : data?.months) ?? [], [data, range]);
   const labels = useMemo(() => buckets.map((b) => bucketLabel(b.key, fmt)), [buckets, fmt]);
   const series = useMemo(
-    () => buildSeries(buckets, split, t('volume.split.total'), t('volume.other')),
+    () => buildSeries(buckets, split, t),
     [buckets, split, t],
   );
 

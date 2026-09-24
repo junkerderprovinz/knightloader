@@ -1,5 +1,6 @@
-// Reading and writing a settings document by dotted key path, for the advanced
-// table. Nothing here knows what a setting means, so new fields need no change.
+// Reading, writing and comparing settings documents: by dotted key path for the
+// advanced table, and field by field for the autosave. Nothing here knows what
+// a setting means, so new fields need no change.
 
 /** The kind of editor a value gets. */
 export type ValueKind = 'boolean' | 'number' | 'text' | 'list' | 'object';
@@ -122,4 +123,36 @@ export function same(a: unknown, b: unknown): boolean {
 
 function isEmptyish(v: unknown): boolean {
   return v === undefined || v === null || (Array.isArray(v) && v.length === 0);
+}
+
+type Doc = Record<string, unknown>;
+
+/**
+ * pendingFields is what the autosave still has to send: every top-level field
+ * the draft changed, except one still holding a value the server has answered
+ * already, a refusal or a tidied value kept while its box had focus.
+ */
+export function pendingFields(draft: Doc, saved: Doc, answered: Doc): Doc {
+  const out: Doc = {};
+  for (const k of Object.keys(draft)) {
+    if (same(draft[k], saved[k])) continue;
+    if (k in answered && same(draft[k], answered[k])) continue;
+    out[k] = draft[k];
+  }
+  return out;
+}
+
+/**
+ * foldAnswer is the draft once a save has come back: the server's answer,
+ * except for a field the draft changed while the save was out and a field in
+ * keep, whose box is still being typed in. sent is what the save sent, and
+ * before is the stored document the draft was compared with to send it.
+ */
+export function foldAnswer(draft: Doc, answer: Doc, sent: Doc, before: Doc, keep: readonly string[]): Doc {
+  const out: Doc = { ...answer };
+  for (const k of Object.keys(draft)) {
+    const expected = k in sent ? sent[k] : before[k];
+    if (keep.includes(k) || !same(draft[k], expected)) out[k] = draft[k];
+  }
+  return out;
 }

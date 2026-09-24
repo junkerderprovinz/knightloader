@@ -46,15 +46,26 @@ type ImagePayload struct {
 // would need a payload type of its own.
 type ClickPayload = ImagePayload
 
+// The vendors a KindWidget challenge can come from, as WidgetPayload.Vendor
+// names them.
+const (
+	VendorRecaptcha = "recaptcha"
+	VendorHCaptcha  = "hcaptcha"
+)
+
 // WidgetPayload is Challenge.Payload for KindWidget: the sitekey data a hosted
 // reCAPTCHA v2 or hCaptcha widget needs to render and solve itself in a
 // browser. See jdsource.go's jdWidgetToken for which JD call it is read from.
 type WidgetPayload struct {
+	// Vendor is VendorRecaptcha or VendorHCaptcha. The two load different
+	// scripts from different origins, and nothing else in the payload tells
+	// them apart for certain.
+	Vendor     string `json:"vendor"`
 	SiteKey    string `json:"siteKey"`
 	SiteURL    string `json:"siteUrl"`
 	ContextURL string `json:"contextUrl"`
-	// Type is the widget variant ("normal" or "invisible" for reCAPTCHA v2;
-	// hCaptcha always reports "normal"). It is passed on as it arrives.
+	// Type is the widget variant JD found on the hoster's page, "NORMAL" or
+	// "INVISIBLE" for either vendor. It is passed on as it arrives.
 	Type string `json:"type,omitempty"`
 	// Enterprise and V3Action apply to reCAPTCHA; hCaptcha leaves them at the
 	// zero value.

@@ -57,6 +57,17 @@ func TestPlanHostMatchIsCaseAndWWWInsensitive(t *testing.T) {
 	}
 }
 
+func TestCuratedKnowsAHosterByItsAliasDomains(t *testing.T) {
+	for _, host := range []string{"rapidgator.net", "rg.to", "www.rg.to", "ul.to", "desfichiers.com"} {
+		if !Curated(host) {
+			t.Errorf("Curated(%q) = false, want true", host)
+		}
+	}
+	if Curated("example.com") {
+		t.Error("Curated(example.com) = true, want false")
+	}
+}
+
 // A login JD has not yet validated reads as "still checking" until the grace
 // window has elapsed, never as "wrong password".
 func TestPlanQueuedWithinGraceNotRejected(t *testing.T) {

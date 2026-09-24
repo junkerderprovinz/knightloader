@@ -207,6 +207,25 @@ func TestACodecFilterMatchesTheCodecInAnyCase(t *testing.T) {
 	}
 }
 
+// yt-dlp keeps a merge in mp4 only for the codecs mp4 holds, so the vp9 that
+// YouTube serves in mp4 over HLS is written as mkv, and the prediction says so.
+func TestVp9InMp4MergesIntoMkv(t *testing.T) {
+	args := buildArgs("d", Options{VideoPick: "2160p mp4 vp9"})
+	if merge, _ := valueAfter(args, "--merge-output-format"); merge != "mkv" {
+		t.Errorf("--merge-output-format = %q, want mkv", merge)
+	}
+	formats := []FormatEntry{
+		{Ext: "mp4", Vcodec: "vp09.00.50.08", Acodec: "none", Height: 2160, FilesizeApprox: 500},
+		{Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129, Filesize: 20},
+	}
+	if ext, size := VideoFile("2160p mp4 vp9", formats, false); ext != "mkv" || size != 520 {
+		t.Errorf("VideoFile = %q, %d; want mkv, 520", ext, size)
+	}
+	if merge, _ := valueAfter(buildArgs("d", Options{VideoPick: "2160p mp4 av1"}), "--merge-output-format"); merge != "mp4/mkv" {
+		t.Errorf("av1 in mp4: --merge-output-format = %q, want mp4/mkv", merge)
+	}
+}
+
 // A container other than mp4 and webm has no audio of its own to pair with.
 func TestAnUncommonContainerMergesIntoMkv(t *testing.T) {
 	args := buildArgs("d", Options{VideoPick: "720p flv avc1"})

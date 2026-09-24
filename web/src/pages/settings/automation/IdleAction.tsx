@@ -63,12 +63,68 @@ const ACTION_ICONS: Record<string, ReactNode> = {
 const DELAY = { lo: 5, hi: 86400 };
 const TIMEOUT = { lo: 5, hi: 3600 };
 
+/**
+ * useIdleActions is the menu the server offers, empty until it answers or when
+ * it cannot, in which case the picker stays out rather than guessing.
+ */
+export function useIdleActions(): string[] {
+  const [actions, setActions] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    void fetchIdleActions().then(
+      (a) => {
+        if (live) setActions(a);
+      },
+      () => {
+        /* no menu rather than a guess at one */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  return actions;
+}
+
+/**
+ * IdleActionPicker is the choice of action as this card draws it. The shell
+ * bar's quick settings show the same strip, so both places offer the same
+ * menu and write the same value.
+ */
+export function IdleActionPicker({
+  actions,
+  value,
+  onValue,
+}: {
+  actions: string[];
+  value: string;
+  onValue: (action: string) => void;
+}) {
+  const { t } = useT();
+  const hint = ACTION_HINTS[value];
+  return (
+    <FieldGroup
+      layout="row"
+      label={t('settings.downloads.idleAction')}
+      hint={hint ? `${t('settings.downloads.idleActionHint')} ${t(hint)}` : t('settings.downloads.idleActionHint')}
+    >
+      <Tabs
+        variant="well"
+        label={t('settings.downloads.idleAction')}
+        active={value}
+        onSelect={onValue}
+        items={actions.map((id) => ({ id, label: ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id, icon: ACTION_ICONS[id] }))}
+      />
+    </FieldGroup>
+  );
+}
+
 export function IdleActionCard({ hue }: { hue: number }) {
   const { t } = useT();
   // dirty gates the check and run buttons, which act on the stored command.
   const { cfg, patch, dirty } = useDraft();
 
-  const [actions, setActions] = useState<string[]>([]);
+  const actions = useIdleActions();
   const [deployment, setDeployment] = useState('');
   const [check, setCheck] = useState<IdleCommandCheck | null>(null);
   const [checking, setChecking] = useState(false);
@@ -78,14 +134,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
 
   useEffect(() => {
     let live = true;
-    void fetchIdleActions().then(
-      (a) => {
-        if (live) setActions(a);
-      },
-      () => {
-        /* the card stays out rather than offering a guess at the actions */
-      },
-    );
     void fetchDeploymentInfo().then(
       (d) => {
         if (live) setDeployment(d.deployment);
@@ -119,19 +167,12 @@ export function IdleActionCard({ hue }: { hue: number }) {
   const setCommand = (fields: Partial<typeof command>) =>
     patch({ idleAction: { ...cfg.idleAction, command: { ...command, ...fields } } });
 
-  const actionLabel = (id: string) => {
-    const key = ACTION_KEYS[id];
-    return key ? t(key) : id;
-  };
-
   const deploymentHint =
     deployment === 'desktop'
       ? t('settings.downloads.idleDeploymentDesktop')
       : deployment === 'container'
         ? t('settings.downloads.idleDeploymentContainer')
         : undefined;
-
-  const actionHint = ACTION_HINTS[action];
 
   async function handleCheck() {
     setChecking(true);
@@ -164,19 +205,11 @@ export function IdleActionCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={deploymentHint}>{t('settings.downloads.idleTitle')}</SectionTitle>
 
-      <FieldGroup
-        layout="row"
-        label={t('settings.downloads.idleAction')}
-        hint={actionHint ? `${t('settings.downloads.idleActionHint')} ${t(actionHint)}` : t('settings.downloads.idleActionHint')}
-      >
-        <Tabs
-          variant="well"
-          label={t('settings.downloads.idleAction')}
-          active={action}
-          onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
-          items={actions.map((id) => ({ id, label: actionLabel(id), icon: ACTION_ICONS[id] }))}
-        />
-      </FieldGroup>
+      <IdleActionPicker
+        actions={actions}
+        value={action}
+        onValue={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
+      />
 
       {action !== 'none' && (
         <Field

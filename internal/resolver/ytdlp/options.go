@@ -31,7 +31,7 @@ type Options struct {
 	AudioFormat string `json:"audioFormat"`
 	// AudioTrack is one track an audio row picked from its probe (see
 	// AudioTracks), copied as it is instead of converted to AudioFormat. Like
-	// VideoFormat it has no settings key.
+	// VideoPick it has no settings key.
 	AudioTrack string `json:"-"`
 	// AudioBitrate is the --audio-quality target in kbit/s ("192"), read only
 	// for VariantAudio. Empty passes no flag; it has no effect on a "best"
@@ -327,8 +327,8 @@ const (
 	Quality360p  Quality = "360p"
 	Quality240p  Quality = "240p"
 	Quality144p  Quality = "144p"
-	// QualityAudioOnly is no longer offered; the audio variant replaced it.
-	// Sanitize folds a stored value onto QualityBest.
+	// QualityAudioOnly is not offered, since the audio row covers it. Sanitize
+	// folds a stored value onto QualityBest.
 	QualityAudioOnly Quality = "audioOnly"
 	// QualityCustom hands CustomFormat to -f verbatim; a value yt-dlp
 	// rejects fails like any other yt-dlp error.

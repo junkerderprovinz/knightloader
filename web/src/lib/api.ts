@@ -829,6 +829,8 @@ export class ApiError extends Error {
   /** The HTTP status, when there was one. It tells a peer that refused a call
    *  from one that could not be reached. */
   status?: number;
+  /** The settings key a refusal is about, when it is about one field. */
+  field?: string;
 
   constructor(message: string, code?: string, params?: Record<string, string | number>, status?: number) {
     super(message);
@@ -847,8 +849,17 @@ async function json<T>(r: Response): Promise<T> {
     // Validation failures send a JSON envelope so the message can be
     // translated; other routes send plain text.
     try {
-      const p = JSON.parse(body) as { error?: string; code?: string; params?: Record<string, string | number> };
-      if (p && typeof p.error === 'string') throw new ApiError(p.error, p.code, p.params);
+      const p = JSON.parse(body) as {
+        error?: string;
+        code?: string;
+        params?: Record<string, string | number>;
+        field?: string;
+      };
+      if (p && typeof p.error === 'string') {
+        const e = new ApiError(p.error, p.code, p.params, r.status);
+        e.field = p.field;
+        throw e;
+      }
     } catch (e) {
       if (e instanceof ApiError) throw e;
     }
@@ -1437,6 +1448,45 @@ export async function fetchVolumeUsage(): Promise<VolumeUsage> {
 
 export async function fetchQueue(base = '/api'): Promise<QueueState> {
   return json<QueueState>(await fetch(`${base}/queue`));
+}
+
+/**
+ * Whether the timetable is set aside, the part of GET /api/schedule's answer
+ * that the suspend routes change. `suspendedUntil` is absent while it waits to
+ * be lifted by hand.
+ */
+export interface ScheduleSuspension {
+  suspended: boolean;
+  suspendedUntil?: string;
+}
+
+/**
+ * fetchScheduleSuspension reads the timetable's answer for its suspension and
+ * for how many schedules there are to suspend.
+ */
+export async function fetchScheduleSuspension(): Promise<ScheduleSuspension & { schedules: number }> {
+  const s = await json<ScheduleSuspension & { entries: unknown[] | null }>(await fetch('/api/schedule'));
+  return { suspended: s.suspended, suspendedUntil: s.suspendedUntil, schedules: s.entries?.length ?? 0 };
+}
+
+/**
+ * suspendSchedule sets every schedule aside and leaves the rows as they are:
+ * for `minutes` on the server's clock, until an instant, or with neither until
+ * resumeSchedule. It answers with the whole ScheduleState, which carries the
+ * suspension.
+ */
+export async function suspendSchedule(span: { minutes: number } | { until: string } | null): Promise<ScheduleSuspension> {
+  const r = await fetch('/api/schedule/suspend', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(span ?? {}),
+  });
+  return json<ScheduleSuspension>(r);
+}
+
+/** resumeSchedule lets the schedules apply again at once. */
+export async function resumeSchedule(): Promise<ScheduleSuspension> {
+  return json<ScheduleSuspension>(await fetch('/api/schedule/suspend', { method: 'DELETE' }));
 }
 
 /** setQueue toggles the master switch and/or arms the stop mark. */
@@ -2203,6 +2253,9 @@ export interface CaptchaImagePayload {
 /** The payload for 'widget': the sitekey data a reCAPTCHA v2 or hCaptcha
  *  widget needs to render itself. See captchaWidgetUrl. */
 export interface CaptchaWidgetPayload {
+  /** Which script the widget page loads; the rest of the payload looks the
+   *  same for both. */
+  vendor: 'recaptcha' | 'hcaptcha';
   siteKey: string;
   siteUrl: string;
   contextUrl: string;
@@ -2281,16 +2334,19 @@ export async function skipCaptcha(id: string, scope: CaptchaAbortScope): Promise
 /**
  * captchaWidgetUrl builds the widget page address. The rendering data goes in
  * the query string because the caller already holds it, which spares the
- * server a second lookup at JD.
+ * server a second lookup at JD. lang is the interface language, which the
+ * vendor's widget then speaks too.
  */
-export function captchaWidgetUrl(ch: CaptchaChallenge): string {
+export function captchaWidgetUrl(ch: CaptchaChallenge, lang: string): string {
   const p = (ch.payload ?? {}) as CaptchaWidgetPayload;
   const q = new URLSearchParams();
+  if (p.vendor) q.set('vendor', p.vendor);
   if (p.siteKey) q.set('siteKey', p.siteKey);
   if (p.type) q.set('type', p.type);
   if (p.enterprise) q.set('enterprise', '1');
   if (p.v3Action) q.set('v3Action', p.v3Action);
   if (p.secureToken) q.set('secureToken', p.secureToken);
+  if (lang) q.set('lang', lang);
   if (ch.host) q.set('host', ch.host);
   if (ch.prompt) q.set('prompt', ch.prompt);
   return `/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`;

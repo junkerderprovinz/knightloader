@@ -32,6 +32,12 @@ export interface SettingsDraft {
    * own route, and without this the next autosave would put the old values back.
    */
   reseed: (applied: Settings, keys: string[]) => void;
+  /**
+   * Why the server refused what a field holds, for the field to show beside
+   * itself. The draft keeps the refused value and the autosave leaves it out
+   * until it is edited.
+   */
+  fieldError: (key: keyof Settings) => string | undefined;
 }
 
 export interface FeatureAccess {

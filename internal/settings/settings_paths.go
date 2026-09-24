@@ -4,6 +4,7 @@ package settings
 // folder is watched for dropped jobs, and the archive passwords tried on them.
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,14 +14,14 @@ import (
 func sanitizePaths(n Settings) Settings {
 	n.DownloadDir = strings.TrimSpace(n.DownloadDir)
 	n.WatchDir = strings.TrimSpace(n.WatchDir)
-	// A relative watch folder has the same problem as a relative download
-	// folder: nobody can say where it actually is.
-	if n.WatchDir != "" && !filepath.IsAbs(n.WatchDir) {
-		n.WatchDir = ""
-	}
 	// A relative path would be resolved against whatever the process's working
 	// directory happens to be, which is not something a user can reason about.
-	if n.DownloadDir != "" && !filepath.IsAbs(n.DownloadDir) {
+	// A save refuses one (CheckFolders), so this only cleans a hand-edited
+	// settings file.
+	if relative(n.WatchDir, false) {
+		n.WatchDir = ""
+	}
+	if relative(n.DownloadDir, false) {
 		n.DownloadDir = ""
 	}
 	var pw []string
@@ -31,6 +32,84 @@ func sanitizePaths(n Settings) Settings {
 	}
 	n.ArchivePasswords = pw
 	return n
+}
+
+// relative reports whether dir is set but not an absolute path. A template
+// only needs its fixed prefix to be absolute.
+func relative(dir string, template bool) bool {
+	if dir == "" {
+		return false
+	}
+	if template {
+		dir = fixedPrefix(dir)
+	}
+	return !filepath.IsAbs(dir)
+}
+
+// PathProblem is why a folder cannot be used. Code is what the interface
+// translates: "notAbsolute", "cannotCreate" or "cannotWrite".
+type PathProblem struct {
+	// Field is the folder's key in the settings document, set by CheckFolders
+	// and empty for a folder that is not a top-level setting.
+	Field string
+	What  string
+	Code  string
+	Dir   string
+	Err   error
+}
+
+func (p *PathProblem) Error() string {
+	switch p.Code {
+	case "cannotCreate":
+		return fmt.Sprintf("cannot create %s: %v", p.Dir, p.Err)
+	case "cannotWrite":
+		return fmt.Sprintf("cannot write to %s: %v", p.Dir, p.Err)
+	}
+	return p.What + " must be an absolute path"
+}
+
+func (p *PathProblem) Unwrap() error { return p.Err }
+
+// folderFields are the top-level folders a save can name, with the words a
+// refusal uses for each. The download and working folders are created and
+// probed at once, since every download writes there. The others only have to
+// be absolute, the rule sanitize holds them to, and are created on first use.
+var folderFields = []struct {
+	key, what       string
+	get             func(Settings) string
+	probe, template bool
+}{
+	{"downloadDir", "the download folder", func(s Settings) string { return s.DownloadDir }, true, false},
+	{"workDir", "the working folder", func(s Settings) string { return s.WorkDir }, true, false},
+	{"watchDir", "the watch folder", func(s Settings) string { return s.WatchDir }, false, false},
+	{"extractTo", "the extraction folder", func(s Settings) string { return s.ExtractTo }, false, true},
+	{"extractMoveTo", "the folder unpacked files move to", func(s Settings) string { return s.ExtractMoveTo }, false, true},
+}
+
+// CheckFolders returns a *PathProblem for the first top-level folder in s that
+// a save cannot keep, so the save is refused rather than sanitize clearing
+// what was typed. named limits the check to the fields a patch sends; nil
+// checks every one.
+func CheckFolders(s Settings, named func(key string) bool) error {
+	for _, f := range folderFields {
+		if named != nil && !named(f.key) {
+			continue
+		}
+		dir := strings.TrimSpace(f.get(s))
+		var err error
+		if f.probe {
+			err = Validate(f.what, dir)
+		} else if relative(dir, f.template) {
+			err = &PathProblem{What: f.what, Code: "notAbsolute", Dir: dir}
+		}
+		if err != nil {
+			if p := (*PathProblem)(nil); errors.As(err, &p) {
+				p.Field = f.key
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 // fixedPrefix returns the leading path segments of a folder template that hold
@@ -104,7 +183,7 @@ func Validate(what, dir string) error {
 		return nil // the built-in default is always usable
 	}
 	if !filepath.IsAbs(dir) {
-		return fmt.Errorf("%s must be an absolute path", what)
+		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
 	}
 	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
 	// Only the part before the first placeholder is a real path: creating the
@@ -112,11 +191,11 @@ func Validate(what, dir string) error {
 	// it would test a path that never exists at download time.
 	dir = fixedPrefix(dir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("cannot create %s: %w", dir, err)
+		return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: err}
 	}
 	probe := filepath.Join(dir, WriteProbeName)
 	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
-		return fmt.Errorf("cannot write to %s: %w", dir, err)
+		return &PathProblem{What: what, Code: "cannotWrite", Dir: dir, Err: err}
 	}
 	return os.Remove(probe)
 }

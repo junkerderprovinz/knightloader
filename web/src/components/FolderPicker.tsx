@@ -3,10 +3,11 @@
 // replace the real directory before the first placeholder. The server splits
 // the path into `path` and `tail`; this file puts them back together without
 // ever dropping the tail.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useT } from '../lib/i18n';
-import { IconArrowUp, IconClose, IconFolder } from '../lib/icons';
+import { ApiError } from '../lib/api';
+import { useT, type TranslationKey } from '../lib/i18n';
+import { IconArrowUp, IconCheck, IconClose, IconFolder, IconFolderPlus } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
@@ -36,6 +37,36 @@ async function fetchFolders(path: string): Promise<Listing> {
   if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
   return (await r.json()) as Listing;
 }
+
+/**
+ * makeFolder creates an empty folder inside `parent` on the server and returns
+ * its path. A refusal is an ApiError whose code names the reason.
+ */
+async function makeFolder(parent: string, name: string): Promise<string> {
+  const r = await fetch('/api/folders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parent, name }),
+  });
+  // A proxy in front of the server can answer with a page of its own.
+  const body = (await r.json().catch(() => ({}))) as { path?: string; error?: string; code?: string };
+  if (!r.ok || !body.path) throw new ApiError(body.error || String(r.status), body.code, undefined, r.status);
+  return body.path;
+}
+
+/** The refusals a person can act on. The rest show the server's sentence. */
+const REFUSALS: Partial<Record<string, TranslationKey>> = {
+  exists: 'folders.error.exists',
+  denied: 'folders.error.denied',
+  outside: 'folders.error.outside',
+  missing: 'folders.error.missing',
+  separator: 'folders.error.separator',
+  dots: 'folders.error.dots',
+  character: 'folders.error.character',
+  trailing: 'folders.error.trailing',
+  reserved: 'folders.error.reserved',
+  tooLong: 'folders.error.tooLong',
+};
 
 const TRAILING_SEP = /[\\/]+$/;
 
@@ -75,6 +106,9 @@ export function PathInput({
   placeholder,
   title,
   label,
+  autoFocus,
+  local = true,
+  error,
 }: {
   value: string;
   onValue: (next: string) => void;
@@ -83,45 +117,69 @@ export function PathInput({
   title?: string;
   /** The text box's name, for a field that stands under a row title rather than inside a Field. */
   label?: string;
+  autoFocus?: boolean;
+  /**
+   * False for a folder on a peer instance. The peer proxy does not forward
+   * the chooser, which would browse this machine's disk instead, so the field
+   * has no browse button there.
+   */
+  local?: boolean;
+  /** Why the server refused what the box holds, shown beneath it. */
+  error?: string;
 }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
+  const errorId = useId();
 
   return (
-    <span className="flex items-center gap-2">
-      {/* In an RTL locale a trailing slash would render on the wrong end. */}
-      <TextInput
-        aria-label={label}
-        dir="ltr"
-        value={value}
-        placeholder={placeholder}
-        spellCheck={false}
-        onChange={(e) => onValue(e.target.value)}
-      />
-      <Button
-        type="button"
-        kind="secondary"
-        className="shrink-0"
-        icon={<IconFolder width={16} height={16} />}
-        title={t('folders.browse')}
-        aria-label={t('folders.browse')}
-        onClick={() => setOpen(true)}
-      />
-      {/* Portalled out of the <label>, which would forward every click inside
-          the dialog to the field behind it. */}
-      {open &&
-        createPortal(
-          <FolderPicker
-            value={value}
-            title={title}
-            onClose={() => setOpen(false)}
-            onPick={(next) => {
-              onValue(next);
-              setOpen(false);
-            }}
-          />,
-          document.body,
+    <span className="flex flex-col gap-1">
+      <span className="flex items-center gap-2">
+        {/* In an RTL locale a trailing slash would render on the wrong end. */}
+        <TextInput
+          aria-label={label}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          autoFocus={autoFocus}
+          // Marked, not corrected: the text stays as typed.
+          className={error ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
+          dir="ltr"
+          value={value}
+          placeholder={placeholder}
+          spellCheck={false}
+          onChange={(e) => onValue(e.target.value)}
+        />
+        {local && (
+          <Button
+            type="button"
+            kind="secondary"
+            className="shrink-0"
+            icon={<IconFolder width={16} height={16} />}
+            title={t('folders.browse')}
+            aria-label={t('folders.browse')}
+            onClick={() => setOpen(true)}
+          />
         )}
+        {/* Portalled out of the <label>, which would forward every click inside
+            the dialog to the field behind it. */}
+        {open &&
+          createPortal(
+            <FolderPicker
+              value={value}
+              title={title}
+              onClose={() => setOpen(false)}
+              onPick={(next) => {
+                onValue(next);
+                setOpen(false);
+              }}
+            />,
+            document.body,
+          )}
+      </span>
+      {error && (
+        <span id={errorId} className="text-xs text-statusWarn">
+          {error}
+        </span>
+      )}
     </span>
   );
 }
@@ -153,6 +211,13 @@ export function FolderPicker({
   // which the server reports an empty tail.
   const [tail, setTail] = useState('');
   const seeded = useRef(false);
+  // The row that names a new folder, in place of its button while open.
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [making, setMaking] = useState(false);
+  const newId = useId();
+  const errorId = useId();
 
   useEffect(() => {
     let live = true;
@@ -191,6 +256,31 @@ export function FolderPicker({
   function navigate(path: string) {
     setText(path);
     setQuery(path);
+  }
+
+  // The row takes the button's place, so focus has to be handed back to it
+  // once the row is gone.
+  function closeNaming() {
+    setNaming(false);
+    setName('');
+    setNameError('');
+    requestAnimationFrame(() => document.getElementById(newId)?.focus());
+  }
+
+  async function create() {
+    const clean = name.trim();
+    if (!data || clean === '' || making) return;
+    setMaking(true);
+    try {
+      const made = await makeFolder(data.listed, clean);
+      closeNaming();
+      navigate(made);
+    } catch (e) {
+      const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+      setNameError(key ? t(key, { name: clean }) : e instanceof Error ? e.message : String(e));
+    } finally {
+      setMaking(false);
+    }
   }
 
   // The longest matching root, since roots can nest.
@@ -283,6 +373,76 @@ export function FolderPicker({
           <p className="px-3 py-6 text-center text-xs text-carbon-textMuted">{t('folders.empty')}</p>
         )}
       </div>
+
+      {naming ? (
+        <form
+          className="flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void create();
+          }}
+        >
+          <TextInput
+            autoFocus
+            dir="auto"
+            value={name}
+            spellCheck={false}
+            aria-label={t('folders.newName')}
+            placeholder={t('folders.newName')}
+            aria-invalid={nameError !== ''}
+            aria-describedby={nameError ? errorId : undefined}
+            onChange={(e) => {
+              setName(e.target.value);
+              setNameError('');
+            }}
+            onKeyDown={(e) => {
+              // Escape gives up the name, not the whole chooser.
+              if (e.key === 'Escape') {
+                e.stopPropagation();
+                closeNaming();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            kind="ghost"
+            className="shrink-0"
+            icon={<IconClose width={16} height={16} />}
+            title={t('common.cancel')}
+            onClick={closeNaming}
+          />
+          {/* Secondary, since "Use this folder" is the window's one accent button. */}
+          <Button
+            type="submit"
+            kind="secondary"
+            className="shrink-0"
+            icon={<IconCheck width={16} height={16} />}
+            disabled={name.trim() === '' || making}
+          >
+            {t('folders.create')}
+          </Button>
+        </form>
+      ) : (
+        <div>
+          <Button
+            type="button"
+            id={newId}
+            kind="secondary"
+            icon={<IconFolderPlus width={16} height={16} />}
+            hint={t('folders.newFolderHint')}
+            disabled={!data}
+            onClick={() => setNaming(true)}
+          >
+            {t('folders.newFolder')}
+          </Button>
+        </div>
+      )}
+      {nameError && (
+        // Auto, because the server's own sentence is English in every locale.
+        <p id={errorId} role="alert" dir="auto" className="text-xs text-statusFail">
+          {nameError}
+        </p>
+      )}
 
       {error && <p className="text-xs text-statusFail">{error}</p>}
       {fresh && <p className="text-xs text-statusWarn">{t('folders.new')}</p>}

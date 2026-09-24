@@ -2,7 +2,8 @@ import { useMemo, useState, type SVGProps } from 'react';
 import { type QueueMove, type Task, queueMove, setPackage } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, Field, IconBadge, Modal, TextInput } from './ui';
+import { Button, Field, IconBadge, Modal } from './ui';
+import { SuggestField } from './SuggestField';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { IconArrowDown, IconArrowUp, IconBottom, IconClose, IconFolder, IconPriority, IconTop } from '../lib/icons';
 
@@ -55,7 +56,7 @@ export function PackageActions({
   const order = useContextMenu();
 
   const chosen = useMemo(() => tasks.filter((x) => selected.has(x.id)), [tasks, selected]);
-  // Existing names for the dialog's datalist.
+  // Existing names, offered in the dialog's name field.
   const known = useMemo(
     () => [...new Set(tasks.map((x) => x.package).filter((p) => p !== ''))].sort(),
     [tasks],
@@ -178,8 +179,8 @@ export function PackageActions({
 
 /**
  * PackageMoveDialog moves or merges tasks into a freely typed package, with
- * known packages offered as a datalist. ListMenu opens it from the context menu
- * too.
+ * known packages offered under the field. ListMenu opens it from the context
+ * menu too.
  */
 export function PackageMoveDialog({
   count,
@@ -196,7 +197,6 @@ export function PackageMoveDialog({
 }) {
   const { t } = useT();
   const [name, setName] = useState(suggestion);
-  const listId = 'kl-known-packages';
 
   return (
     <Modal
@@ -215,22 +215,16 @@ export function PackageMoveDialog({
       }
     >
       <Field label={t('pkg.name')} hint={t('collector.movePrompt')}>
-        <TextInput
+        {/* An empty name ungroups, so it is allowed. */}
+        <SuggestField
           autoFocus
-          list={listId}
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onApply(name.trim());
-          }}
+          onChange={setName}
+          suggestions={known}
+          label={t('pkg.name')}
+          onEnter={() => onApply(name.trim())}
         />
       </Field>
-      {/* An empty name ungroups, so it is allowed. */}
-      <datalist id={listId}>
-        {known.map((p) => (
-          <option key={p} value={p} />
-        ))}
-      </datalist>
     </Modal>
   );
 }

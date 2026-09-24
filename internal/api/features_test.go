@@ -2,6 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -11,6 +14,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -268,36 +272,120 @@ func featureRow(t *testing.T, a *app.App, id string) Feature {
 	return Feature{}
 }
 
-// TestClickNLoadDetailCarriesACodeAndTheAddress checks that the listener's
-// live line reaches the interface as a value it can word itself, next to the
-// English sentence.
-func TestClickNLoadDetailCarriesACodeAndTheAddress(t *testing.T) {
-	a := testApp(t)
-	port := 9666
-	a.CnLPort = func() int { return port }
-
-	f := featureRow(t, a, "cnl")
-	if f.DetailCode != "cnlListening" || f.DetailArgs["address"] != "127.0.0.1:9666" {
-		t.Errorf("bound listener: code %q, args %v; want cnlListening with 127.0.0.1:9666", f.DetailCode, f.DetailArgs)
+// freeLoopbackPort returns a port nothing listens on, so a test never binds the
+// Click'n'Load port a real JDownloader may hold.
+func freeLoopbackPort(t *testing.T) int {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !strings.Contains(f.Detail, "127.0.0.1:9666") {
+	port := ln.Addr().(*net.TCPAddr).Port
+	ln.Close()
+	return port
+}
+
+// TestClickNLoadRowFollowsTheListener checks that the row reports the listener
+// the process runs, as a code and the address next to the English sentence.
+func TestClickNLoadRowFollowsTheListener(t *testing.T) {
+	a := testApp(t)
+	port := freeLoopbackPort(t)
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	a.CnL = cnl.NewListener(a, port)
+	t.Cleanup(a.CnL.Stop)
+
+	if err := setFeature(a, "cnl", true); err != nil {
+		t.Fatal(err)
+	}
+	f := featureRow(t, a, "cnl")
+	if !f.Enabled || f.Switch != SwitchSetting || f.DetailCode != "cnlListening" || f.DetailArgs["address"] != addr {
+		t.Errorf("bound listener: enabled %v, switch %q, code %q, args %v; want on, a switch and cnlListening with %s",
+			f.Enabled, f.Switch, f.DetailCode, f.DetailArgs, addr)
+	}
+	if !strings.Contains(f.Detail, addr) {
 		t.Errorf("bound listener: sentence %q does not name the address", f.Detail)
 	}
 
-	port = 0
-	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlOff" || f.DetailArgs != nil {
-		t.Errorf("closed listener: code %q, args %v; want cnlOff and no values", f.DetailCode, f.DetailArgs)
+	if err := setFeature(a, "cnl", false); err != nil {
+		t.Fatal(err)
+	}
+	if f := featureRow(t, a, "cnl"); f.Enabled || f.DetailCode != "cnlOff" || f.DetailArgs != nil {
+		t.Errorf("closed listener: enabled %v, code %q, args %v; want off, cnlOff and no values", f.Enabled, f.DetailCode, f.DetailArgs)
+	}
+}
+
+// TestClickNLoadRowReportsATakenPort checks that a listener that could not bind
+// reads as unavailable at its address, not as switched off.
+func TestClickNLoadRowReportsATakenPort(t *testing.T) {
+	held, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer held.Close()
+	port := held.Addr().(*net.TCPAddr).Port
+
+	a := testApp(t)
+	a.CnL = cnl.NewListener(a, port)
+	t.Cleanup(a.CnL.Stop)
+	if err := setFeature(a, "cnl", true); err == nil {
+		t.Fatal("switching on succeeded on a port another listener holds")
+	}
+	f := featureRow(t, a, "cnl")
+	if f.Enabled || f.DetailCode != "cnlUnavailable" || f.DetailArgs["address"] != fmt.Sprintf("127.0.0.1:%d", port) {
+		t.Errorf("taken port: enabled %v, code %q, args %v; want off and cnlUnavailable with the address", f.Enabled, f.DetailCode, f.DetailArgs)
+	}
+}
+
+// TestClickNLoadRowWithoutAListenerClaimsNone checks a process that started no
+// listener. KL_CNL describes a listener only when something opened one.
+func TestClickNLoadRowWithoutAListenerClaimsNone(t *testing.T) {
+	t.Setenv("KL_CNL", "9666")
+	a := testApp(t)
+
+	f := featureRow(t, a, "cnl")
+	if f.Enabled || f.Switch != SwitchNone || f.ReasonCode != "cnlNoListener" || f.Detail != "" {
+		t.Errorf("no listener: enabled %v, switch %q, reason code %q, detail %q; want off, no switch, cnlNoListener and no detail",
+			f.Enabled, f.Switch, f.ReasonCode, f.Detail)
+	}
+	if err := setFeature(a, "cnl", true); !errors.Is(err, errNoSwitch) {
+		t.Errorf("switching a missing listener on: %v, want errNoSwitch", err)
+	}
+}
+
+// TestEveryModuleSentenceHasACode checks that no row sends an English line
+// without the code an interface words it by, in the states a fresh install and
+// a configured one put the rows in.
+func TestEveryModuleSentenceHasACode(t *testing.T) {
+	check := func(state string, a *app.App) {
+		t.Helper()
+		for _, m := range featureList(a) {
+			if m.Reason != "" && m.ReasonCode == "" {
+				t.Errorf("%s: module %q sends the reason %q without a code", state, m.ID, m.Reason)
+			}
+			if m.Detail != "" && m.DetailCode == "" {
+				t.Errorf("%s: module %q sends the detail %q without a code", state, m.ID, m.Detail)
+			}
+		}
 	}
 
-	a.CnLPort = nil
-	t.Setenv("KL_CNL", "0")
-	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlOffByEnv" {
-		t.Errorf("KL_CNL=0 without a live listener: code %q, want cnlOffByEnv", f.DetailCode)
+	a := testApp(t)
+	check("fresh install", a)
+
+	a.CnL = cnl.NewListener(a, freeLoopbackPort(t))
+	t.Cleanup(a.CnL.Stop)
+	s := a.Settings.Get()
+	s.Extract = true
+	s.ArchiveDisposal = "trash"
+	s.WatchDir = t.TempDir()
+	s.DownloadClientAPI = true
+	s.Metrics = true
+	s.Packagizer.Disabled = true
+	s.ModulesOff = []string{"connections", "federation", "torrents", "scripting", "ytdlp"}
+	s.Reconnect.Method = "command"
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
 	}
-	t.Setenv("KL_CNL", "9777")
-	if f := featureRow(t, a, "cnl"); f.DetailCode != "cnlConfigured" || f.DetailArgs["address"] != "127.0.0.1:9777" {
-		t.Errorf("KL_CNL=9777 without a live listener: code %q, args %v; want cnlConfigured with 127.0.0.1:9777", f.DetailCode, f.DetailArgs)
-	}
+	check("configured", a)
 }
 
 // TestEnabledIsDerivedNotStored checks that a settings write from outside the

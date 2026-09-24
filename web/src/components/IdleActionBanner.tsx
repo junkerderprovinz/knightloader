@@ -136,7 +136,7 @@ export function IdleActionBanner() {
   if (!state?.armed) {
     if (!failed || dismissed === failed.at) return null;
     return (
-      <div className="fixed bottom-5 left-5 z-40 max-w-sm">
+      <div className="fixed bottom-[calc(1.25rem+var(--phone-bar-space))] start-5 z-40 max-w-sm">
         <div role="status" aria-live="polite" className="glim-card glim-fade flex items-start gap-3 px-4 py-3 text-xs">
           <span className="text-statusWarn" aria-hidden="true">
             <IconWarning width={15} height={15} />
@@ -183,7 +183,7 @@ export function IdleActionBanner() {
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-40">
+    <div className="fixed bottom-[calc(1.25rem+var(--phone-bar-space))] start-5 z-40">
       <div
         role="status"
         aria-live="polite"

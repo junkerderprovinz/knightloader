@@ -476,7 +476,7 @@ export function Collector() {
             {anyNarrowing && !searchOpen && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
+                className="pointer-events-none absolute -end-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
               />
             )}
             {searchOpen && (

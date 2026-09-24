@@ -9,7 +9,7 @@ import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
 import { useClipboardWatch } from '../../../lib/useClipboardWatch';
 import { useDraft, useFeatures } from '../context';
 import type { Feature } from '../features';
-import { moduleDetail } from '../tx';
+import { moduleDetail, moduleReason } from '../tx';
 
 /**
  * LinkIntakeCard holds the ways a link reaches the collector without being
@@ -21,7 +21,7 @@ import { moduleDetail } from '../tx';
  */
 export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, patch, fieldError } = useDraft();
   const { features } = useFeatures();
   const [watch, setWatch] = useClipboardWatch();
 
@@ -47,7 +47,10 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           // Where the build has no switch, the server's reason says why. The
           // live reading, such as the address it listens on, matters where
           // JDownloader may already hold the port.
-          hint={[cnl.switch === 'none' ? (cnl.reason ?? '') : t('settings.linkIntake.cnlHint'), moduleDetail(t, cnl) ?? '']}
+          hint={[
+            cnl.switch === 'none' ? (moduleReason(t, cnl) ?? '') : t('settings.linkIntake.cnlHint'),
+            moduleDetail(t, cnl) ?? '',
+          ]}
         />
       )}
 
@@ -95,6 +98,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             <PathInput
               value={cfg.watchDir}
               onValue={(watchDir) => patch({ watchDir })}
+              error={fieldError('watchDir')}
               placeholder="/watch"
               title={t('settings.module.watch')}
               label={t('settings.module.watch')}

@@ -112,7 +112,9 @@ export function Instances() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Columns of at least 20rem, so a narrow window shows fewer cards
+          instead of squeezing the logo, the name and the figures of each. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,20rem),1fr))] gap-4">
         {/* Open goes to the local download list, with no ?instance=. */}
         <InstanceCard
           name={ownName || t('instances.thisInstance')}
@@ -147,7 +149,7 @@ export function Instances() {
             <div key={f.id} className="flex flex-wrap items-center gap-3">
               <span className="min-w-0 flex-1">
                 <span className="text-sm text-carbon-text">{f.name}</span>
-                <span className="ml-2 text-xs text-carbon-textMuted" dir="ltr">
+                <span className="ms-2 text-xs text-carbon-textMuted" dir="ltr">
                   {f.url}
                 </span>
               </span>

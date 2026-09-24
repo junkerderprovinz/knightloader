@@ -163,7 +163,7 @@ export function CheckRow({
             {detail}
           </span>
         )}
-        {children && <div className="mt-1 flex flex-col gap-2 border-l border-carbon-border pl-3">{children}</div>}
+        {children && <div className="mt-1 flex flex-col gap-2 border-s border-carbon-border ps-3">{children}</div>}
       </div>
     </div>
   );
