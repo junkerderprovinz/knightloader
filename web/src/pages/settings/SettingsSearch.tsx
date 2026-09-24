@@ -357,7 +357,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       }}
     >
       <div
-        className="flex items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
+        className="flex h-[var(--btn-h)] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
           transition-shadow focus-within:shadow-[0_0_0_2px_var(--focus-ring)]"
       >
         <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
@@ -379,7 +379,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="min-w-0 flex-1 bg-transparent py-2 text-sm text-carbon-text
+          className="h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
             placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (

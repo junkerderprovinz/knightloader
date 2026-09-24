@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Task } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
+import { Text } from './Text';
 
 const STATUS_KEYS: Record<string, TranslationKey> = {
   queued: 'status.queued',

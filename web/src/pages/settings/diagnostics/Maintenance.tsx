@@ -216,8 +216,8 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 }
 
 /**
- * Action is a button with its (i) beside it rather than a native title, which
- * the keyboard cannot open.
+ * Action is a maintenance button, its explanation in the (i) inside it rather
+ * than in a native title, which the keyboard cannot open.
  */
 function Action({
   label,
@@ -237,12 +237,9 @@ function Action({
   onClick: () => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <Button kind="secondary" hue={hue} disabled={disabled} onClick={onClick}>
-        {pending ? pendingLabel : label}
-      </Button>
-      <InfoBubble tip={hint} label={label} />
-    </span>
+    <Button kind="secondary" hue={hue} disabled={disabled} hint={hint} onClick={onClick}>
+      {pending ? pendingLabel : label}
+    </Button>
   );
 }
 

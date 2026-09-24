@@ -105,9 +105,6 @@
    creates what the page lists, or one that is hard to undo. A key control in a
    field row is centred against its neighbours.
 
-   components/ui.tsx and components/QueueBar.tsx still measure 36px, 32px and
-   48px themselves; these tokens are where they should move to.
-
    The four width stages are minimum widths chosen from the label, so a button
    keeps its width whichever label mode is active and a translation that runs
    longer still fits. The values are GlimStone's own (reference/tokens.css); the
@@ -160,6 +157,12 @@
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
+
+  /* The Android mark on the APK tile, adjusted the same way: at rest on the
+     tile, and on the tile's hover grey, where the green reads 1.35:1 and the
+     mark takes a deepened one. See .kl-android-mark. */
+  --brand-android:       #32de84;
+  --brand-android-hover: #155d37;
 
   /* Four steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -239,6 +242,8 @@
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
+    --brand-android:       #1c7c4a;
+    --brand-android-hover: #1c7c4a;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -305,6 +310,8 @@
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
+  --brand-android:       #1c7c4a;
+  --brand-android-hover: #1c7c4a;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -404,11 +411,15 @@ body {
 }
 
 /* Fields share the well's colour by default and have no border, so inside a
-   well they move one step up the ramp to stay visible. */
+   well they move one step up the ramp to stay visible, and a trigger's hover
+   moves with them. */
 .glim-well input,
-.glim-well select,
-.glim-well textarea {
+.glim-well textarea,
+.glim-well .glim-field {
   background-color: var(--carbon-surface3);
+}
+.glim-well button.glim-field:hover {
+  background-color: var(--carbon-hover-raised);
 }
 
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
@@ -435,21 +446,6 @@ body {
 }
 .glim-num-hide-spin {
   -moz-appearance: textfield;
-}
-
-/* A select with our own tokens. `appearance: none` removes the platform arrow,
-   so the same triangle the number steppers use is drawn back as a data URI. A
-   class rather than a Tailwind arbitrary value, because the URI's spaces and
-   quotes do not survive the class parser. The caller adds `pe-6`;
-   background-position has no logical form, so RTL is handled here. */
-.glim-select {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M5 4.3 L1.4 1.4 L8.6 1.4 Z' fill='%23a8a8a8' stroke='%23a8a8a8' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  background-size: 10px 6px;
-}
-[dir='rtl'] .glim-select {
-  background-position: left 0.5rem center;
 }
 
 /* The info bubble, rendered at body level so nothing can clip it, and centred
@@ -1511,6 +1507,21 @@ body {
    .glim-hue-icon rules, which would keep the mark in the position's colour. */
 [data-theme="dark"] .kl-coin-tile:not(.glim-active):hover svg {
   color: var(--carbon-tile-hover-ink);
+}
+
+/* Android's mark is one flat green, which no hover grey carries, so the APK
+   tile paints it from a token pair: --brand-android at rest and
+   --brand-android-hover while the tile is lit. Behind the same hover media
+   query as the tile's own group-hover, or a tap on a touch screen would leave
+   the deep green on the resting tile. */
+.kl-android-mark {
+  color: var(--brand-android);
+  transition: color var(--motion-control-dur, 120ms);
+}
+@media (hover: hover) {
+  .group:hover .kl-android-mark {
+    color: var(--brand-android-hover);
+  }
 }
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up

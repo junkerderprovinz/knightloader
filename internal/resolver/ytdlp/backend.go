@@ -388,11 +388,18 @@ type FormatEntry struct {
 	Height   int
 	// FPS is the frame rate, 0 when not reported or for an audio format.
 	FPS float64
-	// Filesize is the exact size when the host reports one; FilesizeApprox is
-	// yt-dlp's estimate otherwise (typically for m3u8 or DASH). Read Filesize
-	// first.
+	// Filesize is the exact size when the host reports one. FilesizeApprox is
+	// the estimate otherwise: yt-dlp's own, or, for the streaming formats it
+	// leaves without one, the bitrate times the duration (see ProbeTitle). Read
+	// Filesize first.
 	Filesize       int64
 	FilesizeApprox int64
+	// Protocol is how yt-dlp fetches the format: "https" for one file,
+	// "m3u8_native" or "http_dash_segments" for a streaming manifest.
+	Protocol string
+	// Default marks the formats yt-dlp picks when no -f is given, the video
+	// and the audio of the merge or the one file it takes whole.
+	Default bool
 	// Abr is the average audio bitrate in kbit/s, 0 when not reported or for
 	// a video-only format.
 	Abr float64
@@ -443,8 +450,10 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		return ProbeResult{}, errors.New("ytdlp: probe returned no data")
 	}
 	var raw struct {
-		Title   string `json:"title"`
-		Formats []struct {
+		Title string `json:"title"`
+		// FormatID is the default selection's ids, "401+251" for a merge.
+		FormatID string `json:"format_id"`
+		Formats  []struct {
 			FormatID           string  `json:"format_id"`
 			Ext                string  `json:"ext"`
 			Vcodec             string  `json:"vcodec"`
@@ -453,7 +462,9 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 			FPS                float64 `json:"fps"`
 			Filesize           int64   `json:"filesize"`
 			FilesizeApprox     float64 `json:"filesize_approx"`
+			TBR                float64 `json:"tbr"`
 			Abr                float64 `json:"abr"`
+			Protocol           string  `json:"protocol"`
 			Language           string  `json:"language"`
 			LanguagePreference int     `json:"language_preference"`
 		} `json:"formats"`
@@ -483,14 +494,37 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		Subtitles:    keysOf(raw.Subtitles),
 		AutoCaptions: keysOf(raw.AutoCaptions),
 	}
+	picked := map[string]bool{}
+	for _, id := range strings.Split(raw.FormatID, "+") {
+		if id != "" {
+			picked[id] = true
+		}
+	}
 	for _, f := range raw.Formats {
+		approx := int64(f.FilesizeApprox)
+		if f.Filesize <= 0 && approx <= 0 {
+			approx = sizeFromBitrate(f.TBR, raw.Duration)
+		}
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
-			Height: f.Height, FPS: f.FPS, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
+			Height: f.Height, FPS: f.FPS, Filesize: f.Filesize, FilesizeApprox: approx,
 			Abr: f.Abr, Language: f.Language, LanguagePreference: f.LanguagePreference,
+			Protocol: f.Protocol, Default: picked[f.FormatID],
 		})
 	}
 	return res, nil
+}
+
+// sizeFromBitrate estimates a format's bytes from its total bitrate in kbit/s,
+// as yt-dlp's filesize_from_tbr does. yt-dlp skips that estimate for streaming
+// manifests, where tbr is often the peak rather than the average, which on
+// YouTube leaves most of the HLS formats with no size at all. Overshooting a
+// little beats a blank column, 0 for a live stream without a duration.
+func sizeFromBitrate(tbr, duration float64) int64 {
+	if tbr <= 0 || duration <= 0 {
+		return 0
+	}
+	return int64(duration * tbr * 1000 / 8)
 }
 
 // keysOf returns the keys of one subtitle map, unsorted.
@@ -549,14 +583,17 @@ func buildArgs(dir string, o Options) []string {
 	tmpl := outputTemplate(o)
 	switch o.Variant {
 	case VariantAudio:
-		if tr, ok := parseAudioTrack(o.AudioTrack); ok {
+		switch tr, ok := parseAudioTrack(o.AudioTrack); {
+		case ok:
 			// -x without --audio-format copies the picked track as it is.
 			args = append(args, "-f", tr.selector(o.AudioLang), "-x")
-		} else {
+		case o.AudioFormat != "" && o.AudioFormat != "best":
+			// A track already in the format is copied, and only a source
+			// without one is converted.
+			fam := familyNamed(o.AudioFormat, audioFamilies)
+			args = append(args, "-f", audioFamilySelector(fam, o.AudioLang), "-x", "--audio-format", o.AudioFormat)
+		default:
 			args = append(args, "-f", audioSelector(o.AudioLang), "-x")
-			if o.AudioFormat != "" && o.AudioFormat != "best" {
-				args = append(args, "--audio-format", o.AudioFormat)
-			}
 		}
 		// yt-dlp itself ignores the quality when nothing is transcoded.
 		if o.AudioBitrate != "" {
@@ -587,10 +624,11 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, "-f", f)
 		}
 		// mkv takes any codec pairing, unlike mp4, and makes the container
-		// known in advance. A picked track asks for its own container first.
+		// known in advance. A picked track or format asks for its own
+		// container first.
 		merge := "mkv"
-		if v, ok := parseVideoFormat(o.VideoFormat); ok {
-			merge = v.mergeFormat(o.Embed.Thumbnail)
+		if c, ok := pickedContainer(o.VideoPick); ok {
+			merge = c.mergeFormat(o.Embed.Thumbnail)
 		}
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
@@ -706,19 +744,22 @@ func progressTemplateFor(o Options) string {
 	return progressTemplate
 }
 
-// formatSelector turns a picked track or a resolution preset into yt-dlp's -f
-// value, or "" for no selector (QualityBest and anything else without a height
-// cap, including a stored QualityAudioOnly). QualityCustom passes through
-// verbatim.
+// formatSelector turns a picked track, a preset's format wish or a resolution
+// preset into yt-dlp's -f value, or "" for no selector (QualityBest and
+// anything else without a height cap, including a stored QualityAudioOnly).
+// QualityCustom passes through verbatim.
 func formatSelector(o Options) string {
-	if v, ok := parseVideoFormat(o.VideoFormat); ok {
+	if v, ok := parseVideoFormat(o.VideoPick); ok {
 		return v.selector()
+	}
+	if w, ok := parseVideoWish(o.VideoPick); ok {
+		return w.selector()
 	}
 	if o.Quality == QualityCustom {
 		return o.CustomFormat
 	}
 	if h, ok := heightCaps[o.Quality]; ok {
-		return "bestvideo[height<=?" + h + "]+bestaudio/best[height<=?" + h + "]"
+		return capSelector(h)
 	}
 	return ""
 }

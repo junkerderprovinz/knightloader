@@ -34,3 +34,20 @@ func TestDirectMatch(t *testing.T) {
 		}
 	}
 }
+
+// A host Leave names is not claimed even when the path is a file, and the
+// fallback leaves it too; every other host is claimed as before.
+func TestLeaveKeepsDirectAndTheFallbackOffAHost(t *testing.T) {
+	leave := func(host string) bool { return host == "rapidgator.net" }
+	direct := Direct{Leave: leave}
+	fallback := HTTPFallback{Leave: leave}
+
+	const hoster = "https://rapidgator.net/file/abc/movie.mkv"
+	if direct.Match(hoster) || fallback.Match(hoster) {
+		t.Errorf("a host Leave names is claimed: direct %v, fallback %v", direct.Match(hoster), fallback.Match(hoster))
+	}
+	const plain = "https://files.example/movie.mkv"
+	if !direct.Match(plain) || !fallback.Match(plain) {
+		t.Errorf("an ordinary host is left: direct %v, fallback %v", direct.Match(plain), fallback.Match(plain))
+	}
+}

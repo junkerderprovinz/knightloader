@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { checkConnection, setQueueHalted } from '../api/client';
 import { listConnections, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
@@ -11,6 +11,7 @@ import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../api/stats';
+import { Text } from '../components/Text';
 
 /**
  * The one line under an instance's name: the same four figures, in the same

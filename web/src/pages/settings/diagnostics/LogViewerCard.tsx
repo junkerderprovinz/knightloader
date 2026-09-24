@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
+import { Dropdown } from '../../../components/Dropdown';
 import { useLogTail } from './useLogTail';
 
 /**
@@ -27,11 +28,6 @@ export function LogViewerCard({ hue }: { hue: number }) {
     box.current.scrollTop = box.current.scrollHeight;
   }, [follow, shown]);
 
-  // A callback ref, because the card returns early while loading and a plain
-  // ref would still be null when the effect ran.
-  const [picker, setPicker] = useState<HTMLSelectElement | null>(null);
-  useEffect(() => enableSelectWheel(picker), [picker]);
-
   if (loading) return <LoadingCard label={t('common.loading')} />;
   if (failed) {
     return <ErrorCard message={t('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
@@ -55,23 +51,18 @@ export function LogViewerCard({ hue }: { hue: number }) {
         </span>
 
         <span className="flex items-center gap-1.5">
-          <select
-            ref={setPicker}
+          <Dropdown
+            width="widest"
+            label={t('settings.diagnostics.logSource')}
             value={source}
-            onChange={(e) => setSource(e.target.value)}
-            aria-label={t('settings.diagnostics.logSource')}
-            className="glim-select h-9 appearance-none rounded-[var(--radius-control)] bg-carbon-surface2 px-3 pe-7
-              text-sm text-carbon-textSub outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-          >
-            <option value="">{t('settings.diagnostics.logSourceAll')}</option>
-            {sources.map((s) => (
+            onChange={setSource}
+            options={[
+              { value: '', label: t('settings.diagnostics.logSourceAll') },
               // Untranslated, so it matches what the lines say.
-              <option key={s} value={s} dir="ltr">
-                {s}
-              </option>
-            ))}
-            <option value={OTHER}>{t('settings.diagnostics.logSourceOther')}</option>
-          </select>
+              ...sources.map((s) => ({ value: s, label: s })),
+              { value: OTHER, label: t('settings.diagnostics.logSourceOther') },
+            ]}
+          />
           <InfoBubble tip={t('settings.diagnostics.logSourceHint')} label={t('settings.diagnostics.logSource')} />
         </span>
       </div>
@@ -131,27 +122,6 @@ export function LogViewerCard({ hue }: { hue: number }) {
       )}
     </Card>
   );
-}
-
-/**
- * enableSelectWheel lets a closed <select> step one option per wheel notch,
- * clamped at both ends, and fires a bubbling `change` for its onChange. It uses
- * a native non-passive listener because React's onWheel is passive and cannot
- * prevent the page scroll. Resolvers.tsx has a copy.
- */
-function enableSelectWheel(select: HTMLSelectElement | null): () => void {
-  if (!select) return () => {};
-  const onWheel = (event: WheelEvent) => {
-    if (select.disabled || select.options.length < 2 || event.deltaY === 0) return;
-    event.preventDefault();
-    const delta = event.deltaY > 0 ? 1 : -1;
-    const next = Math.min(select.options.length - 1, Math.max(0, select.selectedIndex + delta));
-    if (next === select.selectedIndex) return;
-    select.selectedIndex = next;
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  select.addEventListener('wheel', onWheel, { passive: false });
-  return () => select.removeEventListener('wheel', onWheel);
 }
 
 /** The picker's value for lines without a source; '' already means all sources. */

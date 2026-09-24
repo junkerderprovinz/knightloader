@@ -15,7 +15,7 @@ import { useT } from '../lib/i18n';
 import { IconChevronEnd } from '../lib/icons';
 import { fetchFeatures } from './settings/features';
 import { useToast } from '../lib/toast';
-import { PageHeader, Card, Button, InfoBubble, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 
 export function Instances() {
@@ -170,10 +170,9 @@ export function Instances() {
 
       {/* Adding instances lives in settings/Access.tsx's RemoteAccessCard. */}
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+        <Button kind="secondary" hint={t('instances.connectHint')} onClick={() => navigate('/settings/access')}>
           {t('instances.connectButton')}
         </Button>
-        <InfoBubble tip={t('instances.connectHint')} />
       </div>
     </div>
   );

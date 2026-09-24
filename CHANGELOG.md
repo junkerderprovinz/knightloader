@@ -65,18 +65,16 @@ submission and for a fixed download.
 
 ### Fixed
 
-- **Links to a filehoster go to JDownloader's free mode again after the
-  priority order has been rearranged.** The card on the Accounts page listed
-  JDownloader, yt-dlp, the direct download and the HTTP fallback too, and any
-  drag saved all of them, with direct above JDownloader. From then on a
-  filehoster link without an account went out as a plain download, which
-  usually saves the hoster's landing page. Those four decide per link and can
-  no longer be dragged: JDownloader, yt-dlp and the direct download close the
-  list as fixed rows, and the card orders the debrid accounts, your own hoster
-  logins and torrents. Header profiles and your own FTP, SFTP and WebDAV servers
-  left the card too, since each takes only the links it was set up for. An order
-  saved before keeps its old effect until the card is touched once or reset to
-  "Automatic".
+- **Links to a filehoster go to JDownloader's free mode, however the priority
+  order is arranged.** Any drag on the card saved the direct download above
+  JDownloader, and from then on a filehoster link without an account went out
+  as a plain download, which usually saves the hoster's landing page. The
+  direct download and the HTTP fallback leave every host that JDownloader, a
+  debrid service or the built-in hoster list knows as a filehoster, and every
+  video site while yt-dlp runs, wherever they stand in the order. yt-dlp leaves
+  the filehosters too. Header profiles and your own FTP, SFTP and WebDAV servers
+  left the card, since each takes only the links it was set up for, and they
+  go ahead of every row.
 
 - **"Wait before confirming automatically" waits.** The delay was saved and
   never read, so every batch confirmed the moment it arrived. A batch now counts
@@ -138,14 +136,41 @@ submission and for a fixed download.
   the bin's tooltip standing where the pointer is not. The tooltip engine
   follows GlimStone 2.6.0.
 
+- **A schedule's day presets and times look like controls again.** Inside the
+  grey editor the presets' track and the start and end fields had the editor's
+  own colour, so the presets read as plain words and the times as plain text.
+  Every selector's track now has a colour of its own on any ground, and the
+  time fields are fields, with a clock.
+
 - **The image build no longer takes `latest` before the release exists.**
   `docker/metadata-action` adds `latest` by itself unless told not to, so the
   guard added in 1.1.6 decided nothing: on v1.1.6 the build moved `latest` half
   an hour before the release was created, and the job meant to decide it only
   corrected it afterwards. The build sets version tags only now.
+- **The APK tile on Settings > Browser & App downloads the app version the
+  card shows.** The number came from `mobile/app.json`, but the tile opened the
+  list of all releases, where the newest app can be another version. The tile
+  now fetches the APK of exactly that release. A check ties the number and the
+  file to `app.json`, CI checks the built page whenever `app.json` changes, and
+  a test ties the extension's number to the manifest in the zip the server
+  hands out.
+- **The speed graph's time axis reads the right way round in Arabic, Hebrew and
+  Persian.** "-60s" and "0s" had swapped ends while the curve had not, and the
+  top of the scale showed its unit before the number.
 
 ### Changed
 
+- **The watch folder has its own switch on the Link collector tile**, the same
+  switch as on the Modules page, and each place links to the other. The link on
+  the Modules page lands on the switch itself. Switched off, the folder is kept
+  and comes back with the switch; the field has the folder picker, and the
+  module is called "Watch folder" in both places.
+- **The Link intake card keeps its explanations in (i) bubbles.** The address
+  Click'n'Load listens on is in its bubble and in your language, also on the
+  Modules page and in the tooltip of the collector's Click'n'Load button.
+  "Start added links immediately" lost its "(skip the collector)" to a bubble of
+  its own. `GET /api/features` sends a row's reading as a code with its values
+  too, next to the English sentence.
 - **The speed graph is a filled area that glides** from one sample to the next,
   where it used to step once a second and rescale on every value. With motion
   switched off it moves without the glide.
@@ -158,11 +183,16 @@ submission and for a fixed download.
 - **The collector's variant column is narrower and its name column wider**, and
   an expanded package shows an open folder.
 - **The debrid account picker lost its search field** and is titled "Choose a
-  debrid service".
+  debrid account", after the card it opens from.
+- **The windows on the Accounts page are named after the card and the button
+  that open them**: "Choose a hoster account", "Add your 1fichier.com account",
+  "Edit the credential for TorBox". A window opened from the debrid card wears
+  that card's colour, as the hoster card's windows already did.
 - **The tour's last button reads "Done".**
-- **The priority card is one list.** The services you can drag come first,
-  and JDownloader, yt-dlp and the direct download close it as fixed rows with
-  what each of them takes, where they used to sit in a section of their own.
+- **Every row of the priority card can be dragged**, JDownloader, yt-dlp and
+  the direct download included, where they used to sit in a section of their
+  own. What a row is for sits in an (i) beside its name instead of a grey line
+  under it.
 - **JDownloader's switch lives on the Modules page only**, not on the Accounts
   tab as well.
 - **The schedule page speaks of schedules.** The card is "Schedules", its
@@ -194,7 +224,12 @@ submission and for a fixed download.
   shipped with them, so they look the same on every system instead of taking
   whatever font the system has. A page loads only the alphabets it shows, the
   Latin one 35 KB. Chinese, Japanese and Korean use the system's own font,
-  since those fonts are several megabytes each.
+  since those fonts are several megabytes each. The extension also takes the
+  web UI's letter spacing, so the font sets the same way in both.
+- **The phone app is set in Noto Sans too**, shipped with it, so its labels
+  match the web UI and the extension instead of taking the phone's own font.
+  Arabic, Hebrew, Thai, Chinese, Japanese and Korean use the phone's own font
+  for those alphabets.
 - **The web UI, the browser extension and the phone app follow GlimStone
   2.8.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
@@ -231,6 +266,43 @@ submission and for a fixed download.
 - **The logo at the top of the sidebar is 104 pixels tall**, 44 in the narrow
   rail, the size the sibling apps use, and the mark on an instance card
   matches it.
+- **The APK tile shows Android's logo and the word "APK"**, where it showed
+  KnightLoader's shield and "Download the APK". On the light theme and on the
+  hovered tile the green is a darker shade, so the logo stays visible there.
+- **The project relay card shows its address in the bubble behind "What can it
+  see?"** instead of in a field of its own. The button sits at the bottom right
+  of the card, where it no longer pushes the switch down.
+- **The Downloads head bar is one row and about half as tall.** Play, Pause and
+  Stop are square buttons that show their names in the tooltip, and a fourth
+  square opens the quick settings. The speed curve fills the rest of the row up
+  to the bar's right edge. The newest second sits on that edge with the current
+  speed above it, and the top of the scale is shown above the other end. In a
+  narrow window the curve moves under the buttons.
+- **Quick settings open as a small panel under their button** instead of a
+  window. The panel holds the speed limit, the same field the Downloads
+  settings page shows, and the limit field is no longer in the head bar.
+  Simultaneous downloads, downloads per hoster and connections per download are
+  set on the Downloads settings page.
+- **Every dropdown is the app's own.** A schedule's action, a rule's field and
+  comparison, a connection's type, a reconnect request's method, a script's
+  trigger, a category's media server address, a host preset's quality and audio
+  format, the log source, the speed unit and the search box's field open the
+  app's menu with a check mark on the current choice, like the quality picker
+  in the collector, instead of the browser's own list. The mouse wheel still
+  steps through the choices while the pointer rests on one.
+- **Text fields, dropdowns, the time fields and the search boxes are one
+  height**, the height of the buttons beside them, and share one look.
+- **A selector that needs more than one line fills them evenly.** "When two
+  links count as the same file" and the idle action used to leave an empty
+  stretch at the end of a line; now the options share each line, and the lines
+  hold as nearly the same number of options as they can. A selector that fits
+  on one line keeps its width.
+- **Buttons carry their (i) inside them**, such as Import and Export on the
+  rules card, "Check integrity", "Check again", "Play here" and "Connect an
+  instance". The (i) stays readable on a button that is switched off, and where
+  a button shows only its icon, the explanation joins its name in the bubble.
+- **Settings tile names wrap onto a second line** instead of being cut off, so
+  "Rules & categories" reads in full. Only the tile that needs it grows.
 
 ## [1.1.6] - 2026-09-18
 

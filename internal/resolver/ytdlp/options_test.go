@@ -36,33 +36,6 @@ func TestSanitizeKeepsEveryKnownAudioBitrate(t *testing.T) {
 	}
 }
 
-// Transcode targets the source lacks (mp3, wav, flac) are not offered. AAC
-// counts as both "m4a" and "aac".
-func TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest(t *testing.T) {
-	got := AvailableAudioFormats([]string{"opus", "mp4a.40.2", "opus"})
-	// Menu order, not input order.
-	want := []string{"best", "aac", "m4a", "opus"}
-	if len(got) != len(want) {
-		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Errorf("AvailableAudioFormats = %v, want %v", got, want)
-			break
-		}
-	}
-}
-
-func TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest(t *testing.T) {
-	got := AvailableAudioFormats([]string{"ac-3", "eac3"})
-	if len(got) != 1 || got[0] != "best" {
-		t.Errorf("AvailableAudioFormats = %v, want [best]", got)
-	}
-	if got := AvailableAudioFormats([]string{"vorbis"}); len(got) != 2 || got[1] != "vorbis" {
-		t.Errorf("AvailableAudioFormats(vorbis) = %v, want [best vorbis]", got)
-	}
-}
-
 func TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack(t *testing.T) {
 	got := AvailableAudioBitrates(130)
 	want := []string{"", "64", "96", "128"}

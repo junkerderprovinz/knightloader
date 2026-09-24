@@ -127,7 +127,6 @@ export function VolumeCard({ hue }: { hue?: number }) {
         <Tabs
           variant="well"
           size="sm"
-          className="w-fit"
           label={t('volume.rangeLabel')}
           active={range}
           onSelect={(id) => setRange(id as Range)}
@@ -139,7 +138,6 @@ export function VolumeCard({ hue }: { hue?: number }) {
         <Tabs
           variant="well"
           size="sm"
-          className="w-fit"
           label={t('volume.splitLabel')}
           active={split}
           onSelect={(id) => setSplit(id as Split)}

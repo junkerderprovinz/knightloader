@@ -173,7 +173,7 @@ func (a *App) rewireBackends() {
 		// backend would ignore saved jars.
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
 		newYtdlp = yb
-		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
+		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude, Leave: a.claims.fileHoster})
 		// The source explains why this binary was chosen over the others.
 		log.Printf("yt-dlp backend enabled: %s (%s)", ytbin, ytsource)
 		if ytdetail != "" {
@@ -184,12 +184,15 @@ func (a *App) rewireBackends() {
 	}
 
 	// The same file-hoster set tells JD's resolver not to take media links
-	// from yt-dlp (see jd.SetFileHosts). Without yt-dlp nil is pushed, which
-	// means nothing was classified rather than an empty classification.
+	// from yt-dlp (see jd.SetFileHosts) and the catch-all resolvers which hosts
+	// to leave alone (see hostClaims). Without yt-dlp nil is pushed to JD,
+	// which means nothing was classified rather than an empty classification.
 	if newYtdlp != nil {
 		jd.SetFileHosts(ytdlpExclude)
+		a.claims.set(ytdlpExclude, mediaSites)
 	} else {
 		jd.SetFileHosts(nil)
+		a.claims.set(ytdlpExclude, nil)
 	}
 
 	// Optional TorBox backend, one per account like the one-shot services.

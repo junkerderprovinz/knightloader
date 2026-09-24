@@ -337,7 +337,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
               <Tabs
                 variant="well"
                 size="sm"
-                className="w-fit"
                 label={t('settings.mediahook.method')}
                 active={draft.method}
                 onSelect={(id) => setDraft({ ...draft, method: id })}

@@ -1,5 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, SectionTitle, TextInput } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
@@ -383,7 +384,12 @@ function ScriptRow({
               />
             </Field>
             <Field label={cx('settings.scripts.trigger')} hint={cx('settings.scripts.triggerHint')}>
-              <TriggerSelect value={draft.trigger} options={triggers} onChange={(t) => update({ trigger: t })} />
+              <TriggerSelect
+                label={cx('settings.scripts.trigger')}
+                value={draft.trigger}
+                options={triggers}
+                onChange={(t) => update({ trigger: t })}
+              />
             </Field>
             <Field label={cx('settings.scripts.timeout')} hint={cx('settings.scripts.timeoutHint')}>
               <div className="flex items-center gap-2">
@@ -456,10 +462,12 @@ function TriggerSelect({
   value,
   options,
   onChange,
+  label,
 }: {
   value: ScriptTrigger;
   options: ScriptTrigger[];
   onChange: (t: ScriptTrigger) => void;
+  label: string;
 }) {
   // Labels from lib/triggers.ts, shared with the event targets card.
   const triggerLabel = useTriggerLabel();
@@ -467,17 +475,11 @@ function TriggerSelect({
   // being swapped for the first known one, as in Schedule.tsx's ActionSelect.
   const shown = options.includes(value) ? options : [value, ...options];
   return (
-    <select
+    <Dropdown
+      label={label}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {shown.map((t) => (
-        <option key={t} value={t}>
-          {triggerLabel(t)}
-        </option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={shown.map((t) => ({ value: t, label: triggerLabel(t) }))}
+    />
   );
 }

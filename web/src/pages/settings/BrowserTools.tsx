@@ -83,7 +83,7 @@ export function BrowserTools() {
 
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
-          right={extensionVersion && <ExtensionVersion version={extensionVersion} />}
+          right={extensionVersion && <ReleaseVersion version={extensionVersion} tagPrefix="extension/v" />}
         >
           {t('settings.browsertools.extensionTitle')}
         </SectionTitle>
@@ -117,10 +117,9 @@ function AppCard() {
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
-      {/* The app's version is read from mobile/app.json at build time (vite.config.ts). */}
       <SectionTitle
         hint={t('settings.browsertools.appBody')}
-        right={<span className="glim-num text-[11px] text-carbon-textMuted">v{__MOBILE_VERSION__}</span>}
+        right={<ReleaseVersion version={APP_VERSION} tagPrefix="mobile/v" />}
       >
         {t('settings.browsertools.appTitle')}
       </SectionTitle>
@@ -137,10 +136,9 @@ function AppCard() {
           name={t('settings.browsertools.storeIOS')}
           onClick={openIfSet(APP_URLS.ios)}
         />
-        {/* The APK leads to the app itself, so it wears KnightLoader's mark. */}
         <DownloadTile
-          logo={<img src={logoUrl} alt="" aria-hidden className="h-full w-full object-contain" />}
-          name={t('settings.browsertools.apkLabel')}
+          logo={<BrandMark svg={ANDROID_SVG} className="kl-android-mark" />}
+          name="APK"
           onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
         />
       </div>
@@ -165,15 +163,20 @@ function AppCard() {
   );
 }
 
-// The APK links the releases index rather than /releases/latest, because
-// mobile builds carry their own mobile/vX.Y.Z tags and "latest" may be a
-// server release. An empty store URL means the listing is not live yet.
-const EXTENSION_REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+
+// The app this build offers is the version mobile/app.json names when the page
+// is built (vite.config.ts), and the APK tile fetches exactly that release's
+// file, so the card's number is the app the tile gives. The standing "newest"
+// download is whatever was tagged last, which this build cannot know.
+// check-version-sources.mjs holds both ends. An empty store URL means the
+// listing is not live yet.
+const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
   android: '',
   ios: '',
-  apk: `${EXTENSION_REPO_URL}/releases`,
+  apk: `${REPO_URL}/releases/download/mobile/v${APP_VERSION}/KnightLoader-${APP_VERSION}.apk`,
 };
 
 /**
@@ -190,24 +193,27 @@ function openIfSet(url: string): () => void {
  * The class of DownloadTile, the one download shape on the page for browsers,
  * stores and the APK alike. It hovers to the coin tiles' grey and ink. The
  * vendor marks keep their colours, since each has a part that stands out on
- * the grey (check-tile-hover.mjs). The hover belongs to the wrapper, so the (i)
- * in the corner lights the tile too and takes the same ink.
+ * the grey (check-tile-hover.mjs); Android's one green does not, so its mark
+ * takes the stylesheet's value for a light ground there (.kl-android-mark).
+ * The hover belongs to the wrapper, so the (i) in the corner lights the tile
+ * too and takes the same ink.
  */
 const tileClass =
   'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
   'text-carbon-text transition-colors duration-150 group-hover:bg-carbon-tileHover group-hover:text-carbon-tileHoverInk';
 
 /**
- * ExtensionVersion links the extension's version to its release page. The tag
- * is derived with the `extension/v` prefix these releases carry; a stamp that
- * is not a plain three-part version shows without a link.
+ * ReleaseVersion links a version to its release page. The extension's and the
+ * app's tags carry a prefix of their own, since three products share the
+ * releases list; a stamp that is not a plain three-part version shows without
+ * a link.
  */
-function ExtensionVersion({ version }: { version: string }) {
+function ReleaseVersion({ version, tagPrefix }: { version: string; tagPrefix: 'extension/v' | 'mobile/v' }) {
   const plain = <span className="glim-num text-[11px] text-carbon-textMuted">v{version}</span>;
   if (!/^\d+\.\d+\.\d+$/.test(version)) return plain;
   return (
     <a
-      href={`${EXTENSION_REPO_URL}/releases/tag/extension/v${version}`}
+      href={`${REPO_URL}/releases/tag/${tagPrefix}${version}`}
       target="_blank"
       rel="noreferrer noopener"
       className="glim-num text-[11px] text-carbon-textMuted no-underline hover:text-carbon-text"
@@ -279,10 +285,10 @@ function downloadXpi() {
  * `<use>` references and kebab-case attributes are easy to break in a JSX port.
  * Every id carries a per-logo prefix (kl-<name>-*) so the marks cannot collide.
  */
-function BrandMark({ svg }: { svg: string }) {
+function BrandMark({ svg, className = '' }: { svg: string; className?: string }) {
   return (
     <span
-      className="block h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
+      className={`block h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full ${className}`}
       aria-hidden
       dangerouslySetInnerHTML={{ __html: svg }}
     />
@@ -292,6 +298,12 @@ function BrandMark({ svg }: { svg: string }) {
 // Google Play's icon rather than the badge, whose artwork may not be altered.
 const PLAY_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><linearGradient id="kl-play-a" x1="60.6" x2="276.6" y1="45.4" y2="261.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00a0ff"/><stop offset=".01" stop-color="#00a1ff"/><stop offset=".26" stop-color="#00beff"/><stop offset=".51" stop-color="#00d2ff"/><stop offset=".76" stop-color="#00dfff"/><stop offset="1" stop-color="#00e3ff"/></linearGradient><linearGradient id="kl-play-b" x1="446.6" x2="34.3" y1="256" y2="256" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe000"/><stop offset=".41" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ffa500"/><stop offset="1" stop-color="#ff9c00"/></linearGradient><linearGradient id="kl-play-c" x1="349.6" x2="6.9" y1="295.1" y2="637.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff3a44"/><stop offset="1" stop-color="#c31162"/></linearGradient><linearGradient id="kl-play-d" x1="22.9" x2="176" y1="-38.1" y2="115" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#32a071"/><stop offset=".07" stop-color="#2da771"/><stop offset=".48" stop-color="#15cf74"/><stop offset=".8" stop-color="#06e775"/><stop offset="1" stop-color="#00f076"/></linearGradient><path fill="url(#kl-play-a)" d="M39.6 24.1c-5.6 5.9-8.9 15.1-8.9 27v409.8c0 11.9 3.3 21.1 8.9 27l1.4 1.3L270 259.7v-5.4L41 25.4z"/><path fill="url(#kl-play-b)" d="m346.3 336.3-76.3-76.6v-5.4l76.4-76.5 1.7 1L438.5 231c25.8 14.7 25.8 38.7 0 53.4l-90.4 51.4z"/><path fill="url(#kl-play-c)" d="M348 335.3 270 257 39.6 487.9c8.5 9 22.5 10.1 38.4 1.1z"/><path fill="url(#kl-play-d)" d="M348 178.7 78 25.1C62.1 16 48.1 17.2 39.6 26.2L270 257z"/></svg>';
+
+// Android's head from Dashboard Icons (svg/android.svg), painted in
+// currentColor so the stylesheet can adjust its green per ground, as it does
+// for the about card's marks (.kl-android-mark in index.css).
+const ANDROID_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.03 112.41 512 287.17"><path fill="currentColor" d="m447.9 460.9 42.5-73.6c2.4-4.1.9-9.4-3.1-11.8-4.1-2.4-9.4-1-11.7 3.1l-43 74.5c-32.8-15-69.8-23.4-109.5-23.4s-76.7 8.4-109.5 23.4l-43-74.5c-2.4-4.1-7.6-5.5-11.8-3.1-4.1 2.4-5.5 7.6-3.1 11.8l42.5 73.6C124.8 500.6 75.2 574.7 67 661.5h512c-8.2-86.8-57.8-160.9-131.1-200.6M205.4 589.6c-11.9 0-21.5-9.6-21.5-21.5s9.6-21.5 21.5-21.5 21.5 9.6 21.5 21.5c0 11.8-9.6 21.5-21.5 21.5m235.1 0c-11.9 0-21.5-9.6-21.5-21.5s9.6-21.5 21.5-21.5 21.5 9.6 21.5 21.5c0 11.8-9.7 21.5-21.5 21.5" transform="translate(-66.97 -261.92)"/></svg>';
 
 // Apple's mark uses currentColor: it is black or white by definition, so the
 // tile's neutral ink is the right colour in every theme. That holds only while

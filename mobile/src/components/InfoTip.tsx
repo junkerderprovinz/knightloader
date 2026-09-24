@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
+import { Text } from './Text';
 
 /**
  * The "(i)" and the bubble it opens: the explanation of a control, kept off the

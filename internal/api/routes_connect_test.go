@@ -37,6 +37,36 @@ func TestConnectStartsInactive(t *testing.T) {
 	}
 }
 
+// TestConnectNamesTheProjectRelayInEveryMode checks that the project relay's
+// address is answered while another relay, or none, is in use, since the
+// project relay card names it before anybody switches to it.
+func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	for _, mode := range []string{settings.RelayModeProject, settings.RelayModeOwn, settings.RelayModeOff} {
+		cfg := a.Settings.Get()
+		cfg.RelayMode = mode
+		cfg.RelayURL = "wss://relay.example.com"
+		if _, err := a.Settings.Set(cfg); err != nil {
+			t.Fatal(err)
+		}
+		resp, err := http.Get(srv.URL + "/api/connect")
+		if err != nil {
+			t.Fatal(err)
+		}
+		var info ConnectInfo
+		err = json.NewDecoder(resp.Body).Decode(&info)
+		resp.Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if info.ProjectRelayURL != relay.DefaultRelayURL {
+			t.Errorf("in %s mode projectRelayUrl = %q, want %q", mode, info.ProjectRelayURL, relay.DefaultRelayURL)
+		}
+	}
+}
+
 // TestActivateReturnsAUsablePhrase checks that activation hands back a phrase
 // that decodes and stores the matching secret.
 func TestActivateReturnsAUsablePhrase(t *testing.T) {

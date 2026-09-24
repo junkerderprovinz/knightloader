@@ -4,7 +4,7 @@
 // row window.
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useT } from '../lib/i18n';
-import { IconBadge, InfoBubble } from './ui';
+import { IconBadge } from './ui';
 import { Tabs } from './Tabs';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { ViewDeleteDialog, ViewNameDialog } from './SavedViewDialog';
@@ -134,13 +134,13 @@ export function SavedViewChips({
           title={t('views.save')}
           aria-label={t('views.save')}
           disabled={views.length >= MAX_VIEWS}
+          hint={views.length >= MAX_VIEWS ? t('views.full', { n: MAX_VIEWS }) : undefined}
           onClick={() => {
             setRefusal('');
             setOpen({ kind: 'save' });
           }}
         />
       )}
-      {narrowed && views.length >= MAX_VIEWS && <InfoBubble tip={t('views.full', { n: MAX_VIEWS })} />}
 
       {views.length > 0 && (
         <IconBadge

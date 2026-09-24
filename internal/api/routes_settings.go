@@ -273,6 +273,7 @@ func options() map[string]any {
 			proxycfg.KindSOCKS4, proxycfg.KindSOCKS4A, proxycfg.KindSOCKS5,
 		},
 		"ytdlpQualities":     ytdlp.Qualities(),
+		"ytdlpVideoFormats":  ytdlp.PresetVideoFormats(),
 		"ytdlpAudioFormats":  ytdlp.AudioFormats(),
 		"ytdlpAudioBitrates": ytdlp.AudioBitrates(),
 		// The rule vocabulary comes from GET /api/rules/grammar.

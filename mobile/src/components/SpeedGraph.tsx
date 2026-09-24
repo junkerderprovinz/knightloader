@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { fmtBytes } from '../api/stats';
+import { Text } from './Text';
 
 /**
  * The download speed over the last minute, as bars, with both axes labelled.

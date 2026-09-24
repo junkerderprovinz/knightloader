@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { addLinks, ApiError } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -8,6 +8,7 @@ import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
 import { Cross, Plus } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
+import { Text, TextInput } from '../components/Text';
 
 export default function AddDownloadScreen({
   conn,

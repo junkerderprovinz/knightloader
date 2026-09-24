@@ -48,8 +48,13 @@ jobs:
               - 'go.sum'
               - 'Dockerfile'
               - '.github/workflows/ci.yml'
+            # The build bakes app.json's version into web/dist, and
+            # check-version-sources.mjs reads the other three.
             web:
               - 'web/**'
+              - 'mobile/app.json'
+              - '.github/workflows/release-mobile.yml'
+              - 'internal/api/routes_browsertools.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list is held to the web UI's.
             extension:
@@ -250,6 +255,9 @@ jobs:
       - name: A picker tile hovers to the tile grey
         run: node check-tile-hover.mjs
 
+      - name: The version on a download card is the one it downloads
+        run: node check-version-sources.mjs
+
       - name: A stretched plot does not decide its card's height
         run: node check-stretched-svg-height.mjs
 
@@ -394,6 +402,9 @@ jobs:
 
       - name: Donation addresses
         run: node check-donate.mjs
+
+      - name: House font
+        run: node check-house-font.mjs
 
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed

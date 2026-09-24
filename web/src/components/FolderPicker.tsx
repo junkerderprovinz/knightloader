@@ -74,12 +74,15 @@ export function PathInput({
   onValue,
   placeholder,
   title,
+  label,
 }: {
   value: string;
   onValue: (next: string) => void;
   placeholder?: string;
   /** The chooser's heading, when the field is not the download folder. */
   title?: string;
+  /** The text box's name, for a field that stands under a row title rather than inside a Field. */
+  label?: string;
 }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
@@ -88,6 +91,7 @@ export function PathInput({
     <span className="flex items-center gap-2">
       {/* In an RTL locale a trailing slash would render on the wrong end. */}
       <TextInput
+        aria-label={label}
         dir="ltr"
         value={value}
         placeholder={placeholder}

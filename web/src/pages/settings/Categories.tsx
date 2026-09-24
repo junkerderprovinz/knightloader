@@ -9,6 +9,7 @@ import {
   SectionTitle,
   TextInput,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import {
@@ -525,7 +526,6 @@ function CategoryRow({
               <Tabs
                 variant="well"
                 size="sm"
-                className="w-fit"
                 label={t('props.priority')}
                 active={cat.priority === undefined ? INHERIT : String(cat.priority)}
                 onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
@@ -543,7 +543,6 @@ function CategoryRow({
               <Tabs
                 variant="well"
                 size="sm"
-                className="w-fit"
                 label={t('props.autoExtract')}
                 active={cat.extract === undefined ? INHERIT : cat.extract ? 'on' : 'off'}
                 onSelect={(id) => setExtract(id === INHERIT ? undefined : id === 'on')}
@@ -574,7 +573,6 @@ function CategoryRow({
                 <Tabs
                   variant="well"
                   size="sm"
-                  className="w-fit"
                   label={t('settings.categories.collision')}
                   active={cat.collision?.trim() ? cat.collision : INHERIT}
                   onSelect={(id) => setCollision(id === INHERIT ? '' : id)}
@@ -620,31 +618,8 @@ function CategoryRow({
 }
 
 /**
- * wheelSteps lets a closed <select> step one option per wheel notch, clamped
- * at both ends, and fires a real `change`. It attaches a non-passive listener
- * because React's onWheel is passive. The same listener lives in SearchField,
- * QueueBar and RuleEditor.
- */
-function wheelSteps(el: HTMLSelectElement | null) {
-  if (!el) return;
-  const onWheel = (e: WheelEvent) => {
-    // Only the sign of deltaY counts; trackpads report fractions.
-    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    e.preventDefault();
-    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
-    if (next === el.selectedIndex) return;
-    el.selectedIndex = next;
-    // A real change event, so the element's onChange handles it like a click.
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  el.addEventListener('wheel', onWheel, { passive: false });
-  return () => el.removeEventListener('wheel', onWheel);
-}
-
-/**
- * NotifySelect lists a hook id missing from `hooks` as a deleted entry, since a
- * select whose value it does not carry shows the first one and stores it on the
- * next change.
+ * NotifySelect lists a hook id missing from `hooks` as a deleted entry, so a
+ * category pointing at a removed address says so instead of showing a bare id.
  */
 function NotifySelect({
   value,
@@ -667,21 +642,12 @@ function NotifySelect({
       ? [{ value, label: missingLabel(value) }, ...known]
       : known;
   return (
-    <select
-      // aria-label, since FieldGroup is a plain div and already shows the caption.
-      aria-label={label}
+    <Dropdown
+      width="widest"
+      label={label}
       value={value}
-      dir="ltr"
-      ref={wheelSteps}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select w-fit appearance-none rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 pe-6
-        text-sm text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {[{ value: '', label: noneLabel }, ...options].map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={[{ value: '', label: noneLabel }, ...options]}
+    />
   );
 }

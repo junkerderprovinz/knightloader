@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, InfoBubble } from '../components/ui';
+import { PageHeader, IconBadge } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
@@ -500,9 +500,9 @@ export function Collector() {
                 icon={<IconClose width={16} height={16} />}
                 title={t('views.clearAll')}
                 aria-label={t('views.clearAll')}
+                hint={t('views.clearAllHint')}
                 onClick={narrowing.clearAll}
               />
-              <InfoBubble tip={t('views.clearAllHint')} />
             </>
           )}
 

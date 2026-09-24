@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, InfoBubble, SectionTitle, useTooltip } from '../../components/ui';
+import type { TranslationKey } from '../../lib/i18n';
 import { IconChevronEnd } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 import { useFeatures } from './context';
 import type { Feature } from './features';
-import { label, useTx } from './tx';
+import { clearJump, requestJump } from './jump';
+import { SETTINGS_INDEX } from './searchIndex';
+import { label, moduleDetail, useTx } from './tx';
 
 /**
  * Modules lists what this build contains, with a switch on every module the
@@ -50,7 +53,8 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
   const { toggle } = useFeatures();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  const detail = useTooltip<HTMLSpanElement>(m.detail);
+  const detailText = moduleDetail(tx, m);
+  const detail = useTooltip<HTMLSpanElement>(detailText);
 
   const shipped = m.verdict === 'shipped';
   // A parked switch with nothing parked would answer 400, so it is disabled
@@ -88,16 +92,17 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
           {label(tx, 'settings.module.', m.id)}
           {reason && <InfoBubble tip={reason} />}
         </span>
-        {m.detail && (
+        {detailText && (
           // Truncated so a long path does not push the switch down a line; the
           // tooltip carries the whole of it.
-          <span {...detail.triggerProps} className="truncate text-[11px] text-carbon-textMuted" dir="ltr">
-            {m.detail}
+          <span {...detail.triggerProps} className="truncate text-[11px] text-carbon-textMuted" dir="auto">
+            {detailText}
           </span>
         )}
         {page && (
           <Link
             to={`/settings/${page}`}
+            onClick={() => jumpToSwitch(m.id, page)}
             className="flex w-fit items-center gap-1 text-[11px] text-carbon-textSub underline-offset-2 hover:text-carbon-text hover:underline focus-visible:underline"
           >
             {tx('settings.modules.configuredOn', { page: label(tx, 'settings.nav.', page) })}
@@ -120,6 +125,19 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
       {detail.node}
     </div>
   );
+}
+
+/**
+ * jumpToSwitch makes a row's page link land on the module's own switch where
+ * the settings index knows its row, and on the page alone otherwise.
+ */
+function jumpToSwitch(id: string, page: string) {
+  const key = `settings.module.${id}` as TranslationKey;
+  const card = SETTINGS_INDEX[page]?.find((c) => c.rows.some((r) => r.key === key));
+  // A link to the page alone still retires a jump that is looking, or it
+  // would mark something on the new page.
+  if (card) requestJump({ page, title: card.title, label: key });
+  else clearJump();
 }
 
 /**

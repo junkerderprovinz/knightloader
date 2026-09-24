@@ -1,5 +1,6 @@
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
+import type { Feature } from './features';
 
 /** useTx returns `t` under the name `tx` that the settings pages use. */
 export function useTx(): {
@@ -23,6 +24,19 @@ export function label(
 ): string {
   const key = (prefix + id) as TranslationKey;
   return key in en ? tx(key) : id;
+}
+
+/**
+ * moduleDetail is a module's live line in the reader's language where the
+ * server sent a code this build has words for, and the server's English
+ * sentence otherwise, such as from a newer server.
+ */
+export function moduleDetail(
+  tx: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+  m: Feature,
+): string | undefined {
+  const key = `settings.modules.detail.${m.detailCode}` as TranslationKey;
+  return m.detailCode && key in en ? tx(key, m.detailArgs) : m.detail;
 }
 
 type ChoicePrefix = 'settings.advanced.mirror.' | 'settings.advanced.offline.' | 'settings.advanced.reclaim.';

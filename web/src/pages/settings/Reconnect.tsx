@@ -11,6 +11,7 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
@@ -214,7 +215,6 @@ export function ReconnectCards({ hue }: { hue: number }) {
             label={t('settings.reconnect.method')}
             variant="well"
             size="sm"
-            className="w-fit"
             active={rc.method}
             onSelect={(id) => write({ method: id as Method })}
             items={METHODS.map((m) => ({
@@ -547,13 +547,12 @@ function RequestRow({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
         <Field label={t('settings.reconnect.requestMethod')}>
-          <Select value={(row.method || 'GET').toUpperCase()} onChange={(v) => onChange({ method: v })}>
-            {VERBS.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </Select>
+          <Dropdown
+            label={t('settings.reconnect.requestMethod')}
+            value={(row.method || 'GET').toUpperCase()}
+            onChange={(v) => onChange({ method: v })}
+            options={VERBS.map((v) => ({ value: v, label: v }))}
+          />
         </Field>
         <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
           <TextInput
@@ -893,31 +892,6 @@ type Tone = 'muted' | 'warn' | 'fail';
 function StateLine({ tone, children }: { tone: Tone; children: ReactNode }) {
   const cls = tone === 'fail' ? 'text-statusFail' : tone === 'warn' ? 'text-statusWarn' : 'text-carbon-textMuted';
   return <p className={`text-xs ${cls}`}>{children}</p>;
-}
-
-/**
- * Select is styled to match TextInput, a copy of the one in Connections.tsx;
- * a third user should move it into ui.tsx.
- */
-function Select({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  children: ReactNode;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {children}
-    </select>
-  );
 }
 
 interface FieldProps {

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip } from './InfoTip';
+import { Text } from './Text';
 
 /**
  * The GlimStone controls, as React Native.

@@ -52,13 +52,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.sectionLinkIntake',
       hint: 'settings.linkIntakeHint',
       rows: [
-        { key: 'settings.module.cnl' },
+        { key: 'settings.module.cnl', hint: 'settings.linkIntake.cnlHint' },
         { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
-        { key: 'settings.autoStart' },
-        { key: 'settings.watchDir', hint: 'settings.watchDirHint' },
+        { key: 'settings.autoStart', hint: 'settings.autoStartHint' },
+        { key: 'settings.module.watch', hint: 'settings.watchDirHint' },
       ],
-      // What the watch-folder row reads while the module is parked.
-      body: ['settings.downloads.watchOff'],
+      // What the watch folder's (i) adds while there is nothing to switch on,
+      // or a parked folder to bring back.
+      body: ['settings.linkIntake.watchPickFolder', 'settings.linkIntake.watchParked'],
     },
     {
       title: 'settings.downloads.collectorTitle',
@@ -278,7 +279,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   // The `{appearance && …}` half of the same component.
   appearance: [
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
-    { title: 'settings.navLabels.title', hint: 'settings.navLabels.hint', rows: [] },
+    { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
     { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
     {
       title: 'settings.colours',
@@ -422,6 +423,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rules.import',
         'settings.rules.export',
       ],
+      // The (i) inside the Import and Export buttons.
+      body: ['settings.rules.importTitle', 'settings.rules.exportTitle'],
     },
     { title: 'settings.rules.testTitle', rows: [], body: ['settings.rules.testHint'] },
     {

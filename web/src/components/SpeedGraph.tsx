@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { isLeet } from '../lib/leet';
@@ -423,7 +433,10 @@ export function SpeedGraph({
         />
         <span className="flex items-center gap-1.5">
           <InfoBubble tip={cx('overview.speedGraphHint')} />
-          <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
+          {/* Figure and unit are one token; an RTL locale must not reorder them. */}
+          <span dir="ltr" className="glim-num text-[11px] leading-none text-carbon-textMuted">
+            {fmtSpeed(ceiling)}
+          </span>
         </span>
       </div>
       {/* overflow-visible: the live tip sits on the right edge, and the svg
@@ -437,8 +450,9 @@ export function SpeedGraph({
       >
         <Plot win={win} span={span} w={W} h={height} pad={6} ceiling={ceiling} dot={3} stroke={1.75} halo />
       </svg>
-      {/* Both ends of the time axis, oldest on the left. */}
-      <div className="flex justify-between">
+      {/* Both ends of the time axis, oldest on the left. The plot does not
+          mirror in a right-to-left language, so neither do its labels. */}
+      <div dir="ltr" className="flex justify-between">
         <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
         <span className="glim-num text-[11px] leading-none text-carbon-textMuted">0s</span>
       </div>
@@ -447,10 +461,34 @@ export function SpeedGraph({
 }
 
 /**
- * SpeedMeter is the shell-bar reading: the current figure with the last
- * half-minute drawn behind it. `instance` is the shell's scope, which can be a
- * peer; only scope '' is seeded, since /api/stats/speed is not forwarded, so a
- * peer's curve starts empty.
+ * usePixelBox follows an svg's rendered size, so its viewBox can be drawn in
+ * pixels. Stretched with preserveAspectRatio="none", a wide and flat meter
+ * would squash the live tip into a dash. A hidden bar measures nothing, so the
+ * last real size is kept.
+ */
+function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: number } {
+  const [box, setBox] = useState({ w: 148, h: 40 });
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const seen = new ResizeObserver(([entry]) => {
+      const w = Math.round(entry.contentRect.width);
+      const h = Math.round(entry.contentRect.height);
+      if (w > 0 && h > 0) setBox((b) => (b.w === w && b.h === h ? b : { w, h }));
+    });
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, [ref]);
+  return box;
+}
+
+/**
+ * SpeedMeter is the shell-bar reading: the last half-minute as a curve that
+ * takes the rest of the bar's row, newest sample on its right edge, with the
+ * current figure above that end and the top of the plot above the other.
+ * `instance` is the shell's scope, which can be a peer; only scope '' is
+ * seeded, since /api/stats/speed is not forwarded, so a peer's curve starts
+ * empty and grows in from the right.
  */
 export function SpeedMeter({
   value,
@@ -463,43 +501,39 @@ export function SpeedMeter({
 }) {
   const win = useSpeedWindow(instance, value, points + OFFSTAGE, 'minute');
   const ceiling = useMemo(() => ceilingOf(win.samples), [win.samples]);
-
-  // The viewBox is a coordinate system: with preserveAspectRatio="none" the svg
-  // stretches to whatever box the card gives it.
-  const W = 148;
-  const H = 40;
+  const svg = useRef<SVGSVGElement>(null);
+  const { w, h } = usePixelBox(svg);
 
   return (
-    // No h-full, for the reason ShellStrip gives.
-    <span className="flex flex-1 items-stretch gap-2 px-1.5">
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
-          {fmtSpeed(ceiling)}
-        </span>
-        {/* h-0 with flex-auto: without a height the svg's aspect ratio would
-            set the card's height from its width. flex-1 does not work here,
-            because a 0% basis in an indefinite column falls back to content
-            size. check-stretched-svg-height.mjs guards this. */}
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="none"
-          className="h-0 min-h-[26px] w-full flex-auto"
-          aria-hidden
-          focusable="false"
-        >
-          <Plot win={win} span={points} w={W} h={H} pad={2} ceiling={ceiling} dot={2} stroke={1.5} />
-        </svg>
-        <span className="flex justify-between text-[11px] leading-none text-carbon-textMuted">
-          <span className="glim-num">{spanLabel(points * win.step)}</span>
-          <span className="glim-num">0s</span>
-        </span>
+    // dir="ltr": the time axis runs left to right in every language, and its
+    // labels have to stay at the ends of the plot they name. basis-60 is where
+    // the bar wraps the meter under the squares instead of squeezing it.
+    // self-stretch and no h-full: a percentage height would take the meter out
+    // of the stretch against the card's indefinite height.
+    <span dir="ltr" className="flex min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
+      <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
+        <span className="glim-num text-[11px] text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
+        <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtSpeed(value) || '0 B/s'}</span>
       </span>
-      {/* Figure and unit are one token; an RTL locale must not reorder them. */}
-      <span
-        dir="ltr"
-        className="glim-num flex items-center text-[12px] font-semibold leading-none text-carbon-text"
+      {/* h-0 with flex-auto: without a height the svg's aspect ratio would set
+          the card's height from its width. flex-1 does not work here, because
+          a 0% basis in an indefinite column falls back to content size.
+          check-stretched-svg-height.mjs guards this. */}
+      <svg
+        ref={svg}
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        // overflow-visible: the live tip sits on the right edge, and the svg
+        // would cut it in half. The curve clips itself.
+        className="h-0 min-h-[26px] w-full flex-auto overflow-visible"
+        aria-hidden
+        focusable="false"
       >
-        {fmtSpeed(value) || '0 B/s'}
+        <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} dot={3} stroke={1.5} />
+      </svg>
+      <span className="flex justify-between text-[11px] leading-none text-carbon-textMuted">
+        <span className="glim-num">{spanLabel(points * win.step)}</span>
+        <span className="glim-num">0s</span>
       </span>
     </span>
   );

@@ -716,7 +716,8 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
  * ProjectRelayCard offers the project's relay and says plainly what its
  * operator can see. Frames are sealed, including the instance name
  * (relay.Identity); the outside of the envelope is not, and the bubble
- * describes it in the privacy document's words.
+ * describes it in the privacy document's words and names the address. The
+ * address is fixed, so it is something to read rather than a field.
  */
 function ProjectRelayCard({
   cfg,
@@ -736,19 +737,7 @@ function ProjectRelayCard({
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
-      {/* The badge sits in the title row's slot, so it pushes no content down. */}
-      <SectionTitle
-        hint={t('settings.access.relay.body')}
-        right={
-          <LabelBadge
-            label={t('settings.access.relay.seesButton')}
-            tip={paragraphs(t('settings.access.relay.seesTip'))}
-            hue={3}
-          />
-        }
-      >
-        {t('settings.access.relay.title')}
-      </SectionTitle>
+      <SectionTitle hint={t('settings.access.relay.body')}>{t('settings.access.relay.title')}</SectionTitle>
 
       <div key={shake} className={shake > 0 ? 'glim-shake' : undefined}>
         <ToggleRow
@@ -763,18 +752,17 @@ function ProjectRelayCard({
       {/* The extra space ties the sentence to the block below it. */}
       <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
 
-      {/* The address the client really dials, only while this relay is in use. */}
-      {active && (
-        <div className="mt-auto flex flex-col gap-1">
-          <span className="text-xs font-semibold text-carbon-textSub">{t('settings.access.relay.address')}</span>
-          <code
-            className="glim-num min-w-0 overflow-x-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
-            dir="ltr"
-          >
-            {conn.relayUrl}
-          </code>
-        </div>
-      )}
+      {/* mt-auto keeps the footer row at the bottom when the own relay card
+          beside this one is taller. */}
+      <div className="mt-auto flex items-center justify-end gap-3">
+        <LabelBadge
+          label={t('settings.access.relay.seesButton')}
+          tip={paragraphs(
+            `${t('settings.access.relay.seesTip')}\n\n${t('settings.access.relay.seesAddress', { address: conn.projectRelayUrl })}`,
+          )}
+          hue={3}
+        />
+      </div>
     </Card>
   );
 }

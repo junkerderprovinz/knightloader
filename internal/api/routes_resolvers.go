@@ -78,10 +78,8 @@ func registerResolvers(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/ytdlp/preset", "save one hoster's own \"Variante\" preset",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
-				Host        string          `json:"host"`
-				Variants    []ytdlp.Variant `json:"variants"`
-				Quality     ytdlp.Quality   `json:"quality"`
-				AudioFormat string          `json:"audioFormat"`
+				Host string `json:"host"`
+				ytdlp.HosterPreset
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -90,11 +88,7 @@ func registerResolvers(reg *Registry, a *app.App) {
 				http.Error(w, "which host is this preset for?", http.StatusBadRequest)
 				return
 			}
-			if err := a.SetHosterPreset(body.Host, ytdlp.HosterPreset{
-				Variants:    body.Variants,
-				Quality:     body.Quality,
-				AudioFormat: body.AudioFormat,
-			}); err != nil {
+			if err := a.SetHosterPreset(body.Host, body.HosterPreset); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

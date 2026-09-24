@@ -40,6 +40,9 @@ type ConnectInfo struct {
 	// in "off" mode is not self-hosting anything, which SelfHosted alone
 	// cannot say.
 	RelayMode string `json:"relayMode"`
+	// ProjectRelayURL is the compiled-in default in every mode, so the page
+	// can say where the project relay is before anybody switches to it.
+	ProjectRelayURL string `json:"projectRelayUrl"`
 }
 
 func registerConnect(reg *Registry, a *app.App) {
@@ -176,11 +179,12 @@ func connectInfo(a *app.App) ConnectInfo {
 		url = ""
 	}
 	return ConnectInfo{
-		Active:      secretHex != "",
-		Connected:   a.Federation.RelayConnected(),
-		PasswordSet: a.Auth.Enabled(),
-		RelayURL:    url,
-		SelfHosted:  selfHosted,
-		RelayMode:   mode,
+		Active:          secretHex != "",
+		Connected:       a.Federation.RelayConnected(),
+		PasswordSet:     a.Auth.Enabled(),
+		RelayURL:        url,
+		SelfHosted:      selfHosted,
+		RelayMode:       mode,
+		ProjectRelayURL: relay.DefaultRelayURL,
 	}
 }

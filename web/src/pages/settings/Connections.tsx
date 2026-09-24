@@ -10,6 +10,7 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
 import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -355,13 +356,12 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr_6rem]">
         <Field label={cx('settings.connections.type')} hint={cx('settings.connections.typeHint')}>
-          <Select value={row.type} onChange={(v) => onChange({ type: v as Kind })}>
-            {KINDS.map((k) => (
-              <option key={k} value={k}>
-                {kindLabel(cx, k)}
-              </option>
-            ))}
-          </Select>
+          <Dropdown
+            label={cx('settings.connections.type')}
+            value={row.type}
+            onChange={(v) => onChange({ type: v })}
+            options={KINDS.map((k) => ({ value: k, label: kindLabel(cx, k) }))}
+          />
         </Field>
         {!inert && (
           <>
@@ -626,51 +626,6 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
 function StateLine({ tone, children }: { tone: 'muted' | 'warn'; children: ReactNode }) {
   return (
     <p className={`text-xs ${tone === 'warn' ? 'text-statusWarn' : 'text-carbon-textMuted'}`}>{children}</p>
-  );
-}
-
-/**
- * wheelSteps lets a closed <select> step one option per wheel notch, clamped
- * at both ends, and fires a real `change`. It attaches a non-passive listener
- * because React's onWheel is passive. The same listener lives in SearchField,
- * QueueBar and RuleEditor.
- */
-function wheelSteps(el: HTMLSelectElement | null) {
-  if (!el) return;
-  const onWheel = (e: WheelEvent) => {
-    // Only the sign of deltaY counts; trackpads report fractions.
-    if (el.disabled || el.options.length < 2 || e.deltaY === 0) return;
-    e.preventDefault();
-    const next = Math.min(el.options.length - 1, Math.max(0, el.selectedIndex + (e.deltaY > 0 ? 1 : -1)));
-    if (next === el.selectedIndex) return;
-    el.selectedIndex = next;
-    // A real change event, so the element's onChange handles it like a click.
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  el.addEventListener('wheel', onWheel, { passive: false });
-  return () => el.removeEventListener('wheel', onWheel);
-}
-
-/** Select is styled to match TextInput, since the design language has no select. */
-function Select({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  children: ReactNode;
-}) {
-  return (
-    <select
-      value={value}
-      ref={wheelSteps}
-      onChange={(e) => onChange(e.target.value)}
-      className="glim-select appearance-none pe-6 w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text
-        outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      {children}
-    </select>
   );
 }
 

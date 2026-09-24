@@ -130,12 +130,44 @@ function labelUnits(label: string): number {
   return total;
 }
 
+/** GlimStone's width of one visual unit, in `em` of the label's own type. */
+const EM_PER_UNIT = 0.62;
+
 /**
  * emWidth turns visual units into a CSS length at 0.62em per unit, GlimStone's
  * figure. Not `ch`, which measures the narrow "0" glyph and clips long labels.
  */
 function emWidth(units: number): string {
-  return `${(units * 0.62).toFixed(2)}em`;
+  return `${(units * EM_PER_UNIT).toFixed(2)}em`;
+}
+
+/**
+ * A big well segment is at least this wide, so every page-level selector in
+ * the app matches, and at most this many rem, past which its label wraps.
+ */
+const WELL_FLOOR_PX = 200;
+const WELL_CEIL_REM = 22;
+
+/**
+ * wellGrid lays a well out over rows when its segments do not fit on one: as
+ * few rows as `fit` allows, holding as nearly the same number of segments as
+ * they can, and each row shared out evenly, so no row ends in an empty stretch
+ * of groove. The grid has a column count every row length divides, and each
+ * segment spans its row's share of it. Null when one row holds them all.
+ */
+function wellGrid(count: number, fit: number): { columns: number; spans: number[] } | null {
+  if (count <= fit) return null;
+  const rows = Math.ceil(count / fit);
+  const short = Math.floor(count / rows);
+  // The first `long` rows take one segment more than the rest.
+  const long = count % rows;
+  const columns = long > 0 ? short * (short + 1) : short;
+  const spans: number[] = [];
+  for (let row = 0; row < rows; row++) {
+    const k = row < long ? short + 1 : short;
+    for (let i = 0; i < k; i++) spans.push(columns / k);
+  }
+  return { columns, spans };
 }
 
 interface Point {
@@ -252,8 +284,42 @@ export function Tabs(props: TabsProps) {
   // label's own width, and a 22rem ceiling past which the label wraps rather
   // than pushing the card off the page. `sm` uses the label width alone, since
   // its labels are single words.
-  const wellLabel = emWidth(Math.max(0, ...items.map((i) => labelUnits(i.label))) + 4);
-  const wellWidth = !isWell ? undefined : size === 'sm' ? wellLabel : `clamp(200px, ${wellLabel}, 22rem)`;
+  const wellUnits = Math.max(0, ...items.map((i) => labelUnits(i.label))) + 4;
+  const wellLabel = emWidth(wellUnits);
+  const wellWidth = !isWell
+    ? undefined
+    : size === 'sm'
+      ? wellLabel
+      : `clamp(${WELL_FLOOR_PX}px, ${wellLabel}, ${WELL_CEIL_REM}rem)`;
+
+  // How many well segments fit on one line of the room the strip has. The
+  // room is the parent's: while the strip hugs its segments its own width says
+  // nothing about the space around it.
+  const [fit, setFit] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = strip.current;
+    const parent = el?.parentElement;
+    if (!isWell || vertical || !el || !parent) return;
+    function measure() {
+      const seg = el?.querySelector<HTMLElement>('[data-tab-id]');
+      if (!el || !parent || !seg) return;
+      const outer = getComputedStyle(parent);
+      const room = parent.clientWidth - parseFloat(outer.paddingLeft) - parseFloat(outer.paddingRight);
+      const own = getComputedStyle(el);
+      const gap = parseFloat(own.columnGap) || 0;
+      const inset = parseFloat(own.paddingLeft) + parseFloat(own.paddingRight);
+      // The same sum wellWidth hands the stylesheet, in pixels.
+      const label = wellUnits * EM_PER_UNIT * parseFloat(getComputedStyle(seg).fontSize);
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const width = size === 'sm' ? label : Math.max(WELL_FLOOR_PX, Math.min(label, WELL_CEIL_REM * rem));
+      setFit(Math.max(1, Math.floor((room - inset + gap) / (width + gap))));
+    }
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(parent);
+    return () => watch.disconnect();
+  }, [isWell, vertical, wellUnits, size]);
+  const grid = isWell && fit !== null ? wellGrid(items.length, fit) : null;
 
   // Ref mirrors for the document listeners below, which bind once and must
   // read current values.
@@ -602,15 +668,23 @@ export function Tabs(props: TabsProps) {
       // measures in. A reorderable rail also gets 4px of room inside its
       // clipping edge for the lift's scale and the reduced-motion outline,
       // which the negative margin takes back so the tiles stay put.
+      //
+      // The well's groove is surface3, the one step that differs from both
+      // places a well sits, a card and a glim-well; surface2 would vanish into
+      // a glim-well, which is surface2 itself. It hugs its segments on one
+      // line, which also keeps a flex column from stretching it, and takes the
+      // whole line once it needs more than one (wellGrid).
       className={
         vertical
           ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
               reorderable ? 'relative -mx-1 px-1' : ''
             } ${className}`
           : isWell
-            ? `flex flex-wrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
+            ? `${grid ? 'grid' : 'flex w-fit max-w-full flex-wrap items-center'} gap-[0.2rem]
+              rounded-[var(--radius-control)] bg-carbon-surface3 p-[0.2rem] ${className}`
             : `flex flex-wrap items-center gap-1 ${reorderable ? 'relative' : ''} ${className}`
       }
+      style={grid ? { width: '100%', gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))` } : undefined}
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
@@ -642,14 +716,16 @@ export function Tabs(props: TabsProps) {
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-2.5'}
-              ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} flex-1 shrink-0 basis-0` : ''}
+              ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 ${stacked ? 'basis-0' : 'basis-auto'}` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${drag} ${grip}`
           : isWell
           ? // wellWidth sets the width; min-w-0 and shrink-0 stop the flex
             // minimum content size from overriding it.
+            // An idle segment has no fill of its own and shows the surface3
+            // groove, so its hover is the step above that (rule 21).
             `${segBase} glim-nav-row glim-hue glim-hue-icon min-w-0 shrink-0 justify-center text-center leading-snug ${WELL_SIZE[size]}
-              ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
+              ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
@@ -667,12 +743,20 @@ export function Tabs(props: TabsProps) {
           <>
             {showIcon && item.icon}
             {(showLabel || glyphless) && (
-              // A well segment can grow taller, so it wraps; elsewhere the row
-              // height is fixed, so the label truncates.
+              // A well segment can grow taller, so it wraps. A rail tile beside
+              // its glyph takes a second line where its name needs one, split
+              // evenly, and only that tile grows: its basis is its content and
+              // every tile shares what is left of the rail. The 20px line keeps
+              // a one-line tile at the 40px floor. Elsewhere the row height is
+              // fixed, so the label truncates.
               <span
-                className={`${isWell ? 'text-pretty break-words' : 'truncate'} ${labelOnHover ? hiddenLabel : ''} ${
-                  captioned ? 'text-xs' : ''
-                }`}
+                className={`${
+                  isWell
+                    ? 'text-pretty break-words'
+                    : vertical && !stacked
+                      ? 'line-clamp-2 break-words text-balance leading-5'
+                      : 'truncate'
+                } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >
                 {item.label}
               </span>
@@ -696,10 +780,11 @@ export function Tabs(props: TabsProps) {
           style: isWell
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
-              // two competing radius classes resolve by stylesheet order.
+              // two competing radius classes resolve by stylesheet order. On
+              // more than one line the grid sizes the segment, not wellWidth.
               {
                 ...hueStyle(i),
-                width: wellWidth,
+                ...(grid ? { gridColumn: `span ${grid.spans[i]}` } : { width: wellWidth }),
                 borderRadius: 'var(--radius-control)',
                 justifyContent: 'center' as const,
               }

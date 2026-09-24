@@ -176,6 +176,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
           hosts={hosts}
           existing={data.logins ?? []}
           editing={dialog.mode === 'edit' ? dialog.login : undefined}
+          hue={1}
           onClose={() => setDialog(null)}
           onSaved={data.load}
         />
@@ -184,6 +185,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
       {confirming && (
         <ConfirmRemoveLogin
           login={confirming}
+          hue={1}
           onCancel={() => setConfirming(null)}
           onConfirm={() => {
             setConfirming(null);
@@ -198,10 +200,13 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
 /** ConfirmRemoveLogin asks first, since the stored password cannot be read back. */
 export function ConfirmRemoveLogin({
   login,
+  hue,
   onCancel,
   onConfirm,
 }: {
   login: HosterLogin;
+  /** The palette position of the card the login is listed on. */
+  hue: number;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -209,6 +214,7 @@ export function ConfirmRemoveLogin({
   return (
     <Modal
       title={t('accounts.remove')}
+      hue={hue}
       onClose={onCancel}
       footer={
         <>
@@ -277,6 +283,7 @@ export function HosterLoginDialog({
   existing,
   editing,
   initial,
+  hue,
   onClose,
   onSaved,
 }: {
@@ -284,6 +291,8 @@ export function HosterLoginDialog({
   existing: HosterLogin[];
   editing?: HosterLogin;
   initial?: HosterHost;
+  /** The palette position of the card the window was opened from. */
+  hue: number;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -315,12 +324,18 @@ export function HosterLoginDialog({
     }
   }
 
-  const title = picked ? t('accounts.hoster.loginTitle', { host: picked.label }) : t('accounts.hoster.pickHost');
+  // The same titles as the debrid card's window, with this card's own noun.
+  const title = !picked
+    ? t('accounts.hoster.pickAccount')
+    : editing
+      ? t('accounts.editCredentialTitle', { service: picked.label })
+      : t('accounts.addAccountTitle', { service: picked.label });
   const canSave = username.trim() !== '' && password.trim() !== '';
 
   return (
     <Modal
       title={title}
+      hue={hue}
       onClose={onClose}
       footer={
         picked ? (
@@ -341,7 +356,7 @@ export function HosterLoginDialog({
     >
       {!picked ? (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+          <div className="flex h-[var(--btn-h)] items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3">
             <IconSearch width={15} height={15} className="shrink-0 text-carbon-textMuted" />
             <input
               autoFocus
@@ -379,7 +394,7 @@ export function HosterLoginDialog({
               onClick={() => setPicked(null)}
               className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
             >
-              {t('accounts.changeService')}
+              {t('accounts.changeAccount')}
             </button>
           )}
 

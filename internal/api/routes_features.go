@@ -93,8 +93,16 @@ type Feature struct {
 	Reason string `json:"reason,omitempty"`
 
 	// Detail is one line of live state (the folder being watched, the port, how
-	// many rules there are).
+	// many rules there are), in English for curl, a script and the diagnostics
+	// bundle.
 	Detail string `json:"detail,omitempty"`
+
+	// DetailCode is Detail as a value, for an interface with words of its own,
+	// and DetailArgs holds the values its wording needs. The server cannot
+	// translate the sentence, since a settings request does not carry the
+	// reader's language. A row without a code has only the sentence.
+	DetailCode string            `json:"detailCode,omitempty"`
+	DetailArgs map[string]string `json:"detailArgs,omitempty"`
 }
 
 // FeaturePage is one settings sub-page as registered. Every page is listed even
@@ -288,14 +296,7 @@ func featureList(a *app.App) []Feature {
 			Detail: offDetail(s.ModuleOff("connections"), "off; new downloads go out over this machine's own address",
 				countDetail(enabledConnections(s), "connection in use", "connections in use")),
 		},
-		{
-			// On the link collector tab: Click'n'Load is how links get in, while
-			// the access tab is about who gets in.
-			ID: "cnl", Verdict: VerdictShipped, Page: "collector",
-			Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
-			Reason: cnlReason(a),
-			Detail: cnlDetail(a),
-		},
+		cnlFeature(a),
 		{
 			ID: "federation", Verdict: VerdictShipped, Page: "instances",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("federation"),
@@ -808,9 +809,21 @@ func cnlPort() int {
 	return n
 }
 
-// cnlSwitch and the helpers after it depend on a.CnLPort and a.CnLToggle,
+// cnlFeature and the helpers after it depend on a.CnLPort and a.CnLToggle,
 // which only cmd/knightloader/main.go sets; without them the row falls back to
 // the environment.
+func cnlFeature(a *app.App) Feature {
+	f := Feature{
+		// On the link collector tab: Click'n'Load is how links get in, while
+		// the access tab is about who gets in.
+		ID: "cnl", Verdict: VerdictShipped, Page: "collector",
+		Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
+		Reason: cnlReason(a),
+	}
+	f.Detail, f.DetailCode, f.DetailArgs = cnlDetail(a)
+	return f
+}
+
 func cnlSwitch(a *app.App) FeatureSwitch {
 	if a.CnLToggle == nil {
 		return SwitchNone
@@ -834,20 +847,25 @@ func cnlReason(a *app.App) string {
 		"(KL_CNL=0 switches it off) and closing it needs a restart"
 }
 
-func cnlDetail(a *app.App) string {
+// cnlDetail returns the listener's live line as a sentence and as a code with
+// the address the interface words for itself.
+func cnlDetail(a *app.App) (detail, code string, args map[string]string) {
 	if a.CnLPort != nil {
 		if p := a.CnLPort(); p > 0 {
 			// CnLPort is only non-zero once the port is actually bound.
-			return fmt.Sprintf("listening on 127.0.0.1:%d", p)
+			addr := fmt.Sprintf("127.0.0.1:%d", p)
+			return "listening on " + addr, "cnlListening", map[string]string{"address": addr}
 		}
-		return "switched off"
+		return "switched off", "cnlOff", nil
 	}
 	if cnlPort() <= 0 {
-		return "switched off with KL_CNL=0"
+		return "switched off with KL_CNL=0", "cnlOffByEnv", nil
 	}
 	// Only "configured": a port already held by a running JDownloader is
 	// logged at start-up, and this handler cannot tell the two apart.
-	return fmt.Sprintf("configured to listen on 127.0.0.1:%d; the start-up log says whether the port was free", cnlPort())
+	addr := fmt.Sprintf("127.0.0.1:%d", cnlPort())
+	return "configured to listen on " + addr + "; the start-up log says whether the port was free",
+		"cnlConfigured", map[string]string{"address": addr}
 }
 
 func enabledConnections(s settings.Settings) int {

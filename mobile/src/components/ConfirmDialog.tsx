@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { GlimButton, NotchCard } from './glim';
 import { Cross } from './IconBadge';
+import { Text } from './Text';
 
 /**
  * The confirmation window, GlimStone's ConfirmDialog in React Native, in place

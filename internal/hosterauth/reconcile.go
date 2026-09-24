@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -98,6 +99,12 @@ var curatedHosts = []string{
 	"rapidgator.net", "uploaded.net", "nitroflare.com", "turbobit.net",
 	"keep2share.cc", "katfile.com", "ddownload.com", "1fichier.com",
 	"mega.nz", "filefactory.com", "hitfile.net", "fikper.com",
+}
+
+// Curated reports whether host is one of curatedHosts. Every one of them is a
+// file hoster, which routing needs to know before JD has sent its own list.
+func Curated(host string) bool {
+	return slices.Contains(curatedHosts, normalizeHost(host))
 }
 
 // Host is one entry the "add a login" picker offers.

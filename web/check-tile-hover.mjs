@@ -17,7 +17,10 @@
 //   switch   the dark theme's coin tile rule gives the mark the ink.
 //   marks    every mark reaches 2:1 on the hover: the ink, each accent preset
 //            and rainbow hue as the light theme darkens it, and some opaque
-//            colour of each vendor mark and of the app's own mark.
+//            colour of each vendor mark.
+//   tokens   a flat vendor mark the stylesheet colours per theme (Android's)
+//            is wired to its class, reaches 3:1 at rest on the tile and 2:1 on
+//            the hover, in every theme block.
 //
 // A two-tone mark with one visible half is still visible, so a vendor mark
 // passes on its best colour. Colours under an opacity below 1, a gradient's
@@ -25,7 +28,8 @@
 // value written.
 //
 // Not checked: a custom accent from the free colour field, and the resting
-// state, which the tiles have always had.
+// state of the marks that bring their own colours, which the tiles have always
+// had.
 //
 // Run: `node web/check-tile-hover.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -38,6 +42,8 @@ const read = (...parts) => readFileSync(join(src, ...parts), 'utf8');
 
 const MARK_FLOOR = 2.0;
 const TEXT_FLOOR = 4.5;
+// What a graphic needs at rest, the value the about card's marks are tuned to.
+const REST_FLOOR = 3.0;
 
 const problems = [];
 const fail = (message) => {
@@ -97,7 +103,7 @@ for (const block of BLOCKS) {
   const mix = value('--ink-mix');
   if (!tile || !rgb(tile)) problems.push(`index.css: --carbon-tile-hover is missing or not a hex colour in the ${block.name} block`);
   if (!ink || !rgb(ink)) problems.push(`index.css: --carbon-tile-hover-ink is missing or not a hex colour in the ${block.name} block`);
-  theme[block.name] = { tile: tile && rgb(tile), ink: ink && rgb(ink), mix: mix ? parseFloat(mix) / 100 : null };
+  theme[block.name] = { tile: tile && rgb(tile), ink: ink && rgb(ink), mix: mix ? parseFloat(mix) / 100 : null, value };
 }
 if (problems.length) report();
 
@@ -207,10 +213,58 @@ function opaqueColours(svg) {
 const browserTools = read('pages', 'settings', 'BrowserTools.tsx');
 const vendor = [...browserTools.matchAll(/const (\w+)_SVG =\s*'([^']*)'/g)];
 if (vendor.length < 6) fail(`only ${vendor.length} vendor marks read from BrowserTools.tsx - the reader went blind.`);
-const marks = vendor.map((m) => ({ label: `the ${m[1].toLowerCase()} mark`, svg: m[2] }));
-marks.push({ label: 'the app mark on the APK tile', svg: read('assets', 'logo.svg') });
+const marks = vendor.map((m) => ({ name: m[1], label: `the ${m[1].toLowerCase()} mark`, svg: m[2] }));
+
+// Flat marks the stylesheet colours per theme instead of the tile ink: the
+// const, the class its BrandMark wears, and the rest and hover tokens that
+// class reads.
+const TOKEN_MARKS = [
+  { name: 'ANDROID', cls: 'kl-android-mark', rest: '--brand-android', hover: '--brand-android-hover' },
+];
+
+const ruleBody = (selector) => {
+  const at = css.search(selector);
+  if (at === -1) return null;
+  const open = css.indexOf('{', at);
+  return css.slice(open + 1, css.indexOf('}', open));
+};
+
+for (const tm of TOKEN_MARKS) {
+  const label = `the ${tm.name.toLowerCase()} mark`;
+  if (!marks.some((m) => m.name === tm.name)) {
+    problems.push(`BrowserTools.tsx: no ${tm.name}_SVG, which ${tm.cls} is measured for`);
+    continue;
+  }
+  const call = new RegExp(`<BrandMark\\b[^>]*svg=\\{${tm.name}_SVG\\}[^>]*>`).exec(browserTools)?.[0];
+  if (!call || !new RegExp(`className="[^"]*\\b${tm.cls}\\b`).test(call)) {
+    problems.push(`BrowserTools.tsx: ${tm.name}_SVG is drawn without className="${tm.cls}", so it paints in the tile ink`);
+  }
+  const rest = ruleBody(new RegExp(`(^|\\n)\\.${tm.cls}\\s*\\{`));
+  if (!rest || !new RegExp(`\\bcolor\\s*:\\s*var\\(${tm.rest}\\)`).test(rest)) {
+    problems.push(`index.css: .${tm.cls} does not take its colour from var(${tm.rest})`);
+  }
+  const hover = ruleBody(new RegExp(`@media\\s*\\(hover:\\s*hover\\)\\s*\\{\\s*\\.group:hover\\s+\\.${tm.cls}\\s*\\{`));
+  if (!hover || !new RegExp(`\\bcolor\\s*:\\s*var\\(${tm.hover}\\)`).test(hover)) {
+    problems.push(`index.css: a hovered tile gives .${tm.cls} no var(${tm.hover}) behind @media (hover: hover)`);
+  }
+  for (const [name, t] of Object.entries(theme)) {
+    const restColour = rgb(t.value(tm.rest) ?? '');
+    const hoverColour = rgb(t.value(tm.hover) ?? '');
+    const ground = rgb(t.value('--carbon-surface2') ?? '');
+    if (!restColour || !hoverColour || !ground) {
+      problems.push(`index.css: ${tm.rest}, ${tm.hover} or --carbon-surface2 is missing or not a hex colour in the ${name} block`);
+      continue;
+    }
+    const c = contrast(restColour, ground);
+    if (c < REST_FLOOR) {
+      problems.push(`${label} at rest: ${hex(restColour)} is ${c.toFixed(2)}:1 on the ${name} tile ${hex(ground)}, under ${REST_FLOOR}:1`);
+    }
+    checkMark(`${label} as ${tm.hover}`, [hoverColour], t.tile, name);
+  }
+}
 
 for (const mark of marks) {
+  if (TOKEN_MARKS.some((tm) => tm.name === mark.name)) continue;
   const colours = opaqueColours(mark.svg);
   // A mark painted in currentColor is the tile's ink, checked above.
   if (colours.length === 0) {

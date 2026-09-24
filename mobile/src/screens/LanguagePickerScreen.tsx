@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useT } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
+import { Text } from '../components/Text';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
   const { t, lang, setLanguage } = useT();

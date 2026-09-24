@@ -175,6 +175,13 @@ func PriorityFor(rawURL string) int {
 	return basePrio
 }
 
+// FileHoster reports whether PriorityFor lifts host above resolver.Direct: a
+// host with a confirmed login, or a file hoster JD has a plugin for. A plain
+// GET there fetches the hoster's page rather than the file.
+func FileHoster(host string) bool {
+	return HostActive(host) || (HostKnown(host) && !mediaSiteForYtdlp(host))
+}
+
 // LoginHost returns rawURL's host, normalised as SetHostActive stores it, when
 // that host has a confirmed-active native login, and "" otherwise.
 func LoginHost(rawURL string) string {
