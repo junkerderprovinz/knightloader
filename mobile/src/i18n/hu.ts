@@ -75,7 +75,7 @@ export const hu: Dict = {
   'settings.corners.soft': 'Lágy',
   'settings.corners.square': 'Szögletes',
   'settings.accent': 'Kiemelőszín',
-  'settings.rainbow': 'Szivárvány',
+  'settings.rainbow': 'Szivárvány mód',
   'settings.disco': 'Diszkó',
   'settings.discoGlideHint': 'Amíg a szivárvány mód be van kapcsolva, minden színes elem együtt siklik végig a palettán, 2,4 másodpercenként egy színnel. Ha a Mozgás „Ki” értékre van állítva, vagy a telefonod beállításaiban be van kapcsolva a csökkentett mozgás, akkor ehelyett színről színre ugrik.',
   'settings.problems': 'Gondok?',

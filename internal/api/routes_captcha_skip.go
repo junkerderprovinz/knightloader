@@ -63,7 +63,7 @@ func registerCaptchaSkip(reg *Registry, a *app.App) {
 				return
 			}
 			if errors.Is(err, captcha.ErrJDNotConfigured) {
-				http.Error(w, err.Error(), http.StatusServiceUnavailable)
+				writeRefusal(w, http.StatusServiceUnavailable, "noJD", err.Error(), nil)
 				return
 			}
 			http.Error(w, err.Error(), http.StatusBadRequest)

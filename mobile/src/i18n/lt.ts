@@ -75,7 +75,7 @@ export const lt: Dict = {
   'settings.corners.soft': 'Švelnūs',
   'settings.corners.square': 'Statūs',
   'settings.accent': 'Akcentas',
-  'settings.rainbow': 'Vaivorykštė',
+  'settings.rainbow': 'Vaivorykštės režimas',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kol įjungtas vaivorykštės režimas, visi spalvoti elementai kartu slenka per paletę, po vieną spalvą kas 2,4 sekundės. Jei Judesys nustatytas į „Išjungta“ arba telefono nustatymuose įjungtas sumažintas judesys, spalvos vietoj to peršoka iš vienos į kitą.',
   'settings.problems': 'Kilo problemų?',

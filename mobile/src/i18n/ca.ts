@@ -75,7 +75,7 @@ export const ca: Dict = {
   'settings.corners.soft': 'Suaus',
   'settings.corners.square': 'Rectes',
   'settings.accent': 'Accent',
-  'settings.rainbow': 'Arc de Sant Martí',
+  'settings.rainbow': 'Mode arc de Sant Martí',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Mentre el mode arc de Sant Martí està activat, tots els elements de color llisquen junts per la paleta, un color cada 2,4 segons. Amb «Moviment» a «Desactivat», o amb la reducció de moviment activada a la configuració del teu telèfon, salta en canvi d’un color al següent.',
   'settings.problems': 'Problemes?',

@@ -51,6 +51,7 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
+import { useShake } from '../../lib/useShake';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
@@ -104,7 +105,7 @@ function PasswordCard({
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [done, setDone] = useState(false);
-  // Keyed onto the apply button so a repeated refusal shakes again.
+  // The failure counter of the apply button, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
   // Whether this instance is reachable from elsewhere, which turns "no password"
   // into a problem (routes_remote.go's Exposed).
@@ -164,8 +165,7 @@ function PasswordCard({
         </Field>
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            key={shake}
-            className={shake > 0 ? 'glim-shake' : ''}
+            shake={shake}
             kind="secondary"
             hue={0}
             onClick={onApply}
@@ -689,12 +689,13 @@ function ProjectRelayCard({
   const { t } = useT();
   const active = cfg.mode === 'project';
   const [shake, setShake] = useState(0);
+  const shakeRef = useShake<HTMLDivElement>(shake);
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.access.relay.body')}>{t('settings.access.relay.title')}</SectionTitle>
 
-      <div key={shake} className={shake > 0 ? 'glim-shake' : undefined}>
+      <div ref={shakeRef}>
         <ToggleRow
           hue={2}
           label={t('settings.access.relay.use')}
@@ -746,22 +747,24 @@ function OwnRelayCard({
   const [copied, setCopied] = useState(false);
   const active = cfg.mode === 'own';
   // One counter per control, so a refusal shakes the one that was touched.
-  const [useShake, setUseShake] = useState(0);
+  const [pickShake, setPickShake] = useState(0);
   const [serveShake, setServeShake] = useState(0);
   const [addrShake, setAddrShake] = useState(0);
+  const pickRef = useShake<HTMLDivElement>(pickShake);
+  const serveRef = useShake<HTMLDivElement>(serveShake);
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.access.ownRelay.body')}>{t('settings.access.ownRelay.title')}</SectionTitle>
 
-      <div key={useShake} className={useShake > 0 ? 'glim-shake' : undefined}>
+      <div ref={pickRef}>
         <ToggleRow
           hue={3}
           label={t('settings.access.ownRelay.use')}
           hint={t('settings.access.ownRelay.lead')}
           checked={active}
           disabled={busy}
-          onChange={(on) => void onPick(on).then((ok) => !ok && setUseShake((n) => n + 1))}
+          onChange={(on) => void onPick(on).then((ok) => !ok && setPickShake((n) => n + 1))}
         />
       </div>
 
@@ -769,7 +772,7 @@ function OwnRelayCard({
       {active && (
         <>
           <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
-            <div key={serveShake} className={serveShake > 0 ? 'glim-shake' : undefined}>
+            <div ref={serveRef}>
               <ToggleRow
                 hue={1}
                 label={t('settings.access.ownRelay.serveLabel')}
@@ -801,8 +804,7 @@ function OwnRelayCard({
                 onChange={(e) => setAddr(e.target.value)}
               />
               <Button
-                key={addrShake}
-                className={addrShake > 0 ? 'glim-shake' : ''}
+                shake={addrShake}
                 hue={1}
                 disabled={busy || addr.trim() === cfg.relayUrl}
                 onClick={() => void onSaveAddress(addr.trim()).then((ok) => !ok && setAddrShake((n) => n + 1))}
@@ -878,7 +880,7 @@ function TokensSection() {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
-  // Keyed onto the create button so a repeated refusal shakes again.
+  // The failure counter of the create button, so a repeated refusal shakes it again.
   const [createShake, setCreateShake] = useState(0);
   const [created, setCreated] = useState<NewApiToken | null>(null);
   const [copied, setCopied] = useState(false);
@@ -989,8 +991,7 @@ function TokensSection() {
                 disabled={creating}
               />
               <Button
-                key={createShake}
-                className={createShake > 0 ? 'glim-shake' : ''}
+                shake={createShake}
                 kind="primary"
                 onClick={() => void onCreate()}
                 disabled={creating || name.trim() === ''}

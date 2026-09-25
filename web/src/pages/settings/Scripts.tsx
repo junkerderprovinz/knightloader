@@ -291,8 +291,7 @@ function ScriptRow({
             name truncates instead. */}
         <div className="flex items-center gap-1.5">
           <IconBadge
-            key={removeShake}
-            className={removeShake > 0 ? 'glim-shake' : ''}
+            shake={removeShake}
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
@@ -350,8 +349,7 @@ function ScriptRow({
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex-1" />
             <Button
-              key={runShake}
-              className={runShake > 0 ? 'glim-shake' : ''}
+              shake={runShake}
               kind="secondary"
               icon={<IconPlay width={16} height={16} />}
               disabled={runDisabled}

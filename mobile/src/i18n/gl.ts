@@ -75,7 +75,7 @@ export const gl: Dict = {
   'settings.corners.soft': 'Suaves',
   'settings.corners.square': 'Rectas',
   'settings.accent': 'Acento',
-  'settings.rainbow': 'Arco da vella',
+  'settings.rainbow': 'Modo arco da vella',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Mentres o modo arco da vella estea activado, todos os elementos de cor esvaran xuntos pola paleta, unha cor cada 2,4 segundos. Con Movemento en Desactivado, ou coa redución de movemento activada nos axustes do teléfono, salta dunha cor á seguinte.',
   'settings.problems': 'Problemas?',

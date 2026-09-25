@@ -75,7 +75,7 @@ export const ar: Dict = {
   'settings.corners.soft': 'ناعمة',
   'settings.corners.square': 'حادة',
   'settings.accent': 'لون التمييز',
-  'settings.rainbow': 'قوس قزح',
+  'settings.rainbow': 'وضع قوس قزح',
   'settings.disco': 'ديسكو',
   'settings.discoGlideHint': 'ما دام وضع قوس قزح مفعّلًا، ينساب كل عنصر ملوّن عبر اللوحة مع سائر العناصر، لونًا كل 2.4 ثانية. وإن كانت «الحركة» على «إيقاف»، أو كان تقليل الحركة مفعّلًا في إعدادات هاتفك، فإنه يقفز بدل ذلك من لون إلى الذي يليه.',
   'settings.problems': 'مشكلات؟',

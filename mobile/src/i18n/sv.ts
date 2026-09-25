@@ -75,7 +75,7 @@ export const sv: Dict = {
   'settings.corners.soft': 'Mjuka',
   'settings.corners.square': 'Skarpa',
   'settings.accent': 'Accent',
-  'settings.rainbow': 'Regnbåge',
+  'settings.rainbow': 'Regnbågsläge',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Medan regnbågsläget är på glider alla färgade element tillsammans genom paletten och byter färg var 2,4 sekund. Står Rörelse på ”Av”, eller är minskad rörelse påslagen i telefonens inställningar, hoppar de i stället från en färg till nästa.',
   'settings.problems': 'Problem?',

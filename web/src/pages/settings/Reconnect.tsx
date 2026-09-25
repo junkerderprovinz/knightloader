@@ -235,6 +235,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
             label={t('settings.reconnect.method')}
             variant="well"
             size="sm"
+            labelled
             active={off ? null : rc.method}
             onSelect={(id) => write({ method: id as Method })}
             items={METHODS.map((m) => ({

@@ -262,6 +262,10 @@ func TestReconcileNoJDConfiguredIsAQuietError(t *testing.T) {
 	if !errors.Is(err, errJDNotConfigured) {
 		t.Fatalf("err = %v, want errJDNotConfigured", err)
 	}
+	// The diagnostics log shows the error, so it names the module as the pages do.
+	if !strings.Contains(err.Error(), "JDownloader backend") {
+		t.Errorf("err = %q, which does not name the JDownloader backend", err)
+	}
 }
 
 // LoginState is what every API response and every log line built from

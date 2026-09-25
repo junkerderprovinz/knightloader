@@ -75,7 +75,7 @@ export const tr: Dict = {
   'settings.corners.soft': 'Yumuşak',
   'settings.corners.square': 'Keskin',
   'settings.accent': 'Vurgu',
-  'settings.rainbow': 'Gökkuşağı',
+  'settings.rainbow': 'Gökkuşağı modu',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Gökkuşağı modu açıkken her renkli öğe paletin içinde hep birlikte kayar, her 2,4 saniyede bir renk. Hareket “Kapalı” ise ya da telefonunun ayarlarında azaltılmış hareket açıksa, bunun yerine bir renkten ötekine atlar.',
   'settings.problems': 'Sorun mu var?',

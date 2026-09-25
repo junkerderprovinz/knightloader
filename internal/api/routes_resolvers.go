@@ -1,7 +1,7 @@
 package api
 
 // The resolver registry's own facts: the order configured services are tried
-// in, and the headless-JD sidecar's status. Neither carries a credential.
+// in, and the JDownloader backend's status. Neither carries a credential.
 
 import (
 	"net/http"
@@ -52,7 +52,7 @@ func registerResolvers(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/resolvers/jd",
-		"whether the headless-JD sidecar is configured, reachable, and which revision it runs",
+		"whether the JDownloader backend is configured, reachable, and which revision it runs",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.JDStatus())
 		})

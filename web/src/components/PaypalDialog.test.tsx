@@ -7,6 +7,14 @@ import { PAYPAL } from '../lib/donate';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom lays nothing out and has no ResizeObserver, which the frequency strip
+// uses to balance its rows.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 interface FakeButtons {
   options: Record<string, (...args: unknown[]) => unknown>;
   close: ReturnType<typeof vi.fn>;

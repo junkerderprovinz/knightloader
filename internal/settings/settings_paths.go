@@ -159,7 +159,8 @@ func fixedPrefix(dir string) string {
 // "/downloads/<jd:date>" asks about a directory that never exists, and the
 // answer comes from whatever the walk up lands on, which on a fresh install is
 // the volume root reported as the download disk. Exported rather than copied,
-// since internal/api's splitTemplate is already a second one of these.
+// and internal/api's splitTemplate takes the folder chooser's fixed part from
+// here too.
 func FixedPrefix(dir string) string { return fixedPrefix(dir) }
 
 // WriteProbeName is the throwaway file this package drops into a folder to find

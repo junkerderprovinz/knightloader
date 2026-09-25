@@ -23,6 +23,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // envBrowseRoots narrows the chooser to a list of folders, separated like a
@@ -124,6 +125,8 @@ func registerFolders(reg *Registry, a *app.App) {
 // tested without a socket.
 func listFolders(raw string) (folderListing, error) {
 	fixed, tail := splitTemplate(raw)
+	// A template with no fixed part browses from where an empty field would,
+	// and its tail goes back on top of whatever is chosen.
 	if strings.TrimSpace(fixed) == "" {
 		fixed = defaultStart()
 	}
@@ -189,30 +192,20 @@ func listFolders(raw string) (folderListing, error) {
 // "/<jd:date>/<jd:hoster>". Browsing only ever replaces the fixed part, so the
 // user's naming scheme survives.
 //
-// Cutting at the first segment containing "<" must match settings.fixedPrefix,
-// which decides the folder the app creates;
-// TestTheSplitMatchesTheFolderThatGetsCreated keeps the two in step.
+// The fixed part is settings.FixedPrefix, the folder a save checks and a
+// download creates, which for "<jd:packagename>/x" is nothing at all. The tail
+// starts at the separator before the first placeholder's segment, with one
+// added where that segment opens the value, and the interface drops a root's
+// trailing separator before it appends the tail.
 func splitTemplate(dir string) (fixed, tail string) {
-	if !strings.Contains(dir, "<") {
+	first := strings.Index(dir, "<")
+	if first < 0 {
 		return dir, ""
 	}
 	sep := string(filepath.Separator)
-	parts := strings.Split(strings.ReplaceAll(dir, "/", sep), sep)
-	for i, p := range parts {
-		if !strings.Contains(p, "<") {
-			continue
-		}
-		fixed = strings.Join(parts[:i], sep)
-		if fixed == filepath.VolumeName(fixed) {
-			// Everything below the root is a placeholder, so the root is the
-			// fixed part: "/", or "D:\" rather than the drive-relative "D:". The
-			// tail keeps its leading separator either way, and the interface
-			// drops the root's trailing one before it appends the tail.
-			fixed += sep
-		}
-		return fixed, sep + strings.Join(parts[i:], sep)
-	}
-	return dir, ""
+	norm := strings.ReplaceAll(dir, "/", sep)
+	cut := strings.LastIndex(norm[:first], sep)
+	return settings.FixedPrefix(dir), sep + norm[cut+1:]
 }
 
 // boundary is the part of the filesystem one request may see.

@@ -23,8 +23,7 @@ export function Instances() {
   const { t } = useT();
   const { toast } = useToast();
   const [peers, setPeers] = useState<Instance[]>([]);
-  // One counter per discovered row. Bumping it remounts that row's button so
-  // .glim-shake replays on a repeated failure.
+  // One failure counter per discovered row, so a refusal shakes that row's button.
   const [shakes, setShakes] = useState<Record<string, number>>({});
   // The name set in settings/Access.tsx, so this instance shows like a peer.
   const [ownName, setOwnName] = useState('');
@@ -155,9 +154,9 @@ export function Instances() {
                 <span className="text-xs text-carbon-textMuted">{t('instances.foundKnown')}</span>
               ) : (
                 <Button
-                  key={shakes[f.id] ?? 0}
                   kind="secondary"
-                  className={`px-2.5 text-xs${shakes[f.id] ? ' glim-shake' : ''}`}
+                  className="px-2.5 text-xs"
+                  shake={shakes[f.id] ?? 0}
                   onClick={() => void onAddFound(f)}
                 >
                   {t('instances.foundAdd')}

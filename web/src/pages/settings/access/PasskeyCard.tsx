@@ -221,8 +221,7 @@ export function PasskeyCard({
         {passwordSet && addressOK && browserOK && !adding && (
           <div>
             <Button
-              key={shake}
-              className={shake > 0 ? 'glim-shake' : ''}
+              shake={shake}
               kind="secondary"
               hue={hue}
               icon={<IconPlus width={16} height={16} />}
@@ -260,8 +259,7 @@ export function PasskeyCard({
                 {t('common.cancel')}
               </Button>
               <Button
-                key={shake}
-                className={shake > 0 ? 'glim-shake' : ''}
+                shake={shake}
                 kind="primary"
                 disabled={busy}
                 onClick={() => void add()}

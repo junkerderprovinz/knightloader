@@ -75,7 +75,7 @@ export const th: Dict = {
   'settings.corners.soft': 'มนเล็กน้อย',
   'settings.corners.square': 'เหลี่ยม',
   'settings.accent': 'สีเน้น',
-  'settings.rainbow': 'สายรุ้ง',
+  'settings.rainbow': 'โหมดสายรุ้ง',
   'settings.disco': 'ดิสโก้',
   'settings.discoGlideHint': 'ขณะที่โหมดสายรุ้งเปิดอยู่ ทุกองค์ประกอบที่มีสีจะค่อย ๆ ไล่ผ่านจานสีไปพร้อมกัน เปลี่ยนหนึ่งสีทุก 2.4 วินาที ถ้าตั้งการเคลื่อนไหวเป็น “ปิด” หรือเปิดการลดการเคลื่อนไหวไว้ในการตั้งค่าของโทรศัพท์ สีจะกระโดดจากสีหนึ่งไปอีกสีแทน',
   'settings.problems': 'มีปัญหาไหม',

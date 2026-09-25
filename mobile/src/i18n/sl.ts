@@ -75,7 +75,7 @@ export const sl: Dict = {
   'settings.corners.soft': 'Blagi',
   'settings.corners.square': 'Ostri',
   'settings.accent': 'Poudarek',
-  'settings.rainbow': 'Mavrica',
+  'settings.rainbow': 'Mavrični način',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Dokler je mavrični način vklopljen, vsi barvni elementi skupaj drsijo skozi paleto, vsakih 2,4 sekunde za eno barvo naprej. Če je Gibanje nastavljeno na »Izklopljeno« ali je telefon nastavljen na manj gibanja, namesto tega preskakujejo od barve do barve.',
   'settings.problems': 'Težave?',

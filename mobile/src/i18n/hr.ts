@@ -75,7 +75,7 @@ export const hr: Dict = {
   'settings.corners.soft': 'Blagi',
   'settings.corners.square': 'Oštri',
   'settings.accent': 'Naglasak',
-  'settings.rainbow': 'Duga',
+  'settings.rainbow': 'Način rada duga',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Dok je dugin način uključen, svi obojeni elementi zajedno klize kroz paletu, svakih 2,4 sekunde jedna boja dalje. Ako je Pokret postavljen na „Isključeno” ili je telefon postavljen na manje kretanja, umjesto toga preskaču s boje na boju.',
   'settings.problems': 'Problemi?',

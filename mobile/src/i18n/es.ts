@@ -75,7 +75,7 @@ export const es: Dict = {
   'settings.corners.soft': 'Suaves',
   'settings.corners.square': 'Rectas',
   'settings.accent': 'Acento',
-  'settings.rainbow': 'Arcoíris',
+  'settings.rainbow': 'Modo arcoíris',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Mientras el modo arcoíris está activado, todos los elementos de color se deslizan juntos por la paleta, un color cada 2,4 segundos. Si «Movimiento» está en «Desactivado», o si tienes activada la reducción de movimiento en los ajustes de tu teléfono, en su lugar salta de un color al siguiente.',
   'settings.problems': '¿Problemas?',

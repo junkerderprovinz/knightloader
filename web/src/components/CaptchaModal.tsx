@@ -18,6 +18,7 @@ import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
+import { isOnTop } from '../lib/windowStack';
 
 // The captcha prompt for internal/captcha, mounted once in Layout.tsx. The
 // countdown pauses while the answer field has focus. A 'widget' challenge runs
@@ -94,6 +95,7 @@ export function CaptchaModal() {
   const [widgetError, setWidgetError] = useState<string | null>(null);
   const [widgetKey, setWidgetKey] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
+  const answerRef = useRef<HTMLInputElement>(null);
 
   const current = useMemo(() => pickCurrent(challenges), [challenges]);
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
@@ -159,6 +161,14 @@ export function CaptchaModal() {
     setMoreOpen(false);
     setWidgetKey((k) => k + 1);
   }, [current?.id]);
+
+  // A captcha arrives by itself, possibly under a window somebody is typing in,
+  // such as the folder chooser or the command palette. The answer box takes the
+  // focus only where this window is the top one.
+  useEffect(() => {
+    const el = answerRef.current;
+    if (el && isOnTop(el)) el.focus();
+  }, [current?.id, current?.kind]);
 
   // Ticks only while a real deadline is on screen.
   useEffect(() => {
@@ -340,7 +350,7 @@ export function CaptchaModal() {
             }}
             placeholder={t('captcha.answerPlaceholder')}
             aria-label={t('captcha.answerLabel')}
-            autoFocus
+            ref={answerRef}
           />
         </div>
       )}

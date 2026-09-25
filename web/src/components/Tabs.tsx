@@ -15,7 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import type { NavLabelMode } from '../lib/navLabels';
+import { useNavLabels, type NavLabelMode } from '../lib/navLabels';
 import { useReorder } from './dragLift';
 import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
 
@@ -88,6 +88,12 @@ interface Common {
   fill?: boolean;
   /** How much of each tab is drawn; see lib/navLabels.ts. */
   display?: NavLabelMode;
+  /**
+   * Opts a strip of glyphs into the Beschriftung setting, as IconBadge's own
+   * `labelled` does for a badge: the setting's glyph and hover modes show each
+   * glyph alone with its name in the bubble. `display` wins where both are set.
+   */
+  labelled?: boolean;
 }
 
 export type TabsProps =
@@ -178,8 +184,11 @@ export function Tabs(props: TabsProps) {
     variant = 'default',
     orientation = 'horizontal',
     fill = false,
-    display = 'both',
+    display: asked,
+    labelled = false,
   } = props;
+  const labelMode = useNavLabels();
+  const display: NavLabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
   const vertical = orientation === 'vertical';
 
@@ -224,10 +233,11 @@ export function Tabs(props: TabsProps) {
   // adds a 200px floor, so short labels are not cramped and every page-level
   // selector matches, and a 22rem ceiling past which the label wraps. A small
   // well takes the label width alone, since its labels are single words.
-  // Undefined where each segment hugs its own label.
+  // Undefined where each segment hugs its own label, and in glyph mode, where
+  // the labels are not drawn and a glyph is as wide as the next.
   const pinUnits = Math.max(0, ...items.map((i) => labelUnits(i.label))) + 4;
   const bigWell = isWell && size === 'md';
-  const pinned = vertical
+  const pinned = vertical || nameOnly
     ? undefined
     : bigWell
       ? `clamp(${WELL_FLOOR_PX}px, ${emWidth(pinUnits)}, ${WELL_CEIL_REM}rem)`

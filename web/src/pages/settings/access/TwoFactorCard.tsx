@@ -46,7 +46,7 @@ export function TwoFactorCard({
   const [busy, setBusy] = useState(false);
   const [disarming, setDisarming] = useState(false);
   const [copied, setCopied] = useState(false);
-  // Keyed onto the failing button so a repeated refusal shakes again.
+  // The failure counter of the failing button, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
   /**
@@ -129,8 +129,7 @@ export function TwoFactorCard({
       {passwordSet && !enabled && step.kind === 'idle' && (
         <div>
           <Button
-            key={shake}
-            className={shake > 0 ? 'glim-shake' : ''}
+            shake={shake}
             kind="secondary"
             hue={hue}
             icon={<IconShieldCheck width={16} height={16} />}
@@ -198,8 +197,7 @@ export function TwoFactorCard({
               {t('common.cancel')}
             </Button>
             <Button
-              key={shake}
-              className={shake > 0 ? 'glim-shake' : ''}
+              shake={shake}
               kind="primary"
               disabled={busy || code.trim() === ''}
               onClick={() => void confirm()}
@@ -287,8 +285,7 @@ export function TwoFactorCard({
                   {t('common.cancel')}
                 </Button>
                 <Button
-                  key={shake}
-                  className={shake > 0 ? 'glim-shake' : ''}
+                  shake={shake}
                   kind="primary"
                   disabled={busy || code.trim() === ''}
                   onClick={() => void disable()}

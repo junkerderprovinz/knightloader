@@ -91,7 +91,7 @@ export const de: Dict = {
   'settings.corners.soft': 'Weich',
   'settings.corners.square': 'Eckig',
   'settings.accent': 'Akzentfarbe',
-  'settings.rainbow': 'Regenbogen',
+  'settings.rainbow': 'Regenbogen-Modus',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Bewegung auf „Aus“ oder ist auf deinem Handy reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',
   'settings.problems': 'Probleme?',
@@ -138,7 +138,7 @@ export const de: Dict = {
   'settings.motion.subtle': 'Dezent',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Sturm',
-  'settings.accentRainbowOwns': 'Der Regenbogenmodus vergibt die Farben gerade nach Position. Die Akzentfarbe färbt weiter alles, was keine Position hat.',
+  'settings.accentRainbowOwns': 'Der Regenbogen-Modus vergibt die Farben gerade nach Position. Die Akzentfarbe färbt weiter alles, was keine Position hat.',
   'settings.motionReduced': 'Auf deinem Handy ist reduzierte Bewegung eingestellt. Solange das gilt, bewegt sich hier nichts, egal welche Stufe gewählt ist.',
   'settings.rainbowPaletteNoInstance': 'Die Palette gehört zur Instanz. Ohne Verbindung lässt sich nirgends eine Farbe speichern, also behalten die Positionen die acht eingebauten Farben.',
 

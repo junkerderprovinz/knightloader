@@ -103,7 +103,7 @@ const rejectGrace = 2 * time.Minute
 // keeps asking instead of trying to detect that moment.
 const reconcileInterval = 30 * time.Second
 
-var errJDNotConfigured = errors.New("hosterauth: no JD sidecar is configured (KL_JD is unset)")
+var errJDNotConfigured = errors.New("hosterauth: no JDownloader backend is configured (KL_JD is unset)")
 
 // curatedHosts keeps the "add a login" picker usable while JD is unreachable
 // or none is configured yet. JD's own listPremiumHoster is the live list and

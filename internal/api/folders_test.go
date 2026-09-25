@@ -98,6 +98,28 @@ func TestATemplateAtADriveRootBrowsesTheRoot(t *testing.T) {
 	}
 }
 
+// A template with no fixed part has no real folder in it, on any platform. The
+// chooser browses from where an empty field starts and keeps the whole
+// template as the tail, rather than claiming the root as the value's folder.
+func TestATemplateWithNoFixedPartBrowsesFromTheDefaultStart(t *testing.T) {
+	t.Parallel()
+	tpl := "<jd:packagename>/x"
+	sep := string(filepath.Separator)
+
+	fixed, tail := splitTemplate(tpl)
+	if created := settings.FixedPrefix(tpl); fixed != created {
+		t.Errorf("the chooser would browse %q, but %q is the folder that gets created", fixed, created)
+	}
+	if want := sep + "<jd:packagename>" + sep + "x"; tail != want {
+		t.Errorf("splitTemplate(%q) left the tail %q, want %q", tpl, tail, want)
+	}
+
+	_, srv := foldersServer(t)
+	if got := getFolders(t, srv, tpl); got.Path != defaultStart() || got.Tail != tail {
+		t.Errorf("browsed %q with the tail %q, want %q and %q", got.Path, got.Tail, defaultStart(), tail)
+	}
+}
+
 // TestBrowsingReportsTheTemplateTail checks the same rule over the wire, since
 // the interface can only keep a naming scheme it is told about.
 func TestBrowsingReportsTheTemplateTail(t *testing.T) {

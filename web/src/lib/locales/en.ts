@@ -137,6 +137,7 @@ export const en = {
   'instances.offlineWarning': 'Added, but the instance did not answer (offline?).',
   'instances.open': 'Open',
   'instances.online': 'Online',
+  'instances.refused': 'Refused',
   'instances.refusedByPassword': 'Reached, but it refused this instance because it has a password set. Give them both the same connection phrase on the Remote access page and they will trust each other.',
   'instances.offline': 'Offline',
   'instances.viaRelay': 'Connected via relay',
