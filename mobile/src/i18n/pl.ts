@@ -129,7 +129,7 @@ export const pl: Dict = {
   'settings.githubLink': 'Zobacz na GitHubie',
   'task.mode.free': 'Darmowy',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Pobieranie w usłudze {service}',
   'settings.aboutTitle': 'O KnightLoaderze',
   'settings.aboutBody': 'Jeden rycerz, jedna krucjata: dopracowane narzędzia open source, których nie było w takiej postaci, jakiej chciałem, budowane, aż niczego nie zabraknie. Wszystko za darmo, bez kont, bez telemetrii, bez reklam i bez płatnych wersji. Nigdzie żadnej gwiazdki. Nic czytelnego nigdy nie opuszcza twoich własnych murów. Kute wieczorami i w weekendy, z sercem i uporem.',
   'settings.accentReset': 'Domyślny',

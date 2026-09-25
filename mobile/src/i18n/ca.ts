@@ -129,7 +129,7 @@ export const ca: Dict = {
   'settings.githubLink': 'Veure a GitHub',
   'task.mode.free': 'Gratuït',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Baixant a {service}',
   'settings.aboutTitle': 'Quant a KnightLoader',
   'settings.aboutBody': 'Un sol cavaller, una croada: eines de codi obert ben fetes que no existien en la forma que jo volia, construïdes fins que no hi falti res. Tot gratuït, sense comptes, sense telemetria, sense anuncis i sense plans de pagament. Cap asterisc enlloc. Res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana, amb cor i tossuderia.',
   'settings.accentReset': 'Per defecte',
