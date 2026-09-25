@@ -36,8 +36,15 @@ description = "Invented credentials that are test fixtures for the parsers that 
 #
 # Both are matched as literals rather than by file, so a real key landing in
 # that same test tomorrow is still caught.
+#
+# internal/eventprog/event_test.go hands a program an environment holding
+# KL_TORBOX and kl_alldebrid and checks their values never reach it. Those
+# values stand for the service keys an instance may be started with, so they
+# read like secrets, and they are matched as literals too.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
   '''0123456789abcdef''',
+  '''KL_TORBOX=secret-key''',
+  '''kl_alldebrid=other-secret''',
 ]
