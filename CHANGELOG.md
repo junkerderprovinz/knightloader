@@ -55,6 +55,16 @@ submission and for a fixed download.
   seed limit its indexer asked for. The same switch as the SABnzbd bridge opens it,
   and it is off by default. The manual's Getting links in page has the setup
   for both.
+- **A hoster can have its own backend, and free downloads can wait for an
+  account.** A row under Per-host exceptions on the Network settings page names
+  the backend asked first for that hoster and switches off the ones it must
+  never go to. A download pinned to a backend still goes there, and a paused
+  one on a backend switched off since moves when you resume it. With Premium
+  only on the Accounts settings page, a hoster link that only JDownloader's
+  free mode could fetch waits in the queue as "Waiting for a premium account"
+  instead of starting, and the collector shows that before you start it. It
+  starts by itself once you add a login for that hoster or a debrid service
+  that carries it. A category can switch this on or off for its own links.
 - **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
   Installing, what it does, configuration, getting links in, Click'n'Load,
   connecting instances and where files land, built from `docs/` with MkDocs

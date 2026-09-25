@@ -594,12 +594,12 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 }
 
 // stagingResolverFor picks the backend a link is collected with, using the
-// same per-URL ranking dispatch uses. Registry.For only knows the static
-// priorities, and the collected choice sticks: resolverForTaskLocked keeps
-// t.Resolver while it is routable, so a hoster link JD can reach would
-// otherwise go out as a plain "direct" GET.
+// same per-URL ranking dispatch uses, host rule included. Registry.For only
+// knows the static priorities, and the collected choice sticks:
+// resolverForTaskLocked keeps t.Resolver while it is routable, so a hoster link
+// JD can reach would otherwise go out as a plain "direct" GET.
 func (a *App) stagingResolverFor(u string) resolver.Resolver {
-	chain := rankedChain(a.Registry.All(u), u, a.Settings.Get().ResolverOrder)
+	chain := hostChain(a.Registry.All(u), u, a.Settings.Get())
 	if len(chain) == 0 {
 		return nil
 	}
@@ -706,7 +706,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	res := a.stagingResolverFor(u)
 	if res == nil {
 		// Staged anyway, with the reason, so links never silently vanish.
-		t.Error = "no backend handles this link"
+		t.Error = a.unhandledError(u, "no backend handles this link")
 		t.Reason = core.ReasonUnsupported
 		t.Online = core.AvailOffline
 		return a.finishStaging(t, cand)

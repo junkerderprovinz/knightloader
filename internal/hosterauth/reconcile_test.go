@@ -224,6 +224,57 @@ func TestASwitchedOffJDOnlyHasItsHosterListRead(t *testing.T) {
 	}
 }
 
+// Routing hears from a pass only when the pass told it something new, since
+// the app walks every collected link when it does and a pass runs every 30
+// seconds.
+func TestReconciledFollowsOnlyAPassThatChangedSomething(t *testing.T) {
+	const host = "reconciled-hook.example"
+	fake := &fakeJD{}
+	r, store := newTestReconciler(t, fake)
+	calls := 0
+	r.Reconciled = func() { calls++ }
+	t.Cleanup(func() {
+		jdresolver.SetKnownHosts(nil)
+		jdresolver.SetHostActive(host, false)
+	})
+	pass := func(want int, what string) {
+		t.Helper()
+		if _, err := r.Reconcile(context.Background()); err != nil {
+			t.Fatalf("Reconcile: %v", err)
+		}
+		if calls != want {
+			t.Fatalf("after %s Reconciled has been called %d times, want %d", what, calls, want)
+		}
+	}
+
+	if r.Listed() {
+		t.Fatal("Listed before any pass has asked JD")
+	}
+	pass(1, "the first hoster list, an empty one")
+	if !r.Listed() {
+		t.Error("not Listed after a pass that read the hoster list")
+	}
+	pass(1, "a pass that saw the same")
+
+	fake.hosters = []string{host}
+	pass(2, "a hoster JD has a plugin for now")
+
+	if err := store.Set(host, accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	fake.accounts = []jdAccount{{UUID: 1, Hostname: host, InfoMap: &jdAccountInfo{Valid: true}}}
+	pass(3, "a login JD confirmed")
+	pass(3, "the same login confirmed again")
+
+	fake.queryErr = errors.New("connection refused")
+	if _, err := r.Reconcile(context.Background()); err == nil {
+		t.Fatal("Reconcile succeeded against a JD that does not answer")
+	}
+	if calls != 3 {
+		t.Errorf("a failed pass called Reconciled; %d calls, want 3", calls)
+	}
+}
+
 func TestReconcileRemovesANoLongerDesiredAccount(t *testing.T) {
 	fake := &fakeJD{accounts: []jdAccount{{UUID: 42, Hostname: "uploaded.net", InfoMap: &jdAccountInfo{Valid: true}}}}
 	r, _ := newTestReconciler(t, fake)

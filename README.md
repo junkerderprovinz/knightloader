@@ -147,7 +147,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Desktop app for Windows, macOS and Linux | ✅ | ✅ | ❌ | ❌ |
 | Own Docker image | ✅ amd64, arm64 | ⚠️ from the community | ⚠️ LinuxServer.io's | ✅ amd64, arm64, armhf |
 | Reachable from other networks without an account | ✅ twelve words and a relay | ❌ MyJDownloader needs an account | ⚠️ expose it yourself | ⚠️ expose it yourself |
-| Debrid services | ✅ several, in your order | ✅ as multihoster accounts | ✅ one plugin each | ✅ one of five, required |
+| Debrid services | ✅ several, in your order, also per hoster | ✅ as multihoster accounts | ✅ one plugin each | ✅ one of five, required |
 | File hoster links | ⚠️ through debrid or its own JDownloader | ✅ over a thousand plugins | ✅ hundreds of plugins | ❌ |
 | Premium hoster logins | ⚠️ used by that JDownloader | ✅ | ✅ | ❌ |
 | Video sites | ✅ every site yt-dlp reads | ✅ plugins for many | ⚠️ a few, such as YouTube | ❌ |

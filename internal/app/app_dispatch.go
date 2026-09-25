@@ -34,8 +34,9 @@ import (
 )
 
 // modeForLocked reports whether a task routed to resolverID goes out on an
-// account or anonymously. It is for display only; routing is decided by
-// jd.PriorityFor. A plain file on an ordinary web server gets no label, since
+// account or anonymously. It labels the task, and premium only reads it to
+// keep a link off a free download (see freeLocked); the ranking is
+// jd.PriorityFor's. A plain file on an ordinary web server gets no label, since
 // only hoster links are free or premium. Caller holds a.mu.
 func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 	if t == nil {
@@ -148,9 +149,10 @@ func rankedChain(chain []resolver.Resolver, url string, order []string) []resolv
 //
 // An empty host lists what the card orders: every registered service offCard
 // does not leave out, and one row per switched-on hoster login; otherwise the
-// whole chain for that host. There is one row per service, not per account
-// slot: the card saves the ids it shows back into ResolverOrder, and which
-// account of a service goes first is decided by routedAccounts.
+// whole chain for that host, its host rule applied. There is one row per
+// service, not per account slot: the card saves the ids it shows back into
+// ResolverOrder, and which account of a service goes first is decided by
+// routedAccounts.
 func (a *App) ResolverPriority(host string) []resolver.Info {
 	host = strings.TrimSpace(host)
 	url := ""
@@ -159,14 +161,16 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 		url = "https://" + host + "/"
 		chain = a.Registry.All(url)
 	}
-	order := a.Settings.Get().ResolverOrder
+	cfg := a.Settings.Get()
+	order := cfg.ResolverOrder
 	type row struct {
 		info resolver.Info
 		prio int
 	}
 	var rows []row
 	seen := map[string]bool{}
-	for _, res := range rankedChain(chain, url, order) {
+	// No host means no host rule, which leaves hostChain the plain ranking.
+	for _, res := range hostChain(chain, url, cfg) {
 		info := res.Info()
 		service, _ := resolver.SplitSlot(info.ID)
 		if seen[service] || (host == "" && offCard(service)) {
@@ -291,19 +295,24 @@ func maxPerHostFor(cfg settings.Settings, host string) int {
 }
 
 // resolverForTaskLocked picks the resolver for a task: its pin if it has one,
-// else a usable debrid service ranked above the recorded resolver where
-// rerankLocked allows it, else the recorded resolver if its account is usable,
-// else the first usable entry of the chain chainFromLocked leaves. A benched
-// account stays registered and is skipped here, so a second account of the
-// same service is simply the next entry in the chain. Caller holds a.mu.
+// else the service its host rule prefers or a usable debrid service ranked
+// above the recorded resolver where rerankLocked allows it, else the recorded
+// resolver if its account is usable, else the first usable entry of the chain
+// chainFromLocked leaves. A benched account stays registered and is skipped
+// here, so a second account of the same service is simply the next entry in
+// the chain. A backend premium only keeps the task off is passed over like a
+// switched-off one. Caller holds a.mu.
 func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	// A pin is the whole answer and may be nil (see pinnedResolverLocked);
 	// the caller reports that rather than falling back to the chain.
 	if t.ResolverPin != "" {
 		return a.pinnedResolverLocked(t)
 	}
-	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
+	chain := a.chainFor(t)
 	if a.rerankLocked(t) {
+		if res := a.preferredLocked(chain, t); res != nil {
+			return res
+		}
 		if res := a.debridAboveLocked(chain, t); res != nil {
 			return res
 		}
@@ -311,8 +320,11 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	// A fallback may have recorded JD, yt-dlp or the HTTP fallback while a
 	// backend above it was switched off; that backend decides, not the fallback.
 	if t.Resolver != "" && a.routableForLocked(t.Resolver, t.URL) && !a.resolverOff(t.Resolver) &&
+		!a.freeRefusedLocked(t, t.Resolver) &&
 		!(barredPastOff(t.Resolver) && a.switchedOffAboveLocked(chain, t.Resolver)) {
-		for _, res := range a.Registry.All(t.URL) {
+		// Looked up in the chain, which a backend the host rule excludes is
+		// not in.
+		for _, res := range chain {
 			if res.Info().ID == t.Resolver {
 				return res
 			}
@@ -321,7 +333,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	passedOff := false
 	for _, res := range a.chainFromLocked(t, chain) {
 		id := res.Info().ID
-		if a.resolverOff(id) {
+		if a.resolverOff(id) || a.freeRefusedLocked(t, id) {
 			passedOff = true
 			continue
 		}
@@ -335,13 +347,18 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	return nil
 }
 
-// chainFromLocked cuts the ranked chain at the task's recorded backend when
-// that backend is switched off or the task was handed to it down the chain.
-// The backends above it have had the link already, and asking them again
-// would loop between a decline and the switch or the refusal. Caller holds
-// a.mu.
+// chainFromLocked leaves out of the ranked chain the backends above the task's
+// recorded one when that backend is switched off or the task was handed to it
+// down the chain. Those have had the link already, and asking them again
+// would loop between a decline and the switch or the refusal. For a task
+// handed down, they are the ones ranked above at that moment, so a backend
+// wired since, such as a debrid account added for the host, is still asked.
+// Caller holds a.mu.
 func (a *App) chainFromLocked(t *core.Task, chain []resolver.Resolver) []resolver.Resolver {
-	if !a.resolverOff(t.Resolver) && !a.fellBack[t.ID] {
+	if passed, fell := a.fellBack[t.ID]; fell {
+		return slices.DeleteFunc(slices.Clone(chain), func(r resolver.Resolver) bool { return passed[r.Info().ID] })
+	}
+	if !a.resolverOff(t.Resolver) {
 		return chain
 	}
 	if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
@@ -360,7 +377,8 @@ func (a *App) rerankLocked(t *core.Task) bool {
 	if t.Resolver != "jd" && !isDebridService(service) {
 		return false
 	}
-	return t.Loaded == 0 && !a.fellBack[t.ID] &&
+	_, fell := a.fellBack[t.ID]
+	return t.Loaded == 0 && !fell &&
 		t.Variant == "" && t.InfoHash == "" && len(t.TorrentFiles) == 0
 }
 
@@ -381,12 +399,12 @@ func (a *App) debridAboveLocked(chain []resolver.Resolver, t *core.Task) resolve
 
 // pinnedResolverLocked returns the first entry of the ranked chain that the
 // pin names and whose account is usable, or nil. A pin naming a service is met
-// by any of its accounts. Account health is not bypassed, and nothing falls
-// through to another service. Caller holds a.mu.
+// by any of its accounts. Account health and premium only are not bypassed,
+// and nothing falls through to another service. Caller holds a.mu.
 func (a *App) pinnedResolverLocked(t *core.Task) resolver.Resolver {
-	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
+	for _, res := range a.chainFor(t) {
 		id := res.Info().ID
-		if !pinMatches(t.ResolverPin, id) || a.resolverOff(id) {
+		if !pinMatches(t.ResolverPin, id) || a.resolverOff(id) || a.freeRefusedLocked(t, id) {
 			continue
 		}
 		if a.accountRoutableLocked(id) {
@@ -558,29 +576,55 @@ func (a *App) PinResolver(ids []string, resolverID string) error {
 	return nil
 }
 
-// nextResolverLocked returns the resolver to try after the one the task just
-// used, following rankedChain, or "" when the chain is exhausted. Caller holds
+// leavesItsBackendLocked reports whether a started task has to leave the backend
+// it started on: its host rule excludes that backend, which a pin there
+// outranks, or premium only refuses it as a free download. Caller holds a.mu.
+func (a *App) leavesItsBackendLocked(t *core.Task) bool {
+	if a.freeRefusedLocked(t, t.Resolver) {
+		return true
+	}
+	return t.ResolverPin == "" && excluded(a.Settings.Get().HostRuleFor(hostOf(t.URL)), t.Resolver)
+}
+
+// leaveBackendLocked takes a stopped task off the backend it started on, as
+// PinResolver does: its partial file goes, JD's package too, and the task
+// starts afresh on another backend once the old one has let go. Caller holds
 // a.mu.
+func (a *App) leaveBackendLocked(t *core.Task) {
+	id, old := t.ID, a.backendFor(t.Resolver)
+	a.moving[id] = true
+	delete(a.started, id)
+	t.Resolver = ""
+	t.Mode = core.ModeUnknown
+	t.Loaded = 0
+	a.spawn(func() {
+		old.Remove(id, true)
+		if c := a.handedOn(id); c != nil {
+			_ = a.Store.Save(c)
+			a.Hub.Broadcast("task", c)
+		}
+	})
+}
+
+// nextResolverLocked returns the resolver to try after the one the task just
+// used, following chainFor, or "" when the chain is exhausted. A backend the
+// task was handed down from before is not asked again. Caller holds a.mu.
 func (a *App) nextResolverLocked(t *core.Task) string {
 	// A pinned task has no next resolver. Every fallback path asks here, so
 	// this one check keeps a pin from being bypassed.
 	if t.ResolverPin != "" {
 		return ""
 	}
-	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
-	for i, res := range chain {
-		if res.Info().ID == t.Resolver {
-			if i+1 < len(chain) {
-				return chain[i+1].Info().ID
-			}
-			return "" // the chain is exhausted
-		}
+	chain := a.chainFor(t)
+	// A recorded backend that has been unregistered (a credential removed, a
+	// binary missing) is not found, and the search starts over from the top.
+	if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
+		chain = chain[i+1:]
 	}
-	// The recorded backend has been unregistered (a credential removed, a
-	// binary missing), so start over from the top.
+	passed := a.fellBack[t.ID]
 	for _, res := range chain {
-		if res.Info().ID != t.Resolver {
-			return res.Info().ID
+		if id := res.Info().ID; !passed[id] {
+			return id
 		}
 	}
 	return ""
@@ -769,6 +813,17 @@ func (a *App) dispatchLocked() {
 			rest = append(rest, id)
 			continue
 		}
+		if a.started[id] && a.leavesItsBackendLocked(t) {
+			if a.premiumHeldLocked(t) {
+				// Kept where it is rather than started over, so a login for
+				// JD's hoster resumes it.
+				waiting[id] = core.WaitingPremium
+			} else {
+				a.leaveBackendLocked(t)
+			}
+			rest = append(rest, id)
+			continue
+		}
 		if a.started[id] {
 			a.active[id] = true
 			a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
@@ -803,6 +858,13 @@ func (a *App) dispatchLocked() {
 				rest = append(rest, id)
 				continue
 			}
+			if a.premiumHeldLocked(t) {
+				// Held rather than failed, pinned or not: an account for the
+				// host, or a debrid service that carries it, lets it start.
+				waiting[id] = core.WaitingPremium
+				rest = append(rest, id)
+				continue
+			}
 			if t.ResolverPin != "" {
 				// A pinned task fails visibly instead of waiting; see
 				// pinFailureLocked.
@@ -819,7 +881,7 @@ func (a *App) dispatchLocked() {
 				continue
 			}
 			t.Status = core.StatusError
-			t.Error = "no resolver matches"
+			t.Error = a.unhandledError(t.URL, "no resolver matches")
 			t.Reason = core.ReasonUnsupported
 			settled = append(settled, *t)
 			continue
@@ -1439,7 +1501,19 @@ func (a *App) handOnLocked(t *core.Task) {
 	t.Loaded = 0
 	t.Speed = 0
 	delete(a.started, t.ID)
-	a.fellBack[t.ID] = true
+	passed := a.fellBack[t.ID]
+	if passed == nil {
+		passed = map[string]bool{}
+	}
+	// An empty Resolver, an account that failed with nothing below it, is not
+	// in the chain, and the whole chain stays open to the search.
+	chain := a.chainFor(t)
+	if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
+		for _, res := range chain[:i] {
+			passed[res.Info().ID] = true
+		}
+	}
+	a.fellBack[t.ID] = passed
 	a.moving[t.ID] = true
 	a.queue = append(a.queue, t.ID)
 }

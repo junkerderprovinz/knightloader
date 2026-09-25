@@ -274,6 +274,10 @@ func (a *App) rewireBackends() {
 	hostRefreshMu.Lock()
 	hostRefreshAttempted[a] = time.Now()
 	hostRefreshMu.Unlock()
+
+	// A new account may be the way down a link held for premium only was
+	// waiting for.
+	a.refreshPremiumHolds()
 }
 
 // debridServices are the one-shot debrid services, in routing order. Every one

@@ -132,6 +132,11 @@ type Category struct {
 	//
 	// A package whose links sit in two drawers calls both, once each.
 	Notify string `json:"notify,omitempty"`
+	// PremiumOnly is this drawer's own premium only switch. Nil is "no
+	// opinion"; false lets a drawer fetch in free mode on an instance that
+	// otherwise holds such links, which a plain bool cannot say, as with
+	// Extract.
+	PremiumOnly *bool `json:"premiumOnly,omitempty"`
 }
 
 // CategoryFor is the category an id names, or the zero Category when it names
@@ -206,6 +211,15 @@ func (s Settings) ExtractFor(id string) bool {
 		return *e
 	}
 	return s.Extract
+}
+
+// PremiumOnlyFor is whether premium only holds a task in this category: the
+// category's own switch, or the instance's when it has none.
+func (s Settings) PremiumOnlyFor(id string) bool {
+	if p := s.CategoryFor(id).PremiumOnly; p != nil {
+		return *p
+	}
+	return s.PremiumOnly
 }
 
 // SpeedLimitFor is the allowance for a task in this category, in bytes per

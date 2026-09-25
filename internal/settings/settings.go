@@ -599,6 +599,14 @@ type Settings struct {
 	// No omitempty, see CrawlInclude.
 	ResolverOrder []string `json:"resolverOrder"`
 
+	// PremiumOnly holds a link whose only way down is a free download, a
+	// hoster JDownloader would fetch without an account, instead of starting
+	// it. The link waits with the reason on it and starts once an account for
+	// that hoster, or a debrid service that carries it, is there. A category
+	// may say otherwise, see PremiumOnlyFor. Off by default: a free download
+	// is slow, and still a download.
+	PremiumOnly bool `json:"premiumOnly"`
+
 	// Ytdlp is the yt-dlp backend's own configuration: format and quality
 	// selection, subtitles and their language, the output filename template,
 	// whether a playlist URL fetches one video or the whole list, and the

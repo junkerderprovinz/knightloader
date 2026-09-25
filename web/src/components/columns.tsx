@@ -870,14 +870,30 @@ function packageAvailMixed(items: Task[]): boolean {
 }
 
 /**
- * AvailCell is the collector's own column: is this link there or not. Just the
- * dot, and only the availability verdict. Every staged row carries the same
- * task.status, so a state word there would read "collected" on all of them.
+ * AvailCell is the collector's own column: is this link there or not. The dot
+ * carries the availability verdict, and the one waiting reason a staged row can
+ * have follows it in words. Every staged row carries the same task.status, so a
+ * state word there would read "collected" on all of them.
  */
 function AvailCell({ task, t }: { task: Task; t: Translate }) {
+  // The typed cause carries the detail, as a tooltip rather than a second word
+  // on the line. "Host would not say" is the verdict and it is what the column
+  // is for; whether the host was rate-limiting us or simply down is the next
+  // question, and it belongs one hover away, not in the width of the cell.
   const why = task.reason ? reasonKey[task.reason] : undefined;
   const avail = task.online;
-  return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
+  const dot = <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
+  if (task.waiting !== 'premium') return dot;
+  // The one waiting reason a staged row carries: what starting it would run
+  // into, which is news here and not after the click.
+  return (
+    <span className={STATUS_LINE}>
+      {dot}
+      <Tip tip={t('task.waiting.premium')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+        {t('task.waiting.premium')}
+      </Tip>
+    </span>
+  );
 }
 
 /**
@@ -901,6 +917,7 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   disk: 'task.waiting.disk',
   volumeCap: 'task.waiting.volumeCap',
   module: 'task.waiting.module',
+  premium: 'task.waiting.premium',
 };
 
 // A full slot count and a stopped queue hold every waiting row alike, and the
@@ -914,18 +931,10 @@ const queueWideWaiting = new Set<NonNullable<Task['waiting']>>(['slot', 'halted'
 const STATUS_LINE = 'inline-flex min-w-0 max-w-full items-center gap-2';
 
 function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unpacking | null }) {
-  // The typed cause carries the detail, as a tooltip rather than a second word
-  // on the line. "Host would not say" is the verdict and it is what the column
-  // is for; whether the host was rate-limiting us or simply down is the next
-  // question, and it belongs one hover away, not in the width of the cell.
-  const why = task.reason ? reasonKey[task.reason] : undefined;
   // A staged row can still turn up in the download list's history views, where
   // the availability dot is the only honest reading: the transfer has not begun
   // and the row has no state of its own yet.
-  if (task.status === 'collected') {
-    const avail = task.online;
-    return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
-  }
+  if (task.status === 'collected') return <AvailCell task={task} t={t} />;
   return (
     <span className={STATUS_LINE}>
       {unpack ? <UnpackStatus unpack={unpack} t={t} /> : <StatusPill status={task.status} />}
