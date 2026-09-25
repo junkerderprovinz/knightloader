@@ -140,6 +140,13 @@ function labelUnits(label: string): number {
 const EM_PER_UNIT = 0.62;
 
 /**
+ * What a glyph adds to a segment, in rem: its width from index.css's
+ * .glim-nav-row > svg plus the gap after it, gap-1.5 or gap-2 in SIZE and
+ * WELL_SIZE.
+ */
+const GLYPH_REM: Record<'sm' | 'md', number> = { sm: 1.25 + 0.375, md: 1.25 + 0.5 };
+
+/**
  * emWidth turns visual units into a CSS length at 0.62em per unit, GlimStone's
  * figure. Not `ch`, which measures the narrow "0" glyph and clips long labels.
  */
@@ -236,20 +243,22 @@ export function Tabs(props: TabsProps) {
 
   // The width every segment of a well or an equal-width strip is pinned to,
   // derived from the labels so it is known before first paint: the widest
-  // label plus four units for the glyph, its gap and the padding. A big well
-  // adds a 200px floor, so short labels are not cramped and every page-level
-  // selector matches, and a 22rem ceiling past which it stops growing. A small
-  // well takes the label width alone, since its labels are single words.
-  // Undefined where each segment hugs its own label, and in glyph mode, where
-  // the labels are not drawn and a glyph is as wide as the next.
+  // label plus four units for the padding, and the glyph with its gap where
+  // the segments show one. A big well adds a 200px floor, so short labels are
+  // not cramped and every page-level selector matches, and a 22rem ceiling
+  // past which it stops growing. A small well has neither, since its labels
+  // are single words. Undefined where each segment hugs its own label, and in
+  // glyph mode, where the labels are not drawn and a glyph is as wide as the next.
   const pinUnits = Math.max(0, ...items.map((i) => labelUnits(i.label))) + 4;
+  const glyphRem = showIcon && items.some((i) => i.icon) ? GLYPH_REM[size] : 0;
+  const pinWidth = glyphRem ? `calc(${emWidth(pinUnits)} + ${glyphRem}rem)` : emWidth(pinUnits);
   const bigWell = isWell && size === 'md';
   const pinned = vertical || nameOnly
     ? undefined
     : bigWell
-      ? `clamp(${WELL_FLOOR_PX}px, ${emWidth(pinUnits)}, ${WELL_CEIL_REM}rem)`
+      ? `clamp(${WELL_FLOOR_PX}px, ${pinWidth}, ${WELL_CEIL_REM}rem)`
       : isWell || equalWidth
-        ? emWidth(pinUnits)
+        ? pinWidth
         : undefined;
   const gap = isWell ? WELL_GAP : STRIP_GAP;
 
@@ -274,8 +283,8 @@ export function Tabs(props: TabsProps) {
       const inset = parseFloat(own.paddingLeft) + parseFloat(own.paddingRight);
       const room = parent.clientWidth - parseFloat(outer.paddingLeft) - parseFloat(outer.paddingRight) - inset;
       // The same sum `pinned` hands the stylesheet, in pixels.
-      const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(segs[0]).fontSize);
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(segs[0]).fontSize) + glyphRem * rem;
       const width = bigWell ? Math.max(WELL_FLOOR_PX, Math.min(label, WELL_CEIL_REM * rem)) : label;
       const layout = segmentLayout(room, width, segmentWidths(segs), parseFloat(own.columnGap) || 0);
       setPerRow(layout.perRow);
@@ -287,7 +296,7 @@ export function Tabs(props: TabsProps) {
     watch.observe(parent);
     for (const seg of segs) watch.observe(seg);
     return () => watch.disconnect();
-  }, [pinned, bigWell, pinUnits, labels]);
+  }, [pinned, bigWell, pinUnits, glyphRem, labels]);
 
   // A pinned segment keeps the pinned width as its floor and grows into its
   // share of the row, so a wrapped strip fills every row to its end. The basis
