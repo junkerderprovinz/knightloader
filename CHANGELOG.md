@@ -48,8 +48,8 @@ submission and for a fixed download.
   field works as well. Torrents go through the normal intake
   like a pasted magnet, and each one is reported under its info hash. Sonarr
   only sees the torrents it handed over, and a torrent already in the list is
-  refused, as qBittorrent refuses it. Sonarr's category becomes a category of
-  this instance, or finds the one you have by that name. A download reads as
+  refused, as qBittorrent refuses it. Sonarr's category is filed as the
+  SABnzbd bridge files one, below. A download reads as
   finished only once every file is on disk and unpacked, and Sonarr can remove
   it after the import once nothing seeds it any more and it has reached the
   seed limit its indexer asked for. The same switch as the SABnzbd bridge opens it,
@@ -100,11 +100,11 @@ submission and for a fixed download.
   up on is listed with the links that were not added. Without an account that
   can take it, a real `.nzb` is refused with that reason. It is not read for
   links, since the only address in one is its XML namespace. The category
-  Sonarr or Radarr sends to the SABnzbd bridge is now a KnightLoader category:
-  a grab is filed in the one of the same name, created with its own folder
-  inside the download folder the first time, and the bridge offers Sonarr's
-  and Radarr's own defaults, `tv` and `movies`, so their connection test
-  passes on a fresh install. The
+  Sonarr or Radarr sends to either bridge is now a KnightLoader category: a
+  grab is filed in the one of the same name, created with its own folder
+  inside the download folder the first time, and the SABnzbd bridge offers
+  Sonarr's and Radarr's own defaults, `tv` and `movies`, so their connection
+  test passes on a fresh install. The
   watched folder also takes `.torrent`, `.magnet`, `.dlc`, `.ccf`, `.rsdf` and
   `.nzb` files; one nothing here can open stays in the folder with the reason
   in the log, and an `.nzb` left there is taken once an account is added.

@@ -1164,3 +1164,82 @@ func TestASavePathNeedsAdmin(t *testing.T) {
 		t.Errorf("a save path from a full token answered %d %q, want Ok.", code, body)
 	}
 }
+
+// A category Sonarr names that this instance does not have is filed the same
+// way whichever door it comes through: under that name, with a folder of its
+// own in the download folder.
+func TestBothDoorsFileAMissingCategoryAlike(t *testing.T) {
+	t.Parallel()
+	const name = "TV Shows"
+	magnet := "magnet:?xt=urn:btih:" + qbitTestHash
+	filed := func(a *app.App) settings.Category {
+		t.Helper()
+		s := a.Settings.Get()
+		if len(s.Categories) != 1 {
+			t.Fatalf("categories = %+v, want the one Sonarr named", s.Categories)
+		}
+		c := s.Categories[0]
+		rel, err := filepath.Rel(s.DownloadDir, c.Dir)
+		if err != nil || filepath.IsAbs(rel) || strings.HasPrefix(rel, "..") {
+			t.Fatalf("the category's folder %q is not inside the download folder %q", c.Dir, s.DownloadDir)
+		}
+		c.Dir = rel
+		return c
+	}
+
+	sab, sabSrv, key := downloadClientServer(t, nil)
+	if _, add := sabAddFile(t, sabSrv, key, "Show.S01E01.nzb", name, []byte(magnet)); add["status"] != true {
+		t.Fatalf("addfile answered %+v", add)
+	}
+	want := filed(sab)
+
+	for call, form := range map[string]url.Values{
+		"torrents/createCategory": {"category": {name}},
+		"torrents/add":            {"urls": {magnet}, "category": {name}},
+	} {
+		a, srv, secret, _ := qbitServer(t, nil)
+		c := sonarrClient(t)
+		qbitLogin(t, c, srv, secret)
+		if code, body := qbitPost(t, c, srv, call, form); code != http.StatusOK {
+			t.Fatalf("%s answered %d %q", call, code, body)
+		}
+		if got := filed(a); got.ID != want.ID || got.Name != want.Name || got.Dir != want.Dir {
+			t.Errorf("%s filed %s %q in %q, the SABnzbd door %s %q in %q", call, got.ID, got.Name, got.Dir, want.ID, want.Name, want.Dir)
+		}
+	}
+}
+
+// A save path is a folder on the host, so it takes a token with admin. It
+// picks the folder of a category that is new; one that exists keeps its own.
+func TestACategorySavePathNeedsAdminAndOnlyShapesANewCategory(t *testing.T) {
+	t.Parallel()
+	a, srv, full, _ := qbitServer(t, nil)
+	_, sonarr, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	form := url.Values{"category": {"films"}, "savePath": {"Filme"}}
+
+	if code, body := qbitBearer(t, srv, sonarr, "torrents/createCategory", form); code != http.StatusForbidden || !strings.Contains(body, `"admin"`) {
+		t.Errorf("a save path from an add token answered %d %q, want 403 naming the admin right", code, body)
+	}
+	if got := a.Settings.Get().Categories; len(got) != 0 {
+		t.Fatalf("the refused call filed %+v", got)
+	}
+
+	if code, body := qbitBearer(t, srv, full, "torrents/createCategory", form); code != http.StatusOK {
+		t.Fatalf("a save path from a full token answered %d %q", code, body)
+	}
+	want := filepath.Join(a.Settings.Get().DownloadDir, "Filme")
+	if got := a.Settings.Get().CategoryFor("films").Dir; got != want {
+		t.Errorf("the new category's folder is %q, want the save path %q inside the download folder", got, want)
+	}
+
+	elsewhere := url.Values{"category": {"films"}, "savePath": {t.TempDir()}}
+	if code, body := qbitBearer(t, srv, full, "torrents/createCategory", elsewhere); code != http.StatusOK {
+		t.Fatalf("creating a category that exists answered %d %q", code, body)
+	}
+	if got := a.Settings.Get().CategoryFor("films").Dir; got != want {
+		t.Errorf("a save path moved an existing category to %q, want it kept in %q", got, want)
+	}
+}

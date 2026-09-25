@@ -321,8 +321,8 @@ act on a torrent after the add: Priority "First", Initial State "Force Started"
 and a Post-Import Category. With Add and read the torrent stays as it was.
 
 Such a key cannot pick where files land either. A `dir` in `POST /api/links`
-or `POST /api/tasks/options`, or a `savepath` in qBittorrent's `torrents/add`,
-needs Admin, whatever the route needs otherwise,
+or `POST /api/tasks/options`, or a save path in qBittorrent's `torrents/add`
+or `torrents/createCategory`, needs Admin, whatever the route needs otherwise,
 because a folder of the caller's choosing could be any folder the instance can
 write to. Without one, links go where the download folder, a category or a
 Packagizer rule puts them.

@@ -136,6 +136,14 @@ switch on **Put each package in its own subfolder** under Settings >
 Downloads. Without it every grab lands in the same folder, and the importer
 cannot tell one release from the next.
 
+The category Sonarr or Radarr sends is a KnightLoader category, through either
+door. A grab is filed in the category of the same name, whatever the case.
+When there is none, one is created with its own folder inside the download
+folder, so `tv` lands in `/downloads/tv`, and the log says it was created.
+You can change its folder and priority under Settings > Rules & categories. A
+Packagizer rule that files the links in another category wins, and the door
+reports the folder they land in, so the import still finds them.
+
 ### Torrents through qBittorrent's API
 
 In Sonarr or Radarr, open Settings > Download Clients, add qBittorrent and fill
@@ -152,9 +160,8 @@ it in like this:
 If your Sonarr shows an API Key field for qBittorrent, you can put the token
 there instead and leave Username and Password empty.
 
-When Sonarr tests the connection, its category becomes one of KnightLoader's own
-categories (Settings > Rules & categories), so you can give it a folder and a
-priority there. A category you already have by that name is used as it is.
+When Sonarr tests the connection, it creates its category if this instance
+does not have it yet, as described above, and finds it listed with its folder.
 Torrents go through the normal intake, the same as a magnet you paste,
 and KnightLoader reports each one under its info hash, which is how Sonarr
 recognises its own grabs. Sonarr only ever sees the torrents it handed over. A
@@ -191,16 +198,12 @@ a release that is about to arrive.
 Anything else Sonarr uploads is scanned for links, the way a paste is, so a
 DDL indexer whose "NZB" is really a list of links works.
 
-The category Sonarr or Radarr sends here is a KnightLoader category. A grab is filed
-in the category of the same name, whatever the case. When there is none, one
-is created with its own folder inside the download folder, so `tv` lands in
-`/downloads/tv`, and the log says it was created. Sonarr accepts only a
-category it finds under exactly the name it has, so this instance offers each
-of its categories under its name and its id, plus the defaults Sonarr and
-Radarr come with: `tv` and `movies`, and `tv-sonarr` and `radarr` from their
-qBittorrent settings. With "Put each package in its own subfolder" on, every
-release gets a folder of its own inside that, which is what the importer needs
-to tell two grabs apart.
+Sonarr accepts only a category it finds under exactly the name it has, so
+this door offers each of this instance's categories under its name and its id,
+plus the defaults Sonarr and Radarr come with: `tv` and `movies`, and
+`tv-sonarr` and `radarr` from their qBittorrent settings. With "Put each
+package in its own subfolder" on, every release gets a folder of its own inside
+the category's, which is what the importer needs to tell two grabs apart.
 
 ## Sites that want their own headers
 
