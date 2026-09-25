@@ -25,6 +25,7 @@ BUTTONS = {
     # GitHub gives the newest one no fixed address, so this leads to the release
     # that lists it.
     "source": "https://github.com/junkerderprovinz/knightloader/releases/latest",
+    "docs": "https://junkerderprovinz.github.io/knightloader/",
     "apk": NEWEST % "mobile" + "knightloader-android.apk",
     # One zip for every Chromium browser.
     "chrome": NEWEST % "extension" + "knightloader-extension.zip",

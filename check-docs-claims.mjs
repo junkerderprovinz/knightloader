@@ -1,8 +1,8 @@
-// The claims README.md, the Help page and docs/ make about this build, checked
-// against the build.
+// The claims README.md, the manual in docs/, the Help page and the census make
+// about this build, checked against the build.
 //
-// Three documents describe this program to a reader who has not run it: the
-// README, the Help page in Settings, and docs/jd-feature-census.md. They are
+// Four documents describe this program to a reader who has not run it: the
+// README, the manual, the Help page in Settings, and docs/jd-feature-census.md. They are
 // written by hand at different times, and nothing else compares them to the
 // source or to each other. Such drift breaks no build, test or type check; it
 // is found by a person reading two files at once.
@@ -24,6 +24,14 @@ const read = (...p) => readFileSync(join(here, ...p), 'utf8');
 
 const README = read('README.md');
 const CENSUS = read('docs', 'jd-feature-census.md');
+const FEATURES = read('docs', 'features.md');
+const INSTALLING = read('docs', 'installing.md');
+const CONFIGURATION = read('docs', 'configuration.md');
+// The pages mkdocs.yml puts in the manual's navigation, joined: the manual as
+// a reader meets it, without the working notes that share its folder.
+const MANUAL = [...read('mkdocs.yml').matchAll(/^\s+- .*: (\S+\.md)\r?$/gm)]
+  .map((m) => read('docs', m[1]))
+  .join('\n');
 const MAIN_GO = read('cmd', 'knightloader', 'main.go');
 const CATALOGUE = read('internal', 'accounts', 'catalogue.go');
 const DOCKERFILE = read('Dockerfile');
@@ -68,11 +76,11 @@ if (!badge) {
 }
 
 // The feature table's own row: | **Languages** | 42, each fetched ... |
-const langRow = README.match(/\|\s*\*\*Languages\*\*\s*\|\s*(\d+)/);
+const langRow = FEATURES.match(/\|\s*\*\*Languages\*\*\s*\|\s*(\d+)/);
 if (!langRow) {
-  fail('README.md: no "**Languages** | <n>" row in the feature table');
+  fail('docs/features.md: no "**Languages** | <n>" row in the feature table');
 } else if (Number(langRow[1]) !== languages) {
-  fail(`README.md feature table says ${langRow[1]} languages, web/src/lib/locales/ holds ${languages}`);
+  fail(`docs/features.md says ${langRow[1]} languages, web/src/lib/locales/ holds ${languages}`);
 }
 
 // The census row comparing our breadth to JD's.
@@ -129,29 +137,29 @@ if (!built) {
   }
 }
 
-// The desktop bundles desktop.yml builds, against the README's list of them
-// and its download buttons. A bundle without a button is one nobody finds, and
-// a button for one the matrix does not build leads nowhere. Only the buttons
-// count, the ARM64 halves beside Windows and Linux too: a text link elsewhere
-// in the README is not where a reader looks for a download.
+// The desktop bundles desktop.yml builds, against the manual's list of them
+// and the README's download buttons. A bundle without a button is one nobody
+// finds, and a button for one the matrix does not build leads nowhere. Only the
+// buttons count, the ARM64 halves beside Windows and Linux too: a text link
+// elsewhere in the README is not where a reader looks for a download.
 const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
 const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
   platform: m[1],
   slug: m[2],
 }));
-const listedPlatforms = README.match(/Every release tag builds ([^.]+?),?\s+and attaches/)?.[1];
+const listedPlatforms = INSTALLING.match(/Every release tag builds ([^.]+?),?\s+and attaches/)?.[1];
 const buttonBlock = README.match(/<!-- download-buttons\b[^>]*-->([\s\S]*?)<!-- \/download-buttons -->/)?.[1];
 if (bundles.length === 0) {
   fail('.github/workflows/desktop.yml: no platform line followed by a slug line, so the desktop builds cannot be checked');
 } else if (!listedPlatforms) {
-  fail('README.md: the "Every release tag builds ... and attaches" sentence is gone, so nothing here can check it');
+  fail('docs/installing.md: the "Every release tag builds ... and attaches" sentence is gone, so nothing here can check it');
 } else if (!buttonBlock) {
   fail('README.md: the download-buttons block is gone, so nothing here can check the desktop downloads');
 } else {
   const listed = [...listedPlatforms.matchAll(/`([^`]+)`/g)].map((m) => m[1]).sort();
   const built = bundles.map((b) => b.platform).sort();
   if (listed.join(',') !== built.join(',')) {
-    fail(`README.md says every release builds ${listed.join(', ')}, desktop.yml builds ${built.join(', ')}`);
+    fail(`docs/installing.md says every release builds ${listed.join(', ')}, desktop.yml builds ${built.join(', ')}`);
   }
   // <a href=".../releases/latest/download/knightloader-windows-arm64.zip"><img ...
   const buttons = new Set(
@@ -169,30 +177,30 @@ if (bundles.length === 0) {
   }
 }
 
-// The Wails CLI the README tells a reader to install, against the version
-// desktop/go.mod actually requires. Somebody following the README with a
+// The Wails CLI the manual tells a reader to install, against the version
+// desktop/go.mod actually requires. Somebody following the manual with a
 // different CLI builds the desktop app on a different toolchain than the one
 // that produces the release, which is a class of bug that only ever shows up as
 // "works here, not in CI".
 //
 // Compared against go.mod rather than against the workflow, which reads the
 // require line itself because a hand-pinned copy drifted twice. Comparing the
-// README to that copy lets both be wrong together with nothing to notice, so
+// manual to that copy lets both be wrong together with nothing to notice, so
 // go.mod is the one place the number lives and the one thing worth comparing
 // against.
 const DESKTOP_GOMOD = read('desktop', 'go.mod');
-const readmeWails = README.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
+const manualWails = INSTALLING.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
 const modWails = DESKTOP_GOMOD.match(/wailsapp\/wails\/v2 (v[\d.]+)/)?.[1];
-if (!readmeWails || !modWails) {
-  fail('the wails install line is missing from README.md, or the require line from desktop/go.mod');
-} else if (readmeWails !== modWails) {
-  fail(`README.md installs wails ${readmeWails}, desktop/go.mod requires ${modWails}`);
+if (!manualWails || !modWails) {
+  fail('the wails install line is missing from docs/installing.md, or the require line from desktop/go.mod');
+} else if (manualWails !== modWails) {
+  fail(`docs/installing.md installs wails ${manualWails}, desktop/go.mod requires ${modWails}`);
 }
 
-// Which services the README's environment table documents.
+// Which services the manual's environment table documents.
 // internal/accounts/catalogue.go is the single list both the settings API and
 // the Accounts page read. A service that carries an Env override and is not in
-// the README is a key somebody cannot find.
+// the table is a key somebody cannot find.
 
 const catalogueEnvs = [...CATALOGUE.matchAll(/\{ID: "([a-z0-9]+)".*?Env: "(KL_[A-Z_]+)"/g)].map((m) => ({
   id: m[1],
@@ -203,17 +211,17 @@ if (catalogueEnvs.length === 0) {
 }
 
 // The environment table's rows: | `KL_ADDR` | `:8749` | listen address |
-const readmeEnvRows = new Map();
-for (const line of README.split(/\r?\n/)) {
+const envRows = new Map();
+for (const line of CONFIGURATION.split(/\r?\n/)) {
   const cells = line.split('|').map((c) => c.trim());
   const name = cells[1]?.match(/^`(KL_[A-Z_]+)`$/);
   if (!name) continue;
-  readmeEnvRows.set(name[1], (cells[2] ?? '').replace(/`/g, ''));
+  envRows.set(name[1], (cells[2] ?? '').replace(/`/g, ''));
 }
 
 for (const { id, env } of catalogueEnvs) {
-  if (!readmeEnvRows.has(env)) {
-    fail(`README.md's Configuration table has no ${env} row, but ${id} in internal/accounts/catalogue.go offers it`);
+  if (!envRows.has(env)) {
+    fail(`docs/configuration.md has no ${env} row, but ${id} in internal/accounts/catalogue.go offers it`);
   }
 }
 
@@ -225,9 +233,9 @@ const GO_SOURCES = ['cmd', 'internal', 'desktop']
   .map((f) => readFileSync(f, 'utf8'))
   .join('\n');
 
-for (const env of readmeEnvRows.keys()) {
+for (const env of envRows.keys()) {
   if (!GO_SOURCES.includes(env)) {
-    fail(`README.md documents ${env}, and no Go file mentions it`);
+    fail(`docs/configuration.md documents ${env}, and no Go file mentions it`);
   }
 }
 
@@ -256,12 +264,12 @@ for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
     fail(`cmd/knightloader/main.go gives ${env} more than one default (${[...new Set(found)].join(', ')})`);
     continue;
   }
-  const documented = readmeEnvRows.get(env);
+  const documented = envRows.get(env);
   if (documented === undefined) {
-    fail(`README.md's Configuration table has no ${env} row`);
+    fail(`docs/configuration.md has no ${env} row`);
   } else if (documented !== found[0]) {
     fail(
-      `README.md says ${env} defaults to "${documented}", cmd/knightloader/main.go defaults it to ${found[0]}`,
+      `docs/configuration.md says ${env} defaults to "${documented}", cmd/knightloader/main.go defaults it to ${found[0]}`,
     );
   }
 }
@@ -270,13 +278,13 @@ for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
 // one a container install actually gets - which is exactly the drift the image
 // carried while it set KL_CNL=0 and every doc said 9666.
 if (/^ *(ENV +)?KL_CNL=/m.test(DOCKERFILE)) {
-  fail('Dockerfile sets KL_CNL, so the container does not get the default README.md and docs/clicknload.md quote');
+  fail('Dockerfile sets KL_CNL, so the container does not get the default docs/configuration.md and docs/clicknload.md quote');
 }
 
 // Every documented `docker build` of this image passes the revision in.
 //
-// No image is published, so the build commands in README.md and
-// docs/preview-deploy.md are the build most people make. The binary cannot work
+// Whoever builds the image follows docs/installing.md or docs/preview-deploy.md,
+// so their build commands are the builds that get made. The binary cannot work
 // the revision out for itself inside that build: .dockerignore excludes .git,
 // so the Go toolchain in the build stage has no repository and stamps no
 // vcs.revision (see buildinfo.Revision), and the preview deploy ships the tree
@@ -298,7 +306,7 @@ if (/^ *(ENV +)?KL_CNL=/m.test(DOCKERFILE)) {
 // the backstop under the loop is what makes that happen rather than hoping the
 // next author reads this paragraph.
 const BUILD_DOCS = [
-  ['README.md', README],
+  ['docs/installing.md', INSTALLING],
   ['docs/preview-deploy.md', read('docs', 'preview-deploy.md')],
 ];
 if (!/ARG COMMIT=/.test(DOCKERFILE)) {
@@ -345,7 +353,7 @@ for (const [name, text] of BUILD_DOCS) {
   }
 }
 if (commandsSeen === 0) {
-  fail('no `docker build` command found in README.md or docs/preview-deploy.md - this check is looking in the wrong place');
+  fail('no `docker build` command found in docs/installing.md or docs/preview-deploy.md, so this check is looking in the wrong place');
 }
 
 // The document nobody added to the list. README.md and docs/ are the pages that
@@ -372,13 +380,13 @@ for (const name of livingDocs) {
   }
 }
 
-// Every resolver is named in the README. The resolvers are the architecture, as
-// README.md's Overview says, so a whole backend the reader is never told about
-// is the worst kind of omission.
+// Every resolver is named in the manual. The resolvers decide how anything is
+// fetched, as its start page explains, so a whole backend the reader is never
+// told about is the worst kind of omission.
 
-// Package directory -> what the README is expected to call it. A directory
+// Package directory -> what the manual is expected to call it. A directory
 // with no entry here fails on purpose: a new resolver should force a decision
-// about how the README names it, not slip past a lookup that returns nothing.
+// about how the manual names it, not slip past a lookup that returns nothing.
 const RESOLVER_NAMES = {
   debrid: 'debrid',
   jd: 'JDownloader',
@@ -387,7 +395,7 @@ const RESOLVER_NAMES = {
   // obvious word. SFTP is the token to check for: it is one of the four this
   // resolver actually claims, and unlike "FTP" it cannot match by accident
   // inside "FTPS" or a sentence about something else.
-  // "header profile" rather than "hostheaders": the README describes the thing
+  // "header profile" rather than "hostheaders": the manual describes the thing
   // by what a person calls it, and a check that demands the package name would
   // force the documentation to speak Go.
   hostheaders: 'header profile',
@@ -405,11 +413,11 @@ const resolverDirs = readdirSync(join(here, 'internal', 'resolver'), { withFileT
 for (const dir of resolverDirs) {
   const name = RESOLVER_NAMES[dir];
   if (!name) {
-    fail(`internal/resolver/${dir} is a resolver this script has never heard of - add it to RESOLVER_NAMES and to README.md`);
+    fail(`internal/resolver/${dir} is a resolver this script has never heard of; add it to RESOLVER_NAMES and to the manual`);
     continue;
   }
-  if (!README.toLowerCase().includes(name.toLowerCase())) {
-    fail(`internal/resolver/${dir} ships, and README.md never says "${name}"`);
+  if (!MANUAL.toLowerCase().includes(name.toLowerCase())) {
+    fail(`internal/resolver/${dir} ships, and no page in the manual says "${name}"`);
   }
 }
 

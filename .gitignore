@@ -52,3 +52,6 @@ web/package.json.md5
 # extension behaved differently because one of them was still answering from
 # this file. Never commit it, never ship it in the store package.
 extension/src/_metadata/
+
+# MkDocs build output; the Docs workflow builds it fresh.
+/site/

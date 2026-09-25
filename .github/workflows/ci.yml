@@ -86,6 +86,7 @@ jobs:
             docs:
               - 'README.md'
               - 'docs/**'
+              - 'mkdocs.yml'
               - 'check-docs-claims.mjs'
               - '**/*.go'
               - 'desktop/go.mod'

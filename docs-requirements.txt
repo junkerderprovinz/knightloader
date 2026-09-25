@@ -1,0 +1,5 @@
+# Documentation site toolchain, pinned the same way as the other sites in this
+# stable: a stable major line rather than one exact patch, so a build a year
+# from now still resolves. Material 10 is a deliberate exclusion, not an
+# oversight: it rewrites the theming system with no migration path.
+mkdocs-material>=9.5,<10
