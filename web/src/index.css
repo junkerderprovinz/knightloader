@@ -37,8 +37,6 @@
   /* Hover for anything already filled with surface3. Tailwind only emits a
      utility for a key named in @theme; a missing key fails silently. */
   --color-carbon-hoverRaised: var(--carbon-hover-raised);
-  --color-carbon-tileHover: var(--carbon-tile-hover);
-  --color-carbon-tileHoverInk: var(--carbon-tile-hover-ink);
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
@@ -217,11 +215,6 @@
   /* Hover for an element already carrying surface3. --carbon-hover sits below
      surface2, so it would darken a filled control on hover. */
   --carbon-hover-raised: #6f6f6f;
-  /* The hover of a picker tile carrying brand marks. One step up the ramp is
-     lost behind a large mark, and white is louder than anything else on a dark
-     page. */
-  --carbon-tile-hover: #a8a8a8;
-  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #393939;
 
   /* Brand marks at rest on the about card, adjusted per theme to reach the 3:1
@@ -233,20 +226,15 @@
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
 
-  /* The marks on the app tiles that are one flat colour or one gradient, which
-     no hover grey carries: the brand value at rest, a deepened one while the
-     tile is lit. Values from GlimStone's reference/tokens.css; see
+  /* The app tiles' marks that are one flat colour or one gradient, at rest.
+     The dark theme lifts a colour a dark tile would swallow; the light theme
+     keeps the brand's own. Values from GlimStone's reference/tokens.css; see
      .glim-android-mark. */
   --brand-android:           #32de84;
-  --brand-android-hover:     #155d37;
   --brand-docker:            #2396ed;
-  --brand-docker-hover:      #0b5394;
   --brand-unraid-from:       #e32929;
   --brand-unraid-to:         #ff8d30;
-  --brand-unraid-from-hover: #9c1414;
-  --brand-unraid-to-hover:   #a84b0c;
   --brand-windows:           #2b88d8;
-  --brand-windows-hover:     #005a9e;
 
   /* Four steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -317,8 +305,6 @@
     --carbon-hover:      #e0e0e0;
     /* One step further from the surface, which on a light ramp means darker. */
     --carbon-hover-raised: #c6c6c6;
-    --carbon-tile-hover: #d1d1d1;
-    --carbon-tile-hover-ink: #161616;
     --carbon-border:     #d1d1d1;
 
     /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
@@ -326,16 +312,12 @@
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
-    --brand-android:           #1c7c4a;
-    --brand-android-hover:     #1c7c4a;
-    --brand-docker:            #1d6fbf;
-    --brand-docker-hover:      #1d6fbf;
-    --brand-unraid-from:       #c21f1f;
-    --brand-unraid-to:         #c85d12;
-    --brand-unraid-from-hover: #c21f1f;
-    --brand-unraid-to-hover:   #c85d12;
+    /* The app tiles' marks keep their brand's own colours on light. */
+    --brand-android:           #32de84;
+    --brand-docker:            #2396ed;
+    --brand-unraid-from:       #e32929;
+    --brand-unraid-to:         #ff8d30;
     --brand-windows:           #0078d4;
-    --brand-windows-hover:     #0078d4;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -394,24 +376,17 @@
   --carbon-surface3:   #d1d1d1;
   --carbon-hover:      #e0e0e0;
   --carbon-hover-raised: #c6c6c6;
-  --carbon-tile-hover: #d1d1d1;
-  --carbon-tile-hover-ink: #161616;
   --carbon-border:     #d1d1d1;
 
   --brand-coffee:  #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
-  --brand-android:           #1c7c4a;
-  --brand-android-hover:     #1c7c4a;
-  --brand-docker:            #1d6fbf;
-  --brand-docker-hover:      #1d6fbf;
-  --brand-unraid-from:       #c21f1f;
-  --brand-unraid-to:         #c85d12;
-  --brand-unraid-from-hover: #c21f1f;
-  --brand-unraid-to-hover:   #c85d12;
+  --brand-android:           #32de84;
+  --brand-docker:            #2396ed;
+  --brand-unraid-from:       #e32929;
+  --brand-unraid-to:         #ff8d30;
   --brand-windows:           #0078d4;
-  --brand-windows-hover:     #0078d4;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -1249,6 +1224,14 @@ body {
       stroke var(--motion-control-dur) ease,
       opacity var(--motion-control-dur) ease;
   }
+  /* A brand tile and its mark change colour in one frame ("Brand tiles"): a
+     fade on a mark of many parts trails the tile. */
+  .glim-shape-armed .glim-brand-tile,
+  .glim-shape-armed .glim-brand-tile * {
+    transition:
+      border-radius var(--motion-shape-dur) ease,
+      opacity var(--motion-control-dur) ease;
+  }
 
   /* Colour-wipe: a real rainbow mode change (applyRainbow()) fades every hued
      colour over one window instead of snapping. The doubled class outranks the
@@ -1639,46 +1622,62 @@ body {
   --brand-ink: var(--accent-contrast);
 }
 
-/* A hovered coin tile stands on --carbon-tile-hover. On the dark theme that is
-   a light grey, where a mark in its position's hue, picked for a dark ground,
-   fades, so the mark takes the tile's ink as the ticker does. The light
-   theme's hues are already darkened for a light ground. After the
-   .glim-hue-icon rules, which would keep the mark in the position's colour. */
-[data-theme="dark"] .kl-coin-tile:not(.glim-active):hover svg {
-  color: var(--carbon-tile-hover-ink);
-}
+/* The app tiles' single-colour marks at rest. */
+.glim-android-mark { color: var(--brand-android); }
+.glim-docker-mark { color: var(--brand-docker); }
+.glim-windows-mark { color: var(--brand-windows); }
 
-/* The app tiles' single-colour marks (GlimStone 2.9.0). The deepened value
-   only under a real pointer, or a tap on a touch screen would leave it on a
-   resting tile. Unraid's gradient reads its two stops as custom properties,
-   which do not transition. */
-.glim-android-mark {
-  color: var(--brand-android);
-  transition: color var(--motion-control-dur, 120ms);
-}
-.glim-docker-mark {
-  color: var(--brand-docker);
-  transition: color var(--motion-control-dur, 120ms);
-}
-.glim-windows-mark {
-  color: var(--brand-windows);
-  transition: color var(--motion-control-dur, 120ms);
-}
+/* A tile carrying a brand mark (GlimStone's "Brand tiles"): the app tiles and
+   the coin tiles. Under the pointer it fills with the brand's own colour
+   (--tile), the same on both themes, and its name and mark take that colour's
+   ink (--tile-ink). A mark paints each part with var(--mark-ink, <own colour>),
+   or var(--mark-cut, <own colour>) where the part lies on another part of the
+   mark, so it keeps its own colours at rest and turns ink with its cut-outs in
+   the tile colour under the pointer. The variables reach fills a mark sets
+   inline, which a plain fill rule does not, and they win over the
+   .glim-hue-icon colour a coin tile's mark wears. Only under a real pointer,
+   or a tap on a touch screen would leave a resting tile lit. */
 @media (hover: hover) {
-  .group:hover .glim-android-mark {
-    color: var(--brand-android-hover);
+  .glim-brand-tile:hover,
+  .group:hover > .glim-brand-tile {
+    background-color: var(--tile);
+    color: var(--tile-ink);
+    --mark-ink: var(--tile-ink);
+    --mark-cut: var(--tile);
+    --brand-android: var(--tile-ink);
+    --brand-docker: var(--tile-ink);
+    --brand-windows: var(--tile-ink);
+    --brand-unraid-from: var(--tile-ink);
+    --brand-unraid-to: var(--tile-ink);
   }
-  .group:hover .glim-docker-mark {
-    color: var(--brand-docker-hover);
-  }
-  .group:hover .glim-unraid-mark {
-    --brand-unraid-from: var(--brand-unraid-from-hover);
-    --brand-unraid-to: var(--brand-unraid-to-hover);
-  }
-  .group:hover .glim-windows-mark {
-    color: var(--brand-windows-hover);
-  }
+  :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-rest { display: none; }
+  :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-hover { display: block; }
 }
+/* A mark whose layers do not survive one ink brings the brand's own
+   single-colour version for the hover. */
+.glim-mark-hover { display: none; }
+
+/* The app tiles' brands: the true colour and the ink that holds on it, white
+   wherever white reaches 2:1 and near-black below that. The coins carry theirs
+   in lib/donate.ts. */
+.glim-tile-windows { --tile: #0078d4; --tile-ink: #ffffff; } /* 4.5:1 */
+.glim-tile-apple   { --tile: #6e6e73; --tile-ink: #ffffff; } /* 5.1:1 */
+.glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
+.glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
+.glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
+.glim-tile-docker  { --tile: #1d63ed; --tile-ink: #ffffff; } /* 5.2:1 */
+.glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
+.glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
+.glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
+
+/* The browsers the extension tiles offer, in the colour Simple Icons publishes
+   for each. */
+.kl-tile-chrome  { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
+.kl-tile-edge    { --tile: #0078d7; --tile-ink: #ffffff; } /* 4.5:1 */
+.kl-tile-brave   { --tile: #fb542b; --tile-ink: #ffffff; } /* 3.3:1 */
+.kl-tile-opera   { --tile: #ff1b2d; --tile-ink: #ffffff; } /* 3.9:1 */
+.kl-tile-vivaldi { --tile: #ef3939; --tile-ink: #ffffff; } /* 4.0:1 */
+.kl-tile-firefox { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
    out of the rail with a glint along its edge; letting go swings it down while

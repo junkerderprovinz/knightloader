@@ -131,14 +131,17 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
 }
 
 // Collapsed rather than omitted, so the ticker grows back in place without
-// re-measuring the tile. Tabs.tsx hides rail labels with the same classes.
+// re-measuring the tile, as Tabs.tsx hides rail labels. Only its size and
+// opacity move: its colour changes with the lit tile, in the same frame.
 const HIDDEN_TICKER =
-  'leading-[1.4] max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-[1.4em] ' +
+  'leading-[1.4] max-h-0 opacity-0 transition-[max-height,opacity] duration-200 group-hover:max-h-[1.4em] ' +
   'group-hover:opacity-100 group-focus-visible:max-h-[1.4em] group-focus-visible:opacity-100';
 
 /**
  * CoinTile is one coin as a square tile with the mark at half its height, like
- * BrowserTools' tiles. It is a component of its own because useTooltip is a hook.
+ * BrowserTools' tiles, and like them it lights up in the coin's own colour
+ * under the pointer. The picked coin keeps the accent instead. It is a
+ * component of its own because useTooltip is a hook.
  */
 function CoinTile({
   coin,
@@ -168,13 +171,18 @@ function CoinTile({
         aria-selected={selected}
         aria-label={`${coin.name} (${coin.symbol})`}
         onClick={onPick}
-        style={hueVars(hue) as CSSProperties}
+        style={
+          {
+            ...hueVars(hue),
+            ...(!selected && { '--tile': coin.tile.color, '--tile-ink': coin.tile.ink }),
+          } as CSSProperties
+        }
         {...tipHoverProps}
-        className={`kl-coin-tile group flex aspect-square flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]
-          px-2 transition-colors ${showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'} ${
+        className={`group flex aspect-square flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]
+          px-2 ${showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'} ${
             selected
-              ? 'glim-active bg-accent text-accentContrast'
-              : 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-tileHover hover:text-carbon-tileHoverInk'
+              ? 'glim-active bg-accent text-accentContrast transition-colors'
+              : 'glim-brand-tile bg-carbon-surface2 text-carbon-textSub'
           }`}
       >
         {showMark && (

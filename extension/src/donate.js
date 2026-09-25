@@ -21,19 +21,22 @@ const DONATE_OPTIMISM = { id: 'optimism', name: 'Optimism', address: DONATE_EVM 
 const DONATE_BSC = { id: 'bsc', name: 'BNB Smart Chain', address: DONATE_EVM };
 const DONATE_SOLANA = { id: 'solana', name: 'Solana', address: DONATE_SOL };
 
+// Each coin carries its own colour and the ink that holds on it, white wherever
+// white reaches 2:1, which its tile lights up in under the pointer.
 const CRYPTO_COINS = [
-  { id: 'btc', symbol: 'BTC', name: 'Bitcoin', networks: [{ id: 'bitcoin', name: 'Bitcoin', address: DONATE_BTC }] },
+  { id: 'btc', symbol: 'BTC', name: 'Bitcoin', tile: { color: '#f7931a', ink: '#ffffff' }, networks: [{ id: 'bitcoin', name: 'Bitcoin', address: DONATE_BTC }] },
   // Native ETH only. On BNB Smart Chain, ETH is a bridged token.
-  { id: 'eth', symbol: 'ETH', name: 'Ethereum', networks: [DONATE_ETHEREUM, DONATE_BASE, DONATE_OPTIMISM] },
-  { id: 'usdt', symbol: 'USDT', name: 'Tether', networks: [DONATE_ETHEREUM, DONATE_BSC, DONATE_SOLANA] },
-  { id: 'usdc', symbol: 'USDC', name: 'USD Coin', networks: [DONATE_ETHEREUM, DONATE_BASE, DONATE_SOLANA] },
-  { id: 'bnb', symbol: 'BNB', name: 'BNB', networks: [DONATE_BSC] },
-  { id: 'sol', symbol: 'SOL', name: 'Solana', networks: [DONATE_SOLANA] },
-  { id: 'sui', symbol: 'SUI', name: 'Sui', networks: [{ id: 'sui', name: 'Sui', address: DONATE_SUI }] },
+  { id: 'eth', symbol: 'ETH', name: 'Ethereum', tile: { color: '#627eea', ink: '#ffffff' }, networks: [DONATE_ETHEREUM, DONATE_BASE, DONATE_OPTIMISM] },
+  { id: 'usdt', symbol: 'USDT', name: 'Tether', tile: { color: '#26a17b', ink: '#ffffff' }, networks: [DONATE_ETHEREUM, DONATE_BSC, DONATE_SOLANA] },
+  { id: 'usdc', symbol: 'USDC', name: 'USD Coin', tile: { color: '#2775ca', ink: '#ffffff' }, networks: [DONATE_ETHEREUM, DONATE_BASE, DONATE_SOLANA] },
+  { id: 'bnb', symbol: 'BNB', name: 'BNB', tile: { color: '#f0b90b', ink: '#161616' }, networks: [DONATE_BSC] },
+  { id: 'sol', symbol: 'SOL', name: 'Solana', tile: { color: '#9945ff', ink: '#ffffff' }, networks: [DONATE_SOLANA] },
+  { id: 'sui', symbol: 'SUI', name: 'Sui', tile: { color: '#4da2ff', ink: '#ffffff' }, networks: [{ id: 'sui', name: 'Sui', address: DONATE_SUI }] },
   {
     id: 'xrp',
     symbol: 'XRP',
     name: 'XRP',
+    tile: { color: '#23292f', ink: '#ffffff' },
     networks: [
       // Exchanges often require a destination tag; this self-custody account
       // does not (RequireDest is off), and the window says so beside it.
@@ -60,7 +63,8 @@ const ADDRESS_BY_CHAIN = {
 // Each coin's mark for its tile, the web UI's (web/src/components/donateMarks.tsx):
 // Simple Icons, CC0 1.0, for Bitcoin, Ethereum, Tether, Binance, Solana and
 // Sui; cryptocurrency-icons, MIT, Copyright (c) 2018 Christopher Downer, for
-// USD Coin and XRP. Drawn in the tile's ink, like every other glyph.
+// USD Coin and XRP. Drawn in the tile's ink, like every other glyph, with the
+// symbol a hole in the disc.
 const COIN_MARKS = {
   btc: {
     box: '0 0 24 24',
