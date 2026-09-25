@@ -1322,6 +1322,22 @@ export const en = {
   'captcha.networkError': 'Could not reach the server. Try again.',
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
+  'captcha.unsolvableTurnstile':
+    'KnightLoader cannot show a Cloudflare Turnstile challenge itself, so only a solver from the Captcha settings can answer it. Cancel skips this captcha.',
+  'captcha.solverWaiting': 'A solver takes over in {time}.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. If you switch away from this tab or the time runs out, the first solver in your order takes over.',
+  'captcha.solverSolving': '{solver} is solving this captcha.',
+  'captcha.solverSolvingHint': 'You can still answer it yourself. Whichever answer arrives first is used.',
+  'captcha.solverStopped': 'No solver could take this captcha.',
+  'captcha.solverStoppedTaken': '{solver} took this captcha but sent no answer.',
+  'captcha.solverNotPassedOn':
+    '{solver} may charge for it anyway, so KnightLoader does not send it to another solver as well. You can still answer it yourself.',
+  'captcha.solverUnsupported': '{solver} does not solve this kind of captcha.',
+  'captcha.solverNoAnswer': '{solver} took it, but no answer came back.',
+  'captcha.solverGaveUp': '{solver} took it, then gave up: {reason}',
+  'captcha.solverFailed': '{solver} could not be reached.',
+  'captcha.solverRefused': '{solver} declined: {reason}',
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and each solver's own API key.
@@ -1345,6 +1361,13 @@ export const en = {
   'settings.captcha.saved': 'API key saved.',
   'settings.captcha.removed': 'API key removed.',
   'settings.captcha.saveFailed': 'Could not save the key: {error}',
+  'settings.captcha.whenTitle': 'When solvers start',
+  'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while another app keeps reading the captcha list from this instance. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
+  'settings.captcha.wait': 'Wait for an answer (seconds)',
+  'settings.captcha.waitHint':
+    'How long the solvers wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a solver still has time to answer it. From 10 to 600 seconds.',
 
   // AddLinksForm.tsx's per-batch options: the destination, its recent-use
   // history, and the archive and link passwords.

@@ -17,11 +17,11 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -45,6 +45,8 @@ type captchaState struct {
 	// pollMu serialises poll passes, so a manual refresh and a tick do not
 	// both ask JD for the same list.
 	pollMu sync.Mutex
+
+	paid paidLedger
 }
 
 var (
@@ -60,6 +62,7 @@ func (a *App) captchaStateFor() *captchaState {
 	if !ok {
 		st = &captchaState{store: captcha.NewStore()}
 		st.source = captcha.NewJDSource(jdBaseEnv, a.resolveJDTask)
+		st.paid.path = filepath.Join(a.DataDir, paidLedgerFile)
 		captchaReg[a] = st
 	}
 	return st
@@ -126,9 +129,7 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		// Fired on arrival only, or a script would be notified every two
 		// seconds while the challenge waits.
 		a.fireCaptchaPending(c)
-		if c.Kind == captcha.KindImage || c.Kind == captcha.KindClick {
-			a.spawn(func() { a.trySolveCaptchaAutomatically(c) })
-		}
+		a.spawn(func() { a.trySolveCaptchaAutomatically(c) })
 	}
 	for _, c := range changed {
 		a.Hub.Broadcast("captcha", c)
@@ -311,82 +312,4 @@ func (a *App) jdRoutedActiveTaskIDs() []string {
 		}
 	}
 	return out
-}
-
-// captchaSolvers returns the configured automatic solvers that have a stored
-// credential, in CaptchaSolverOrder. Entries without a credential are skipped.
-func (a *App) captchaSolvers() []captcha.Solver {
-	order := a.Settings.Get().CaptchaSolverOrder
-	if len(order) == 0 {
-		return nil
-	}
-	out := make([]captcha.Solver, 0, len(order))
-	for _, id := range order {
-		svc, ok := accounts.Lookup(id)
-		if !ok || svc.Group != accounts.GroupCaptchaSolver {
-			continue
-		}
-		cred := a.credentialFor(svc, "")
-		if cred.IsZero() {
-			continue
-		}
-		switch id {
-		case "2captcha":
-			out = append(out, captcha.NewTwoCaptchaSolver(cred.APIKey))
-		case "anticaptcha":
-			out = append(out, captcha.NewAntiCaptchaSolver(cred.APIKey))
-		}
-	}
-	return out
-}
-
-// trySolveCaptchaAutomatically tries c against each configured solver in turn
-// and answers with the first result. It runs alongside the prompt shown to the
-// user, never instead of it; whichever answer reaches JD first wins, and the
-// other resolves as "already gone" without an error.
-func (a *App) trySolveCaptchaAutomatically(c captcha.Challenge) {
-	a.solveCaptchaWith(a.captchaSolvers(), c)
-}
-
-// solveCaptchaWith takes the solvers as a parameter so tests can pass fakes
-// instead of building real clients from stored keys.
-func (a *App) solveCaptchaWith(solvers []captcha.Solver, c captcha.Challenge) {
-	if len(solvers) == 0 {
-		return
-	}
-	// Solvers handle images and clicks, both of which carry an ImagePayload.
-	payload, ok := c.Payload.(*captcha.ImagePayload)
-	if !ok || payload == nil || payload.DataURL == "" {
-		return
-	}
-
-	ctx := a.ctx
-	if !c.ExpiresAt.IsZero() {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithDeadline(a.ctx, c.ExpiresAt)
-		defer cancel()
-	}
-
-	// Asked before every paid solve and before the answer goes to JD, since a
-	// solve takes long enough for somebody to switch captchas off meanwhile.
-	switchedOff := func() bool { return a.ModuleOff("captcha") || a.ModuleOff("jd") }
-	for _, s := range solvers {
-		if switchedOff() {
-			return
-		}
-		text, err := s.Solve(ctx, c.Kind, payload.DataURL, c.Prompt)
-		if err != nil {
-			if ctx.Err() != nil {
-				return // the challenge expired or the app is closing
-			}
-			continue
-		}
-		if switchedOff() {
-			return
-		}
-		if _, err := a.AnswerCaptcha(ctx, c.ID, text); err != nil {
-			log.Printf("captcha: an automatic solver answered %s but submitting it failed: %v", c.ID, err)
-		}
-		return
-	}
 }

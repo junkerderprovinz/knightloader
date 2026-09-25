@@ -57,7 +57,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -205,7 +204,7 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 		}
 		csp = recaptchaCSP(nonce)
 		if req.V3Action != "" {
-			action, ok := captchaWidgetAction(req.V3Action)
+			action, ok := captcha.RecaptchaAction(req.V3Action)
 			if !ok {
 				return unsolvableWidgetPage(nonce, req, "action")
 			}
@@ -251,26 +250,6 @@ func captchaWidgetScoreScriptURL(base, siteKey, lang string) string {
 		q.Set("hl", lang)
 	}
 	return base + "?" + q.Encode()
-}
-
-// captchaWidgetActionName is what reCAPTCHA accepts as an action: letters,
-// digits, slashes and underscores.
-var captchaWidgetActionName = regexp.MustCompile(`^[A-Za-z0-9/_]{1,100}$`)
-
-// captchaWidgetAction reads the action out of a v3Action: the object JD
-// writes, {"action":"login"}, or the bare name.
-func captchaWidgetAction(raw string) (string, bool) {
-	action := raw
-	if strings.HasPrefix(raw, "{") {
-		var v struct {
-			Action string `json:"action"`
-		}
-		if json.Unmarshal([]byte(raw), &v) != nil {
-			return "", false
-		}
-		action = strings.TrimSpace(v.Action)
-	}
-	return action, captchaWidgetActionName.MatchString(action)
 }
 
 // unsolvableWidgetPage is the page for a challenge this route cannot solve:

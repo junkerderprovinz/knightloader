@@ -2,9 +2,11 @@ package settings
 
 // The non-secret half of the solver order: which automatic captcha solvers to
 // try, and in what order, before a human sees the prompt modal
-// (Settings.CaptchaSolverOrder). The credential each id names lives in
-// internal/accounts instead (GroupCaptchaSolver, catalogue.go), so this file
-// never touches a secret and does not import that package for one.
+// (Settings.CaptchaSolverOrder), and whether they first wait for somebody
+// watching (CaptchaSolverOnlyUnwatched, CaptchaSolverWait). The credential
+// each id names lives in internal/accounts instead (GroupCaptchaSolver,
+// catalogue.go), so this file never touches a secret and does not import that
+// package for one.
 
 // captchaSolverIDs are the only ids CaptchaSolverOrder may carry. Plain string
 // literals rather than a constant imported from internal/captcha, the
@@ -14,6 +16,17 @@ package settings
 // that convention: a rename on either side without the matching edit here fails
 // a test rather than orphaning a stored order.
 var captchaSolverIDs = map[string]bool{"2captcha": true, "anticaptcha": true}
+
+// DefaultCaptchaSolverWait is how long the solvers wait for somebody watching,
+// in seconds: a minute to notice the prompt and answer it.
+const DefaultCaptchaSolverWait = 60
+
+// The bounds of CaptchaSolverWait, in seconds. Below ten seconds nobody has
+// looked up yet, and past ten minutes most captchas have expired.
+const (
+	MinCaptchaSolverWait = 10
+	MaxCaptchaSolverWait = 600
+)
 
 // sanitizeCaptcha keeps CaptchaSolverOrder a well-formed try-order: no unknown
 // id, no repeat, since trying the same solver twice never reaches a second one,
@@ -26,7 +39,11 @@ var captchaSolverIDs = map[string]bool{"2captcha": true, "anticaptcha": true}
 // the next. An order naming a solver nobody has configured is inert rather than
 // malformed, the relationship GroupDebrid's routing order already has with its
 // credentials.
+//
+// CaptchaSolverWait is clamped into its bounds rather than refused, the way
+// the stall timeout is.
 func sanitizeCaptcha(n Settings) Settings {
+	n.CaptchaSolverWait = min(max(n.CaptchaSolverWait, MinCaptchaSolverWait), MaxCaptchaSolverWait)
 	if len(n.CaptchaSolverOrder) == 0 {
 		n.CaptchaSolverOrder = nil
 		return n

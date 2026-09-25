@@ -9,17 +9,36 @@ import {
 } from '../../lib/api';
 import { useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
-import { Button, Card, ErrorCard, IconBadge, LinkBadge, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import {
+  Button,
+  Card,
+  ErrorCard,
+  Field,
+  IconBadge,
+  LinkBadge,
+  LoadingCard,
+  NumberInput,
+  PageHeader,
+  SectionTitle,
+  TextInput,
+  ToggleRow,
+} from '../../components/ui';
 import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
-// The captcha page orders the solvers and stores each solver's API key. The
-// order lives in the settings draft: an id in captchaSolverOrder is tried in
-// that position, an absent one never. Keys go through /api/accounts at once
-// and are write-only, because a credential cannot ride the settings document.
-// They are saved without a live check.
+// The captcha page orders the solvers, stores each solver's API key and says
+// whether the solvers wait for somebody watching. The order lives in the
+// settings draft: an id in captchaSolverOrder is tried in that position, an
+// absent one never. Keys go through /api/accounts at once and are write-only,
+// because a credential cannot ride the settings document. They are saved
+// without a live check.
+
+// Copies of the bounds in internal/settings/settings_captcha.go, which no route
+// serves.
+const MIN_WAIT = 10;
+const MAX_WAIT = 600;
 
 export function Captcha() {
   const { t } = useT();
@@ -113,6 +132,33 @@ export function Captcha() {
           ))}
         </ul>
       </Card>
+
+      {/* Absent while no solver is enabled, since nothing reads these then. */}
+      {order.length > 0 && (
+        <Card hue={1} className="flex flex-col gap-5">
+          <SectionTitle>{t('settings.captcha.whenTitle')}</SectionTitle>
+          <ToggleRow
+            hue={0}
+            checked={cfg.captchaSolverOnlyUnwatched}
+            onChange={(v) => patch({ captchaSolverOnlyUnwatched: v })}
+            label={t('settings.captcha.onlyUnwatched')}
+            hint={t('settings.captcha.onlyUnwatchedHint')}
+          />
+          {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
+              not be typed digit by digit. */}
+          {cfg.captchaSolverOnlyUnwatched && (
+            <Field label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
+              <NumberInput
+                value={cfg.captchaSolverWait}
+                min={MIN_WAIT}
+                max={MAX_WAIT}
+                step={10}
+                onValue={(v) => patch({ captchaSolverWait: v })}
+              />
+            </Field>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

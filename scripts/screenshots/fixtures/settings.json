@@ -208,6 +208,8 @@
     "keep": 3
   },
   "captchaSolverOrder": null,
+  "captchaSolverOnlyUnwatched": false,
+  "captchaSolverWait": 60,
   "resolverOrder": null,
   "ytdlp": {
     "variant": "video",

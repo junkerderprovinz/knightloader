@@ -50,6 +50,10 @@ type client struct {
 	// Read and written only under the owning Hub's mu, same as the map that
 	// holds this client, so wants must not be called without mu held.
 	subs map[string]bool
+
+	// visible is true while the viewer reports it can see the connection's
+	// page, see SetVisible. Guarded by the Hub's mu like subs.
+	visible bool
 }
 
 // stop ends the writer goroutine. It is idempotent because both Remove and a
@@ -65,10 +69,13 @@ func (cl *client) wants(typ string) bool {
 type Hub struct {
 	mu      sync.Mutex
 	clients map[Conn]*client
+	// lastSeen is when each kind last had a watcher that is not connected
+	// any more: a socket that dropped, or a client that polls (see Seen).
+	lastSeen map[string]time.Time
 }
 
 // New returns an empty Hub.
-func New() *Hub { return &Hub{clients: map[Conn]*client{}} }
+func New() *Hub { return &Hub{clients: map[Conn]*client{}, lastSeen: map[string]time.Time{}} }
 
 // Add registers a connection and starts the goroutine that writes to it.
 // Registering the same connection twice is a no-op.
@@ -95,6 +102,12 @@ func (h *Hub) Remove(c Conn) {
 	h.mu.Lock()
 	cl := h.clients[c]
 	delete(h.clients, c)
+	if cl != nil && cl.visible {
+		now := time.Now()
+		for typ := range cl.subs {
+			h.lastSeen[typ] = now
+		}
+	}
 	h.mu.Unlock()
 	if cl != nil {
 		cl.stop()
@@ -212,6 +225,42 @@ func (h *Hub) Unsubscribe(c Conn, kinds []string) {
 	for _, k := range kinds {
 		delete(cl.subs, k)
 	}
+}
+
+// SetVisible records whether the viewer behind a connection can see it: a
+// browser tab in the foreground or a window on screen reports true, the same
+// tab in the background or the window minimised false. A connection that
+// never reports does not count as a viewer.
+func (h *Hub) SetVisible(c Conn, visible bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if cl := h.clients[c]; cl != nil {
+		cl.visible = visible
+	}
+}
+
+// Seen records a viewer of typ that holds no connection, such as an app that
+// polls over HTTP. It counts for Watched like a socket that dropped just now.
+func (h *Hub) Seen(typ string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.lastSeen[typ] = time.Now()
+}
+
+// Watched reports whether somebody watches typ: a connection that asked for
+// typ by name and reports its page on screen, or a viewer gone less than grace
+// ago, since a dropped socket may be reconnecting and a polling client is seen
+// only now and then.
+func (h *Hub) Watched(typ string, grace time.Duration) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for _, cl := range h.clients {
+		if cl.subs[typ] && cl.visible {
+			return true
+		}
+	}
+	at, ok := h.lastSeen[typ]
+	return ok && time.Since(at) < grace
 }
 
 // enqueue hands one message to a client, or drops the client if it cannot keep

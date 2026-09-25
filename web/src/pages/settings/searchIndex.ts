@@ -682,6 +682,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [{ key: 'settings.module.captcha' }],
       body: ['settings.captcha.orderEmpty'],
     },
+    {
+      title: 'settings.captcha.whenTitle',
+      rows: [
+        { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
+        { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
+      ],
+    },
   ],
 
   automation: [

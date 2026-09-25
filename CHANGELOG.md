@@ -78,6 +78,20 @@ submission and for a fixed download.
   phone app: one whose path does not end in `/connect` gets `/relay/connect`
   after it, as a bare host always did. The self-test's path check reports the
   prefix instead of failing on it. At the root nothing changes.
+- **2Captcha and Anti-Captcha solve reCAPTCHA and Turnstile too, and can wait
+  while you watch.** reCAPTCHA v2 (invisible as well), v3 and Enterprise go to
+  the solvers as the task types each service documents, and so does Cloudflare
+  Turnstile once JDownloader hands one out. Neither service takes hCaptcha any
+  more, so an hCaptcha stays in the captcha window. A captcha is sent to the
+  paid solvers once at most, a restart included: the next solver in the order
+  gets it only when the one before turned it down without taking it. A solver
+  that took it and sent no answer may bill it anyway, so it goes to nobody
+  else, and the captcha window says so. The window also says which solver is
+  working on a captcha and why one declined. A new switch on the Captcha page,
+  Only when nobody is watching, holds the solvers back while KnightLoader is
+  open in the foreground in a browser tab or the desktop app, or another app
+  keeps reading its captcha list, and hands over once you switch away or a
+  wait you set runs out.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the

@@ -284,6 +284,8 @@ const GROUPS: Record<string, TransferGroup> = {
   ytdlpPresets: 'resolvers',
   torrent: 'resolvers',
   captchaSolverOrder: 'resolvers',
+  captchaSolverOnlyUnwatched: 'resolvers',
+  captchaSolverWait: 'resolvers',
 
   // Appearance.
   shape: 'look',

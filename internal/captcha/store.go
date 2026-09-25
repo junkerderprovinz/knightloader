@@ -44,7 +44,8 @@ func NewStore() *Store {
 //     the task and host, and this is the last place that snapshot exists.
 //
 // The Store's state is replaced by current before returning, so one call
-// converges.
+// converges. A known challenge keeps the SolverReport it had, since a Source
+// never fills one.
 func (s *Store) Sync(current []Challenge) (added, changed, removed []Challenge) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -52,11 +53,15 @@ func (s *Store) Sync(current []Challenge) (added, changed, removed []Challenge) 
 	nextActive := make(map[string]Challenge, len(current))
 	nextByTask := make(map[string]string, len(current))
 	for _, c := range current {
+		prev, known := s.active[c.ID]
+		if known {
+			c.Solver = prev.Solver
+		}
 		nextActive[c.ID] = c
 		if c.TaskID != "" {
 			nextByTask[c.TaskID] = c.ID
 		}
-		if prev, ok := s.active[c.ID]; !ok {
+		if !known {
 			added = append(added, c)
 		} else if !sameChallenge(prev, c) {
 			changed = append(changed, c)
@@ -117,6 +122,21 @@ func (s *Store) Remove(id string) (Challenge, bool) {
 	if s.byTask[c.TaskID] == id {
 		delete(s.byTask, c.TaskID)
 	}
+	return c, true
+}
+
+// Report sets the SolverReport of one challenge and returns the updated
+// challenge for a caller to publish. It reports false for an id the Store does
+// not hold, a challenge answered or gone meanwhile.
+func (s *Store) Report(id string, r SolverReport) (Challenge, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	c, ok := s.active[id]
+	if !ok {
+		return Challenge{}, false
+	}
+	c.Solver = &r
+	s.active[id] = c
 	return c, true
 }
 
