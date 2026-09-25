@@ -1773,7 +1773,7 @@ export const en = {
   'settings.browsertools.download': 'Download',
   'settings.browsertools.qrCode': 'QR code',
   'settings.browsertools.desktopTitle': 'Desktop app',
-  'settings.browsertools.desktopHint': 'KnightLoader as a program on your computer, with this interface in a window of its own. Every download is the newest release.',
+  'settings.browsertools.desktopHint': 'KnightLoader as a program on your computer, with this interface in a window of its own. Every download is the latest release.',
   'settings.browsertools.desktopArchHint': 'Windows and Linux each come in two builds: x64 for most PCs, and ARM64 for computers with an ARM processor, such as laptops with a Snapdragon chip. If your browser says which processor this computer has, the tiles give the matching build, otherwise x64. The buttons next to them give the other one. The macOS app runs on Intel and on Apple silicon.',
   'settings.browsertools.serverTitle': 'On a server',
   'settings.browsertools.serverHint': 'On a server KnightLoader keeps downloading while this computer is off. Install it from Unraid’s Community Applications, run it as a Docker container, or build it from the source code.',

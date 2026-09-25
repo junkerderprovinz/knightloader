@@ -79,7 +79,7 @@ names a missing package rather than a dropped version.
 ## The Android app
 
 The APK is on the
-[newest app release](https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk).
+[latest app release](https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk).
 It reaches an instance on your own network or, with the twelve words, from
 anywhere else: see [Connecting instances and apps](connecting.md).
 
@@ -87,7 +87,7 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 
 A running instance offers it under Settings, App, on your browser's tile. The
 same ZIP is on the
-[newest extension release](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip),
+[latest extension release](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip),
 one file for Chrome, Edge, Brave and Opera:
 
 1. Unpack the ZIP.
