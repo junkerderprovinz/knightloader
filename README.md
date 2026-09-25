@@ -83,7 +83,7 @@ If it has earned a place on your server or computer, toss a coin to your knight:
   &nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,720,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5040,0,720,245.3))" alt="Install the Firefox add-on" width="195" height="66.435"></a>
+  <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5040,0,720,245.3))" alt="The Firefox add-on, soon" width="195" height="66.435">
 </p>
 <!-- /download-buttons -->
 
