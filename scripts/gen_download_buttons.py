@@ -55,8 +55,8 @@ W, H, R = 720.0, 245.3, 38.2
 # The mark is drawn into a square this tall, centred vertically, inset from the
 # left. Its own viewBox decides the horizontal centring, because the marks are
 # not equally wide: Apple's is 384 units against Windows' and Tux's 448.
-GLYPH = 112.0
-GX, GY = 78.0, (H - GLYPH) / 2
+GLYPH = 132.0
+GX, GY = 64.0, (H - GLYPH) / 2
 
 # A system stack, because an SVG loaded through <img> cannot fetch a webfont.
 # The layout leaves room for a face wider than the one it was measured with.
@@ -82,7 +82,7 @@ KINDS = {
     # Slate, since GitHub's black vanishes in the dark theme.
     "source":           (1, "zip", "#4d5562", "#ffffff", "Source", "zip archive", "Download the source archive"),
     # "Docs" rather than "Documentation": 13 characters at font-size 82 need
-    # more than the 482 units left of the right edge. The yellow is the coffee
+    # more than the 484 units left of the right edge. The yellow is the coffee
     # button's #fd0, and white on yellow fails contrast, so the ink is dark.
     "docs":             (1, "book", "#fd0", "#0d0c23", "Docs", "online manual", "Read the documentation"),
     # The heading is the platform, since "Google Play" is too wide for it.
@@ -173,14 +173,14 @@ TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 FULL_FACE = """  <g transform="translate({gx} {gy}) scale({scale})" fill="{ink}">
     <path d="{path}"/>
   </g>
-  <text x="238" y="110" font-family="{font}" font-size="82" font-weight="700" fill="{ink}">{head}</text>
-  <text x="240" y="180" font-family="{font}" font-size="50" font-weight="400" fill="{ink}" fill-opacity="0.72">{sub_text}</text>"""
+  <text x="236" y="108" font-family="{font}" font-size="82" font-weight="700" fill="{ink}">{head}</text>
+  <text x="238" y="186" font-family="{font}" font-size="64" font-weight="400" fill="{ink}" fill-opacity="0.9">{sub_text}</text>"""
 
 # A segment has no mark, and its left edge is a darker line against the part
 # before it. The baselines are the full button's, so the lines read across.
 SEGMENT_FACE = """  <rect width="{divider}" height="{h}" fill="#000" fill-opacity="0.28"/>
-  <text x="{mid}" y="110" text-anchor="middle" font-family="{font}" font-size="66" font-weight="700" fill="{ink}">{head}</text>
-  <text x="{mid}" y="180" text-anchor="middle" font-family="{font}" font-size="50" font-weight="400" fill="{ink}" fill-opacity="0.72">{sub_text}</text>"""
+  <text x="{mid}" y="108" text-anchor="middle" font-family="{font}" font-size="72" font-weight="700" fill="{ink}">{head}</text>
+  <text x="{mid}" y="186" text-anchor="middle" font-family="{font}" font-size="64" font-weight="400" fill="{ink}" fill-opacity="0.9">{sub_text}</text>"""
 
 # Every button on the page shows one file, buttons.svg, through its own
 # #svgView fragment. The shine's clock starts when an <img> gets its file, and
