@@ -32,11 +32,11 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5760,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5161.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6601.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6003.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7443.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
 <!-- /give-buttons -->
 
@@ -76,9 +76,14 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 <p align="center">
   <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2160,0,720,245.3))" alt="Run it with Docker" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2880,0,720,245.3))" alt="Download the Android app" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2880,0,720,245.3))" alt="Download the source archive" width="195" height="66.435"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3600,0,720,245.3))" alt="Download the Android app" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3600,0,720,245.3))" alt="Download the browser extension" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,720,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="195" height="66.435"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5040,0,720,245.3))" alt="Install the Firefox add-on" width="195" height="66.435"></a>
 </p>
 <!-- /download-buttons -->
 
@@ -455,11 +460,11 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4320,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5760,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5161.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6601.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6003.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7443.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
 <!-- /give-buttons -->
 
