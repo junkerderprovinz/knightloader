@@ -1083,9 +1083,14 @@ func TestAProbeTurnsAPresetsFormatsIntoTheLinksTracks(t *testing.T) {
 
 	const url = "https://youtube.com/watch?v=presetfmt02"
 	a.AddLinks([]string{url}, "")
-	waitFor(t, "the probe to resolve the video row's pick", func() bool {
+	// Both rows, since the boot's backfill can probe the link while its rows
+	// are still being added and resolve the video row before the audio row
+	// exists. The link's own probe follows and resolves the rest.
+	waitFor(t, "the probe to resolve the video and audio rows' picks", func() bool {
 		rows := tasksSharingURL(a, url)
-		return len(rows) == 5 && rowByKind(t, a, url, ytdlp.VariantVideo).Variant != "video:mp4 avc1 720p"
+		return len(rows) == 5 &&
+			rowByKind(t, a, url, ytdlp.VariantVideo).Variant != "video:mp4 avc1 720p" &&
+			rowByKind(t, a, url, ytdlp.VariantAudio).Variant != "audio:m4a"
 	})
 
 	// Under 720p the mp4 avc1 tracks are 360p (pre-muxed) and 144p.
