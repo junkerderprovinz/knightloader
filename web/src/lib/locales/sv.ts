@@ -181,6 +181,8 @@ export const sv: Dict = {
   'task.online': 'Tillgänglig',
   'task.offline': 'Otillgänglig',
   'task.retryPending': 'Försöks igen automatiskt',
+  'task.forced': 'Markerad ”Starta nu”',
+  'task.held': 'Hållen',
   'task.folder': 'Mapp',
   'task.password': 'Arkivlösenord',
   'task.priorityUp': 'Höj prioritet',

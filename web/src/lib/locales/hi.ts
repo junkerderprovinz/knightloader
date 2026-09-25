@@ -181,6 +181,8 @@ export const hi: Dict = {
   'task.online': 'ऑनलाइन',
   'task.offline': 'ऑफ़लाइन',
   'task.retryPending': 'स्वतः फिर कोशिश',
+  'task.forced': '“अभी शुरू करें” पर सेट',
+  'task.held': 'रोका हुआ',
   'task.folder': 'फ़ोल्डर',
   'task.password': 'आर्काइव पासवर्ड',
   'task.priorityUp': 'प्राथमिकता बढ़ाएँ',

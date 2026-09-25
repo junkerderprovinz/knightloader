@@ -173,6 +173,8 @@ export const it: Dict = {
   'task.online': 'Online',
   'task.offline': 'Offline',
   'task.retryPending': 'Verrà ritentato automaticamente',
+  'task.forced': 'Impostato su «Avvia ora»',
+  'task.held': 'Trattenuto',
   'task.folder': 'Cartella',
   'task.password': 'Password archivio',
   'task.priorityUp': 'Aumenta priorità',

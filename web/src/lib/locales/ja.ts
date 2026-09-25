@@ -181,6 +181,8 @@ export const ja: Dict = {
   'task.online': '利用可能',
   'task.offline': '利用不可',
   'task.retryPending': '自動的に再試行します',
+  'task.forced': '「今すぐ開始」を設定済み',
+  'task.held': '保留中',
   'task.folder': 'フォルダー',
   'task.password': 'アーカイブのパスワード',
   'task.priorityUp': '優先度を上げる',

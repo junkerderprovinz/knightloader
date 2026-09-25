@@ -181,6 +181,8 @@ export const cs: Dict = {
   'task.online': 'Dostupné',
   'task.offline': 'Nedostupné',
   'task.retryPending': 'Bude automaticky zopakováno',
+  'task.forced': 'Nastaveno „Spustit hned“',
+  'task.held': 'Zadrženo',
   'task.folder': 'Složka',
   'task.password': 'Heslo archivu',
   'task.priorityUp': 'Zvýšit prioritu',

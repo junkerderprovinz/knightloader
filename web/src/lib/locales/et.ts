@@ -181,6 +181,8 @@ export const et: Dict = {
   'task.online': 'Saadaval',
   'task.offline': 'Pole saadaval',
   'task.retryPending': 'Proovitakse automaatselt uuesti',
+  'task.forced': 'Märgitud „Alusta kohe“',
+  'task.held': 'Kinni hoitud',
   'task.folder': 'Kaust',
   'task.password': 'Arhiivi parool',
   'task.priorityUp': 'Tõsta prioriteeti',

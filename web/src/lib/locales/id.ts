@@ -181,6 +181,8 @@ export const id: Dict = {
   'task.online': 'Online',
   'task.offline': 'Offline',
   'task.retryPending': 'Dicoba ulang otomatis',
+  'task.forced': 'Ditandai “Mulai sekarang”',
+  'task.held': 'Ditahan',
   'task.folder': 'Folder',
   'task.password': 'Kata sandi arsip',
   'task.priorityUp': 'Naikkan prioritas',

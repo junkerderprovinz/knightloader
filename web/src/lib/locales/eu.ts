@@ -181,6 +181,8 @@ export const eu: Dict = {
   'task.online': 'Linean',
   'task.offline': 'Lineaz kanpo',
   'task.retryPending': 'Automatikoki errepikatzen',
+  'task.forced': '«Hasi orain» ezarrita',
+  'task.held': 'Atxikita',
   'task.folder': 'Karpeta',
   'task.password': 'Artxiboaren pasahitza',
   'task.priorityUp': 'Igo lehentasuna',

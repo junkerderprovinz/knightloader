@@ -183,6 +183,8 @@ export const he: Dict = {
   'task.online': 'זמין',
   'task.offline': 'לא זמין',
   'task.retryPending': 'ינוסה שוב אוטומטית',
+  'task.forced': 'מסומן „התחל עכשיו”',
+  'task.held': 'מוחזק',
   'task.folder': 'תיקייה',
   'task.password': 'סיסמת ארכיון',
   'task.priorityUp': 'העלה עדיפות',

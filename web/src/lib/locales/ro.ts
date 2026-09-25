@@ -181,6 +181,8 @@ export const ro: Dict = {
   'task.online': 'Disponibil',
   'task.offline': 'Indisponibil',
   'task.retryPending': 'Se va reîncerca automat',
+  'task.forced': 'Marcat „Pornește acum”',
+  'task.held': 'Reținut',
   'task.folder': 'Dosar',
   'task.password': 'Parola arhivei',
   'task.priorityUp': 'Crește prioritatea',

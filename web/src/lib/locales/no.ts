@@ -183,6 +183,8 @@ export const no: Dict = {
   'task.online': 'Tilgjengelig',
   'task.offline': 'Utilgjengelig',
   'task.retryPending': 'Prøves automatisk på nytt',
+  'task.forced': 'Satt til «Start nå»',
+  'task.held': 'Holdt tilbake',
   'task.folder': 'Mappe',
   'task.password': 'Arkivpassord',
   'task.priorityUp': 'Øk prioritet',

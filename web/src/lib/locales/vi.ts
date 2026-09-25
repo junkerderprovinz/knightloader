@@ -181,6 +181,8 @@ export const vi: Dict = {
   'task.online': 'Khả dụng',
   'task.offline': 'Không khả dụng',
   'task.retryPending': 'Sẽ tự động thử lại',
+  'task.forced': 'Đã đặt “Bắt đầu ngay”',
+  'task.held': 'Đang giữ',
   'task.folder': 'Thư mục',
   'task.password': 'Mật khẩu tệp nén',
   'task.priorityUp': 'Tăng độ ưu tiên',

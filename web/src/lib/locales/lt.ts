@@ -181,6 +181,8 @@ export const lt: Dict = {
   'task.online': 'Prieinama',
   'task.offline': 'Neprieinama',
   'task.retryPending': 'Kartojama automatiškai',
+  'task.forced': 'Pažymėta „Pradėti dabar“',
+  'task.held': 'Sulaikyta',
   'task.folder': 'Aplankas',
   'task.password': 'Archyvo slaptažodis',
   'task.priorityUp': 'Didinti pirmenybę',

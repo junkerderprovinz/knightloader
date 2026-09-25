@@ -19,6 +19,8 @@ import { IconCheck } from '../lib/icons';
 export interface MenuAnchor {
   x: number;
   y: number;
+  /** Where the menu flips to when it does not fit; see Spot. */
+  flipAt?: number;
 }
 
 export interface MenuItem {
@@ -85,19 +87,21 @@ export function anchorFromEvent(e: {
 
 /**
  * anchorBelow puts a dropdown under the control that opened it, aligned on the
- * edge the text starts from, which is the right edge in RTL languages.
+ * edge the text starts from, which is the right edge in RTL languages. Near
+ * the window's far side it flips to end where the control ends.
  */
 export function anchorBelow(el: Element | null): MenuAnchor {
   const r = el?.getBoundingClientRect();
   if (!r) return { x: MARGIN, y: MARGIN };
   const rtl = document.documentElement.dir === 'rtl';
-  return { x: rtl ? r.right : r.left, y: r.bottom + 4 };
+  return rtl ? { x: r.right, y: r.bottom + 4, flipAt: r.left } : { x: r.left, y: r.bottom + 4, flipAt: r.right };
 }
 
 /**
  * Spot is where a panel wants to sit. `flipAt` is the coordinate it flips
- * around when it does not fit: the pointer for the menu, the opening row's
- * other edge for a submenu, so a submenu never covers its parent row.
+ * around when it does not fit: the pointer for a right-click menu, the
+ * control's other edge for a dropdown, the opening row's other edge for a
+ * submenu, so a submenu never covers its parent row.
  */
 interface Spot {
   x: number;
@@ -180,6 +184,8 @@ function Panel({
   // Empty groups are dropped here so callers need not check.
   const shown = groups.filter((g) => g.items.length > 0);
   const flat = shown.flatMap((g) => g.items);
+  // A dropdown's or a suggestion field's list, as opposed to a menu of actions.
+  const choices = flat.some((i) => i.checked !== undefined);
   // A list of choices opens on the one in force, as a native select does, so
   // the arrow keys start from where the value is.
   const checked = flat.findIndex((i) => i.checked && !i.disabled);
@@ -332,10 +338,12 @@ function Panel({
             // Inline, so it has to carry the class's own floor as well.
             minWidth: minWidth ? `max(13rem, ${minWidth}px)` : undefined,
           }}
-          // A long list of choices scrolls inside the panel rather than running
-          // off the screen.
-          className="glim-card glim-fade z-[60] max-h-[min(24rem,calc(100vh-1rem))] min-w-[13rem] max-w-[22rem]
-            divide-y divide-carbon-border/60 overflow-y-auto py-0.5"
+          // A long list of choices scrolls in a box about the size of a native
+          // select's. A menu of actions is as tall as its entries and scrolls
+          // only in a window shorter than that; the placement above moves it
+          // up rather than letting it run off the bottom.
+          className={`glim-card glim-fade z-[60] ${choices ? 'max-h-[min(24rem,calc(100dvh-1rem))]' : 'max-h-[calc(100dvh-1rem)]'}
+            min-w-[13rem] max-w-[22rem] divide-y divide-carbon-border/60 overflow-y-auto py-0.5`}
         >
           {shown.map((g) => (
             <div key={g.id} role={g.heading ? 'group' : undefined} aria-label={g.heading} className="py-1">
@@ -502,7 +510,7 @@ export function ContextMenu({
   return (
     <PanelsCtx.Provider value={panels}>
       <Panel
-        spot={{ x: anchor.x, y: anchor.y }}
+        spot={{ x: anchor.x, y: anchor.y, flipAt: anchor.flipAt }}
         groups={groups}
         label={label}
         minWidth={minWidth}

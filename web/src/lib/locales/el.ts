@@ -181,6 +181,8 @@ export const el: Dict = {
   'task.online': 'Διαθέσιμο',
   'task.offline': 'Μη διαθέσιμο',
   'task.retryPending': 'Θα επαναληφθεί αυτόματα',
+  'task.forced': 'Ορίστηκε «Έναρξη τώρα»',
+  'task.held': 'Σε αναμονή',
   'task.folder': 'Φάκελος',
   'task.password': 'Κωδικός αρχείου',
   'task.priorityUp': 'Αύξηση προτεραιότητας',

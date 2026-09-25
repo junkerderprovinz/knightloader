@@ -1,10 +1,10 @@
-import { useMemo, useState, type SVGProps } from 'react';
+import { useMemo, useState, type ReactNode, type SVGProps } from 'react';
 import { type QueueMove, type Task, queueMove, setPackage } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, Field, IconBadge, Modal } from './ui';
+import { Button, Field, Modal } from './ui';
 import { SuggestField } from './SuggestField';
-import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
+import type { MenuGroup, MenuItem } from './ContextMenu';
 import { IconArrowDown, IconArrowUp, IconBottom, IconClose, IconFolder, IconPriority, IconTop } from '../lib/icons';
 
 // Split by hoster: one package's box forking into three per-host boxes, drawn
@@ -35,11 +35,11 @@ function hostOf(raw: string): string {
 }
 
 /**
- * PackageActions puts every package operation for a selection behind one badge
- * and menu in the selection row, since each answers which package the links
- * belong to. Moving and merging share one dialog.
+ * usePackageMenu builds the package entries for a selection, one group under
+ * the heading Package, since each answers which package the links belong to.
+ * Moving and merging share one dialog, which the caller renders.
  */
-export function PackageActions({
+export function usePackageMenu({
   tasks,
   selected,
   base,
@@ -49,11 +49,10 @@ export function PackageActions({
   selected: Set<string>;
   base: string;
   onDone?: () => void;
-}) {
+}): { group: MenuGroup; dialog: ReactNode } {
   const { t } = useT();
   const { toast } = useToast();
   const [dialog, setDialog] = useState(false);
-  const order = useContextMenu();
 
   const chosen = useMemo(() => tasks.filter((x) => selected.has(x.id)), [tasks, selected]);
   // Existing names, offered in the dialog's name field.
@@ -67,8 +66,6 @@ export function PackageActions({
     () => [...new Set(chosen.map((x) => x.package ?? ''))],
     [chosen],
   );
-
-  if (chosen.length === 0) return null;
 
   async function splitByHost() {
     // One request per host, not per task.
@@ -94,87 +91,57 @@ export function PackageActions({
     }
   }
 
-  return (
-    <>
-      {/* `labelled` like the other badges in the selection row, so the label
-          setting applies to all of them. */}
-      <IconBadge
-        labelled
-        icon={<IconFolder width={16} height={16} />}
-        title={t('pkg.menu')}
-        aria-label={t('pkg.menu')}
-        aria-haspopup="menu"
-        aria-expanded={!!order.anchor}
-        onClick={(e) => order.openAt(anchorBelow(e.currentTarget))}
+  const items: MenuItem[] = [
+    {
+      id: 'move',
+      label: t('pkg.moveTitle'),
+      icon: <IconFolder width={14} height={14} />,
+      onSelect: () => setDialog(true),
+    },
+    {
+      id: 'split',
+      label: t('pkg.splitByHost'),
+      icon: <IconSplitHost width={14} height={14} />,
+      onSelect: () => void splitByHost(),
+    },
+  ];
+  // IconPriority rather than an arrow, so the entry differs from the four
+  // arrows in its submenu.
+  if (packages.length === 1) {
+    items.push({
+      id: 'queueOrder',
+      label: t('pkg.queueOrder'),
+      icon: <IconPriority width={14} height={14} />,
+      submenu: [
+        {
+          id: 'steps',
+          items: [
+            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: () => void move('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: () => void move('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: () => void move('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: () => void move('bottom') },
+          ],
+        },
+      ],
+    });
+  }
+
+  return {
+    group: { id: 'package', heading: t('pkg.menu'), items },
+    dialog: dialog && chosen.length > 0 && (
+      <PackageMoveDialog
+        count={chosen.length}
+        suggestion={chosen[0]?.package ?? ''}
+        known={known}
+        onClose={() => setDialog(false)}
+        onApply={async (name) => {
+          await setPackage(chosen.map((x) => x.id), name, base);
+          setDialog(false);
+          onDone?.();
+        }}
       />
-      {order.anchor && (
-        <ContextMenu
-          anchor={order.anchor}
-          label={t('pkg.menu')}
-          onClose={order.close}
-          groups={[
-            {
-              id: 'package',
-              items: [
-                {
-                  id: 'move',
-                  label: t('pkg.moveTitle'),
-                  icon: <IconFolder width={14} height={14} />,
-                  onSelect: () => setDialog(true),
-                },
-                {
-                  id: 'split',
-                  label: t('pkg.splitByHost'),
-                  icon: <IconSplitHost width={14} height={14} />,
-                  onSelect: () => void splitByHost(),
-                },
-              ],
-            },
-            // IconPriority rather than an arrow, so the entry differs from the
-            // four arrows in its submenu.
-            ...(packages.length === 1
-              ? [
-                  {
-                    id: 'order',
-                    items: [
-                      {
-                        id: 'queueOrder',
-                        label: t('pkg.queueOrder'),
-                        icon: <IconPriority width={14} height={14} />,
-                        submenu: [
-                          {
-                            id: 'steps',
-                            items: [
-                              { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: () => void move('top') },
-                              { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: () => void move('up') },
-                              { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: () => void move('down') },
-                              { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: () => void move('bottom') },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
-      {dialog && (
-        <PackageMoveDialog
-          count={chosen.length}
-          suggestion={chosen[0]?.package ?? ''}
-          known={known}
-          onClose={() => setDialog(false)}
-          onApply={async (name) => {
-            await setPackage(chosen.map((x) => x.id), name, base);
-            setDialog(false);
-            onDone?.();
-          }}
-        />
-      )}
-    </>
-  );
+    ),
+  };
 }
 
 /**

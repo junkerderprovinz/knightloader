@@ -181,6 +181,8 @@ export const sl: Dict = {
   'task.online': 'Dosegljiva',
   'task.offline': 'Nedosegljiva',
   'task.retryPending': 'Samodejno ponavljanje',
+  'task.forced': 'Označeno »Zaženi zdaj«',
+  'task.held': 'Zadržano',
   'task.folder': 'Mapa',
   'task.password': 'Geslo za arhiv',
   'task.priorityUp': 'Zvišaj prednost',
