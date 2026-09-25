@@ -592,19 +592,20 @@ submission and for a fixed download.
 - **The project relay card shows its address in the bubble behind "What can it
   see?"** instead of in a field of its own. The button sits at the bottom right
   of the card, where it no longer pushes the switch down.
-- **The Downloads head bar is one row and about half as tall.** Stop, Pause and
-  Play are square buttons that show their names in the tooltip, and a fourth
-  square opens the quick settings. The speed curve fills the rest of the row up
-  to the bar's right edge. The newest second sits on that edge with the current
-  speed above it, and the top of the scale is shown above the other end. In a
-  narrow window the curve moves under the buttons.
+- **The Downloads head bar is one row and about 40 percent lower.** Play, Pause
+  and Stop sit side by side as large square buttons that show their names in
+  the tooltip, and a fourth square of the same size opens the quick settings.
+  The speed curve fills the rest of the row up to the bar's right edge and most
+  of its height. The newest second sits on that edge with the current speed
+  above it, and the top of the scale is shown above the other end. In a narrow
+  window the curve moves under the buttons.
 - **The speed curves end without a dot.** The dot on the newest sample, and the
   ring it threw on the Overview page, were stretched into an oval along with the
   plot. With the limit at 1337 KiB/s the line itself breathes instead.
 - **Quick settings open as a small panel under their button** instead of a
-  window. The speed limit field is no longer in the head bar; it sits in the
-  panel, next to simultaneous downloads, downloads per hoster and connections
-  per download.
+  window. The speed limit field is no longer in the head bar. It comes first in
+  the panel, with simultaneous downloads, downloads per hoster and connections
+  per download under it, one field per line.
 - **Every dropdown is the app's own.** A schedule's action, a rule's field and
   comparison, a connection's type, a reconnect request's method, a script's
   trigger, a category's media server address, a host preset's quality and audio

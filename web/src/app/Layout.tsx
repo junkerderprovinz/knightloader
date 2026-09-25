@@ -115,10 +115,12 @@ function ShellSpeed({ instance }: { instance: string }) {
  *
  * A bottom margin and no top one, so it starts on the sidebar's line.
  *
- * It is as tall as its content: the row of squares, or the curve with its two
- * lines of figures, whichever is taller. The curve takes no height of its own
- * (SpeedGraph.tsx, check-stretched-svg-height.mjs), so it cannot grow the card.
- * In a narrow window the curve wraps under the squares.
+ * It is as tall as its content: the squares, or the meter with its two lines of
+ * figures, whichever is taller. The meter sets a height of its own and reaches
+ * into the card's padding (SpeedGraph.tsx); the curve inside it takes none
+ * (check-stretched-svg-height.mjs), so a wider card is not a taller one. In a
+ * narrow window the meter wraps under the squares, and the row gap makes up
+ * for the part of the padding it takes.
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
@@ -129,7 +131,7 @@ function ShellBar({ visible }: { visible: boolean }) {
     <div
       role="region"
       aria-label={t('shell.bar')}
-      className={`glim-card mb-6 flex-wrap items-center gap-x-6 gap-y-4 p-5 sm:mx-6 md:mx-8 md:mb-8
+      className={`glim-card mb-6 flex-wrap items-center gap-6 p-5 sm:mx-6 md:mx-8 md:mb-8
         ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine, so it stands out when it

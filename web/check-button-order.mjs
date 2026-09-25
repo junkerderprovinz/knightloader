@@ -5,7 +5,7 @@
 //
 // A button is read by its visible child text, the `{t('...')}` between its
 // tags, never by title= or aria-label=: glyph buttons such as QueueBar's
-// transport column carry words only in title=, and a button without visible
+// transport row carry words only in title=, and a button without visible
 // words is ignored. The one exception is a `labelled` Button, a window's way
 // out among them: the label engine prints its title as its words, so the title
 // is read like child text.
