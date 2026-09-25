@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -75,11 +76,20 @@ func registerFederation(reg *Registry, a *app.App) {
 		})
 	// Proxy task operations to a peer instance: only the task/link routes are
 	// forwarded, so a peer's settings/accounts stay local to that peer.
-	reg.Add(AnyMethod, "/api/instances/{name}/{rest...}", "forward a task or link request to a peer; nothing else is forwarded",
+	reg.Add(AnyMethod, forwardPattern, "forward a task or link request to a peer; nothing else is forwarded, "+
+		"and a token needs the right the forwarded call would need on this instance",
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
 			if a.ModuleOff("federation") {
 				refuseFederationOff(w)
+				return
+			}
+			// rest arrives unescaped, so tasks%2F..%2Fsettings reads
+			// tasks/../settings. It would pass the list below, and the peer's
+			// mux would redirect it to /api/settings with the peer token still
+			// attached.
+			if path.Clean("/"+rest) != "/"+rest {
+				http.Error(w, "route not proxied", http.StatusForbidden)
 				return
 			}
 			// The queue travels with the task list, being that list's master
@@ -94,6 +104,14 @@ func registerFederation(reg *Registry, a *app.App) {
 			var body []byte
 			if r.Body != nil {
 				body, _ = io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
+			}
+			// The peer takes the call on this instance's own full token, so a
+			// narrower token is held to what the call would need here.
+			if tok, ok := tokenOf(r); ok {
+				if need := reg.scopeOfCall(r.Method, "/api/"+rest, body); !tok.Has(need) {
+					refuseScope(w, need)
+					return
+				}
 			}
 			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, "/api/"+rest, body)
 			if err != nil {

@@ -18,6 +18,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -51,7 +52,7 @@ func registerHealth(reg *Registry, a *app.App) {
 }
 
 // metricsDetail is the live line of the metrics module row: where to point
-// the collector, and a warning when a password is set but no token exists.
+// the collector, and a warning when a password is set but no token can read.
 func metricsDetail(a *app.App, s settings.Settings) line {
 	path := map[string]string{"path": metricsPath}
 	if !s.Metrics {
@@ -60,10 +61,19 @@ func metricsDetail(a *app.App, s settings.Settings) line {
 			code: "metricsOff", args: path,
 		}
 	}
-	if a.Auth != nil && a.Auth.Enabled() && len(a.APITokens.List()) == 0 {
-		return line{
-			text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Remote access page",
-			code: "metricsNoToken",
+	if a.Auth != nil && a.Auth.Enabled() {
+		tokens := a.APITokens.List()
+		if len(tokens) == 0 {
+			return line{
+				text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Remote access page",
+				code: "metricsNoToken",
+			}
+		}
+		if !someTokenHolds(tokens, apitoken.ScopeRead) {
+			return line{
+				text: "this instance has a password and no API token that can read, so a collector is refused; create one with \"Read only\" on the Remote access page",
+				code: "metricsNoReadToken",
+			}
 		}
 	}
 	return line{

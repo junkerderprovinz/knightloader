@@ -398,8 +398,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.access.tokens.title',
       hint: 'settings.access.tokens.intro',
       rows: [{ key: 'settings.module.downloadclient' }],
-      // The (i) of the window that shows a new token.
-      body: ['settings.access.tokens.howToUse'],
+      // The rights picker in the window that creates a token.
+      also: ['settings.access.tokens.rights'],
+      // The (i) of the window that shows a new token, and of the rights picker.
+      body: ['settings.access.tokens.howToUse', 'settings.access.tokens.rightsHint'],
     },
   ],
 

@@ -44,7 +44,8 @@ token, and switch between them; onboarding a new one is still manual:
 
 1. On the server's web UI, open the Access tab and create a named API token
    (`POST /api/tokens`, see `internal/api/routes_tokens.go`). The secret is
-   shown once.
+   shown once. Full access works; the app itself only uses Read, Add and
+   Control, so a Custom token with those three is enough.
 2. In the app's "add connection" screen, enter the server's address and
    paste the token in, or scan the Access tab's remote-access QR, which
    encodes the address, and paste only the token.

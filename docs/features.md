@@ -21,5 +21,5 @@
 | **Twelve words** | Read a phrase off one instance, type it into the next, and they find each other across networks without an account, a login, a port forward or a domain. The words carry a secret; the relay only ever sees a hash of it, so nobody running one can reconstruct them. Use ours or run your own. See [Connecting instances and apps](connecting.md). |
 | **Your own relay** | Don't want to use ours? Point both ends at a relay you run and the same twelve words work against it. It terminates its own TLS over TLS-ALPN-01, so it needs no proxy, certbot or cron, and only port 443 open. |
 | **Everywhere** | The web UI, a desktop build, an Android app and a browser extension all talk to the same instance, and to each other's. |
-| **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |
+| **Access** | An optional password lock, off by default. Named API tokens, each limited to the rights it needs: read, add, control or admin. See [API tokens and their rights](connecting.md#api-tokens-and-their-rights). Same-origin API, origin-checked WebSocket. |
 | **Languages** | 42, each fetched only when chosen, right-to-left included. |

@@ -24,6 +24,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
@@ -307,7 +308,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			if rpErr != nil {
 				out["reason"] = rpErr.Error()
 			}
-			if authenticated(a, r) {
+			if permits(a, r, apitoken.ScopeAdmin) {
 				out["passkeys"] = passkeyViews(all, rpID)
 			}
 			writeJSON(w, out)

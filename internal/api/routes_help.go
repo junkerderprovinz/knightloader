@@ -37,7 +37,11 @@ const helpAbout = "KnightLoader's REST and WebSocket API, generated from this bu
 	"Bearer token (POST /api/tokens) once a password is set, except the handful of routes " +
 	"marked \"open\" below: those exist only to get you a session in the first place, or carry " +
 	"their own credential in the request itself. With no password set, every route answers " +
-	"unauthenticated, which is the default a fresh install starts in."
+	"unauthenticated, which is the default a fresh install starts in. A token carries some of " +
+	"four rights (read, add, control, admin). Each route below names the one it needs in its " +
+	"scope field, and a token without it is answered 403 with the missing right named; a " +
+	"session has all four. Picking the folder downloads go to needs admin on any route, and a " +
+	"call forwarded to another instance needs the right it would need on this one."
 
 const helpVocabulary = "KnightLoader does not implement JDownloader's Deprecated API or " +
 	"My.JDownloader's remote-API namespaces, and does not reuse their method names. This is a " +

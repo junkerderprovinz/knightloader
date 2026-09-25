@@ -8,10 +8,12 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
@@ -97,8 +99,21 @@ type Route struct {
 	// Open is a route reachable without a session on a password-protected
 	// instance. The reason for it belongs in the summary.
 	Open bool `json:"open"`
+	// Scope is the right an API token needs to call the route, from the table
+	// in scopes.go. An open route has none, and neither has the forwarding
+	// route, which needs the right of the call it forwards.
+	Scope apitoken.Scope `json:"scope,omitempty"`
 
 	handler http.HandlerFunc
+}
+
+// pattern is the route in net/http's pattern syntax, which is also how
+// routeScopes names it.
+func (r Route) pattern() string {
+	if r.Method == AnyMethod {
+		return r.Path
+	}
+	return r.Method + " " + r.Path
 }
 
 // Registry collects the routes as each subsystem registers them. It also holds
@@ -118,6 +133,9 @@ type Registry struct {
 	openOnce   sync.Once
 	openExact  map[string]bool
 	openPrefix []string
+
+	lookupOnce sync.Once
+	lookup     *http.ServeMux
 }
 
 func newRegistry() *Registry {
@@ -142,7 +160,16 @@ func (reg *Registry) add(r Route) {
 		panic("api: " + key + " is registered twice")
 	}
 	reg.seen[key] = true
+	if guardsScope(r) {
+		r.Scope = scopeFor(r.pattern())
+	}
 	reg.routes = append(reg.routes, r)
+}
+
+// guardsScope reports whether the table's right is checked before r's handler
+// runs, which is every route but the open ones and forwardPattern.
+func guardsScope(r Route) bool {
+	return !r.Open && r.pattern() != forwardPattern
 }
 
 // Routes returns the table sorted by path then method, without the handlers.
@@ -165,11 +192,11 @@ func (reg *Registry) Routes() []Route {
 // table does not claim (the single-page app).
 func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 	for _, r := range reg.routes {
-		pattern := r.Path
-		if r.Method != AnyMethod {
-			pattern = r.Method + " " + r.Path
+		h := r.handler
+		if guardsScope(r) {
+			h = requireScope(r.pattern(), h)
 		}
-		mux.HandleFunc(pattern, r.handler)
+		mux.HandleFunc(r.pattern(), h)
 	}
 	// An unknown /api/ path is a 404 rather than the SPA's index.html with a
 	// 200, which a client would fail to parse without learning the route or the
@@ -201,6 +228,22 @@ func (reg *Registry) open(path string) bool {
 		}
 	}
 	return false
+}
+
+// scopeOfCall is the scope the call method, path and body would need on this
+// instance. The forwarding route needs it: a peer trusts this instance fully,
+// so a token has to be checked here against what it asks the peer to do. A
+// path no route serves needs admin.
+func (reg *Registry) scopeOfCall(method, path string, body []byte) apitoken.Scope {
+	reg.lookupOnce.Do(func() {
+		// Built only to ask which pattern matches; nothing is served from it.
+		reg.lookup = http.NewServeMux()
+		for _, r := range reg.routes {
+			reg.lookup.Handle(r.pattern(), http.NotFoundHandler())
+		}
+	})
+	_, pattern := reg.lookup.Handler(&http.Request{Method: method, URL: &url.URL{Path: path}})
+	return callScope(pattern, body)
 }
 
 func (reg *Registry) buildOpen() {

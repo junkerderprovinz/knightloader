@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
@@ -99,8 +100,9 @@ func registerSystem(reg *Registry, a *app.App) {
 				"authenticated": in,
 			}
 			// An anonymous caller learns only whether a password is set; the
-			// second factor and the recovery codes left are for a session.
-			if in {
+			// second factor and the recovery codes left are security
+			// configuration, for a session or a token that may administer.
+			if permits(a, r, apitoken.ScopeAdmin) {
 				out["twoFactor"] = a.Auth.TwoFactorEnabled()
 				out["recoveryLeft"] = a.Auth.RecoveryLeft()
 			}

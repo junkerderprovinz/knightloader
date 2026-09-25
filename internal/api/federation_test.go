@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -113,6 +114,53 @@ func TestFederationProxy(t *testing.T) {
 	b, _ = readAll(resp)
 	if strings.Contains(string(b), "cellar") {
 		t.Fatalf("peer still listed after delete: %s", b)
+	}
+}
+
+// The forwarded path arrives unescaped, so tasks%2F..%2Fsettings reads
+// tasks/../settings. It must not pass for a task route: the peer's mux would
+// redirect it to /api/settings and the client follow with the peer token.
+func TestAForwardedPathCannotClimbOutOfTheTaskRoutes(t *testing.T) {
+	t.Parallel()
+	var mu sync.Mutex
+	var asked []string
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		asked = append(asked, r.URL.Path)
+		mu.Unlock()
+		if strings.Contains(r.URL.Path, "..") {
+			http.Redirect(w, r, "/api/settings", http.StatusMovedPermanently)
+			return
+		}
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer peer.Close()
+
+	srv, _ := testServer(t)
+	defer srv.Close()
+	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": peer.URL})
+	resp, err := http.Post(srv.URL+"/api/instances", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	for _, p := range []string{"tasks%2F..%2Fsettings", "tasks%2F%2E%2E%2Fsettings", "tasks%2F.%2F..%2Fsettings", "queue%2F..%2F..%2Fapi%2Fsettings"} {
+		resp, err := http.Get(srv.URL + "/api/instances/cellar/" + p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusForbidden {
+			t.Errorf("%s answered %d, want 403", p, resp.StatusCode)
+		}
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	for _, p := range asked {
+		if p != "/api/tasks" {
+			t.Errorf("the peer was asked for %s", p)
+		}
 	}
 }
 

@@ -8,10 +8,10 @@ package api
 // sealed in internal/accounts rather than in instances.json, which is a
 // plaintext file of public identity.
 //
-// apitoken has no scopes, so a peer token is a full-power API token. The
-// outbound allowlist bounds what a peer can ask this instance to forward, not
-// what the token could do if taken off the peer; naming and revoking it
-// individually is the mitigation available.
+// A peer token carries every scope, since a peer drives this instance as fully
+// as its owner's browser does. The outbound allowlist bounds what a peer can
+// ask this instance to forward, not what the token could do if taken off the
+// peer; naming and revoking it individually is the mitigation available.
 
 import (
 	"regexp"

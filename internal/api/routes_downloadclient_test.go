@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -535,21 +536,221 @@ func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
 	}
 }
 
+// holdSamples is a link filter that holds every link with "sample" in it,
+// which is the one way a test reaches a finished grab without a transfer.
+func holdSamples(s *settings.Settings) {
+	s.LinkFilter = rules.Set{Rules: []rules.Rule{{
+		Name:       "no samples",
+		Conditions: []rules.Condition{{Field: rules.FieldURL, Op: rules.OpContains, Value: "sample"}},
+		Action:     rules.Action{Reject: true, Reason: "sample files are not wanted here"},
+	}}}
+}
+
+// otherMagnet has another info hash than testMagnet, so the mirror set does
+// not fold the two into one task.
+const otherMagnet = "magnet:?xt=urn:btih:fedcba9876543210fedcba9876543210fedcba98"
+
+func nzoIDOf(t *testing.T, add map[string]any) string {
+	t.Helper()
+	ids, _ := add["nzo_ids"].([]any)
+	if len(ids) != 1 {
+		t.Fatalf("addfile staged nothing: %+v", add)
+	}
+	id, _ := ids[0].(string)
+	return id
+}
+
+// TestDownloadClientWorksWithAnAddAndReadToken walks Sonarr's whole round with
+// the preset the Access page offers for it. Its cleanup of a finished grab
+// forgets the grab, and the downloads stay, since the token cannot control.
+func TestDownloadClientWorksWithAnAddAndReadToken(t *testing.T) {
+	t.Parallel()
+	a, srv, _ := downloadClientServer(t, holdSamples)
+	_, key, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, mode := range []string{"version", "get_config"} {
+		if _, doc := sabGet(t, srv, key, map[string]string{"mode": mode}); doc["error"] != nil {
+			t.Errorf("mode=%s was refused to an add and read token: %+v", mode, doc)
+		}
+	}
+	_, add := sabAddFile(t, srv, key, "Show.S02E01.nzb", "tv-sonarr", []byte(testMagnet))
+	nzoIDOf(t, add)
+	_, doc := sabGet(t, srv, key, map[string]string{"mode": "queue", "category": "tv-sonarr"})
+	if rows := slots(t, doc, "queue"); len(rows) != 1 {
+		t.Fatalf("the queue shows %d slots to an add and read token, want the one grab", len(rows))
+	}
+
+	// A held link is finished as far as Sonarr knows: it fails in the
+	// history, and Sonarr clears it to try another release.
+	_, add = sabAddFile(t, srv, key, "Show.S02E01.Sample.nzb", "tv-sonarr", []byte(otherMagnet+"&dn=sample.mkv"))
+	heldID := nzoIDOf(t, add)
+	_, doc = sabGet(t, srv, key, map[string]string{
+		"mode": "history", "name": "delete", "value": heldID, "del_files": "1",
+	})
+	if ok, _ := doc["status"].(bool); !ok {
+		t.Fatalf("Sonarr's cleanup was refused: %+v", doc)
+	}
+	_, doc = sabGet(t, srv, key, map[string]string{"mode": "history", "category": "tv-sonarr"})
+	if rows := slots(t, doc, "history"); len(rows) != 0 {
+		t.Errorf("the grab is still reported after Sonarr cleared it: %+v", rows)
+	}
+	if n := len(a.FilteredLinks()); n != 1 {
+		t.Errorf("the holding area has %d links after the cleanup, want the held link kept, since the token cannot control", n)
+	}
+}
+
+// TestDownloadClientKeepsARunningDownloadWithoutControl covers "Remove from
+// download client" on a download Sonarr still has in its queue. The token
+// cannot stop it, so the answer says so, rather than the grab being forgotten
+// while the download carries on with nobody tracking it.
+func TestDownloadClientKeepsARunningDownloadWithoutControl(t *testing.T) {
+	t.Parallel()
+	a, srv, _ := downloadClientServer(t, nil)
+	_, key, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, add := sabAddFile(t, srv, key, "Show.S02E04.nzb", "tv-sonarr", []byte(testMagnet))
+	nzoID := nzoIDOf(t, add)
+
+	_, doc := sabGet(t, srv, key, map[string]string{
+		"mode": "queue", "name": "delete", "value": nzoID, "del_files": "1",
+	})
+	if msg, _ := doc["error"].(string); !strings.Contains(msg, `"control"`) {
+		t.Errorf("removing a running download without control answered %+v, want a refusal naming the control right", doc)
+	}
+	_, doc = sabGet(t, srv, key, map[string]string{"mode": "queue", "category": "tv-sonarr"})
+	if rows := slots(t, doc, "queue"); len(rows) != 1 {
+		t.Errorf("the queue shows %d slots after the refused removal, want the grab still tracked", len(rows))
+	}
+	if n := liveTasks(t, a); n != 1 {
+		t.Errorf("the store holds %d tasks after the refused removal, want 1", n)
+	}
+}
+
+// TestEveryBridgeOperationNeedsTheRightItsTableNames goes through
+// sabnzbdScopes: a token with only that right gets through, and one with
+// every other right is refused with the right named.
+func TestEveryBridgeOperationNeedsTheRightItsTableNames(t *testing.T) {
+	t.Parallel()
+	a, srv, _ := downloadClientServer(t, nil)
+	magnets := []string{
+		testMagnet, otherMagnet,
+		"magnet:?xt=urn:btih:00112233445566778899aabbccddeeff00112233",
+		"magnet:?xt=urn:btih:ffeeddccbbaa99887766554433221100ffeeddcc",
+	}
+	call := func(op, key string) map[string]any {
+		t.Helper()
+		var doc map[string]any
+		switch op {
+		case "version", "get_config", "queue", "history":
+			_, doc = sabGet(t, srv, key, map[string]string{"mode": op})
+		case "addurl":
+			_, doc = sabGet(t, srv, key, map[string]string{"mode": op, "name": magnets[0]})
+			magnets = magnets[1:]
+		case "addfile":
+			_, doc = sabAddFile(t, srv, key, "Show.S03E01.nzb", "tv-sonarr", []byte(magnets[0]))
+			magnets = magnets[1:]
+		case "delete":
+			_, doc = sabGet(t, srv, key, map[string]string{"mode": "queue", "name": "delete", "value": "SABnzbd_nzo_gone"})
+		default:
+			t.Fatalf("the rights table names %q, which this test has no call for", op)
+		}
+		return doc
+	}
+	token := func(scopes []apitoken.Scope) string {
+		t.Helper()
+		_, secret, err := a.APITokens.CreateScoped("probe", scopes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return secret
+	}
+
+	for op, need := range sabnzbdScopes {
+		if msg, _ := call(op, token([]apitoken.Scope{need}))["error"].(string); strings.Contains(msg, "does not have the") {
+			t.Errorf("%s with only the %q right was refused: %s", op, need, msg)
+		}
+		var others []apitoken.Scope
+		for _, s := range apitoken.AllScopes() {
+			// Add may forget a finished grab, so it is left out for delete.
+			if s != need && !(op == "delete" && s == apitoken.ScopeAdd) {
+				others = append(others, s)
+			}
+		}
+		if msg, _ := call(op, token(others))["error"].(string); !strings.Contains(msg, `"`+string(need)+`"`) {
+			t.Errorf("%s with %v answered %q, want a refusal naming the %q right", op, others, msg, need)
+		}
+	}
+}
+
+// TestDownloadClientRefusesWhatTheTokenMayNotDo checks that each operation
+// names the right it is missing, in the error document Sonarr shows.
+func TestDownloadClientRefusesWhatTheTokenMayNotDo(t *testing.T) {
+	t.Parallel()
+	a, srv, full := downloadClientServer(t, nil)
+	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, adder, err := a.APITokens.CreateScoped("script", []apitoken.Scope{apitoken.ScopeAdd})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, doc := sabAddFile(t, srv, reader, "Show.S02E02.nzb", "tv-sonarr", []byte(testMagnet))
+	if msg, _ := doc["error"].(string); !strings.Contains(msg, `"add"`) {
+		t.Errorf("addfile with a read token answered %+v, want a refusal naming the add right", doc)
+	}
+	if n := liveTasks(t, a); n != 0 {
+		t.Fatalf("a read token staged %d tasks", n)
+	}
+	_, doc = sabGet(t, srv, adder, map[string]string{"mode": "queue"})
+	if msg, _ := doc["error"].(string); !strings.Contains(msg, `"read"`) {
+		t.Errorf("mode=queue with an add token answered %+v, want a refusal naming the read right", doc)
+	}
+
+	_, add := sabAddFile(t, srv, full, "Show.S02E03.nzb", "tv-sonarr", []byte(testMagnet))
+	ids, _ := add["nzo_ids"].([]any)
+	if len(ids) != 1 {
+		t.Fatalf("addfile did not stage anything: %+v", add)
+	}
+	nzoID, _ := ids[0].(string)
+	_, doc = sabGet(t, srv, reader, map[string]string{"mode": "queue", "name": "delete", "value": nzoID})
+	if msg, _ := doc["error"].(string); !strings.Contains(msg, `"control"`) {
+		t.Errorf("a delete with a read token answered %+v, want a refusal naming the control right", doc)
+	}
+	if n := liveTasks(t, a); n != 1 {
+		t.Errorf("the store holds %d tasks after a refused delete, want 1", n)
+	}
+}
+
 // TestDownloadClientNamesAnUnimplementedMode checks that an unimplemented mode
-// is an error naming the mode, not an empty success.
+// is an error naming the mode, not an empty success, and the same one for
+// every token, so a narrowed key is not sent to fetch a right that would not
+// help.
 func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
 	t.Parallel()
-	_, srv, key := downloadClientServer(t, nil)
-	for _, mode := range []string{"retry", "fullstatus", "nonsense"} {
-		code, doc := sabGet(t, srv, key, map[string]string{"mode": mode})
-		if code != http.StatusOK {
-			t.Fatalf("mode=%s answered %d", mode, code)
-		}
-		if ok, _ := doc["status"].(bool); ok {
-			t.Errorf("mode=%s reported success for something this bridge does not do: %+v", mode, doc)
-		}
-		if msg, _ := doc["error"].(string); !strings.Contains(msg, mode) {
-			t.Errorf("mode=%s answered %q, which does not name the mode", mode, msg)
+	a, srv, full := downloadClientServer(t, nil)
+	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, key := range []string{full, reader} {
+		for _, mode := range []string{"retry", "fullstatus", "nonsense"} {
+			code, doc := sabGet(t, srv, key, map[string]string{"mode": mode})
+			if code != http.StatusOK {
+				t.Fatalf("mode=%s answered %d", mode, code)
+			}
+			if ok, _ := doc["status"].(bool); ok {
+				t.Errorf("mode=%s reported success for something this bridge does not do: %+v", mode, doc)
+			}
+			if msg, _ := doc["error"].(string); !strings.Contains(msg, mode) || strings.Contains(msg, "right") {
+				t.Errorf("mode=%s answered %q, which does not name the mode or talks about rights", mode, msg)
+			}
 		}
 	}
 }
