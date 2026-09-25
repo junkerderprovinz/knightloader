@@ -95,6 +95,7 @@ export const fr: Dict = {
   'settings.aboutPaypal': 'PayPal',
   'settings.aboutCrypto': 'Crypto',
   'settings.cryptoTitle': 'Faire un don en crypto',
+  'settings.donateAppeal': 'Lancez une pièce à votre chevalier : elle couvre une partie des frais et garde le projet en vie. Tout ce que je crée est gratuit et sans publicité.',
   'settings.cryptoIntro': 'Choisissez une monnaie et un réseau, puis scannez le code ou copiez l\'adresse.',
   'settings.cryptoNetworks': 'Réseaux',
   'settings.cryptoNoTag': 'Ni destination tag ni memo ne sont nécessaires.',

@@ -1418,6 +1418,7 @@ export const de: Dict = {
   'settings.about.crypto': 'Krypto',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Mit Krypto spenden',
+  'settings.about.donateAppeal': 'Wirf deinem Ritter eine Münze zu: Sie deckt einen Teil der Kosten und hält das Projekt am Leben. Alles, was ich baue, kostet nichts und zeigt keine Werbung.',
   'settings.about.cryptoIntro': 'Wähle eine Währung und ein Netzwerk, dann scanne den Code oder kopiere die Adresse.',
   'settings.about.cryptoNetworks': 'Netzwerke',
   'settings.about.cryptoNoTag': 'Kein Destination Tag und kein Memo nötig.',

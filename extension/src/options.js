@@ -1236,6 +1236,7 @@ const coffeeCloseEl = document.getElementById('coffeeClose');
 function openCoffee() {
   document.getElementById('coffeeTitle').textContent = t('options.aboutCoffeeButton');
   glimSetInfo('coffeeHeading', t('options.coffeeIntro'));
+  document.getElementById('coffeeAppeal').textContent = t('options.donateAppeal');
   coffeeCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
   const frame = document.createElement('iframe');
   frame.src = COFFEE_WIDGET_URL;
@@ -1323,6 +1324,7 @@ function qrSvg(value, size) {
 function renderCrypto() {
   cryptoTitleEl.textContent = t('options.cryptoTitle');
   glimSetInfo('cryptoHeading', t('options.cryptoIntro'));
+  document.getElementById('cryptoAppeal').textContent = t('options.donateAppeal');
   cryptoQrEl.replaceChildren(qrSvg(cryptoNetwork.address, 168));
   cryptoAddressEl.textContent = cryptoNetwork.address;
 

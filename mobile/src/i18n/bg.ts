@@ -95,6 +95,7 @@ export const bg: Dict = {
   'settings.aboutPaypal': 'PayPal',
   'settings.aboutCrypto': 'Крипто',
   'settings.cryptoTitle': 'Дарение с крипто',
+  'settings.donateAppeal': 'Хвърли монета на своя рицар: тя покрива част от разходите и държи проекта жив. Всичко, което правя, е безплатно и без реклами.',
   'settings.cryptoIntro': 'Избери валута и мрежа, после сканирай кода или копирай адреса.',
   'settings.cryptoNetworks': 'Мрежи',
   'settings.cryptoNoTag': 'Не са нужни таг за получател или мемо.',
