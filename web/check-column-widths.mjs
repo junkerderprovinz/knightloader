@@ -30,13 +30,15 @@
 //   1. variant.minWidth >= 130. The floor is the widest single control rather
 //      than the whole row: wrapping saves a narrow column, clipping does not,
 //      and a picker is clipped rather than shrunk.
-//   2. 229 <= variant.width <= 288. The lower bound is the video row, which
-//      every yt-dlp package has exactly one of, on one line in English and
-//      German. In a language with a longer word for Auto its quality picker
-//      wraps under the format picker, rather than the column growing by 60px
-//      in every language. The upper bound is the widest cell this column can
-//      ever hold in any language; above it the column is reserving room for
-//      content that does not exist.
+//   2. In the collector, 229 <= variant.width <= 288. The lower bound is the
+//      video row, which every yt-dlp package has exactly one of, on one line
+//      in English and German. In a language with a longer word for Auto its
+//      quality picker wraps under the format picker, rather than the column
+//      growing by 60px in every language. The upper bound is the widest cell
+//      this column can ever hold in any language; above it the column is
+//      reserving room for content that does not exist. The download list
+//      shows a line of text there that truncates into its tooltip, so it only
+//      needs the minWidth and keeps the upper bound.
 //   3. In each list, the name column's default is the widest default of that
 //      list's visible columns. It carries the file name, which is what the row
 //      is for, and it is the one column that cannot be read anywhere else.
@@ -207,11 +209,14 @@ if (!variant) {
   }
   for (const list of ['downloads', 'collector']) {
     const w = defaultWidth(variant, list);
-    if (w < COMMON_ROW) {
+    if (list === 'collector' && w < COMMON_ROW) {
       problems.push(
         `variant.width in ${list} is ${w}, below the measured ${COMMON_ROW}px the video row needs on one line. ` +
           'Every yt-dlp package has a video row; sizing under it wraps the common case to save the rare one.',
       );
+    }
+    if (w < variant.minWidth) {
+      problems.push(`variant.width in ${list} is ${w}, below its own minWidth of ${variant.minWidth}.`);
     }
     if (w > WIDEST_ROW) {
       problems.push(

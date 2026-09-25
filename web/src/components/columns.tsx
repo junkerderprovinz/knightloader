@@ -1413,11 +1413,13 @@ export const COLUMNS: ColumnDef[] = [
     // Finnish "Automaattinen", 130px with the padding.
     width: 229,
     minWidth: 132,
+    // The download list shows one line of text instead of the pickers, and it
+    // truncates into its tooltip. 229 there would push the progress column out
+    // of the card at 1440px.
+    widthByProfile: { downloads: 160 },
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
-    // Pickers in the collector, plain text in the download list, which is
-    // narrower than the pickers it replaces; the widths above hold for both.
     render: (task, ctx) => <VarianteCell task={task} ctx={ctx} />,
     // No aggregate: a package almost always mixes kinds, its video, audio and
     // thumbnail rows all sharing one package, so there is no single variant a

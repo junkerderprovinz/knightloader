@@ -63,8 +63,10 @@ func TestFinishedDownloadIsRenamedOnDisk(t *testing.T) {
 		s.Extract, s.VerifyChecksums = false, false
 	})
 	task := finishedTask(t, a, base, "1", "original.bin")
-	task.Status = core.StatusRunning
-	task.Filename = "Great.Film.2026.bin"
+	editTask(a, task.ID, func(x *core.Task) {
+		x.Status = core.StatusRunning
+		x.Filename = "Great.Film.2026.bin"
+	})
 
 	a.onUpdate(task.ID, core.Update{Status: core.StatusDone})
 
@@ -115,8 +117,10 @@ func TestRenameRefusesRatherThanOverwriting(t *testing.T) {
 			t.Fatal(err)
 		}
 		task := finishedTask(t, a, base, "1", "original.bin")
-		task.Status = core.StatusRunning
-		task.Filename = "taken.bin"
+		editTask(a, task.ID, func(x *core.Task) {
+			x.Status = core.StatusRunning
+			x.Filename = "taken.bin"
+		})
 
 		a.onUpdate(task.ID, core.Update{Status: core.StatusDone})
 
@@ -353,8 +357,8 @@ func TestAutoExtractOverrideSurvivesAnUnrelatedEdit(t *testing.T) {
 
 	// And on a real task: a folder change leaves an existing override alone.
 	a, base := newRuleApp(t, func(*settings.Settings, string) {})
-	task := finishedTask(t, a, base, "1", "original.bin")
-	task.AutoExtract = boolPtr(true)
+	finishedTask(t, a, base, "1", "original.bin")
+	editTask(a, "1", func(x *core.Task) { x.AutoExtract = boolPtr(true) })
 
 	if err := a.SetTaskOptions([]string{"1"}, decode(t, `{"dir":`+quoteJSON(base)+`}`)); err != nil {
 		t.Fatal(err)
