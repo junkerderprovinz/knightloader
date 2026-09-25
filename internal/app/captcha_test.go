@@ -380,6 +380,35 @@ func TestTheSameCaptchaIsNeverSentToTheSolversTwice(t *testing.T) {
 	}
 }
 
+// A captcha held back for a watcher went to nobody, so when it drops out of one
+// poll and JD lists it again, the solvers still take it once nobody watches.
+func TestAHeldCaptchaThatComesBackIsStillSolved(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	viewer := addViewer(t, a)
+	s := &fakeSolver{text: "ABCD"}
+	c := pending(a, imageChallenge("c1"))
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		a.solveCaptchaWith(paid(s), c)
+	}()
+	waitFor(t, "the waiting report", func() bool {
+		got, _ := a.captchaStateFor().store.Get("c1")
+		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
+	})
+	a.captchaStateFor().store.Sync(nil)
+	<-done
+
+	a.Hub.SetVisible(viewer, false)
+	a.solveCaptchaWith(paid(s), pending(a, c))
+
+	if s.calls.Load() != 1 {
+		t.Errorf("solver called %d times for the captcha JD listed again, want 1", s.calls.Load())
+	}
+}
+
 // Challenges with nothing a solver could work from never reach one.
 func TestUnsolvableChallengesNeverReachASolver(t *testing.T) {
 	a := newCaptchaTestApp(t)
