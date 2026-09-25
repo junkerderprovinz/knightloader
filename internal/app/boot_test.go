@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -47,6 +49,34 @@ func newBootFixture(t *testing.T, mutate func(s *settings.Settings), tasks ...co
 		t.Fatal(err)
 	}
 	return f
+}
+
+// silentServer answers nothing until the test ends. A policy that brings the
+// queue up live starts its downloads during boot, and against a host that does
+// not exist the start fails at once on one machine and seconds later on
+// another; against this one a started download stays running.
+func silentServer(t *testing.T) string {
+	t.Helper()
+	release := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(func() {
+		close(release)
+		srv.Close()
+	})
+	return srv.URL
+}
+
+// requeued reports whether a task is waiting in the queue or was started by it.
+// A running row without a slot is the state the process died in, not a start.
+func requeued(a *App, t core.Task) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return t.Status == core.StatusQueued || (t.Status == core.StatusRunning && a.active[t.ID])
 }
 
 // boot opens the directory again.
@@ -158,20 +188,27 @@ func TestTheDefaultStartsNothing(t *testing.T) {
 
 // ResumeRunning is "carry on where you left off".
 func TestResumeRunningPutsTheQueueBack(t *testing.T) {
+	origin := silentServer(t)
 	f := newBootFixture(t,
 		func(s *settings.Settings) { s.ResumeOnStart = settings.ResumeRunning },
-		core.Task{ID: "was-running", URL: "https://host.example/a.bin", Name: "a.bin",
+		core.Task{ID: "was-running", URL: origin + "/a.bin", Name: "a.bin",
 			Status: core.StatusRunning, Enabled: true},
-		core.Task{ID: "was-waiting", URL: "https://host.example/b.bin", Name: "b.bin",
+		core.Task{ID: "was-waiting", URL: origin + "/b.bin", Name: "b.bin",
 			Status: core.StatusQueued, Enabled: true},
-		core.Task{ID: "was-paused", URL: "https://host.example/c.bin", Name: "c.bin",
+		core.Task{ID: "was-paused", URL: origin + "/c.bin", Name: "c.bin",
 			Status: core.StatusPaused, Enabled: true},
 	)
 
 	a := f.boot(t)
+	a.mu.Lock()
+	halted := a.halted
+	a.mu.Unlock()
+	if halted {
+		t.Error("the queue came up stopped, though it was live when the process stopped")
+	}
 	for _, id := range []string{"was-running", "was-waiting"} {
-		if got := taskOf(t, a, id); got.Status != core.StatusQueued {
-			t.Errorf("%s = %q, want queued: the queue was live when the process stopped", id, got.Status)
+		if got := taskOf(t, a, id); !requeued(a, got) {
+			t.Errorf("%s = %q, want it back in the queue", id, got.Status)
 		}
 	}
 	// A task paused by hand stays paused.
@@ -208,13 +245,19 @@ func TestResumeRunningStaysPutWhenNothingWas(t *testing.T) {
 func TestResumeAllTakesTheWaitingOnesToo(t *testing.T) {
 	f := newBootFixture(t,
 		func(s *settings.Settings) { s.ResumeOnStart = settings.ResumeAll },
-		core.Task{ID: "waiting", URL: "https://host.example/a.bin", Name: "a.bin",
+		core.Task{ID: "waiting", URL: silentServer(t) + "/a.bin", Name: "a.bin",
 			Status: core.StatusQueued, Enabled: true},
 	)
 
 	a := f.boot(t)
-	if got := taskOf(t, a, "waiting"); got.Status != core.StatusQueued {
-		t.Errorf("status = %q, want queued", got.Status)
+	a.mu.Lock()
+	halted := a.halted
+	a.mu.Unlock()
+	if halted {
+		t.Error("the queue came up stopped under ResumeAll")
+	}
+	if got := taskOf(t, a, "waiting"); !requeued(a, got) {
+		t.Errorf("status = %q, want it queued or started", got.Status)
 	}
 }
 
