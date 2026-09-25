@@ -528,7 +528,7 @@ submission and for a fixed download.
   Arabic, Hebrew, Thai, Chinese, Japanese and Korean use the phone's own font
   for those alphabets.
 - **The "Browser & App" page is called "App" and offers every other way to get
-  KnightLoader**, laid out as GlimStone 2.10.0's App tab. The phone card comes
+  KnightLoader**, laid out as GlimStone 2.9.0's App tab. The phone card comes
   first: Google Play, marked "Soon" until the listing is live, and the APK,
   with a Download button and a QR code button beside it. QR code turns the tile
   into a code to scan on a white ground, and pressed again it turns back. The
@@ -541,7 +541,7 @@ submission and for a fixed download.
   "Source code.zip" for the version you are running. The bookmarklet and the
   browser extension follow below them, unchanged.
 - **The web UI, the browser extension and the phone app follow GlimStone
-  2.10.0.** Every window has its way out as a button in its bottom row, tooltips
+  2.9.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
   the default motion level is "subtle", and the About card of the extension and
   the app offers PayPal and crypto beside the coffee. There a coin tile under

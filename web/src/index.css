@@ -1607,7 +1607,7 @@ body {
   color: var(--carbon-tile-hover-ink);
 }
 
-/* The app tiles' single-colour marks (GlimStone 2.10.0). The deepened value
+/* The app tiles' single-colour marks (GlimStone 2.9.0). The deepened value
    only under a real pointer, or a tap on a touch screen would leave it on a
    resting tile. Unraid's gradient reads its two stops as custom properties,
    which do not transition. */
