@@ -308,7 +308,7 @@ func (qb *qbitClient) serve(w http.ResponseWriter, r *http.Request) {
 	case "torrents/categories":
 		writeJSON(w, qb.categories())
 	case "torrents/createCategory":
-		qb.createCategory(w, r)
+		qb.createCategory(w, r, tok.Has(apitoken.ScopeAdmin))
 	case "sync/maindata":
 		qb.maindata(w)
 	case "transfer/info":
@@ -483,12 +483,11 @@ func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 	category := strings.TrimSpace(r.FormValue("category"))
 	stopped := qbitBool(r.FormValue("paused")) || qbitBool(r.FormValue("stopped"))
 	opts := app.LinkBatchOptions{Dir: dir, KeepCollected: stopped}
-	// qBittorrent creates a category it is handed. When this instance cannot,
-	// the torrent still arrives and keeps the name for Sonarr's filter.
+	// qBittorrent creates a category it is handed, and so does the SABnzbd
+	// door. When this instance cannot, the torrent still arrives and keeps the
+	// name for Sonarr's filter.
 	if category != "" {
-		if id, err := qb.ensureCategory(category); err == nil {
-			opts.Category = id
-		}
+		opts.Category = qb.a.CategoryNamed(category)
 	}
 	rename := strings.TrimSpace(r.FormValue("rename"))
 	ratioLimit := qbitRatioLimit(r.FormValue("ratioLimit"))
@@ -774,7 +773,11 @@ func (qb *qbitClient) setShareLimits(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (qb *qbitClient) createCategory(w http.ResponseWriter, r *http.Request) {
+// createCategory files the category the SABnzbd door would file for the same
+// name (see app.ClientCategory). A save path is where files land on the host,
+// so only a token with admin may send one, as for torrents/add; it becomes the
+// folder of a category that is new, and one that exists keeps its own.
+func (qb *qbitClient) createCategory(w http.ResponseWriter, r *http.Request, admin bool) {
 	if !r.Form.Has("category") {
 		qbitText(w, http.StatusBadRequest, "Bad Request")
 		return
@@ -784,68 +787,49 @@ func (qb *qbitClient) createCategory(w http.ResponseWriter, r *http.Request) {
 		qbitText(w, http.StatusBadRequest, "Category cannot be empty")
 		return
 	}
-	if _, err := qb.ensureCategory(name); errors.Is(err, errBadCategory) {
+	if settings.CategoryID(name) == "" {
 		qbitText(w, http.StatusConflict, "Incorrect category name")
-	} else if err != nil {
+		return
+	}
+	dir := strings.TrimSpace(r.Form.Get("savePath"))
+	if dir != "" && !admin {
+		qbitRefuse(w, apitoken.ScopeAdmin)
+		return
+	}
+	if _, err := qb.a.ClientCategory(name, dir); err != nil {
 		qbitText(w, http.StatusConflict, "Unable to create category")
 	}
 }
 
-// errBadCategory is a category name with nothing an id can be made of.
-var errBadCategory = errors.New("a category name needs a letter or a digit")
-
-// ensureCategory answers the id of the category a qBittorrent client names,
-// making it one of this instance's own first when there is none, so Sonarr's
-// category shows up in the list and can be given a folder. A save path sent
-// with it is ignored; where files go is decided here.
-func (qb *qbitClient) ensureCategory(name string) (string, error) {
-	if settings.CategoryID(name) == "" {
-		return "", errBadCategory
-	}
-	qb.mu.Lock()
-	defer qb.mu.Unlock()
-	s := qb.a.Settings.Get()
-	if id := qbitCategoryID(s, name); id != "" {
-		return id, nil
-	}
-	// Clipped, so the append cannot write into the array the stored settings
-	// still share.
-	s.Categories = append(slices.Clip(s.Categories), settings.Category{Name: name})
-	saved, err := qb.a.ApplySettings(s)
-	if err != nil {
-		return "", err
-	}
-	return qbitCategoryID(saved, name), nil
-}
-
 // qbitCategoryKeys lists this instance's categories under their names and
 // under their ids, so Sonarr finds its category whichever spelling it was set
-// up with. A key two categories share belongs to the first.
-func qbitCategoryKeys(categories []settings.Category) map[string]settings.Category {
+// up with. Each key names the category Settings.CategoryByName finds for it,
+// the one a torrent added under that key is filed in.
+func qbitCategoryKeys(s settings.Settings) map[string]settings.Category {
 	out := map[string]settings.Category{}
-	for _, c := range categories {
+	for _, c := range s.Categories {
 		for _, key := range []string{c.Name, c.ID} {
-			if _, seen := out[key]; key != "" && !seen {
-				out[key] = c
+			if _, seen := out[key]; key == "" || seen {
+				continue
+			}
+			if found, ok := s.CategoryByName(key); ok {
+				out[key] = found
 			}
 		}
 	}
 	return out
 }
 
-// qbitCategoryID is the id of the category a client names, found the way
-// torrents/categories lists it, or "" when this instance has none by that
-// name.
+// qbitCategoryID is the id of the category a client names, or "" when this
+// instance has none by that name.
 func qbitCategoryID(s settings.Settings, name string) string {
-	if c, ok := qbitCategoryKeys(s.Categories)[name]; ok {
-		return c.ID
-	}
-	return s.CategoryFor(name).ID
+	c, _ := s.CategoryByName(name)
+	return c.ID
 }
 
 func (qb *qbitClient) categories() map[string]map[string]string {
 	out := map[string]map[string]string{}
-	for key, c := range qbitCategoryKeys(qb.a.Settings.Get().Categories) {
+	for key, c := range qbitCategoryKeys(qb.a.Settings.Get()) {
 		// A folder with variables in it has no single answer for all tasks.
 		dir := c.Dir
 		if pathvars.HasVars(dir) {
