@@ -296,6 +296,9 @@ jobs:
       - name: A strip of glyphs follows Beschriftung
         run: node check-strip-labels.mjs
 
+      - name: A selector's label does not wrap while its box has room
+        run: node check-segment-layout.mjs
+
       - name: Rainbow mode has one name in all three apps
         run: node check-rainbow-name.mjs
 
