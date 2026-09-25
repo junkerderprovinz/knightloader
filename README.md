@@ -46,7 +46,7 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
   &nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7892,0,841.9,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8758,0,841.9,245.3))" alt="Install the Firefox add-on" width="160" height="46.618"></a>
+  <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8758,0,841.9,245.3))" alt="The Firefox add-on, soon" width="160" height="46.618">
   <br><sub>Always downloads the latest build</sub>
 </p>
 <!-- /download-buttons -->

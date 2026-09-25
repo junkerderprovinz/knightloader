@@ -16,8 +16,7 @@ permissions:
 jobs:
   zip:
     runs-on: ubuntu-latest
-    # Mozilla's signing usually answers within minutes, but it is a queue.
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -88,27 +87,6 @@ jobs:
           echo "path=$out" >> "$GITHUB_OUTPUT"
           ls -l "$out"
 
-      # Firefox, apart from Developer Edition and Nightly, installs only add-ons
-      # Mozilla has signed. The unlisted channel signs the same files without
-      # putting them on addons.mozilla.org.
-      - name: Sign for Firefox
-        id: xpi
-        if: github.ref_type == 'tag'
-        env:
-          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
-          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
-        run: |
-          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
-            echo "::error::AMO_JWT_ISSUER and AMO_JWT_SECRET are not set, so Mozilla cannot sign the Firefox add-on."
-            exit 1
-          fi
-          v="${GITHUB_REF_NAME#extension/v}"
-          npx --yes web-ext@8 sign --channel=unlisted --source-dir extension/src --artifacts-dir signed
-          out="knightloader-extension-$v.xpi"
-          mv signed/*.xpi "$out"
-          echo "path=$out" >> "$GITHUB_OUTPUT"
-          ls -l "$out"
-
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         # A dispatched run only checks that the zip builds; from a branch it
         # would find no notes and publish an empty release.
@@ -119,17 +97,30 @@ jobs:
           # The Latest badge belongs to the main vX.Y.Z release, and GitHub
           # would otherwise give it to whatever was published last.
           make_latest: false
-          files: |
-            ${{ steps.zip.outputs.path }}
-            ${{ steps.xpi.outputs.path }}
+          files: ${{ steps.zip.outputs.path }}
 
       # For the README download buttons; see .github/scripts/publish-newest.sh.
-      - name: The newest zip and xpi under fixed names
+      - name: The newest zip under a fixed name
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
           ZIP: ${{ steps.zip.outputs.path }}
-          XPI: ${{ steps.xpi.outputs.path }}
-        run: |
-          bash .github/scripts/publish-newest.sh extension "$ZIP" knightloader-extension.zip "Browser Extension"
-          bash .github/scripts/publish-newest.sh extension "$XPI" knightloader-extension.xpi "Browser Extension"
+        run: bash .github/scripts/publish-newest.sh extension "$ZIP" knightloader-extension.zip "Browser Extension"
+
+      # Firefox installs only add-ons Mozilla has signed, and the listed channel
+      # signs a version once it passes review, so this does not wait for it.
+      # The GitHub release comes first: a queue at Mozilla must not hold it up.
+      - name: Is this version for Firefox Add-ons
+        id: amo
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: node .github/scripts/amo-listed.mjs
+
+      - name: Submit it to Firefox Add-ons
+        if: steps.amo.outputs.submit == 'true'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: npx --yes web-ext@8 sign --channel=listed --approval-timeout=0 --source-dir extension/src

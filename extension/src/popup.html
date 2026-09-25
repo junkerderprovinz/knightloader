@@ -132,6 +132,9 @@
       .sendRow { display: flex; gap: 8px; }
       .sendRow > button { flex: 1 1 0; min-width: 0; }
       #tabs { margin-bottom: 12px; }
+      /* The base rule's width: 100% would give each tab the whole strip and
+         stack them. */
+      #tabs button { width: auto; }
       /* Both panes share a minimum height so switching tabs does not resize the
          popup; the collector's field takes the rest. */
       #paneSend,

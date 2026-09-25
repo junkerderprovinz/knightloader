@@ -32,7 +32,8 @@ BUTTONS = {
     "apk": NEWEST % "mobile" + "knightloader-android.apk",
     # One zip for every Chromium browser.
     "chrome": NEWEST % "extension" + "knightloader-extension.zip",
-    # Firefox takes only a signed add-on, which release-extension.yml has
-    # Mozilla sign.
-    "firefox": NEWEST % "extension" + "knightloader-extension.xpi",
+    # Firefox takes only an add-on Mozilla has signed, and the signed builds
+    # come from the Firefox Add-ons listing. Its address goes here once the
+    # listing is live.
+    "firefox": None,
 }
