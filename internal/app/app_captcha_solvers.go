@@ -44,8 +44,8 @@ const paidLedgerTTL = time.Hour
 // a solve would send the same captcha again.
 const paidLedgerFile = "captcha-ledger.json"
 
-// paidLedger is every challenge the solvers have started on in this process,
-// and on disk at path the ones a solver was asked to solve.
+// paidLedger is every challenge the solvers are on or were sent in this
+// process, and on disk at path the ones a solver was asked to solve.
 type paidLedger struct {
 	mu     sync.Mutex
 	path   string
@@ -72,6 +72,14 @@ func (l *paidLedger) claim(id string, now time.Time) bool {
 	}
 	l.seen[id] = now
 	return true
+}
+
+// release gives up a claim that nothing was sent for, so the challenge counts
+// as new when JD lists it again.
+func (l *paidLedger) release(id string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.seen, id)
 }
 
 // markSent writes id down as handed to a solver, before the request goes out.
@@ -200,6 +208,9 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		defer cancel()
 	}
 	if !a.holdForWatchers(ctx, c, report) {
+		// A challenge that dropped out of one poll ends the wait, and JD may
+		// list it again; only markSent has to keep it from a second solve.
+		a.captchaStateFor().paid.release(c.ID)
 		return
 	}
 
