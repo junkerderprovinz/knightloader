@@ -49,6 +49,7 @@ export const sv: Dict = {
   'addDownload.errorEmpty': 'Klistra in minst en länk.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Kunde inte skicka länkarna.',
+  'error.federationOff': 'Systerinstanser är avstängda på instansen du är ansluten till, så den når inte de andra.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 
@@ -76,6 +77,7 @@ export const sv: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbåge',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Medan regnbågsläget är på glider alla färgade element tillsammans genom paletten och byter färg var 2,4 sekund. Står Rörelse på ”Av”, eller är minskad rörelse påslagen i telefonens inställningar, hoppar de i stället från en färg till nästa.',
   'settings.problems': 'Problem?',
   'settings.problemsHint': 'Skicka med det här när du rapporterar något. Det sparar en runda frågor, och varken adress eller token finns med.',
   'settings.problemsCopy': 'Kopiera rapport',

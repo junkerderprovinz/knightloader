@@ -49,6 +49,7 @@ export const hr: Dict = {
   'addDownload.errorEmpty': 'Zalijepite barem jednu vezu.',
   'addDownload.errorServer': 'Poslužitelj: {message}',
   'addDownload.errorGeneric': 'Veze nije moguće poslati.',
+  'error.federationOff': 'Na instanci s kojom si povezan srodne instance su isključene, pa ona ne dopire do ostalih.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 
@@ -76,6 +77,7 @@ export const hr: Dict = {
   'settings.accent': 'Naglasak',
   'settings.rainbow': 'Duga',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Dok je dugin način uključen, svi obojeni elementi zajedno klize kroz paletu, svakih 2,4 sekunde jedna boja dalje. Ako je Pokret postavljen na „Isključeno” ili je telefon postavljen na manje kretanja, umjesto toga preskaču s boje na boju.',
   'settings.problems': 'Problemi?',
   'settings.problemsHint': 'Pošalji ovo kad nešto prijavljuješ. To štedi jedan krug pitanja, a u njemu nema ni adrese ni tokena.',
   'settings.problemsCopy': 'Kopiraj izvještaj',

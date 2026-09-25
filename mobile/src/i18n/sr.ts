@@ -49,6 +49,7 @@ export const sr: Dict = {
   'addDownload.errorEmpty': 'Налепите бар једну везу.',
   'addDownload.errorServer': 'Сервер: {message}',
   'addDownload.errorGeneric': 'Везе није било могуће послати.',
+  'error.federationOff': '„Сродни примерци“ су искључени на инстанци са којом си повезан, па она не може да дође до осталих.',
   'addDownload.cancel': 'Откажи',
   'addDownload.button': 'Додај',
 
@@ -76,6 +77,7 @@ export const sr: Dict = {
   'settings.accent': 'Нагласак',
   'settings.rainbow': 'Дуга',
   'settings.disco': 'Диско',
+  'settings.discoGlideHint': 'Док је дугин режим укључен, сви обојени елементи заједно клизе кроз палету, једна боја на свака 2,4 секунде. Ако је „Покрет“ на „Искључено“ или је у подешавањима телефона укључено смањење покрета, боја уместо тога само прескаче на следећу.',
   'settings.problems': 'Проблеми?',
   'settings.problemsHint': 'Пошаљи ово када нешто пријављујеш. То штеди један круг питања, а у њему нема ни адресе ни токена.',
   'settings.problemsCopy': 'Копирај извештај',

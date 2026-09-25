@@ -49,6 +49,7 @@ export const pt: Dict = {
   'addDownload.errorEmpty': 'Cole pelo menos um link.',
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': 'Não foi possível enviar os links.',
+  'error.federationOff': 'As instâncias parceiras estão desligadas na instância a que estás ligado, por isso ela não consegue chegar às outras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 
@@ -76,6 +77,7 @@ export const pt: Dict = {
   'settings.accent': 'Destaque',
   'settings.rainbow': 'Arco-íris',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Enquanto o modo arco-íris estiver ligado, todos os elementos coloridos deslizam juntos pela paleta, uma cor a cada 2,4 segundos. Com «Movimento» em «Desativado», ou com a redução de movimento ligada nas definições do teu telemóvel, passa antes de uma cor para a seguinte aos saltos.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envia isto junto quando relatares algo. Poupa uma ronda de perguntas e não leva nem endereço nem token.',
   'settings.problemsCopy': 'Copiar relatório',

@@ -49,6 +49,7 @@ export const sl: Dict = {
   'addDownload.errorEmpty': 'Prilepite vsaj eno povezavo.',
   'addDownload.errorServer': 'Strežnik: {message}',
   'addDownload.errorGeneric': 'Povezav ni bilo mogoče poslati.',
+  'error.federationOff': 'Na primerku, s katerim si povezan, so sorodni primerki izklopljeni, zato drugih ne doseže.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 
@@ -76,6 +77,7 @@ export const sl: Dict = {
   'settings.accent': 'Poudarek',
   'settings.rainbow': 'Mavrica',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Dokler je mavrični način vklopljen, vsi barvni elementi skupaj drsijo skozi paleto, vsakih 2,4 sekunde za eno barvo naprej. Če je Gibanje nastavljeno na »Izklopljeno« ali je telefon nastavljen na manj gibanja, namesto tega preskakujejo od barve do barve.',
   'settings.problems': 'Težave?',
   'settings.problemsHint': 'Pošlji to zraven, ko kaj prijaviš. Prihrani en krog vprašanj, v njem pa ni ne naslova ne žetona.',
   'settings.problemsCopy': 'Kopiraj poročilo',

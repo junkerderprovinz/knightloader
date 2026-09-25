@@ -49,6 +49,7 @@ export const fa: Dict = {
   'addDownload.errorEmpty': 'حداقل یک لینک جای‌گذاری کنید.',
   'addDownload.errorServer': 'سرور: {message}',
   'addDownload.errorGeneric': 'ارسال لینک‌ها ممکن نشد.',
+  'error.federationOff': 'نمونه‌های همتا روی نمونه‌ای که به آن وصل هستید خاموش‌اند، پس این نمونه نمی‌تواند به بقیه برسد.',
   'addDownload.cancel': 'لغو',
   'addDownload.button': 'افزودن',
 
@@ -76,6 +77,7 @@ export const fa: Dict = {
   'settings.accent': 'رنگ تأکید',
   'settings.rainbow': 'رنگین‌کمان',
   'settings.disco': 'دیسکو',
+  'settings.discoGlideHint': 'تا وقتی حالت رنگین‌کمان روشن است، همهٔ عناصر رنگی با هم در پالت می‌لغزند، هر 2.4 ثانیه یک رنگ. اگر «حرکت» روی «خاموش» باشد، یا کاهش حرکت در تنظیمات گوشی شما روشن باشد، به‌جای آن از یک رنگ به رنگ بعدی می‌پرد.',
   'settings.problems': 'مشکلی هست؟',
   'settings.problemsHint': 'وقتی چیزی را گزارش می‌کنید، این را هم بفرستید. یک دور پرسش و پاسخ را کم می‌کند و نه آدرسی در آن هست و نه توکنی.',
   'settings.problemsCopy': 'کپی گزارش',

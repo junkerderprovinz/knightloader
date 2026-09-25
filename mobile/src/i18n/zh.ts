@@ -49,6 +49,7 @@ export const zh: Dict = {
   'addDownload.errorEmpty': '请至少粘贴一个链接。',
   'addDownload.errorServer': '服务器：{message}',
   'addDownload.errorGeneric': '无法发送链接。',
+  'error.federationOff': '你连接的实例上关闭了“同伴实例”，所以它联系不到其他实例。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',
 
@@ -76,6 +77,7 @@ export const zh: Dict = {
   'settings.accent': '强调色',
   'settings.rainbow': '彩虹',
   'settings.disco': '迪斯科',
+  'settings.discoGlideHint': '彩虹模式开启时，所有带颜色的元素会一起在调色板中平滑过渡，每 2.4 秒换一种颜色。如果“动效”设为“关闭”，或者手机设置里开启了减弱动态效果，就改为从一种颜色直接跳到下一种。',
   'settings.problems': '遇到问题？',
   'settings.problemsHint': '报告问题时把这段一起发来。这样可以省去一轮追问，而且其中不含地址或令牌。',
   'settings.problemsCopy': '复制报告',

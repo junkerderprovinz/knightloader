@@ -49,6 +49,7 @@ export const ja: Dict = {
   'addDownload.errorEmpty': '少なくとも1つのリンクを貼り付けてください。',
   'addDownload.errorServer': 'サーバー: {message}',
   'addDownload.errorGeneric': 'リンクを送信できませんでした。',
+  'error.federationOff': '接続先のインスタンスで「連携インスタンス」がオフになっているため、ほかのインスタンスに届きません。',
   'addDownload.cancel': 'キャンセル',
   'addDownload.button': '追加',
 
@@ -76,6 +77,7 @@ export const ja: Dict = {
   'settings.accent': 'アクセントカラー',
   'settings.rainbow': 'レインボー',
   'settings.disco': 'ディスコ',
+  'settings.discoGlideHint': 'レインボーモードがオンのあいだ、色の付いた要素はすべていっしょにパレットの中をなめらかに移り変わり、2.4 秒ごとに次の色へ進みます。モーションが「オフ」のとき、または端末の設定で視差効果を減らす設定がオンのときは、なめらかに移らず色から色へ切り替わります。',
   'settings.problems': '問題がありますか?',
   'settings.problemsHint': '何か報告するときはこれを添えてください。やり取りが1往復減り、アドレスもトークンも含まれていません。',
   'settings.problemsCopy': 'レポートをコピー',

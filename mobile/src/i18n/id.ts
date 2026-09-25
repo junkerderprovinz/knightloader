@@ -49,6 +49,7 @@ export const id: Dict = {
   'addDownload.errorEmpty': 'Tempelkan setidaknya satu tautan.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Tautan tidak dapat dikirim.',
+  'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 
@@ -76,6 +77,7 @@ export const id: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Pelangi',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Selama mode pelangi menyala, setiap elemen berwarna bergeser bersama melewati palet, satu warna setiap 2,4 detik. Jika Gerakan disetel ke Nonaktif, atau pengurangan gerakan dinyalakan di pengaturan ponsel, warnanya melompat dari satu warna ke warna berikutnya.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Kirimkan ini saat kamu melaporkan sesuatu. Ini menghemat satu putaran pertanyaan, dan tidak ada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',

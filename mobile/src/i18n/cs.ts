@@ -49,6 +49,7 @@ export const cs: Dict = {
   'addDownload.errorEmpty': 'Vložte alespoň jeden odkaz.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Odkazy se nepodařilo odeslat.',
+  'error.federationOff': 'Na instanci, ke které jsi připojený, jsou spřátelené instance vypnuté, takže se k ostatním nedostane.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 
@@ -76,6 +77,7 @@ export const cs: Dict = {
   'settings.accent': 'Zvýraznění',
   'settings.rainbow': 'Duha',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Dokud je zapnutý duhový režim, všechny barevné prvky spolu plynule procházejí paletou, každé 2,4 sekundy o jednu barvu dál. Když je Pohyb nastavený na „Vypnuto“ nebo má telefon nastavené omezení pohybu, přeskakují místo toho z barvy na barvu.',
   'settings.problems': 'Potíže?',
   'settings.problemsHint': 'Přilož to, když něco hlásíš. Ušetří to jedno kolo dotazů a není v tom adresa ani token.',
   'settings.problemsCopy': 'Kopírovat hlášení',

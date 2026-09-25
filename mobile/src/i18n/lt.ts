@@ -49,6 +49,7 @@ export const lt: Dict = {
   'addDownload.errorEmpty': 'Įklijuokite bent vieną nuorodą.',
   'addDownload.errorServer': 'Serveris: {message}',
   'addDownload.errorGeneric': 'Nepavyko išsiųsti nuorodų.',
+  'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 
@@ -76,6 +77,7 @@ export const lt: Dict = {
   'settings.accent': 'Akcentas',
   'settings.rainbow': 'Vaivorykštė',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Kol įjungtas vaivorykštės režimas, visi spalvoti elementai kartu slenka per paletę, po vieną spalvą kas 2,4 sekundės. Jei Judesys nustatytas į „Išjungta“ arba telefono nustatymuose įjungtas sumažintas judesys, spalvos vietoj to peršoka iš vienos į kitą.',
   'settings.problems': 'Kilo problemų?',
   'settings.problemsHint': 'Atsiųsk tai kartu, kai apie ką nors pranešai. Taip sutaupomas vienas klausimų ratas, o jame nėra nei adreso, nei prieigos rakto.',
   'settings.problemsCopy': 'Kopijuoti ataskaitą',

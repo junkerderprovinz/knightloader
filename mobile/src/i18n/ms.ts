@@ -49,6 +49,7 @@ export const ms: Dict = {
   'addDownload.errorEmpty': 'Tampal sekurang-kurangnya satu pautan.',
   'addDownload.errorServer': 'Pelayan: {message}',
   'addDownload.errorGeneric': 'Pautan tidak dapat dihantar.',
+  'error.federationOff': 'Instans rakan dimatikan pada instans yang anda sambungkan, jadi ia tidak dapat mencapai instans lain.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 
@@ -76,6 +77,7 @@ export const ms: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Pelangi',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Semasa mod pelangi dihidupkan, setiap unsur berwarna meluncur bersama-sama melalui palet, satu warna setiap 2.4 saat. Jika Gerakan ditetapkan kepada Mati, atau pengurangan gerakan dihidupkan dalam tetapan telefon anda, ia melompat dari satu warna ke warna seterusnya.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Hantar ini sekali apabila anda melaporkan sesuatu. Ia menjimatkan satu pusingan soalan, dan tiada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',

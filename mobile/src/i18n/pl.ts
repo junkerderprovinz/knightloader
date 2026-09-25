@@ -49,6 +49,7 @@ export const pl: Dict = {
   'addDownload.errorEmpty': 'Wklej co najmniej jeden link.',
   'addDownload.errorServer': 'Serwer: {message}',
   'addDownload.errorGeneric': 'Nie udało się wysłać linków.',
+  'error.federationOff': 'Na instancji, z którą jesteś połączony, instancje partnerskie są wyłączone, więc nie może ona dotrzeć do pozostałych.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
 
@@ -76,6 +77,7 @@ export const pl: Dict = {
   'settings.accent': 'Akcent',
   'settings.rainbow': 'Tęcza',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Gdy tryb tęczy jest włączony, wszystkie kolorowe elementy razem płynnie przechodzą przez paletę, co 2,4 sekundy o jeden kolor dalej. Jeśli Ruch jest ustawiony na „Wyłączone” albo telefon jest ustawiony na ograniczenie ruchu, kolory zamiast tego przeskakują od jednego do następnego.',
   'settings.problems': 'Problemy?',
   'settings.problemsHint': 'Dołącz to, gdy coś zgłaszasz. Oszczędza to jedną rundę pytań i nie ma w tym ani adresu, ani tokenu.',
   'settings.problemsCopy': 'Kopiuj raport',

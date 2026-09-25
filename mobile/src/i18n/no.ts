@@ -49,6 +49,7 @@ export const no: Dict = {
   'addDownload.errorEmpty': 'Lim inn minst én lenke.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Kunne ikke sende lenkene.',
+  'error.federationOff': 'Søsterinstanser er slått av på instansen du er koblet til, så den når ikke de andre.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 
@@ -76,6 +77,7 @@ export const no: Dict = {
   'settings.accent': 'Aksent',
   'settings.rainbow': 'Regnbue',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Mens regnbuemodus er på, glir alle fargede elementer sammen gjennom paletten og bytter farge hvert 2,4 sekund. Står Bevegelse på «Av», eller er redusert bevegelse slått på i telefoninnstillingene, hopper de i stedet fra én farge til den neste.',
   'settings.problems': 'Problemer?',
   'settings.problemsHint': 'Send dette med når du melder fra om noe. Det sparer en runde med spørsmål, og verken adresse eller token står i det.',
   'settings.problemsCopy': 'Kopier rapport',

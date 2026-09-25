@@ -49,6 +49,7 @@ export const fr: Dict = {
   'addDownload.errorEmpty': 'Collez au moins un lien.',
   'addDownload.errorServer': 'Serveur : {message}',
   'addDownload.errorGeneric': 'Impossible d’envoyer les liens.',
+  'error.federationOff': 'Les instances jumelées sont désactivées sur l’instance à laquelle vous êtes connecté : elle ne peut donc pas joindre les autres.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 
@@ -76,6 +77,7 @@ export const fr: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Arc-en-ciel',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Tant que le mode arc-en-ciel est activé, chaque élément coloré glisse avec tous les autres à travers la palette, une couleur toutes les 2,4 secondes. Si « Mouvement » est réglé sur « Désactivé », ou si la réduction des animations est activée dans les réglages de votre téléphone, il passe plutôt d’une couleur à la suivante sans transition.',
   'settings.problems': 'Un problème ?',
   'settings.problemsHint': 'Joignez ceci quand vous signalez quelque chose. Cela évite un aller-retour de questions, et ni adresse ni jeton n’y figurent.',
   'settings.problemsCopy': 'Copier le rapport',

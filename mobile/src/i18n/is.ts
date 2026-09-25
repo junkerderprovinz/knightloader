@@ -49,6 +49,7 @@ export const is: Dict = {
   'addDownload.errorEmpty': 'Límdu að minnsta kosti einn tengil.',
   'addDownload.errorServer': 'Netþjónn: {message}',
   'addDownload.errorGeneric': 'Ekki tókst að senda tenglana.',
+  'error.federationOff': 'Slökkt er á systurtilvikum á tilvikinu sem þú ert tengdur við, svo það nær ekki í hin.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 
@@ -76,6 +77,7 @@ export const is: Dict = {
   'settings.accent': 'Áherslulitur',
   'settings.rainbow': 'Regnbogi',
   'settings.disco': 'Diskó',
+  'settings.discoGlideHint': 'Á meðan kveikt er á regnbogaham líða öll lituð atriði saman í gegnum litaspjaldið og skipta um lit á 2,4 sekúndna fresti. Sé Hreyfing stillt á „Slökkt“, eða kveikt á minni hreyfingu í stillingum símans, stökkva þau í staðinn frá einum lit yfir í þann næsta.',
   'settings.problems': 'Vandamál?',
   'settings.problemsHint': 'Sendu þetta með þegar þú tilkynnir eitthvað. Það sparar eina umferð af spurningum og hvorki vistfang né teikn eru í því.',
   'settings.problemsCopy': 'Afrita skýrslu',

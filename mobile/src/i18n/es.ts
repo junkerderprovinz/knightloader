@@ -49,6 +49,7 @@ export const es: Dict = {
   'addDownload.errorEmpty': 'Pega al menos un enlace.',
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': 'No se pudieron enviar los enlaces.',
+  'error.federationOff': 'Las instancias asociadas están desactivadas en la instancia a la que estás conectado, así que no puede llegar a las demás.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
 
@@ -76,6 +77,7 @@ export const es: Dict = {
   'settings.accent': 'Acento',
   'settings.rainbow': 'Arcoíris',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Mientras el modo arcoíris está activado, todos los elementos de color se deslizan juntos por la paleta, un color cada 2,4 segundos. Si «Movimiento» está en «Desactivado», o si tienes activada la reducción de movimiento en los ajustes de tu teléfono, en su lugar salta de un color al siguiente.',
   'settings.problems': '¿Problemas?',
   'settings.problemsHint': 'Envía esto cuando informes de algo. Ahorra una ronda de preguntas y no lleva ni dirección ni token.',
   'settings.problemsCopy': 'Copiar informe',

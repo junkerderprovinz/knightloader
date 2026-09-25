@@ -49,6 +49,7 @@ export const th: Dict = {
   'addDownload.errorEmpty': 'วางลิงก์อย่างน้อยหนึ่งลิงก์',
   'addDownload.errorServer': 'เซิร์ฟเวอร์: {message}',
   'addDownload.errorGeneric': 'ไม่สามารถส่งลิงก์ได้',
+  'error.federationOff': 'อินสแตนซ์คู่หูถูกปิดอยู่บนอินสแตนซ์ที่คุณเชื่อมต่อ อินสแตนซ์นั้นจึงติดต่ออินสแตนซ์อื่นไม่ได้',
   'addDownload.cancel': 'ยกเลิก',
   'addDownload.button': 'เพิ่ม',
 
@@ -76,6 +77,7 @@ export const th: Dict = {
   'settings.accent': 'สีเน้น',
   'settings.rainbow': 'สายรุ้ง',
   'settings.disco': 'ดิสโก้',
+  'settings.discoGlideHint': 'ขณะที่โหมดสายรุ้งเปิดอยู่ ทุกองค์ประกอบที่มีสีจะค่อย ๆ ไล่ผ่านจานสีไปพร้อมกัน เปลี่ยนหนึ่งสีทุก 2.4 วินาที ถ้าตั้งการเคลื่อนไหวเป็น “ปิด” หรือเปิดการลดการเคลื่อนไหวไว้ในการตั้งค่าของโทรศัพท์ สีจะกระโดดจากสีหนึ่งไปอีกสีแทน',
   'settings.problems': 'มีปัญหาไหม',
   'settings.problemsHint': 'ส่งข้อมูลนี้ไปด้วยเมื่อแจ้งปัญหา ช่วยลดการถามตอบไปหนึ่งรอบ และไม่มีทั้งที่อยู่และโทเคนอยู่ในนั้น',
   'settings.problemsCopy': 'คัดลอกรายงาน',

@@ -49,6 +49,7 @@ export const ro: Dict = {
   'addDownload.errorEmpty': 'Lipește cel puțin un link.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Nu s-au putut trimite linkurile.',
+  'error.federationOff': 'Instanțele partenere sunt dezactivate pe instanța la care ești conectat, deci aceasta nu le poate accesa pe celelalte.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 
@@ -76,6 +77,7 @@ export const ro: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Curcubeu',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Cât timp modul curcubeu este pornit, toate elementele colorate alunecă împreună prin paletă, câte o culoare la fiecare 2,4 secunde. Dacă Mișcare stă pe Dezactivat sau dacă mișcarea redusă este activată în setările telefonului tău, sare în schimb de la o culoare la alta.',
   'settings.problems': 'Probleme?',
   'settings.problemsHint': 'Trimite asta când raportezi ceva. Scutește o rundă de întrebări și nu conține nici adresă, nici token.',
   'settings.problemsCopy': 'Copiază raportul',
