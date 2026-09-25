@@ -1,0 +1,78 @@
+site_name: KnightLoader
+site_description: A self-hosted, cross-platform download manager with debrid services, torrents, yt-dlp and a headless JDownloader behind one web interface.
+site_url: https://junkerderprovinz.github.io/knightloader/
+site_author: Junker der Provinz
+
+repo_url: https://github.com/junkerderprovinz/knightloader
+repo_name: junkerderprovinz/knightloader
+edit_uri: edit/main/docs/
+
+copyright: Copyright (C) 2026 Junker der Provinz. Licensed AGPL-3.0.
+
+# Working notes for whoever works on the code. They stay in docs/ next to the
+# manual, but they are not part of it.
+exclude_docs: |
+  census2html.py
+  design-language.md
+  easter-eggs.md
+  jd-feature-census.md
+  preview-deploy.md
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  palette:
+    # Without media queries Material takes the first palette as the default,
+    # so the site opens dark whatever the operating system prefers.
+    - scheme: slate
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - scheme: default
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Start here: index.md
+  - Installing: installing.md
+  - What it does: features.md
+  - Configuration: configuration.md
+  - Getting links in: getting-links-in.md
+  - "Click'n'Load": clicknload.md
+  - Bookmarklet, extension and share target: browser-tools.md
+  - Connecting instances and apps: connecting.md
+  - Where files land: where-files-land.md
+  - For developers:
+      - Architecture: architecture.md
+      - Building and testing: development.md
+      - What is not here, and why: decisions.md

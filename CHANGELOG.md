@@ -39,6 +39,13 @@ submission and for a fixed download.
 
 ### Added
 
+- **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
+  Installing, what it does, configuration, getting links in, Click'n'Load,
+  connecting instances and where files land, built from `docs/` with MkDocs
+  and published on every change. The README keeps the overview, the
+  comparison, the screenshots and a quick start, and its download row gains a
+  Docs button after Source. The comparison table marks each cell with ✅, ⚠️ or
+  ❌ like the other repositories' tables.
 - **Browser extension 1.0.3: a build Mozilla has signed, for Firefox.** Firefox
   installs only signed add-ons, so the zip loaded there only until the next
   restart. Each extension tag has Mozilla sign the package on the unlisted

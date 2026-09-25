@@ -49,12 +49,20 @@ ssh -p <ssh-port> root@<host> '
     --cpus 2 --memory 1g \
     --network br0.20 --ip <instance-ip> \
     -v /mnt/user/appdata/knightloader:/data \
-    -v /mnt/user/downloads/knightloader:/data/downloads \
-    -e TZ=Europe/Berlin \
+    -v /mnt/user/download/:/data/downloads \
+    -v /mnt/user/download/knightloader-watch:/watch \
+    -e TZ=Europe/Vienna \
     --label net.unraid.docker.managed=dockerman \
-    --label "net.unraid.docker.webui=http://[IP]:[PORT:8749]" \
+    --label "net.unraid.docker.webui=http://[IP]:[PORT:8749]/" \
+    --label "net.unraid.docker.icon=https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-appicon.png" \
     knightloader:preview'
 ```
+
+The same container is described by the Unraid template
+`/boot/config/plugins/dockerMan/templates-user/my-knightloader.xml`, which is
+what makes it editable in the Docker tab. Keep the two in step: a flag changed
+in only one of them is undone the next time somebody presses Apply in the
+Docker tab, or the next time the preview is redeployed from here.
 
 `--user 99:100` makes downloaded files land as `nobody:users`, which is what the
 rest of an Unraid box expects. `VERSION` is stamped into the binary and shown
@@ -72,7 +80,7 @@ mapping. That is the standing convention for every self-hosted service here,
 not something specific to KnightLoader. `<instance-ip>` is this instance's
 fixed IP; a second instance used for testing the phrase group and federation runs the same
 way at `<second-instance-ip>` (same image, its own `/mnt/user/appdata/knightloader2`
-and `/mnt/user/downloads/knightloader2` volumes, no `-p` either, because each
+and `/mnt/user/download/knightloader2` volumes, no `-p` either, because each
 instance is reachable on its own IP at the container's own port 8749).
 
 ## Where things live
@@ -80,7 +88,11 @@ instance is reachable on its own IP at the container's own port 8749).
 | Path | Holds |
 |---|---|
 | `/mnt/user/appdata/knightloader` | SQLite database, settings, the encrypted account store, the instance list |
-| `/mnt/user/downloads/knightloader` | finished downloads (mounted at `/data/downloads`) |
+| `/mnt/user/download/` | downloads, on the server's download share (mounted at `/data/downloads`) |
+| `/mnt/user/download/knightloader-watch` | the watched folder (mounted at `/watch`) |
+
+Mount a share that exists. A path under `/mnt/user` that is not a configured
+share gets created by the bind mount and shows up as a share without settings.
 
 ## Environment
 
