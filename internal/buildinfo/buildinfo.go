@@ -48,6 +48,11 @@ var ListensWidely bool
 // the resolved address knows what ":0" became.
 var ListenPort int
 
+// BasePath is the path a reverse proxy mounts the server under, "/kl" for
+// https://example.com/kl/, or "" at the root. The main package sets it from
+// KL_BASE_PATH; the desktop build has no proxy and leaves it empty.
+var BasePath string
+
 // DiscoveryEnabled turns on internal/discovery's multicast announce and
 // listener. It is off by default so the many api.Handler instances in tests
 // do not each open a multicast socket; a serving main package opts in.

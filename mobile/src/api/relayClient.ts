@@ -48,9 +48,10 @@ const T_PROXY_RESPONSE = 'proxy-response';
 /**
  * connectURL mirrors internal/relay/client.go's function of the same name:
  * people write down the https:// address they gave their reverse proxy, not a
- * WebSocket URL, so both scheme families are accepted and the connect path is
- * appended only when the address does not already carry one (a relay behind a
- * proxy can be mounted anywhere, and only the person configuring it knows).
+ * WebSocket URL, so both scheme families are accepted. A path ending in
+ * /connect names the socket and stays (a relay behind a proxy can be mounted
+ * anywhere, and only the person configuring it knows); any other path is where
+ * a proxy serves an instance, and the connect path goes below it.
  *
  * Exported for the connect screen, which validates what was typed before it
  * ever opens a socket with it.
@@ -61,8 +62,8 @@ export function connectURL(raw: string): string | null {
   if (!m) return null;
   const scheme = { http: 'ws', https: 'wss', ws: 'ws', wss: 'wss' }[m[1].toLowerCase()];
   const host = m[2];
-  const path = m[3] === '' || m[3] === '/' ? '/relay/connect' : m[3].replace(/\/$/, '');
-  return `${scheme}://${host}${path}`;
+  const path = m[3].replace(/\/+$/, '');
+  return `${scheme}://${host}${path.endsWith('/connect') ? path : `${path}/relay/connect`}`;
 }
 
 interface Pending {

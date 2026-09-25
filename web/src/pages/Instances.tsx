@@ -13,6 +13,7 @@ import {
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { basePath } from '../lib/basePath';
 import { fetchFeatures, type Feature } from './settings/features';
 import { ModulesPageBadge } from './settings/ModuleToggle';
 import { useToast } from '../lib/toast';
@@ -116,7 +117,7 @@ export function Instances() {
         {/* Open goes to the local download list, with no ?instance=. */}
         <InstanceCard
           name={ownName || t('instances.thisInstance')}
-          url={location.host}
+          url={location.host + basePath()}
           base="/api"
           // Without a configured name the title already says "this instance".
           isSelf={ownName !== ''}

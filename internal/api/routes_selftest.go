@@ -46,6 +46,9 @@ type selfTestRequestView struct {
 	// ForwardedPrefix is X-Forwarded-Prefix, "" when absent. It is the only
 	// trace of a path prefix a proxy stripped before the request arrived.
 	ForwardedPrefix string `json:"forwardedPrefix"`
+	// BasePath is the prefix this instance served the request under:
+	// KL_BASE_PATH, or X-Forwarded-Prefix while that is unset. "" is the root.
+	BasePath string `json:"basePath"`
 	// ForwardedForHops is how many hops X-Forwarded-For names. The addresses
 	// themselves would map somebody's internal network, so they are not sent.
 	ForwardedForHops int `json:"forwardedForHops"`
@@ -100,6 +103,7 @@ func requestViewOf(r *http.Request) selfTestRequestView {
 		TLS:               r.TLS != nil,
 		Path:              r.URL.Path,
 		ForwardedPrefix:   normalisePrefix(r.Header.Get("X-Forwarded-Prefix")),
+		BasePath:          requestBasePath(r),
 		ForwardedForHops:  forwardedForHops(r),
 		Now:               time.Now(),
 		Zone:              z.Name,

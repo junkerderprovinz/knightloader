@@ -12,6 +12,7 @@ import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
 import { RainbowProvider } from '../lib/useRainbow';
+import { basePath } from '../lib/basePath';
 
 export function AppRouter() {
   return (
@@ -23,7 +24,7 @@ export function AppRouter() {
       <AuthGate>
         {/* Outside the router: the tab title and favicon need no route. */}
         <TabIndicator />
-        <BrowserRouter>
+        <BrowserRouter basename={basePath()}>
           <Routes>
             {/* Outside <Layout>: the bookmarklet and the extension open it as
                 a small window with no room for a sidebar. */}

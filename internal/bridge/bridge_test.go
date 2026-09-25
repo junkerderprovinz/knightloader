@@ -60,11 +60,14 @@ type fakeRemote struct {
 	// containerFails makes /api/containers answer like an instance without a
 	// JD backend.
 	containerFails bool
+	// cookiePath is where the session cookie applies, the base path of a
+	// remote behind a proxy that mounts it under one.
+	cookiePath string
 }
 
 func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 	t.Helper()
-	f := &fakeRemote{locked: locked, ids: ids}
+	f := &fakeRemote{locked: locked, ids: ids, cookiePath: "/"}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -85,9 +88,9 @@ func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 		f.mu.Lock()
 		f.logins++
 		f.session = fmt.Sprintf("session-%d", f.logins)
-		token := f.session
+		token, path := f.session, f.cookiePath
 		f.mu.Unlock()
-		http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: token, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: token, Path: path})
 		writeJSON(w, map[string]bool{"enabled": true, "authenticated": true})
 	})
 	mux.HandleFunc("POST /api/links", func(w http.ResponseWriter, r *http.Request) {
@@ -158,6 +161,21 @@ func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 
 	f.srv = httptest.NewServer(mux)
 	t.Cleanup(f.srv.Close)
+	return f
+}
+
+// newFakeRemoteUnder is a fake remote that answers only under base and limits
+// its session cookie to it, as a KnightLoader behind a reverse proxy at that
+// path does.
+func newFakeRemoteUnder(t *testing.T, base string, locked bool, ids ...string) *fakeRemote {
+	t.Helper()
+	f := newFakeRemote(t, locked, ids...)
+	f.mu.Lock()
+	f.cookiePath = base
+	f.mu.Unlock()
+	mounted := httptest.NewServer(http.StripPrefix(base, f.srv.Config.Handler))
+	t.Cleanup(mounted.Close)
+	f.srv = mounted
 	return f
 }
 
@@ -472,6 +490,37 @@ func TestUnlockedRemoteNeverLogsIn(t *testing.T) {
 	}
 	if attempts != 1 || len(links) != 1 {
 		t.Fatalf("attempts=%d delivered=%d, want one clean delivery", attempts, len(links))
+	}
+}
+
+// TestARemoteUnderABasePathKeepsItsPrefix covers an instance behind a reverse
+// proxy at https://example.com/kl/: every request, and the session cookie that
+// lives under /kl, has to go there, whether or not the address was typed with
+// a trailing slash.
+func TestARemoteUnderABasePathKeepsItsPrefix(t *testing.T) {
+	f := newFakeRemoteUnder(t, "/kl", true, "task-1")
+	b, err := New(Options{Remote: f.srv.URL + "/kl/", Password: remotePassword, Timeout: 5 * time.Second})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := b.Check(context.Background()); err != nil {
+		t.Fatalf("Check against a remote under /kl: %v", err)
+	}
+	b.AddLinksCnL([]string{"https://a.example/1"}, "CnL", nil)
+	if err := b.AddContainerCnL([]byte("rsa-encrypted-stand-in"), "CnL"); err != nil {
+		t.Fatalf("AddContainerCnL against a remote under /kl: %v", err)
+	}
+
+	logins, attempts, links, _ := f.snapshot()
+	if logins != 1 || attempts != 1 {
+		t.Errorf("logins=%d attempts=%d, want one login whose cookie the next request carried", logins, attempts)
+	}
+	if len(links) != 1 {
+		t.Errorf("delivered links = %v, want the submission to land", links)
+	}
+	if containerAttempts, uploads := f.snapshotContainers(); containerAttempts != 1 || len(uploads) != 1 {
+		t.Errorf("container attempts=%d uploads=%d, want one clean upload", containerAttempts, len(uploads))
 	}
 }
 

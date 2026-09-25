@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, SectionTitle } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
+import { appAddress } from '../../../lib/basePath';
 import { useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 import { Reading } from './Reading';
@@ -18,8 +19,8 @@ export function ScrapeCard({ hue }: { hue: number }) {
   const on = features.modules.find((m) => m.id === 'metrics')?.enabled ?? false;
 
   // Absolute, because it gets pasted into a collector on another machine, and
-  // taken from the origin the reader used since the server cannot know it.
-  const address = `${window.location.origin}/api/metrics`;
+  // taken from the address the reader used since the server cannot know it.
+  const address = `${appAddress()}/api/metrics`;
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">

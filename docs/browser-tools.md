@@ -36,8 +36,8 @@ an address, and the extension no longer knows any.
 
 ## Bookmarklet
 
-Settings > App shows a link built from `window.location.origin`,
-whatever address you are looking at the settings page on. Drag it to your
+Settings > App shows a link built from `window.location.origin` and the base
+path, whatever address you are looking at the settings page on. Drag it to your
 bookmarks bar. Clicking it on any page opens `/quickadd` with that page's URL
 and title, plus whatever text you had selected (useful for a page listing
 several links in prose, none of them individually a "download button").
@@ -130,8 +130,9 @@ nothing about this shape blocks it later.
 ## PWA share target
 
 `web/public/manifest.webmanifest` declares `share_target` pointing at
-`/quickadd` with a plain `GET` (`url`/`text`/`title` become query
-parameters), the same shape the bookmarklet already uses,
+`quickadd` beside the manifest, under the base path, with a plain `GET`
+(`url`/`text`/`title` become query parameters), the same shape the
+bookmarklet already uses,
 so there is exactly one page that knows how to turn a shared blob into a
 staged link. `web/public/sw.js` is an empty pass-through service worker. It
 exists only because most browsers gate the install prompt behind "has a

@@ -115,7 +115,7 @@ func discoverySelf(a *app.App) discovery.Peer {
 			// behind a proxy terminating TLS is reachable on its domain too,
 			// which is what KnownDomains carries; this announces the direct
 			// on-network address.
-			self.URL = "http://" + ip + ":" + strconv.Itoa(buildinfo.ListenPort)
+			self.URL = "http://" + ip + ":" + strconv.Itoa(buildinfo.ListenPort) + buildinfo.BasePath
 		}
 	}
 	return self

@@ -250,7 +250,7 @@ func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *contain
 		http.Error(w, "could not prepare the handover", http.StatusInternalServerError)
 		return
 	}
-	url := requestOrigin(r) + "/api/containers/relay/" + token
+	url := requestOrigin(r) + requestBasePath(r) + "/api/containers/relay/" + token
 	if err := a.HandContainerToJD(url, name, pkg); err != nil {
 		_, _ = relay.take(token) // nothing is going to collect it now
 		http.Error(w, "the JDownloader backend refused the container: "+err.Error(), http.StatusBadGateway)

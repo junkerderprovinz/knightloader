@@ -209,9 +209,9 @@ func TestTheMetricsModuleSwitchIsWiredUp(t *testing.T) {
 
 	// The row is derived from the setting.
 	var row *Feature
-	for i, f := range featureState(a).Modules {
+	for i, f := range featureState(a, "").Modules {
 		if f.ID == "metrics" {
-			row = &featureState(a).Modules[i]
+			row = &featureState(a, "").Modules[i]
 		}
 	}
 	if row == nil {

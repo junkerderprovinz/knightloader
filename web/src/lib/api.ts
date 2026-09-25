@@ -3,6 +3,7 @@
 import type { BarLabelMode, NavLabelMode } from './navLabels';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
+import { socketURL, withBase } from './basePath';
 
 export type TaskStatus =
   | 'collected'
@@ -923,7 +924,8 @@ export async function fetchTasks(base = '/api'): Promise<Task[]> {
  * inline and a download prompt. It is opened directly as a link so the
  * browser's own download and viewer handling applies.
  */
-export const taskFileURL = (id: string, base = '/api'): string => `${base}/tasks/${encodeURIComponent(id)}/file`;
+export const taskFileURL = (id: string, base = '/api'): string =>
+  withBase(`${base}/tasks/${encodeURIComponent(id)}/file`);
 
 /**
  * isLocalBase reports whether a base points at this instance rather than a
@@ -970,7 +972,7 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
  * and the component's onError turns that into a monogram.
  */
 export const hosterIconURL = (host: string, base = '/api'): string =>
-  `${base}/hosters/icon?host=${encodeURIComponent(host)}`;
+  withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
 
 export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
@@ -2433,7 +2435,7 @@ export function captchaWidgetUrl(ch: CaptchaChallenge, lang: string): string {
   if (lang) q.set('lang', lang);
   if (ch.host) q.set('host', ch.host);
   if (ch.prompt) q.set('prompt', ch.prompt);
-  return `/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`;
+  return withBase(`/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`);
 }
 
 export async function fetchAuth(): Promise<AuthState> {
@@ -3030,7 +3032,7 @@ export async function fetchTaskLog(id: string): Promise<TaskLog> {
 /** logFileHref is the download address of one log file, used as a plain href
  *  so a file of up to a gigabyte never passes through a Blob. */
 export function logFileHref(gen: number): string {
-  return `/api/diagnostics/logfile/${gen}`;
+  return withBase(`/api/diagnostics/logfile/${gen}`);
 }
 
 /**
@@ -3193,6 +3195,9 @@ export interface SelfTestRequestView {
   /** X-Forwarded-Prefix without a trailing slash, "" when absent. The only
    *  trace a stripped path prefix leaves. */
   forwardedPrefix: string;
+  /** The prefix the instance served this request under, KL_BASE_PATH or a
+   *  usable X-Forwarded-Prefix, "" at the root. */
+  basePath: string;
   /** How many hops X-Forwarded-For names. The addresses themselves are not
    *  sent, since they map someone's internal network. */
   forwardedForHops: number;
@@ -3369,7 +3374,7 @@ export interface SettingsExportDoc {
  * "include" as "omit".
  */
 export const settingsExportURL = (includeSecrets: boolean) =>
-  `/api/settings/export?secrets=${includeSecrets ? 'include' : 'omit'}`;
+  withBase(`/api/settings/export?secrets=${includeSecrets ? 'include' : 'omit'}`);
 
 /**
  * What POST /api/settings/import did, key by key. Several of these fields
@@ -3615,8 +3620,7 @@ export function connectWS(onMessage: (type: string, data: any) => void, kinds?: 
   const open = () => {
     // A reconnect timer can fire after the caller has closed the stream.
     if (closed) return;
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    ws = new WebSocket(`${proto}://${location.host}/api/ws`);
+    ws = new WebSocket(socketURL('/api/ws'));
     if (kinds && kinds.length > 0) {
       const subscribe = kinds;
       ws.onopen = () => ws?.send(JSON.stringify({ type: 'subscribe', kinds: subscribe }));

@@ -786,7 +786,7 @@ func TestDownloadClientModuleRowTracksTheSetting(t *testing.T) {
 	a := testApp(t)
 	find := func() Feature {
 		t.Helper()
-		for _, m := range featureList(a) {
+		for _, m := range featureList(a, "") {
 			if m.ID == "downloadclient" {
 				return m
 			}

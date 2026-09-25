@@ -10,8 +10,12 @@ export interface QuickAddParams {
   title?: string;
 }
 
-export function quickAddUrl(origin: string, params: QuickAddParams): string {
-  const u = new URL('/quickadd', origin);
+/**
+ * quickAddUrl is the /quickadd page of the instance at `address`, its origin
+ * and base path, so https://example.com/kl leads to /kl/quickadd.
+ */
+export function quickAddUrl(address: string, params: QuickAddParams): string {
+  const u = new URL(`${address.replace(/\/+$/, '')}/quickadd`);
   if (params.url) u.searchParams.set('url', params.url);
   if (params.text) u.searchParams.set('text', params.text);
   if (params.title) u.searchParams.set('title', params.title);
@@ -20,15 +24,16 @@ export function quickAddUrl(origin: string, params: QuickAddParams): string {
 
 /**
  * buildBookmarklet returns the `javascript:` URI to drag to a bookmarks bar,
- * with this install's origin baked in. The snippet opens a small window on
- * that origin instead of calling the API from the visited page, because the
- * sameOrigin middleware refuses requests with a foreign Origin. Selected text
- * goes along as `text`, so a block of links can be sent in one click.
+ * with this install's address (origin and base path) baked in. The snippet
+ * opens a small window on that address instead of calling the API from the
+ * visited page, because the sameOrigin middleware refuses requests with a
+ * foreign Origin. Selected text goes along as `text`, so a block of links can
+ * be sent in one click.
  */
-export function buildBookmarklet(origin: string): string {
+export function buildBookmarklet(address: string): string {
   const body = `(function(){
     var s=window.getSelection?String(window.getSelection()):'';
-    var u='${origin}/quickadd?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)+(s?'&text='+encodeURIComponent(s):'');
+    var u='${address}/quickadd?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)+(s?'&text='+encodeURIComponent(s):'');
     window.open(u,'knightloader_add','width=420,height=560');
   })();`;
   // Collapsed whitespace keeps the href short.

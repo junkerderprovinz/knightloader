@@ -939,7 +939,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.selftest.proxy.desktopSkip',
         'settings.selftest.proxy.host.rewrittenAdvice',
         'settings.selftest.proxy.proto.missingAdvice',
-        'settings.selftest.proxy.prefix.underPathAdvice',
+        'settings.selftest.proxy.prefix.mismatchAdvice',
         'settings.selftest.proxy.ws.failedAdvice',
       ],
     },

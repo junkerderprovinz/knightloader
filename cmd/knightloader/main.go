@@ -55,6 +55,14 @@ func main() {
 		return
 	}
 
+	// Checked before the JDownloader provisioning below, which can take
+	// minutes, so a typo stops the start at once.
+	base, err := api.ParseBasePath(os.Getenv("KL_BASE_PATH"))
+	if err != nil {
+		log.Fatalf("KL_BASE_PATH: %v", err)
+	}
+	buildinfo.BasePath = base
+
 	// An unwritable data directory otherwise fails later as a bare "permission
 	// denied" from SQLite. This names the owner, our uid and the chown to run,
 	// and repairs nothing: chowning a mounted share on boot would rewrite the

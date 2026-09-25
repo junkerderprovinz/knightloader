@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { NotificationKind } from './toast';
 import type { TranslationKey } from './i18n';
 import { peekUIState, useUIState } from './uistate';
+import { withBase } from './basePath';
 
 /** Where one event lands. 'silent' is a decision and reads "Show nothing". */
 export type NotifyChannel = 'app' | 'system' | 'silent';
@@ -122,7 +123,7 @@ const ICON = '/icons/icon-192.png';
 export function showSystem(title: string, body: string, tag: string): void {
   if (!SYSTEM_SUPPORTED || Notification.permission !== 'granted') return;
   try {
-    new Notification(title, { body, tag, icon: ICON });
+    new Notification(title, { body, tag, icon: withBase(ICON) });
   } catch {
     // A browser that refuses the constructor refuses it every time.
   }

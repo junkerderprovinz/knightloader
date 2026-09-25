@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
+import { appAddress, withBase } from '../../lib/basePath';
 import { ARCH_LABEL, desktopSlug, visitorArch, type Arch, type DesktopOS, type DesktopSlug } from '../../lib/desktopBuild';
 import { fetchDeploymentInfo, fetchExtensionVersion, fetchHealth } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
@@ -27,8 +28,7 @@ import { releaseTag } from './Help';
  */
 export function BrowserTools() {
   const { t } = useT();
-  const origin = window.location.origin;
-  const bookmarklet = buildBookmarklet(origin);
+  const bookmarklet = buildBookmarklet(appAddress());
   const [copied, setCopied] = useState(false);
   const [extensionVersion, setExtensionVersion] = useState<string | null>(null);
   const [deployment, setDeployment] = useState<string | null>(null);
@@ -421,11 +421,11 @@ function badgeAction(store: 'Chrome' | 'Edge' | 'Firefox', fallback: () => void)
 }
 
 function downloadZip() {
-  window.location.href = '/api/browser-extension.zip';
+  window.location.href = withBase('/api/browser-extension.zip');
 }
 
 function downloadXpi() {
-  window.location.href = '/api/browser-extension.xpi';
+  window.location.href = withBase('/api/browser-extension.xpi');
 }
 
 // The browsers' marks carry kl-<name>- ids, apart from the glim- ids of the

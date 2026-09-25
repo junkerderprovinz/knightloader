@@ -152,6 +152,11 @@ reverse proxy and the same certificate, and the other instances put that
 address in their own `relayUrl`. It needs no second container, no second port
 and no second certificate.
 
+For an instance a proxy serves under a path, enter the address with the path,
+such as `https://example.com/kl`, and the others dial `/relay/connect` below
+it. A `relayUrl` whose path already ends in `/connect` is dialled as it stands,
+for a relay a proxy has mounted somewhere else.
+
 It admits only the relay key that instance stores, so switching it on does not
 turn a published address into a meeting place for whoever finds it. With the
 switch off, `/relay/connect` answers 404, the same as any build that never had

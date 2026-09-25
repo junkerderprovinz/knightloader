@@ -12,6 +12,7 @@ import {
   type Settings,
 } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
+import { withBase } from '../../../lib/basePath';
 import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
@@ -150,7 +151,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             kind="secondary"
             icon={<IconDownloads width={16} height={16} />}
             onClick={() => {
-              window.location.href = BACKUP_DOWNLOAD_URL;
+              window.location.href = withBase(BACKUP_DOWNLOAD_URL);
             }}
           >
             {t('settings.system.backupButton')}

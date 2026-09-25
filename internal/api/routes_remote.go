@@ -10,8 +10,10 @@ import (
 	"net"
 	"net/http"
 	neturl "net/url"
+	"slices"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -112,7 +114,8 @@ func preferredAddress(addrs []ReachableAddress) (string, bool) {
 // remoteAddresses is every address this build can name for this instance,
 // most trustworthy first: the one the request arrived on, then the known
 // domains (Settings.KnownDomains, full base URLs), then every non-loopback
-// IPv4 address of a local interface with the request's port and scheme.
+// IPv4 address of a local interface with the request's port and scheme. Each
+// carries the base path it is served under.
 func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	scheme := "http"
 	if r.TLS != nil {
@@ -126,22 +129,22 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	}
 	var out []ReachableAddress
 	seen := map[string]bool{}
-	add := func(label, urlScheme, hostport string, loopback bool) {
+	add := func(label, urlScheme, hostport, base string, loopback bool) {
 		if hostport == "" || seen[hostport] {
 			return
 		}
 		seen[hostport] = true
-		out = append(out, ReachableAddress{Label: label, URL: urlScheme + "://" + hostport, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)})
+		out = append(out, ReachableAddress{Label: label, URL: urlScheme + "://" + hostport + base, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)})
 	}
 
 	if r.Host != "" {
-		add("this connection", scheme, r.Host, isLoopbackHost(r.Host))
+		add("this connection", scheme, r.Host, requestBasePath(r), isLoopbackHost(r.Host))
 	}
 	for _, d := range known {
-		// A known domain keeps the scheme it was stored with, since it sits
-		// behind a proxy regardless of how this request arrived.
+		// A known domain keeps the scheme and the path it was stored with,
+		// since it sits behind a proxy regardless of how this request arrived.
 		if u, err := neturl.Parse(d); err == nil && u.Host != "" {
-			add("known", u.Scheme, u.Host, isLoopbackHost(u.Host))
+			add("known", u.Scheme, u.Host, strings.TrimRight(u.Path, "/"), isLoopbackHost(u.Host))
 		}
 	}
 	// A call through the relay has no Host, so the port falls back to the
@@ -152,7 +155,7 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	}
 	if port != "" {
 		for _, ip := range localIPv4s() {
-			add(ip, scheme, ip+":"+port, false)
+			add(ip, scheme, ip+":"+port, buildinfo.BasePath, false)
 		}
 	}
 	return out
@@ -160,21 +163,44 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 
 // rememberDomain saves the domain the request arrived on into
 // Settings.KnownDomains, so it stays listed when later requests come in over
-// the LAN IP. addrs is what remoteAddresses just built.
+// the LAN IP. It replaces an entry for the same scheme and host, which a new
+// base path has made stale and remoteAddresses would list in its place. addrs
+// is what remoteAddresses just built.
 func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) {
 	if len(addrs) == 0 || addrs[0].Label != "this connection" || addrs[0].Loopback || !addrs[0].Domain {
 		return
 	}
+	current := addrs[0].URL
+	origin := originOf(current)
+	next := make([]string, 0, len(known)+1)
+	placed := false
 	for _, k := range known {
-		if k == addrs[0].URL {
-			return
+		if k != current && originOf(k) != origin {
+			next = append(next, k)
+		} else if !placed {
+			next, placed = append(next, current), true
 		}
 	}
-	patch, err := json.Marshal(append(append([]string{}, known...), addrs[0].URL))
+	if !placed {
+		next = append(next, current)
+	}
+	if slices.Equal(next, known) {
+		return
+	}
+	patch, err := json.Marshal(next)
 	if err != nil {
 		return
 	}
 	_, _ = a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
+}
+
+// originOf is a known domain without its path, "" for one without a scheme.
+func originOf(address string) string {
+	u, err := neturl.Parse(address)
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
 }
 
 // isDomainHost reports whether hostport's host is a hostname rather than an
