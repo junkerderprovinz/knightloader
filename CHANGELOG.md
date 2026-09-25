@@ -637,7 +637,9 @@ submission and for a fixed download.
   second line while the options still fit side by side, the selector spans its
   card and gives each option the width of its name, so „Ein Eintrag, dass
   dieser Download sie geschrieben hat“ under "When a file already on the disk
-  counts as the download" reads on one line.
+  counts as the download" reads on one line. GlimStone 2.10.0 made this its
+  rule. Options with an icon, such as the reconnect methods, make room for it,
+  so „Anfragen“ no longer runs into the edge of its option.
 - **A button's icon is the size of its label**: 14 pixels instead of 20, and 16
   instead of 22 in the taller buttons, so a row of buttons no longer looks like
   a row of icons. A button that shows only its icon keeps it at half the
