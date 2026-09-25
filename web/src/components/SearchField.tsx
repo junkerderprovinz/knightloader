@@ -39,7 +39,7 @@ export function SearchField({
   return (
     <div
       className={`flex h-[var(--btn-h)] min-w-[16rem] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2
-        pe-1 ps-2.5 transition-shadow focus-within:shadow-[0_0_0_2px_var(--focus-ring)] ${className}`}
+        pe-1 ps-2.5 transition-shadow has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)] ${className}`}
     >
       <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
       <input
@@ -56,7 +56,7 @@ export function SearchField({
         }}
         placeholder={t('search.placeholder')}
         aria-label={t('search.placeholder')}
-        className="h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
+        className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
           placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value.text && (

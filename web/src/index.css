@@ -855,7 +855,10 @@ body {
   transition: translate var(--drag-settle-dur) var(--drag-settle-ease);
 }
 
-:focus-visible {
+/* .glim-focus-drawn marks an element whose focus is drawn another way: an
+   input inside a search box rings the whole box, and a picker inside it
+   rings itself. A second ring around it would draw the same focus twice. */
+:focus-visible:not(.glim-focus-drawn) {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
