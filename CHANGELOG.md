@@ -39,6 +39,11 @@ submission and for a fixed download.
 
 ### Added
 
+- **Browser extension 1.0.3: a build Mozilla has signed, for Firefox.** Firefox
+  installs only signed add-ons, so the zip loaded there only until the next
+  restart. Each extension tag has Mozilla sign the package on the unlisted
+  channel, and the release carries the `.xpi` beside the zip. The README's
+  Firefox button installs it with one click.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the
