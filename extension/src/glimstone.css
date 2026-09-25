@@ -1027,6 +1027,32 @@ body {
   margin-top: 20px;
 }
 
+/* The coffee window (GlimStone "The coffee and PayPal windows"), as tall as
+   the screen allows less a margin, since BMAC's payment step runs to about
+   1200px. White behind the frame, so its first paint is not a dark hole on
+   the dark theme; BMAC's page is light either way. */
+.glim-coffee {
+  max-width: 512px;
+  height: calc(100vh - 7rem);
+  max-height: none;
+}
+.glim-coffee-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  padding: 8px;
+  border-radius: var(--radius-card);
+  background: var(--carbon-surface2);
+}
+.glim-coffee-frame iframe {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: #ffffff;
+}
+
 /* The crypto window (GlimStone "The crypto window"), on the confirmation
    window's frame. Only the body between the title and the bottom row scrolls,
    so both stay in place (rule 15). The tiles and chips are buttons, and each

@@ -4,23 +4,28 @@
 // On the dark theme the hover is #a8a8a8, a light grey behind marks that were
 // picked for a dark ground. A coin's mark wears its palette position's hue,
 // and gold on that grey measures 1.6:1, so the coin tile's mark switches to
-// the tile's ink under the pointer (index.css, .kl-coin-tile). The browser and
-// store tiles on the Browser & App page carry vendor artwork that has one set
-// of colours for every ground, so each of those has to bring a part that
-// stands out on the grey by itself.
+// the tile's ink under the pointer (index.css, .kl-coin-tile). The app tiles
+// on the App page carry vendor artwork that has one set of colours for every
+// ground, so each of those has to bring a part that stands out on the grey by
+// itself.
 //
 // Checks:
 //   tokens   --carbon-tile-hover and --carbon-tile-hover-ink stand in all three
 //            theme blocks of src/index.css, and the ink reads as text (4.5:1).
-//   tiles    the coin tile and the download tile hover to the token and take
-//            its ink with the same variant, and no class list hovers to white.
+//   tiles    the coin tile and the app tile hover to the token and take its
+//            ink with the same variant, and no class list hovers to white.
 //   switch   the dark theme's coin tile rule gives the mark the ink.
 //   marks    every mark reaches 2:1 on the hover: the ink, each accent preset
 //            and rainbow hue as the light theme darkens it, and some opaque
-//            colour of each vendor mark.
-//   tokens   a flat vendor mark the stylesheet colours per theme (Android's)
-//            is wired to its class, reaches 3:1 at rest on the tile and 2:1 on
+//            colour of each vendor mark in BrowserTools.tsx and
+//            lib/appMarks.ts.
+//   tokens   a single-colour mark the stylesheet colours per theme (Android's
+//            and Docker's, and Unraid's gradient through its two stops) is
+//            wired to its class, reaches 3:1 at rest on the tile and 2:1 on
 //            the hover, in every theme block.
+//   fills    a mark that keeps its own colour at rest and only takes a deeper
+//            fill on the hover (Windows') is wired the same way and reaches
+//            2:1 with it.
 //
 // A two-tone mark with one visible half is still visible, so a vendor mark
 // passes on its best colour. Colours under an opacity below 1, a gradient's
@@ -115,7 +120,7 @@ for (const [name, t] of Object.entries(theme)) {
 // The tiles.
 const TILES = [
   { file: ['components', 'CryptoDonateDialog.tsx'], what: 'the coin tile' },
-  { file: ['pages', 'settings', 'BrowserTools.tsx'], what: 'the download tile' },
+  { file: ['components', 'AppTile.tsx'], what: 'the app tile' },
 ];
 for (const tile of TILES) {
   const text = read(...tile.file);
@@ -210,16 +215,31 @@ function opaqueColours(svg) {
   return found.map(rgb).filter(Boolean);
 }
 
+// The vendor marks: the browsers' in BrowserTools.tsx, where they are drawn,
+// and the app tiles' in lib/appMarks.ts, which BrowserTools.tsx draws too.
 const browserTools = read('pages', 'settings', 'BrowserTools.tsx');
-const vendor = [...browserTools.matchAll(/const (\w+)_SVG =\s*'([^']*)'/g)];
-if (vendor.length < 6) fail(`only ${vendor.length} vendor marks read from BrowserTools.tsx - the reader went blind.`);
+const appMarks = read('lib', 'appMarks.ts');
+const vendor = [browserTools, appMarks].flatMap((text) => [...text.matchAll(/const (\w+)_SVG =\s*'([^']*)'/g)]);
+if (vendor.length < 14) fail(`only ${vendor.length} vendor marks read from BrowserTools.tsx and lib/appMarks.ts - the reader went blind.`);
 const marks = vendor.map((m) => ({ name: m[1], label: `the ${m[1].toLowerCase()} mark`, svg: m[2] }));
 
-// Flat marks the stylesheet colours per theme instead of the tile ink: the
-// const, the class its BrandMark wears, and the rest and hover tokens that
-// class reads.
+// Single-colour marks the stylesheet colours per theme instead of the tile
+// ink: the const, the class its BrandMark wears, and the rest and hover tokens
+// that class reads. A gradient has a pair per stop, which its markup reads as
+// var() and the hover rule swaps.
 const TOKEN_MARKS = [
-  { name: 'ANDROID', cls: 'kl-android-mark', rest: '--brand-android', hover: '--brand-android-hover' },
+  { name: 'ANDROID', cls: 'glim-android-mark', stops: [['--brand-android', '--brand-android-hover']] },
+  { name: 'DOCKER', cls: 'glim-docker-mark', stops: [['--brand-docker', '--brand-docker-hover']] },
+  { name: 'WINDOWS', cls: 'glim-windows-mark', stops: [['--brand-windows', '--brand-windows-hover']] },
+  {
+    name: 'UNRAID',
+    cls: 'glim-unraid-mark',
+    gradient: true,
+    stops: [
+      ['--brand-unraid-from', '--brand-unraid-from-hover'],
+      ['--brand-unraid-to', '--brand-unraid-to-hover'],
+    ],
+  },
 ];
 
 const ruleBody = (selector) => {
@@ -229,37 +249,71 @@ const ruleBody = (selector) => {
   return css.slice(open + 1, css.indexOf('}', open));
 };
 
+// Every rule inside an `@media (hover: hover)` block, so a block holding
+// several marks' rules is read whole.
+const hoverRules = [...css.matchAll(/@media\s*\(hover:\s*hover\)\s*\{/g)]
+  .map((m) => {
+    let depth = 1;
+    const from = m.index + m[0].length;
+    for (let i = from; i < css.length; i++) {
+      if (css[i] === '{') depth++;
+      else if (css[i] === '}' && --depth === 0) return css.slice(from, i);
+    }
+    return '';
+  })
+  .join('\n');
+const hoverRule = (selector) => {
+  const m = new RegExp(`${selector}\\s*\\{([^}]*)\\}`).exec(hoverRules);
+  return m ? m[1] : null;
+};
+
+/** The mark's call site, where its BrandMark has to wear `cls`. */
+function wired(name, cls) {
+  if (!marks.some((m) => m.name === name)) {
+    problems.push(`no ${name}_SVG in BrowserTools.tsx or lib/appMarks.ts, which ${cls} is measured for`);
+    return false;
+  }
+  const call = new RegExp(`<BrandMark\\b[^>]*svg=\\{${name}_SVG\\}[^>]*>`).exec(browserTools)?.[0];
+  if (!call || !new RegExp(`className="[^"]*\\b${cls}\\b`).test(call)) {
+    problems.push(`BrowserTools.tsx: ${name}_SVG is drawn without className="${cls}"`);
+  }
+  return true;
+}
+
 for (const tm of TOKEN_MARKS) {
   const label = `the ${tm.name.toLowerCase()} mark`;
-  if (!marks.some((m) => m.name === tm.name)) {
-    problems.push(`BrowserTools.tsx: no ${tm.name}_SVG, which ${tm.cls} is measured for`);
-    continue;
-  }
-  const call = new RegExp(`<BrandMark\\b[^>]*svg=\\{${tm.name}_SVG\\}[^>]*>`).exec(browserTools)?.[0];
-  if (!call || !new RegExp(`className="[^"]*\\b${tm.cls}\\b`).test(call)) {
-    problems.push(`BrowserTools.tsx: ${tm.name}_SVG is drawn without className="${tm.cls}", so it paints in the tile ink`);
-  }
-  const rest = ruleBody(new RegExp(`(^|\\n)\\.${tm.cls}\\s*\\{`));
-  if (!rest || !new RegExp(`\\bcolor\\s*:\\s*var\\(${tm.rest}\\)`).test(rest)) {
-    problems.push(`index.css: .${tm.cls} does not take its colour from var(${tm.rest})`);
-  }
-  const hover = ruleBody(new RegExp(`@media\\s*\\(hover:\\s*hover\\)\\s*\\{\\s*\\.group:hover\\s+\\.${tm.cls}\\s*\\{`));
-  if (!hover || !new RegExp(`\\bcolor\\s*:\\s*var\\(${tm.hover}\\)`).test(hover)) {
-    problems.push(`index.css: a hovered tile gives .${tm.cls} no var(${tm.hover}) behind @media (hover: hover)`);
+  if (!wired(tm.name, tm.cls)) continue;
+  const svg = marks.find((m) => m.name === tm.name).svg;
+  const hover = hoverRule(`\\.group:hover\\s+\\.${tm.cls}`);
+  for (const [rest, lit] of tm.stops) {
+    if (tm.gradient) {
+      if (!svg.includes(`var(${rest})`)) problems.push(`${label}: its markup does not read var(${rest})`);
+      if (!hover || !new RegExp(`${rest}\\s*:\\s*var\\(${lit}\\)`).test(hover)) {
+        problems.push(`index.css: a hovered tile does not set ${rest} to var(${lit}) on .${tm.cls} behind @media (hover: hover)`);
+      }
+    } else {
+      const restRule = ruleBody(new RegExp(`(^|\\n)\\.${tm.cls}\\s*\\{`));
+      if (!restRule || !new RegExp(`\\bcolor\\s*:\\s*var\\(${rest}\\)`).test(restRule)) {
+        problems.push(`index.css: .${tm.cls} does not take its colour from var(${rest})`);
+      }
+      if (!hover || !new RegExp(`\\bcolor\\s*:\\s*var\\(${lit}\\)`).test(hover)) {
+        problems.push(`index.css: a hovered tile gives .${tm.cls} no var(${lit}) behind @media (hover: hover)`);
+      }
+    }
   }
   for (const [name, t] of Object.entries(theme)) {
-    const restColour = rgb(t.value(tm.rest) ?? '');
-    const hoverColour = rgb(t.value(tm.hover) ?? '');
     const ground = rgb(t.value('--carbon-surface2') ?? '');
-    if (!restColour || !hoverColour || !ground) {
-      problems.push(`index.css: ${tm.rest}, ${tm.hover} or --carbon-surface2 is missing or not a hex colour in the ${name} block`);
+    const restColours = tm.stops.map(([rest]) => rgb(t.value(rest) ?? ''));
+    const litColours = tm.stops.map(([, lit]) => rgb(t.value(lit) ?? ''));
+    if (!ground || [...restColours, ...litColours].some((c) => !c)) {
+      problems.push(`index.css: a token of ${label} or --carbon-surface2 is missing or not a hex colour in the ${name} block`);
       continue;
     }
-    const c = contrast(restColour, ground);
+    const c = Math.max(...restColours.map((colour) => contrast(colour, ground)));
     if (c < REST_FLOOR) {
-      problems.push(`${label} at rest: ${hex(restColour)} is ${c.toFixed(2)}:1 on the ${name} tile ${hex(ground)}, under ${REST_FLOOR}:1`);
+      problems.push(`${label} at rest: at best ${c.toFixed(2)}:1 on the ${name} tile ${hex(ground)}, under ${REST_FLOOR}:1`);
     }
-    checkMark(`${label} as ${tm.hover}`, [hoverColour], t.tile, name);
+    checkMark(`${label} as its hover tokens`, litColours, t.tile, name);
   }
 }
 

@@ -30,8 +30,8 @@ file it claims to describe.
 order by it, and it must go up on every build you hand anybody, even when the
 version name is unchanged.
 
-The copy of the extension most people run does not come from its tag. Settings
-> Browser & App serves a zip built from the copy embedded in whatever server
+The copy of the extension most people run does not come from its tag. The App
+page in Settings serves a zip built from the copy embedded in whatever server
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
@@ -438,8 +438,25 @@ submission and for a fixed download.
   match the web UI and the extension instead of taking the phone's own font.
   Arabic, Hebrew, Thai, Chinese, Japanese and Korean use the phone's own font
   for those alphabets.
+- **The "Browser & App" page is called "App" and offers every other way to get
+  KnightLoader**, laid out as GlimStone 2.10.0's App tab. The phone card comes
+  first: Google Play, marked "Soon" until the listing is live, and the APK,
+  with a Download button and a QR code button beside it. QR code turns the tile
+  into a code to scan on a white ground, and pressed again it turns back. The
+  app's version stands in the card's corner, linked to its release. There is
+  no App Store tile, because there is no iPhone build. In a container the
+  second card offers the desktop app for Windows, macOS and Linux. In the
+  desktop app it offers a server instead: Unraid's Community Applications,
+  marked "Soon", a Docker tile that copies the command that starts the
+  container, with your time zone in it and the command in its (i), and
+  "Source code.zip" for the version you are running. The bookmarklet and the
+  browser extension follow below them, unchanged.
+- **The coffee button opens Buy Me a Coffee in a window**, in the web UI and
+  in the browser extension, and the whole payment happens there instead of in
+  a new browser tab. Nothing from Buy Me a Coffee loads before the window
+  opens. PayPal stays a link, and so does the coffee button in the phone app.
 - **The web UI, the browser extension and the phone app follow GlimStone
-  2.9.0.** Every window has its way out as a button in its bottom row, tooltips
+  2.10.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
   the default motion level is "subtle", and the About card of the extension and
   the app offers PayPal and crypto beside the coffee. There a coin tile under

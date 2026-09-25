@@ -6,6 +6,7 @@ import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconGithub, IconMail } from '../../lib/icons';
 import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
+import { CoffeeDialog } from '../../components/CoffeeDialog';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
 /**
@@ -173,11 +174,11 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 /**
  * PayPal's hosted donation button, the address README.md's donate row links.
+ * GlimStone's PayPal window needs a PayPal app's client id and a plan per
+ * interval, which this project does not have, so the button stays a link.
  * Typed as string so an empty value stays a case this file handles.
  */
 const PAYPAL: string = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
-/** The coffee handle from README.md's donate row. */
-const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /**
  * The shared class of the About card's controls. `glim-brand-btn` gives every
@@ -241,6 +242,7 @@ function VersionNumber({
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
+  const [coffeeOpen, setCoffeeOpen] = useState(false);
   const [cryptoOpen, setCryptoOpen] = useState(false);
   useEffect(() => {
     fetchHealth()
@@ -255,20 +257,20 @@ export function About({ hue }: { hue: number }) {
       <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
       {/* Each sentence sits directly above the button it asks for. */}
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
-      {/* The ways to give share one row: the hosted pages first, the wallet
-          last. */}
+      {/* The ways to give share one row: the hosted payments first, the
+          wallet last. Coffee and crypto open a window in the app, so they are
+          buttons rather than anchors. */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href={COFFEE_URL}
-          target="_blank"
-          rel="noreferrer noopener"
+        <button
+          type="button"
           className={`${ABOUT_BTN} glim-brand-coffee`}
+          onClick={() => setCoffeeOpen(true)}
         >
           <span className="glim-btn-glyph">
             <IconBuyMeACoffee />
           </span>
           {t('settings.about.coffeeButton')}
-        </a>
+        </button>
         {PAYPAL !== '' && (
           <a
             href={PAYPAL}
@@ -282,8 +284,7 @@ export function About({ hue }: { hue: number }) {
             {t('settings.about.paypal')}
           </a>
         )}
-        {/* A button rather than an anchor, since it opens a window in the app.
-            Its mark is the bare letterform in one colour, which a brand class
+        {/* Its mark is the bare letterform in one colour, which a brand class
             can paint (check-brand-marks.mjs). */}
         <button
           type="button"
@@ -296,6 +297,7 @@ export function About({ hue }: { hue: number }) {
           {t('settings.about.crypto')}
         </button>
       </div>
+      {coffeeOpen && <CoffeeDialog onClose={() => setCoffeeOpen(false)} />}
       {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
       {/* The extra space keeps the coffee button paired with its own sentence. */}
       <p className="mt-2 text-sm text-carbon-textSub">{t('settings.about.report')}</p>

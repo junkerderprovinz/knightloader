@@ -1,17 +1,27 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
-import { fetchExtensionVersion } from '../../lib/api';
+import { fetchDeploymentInfo, fetchExtensionVersion, fetchHealth } from '../../lib/api';
+import { copyToClipboard } from '../../lib/clipboard';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT } from '../../lib/i18n';
+import { qrMatrix } from '../../lib/qrmatrix';
+import { IconDownloads, IconQr } from '../../lib/icons';
+import { ANDROID_SVG, APPLE_SVG, DOCKER_SVG, LINUX_SVG, PLAY_SVG, UNRAID_SVG, WINDOWS_SVG, ZIP_SVG } from '../../lib/appMarks';
+import { AppTile, BrandMark } from '../../components/AppTile';
+import { QRCode } from '../../components/QRCode';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
+import { releaseTag } from './Help';
 
 /**
- * BrowserTools lists every way to reach KnightLoader from outside the app: a
- * bookmarklet, the browser extension and the native apps. The extension
- * download is byte-identical to the source, since it is set up with the
- * connection phrase and holds no address. The bookmarklet and the PWA share
- * target land on /quickadd.
+ * BrowserTools is the App page (GlimStone's "The App tab"): every way to get
+ * KnightLoader that the reader is not already using. The phone card stands
+ * everywhere, and the second card offers the forms this build is not: the
+ * desktop app in a container, a server in the desktop app. Below them come the
+ * bookmarklet and the browser extension, which send links in from any page.
+ * The extension download is byte-identical to the source, since it is set up
+ * with the connection phrase and holds no address. The bookmarklet and the PWA
+ * share target land on /quickadd.
  */
 export function BrowserTools() {
   const { t } = useT();
@@ -19,9 +29,13 @@ export function BrowserTools() {
   const bookmarklet = buildBookmarklet(origin);
   const [copied, setCopied] = useState(false);
   const [extensionVersion, setExtensionVersion] = useState<string | null>(null);
+  const [deployment, setDeployment] = useState<string | null>(null);
   useEffect(() => {
     void fetchExtensionVersion()
       .then((v) => setExtensionVersion(v.version))
+      .catch(() => {});
+    void fetchDeploymentInfo()
+      .then((d) => setDeployment(d.deployment))
       .catch(() => {});
   }, []);
 
@@ -44,10 +58,16 @@ export function BrowserTools() {
     </ol>
   );
   const installLabel = t('settings.browsertools.installLabel');
+  const soon = t('settings.browsertools.soon');
 
   return (
     <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-3">
+      <PhoneCard />
+      {/* Nothing until the build is known, so the card for the other form
+          never flashes up first. */}
+      {deployment === 'desktop' ? <ServerCard /> : deployment !== null && <DesktopCard />}
+
+      <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle
           hint={
             <ol className="list-decimal space-y-1 ps-4">
@@ -86,7 +106,7 @@ export function BrowserTools() {
         </div>
       </Card>
 
-      <Card hue={1} className="flex flex-col gap-4">
+      <Card hue={3} className="flex flex-col gap-4">
         <SectionTitle
           right={extensionVersion && <ReleaseVersion version={extensionVersion} tagPrefix="extension/v" />}
         >
@@ -96,56 +116,79 @@ export function BrowserTools() {
             system. The Chromium browsers share one .zip and one instruction
             bubble; Firefox gets the .xpi and its own. */}
         <div className="flex flex-wrap gap-3">
-          <DownloadTile logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <DownloadTile logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <DownloadTile logo={<LogoBrave />} name="Brave" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <DownloadTile logo={<LogoOpera />} name="Opera" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <DownloadTile logo={<LogoVivaldi />} name="Vivaldi" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <DownloadTile logo={<LogoFirefox />} name="Firefox" onClick={badgeAction('Firefox', downloadXpi)} hint={firefoxHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoBrave />} name="Brave" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoOpera />} name="Opera" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoVivaldi />} name="Vivaldi" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} logo={<LogoFirefox />} name="Firefox" onClick={badgeAction('Firefox', downloadXpi)} hint={firefoxHint} hintLabel={installLabel} />
         </div>
       </Card>
-
-      <AppCard />
     </div>
   );
 }
 
 /**
- * AppCard offers the native apps, and installing this page as a web app as
- * the smaller second option.
+ * PhoneCard offers the Android app, and installing this page as a web app as
+ * the smaller second option. There is no iPhone build, so there is no App
+ * Store tile.
  */
-function AppCard() {
+function PhoneCard() {
   const { t } = useT();
   const { available: canInstall, promptInstall } = useInstallPrompt();
+  const [qr, setQr] = useState(false);
+  const matrix = useMemo(() => qrMatrix(APP_URLS.apk), []);
   // Safari never fires beforeinstallprompt, so iOS gets the Share-sheet steps.
   const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const soon = t('settings.browsertools.soon');
 
   return (
-    <Card hue={3} className="flex flex-col gap-4">
+    <Card hue={0} className="flex flex-col gap-4">
       <SectionTitle
-        hint={t('settings.browsertools.appBody')}
+        hint={t('settings.browsertools.phoneHint')}
         right={<ReleaseVersion version={APP_VERSION} tagPrefix="mobile/v" />}
       >
-        {t('settings.browsertools.appTitle')}
+        {t('settings.browsertools.phoneTitle')}
       </SectionTitle>
-      {/* The same tiles as the browser downloads. There is no iOS file, since
-          Apple allows no sideloading; the card's hint says so. */}
       <div className="flex flex-wrap items-center gap-3">
-        <DownloadTile
-          logo={<BrandMark svg={PLAY_SVG} />}
+        <AppTile
+          soonLabel={soon}
           name={t('settings.browsertools.storeAndroid')}
-          onClick={openIfSet(APP_URLS.android)}
+          logo={<BrandMark svg={PLAY_SVG} />}
+          href={APP_URLS.play}
         />
-        <DownloadTile
-          logo={<BrandMark svg={APPLE_SVG} />}
-          name={t('settings.browsertools.storeIOS')}
-          onClick={openIfSet(APP_URLS.ios)}
-        />
-        <DownloadTile
-          logo={<BrandMark svg={ANDROID_SVG} className="kl-android-mark" />}
+        {/* The page is usually open on a computer and the file is wanted on
+            the phone, so the tile can turn into a code to scan. */}
+        <AppTile
+          soonLabel={soon}
           name="APK"
-          onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
+          logo={<BrandMark svg={ANDROID_SVG} className="glim-android-mark" />}
+          href={APP_URLS.apk}
+          face={
+            qr ? (
+              <span className="glim-fade block h-full w-full overflow-hidden rounded-[var(--radius-control)] bg-white">
+                <QRCode bare matrix={matrix} label={APP_URLS.apk} size={112} />
+              </span>
+            ) : undefined
+          }
         />
+        <div className="flex flex-col gap-2">
+          <Button
+            kind="secondary"
+            labelled
+            icon={<IconDownloads width={16} height={16} />}
+            title={t('settings.browsertools.download')}
+            onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
+          />
+          <Button
+            kind={qr ? 'primary' : 'secondary'}
+            labelled
+            aria-pressed={qr}
+            icon={<IconQr width={16} height={16} />}
+            title={t('settings.browsertools.qrCode')}
+            onClick={() => setQr((on) => !on)}
+          />
+        </div>
       </div>
       {(canInstall || iOS) && (
         <div className="flex flex-col gap-2 pt-1">
@@ -157,7 +200,7 @@ function AppCard() {
           </span>
           {canInstall && (
             <div>
-              <Button kind="secondary" hue={3} onClick={() => void promptInstall()}>
+              <Button kind="secondary" hue={0} onClick={() => void promptInstall()}>
                 {t('settings.browsertools.install')}
               </Button>
             </div>
@@ -168,44 +211,125 @@ function AppCard() {
   );
 }
 
+/** DesktopCard offers the desktop app to a reader in a container or a browser. */
+function DesktopCard() {
+  const { t } = useT();
+  const soon = t('settings.browsertools.soon');
+  return (
+    <Card hue={1} className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.browsertools.desktopHint')}>{t('settings.browsertools.desktopTitle')}</SectionTitle>
+      <div className="flex flex-wrap gap-3">
+        <AppTile
+          soonLabel={soon}
+          name="Windows"
+          logo={<BrandMark svg={WINDOWS_SVG} className="glim-windows-mark" />}
+          href={desktopZip('windows-amd64')}
+        />
+        <AppTile soonLabel={soon} name="macOS" logo={<BrandMark svg={APPLE_SVG} />} href={desktopZip('macos-universal')} />
+        <AppTile soonLabel={soon} name="Linux" logo={<BrandMark svg={LINUX_SVG} />} href={desktopZip('linux-amd64')} />
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * ServerCard offers the desktop app's reader a server install: Unraid's
+ * Community Applications, the container image and the source code.
+ */
+function ServerCard() {
+  const { t } = useT();
+  const soon = t('settings.browsertools.soon');
+  const [version, setVersion] = useState('');
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    void fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1800);
+    return () => clearTimeout(id);
+  }, [copied]);
+
+  const command = dockerRun();
+  // The source of the running version where it is a release, the newest
+  // otherwise.
+  const tag = releaseTag(version);
+  const zip = /^v\d+\.\d+\.\d+$/.test(tag)
+    ? `${REPO_URL}/archive/refs/tags/${tag}.zip`
+    : `${REPO_URL}/archive/refs/heads/main.zip`;
+
+  return (
+    <Card hue={1} className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.browsertools.serverHint')}>{t('settings.browsertools.serverTitle')}</SectionTitle>
+      <div className="flex flex-wrap gap-3">
+        <AppTile
+          soonLabel={soon}
+          name="Unraid"
+          logo={<BrandMark svg={UNRAID_SVG} className="glim-unraid-mark" />}
+          href={UNRAID_CA_URL}
+        />
+        <AppTile
+          soonLabel={soon}
+          name={copied ? t('common.copied') : 'Docker'}
+          logo={<BrandMark svg={DOCKER_SVG} className="glim-docker-mark" />}
+          hint={
+            <>
+              <span className="block">{t('settings.browsertools.dockerHint')}</span>
+              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+                {command}
+              </code>
+            </>
+          }
+          hintLabel={t('settings.browsertools.dockerHint')}
+          onClick={() => void copyToClipboard(command).then((ok) => ok && setCopied(true))}
+        />
+        <AppTile
+          soonLabel={soon}
+          name={t('settings.browsertools.sourceZip')}
+          logo={<BrandMark svg={ZIP_SVG} />}
+          href={zip}
+        />
+      </div>
+    </Card>
+  );
+}
+
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 
 // The app this build offers is the version mobile/app.json names when the page
 // is built (vite.config.ts), and the APK tile fetches exactly that release's
 // file, so the card's number is the app the tile gives. The standing "newest"
 // download is whatever was tagged last, which this build cannot know.
-// check-version-sources.mjs holds both ends. An empty store URL means the
-// listing is not live yet.
+// check-version-sources.mjs holds both ends. An empty listing URL turns its
+// tile into one that is still to come.
 const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
-  android: '',
-  ios: '',
+  play: '',
   apk: `${REPO_URL}/releases/download/mobile/v${APP_VERSION}/KnightLoader-${APP_VERSION}.apk`,
 };
 
-/**
- * openIfSet opens a store listing once its URL is set and does nothing before,
- * so the tile keeps its hover instead of rendering disabled.
- */
-function openIfSet(url: string): () => void {
-  return () => {
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
-  };
-}
+const UNRAID_CA_URL = '';
 
 /**
- * The class of DownloadTile, the one download shape on the page for browsers,
- * stores and the APK alike. It hovers to the coin tiles' grey and ink. The
- * vendor marks keep their colours, since each has a part that stands out on
- * the grey (check-tile-hover.mjs); Android's one green does not, so its mark
- * takes the stylesheet's value for a light ground there (.kl-android-mark).
- * The hover belongs to the wrapper, so the (i) in the corner lights the tile
- * too and takes the same ink.
+ * desktopZip is the desktop bundle release.yml attaches to every release,
+ * under the name without a version that /releases/latest/download/ can find.
  */
-const tileClass =
-  'flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 ' +
-  'text-carbon-text transition-colors duration-150 group-hover:bg-carbon-tileHover group-hover:text-carbon-tileHoverInk';
+function desktopZip(slug: 'windows-amd64' | 'macos-universal' | 'linux-amd64'): string {
+  return `${REPO_URL}/releases/latest/download/knightloader-${slug}.zip`;
+}
+
+/** The README's docker run on one line, in the reader's own time zone. */
+function dockerRun(): string {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return (
+    'docker run -d --name knightloader --restart unless-stopped -p 8749:8749 ' +
+    '-v /path/to/appdata:/data -v /path/to/downloads:/data/downloads -v /path/to/watch:/watch ' +
+    `-e TZ=${zone} ghcr.io/junkerderprovinz/knightloader:latest`
+  );
+}
 
 /**
  * ReleaseVersion links a version to its release page. The extension's and the
@@ -225,38 +349,6 @@ function ReleaseVersion({ version, tagPrefix }: { version: string; tagPrefix: 'e
     >
       v{version}
     </a>
-  );
-}
-
-/** The optional (i) is a sibling of the button, so clicking it starts no download. */
-function DownloadTile({
-  logo,
-  name,
-  onClick,
-  hint,
-  hintLabel,
-}: {
-  logo: ReactNode;
-  name: string;
-  onClick: () => void;
-  hint?: ReactNode;
-  hintLabel?: string;
-}) {
-  return (
-    <div className="group relative">
-      {/* No tooltip: the tile already shows its name. */}
-      <button type="button" onClick={onClick} aria-label={name} className={`${tileClass} h-28 w-28`}>
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center">{logo}</span>
-        <span className="text-xs font-medium">{name}</span>
-      </button>
-      {/* onColor, so the (i) takes the tile's ink; the muted grey it wears
-          elsewhere fades on the lit tile. */}
-      {hint && (
-        <span className="absolute end-1.5 top-1.5 text-carbon-textSub group-hover:text-carbon-tileHoverInk">
-          <InfoBubble tip={hint} label={hintLabel} onColor />
-        </span>
-      )}
-    </div>
   );
 }
 
@@ -285,37 +377,8 @@ function downloadXpi() {
   window.location.href = '/api/browser-extension.xpi';
 }
 
-/**
- * BrandMark injects an official multi-colour brand SVG as-is, since gradients,
- * `<use>` references and kebab-case attributes are easy to break in a JSX port.
- * Every id carries a per-logo prefix (kl-<name>-*) so the marks cannot collide.
- */
-function BrandMark({ svg, className = '' }: { svg: string; className?: string }) {
-  return (
-    <span
-      className={`block h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full ${className}`}
-      aria-hidden
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
-}
-
-// Google Play's icon rather than the badge, whose artwork may not be altered.
-const PLAY_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><linearGradient id="kl-play-a" x1="60.6" x2="276.6" y1="45.4" y2="261.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00a0ff"/><stop offset=".01" stop-color="#00a1ff"/><stop offset=".26" stop-color="#00beff"/><stop offset=".51" stop-color="#00d2ff"/><stop offset=".76" stop-color="#00dfff"/><stop offset="1" stop-color="#00e3ff"/></linearGradient><linearGradient id="kl-play-b" x1="446.6" x2="34.3" y1="256" y2="256" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe000"/><stop offset=".41" stop-color="#ffbd00"/><stop offset=".78" stop-color="#ffa500"/><stop offset="1" stop-color="#ff9c00"/></linearGradient><linearGradient id="kl-play-c" x1="349.6" x2="6.9" y1="295.1" y2="637.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff3a44"/><stop offset="1" stop-color="#c31162"/></linearGradient><linearGradient id="kl-play-d" x1="22.9" x2="176" y1="-38.1" y2="115" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#32a071"/><stop offset=".07" stop-color="#2da771"/><stop offset=".48" stop-color="#15cf74"/><stop offset=".8" stop-color="#06e775"/><stop offset="1" stop-color="#00f076"/></linearGradient><path fill="url(#kl-play-a)" d="M39.6 24.1c-5.6 5.9-8.9 15.1-8.9 27v409.8c0 11.9 3.3 21.1 8.9 27l1.4 1.3L270 259.7v-5.4L41 25.4z"/><path fill="url(#kl-play-b)" d="m346.3 336.3-76.3-76.6v-5.4l76.4-76.5 1.7 1L438.5 231c25.8 14.7 25.8 38.7 0 53.4l-90.4 51.4z"/><path fill="url(#kl-play-c)" d="M348 335.3 270 257 39.6 487.9c8.5 9 22.5 10.1 38.4 1.1z"/><path fill="url(#kl-play-d)" d="M348 178.7 78 25.1C62.1 16 48.1 17.2 39.6 26.2L270 257z"/></svg>';
-
-// Android's head from Dashboard Icons (svg/android.svg), painted in
-// currentColor so the stylesheet can adjust its green per ground, as it does
-// for the about card's marks (.kl-android-mark in index.css).
-const ANDROID_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.03 112.41 512 287.17"><path fill="currentColor" d="m447.9 460.9 42.5-73.6c2.4-4.1.9-9.4-3.1-11.8-4.1-2.4-9.4-1-11.7 3.1l-43 74.5c-32.8-15-69.8-23.4-109.5-23.4s-76.7 8.4-109.5 23.4l-43-74.5c-2.4-4.1-7.6-5.5-11.8-3.1-4.1 2.4-5.5 7.6-3.1 11.8l42.5 73.6C124.8 500.6 75.2 574.7 67 661.5h512c-8.2-86.8-57.8-160.9-131.1-200.6M205.4 589.6c-11.9 0-21.5-9.6-21.5-21.5s9.6-21.5 21.5-21.5 21.5 9.6 21.5 21.5c0 11.8-9.6 21.5-21.5 21.5m235.1 0c-11.9 0-21.5-9.6-21.5-21.5s9.6-21.5 21.5-21.5 21.5 9.6 21.5 21.5c0 11.8-9.7 21.5-21.5 21.5" transform="translate(-66.97 -261.92)"/></svg>';
-
-// Apple's mark uses currentColor: it is black or white by definition, so the
-// tile's neutral ink is the right colour in every theme. That holds only while
-// tileClass never takes an accent ink.
-const APPLE_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
-
+// The browsers' marks carry kl-<name>- ids, apart from the glim- ids of the
+// marks in lib/appMarks.ts.
 const CHROME_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 190 190"><linearGradient id="kl-chrome-d" x1="28.3" x2="80.8" y1="75" y2="44.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a52714" stop-opacity=".6"/><stop offset=".7" stop-color="#a52714" stop-opacity="0"/></linearGradient><linearGradient id="kl-chrome-f" x1="109.9" x2="51.5" y1="164.5" y2="130.3" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#055524" stop-opacity=".4"/><stop offset=".3" stop-color="#055524" stop-opacity="0"/></linearGradient><linearGradient id="kl-chrome-h" x1="121.9" x2="136.6" y1="49.8" y2="114.1" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ea6100" stop-opacity=".3"/><stop offset=".7" stop-color="#ea6100" stop-opacity="0"/></linearGradient><radialGradient id="kl-chrome-a" cx="91.2" cy="55" r="84.1" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3e2723" stop-opacity=".2"/><stop offset="1" stop-color="#3e2723" stop-opacity="0"/></radialGradient><radialGradient href="#kl-chrome-a" id="kl-chrome-i" cx="20.9" cy="47.5" r="78"/><radialGradient id="kl-chrome-j" cx="94.8" cy="95.1" r="87.9" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#263238" stop-opacity=".2"/><stop offset="1" stop-color="#263238" stop-opacity="0"/></radialGradient><radialGradient id="kl-chrome-k" cx="33.3" cy="31" r="176.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><clipPath id="kl-chrome-b"><circle cx="95" cy="95" r="88"/></clipPath><g clip-path="url(#kl-chrome-b)"><use href="#kl-chrome-c" fill="#db4437"/><use href="#kl-chrome-c" fill="url(#kl-chrome-d)"/><use href="#kl-chrome-e" fill="#0f9d58"/><use href="#kl-chrome-e" fill="url(#kl-chrome-f)"/><use href="#kl-chrome-g" fill="#ffcd40"/><use href="#kl-chrome-g" fill="url(#kl-chrome-h)"/><g fill-opacity=".1"><path fill="#3e2723" d="M61.3 114.7 21 47.4l39 67.8z"/><path fill="#263238" d="m128.8 116.3-.8-.4-37.3 67 38.3-67z"/></g><path id="kl-chrome-e" d="M7 183h83.8l39-39v-29H60.2L7 23.5z"/><path id="kl-chrome-g" d="m95 55 34.6 60L91 183h92V55z"/><path id="kl-chrome-c" d="M21 7v108h39.4L95 55h88V7z"/><path fill="url(#kl-chrome-a)" d="M95 55v21l78.4-21z"/><path fill="url(#kl-chrome-i)" d="m21 47.5 57.2 57.2L60.4 115z"/><path fill="url(#kl-chrome-j)" d="m90.8 183 21-78.3 17.8 10.3z"/><circle cx="95" cy="95" r="40" fill="#f1f1f1"/><circle cx="95" cy="95" r="32" fill="#4285f4"/><circle cx="95" cy="95" r="88" fill="url(#kl-chrome-k)"/><g fill="#3e2723" fill-opacity=".1"><path fill="#fff" d="M129.6 115a40 40 0 0 1-69.2 0L7 24.5 60.4 116a40 40 0 0 0 69.2 0z"/><path d="M96 55h-.5a40 40 0 1 1 0 80h.5c22 0 40-18 40-40s-18-40-40-40m-1 127a88 88 0 0 0 88-87.5v.5A88 88 0 0 1 7 95v-.5A88 88 0 0 0 95 182"/><g fill-opacity=".2"><path fill="#fff" d="M130 116.3a39.3 39.3 0 0 0 3.4-32 38 38 0 0 1-3.8 30.7L92 183l38.2-66.5zM95 8a88 88 0 0 1 88 87.5V95A88 88 0 0 0 7 95v.5A88 88 0 0 1 95 8"/><path d="M95 54c-22 0-40 18-40 40v1c0-22 18-40 40-40h88v-1z"/></g></g></g></svg>';
 

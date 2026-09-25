@@ -210,11 +210,20 @@
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
 
-  /* The Android mark on the APK tile, adjusted the same way: at rest on the
-     tile, and on the tile's hover grey, where the green reads 1.35:1 and the
-     mark takes a deepened one. See .kl-android-mark. */
-  --brand-android:       #32de84;
-  --brand-android-hover: #155d37;
+  /* The marks on the app tiles that are one flat colour or one gradient, which
+     no hover grey carries: the brand value at rest, a deepened one while the
+     tile is lit. Values from GlimStone's reference/tokens.css; see
+     .glim-android-mark. */
+  --brand-android:           #32de84;
+  --brand-android-hover:     #155d37;
+  --brand-docker:            #2396ed;
+  --brand-docker-hover:      #0b5394;
+  --brand-unraid-from:       #e32929;
+  --brand-unraid-to:         #ff8d30;
+  --brand-unraid-from-hover: #9c1414;
+  --brand-unraid-to-hover:   #a84b0c;
+  --brand-windows:           #2b88d8;
+  --brand-windows-hover:     #005a9e;
 
   /* Four steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -294,8 +303,16 @@
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
-    --brand-android:       #1c7c4a;
-    --brand-android-hover: #1c7c4a;
+    --brand-android:           #1c7c4a;
+    --brand-android-hover:     #1c7c4a;
+    --brand-docker:            #1d6fbf;
+    --brand-docker-hover:      #1d6fbf;
+    --brand-unraid-from:       #c21f1f;
+    --brand-unraid-to:         #c85d12;
+    --brand-unraid-from-hover: #c21f1f;
+    --brand-unraid-to-hover:   #c85d12;
+    --brand-windows:           #0078d4;
+    --brand-windows-hover:     #0078d4;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -362,8 +379,16 @@
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
-  --brand-android:       #1c7c4a;
-  --brand-android-hover: #1c7c4a;
+  --brand-android:           #1c7c4a;
+  --brand-android-hover:     #1c7c4a;
+  --brand-docker:            #1d6fbf;
+  --brand-docker-hover:      #1d6fbf;
+  --brand-unraid-from:       #c21f1f;
+  --brand-unraid-to:         #c85d12;
+  --brand-unraid-from-hover: #c21f1f;
+  --brand-unraid-to-hover:   #c85d12;
+  --brand-windows:           #0078d4;
+  --brand-windows-hover:     #0078d4;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -1580,18 +1605,35 @@ body {
   color: var(--carbon-tile-hover-ink);
 }
 
-/* Android's mark is one flat green, which no hover grey carries, so the APK
-   tile paints it from a token pair: --brand-android at rest and
-   --brand-android-hover while the tile is lit. Behind the same hover media
-   query as the tile's own group-hover, or a tap on a touch screen would leave
-   the deep green on the resting tile. */
-.kl-android-mark {
+/* The app tiles' single-colour marks (GlimStone 2.10.0). The deepened value
+   only under a real pointer, or a tap on a touch screen would leave it on a
+   resting tile. Unraid's gradient reads its two stops as custom properties,
+   which do not transition. */
+.glim-android-mark {
   color: var(--brand-android);
   transition: color var(--motion-control-dur, 120ms);
 }
+.glim-docker-mark {
+  color: var(--brand-docker);
+  transition: color var(--motion-control-dur, 120ms);
+}
+.glim-windows-mark {
+  color: var(--brand-windows);
+  transition: color var(--motion-control-dur, 120ms);
+}
 @media (hover: hover) {
-  .group:hover .kl-android-mark {
+  .group:hover .glim-android-mark {
     color: var(--brand-android-hover);
+  }
+  .group:hover .glim-docker-mark {
+    color: var(--brand-docker-hover);
+  }
+  .group:hover .glim-unraid-mark {
+    --brand-unraid-from: var(--brand-unraid-from-hover);
+    --brand-unraid-to: var(--brand-unraid-to-hover);
+  }
+  .group:hover .glim-windows-mark {
+    color: var(--brand-windows-hover);
   }
 }
 

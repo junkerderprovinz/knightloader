@@ -1132,9 +1132,11 @@ async function renderAppearance() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@halleluja.design';
-const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
+// The widget page for the coffee handle in the README's donate row.
+const COFFEE_WIDGET_URL = 'https://buymeacoffee.com/widget/page/junkerderprovinz?color=%23FFDD00';
 // PayPal's hosted donation button, the same address the web UI's About card
-// and the README's donate row use.
+// and the README's donate row use. GlimStone's PayPal window needs a PayPal
+// app's client id and a plan per interval, which this project does not have.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
 /** A version number linking to its release, opened in a new tab. */
@@ -1168,12 +1170,8 @@ function renderAbout() {
   );
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
-  const coffeeBtn = document.getElementById('aboutCoffeeBtn');
   if (coffeeText) coffeeText.textContent = t('options.aboutCoffee');
-  if (coffeeBtn) {
-    coffeeBtn.href = COFFEE_URL;
-    coffeeBtn.replaceChildren(glyph(D_COFFEE, 14, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
-  }
+  coffeeBtn.replaceChildren(glyph(D_COFFEE, 14, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
   const paypalBtn = document.getElementById('aboutPaypalBtn');
   if (paypalBtn) {
     paypalBtn.href = PAYPAL_URL;
@@ -1191,6 +1189,49 @@ function renderAbout() {
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
   mail.replaceChildren(glyph(D_MAIL, 14), document.createTextNode(t('options.aboutMail')));
 }
+
+// The coffee window: Buy Me a Coffee's widget in a window of our own, so a donor
+// pays without leaving the page. The frame exists only while the window is open.
+
+const coffeeBtn = document.getElementById('aboutCoffeeBtn');
+const coffeeEl = document.getElementById('coffeeDonate');
+const coffeeFrameEl = document.getElementById('coffeeFrame');
+const coffeeCloseEl = document.getElementById('coffeeClose');
+
+function openCoffee() {
+  document.getElementById('coffeeTitle').textContent = t('options.aboutCoffeeButton');
+  glimSetInfo('coffeeHeading', t('options.coffeeIntro'));
+  coffeeCloseEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.close')));
+  const frame = document.createElement('iframe');
+  frame.src = COFFEE_WIDGET_URL;
+  frame.title = t('options.aboutCoffeeButton');
+  frame.allow = 'payment';
+  coffeeFrameEl.replaceChildren(frame);
+  coffeeEl.hidden = false;
+  coffeeCloseEl.focus();
+  document.addEventListener('keydown', onCoffeeKey);
+}
+
+function closeCoffee() {
+  coffeeEl.hidden = true;
+  coffeeFrameEl.replaceChildren();
+  document.removeEventListener('keydown', onCoffeeKey);
+  coffeeBtn.focus();
+}
+
+// Tab is left alone: the frame's own fields are stops a trap would skip.
+function onCoffeeKey(event) {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  closeCoffee();
+}
+
+coffeeBtn.addEventListener('click', openCoffee);
+coffeeCloseEl.addEventListener('click', closeCoffee);
+// Only a press on the backdrop itself closes it.
+coffeeEl.addEventListener('click', (event) => {
+  if (event.target === coffeeEl) closeCoffee();
+});
 
 // The crypto window: pick a coin, then its chain, and get the address as a code,
 // as text and through a copy button. Nothing leaves the browser, no account is

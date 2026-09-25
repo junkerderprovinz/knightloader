@@ -385,12 +385,11 @@
       <p id="aboutCoffee" class="aboutText"></p>
       <!-- glim-brand-btn and glim-brand-<name> work only as a pair (GlimStone
            1.10.0): the second supplies the brand colours the first uses. The
-           hosted pages come first, in the order the family's cards share. -->
+           hosted payments come first, in the order the family's cards share.
+           Coffee and crypto open a window of our own, so they are buttons. -->
       <div class="fields">
-        <a id="aboutCoffeeBtn" class="secondary btnlike glim-brand-btn glim-brand-coffee" target="_blank" rel="noreferrer noopener"></a>
+        <button id="aboutCoffeeBtn" class="secondary glim-brand-btn glim-brand-coffee" type="button"></button>
         <a id="aboutPaypalBtn" class="secondary btnlike glim-brand-btn glim-brand-paypal" target="_blank" rel="noreferrer noopener"></a>
-        <!-- The wallet route last. It opens a window of our own rather than
-             somebody else's page, so it is a button. -->
         <button id="aboutCryptoBtn" class="secondary glim-brand-btn glim-brand-bitcoin" type="button"></button>
       </div>
       <p id="aboutReport" class="aboutText"></p>
@@ -421,6 +420,25 @@
         <div class="glim-modal-actions">
           <button id="leaveConfirmCancel" class="secondary" type="button"></button>
           <button id="leaveConfirmCommit" class="secondary" type="button"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The coffee window: Buy Me a Coffee's widget, the one BMAC page that may
+         be framed, where the whole payment happens. options.js puts the frame
+         in only while the window is open, so nothing from BMAC loads before
+         somebody asks for it. -->
+    <div id="coffeeDonate" class="glim-modal-backdrop" hidden>
+      <div
+        class="glim-card glim-modal-card glim-coffee"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="coffeeTitle"
+      >
+        <h2 class="glim-section-badge" id="coffeeHeading"><span id="coffeeTitle"></span></h2>
+        <div class="glim-coffee-frame" id="coffeeFrame"></div>
+        <div class="glim-modal-actions">
+          <button id="coffeeClose" class="secondary" type="button"></button>
         </div>
       </div>
     </div>
