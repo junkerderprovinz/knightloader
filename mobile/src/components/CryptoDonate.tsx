@@ -91,6 +91,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
               {/* Only the body scrolls, so the title and the bottom row stay in
                   place on a short screen (rule 15). */}
               <ScrollView style={{ maxHeight: height * 0.66 }} contentContainerStyle={styles.body}>
+                <Text style={[styles.appeal, { color: c.text }]}>{t('settings.donateAppeal')}</Text>
                 <View style={[styles.code, { backgroundColor: c.surface2, ...corners.card }]}>
                   {/* Black on white in both themes: an inverted code is outside
                       the standard, and the scanners that refuse it are the wallet
@@ -264,6 +265,7 @@ const styles = StyleSheet.create({
   window: { width: '100%', maxWidth: 480 },
   flush: { marginTop: 0 },
   body: { gap: 16, paddingTop: 4 },
+  appeal: { fontSize: TYPE.body, lineHeight: 20 },
   code: { alignItems: 'center', gap: 12, padding: 16 },
   plate: { padding: 12, backgroundColor: '#ffffff' },
   address: {

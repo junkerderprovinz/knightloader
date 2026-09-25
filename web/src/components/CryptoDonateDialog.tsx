@@ -57,6 +57,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
         />
       }
     >
+      <p className="text-sm text-carbon-text">{t('settings.about.donateAppeal')}</p>
       <div className="flex flex-col items-center gap-3 rounded-[var(--radius-card)] bg-carbon-surface2 p-4">
         <QRCode matrix={matrix} label={network.address} size={168} />
         {/* Never shortened: an address is checked by eye before sending. */}

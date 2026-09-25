@@ -62,6 +62,7 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
         />
       }
     >
+      <p className="text-sm text-carbon-text">{t('settings.about.donateAppeal')}</p>
       <p className="text-sm text-carbon-textSub">{t('settings.about.paypalIntro')}</p>
 
       <FieldGroup label={frequencyLabel}>

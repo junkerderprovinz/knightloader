@@ -1400,6 +1400,7 @@ export const tr: Dict = {
   'settings.about.crypto': 'Kripto',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Kripto ile bağış',
+  'settings.about.donateAppeal': 'Şövalyene bir sikke at: masrafların bir kısmını karşılar ve projeyi ayakta tutar. Yaptığım her şey ücretsiz ve reklamsız.',
   'settings.about.cryptoIntro': 'Bir kripto para ve ağ seç, sonra kodu tara veya adresi kopyala.',
   'settings.about.cryptoNetworks': 'Ağlar',
   'settings.about.cryptoNoTag': 'Destination tag da memo da gerekmiyor.',

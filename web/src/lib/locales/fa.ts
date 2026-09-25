@@ -1400,6 +1400,7 @@ export const fa: Dict = {
   'settings.about.crypto': 'رمزارز',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'کمک با رمزارز',
+  'settings.about.donateAppeal': 'سکه‌ای برای شوالیه‌ات بینداز: بخشی از هزینه‌ها را می‌پوشاند و پروژه را زنده نگه می‌دارد. هر چه می‌سازم رایگان است و تبلیغ ندارد.',
   'settings.about.cryptoIntro': 'یک ارز و یک شبکه انتخاب کن، سپس کد را اسکن کن یا نشانی را کپی کن.',
   'settings.about.cryptoNetworks': 'شبکه‌ها',
   'settings.about.cryptoNoTag': 'به Destination Tag یا Memo نیازی نیست.',

@@ -1055,6 +1055,12 @@ body {
    the screen allows less a margin, since BMAC's payment step runs to about
    1200px. White behind the frame, so its first paint is not a dark hole on
    the dark theme; BMAC's page is light either way. */
+.glim-donate-appeal {
+  margin: 0 0 16px;
+  font-size: var(--text-body);
+  color: var(--carbon-text);
+  overflow-wrap: anywhere;
+}
 .glim-coffee {
   max-width: 512px;
   height: calc(100vh - 7rem);

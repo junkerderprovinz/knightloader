@@ -1400,6 +1400,7 @@ export const bg: Dict = {
   'settings.about.crypto': 'Крипто',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Дарение с крипто',
+  'settings.about.donateAppeal': 'Хвърли монета на своя рицар: тя покрива част от разходите и държи проекта жив. Всичко, което правя, е безплатно и без реклами.',
   'settings.about.cryptoIntro': 'Избери валута и мрежа, после сканирай кода или копирай адреса.',
   'settings.about.cryptoNetworks': 'Мрежи',
   'settings.about.cryptoNoTag': 'Не са нужни таг за получател или мемо.',

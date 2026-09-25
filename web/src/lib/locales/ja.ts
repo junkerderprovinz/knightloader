@@ -1400,6 +1400,7 @@ export const ja: Dict = {
   'settings.about.crypto': '暗号資産',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': '暗号資産で寄付',
+  'settings.about.donateAppeal': '騎士にコインを一枚。費用の一部をまかない、プロジェクトを生かし続けます。私が作るものはすべて無料で、広告もありません。',
   'settings.about.cryptoIntro': '通貨とネットワークを選び、コードを読み取るかアドレスをコピーしてください。',
   'settings.about.cryptoNetworks': 'ネットワーク',
   'settings.about.cryptoNoTag': 'destination tag も memo も不要です。',

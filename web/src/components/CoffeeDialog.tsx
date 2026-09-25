@@ -27,6 +27,7 @@ export function CoffeeDialog({ onClose }: { onClose: () => void }) {
         />
       }
     >
+      <p className="text-sm text-carbon-text">{t('settings.about.donateAppeal')}</p>
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffeeIntro')}</p>
       <div className="flex min-h-0 flex-1 rounded-[var(--radius-card)] bg-carbon-surface2 p-2">
         {/* White behind the frame, so its first paint is not a dark hole on

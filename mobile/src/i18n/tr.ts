@@ -95,6 +95,7 @@ export const tr: Dict = {
   'settings.aboutPaypal': 'PayPal',
   'settings.aboutCrypto': 'Kripto',
   'settings.cryptoTitle': 'Kripto ile bağış',
+  'settings.donateAppeal': 'Şövalyene bir sikke at: masrafların bir kısmını karşılar ve projeyi ayakta tutar. Yaptığım her şey ücretsiz ve reklamsız.',
   'settings.cryptoIntro': 'Bir kripto para ve ağ seç, sonra kodu tara veya adresi kopyala.',
   'settings.cryptoNetworks': 'Ağlar',
   'settings.cryptoNoTag': 'Destination tag da memo da gerekmiyor.',
