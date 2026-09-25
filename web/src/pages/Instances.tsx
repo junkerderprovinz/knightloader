@@ -109,9 +109,10 @@ export function Instances() {
         </p>
       )}
 
-      {/* Columns of at least 20rem, so a narrow window shows fewer cards
-          instead of squeezing the logo, the name and the figures of each. */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,20rem),1fr))] gap-4">
+      {/* One card width wherever the list stands, here and on the Instances
+          settings tab, sized so the name with its status and the three figures
+          each keep one line. A narrow window shows fewer cards. */}
+      <div className="grid grid-cols-[repeat(auto-fill,min(100%,28rem))] gap-4">
         {/* Open goes to the local download list, with no ?instance=. */}
         <InstanceCard
           name={ownName || t('instances.thisInstance')}
