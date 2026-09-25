@@ -1,5 +1,5 @@
-// The two numbers a list column carries, checked against what its cell was
-// measured to need.
+// The numbers a list column carries, checked against what its cell and its
+// card were measured to hold.
 //
 // A column width is the one kind of number here that nobody can verify by
 // reading it. It looks like taste and is argued back and forth in comments, so
@@ -11,9 +11,34 @@
 // nothing is shaved and nothing is clipped; the second picker moves to a second
 // line.
 //
-// Every figure below was read off the live collector (seeded yt-dlp variant
-// rows, Chromium at 1600x950) in all 42 shipped locales, measuring the cell's
-// content on one line plus the cell's own 16px of padding:
+// The name column has no width of its own: it takes what the other columns
+// leave (gridTemplate in columns.tsx). In a narrow window it gives way to its
+// floor first, then every other column to its minWidth, and only then does the
+// table scroll. So the defaults decide how wide the name is, and the minimums
+// decide the narrowest card the table fits.
+//
+// The card and its furniture, read off the live download list and collector
+// (Chromium, the page tall enough for <main> to show its 10px scrollbar):
+//
+//   card            934 at 1280px, 1094 at 1440px, 1574 at 1920px
+//   furniture       128: the row's 12px padding on each side and the 104px
+//                   track for the row's three action badges
+//
+// The widest content of the other default columns, in the app's font with the
+// cell's 16px of padding. These are what the widths in columns.tsx round up:
+//
+//   size            68  "1023 MiB", the longest a size gets
+//   speed           78  "1023 MiB/s"
+//   time left       72  "123h 45m"
+//   status         133  the widest transfer state in the 42 locales (fr)
+//   host           116  "rapidgator.net" behind its logo; longer hosts
+//                       truncate into their bubble
+//   progress        60  the percentage, its gap and the padding; the bar
+//                       takes the rest, 68px at the default of 128
+//
+// The variant column, read off the live collector (seeded yt-dlp variant rows,
+// Chromium at 1600x950) in all 42 shipped locales, measuring the cell's content
+// on one line plus the cell's own 16px of padding:
 //
 //   video row       max 287.1  (lt: "Vaizdo įrašas" and two pickers reading
 //                               "Automatinis"); 228.3 in English and German,
@@ -27,9 +52,11 @@
 //
 // The rules that follow from them, and nothing beyond them:
 //
-//   1. variant.minWidth >= 130. The floor is the widest single control rather
-//      than the whole row: wrapping saves a narrow column, clipping does not,
-//      and a picker is clipped rather than shrunk.
+//   1. In the collector, the variant column's minWidth >= 130. The floor is the
+//      widest single control rather than the whole row: wrapping saves a
+//      narrow column, clipping does not, and a picker is clipped rather than
+//      shrunk. The download list shows a line of text there that truncates
+//      into its tooltip, so its own floor can be lower.
 //   2. In the collector, 229 <= variant.width <= 288. The lower bound is the
 //      video row, which every yt-dlp package has exactly one of, on one line
 //      in English and German. In a language with a longer word for Auto its
@@ -37,11 +64,14 @@
 //      growing by 60px in every language. The upper bound is the widest cell
 //      this column can ever hold in any language; above it the column is
 //      reserving room for content that does not exist. The download list
-//      shows a line of text there that truncates into its tooltip, so it only
-//      needs the minWidth and keeps the upper bound.
-//   3. In each list, the name column's default is the widest default of that
-//      list's visible columns. It carries the file name, which is what the row
-//      is for, and it is the one column that cannot be read anywhere else.
+//      keeps the upper bound.
+//   3. In each list, the default columns fit the card at 1280px with the name
+//      at its floor and every other column at its minWidth. Past that the
+//      table scrolls before anybody has added a column or dragged one wider.
+//   4. In each list, at 1440px with every other column at its default width,
+//      what is left for the name is at least the widest of those defaults. It
+//      carries the file name, which is what the row is for, and it is the one
+//      column that cannot be read anywhere else.
 //
 // It reads the source rather than the running app: the measurement is the
 // expensive half and stands above, while what rots is the number in columns.tsx
@@ -93,10 +123,13 @@ function blankComments(src) {
 
 const text = blankComments(readFileSync(file, 'utf8'));
 
-// Measured, on the live instance, in all 42 locales. See the header.
+// Measured on the live instance. See the header.
 const WRAP_FLOOR = 130; // widest single control + the cell's padding (fi)
 const COMMON_ROW = 229; // widest one-line video row in English and German
 const WIDEST_ROW = 288; // widest one-line video row there can be (lt)
+const CARD_1280 = 934;
+const CARD_1440 = 1094;
+const FURNITURE = 128; // row padding + the actions track
 
 const problems = [];
 
@@ -168,17 +201,18 @@ for (const block of blocks) {
   if (!id) continue;
   const width = block.match(/\bwidth:\s*([^,\n]+)/)?.[1];
   const minWidth = block.match(/\bminWidth:\s*([^,\n]+)/)?.[1];
-  const perList = {};
-  const widthIn = block.match(/\bwidthByProfile:\s*\{([^}]*)\}/)?.[1];
-  if (widthIn) {
-    for (const [, list, value] of widthIn.matchAll(/(\w+):\s*(\d+)/g)) perList[list] = Number(value);
-  }
+  /** `{ downloads: 104 }` out of a `widthByProfile` or `minWidthByProfile`. */
+  const byList = (key) => {
+    const inner = block.match(new RegExp(`\\b${key}:\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+    return Object.fromEntries([...inner.matchAll(/(\w+):\s*(\d+)/g)].map(([, list, value]) => [list, Number(value)]));
+  };
   const onlyIn = block.match(/\bonlyIn:\s*\[([^\]]*)\]/)?.[1];
   columns.set(id, {
     id,
     width: width ? number(width, consts, `${id}.width`) : null,
     minWidth: minWidth ? number(minWidth, consts, `${id}.minWidth`) : null,
-    perList,
+    perList: byList('widthByProfile'),
+    minPerList: byList('minWidthByProfile'),
     onlyIn: onlyIn ? [...onlyIn.matchAll(/'([^']+)'/g)].map((m) => m[1]) : null,
   });
 }
@@ -194,6 +228,7 @@ function visibleIn(list) {
 }
 
 const defaultWidth = (c, list) => c.perList[list] ?? c.width;
+const minWidth = (c, list) => c.minPerList[list] ?? c.minWidth;
 
 // The variant column against its own measured cell.
 
@@ -201,10 +236,10 @@ const variant = columns.get('variant');
 if (!variant) {
   problems.push("there is no 'variant' column any more - re-measure before deleting these rules");
 } else {
-  if (variant.minWidth < WRAP_FLOOR) {
+  if (minWidth(variant, 'collector') < WRAP_FLOOR) {
     problems.push(
-      `variant.minWidth is ${variant.minWidth}, below the measured ${WRAP_FLOOR}px a single picker needs. ` +
-        'A picker cannot shrink, so under this floor the cell clips it instead of wrapping.',
+      `variant's minWidth in the collector is ${minWidth(variant, 'collector')}, below the measured ${WRAP_FLOOR}px ` +
+        'a single picker needs. A picker cannot shrink, so under this floor the cell clips it instead of wrapping.',
     );
   }
   for (const list of ['downloads', 'collector']) {
@@ -215,8 +250,8 @@ if (!variant) {
           'Every yt-dlp package has a video row; sizing under it wraps the common case to save the rare one.',
       );
     }
-    if (w < variant.minWidth) {
-      problems.push(`variant.width in ${list} is ${w}, below its own minWidth of ${variant.minWidth}.`);
+    if (w < minWidth(variant, list)) {
+      problems.push(`variant.width in ${list} is ${w}, below its own minWidth of ${minWidth(variant, list)}.`);
     }
     if (w > WIDEST_ROW) {
       problems.push(
@@ -227,8 +262,10 @@ if (!variant) {
   }
 }
 
-// The name column is the widest column in each list.
+// The default columns against the card: they fit it at 1280px, and at 1440px
+// the name is still the widest column.
 
+const room = {};
 for (const list of ['downloads', 'collector']) {
   const visible = visibleIn(list);
   const name = visible.find((c) => c.id === 'name');
@@ -236,16 +273,21 @@ for (const list of ['downloads', 'collector']) {
     problems.push(`the ${list} list does not draw a name column`);
     continue;
   }
-  const mine = defaultWidth(name, list);
-  for (const other of visible) {
-    if (other.id === 'name') continue;
-    const theirs = defaultWidth(other, list);
-    if (theirs > mine) {
-      problems.push(
-        `in ${list} the '${other.id}' column defaults to ${theirs}px and 'name' to ${mine}px. ` +
-          'The file name is what the row is for and nothing else on the row carries it.',
-      );
-    }
+  const others = visible.filter((c) => c.id !== 'name');
+  const narrowest = FURNITURE + minWidth(name, list) + others.reduce((n, c) => n + minWidth(c, list), 0);
+  if (narrowest > CARD_1280) {
+    problems.push(
+      `in ${list} the default columns need ${narrowest}px with every one at its minWidth, more than the ` +
+        `${CARD_1280}px card at 1280px. The table would scroll before anybody added or widened a column.`,
+    );
+  }
+  room[list] = CARD_1440 - FURNITURE - others.reduce((n, c) => n + defaultWidth(c, list), 0);
+  const widest = others.reduce((a, c) => (defaultWidth(c, list) > defaultWidth(a, list) ? c : a));
+  if (room[list] < defaultWidth(widest, list)) {
+    problems.push(
+      `in ${list} the name gets ${room[list]}px at 1440px and the '${widest.id}' column defaults to ` +
+        `${defaultWidth(widest, list)}px. The file name is what the row is for and nothing else on the row carries it.`,
+    );
   }
 }
 
@@ -257,9 +299,9 @@ if (problems.length) {
 }
 
 const shown = ['downloads', 'collector']
-  .map((l) => `${l}: ${visibleIn(l).length} columns, name ${defaultWidth(columns.get('name'), l)}px`)
+  .map((l) => `${l}: ${visibleIn(l).length} columns, name ${room[l]}px at 1440px`)
   .join('; ');
 console.log(
   `ok: ${columns.size} column definitions; variant ${defaultWidth(variant, 'collector')}px within the measured ` +
-    `${COMMON_ROW}-${WIDEST_ROW} band, floor ${variant.minWidth} >= ${WRAP_FLOOR}; ${shown}`,
+    `${COMMON_ROW}-${WIDEST_ROW} band, floor ${minWidth(variant, 'collector')} >= ${WRAP_FLOOR}; ${shown}`,
 );

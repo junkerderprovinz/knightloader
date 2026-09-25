@@ -146,15 +146,16 @@ export interface ColumnDef {
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   /**
-   * The default width where one list can afford a different one, the same
-   * per-list shape `labelByProfile` takes for the header. The collector's
-   * default set leaves slack that its last column absorbs, while the downloads
-   * set already scrolls inside its own card, where every pixel added is a pixel
-   * of sideways scrolling. Widths a user drags are stored per list
-   * (`list.columns.<profile>`), so this is only the starting point.
+   * The default width where one list draws the column differently, the same
+   * per-list shape `labelByProfile` takes for the header. Widths a user drags
+   * are stored per list (`list.columns.<profile>`), so this is only the
+   * starting point.
    */
   widthByProfile?: Partial<Record<ListProfile, number>>;
+  /** How far the column gives way in a narrow window, and how far it can be dragged. */
   minWidth: number;
+  /** The floor where one list's cell can go narrower than the other's. */
+  minWidthByProfile?: Partial<Record<ListProfile, number>>;
   align: 'start' | 'center' | 'end';
   /** Tabular digits, for a value that changes while somebody is looking at it. */
   numeric?: boolean;
@@ -1189,17 +1190,9 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'name',
     labelKey: 'columns.name',
-    // 340 leaves 272px for the name once the tree indent and the cell's
-    // trailing padding are paid, which a long scene release or any of the five
-    // rows of a yt-dlp package outruns.
-    //
-    // The collector gets 560 because it has the room: that list's last column
-    // carries all the surplus (see gridTemplate), so the extra 220px comes out
-    // of a blank stretch and the table fits exactly as before. Downloads keeps
-    // 340 because it has nothing to take it from, already overrunning its card
-    // below about 1500px.
-    width: 340,
-    widthByProfile: { collector: 560 },
+    // The name takes whatever the other columns leave (see gridTemplate), so
+    // until somebody drags it the only width it has of its own is the floor.
+    width: TREE_INDENT + NAME_TEXT_FLOOR,
     minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
     align: 'start',
     hideable: false,
@@ -1211,7 +1204,10 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'size',
     labelKey: 'columns.size',
-    width: 100,
+    // Size, progress, speed, time left, status and host are as wide as what
+    // their cells show, and the rest goes to the name. The measurements are in
+    // check-column-widths.mjs.
+    width: 80,
     minWidth: 72,
     align: 'end',
     numeric: true,
@@ -1223,7 +1219,7 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'progress',
     labelKey: 'columns.progress',
-    width: 170,
+    width: 128,
     minWidth: 110,
     align: 'start',
     hideable: true,
@@ -1254,7 +1250,7 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'speed',
     labelKey: 'columns.speed',
-    width: 104,
+    width: 88,
     minWidth: 76,
     align: 'end',
     numeric: true,
@@ -1266,7 +1262,7 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'eta',
     labelKey: 'columns.eta',
-    width: 88,
+    width: 76,
     minWidth: 64,
     align: 'end',
     numeric: true,
@@ -1286,7 +1282,7 @@ export const COLUMNS: ColumnDef[] = [
     // Two lists, two honest meanings for one stored column; see CellContext's
     // own `profile`.
     labelByProfile: { collector: 'columns.availability' },
-    width: 148,
+    width: 136,
     minWidth: 90,
     align: 'center',
     hideable: true,
@@ -1306,10 +1302,9 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'host',
     labelKey: 'columns.host',
-    // Wider than the bare name needed: the logo in front of it is 16px plus its
-    // gap, and taking that out of the name would truncate hosts that fitted
-    // yesterday.
-    width: 176,
+    // The logo in front of the name is 16px plus its gap, which the width has
+    // to pay before the host's name gets any.
+    width: 120,
     minWidth: 96,
     align: 'start',
     ltr: true,
@@ -1414,9 +1409,10 @@ export const COLUMNS: ColumnDef[] = [
     width: 229,
     minWidth: 132,
     // The download list shows one line of text instead of the pickers, and it
-    // truncates into its tooltip. 229 there would push the progress column out
-    // of the card at 1440px.
-    widthByProfile: { downloads: 160 },
+    // truncates into its tooltip, so neither the pickers' width nor their floor
+    // applies there. The column is blank on every row that is not a yt-dlp link.
+    widthByProfile: { downloads: 104 },
+    minWidthByProfile: { downloads: 96 },
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
@@ -1545,9 +1541,9 @@ const SHOWN_SINCE: Record<ListProfile, Partial<Record<ColumnId, number>>> = {
  * Both sets are also cut towards what fits: with every column on, the downloads
  * table opens several hundred pixels scrolled off its own right edge, and a
  * default that does not fit reads as a broken layout rather than a rich one.
- * The rest are one click away in the header menu. Downloads is cut as far as it
- * can and still overruns its card, and every column left on it carries a value
- * on every row except 'variant' (below), so the shortfall is a widths decision.
+ * The rest are one click away in the header menu. Every column left on in
+ * downloads carries a value on every row except 'variant' (below), and each
+ * set fits its card in a 1280px window (check-column-widths.mjs).
  *
  * `connection` ships hidden in both because it is empty until somebody
  * configures a connection, and peers, seeds and ratio because they are blank on
@@ -1601,6 +1597,7 @@ export interface ResolvedLayout {
   /** Only the widths somebody dragged; everything else takes its default. */
   widths: Partial<Record<ColumnId, number>>;
   widthOf: (id: ColumnId) => number;
+  minWidthOf: (id: ColumnId) => number;
 }
 
 const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId);
@@ -1671,16 +1668,20 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
   for (const [id, w] of Object.entries(stored?.widths ?? {})) {
     if (isKnown(id) && typeof w === 'number' && Number.isFinite(w)) widths[id] = w;
   }
+  const minWidthOf = (id: ColumnId): number => {
+    const def = COLUMN_BY_ID.get(id);
+    return def ? (def.minWidthByProfile?.[profile] ?? def.minWidth) : 0;
+  };
   const widthOf = (id: ColumnId): number => {
     const def = COLUMN_BY_ID.get(id);
     if (!def) return 0;
     // A width somebody dragged first, then this list's own default, then the
     // shared one. The per-list default is only a starting point: it is read
     // before anything is stored, and the store already keeps widths per list.
-    return Math.max(def.minWidth, Math.round(widths[id] ?? def.widthByProfile?.[profile] ?? def.width));
+    return Math.max(minWidthOf(id), Math.round(widths[id] ?? def.widthByProfile?.[profile] ?? def.width));
   };
   const visible = order.filter((c) => !hidden.has(c.id));
-  return { order, visible, hidden, widths, widthOf };
+  return { order, visible, hidden, widths, widthOf, minWidthOf };
 }
 
 /** toStored is what resolveLayout resolved, in the shape the store keeps. */
@@ -1701,28 +1702,35 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
 /**
  * gridTemplate builds the track list every row shares, handed to them through
  * one custom property, so a column drag repaints the table by touching a single
- * element instead of re-rendering several hundred rows per pointer move.
+ * element instead of re-rendering several hundred rows per pointer move. `drag`
+ * is a width still under the pointer, drawn as if it were stored.
  *
- * Every column is the width somebody dragged it to and the last one stretches
- * into what is left over. With the name column stretching instead, dragging it
- * did nothing (its stored width became the numerator of a one-track `fr`) and
- * every other drag came out of it. The last column's own width is the floor of
- * its stretch, so dragging it still means something.
+ * The name takes the width the other columns leave. It is the one cell that is
+ * never wide enough, while the others hold values of a known length. When the
+ * window is too narrow, the name gives way to its minimum first, then every
+ * column at its default width gives way to its own, and only then does the
+ * table scroll: a name truncates gracefully, and a scrolled table puts the
+ * row's actions out of sight at its far end. A width somebody dragged stays.
  *
- * When the window is too narrow for every width, the name column gives way,
- * down to its minimum, before the table scrolls. A name truncates gracefully,
- * and a scrolled table puts the row's actions out of sight at its far end.
+ * Once the name has been dragged it stops filling, or dragging it narrower
+ * would change nothing, and the last column takes the rest from its own width
+ * up. It is the one dragged width that still gives way, for the reason above.
  */
-export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => number): string {
+export function gridTemplate(layout: ResolvedLayout, drag?: { id: ColumnId; width: number }): string {
+  const dragged = (id: ColumnId) => drag?.id === id || layout.widths[id] !== undefined;
+  const nameFills = !dragged('name');
+  const last = layout.visible.length - 1;
   // One track per column and one for the row's action badges after them. The
   // rows are a grid with no explicit row count, so one track too few wraps the
   // last cell onto a second grid line, which reads as the rows simply being
   // tall rather than as a layout fault. The header and a folder row without
   // actions leave the last track empty, which costs nothing.
-  const columns = visible.map((c, i) => {
-    if (i === visible.length - 1) return `minmax(${widthOf(c.id)}px, 1fr)`;
-    if (c.id === 'name') return `minmax(${c.minWidth}px, ${widthOf(c.id)}px)`;
-    return `${widthOf(c.id)}px`;
+  const columns = layout.visible.map((c, i) => {
+    const min = layout.minWidthOf(c.id);
+    const width = drag?.id === c.id ? drag.width : layout.widthOf(c.id);
+    if (c.id === 'name' && nameFills) return `minmax(${min}px, 1fr)`;
+    if (!nameFills && i === last) return `minmax(${width}px, 1fr)`;
+    return dragged(c.id) && c.id !== 'name' ? `${width}px` : `minmax(${min}px, ${width}px)`;
   });
   return [...columns, ACTIONS_TRACK].join(' ');
 }

@@ -2733,7 +2733,7 @@ export function TaskListCard({
     },
   };
 
-  const template = gridTemplate(layout.visible, layout.widthOf);
+  const template = gridTemplate(layout);
 
   function persist(next: Partial<ColumnLayout>): void {
     setStored({ ...toStored(layout), ...next });
@@ -2757,23 +2757,21 @@ export function TaskListCard({
     if (phase === 'start') {
       e.preventDefault();
       e.currentTarget.setPointerCapture(e.pointerId);
-      const w = layout.widthOf(id);
+      // The handle's header cell is the column as drawn, which is not its stored
+      // width while the name fills the card or a column has given way.
+      const w = (e.currentTarget.parentElement as HTMLElement).offsetWidth;
       drag.current = { id, startX: e.clientX, startWidth: w, width: w };
       return;
     }
     const d = drag.current;
     if (!d || d.id !== id) return;
     const rtl = document.documentElement.dir === 'rtl' ? -1 : 1;
-    const min = COLUMN_BY_ID.get(id)?.minWidth ?? 40;
-    d.width = Math.max(min, Math.round(d.startWidth + (e.clientX - d.startX) * rtl));
+    d.width = Math.max(layout.minWidthOf(id), Math.round(d.startWidth + (e.clientX - d.startX) * rtl));
     if (phase === 'move') {
       // Painted straight onto the table, off React's render path: re-rendering
       // several hundred rows per pointermove is what makes a column drag
       // stutter, and every row wants the same widths anyway.
-      tableRef.current?.style.setProperty(
-        '--kl-cols',
-        gridTemplate(layout.visible, (x) => (x === d.id ? d.width : layout.widthOf(x))),
-      );
+      tableRef.current?.style.setProperty('--kl-cols', gridTemplate(layout, d));
       return;
     }
     drag.current = null;
@@ -2925,10 +2923,10 @@ export function TaskListCard({
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
 
           {/* min-w-min, not min-w-max: max-content pins the table at the sum of
-              its columns, overriding the flexible name track and opening the
-              list scrolled off its right edge in any narrower window. With
-              min-content the name column gives way to its own minimum first,
-              and only then does the table scroll. */}
+              its columns, overriding the flexible tracks and opening the list
+              scrolled off its right edge in any narrower window. With
+              min-content the columns give way to their minimums first (see
+              gridTemplate), and only then does the table scroll. */}
           <div className="overflow-x-auto">
             <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
               <Header

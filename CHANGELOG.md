@@ -460,8 +460,14 @@ submission and for a fixed download.
 - **A sorted list says so in a second badge beside the card title**, with the
   way back in its info bubble, instead of an extra row above the list with its
   own button.
-- **The collector's variant column is narrower and its name column wider**, and
-  an expanded package shows an open folder.
+- **The name column takes the rest of the list's width.** In the download list
+  and the collector the other columns are as wide as what they show, and the
+  name gets what is left. The list fits its card in a window 1280 pixels wide
+  or wider and scrolls sideways only when columns you widened or switched on
+  need more. In a narrow window the name gives way first, then the other
+  columns. A column you dragged keeps its width, and a double-click on the
+  name's edge lets the name fill again. The collector's variant column is
+  narrower, and an expanded package shows an open folder.
 - **The debrid account picker lost its search field** and is titled "Choose a
   debrid account", after the card it opens from.
 - **The windows on the Accounts page are named after the card and the button
