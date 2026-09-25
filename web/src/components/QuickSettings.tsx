@@ -4,7 +4,6 @@
 // forwarded to peers, so the shell offers this for the local instance only.
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
 import {
   fetchIdleActions,
   fetchScheduleSuspension,
@@ -14,22 +13,25 @@ import {
   type Settings,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconChevronEnd, IconRetry, IconSliders } from '../lib/icons';
+import { IconMenu, IconRetry } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
 import { ScheduleSuspendField } from '../pages/settings/automation/ScheduleSuspend';
 import { ChunksField, MaxConcurrentField, MaxPerHostField } from '../pages/settings/downloads/Concurrency';
 import { SpeedLimitField } from '../pages/settings/downloads/SpeedLimit';
 import { fetchFeatures, type Feature } from '../pages/settings/features';
+import { ModulesPageBadge, PageBadge } from '../pages/settings/ModuleToggle';
 import {
   fetchReconnectState,
   runReconnect,
   useReasonText,
   type ReconnectState,
 } from '../pages/settings/Reconnect';
+import { label } from '../pages/settings/tx';
 import { Button, SectionTitle, ToggleRow } from './ui';
 
 type Patch = (fields: Partial<Settings>) => void;
+type Translate = ReturnType<typeof useT>['t'];
 
 /**
  * What the rows read besides the settings, each from its own route. A read
@@ -129,18 +131,29 @@ function SuspendRow({
   close: () => void;
 }) {
   const { t } = useT();
-  let blocked: { reason: string; to: string; page: string } | null = null;
+  let blocked: { reason: string; way: ReactNode } | null = null;
   if (!state.suspended && module?.parked) {
-    blocked = { reason: t('quick.schedulerOff'), to: '/settings/modules', page: t('settings.nav.modules') };
+    blocked = {
+      reason: t('quick.schedulesOff'),
+      way: <ModulesPageBadge m={module} title={openPage(t, 'modules')} onFollow={close} />,
+    };
   } else if (!state.suspended && schedules === 0) {
-    blocked = { reason: t('settings.schedule.suspendNone'), to: '/settings/automation', page: t('settings.nav.automation') };
+    blocked = {
+      reason: t('settings.schedule.suspendNone'),
+      way: <PageBadge page="automation" title={openPage(t, 'automation')} onFollow={close} />,
+    };
   }
   return (
     <div className="flex flex-col gap-2">
       <ScheduleSuspendField state={state} onState={onState} blocked={blocked?.reason} />
-      {blocked && <PageLink to={blocked.to} label={t('quick.openPage', { page: blocked.page })} onFollow={close} />}
+      {blocked && <div className="flex justify-end">{blocked.way}</div>}
     </div>
   );
+}
+
+/** The words of a badge leading to a settings page, by the page's rail name. */
+function openPage(t: Translate, page: string): string {
+  return t('quick.openPage', { page: label(t, 'settings.nav.', page) });
 }
 
 function IdleRow({ cfg, patch, actions, close }: { cfg: Settings; patch: Patch; actions: string[]; close: () => void }) {
@@ -152,11 +165,16 @@ function IdleRow({ cfg, patch, actions, close }: { cfg: Settings; patch: Patch; 
   return (
     <div className="flex flex-col gap-2">
       <IdleActionPicker
+        size="sm"
         actions={actions}
         value={action}
         onValue={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
       />
-      {noProgram && <PageLink to="/settings/automation" label={t('quick.idleCommandSetup')} onFollow={close} />}
+      {noProgram && (
+        <div className="flex justify-end">
+          <PageBadge page="automation" title={t('quick.idleCommandSetup')} onFollow={close} />
+        </div>
+      )}
     </div>
   );
 }
@@ -204,16 +222,18 @@ function ReconnectRow({
   const reasonText = useReasonText(state);
   const [running, setRunning] = useState(false);
 
-  let blocked: { reason: string; to?: string; page?: string } | null = null;
+  let blocked: { reason: string; way?: ReactNode } | null = null;
   if (module?.parked) {
-    blocked = { reason: t('quick.reconnectOff'), to: '/settings/modules', page: t('settings.nav.modules') };
+    blocked = {
+      reason: t('quick.reconnectOff'),
+      way: <ModulesPageBadge m={module} title={openPage(t, 'modules')} onFollow={close} />,
+    };
   } else if (!state) {
     blocked = { reason: t('settings.reconnect.stateUnreadable') };
   } else if (!state.configured) {
     blocked = {
       reason: state.reasonCode === 'off' ? t('quick.reconnectUnset') : t('settings.reconnect.notReady', { reason: reasonText }),
-      to: '/settings/network',
-      page: t('settings.nav.network'),
+      way: <PageBadge page="network" title={openPage(t, 'network')} onFollow={close} />,
     };
   }
   const busy = running || Boolean(state?.busy);
@@ -242,24 +262,8 @@ function ReconnectRow({
       >
         {busy ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
       </Button>
-      {blocked?.to && blocked.page && (
-        <PageLink to={blocked.to} label={t('quick.openPage', { page: blocked.page })} onFollow={close} />
-      )}
+      {blocked?.way}
     </div>
-  );
-}
-
-/** PageLink leads to the settings page a row cannot change from here, and closes the panel on the way. */
-function PageLink({ to, label, onFollow }: { to: string; label: string; onFollow: () => void }) {
-  return (
-    <Link
-      to={to}
-      onClick={onFollow}
-      className="flex w-fit items-center gap-1 text-[11px] text-carbon-textSub underline-offset-2 hover:text-carbon-text hover:underline focus-visible:underline"
-    >
-      {label}
-      <IconChevronEnd className="h-3 w-3 rtl:-scale-x-100" aria-hidden />
-    </Link>
   );
 }
 
@@ -502,7 +506,7 @@ export function QuickSettings() {
     <span ref={wrap} className="inline-flex">
       <Button
         kind={open ? 'primary' : 'secondary'}
-        icon={<IconSliders />}
+        icon={<IconMenu />}
         // No tooltip while the panel is open, where it would cover the title.
         title={open ? undefined : title}
         aria-label={title}

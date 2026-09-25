@@ -5,11 +5,14 @@ package watch
 // folders exist at all is watcher.go's problem.
 
 import (
+	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -35,6 +38,10 @@ type poller struct {
 
 	// pending is touched only by the polling goroutine, so it needs no lock.
 	pending map[string]fileState
+
+	// missing is whether the last look found no folder at dir. It is written
+	// by the poll and read by Watcher.Missing on a request's goroutine.
+	missing atomic.Bool
 
 	// started says whether loop is running, and therefore whether close has a
 	// goroutine to wait for. It is written and read under the Watcher's lock and
@@ -106,6 +113,7 @@ func (p *poller) loop() {
 // event. Polling is the only thing that sees those writes.
 func (p *poller) poll() {
 	entries, err := os.ReadDir(p.dir)
+	p.missing.Store(errors.Is(err, fs.ErrNotExist))
 	if err != nil {
 		// The share can be briefly unreachable; the next tick tries again.
 		return

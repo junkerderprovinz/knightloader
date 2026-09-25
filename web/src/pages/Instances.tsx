@@ -77,7 +77,7 @@ export function Instances() {
       // A refusal and an unreachable peer need different fixes, so they get
       // different toasts.
       if (r.refused) {
-        toast(t('instances.refused'), 'fail', 'action-failed');
+        toast(t('instances.refusedByPassword'), 'fail', 'action-failed');
         shake(f.id);
       } else if (!r.online) {
         toast(t('instances.offlineWarning'), 'fail', 'action-failed');
@@ -170,7 +170,7 @@ export function Instances() {
 
       {/* Adding instances lives in settings/Access.tsx's RemoteAccessCard. */}
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" hint={t('instances.connectHint')} onClick={() => navigate('/settings/access')}>
+        <Button kind="secondary" hint={t('instances.connectWhere')} onClick={() => navigate('/settings/access')}>
           {t('instances.connectButton')}
         </Button>
       </div>

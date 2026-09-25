@@ -145,10 +145,9 @@ func TestOneDirectoryNamedTwiceIsListedOnce(t *testing.T) {
 }
 
 func watchedDirs(a *App) []string {
-	a.wmu.Lock()
-	defer a.wmu.Unlock()
-	if a.watcher == nil {
+	w := a.watcher.Load()
+	if w == nil {
 		return nil
 	}
-	return a.watcher.Dirs()
+	return w.Dirs()
 }

@@ -58,6 +58,8 @@ jobs:
           node extension/check-popup-send.mjs
           node extension/check-background.mjs
           node extension/check-relay-seal.mjs
+          node extension/check-crypto-tab.mjs
+          node extension/check-palette-edit.mjs
 
       # Same lint and skip list as ci.yml, which explains the skipped codes.
       - name: web-ext lint

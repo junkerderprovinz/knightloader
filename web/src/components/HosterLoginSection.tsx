@@ -413,7 +413,7 @@ export function HosterLoginDialog({
           <Field label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>
-          <Field label={t('accounts.passwordField')} hint={t('accounts.hoster.custodyNotice')}>
+          <Field label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
         </div>

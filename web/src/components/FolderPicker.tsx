@@ -121,12 +121,15 @@ export function PathInput({
   autoFocus,
   local = true,
   error,
+  missingHint,
 }: {
   value: string;
   onValue: (next: string) => void;
   placeholder?: string;
   /** The chooser's heading, when the field is not the download folder. */
   title?: string;
+  /** See FolderPicker. */
+  missingHint?: string;
   /** The text box's name, for a field that stands under a row title rather than inside a Field. */
   label?: string;
   autoFocus?: boolean;
@@ -178,6 +181,7 @@ export function PathInput({
             <FolderPicker
               value={value}
               title={title}
+              missingHint={missingHint}
               onClose={() => setOpen(false)}
               onPick={(next) => {
                 onValue(next);
@@ -206,11 +210,17 @@ export function FolderPicker({
   onPick,
   onClose,
   title,
+  missingHint,
 }: {
   value: string;
   onPick: (next: string) => void;
   onClose: () => void;
   title?: string;
+  /**
+   * What is said about a folder that does not exist yet, for a field whose
+   * folder is not created by the first download, such as the watch folder.
+   */
+  missingHint?: string;
 }) {
   const { t } = useT();
   // The box is the answer, typed or browsed; the listing only helps.
@@ -461,7 +471,7 @@ export function FolderPicker({
           {refusalText(t, error)}
         </p>
       )}
-      {fresh && <p className="text-xs text-statusWarn">{t('folders.new')}</p>}
+      {fresh && <p className="text-xs text-statusWarn">{missingHint ?? t('folders.new')}</p>}
       {data?.truncated && (
         <p className="glim-num text-xs text-carbon-textMuted">
           {t('folders.truncated', { n: data.entries.length })}

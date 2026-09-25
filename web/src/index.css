@@ -939,8 +939,10 @@ body {
 }
 /* A refused action: a control that was shown optimistically and reverted
    shakes rather than silently snapping back. Decaying, so it reads as "pushed
-   back". To replay it on a repeated failure, key the element on a failure
-   counter; a re-toggled class does not restart the animation. */
+   back". lib/useShake.ts replays it on every failure on the same node. A
+   class toggled without a layout read in between does not restart it, and
+   keying the element on a failure counter does, but remounts it and drops
+   the focus a keyboard user left on it. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
   20%      { transform: translateX(calc(var(--motion-shake-scale) * -4px)); }

@@ -88,7 +88,7 @@ func TestAHostWithoutCodecsStillOffersItsTracks(t *testing.T) {
 	if want := "bv" + portrait + "+ba/bv" + landscape + "+ba/b" + portrait + "/b" + landscape; sel != want {
 		t.Errorf("-f = %q, want %q", sel, want)
 	}
-	if ext, size := VideoFile("720p avi", archiveLike, false); ext != "avi" || size != 332243668 {
+	if ext, size := VideoFile("720p avi", archiveLike, Options{}); ext != "avi" || size != 332243668 {
 		t.Errorf("VideoFile(720p avi) = %q, %d; want the avi file and its own size", ext, size)
 	}
 }
@@ -182,7 +182,7 @@ func TestAWebmPickMergesIntoMkvWhenTheThumbnailIsEmbedded(t *testing.T) {
 	if merge, _ := valueAfter(args, "--merge-output-format"); merge != "mkv" {
 		t.Errorf("--merge-output-format = %q, want mkv", merge)
 	}
-	if ext, _ := VideoFile("1080p webm vp9", youtubeLike, true); ext != "mkv" {
+	if ext, _ := VideoFile("1080p webm vp9", youtubeLike, Options{Embed: Embed{Thumbnail: true}}); ext != "mkv" {
 		t.Errorf("VideoFile predicts %q, want the mkv the merge writes", ext)
 	}
 }
@@ -223,7 +223,7 @@ func TestVp9InMp4MergesIntoMkv(t *testing.T) {
 		{Ext: "mp4", Vcodec: "vp09.00.50.08", Acodec: "none", Height: 2160, FilesizeApprox: 500},
 		{Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129, Filesize: 20},
 	}
-	if ext, size := VideoFile("2160p mp4 vp9", formats, false); ext != "mkv" || size != 520 {
+	if ext, size := VideoFile("2160p mp4 vp9", formats, Options{}); ext != "mkv" || size != 520 {
 		t.Errorf("VideoFile = %q, %d; want mkv, 520", ext, size)
 	}
 	if merge, _ := valueAfter(buildArgs("d", Options{VideoPick: "2160p mp4 av1"}), "--merge-output-format"); merge != "mp4/mkv" {
@@ -396,12 +396,12 @@ func TestVideoFilePredictsTheContainerAndTheMergedSize(t *testing.T) {
 		{"best", "mkv", 400000 + 3500},
 	}
 	for _, c := range cases {
-		ext, size := VideoFile(c.pick, youtubeLike, false)
+		ext, size := VideoFile(c.pick, youtubeLike, Options{})
 		if ext != c.ext || size != c.size {
 			t.Errorf("VideoFile(%q) = %q, %d; want %q, %d", c.pick, ext, size, c.ext, c.size)
 		}
 	}
-	if ext, size := VideoFile("720p mp4 avc1", youtubeLike, false); ext != "" || size != 0 {
+	if ext, size := VideoFile("720p mp4 avc1", youtubeLike, Options{}); ext != "" || size != 0 {
 		t.Errorf("VideoFile found %q, %d for a 720p track in a list that has none", ext, size)
 	}
 }
@@ -413,11 +413,26 @@ func TestTheBestVideoIsWhatTheProbeSaidYtdlpPicks(t *testing.T) {
 	for i := range formats {
 		formats[i].Default = formats[i].FormatID == "399" || formats[i].FormatID == "140"
 	}
-	if ext, size := VideoFile("best", formats, false); ext != "mkv" || size != 30000+3000 {
+	if ext, size := VideoFile("best", formats, Options{}); ext != "mkv" || size != 30000+3000 {
 		t.Errorf("VideoFile(best) = %q, %d; want mkv and 33000, the two formats yt-dlp picked", ext, size)
 	}
 	if ext, size := AudioFile("best", formats); ext != "m4a" || size != 3000 {
 		t.Errorf("AudioFile(best) = %q, %d; want m4a and 3000, the audio yt-dlp picked", ext, size)
+	}
+}
+
+// A custom format string goes to -f as it is, so the probe's default pair says
+// nothing about what downloads. Without a string, custom is best.
+func TestACustomFormatIsNotMeasuredAsTheDefaultPick(t *testing.T) {
+	formats := slices.Clone(youtubeLike)
+	for i := range formats {
+		formats[i].Default = formats[i].FormatID == "399" || formats[i].FormatID == "140"
+	}
+	if ext, size := VideoFile("custom", formats, Options{CustomFormat: "18"}); ext != "" || size != 0 {
+		t.Errorf("VideoFile(custom) = %q, %d; want both unknown, since yt-dlp reads the format string", ext, size)
+	}
+	if ext, size := VideoFile("custom", formats, Options{}); ext != "mkv" || size != 30000+3000 {
+		t.Errorf("VideoFile(custom) without a format string = %q, %d; want what best gives", ext, size)
 	}
 }
 
@@ -426,14 +441,14 @@ func TestVideoFileMergesIntoMkvWithoutAudioOfTheSameContainer(t *testing.T) {
 		{Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 160},
 		{Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080},
 	}
-	if ext, _ := VideoFile("1080p mp4 avc1", onlyOpus, false); ext != "mkv" {
+	if ext, _ := VideoFile("1080p mp4 avc1", onlyOpus, Options{}); ext != "mkv" {
 		t.Errorf("ext = %q, want mkv; mp4 cannot hold the only audio there is", ext)
 	}
 }
 
 func TestAPreMuxedTrackKeepsItsOwnExtension(t *testing.T) {
 	premuxed := []FormatEntry{{Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Height: 360, Filesize: 8000}}
-	if ext, size := VideoFile("360p mp4 avc1", premuxed, false); ext != "mp4" || size != 8000 {
+	if ext, size := VideoFile("360p mp4 avc1", premuxed, Options{}); ext != "mp4" || size != 8000 {
 		t.Errorf("VideoFile = %q, %d; want mp4, 8000", ext, size)
 	}
 }
@@ -444,7 +459,7 @@ func TestAMergeWhoseVideoHasNoSizeHasNone(t *testing.T) {
 		{Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 128, Filesize: 3000},
 		{Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080},
 	}
-	if _, size := VideoFile("1080p mp4 avc1", formats, false); size != 0 {
+	if _, size := VideoFile("1080p mp4 avc1", formats, Options{}); size != 0 {
 		t.Errorf("size = %d, want 0 while the video's own size is unknown", size)
 	}
 }
@@ -561,7 +576,7 @@ func TestAQualityDownloadsTheTrackItNamesEitherWayUp(t *testing.T) {
 			t.Errorf("%s, %s: -f %q takes format %q, want %q", c.source, c.pick, sel, got, c.want)
 		}
 	}
-	if ext, size := VideoFile("1080p", portraitLike, false); ext != "mkv" || size != 50000+3000 {
+	if ext, size := VideoFile("1080p", portraitLike, Options{}); ext != "mkv" || size != 50000+3000 {
 		t.Errorf("VideoFile(1080p) = %q, %d; want the 1080x1920 track merged with the audio", ext, size)
 	}
 }

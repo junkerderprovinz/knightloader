@@ -466,6 +466,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
       <StateBanner
         hue={hue}
         live={live}
+        parked={parked}
         locale={locale}
         // The suspend routes answer with the suspension; the card's sentences
         // come from the full state, read again.
@@ -553,11 +554,14 @@ function ErrorState({ message, retry, retryLabel }: { message: string; retry: ()
 function StateBanner({
   hue,
   live,
+  parked,
   locale,
   onSuspension,
 }: {
   hue: number;
   live: Live | null;
+  /** The Schedules module is switched off, its schedules waiting for the switch. */
+  parked: boolean;
   locale: string;
   onSuspension: () => void;
 }) {
@@ -594,7 +598,13 @@ function StateBanner({
         <ScheduleSuspendField
           state={{ suspended, suspendedUntil }}
           onState={onSuspension}
-          blocked={schedules === 0 ? t('settings.schedule.suspendNone') : undefined}
+          blocked={
+            parked
+              ? t('settings.schedule.suspendParked')
+              : schedules === 0
+                ? t('settings.schedule.suspendNone')
+                : undefined
+          }
         />
       </div>
     </Card>

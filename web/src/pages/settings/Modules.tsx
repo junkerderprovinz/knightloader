@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, InfoBubble, SectionTitle, useTooltip } from '../../components/ui';
+import { Card, HintBubble, SectionTitle } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
@@ -52,8 +52,6 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
   const { toggle } = useFeatures();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  const detailText = moduleDetail(tx, m);
-  const detail = useTooltip<HTMLSpanElement>(detailText);
 
   const shipped = m.verdict === 'shipped';
   // A parked switch with nothing parked would answer 400, so it is disabled
@@ -86,23 +84,12 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
       {/* data-glim-label lets a jump land here; on this column rather than on
           the name, so the switch is the first control beside it and takes the
           focus. The dimming is on the words, never on the row, so the (i), the
-          badge and the switch stay at full strength. */}
-      <div data-glim-label={name} className="flex min-w-[min(100%,12rem)] flex-1 flex-col gap-0.5">
-        <span className="flex items-center text-sm text-carbon-text">
-          <span className={dimmed ? 'opacity-55' : ''}>{name}</span>
-          {reason && <InfoBubble tip={reason} />}
-        </span>
-        {detailText && (
-          // Truncated so a long path does not push the switch down a line; the
-          // tooltip carries the whole of it.
-          <span
-            {...detail.triggerProps}
-            className={`truncate text-[11px] text-carbon-textMuted ${dimmed ? 'opacity-55' : ''}`}
-            dir="auto"
-          >
-            {detailText}
-          </span>
-        )}
+          badge and the switch stay at full strength. The (i) reads as the one
+          on the module's switch on its own page: the reason first, then the
+          live detail. */}
+      <div data-glim-label={name} className="flex min-w-[min(100%,12rem)] flex-1 items-center text-sm text-carbon-text">
+        <span className={dimmed ? 'opacity-55' : ''}>{name}</span>
+        <HintBubble hint={[reason ?? '', moduleDetail(tx, m) ?? '']} />
       </div>
 
       {/* Wraps under the name where the row runs out of width. */}
@@ -120,7 +107,6 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
           <StateChip m={m} />
         )}
       </div>
-      {detail.node}
     </div>
   );
 }

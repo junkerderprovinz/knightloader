@@ -275,6 +275,9 @@ jobs:
       - name: The settings autosave keeps what is being typed
         run: node check-settings-autosave.mjs
 
+      - name: A value fills its placeholder as it is
+        run: node check-interpolate.mjs
+
       - name: Build UI
         run: npm run build
 
@@ -322,6 +325,12 @@ jobs:
 
       - name: Background
         run: node extension/check-background.mjs
+
+      - name: Crypto window keyboard
+        run: node extension/check-crypto-tab.mjs
+
+      - name: Palette edit under disco
+        run: node extension/check-palette-edit.mjs
 
       # --self-hosted checks the package without AMO listing metadata. Two codes
       # are skipped: a cross-browser manifest always declares both background
@@ -407,6 +416,9 @@ jobs:
 
       - name: Hidden motion level
         run: node check-hidden-motion-level.mjs
+
+      - name: Arrival across a level change
+        run: node check-arrival-level.mjs
 
       - name: Dimmed and inert
         run: node check-dimmed-and-inert.mjs

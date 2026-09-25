@@ -778,6 +778,51 @@ func settles(ok func() bool) bool {
 	}
 }
 
+// The Modules page asks on every load whether the drop folder is there, and a
+// stat of its own would hang that request on a share that stopped answering.
+// The poller looks at the folder anyway, so Missing answers from its last look.
+func TestMissingAnswersFromTheLastLook(t *testing.T) {
+	base := t.TempDir()
+	dir := filepath.Join(base, "drop")
+	w, err := New(Options{Dir: dir, Interval: time.Hour, OnJob: func(Job) {}})
+	if err != nil {
+		t.Fatalf("new: %v", err)
+	}
+	defer w.Close()
+
+	if !w.Missing(dir) {
+		t.Error("a folder that is not there does not read as missing")
+	}
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if !w.Missing(dir) {
+		t.Error("Missing looked at the folder itself instead of answering from the last poll")
+	}
+	pollAll(w)
+	if w.Missing(dir) {
+		t.Error("the folder still reads as missing after a poll found it")
+	}
+	if w.Missing(filepath.Join(base, "elsewhere")) {
+		t.Error("a folder nobody watches reads as missing")
+	}
+}
+
+// A second spelling of one folder shares its poller, so it has to share the
+// answer too.
+func TestMissingFollowsAFolderSpelledTwice(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "drop")
+	other := dir + string(filepath.Separator)
+	w, err := New(Options{Folders: []Folder{{Dir: dir}, {Dir: other}}, Interval: time.Hour, OnJob: func(Job) {}})
+	if err != nil {
+		t.Fatalf("new: %v", err)
+	}
+	defer w.Close()
+	if !w.Missing(other) {
+		t.Error("the second spelling of a missing folder does not read as missing")
+	}
+}
+
 // Every settings save reaches the watcher, and the settings page saves while a
 // path is still being typed. A folder created for each of those values would
 // leave "Wat" and "Watc" behind on the way to "Watch".

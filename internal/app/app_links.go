@@ -486,8 +486,9 @@ func (a *App) crawl(u string) []crawler.Result {
 		return nil
 	}
 	// Only the HTTP fallback and yt-dlp may be pages; yt-dlp claims every link
-	// no hoster knows. Direct files, debrid and JD links are not crawled.
-	if res := a.Registry.For(u); res != nil {
+	// no hoster knows. Direct files, debrid and JD links are not crawled,
+	// whichever the priority card puts first.
+	if res := a.stagingResolverFor(u); res != nil {
 		switch res.Info().ID {
 		case "http", "ytdlp":
 		default:

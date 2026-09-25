@@ -51,7 +51,7 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 > review.
 >
 > The releases, the container image and the downloads below exist so the builds
-> can be tested. There is **no Community Applications entry** on purpose. What
+> can be tested. KnightLoader is **not listed in Community Applications** yet. What
 > is here changes daily, including things that will break an existing setup without a migration path:
 > the storage format, the settings document, and the wire protocol instances
 > use to reach each other.

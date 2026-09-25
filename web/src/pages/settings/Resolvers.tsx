@@ -182,7 +182,7 @@ export function Resolvers() {
       <MediaToolsCard hue={1} />
 
       <Card hue={2} className="flex flex-col gap-5">
-        <SectionTitle hint={t('settings.resolvers.intro')}>{t('settings.resolvers.quality')}</SectionTitle>
+        <SectionTitle hint={t('settings.resolvers.about')}>{t('settings.resolvers.quality')}</SectionTitle>
 
         {qualities.length > 0 && (
           <FieldGroup label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>

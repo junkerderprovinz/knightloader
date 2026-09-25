@@ -251,6 +251,42 @@ export function settle(answer: Answer, draft: Doc): Answer {
 }
 
 /**
+ * typedIn reports whether text, what the focused box shows, is a part of sent
+ * that the server answered with something else: a string anywhere inside it,
+ * or a list of strings edited one per line. Only the parts that differ count,
+ * so an empty box does not match an unrelated empty value beside the one that
+ * changed.
+ */
+export function typedIn(sent: unknown, answer: unknown, text: string): boolean {
+  if (same(sent, answer)) return false;
+  if (typeof sent === 'string') return sent === text;
+  if (Array.isArray(sent)) {
+    if (sent.length > 0 && sent.every((v) => typeof v === 'string') && sent.join('\n') === text) return true;
+    const other = Array.isArray(answer) ? answer : [];
+    return sent.some((v, i) => typedIn(v, other[i], text));
+  }
+  if (isPlainObject(sent)) {
+    const other = isPlainObject(answer) ? answer : {};
+    return Object.keys(sent).some((k) => typedIn(sent[k], other[k], text));
+  }
+  return false;
+}
+
+/**
+ * heldAfter is what stays held once a save is back. A field it sent is held at
+ * the sent value while its box is still typed in and let go otherwise, so an
+ * old entry cannot keep a later edit back to that same text from going out.
+ */
+export function heldAfter(held: Doc, sent: Doc, keep: readonly string[]): Doc {
+  const out: Doc = { ...held };
+  for (const k of Object.keys(sent)) {
+    if (keep.includes(k)) out[k] = sent[k];
+    else delete out[k];
+  }
+  return out;
+}
+
+/**
  * foldAnswer is the draft once a save has come back: the server's answer,
  * except for a field the draft changed while the save was out and a field in
  * keep, whose box is still being typed in. sent is what the save sent, and

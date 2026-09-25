@@ -548,12 +548,12 @@ func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
 // VideoFile predicts what a video row's pick downloads from formats: the
 // file's extension, "" where it cannot be told in advance, and its size, the
 // video and the audio merged with it together, 0 where the host gave neither a
-// size nor a bitrate. embedThumbnail is Embed.Thumbnail, which decides the
-// container of a webm pick.
-func VideoFile(pick string, formats []FormatEntry, embedThumbnail bool) (ext string, size int64) {
+// size nor a bitrate. o is the instance's options: Embed.Thumbnail decides the
+// container of a webm pick, and CustomFormat is what a custom pick asks for.
+func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size int64) {
 	pick = ResolveVideoPick(pick, formats)
 	if v, ok := parseVideoFormat(pick); ok {
-		return v.file(formats, embedThumbnail)
+		return v.file(formats, o.Embed.Thumbnail)
 	}
 	if r, ok := ResCap(Quality(pick)); ok {
 		// capSelector: a video-only track and audio, else one that has both.
@@ -567,8 +567,14 @@ func VideoFile(pick string, formats []FormatEntry, embedThumbnail bool) (ext str
 		}
 		return "", 0
 	}
-	// Best and custom pass no selector of their own, so yt-dlp's default
-	// choice, which the probe answered with, is what downloads.
+	if Quality(pick) == QualityCustom && o.CustomFormat != "" {
+		// formatSelector hands the string to -f as it is, and only yt-dlp
+		// knows what it picks.
+		return "", 0
+	}
+	// Best, and custom without a format string, pass no selector of their
+	// own, so yt-dlp's default choice, which the probe answered with, is what
+	// downloads.
 	var picked []*FormatEntry
 	for i := range formats {
 		if formats[i].Default {

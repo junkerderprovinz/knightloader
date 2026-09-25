@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -15,8 +16,10 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
+	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -117,6 +120,26 @@ func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
 	}
 }
 
+// The watch row says when the folder is not there yet, since nothing creates
+// it, and names it plainly once it is.
+func TestTheWatchRowSaysWhetherTheFolderIsThere(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	for dir, want := range map[string]string{
+		t.TempDir():                             "watchFolder",
+		filepath.Join(t.TempDir(), "not-there"): "watchFolderMissing",
+	} {
+		s := a.Settings.Get()
+		s.WatchDir = dir
+		if _, err := a.ApplySettings(s); err != nil {
+			t.Fatal(err)
+		}
+		if got := featureRow(t, a, "watch").DetailCode; got != want {
+			t.Errorf("watching %s, the row says %q, want %q", dir, got, want)
+		}
+	}
+}
+
 // TestParkingAnAlreadyEmptyValueKeepsTheOldOne checks that switching an
 // already-off module off again does not park an empty value over the old one.
 func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
@@ -139,6 +162,103 @@ func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
 	}
 	if got := a.Settings.Get().WatchDir; got != dir {
 		t.Errorf("after three switch-offs the parked folder is %q, want %q", got, dir)
+	}
+}
+
+// A folder cleared by hand after the switch brought it back leaves the field
+// free for a new one, rather than offering the old folder again.
+func TestSwitchingOnForgetsWhatItBroughtBack(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	s := a.Settings.Get()
+	s.WatchDir = t.TempDir()
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	for _, on := range []bool{false, true} {
+		if err := setFeature(a, "watch", on); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if featureRow(t, a, "watch").Parked {
+		t.Error("the folder is back in the settings and the row still reports it parked")
+	}
+
+	s = a.Settings.Get()
+	s.WatchDir = ""
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if featureRow(t, a, "watch").Parked {
+		t.Error("the folder was cleared by hand and the row offers to bring it back")
+	}
+}
+
+// Event targets edited after an off and on round trip are what the switch
+// leaves in place: switching on again must not put the targets from before
+// the round trip back over them.
+func TestSwitchingOnKeepsTargetsEditedSince(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	target := func(name string, enabled bool) notify.Target {
+		return notify.Target{
+			Name: name, Enabled: enabled, URL: "https://" + name + ".example/hook",
+			Triggers: []script.Trigger{script.TriggerTaskDone},
+		}
+	}
+	s := a.Settings.Get()
+	s.EventTargets = []notify.Target{target("old", true)}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	for _, on := range []bool{false, true} {
+		if err := setFeature(a, "eventtargets", on); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	s = a.Settings.Get()
+	s.EventTargets = []notify.Target{target("new", false)}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if row := featureRow(t, a, "eventtargets"); row.Parked {
+		t.Errorf("targets are set up and the row reports %+v, offering the old ones back", row)
+	}
+	if err := setFeature(a, "eventtargets", true); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.Settings.Get().EventTargets; len(got) != 1 || got[0].Name != "new" {
+		t.Errorf("switching on left the targets %+v, want the one edited since", got)
+	}
+}
+
+// A parked value left behind while the setting was filled in again is not
+// offered back and does not replace what is there.
+func TestAStaleParkedValueNeverReplacesTheSetting(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	old, current := t.TempDir(), t.TempDir()
+	if err := parkValue(a, "watch", old); err != nil {
+		t.Fatal(err)
+	}
+	s := a.Settings.Get()
+	s.WatchDir = current
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if featureRow(t, a, "watch").Parked {
+		t.Error("a folder is set and the row still offers the parked one")
+	}
+	if err := setFeature(a, "watch", true); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.Settings.Get().WatchDir; got != current {
+		t.Errorf("switching on set the folder to %q, want the one set since, %q", got, current)
+	}
+	var left string
+	if unparkValue(a, "watch", &left) {
+		t.Errorf("the stale folder %q is still parked", left)
 	}
 }
 

@@ -566,7 +566,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.resolvers.quality',
-      hint: 'settings.resolvers.intro',
+      hint: 'settings.resolvers.about',
       rows: [
         { key: 'settings.resolvers.quality', hint: 'settings.resolvers.qualityHint' },
         { key: 'settings.resolvers.customFormat', hint: 'settings.resolvers.customFormatHint' },
@@ -658,8 +658,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.portTitle',
       rows: [{ key: 'settings.torrents.port', hint: 'settings.torrents.portHint' }],
-      // The (i) inside the mapping button.
-      body: ['settings.torrents.portMapHint'],
+      // The port's second paragraph, and the (i) inside the mapping button.
+      body: ['settings.torrents.portRestartHint', 'settings.torrents.portMapHint', 'settings.torrents.portMapNeedsPort'],
     },
     {
       title: 'settings.torrents.networkTitle',

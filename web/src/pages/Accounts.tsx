@@ -760,7 +760,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
       <Card hue={3} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.jdHint')}>
-          {t('accounts.routing.jdTitle')}
+          {t('settings.module.jd')}
         </SectionTitle>
         {jd === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>

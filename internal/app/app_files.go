@@ -12,6 +12,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // envBrowseRoots is the variable internal/api/routes_folders.go reads too, so
@@ -129,7 +130,7 @@ func withinDir(dir, p string) bool {
 func (a *App) fileServeRoots(p string) ([]string, error) {
 	set := strings.TrimSpace(os.Getenv(envBrowseRoots))
 	if set == "" {
-		root := fixedPathPrefix(a.defaultDir())
+		root := settings.FixedPrefix(a.defaultDir())
 		real, err := realpath.Resolve(root)
 		if err != nil {
 			// Refuse rather than fall back to something wider while setup is
@@ -154,26 +155,4 @@ func (a *App) fileServeRoots(p string) ([]string, error) {
 		return nil, errors.New(envBrowseRoots + " is set but names no absolute folder, so nothing may be reached")
 	}
 	return out, nil
-}
-
-// fixedPathPrefix returns the leading segments of a folder template that hold
-// no <jd:...> placeholder. It mirrors internal/settings' unexported
-// fixedPrefix.
-func fixedPathPrefix(dir string) string {
-	if !strings.Contains(dir, "<") {
-		return dir
-	}
-	sep := string(filepath.Separator)
-	parts := strings.Split(strings.ReplaceAll(dir, "/", sep), sep)
-	var keep []string
-	for _, p := range parts {
-		if strings.Contains(p, "<") {
-			break
-		}
-		keep = append(keep, p)
-	}
-	if out := strings.Join(keep, sep); out != "" {
-		return out
-	}
-	return sep
 }

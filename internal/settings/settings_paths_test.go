@@ -34,6 +34,41 @@ func TestFixedPrefixDoesNotInventARoot(t *testing.T) {
 	}
 }
 
+// "D:" on its own is the current directory on drive D, so a template that starts
+// right at a drive root must keep the root's separator to stay a full path.
+func TestATemplateAtADriveRootKeepsTheRoot(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("drive letters are a Windows path form")
+	}
+	for in, want := range map[string]string{
+		`D:\<jd:packagename>`:          `D:\`,
+		`D:/<jd:date>/x`:               `D:\`,
+		`\\srv\share\<jd:packagename>`: `\\srv\share\`,
+		`D:\dl\<jd:date>`:              `D:\dl`,
+	} {
+		if got := fixedPrefix(in); got != want {
+			t.Errorf("fixedPrefix(%q) = %q, want %q", in, got, want)
+		}
+	}
+	s := Settings{ExtractTo: `E:\<jd:packagename>`, ExtractMoveTo: `E:\<jd:packagename>\done`}
+	if err := CheckFolders(s, nil); err != nil {
+		t.Errorf("an extraction folder at a drive root was refused: %v", err)
+	}
+}
+
+// A template adds at least one folder level, so it only needs to be able to
+// create a folder where its fixed part ends. A Windows system drive's root lets
+// users create folders but not files.
+func TestATemplateAtADriveRootIsCheckedByMakingAFolder(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("drive letters are a Windows path form")
+	}
+	root := filepath.VolumeName(t.TempDir()) + `\`
+	if err := Validate("the download folder", root+"<jd:date>"); err != nil {
+		t.Errorf("a template at %s was refused: %v", root, err)
+	}
+}
+
 // The settings page saves while a path is still being typed, so every prefix of
 // "D:\Downloads" reaches Validate on its way there. None of them may be left
 // behind as a folder.

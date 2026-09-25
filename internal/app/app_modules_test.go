@@ -9,7 +9,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 func switchModulesOff(t *testing.T, a *App, ids ...string) {
@@ -32,8 +34,8 @@ func dispatchQueued(a *App, task *core.Task) core.Task {
 	return *task
 }
 
-// jdHostApp has a JD that ranks above the direct download for host, the way
-// a hoster with an active login does. Its backend holds every transfer, so a
+// jdHostApp has a hoster with an active login at host, which JD takes and the
+// real direct download leaves alone. Its backend holds every transfer, so a
 // started task stays started instead of failing on the made-up host while a
 // test looks.
 func jdHostApp(t *testing.T, host string, extra ...fakeResolver) *App {
@@ -42,7 +44,7 @@ func jdHostApp(t *testing.T, host string, extra ...fakeResolver) *App {
 	a.bmu.Lock()
 	a.jd = &stubBackend{got: make(chan string, 8)}
 	a.bmu.Unlock()
-	isolateResolvers(a, fakeResolver{id: "jd", prio: 10, host: host}, fakeResolver{id: "direct", prio: 40, host: host})
+	isolateResolvers(a, fakeResolver{id: "jd", prio: 10, host: host}, resolver.Direct{Leave: a.claims.pageOnly})
 	for _, r := range extra {
 		a.Registry.Register(r)
 	}
@@ -150,6 +152,67 @@ func TestAVideoLinkWaitsWhileYtdlpIsOffInsteadOfGoingToJD(t *testing.T) {
 	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/watch?v=x", Status: core.StatusQueued, Enabled: true})
 	if got.Waiting != core.WaitingModule || got.Resolver != "ytdlp" {
 		t.Fatalf("resolver %q, waiting %q; want the video held for yt-dlp", got.Resolver, got.Waiting)
+	}
+}
+
+// The direct download leaves file hosters and video sites alone by its claim, so
+// a switched-off JD or yt-dlp ranked above it holds only their links, not an
+// ordinary file, and a file held that way before goes out once it can.
+func TestAPlainFileGoesToTheDirectDownloadPastASwitchedOffBackend(t *testing.T) {
+	const file = "https://files.modules-test.example/movie.mkv"
+	for _, c := range []struct {
+		off   string
+		order []string
+	}{
+		{"jd", []string{"jd", "direct", "ytdlp"}},
+		{"ytdlp", []string{"ytdlp", "direct", "jd"}},
+	} {
+		t.Run(c.off+" off", func(t *testing.T) {
+			a := newQueueApp(t)
+			a.Registry.Register(jd.Resolver{})
+			a.Registry.Register(ytdlp.Resolver{Leave: a.claims.fileHoster})
+			if _, err := a.SaveResolverOrder(c.order); err != nil {
+				t.Fatal(err)
+			}
+			switchModulesOff(t, a, c.off)
+
+			if got := resolverIDOf(a.resolverForTaskLocked(&core.Task{URL: file})); got != "direct" {
+				t.Errorf("an ordinary file goes to %q, want direct", got)
+			}
+			if got := resolverIDOf(a.resolverForTaskLocked(&core.Task{URL: file, Resolver: c.off})); got != "direct" {
+				t.Errorf("an ordinary file held for %s goes to %q, want direct", c.off, got)
+			}
+			// A link only the switched-off backend and the fallback take still waits.
+			held := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://files.modules-test.example/download?id=1", Status: core.StatusQueued, Enabled: true})
+			if held.Waiting != core.WaitingModule || held.Resolver != c.off {
+				t.Errorf("an extensionless link: resolver %q, waiting %q; want it held for %s", held.Resolver, held.Waiting, c.off)
+			}
+		})
+	}
+}
+
+// Switched off, yt-dlp takes no link, and a file on a video site is a file like
+// any other. Its watch pages still wait for it.
+func TestAFileOnAVideoSiteGoesDirectWhileYtdlpIsOff(t *testing.T) {
+	const site = "videosite.modules-test.example"
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(ytdlp.Resolver{Leave: a.claims.fileHoster})
+	a.claims.set(nil, map[string]bool{site: true})
+	switchModulesOff(t, a, "ytdlp")
+
+	file := &core.Task{URL: "https://player." + site + "/external/123456.hd.mp4?s=abc"}
+	if got := resolverIDOf(a.resolverForTaskLocked(file)); got != "direct" {
+		t.Errorf("a file on a video site goes to %q, want direct", got)
+	}
+	page := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + site + "/watch?v=x", Status: core.StatusQueued, Enabled: true})
+	if page.Waiting != core.WaitingModule || page.Resolver != "ytdlp" {
+		t.Errorf("a watch page: resolver %q, waiting %q; want it held for ytdlp", page.Resolver, page.Waiting)
+	}
+
+	switchModulesOff(t, a)
+	if got := resolverIDOf(a.resolverForTaskLocked(file)); got != "ytdlp" {
+		t.Errorf("with yt-dlp back on a file on a video site goes to %q, want ytdlp", got)
 	}
 }
 

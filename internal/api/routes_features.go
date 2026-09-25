@@ -11,9 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
-	"os"
 	"reflect"
 	"slices"
 	"strconv"
@@ -279,7 +277,7 @@ func featureState(a *app.App) FeatureState {
 
 func featureList(a *app.App) []Feature {
 	s := a.Settings.Get()
-	parked := parkedIDs(a)
+	parked := parkedIDs(a, s)
 	return []Feature{
 		withDetail(Feature{
 			ID: "extraction", Verdict: VerdictShipped, Page: "archives",
@@ -289,7 +287,7 @@ func featureList(a *app.App) []Feature {
 			ID: "watch", Verdict: VerdictShipped, Page: "collector",
 			Switch: SwitchParked, Enabled: strings.TrimSpace(s.WatchDir) != "",
 			Parked: parked["watch"],
-		}, watchDetail(s)),
+		}, watchDetail(a, s)),
 		withDetail(Feature{
 			ID: "feeds", Verdict: VerdictShipped, Page: "downloads",
 			Switch: SwitchParked, Enabled: len(s.Feeds) > 0,
@@ -491,6 +489,12 @@ func setFeature(a *app.App, id string, on bool) error {
 	}
 	nothing := func(text string) error { return &nothingParked{page: page, text: text} }
 
+	if on && parkSlotFilled(next, id) {
+		// Set again since the switch went off, so the module already runs on
+		// that value, and what was parked before it must not replace it.
+		return forgetParked(a, id)
+	}
+
 	switch id {
 	case "cnl":
 		// A live listener rather than a setting, so it skips ApplySettings
@@ -593,8 +597,29 @@ func setFeature(a *app.App, id string, on bool) error {
 
 	// ApplySettings restarts the watcher, re-arms the timetable and recompiles
 	// the rules; writing the store directly would leave them on the old value.
-	_, err := a.ApplySettings(next)
-	return err
+	if _, err := a.ApplySettings(next); err != nil || !on {
+		return err
+	}
+	// Back in the settings, the value no longer waits for the switch.
+	return forgetParked(a, id)
+}
+
+// parkSlotFilled reports whether the setting a parked module clears holds a
+// value. The module then runs on it, and anything parked for it is stale.
+func parkSlotFilled(s settings.Settings, id string) bool {
+	switch id {
+	case "watch":
+		return strings.TrimSpace(s.WatchDir) != ""
+	case "feeds":
+		return len(s.Feeds) > 0
+	case "eventtargets":
+		return len(s.EventTargets) > 0
+	case "scheduler":
+		return len(s.Schedule) > 0
+	case "reconnect":
+		return s.Reconnect.Method != "" && s.Reconnect.Method != reconnect.MethodNone
+	}
+	return false
 }
 
 // parkValue remembers the value a kill switch is about to clear. A zero value
@@ -613,6 +638,23 @@ func parkValue(a *app.App, id string, v any) error {
 		return err
 	}
 	doc[id] = json.RawMessage(b)
+	return storeParkDoc(a, doc)
+}
+
+// forgetParked drops what a module has parked.
+func forgetParked(a *app.App, id string) error {
+	doc, err := parkDoc(a)
+	if err != nil {
+		return err
+	}
+	if _, ok := doc[id]; !ok {
+		return nil
+	}
+	delete(doc, id)
+	return storeParkDoc(a, doc)
+}
+
+func storeParkDoc(a *app.App, doc map[string]json.RawMessage) error {
 	out, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -633,16 +675,18 @@ func unparkValue(a *app.App, id string, into any) bool {
 	return json.Unmarshal(raw, into) == nil
 }
 
-// parkedIDs is which modules have a value waiting to come back. It is read once
-// per table build so the rows cannot disagree with each other.
-func parkedIDs(a *app.App) map[string]bool {
+// parkedIDs is which modules have a value waiting to come back. A parked value
+// waits only while its setting is empty, since the switch never replaces one
+// set in the meantime. It is read once per table build so the rows cannot
+// disagree with each other.
+func parkedIDs(a *app.App, s settings.Settings) map[string]bool {
 	doc, err := parkDoc(a)
 	if err != nil {
 		return nil
 	}
 	out := make(map[string]bool, len(doc))
 	for id, raw := range doc {
-		out[id] = !isEmptyJSON(raw)
+		out[id] = !isEmptyJSON(raw) && !parkSlotFilled(s, id)
 	}
 	return out
 }
@@ -725,11 +769,12 @@ func downloadClientDetail(a *app.App, s settings.Settings) line {
 
 // watchDetail names the watch folder, and says so when it is not there yet: the
 // watcher waits for it rather than creating it (see internal/watch.resolveDir).
-// That comes first, since the row cuts a long line at its end.
-func watchDetail(s settings.Settings) line {
+// That comes first, since the row cuts a long line at its end. It asks the
+// watcher rather than the disk, so a dead share cannot hang the Modules page.
+func watchDetail(a *app.App, s settings.Settings) line {
 	if dir := strings.TrimSpace(s.WatchDir); dir != "" {
 		args := map[string]string{"folder": dir}
-		if _, err := os.Stat(dir); errors.Is(err, fs.ErrNotExist) {
+		if a.WatchFolderMissing(dir) {
 			return line{text: "the folder does not exist yet; files dropped into it are taken once it does: " + dir,
 				code: "watchFolderMissing", args: args}
 		}

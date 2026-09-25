@@ -121,35 +121,33 @@ func HostKnown(host string) bool {
 	return knownHosts.set[hostalias.Canonical(host)]
 }
 
-// fileHosts is the set of hosts classified as file hosters rather than media
-// sites, from TorBox's host types and the debrid host lists (the app's
-// ytdlpExclude). JD's plugin list includes YouTube, and without this the
-// knownHostPrio boost would take such links away from yt-dlp. Empty means
-// nothing has been classified, and the boost applies to every known host.
-var fileHosts = struct {
+// mediaHosts are the video sites yt-dlp serves while it runs. JD's plugin list
+// includes YouTube, and without this the knownHostPrio boost would take such
+// links away from yt-dlp. Every other host JD knows counts as a file hoster,
+// whether or not a debrid list names it too.
+var mediaHosts = struct {
 	mu  sync.RWMutex
 	set map[string]bool
 }{set: map[string]bool{}}
 
-// SetFileHosts replaces the set of hosts known to be file hosters.
-func SetFileHosts(hosts map[string]bool) {
+// SetMediaHosts replaces the video sites JD leaves to yt-dlp. Nil, for a
+// yt-dlp that is not running, leaves none.
+func SetMediaHosts(hosts map[string]bool) {
 	set := make(map[string]bool, len(hosts))
 	for h := range hosts {
 		if n := hostalias.Canonical(h); n != "" {
 			set[n] = true
 		}
 	}
-	fileHosts.mu.Lock()
-	defer fileHosts.mu.Unlock()
-	fileHosts.set = set
+	mediaHosts.mu.Lock()
+	defer mediaHosts.mu.Unlock()
+	mediaHosts.set = set
 }
 
-// mediaSiteForYtdlp reports whether host is one the media backend should own:
-// something has classified hosts, and this one is not among the file hosters.
-func mediaSiteForYtdlp(host string) bool {
-	fileHosts.mu.RLock()
-	defer fileHosts.mu.RUnlock()
-	return len(fileHosts.set) > 0 && !fileHosts.set[hostalias.Canonical(host)]
+func mediaSite(host string) bool {
+	mediaHosts.mu.RLock()
+	defer mediaHosts.mu.RUnlock()
+	return mediaHosts.set[hostalias.Canonical(host)]
 }
 
 // PriorityFor is JD's priority for one link: ActiveLoginPrio for a host with a
@@ -169,7 +167,7 @@ func PriorityFor(rawURL string) int {
 	// would do a plain GET and often save the hoster's landing page under the
 	// file name, reported as a success; only JD's plugin handles the wait,
 	// countdown and captcha. Media sites stay with yt-dlp.
-	if HostKnown(u.Hostname()) && !mediaSiteForYtdlp(u.Hostname()) {
+	if HostKnown(u.Hostname()) && !mediaSite(u.Hostname()) {
 		return knownHostPrio
 	}
 	return basePrio
@@ -181,7 +179,7 @@ func PriorityFor(rawURL string) int {
 // this file is kept by the hoster's main domain (internal/hostalias), so rg.to
 // counts wherever rapidgator.net does.
 func FileHoster(host string) bool {
-	return HostActive(host) || (HostKnown(host) && !mediaSiteForYtdlp(host))
+	return HostActive(host) || (HostKnown(host) && !mediaSite(host))
 }
 
 // LoginHost returns the main domain of rawURL's host, as SetHostActive stores

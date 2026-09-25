@@ -73,7 +73,9 @@ func (p *PathProblem) Unwrap() error { return p.Err }
 // folderFields are the top-level folders a save can name, with the words a
 // refusal uses for each. The download and working folders are probed at once,
 // since every download writes there. The others only have to be absolute, the
-// rule sanitize holds them to. All of them are created on first use.
+// rule sanitize holds them to. The first job that writes into one of these
+// folders creates it, except the watch folder, which nothing writes into: the
+// watcher polls it until somebody creates it.
 var folderFields = []struct {
 	key, what       string
 	get             func(Settings) string
@@ -130,6 +132,10 @@ func fixedPrefix(dir string) string {
 		keep = append(keep, p)
 	}
 	if out := strings.Join(keep, sep); out != "" {
+		// "D:" alone means the current directory on that drive, not its root.
+		if out == filepath.VolumeName(out) {
+			out += sep
+		}
 		return out
 	}
 	// Everything after the root is a placeholder, so the root is what is left,
@@ -196,19 +202,28 @@ func Validate(what, dir string) error {
 	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
 	// Only the part before the first placeholder is a real path: checking the
 	// rest would test a path that never exists at download time.
-	dir = fixedPrefix(dir)
-	if fi, err := os.Stat(dir); err == nil {
+	fixed := fixedPrefix(dir)
+	if fi, err := os.Stat(fixed); err == nil {
 		if !fi.IsDir() {
-			return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: errNotAFolder}
+			return &PathProblem{What: what, Code: "cannotCreate", Dir: fixed, Err: errNotAFolder}
 		}
-		probe := filepath.Join(dir, WriteProbeName)
+		if fixed != dir {
+			// Every placeholder adds a folder level, so a template's files land
+			// in a folder made inside fixed and never in fixed itself. A Windows
+			// drive root allows the one and not the other.
+			if err := canCreateBelow(fixed); err != nil {
+				return &PathProblem{What: what, Code: "cannotWrite", Dir: fixed, Err: err}
+			}
+			return nil
+		}
+		probe := filepath.Join(fixed, WriteProbeName)
 		if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
-			return &PathProblem{What: what, Code: "cannotWrite", Dir: dir, Err: err}
+			return &PathProblem{What: what, Code: "cannotWrite", Dir: fixed, Err: err}
 		}
 		return os.Remove(probe)
 	}
-	if err := canCreateBelow(nearestExisting(dir)); err != nil {
-		return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: err}
+	if err := canCreateBelow(nearestExisting(fixed)); err != nil {
+		return &PathProblem{What: what, Code: "cannotCreate", Dir: fixed, Err: err}
 	}
 	return nil
 }

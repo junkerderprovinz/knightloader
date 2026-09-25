@@ -133,11 +133,11 @@ export const en = {
   'instances.foundAdd': 'Add',
   'instances.foundKnown': 'already added',
   'instances.connectButton': 'Connect an instance',
-  'instances.connectHint': 'Add or pair another KnightLoader from Settings → Access.',
+  'instances.connectWhere': 'Add or pair another KnightLoader on the Remote access page.',
   'instances.offlineWarning': 'Added, but the instance did not answer (offline?).',
   'instances.open': 'Open',
   'instances.online': 'Online',
-  'instances.refused': 'Reached, but it refused this instance because it has a password set. Give them both the same connection phrase under Settings → Access and they will trust each other.',
+  'instances.refusedByPassword': 'Reached, but it refused this instance because it has a password set. Give them both the same connection phrase on the Remote access page and they will trust each other.',
   'instances.offline': 'Offline',
   'instances.viaRelay': 'Connected via relay',
   'instances.metricActive': 'Active',
@@ -1068,7 +1068,7 @@ export const en = {
   'quick.reconnectHint': 'Asks the router for a new public address the way the Network page sets it up.',
   'quick.reconnectOff': 'Reconnect is switched off on the Modules page.',
   'quick.reconnectUnset': 'No reconnect is set up yet. Pick a method on the Network page first.',
-  'quick.schedulerOff': 'The scheduler is switched off on the Modules page.',
+  'quick.schedulesOff': '"Schedules" is switched off on the Modules page.',
   'quick.autoStartHint':
     'Links you add start downloading without waiting for you to confirm them in the collector. How long they wait first is set on the {page} page.',
   'quick.idleCommandSetup': 'Set up the command on the Automation page',
@@ -1084,6 +1084,8 @@ export const en = {
   'folders.use': 'Use this folder',
   'folders.empty': 'No sub-folders here.',
   'folders.new': 'This folder does not exist yet. It is created when the first download lands in it.',
+  'folders.newWatch':
+    'This folder does not exist yet, and nothing creates it by itself. Files dropped into it are taken once it does. New folder makes it now.',
   'folders.tail': 'Kept',
   'folders.tailHint':
     'Browsing replaces only the fixed part of the folder. The variables are put back on the end, so your naming scheme is not lost.',
@@ -1228,7 +1230,6 @@ export const en = {
   'accounts.routing.priorityAuto': 'Automatic',
   'accounts.routing.priorityAutoHint': 'Throws your order away and goes back to the automatic one. The automatic order follows what changes, such as a new debrid key or an account going premium, while yours stays exactly as you left it.',
   'accounts.routing.dragHandle': 'Move {name}',
-  'accounts.routing.jdTitle': 'JDownloader sidecar',
   'accounts.routing.jdHint': 'The embedded, invisible JDownloader that opens encrypted containers and covers hosters no other resolver does.',
   'accounts.routing.jdNotConfigured': 'Not configured',
   'accounts.routing.jdReachable': 'Reachable, revision {version}',
@@ -1255,8 +1256,8 @@ export const en = {
   'accounts.hoster.removed': 'Removed.',
   'accounts.hoster.pickAccount': 'Choose a hoster account',
   'accounts.hoster.searchHosts': 'Search hosters…',
-  'accounts.hoster.custodyNotice':
-    'The password is sent to the headless JDownloader sidecar, which stores it and performs the actual login. KnightLoader itself does not keep it.',
+  'accounts.hoster.passwordCustody':
+    'The password goes to the JDownloader backend, which stores it and does the actual login. KnightLoader itself does not keep it.',
 
   // The prompt modal (components/CaptchaModal.tsx) - a hoster asking a human
   // something before a download can continue.
@@ -1453,6 +1454,7 @@ export const en = {
   'settings.schedule.suspend.open': 'Until you switch them back on',
   'settings.schedule.suspend.until': 'Until {when}',
   'settings.schedule.suspendNone': 'No schedule is set up yet, so there is nothing to suspend.',
+  'settings.schedule.suspendParked': 'The Schedules switch below is off, so there is nothing to suspend.',
   'settings.schedule.saveFailed': 'The schedules could not be saved: {error}',
   'settings.schedule.rowError': 'Row {row}: {error}',
 
@@ -1551,8 +1553,8 @@ export const en = {
 
   'settings.help.access.title': 'Access and troubleshooting',
   'settings.help.access.body':
-    'A password locks the whole interface down to a session cookie. The Access page also lists the intake ports and access methods this build has and why each exists, so you can look up any open port you did not expect. The Diagnostics page builds a file to attach to a bug report: version and build info, the current settings with every password removed, this process’s own recent log lines, and how many goroutines are running.',
-  'settings.help.access.link1': 'Open Access settings',
+    'A password locks the whole interface down to a session cookie. The Remote access page also lists the intake ports and access methods this build has and why each exists, so you can look up any open port you did not expect. The Diagnostics page builds a file to attach to a bug report: version and build info, the current settings with every password removed, this process’s own recent log lines, and how many goroutines are running.',
+  'settings.help.access.link1': 'Open Remote access',
   'settings.help.access.link2': 'Open Diagnostics',
 
   'settings.help.advanced.title': 'Everything else',
@@ -1600,8 +1602,8 @@ export const en = {
   'settings.scripts.trigger.queueIdle': 'The queue goes idle',
   'settings.scripts.use': 'Enable this script',
   'settings.scripts.code': 'Code',
-  'settings.scripts.codeStarter':
-    '// This script runs on the trigger picked above.\n// The sandbox API it runs against is still being finished. See Settings › Help once it lands.\n',
+  'settings.scripts.starter':
+    '// This script runs on the trigger picked above.\n// log(...) writes a line to Output, and notify(message) sends a notification.\n// trigger and queue are always there; task, pkg, extraction, reconnect,\n// account and captcha only when the event carries one.\n',
   'settings.scripts.timeout': 'Time limit',
   'settings.scripts.timeoutHint':
     'How long this script may run before it is stopped. Between 100 ms and 30 s; 0 uses the default of 5000 ms.',
@@ -1813,8 +1815,8 @@ export const en = {
   'settings.resolvers.moduleUnavailable': 'Module unavailable',
   'settings.resolvers.moduleUnavailableHint':
     'Everything below is still saved and takes effect the moment yt-dlp becomes available. Nothing you edit now is lost.',
-  'settings.resolvers.intro':
-    'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which service handles a given link at all (yt-dlp, a debrid account or the headless JD sidecar) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
+  'settings.resolvers.about':
+    'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which service handles a given link at all (yt-dlp, a debrid account or the JDownloader backend) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
   'settings.resolvers.quality': 'Quality',
   'settings.resolvers.videoFormat': 'Video format',
   'settings.resolvers.qualityHint':
@@ -1860,6 +1862,8 @@ export const en = {
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint':
     'The port this instance listens for swarm connections on. 0 lets the torrent engine pick one.',
+  'settings.torrents.portRestartHint':
+    'The engine builds its torrent client only once, so a new port takes effect after this instance restarts. Asking the router to map it works right away, whether or not a torrent is listening on it yet.',
   'settings.torrents.portMapHint':
     'Asks the router to forward the port above to this machine over UPnP, so peers behind a different router can still reach it. Not every router supports this, and some accept the request without it actually working.',
   'settings.torrents.portMapButton': 'Attempt UPnP mapping',
@@ -1879,8 +1883,8 @@ export const en = {
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
     'A private torrent switches both off automatically once its metadata is known, regardless of what is set here: immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
-  'settings.torrents.engineLimits':
-    'Seed ratio and seed duration reach every torrent this engine starts. The port reaches only the first torrent started since this instance’s last restart, because the engine builds its own torrent client once and never rebuilds it. A later port change is still saved correctly and takes effect after the next restart. The upload limit is only saved and validated so far; the engine has no way yet to apply it to a running download. For an ordinary torrent, DHT and PEX below do not take effect yet either: this instance’s own default does not reach a running download, so a torrent seeds with both on regardless of what is set here. A private torrent is a different case, explained in the (i) of Peer discovery further down. The mapping button further down works regardless: it asks the router to forward the port number typed above, whether or not a torrent is listening on it yet.',
+  'settings.torrents.notApplied':
+    'This build does not apply two of the settings below yet. The upload limit is saved and checked, but the engine cannot apply it to a running download. DHT and PEX do not reach an ordinary torrent either: it seeds with both on, whatever is set here. A private torrent works differently, as the (i) of Peer discovery explains.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
@@ -2580,7 +2584,7 @@ export const en = {
   'settings.transfer.incompleteReconnect': 'the router password',
   'settings.transfer.incompleteConnections': 'the proxy passwords',
   'settings.transfer.incompleteArchives': 'the archive passwords',
-  'settings.transfer.ruleProblems': '{n} rules came over that this build cannot compile. They are saved but never fire. Look at the Rules page.',
+  'settings.transfer.rulesUncompiled': '{n} rules came over that this build cannot compile. They are saved but never fire. Look at the Rules & categories page.',
   'settings.transfer.parseFailed': 'This is not a settings export: {reason}',
   'settings.transfer.tooNew': 'This file was written by {version} and this server runs {running}. Update the server first, then import.',
   'settings.transfer.applyFailed': 'Could not take over: {error}',
@@ -2740,7 +2744,7 @@ export const en = {
   'health.part.store': 'Database',
   'health.part.queue': 'Queue',
   'health.part.disk': 'Target folders',
-  'health.part.jd': 'JDownloader sidecar',
+  'health.part.jd': 'JDownloader backend',
   'health.part.ytdlp': 'yt-dlp',
   'health.part.accounts': 'Hoster accounts',
   'health.part.feeds': 'Feed subscriptions',
@@ -2847,7 +2851,7 @@ export const en = {
   'settings.owner.fix.recreate': 'A changed run command needs the container recreated. Restarting is not enough: the identity is fixed the moment it starts.',
   'settings.owner.fix.past': 'Files already downloaded keep the owner they were written with. Anything you change applies to what comes next; the rest needs the command above.',
   'settings.selftest.title': 'Self-test',
-  'settings.selftest.hint': 'Everything this instance can find out about itself: the JDownloader sidecar, yt-dlp, your folders, your debrid logins, the relay and the clock. All of it runs on this machine. The only thing that leaves it is the debrid logins, which go to the providers you set up.',
+  'settings.selftest.hint': 'Everything this instance can find out about itself: the JDownloader backend, yt-dlp, your folders, your debrid logins, the relay and the clock. All of it runs on this machine. The only thing that leaves it is the debrid logins, which go to the providers you set up.',
   'settings.selftest.run': 'Run self-test',
   'settings.selftest.running': 'Checking…',
   'settings.selftest.pending': 'Waiting',
@@ -2859,13 +2863,13 @@ export const en = {
   'settings.selftest.status.fail': 'Broken',
   'settings.selftest.status.skipped': 'Not set up',
   'settings.selftest.status.unknown': 'Cannot tell',
-  'settings.selftest.jd': 'JDownloader sidecar',
+  'settings.selftest.jd': 'JDownloader backend',
   'settings.selftest.jd.ok': 'Reachable, revision {version}.',
-  'settings.selftest.jd.provisioningOff': 'Provisioning is switched off and no address is set, so there is no sidecar to reach.',
-  'settings.selftest.jd.missing': 'No sidecar address. Encrypted DLC and container links are refused.',
+  'settings.selftest.jd.provisioningOff': 'Provisioning is switched off and no address is set, so there is no backend to reach.',
+  'settings.selftest.jd.missing': 'No backend address. Encrypted DLC and container links are refused.',
   'settings.selftest.jd.missingAdvice': 'This build normally starts its own headless JDownloader while booting and fills KL_JD in itself. That it is empty means that start failed. Look for "JD provisioning failed" in the log further down, or set KL_JD to a JDownloader of your own.',
   'settings.selftest.jd.unreachable': '{address} did not answer.',
-  'settings.selftest.jd.unreachableAdvice': 'The address is stored and nothing is listening on it. Check that the sidecar is running, and that its port 3128 is reachable from inside this container, not just from the host.',
+  'settings.selftest.jd.unreachableAdvice': 'The address is stored and nothing is listening on it. Check that the backend is running, and that its port 3128 is reachable from inside this container, not just from the host.',
   'settings.selftest.jd.noVersion': 'Answers, but will not say which revision it is.',
   'settings.selftest.ytdlp': 'yt-dlp',
   'settings.selftest.ytdlp.ok': '{version}, {days} days old.',
@@ -2931,7 +2935,7 @@ export const en = {
   'settings.selftest.proxy.proto.ok': 'The proxy says https, which is what your browser is on.',
   'settings.selftest.proxy.proto.direct': 'You reached this instance directly, so there is no proxy that would have to declare anything.',
   'settings.selftest.proxy.proto.missing': 'Your browser is on https and the proxy did not pass that on.',
-  'settings.selftest.proxy.proto.missingAdvice': 'Without X-Forwarded-Proto this instance believes it was reached over plain http. The QR code and the pairing addresses on the Access page then offer http:// links, and a container handed to JDownloader is fetched over http. In nginx use proxy_set_header X-Forwarded-Proto $scheme; Traefik and Caddy set it themselves.',
+  'settings.selftest.proxy.proto.missingAdvice': 'Without X-Forwarded-Proto this instance believes it was reached over plain http. The QR code and the pairing addresses on the Remote access page then offer http:// links, and a container handed to JDownloader is fetched over http. In nginx use proxy_set_header X-Forwarded-Proto $scheme; Traefik and Caddy set it themselves.',
   'settings.selftest.proxy.prefix': 'Path prefix',
   'settings.selftest.proxy.prefix.ok': 'This instance is served at the root of {host}, which is the only place it works.',
   'settings.selftest.proxy.prefix.underPath': 'This instance is served under {path}.',

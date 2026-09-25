@@ -52,7 +52,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
-  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
+  const state = online ? t('instances.online') : refused ? t('instances.refusedByPassword') : t('instances.offline');
 
   // The dot shows state by colour alone, so it gets a tooltip. Only the hover
   // props are spread: the row can be a <button>, which must not contain a
@@ -123,7 +123,7 @@ export function InstanceCard({
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
   // "Refused" takes a rainbow hue, since it is neither ok nor failed.
-  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
+  const state = online ? t('instances.online') : refused ? t('instances.refusedByPassword') : t('instances.offline');
 
   return (
     // padding="none" so the logo runs flush to the start edge at full height,

@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -63,6 +64,10 @@ type Watcher struct {
 	live    map[Folder]*poller
 	started bool
 	closed  bool
+
+	// byDir finds the poller serving a configured folder without taking mu,
+	// which Apply holds while it probes a share that may not answer.
+	byDir atomic.Pointer[map[string]*poller]
 }
 
 // New builds a Watcher over the configured folders. Nothing polls until Start.
@@ -154,14 +159,16 @@ func (w *Watcher) Apply(folders []Folder) []error {
 	}
 
 	next := make(map[Folder]*poller, len(want))
-	dirs := make(map[string]bool, len(want))
+	served := make(map[string]*poller, len(want))
+	byDir := make(map[string]*poller, len(want))
 	// Carried over by the configured value and not by the path it resolves to,
 	// so that an unchanged row costs no filesystem call at all: a share that has
 	// gone unreachable must not be re-probed by a save that never mentioned it.
 	for _, f := range want {
 		if p := w.live[f]; p != nil {
 			next[f] = p
-			dirs[p.dir] = true
+			served[p.dir] = p
+			byDir[f.Dir] = p
 		}
 	}
 	// Before anything new is opened, and still under the same lock.
@@ -181,11 +188,12 @@ func (w *Watcher) Apply(folders []Folder) []error {
 			errs = append(errs, err)
 			continue
 		}
-		if dirs[dir] {
+		if p := served[dir]; p != nil {
 			// Another row already resolved to this directory. Collapsed rather
 			// than reported: naming one folder twice is something a person can
 			// reasonably do, and the answer to it is one poller, not an error
 			// they would have no idea what to do with.
+			byDir[f.Dir] = p
 			continue
 		}
 		// A folder the process cannot write is useless: consuming a file means
@@ -193,19 +201,36 @@ func (w *Watcher) Apply(folders []Folder) []error {
 		// Saying so now beats a folder that appears to be watched and does nothing.
 		// A folder that is not there yet is taken up anyway; once it appears, a
 		// file that cannot be retired is reported by the poll that finds it.
-		if err := writable(dir); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		err = writable(dir)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			errs = append(errs, fmt.Errorf("watch: %s is not writable: %w", dir, err))
 			continue
 		}
 		p := newPoller(dir, f.Delete, w.interval, w.onJob)
-		dirs[dir] = true
+		p.missing.Store(err != nil)
+		served[dir] = p
+		byDir[f.Dir] = p
 		next[f] = p
 		if w.started {
 			p.start()
 		}
 	}
 	w.live = next
+	w.byDir.Store(&byDir)
 	return errs
+}
+
+// Missing reports whether the poller of the configured folder dir found
+// nothing there when it last looked. It makes no filesystem call and takes no
+// lock that Apply holds, so a caller cannot hang on a share that has stopped
+// answering. A folder that is not being watched is not reported as missing.
+func (w *Watcher) Missing(dir string) bool {
+	byDir := w.byDir.Load()
+	if byDir == nil {
+		return false
+	}
+	p := (*byDir)[strings.TrimSpace(dir)]
+	return p != nil && p.missing.Load()
 }
 
 // Start begins polling every folder in the background, and every folder added
@@ -244,6 +269,7 @@ func (w *Watcher) Close() error {
 		p.close()
 		delete(w.live, f)
 	}
+	w.byDir.Store(nil)
 	w.closed = true
 	return nil
 }

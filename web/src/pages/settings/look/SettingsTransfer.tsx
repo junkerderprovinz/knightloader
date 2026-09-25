@@ -102,7 +102,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           }),
         );
       }
-      if (res.ruleProblems > 0) lines.push(t('settings.transfer.ruleProblems', { n: res.ruleProblems }));
+      if (res.ruleProblems > 0) lines.push(t('settings.transfer.rulesUncompiled', { n: res.ruleProblems }));
       setNotice(lines);
       setPending(null);
     } catch (e) {

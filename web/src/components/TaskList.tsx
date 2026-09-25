@@ -102,12 +102,14 @@ import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows'
 import {
   aimAt,
   carriedOffsets,
+  moveRefusal,
   pastThreshold,
   previewOrder,
   sameUnit,
   selectedBlock,
   stackOffsets,
   type BlockRow,
+  type MoveRefusal,
   type RowSlot,
 } from './rowDrag';
 import {
@@ -995,6 +997,9 @@ interface Gesture {
   /** Whether a held finger has moved since it armed. One that has not opens
    *  the row's menu on release instead of dropping anything. */
   travelled: boolean;
+  /** Why a hold that armed may not move its rows, or null. Such a hold still
+   *  opens the row's menu, and says why only if the finger tries to drag. */
+  refused: MoveRefusal | null;
   /** The press in the strip's own coordinates, taken when a move begins: the
    *  carried rows move by the pointer's travel from here. */
   originY: number;
@@ -2065,6 +2070,7 @@ export function TaskListCard({
       touch: false,
       hold: 0,
       travelled: false,
+      refused: null,
       originY: 0,
       scale: 0,
     };
@@ -2074,7 +2080,8 @@ export function TaskListCard({
    * A finger on a row scrolls the list, unless it holds still for HOLD_MS,
    * which arms a move of the row, or of the marking the row is in. A hold let
    * go where it armed opens the row's menu instead (see land), since a long
-   * press is how a touch screen asks for one.
+   * press is how a touch screen asks for one, and so does a hold on rows that
+   * cannot move (see armHold).
    */
   function holdRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
     const g: Gesture = {
@@ -2095,6 +2102,7 @@ export function TaskListCard({
       touch: true,
       hold: 0,
       travelled: false,
+      refused: null,
       originY: 0,
       scale: 0,
     };
@@ -2114,35 +2122,38 @@ export function TaskListCard({
     // is given here has not rendered yet, so blockFor cannot see it.
     if (!marked) selectFromUnit(g.unit, PLAIN);
     keys.setCurrent(rowKey(g.unit));
-    if (!beginGesture(g, strip, marked ? undefined : [g.unit])) return;
     heldTouch.current = true;
+    const carried = marked ? blockFor(g.unit) : [g.unit];
+    // Nobody has tried to drag yet: the hold may only be asking for the row's
+    // menu. So a move the queue would refuse leaves a hold that opens the menu
+    // on release, and the refusal waits for the finger to travel.
+    g.refused = moveRefusal(!dndEnabled, carried, unitIds);
+    if (g.refused) return;
+    beginGesture(g, strip, carried);
     applyGesture(g);
   }
   const armRef = useRef(armHold);
   armRef.current = armHold;
+
+  /**
+   * A refused move says why instead of doing nothing, since rows that simply
+   * do not follow the pointer look like a broken list. The banner above a
+   * sorted table says the view is sorted, not that the order cannot change,
+   * and nothing on a finished or failed row says it has left the wait queue.
+   */
+  function sayRefused(why: MoveRefusal): void {
+    toast(t(why === 'sorted' ? 'list.dragNeedsQueueOrder' : 'list.dragNotInQueue'), 'info');
+  }
 
   /** The press has travelled far enough, or held long enough, to mean
    *  something. `carried` overrides what a move carries. Returns false when
    *  the gesture is refused outright, in which case it is already over. */
   function beginGesture(g: Gesture, strip: HTMLElement, carried?: RowDragKey[]): boolean {
     if (g.mode === 'move') {
-      // A sorted view says so instead of doing nothing. Rows that are simply
-      // not draggable there look like a broken list: a folder is picked up,
-      // nothing follows the pointer and nothing explains why. The banner above
-      // the table says the view is sorted, not that the order cannot change.
-      if (!dndEnabled) {
-        toast(t('list.dragNeedsQueueOrder'), 'info');
-        gesture.current = null;
-        return false;
-      }
       const block = carried ?? blockFor(g.unit);
-      // A row in no band cannot be reordered, so without this the drag starts,
-      // nothing previews, the drop does nothing and the list looks broken. A
-      // finished or failed download has left the wait queue. Asked of the whole
-      // block rather than of the pressed row, because a marking holding one
-      // settled row and four queued ones is a good move.
-      if (block.every((u) => unitIds(u).length === 0)) {
-        toast(t('list.dragNotInQueue'), 'info');
+      const refused = moveRefusal(!dndEnabled, block, unitIds);
+      if (refused) {
+        sayRefused(refused);
         gesture.current = null;
         return false;
       }
@@ -2373,9 +2384,11 @@ export function TaskListCard({
     if (g.touch) {
       const far = Math.abs(e.clientX - g.fromX) > HOLD_SLOP_PX || Math.abs(e.clientY - g.fromY) > HOLD_SLOP_PX;
       // A finger that moves before its hold arms is scrolling, and the browser
-      // has it.
+      // has it. One that moves after a refused hold armed is trying to drag.
       if (!g.live) {
-        if (far) abortGesture();
+        if (!far) return;
+        if (g.refused) sayRefused(g.refused);
+        abortGesture();
         return;
       }
       if (far) g.travelled = true;
@@ -2407,7 +2420,12 @@ export function TaskListCard({
       // collapse, see (4) above; on an unmarked one the press already did the
       // marking and there is nothing left to do. A finger let go or scrolling
       // before its hold armed was a tap or a scroll, neither of which marks.
-      if (g.mode === 'move' && !g.touch) selectFromUnit(g.unit, PLAIN);
+      // One let go after a refused hold armed asked for the row's menu.
+      if (g.refused) {
+        if (commit) openMenu(g);
+      } else if (g.mode === 'move' && !g.touch) {
+        selectFromUnit(g.unit, PLAIN);
+      }
       return;
     }
     // Escape and a cancelled pointer put a sweep back where it started.
@@ -2556,16 +2574,18 @@ export function TaskListCard({
 
   // Once a hold has armed, the finger drags instead of scrolling, and the
   // browser's long-press menu stays shut while the hold runs or drags; see
-  // openMenu for where it goes instead. Lifting the finger sends no mouse
-  // events after it either: they would land on whatever row is under the
-  // finger by then, and their mousedown closes the menu a still hold opened.
-  // Bound natively, since React's touch listeners are passive and cannot
-  // cancel.
+  // openMenu for where it goes instead. A refused hold keeps the finger too,
+  // so its first move says why rather than scrolling. Lifting the finger sends
+  // no mouse events after it either: they would land on whatever row is under
+  // the finger by then, and their mousedown closes the menu a still hold
+  // opened. Bound natively, since React's touch listeners are passive and
+  // cannot cancel.
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
     function onTouchMove(e: TouchEvent) {
-      if (gesture.current?.touch && gesture.current.live) e.preventDefault();
+      const g = gesture.current;
+      if (g?.touch && (g.live || g.refused)) e.preventDefault();
     }
     function onTouchEnd(e: TouchEvent) {
       if (!heldTouch.current) return;
@@ -2574,7 +2594,7 @@ export function TaskListCard({
     }
     function onMenu(e: Event) {
       const g = gesture.current;
-      if (!g?.touch || !(g.live || g.hold)) return;
+      if (!g?.touch || !(g.live || g.hold || g.refused)) return;
       e.preventDefault();
       e.stopPropagation();
     }

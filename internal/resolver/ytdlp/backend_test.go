@@ -188,7 +188,7 @@ func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T)
 			t.Errorf("format %s Default = %v, want %v from format_id 401+251", id, byID[id].Default, want)
 		}
 	}
-	if ext, size := VideoFile("best", got.Formats, false); ext != "mkv" || size != 240334643+3433755 {
+	if ext, size := VideoFile("best", got.Formats, Options{}); ext != "mkv" || size != 240334643+3433755 {
 		t.Errorf("VideoFile(best) = %q, %d; want mkv and the two picked formats together", ext, size)
 	}
 }

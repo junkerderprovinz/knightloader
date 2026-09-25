@@ -94,7 +94,14 @@ func main() {
 			// runnable on Windows and Linux; only a macOS bundle differs.
 			newRunnable = installPath
 		}
+		// The new instance binds the Click'n'Load port as soon as it starts,
+		// and this one would hold it until its window has been torn down.
+		wasListening := a.CnL.Port() > 0
+		a.CnL.Stop()
 		if err := update.Relaunch(newRunnable, os.Args[1:]); err != nil {
+			if wasListening {
+				_ = a.CnL.Start()
+			}
 			return err
 		}
 		// Quit asynchronously so the HTTP response reaches the browser first.

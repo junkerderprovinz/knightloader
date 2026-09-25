@@ -47,7 +47,8 @@ submission and for a fixed download.
   tabs too; JDownloader is switched on the Modules page only. A link whose
   backend is switched off waits in the queue as "Module switched off" instead
   of going out as a plain download, which would save the hoster's web page. If a debrid service carries the host, it takes the link
-  over. Each row also links to the page its module is set up on.
+  over. A link that points straight at a file still goes to the direct
+  download. Each row also links to the page its module is set up on.
 - **Twelve more debrid services, spoken to directly**: BestDebrid, CocoLeech,
   CoolDebrid, DebridItalia, Deepbrid, FakirDebrid, Mega-Debrid, MultiUp,
   NeoDebrid, ProLeech, RPNet and Zevera. They used to work only as a login
@@ -57,7 +58,8 @@ submission and for a fixed download.
   as YouTube stay with yt-dlp even where a service lists them.
 - **Each connected hoster login is a row of its own on the priority card.**
   Where it sits against a debrid service that carries the same host decides
-  which of the two gets those links.
+  which of the two gets those links. A login you add after arranging the order
+  starts right below JDownloader, which is where its links go.
 - **The video and audio rows of a yt-dlp link pick with two dropdowns each.**
   The video row picks a format, a container and codec the site offers, and
   beside it a quality, the resolution and the frame rate where tracks differ
@@ -95,7 +97,7 @@ submission and for a fixed download.
   row is the control from its own settings page and changes the same value, so
   both places show the same thing. "Reconnect now" is greyed out while no
   reconnect is set up or the module is switched off; its (i) says which, and a
-  link below leads to the page that changes it. The button on the Network page
+  badge below leads to the page that changes it. The button on the Network page
   is called "Reconnect now" as well.
 - **A Packagizer rule can say where the unpacked files go.** The rule editor
   has a "Move the unpacked files to" field with the folder chooser, next to
@@ -116,12 +118,20 @@ submission and for a fixed download.
   the way the server does now, and `KL_CNL` means the same in both. Where
   nothing listens, the Modules page says so instead of naming an address.
 
+- **A new script starts with what it can use.** Its first lines named a
+  sandbox API that was "still being finished" and a Help section that does not
+  exist. They list `log`, `notify`, `trigger` and `queue` now, and the
+  objects an event brings along, such as `task` or `pkg`.
+
 - **A folder field keeps what you typed.** A watch folder, "Unpack to" folder
   or "Move the unpacked files to" folder that was not a full path was emptied
   on save, so typing "C:" and pausing cleared the field. Such a folder is
   refused instead: the reason shows under the field, the stored folder stays,
   and your other changes still save. A save that comes back while you are
-  still typing no longer replaces the text in the field.
+  still typing no longer replaces the text in the field. This holds for every
+  text field in the settings, a category's name and the reconnect password
+  included. A password or command that comes back masked no longer empties its
+  field while you type.
 
 - **A refused setting is no longer sent again and again.** Picking a reconnect
   method before the IP check URL was filled in, or adding a connection before
@@ -132,6 +142,24 @@ submission and for a fixed download.
   or a row on the Advanced page. The rest of your changes still save. A stored
   setting that no longer passes the check, such as a reconnect switched back on
   after its check URL was cleared, no longer blocks saves on other pages.
+
+- **A module switch no longer brings back a value you replaced or deleted.**
+  After the watch folder, feed subscriptions, event targets or schedules had
+  been switched off and on once, the switch still kept its old copy. If you
+  later emptied the list or the folder by hand, the Add button or the folder
+  field disappeared and only the switch was left, and it put the old value
+  back. Event targets that were all switched off could even be replaced by the
+  old list. The switch now drops its copy once it has brought the value back,
+  and it never replaces anything set up since.
+
+- **Escape closes only the window on top.** In the folder chooser opened from a
+  download's options, it closed the options too. A captcha that arrived while
+  the chooser was open was skipped by the Escape meant for the chooser.
+
+- **A name with a dollar sign shows as typed in messages.** A saved view,
+  passkey, script, package or file called "AT$&T" or "$$$ deals" came out as
+  "AT{name}T" or "$$ deals" in the sentence around it. This affected the web
+  UI, the phone app and the browser extension.
 
 - **A database upgrade cut short no longer keeps KnightLoader from starting.**
   Each upgrade step and the note of how far the upgrade got are written
@@ -149,9 +177,10 @@ submission and for a fixed download.
   order is arranged.** Any drag on the card saved the direct download above
   JDownloader, and from then on a filehoster link without an account went out
   as a plain download, which usually saves the hoster's landing page. The
-  direct download and the HTTP fallback leave every host that JDownloader, a
-  debrid service or the built-in hoster list knows as a filehoster, and every
-  video site while yt-dlp runs, wherever they stand in the order. yt-dlp leaves
+  direct download and the HTTP fallback leave every host that JDownloader, one
+  of your debrid accounts or the built-in hoster list knows as a filehoster,
+  and every video site while yt-dlp is switched on, wherever they stand in the
+  order. yt-dlp leaves
   the filehosters too. Header profiles and your own FTP, SFTP and WebDAV servers
   left the card, since each takes only the links it was set up for, and they
   go ahead of every row.
@@ -267,6 +296,11 @@ submission and for a fixed download.
   cap downloads the quality it names. A track picked earlier takes its new
   name when the link is checked again, and until then the menu lists it in
   order of resolution instead of at the end.
+- **A video row set to "Custom format string" no longer shows another file's
+  size.** The row showed mkv and the size of the best video, while yt-dlp
+  downloaded whatever the string asked for. The extension and size now stay
+  empty until the download reports them. With the string left empty, the row
+  downloads what "Best available" does and shows the same.
 - **"Unpack to" and "Move the unpacked files to" keep their caption level with
   the box** when the box shows an error under it. The caption dropped by about
   9 pixels.
@@ -288,9 +322,18 @@ submission and for a fixed download.
   disk. The watch folder did the same. A save now only checks the folder: one
   that exists has to be writable, and for one that does not exist yet the
   nearest folder above it has to allow a new folder. The first download
-  creates it, and so does New folder in the folder chooser. A watch folder
-  that is not there yet is watched anyway, the Modules page says so, and
-  files dropped into it are taken once it exists.
+  creates it, and so does New folder in the folder chooser. Nothing creates a
+  watch folder that is not there yet: it is watched anyway, the Modules page
+  and the folder chooser say so, and files dropped into it are taken once it
+  exists.
+- **A folder template that starts at a drive root works on Windows.** In a
+  folder such as `E:\<jd:packagename>`, the part before the variable was read
+  as `E:`, which Windows takes as the current folder on that drive rather than
+  its root. "Unpack to" lost such a folder on save, the folder chooser would
+  not open on it, and a download folder like `D:\<jd:date>` was checked in
+  whatever folder KnightLoader had been started from. The root is kept now,
+  and a template there only has to be able to create its folder, which the
+  root of the system drive allows even where it refuses files.
 - **A setting unrelated to categories saves even when a category's folder is
   unusable.** Every save checked, and created, the folder of every category,
   so a category on a share that was offline refused a change of theme. The
@@ -347,8 +390,9 @@ submission and for a fixed download.
   Modules page.** Archive extraction, the page crawler, checksum verification,
   feed subscriptions, event targets, schedules, reconnect, the Packagizer, the
   link filter and the metrics address now have a switch on their own page,
-  like the modules that already did. Both switches are one switch. A badge
-  beside each of them leads to the other and lands on it. The card, the switch
+  like the modules that already did. Both switches are one switch, and the one
+  on the page takes its card's colour. A badge beside each of them leads to the
+  other and lands on it. The card, the switch
   and the Modules row share one name: "Extraction" is now "Archive extraction",
   "Page crawl" is "Page crawler", "Monitoring" is "Metrics address for a
   monitoring system", "Your scripts" is "Event scripts", "Scheduler" is
@@ -418,7 +462,9 @@ submission and for a fixed download.
   motion setting, and on release the block slides into its gap and stays there
   until the server confirms the order. Escape puts everything back. On a touch
   screen, holding a finger on a row picks it up, and lifting the finger
-  without moving opens the row's menu.
+  without moving opens the row's menu. A row that cannot be moved, such as a
+  finished download or any row while the list is sorted, opens its menu the
+  same way and says why it stays put only once you try to drag it.
 - **The priority card's rows follow the pointer too.** The row you drag lifts,
   the others make room as it passes, and on release it slides into place.
   Escape puts it back. On a touch screen you pick a row up by holding its grip
@@ -506,8 +552,8 @@ submission and for a fixed download.
 - **The project relay card shows its address in the bubble behind "What can it
   see?"** instead of in a field of its own. The button sits at the bottom right
   of the card, where it no longer pushes the switch down.
-- **The Downloads head bar is one row and about half as tall.** Play, Pause and
-  Stop are square buttons that show their names in the tooltip, and a fourth
+- **The Downloads head bar is one row and about half as tall.** Stop, Pause and
+  Play are square buttons that show their names in the tooltip, and a fourth
   square opens the quick settings. The speed curve fills the rest of the row up
   to the bar's right edge. The newest second sits on that edge with the current
   speed above it, and the top of the scale is shown above the other end. In a
@@ -525,7 +571,8 @@ submission and for a fixed download.
   format, the log source, the speed unit and the search box's field open the
   app's menu with a check mark on the current choice, like the quality picker
   in the collector, instead of the browser's own list. The mouse wheel still
-  steps through the choices while the pointer rests on one.
+  steps through the choices while the pointer rests on one, except on "Suspend
+  schedules", where each choice takes effect at once.
 - **Text fields, dropdowns, the time fields and the search boxes are one
   height**, the height of the buttons beside them, and share one look.
 - **A selector that needs more than one line fills them evenly.** "When two
@@ -546,7 +593,9 @@ submission and for a fixed download.
   "Rules & categories" reads in full. Only the tile that needs it grows.
 - **Every line on the Modules page is in your language**, not only
   Click'n'Load's. `GET /api/features` sends each module's status and reason as
-  a code with its values, next to the English sentence.
+  a code with its values, next to the English sentence. A value in a line reads
+  the way its own page names it: the reconnect method "Requests" rather than
+  "http", the quality "Best available" rather than "best".
 - **The web interface fits a phone.** In a window narrower than 768 pixels the
   sidebar becomes a bar along the bottom with the same entries in the same
   colours, so every page keeps the full width. The bar has its own setting,
@@ -559,6 +608,13 @@ submission and for a fixed download.
   downloaded volume, where it read "Direct link" in one place and "Direct" in
   the others. The plain HTTP fallback and "Torrent and magnet" are named the
   same way in all three.
+- **The JDownloader backend has one name**, the one its switch on the Modules
+  page has. The Accounts card, the Health page, the self-test and the hoster
+  password hint called it "JDownloader sidecar", and in German also
+  "Beiwagen".
+- **Hints name the settings pages the way their tabs do**: "Remote access"
+  where they said "Settings → Access" or "the Access page", and "Rules &
+  categories" where they said "the Rules page".
 - **The package gear in the collector and the table on the yt-dlp page have
   one name, "Variant defaults"**, since they change the same settings. The
   gear's tooltip and its window said "Variant settings" and the table
@@ -573,13 +629,13 @@ submission and for a fixed download.
   they explain: in the captcha window, the hoster login window, the second
   factor step of the sign-in page, the setup tour, the crypto window and the
   quick add page, on the connection phrase, relay, second factor and settings
-  transfer cards, and on the Rules, Torrents, Network, Diagnostics, Automation
-  and Browser & App pages. A window's title badge can carry an (i) too. What
+  transfer cards, and on the Modules, Rules, Torrents, Network, Diagnostics,
+  Automation and Browser & App pages. A window's title badge can carry an (i) too. What
   stays on the page: notes about what this build or this machine cannot do,
   status and error lines, and empty lists. The crypto window in the Android app
   and in the browser extension keeps its introduction in an (i) as well.
-- **The Collector's filters are switches** instead of tick boxes, and a click
-  anywhere on a row flips its switch.
+- **The Collector's filters and a torrent's file list are switches** instead of
+  tick boxes, and a click anywhere on a row flips its switch.
 - **Links look like buttons.** "Get a key" on the captcha page is a badge
   called "Where do I get this?", as in the account windows. The update card
   names the new version and opens its release notes from a badge. "Open

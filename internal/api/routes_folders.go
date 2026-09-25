@@ -144,8 +144,15 @@ func listFolders(raw string) (folderListing, error) {
 		return folderListing{}, folderRefusal{http.StatusNotFound, "unreachable",
 			"there is no folder at or above " + fixed + " that this instance can read"}
 	}
-	real, ok := b.resolve(listed)
-	if !ok {
+	real, ok, err := b.resolve(listed)
+	switch {
+	case errors.Is(err, fs.ErrPermission):
+		// Windows refuses to open some folders that it lets anybody stat, such
+		// as System Volume Information.
+		return folderListing{}, folderRefusal{http.StatusForbidden, "unreadable", err.Error()}
+	case err != nil:
+		return folderListing{}, err
+	case !ok:
 		return folderListing{}, folderRefusal{http.StatusForbidden, "outside",
 			"this instance may not list " + listed + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
@@ -170,7 +177,7 @@ func listFolders(raw string) (folderListing, error) {
 	}
 	// A parent outside the boundary is not offered at all.
 	if parent := filepath.Dir(listed); parent != listed {
-		if _, ok := b.resolve(parent); ok {
+		if _, ok, _ := b.resolve(parent); ok {
 			out.Parent = parent
 		}
 	}
@@ -196,10 +203,12 @@ func splitTemplate(dir string) (fixed, tail string) {
 			continue
 		}
 		fixed = strings.Join(parts[:i], sep)
-		if fixed == "" {
-			// Everything below the root is a placeholder. The tail keeps its
-			// leading separator, so the caller re-assembles by concatenation.
-			fixed = sep
+		if fixed == filepath.VolumeName(fixed) {
+			// Everything below the root is a placeholder, so the root is the
+			// fixed part: "/", or "D:\" rather than the drive-relative "D:". The
+			// tail keeps its leading separator either way, and the interface
+			// drops the root's trailing one before it appends the tail.
+			fixed += sep
 		}
 		return fixed, sep + strings.Join(parts[i:], sep)
 	}
@@ -248,20 +257,22 @@ func browseRoots(p string) (boundary, error) {
 
 // resolve resolves p and reports whether what it really points at is inside
 // the boundary. Everything that reads or creates a directory goes through here.
-func (b boundary) resolve(p string) (string, bool) {
+// An error says why p could not be resolved, which is not the same answer as
+// outside.
+func (b boundary) resolve(p string) (string, bool, error) {
 	real, err := realpath.Resolve(p)
 	if err != nil {
-		return "", false
+		return "", false, err
 	}
 	if b.open {
-		return real, true
+		return real, true, nil
 	}
 	for _, root := range b.roots {
 		if within(root, real) {
-			return real, true
+			return real, true, nil
 		}
 	}
-	return "", false
+	return "", false, nil
 }
 
 // volumeRoot is the top of the filesystem p lives on: "/", or the drive on
@@ -330,7 +341,7 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 			if fi, err := os.Stat(target); err != nil || !fi.IsDir() {
 				continue
 			}
-			if _, ok := b.resolve(target); !ok {
+			if _, ok, _ := b.resolve(target); !ok {
 				continue
 			}
 		default:
@@ -371,8 +382,14 @@ func createFolder(parent, name string) (string, error) {
 	if fi, err := os.Stat(parent); err != nil || !fi.IsDir() {
 		return "", folderRefusal{http.StatusNotFound, "missing", "there is no folder at " + parent + " that this instance can see"}
 	}
-	real, ok := b.resolve(parent)
-	if !ok {
+	denied := folderRefusal{http.StatusForbidden, "denied", "this instance has no permission to create a folder in " + parent}
+	real, ok, err := b.resolve(parent)
+	switch {
+	case errors.Is(err, fs.ErrPermission):
+		return "", denied
+	case err != nil:
+		return "", err
+	case !ok:
 		return "", folderRefusal{http.StatusForbidden, "outside",
 			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
@@ -383,8 +400,7 @@ func createFolder(parent, name string) (string, error) {
 	case errors.Is(err, fs.ErrExist):
 		return "", folderRefusal{http.StatusConflict, "exists", "there is already something named " + name + " in " + parent}
 	case errors.Is(err, fs.ErrPermission):
-		return "", folderRefusal{http.StatusForbidden, "denied",
-			"this instance has no permission to create a folder in " + parent}
+		return "", denied
 	}
 	return "", err
 }

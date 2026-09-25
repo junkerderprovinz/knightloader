@@ -13,11 +13,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -69,6 +71,12 @@ func (b *fakePlaylistBackend) listings() []string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return append([]string(nil), b.listed...)
+}
+
+func (b *fakePlaylistBackend) probes() []string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return append([]string(nil), b.probed...)
 }
 
 // playlistApp is an app with the playlist setting on and pl as the one listing
@@ -170,6 +178,51 @@ func TestAPlaylistLinkIsOneTaskWhenTheSettingIsOff(t *testing.T) {
 	}
 	if n := len(b.listings()); n != 0 {
 		t.Errorf("yt-dlp was asked for a listing %d times with the setting off", n)
+	}
+}
+
+// With JDownloader dragged above yt-dlp on the priority card, a playlist link is
+// JD's like any other link, and no yt-dlp process lists it.
+func TestAPlaylistLinkTheCardGivesToJDIsNotListedByYtdlp(t *testing.T) {
+	a, b := playlistApp(t, ytdlp.Playlist{Title: "Greatest Hits", Entries: entries(3)})
+	a.Registry.Register(jd.Resolver{})
+	if _, err := a.SaveResolverOrder([]string{"jd", "ytdlp"}); err != nil {
+		t.Fatal(err)
+	}
+
+	created := a.AddLinks([]string{playlistURL}, "")
+
+	if n := len(b.listings()); n != 0 {
+		t.Errorf("yt-dlp was asked for %d listings of a link JD takes", n)
+	}
+	if len(created) != 1 || created[0].URL != playlistURL || created[0].Resolver != "jd" {
+		t.Fatalf("created %+v, want the playlist link staged once, on jd", created)
+	}
+}
+
+// An entry that is staged on another backend is that backend's to fetch, so
+// yt-dlp does not probe it for formats.
+func TestOnlyThePlaylistEntriesYtdlpFetchesAreProbed(t *testing.T) {
+	const hoster = "https://filehoster.playlist-test.example/file/abc"
+	const video = "https://youtube.com/watch?v=vid000"
+	a, b := playlistApp(t, ytdlp.Playlist{Title: "Mixed", Entries: []ytdlp.PlaylistEntry{
+		{URL: hoster, Title: "Archive"},
+		{URL: video, Title: "Track"},
+	}})
+	a.Registry.Register(jd.Resolver{})
+	t.Cleanup(func() { jd.SetKnownHosts(nil) })
+	jd.SetKnownHosts([]string{"filehoster.playlist-test.example"})
+
+	created := a.AddLinks([]string{playlistURL}, "")
+	if len(created) != 2 || created[0].Resolver != "jd" || created[1].Resolver != "ytdlp" {
+		t.Fatalf("created %+v, want the hoster entry on jd and the video on ytdlp", created)
+	}
+
+	// The probes run one at a time in listing order, so once the video's has
+	// run, the hoster's would have run before it.
+	waitFor(t, "the video's probe", func() bool { return slices.Contains(b.probes(), video) })
+	if slices.Contains(b.probes(), hoster) {
+		t.Error("yt-dlp probed an entry staged on jd")
 	}
 }
 

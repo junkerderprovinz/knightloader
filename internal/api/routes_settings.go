@@ -76,6 +76,11 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, "the patch names no fields to change", http.StatusBadRequest)
 				return
 			}
+			patch, err := canonicalKeys(patch)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 			// Validated against a preview of the merge built outside the lock.
 			// It can go stale before SetPartial's own merge; settings.ApplyPatch
 			// says why that is harmless.
@@ -195,6 +200,33 @@ func writeValidationError(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
 	_ = json.NewEncoder(w).Encode(out)
+}
+
+// canonicalKeys spells every key of a patch the way the settings document
+// does. encoding/json matches a field name whatever its case, so "downloaddir"
+// would change the download folder while every check here, which looks a key
+// up by its exact name, let it through. Two spellings of one key are refused,
+// since only one of them could win. A key that names no field is left as it
+// is, for the decode to drop.
+func canonicalKeys(patch map[string]json.RawMessage) (map[string]json.RawMessage, error) {
+	known := knownSettingsKeys()
+	out := make(map[string]json.RawMessage, len(patch))
+	for key, value := range patch {
+		name := key
+		if !known[key] {
+			for k := range known {
+				if strings.EqualFold(k, key) {
+					name = k
+					break
+				}
+			}
+		}
+		if _, twice := out[name]; twice {
+			return nil, fmt.Errorf("the patch names %s twice", name)
+		}
+		out[name] = value
+	}
+	return out, nil
 }
 
 // patched reports whether a patch names a top-level field.

@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -68,6 +70,31 @@ func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 	// The interface re-assembles the value by concatenation.
 	if fixed+tail != tpl {
 		t.Errorf("%q + %q is not %q", fixed, tail, tpl)
+	}
+}
+
+// A template that starts at a drive root browses that root. "D:" alone would be
+// the drive's current directory, which the chooser refuses as relative.
+func TestATemplateAtADriveRootBrowsesTheRoot(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("drive letters are a Windows path form")
+	}
+	t.Parallel()
+	root := filepath.VolumeName(t.TempDir()) + `\`
+	tpl := root + "<jd:packagename>"
+
+	fixed, tail := splitTemplate(tpl)
+	if fixed != root || tail != `\<jd:packagename>` {
+		t.Errorf("splitTemplate(%q) = %q, %q, want %q, %q", tpl, fixed, tail, root, `\<jd:packagename>`)
+	}
+	if created := settings.FixedPrefix(tpl); fixed != created {
+		t.Errorf("the chooser would browse %q, but %q is the folder that gets created", fixed, created)
+	}
+
+	_, srv := foldersServer(t)
+	got := getFolders(t, srv, tpl)
+	if got.Path != root || !got.Exists {
+		t.Errorf("browsed %q (exists %v), want the existing root %q", got.Path, got.Exists, root)
 	}
 }
 
@@ -250,18 +277,15 @@ func TestARelativePathIsRefused(t *testing.T) {
 	}
 }
 
+// On Windows such a folder can still be stat-ed but not opened, so the refusal
+// comes from resolving it, and it must not claim the folder is outside roots
+// that nobody set.
 func TestAFolderThatMayNotBeReadSaysSo(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("a mode of 000 does not stop reading a folder on Windows")
-	}
-	if os.Geteuid() == 0 {
-		t.Skip("root reads folders whatever the mode says")
-	}
 	locked := filepath.Join(t.TempDir(), "locked")
-	if err := os.Mkdir(locked, 0o000); err != nil {
+	if err := os.Mkdir(locked, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
+	lockFolder(t, locked)
 	_, srv := foldersServer(t)
 
 	code, out := listingRefusal(t, foldersURL(srv, locked))
@@ -271,6 +295,44 @@ func TestAFolderThatMayNotBeReadSaysSo(t *testing.T) {
 	if !strings.Contains(out["error"], locked) {
 		t.Errorf("the refusal %q does not name the folder", out["error"])
 	}
+}
+
+func TestCreatingInAFolderThatMayNotBeOpenedIsDenied(t *testing.T) {
+	locked := filepath.Join(t.TempDir(), "locked")
+	if err := os.Mkdir(locked, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	lockFolder(t, locked)
+	_, srv := foldersServer(t)
+
+	if code, out := postFolder(t, srv, locked, "new"); code != http.StatusForbidden || out["code"] != "denied" {
+		t.Errorf("creating in a folder nobody may open answered %d %v, want 403 denied", code, out)
+	}
+}
+
+// lockFolder takes every right on dir away from this process's user. The
+// folder still shows in its parent's listing, as a folder with such rights
+// does to a user who clicks it in the chooser.
+func lockFolder(t *testing.T, dir string) {
+	t.Helper()
+	if runtime.GOOS != "windows" {
+		if os.Geteuid() == 0 {
+			t.Skip("root reads folders whatever the mode says")
+		}
+		if err := os.Chmod(dir, 0o000); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
+		return
+	}
+	u, err := user.Current()
+	if err != nil {
+		t.Skipf("no current user to take the rights from: %v", err)
+	}
+	if out, err := exec.Command("icacls", dir, "/deny", u.Username+":(F)").CombinedOutput(); err != nil {
+		t.Skipf("icacls cannot deny access here: %v: %s", err, out)
+	}
+	t.Cleanup(func() { _ = exec.Command("icacls", dir, "/remove:d", u.Username).Run() })
 }
 
 // listingRefusal asks for a listing that is expected to be refused and

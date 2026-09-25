@@ -263,7 +263,6 @@
       "task.retry.compactNoMax"
     ],
     "hr": [
-      "health.part.jd",
       "health.part.ytdlp",
       "settings.dbmaint.settingsSize",
       "settings.diagnostics.check.ffmpeg",
@@ -273,7 +272,6 @@
       "settings.downloads.idleCommandProgram",
       "settings.owner.umask",
       "settings.resolvers.toolsFrom.env",
-      "settings.selftest.jd",
       "settings.selftest.ytdlp",
       "settings.shortcuts.key.delete",
       "settings.shortcuts.key.end",
@@ -388,7 +386,6 @@
     ],
     "lt": [
       "events.kind.captcha",
-      "health.part.jd",
       "health.part.ytdlp",
       "settings.dbmaint.settingsSize",
       "settings.diagnostics.check.ffmpeg",
@@ -397,7 +394,6 @@
       "settings.diagnostics.check.ytdlp",
       "settings.owner.umask",
       "settings.resolvers.toolsFrom.env",
-      "settings.selftest.jd",
       "settings.selftest.ytdlp",
       "settings.shortcuts.key.end",
       "settings.shortcuts.key.home",
@@ -406,7 +402,6 @@
     ],
     "lv": [
       "events.kind.captcha",
-      "health.part.jd",
       "health.part.ytdlp",
       "settings.dbmaint.settingsSize",
       "settings.diagnostics.check.ffmpeg",
@@ -415,7 +410,6 @@
       "settings.diagnostics.check.ytdlp",
       "settings.owner.umask",
       "settings.resolvers.toolsFrom.env",
-      "settings.selftest.jd",
       "settings.selftest.ytdlp",
       "settings.shortcuts.key.end",
       "settings.shortcuts.key.home",

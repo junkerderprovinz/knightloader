@@ -87,6 +87,40 @@ func TestAPatchIsNotRefusedForAFolderItDoesNotName(t *testing.T) {
 	}
 }
 
+// The decode matches a key whatever its case, so the checks have to as well,
+// or "downloaddir" stores a folder "downloadDir" would have been refused for.
+func TestAKeySpelledInAnotherCaseIsCheckedLikeTheField(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	blocker := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(blocker, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	unusable := filepath.Join(blocker, "downloads")
+
+	for _, body := range []string{
+		fmt.Sprintf(`{"downloaddir":%q}`, unusable),
+		`{"EVENTTARGETS":[{"url":"ftp://x.example/"}]}`,
+		fmt.Sprintf(`{"downloadDir":%q,"downloaddir":%q}`, t.TempDir(), unusable),
+	} {
+		if code, _, msg := patchSettings(t, srv.URL, body); code != http.StatusBadRequest {
+			t.Errorf("%s answered %d %s, want it refused", body, code, msg)
+		}
+	}
+	if s := a.Settings.Get(); s.DownloadDir == unusable || len(s.EventTargets) != 0 {
+		t.Errorf("a refused patch was stored: download folder %q, %d event targets", s.DownloadDir, len(s.EventTargets))
+	}
+
+	good := t.TempDir()
+	if code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{"DownloadDir":%q}`, good)); code != http.StatusOK {
+		t.Fatalf("a usable folder under another spelling answered %d: %s", code, msg)
+	}
+	if got := a.Settings.Get().DownloadDir; got != good {
+		t.Errorf("stored download folder = %q, want %q", got, good)
+	}
+}
+
 // A category's folder is checked when a save sends the categories, and only
 // then, so a stored drawer whose share is offline does not refuse a patch that
 // never mentions it.

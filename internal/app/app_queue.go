@@ -96,7 +96,9 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		}
 		toStart = append(toStart, t)
 	}
-	sort.Slice(toStart, func(i, j int) bool { return toStart[i].CreatedAt.Before(toStart[j].CreatedAt) })
+	// toStart was filled from a map, so equal stamps need a tiebreak that
+	// does not change from one run to the next.
+	sortByAge(toStart)
 	for _, t := range toStart {
 		t.Status = core.StatusQueued
 		// A confirmed link has no countdown pending.
