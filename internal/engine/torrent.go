@@ -23,7 +23,7 @@ const defaultMetadataTimeout = 2 * time.Minute
 const torrentStatsInterval = 3 * time.Second
 
 // DownloadTorrent starts a magnet link or an uploaded .torrent. It feeds the
-// same downloader as DownloadTo, whose HTTP-shaped arguments mean nothing to
+// same downloader as Download, whose HTTP-shaped arguments mean nothing to
 // a swarm; gopeed's default fetch managers already include the bt fetcher.
 //
 // sel names the files to fetch by index in the resolved file list; nil

@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"os/exec"
@@ -210,8 +211,77 @@ func (p *Provisioner) WriteAPIConfig() error {
 	return os.WriteFile(path, b, 0o644)
 }
 
-// FindJava returns a runnable java, preferring JAVA_HOME then PATH. The desktop
-// installer bundles a JRE; this also lets a system Java be used.
+// confirmAnswers are the questions JD asks while it moves links from its
+// grabber to its download list, answered ahead in the config file each one is
+// read from. JD's default for all three is ASK, and a JD without a window has
+// nobody to answer, so the confirm waits and the link stays in the grabber.
+//
+// Every answer keeps the link KnightLoader asked for:
+//
+//   - defaultonaddeddupeslinksaction, a link JD already holds, is one of
+//     OnDupesLinksAction's INCLUDE, EXCLUDE, EXCLUDE_AND_REMOVE, ASK and
+//     GLOBAL.
+//   - defaultonaddedofflinelinksaction, a link JD's check found offline, is one
+//     of OnOfflineLinksAction's INCLUDE_OFFLINE, EXCLUDE_OFFLINE,
+//     EXCLUDE_OFFLINE_AND_REMOVE, ASK and GLOBAL. Excluded, the link stays in
+//     the grabber with JD's verdict on it, which the jd backend reads to fail
+//     the download at once. Included, it would sit in the download list as a
+//     download that never moves until the backend's stall limit.
+//   - confirmincompletearchiveaction, an archive with parts JD has not seen, is
+//     one of ConfirmIncompleteArchiveAction's ASK, KEEP_IN_LINKGRABBER,
+//     MOVE_TO_DOWNLOADLIST and DELETE. KnightLoader hands JD one link per
+//     download, so every part of a multi-part archive is such an archive.
+//     LinkgrabberSettings' handleincompletearchiveonconfirmlatestselection
+//     only preselects an entry in the question, so it is not the one to set.
+//
+// The names and values are those of JDownloader's LinkgrabberSettings,
+// GraphicalUserInterfaceSettings and ConfirmLinksContextAction, which
+// ConfirmLinksContextAction.confirmSelection reads on every confirm, the
+// automatic one included.
+var confirmAnswers = map[string]map[string]json.RawMessage{
+	"org.jdownloader.gui.views.linkgrabber.addlinksdialog.LinkgrabberSettings.json": {
+		"defaultonaddeddupeslinksaction":   json.RawMessage(`"INCLUDE"`),
+		"defaultonaddedofflinelinksaction": json.RawMessage(`"EXCLUDE_OFFLINE"`),
+	},
+	"org.jdownloader.settings.GraphicalUserInterfaceSettings.json": {
+		"confirmincompletearchiveaction": json.RawMessage(`"MOVE_TO_DOWNLOADLIST"`),
+	},
+}
+
+// WriteConfirmAnswers writes confirmAnswers into JD's config files. The rest
+// of each file is JD's own and is kept.
+func (p *Provisioner) WriteConfirmAnswers() error {
+	cfgDir := filepath.Join(p.Dir, "cfg")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		return err
+	}
+	for file, answers := range confirmAnswers {
+		path := filepath.Join(cfgDir, file)
+		// Raw, so JD's values go back exactly as JD wrote them.
+		cfg := map[string]json.RawMessage{}
+		if b, err := os.ReadFile(path); err == nil {
+			// A file JD cannot parse is reset by JD itself, so nothing is lost
+			// by starting from an empty one.
+			var kept map[string]json.RawMessage
+			if json.Unmarshal(b, &kept) == nil {
+				maps.Copy(cfg, kept)
+			}
+		}
+		maps.Copy(cfg, answers)
+		b, err := json.MarshalIndent(cfg, "", "  ")
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(path, b, 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// FindJava returns a runnable java, preferring JAVA_HOME then PATH. The
+// container image ships a JRE. The desktop builds bring none, so there the
+// JDownloader backend runs only on a Java the machine already has.
 func FindJava() (string, error) {
 	bin := "java"
 	if runtime.GOOS == "windows" {
@@ -226,7 +296,7 @@ func FindJava() (string, error) {
 	if path, err := exec.LookPath(bin); err == nil {
 		return path, nil
 	}
-	return "", fmt.Errorf("provision: no Java runtime found (set JAVA_HOME or bundle a JRE)")
+	return "", fmt.Errorf("provision: no Java runtime found; install one or point JAVA_HOME at it")
 }
 
 // Start launches headless JD in the background using the given java binary. The
@@ -339,8 +409,9 @@ func (p *Provisioner) WaitReachable(ctx context.Context) error {
 }
 
 // Ensure runs the full first-run sequence: download the jar (once), write the
-// API config, launch JD, and wait for it to answer. Returns the running command
-// and the KL_JD URL. The caller sets KL_JD (or the app's jd backend) to URL().
+// API config and the confirm answers, launch JD, and wait for it to answer. Returns
+// the running command and the KL_JD URL. The caller sets KL_JD (or the app's
+// jd backend) to URL().
 // A JD that started but never answered keeps running on purpose (it is probably
 // mid self-update); it stays tracked, so Stop still terminates it at shutdown.
 func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
@@ -348,6 +419,9 @@ func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
 		return nil, "", err
 	}
 	if err := p.WriteAPIConfig(); err != nil {
+		return nil, "", err
+	}
+	if err := p.WriteConfirmAnswers(); err != nil {
 		return nil, "", err
 	}
 	java, err := FindJava()

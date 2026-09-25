@@ -1,0 +1,30 @@
+[
+  {
+    "id": "highest",
+    "value": 3
+  },
+  {
+    "id": "higher",
+    "value": 2
+  },
+  {
+    "id": "high",
+    "value": 1
+  },
+  {
+    "id": "default",
+    "value": 0
+  },
+  {
+    "id": "low",
+    "value": -1
+  },
+  {
+    "id": "lower",
+    "value": -2
+  },
+  {
+    "id": "lowest",
+    "value": -3
+  }
+]

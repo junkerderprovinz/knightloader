@@ -1,0 +1,7 @@
+{
+  "variants": ["video", "audio", "thumbnail", "subtitle", "description"],
+  "videoFormat": "best",
+  "quality": "best",
+  "audioFormat": "best",
+  "audioBitrate": ""
+}

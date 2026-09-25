@@ -80,6 +80,11 @@ func (a *App) SafeTaskFile(id string) (TaskFile, error) {
 
 	dir := a.dirFor(&snap)
 	full := filepath.Join(dir, name)
+	// The library saves a download beside a file that already has its name,
+	// and what sits under the task's name is then somebody else's file.
+	if snap.File != "" && sameDir(filepath.Dir(snap.File), dir) {
+		full = filepath.Join(dir, filepath.Base(snap.File))
+	}
 
 	realDir, err := realpath.Resolve(dir)
 	if err != nil {

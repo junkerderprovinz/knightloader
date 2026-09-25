@@ -453,6 +453,13 @@ func (c *Client) SetEnabled(enabled bool, linkIDs []int64) error {
 	return err
 }
 
+// StartDownloads starts JD's download controller. It does nothing when the
+// controller already runs.
+func (c *Client) StartDownloads() error {
+	_, err := c.call("/downloadcontroller/start")
+	return err
+}
+
 func trunc(b []byte) string {
 	s := string(b)
 	if len(s) > 200 {

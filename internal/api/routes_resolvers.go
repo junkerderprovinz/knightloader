@@ -72,6 +72,19 @@ func registerResolvers(reg *Registry, a *app.App) {
 			writeJSON(w, a.HosterPresetFor(host))
 		})
 
+	// The menus a preset's format pickers offer for one host, which depend on
+	// what is known of the host rather than on the preset.
+	reg.Add(http.MethodGet, "/api/ytdlp/formats",
+		"the video and audio formats a hoster's \"Variante\" preset offers (?host=): what the site serves, or every format when nothing is known of it",
+		func(w http.ResponseWriter, r *http.Request) {
+			host := strings.TrimSpace(r.URL.Query().Get("host"))
+			if host == "" {
+				http.Error(w, "which host are these formats for?", http.StatusBadRequest)
+				return
+			}
+			writeJSON(w, a.HosterFormats(host))
+		})
+
 	// The badge's write path. Through PatchSettings rather than the settings
 	// draft (see SetHosterPreset in app_ytdlp_variants.go): it fires from a
 	// popover reachable at any moment, not from that draft's Save button.

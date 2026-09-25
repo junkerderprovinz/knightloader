@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"errors"
+	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
@@ -227,6 +228,79 @@ func TestCleanUpLeavesWhatWasAlreadyThere(t *testing.T) {
 	}
 }
 
+// zipWithBadEntry builds a zip whose second entry arrives in full and then
+// fails its CRC, which is the last moment a copy can fail.
+func zipWithBadEntry(t *testing.T, good, bad entry) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	w, err := zw.Create(good.name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Write(good.body); err != nil {
+		t.Fatal(err)
+	}
+	w, err = zw.CreateRaw(&zip.FileHeader{
+		Name:               bad.name,
+		Method:             zip.Store,
+		CRC32:              crc32.ChecksumIEEE(bad.body) ^ 1,
+		CompressedSize64:   uint64(len(bad.body)),
+		UncompressedSize64: uint64(len(bad.body)),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Write(bad.body); err != nil {
+		t.Fatal(err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return buf.Bytes()
+}
+
+// The folder a failed job created goes, with the empty subfolders its entries
+// were written into. Left behind, it reads as an extraction that worked.
+func TestAFailedJobTakesBackTheFolderItMade(t *testing.T) {
+	dir := t.TempDir()
+	arc := write(t, filepath.Join(dir, "release.zip"), zipWithBadEntry(t,
+		entry{"sub/one.txt", []byte("fine")},
+		entry{"sub/two.txt", []byte("damaged")},
+	))
+
+	if _, err := Run(context.Background(), Request{Path: arc}); err == nil {
+		t.Fatal("an archive with a damaged entry unpacked")
+	}
+	if exists(filepath.Join(dir, "release")) {
+		t.Error("the failed job left its folder behind")
+	}
+	if !exists(arc) {
+		t.Error("the clean-up removed the archive itself")
+	}
+}
+
+// A failed job's row keeps its byte count, so it has to be told the count at
+// the moment of failure rather than whatever the throttle last let through.
+func TestAFailedJobReportsHowFarItGot(t *testing.T) {
+	dir := t.TempDir()
+	good := entry{"one.bin", bytes.Repeat([]byte("x"), 64<<10)}
+	bad := entry{"two.bin", bytes.Repeat([]byte("y"), 1<<10)}
+	arc := write(t, filepath.Join(dir, "release.zip"), zipWithBadEntry(t, good, bad))
+
+	var last Progress
+	_, err := Run(context.Background(), Request{
+		Path:       arc,
+		OnProgress: func(p Progress) { last = p },
+	})
+	if err == nil {
+		t.Fatal("an archive with a damaged entry unpacked")
+	}
+	if want := int64(len(good.body) + len(bad.body)); last.Bytes != want {
+		t.Errorf("the last report said %d bytes, want the %d the job wrote before it failed", last.Bytes, want)
+	}
+}
+
 // A job that reported only the outermost archive would show a bar that stops
 // moving for the half of the work that happens inside it.
 func TestProgressCountsEveryDepth(t *testing.T) {
@@ -254,6 +328,72 @@ func TestProgressCountsEveryDepth(t *testing.T) {
 	}
 	if !contains(opened, "outer.zip") || !contains(opened, "inner.zip") {
 		t.Errorf("progress named %v, want both archives", opened)
+	}
+}
+
+// A row reading "Unpacking 45%" needs to know how far through the archive in
+// hand the job is, which the job-wide byte count cannot say once a nested
+// archive is being unpacked.
+func TestProgressMeasuresTheArchiveOpenNow(t *testing.T) {
+	dir := t.TempDir()
+	body := bytes.Repeat([]byte("x"), 4096)
+	write(t, filepath.Join(dir, "outer.zip"), zipBytes(t,
+		entry{"notes.txt", []byte("top")},
+		entry{"inner.zip", zipBytes(t, entry{"deep.txt", body})},
+	))
+
+	var last Progress
+	if _, err := Run(context.Background(), Request{
+		Path:       filepath.Join(dir, "outer.zip"),
+		OnProgress: func(p Progress) { last = p },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if last.Archive != "inner.zip" || last.Size != int64(len(body)) || last.Unpacked != last.Size {
+		t.Errorf("the last report = %+v, want inner.zip complete at its own %d bytes", last, len(body))
+	}
+	if last.Bytes <= last.Size {
+		t.Errorf("Bytes = %d, want the outer archive's files counted as well", last.Bytes)
+	}
+}
+
+// A split file has no headers to ask and needs none: it joins to the sum of its
+// parts.
+func TestAJoinIsMeasuredAgainstItsParts(t *testing.T) {
+	dir := t.TempDir()
+	parts := []string{"once upon ", "a time ", "in the west"}
+	var size int64
+	for i, body := range parts {
+		write(t, filepath.Join(dir, "notes.txt.00"+string(rune('1'+i))), []byte(body))
+		size += int64(len(body))
+	}
+
+	var last Progress
+	if _, err := Run(context.Background(), Request{
+		Path:       filepath.Join(dir, "notes.txt.001"),
+		OnProgress: func(p Progress) { last = p },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if last.Archive != "notes.txt.001" || last.Size != size || last.Unpacked != size {
+		t.Errorf("the last report = %+v, want the join complete at %d bytes", last, size)
+	}
+}
+
+// The rar reader meets its file headers one at a time as it reads, so the size
+// of the whole set has to come from a walk over them before the first byte.
+func TestARarIsMeasuredFromItsHeaders(t *testing.T) {
+	arc := writeFixture(t, t.TempDir(), "film.rar", rar5Archive)
+
+	var last Progress
+	if _, err := Run(context.Background(), Request{
+		Path:       arc,
+		OnProgress: func(p Progress) { last = p },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if want := int64(len("hoarse")); last.Size != want || last.Unpacked != want {
+		t.Errorf("the last report = %+v, want film.rar complete at %d bytes", last, want)
 	}
 }
 

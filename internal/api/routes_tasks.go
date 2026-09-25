@@ -5,6 +5,7 @@ package api
 // tasks are in routes_bulk.go.
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -42,6 +43,24 @@ func registerTasks(reg *Registry, a *app.App) {
 			}
 			a.SetPackage(body.Ids, body.Package)
 			w.WriteHeader(http.StatusNoContent)
+		})
+	// Separate from the move above, which may ungroup: a rename needs a name,
+	// and it decides what happens to a folder files are already in.
+	reg.Add(http.MethodPost, "/api/tasks/package/rename", "give the package these tasks are in a new name; the folder follows it only while nothing in the package has started",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids  []string `json:"ids"`
+				Name string   `json:"name"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			ids, err := a.RenamePackage(body.Ids, body.Name)
+			if err != nil {
+				writeTaskRefusal(w, err)
+				return
+			}
+			bulkDone(w, ids)
 		})
 	// reasons is what makes retry aimable. A list of forty failures is several
 	// problems at once, and restarting all of them spends a hoster allowance
@@ -122,7 +141,7 @@ func registerTasks(reg *Registry, a *app.App) {
 				}
 			}
 			if err := a.SetTaskOptions(body.Ids, body.TaskOptions); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				writeTaskRefusal(w, err)
 				return
 			}
 			if body.Resolver != nil {
@@ -132,6 +151,19 @@ func registerTasks(reg *Registry, a *app.App) {
 				}
 			}
 			w.WriteHeader(http.StatusNoContent)
+		})
+	// The properties panel's backend dropdown. Under /api/tasks/ so a peer's
+	// rows are answered by the peer, whose backends they would go to, and a
+	// POST because the peer forwarder carries a body but no query string.
+	reg.Add(http.MethodPost, "/api/tasks/backends", "the backends every listed task can be pinned to, highest ranked first; it changes nothing",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			writeJSON(w, a.PinChoices(body.Ids))
 		})
 	reg.Add(http.MethodPost, "/api/tasks/{id}/pause", "pause one running or queued task",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -150,4 +182,16 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.RemoveTasks([]string{r.PathValue("id")}, r.URL.Query().Get("files") == "1")
 			w.WriteHeader(http.StatusNoContent)
 		})
+}
+
+// writeTaskRefusal answers a refused rename with its code and the name it is
+// about, which the rename window puts in the reader's language, and any other
+// refusal with its sentence.
+func writeTaskRefusal(w http.ResponseWriter, err error) {
+	var r *app.RenameRefusal
+	if errors.As(err, &r) {
+		writeRefusal(w, http.StatusBadRequest, r.Code, r.Error(), map[string]string{"name": r.Name})
+		return
+	}
+	http.Error(w, err.Error(), http.StatusBadRequest)
 }

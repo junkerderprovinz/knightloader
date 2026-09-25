@@ -25,7 +25,7 @@ type Options struct {
 	// It is a task's own choice and never an instance default, so it has no
 	// settings key.
 	VideoPick string `json:"-"`
-	// AudioFormat is the audio row's format ("mp3", "m4a", "opus", or "best"
+	// AudioFormat is the audio row's format ("mp3", "aac", "opus", or "best"
 	// for whatever the best track is), read only for VariantAudio. A track in
 	// that format is copied, and a source without one is converted to it.
 	AudioFormat string `json:"audioFormat"`
@@ -173,12 +173,12 @@ func validVariant(v Variant) bool {
 	return false
 }
 
-// AudioFormats lists the audio formats the settings and the host presets
-// offer, in menu order. "best" keeps the source's codec without transcoding
-// and is the default. An audio row offers only what its source carries (see
-// AudioFormatsOf). "aac" is not listed, see foldAudioFormat.
+// AudioFormats lists the audio formats the settings offer, and a host preset
+// where nothing is known of the host (see HostFormats), in menu order. "best"
+// keeps the source's codec without transcoding and is the default. An audio
+// row offers only what its source carries (see AudioFormatsOf).
 func AudioFormats() []string {
-	return []string{"best", "alac", "flac", "m4a", "mp3", "opus", "vorbis", "wav"}
+	return []string{"best", "aac", "alac", "flac", "mp3", "opus", "vorbis", "wav"}
 }
 
 func validAudioFormat(f string) bool {
@@ -252,9 +252,9 @@ func DefaultHosterPreset() HosterPreset {
 	return HosterPreset{Variants: Variants(), VideoFormat: "best", Quality: QualityBest, AudioFormat: "best"}
 }
 
-// PresetVideoFormats lists the video formats a host preset offers, "best"
-// first. A preset is set before any link of the host is probed, so these are
-// the pairs the common sites serve rather than one source's list.
+// PresetVideoFormats lists the video formats a host preset offers where
+// nothing is known of the host (see HostFormats), "best" first: the pairs the
+// common sites serve rather than one source's list.
 func PresetVideoFormats() []string {
 	return []string{"best", "mp4 avc1", "mp4 hevc", "mp4 av1", "webm vp9", "webm av1"}
 }

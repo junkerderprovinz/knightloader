@@ -382,6 +382,93 @@ func TestAnUpgradeLeavesNoCountdownPending(t *testing.T) {
 	}
 }
 
+// beforeTheUnpackColumn is how many migrations there were before the column
+// that keeps how a task's last unpacking ended.
+const beforeTheUnpackColumn = 52
+
+// A finished download stored before the column existed was never seen being
+// unpacked by anything that could say so, so it comes back without a result
+// rather than with one the upgrade made up.
+func TestAnUpgradeGivesNoFileAnUnpackResult(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < beforeTheUnpackColumn; i++ {
+		if _, err := db.Exec(migrations[i]); err != nil {
+			t.Fatalf("old migration %d: %v", i+1, err)
+		}
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, beforeTheUnpackColumn)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(
+		`INSERT INTO tasks (id,url,name,package,resolver,size,loaded,speed,status,error,created_at)
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+		"old", "https://host.example/film.rar", "film.rar", "Film", "direct",
+		10, 10, 0, string(core.StatusDone), "", time.Now().UnixMilli()); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+
+	s, err := Open(path)
+	if err != nil {
+		t.Fatalf("upgrading an existing database failed: %v", err)
+	}
+	defer s.Close()
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want the one that was already there", len(all))
+	}
+	if all[0].Unpack != core.UnpackNone {
+		t.Errorf("a row from before the upgrade reads unpack %q, want none", all[0].Unpack)
+	}
+}
+
+// After a restart the task is the only place that remembers an archive was
+// unpacked, or failed to be, so every result has to come back as written.
+func TestHowAnUnpackingEndedSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	results := []core.UnpackResult{core.UnpackDone, core.UnpackFailed, core.UnpackPassword, core.UnpackNone}
+	for i, r := range results {
+		task := core.Task{
+			ID: fmt.Sprintf("u%d", i), URL: fmt.Sprintf("https://host.example/set%d.rar", i),
+			Name: fmt.Sprintf("set%d.rar", i), CreatedAt: time.Now(), Status: core.StatusDone, Unpack: r,
+		}
+		if err := s.Save(&task); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]core.UnpackResult{}
+	for _, task := range all {
+		got[task.ID] = task.Unpack
+	}
+	for i, want := range results {
+		if id := fmt.Sprintf("u%d", i); got[id] != want {
+			t.Errorf("%s reads unpack %q after a restart, want %q", id, got[id], want)
+		}
+	}
+}
+
 // The due time is what a restart counts down to, so it has to come back as it
 // was written.
 func TestAPendingCountdownsDueTimeSurvivesARestart(t *testing.T) {

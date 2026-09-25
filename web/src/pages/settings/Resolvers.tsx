@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -19,6 +19,7 @@ import {
   bitrateLabel,
   capLabel,
   formatLabel,
+  hostPresetMenus,
   presetMenusOf,
   presetPickers,
   type PickerProps,
@@ -28,10 +29,12 @@ import { CookieJarsCard } from './resolvers/CookieJars';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconTrash } from '../../lib/icons';
 import {
+  fetchHosterFormats,
   fetchOptions,
   YTDLP_VARIANT_KINDS,
   type YtdlpEmbed,
   type YtdlpHosterPreset,
+  type YtdlpHostMenus,
   type YtdlpLive,
   type YtdlpMeasure,
   type YtdlpOptions,
@@ -125,6 +128,25 @@ export function Resolvers() {
   const presetRows = Object.entries(presets).sort(([a], [b]) => a.localeCompare(b));
   const [newHost, setNewHost] = useState('');
   const [duplicate, setDuplicate] = useState(false);
+
+  // Each host's own formats, asked for once per host the table shows, a row
+  // added in this draft included. Until one answers, or where none can, the
+  // full menus stand in.
+  const [hostMenus, setHostMenus] = useState<Record<string, YtdlpHostMenus>>({});
+  const askedHosts = useRef(new Set<string>());
+  const hostList = presetRows.map(([host]) => host).join(' ');
+  useEffect(() => {
+    for (const host of hostList.split(' ')) {
+      if (!host || askedHosts.current.has(host)) continue;
+      askedHosts.current.add(host);
+      void fetchHosterFormats(host).then(
+        (m) => setHostMenus((all) => ({ ...all, [host]: m })),
+        () => {
+          /* The full menus stay. */
+        },
+      );
+    }
+  }, [hostList]);
 
   // Rebuilt from this render's draft, since the collector's gear badge writes
   // the same map through POST /api/ytdlp/preset.
@@ -456,12 +478,23 @@ export function Resolvers() {
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
 
-        <div className="glim-well overflow-x-auto p-0">
+        {/* A table while the card has room for its columns. Below that each
+            hoster is a block of its own, name and bin on the first line and
+            the switches wrapping under it, each named beside it, since the
+            column heads are gone. 56rem clears the narrowest the table can
+            be drawn in any of the 42 languages, 861px in Norwegian, whose
+            column heads are the longest. Above it the pickers give up their
+            width with an ellipsis before the table scrolls (Dropdown's
+            `shrink`). */}
+        <div className="glim-well @container overflow-x-auto p-0">
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
           ) : (
-            <table className="w-full border-collapse text-sm" aria-label={t('settings.resolvers.variantDefaults')}>
-              <thead>
+            <table
+              className="w-full border-collapse text-sm @max-[56rem]:block"
+              aria-label={t('settings.resolvers.variantDefaults')}
+            >
+              <thead className="@max-[56rem]:hidden">
                 <tr className="text-start text-xs text-carbon-textMuted">
                   <th className="px-4 py-3 text-start font-medium">{t('settings.resolvers.presetHost')}</th>
                   {YTDLP_VARIANT_KINDS.map((kind) => (
@@ -474,9 +507,14 @@ export function Resolvers() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-carbon-border/40">
+              <tbody className="divide-y divide-carbon-border/40 @max-[56rem]:block">
                 {presetRows.map(([host, preset], i) => {
-                  const pickers = presetPickers({ preset, menus, t, onChange: (fields) => writePreset(host, fields) });
+                  const pickers = presetPickers({
+                    preset,
+                    menus: hostPresetMenus(menus, hostMenus[host]),
+                    t,
+                    onChange: (fields) => writePreset(host, fields),
+                  });
                   // The video and audio columns carry their format pickers beside
                   // the switch, so a row reads as what each variant starts with.
                   const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
@@ -484,21 +522,44 @@ export function Resolvers() {
                     audio: [pickers.audio.format, pickers.audio.bitrate],
                   };
                   return (
-                    <tr key={host} className="transition-colors hover:bg-carbon-hover">
+                    <tr
+                      key={host}
+                      className="transition-colors hover:bg-carbon-hover @max-[56rem]:flex @max-[56rem]:flex-wrap
+                        @max-[56rem]:items-center @max-[56rem]:gap-x-4 @max-[56rem]:gap-y-3 @max-[56rem]:px-4
+                        @max-[56rem]:py-3"
+                    >
                       {/* Read-only, since the host is the lookup key; remove the
-                          row and add another instead. */}
-                      <td className="px-4 py-3 font-medium text-carbon-text">{host}</td>
+                          row and add another instead. Stacked, it fills the
+                          first line but for the gap and the bin. */}
+                      <td
+                        className="px-4 py-3 font-medium text-carbon-text
+                          @max-[56rem]:basis-[calc(100%-var(--btn-h)-1rem)] @max-[56rem]:p-0"
+                      >
+                        <span className="flex items-center gap-1">
+                          <span className="max-w-32 break-words @max-[56rem]:max-w-none">{host}</span>
+                          {hostMenus[host]?.known === false && (
+                            <InfoBubble tip={t('settings.resolvers.presetFormatsUnknown', { host })} />
+                          )}
+                        </span>
+                      </td>
                       {/* Hued by column, since each switch is its own question. */}
                       {YTDLP_VARIANT_KINDS.map((kind, k) => (
-                        <td key={kind} className="px-2 py-3">
+                        <td key={kind} className="px-2 py-3 @max-[56rem]:order-last @max-[56rem]:p-0">
                           <div className="flex items-center gap-2">
-                            <Toggle
-                              checked={preset.variants.includes(kind)}
-                              onChange={() => toggleVariant(host, kind)}
-                              label={`${t(VARIANT_KEYS[kind])} · ${host}`}
-                              hideLabel
-                              hue={k}
-                            />
+                            {/* The name shows only while the column heads are
+                                gone, and a press on it flips the switch. */}
+                            <label className="flex items-center gap-2">
+                              <Toggle
+                                checked={preset.variants.includes(kind)}
+                                onChange={() => toggleVariant(host, kind)}
+                                label={`${t(VARIANT_KEYS[kind])} · ${host}`}
+                                hideLabel
+                                hue={k}
+                              />
+                              <span aria-hidden className="hidden text-xs text-carbon-textSub @max-[56rem]:inline">
+                                {t(VARIANT_KEYS[kind])}
+                              </span>
+                            </label>
                             {/* Named with the host, as the switch is, for a screen reader. */}
                             {qualities.length > 0 &&
                               pairs[kind]?.map(
@@ -507,14 +568,14 @@ export function Resolvers() {
                                     <VariantDropdown
                                       key={p.label}
                                       picker={{ ...p, label: `${p.label} · ${host}` }}
-                                      width="widest"
+                                      width="shrink"
                                     />
                                   ),
                               )}
                           </div>
                         </td>
                       ))}
-                      <td className="px-2 py-3 text-end">
+                      <td className="px-2 py-3 text-end @max-[56rem]:p-0">
                         <IconBadge
                           hue={i}
                           icon={<IconTrash width={16} height={16} />}

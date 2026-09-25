@@ -42,11 +42,13 @@ jobs:
         id: filter
         with:
           filters: |
+            # internal/update's tests hold its slugs to desktop.yml's matrix.
             go:
               - '**/*.go'
               - 'go.mod'
               - 'go.sum'
               - 'Dockerfile'
+              - '.github/workflows/desktop.yml'
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version into web/dist, and
             # check-version-sources.mjs reads the other three.
@@ -79,7 +81,8 @@ jobs:
             # check-docs-claims.mjs checks the documents against the sources,
             # so Go and web changes can falsify a claim too. desktop/go.mod is
             # listed because the check compares its Wails version with the
-            # README, and **/*.go does not match a go.mod.
+            # README, and **/*.go does not match a go.mod. The two workflows
+            # say which images and desktop bundles a release builds.
             docs:
               - 'README.md'
               - 'docs/**'
@@ -87,6 +90,8 @@ jobs:
               - '**/*.go'
               - 'desktop/go.mod'
               - 'Dockerfile'
+              - '.github/workflows/release.yml'
+              - '.github/workflows/desktop.yml'
               - 'web/src/lib/locales/**'
               - 'web/src/pages/settings/Help.tsx'
               - '.github/workflows/ci.yml'
@@ -483,3 +488,12 @@ jobs:
 
       - name: Build
         run: go build -tags webkit2_41 ./...
+
+      # desktop.yml cross-builds the Windows arm64 bundle without cgo, so a
+      # dependency that starts to need it fails here rather than at a release.
+      - name: Build for Windows arm64
+        env:
+          GOOS: windows
+          GOARCH: arm64
+          CGO_ENABLED: "0"
+        run: go build ./...

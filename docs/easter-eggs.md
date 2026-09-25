@@ -37,7 +37,9 @@ down (the blade), or of how long an element has already been on screen
 
 **Gesture:** press and hold the mark at the top of the sidebar. The blade draws
 out of the rail while you hold, and swings when you let go; a shudder then runs
-down the rail, one entry after the next, starting from the impact.
+down the rail, one entry after the next, starting from the impact. It goes
+through the pages and on through the rows at the rail's foot: the bell, sign-out
+where there is one, and settings.
 
 **Where:** `useDrawAndStrike` in `web/src/components/Sidebar.tsx` decides which
 of three states the element is in; everything visible is `.kl-egg` in
@@ -144,9 +146,9 @@ right there.
 
 ### 1337
 
-**Gesture:** set the speed limit to exactly 1337 KiB/s. The line of the speed
-curve on the Overview page breathes on the storm level's pulse for as long as
-the limit stands.
+**Gesture:** set the speed limit to exactly 1337 KiB/s, by typing 1337 while
+the field shows KiB/s. The line of the speed curve on the Overview page
+breathes on the storm level's pulse for as long as the limit stands.
 
 **Where:** `isLeet()` in `web/src/lib/leet.ts` is the whole condition, read by
 `SpeedGraph` and by the limit field in
@@ -156,16 +158,18 @@ page and the shell bar's quick settings both draw; `.kl-storm-curve` in
 
 **Off:** type a different number.
 
-**The number stays in the field.** A field that does not show what was typed into
-it is a bug for one second before it is a joke. The word stands to the *right*
-of the number, not under it: dropped into the field's own column it landed exactly
-where this page's hints and error lines live, and the joke read as a complaint
-about the value above it.
+**The number stays in the field while it is typed.** A field that does not show
+what was typed into it is a bug for one second before it is a joke, so the field
+moves to MiB/s only once it lets go, and then reads 1.31 MiB/s, the same limit.
+The word stands to the *right* of the number, not under it: dropped into the
+field's own column it landed exactly where this page's hints and error lines
+live, and the joke read as a complaint about the value above it.
 
 **The unit is the trap.** `speedLimit` is bytes per second everywhere it travels,
-and every field that edits it draws KiB. The comparison is against `1337 * 1024`;
-against a bare `1337` it would be listening for 1337 B/s, which nobody would ever
-set and nobody would ever find.
+and the field that edits it shows KiB/s or MiB/s. The comparison is against
+`1337 * 1024`; against a bare `1337` it would be listening for 1337 B/s, which
+nobody would ever set and nobody would ever find. Typing 1.31 while the field
+shows MiB/s comes close and misses, since that is 1373635 bytes.
 
 **It scopes the level, it does not choose it.** `data-motion` on `<html>` keeps
 saying whatever the reader set, because the picker, the boot reader and the phone

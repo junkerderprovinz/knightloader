@@ -85,9 +85,9 @@ export function skewStatus(ms: number): SelfTestStatus {
 export function fmtSkew(ms: number): string {
   const secs = Math.round(Math.abs(ms) / 1000);
   if (secs < 60) return ltr(`${secs}s`);
-  if (secs < 3600) return ltr(`${Math.round(secs / 60)}m`);
+  if (secs < 3600) return ltr(`${Math.round(secs / 60)}min`);
   const h = Math.floor(secs / 3600);
-  return ltr(`${h}h ${Math.round((secs % 3600) / 60)}m`);
+  return ltr(`${h}h ${Math.round((secs % 3600) / 60)}min`);
 }
 
 /** The four proxy check ids, in the order the card draws them. */

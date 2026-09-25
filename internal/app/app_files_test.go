@@ -61,6 +61,30 @@ func TestSafeTaskFileHappyPath(t *testing.T) {
 	}
 }
 
+// A download that had to be saved beside a file of its name is served from
+// where it was saved, still under the task's name.
+func TestSafeTaskFileServesTheFileTheDownloadWrote(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "movie.mkv", []byte("somebody else's"))
+	writeTestFile(t, base, "movie (1).mkv", []byte("the download"))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/movie.mkv", Name: "movie.mkv", Status: core.StatusDone,
+		File: filepath.Join(base, "movie (1).mkv"),
+	})
+
+	got, err := a.SafeTaskFile(task.ID)
+	if err != nil {
+		t.Fatalf("SafeTaskFile: %v", err)
+	}
+	wantReal, err := filepath.EvalSymlinks(filepath.Join(base, "movie (1).mkv"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Path != wantReal || got.Name != "movie.mkv" {
+		t.Errorf("served %q as %q, want %q as movie.mkv", got.Path, got.Name, wantReal)
+	}
+}
+
 func TestSafeTaskFilePerTaskDirWorksWithinTheDownloadRoot(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	sub := filepath.Join(base, "Movies", "2026")

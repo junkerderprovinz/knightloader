@@ -1,0 +1,44 @@
+{
+  "problems": [],
+  "rules": [
+    {
+      "index": 0,
+      "name": "Open movies",
+      "matched": 1
+    },
+    {
+      "index": 1,
+      "name": "Podcast episodes",
+      "matched": 0
+    },
+    {
+      "index": 2,
+      "name": "Linux images",
+      "matched": 0
+    },
+    {
+      "index": 3,
+      "name": "Big files last",
+      "matched": 0
+    }
+  ],
+  "links": [
+    {
+      "url": "https://files.example/d/7f3k2/tears_of_steel_1080p.mkv",
+      "filename": "tears_of_steel_1080p.mkv",
+      "matched": [0],
+      "effect": {
+        "priority": 1,
+        "category": "films",
+        "matched": ["Open movies"]
+      },
+      "verdict": {
+        "rejected": false
+      },
+      "result": {
+        "package": "",
+        "filename": "tears_of_steel_1080p.mkv"
+      }
+    }
+  ]
+}

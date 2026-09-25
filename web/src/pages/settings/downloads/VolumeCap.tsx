@@ -1,6 +1,7 @@
-import { Card, Field, FieldGroup, NumberInput, SectionTitle } from '../../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { VolumeUsageRow } from '../../../components/VolumeMeter';
+import { RATE_UNITS } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { VolumeCapAction } from '../../../lib/api';
 import { useDraft } from '../context';
@@ -72,13 +73,12 @@ export function VolumeCapCard({ hue }: { hue: number }) {
 
       {cfg.volumeCapAction === 'throttle' && (
         <Field label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>
-          {/* KiB/s like the speed limit. min is 0 because a fresh install
-              stores 0. */}
-          <NumberInput
-            value={Math.round(cfg.volumeCapThrottle / 1024)}
-            min={0}
-            step={256}
-            onValue={(v) => patch({ volumeCapThrottle: Math.max(0, v) * 1024 })}
+          {/* The speed limit's field. Its floor of 0 is what a fresh install
+              stores. */}
+          <UnitNumberInput
+            value={cfg.volumeCapThrottle}
+            units={RATE_UNITS}
+            onValue={(volumeCapThrottle) => patch({ volumeCapThrottle })}
           />
         </Field>
       )}

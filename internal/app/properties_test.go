@@ -6,6 +6,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -229,35 +230,187 @@ func TestRenameIsRefusedOverASelection(t *testing.T) {
 	}
 }
 
-// The path-escape guard, and where the cut comes from matters as much as what
-// it does: it is the rule engine's own, so a name typed into the panel and a
-// name written by a Packagizer rename cannot drift apart.
-func TestRenameIsCutToOneSegment(t *testing.T) {
-	for _, in := range []string{"../../escape.bin", "sub/file.bin", `sub\file.bin`, "..."} {
+// stagedLink puts one link in the collector under the name original.bin.
+func stagedLink(a *App) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://host.example/original.bin", Name: "original.bin",
+		Status: core.StatusCollected, Enabled: true,
+	}
+}
+
+// A name that spells out folders is refused with the reason rather than cut
+// into one: "Season 1/Episode 2" cut to "Season 1-Episode 2" is a name nobody
+// typed, and the person who typed the slash is still looking at the window.
+func TestRenameRefusesAPath(t *testing.T) {
+	for _, in := range []string{"../../escape.bin", "sub/file.bin", `sub\file.bin`, "...", ".."} {
 		t.Run(in, func(t *testing.T) {
-			a, base := newQuietApp(t)
-			a.mu.Lock()
-			a.tasks["1"] = &core.Task{
-				ID: "1", URL: "https://host.example/original.bin", Name: "original.bin",
-				Status: core.StatusCollected, Enabled: true,
-			}
-			a.mu.Unlock()
+			a, _ := newQuietApp(t)
+			stagedLink(a)
 
 			name := in
-			if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &name}); err != nil {
-				t.Fatal(err)
+			if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &name}); err == nil {
+				t.Fatalf("%q was taken as a name", in)
 			}
-
-			live := liveTask(a, "1")
-			if want := rules.FileSegment(in); live.Name != want {
-				t.Errorf("name = %q, want the rule engine's own cut %q", live.Name, want)
-			}
-			if strings.ContainsAny(live.Name, `/\`) {
-				t.Errorf("name = %q, which is a path and not a name", live.Name)
-			}
-			if got := filepath.Join(base, live.Name); filepath.Dir(got) != filepath.Clean(base) {
-				t.Errorf("the file would land in %q, outside %q", filepath.Dir(got), base)
+			if live := liveTask(a, "1"); live.Name != "original.bin" || live.Filename != "" {
+				t.Errorf("the row was edited anyway: name %q, override %q", live.Name, live.Filename)
 			}
 		})
+	}
+}
+
+// What one file system or another cannot hold is still cut, and by the rule
+// engine's own function, so a name typed into a window and a name written by a
+// Packagizer rename cannot drift apart.
+func TestRenameCutsWhatSomeFileSystemsRefuse(t *testing.T) {
+	a, _ := newQuietApp(t)
+	stagedLink(a)
+
+	in := `Film: "Director's Cut"?.mkv`
+	if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &in}); err != nil {
+		t.Fatal(err)
+	}
+	if live, want := liveTask(a, "1"), rules.FileSegment(in); live.Name != want {
+		t.Errorf("name = %q, want the rule engine's own cut %q", live.Name, want)
+	}
+}
+
+// Downloads for which a rename could only be recorded and never carried out.
+// Recording it anyway would leave a name waiting on the row that nothing
+// applies, so each refuses and leaves the row alone.
+func TestRenameRefusesWhatItCouldNotCarryOut(t *testing.T) {
+	cases := []struct {
+		name string
+		edit func(*core.Task)
+		says string
+	}{
+		{"a download being unpacked", func(t *core.Task) { t.Status = core.StatusExtracting }, "unpacked"},
+		{"a torrent", func(t *core.Task) { t.InfoHash = "c12fe1c06bba254a9dc9f519b335aa7c1367a88a" }, "torrent"},
+		{"a running JDownloader download", func(t *core.Task) {
+			t.Status = core.StatusRunning
+			t.Resolver = "jd"
+		}, "JDownloader"},
+		{"a JDownloader link still waiting", func(t *core.Task) {
+			t.Status = core.StatusQueued
+			t.Resolver = "jd"
+		}, "JDownloader"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			a, base := newQuietApp(t)
+			finishedTask(t, a, base, "1", "original.bin")
+			editTask(a, "1", c.edit)
+
+			want := "renamed.bin"
+			err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &want})
+			if err == nil || !strings.Contains(err.Error(), c.says) {
+				t.Fatalf("error = %v, want a refusal that says %q", err, c.says)
+			}
+			if live := liveTask(a, "1"); live.Name != "original.bin" || live.Filename != "" {
+				t.Errorf("the row was edited anyway: name %q, override %q", live.Name, live.Filename)
+			}
+			if _, statErr := os.Stat(filepath.Join(base, "original.bin")); statErr != nil {
+				t.Errorf("the file moved despite the refusal: %v", statErr)
+			}
+		})
+	}
+}
+
+// The settle path keeps every part of a multi-volume set under its own name, so
+// a part renamed before it has finished would only turn the rename into an
+// error on the row once it had. It is refused while the person is still
+// looking at the window.
+func TestRenameRefusesOnePartOfAMultiVolumeArchive(t *testing.T) {
+	a, base := newQuietApp(t)
+	finishedTask(t, a, base, "1", "film.part1.rar")
+	putTask(t, a, core.Task{ID: "2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
+		Status: core.StatusQueued, Enabled: true})
+
+	for _, id := range []string{"1", "2"} {
+		want := "movie.rar"
+		err := a.SetTaskOptions([]string{id}, TaskOptions{Name: &want})
+		if err == nil || !strings.Contains(err.Error(), "multi-volume") {
+			t.Fatalf("part %s: error = %v, want a refusal that names the archive", id, err)
+		}
+		if live := liveTask(a, id); live.Name == want || live.Filename != "" {
+			t.Errorf("part %s was edited anyway: name %q, override %q", id, live.Name, live.Filename)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(base, "film.part1.rar")); err != nil {
+		t.Errorf("the finished part left its set: %v", err)
+	}
+}
+
+// The rename window says why in the reader's language, so every refusal it
+// can meet carries a code and the name it is about beside the English.
+func TestARefusedRenameSaysWhyAsACode(t *testing.T) {
+	a, base := newQuietApp(t)
+	finishedTask(t, a, base, "part1", "film.part1.rar")
+	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
+		Status: core.StatusCollected, Enabled: true})
+	finishedTask(t, a, base, "movie", "movie.mkv")
+	finishedTask(t, a, base, "taken", "taken.mkv")
+	finishedTask(t, a, base, "torrent", "linux.iso")
+	editTask(a, "torrent", func(x *core.Task) { x.InfoHash = "c12fe1c06bba254a9dc9f519b335aa7c1367a88a" })
+
+	cases := []struct{ id, to, code, name string }{
+		{"part2", "other.rar", "volume", "film.part2.rar"},
+		{"movie", "taken.mkv", "exists", "taken.mkv"},
+		{"torrent", "other.iso", "torrent", "linux.iso"},
+		{"movie", "...", "dots", "..."},
+		{"movie", "a/b.mkv", "separator", "a/b.mkv"},
+		{"movie", "  ", "empty", ""},
+	}
+	for _, c := range cases {
+		to := c.to
+		err := a.SetTaskOptions([]string{c.id}, TaskOptions{Name: &to})
+		var r *RenameRefusal
+		if !errors.As(err, &r) {
+			t.Errorf("renaming %s to %q: error %v carries no code", c.id, c.to, err)
+			continue
+		}
+		if r.Code != c.code || r.Name != c.name {
+			t.Errorf("renaming %s to %q: code %q about %q, want %q about %q", c.id, c.to, r.Code, r.Name, c.code, c.name)
+		}
+	}
+	if _, err := a.RenamePackage([]string{"movie"}, "Season 1/Episode 2"); !errors.As(err, new(*RenameRefusal)) {
+		t.Errorf("a package name with a slash is refused with %v, which carries no code", err)
+	}
+}
+
+// A download settles in the working folder and is moved to its destination
+// afterwards. A rename looking only at the destination finds no file there and
+// fails for every download that has not been moved yet.
+func TestRenameFindsAFileStillInTheWorkingFolder(t *testing.T) {
+	work := t.TempDir()
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.WorkDir = work
+	})
+	task := putTask(t, a, core.Task{ID: "1", URL: "https://host.example/original.bin",
+		Name: "original.bin", Status: core.StatusDone, Enabled: true})
+	a.mu.Lock()
+	dir := a.workDirFor(task)
+	a.mu.Unlock()
+	if dir == a.TaskFolder("1") {
+		t.Fatal("the working folder is the destination, so this test would not tell the two apart")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "original.bin"), []byte("payload"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	want := "renamed.bin"
+	if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &want}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, want)); err != nil {
+		t.Errorf("the file in the working folder was not renamed: %v", err)
+	}
+	if live := liveTask(a, "1"); live.Name != want {
+		t.Errorf("the row reads %q, want %q", live.Name, want)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -15,15 +16,16 @@ import (
 
 // handoff is what the backend hands the engine once the link is unlocked.
 type handoff struct {
-	url   string
-	conns int
+	url    string
+	conns  int
+	relink func(context.Context) (string, error)
 }
 
 // fakeEngine captures the handover.
 type fakeEngine struct{ got chan handoff }
 
-func (f *fakeEngine) Download(_, url string, _ map[string]string, conns int) {
-	f.got <- handoff{url: url, conns: conns}
+func (f *fakeEngine) Handover(_, url string, conns int, relink func(context.Context) (string, error)) {
+	f.got <- handoff{url: url, conns: conns, relink: relink}
 }
 func (f *fakeEngine) Pause(string)        {}
 func (f *fakeEngine) Resume(string)       {}
@@ -388,5 +390,44 @@ func TestHostInSet(t *testing.T) {
 	}
 	if HostInSet("example.com", set) {
 		t.Error("unrelated host matched")
+	}
+}
+
+// countingService unlocks every link to a direct URL of its own.
+type countingService struct {
+	mu      sync.Mutex
+	unlocks int
+}
+
+func (*countingService) ID() string                                     { return "counting" }
+func (*countingService) Label() string                                  { return "Counting" }
+func (*countingService) Hosts(context.Context) (map[string]bool, error) { return nil, nil }
+
+func (s *countingService) Unlock(context.Context, string) (Direct, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.unlocks++
+	return Direct{URL: "https://cdn.example/" + strconv.Itoa(s.unlocks)}, nil
+}
+
+// A direct link can expire before the file is complete. The engine gets a way
+// back to the service, which unlocks the same hoster link again for the rest.
+func TestTheEngineCanAskTheServiceForAFreshLink(t *testing.T) {
+	fe := &fakeEngine{got: make(chan handoff, 1)}
+	b := NewBackend(&countingService{}, fe, func(string, core.Update) {})
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+
+	var h handoff
+	select {
+	case h = <-fe.got:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the link was never handed over")
+	}
+	if h.relink == nil {
+		t.Fatal("the engine was given no way to a fresh link")
+	}
+	url, err := h.relink(context.Background())
+	if err != nil || url != "https://cdn.example/2" {
+		t.Errorf("relink = %q, %v; want the second unlock's https://cdn.example/2", url, err)
 	}
 }

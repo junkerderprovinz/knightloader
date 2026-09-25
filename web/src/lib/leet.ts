@@ -3,9 +3,9 @@
  * 1337 KiB/s, the speed curve runs on the hidden storm motion level. The
  * settings field and the curve both ask this function, so they agree.
  *
- * settings.speedLimit is bytes per second while the fields edit KiB, so the
- * value to match is 1337 * 1024. Nothing is stored: any other number turns the
- * egg off.
+ * settings.speedLimit is bytes per second while the egg is counted in KiB/s,
+ * so the value to match is 1337 * 1024. Nothing is stored: any other number
+ * turns the egg off.
  */
 const LEET_KIB = 1337;
 

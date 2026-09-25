@@ -38,6 +38,9 @@ export interface Task {
   resolver: string;
   /** Absent when no hoster is on the other end of the link. */
   mode?: 'free' | 'premium';
+  /** The backend the user pinned this task to, as a service id. Absent leaves
+   *  the choice to the ranking. */
+  resolverPin?: string;
   /** What the backend is doing for a running task that is not moving bytes,
    *  such as "Waiting for reconnect". Not a failure. */
   note?: string;
@@ -161,6 +164,9 @@ export interface Task {
   changedAt?: string;
   /** Volume number inside a multi-volume set, 0 for a file that is not in one. */
   archivePart?: number;
+  /** How the last unpacking of this file's archive ended, on every part of the
+   *  set. Kept by the server, so it outlives the job after a restart. */
+  unpack?: 'done' | 'error' | 'password';
 
   /** The file selection of a multi-file torrent; absent for everything else. */
   torrentFiles?: TorrentFile[];
@@ -364,8 +370,17 @@ export interface Settings {
    */
   stallTimeout: number;
   /**
-   * Restarts a marked download from the top. A switch of its own because the
-   * restart throws away the bytes already fetched. Torrents are exempt.
+   * Drops a marked download's connections and asks for the rest of the file
+   * on new ones, keeping its slot, and its bytes where the server can send
+   * part of a file. On by default. Only the built-in engine can; JD, yt-dlp
+   * and torrent rows are only marked.
+   */
+  stallReconnect: boolean;
+  /**
+   * Restarts a marked download from the top, once new connections have not
+   * helped.
+   * A switch of its own because the restart throws away the bytes already
+   * fetched. Torrents are exempt.
    */
   stallRestart: boolean;
   /** Restarts one download gets. 0 means the default of 3, not unlimited; the cap is 20. */
@@ -852,7 +867,7 @@ export class ApiError extends Error {
  * refusal reads a refused response. A JSON envelope keeps its code, so the
  * refusal can be translated; any other body is the server's sentence.
  */
-async function refusal(r: Response): Promise<ApiError> {
+export async function refusal(r: Response): Promise<ApiError> {
   const body = (await r.text()).trim();
   try {
     const p = JSON.parse(body) as {
@@ -1040,6 +1055,14 @@ export const setPackage = (ids: string[], pkg: string, base = '/api') =>
   });
 
 /**
+ * renamePackage gives the package these tasks are in a new name. The folder
+ * follows it only while nothing in the package has started (app.RenamePackage);
+ * a name that is empty or holds a separator is refused with the reason.
+ */
+export const renamePackage = async (ids: string[], name: string, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/package/rename`, { ids, name })));
+
+/**
  * restartTasks re-runs finished or failed tasks (empty ids = all failed).
  * `reasons` narrows that to the named causes, '' being the unclassified group;
  * with ids as well, the server intersects the two.
@@ -1082,7 +1105,14 @@ export interface ExtractJob {
   depth?: number;
   files: number;
   bytes: number;
+  /** How far through the archive open now the job is, against what its
+   *  headers say it holds. `size` is absent when the format does not say. */
+  unpacked?: number;
+  size?: number;
   volumes: number;
+  /** The task of every file in the set, in reading order. A peer on an older
+   *  build sends none, and then only `taskId` is known. */
+  parts?: string[];
   nested?: number;
   error?: string;
   /** The failure was a missing password, which is the one with an obvious remedy. */
@@ -1154,11 +1184,26 @@ export interface TaskOptionsPatch {
   /** The audio row's bitrate beside a format it is converted to. '' leaves
    *  it to the track or to ffmpeg's default. */
   audioBitrate?: string;
+  /** The backend to pin these tasks to, an id from fetchPinChoices. '' takes
+   *  the pin off, so send it only when the dropdown changed. */
+  resolver?: string;
 }
 
 // setTaskOptions applies per-task overrides; omitted fields stay as they are.
 export const setTaskOptions = (ids: string[], opts: TaskOptionsPatch, base = '/api') =>
   post(`${base}/tasks/options`, { ids, ...opts });
+
+/** One backend a selection can be pinned to (app.PinChoice). */
+export interface PinChoice {
+  id: string;
+  /** A debrid service's own name; the others are named by resolverLabel. */
+  label?: string;
+}
+
+/** fetchPinChoices lists the backends every one of `ids` can be pinned to, best first. */
+export async function fetchPinChoices(ids: string[], base = '/api'): Promise<PinChoice[]> {
+  return (await json<PinChoice[] | null>(await post(`${base}/tasks/backends`, { ids }))) ?? [];
+}
 
 // Operations on a whole selection go out as one request, since a route per id
 // would turn a hundred rows into a hundred store writes and broadcasts. They
@@ -1176,6 +1221,14 @@ export const setHold = async (ids: string[], hold: boolean, base = '/api') =>
 /** setForced marks a selection to run ahead of the concurrency limits. */
 export const setForced = async (ids: string[], forced: boolean, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/force`, { ids, forced })));
+
+/** pauseTasks pauses the running and waiting links of a selection and leaves the rest alone. */
+export const pauseTasks = async (ids: string[], base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/pause`, { ids })));
+
+/** resumeTasks puts the paused links of a selection back in the wait queue. */
+export const resumeTasks = async (ids: string[], base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/resume`, { ids })));
 
 /** deleteTasks removes a selection from the list; `withFiles` also erases what was downloaded. */
 export const deleteTasks = async (ids: string[], withFiles = false, base = '/api') =>
@@ -1858,7 +1911,7 @@ export interface YtdlpOptions {
   quality: string;
   /** yt-dlp's -f selector, used when quality is 'custom'. */
   customFormat: string;
-  /** The audio format ("mp3", "m4a", "opus"), or "best". A source's own track
+  /** The audio format ("mp3", "aac", "opus"), or "best". A source's own track
    *  in it is copied, and only a source without one is converted. Read only
    *  on an audio row. */
   audioFormat: string;
@@ -1951,6 +2004,21 @@ export async function fetchHosterPreset(host: string, base = '/api'): Promise<Yt
 export async function saveHosterPreset(host: string, preset: YtdlpHosterPreset, base = '/api'): Promise<void> {
   const r = await post(`${base}/ytdlp/preset`, { host, ...preset });
   if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
+}
+
+/**
+ * The formats a host's preset offers (ytdlp.HostMenus): what the site is known
+ * to serve and what probes of its links found, "best" first. With `known`
+ * false nothing is known of the host and the lists are the full ones.
+ */
+export interface YtdlpHostMenus {
+  videoFormats: string[];
+  audioFormats: string[];
+  known: boolean;
+}
+
+export async function fetchHosterFormats(host: string, base = '/api'): Promise<YtdlpHostMenus> {
+  return json<YtdlpHostMenus>(await fetch(`${base}/ytdlp/formats?host=${encodeURIComponent(host)}`));
 }
 
 // yt-dlp cookie jars are stored per site in the encrypted credential store and

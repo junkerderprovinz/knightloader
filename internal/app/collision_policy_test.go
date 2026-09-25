@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -62,12 +63,17 @@ func dispatchOne(a *App, id, url string) *core.Task {
 }
 
 // Only the engine can be told a file name, and the app says so, so the
-// interface offers the setting only where it works.
-func TestOnlyTheEngineIsHeldToTheCollisionPolicy(t *testing.T) {
+// interface offers the setting only where it works. A debrid service hands its
+// link to the engine, so its downloads are held to it too.
+func TestOnlyWhatTheEngineWritesIsHeldToTheCollisionPolicy(t *testing.T) {
 	a, _, _ := delegated(t, collide.Rename)
+	wireDebrid(a, fakeDebrid{url: "https://cdn.example/f.bin", unlocks: new(atomic.Int32)})
 
 	if !a.HonoursCollisionPolicy("direct") {
-		t.Error("the embedded engine is the one backend that can be told a name, and it reports that it cannot")
+		t.Error("the embedded engine can be told a name, and it reports that it cannot")
+	}
+	if !a.HonoursCollisionPolicy("fakedebrid") {
+		t.Error("a debrid service's download goes to the engine, and it reports that the policy does not reach it")
 	}
 	if a.HonoursCollisionPolicy("elsewhere") {
 		t.Error("a backend that fetches in another process claims to honour the collision policy")

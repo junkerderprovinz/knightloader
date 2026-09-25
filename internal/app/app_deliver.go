@@ -102,23 +102,26 @@ func (a *App) deliverDownload(id string) {
 		return
 	}
 	dest, work := a.dirFor(t), a.workDirFor(t)
+	src := a.fileOfLocked(t)
 	c := *t
 	a.mu.Unlock()
-	if dest == work {
+	// Only what sits in the working folder is this move's to make.
+	if dest == work || !sameDir(filepath.Dir(src), work) {
 		return
 	}
-	src := filepath.Join(work, c.Name)
 	if _, err := os.Lstat(src); err != nil {
 		return
 	}
-	_, err := workdir.Move(a.ctx, src, dest, moveOptions(&c, a.Settings.Get()))
-	a.recordDelivery(id, err)
+	res, err := workdir.Move(a.ctx, src, dest, moveOptions(&c, a.Settings.Get()))
+	a.recordDelivery(id, src, res.Path, err)
 }
 
 // recordDelivery puts a failed move on the task, or clears an earlier one when
 // the move worked. It goes on the row because the file is not where the list
-// says it is.
-func (a *App) recordDelivery(id string, err error) {
+// says it is. A task that recorded its file follows it from src to where it
+// ended up, also when src was the file renamed back to the task's own name
+// (see fileOfLocked).
+func (a *App) recordDelivery(id, src, moved string, err error) {
 	if err != nil {
 		log.Printf("task %s could not be moved out of the working folder: %v", id, err)
 	}
@@ -128,13 +131,18 @@ func (a *App) recordDelivery(id string, err error) {
 		a.mu.Unlock()
 		return
 	}
+	named, _ := namedBeside(t)
+	followed := err == nil && (samePath(t.File, src) || samePath(named, src)) && !samePath(moved, src)
+	if followed {
+		t.File = moved
+	}
 	switch {
 	case err != nil:
 		t.Error = deliverErrorPrefix + err.Error()
 	case strings.HasPrefix(t.Error, deliverErrorPrefix):
 		// Only this file's own error; an extraction failure stays.
 		t.Error = ""
-	default:
+	case !followed:
 		a.mu.Unlock()
 		return
 	}

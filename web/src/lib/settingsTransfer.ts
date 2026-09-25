@@ -56,7 +56,10 @@ export interface TransferRow {
   stored: unknown;
   /** What the file holds; `undefined` for an identity key the file lacks. */
   incoming: unknown;
-  /** The two are the same, so taking it over would change nothing. */
+  /** What taking it over writes. It differs from `incoming` where an earlier
+   *  build wrote a value this build reads differently (see asImported). */
+  arrives: unknown;
+  /** Taking it over would change nothing. */
   same: boolean;
   /** Refused outright: in NEVER_PORTABLE. */
   identity: boolean;
@@ -94,21 +97,23 @@ export function parseExport(text: string): SettingsExportDoc {
 }
 
 /**
- * diffRows is the preview as data. `kinds` is GET /api/settings/defaults'
- * type table by dotted path; the part before the first dot gives the known
- * top-level keys, the same rule the server's knownSettingsKeys() uses.
- * Values are compared with paths.ts's `same`, which treats an omitted empty
- * list as equal to `[]`.
+ * diffRows is the preview as data. `schema` is GET /api/settings/defaults:
+ * `kinds` is its type table by dotted path, and the part before the first dot
+ * gives the known top-level keys, the same rule the server's
+ * knownSettingsKeys() uses. Values are compared with paths.ts's `same`, which
+ * treats an omitted empty list as equal to `[]`.
  */
 export function diffRows(
   doc: SettingsExportDoc,
   stored: Record<string, unknown>,
-  kinds: Record<string, string>,
+  schema: { values: Record<string, unknown>; kinds: Record<string, string> },
 ): TransferRow[] {
+  const kinds = schema.kinds;
   const known = new Set<string>();
   for (const path of Object.keys(kinds)) known.add(path.split('.')[0]);
 
   const incoming = doc.settings as Record<string, unknown>;
+  const arriving = asImported(incoming, schema.values);
   const secretless = secretlessKeys(doc);
 
   // The identity keys are always listed, to show that they never travel.
@@ -123,7 +128,8 @@ export function diffRows(
       group: groupOf(key),
       stored: stored[key],
       incoming: value,
-      same: same(stored[key], value),
+      arrives: arriving[key],
+      same: same(stored[key], arriving[key]),
       identity,
       unknown: !identity && !known.has(key),
       // Lists and maps only. A nested object is replaced whole too, but it
@@ -139,6 +145,23 @@ export function diffRows(
     const g = (order.get(a.group) ?? 0) - (order.get(b.group) ?? 0);
     return g !== 0 ? g : a.key.localeCompare(b.key);
   });
+}
+
+/**
+ * asImported is the file's settings as the import writes them. The server reads
+ * a value an earlier build wrote the way a restart reads that build's own
+ * settings file (settings.PortableDoc.Migrated). This mirrors the migrations
+ * that change a key such a file carries, migrateStall and migrateAutoStart.
+ * `defaults` is /api/settings/defaults' values.
+ */
+function asImported(s: Record<string, unknown>, defaults: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...s };
+  // A build without the reconnect shipped with the stall watch off, so its 0
+  // was nobody's choice.
+  if (s.stallReconnect == null && s.stallTimeout === 0) out.stallTimeout = defaults.stallTimeout;
+  // A build without autoConfirm always started a batch that was confirmed.
+  if (s.autoConfirm == null && typeof s.autoStart === 'boolean') out.autoStart = true;
+  return out;
 }
 
 /**
@@ -196,6 +219,7 @@ const GROUPS: Record<string, TransferGroup> = {
   maxRetries: 'queue',
   retry: 'queue',
   stallTimeout: 'queue',
+  stallReconnect: 'queue',
   stallRestart: 'queue',
   stallMaxRestarts: 'queue',
   resumeOnStart: 'queue',

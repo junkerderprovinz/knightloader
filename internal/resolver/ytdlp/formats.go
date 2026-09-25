@@ -49,7 +49,7 @@ var videoFamilies = []codecFamily{
 var preferredVideoCodecs = []string{"av1", "vp9", "hevc", "avc1", "vp8"}
 
 var audioFamilies = []codecFamily{
-	{name: "m4a", match: regexp.MustCompile(`^(mp4a|aac)`), ext: "m4a"},
+	{name: "aac", match: regexp.MustCompile(`^(mp4a|aac)`), ext: "m4a"},
 	{name: "opus", match: regexp.MustCompile(`^opus`), ext: "opus"},
 	{name: "vorbis", match: regexp.MustCompile(`^vorbis`), ext: "ogg"},
 	{name: "mp3", match: regexp.MustCompile(`^mp3`), ext: "mp3"},
@@ -456,21 +456,36 @@ func VideoTracks(formats []FormatEntry) []string {
 // VideoContainers lists the containers of the video tracks in formats as the
 // video row's format picker offers them: "best", then by container and codec.
 func VideoContainers(formats []FormatEntry) []string {
+	var cs []videoContainer
+	for _, f := range formats {
+		if v, ok := videoFormatOf(f); ok {
+			cs = append(cs, v.videoContainer)
+		}
+	}
+	return containerMenu(cs)
+}
+
+// containerMenu is a video format picker's list: "best", then each of cs once,
+// by container and codec.
+func containerMenu(cs []videoContainer) []string {
 	seen := map[string]bool{}
 	var found []videoContainer
-	for _, f := range formats {
-		v, ok := videoFormatOf(f)
-		if !ok || seen[v.id()] {
-			continue
+	for _, c := range cs {
+		if !seen[c.id()] {
+			seen[c.id()] = true
+			found = append(found, c)
 		}
-		seen[v.id()] = true
-		found = append(found, v.videoContainer)
 	}
 	sort.Slice(found, func(i, j int) bool {
 		if found[i].ext != found[j].ext {
 			return found[i].ext < found[j].ext
 		}
-		return containerRank(found[i]) < containerRank(found[j])
+		if ri, rj := containerRank(found[i]), containerRank(found[j]); ri != rj {
+			return ri < rj
+		}
+		// Codecs the family table does not list share a rank, and the menu
+		// keeps one order whatever order they came in.
+		return found[i].codec.name < found[j].codec.name
 	})
 	out := make([]string, 0, len(found)+1)
 	out = append(out, string(QualityBest))
@@ -768,7 +783,7 @@ func parseAudioTrack(key string) (audioTrack, bool) {
 		return audioTrack{}, false
 	}
 	kbps, _ := strconv.Atoi(m[2])
-	return audioTrack{codec: familyNamed(m[1], audioFamilies), kbps: kbps}, true
+	return audioTrack{codec: familyNamed(foldAudioFormat(m[1]), audioFamilies), kbps: kbps}, true
 }
 
 // audioTrackOf reads an audio-only format as a track. One without a bitrate
@@ -857,6 +872,12 @@ func AudioFormatsOf(formats []FormatEntry) []string {
 			present[fam.name] = true
 		}
 	}
+	return audioMenu(present)
+}
+
+// audioMenu is an audio format picker's list: "best", then each family named
+// in present, in the family table's order.
+func audioMenu(present map[string]bool) []string {
 	out := []string{"best"}
 	for _, fam := range audioFamilies {
 		if present[fam.name] {
@@ -895,9 +916,19 @@ func AudioFormatExt(format string) string {
 	return familyNamed(format, audioFamilies).ext
 }
 
-// foldAudioFormat reads "aac" as "m4a". yt-dlp writes both into an .m4a file,
-// the raw stream only where asked for "aac", so the two are one choice.
+// foldAudioFormat reads "m4a" as "aac": a pick that names the file an AAC
+// track is written to means the track's codec.
 func foldAudioFormat(format string) string {
+	if format == "m4a" {
+		return "aac"
+	}
+	return format
+}
+
+// extractFormat is the --audio-format value an audio format is asked for with.
+// yt-dlp's own "aac" writes a bare ADTS stream under an .m4a name, while "m4a"
+// puts AAC into a real MP4 container, copied where the track already is AAC.
+func extractFormat(format string) string {
 	if format == "aac" {
 		return "m4a"
 	}
@@ -918,11 +949,14 @@ func ExtractedExt(f FormatEntry) string {
 // format whose bitrate is nearest, the higher one on a tie. It returns the pick
 // and the bitrate the row keeps: none once a track is named, since the track
 // carries its own. A format the source has no track of stays a conversion, and
-// any other pick comes back as it is.
+// any other pick comes back under the name the pickers list it by.
 func ResolveAudioPick(pick, bitrate string, formats []FormatEntry) (string, string) {
+	if t, ok := parseAudioTrack(pick); ok {
+		return t.key(), bitrate
+	}
 	pick = foldAudioFormat(pick)
 	want, err := strconv.Atoi(bitrate)
-	if pick == "" || pick == "best" || IsAudioTrack(pick) || err != nil {
+	if pick == "" || pick == "best" || err != nil {
 		return pick, bitrate
 	}
 	var best audioTrack

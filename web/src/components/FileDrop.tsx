@@ -13,14 +13,14 @@ import { Button, Toggle } from './ui';
 import { Tip } from './columns';
 import { ProgressBar } from './ProgressBar';
 
-// fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3m 5s", "1h 2m".
+// fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3min 5s", "1h 2min".
 function fmtElapsed(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   if (s < 60) return ltr(`${s}s`);
   const m = Math.floor(s / 60);
-  if (s < 3600) return ltr(`${m}m ${s % 60}s`);
+  if (s < 3600) return ltr(`${m}min ${s % 60}s`);
   const h = Math.floor(s / 3600);
-  return ltr(`${h}h ${Math.floor((s % 3600) / 60)}m`);
+  return ltr(`${h}h ${Math.floor((s % 3600) / 60)}min`);
 }
 
 /**

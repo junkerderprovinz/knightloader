@@ -88,7 +88,7 @@ export function QueueBar() {
 
   if (!queue) return null;
 
-  // Key-control squares in every label mode, so the shell bar stays one row
+  // Transport squares in every label mode, so the shell bar stays one row
   // high; the name is in the tooltip. The bar lays them out.
   return (
     <>
@@ -97,7 +97,7 @@ export function QueueBar() {
           through the cost dialog. */}
       <Button
         kind={queue.halted ? 'primary' : 'secondary'}
-        keyControl
+        transport
         icon={<IconPlay />}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
@@ -105,7 +105,7 @@ export function QueueBar() {
       />
       <Button
         kind={!queue.halted ? 'primary' : 'secondary'}
-        keyControl
+        transport
         icon={<IconPause />}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
@@ -113,7 +113,7 @@ export function QueueBar() {
       />
       <Button
         kind="secondary"
-        keyControl
+        transport
         icon={<IconStop />}
         // With the dialog muted, the stop happens on the press.
         onClick={() => {

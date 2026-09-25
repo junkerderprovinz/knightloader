@@ -1,0 +1,20 @@
+[
+  {
+    "id": "7be3453cf4c06b01",
+    "taskId": "e85abc4f6b3d7e91",
+    "name": "Sintel.2010.2160p.part1.rar",
+    "dir": "/data/media/films/Sintel",
+    "package": "Sintel",
+    "status": "done",
+    "archive": "Sintel.2010.2160p.part1.rar",
+    "files": 3,
+    "bytes": 4906452992,
+    "unpacked": 4906452992,
+    "size": 4906452992,
+    "volumes": 3,
+    "parts": ["e85abc4f6b3d7e91", "e85abc4f6b3d7e92", "e85abc4f6b3d7e93"],
+    "queuedAt": "2026-09-24T13:26:00Z",
+    "startedAt": "2026-09-24T13:26:00Z",
+    "endedAt": "2026-09-24T13:28:00Z"
+  }
+]

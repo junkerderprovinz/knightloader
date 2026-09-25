@@ -1,0 +1,320 @@
+{
+  "modules": [
+    {
+      "id": "extraction",
+      "verdict": "shipped",
+      "page": "archives",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false,
+      "detail": "archives are moved to .knightloader-trash after a successful extraction",
+      "detailCode": "extractionTrash",
+      "detailArgs": {
+        "folder": ".knightloader-trash"
+      }
+    },
+    {
+      "id": "watch",
+      "verdict": "shipped",
+      "page": "collector",
+      "enabled": true,
+      "switch": "parked",
+      "parked": false,
+      "detail": "/watch",
+      "detailCode": "watchFolder",
+      "detailArgs": {
+        "folder": "/watch"
+      }
+    },
+    {
+      "id": "feeds",
+      "verdict": "shipped",
+      "page": "downloads",
+      "enabled": false,
+      "switch": "parked",
+      "parked": false
+    },
+    {
+      "id": "eventtargets",
+      "verdict": "shipped",
+      "page": "automation",
+      "enabled": false,
+      "switch": "parked",
+      "parked": false
+    },
+    {
+      "id": "crawler",
+      "verdict": "shipped",
+      "page": "collector",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "checksums",
+      "verdict": "shipped",
+      "page": "downloads",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "scheduler",
+      "verdict": "shipped",
+      "page": "automation",
+      "enabled": false,
+      "switch": "parked",
+      "parked": false
+    },
+    {
+      "id": "reconnect",
+      "verdict": "shipped",
+      "page": "network",
+      "enabled": false,
+      "switch": "parked",
+      "parked": false,
+      "detail": "reconnect: not configured: reconnect is switched off",
+      "detailCode": "reconnect.off",
+      "detailArgs": {
+        "method": "",
+        "n": "0",
+        "var": ""
+      }
+    },
+    {
+      "id": "packagizer",
+      "verdict": "shipped",
+      "page": "rules",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "linkfilter",
+      "verdict": "shipped",
+      "page": "rules",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "connections",
+      "verdict": "shipped",
+      "page": "network",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "cnl",
+      "verdict": "shipped",
+      "page": "collector",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false,
+      "detail": "listening on 127.0.0.1:9666",
+      "detailCode": "cnlListening",
+      "detailArgs": {
+        "address": "127.0.0.1:9666"
+      }
+    },
+    {
+      "id": "federation",
+      "verdict": "shipped",
+      "page": "instances",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "jd",
+      "verdict": "shipped",
+      "page": "",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false,
+      "detail": "reachable; encrypted containers can be opened",
+      "detailCode": "jdReachable"
+    },
+    {
+      "id": "ytdlp",
+      "verdict": "shipped",
+      "page": "resolvers",
+      "enabled": true,
+      "switch": "none",
+      "parked": false,
+      "detail": "yt-dlp 2026.09.12 (managed); quality: best",
+      "detailCode": "ytdlpVersion",
+      "detailArgs": {
+        "version": "2026.09.12",
+        "source": "managed",
+        "quality": "best"
+      }
+    },
+    {
+      "id": "torrents",
+      "verdict": "shipped",
+      "page": "torrents",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false,
+      "detail": "magnet links and uploaded .torrent files are routed to the embedded torrent engine",
+      "detailCode": "torrentsRouted"
+    },
+    {
+      "id": "captcha",
+      "verdict": "shipped",
+      "page": "captcha",
+      "enabled": true,
+      "switch": "none",
+      "parked": false
+    },
+    {
+      "id": "downloadclient",
+      "verdict": "shipped",
+      "page": "access",
+      "enabled": false,
+      "switch": "setting",
+      "parked": false,
+      "detail": "off; Sonarr and Radarr get a 404 from it, the same as for an endpoint that does not exist",
+      "detailCode": "downloadclientOff"
+    },
+    {
+      "id": "metrics",
+      "verdict": "shipped",
+      "page": "health",
+      "enabled": false,
+      "switch": "setting",
+      "parked": false,
+      "detail": "off; /api/metrics answers 404, the same as an endpoint that does not exist",
+      "detailCode": "metricsOff",
+      "detailArgs": {
+        "path": "/api/metrics"
+      }
+    },
+    {
+      "id": "scripting",
+      "verdict": "shipped",
+      "page": "automation",
+      "enabled": true,
+      "switch": "setting",
+      "parked": false
+    },
+    {
+      "id": "tray",
+      "verdict": "desktop",
+      "page": "",
+      "enabled": false,
+      "switch": "none",
+      "parked": false,
+      "reason": "a tray icon needs a desktop session, which the container build does not have; the browser tab's title and icon carry the same information there",
+      "reasonCode": "tray"
+    },
+    {
+      "id": "windowpolicy",
+      "verdict": "desktop",
+      "page": "",
+      "enabled": false,
+      "switch": "none",
+      "parked": false,
+      "reason": "what closing or minimising the window does is a property of one installation on one machine, so it is not served from here at all",
+      "reasonCode": "windowpolicy"
+    },
+    {
+      "id": "updater",
+      "verdict": "not-built",
+      "page": "look",
+      "enabled": false,
+      "switch": "none",
+      "parked": false,
+      "reason": "a container cannot replace itself from the inside, so the update check on the General page only tells you a newer release exists and points at it, same as on desktop; to update, pull the new image the way you deployed this one (docker pull, Unraid Community Applications, Watchtower, ...), which your deployment already does for you or lets you do",
+      "reasonCode": "updaterContainer"
+    }
+  ],
+  "pages": [
+    {
+      "id": "look",
+      "modules": ["updater"]
+    },
+    {
+      "id": "appearance",
+      "modules": null
+    },
+    {
+      "id": "modules",
+      "modules": null
+    },
+    {
+      "id": "collector",
+      "modules": ["cnl", "watch", "crawler"]
+    },
+    {
+      "id": "downloads",
+      "modules": ["feeds", "checksums"]
+    },
+    {
+      "id": "archives",
+      "modules": ["extraction"]
+    },
+    {
+      "id": "rules",
+      "modules": ["packagizer", "linkfilter"]
+    },
+    {
+      "id": "network",
+      "modules": ["connections", "reconnect"]
+    },
+    {
+      "id": "accounts",
+      "modules": null
+    },
+    {
+      "id": "instances",
+      "modules": ["federation"]
+    },
+    {
+      "id": "resolvers",
+      "modules": ["ytdlp"]
+    },
+    {
+      "id": "torrents",
+      "modules": ["torrents"]
+    },
+    {
+      "id": "captcha",
+      "modules": ["captcha"]
+    },
+    {
+      "id": "automation",
+      "modules": ["scheduler", "eventtargets", "scripting"]
+    },
+    {
+      "id": "shortcuts",
+      "modules": null
+    },
+    {
+      "id": "access",
+      "modules": ["downloadclient"]
+    },
+    {
+      "id": "advanced",
+      "modules": null
+    },
+    {
+      "id": "health",
+      "modules": ["metrics"]
+    },
+    {
+      "id": "diagnostics",
+      "modules": null
+    },
+    {
+      "id": "help",
+      "modules": null
+    },
+    {
+      "id": "browsertools",
+      "modules": null
+    }
+  ]
+}

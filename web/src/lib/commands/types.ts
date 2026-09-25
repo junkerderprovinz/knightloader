@@ -68,6 +68,8 @@ export interface CommandContext {
   openFilePicker: () => void;
   /** The page's search-panel toggle. A no-op where no page has published one. */
   toggleSearch: () => void;
+  /** The page's rename window. A no-op where no page has published one. */
+  rename: (selection: readonly string[]) => void;
   /** The same t() the page itself renders with, for a run() that builds a toast sentence. */
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   /** A result banner without a command needing its own toast plumbing. */
@@ -158,6 +160,7 @@ export function useCommandContext(surface: CommandSurface): CommandContext {
       cleanup: page?.cleanup ? { classes: page.cleanup.classes, preview: page.cleanup.preview } : NO_CLEANUP,
       openFilePicker: page?.openFilePicker ?? (() => {}),
       toggleSearch: page?.toggleSearch ?? (() => {}),
+      rename: page?.rename ?? (() => {}),
       t,
       toast,
       queue,

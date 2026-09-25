@@ -129,6 +129,46 @@ if (!built) {
   }
 }
 
+// The desktop bundles desktop.yml builds, against the README's list of them
+// and its download buttons. A bundle without a button is one nobody finds, and
+// a button for one the matrix does not build leads nowhere. Only the buttons
+// count, the ARM64 halves beside Windows and Linux too: a text link elsewhere
+// in the README is not where a reader looks for a download.
+const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
+const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
+  platform: m[1],
+  slug: m[2],
+}));
+const listedPlatforms = README.match(/Every release tag builds ([^.]+?),?\s+and attaches/)?.[1];
+const buttonBlock = README.match(/<!-- download-buttons\b[^>]*-->([\s\S]*?)<!-- \/download-buttons -->/)?.[1];
+if (bundles.length === 0) {
+  fail('.github/workflows/desktop.yml: no platform line followed by a slug line, so the desktop builds cannot be checked');
+} else if (!listedPlatforms) {
+  fail('README.md: the "Every release tag builds ... and attaches" sentence is gone, so nothing here can check it');
+} else if (!buttonBlock) {
+  fail('README.md: the download-buttons block is gone, so nothing here can check the desktop downloads');
+} else {
+  const listed = [...listedPlatforms.matchAll(/`([^`]+)`/g)].map((m) => m[1]).sort();
+  const built = bundles.map((b) => b.platform).sort();
+  if (listed.join(',') !== built.join(',')) {
+    fail(`README.md says every release builds ${listed.join(', ')}, desktop.yml builds ${built.join(', ')}`);
+  }
+  // <a href=".../releases/latest/download/knightloader-windows-arm64.zip"><img ...
+  const buttons = new Set(
+    [...buttonBlock.matchAll(/<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+)\.zip"><img /g)].map(
+      (m) => m[1],
+    ),
+  );
+  for (const { slug } of bundles) {
+    if (!buttons.has(slug)) fail(`README.md has no download button for knightloader-${slug}.zip, which desktop.yml builds`);
+  }
+  for (const slug of buttons) {
+    if (!bundles.some((b) => b.slug === slug)) {
+      fail(`README.md has a download button for knightloader-${slug}.zip, which desktop.yml does not build`);
+    }
+  }
+}
+
 // The Wails CLI the README tells a reader to install, against the version
 // desktop/go.mod actually requires. Somebody following the README with a
 // different CLI builds the desktop app on a different toolchain than the one

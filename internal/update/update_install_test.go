@@ -7,25 +7,69 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
 )
 
-func TestPlatformSlugMatchesDesktopWorkflow(t *testing.T) {
-	// The three slugs .github/workflows/desktop.yml's matrix ever produces a
-	// zip for - a fourth GOOS/GOARCH this package might someday be built for
-	// has nothing published to download, which is exactly what the error
-	// path below covers.
-	slug, err := platformSlug()
-	if runtime.GOOS == "windows" && runtime.GOARCH == "amd64" && (err != nil || slug != "windows-amd64") {
-		t.Fatalf("platformSlug() on windows/amd64 = (%q, %v), want (\"windows-amd64\", nil)", slug, err)
+func TestPlatformSlugPicksTheBundleForEachArchitecture(t *testing.T) {
+	cases := []struct {
+		goos, goarch, want string
+	}{
+		{"windows", "amd64", "windows-amd64"},
+		{"windows", "arm64", "windows-arm64"},
+		{"linux", "amd64", "linux-amd64"},
+		{"linux", "arm64", "linux-arm64"},
+		{"darwin", "amd64", "macos-universal"},
+		{"darwin", "arm64", "macos-universal"},
 	}
-	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && (err != nil || slug != "linux-amd64") {
-		t.Fatalf("platformSlug() on linux/amd64 = (%q, %v), want (\"linux-amd64\", nil)", slug, err)
+	for _, c := range cases {
+		got, err := platformSlug(c.goos, c.goarch)
+		if err != nil || got != c.want {
+			t.Errorf("platformSlug(%q, %q) = (%q, %v), want (%q, nil)", c.goos, c.goarch, got, err, c.want)
+		}
 	}
-	if runtime.GOOS == "darwin" && (err != nil || slug != "macos-universal") {
-		t.Fatalf("platformSlug() on darwin = (%q, %v), want (\"macos-universal\", nil)", slug, err)
+}
+
+func TestPlatformSlugRefusesAPlatformWithNoBundle(t *testing.T) {
+	for _, p := range [][2]string{{"windows", "386"}, {"linux", "arm"}, {"linux", "riscv64"}, {"freebsd", "amd64"}} {
+		if got, err := platformSlug(p[0], p[1]); err == nil {
+			t.Errorf("platformSlug(%q, %q) = %q, want an error", p[0], p[1], got)
+		}
+	}
+}
+
+// The updater asks the release for knightloader-<tag>-<slug>.zip, so a slug
+// desktop.yml does not build is an update that can never download, and a
+// bundle it builds without an entry here is one no installed copy updates to.
+func TestDesktopSlugsMatchTheDesktopWorkflow(t *testing.T) {
+	yml, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "desktop.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	built := regexp.MustCompile(`(?m)^\s+platform: (\S+)\n\s+slug: (\S+)$`).FindAllStringSubmatch(string(yml), -1)
+	if len(built) == 0 {
+		t.Fatal("desktop.yml: no platform line followed by a slug line in the matrix")
+	}
+	published := map[string]bool{}
+	for _, m := range built {
+		platform, slug := m[1], m[2]
+		published[slug] = true
+		targets := []string{platform}
+		if platform == "darwin/universal" {
+			targets = []string{"darwin/amd64", "darwin/arm64"}
+		}
+		for _, target := range targets {
+			if got := desktopSlugs[target]; got != slug {
+				t.Errorf("desktop.yml builds %s as %s, but desktopSlugs[%q] = %q", platform, slug, target, got)
+			}
+		}
+	}
+	for target, slug := range desktopSlugs {
+		if !published[slug] {
+			t.Errorf("desktopSlugs maps %s to %s, which desktop.yml does not build", target, slug)
+		}
 	}
 }
 

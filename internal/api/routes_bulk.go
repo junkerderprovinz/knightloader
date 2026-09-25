@@ -57,6 +57,26 @@ func registerBulk(reg *Registry, a *app.App) {
 			}
 			bulkDone(w, a.SetHold(body.Ids, body.Hold))
 		})
+	reg.Add(http.MethodPost, "/api/tasks/pause", "pause the running and waiting links of a selection; the others are left as they are",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			bulkDone(w, a.PauseTasks(body.Ids))
+		})
+	reg.Add(http.MethodPost, "/api/tasks/resume", "put the paused links of a selection back in the wait queue",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			bulkDone(w, a.ResumeTasks(body.Ids))
+		})
 	reg.Add(http.MethodPost, "/api/tasks/force", "mark a selection to run ahead of the limits",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

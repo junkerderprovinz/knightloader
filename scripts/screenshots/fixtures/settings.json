@@ -1,0 +1,266 @@
+{
+  "maxConcurrent": 3,
+  "maxPerHost": 2,
+  "speedLimit": 0,
+  "extract": true,
+  "quiet": {
+    "speedLimit": 0,
+    "maxConcurrent": 1
+  },
+  "autoConfirm": false,
+  "autoConfirmDelay": 0,
+  "autoStart": true,
+  "onDupes": "exclude",
+  "onOffline": "exclude",
+  "addAtTop": false,
+  "downloadDir": "/data/downloads",
+  "subfolderByPackage": true,
+  "workDir": "",
+  "archivePasswords": ["open-movies"],
+  "extractTo": "",
+  "extractSubfolder": false,
+  "extractMoveTo": "",
+  "extractCollision": "overwrite",
+  "archiveDisposal": "trash",
+  "trashRetentionDays": 14,
+  "deleteInfoFiles": false,
+  "maxRetries": 3,
+  "retry": {
+    "delay": 0,
+    "max": 0,
+    "byReason": {}
+  },
+  "stallTimeout": 120,
+  "stallReconnect": true,
+  "stallRestart": false,
+  "stallMaxRestarts": 0,
+  "diskReserve": 536870912,
+  "diskLowSpace": 0,
+  "diskCriticalSpace": 0,
+  "volumeCap": 1500000000000,
+  "volumeCapResetDay": 1,
+  "volumeCapAction": "report",
+  "volumeCapThrottle": 0,
+  "crawl": true,
+  "crawlDepth": 1,
+  "crawlMaxPages": 20,
+  "crawlSameHost": true,
+  "crawlInclude": null,
+  "crawlExclude": null,
+  "watchDir": "/watch",
+  "feeds": null,
+  "verifyChecksums": true,
+  "preParserEnabled": true,
+  "downloadClientApi": false,
+  "metrics": false,
+  "shape": "soft",
+  "accent": "",
+  "rainbow": false,
+  "rainbowReactive": false,
+  "rainbowRotate": false,
+  "rainbowSeed": 0,
+  "rainbowPalette": null,
+  "hideAccountsFromSidebar": false,
+  "hideInstancesFromSidebar": false,
+  "navLabels": "both",
+  "bottomBarLabels": "follow",
+  "autoUpdateCheck": false,
+  "autoUpdateInstall": false,
+  "ytdlpVersionCheck": false,
+  "packagizer": {
+    "rules": [
+      {
+        "name": "Open movies",
+        "conditions": [
+          {
+            "field": "filename",
+            "op": "matches",
+            "value": "(?i)(big.?buck.?bunny|sintel|tears.?of.?steel|elephants.?dream)"
+          },
+          {
+            "field": "filetype",
+            "op": "matches",
+            "value": "(?i)^(avi|divx|flv|m2ts|m4v|mkv|mov|mp4|mpeg|mpg|ogv|rmvb|ts|vob|webm|wmv)$"
+          }
+        ],
+        "action": {
+          "priority": 1,
+          "category": "films"
+        }
+      },
+      {
+        "name": "Podcast episodes",
+        "conditions": [
+          {
+            "field": "filetype",
+            "op": "matches",
+            "value": "(?i)^(aac|aiff|alac|ape|dsf|flac|m4a|mka|mp3|ogg|opus|wav|wma)$"
+          },
+          {
+            "field": "url",
+            "op": "contains",
+            "value": "/episodes/"
+          }
+        ],
+        "action": {
+          "comment": "from <jd:hoster>",
+          "category": "podcasts"
+        }
+      },
+      {
+        "name": "Linux images",
+        "conditions": [
+          {
+            "field": "filename",
+            "op": "matches",
+            "value": "\\.iso$"
+          }
+        ],
+        "action": {
+          "chunks": 8,
+          "category": "linux-images"
+        }
+      },
+      {
+        "name": "Big files last",
+        "conditions": [
+          {
+            "field": "filesize",
+            "op": "is-between",
+            "min": 10737418240
+          }
+        ],
+        "action": {
+          "priority": -2
+        }
+      }
+    ]
+  },
+  "linkFilter": {
+    "rules": [
+      {
+        "name": "No samples",
+        "conditions": [
+          {
+            "field": "filename",
+            "op": "matches",
+            "value": "(?i)[._-]sample[._-]"
+          }
+        ],
+        "action": {
+          "reject": true,
+          "reason": "a sample, not the film"
+        }
+      }
+    ]
+  },
+  "mirrorPolicy": "filename-and-size",
+  "keepMirrors": false,
+  "mirrorFailover": false,
+  "collisionPolicy": "rename",
+  "chunks": 0,
+  "hostRules": {},
+  "categories": [
+    {
+      "id": "films",
+      "name": "Films",
+      "dir": "/data/media/films",
+      "priority": 1,
+      "extract": true
+    },
+    {
+      "id": "podcasts",
+      "name": "Podcasts",
+      "dir": "/data/media/podcasts",
+      "priority": -1
+    },
+    {
+      "id": "linux-images",
+      "name": "Linux images",
+      "dir": "/data/iso",
+      "extract": false,
+      "collision": "skip"
+    }
+  ],
+  "mediaHooks": null,
+  "reconnect": {
+    "method": "none",
+    "intervalSeconds": 5,
+    "timeoutSeconds": 120
+  },
+  "idleAction": {
+    "action": "none",
+    "delaySeconds": 60,
+    "command": {
+      "program": "",
+      "timeoutSeconds": 60
+    }
+  },
+  "resumeOnStart": "never",
+  "reclaimTrust": "record",
+  "keepFinishedDays": 30,
+  "historyMax": 10000,
+  "maintenanceIntervalDays": 0,
+  "maintenanceCompactOnSchedule": false,
+  "logFile": {
+    "enabled": false,
+    "maxMb": 8,
+    "keep": 3
+  },
+  "captchaSolverOrder": null,
+  "resolverOrder": null,
+  "ytdlp": {
+    "variant": "video",
+    "quality": "best",
+    "customFormat": "",
+    "audioFormat": "best",
+    "audioBitrate": "",
+    "subtitleLangs": "",
+    "subtitleAuto": false,
+    "subtitleStrict": false,
+    "audioLang": "",
+    "playlist": false,
+    "outputTemplate": "",
+    "cookies": false,
+    "music": false,
+    "embed": {
+      "metadata": false,
+      "thumbnail": false,
+      "chapters": false,
+      "subs": false,
+      "splitChapters": false,
+      "nfo": false
+    },
+    "measure": {
+      "enabled": false,
+      "shortPercent": 90,
+      "failOnShort": false
+    },
+    "live": {
+      "enabled": false,
+      "fromStart": false,
+      "maxMinutes": 0,
+      "maxMB": 0
+    }
+  },
+  "ytdlpPresets": {},
+  "torrent": {
+    "seedRatioTarget": 1,
+    "seedDurationSeconds": 7200,
+    "uploadLimitKiBs": 0,
+    "port": 0,
+    "dhtEnabled": true,
+    "pexEnabled": true
+  },
+  "instanceId": "4d8a1f6c2e9b7a3d5f0c8e1b6a4d2f9c7e5b3a10",
+  "instanceName": "Keep",
+  "knownDomains": [],
+  "relayUrl": "",
+  "relayServe": false,
+  "relayMode": "",
+  "modulesOff": null,
+  "problems": {
+    "packagizer": [],
+    "linkFilter": []
+  }
+}

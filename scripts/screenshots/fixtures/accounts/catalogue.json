@@ -1,0 +1,168 @@
+[
+  {
+    "id": "torbox",
+    "label": "TorBox",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_TORBOX",
+    "whereUrl": "https://torbox.app/settings"
+  },
+  {
+    "id": "alldebrid",
+    "label": "AllDebrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_ALLDEBRID",
+    "whereUrl": "https://alldebrid.com/apikeys"
+  },
+  {
+    "id": "realdebrid",
+    "label": "Real-Debrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_REALDEBRID",
+    "whereUrl": "https://real-debrid.com/apitoken"
+  },
+  {
+    "id": "debridlink",
+    "label": "Debrid-Link",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_DEBRIDLINK",
+    "whereUrl": "https://debrid-link.com/webapp/apikey"
+  },
+  {
+    "id": "premiumize",
+    "label": "Premiumize.me",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_PREMIUMIZE",
+    "whereUrl": "https://www.premiumize.me/account"
+  },
+  {
+    "id": "linksnappy",
+    "label": "Linksnappy",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://linksnappy.com/myaccount"
+  },
+  {
+    "id": "offcloud",
+    "label": "Offcloud",
+    "kind": "apiKey",
+    "group": "debrid",
+    "env": "KL_OFFCLOUD",
+    "whereUrl": "https://offcloud.com/#/account"
+  },
+  {
+    "id": "bestdebrid",
+    "label": "BestDebrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://bestdebrid.com/profile"
+  },
+  {
+    "id": "cocoleech",
+    "label": "CocoLeech",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://members.cocoleech.com/settings",
+    "domain": "cocoleech.com"
+  },
+  {
+    "id": "cooldebrid",
+    "label": "CoolDebrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://cooldebrid.com/api.html"
+  },
+  {
+    "id": "debriditalia",
+    "label": "DebridItalia",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://www.debriditalia.com/"
+  },
+  {
+    "id": "deepbrid",
+    "label": "Deepbrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://www.deepbrid.com/devices"
+  },
+  {
+    "id": "fakirdebrid",
+    "label": "FakirDebrid",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://fakirdebrid.net/api/login.php"
+  },
+  {
+    "id": "megadebrid",
+    "label": "Mega-Debrid",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://www.mega-debrid.eu/"
+  },
+  {
+    "id": "multiup",
+    "label": "MultiUp",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://multiup.io/en/login"
+  },
+  {
+    "id": "neodebrid",
+    "label": "NeoDebrid",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://neodebrid.com/login",
+    "userLabel": "email"
+  },
+  {
+    "id": "proleech",
+    "label": "ProLeech",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://proleech.link/v2/jdownloader",
+    "userLabel": "apiUser",
+    "passLabel": "apiKey"
+  },
+  {
+    "id": "rpnet",
+    "label": "RPNet",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://premium.rpnet.biz/account",
+    "userLabel": "customerId",
+    "passLabel": "apiKey"
+  },
+  {
+    "id": "zevera",
+    "label": "Zevera",
+    "kind": "apiKey",
+    "group": "debrid",
+    "whereUrl": "https://www.zevera.com/account"
+  },
+  {
+    "id": "2captcha",
+    "label": "2Captcha",
+    "kind": "apiKey",
+    "group": "captchaSolver",
+    "whereUrl": "https://2captcha.com/enterpage"
+  },
+  {
+    "id": "anticaptcha",
+    "label": "Anti-Captcha",
+    "kind": "apiKey",
+    "group": "captchaSolver",
+    "whereUrl": "https://anti-captcha.com/clients/settings/apisetup"
+  },
+  {
+    "id": "remotefs",
+    "label": "Own server (FTP, SFTP, WebDAV)",
+    "kind": "usernamePassword",
+    "group": "remoteServer",
+    "whereUrl": "https://github.com/junkerderprovinz/knightloader#own-servers-ftp-sftp-webdav"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "deployment": "container",
+  "canQuit": true,
+  "canRestart": true,
+  "note": "this is a container build; whether the process comes back after Quit or Restart is decided entirely by your container's own restart policy, not by which of the two you press; both do the same thing"
+}

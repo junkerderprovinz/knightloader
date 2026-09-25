@@ -3,7 +3,7 @@
 // reads and saves the same way in both places. The settings routes are not
 // forwarded to peers, so the shell offers this for the local instance only.
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import {
   fetchIdleActions,
   fetchScheduleSuspension,
@@ -15,6 +15,7 @@ import {
 import { useT } from '../lib/i18n';
 import { IconMenu, IconRetry } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
+import { openWindow } from '../lib/windowStack';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
 import { ScheduleSuspendField } from '../pages/settings/automation/ScheduleSuspend';
 import { ChunksField, MaxConcurrentField, MaxPerHostField } from '../pages/settings/downloads/Concurrency';
@@ -28,7 +29,8 @@ import {
   type ReconnectState,
 } from '../pages/settings/Reconnect';
 import { label } from '../pages/settings/tx';
-import { Button, SectionTitle, ToggleRow } from './ui';
+import { METER_WINDOW, meterWindow, useMeterWindow } from './SpeedGraph';
+import { Button, Field, SectionTitle, ToggleRow, UnitNumberInput, type FieldUnit } from './ui';
 
 type Patch = (fields: Partial<Settings>) => void;
 type Translate = ReturnType<typeof useT>['t'];
@@ -63,7 +65,7 @@ interface QuickRow {
 
 // What people reach for while downloads run comes first: how fast and how many,
 // then the timetable and what happens once the queue is empty, then the two
-// switches, and the one action last.
+// switches and the bar's own curve, and the one action last.
 const ROWS: QuickRow[] = [
   {
     id: 'speedLimit',
@@ -114,6 +116,7 @@ const ROWS: QuickRow[] = [
       <AutoStartRow value={cfg.autoConfirm} onValue={(autoConfirm) => patch({ autoConfirm })} />
     ),
   },
+  { id: 'speedWindow', render: () => <SpeedWindowRow /> },
   {
     id: 'reconnect',
     render: ({ extras, close }) => (
@@ -212,11 +215,41 @@ function AutoStartRow({ value, onValue }: { value: boolean; onValue: (v: boolean
   );
 }
 
+// Untranslated symbols, as fmtEta's are. Seconds step by ten up to the minute,
+// minutes by one.
+const WINDOW_UNITS: FieldUnit[] = [
+  { label: 's', factor: 1, step: 10 },
+  { label: 'min', factor: 60, step: 60 },
+];
+
+/**
+ * SpeedWindowRow sets how far back the curve in the bar reaches, under the
+ * name the Overview gives its own curve's window. It lives in the interface
+ * state like quiet mode, not in the settings.
+ */
+function SpeedWindowRow() {
+  const { t } = useT();
+  const [seconds, setSeconds] = useMeterWindow();
+  return (
+    <Field label={t('overview.speedWindow')} hint={t('quick.speedWindowHint')}>
+      <UnitNumberInput
+        value={seconds}
+        units={WINDOW_UNITS}
+        min={METER_WINDOW.min}
+        max={METER_WINDOW.max}
+        snap={meterWindow}
+        onValue={setSeconds}
+      />
+    </Field>
+  );
+}
+
 /**
  * ReconnectRow runs the reconnect the Network page set up. It is disabled
  * while the module is switched off, while nothing is set up and while a run is
  * going, and the (i) inside the button says which; the first two also get the
- * way to the page that changes it.
+ * way to the page that changes it, in front of the button so the button keeps
+ * the end of the row either way.
  */
 function ReconnectRow({
   state,
@@ -262,7 +295,8 @@ function ReconnectRow({
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {blocked?.way}
       <Button
         kind="secondary"
         icon={<IconRetry width={16} height={16} />}
@@ -272,7 +306,6 @@ function ReconnectRow({
       >
         {busy ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
       </Button>
-      {blocked?.way}
     </div>
   );
 }
@@ -432,10 +465,12 @@ function useQuickExtras(open: boolean) {
 }
 
 /**
- * QuickSettings is the square and its panel. The panel is portalled to <body>,
- * where the page's scroll column cannot clip it, and placed against the window.
- * A press outside, Escape, a scroll outside it or a resize closes it, since a
- * fixed panel stops pointing at its square once anything moves.
+ * QuickSettings is the square and its panel. The panel stands on the scrim
+ * every window in the app stands on and is placed against the window, under
+ * its square. Escape, a press on the scrim, a scroll outside the panel or a
+ * resize closes it, since a fixed panel stops pointing at its square once
+ * anything moves. Both are rendered in place rather than portalled to <body>,
+ * so the toasts the rows raise stay above the scrim, as they do over a Modal.
  */
 export function QuickSettings() {
   const { t } = useT();
@@ -445,6 +480,7 @@ export function QuickSettings() {
   const { extras, setSuspension } = useQuickExtras(open);
   // The anchor is the wrapper, since the button's own ref belongs to its tooltip.
   const wrap = useRef<HTMLSpanElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
@@ -486,54 +522,68 @@ export function QuickSettings() {
     if (open && placed) panel.current?.focus({ preventScroll: true });
   }, [open, placed]);
 
+  // Escape goes through the window stack like every window's, so a window
+  // opened over the panel closes first.
   useEffect(() => {
-    if (!open) return;
-    const inside = (n: EventTarget | null) => inPanel(n, panel.current, wrap.current);
-    const onDown = (e: PointerEvent) => {
-      if (!inside(e.target)) close();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+    const me = scrim.current;
+    if (!open || !me) return;
+    return openWindow(me, () => {
       close();
       wrap.current?.querySelector('button')?.focus();
-    };
+    });
+  }, [open, close]);
+
+  // A shortcut can change the page under the panel, which hides the bar and
+  // the panel inside it.
+  const { pathname } = useLocation();
+  useEffect(() => close(), [pathname, close]);
+
+  useEffect(() => {
+    if (!open) return;
     const onScroll = (e: Event) => {
-      if (!inside(e.target)) close();
+      if (!inPanel(e.target, panel.current, wrap.current)) close();
     };
-    document.addEventListener('pointerdown', onDown, true);
-    document.addEventListener('keydown', onKey);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
     return () => {
-      document.removeEventListener('pointerdown', onDown, true);
-      document.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', close);
     };
   }, [open, close]);
 
   return (
-    <span ref={wrap} className="inline-flex">
-      {/* The transport squares' size, since controls in one row share one box. */}
-      <Button
-        kind={open ? 'primary' : 'secondary'}
-        keyControl
-        icon={<IconMenu />}
-        // No tooltip while the panel is open, where it would cover the title.
-        title={open ? undefined : title}
-        aria-label={title}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      />
-      {open &&
-        createPortal(
+    <>
+      <span ref={wrap} className="inline-flex">
+        {/* Sized with Play, Pause and Stop, since controls in one row share one box. */}
+        <Button
+          kind={open ? 'primary' : 'secondary'}
+          transport
+          icon={<IconMenu />}
+          // No tooltip while the panel is open, where it would cover the title.
+          title={open ? undefined : title}
+          aria-label={title}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        />
+      </span>
+      {open && (
+        // The scrim is Modal's (ui.tsx) and its fade carries the panel in.
+        // The rows' menus and bubbles open above it.
+        <div
+          ref={scrim}
+          className="glim-modal-backdrop fixed inset-0 z-50"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) close();
+          }}
+        >
           <div
             ref={panel}
             role="dialog"
+            aria-modal="true"
             aria-label={title}
             tabIndex={-1}
-            // Tabbing out of the panel closes it; a press outside is handled above.
+            // Tabbing out of the panel closes it, as a press on the scrim does.
             onBlur={(e) => {
               if (e.relatedTarget && !inPanel(e.relatedTarget, panel.current, wrap.current)) close();
             }}
@@ -543,7 +593,7 @@ export function QuickSettings() {
               maxHeight: at?.maxHeight,
               visibility: placed ? undefined : 'hidden',
             }}
-            className="glim-card glim-fade fixed z-40 flex w-[24rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
+            className="glim-card fixed flex w-[24rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
           >
             <SectionTitle>{title}</SectionTitle>
             {cfg && extras && (
@@ -556,9 +606,9 @@ export function QuickSettings() {
                 ))}
               </div>
             )}
-          </div>,
-          document.body,
-        )}
-    </span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

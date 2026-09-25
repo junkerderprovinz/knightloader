@@ -18,13 +18,13 @@ import {
   fetchOptions,
   priorityChoices,
   fetchQueue,
-  pause,
+  pauseTasks,
   queueForce,
   queueMove,
   queuePriority,
   recheckTasks,
   restartTasks,
-  resume,
+  resumeTasks,
   runCleanup,
   setEnabled,
   setForced,
@@ -40,9 +40,12 @@ import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { readShortcutOverrides } from '../lib/commands/overrides';
+import { formatShortcut } from '../lib/commands/shortcuts';
 import { Button, Field, Modal, NumberInput, TextInput } from './ui';
 import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
+import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
 import { retryPending } from './RetryCountdown';
 import { SelectionReach } from './SelectionReach';
 import {
@@ -62,6 +65,7 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconClose,
+  IconEdit,
   IconFolder,
   IconKey,
   IconPause,
@@ -118,7 +122,6 @@ export function useQueueVerbs(base: string) {
 
   return {
     choices,
-    halted: queue?.halted ?? false,
     stopMark: queue?.stopMark ?? '',
     mark,
   };
@@ -545,6 +548,75 @@ export function useRemoval({
 
 export type Removal = ReturnType<typeof useRemoval>;
 
+/** RENAME_SHORTCUT is the rename commands' default key, JDownloader's own. */
+export const RENAME_SHORTCUT = 'f2';
+
+type RenameTarget = { kind: 'link'; id: string } | { kind: 'package'; name: string };
+
+/**
+ * useRename opens the rename window for one link or one package, from the
+ * menu or from the page's rename command. The window reads its rows on every
+ * render, so a download that finishes while it is open changes what it says.
+ */
+export function useRename({
+  all,
+  base,
+  members,
+  command,
+}: {
+  all: Task[];
+  base: string;
+  /** Every link of a package in the page's list; see ListContext.members. */
+  members: (pkg: string) => Task[];
+  /** The page's rename command, whose binding the menu entry shows. */
+  command: string;
+}) {
+  const { t } = useT();
+  const [target, setTarget] = useState<RenameTarget | null>(null);
+  const openLink = useCallback((id: string) => setTarget({ kind: 'link', id }), []);
+  const openPackage = useCallback((name: string) => setTarget({ kind: 'package', name }), []);
+  const close = useCallback(() => setTarget(null), []);
+
+  // What has the keyboard decides, a package header or a link row, and
+  // otherwise a selection of exactly one link. The ungrouped rows have no
+  // package name to change.
+  const fromKeyboard = useCallback(
+    (selection: readonly string[]) => {
+      const focus = { target: document.activeElement };
+      const pkg = targetPackage(focus);
+      if (pkg !== null) {
+        if (pkg !== '') openPackage(pkg);
+        return;
+      }
+      const id = targetTaskId(focus) ?? (selection.length === 1 ? selection[0] : null);
+      if (id) openLink(id);
+    },
+    [openLink, openPackage],
+  );
+
+  const binding = readShortcutOverrides()[command] ?? RENAME_SHORTCUT;
+
+  let dialog: ReactNode = null;
+  if (target?.kind === 'link') {
+    const task = all.find((x) => x.id === target.id);
+    if (task) dialog = <RenameLinkDialog key={task.id} task={task} base={base} onClose={close} />;
+  } else if (target?.kind === 'package') {
+    dialog = (
+      <RenamePackageDialog
+        key={target.name}
+        name={target.name}
+        tasks={members(target.name)}
+        base={base}
+        onClose={close}
+      />
+    );
+  }
+
+  return { openLink, openPackage, fromKeyboard, shortcut: binding ? formatShortcut(binding, t) : undefined, dialog };
+}
+
+export type Rename = ReturnType<typeof useRename>;
+
 // The clean-up classes come from the server once per session, so the menu
 // never offers a class the server lacks.
 let optionsOnce: Promise<ApiOptions> | null = null;
@@ -699,7 +771,20 @@ export interface ListContext {
    * so on a peer's list those entries are left out.
    */
   local: boolean;
+  /**
+   * Every link of a package in this list, rows a filter hides included. A
+   * package header stands for all of them, so its menu pauses, switches and
+   * renames all of them.
+   */
+  members: (pkg: string) => Task[];
 }
+
+/**
+ * FORCE_STATES are the statuses "start now" is offered for: the ones still
+ * waiting for their turn. A running download has no turn left to skip, and a
+ * failed one needs a restart, which ForceDownload does not do.
+ */
+export const FORCE_STATES: readonly TaskStatus[] = ['collected', 'queued', 'paused'];
 
 /**
  * MOVE_STATES mirrors movable() in internal/app/app_queue.go: every status but
@@ -832,6 +917,7 @@ export function queueMenuGroup({
 function taskMenuGroups({
   chosen,
   ids,
+  scope,
   base,
   t,
   fail,
@@ -841,6 +927,11 @@ function taskMenuGroups({
 }: {
   chosen: Task[];
   ids: string[];
+  /**
+   * What pausing and the switches act on: the selection, or a whole package
+   * when the menu came from its header.
+   */
+  scope: Task[];
   base: string;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   fail: (e: unknown) => void;
@@ -850,6 +941,8 @@ function taskMenuGroups({
   onOptions: (focus: 'dir' | 'password') => void;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
+  const idsInScope = (p: (x: Task) => boolean) => scope.filter(p).map((x) => x.id);
+  const scopeIds = scope.map((x) => x.id);
   const guard = (run: () => Promise<unknown>) => () => {
     void run().catch(fail);
   };
@@ -862,16 +955,15 @@ function taskMenuGroups({
       icon: <IconPlay width={14} height={14} />,
       onSelect: () => void startTasks(ids, base),
     });
-  // Start admits staged links and can lift a manual halt. Forcing puts links
-  // already in the queue ahead of everything else, and is refused while the
-  // queue is stopped. It stays offered on forced links, to reclaim the front.
-  if (some((x) => x.status !== 'done'))
+  // Start admits staged links and can lift a manual halt. Start now puts the
+  // waiting ones ahead of everything else and past the limit of concurrent
+  // downloads, and on a stopped queue it starts them while everything else
+  // waits. It stays offered on forced links, to reclaim the front.
+  if (some((x) => FORCE_STATES.includes(x.status)))
     transport.items.push({
       id: 'force',
       label: t('menu.forceStart'),
       icon: <IconBolt />,
-      detail: queue.halted ? t('menu.queueStopped') : undefined,
-      disabled: queue.halted,
       onSelect: guard(() => queueForce({ ids }, base)),
     });
   if (some((x) => !!x.forced))
@@ -881,24 +973,23 @@ function taskMenuGroups({
       icon: <IconBolt />,
       onSelect: guard(() => setForced(ids, false, base)),
     });
-  // No bulk pause route, so each running task is paused on its own.
-  if (some((x) => x.status === 'running' || x.status === 'extracting'))
+  // Waiting links are paused too, or the slots the running ones free would
+  // start them. Unpacking is past pausing: the download is over.
+  const pausable = idsInScope((x) => x.status === 'running' || x.status === 'queued');
+  if (pausable.length > 0)
     transport.items.push({
       id: 'pause',
       label: t('task.pause'),
       icon: <IconPause width={14} height={14} />,
-      onSelect: () => {
-        for (const x of chosen) if (x.status === 'running' || x.status === 'extracting') void pause(x.id, base);
-      },
+      onSelect: guard(() => pauseTasks(pausable, base)),
     });
-  if (some((x) => x.status === 'paused'))
+  const resumable = idsInScope((x) => x.status === 'paused');
+  if (resumable.length > 0)
     transport.items.push({
       id: 'resume',
       label: t('task.resume'),
       icon: <IconPlay width={14} height={14} />,
-      onSelect: () => {
-        for (const x of chosen) if (x.status === 'paused') void resume(x.id, base);
-      },
+      onSelect: guard(() => resumeTasks(resumable, base)),
     });
   // Runs the already scheduled retry now, spending it rather than granting a
   // new one. Sent for the waiting rows only, since restart would also start
@@ -930,33 +1021,33 @@ function taskMenuGroups({
   const queueGroup = queueMenuGroup({ chosen, ids, base, t, fail, queue });
 
   const state: MenuGroup = { id: 'state', items: [] };
-  if (some((x) => !x.enabled))
+  if (scope.some((x) => !x.enabled))
     state.items.push({
       id: 'enable',
       label: t('menu.enable'),
       icon: <IconPower />,
-      onSelect: guard(() => setEnabled(ids, true, base)),
+      onSelect: guard(() => setEnabled(scopeIds, true, base)),
     });
-  if (some((x) => x.enabled))
+  if (scope.some((x) => x.enabled))
     state.items.push({
       id: 'disable',
       label: t('menu.disable'),
       icon: <IconPower />,
-      onSelect: guard(() => setEnabled(ids, false, base)),
+      onSelect: guard(() => setEnabled(scopeIds, false, base)),
     });
-  if (some((x) => !x.hold))
+  if (scope.some((x) => !x.hold))
     state.items.push({
       id: 'hold',
       label: t('menu.hold'),
       icon: <IconPin />,
-      onSelect: guard(() => setHold(ids, true, base)),
+      onSelect: guard(() => setHold(scopeIds, true, base)),
     });
-  if (some((x) => !!x.hold))
+  if (scope.some((x) => !!x.hold))
     state.items.push({
       id: 'release',
       label: t('menu.release'),
       icon: <IconPin />,
-      onSelect: guard(() => setHold(ids, false, base)),
+      onSelect: guard(() => setHold(scopeIds, false, base)),
     });
 
   // Both open TaskOptionsDialog, focused on the named box.
@@ -1034,6 +1125,7 @@ export function ListMenu({
   removal,
   target = { kind: 'selection' },
   list,
+  rename,
   extraGroups = [],
 }: {
   anchor: MenuAnchor | null;
@@ -1045,6 +1137,8 @@ export function ListMenu({
   /** What the pointer landed on. Defaults to the selection, which is what More means. */
   target?: MenuTarget;
   list?: ListContext;
+  /** The page's rename window, whose dialog the page renders. */
+  rename?: Rename;
   /** Groups another wave contributes, appended after the standard ones. */
   extraGroups?: MenuGroup[];
 }) {
@@ -1054,9 +1148,8 @@ export function ListMenu({
   const cleanup = useCleanup(all);
   const queue = useQueueVerbs(base);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
-  // The rows whose package is being renamed/merged right now - see the
-  // 'movePackage' entry below and PackageMoveDialog, which this shares with
-  // the selection row's own folder badge rather than reimplementing.
+  // The rows being moved into a package right now. PackageMoveDialog is the
+  // selection row's own folder badge's window, shared rather than rebuilt.
   const [movePkg, setMovePkg] = useState<Task[] | null>(null);
 
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
@@ -1150,26 +1243,50 @@ export function ListMenu({
   }
 
   if (chosen.length > 0) {
+    // Renaming and moving into a package open the menu, as moving does in
+    // JDownloader's own right-click. A package header renames its package and
+    // a link row the link, when it is the only one selected: one name for
+    // several files would point them all at one destination. Moving is also
+    // the folder glyph in the selection row above the list, where nobody
+    // finds it.
+    let renameThis: (() => void) | null = null;
+    if (rename && target.kind === 'package' && target.name !== '') {
+      const name = target.name;
+      renameThis = () => rename.openPackage(name);
+    } else if (rename && target.kind === 'selection' && chosen.length === 1) {
+      const id = chosen[0].id;
+      renameThis = () => rename.openLink(id);
+    }
+    const organise: MenuItem[] = [];
+    if (renameThis)
+      organise.push({
+        id: 'rename',
+        label: t('rename.menu'),
+        detail: rename?.shortcut,
+        icon: <IconEdit />,
+        onSelect: renameThis,
+      });
+    organise.push({
+      id: 'movePackage',
+      label: t('pkg.moveTitle'),
+      icon: <IconFolder width={14} height={14} />,
+      onSelect: () => setMovePkg(chosen),
+    });
+
+    // A header stands for its whole package, rows a filter hides included,
+    // unless a larger selection holds it; then the selection is what the
+    // menu acts on.
+    const wholePackage =
+      target.kind === 'package' && list && chosen.every((x) => (x.package || '') === target.name)
+        ? list.members(target.name)
+        : null;
+
     groups.push(
-      // Moving the selection into a package a person names themselves, first
-      // in the list of things to do with a selection because that is what
-      // JDownloader's own right-click opens with. The folder glyph in the
-      // selection row above the list offers the same thing and nobody finds it
-      // there.
-      {
-        id: 'organise',
-        items: [
-          {
-            id: 'movePackage',
-            label: t('pkg.moveTitle'),
-            icon: <IconFolder width={14} height={14} />,
-            onSelect: () => setMovePkg(chosen),
-          },
-        ],
-      },
+      { id: 'organise', items: organise },
       ...taskMenuGroups({
         chosen,
         ids: chosen.map((x) => x.id),
+        scope: wholePackage ?? chosen,
         base,
         t,
         fail,

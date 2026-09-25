@@ -119,6 +119,9 @@ func ExtractWith(path string, passwords []string) (*Result, error) {
 }
 
 func extractOnce(path, dest, password string) (*Result, error) {
+	// Unknown until a reader below learns it from its headers; a single
+	// compressed stream never does.
+	expectWatched(0)
 	// Everything that can hold more than one file unpacks into its own folder;
 	// only the single-stream path below decides for itself.
 	container := func() error { return os.MkdirAll(dest, 0o755) }
@@ -241,6 +244,11 @@ func extractZip(path, dest, password string) (*Result, error) {
 	if err := verifyZipPassword(&zr.Reader, password); err != nil {
 		return nil, err
 	}
+	var size uint64
+	for _, f := range zr.File {
+		size += f.UncompressedSize64
+	}
+	expectWatched(int64(size))
 	res := &Result{Dir: dest, Volumes: []string{path}}
 	for _, f := range zr.File {
 		if f.FileInfo().IsDir() {
@@ -271,13 +279,12 @@ func extractRar(path, dest, password string) (*Result, error) {
 	}
 	rc, err := rardecode.OpenReader(path, opts...)
 	if err != nil {
-		if errors.Is(err, rardecode.ErrArchiveEncrypted) || errors.Is(err, rardecode.ErrArchivedFileEncrypted) {
-			return nil, ErrPasswordRequired
-		}
-		return nil, err
+		return nil, rarError(err, filepath.Base(path))
 	}
 	defer rc.Close()
+	expectWatched(rarSize(path, opts))
 	res := &Result{Dir: dest}
+	body := &archiveSide{r: rc}
 	// Sequential Next/Read works for solid and multi-volume archives alike.
 	for {
 		h, err := rc.Next()
@@ -285,25 +292,93 @@ func extractRar(path, dest, password string) (*Result, error) {
 			break
 		}
 		if err != nil {
-			if errors.Is(err, rardecode.ErrArchivedFileEncrypted) || errors.Is(err, rardecode.ErrArchiveEncrypted) {
-				return nil, ErrPasswordRequired
-			}
-			return nil, err
+			return nil, rarError(err, currentVolume(rc))
 		}
 		if h.IsDir {
 			continue
+		}
+		// Headers in the clear and contents encrypted, which is what rar -p
+		// makes. Refused before the file is created, so the attempt without a
+		// password leaves nothing behind.
+		if h.Encrypted && password == "" {
+			return nil, ErrPasswordRequired
 		}
 		dst, err := safePath(dest, h.Name)
 		if err != nil {
 			return nil, err
 		}
-		if err := writeFile(dst, h.Mode(), rc); err != nil {
+		if err := writeFile(dst, h.Mode(), body); err != nil {
+			if body.err != nil {
+				return nil, rarError(body.err, currentVolume(rc))
+			}
 			return nil, err
 		}
 		res.Files++
 	}
-	res.Volumes = rc.Volumes()
+	// The reader names the volumes relative to the folder of the first one.
+	for _, v := range rc.Volumes() {
+		res.Volumes = append(res.Volumes, filepath.Join(filepath.Dir(path), v))
+	}
 	return res, nil
+}
+
+// rarSize is what a rar set unpacks to, read off the file headers of every
+// volume without decoding any data, or 0 when a header does not say. The
+// sequential reader meets those headers one at a time, so the whole is only
+// known by walking the set once up front.
+func rarSize(path string, opts []rardecode.Option) int64 {
+	files, err := rardecode.List(path, opts...)
+	if err != nil {
+		return 0
+	}
+	var size int64
+	for _, f := range files {
+		if f.IsDir {
+			continue
+		}
+		if f.UnKnownSize {
+			return 0
+		}
+		size += f.UnPackedSize
+	}
+	return size
+}
+
+// rarError is how a failure inside a RAR set is reported. The reader raises a
+// password failure in three places: opening the set when the headers are
+// encrypted, reaching an entry, and reading an entry whose contents are. Every
+// one of them becomes ErrPasswordRequired, so the next password in the list is
+// tried and the list says the archive wants one. Anything else is named after
+// the volume that was open: "bad block header" on its own does not say which of
+// forty parts is broken.
+func rarError(err error, volume string) error {
+	if errors.Is(err, rardecode.ErrArchiveEncrypted) || errors.Is(err, rardecode.ErrArchivedFileEncrypted) ||
+		errors.Is(err, rardecode.ErrBadPassword) {
+		return ErrPasswordRequired
+	}
+	return fmt.Errorf("extract: %s: %w", volume, err)
+}
+
+// currentVolume is the name of the volume the reader has open, which is the last
+// one it moved to.
+func currentVolume(rc *rardecode.ReadCloser) string {
+	v := rc.Volumes()
+	return v[len(v)-1]
+}
+
+// archiveSide is the reading half of a copy. It keeps the archive's own error
+// apart from the disk's, since only a read failure is about the archive.
+type archiveSide struct {
+	r   io.Reader
+	err error
+}
+
+func (a *archiveSide) Read(p []byte) (int, error) {
+	n, err := a.r.Read(p)
+	if err != nil && err != io.EOF {
+		a.err = err
+	}
+	return n, err
 }
 
 func extract7z(path, dest, password string) (*Result, error) {
@@ -321,6 +396,11 @@ func extract7z(path, dest, password string) (*Result, error) {
 		return nil, err
 	}
 	defer zr.Close()
+	var size uint64
+	for _, f := range zr.File {
+		size += f.UncompressedSize
+	}
+	expectWatched(int64(size))
 	res := &Result{Dir: dest, Volumes: zr.Volumes()}
 	// In-order extraction so solid-block streams are read once.
 	for _, f := range zr.File {

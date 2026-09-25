@@ -78,7 +78,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       // route's own rule.
       const schema = await fetchSettingsSchema();
       const stored = draft.cfg as unknown as Record<string, unknown>;
-      setPending({ doc, rows: diffRows(doc, stored, schema.kinds) });
+      setPending({ doc, rows: diffRows(doc, stored, schema) });
     } catch (e) {
       setFailure(t('settings.transfer.parseFailed', { reason: reasonOf(e) }));
     }

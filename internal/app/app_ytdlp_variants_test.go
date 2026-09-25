@@ -166,6 +166,72 @@ func TestSetHosterPresetPersistsAcrossHosts(t *testing.T) {
 	}
 }
 
+// A link from youtu.be stages with the preset saved for youtube.com, since the
+// two are one site, and the gear on its package edits that preset instead of
+// starting a second one for youtu.be.
+func TestAPresetCoversEveryAddressOfItsSite(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Short Link"
+	wireYtdlp(a, fake)
+	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
+		Variants: []ytdlp.Variant{ytdlp.VariantAudio}, AudioFormat: "mp3", AudioBitrate: "192",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	const url = "https://youtu.be/dQw4w9WgXcQ"
+	a.AddLinks([]string{url}, "")
+	waitFor(t, "the family of the youtu.be link", func() bool { return len(tasksSharingURL(a, url)) == 5 })
+	for _, x := range tasksSharingURL(a, url) {
+		kind, sub := variantDecode(x.Variant)
+		if want := kind != ytdlp.VariantAudio; x.VariantOff != want {
+			t.Errorf("%s row set aside = %v, want %v as youtube.com's preset says", kind, x.VariantOff, want)
+		}
+		if kind == ytdlp.VariantAudio && (sub != "mp3" || x.AudioBitrate != "192") {
+			t.Errorf("audio row = %q at %q, want youtube.com's mp3 at 192", sub, x.AudioBitrate)
+		}
+	}
+	for _, host := range []string{"m.youtube.com", "music.youtube.com", "www.youtube.com"} {
+		if got := a.HosterPresetFor(host); got.AudioFormat != "mp3" {
+			t.Errorf("HosterPresetFor(%q) = %+v, want youtube.com's", host, got)
+		}
+	}
+	if got := a.HosterPresetFor("vimeo.com"); got.AudioFormat != "best" {
+		t.Errorf("vimeo.com took youtube.com's preset: %+v", got)
+	}
+
+	if err := a.SetHosterPreset("youtu.be", ytdlp.HosterPreset{
+		Variants: []ytdlp.Variant{ytdlp.VariantAudio}, AudioFormat: "flac",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	presets := a.Settings.Get().YtdlpPresets
+	if len(presets) != 1 || presets["youtube.com"].AudioFormat != "flac" {
+		t.Errorf("presets = %+v, want youtube.com's changed and no second one", presets)
+	}
+}
+
+// The gear on an m.youtube.com package sets the site's preset when there is
+// none yet, or youtube.com and youtu.be links would still start with every
+// variant switched on.
+func TestAPresetFirstSetFromASubdomainCoversTheSite(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	if err := a.SetHosterPreset("m.youtube.com", ytdlp.HosterPreset{
+		Variants: []ytdlp.Variant{ytdlp.VariantAudio}, AudioFormat: "mp3",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if presets := a.Settings.Get().YtdlpPresets; len(presets) != 1 || presets["youtube.com"].AudioFormat != "mp3" {
+		t.Errorf("presets = %+v, want one saved for youtube.com", presets)
+	}
+	for _, host := range []string{"youtube.com", "youtu.be", "music.youtube.com"} {
+		if got := a.HosterPresetFor(host); got.AudioFormat != "mp3" {
+			t.Errorf("HosterPresetFor(%q) = %+v, want the one set from m.youtube.com", host, got)
+		}
+	}
+}
+
 // Picking a quality re-encodes only the sub-value; a video row stays a video
 // row.
 func TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind(t *testing.T) {
@@ -557,10 +623,10 @@ func TestApplyProbeFormatsSetsTheAudioFormatsAndTracks(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	if want := []string{"best", "m4a"}; !stringSlicesEqual(live.AvailableAudioFormats, want) {
+	if want := []string{"best", "aac"}; !stringSlicesEqual(live.AvailableAudioFormats, want) {
 		t.Errorf("AvailableAudioFormats = %v, want %v", live.AvailableAudioFormats, want)
 	}
-	if want := []string{"m4a 129k"}; !stringSlicesEqual(live.AvailableAudioTracks, want) {
+	if want := []string{"aac 129k"}; !stringSlicesEqual(live.AvailableAudioTracks, want) {
 		t.Errorf("AvailableAudioTracks = %v, want %v", live.AvailableAudioTracks, want)
 	}
 }
@@ -838,10 +904,10 @@ func TestBackfillSplitsAMenuOfTracksAndFormatsMixed(t *testing.T) {
 		t.Error("the video row has no tracks after the backfill")
 	}
 	audio := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	if want := []string{"best", "m4a"}; !slices.Equal(audio.AvailableAudioFormats, want) {
+	if want := []string{"best", "aac"}; !slices.Equal(audio.AvailableAudioFormats, want) {
 		t.Errorf("AvailableAudioFormats = %v, want %v", audio.AvailableAudioFormats, want)
 	}
-	if want := []string{"m4a 129k"}; !slices.Equal(audio.AvailableAudioTracks, want) {
+	if want := []string{"aac 129k"}; !slices.Equal(audio.AvailableAudioTracks, want) {
 		t.Errorf("AvailableAudioTracks = %v, want %v", audio.AvailableAudioTracks, want)
 	}
 }
@@ -981,12 +1047,12 @@ func TestPickingAnAudioTrackGivesTheRowThatTracksFile(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 	audio := family[ytdlp.VariantAudio].ID
 
-	q := "m4a 129k"
+	q := "aac 129k"
 	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &q}); err != nil {
 		t.Fatal(err)
 	}
 	if got := snapshot(t, a, audio); got.Ext != "m4a" || got.Size != 3145728 {
-		t.Errorf("m4a 129k: Ext %q Size %d, want m4a and the track's 3145728", got.Ext, got.Size)
+		t.Errorf("aac 129k: Ext %q Size %d, want m4a and the track's 3145728", got.Ext, got.Size)
 	}
 	q = "mp3"
 	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &q}); err != nil {
@@ -1041,7 +1107,7 @@ func TestAPresetsFormatsReachANewLinkBeforeItsProbeAnswers(t *testing.T) {
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
 		Variants:    ytdlp.Variants(),
 		VideoFormat: "mp4 avc1", Quality: ytdlp.Quality720p,
-		AudioFormat: "m4a", AudioBitrate: "128",
+		AudioFormat: "aac", AudioBitrate: "128",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1056,8 +1122,8 @@ func TestAPresetsFormatsReachANewLinkBeforeItsProbeAnswers(t *testing.T) {
 	if video.Variant != "video:mp4 avc1 720p" {
 		t.Errorf("video row Variant = %q, want the preset's container capped at its quality", video.Variant)
 	}
-	if audio.Variant != "audio:m4a" || audio.AudioBitrate != "128" || audio.Ext != "m4a" {
-		t.Errorf("audio row = %q at %q kbit/s, Ext %q; want the preset's m4a at 128 and its extension",
+	if audio.Variant != "audio:aac" || audio.AudioBitrate != "128" || audio.Ext != "m4a" {
+		t.Errorf("audio row = %q at %q kbit/s, Ext %q; want the preset's aac at 128 and its m4a extension",
 			audio.Variant, audio.AudioBitrate, audio.Ext)
 	}
 	if o := a.ytdlpOptionsForTask(video.ID); o.VideoPick != "mp4 avc1 720p" {
@@ -1076,7 +1142,7 @@ func TestAProbeTurnsAPresetsFormatsIntoTheLinksTracks(t *testing.T) {
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
 		Variants:    ytdlp.Variants(),
 		VideoFormat: "mp4 avc1", Quality: ytdlp.Quality720p,
-		AudioFormat: "m4a", AudioBitrate: "128",
+		AudioFormat: "aac", AudioBitrate: "128",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1090,14 +1156,14 @@ func TestAProbeTurnsAPresetsFormatsIntoTheLinksTracks(t *testing.T) {
 		rows := tasksSharingURL(a, url)
 		return len(rows) == 5 &&
 			rowByKind(t, a, url, ytdlp.VariantVideo).Variant != "video:mp4 avc1 720p" &&
-			rowByKind(t, a, url, ytdlp.VariantAudio).Variant != "audio:m4a"
+			rowByKind(t, a, url, ytdlp.VariantAudio).Variant != "audio:aac"
 	})
 
 	// Under 720p the mp4 avc1 tracks are 360p (pre-muxed) and 144p.
 	if video := rowByKind(t, a, url, ytdlp.VariantVideo); video.Variant != "video:360p mp4 avc1" || video.Size != 8388608 {
 		t.Errorf("video row = %q, Size %d; want the 360p track and its 8388608 bytes", video.Variant, video.Size)
 	}
-	if audio := rowByKind(t, a, url, ytdlp.VariantAudio); audio.Variant != "audio:m4a 129k" || audio.AudioBitrate != "" || audio.Size != 3145728 {
+	if audio := rowByKind(t, a, url, ytdlp.VariantAudio); audio.Variant != "audio:aac 129k" || audio.AudioBitrate != "" || audio.Size != 3145728 {
 		t.Errorf("audio row = %q at %q, Size %d; want the 129k track, no bitrate of its own, 3145728 bytes",
 			audio.Variant, audio.AudioBitrate, audio.Size)
 	}
@@ -1126,28 +1192,45 @@ func TestAPresetFormatTheLinkLacksFallsBackToTheQuality(t *testing.T) {
 	}
 }
 
-// A row saved as "aac" at 128 kbit/s, from the picker that mixed formats and
-// tracks, reads as the m4a track nearest 128 once probed. Choosing the format
-// again with no bitrate then keeps the format's best track rather than being
-// pulled back to the old bitrate.
-func TestAnOldAacRowBecomesTheNearestM4aTrack(t *testing.T) {
+// A row stored with AAC under its file's name, "m4a", at 128 kbit/s reads as
+// the AAC track nearest 128 once probed. Choosing AAC again with no bitrate
+// then keeps its best track rather than being pulled back to the old bitrate.
+func TestAnM4aRowBecomesTheNearestAacTrack(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	const url = "https://youtube.com/watch?v=oldaac00001"
-	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "aac"})
+	const url = "https://youtube.com/watch?v=oldm4a00001"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "m4a"})
 	audio := family[ytdlp.VariantAudio].ID
 	editTask(a, audio, func(x *core.Task) { x.AudioBitrate = "128" })
 
 	a.applyProbeFormats(url, testProbeFormats)
-	if got := snapshot(t, a, audio); got.Variant != "audio:m4a 129k" || got.AudioBitrate != "" {
-		t.Errorf("audio row = %q at %q, want m4a 129k with no bitrate of its own", got.Variant, got.AudioBitrate)
+	if got := snapshot(t, a, audio); got.Variant != "audio:aac 129k" || got.AudioBitrate != "" || got.Ext != "m4a" {
+		t.Errorf("audio row = %q at %q, Ext %q; want aac 129k with no bitrate of its own, in m4a",
+			got.Variant, got.AudioBitrate, got.Ext)
 	}
 
-	format, none := "m4a", ""
+	format, none := "aac", ""
 	if err := a.SetTaskOptions([]string{audio}, TaskOptions{VariantQuality: &format, AudioBitrate: &none}); err != nil {
 		t.Fatal(err)
 	}
-	if got := snapshot(t, a, audio); got.Variant != "audio:m4a" || got.Size != 3145728 {
-		t.Errorf("audio row = %q, Size %d; want the m4a format's best track, 3145728 bytes", got.Variant, got.Size)
+	if got := snapshot(t, a, audio); got.Variant != "audio:aac" || got.Size != 3145728 {
+		t.Errorf("audio row = %q, Size %d; want AAC's best track, 3145728 bytes", got.Variant, got.Size)
+	}
+}
+
+// A picked track stored as "m4a 129k" takes the name the pickers list it by
+// at the next probe, and stays the track it was.
+func TestAnM4aTrackTakesItsAacName(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=oldm4a00002"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "m4a 129k"})
+	audio := family[ytdlp.VariantAudio].ID
+
+	a.applyProbeFormats(url, testProbeFormats)
+	if got := snapshot(t, a, audio); got.Variant != "audio:aac 129k" || got.Ext != "m4a" || got.Size != 3145728 {
+		t.Errorf("audio row = %q, Ext %q, Size %d; want aac 129k in m4a, 3145728 bytes", got.Variant, got.Ext, got.Size)
+	}
+	if o := a.ytdlpOptionsForTask(audio); o.AudioTrack != "aac 129k" {
+		t.Errorf("the row asks yt-dlp for track %q, want aac 129k", o.AudioTrack)
 	}
 }
 
@@ -1198,7 +1281,7 @@ func TestAYoutubeLinkShowsTheSizeOfWhatItDownloads(t *testing.T) {
 	if got := pick(video, "2160p mp4 vp9"); got.Ext != "mkv" || got.Size != 509008150+3449447 {
 		t.Errorf("2160p mp4 vp9, only on HLS: Ext %q Size %d, want mkv, its estimate and the audio, %d", got.Ext, got.Size, 509008150+3449447)
 	}
-	if got := pick(audio, "m4a"); got.Ext != "m4a" || got.Size != 3449447 {
-		t.Errorf("m4a: Ext %q Size %d, want the m4a track's 3449447", got.Ext, got.Size)
+	if got := pick(audio, "aac"); got.Ext != "m4a" || got.Size != 3449447 {
+		t.Errorf("aac: Ext %q Size %d, want the AAC track's 3449447 in m4a", got.Ext, got.Size)
 	}
 }

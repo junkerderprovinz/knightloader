@@ -1,8 +1,10 @@
 package torbox
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -10,13 +12,20 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// fakeEngine captures the direct URL the backend hands off for download.
-type fakeEngine struct{ got chan string }
+// fakeEngine captures the direct URL the backend hands off for download, and
+// the way back to a fresh one.
+type fakeEngine struct {
+	got    chan string
+	relink func(context.Context) (string, error)
+}
 
-func (f *fakeEngine) Download(_, url string, _ map[string]string, _ int) { f.got <- url }
-func (f *fakeEngine) Pause(string)                                       {}
-func (f *fakeEngine) Resume(string)                                      {}
-func (f *fakeEngine) Remove(string, bool)                                {}
+func (f *fakeEngine) Handover(_, url string, _ int, relink func(context.Context) (string, error)) {
+	f.relink = relink
+	f.got <- url
+}
+func (f *fakeEngine) Pause(string)        {}
+func (f *fakeEngine) Resume(string)       {}
+func (f *fakeEngine) Remove(string, bool) {}
 
 func writeEnv(w http.ResponseWriter, data string) {
 	w.Header().Set("Content-Type", "application/json")
@@ -90,5 +99,50 @@ func TestBackendUnlockFlow(t *testing.T) {
 	}
 	if !sawFile {
 		t.Errorf("file name never mirrored into the task; names = %v", names)
+	}
+}
+
+// TorBox's download link can expire before the file is complete. The engine
+// gets a way back to TorBox, which hands out a fresh link to the same file of
+// the same job.
+func TestTheEngineCanAskTorBoxForAFreshLink(t *testing.T) {
+	var mu sync.Mutex
+	requests := 0
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/webdl/createwebdownload", func(w http.ResponseWriter, r *http.Request) {
+		writeEnv(w, `{"webdownload_id":42}`)
+	})
+	mux.HandleFunc("/api/webdl/mylist", func(w http.ResponseWriter, r *http.Request) {
+		writeEnv(w, `{"id":42,"name":"movie.mkv","size":1000,"download_present":true,"files":[{"id":7,"name":"movie.mkv","size":1000}]}`)
+	})
+	mux.HandleFunc("/api/webdl/requestdl", func(w http.ResponseWriter, r *http.Request) {
+		if q := r.URL.Query(); q.Get("web_id") != "42" || q.Get("file_id") != "7" {
+			t.Errorf("requestdl asked for %v, want the job's own file", q)
+		}
+		mu.Lock()
+		requests++
+		n := requests
+		mu.Unlock()
+		writeEnv(w, `"https://cdn.torbox.app/dl/`+strconv.Itoa(n)+`"`)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	c := NewClient("test-key")
+	c.base = srv.URL
+	fe := &fakeEngine{got: make(chan string, 1)}
+	b := NewBackend(c, fe, func(string, core.Update) {})
+	b.Download("t1", "https://rapidgator.net/file/abc", nil, 0)
+
+	select {
+	case <-fe.got:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the link was never handed over")
+	}
+	if fe.relink == nil {
+		t.Fatal("the engine was given no way to a fresh link")
+	}
+	url, err := fe.relink(context.Background())
+	if err != nil || url != "https://cdn.torbox.app/dl/2" {
+		t.Errorf("relink = %q, %v; want the second requestdl's link", url, err)
 	}
 }

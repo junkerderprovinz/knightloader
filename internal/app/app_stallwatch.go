@@ -9,7 +9,13 @@ package app
 // countdown, a link refresh or a reconnect also move no bytes, and the backends
 // report them exactly like a dead socket. That is why the timeout is
 // configurable with a floor (settings.MinStallTimeout) and why the mark only
-// states what is measurable; restarting is a separate switch, off by default.
+// states what is measurable.
+//
+// What follows the mark is Engine.Reconnect, not the router reconnect above:
+// the engine drops the transfer's connections and asks for the rest of the
+// file on new ones, which costs nothing it has fetched and keeps the slot. It repeats once per timeout while
+// the transfer stands still. Restarting from the top is a separate switch, off
+// by default, and takes over from the second timeout on.
 //
 // The state is package-level and keyed by *App, like captchaState.
 
@@ -40,10 +46,13 @@ type stallState struct {
 }
 
 // stallSample is one reading. since is when the bytes stopped, not when the
-// watcher noticed, because that is what a row shows.
+// watcher noticed, because that is what a row shows. reconnected is when the
+// watcher last reconnected this standstill, and the next timeout counts from
+// there.
 type stallSample struct {
-	loaded int64
-	since  time.Time
+	loaded      int64
+	since       time.Time
+	reconnected time.Time
 }
 
 var (
@@ -86,16 +95,22 @@ func (a *App) stallWatchLoop() {
 }
 
 // stallPass is one look at everything running: mark what has stopped, clear
-// what has started again, and restart what the settings say to restart. now is
-// a parameter so a test can drive a long standstill instantly.
+// what has started again, and reconnect or restart what the settings say to.
+// now is a parameter so a test can drive a long standstill instantly.
 func (a *App) stallPass(now time.Time) {
 	a.mu.Lock()
-	changed, restart := a.markStallsLocked(now)
+	changed, reconnect, restart := a.markStallsLocked(now)
 	a.mu.Unlock()
 	if len(changed) > 0 {
 		a.publishTasks(changed)
 	}
-	// Off the lock: a restart talks to the backend.
+	// Off the lock: both talk to the backend. Not App.Pause and App.Resume,
+	// which would give the slot away and send the task through the queue.
+	for _, id := range reconnect {
+		if a.Engine.Reconnect(id) {
+			log.Printf("task %s moved no bytes, so its connections were opened again", id)
+		}
+	}
 	for _, id := range restart {
 		a.restartStalled(id)
 	}
@@ -103,8 +118,8 @@ func (a *App) stallPass(now time.Time) {
 
 // markStallsLocked writes the mark onto what has stopped moving and takes it
 // off what has started again, and reports which tasks the settings want
-// restarted. Caller holds a.mu.
-func (a *App) markStallsLocked(now time.Time) (changed []core.Task, restart []string) {
+// reconnected and which restarted. Caller holds a.mu.
+func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, restart []string) {
 	st := a.stallStateFor()
 	cfg := a.Settings.Get()
 	timeout := time.Duration(cfg.StallTimeout) * time.Second
@@ -124,7 +139,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, restart []st
 	}
 	if timeout <= 0 {
 		clear(st.seen)
-		return changed, nil
+		return changed, nil, nil
 	}
 	// Keep seen the size of the running set.
 	for id := range st.seen {
@@ -160,7 +175,11 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, restart []st
 			}
 			continue
 		}
-		if now.Sub(prev.since) < timeout {
+		due := prev.since
+		if prev.reconnected.After(due) {
+			due = prev.reconnected
+		}
+		if now.Sub(due) < timeout {
 			continue
 		}
 		if t.StalledSince.IsZero() {
@@ -170,11 +189,19 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, restart []st
 			changed = append(changed, *t)
 			log.Printf("task %s has moved no bytes for %s", id, now.Sub(prev.since).Truncate(time.Second))
 		}
-		if a.stallRestartDueLocked(t, cfg) {
+		// A reconnect keeps the bytes, so it comes first. A standstill it did
+		// not end is restarted when the restart is switched on.
+		restartDue := a.stallRestartDueLocked(t, cfg)
+		switch {
+		case cfg.StallReconnect && a.Engine.Reconnectable(id) && (prev.reconnected.IsZero() || !restartDue):
+			reconnect = append(reconnect, id)
+			prev.reconnected = now
+			st.seen[id] = prev
+		case restartDue:
 			restart = append(restart, id)
 		}
 	}
-	return changed, restart
+	return changed, reconnect, restart
 }
 
 // stallRestartDueLocked reports whether this marked task should be handed back
@@ -199,11 +226,11 @@ func (a *App) stallRestartDueLocked(t *core.Task, cfg settings.Settings) bool {
 // restartStalled hands one stalled transfer back to the wait queue and starts
 // it over.
 //
-// It restarts the way RestartTasks does rather than pausing and resuming, since
-// a resume asks the dead connection to carry on. The bytes fetched so far are
-// dropped, which is why this is opt-in and capped by settings.StallMaxRestarts.
-// The checks are repeated under the lock because the task may have been paused,
-// deleted, finished or started moving since the pass decided.
+// It restarts the way RestartTasks does. The bytes fetched so far are dropped,
+// which is why this is opt-in, waits for a reconnect to have failed where one
+// is possible, and is capped by settings.StallMaxRestarts. The checks are
+// repeated under the lock because the task may have been paused, deleted,
+// finished or started moving since the pass decided.
 func (a *App) restartStalled(id string) {
 	a.mu.Lock()
 	t := a.tasks[id]

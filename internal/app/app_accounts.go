@@ -42,7 +42,7 @@ import (
 // at the same priority in routedAccounts' order, so the fallback chain tries a
 // second key of a service before moving on to the next service.
 func (a *App) rewireBackends() {
-	eng := a.Engine
+	eng := engineHandoff{a.Engine, a}
 
 	// The first routed TorBox key is used to ask which hosts TorBox supports.
 	// The list is the same for every key, so it is fetched once.

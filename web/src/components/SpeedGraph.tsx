@@ -13,7 +13,7 @@ import { fmtRate, fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { isLeet } from '../lib/leet';
 import { useUIState } from '../lib/uistate';
-import { useSpeedWindow, type SpeedScale, type SpeedWindow } from '../lib/speedHistory';
+import { stepOf, useSpeedWindow, type SpeedScale, type SpeedWindow } from '../lib/speedHistory';
 import { InfoBubble } from './ui';
 import { Tabs } from './Tabs';
 
@@ -22,6 +22,34 @@ import { Tabs } from './Tabs';
 
 // The server's whole coarse ring: one point per ten seconds for an hour.
 const HOUR_POINTS = 360;
+
+// The server's fine ring, one point per second, covers this many seconds. A
+// longer window reads the coarse ring.
+const FINE_SPAN_S = 120;
+
+/** What the shell meter's window may be, in seconds: up to the coarse ring's hour. */
+export const METER_WINDOW = { min: 10, max: HOUR_POINTS * stepOf('hour'), fallback: 30 };
+
+/**
+ * meterWindow turns a stored or typed window into one the meter draws: whole
+ * seconds below a minute and half minutes from there. Past the fine ring that
+ * is also what the coarse one needs, a whole number of its ten-second steps.
+ */
+export function meterWindow(seconds: number): number {
+  const s = Math.min(METER_WINDOW.max, Math.max(METER_WINDOW.min, seconds));
+  return s < 60 ? Math.round(s) : Math.round(s / 30) * 30;
+}
+
+/**
+ * useMeterWindow is the shell meter's window in seconds, kept in the interface
+ * state like the Overview curve's. The stored field is read as a number, since
+ * the server keeps whatever it was sent.
+ */
+export function useMeterWindow(): [number, (seconds: number) => void] {
+  const [stored, setStored] = useUIState<unknown>('shell.speedWindow', METER_WINDOW.fallback);
+  const seconds = typeof stored === 'number' && Number.isFinite(stored) ? meterWindow(stored) : METER_WINDOW.fallback;
+  return [seconds, setStored];
+}
 
 // The top of the plot never drops below this, so a blip near idle does not fill
 // the box and a small transfer looks small.
@@ -314,11 +342,12 @@ function Curve({
 /**
  * spanLabel labels the left end of the time axis with the span the plot
  * covers. A window that is not full yet draws from the right and leaves the
- * rest empty. The units are fmtEta's, untranslated symbols.
+ * rest empty. The units are fmtEta's, untranslated symbols, and switch where
+ * the meter's window field switches, so a window of 1.5 min reads -1.5min.
  */
-function spanLabel(seconds: number): string {
-  if (seconds < 120) return `-${seconds}s`;
-  if (seconds < 3600) return `-${Math.round(seconds / 60)}m`;
+export function spanLabel(seconds: number): string {
+  if (seconds < 60) return `-${seconds}s`;
+  if (seconds < 3600) return `-${Math.round(seconds / 6) / 10}min`;
   return `-${Math.round(seconds / 360) / 10}h`;
 }
 
@@ -420,23 +449,18 @@ function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: numb
 }
 
 /**
- * SpeedMeter is the shell-bar reading: the last half-minute as a curve that
- * takes the rest of the bar's row, newest sample on its right edge, with the
- * current figure above that end and the top of the plot above the other.
- * `instance` is the shell's scope, which can be a peer; only scope '' is
- * seeded, since /api/stats/speed is not forwarded, so a peer's curve starts
- * empty and grows in from the right.
+ * SpeedMeter is the shell-bar reading: the window the quick settings choose
+ * as a curve that takes the rest of the bar's row, newest sample on its right
+ * edge, with the current figure above that end and the top of the plot above
+ * the other. `instance` is the shell's scope, which can be a peer; only scope
+ * '' is seeded, since /api/stats/speed is not forwarded, so a peer's curve
+ * starts empty and grows in from the right.
  */
-export function SpeedMeter({
-  value,
-  points = 30,
-  instance = '',
-}: {
-  value: number;
-  points?: number;
-  instance?: string;
-}) {
-  const win = useSpeedWindow(instance, value, points + OFFSTAGE, 'minute');
+export function SpeedMeter({ value, instance = '' }: { value: number; instance?: string }) {
+  const [seconds] = useMeterWindow();
+  const scale: SpeedScale = seconds > FINE_SPAN_S ? 'hour' : 'minute';
+  const points = seconds / stepOf(scale);
+  const win = useSpeedWindow(instance, value, points + OFFSTAGE, scale);
   const ceiling = useMemo(() => ceilingOf(win.samples), [win.samples]);
   const svg = useRef<SVGSVGElement>(null);
   const { w, h } = usePixelBox(svg);
@@ -448,9 +472,9 @@ export function SpeedMeter({
     // self-stretch and no h-full: a percentage height would take the meter out
     // of the stretch against the card's indefinite height. The negative margin
     // lays the figures into the card's padding, so the plot reaches nearer the
-    // card's edges than the squares do; min-h-20 is what makes the card taller
+    // card's edges than the squares do; min-h-22 is what makes the card taller
     // than the squares.
-    <span dir="ltr" className="-my-2 flex min-h-20 min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
+    <span dir="ltr" className="-my-2 flex min-h-22 min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
       <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
         <span className="glim-num text-[11px] text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
         <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtRate(value)}</span>

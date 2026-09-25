@@ -348,3 +348,72 @@ func TestASetAsideVariantRowAndItsBitrateSurviveARestart(t *testing.T) {
 		t.Errorf("audio bitrate = %q, want %q", all[0].AudioBitrate, "160")
 	}
 }
+
+// The file a task wrote is how the next attempt after a restart knows which
+// half-written file is its own, so it has to come back from the database.
+func TestTheFileATaskWroteSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	written := filepath.Join(dir, "downloads", "set.part3 (1).rar")
+	task := core.Task{
+		ID: "f1", URL: "https://host.example/set.part3.rar", Name: "set.part3.rar", CreatedAt: time.Now(),
+		Status: core.StatusRunning, File: written,
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if all[0].File != written {
+		t.Errorf("file = %q, want %q", all[0].File, written)
+	}
+}
+
+// A backend somebody chose for a download is their decision, and a restart
+// must not hand the download back to the ranking.
+func TestAPinnedBackendSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task := core.Task{
+		ID: "p1", URL: "https://rapidgator.net/file/abc", CreatedAt: time.Now(),
+		Status: core.StatusPaused, ResolverPin: "debridlink#work",
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if all[0].ResolverPin != "debridlink#work" {
+		t.Errorf("pin = %q after a restart, want debridlink#work", all[0].ResolverPin)
+	}
+}

@@ -94,7 +94,7 @@ func TestAHostWithoutCodecsStillOffersItsTracks(t *testing.T) {
 }
 
 func TestAudioTracksListsEveryDistinctTrackHighestBitrateFirst(t *testing.T) {
-	want := []string{"opus 160k", "m4a 129k", "opus 70k", "m4a 49k"}
+	want := []string{"opus 160k", "aac 129k", "opus 70k", "aac 49k"}
 	if got := AudioTracks(youtubeLike); !reflect.DeepEqual(got, want) {
 		t.Errorf("AudioTracks = %v, want %v", got, want)
 	}
@@ -109,7 +109,7 @@ func TestAudioTracksLeavesOutATrackWithoutABitrate(t *testing.T) {
 }
 
 func TestAudioFormatsOfListsEachCodecTheSourceCarriesAfterBest(t *testing.T) {
-	if got, want := AudioFormatsOf(youtubeLike), []string{"best", "m4a", "opus"}; !reflect.DeepEqual(got, want) {
+	if got, want := AudioFormatsOf(youtubeLike), []string{"best", "aac", "opus"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("AudioFormatsOf = %v, want %v", got, want)
 	}
 	// A track without a bitrate still makes its format available, and a codec
@@ -300,23 +300,24 @@ func TestAPickedAudioTrackIsCopiedNotConverted(t *testing.T) {
 }
 
 func TestAPickedAudioTrackStillHonoursTheLanguage(t *testing.T) {
-	got, _ := valueAfter(buildArgs("d", Options{Variant: VariantAudio, AudioTrack: "m4a 129k", AudioLang: "de"}), "-f")
+	got, _ := valueAfter(buildArgs("d", Options{Variant: VariantAudio, AudioTrack: "aac 129k", AudioLang: "de"}), "-f")
 	band := "[acodec~='(?i)^(mp4a|aac)'][abr>=128.5][abr<129.5]"
 	if want := "ba[language^=de]" + band + "/ba" + band; got != want {
 		t.Errorf("-f = %q, want %q", got, want)
 	}
 }
 
-// Asked for m4a, a source with an AAC track has it copied; only a source
+// Asked for AAC, a source with an AAC track has it copied; only a source
 // without one is converted, which is what --audio-format does on its own.
 func TestAnAudioFormatTakesTheSourcesOwnTrackBeforeConverting(t *testing.T) {
-	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "m4a"})
+	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "aac"})
 	got, _ := valueAfter(args, "-f")
 	if want := "ba[acodec~='(?i)^(mp4a|aac)']/bestaudio/best"; got != want {
 		t.Errorf("-f = %q, want %q", got, want)
 	}
+	// yt-dlp's "aac" would write a bare ADTS stream and name it .m4a.
 	if got, _ := valueAfter(args, "--audio-format"); got != "m4a" {
-		t.Errorf("--audio-format = %q, want m4a", got)
+		t.Errorf("--audio-format = %q, want m4a, which writes AAC into an MP4 container", got)
 	}
 	withLang, _ := valueAfter(buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "opus", AudioLang: "de"}), "-f")
 	if want := "ba[language^=de][acodec~='(?i)^opus']/ba[acodec~='(?i)^opus']/bestaudio[language^=de]/bestaudio/best"; withLang != want {
@@ -324,16 +325,50 @@ func TestAnAudioFormatTakesTheSourcesOwnTrackBeforeConverting(t *testing.T) {
 	}
 }
 
-// yt-dlp writes both into an .m4a file, so they are one choice.
-func TestAacIsReadAsM4a(t *testing.T) {
-	if got := (Options{AudioFormat: "aac"}).Sanitize().AudioFormat; got != "m4a" {
-		t.Errorf("Sanitize kept AudioFormat %q, want m4a", got)
+// AAC is offered by its codec's name like every other audio format, and is
+// written into an .m4a file whether its track is copied or converted to.
+func TestAacIsOfferedAndWrittenAsM4a(t *testing.T) {
+	if !slices.Contains(AudioFormats(), "aac") {
+		t.Errorf("AudioFormats = %v, want aac among them", AudioFormats())
 	}
-	if got := (HosterPreset{AudioFormat: "aac"}).Sanitize().AudioFormat; got != "m4a" {
-		t.Errorf("a preset kept AudioFormat %q, want m4a", got)
+	if ext, size := AudioFile("aac", youtubeLike); ext != "m4a" || size != 3000 {
+		t.Errorf("AudioFile(aac) = %q, %d; want the AAC track copied into m4a, 3000 bytes", ext, size)
 	}
-	if got, _ := ResolveAudioPick("aac", "", youtubeLike); got != "m4a" {
-		t.Errorf("ResolveAudioPick(aac) = %q, want m4a", got)
+	onlyOpus := []FormatEntry{{Ext: "webm", Vcodec: "none", Acodec: "opus", Abr: 160, Filesize: 3500}}
+	if ext, size := AudioFile("aac", onlyOpus); ext != "m4a" || size != 0 {
+		t.Errorf("AudioFile(aac) from opus = %q, %d; want a conversion into m4a of unknown size", ext, size)
+	}
+	if got := AudioFormatExt("aac"); got != "m4a" {
+		t.Errorf("AudioFormatExt(aac) = %q, want m4a", got)
+	}
+}
+
+// A row or preset that names AAC by its file's extension means the same audio.
+func TestM4aIsReadAsAac(t *testing.T) {
+	if got := (Options{AudioFormat: "m4a"}).Sanitize().AudioFormat; got != "aac" {
+		t.Errorf("Sanitize kept AudioFormat %q, want aac", got)
+	}
+	if got := (HosterPreset{AudioFormat: "m4a"}).Sanitize().AudioFormat; got != "aac" {
+		t.Errorf("a preset kept AudioFormat %q, want aac", got)
+	}
+	if got, _ := ResolveAudioPick("m4a", "", youtubeLike); got != "aac" {
+		t.Errorf("ResolveAudioPick(m4a) = %q, want aac", got)
+	}
+	if got, _ := ResolveAudioPick("m4a 129k", "", youtubeLike); got != "aac 129k" {
+		t.Errorf("ResolveAudioPick(m4a 129k) = %q, want aac 129k", got)
+	}
+	if ext, size := AudioFile("m4a 129k", youtubeLike); ext != "m4a" || size != 3000 {
+		t.Errorf("AudioFile(m4a 129k) = %q, %d; want the 129k AAC track's m4a, 3000 bytes", ext, size)
+	}
+	old, _ := valueAfter(buildArgs("d", Options{Variant: VariantAudio, AudioTrack: "m4a 129k"}), "-f")
+	now, _ := valueAfter(buildArgs("d", Options{Variant: VariantAudio, AudioTrack: "aac 129k"}), "-f")
+	if old != now {
+		t.Errorf("-f for m4a 129k = %q, want what aac 129k selects, %q", old, now)
+	}
+	// A row whose link no probe has answered since reaches the download as m4a.
+	stored := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "m4a"})
+	if picked := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "aac"}); !slices.Equal(stored, picked) {
+		t.Errorf("args for m4a = %v, want those for aac, %v", stored, picked)
 	}
 }
 
@@ -343,7 +378,7 @@ func TestAPresetBitrateResolvesToTheNearestTrackOfItsFormat(t *testing.T) {
 		wantPick, wantBitrate string
 	}{
 		{"opus", "128", "opus 160k", ""},
-		{"m4a", "64", "m4a 49k", ""},
+		{"aac", "64", "aac 49k", ""},
 		// Equally far from both: the higher one.
 		{"opus", "115", "opus 160k", ""},
 		// Nothing asked for: the best track of the format, at download time.
@@ -351,7 +386,7 @@ func TestAPresetBitrateResolvesToTheNearestTrackOfItsFormat(t *testing.T) {
 		// A format the source lacks stays a conversion at that bitrate.
 		{"mp3", "192", "mp3", "192"},
 		{"best", "128", "best", "128"},
-		{"m4a 49k", "", "m4a 49k", ""},
+		{"aac 49k", "", "aac 49k", ""},
 	}
 	for _, c := range cases {
 		gotPick, gotBitrate := ResolveAudioPick(c.pick, c.bitrate, youtubeLike)
@@ -470,11 +505,11 @@ func TestAudioFilePredictsTheExtensionAndTheCopiedTracksSize(t *testing.T) {
 		ext  string
 		size int64
 	}{
-		{"m4a 129k", "m4a", 3000},
+		{"aac 129k", "m4a", 3000},
 		{"opus 70k", "opus", 1600},
 		// A format alone is its best track.
 		{"opus", "opus", 3500},
-		{"m4a", "m4a", 3000},
+		{"aac", "m4a", 3000},
 		// Without a probe mark, best is the highest bitrate.
 		{"best", "opus", 3500},
 		// A conversion's size is the encoder's to decide.

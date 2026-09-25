@@ -13,7 +13,7 @@
 // Per-download routing works by naming a proxy on the download request itself,
 // and gopeed resolves the request's proxy instead of the global one rather
 // than in addition to it, so a routed download does not come past here and is
-// not metered (see Engine.DownloadVia). Carrying an upstream proxy per
+// not metered (see engine.Job.Route). Carrying an upstream proxy per
 // download would need this one listener to know which download each connection
 // belongs to, and a request says nothing about that; the arrangement that
 // answers it is a listener per task.
@@ -33,11 +33,23 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
 )
 
+// idleTimeout is how long a server may send nothing before the proxy closes the
+// connection on both sides. The download engine waits for response headers
+// without any limit of its own, and a closed connection is what makes it ask
+// for the rest of the file again, keeping what it has.
+//
+// A debrid server may take a while to start streaming a file it does not have
+// cached yet. Two minutes is longer than the CDNs in front of such servers wait
+// for them (Cloudflare gives up after 100 s), so a slow start has answered or
+// failed by then.
+const idleTimeout = 2 * time.Minute
+
 // Server is the loopback proxy.
 type Server struct {
-	ln  net.Listener
-	lim *throttle.Limiter
-	srv *http.Server
+	ln   net.Listener
+	lim  *throttle.Limiter
+	srv  *http.Server
+	idle time.Duration
 
 	transport *http.Transport
 
@@ -47,19 +59,25 @@ type Server struct {
 
 // Start brings the proxy up on a free loopback port.
 func Start(lim *throttle.Limiter) (*Server, error) {
+	return start(lim, idleTimeout)
+}
+
+func start(lim *throttle.Limiter, idle time.Duration) (*Server, error) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
 	}
 	s := &Server{
-		ln:  ln,
-		lim: lim,
+		ln:   ln,
+		lim:  lim,
+		idle: idle,
 		transport: &http.Transport{
 			Proxy:                 nil, // we are the proxy; never chain into ourselves
 			DialContext:           (&net.Dialer{Timeout: 30 * time.Second}).DialContext,
 			MaxIdleConnsPerHost:   32,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   15 * time.Second,
+			ResponseHeaderTimeout: idle,
 			ExpectContinueTimeout: time.Second,
 			ForceAttemptHTTP2:     true,
 		},
@@ -133,8 +151,26 @@ func (s *Server) tunnel(w http.ResponseWriter, r *http.Request) {
 	done := make(chan struct{}, 2)
 	// Upload is not metered: the limit is about download bandwidth.
 	go func() { _, _ = io.Copy(upstream, client); done <- struct{}{} }()
-	go func() { _, _ = s.lim.Copy(ctx, client, upstream); done <- struct{}{} }()
+	go func() {
+		_, _ = s.lim.Copy(ctx, client, idleReader{conn: upstream, idle: s.idle})
+		done <- struct{}{}
+	}()
 	<-done
+}
+
+// idleReader gives every read from conn its own deadline. The throttle reads
+// only once it has paid for the previous read and no pause holds it, so the
+// clock never runs while the limit is what keeps the bytes back.
+type idleReader struct {
+	conn net.Conn
+	idle time.Duration
+}
+
+func (r idleReader) Read(p []byte) (int, error) {
+	if err := r.conn.SetReadDeadline(time.Now().Add(r.idle)); err != nil {
+		return 0, err
+	}
+	return r.conn.Read(p)
 }
 
 // forward handles plain HTTP proxy requests.
@@ -162,6 +198,11 @@ func (s *Server) forward(w http.ResponseWriter, r *http.Request) {
 	}
 	stripHopByHop(h)
 	w.WriteHeader(resp.StatusCode)
+	// The headers go out now, not with the first body bytes. A server that goes
+	// quiet after its headers then leaves the client reading a body, which it
+	// gives up on after a while, instead of waiting for headers, which it does
+	// without a limit.
+	_ = http.NewResponseController(w).Flush()
 	if _, err := s.lim.Copy(r.Context(), w, resp.Body); err != nil && !errors.Is(err, context.Canceled) {
 		return
 	}

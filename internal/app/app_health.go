@@ -1,8 +1,9 @@
 package app
 
 // Account health: a failed service call benches the account, not just the task
-// it happened on, and a single probe clears the bench when it expires. The
-// state machine is internal/accounts/health.go. This is unrelated to
+// it happened on, and a single probe clears the bench when it expires. A
+// service that has only switched off one site is benched for that site alone.
+// The state machine is internal/accounts/health.go. This is unrelated to
 // AccountHealth in app_accounts.go (tier, traffic and expiry), which is why
 // everything here is named acctHealth*, accountRoutable* or bench*.
 //
@@ -19,6 +20,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
@@ -66,20 +68,74 @@ func (a *App) accountRoutableLocked(resolverID string) bool {
 	return a.acctHealthTracker().Usable(svc, acct)
 }
 
-// hasUnroutableMatchLocked reports whether url matches at least one registered
-// resolver but every match is currently unroutable. dispatchLocked then keeps
-// the task queued instead of failing it with "no resolver matches".
-func (a *App) hasUnroutableMatchLocked(url string) bool {
-	chain := a.Registry.All(url)
+// routableForLocked is accountRoutableLocked for one link: the account must be
+// usable, and the service must not have switched off the link's site. Caller
+// holds a.mu.
+func (a *App) routableForLocked(resolverID, url string) bool {
+	return a.accountRoutableLocked(resolverID) && !a.siteBenchedLocked(resolverID, url)
+}
+
+// hasUnroutableMatchLocked reports whether the task's link matches at least
+// one resolver still open to it (see chainFromLocked) but every such match is
+// currently unroutable. dispatchLocked then keeps the task queued instead of
+// failing it with "no resolver matches".
+func (a *App) hasUnroutableMatchLocked(t *core.Task) bool {
+	chain := a.chainFromLocked(t, rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder))
 	if len(chain) == 0 {
 		return false
 	}
 	for _, res := range chain {
-		if a.accountRoutableLocked(res.Info().ID) {
+		if a.routableForLocked(res.Info().ID, t.URL) {
 			return false
 		}
 	}
 	return true
+}
+
+// serviceSite is one service at one site. A service switches a site off for
+// every account, so the bench covers all of its slots.
+type serviceSite struct{ service, site string }
+
+func serviceSiteOf(resolverID, url string) serviceSite {
+	service, _ := resolver.SplitSlot(resolverID)
+	return serviceSite{service, siteOf(url)}
+}
+
+// siteBenchLength is how long a service is passed over for a site it said it
+// has switched off. The site comes back on the service's own schedule, and the
+// next link after the bench finds out with one call. A var so tests need not
+// wait it out.
+var siteBenchLength = benchBase
+
+// siteOf names a link's site by its main domain, so rg.to and rapidgator.net
+// are benched together.
+func siteOf(url string) string { return hostalias.Canonical(hostOf(url)) }
+
+// benchSiteLocked passes resolverID's service over for url's site for
+// siteBenchLength, leaving its accounts and every other site alone, and
+// dispatches once the bench is over so a task held for it goes back. A bench
+// already running keeps its end. Caller holds a.mu.
+func (a *App) benchSiteLocked(resolverID, url string) {
+	if a.siteBenchedLocked(resolverID, url) {
+		return
+	}
+	key := serviceSiteOf(resolverID, url)
+	a.siteBench[key] = time.Now().Add(siteBenchLength)
+	log.Printf("%s has switched off %s; other backends take its links for %s", key.service, key.site, siteBenchLength)
+	// As with scheduleProbe, a.spawn refuses the work once shutdown has begun.
+	time.AfterFunc(siteBenchLength, func() {
+		a.spawn(func() {
+			a.mu.Lock()
+			a.dispatchLocked()
+			a.mu.Unlock()
+		})
+	})
+}
+
+// siteBenchedLocked reports whether resolverID's service is passed over for
+// url's site. Caller holds a.mu.
+func (a *App) siteBenchedLocked(resolverID, url string) bool {
+	return time.Now().Before(a.siteBench[serviceSiteOf(resolverID, url)])
 }
 
 // benchBase and benchMax bound one bench episode. Each probe is a real call

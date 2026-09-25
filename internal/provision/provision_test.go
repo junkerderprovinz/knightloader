@@ -43,6 +43,131 @@ func TestWriteAPIConfig(t *testing.T) {
 	}
 }
 
+const (
+	linkgrabberFile = "org.jdownloader.gui.views.linkgrabber.addlinksdialog.LinkgrabberSettings.json"
+	interfaceFile   = "org.jdownloader.settings.GraphicalUserInterfaceSettings.json"
+)
+
+// jdConfig writes one of JD's config files the way JD left it.
+func jdConfig(t *testing.T, dir, file, body string) {
+	t.Helper()
+	cfgDir := filepath.Join(dir, "cfg")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cfgDir, file), []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// readJDConfig reads one of JD's config files back, each value as written.
+func readJDConfig(t *testing.T, dir, file string) map[string]json.RawMessage {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(dir, "cfg", file))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg map[string]json.RawMessage
+	if err := json.Unmarshal(b, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	return cfg
+}
+
+// A headless JD has nobody to answer "add these links again?", so a link it
+// already holds would wait for an answer that never comes. The settings JD
+// wrote into the same file stay as they were.
+func TestConfirmAnswersAddDuplicatesWithoutAsking(t *testing.T) {
+	dir := t.TempDir()
+	jdConfig(t, dir, linkgrabberFile, `{"defaultonaddeddupeslinksaction":"ASK","linkgrabberautostartenabled":true}`)
+
+	if err := New(dir).WriteConfirmAnswers(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := readJDConfig(t, dir, linkgrabberFile)
+	if got := string(cfg["defaultonaddeddupeslinksaction"]); got != `"INCLUDE"` {
+		t.Errorf("defaultonaddeddupeslinksaction = %s, want INCLUDE", got)
+	}
+	if got := string(cfg["linkgrabberautostartenabled"]); got != "true" {
+		t.Errorf("linkgrabberautostartenabled = %s, want JD's own true kept", got)
+	}
+}
+
+// An offline link would otherwise wait for somebody to choose between keeping
+// it and dropping it. It stays in the grabber, where the jd backend reads JD's
+// verdict and fails the download.
+func TestConfirmAnswersKeepOfflineLinksWithoutAsking(t *testing.T) {
+	dir := t.TempDir()
+	jdConfig(t, dir, linkgrabberFile, `{"defaultonaddedofflinelinksaction":"ASK"}`)
+
+	if err := New(dir).WriteConfirmAnswers(); err != nil {
+		t.Fatal(err)
+	}
+	if got := string(readJDConfig(t, dir, linkgrabberFile)["defaultonaddedofflinelinksaction"]); got != `"EXCLUDE_OFFLINE"` {
+		t.Errorf("defaultonaddedofflinelinksaction = %s, want EXCLUDE_OFFLINE", got)
+	}
+}
+
+// KnightLoader hands JD one link per download, so every part of a multi-part
+// archive reaches JD's confirm as an incomplete archive, and the question
+// would hold that confirm back.
+func TestConfirmAnswersMoveIncompleteArchivesWithoutAsking(t *testing.T) {
+	dir := t.TempDir()
+	jdConfig(t, dir, interfaceFile, `{"confirmincompletearchiveaction":"ASK","speedmetervisible":false}`)
+
+	if err := New(dir).WriteConfirmAnswers(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := readJDConfig(t, dir, interfaceFile)
+	if got := string(cfg["confirmincompletearchiveaction"]); got != `"MOVE_TO_DOWNLOADLIST"` {
+		t.Errorf("confirmincompletearchiveaction = %s, want MOVE_TO_DOWNLOADLIST", got)
+	}
+	if got := string(cfg["speedmetervisible"]); got != "false" {
+		t.Errorf("speedmetervisible = %s, want JD's own false kept", got)
+	}
+}
+
+// JD's own values go back exactly as JD wrote them. A number past what a
+// float64 holds, or one written in a form Go would print differently, must not
+// change on the way through.
+func TestConfirmAnswersKeepJDsValuesVerbatim(t *testing.T) {
+	dir := t.TempDir()
+	jdConfig(t, dir, linkgrabberFile, `{"autoconfirmdelay":15000,"lastselection":9007199254740993}`)
+
+	if err := New(dir).WriteConfirmAnswers(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := readJDConfig(t, dir, linkgrabberFile)
+	if got := string(cfg["lastselection"]); got != "9007199254740993" {
+		t.Errorf("lastselection = %s, want JD's 9007199254740993", got)
+	}
+	if got := string(cfg["autoconfirmdelay"]); got != "15000" {
+		t.Errorf("autoconfirmdelay = %s, want JD's 15000", got)
+	}
+}
+
+func TestConfirmAnswersOnAFreshInstall(t *testing.T) {
+	dir := t.TempDir()
+	if err := New(dir).WriteConfirmAnswers(); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]map[string]string{
+		linkgrabberFile: {
+			"defaultonaddeddupeslinksaction":   `"INCLUDE"`,
+			"defaultonaddedofflinelinksaction": `"EXCLUDE_OFFLINE"`,
+		},
+		interfaceFile: {"confirmincompletearchiveaction": `"MOVE_TO_DOWNLOADLIST"`},
+	}
+	for file, keys := range want {
+		cfg := readJDConfig(t, dir, file)
+		for k, v := range keys {
+			if got := string(cfg[k]); got != v {
+				t.Errorf("%s: %s = %s, want %s", file, k, got, v)
+			}
+		}
+	}
+}
+
 func TestFindJavaFromJavaHome(t *testing.T) {
 	// Build a fake JAVA_HOME with a bin/java(.exe) file and confirm it's found.
 	home := t.TempDir()

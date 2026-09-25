@@ -432,12 +432,14 @@ export function Tabs(props: TabsProps) {
         // line, with about 5px above and below. At 40px with the row's 15px
         // label, the label gets a 6px sliver.
         const captioned = stacked && labelOnHover;
+        // A filling tile grows from zero rather than from its content, so a
+        // label on two lines does not make its tile taller than the rest.
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
-              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-0.5'}
-              ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 ${stacked ? 'basis-0' : 'basis-auto'}` : ''}
+              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
+              ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${look} ${grip}`
           : isWell
@@ -464,14 +466,17 @@ export function Tabs(props: TabsProps) {
             {(showLabel || glyphless) && (
               // A well segment can grow taller, so it wraps. A rail tile beside
               // its glyph takes a second line where its name needs one, split
-              // evenly and set close, so two lines fit the 40px every tile has.
-              // Elsewhere the row height is fixed, so the label truncates.
+              // evenly. A 20px line is what the font asks for at 15px, so two
+              // lines fill the 40px every tile has without cutting a descender,
+              // and the clip reaches 3px further for the marks that Arabic and
+              // Devanagari set outside the line. Elsewhere the row height is
+              // fixed, so the label truncates.
               <span
                 className={`${
                   isWell
                     ? 'text-pretty break-words'
                     : vertical && !stacked
-                      ? 'line-clamp-2 break-words text-balance leading-[18px]'
+                      ? 'line-clamp-2 overflow-clip [overflow-clip-margin:3px] break-words text-balance leading-5'
                       : 'truncate'
                 } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >

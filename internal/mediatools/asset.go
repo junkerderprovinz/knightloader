@@ -38,12 +38,15 @@ func candidates() []string {
 			return []string{"yt-dlp"}
 		}
 	case "windows":
-		if runtime.GOARCH == "amd64" {
-			return []string{"yt-dlp.exe"}
-		}
 		// No zipapp fallback on Windows: the bare `yt-dlp` asset has no .exe
 		// extension and Windows will not execute it as a program, so offering
 		// it would only produce a confusing second failure after the first.
+		switch runtime.GOARCH {
+		case "amd64":
+			return []string{"yt-dlp.exe"}
+		case "arm64":
+			return []string{"yt-dlp_arm64.exe"}
+		}
 		return nil
 	case "darwin":
 		// One universal build for both arches, the shape internal/update's

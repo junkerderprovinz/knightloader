@@ -9,13 +9,13 @@ const MIN_TIMEOUT = 60;
 const MAX_TIMEOUT = 86400;
 const MAX_RESTARTS = 20;
 
-// What the switch writes the first time on an install that never set a
-// timeout; the server's default stays 0 (off).
-const FIRST_TIMEOUT = 300;
+// What the switch writes when it is turned on with no earlier number to go
+// back to: the server's DefaultStallTimeout.
+const FIRST_TIMEOUT = 120;
 
 /**
- * StallCard sets the mark for a download that is running at 0 B/s and the
- * optional restart that follows it.
+ * StallCard sets the mark for a download that is running at 0 B/s, the new
+ * connections that follow it and the optional restart after that.
  */
 export function StallCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -34,7 +34,7 @@ export function StallCard({ hue }: { hue: number }) {
       return;
     }
     setLastTimeout(cfg.stallTimeout);
-    // The restart settings keep their values while the mark is off.
+    // The switches below keep their values while the mark is off.
     patch({ stallTimeout: 0 });
   };
 
@@ -65,10 +65,20 @@ export function StallCard({ hue }: { hue: number }) {
           />
         </Field>
 
+        {/* Only what the built-in engine fetches gets new connections
+            (app.markStallsLocked). */}
+        <ToggleRow
+          hue={1}
+          checked={cfg.stallReconnect}
+          onChange={(v) => patch({ stallReconnect: v })}
+          label={t('settings.stall.reconnect')}
+          hint={t('settings.stall.reconnectHint')}
+        />
+
         {/* A switch of its own, since a restart throws away fetched bytes.
             The server exempts torrents (app.stallRestartDueLocked). */}
         <ToggleRow
-          hue={1}
+          hue={2}
           checked={cfg.stallRestart}
           onChange={(v) => patch({ stallRestart: v })}
           label={t('settings.stall.restart')}

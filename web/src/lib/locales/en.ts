@@ -28,7 +28,7 @@ export const en = {
   'status.queued': 'Queued',
   'status.running': 'Downloading',
   'status.paused': 'Paused',
-  'status.extracting': 'Extracting',
+  'status.extracting': 'Unpacking',
   'status.done': 'Done',
   'status.error': 'Error',
 
@@ -158,7 +158,7 @@ export const en = {
   'settings.maxConcurrentHint': 'How many downloads run at the same time. Everything else waits its turn.',
   'settings.maxPerHost': 'Simultaneous downloads per hoster',
   'settings.maxPerHostHint': 'The ceiling for one single hoster, on top of the total above. Most hosters allow very few at once.',
-  'settings.speedLimit': 'Speed limit (KiB/s, 0 = ∞)',
+  'settings.globalSpeedLimit': 'Speed limit (0 = ∞)',
   'settings.speedHint': 'The limit for all downloads combined, applied while they run.',
   'settings.autoStart': 'Start added links immediately',
   'settings.autoStartHint': 'Links you add start downloading without waiting for you to confirm them in the collector. The countdown under Collector below sets how long they wait first.',
@@ -307,7 +307,6 @@ export const en = {
   'settings.bottomBarLabels.title': 'Bottom bar labels',
   'settings.bottomBarLabels.titleHint': 'How much of each entry the bar at the bottom of the window shows. The bar replaces the sidebar only in the phone layout, in a window narrower than 768 pixels, so on a wider screen this setting changes nothing. "Like the sidebar" uses the navigation labels setting.',
   'settings.bottomBarLabels.follow': 'Like the sidebar',
-  'queue.limitUnit': 'Unit',
 
   'common.show': 'Show',
   'common.hide': 'Hide',
@@ -441,7 +440,7 @@ export const en = {
   'menu.disable': 'Switch off',
   'menu.hold': 'Hold',
   'menu.release': 'Release',
-  'menu.unforce': 'Stop forcing',
+  'menu.unforce': 'Cancel start now',
   'menu.setFolder': 'Set download folder…',
   'menu.collapseAll': 'Collapse all packages',
   'menu.expandAll': 'Expand all packages',
@@ -1011,8 +1010,26 @@ export const en = {
   'task.moveDown': 'Move down',
   'menu.priority': 'Priority',
   'menu.move': 'Move',
-  'menu.forceStart': 'Force to the front',
-  'menu.queueStopped': 'Queue stopped',
+  'menu.forceStart': 'Start now',
+  'rename.menu': 'Rename…',
+  'rename.confirm': 'Rename',
+  'rename.linkTitle': 'Rename link',
+  'rename.packageTitle': 'Rename package',
+  'rename.linkHint':
+    'The name the file is saved under. A download that has already finished is renamed on disk as well, so the list and the folder agree. A name is not a path, so / and \\ are not allowed.',
+  'rename.packageHint':
+    'Where the download folder is named after the package, it takes the new name too, as long as nothing in the package has started downloading. A name is not a path, so / and \\ are not allowed.',
+  'rename.whenDone': 'This download is still running. The file takes the new name once it has finished.',
+  'rename.unpacking': 'This file is being unpacked. It can be renamed once unpacking has finished.',
+  'rename.remote': 'The JDownloader backend downloads this file on its own machine and names it itself, so it cannot be renamed from here.',
+  'rename.torrent': 'A torrent names its own files, so it cannot be renamed.',
+  'rename.volume': 'This file is one part of a multi-volume archive. The parts keep their names, or the archive could not be unpacked.',
+  'rename.keepsFolder':
+    'Part of this package has already been downloaded or is downloading. If its folder is named after the package, the folder keeps its name and only the package is renamed.',
+  'rename.separator': 'A name cannot contain / or \\.',
+  'rename.empty': 'A name cannot be empty.',
+  'rename.dots': 'A name needs more than dots.',
+  'rename.exists': 'A file called “{name}” is already in that folder. KnightLoader does not overwrite it.',
   'pkg.queueOrder': 'Move whole package',
 
   // The seven the queue backend reports, which is not the five the properties
@@ -1041,7 +1058,7 @@ export const en = {
     'These rows do not agree, so the box is empty. Left alone it changes nothing; type in it and every selected row gets what you typed.',
   'props.name': 'Name',
   'props.nameHint':
-    'One file name, never a path: anything spelling out folders is cut back to a single name. A download that has finished is renamed on disk too, so the list and the folder cannot disagree. One that is running keeps the file its backend has open and takes the new name when it finishes. One that has not started takes it straight away. A name belongs to one file, so this box is only offered for a single row.',
+    'One file name, never a path: a name with / or \\ in it is refused. A download that has finished is renamed on disk too, so the list and the folder cannot disagree. One that is running keeps the file its backend has open and takes the new name when it finishes. One that has not started takes it straight away. A name belongs to one file, so this box is only offered for a single row.',
   'props.comment': 'Comment',
   'props.commentHint': 'Your own note about this link. It is stored and shown in the list; nothing in the app acts on it.',
   'props.priority': 'Priority',
@@ -1053,6 +1070,10 @@ export const en = {
   'props.inherit': 'Inherit',
   'props.on': 'On',
   'props.off': 'Off',
+  'props.backend': 'Backend',
+  'props.backendAuto': 'Automatic',
+  'props.backendHint':
+    'Which service fetches these links. Automatic takes the first one in the priority order on the Accounts page that can take the link right now. A pinned link goes only to that service, and fails with the reason when the service cannot take it. A running download keeps its service. A paused one moves when you resume it, and starts from the beginning there.',
 
   'strip.label': 'Download totals',
   'strip.of': 'of',
@@ -1075,6 +1096,8 @@ export const en = {
     'Links you add start downloading without waiting for you to confirm them in the collector. How long they wait first is set on the {page} page.',
   'quick.idleCommandSetup': 'Set up the command on the Automation page',
   'quick.openPage': 'Open {page}',
+  'quick.speedWindowHint':
+    'How far back the speed curve in the bar reaches, from 10 seconds to an hour. Up to two minutes it draws one sample a second, beyond that one every ten seconds.',
 
   // The server-side folder chooser. It browses the machine the backend runs on,
   // which in a container is the only one that knows what is mounted where, so
@@ -1112,22 +1135,23 @@ export const en = {
   'folders.error.unreadable': 'KnightLoader may not open this folder. Check who owns it and its permissions.',
   'folders.error.roots': 'KL_BROWSE_ROOTS is set but names no absolute folder, so there is nothing to browse. Fix the variable and restart.',
 
-  // Unpacking as a job of its own, with progress and a stop button, rather than
-  // a word the download wears for a while. The states below name what the job
-  // is doing, so they read as verbs and not as a copy of the download statuses.
+  // An unpacking is a job of its own. Its state takes the place of "Done" in the
+  // status column on every file of the archive's set, so these words stand where
+  // the download statuses do and have to be about as short. They name what the
+  // unpacking is doing, not the download.
   //
   // Interpolation here is single-brace, like every other key in this file: t()
   // replaces {name}, and a doubled brace would survive into the UI.
   'archive.menu': 'Archive',
   'archive.unpackNow': 'Unpack now',
   'archive.stop': 'Stop unpacking',
-  'archive.title': 'Archives',
   'archive.queued': 'Waiting to unpack',
-  'archive.running': 'Unpacking',
+  'archive.unpackingAt': 'Unpacking {percent}',
+  'archive.unpacked': 'Unpacked',
   'archive.failed': 'Not unpacked',
-  'archive.progress': '{files} files · {bytes}',
   'archive.volumes': '{volumes} volumes',
   'archive.needsPassword': 'Needs a password',
+  'archive.tally': '{done} of {total} archives unpacked',
 
   // The archive settings page. The three policy strips are labelled by what the
   // extractor does and not by the id the server sends, but an id with no string
@@ -1394,6 +1418,7 @@ export const en = {
   'columns.variant.description': 'Description',
   'columns.variant.auto': 'Auto',
   'columns.variant.kbps': '{kbps} kbit/s',
+  'columns.variant.convertTo': 'Convert to',
 
   // Reaching a task's own file (components/FileActions.tsx). "Open" streams
   // it through the browser; the other two are desktop-only and carry their
@@ -1747,6 +1772,7 @@ export const en = {
   'settings.browsertools.qrCode': 'QR code',
   'settings.browsertools.desktopTitle': 'Desktop app',
   'settings.browsertools.desktopHint': 'KnightLoader as a program on your computer, with this interface in a window of its own. Every download is the newest release.',
+  'settings.browsertools.desktopArchHint': 'Windows and Linux each come in two builds: x64 for most PCs, and ARM64 for computers with an ARM processor, such as laptops with a Snapdragon chip. If your browser says which processor this computer has, the tiles give the matching build, otherwise x64. The buttons next to them give the other one. The macOS app runs on Intel and on Apple silicon.',
   'settings.browsertools.serverTitle': 'On a server',
   'settings.browsertools.serverHint': 'On a server KnightLoader keeps downloading while this computer is off. Install it from Unraid’s Community Applications, run it as a Docker container, or build it from the source code.',
   'settings.browsertools.dockerHint': 'A click copies the command that starts the container:',
@@ -1870,7 +1896,6 @@ export const en = {
   'settings.torrents.transferTitle': 'Transfer limit',
   'settings.torrents.uploadLimit': 'Upload limit',
   'settings.torrents.uploadLimitHint': 'Caps how fast a torrent uploads to the swarm while seeding. 0 = unlimited.',
-  'settings.torrents.uploadLimitUnit': 'KiB/s',
   'settings.torrents.portTitle': 'Port & mapping',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint':
@@ -1985,7 +2010,7 @@ export const en = {
   'settings.categories.dirHint': 'Where a download filed here lands. Empty means this category has no opinion and the global download folder applies. It may be a template like /media/serien/<jd:packagename>, and only the part in front of the first placeholder has to be a real folder. It has to be absolute, and the save is refused with the reason when it is not, or when this instance cannot create the folder or write into it. Per-package subfolders still apply on top, so filing a batch here does not switch them off. A Packagizer rule that names its own folder wins over this one, because that rule looked at the link itself. And the folder is written onto a download the moment it starts: changing it here moves everything that has not started, and nothing that has.',
   'settings.categories.priorityHint': 'Where a download filed here starts in the queue. Higher runs earlier. "No opinion" is a real answer and not the same as Default: Default is the middle position and would pull a link back down that a rule had already lifted, while no opinion leaves it exactly as it arrived. The range is the one the queue itself accepts, so a category cannot hand a download a position you have no control to undo. It is written once, at the moment the link is staged, and never again, so a download you have dragged up the list stays where you put it.',
   'settings.categories.extractHint': 'Whether an archive that comes in under this category is unpacked. Inherit leaves the decision to the Archives page, which is not the same as Off: Off keeps archives packed even when the global setting says unpack, for example in a music drawer where the archive is the delivery. A download\'s own switch still wins over this one, because that is a rule or a person having spoken about one download.',
-  'settings.categories.speedLimit': 'Speed limit (KiB/s, 0 = no opinion)',
+  'settings.categories.speedLimit': 'Speed limit (0 = no opinion)',
   'settings.categories.speedLimitHint': 'How fast a download filed here may pull. 0 means this category has no opinion and the instance-wide limit applies. Nothing enforces it yet: this build has one limiter for the whole app, shared out between the backends, and no per-download allowance for this number to be written into. The value is stored and resolved correctly, and then nothing acts on it. It is offered now so the setting does not change shape later, once people already have files on disk.',
   'settings.categories.collision': 'If a file is already there',
   'settings.categories.collisionHint': 'What happens when the file a download filed here is about to write already exists. Inherit takes the instance-wide answer from the download settings, and empty really means inherit: it is not a quiet "keep both", so a category with no opinion cannot overrule an instance set to skip. Keep both writes alongside it as "name (2)", Skip keeps what is there and writes nothing, Overwrite truncates it. There is no "ask me": nobody would be there to answer, and the download would sit in the queue for ever with nothing saying why.',
@@ -2039,7 +2064,7 @@ export const en = {
   'settings.archives.moveTo': 'Move the unpacked files to',
   'settings.archives.moveToHint': 'Where the unpacked files are moved once the unpacking has finished. Leave it empty and they stay where they were unpacked. It is not a second "Unpack to": that is where the unpacking writes, so a half-finished release sits at that destination for as long as it runs. This moves the files afterwards, so nothing incomplete is ever visible at the target. It also moves the contents and not the release folder, so "Show.S01.COMPLETE.WEB/ep01.mkv" arrives as "ep01.mkv", without the folder no library asked for. Variables are allowed here. A Packagizer rule that named a folder for a particular link wins over this.',
   'settings.downloads.collision': 'If the file is already there',
-  'settings.downloads.collisionHint': 'What a download does when the name it wants is already taken in the destination folder. "Keep both" writes name (2).ext beside it, "Skip" keeps the file that is there and never starts the download, "Overwrite" replaces it and is the only one of the three that can lose a file you already had. It has to be decided in advance because there is nobody sitting in front of the server to ask. Only the built-in downloader can be told which name to write: a link handed to JDownloader, TorBox or yt-dlp names its own file, so for those "Skip" is the only answer that reaches the file at all.',
+  'settings.downloads.collisionHint': 'What a download does when the name it wants is already taken in the destination folder. "Keep both" writes name (2).ext beside it, "Skip" keeps the file that is there and never starts the download, "Overwrite" replaces it and is the only one of the three that can lose a file you already had. It has to be decided in advance because there is nobody sitting in front of the server to ask. Only the built-in downloader can be told which name to write, and it also downloads what a debrid service or TorBox unlocks. JDownloader and yt-dlp name their own files, so for their links "Skip" is the only answer that reaches the file at all.',
   'settings.downloads.collisionAttempts': 'Numbered names to try, at most',
   'settings.downloads.collisionAttemptsHint': 'Only "Keep both" uses this. It counts up name (2), name (3) and so on, and gives up with an error once it has tried this many. 0 means the built-in limit of 1000, not "no limit": a folder filling with a thousand copies of one name is a runaway somewhere else, usually a watch folder reading the same list again, and a counter that never stops turns that into a directory nobody can open. Anything above 1000 is turned back down to 1000 when you save.',
   'settings.downloads.autoConfirmDelay': 'Wait before confirming automatically (seconds)',
@@ -2052,6 +2077,8 @@ export const en = {
   'settings.stall.enabledHint': 'A dead connection does not fail and does not stop. The row still says running at 0 B/s, keeps its download slot, and is still sitting there in the morning with the three per cent it had at midnight. With this on, a transfer that has moved no bytes for the time set below is marked as standing still in the list. The mark changes nothing about the download itself, it only says what is already true. Off means nothing is ever marked.',
   'settings.stall.timeout': 'Time without bytes (seconds)',
   'settings.stall.timeoutHint': 'How long a running download may move no bytes before it counts as standing still. 60 seconds is the smallest value there is, and anything lower is raised to 60 when you save: under a minute a chunk handover, a reconnect or a hoster\'s own countdown looks exactly like a dead connection, so a shorter time would not find stalls, it would mark the whole queue. The ceiling is one day (86400 seconds). A link waiting for a captcha never counts as standing still, and its clock starts again from zero once the captcha is answered.',
+  'settings.stall.reconnect': 'Open new connections for a stalled download',
+  'settings.stall.reconnectHint': 'Closes the connections of a marked download and opens new ones that ask for the rest of the file. The download keeps what it has already fetched and keeps its download slot, which is why this is on until you switch it off. A server that can only send the whole file sends it again from the start. Without this, a download whose server stops answering halfway through the file sits at 0 B/s until somebody pauses it. While the download stands still, this happens again each time the time set above runs out. If "Start a stalled download over" is on as well, a download that still stands still that long after getting new connections is started over. Only downloads the built-in engine fetches get new connections, debrid and TorBox downloads among them. JDownloader and yt-dlp look after their own connections, and new connections do nothing for a torrent that has no peers, so those are only marked.',
   'settings.stall.restart': 'Start a stalled download over',
   'settings.stall.restartHint': 'Puts a marked download back in the queue and starts it from the beginning. That throws away the bytes the stalled attempt had already fetched, exactly like a restart by hand, which is why it is its own switch and stays off until you turn it on: marking is information, restarting is a decision. Torrents are never restarted this way whatever this says, because a torrent that has found no peers would only be handed the same magnet again, minus everything it had.',
   'settings.stall.maxRestarts': 'Restarts per download',
@@ -2134,7 +2161,8 @@ export const en = {
   'settings.resolvers.presetRemove': 'Remove',
   'settings.resolvers.presetsEmpty': 'No hoster has its own defaults yet.',
   'settings.resolvers.presetHost': 'Hoster',
-  'settings.resolvers.presetHostHint': 'The site these defaults apply to, for example youtube.com. It is stored lower case and without a leading "www.", and pasting a whole address works too: only the host is kept. A hoster with no entry here starts every variant switched on, at best quality.',
+  'settings.resolvers.presetHostHint': 'The site these defaults apply to, for example youtube.com. It is stored lower case and without a leading "www.", and pasting a whole address works too: only the host is kept. For the big video sites an entry also covers their other addresses: youtube.com covers youtu.be and m.youtube.com too. A hoster with no entry here starts every variant switched on, at best quality.',
+  'settings.resolvers.presetFormatsUnknown': 'KnightLoader does not know yet which formats {host} serves, so the menus offer all of them. Once a link from {host} has been checked, they offer the formats found in the links checked so far, and the audio menu lists the others below them to convert to.',
   'settings.resolvers.quality.4320p': 'Up to 4320p (8K)',
   'settings.resolvers.quality.240p': 'Up to 240p',
   'settings.resolvers.quality.144p': 'Up to 144p',
@@ -2369,7 +2397,7 @@ export const en = {
   'settings.volume.actionReport': 'Only tell me',
   'settings.volume.actionPause': 'Stop starting downloads',
   'settings.volume.actionThrottle': 'Slow everything down',
-  'settings.volume.throttle': 'Speed once capped (KiB/s)',
+  'settings.volume.throttle': 'Speed once capped',
   'settings.volume.throttleHint': 'The limit that applies for the rest of the period. It is a ceiling beside your other limits and never instead of them, so a nightly window or the quiet switch asking for less still wins. 0 here would mean no limit at all, which is the same as having no cap, so the smallest useful number is 1.',
   'settings.volume.noCap': 'No cap',
   'settings.volume.used': 'Used this period',
@@ -2578,6 +2606,8 @@ export const en = {
   'settings.transfer.previewSecretless': 'This file was exported without passwords. The rows marked below arrive without theirs.',
   'settings.transfer.colStored': 'Here now',
   'settings.transfer.colFile': 'In the file',
+  'settings.transfer.colArrives': 'Taken over as',
+  'settings.transfer.colArrivesHint': 'The version that wrote this file meant something else by this value. KnightLoader takes it over the way an update reads it.',
   'settings.transfer.same': 'Identical',
   'settings.transfer.unknownKey': 'This build does not know this setting, so it cannot be taken over.',
   'settings.transfer.identityKey': 'Belongs to this box and is never taken over',
@@ -2995,7 +3025,7 @@ export const en = {
   'settings.diagnostics.fix.notADir': 'There is a file at this path, not a folder.',
   'settings.diagnostics.fix.timeout': 'The folder did not answer in time and was left alone. A share whose server is off behaves exactly like this, and so does one on a network that has gone away.',
   'settings.diagnostics.fix.dataDenied': 'This is the one folder the instance cannot do without: the database, the settings and the encrypted account store all live here. Downloads keep running for now, and the next thing you save is lost.',
-  'settings.diagnostics.fix.javaMissing': 'No Java was found. The container image ships one; a desktop install uses the bundled runtime or one on PATH. Without it the private JDownloader does not start, so an encrypted container link (.dlc, .ccf, .rsdf) cannot be opened at all. Set JAVA_HOME, or point KL_JD at a JDownloader running somewhere else.',
+  'settings.diagnostics.fix.javaMissing': 'No Java was found. The container image ships one, but the desktop app does not, so on a desktop Java has to be installed, on PATH or under JAVA_HOME. Without it the private JDownloader does not start, and an encrypted container link (.dlc, .ccf, .rsdf) cannot be opened at all. Install Java, or point KL_JD at a JDownloader running somewhere else.',
   'settings.diagnostics.fix.javaNotNeeded': 'This instance starts no Java process of its own: either KL_JD points at a JDownloader running somewhere else, or the private one is switched off with KL_PROVISION_JD=0.',
   'settings.diagnostics.fix.ytdlpMissing': 'yt-dlp was not found (KL_YTDLP, or “yt-dlp” on PATH). Media pages then fail with the site’s own error instead of being downloaded.',
   'settings.diagnostics.fix.ffmpegMissing': 'ffmpeg was not found. yt-dlp needs it to join the separate picture and sound streams most sites hand out, so a download stops at one of the two or comes back without sound.',

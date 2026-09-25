@@ -67,7 +67,7 @@ function entries(file) {
     if (start) {
       if (key) out.set(key, buf.join(' '));
       key = start[1];
-      buf = [start[2]];
+      buf = start[2] ? [start[2]] : [];
       if (/,\s*$/.test(start[2])) {
         out.set(key, buf.join(' '));
         key = null;

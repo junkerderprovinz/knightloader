@@ -1,0 +1,30 @@
+[
+  {
+    "id": "realdebrid",
+    "prio": 60
+  },
+  {
+    "id": "alldebrid",
+    "prio": 55
+  },
+  {
+    "id": "login:files.example",
+    "prio": 52
+  },
+  {
+    "id": "torrent",
+    "prio": 50
+  },
+  {
+    "id": "direct",
+    "prio": 40
+  },
+  {
+    "id": "ytdlp",
+    "prio": 30
+  },
+  {
+    "id": "jd",
+    "prio": 10
+  }
+]

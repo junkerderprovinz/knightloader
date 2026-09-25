@@ -7,6 +7,7 @@ package app
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -53,6 +54,12 @@ func (b *pinBackend) Remove(string, bool)                                   {}
 func pinApp(t *testing.T) (*App, map[string]*pinBackend) {
 	t.Helper()
 	a := newQueueApp(t)
+	return a, wirePinBackends(t, a)
+}
+
+// wirePinBackends is pinApp's setup, for an app a test built itself.
+func wirePinBackends(t *testing.T, a *App) map[string]*pinBackend {
+	t.Helper()
 	s := settings.Defaults()
 	s.MaxConcurrent, s.MaxPerHost = 4, 4
 	s.DownloadDir = t.TempDir()
@@ -76,7 +83,7 @@ func pinApp(t *testing.T) (*App, map[string]*pinBackend) {
 	a.bmu.Unlock()
 	a.Registry.Register(pinResolver{id: "alldebrid", host: pinHost, prio: 90})
 	a.Registry.Register(pinResolver{id: "torbox", host: pinHost, prio: 50})
-	return a, bes
+	return bes
 }
 
 // queuePinned stages one queued task carrying a pin (or none, for the control
@@ -249,6 +256,67 @@ func TestAPinMayNameTheServiceAndReachOneOfItsAccounts(t *testing.T) {
 
 	wantHandled(t, bes["alldebrid#work"], "p1")
 	wantNothingHandled(t, bes["torbox"], "a service-wide pin fell through to another service")
+}
+
+// The dropdown offers what can take the link, best first, and names a debrid
+// service the way the accounts page does. The HTTP fallback is never offered:
+// it would save a hoster's page.
+func TestPinChoicesListWhatCanTakeTheLinkBestFirst(t *testing.T) {
+	t.Parallel()
+	a, _ := pinApp(t)
+	queuePinned(a, "p1", "")
+
+	got := a.PinChoices([]string{"p1"})
+	want := []PinChoice{{ID: "alldebrid", Label: "AllDebrid"}, {ID: "torbox", Label: "TorBox"}, {ID: "direct"}}
+	if !slices.Equal(got, want) {
+		t.Fatalf("PinChoices = %v, want %v", got, want)
+	}
+}
+
+// Over several rows only what every one of them can go to is offered, so a
+// pin chosen for all of them fails none.
+func TestPinChoicesOverSeveralRowsAreWhatTheyShare(t *testing.T) {
+	t.Parallel()
+	a, _ := pinApp(t)
+	queuePinned(a, "p1", "")
+	a.mu.Lock()
+	a.tasks["e1"] = &core.Task{ID: "e1", URL: "https://elsewhere.example/e1.bin", Status: core.StatusPaused, Enabled: true}
+	a.mu.Unlock()
+
+	got := a.PinChoices([]string{"p1", "e1"})
+	if want := []PinChoice{{ID: "direct"}}; !slices.Equal(got, want) {
+		t.Fatalf("PinChoices = %v, want %v", got, want)
+	}
+}
+
+// A pin is the person's decision, so it outlives a restart: the paused
+// download still goes to the backend it was pinned to, not to the one the
+// ranking prefers.
+func TestAPinStillHoldsAfterARestart(t *testing.T) {
+	dir := t.TempDir()
+	before, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := before.Store.Save(&core.Task{
+		ID: "p1", URL: "https://" + pinHost + "/p1.bin", Name: "p1.bin", CreatedAt: time.Now(),
+		Status: core.StatusPaused, Enabled: true, ResolverPin: "torbox",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	before.Close()
+
+	a, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	bes := wirePinBackends(t, a)
+
+	a.Resume("p1")
+
+	wantHandled(t, bes["torbox"], "p1")
+	wantNothingHandled(t, bes["alldebrid"], "the restart dropped the pin and the ranking took the task")
 }
 
 // A typo written into a task unchecked becomes a row that fails on the next

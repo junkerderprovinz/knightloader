@@ -39,6 +39,11 @@ submission and for a fixed download.
 
 ### Added
 
+- **A download's backend can be chosen in its properties.** The Properties
+  panel has a Backend dropdown with the services that can take every selected
+  link, and Automatic, which leaves the choice to the priority order on the
+  Accounts page. A paused download pinned to another service moves there when
+  you resume it and starts from the beginning.
 - **Every module this build runs has a switch on the Modules page.** JDownloader,
   yt-dlp, torrents, captchas, event scripts, outbound connections, peer
   instances, the Packagizer and the link filter can be switched off like the
@@ -65,8 +70,9 @@ submission and for a fixed download.
   beside it a quality, the resolution and the frame rate where tracks differ
   in it. Together they name one track, which keeps its own container and is
   not converted, where it used to be a height merged into mkv. The audio row
-  lists only the formats the source has, plus Auto for its best track, and
-  beside it the bitrates of the chosen format. The variant defaults on the
+  lists the formats the source has, plus Auto for its best track, then under
+  "Convert to" the formats it lacks, which yt-dlp converts to with ffmpeg.
+  Beside it are the bitrates of the chosen format. The variant defaults on the
   yt-dlp page and the gear on a package in the collector offer the same two
   pairs, and a new link from that host starts with them.
 - **hCaptcha challenges can be solved in KnightLoader.** JDownloader's
@@ -110,8 +116,173 @@ submission and for a fixed download.
   files already on disk and what a restart resumes each offer their values by
   the names their own page uses. They were free text fields, and a typo was
   saved as the default without a word.
+- **A field in the quick settings sets how far back the head bar's speed curve
+  reaches**, from 10 seconds to an hour. It carries the name the Overview gives
+  its own curve's window, shows seconds below a minute and minutes from there,
+  and both speed curves label their time axis the same way. Up to two minutes
+  the curve draws a sample a second, beyond that one every ten seconds, which
+  is how the server records them.
+- **Links and packages can be renamed from the right-click menu or with F2.**
+  A finished file on this machine is renamed on disk at once, and a running
+  download takes the new name when it finishes. A renamed package's folder
+  follows the name only while nothing in the package has started. The window
+  says so beforehand, as it does for a file that cannot be renamed at all: a
+  torrent, a JDownloader download, one part of a multi-volume archive, or a
+  file being unpacked. A refusal it cannot see coming, such as a part of an
+  archive nothing has unpacked yet, is shown in your language as well.
+- **A package can be paused and switched off from its right-click menu.**
+  Pause, Resume, Switch off, Switch on, Hold and Release on a package header
+  act on every link in the package, including rows a filter hides.
+- **The README compares KnightLoader with JDownloader 2, pyLoad and
+  rdt-client.** A table under the Overview sets the four side by side, one row
+  for each thing people choose a download manager by, such as debrid services,
+  torrents, captchas or a phone app. The text below it says where the others
+  are ahead, pyLoad's own hoster plugins and JDownloader's Usenet support among
+  them. JDownloader's entry in the License row says that a few of its parts
+  are closed source and names its sources.
+- **The desktop app for ARM64 on Windows and Linux.** Every release has
+  Windows and Linux builds for ARM64 next to the x64 ones; the macOS build is
+  still universal. The desktop card on the App tab gives the build that fits
+  the computer when the browser says which one that is, and x64 when it does
+  not. Buttons next to the tiles give the other architecture. In the README
+  the Windows and Linux buttons say x64 and each has an ARM64 part of its own.
+  An installed ARM64 app updates to the ARM64 build of the next release, and
+  on Windows on ARM it fetches yt-dlp's own ARM64 build.
 
 ### Fixed
+
+- **Unpacking an archive again clears its last failure from the row.** The red
+  error under its first file used to stay until the new attempt ended, next to
+  a status that said it was unpacking.
+- **A debrid download reaches the speed limit within seconds.** With a speed
+  limit set, a download from a debrid service or TorBox started at 16 KB/s and
+  took two to three minutes to reach full speed. It fell back to 16 KB/s
+  whenever the next file was still being unlocked. A download running on its
+  own now gets the whole limit straight away. When the built-in engine and
+  JDownloader download at the same time, each gets its share within a few
+  seconds. One that waits for a captcha hands its share back on the next
+  update, three seconds later. One whose server sends less than its share
+  leaves the rest to the other, and at most a tenth of the limit goes unused.
+
+- **A low speed limit no longer makes downloads crawl.** The limiter charged
+  every read for 32 KB, however little arrived, so under a low limit a
+  connection could wait longer for its turn than the download engine waits for
+  an encrypted connection to be set up. Downloads then kept reconnecting and
+  moved a few KB/s for minutes. The limiter now charges for what arrives and
+  passes a new connection's first bytes on at once.
+
+- **A server that stops answering no longer holds a download at 0 B/s.** A
+  download server that took a request and then sent nothing kept the download
+  waiting until somebody paused it. After two minutes of silence the
+  connection is now closed, and the download asks for the rest of the file
+  again, keeping what it already has. A plain HTTP download whose server went
+  quiet right after its headers is asked for again as well.
+
+- **Links no longer wait in JDownloader's free mode while a debrid service can
+  fetch them.** A link kept the backend it was given when it was added or on an
+  earlier try, even when that was JDownloader at a moment no debrid service
+  could take the host. It then sat at a captcha in free mode, across restarts,
+  while TorBox or Debrid-Link would have fetched it at once. A link that has not
+  loaded any bytes now goes to the highest-ranked debrid service that can take
+  it when it starts, and JDownloader drops the package it still held for it, so
+  the file is not fetched twice. A link a service has just turned down only
+  moves further down the priority order. If the accounts below it are benched,
+  it waits for them rather than going back to the service that turned it down
+  and looping. yt-dlp's rows and torrents keep their backend.
+- **A download that runs again shows no old retry date.** A restarted link, or
+  one that started again after a failure, kept the date its retry had been due
+  on its row, weeks later in some cases.
+- **JDownloader takes back a link an earlier try left in its list.** Before a
+  download goes to JDownloader again, the package the earlier try left in
+  JDownloader's download list is removed, since JDownloader's duplicate check
+  could hold the new link back while it was there. A package that already
+  loaded bytes is continued instead of added a second time. The JDownloader
+  that KnightLoader starts itself no longer asks what to do with a link it
+  already has, a link it found offline, or a part of an archive whose other
+  parts it has not seen. Nobody can answer those questions in a JDownloader
+  without a window. It now adds the duplicate and the archive part to its
+  download list and keeps the offline link back.
+- **A link JDownloader finds offline fails at once.** The download says the
+  hoster reports the file offline, and a mirror of the same file, if you kept
+  one, takes over straight away. Before, it waited 15 minutes and then
+  reported that the link never reached JDownloader's download list.
+- **TorBox switching off one site no longer takes it away from the others.**
+  When TorBox answers that a site is temporarily disabled, as it did for
+  rapidgator, links to that site go to the next service for 15 minutes, and
+  TorBox keeps fetching every other site. A link no other service carries
+  waits and goes back to TorBox after those 15 minutes. Before, TorBox was
+  benched for every site, for 15 minutes up to six hours.
+- **TorBox errors no longer show your API key.** When TorBox refused to hand
+  out a download link, or never answered the request for one, the task row and
+  the log quoted the full request address, key included. They now name the
+  request without it.
+- **A retried debrid or TorBox download is written under its own name again.**
+  After KnightLoader restarted, an interrupted download left its half-written
+  file behind, and the next attempt was saved beside it as "name (1).rar",
+  then "(2)" and "(3)". Unpacking then read the leftover and failed with "bad
+  block header". A download now remembers the file it writes, and the next
+  attempt deletes that file first, as long as no other download claims it and
+  it is still the size the download was writing. The same goes for direct
+  downloads. When a download moves from one debrid service to the next, the
+  first service lets go of it before the second starts, so the new transfer
+  is no longer stopped, or saved as "name (1)", because of the old one.
+
+- **A download with part of its file missing is no longer marked finished.**
+  When a debrid or TorBox link stopped working part way through, the download
+  engine skipped the part it could not fetch and reported the download as
+  finished, and the file only showed up as a damaged archive when it was
+  unpacked. KnightLoader now checks a finished download against its size and
+  fetches the missing part again, from a fresh link where the service can hand
+  one out. If that does not work either, the download fails and says how much
+  of the file is missing.
+
+- **Debrid, TorBox and WebDAV downloads land in the folder the list shows.**
+  They were saved to the downloads folder in KnightLoader's data folder,
+  whatever the category, the per-package subfolder or the download folder
+  setting said, and never went through the working folder. They now go where
+  a direct download goes, and the collision policy applies to them as well.
+
+- **A download saved under another name is used from where it was saved.**
+  When a file that belongs to something else already had the name, the
+  download is still saved beside it. Unpacking, the checksum, a rename rule,
+  the move out of the working folder and playing or saving the file from the
+  list now take the downloaded file instead of the one that was in the way. The
+  download's log says which name it got. If you rename such a file back to the
+  download's own name by hand, it is found there as well.
+
+- **Removing a download with its files works after a restart.** The file
+  stayed on disk when the download had started before KnightLoader last
+  restarted.
+
+- **A multi-volume archive with a part in the wrong place is not unpacked from
+  the wrong file.** When a part had to be saved under another name or into
+  another folder, unpacking stops and names the file it would have read and
+  the file that was downloaded, instead of failing as if the archive were
+  damaged. Once the part is moved to where the message says, unpacking works.
+
+- **An unpacking error names the part it failed in.** "bad block header" and
+  the other errors from inside a RAR set start with the name of the volume
+  that was open, so a broken part among forty can be found.
+
+- **RAR archives with encrypted contents try the saved passwords.** An archive
+  packed with `rar -p` keeps its file names readable, and it failed with
+  "archived files encrypted, password required" without trying a single
+  password or showing "Needs a password". It goes through the passwords now
+  like any other encrypted archive. A wrong password for an archive whose names
+  are encrypted too no longer ends the list before the right one, and a file a
+  wrong password had started is removed before the next one is tried.
+
+- **A failed unpacking takes its folder with it.** The folder named after the
+  archive stayed behind with empty subfolders in it, which looked like an
+  extraction that had worked.
+
+- **A failed unpacking shows how far it got.** Its row kept the byte count of
+  the last progress update before the failure.
+
+- **"Delete" and "Move to trash" for the archive reach RAR sets.** The volumes
+  of a RAR set stayed where they were after unpacking, whatever the setting
+  said. They are deleted or moved to the trash now, as zip and 7z archives
+  were.
 
 - **Click'n'Load works in the desktop app.** It never started a listener
   there, while the Modules page said it listened on 127.0.0.1:9666. It listens
@@ -255,7 +426,8 @@ submission and for a fixed download.
 - **A debrid link paused while it is being unlocked stays paused.** Pausing,
   resuming and pausing again in quick succession could leave the second unlock
   out of reach, and a pause that came just as the service answered still
-  started the download.
+  started the download. The same holds for TorBox, where a link paused or
+  removed while TorBox was preparing it also ended as a failed download.
 
 - **Saving the proxy or torrent settings while downloads run is safe.** Both
   wrote to the configuration the download engine was reading at that moment.
@@ -412,9 +584,91 @@ submission and for a fixed download.
   update link did nothing, because the app's window cannot open a second one.
   On Windows they opened a bare window with no address bar. They now go to the
   default browser or mail program.
+- **A rename reaches a file still in the working folder.** With a working
+  folder set, a file name from a Packagizer rule or from a rename made while
+  the download ran was never applied, and neither was a rename of a finished
+  file not yet moved on, because the file was looked for in the destination.
+- **A rename that could never be applied is refused at once.** A file being
+  unpacked, a JDownloader download that had not finished and one part of a
+  multi-volume archive took the new name on the row, but the file never got
+  it. The rename window now says why before anything is sent.
+- **A window opened from a page dims and blurs the whole screen.** The rename
+  window, the question before removing links and the other windows a page
+  opens covered only the page, so the sidebar and the Downloads head bar stayed
+  bright and sharp beside it.
+- **The variant defaults on the yt-dlp page fit their card.** At 1440 pixels
+  the table ran past the card and scrolled sideways. In a card too narrow for
+  its columns, each site is now a block of its own with a name beside each
+  switch. In a wider card, a format or quality too long for its button ends in
+  "…", and the open menu shows it in full.
+- **A variant default for youtube.com covers youtu.be and m.youtube.com.**
+  Defaults were looked up by a link's exact host, so short links and the
+  mobile site started with every variant switched on. For the big video sites
+  a default now covers every address KnightLoader knows for the site. The
+  gear on such a link's package edits that default instead of starting a
+  second one, and where there is none yet, it saves one for the whole site.
+- **Moving files into another package leaves them where they are on disk.**
+  With the download folder named after the package, "Move to a package" sent
+  a finished file's row to the new package's folder, where the file was not,
+  and a part still waiting landed apart from the parts already there. Links
+  moved out of a folder that already holds one of their files keep that
+  folder, as they do when their package is renamed. Links nothing has been
+  downloaded for follow the move.
+- **The diagnostics page no longer says the desktop app brings its own Java.**
+  The desktop builds come without one, so there the JDownloader backend needs
+  a Java installed on the machine, on PATH or under JAVA_HOME. The advice for
+  a missing Java now says so.
+- **No coloured lines at the edges of the README's buttons.** They are all cut
+  from one image in which they stood edge to edge, and Firefox, or Chrome at
+  some zoom levels, drew a sliver of the neighbour down the side of a button.
+  PayPal's dark blue had a yellow line on its left and an orange one on its
+  right. The buttons in that image have space between them.
 
 ### Changed
 
+- **AAC is one audio format, called AAC (M4A).** The audio format menus
+  offered aac and m4a, two names for AAC, and aac wrote a bare AAC stream
+  under an .m4a name rather than an MP4 file. The menus name it after the
+  container it is written in, which is what YouTube calls it. Picking it
+  copies a link's AAC track, or converts to AAC where the link has none, and
+  writes a real .m4a file either way. Settings, variant defaults and rows that
+  chose m4a carry on as AAC.
+- **The variant defaults offer the formats a site serves first.** For YouTube
+  that means mp4 and webm video in YouTube's own codecs and AAC (M4A) or opus
+  audio, where the menus used to list every format there is. Below the
+  site's own audio formats, under "Convert to", come the others, such as MP3
+  and FLAC, and yt-dlp converts to them with ffmpeg. KnightLoader knows what a
+  site serves from a built-in list of the big sites and from the links of that
+  site it has already checked; a site it knows nothing about still offers
+  everything, and an (i) beside it says why. A default that already names a
+  video format the site lacks keeps it.
+- **The status column shows unpacking the way JDownloader does.** While an
+  archive unpacks, every file of its set reads "Unpacking 45%", and afterwards
+  "Unpacked" with a tick. A failed one reads "Needs a password", or "Not
+  unpacked" with the cause beside it, and the package row sums up its archives
+  with a count such as "1/2" when it holds more than one. This replaces the
+  archive card under the list, and "Stop unpacking" is in the right-click menu
+  of every file of the archive. Each file still says how its last unpacking
+  ended after KnightLoader restarts, and forgets it when the download is
+  started over.
+- **The download list reaches the bottom of the window and scrolls inside its
+  card**, so the queue controls and the filters stay in view. With nothing to
+  show, the empty card fills the same space. A window too short for a few rows
+  scrolls the whole page instead.
+- **A download that stands still gets new connections, and the mark is on by
+  default.** A download that moves no bytes for two minutes is marked as
+  standing still, and the built-in engine closes its connections and asks for
+  the rest of the file on new ones. It keeps its download slot and what it has
+  fetched, unless the server can only send the whole file, and this repeats
+  every two minutes while it stands still. The new switch "Open new connections
+  for a stalled download" in Settings under Downloads, on the "Standing still"
+  card, turns it off. Existing installs get the mark as well, also where it was
+  off, because off was the default until now. Importing a settings file
+  exported by an earlier version turns it on the same way, and the list you
+  pick the settings from shows the value that is taken over. Switch it off
+  again and it stays off. JDownloader, yt-dlp and torrent downloads are only
+  marked. With "Start a stalled download over" on, a download is started over
+  only once new connections have not helped.
 - **The watch folder has its own switch on the Link collector tile**, the same
   switch as on the Modules page, and each place links to the other. The link on
   the Modules page lands on the switch itself. Switched off, the folder is kept
@@ -649,8 +903,9 @@ submission and for a fixed download.
   instance". The (i) stays readable on a button that is switched off, and where
   a button shows only its icon, the explanation joins its name in the bubble.
 - **Settings tile names wrap onto a second line** instead of being cut off, so
-  "Rules & categories" reads in full, set close enough that the tile keeps the
-  height of every other tile.
+  "Rules & categories" reads in full. The tile stays as tall as every other
+  tile at any window size, and no letter is cut off at the top or the bottom,
+  the marks in Arabic, Persian and Hindi included.
 - **A search box shows one focus ring.** Clicking into the list search or the
   settings search ringed the box and the text field inside it; the box alone
   shows the ring while you type, and the picker beside the text shows its own
@@ -722,6 +977,70 @@ submission and for a fixed download.
   sidebar their names left the page a card about 220 pixels wide in an
   800 pixel window, so a selector put one option on each line; the card is
   about 370 pixels wide now.
+- **The Downloads head bar's buttons are larger.** Play, Pause, Stop and the
+  quick settings button are 48 pixels square with a 24 pixel symbol, up from 40
+  and 20. The bar grows by the same 8 pixels, so the speed curve still reaches
+  close to its top and bottom edges.
+- **The speed limit field shows its unit and picks it by itself.** Below
+  1 MiB/s it counts in KiB/s and from there in MiB/s, the units the rest of the
+  app uses for speeds. A number you type counts in the unit on show, and the
+  field changes unit when you press Enter or leave it; the arrows and the mouse
+  wheel change it at once. The limit is still stored in bytes per second.
+- **"Reconnect now" and the badge beside it sit side by side** at the bottom of
+  the quick settings instead of one above the other.
+- **"Hide the phrase" and "Copy" sit under the connection phrase**, in its
+  column beside the QR code, instead of under the code. On a narrow screen they
+  follow the words.
+- **The sidebar mark's easter egg shakes the entries at the foot of the rail
+  too.** The wave after the blade lands runs on through Events, Sign out and
+  Settings. At the Subtle motion level every entry moves half as far and
+  settles sooner, as the blade already did.
+- **"Start now" replaces "Force to the front" in the right-click menu.** It
+  starts the chosen links at once, ahead of the queue and past the limit of
+  concurrent downloads, three at a time on top of that limit. As with
+  JDownloader's forced start, it works while the queue is stopped too: the
+  chosen links start and everything else keeps waiting. It is offered
+  only for links still waiting their turn; failed and running links no longer
+  show an entry that did nothing for them.
+- **Pausing a selection pauses its waiting links too**, not only the running
+  ones, so the slots the running downloads free are not handed straight to
+  the rest of the selection. The whole selection goes in one request.
+- **A name with / or \ in it is refused rather than cut.** The properties
+  panel turned "Season 1/Episode 2" into "Season 1-Episode 2" without a word;
+  it now says why the name cannot be used.
+- **The page behind a window is blurred and darker**, so the window stands out
+  from it. This goes for every window in the web UI and the browser extension,
+  the quick settings included, which a click on the page or Escape closes; the
+  phone app darkens the page without blurring it. When the system is set to
+  reduce transparency, the page is darkened but not blurred. The web UI and
+  the extension follow GlimStone 2.11.0.
+- **The link collector reaches the bottom of the window and scrolls inside its
+  card**, as the download list does, so the paste box, the filters and the
+  list's buttons stay in view. A window too short for a few rows scrolls the
+  whole page instead.
+- **Every speed field works like the speed limit field**: a category's speed
+  limit, a schedule's limit, the speed once the volume cap is reached and the
+  torrent upload limit. Each shows its unit inside the field, switches between
+  KiB/s, MiB/s and GiB/s by itself and steps by the same amounts. The
+  schedule's unit menu is gone.
+- **A typed number can name its unit.** "500k", "2m", "1.5 MiB" or "640 KB/s"
+  in a speed field and "90s" or "2 min" in the speed curve's window count in
+  that unit, in upper or lower case and with or without a space. The unit
+  beside the number changes to match.
+- **Minutes are written "min" wherever a time is shown**: a download's time
+  left, the speed curve's time axis, the uptime on the Health page, the clock
+  check in the self-test and the wait after dropping a container file. The
+  time-left column starts a little wider so "123h 45min" fits.
+- **The README's download buttons come right after the description**, and the
+  donation appeal follows. The notice that KnightLoader is not ready to install
+  stays where it was, under the donation row. The band crosses the download
+  rows first and the donation row after them.
+- **The README's screenshots are new, and there are nine of them.** They show
+  the overview, the download list, the quick settings, the link collector with
+  a YouTube video's variants, the Appearance page, the accounts, the Rules &
+  categories page, the App tab and the instances, each in the theme your system
+  uses. The downloads, hosts and accounts in them are made up, and
+  `scripts/screenshots/shoot.mjs` draws them again from that sample data.
 
 ### Removed
 

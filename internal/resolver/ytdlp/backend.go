@@ -595,7 +595,7 @@ func buildArgs(dir string, o Options) []string {
 			// A track already in the format is copied, and only a source
 			// without one is converted.
 			fam := familyNamed(o.AudioFormat, audioFamilies)
-			args = append(args, "-f", audioFamilySelector(fam, o.AudioLang), "-x", "--audio-format", o.AudioFormat)
+			args = append(args, "-f", audioFamilySelector(fam, o.AudioLang), "-x", "--audio-format", extractFormat(o.AudioFormat))
 		default:
 			args = append(args, "-f", audioSelector(o.AudioLang), "-x")
 		}

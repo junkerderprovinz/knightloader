@@ -156,6 +156,50 @@ func TestAbortingAQueuedJobHandsTheTaskBack(t *testing.T) {
 	}
 }
 
+// Every part of a set is one archive to the person reading the list, so the job
+// names them all, in the order the archive is read, and each row can show it.
+func TestAJobNamesEveryPartOfItsSet(t *testing.T) {
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract = false })
+	stageDone(t, a, "1", "film.zip")
+	first := stageDone(t, a, "2", "film.z01")
+	stageDone(t, a, "3", "film.z02")
+	stageDone(t, a, "4", "other.zip")
+
+	// The worker is marked busy so the job stays queued.
+	a.mu.Lock()
+	a.unpackLocked().busy = true
+	job := a.enqueueExtractLocked(first, filepath.Join(base, "film.z01"))
+	a.mu.Unlock()
+	if job == nil {
+		t.Fatal("the job was not queued")
+	}
+	if got := strings.Join(job.Parts, ","); got != "2,3,1" {
+		t.Errorf("Parts = %s, want 2,3,1: the spanned zip is read from film.z01 and ends at film.zip", got)
+	}
+	if job.Volumes != len(job.Parts) {
+		t.Errorf("Volumes = %d with %d parts listed", job.Volumes, len(job.Parts))
+	}
+}
+
+// An archive being unpacked again has left its last failure behind, and the row
+// would otherwise show that error beside the new progress.
+func TestQueueingAnArchiveAgainClearsItsLastFailure(t *testing.T) {
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract = false })
+	task := stageDone(t, a, "1", "release.zip")
+	task.Error = extractErrorPrefix + "rardecode: bad block header"
+
+	a.mu.Lock()
+	a.unpackLocked().busy = true
+	job := a.enqueueExtractLocked(task, filepath.Join(base, "release.zip"))
+	a.mu.Unlock()
+	if job == nil {
+		t.Fatal("the job was not queued")
+	}
+	if live := liveTask(a, task.ID); live.Error != "" {
+		t.Errorf("the queued task still reads %q", live.Error)
+	}
+}
+
 // Numbered split parts are joined into one file once the last part lands.
 func TestASplitDownloadIsJoined(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract, s.VerifyChecksums = true, false })

@@ -196,6 +196,16 @@ describe('PaypalDialog', () => {
     });
     expect(document.body.textContent).toContain('PayPal cannot be reached right now.');
   });
+
+  // What a content blocker does: the script loads and the SDK never runs.
+  it('says so when the SDK loads and sets no namespace', async () => {
+    await openWindow();
+    await act(async () => {
+      scripts[scripts.length - 1]!.onload?.(new Event('load'));
+    });
+    expect(document.body.textContent).toContain('PayPal cannot be reached right now.');
+    expect(document.body.textContent).not.toContain('Loading PayPal');
+  });
 });
 
 describe('the PayPal button in the desktop build', () => {

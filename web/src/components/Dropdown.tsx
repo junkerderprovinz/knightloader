@@ -21,6 +21,12 @@ export interface DropdownSubmenu<T extends string = string> {
 
 export type DropdownEntry<T extends string = string> = DropdownOption<T> | DropdownSubmenu<T>;
 
+/** A run of the menu's rows under a heading, for rows that mean something different from the rest. */
+export interface DropdownGroup<T extends string = string> {
+  heading?: string;
+  entries: DropdownEntry<T>[];
+}
+
 /**
  * `field` is a text field's box and type. `dense` is the same box in small
  * type, for a picker on a list row or beside a compact field. `inset` sits
@@ -31,10 +37,12 @@ export type DropdownLook = 'field' | 'dense' | 'inset';
 /**
  * `fill` takes the line like a text field. `widest` is as wide as the longest
  * option, as a native select is, so choosing never moves what stands beside
- * it. `value` fits the value on show, for a list cell too narrow for the
- * longest option.
+ * it. `shrink` is `widest` where there is room and narrower where there is
+ * not, down to a few letters and an ellipsis, for a table that has to fit its
+ * card; the menu still shows every option in full. `value` fits the value on
+ * show, for a list cell too narrow for the longest option.
  */
-export type DropdownWidth = 'fill' | 'widest' | 'value';
+export type DropdownWidth = 'fill' | 'widest' | 'shrink' | 'value';
 
 const LOOK: Record<DropdownLook, string> = {
   field: `${FIELD_TRIGGER} items-center gap-2 ps-3 pe-2.5 text-start text-sm`,
@@ -49,6 +57,9 @@ const LOOK: Record<DropdownLook, string> = {
 const WIDTH: Record<DropdownWidth, string> = {
   fill: 'flex w-full min-w-0',
   widest: 'inline-flex shrink-0',
+  // The floor is also what the trigger counts for when a table sizes its
+  // columns, since a truncating label counts for nothing.
+  shrink: 'inline-flex min-w-16',
   value: 'inline-flex shrink-0',
 };
 
@@ -70,6 +81,7 @@ export function Dropdown<T extends string>({
   groups,
   onChange,
   label,
+  placeholder,
   look = 'field',
   width = look === 'field' ? 'fill' : 'widest',
   disabled,
@@ -78,14 +90,17 @@ export function Dropdown<T extends string>({
   shake = 0,
   className = '',
 }: {
-  value: T;
+  /** Null when there is no one value, such as over a selection whose rows
+   *  disagree. The trigger then shows `placeholder` and no row is ticked. */
+  value: T | null;
   /** Every choice in menu order, which is also the order the wheel steps. */
   options: DropdownOption<T>[];
   /** The menu's rows in runs split by a hairline, where `options` in one run is not enough. */
-  groups?: DropdownEntry<T>[][];
+  groups?: (DropdownEntry<T>[] | DropdownGroup<T>)[];
   onChange: (value: T) => void;
   /** What the dropdown chooses: the accessible name, with the value after it. */
   label: string;
+  placeholder?: string;
   look?: DropdownLook;
   /** Defaults to `fill` for a field and to `widest` otherwise. */
   width?: DropdownWidth;
@@ -117,9 +132,9 @@ export function Dropdown<T extends string>({
   const bubble = useTooltip<HTMLButtonElement>(tip);
   const { role: _tipRole, tabIndex: _tipTabIndex, ref: tipRef, ...tipHover } = bubble.triggerProps;
 
-  const menuGroups = groups ?? [options];
-  const all = menuGroups.flat().flatMap((e) => (isSubmenu(e) ? e.options : [e]));
-  const text = all.find((o) => o.value === value)?.label ?? value;
+  const menuGroups: DropdownGroup<T>[] = (groups ?? [options]).map((g) => (Array.isArray(g) ? { entries: g } : g));
+  const all = menuGroups.flatMap((g) => g.entries).flatMap((e) => (isSubmenu(e) ? e.options : [e]));
+  const text = value === null ? (placeholder ?? '') : (all.find((o) => o.value === value)?.label ?? value);
 
   // Read through a ref, so the listener is attached once per trigger node.
   const live = useRef({ value, options, onChange, inert: disabled || busy });
@@ -167,7 +182,7 @@ export function Dropdown<T extends string>({
 
   // Every label in one grid cell, only the chosen one visible, so the cell is
   // as wide as the longest and the trigger does not jump when the value does.
-  const labels = width === 'widest' ? [...new Set([text, ...all.map((o) => o.label)])] : [text];
+  const labels = width === 'widest' || width === 'shrink' ? [...new Set([text, ...all.map((o) => o.label)])] : [text];
 
   return (
     <>
@@ -225,7 +240,8 @@ export function Dropdown<T extends string>({
           onClose={menu.close}
           groups={menuGroups.map((group, g) => ({
             id: `g-${g}`,
-            items: group.map((e) =>
+            heading: group.heading,
+            items: group.entries.map((e) =>
               isSubmenu(e)
                 ? { id: `s-${e.label}`, label: e.label, submenu: [{ id: e.label, items: e.options.map(choice) }] }
                 : choice(e),

@@ -11,7 +11,15 @@
 // it cannot draw, which is the drift the registry exists to prevent.
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { fetchOptions, priorityChoices, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
+import {
+  fetchOptions,
+  priorityChoices,
+  setEnabled,
+  setTaskOptions,
+  type Availability,
+  type ExtractJob,
+  type Task,
+} from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
@@ -23,7 +31,7 @@ import { adviceFor } from '../lib/failureAdvice';
 import { FailureAdvice } from './FailureAdvice';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
-import { ResolverBadge, StatusPill } from './StatusPill';
+import { ResolverBadge, StatusPill, UnpackPill, unpackLabel, unpackState, type UnpackState } from './StatusPill';
 import { RetryNote, retryPending } from './RetryCountdown';
 import { useShake } from '../lib/useShake';
 import { useTooltip } from './ui';
@@ -125,6 +133,12 @@ export interface CellContext {
    * the button does not appear at all.
    */
   onRemovePackage?: (ids: string[]) => void;
+  /**
+   * The latest unpacking of each file's archive, keyed by task id, with every
+   * part of a set pointing at its archive's job (Archives.tsx's
+   * extractionsByTask). Absent in the collector, where nothing is unpacked.
+   */
+  extractions?: ReadonlyMap<string, ExtractJob>;
 }
 
 export interface ColumnDef {
@@ -850,7 +864,12 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
 // nothing.
 const queueWideWaiting = new Set<NonNullable<Task['waiting']>>(['slot', 'halted']);
 
-function StatusCell({ task, t }: { task: Task; t: Translate }) {
+// max-w-full is what makes the truncate inside truncate. Without it this
+// inline-flex takes its content's width and the cell does the clipping instead,
+// which cuts mid-word with no ellipsis and no way to read the rest.
+const STATUS_LINE = 'inline-flex min-w-0 max-w-full items-center gap-2';
+
+function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unpacking | null }) {
   // The typed cause carries the detail, as a tooltip rather than a second word
   // on the line. "Host would not say" is the verdict and it is what the column
   // is for; whether the host was rate-limiting us or simply down is the next
@@ -864,11 +883,8 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
     return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
   }
   return (
-    // max-w-full is what makes the truncate below truncate. Without it this
-    // inline-flex takes its content's width and the cell does the clipping
-    // instead, which cuts mid-word with no ellipsis and no way to read the rest.
-    <span className="inline-flex min-w-0 max-w-full items-center gap-2">
-      <StatusPill status={task.status} />
+    <span className={STATUS_LINE}>
+      {unpack ? <UnpackStatus unpack={unpack} t={t} /> : <StatusPill status={task.status} />}
       {/* What the backend is doing, when "running" is not the whole truth: JD
           can report "Captcha recognition (rapidgator.net)" on a package while
           this column says running with no bytes moving. Beside the status
@@ -925,6 +941,89 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
         </Tip>
       )}
     </span>
+  );
+}
+
+/** An unpacking as one row reads it. */
+interface Unpacking {
+  state: UnpackState;
+  /** The job, while the server still holds it. After a restart the row has only the state. */
+  job?: ExtractJob;
+  /** Why it failed, or why moving the files afterwards did. */
+  error?: string;
+}
+
+// app.extractErrorPrefix, which marks the unpacking's own error on a task.
+const EXTRACT_ERROR = 'extract: ';
+
+// A file downloading again has left its archive's last unpacking behind, so
+// only a finished row takes it up. Without a job it reads how its last
+// unpacking ended, which the server keeps on every part (core.Task.Unpack).
+function unpackingOf(task: Task, ctx: CellContext): Unpacking | null {
+  if (task.status !== 'done' && task.status !== 'extracting') return null;
+  const job = ctx.extractions?.get(task.id);
+  const state = job && unpackState(job);
+  if (job && state) return { state, job, error: job.error };
+  if (!task.unpack) return null;
+  const error = task.error?.startsWith(EXTRACT_ERROR) ? task.error.slice(EXTRACT_ERROR.length) : undefined;
+  return { state: task.unpack, error };
+}
+
+// Go wraps an error with ": " at every level it climbs, so the innermost cause
+// is the last piece: "Film.part1.rar: rardecode: bad block header" in short is
+// "bad block header".
+const shortCause = (error: string): string => error.slice(error.lastIndexOf(': ') + 1).trim();
+
+/**
+ * UnpackStatus stands in a finished row's status slot while its archive is
+ * being unpacked and afterwards. A failure carries its innermost cause beside
+ * the word, and the bubble holds the rest: the archive open now, what has come
+ * out of it, how many parts the set has and the whole error. The package
+ * header adds how many of its archives are unpacked.
+ */
+function UnpackStatus({
+  unpack,
+  t,
+  tally,
+}: {
+  unpack: Unpacking;
+  t: Translate;
+  tally?: { done: number; total: number };
+}) {
+  const { job, state } = unpack;
+  const percent = state === 'running' && job?.size ? pct(job.unpacked ?? 0, job.size, false) : undefined;
+  // "Needs a password" says what the library's sentence says, and says it in
+  // the reader's language.
+  const error = state === 'password' ? '' : (unpack.error ?? '');
+  const cause = error && shortCause(error);
+  const facts = job
+    ? [
+        job.files > 0 ? `${job.files} ${t(job.files === 1 ? 'task.file' : 'task.files')}` : '',
+        job.files > 0 ? fmtBytes(job.bytes) : '',
+        job.volumes > 1 ? t('archive.volumes', { volumes: job.volumes }) : '',
+      ].filter(Boolean)
+    : [];
+  // The word first, since a narrow column shows only the start of it.
+  const detail = (
+    <span className="flex flex-col gap-0.5">
+      <span className="font-medium">{unpackLabel(state, percent, t)}</span>
+      {job && <span dir="ltr">{job.name}</span>}
+      {job?.archive && job.archive !== job.name && <span dir="ltr">{job.archive}</span>}
+      {facts.length > 0 && <span className="glim-num">{facts.join(' · ')}</span>}
+      {tally && <span>{t('archive.tally', { done: tally.done, total: tally.total })}</span>}
+      {error && <span>{error}</span>}
+    </span>
+  );
+  return (
+    <Tip tip={detail} className={STATUS_LINE}>
+      <UnpackPill state={state} percent={percent} />
+      {tally && (
+        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{`${tally.done}/${tally.total}`}</span>
+      )}
+      {/* flex-1 from a zero basis: the cause takes what the word leaves and
+          never squeezes the word itself. */}
+      {cause && <span className="min-w-0 flex-1 truncate text-[11px] text-carbon-textMuted">{cause}</span>}
+    </Tip>
   );
 }
 
@@ -987,6 +1086,36 @@ export function packageStatus(items: Task[]): Task['status'] {
   let best = items[0].status;
   for (const x of items) if (STATUS_RANK[x.status] < STATUS_RANK[best]) best = x.status;
   return best;
+}
+
+// The order in which a package's archives speak for it: a failure first, for
+// the reason packageStatus puts one first, then the archive being worked on,
+// then the ones waiting, and "Unpacked" only once nothing else is left.
+const UNPACK_RANK: UnpackState[] = ['error', 'password', 'running', 'queued', 'done'];
+
+/**
+ * packageUnpacking is the package header's summary of its archives, and null
+ * while a download in it is still under way or has failed, which is the more
+ * pressing thing to say. `done` and `total` count archives, not files: a set of
+ * twenty parts is one archive.
+ */
+export function packageUnpacking(
+  items: Task[],
+  ctx: CellContext,
+): (Unpacking & { done: number; total: number }) | null {
+  const status = packageStatus(items);
+  if (status !== 'done' && status !== 'extracting') return null;
+  const byArchive = new Map<string, Unpacking>();
+  for (const x of items) {
+    const u = unpackingOf(x, ctx);
+    // Without a job a set is counted once, by its first part.
+    if (u?.job) byArchive.set(`job ${u.job.id}`, u);
+    else if (u && (x.archivePart ?? 0) <= 1) byArchive.set(`task ${x.id}`, u);
+  }
+  const all = [...byArchive.values()];
+  if (all.length === 0) return null;
+  const lead = all.reduce((a, b) => (UNPACK_RANK.indexOf(b.state) < UNPACK_RANK.indexOf(a.state) ? b : a));
+  return { ...lead, done: all.filter((u) => u.state === 'done').length, total: all.length };
 }
 
 // Unknown sorts last ascending rather than first: a row that cannot say how long
@@ -1130,6 +1259,8 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
       pick: sub,
       bitrate: task.audioBitrate ?? '',
       formats: probed ?? menus.audioFormats,
+      // Before a probe the full list stands in, and nothing is a conversion yet.
+      convertTo: probed ? menus.audioFormats : [],
       tracks: probed ? (task.availableAudioTracks ?? []) : null,
       conversions: task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates,
       t: ctx.t,
@@ -1152,8 +1283,8 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
 
 /**
  * VariantSummary is the download list's reading of a variant row: which of
- * the link's rows it is and what it is fetched as, "Video 1080p60 webm (vp9)"
- * or "Audio opus 160 kbit/s". The rows of a link start out under one name, so
+ * the link's rows it is and what it is fetched as, "Video 1080p60 WebM (VP9)"
+ * or "Audio Opus 160 kbit/s". The rows of a link start out under one name, so
  * without it the audio row is one more line with the video's title.
  */
 function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; sub: string; label: string }) {
@@ -1262,8 +1393,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'eta',
     labelKey: 'columns.eta',
-    width: 76,
-    minWidth: 64,
+    width: 84,
+    minWidth: 76,
     align: 'end',
     numeric: true,
     hideable: true,
@@ -1288,16 +1419,29 @@ export const COLUMNS: ColumnDef[] = [
     hideable: true,
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
     render: (task, ctx) =>
-      ctx.profile === 'collector' ? <AvailCell task={task} t={ctx.t} /> : <StatusCell task={task} t={ctx.t} />,
+      ctx.profile === 'collector' ? (
+        <AvailCell task={task} t={ctx.t} />
+      ) : (
+        <StatusCell task={task} t={ctx.t} unpack={unpackingOf(task, ctx)} />
+      ),
     // A package that shows nothing in the status column looks like a spacer. It
     // gets the same pill as a link, over the whole package, or in the collector
     // the same availability dot its rows show, with mixed as its own colour.
-    aggregate: (items, ctx) =>
-      ctx.profile === 'collector' || packageStatus(items) === 'collected' ? (
-        <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />
-      ) : (
-        <StatusPill status={packageStatus(items)} />
-      ),
+    // Once its downloads are in, its archives speak for it.
+    aggregate: (items, ctx) => {
+      if (ctx.profile === 'collector' || packageStatus(items) === 'collected') {
+        return <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />;
+      }
+      const unpack = packageUnpacking(items, ctx);
+      if (!unpack) return <StatusPill status={packageStatus(items)} />;
+      return (
+        <UnpackStatus
+          unpack={unpack}
+          t={ctx.t}
+          tally={unpack.total > 1 ? { done: unpack.done, total: unpack.total } : undefined}
+        />
+      );
+    },
   },
   {
     id: 'host',
@@ -1397,7 +1541,7 @@ export const COLUMNS: ColumnDef[] = [
     id: 'variant',
     labelKey: 'columns.variant',
     // Sized for the row every yt-dlp package has, the video row with its
-    // format and quality pickers. 229 carries it on one line in English and
+    // format and quality pickers. 231 carries it on one line in English and
     // German, the widest pick included; in a language with a longer word for
     // Auto (287 in Lithuanian) the quality picker wraps, which it can since the
     // pickers are shrink-0 and the cell flex-wrap. Measurements are in
@@ -1405,9 +1549,9 @@ export const COLUMNS: ColumnDef[] = [
     //
     // minWidth is about the widest single control, because a picker cannot
     // shrink and the cell clips rather than squeezes it: the widest measured is
-    // Finnish "Automaattinen", 130px with the padding.
-    width: 229,
-    minWidth: 132,
+    // the Persian bitrate picker at 320 kbit/s, 144px with the padding.
+    width: 231,
+    minWidth: 144,
     // The download list shows one line of text instead of the pickers, and it
     // truncates into its tooltip, so neither the pickers' width nor their floor
     // applies there. The column is blank on every row that is not a yt-dlp link.

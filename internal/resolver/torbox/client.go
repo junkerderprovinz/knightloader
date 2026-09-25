@@ -6,6 +6,7 @@ package torbox
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,6 +42,40 @@ type envelope struct {
 	Data    json.RawMessage `json:"data"`
 }
 
+// APIError is a call TorBox answered with success false. Code is its error
+// code, such as "TEMPORARILY_DISABLED", and empty when it sent none; Detail is
+// the sentence beside it.
+type APIError struct {
+	Path   string
+	Code   string
+	Detail string
+}
+
+func (e *APIError) Error() string {
+	if e.Code == "" {
+		return fmt.Sprintf("torbox %s: %s", e.Path, e.Detail)
+	}
+	return fmt.Sprintf("torbox %s: %s %s", e.Path, e.Code, e.Detail)
+}
+
+// siteDisabledCode is the code TorBox answers with when it has switched off
+// the site a link is on, while the account and every other site still work.
+const siteDisabledCode = "TEMPORARILY_DISABLED"
+
+// SiteDisabled reports whether TorBox refused a link because it has switched
+// off that link's site. The code decides; the sentence is read only when TorBox
+// sent no code.
+func SiteDisabled(err error) bool {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	if apiErr.Code != "" {
+		return strings.EqualFold(apiErr.Code, siteDisabledCode)
+	}
+	return strings.Contains(strings.ToLower(apiErr.Detail), "site you are trying to download from is temporarily disabled")
+}
+
 func (c *Client) do(ctx context.Context, method, path string, form url.Values, out any) error {
 	var body io.Reader
 	if method == http.MethodPost && form != nil {
@@ -56,18 +91,27 @@ func (c *Client) do(ctx context.Context, method, path string, form url.Values, o
 	if body != nil {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
+	// Errors name the call without its query, which for requestdl carries
+	// the API key, and they end up on the task row and in the log.
+	call, _, _ := strings.Cut(path, "?")
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return err
+		// Do's error quotes the whole URL; the error it wraps says what went
+		// wrong.
+		return fmt.Errorf("torbox %s: %w", call, errors.Unwrap(err))
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	var env envelope
 	if err := json.Unmarshal(raw, &env); err != nil {
-		return fmt.Errorf("torbox %s: %s: %w", path, resp.Status, err)
+		return fmt.Errorf("torbox %s: %s: %w", call, resp.Status, err)
 	}
 	if !env.Success {
-		return fmt.Errorf("torbox %s: %v %s", path, env.Error, env.Detail)
+		apiErr := &APIError{Path: call, Detail: env.Detail}
+		if env.Error != nil {
+			apiErr.Code = fmt.Sprint(env.Error)
+		}
+		return apiErr
 	}
 	if out != nil && len(env.Data) > 0 && string(env.Data) != "null" {
 		return json.Unmarshal(env.Data, out)

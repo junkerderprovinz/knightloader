@@ -1,0 +1,12 @@
+[
+  {
+    "host": "files.example",
+    "username": "reader@mail.example",
+    "status": "active",
+    "enabled": true,
+    "tier": "premium",
+    "expiry": "2027-01-20T00:00:00Z",
+    "trafficLeft": 214748364800,
+    "trafficMax": 268435456000
+  }
+]

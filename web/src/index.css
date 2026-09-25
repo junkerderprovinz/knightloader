@@ -123,11 +123,11 @@
   border-bottom-left-radius: 0 !important;
 }
 
-/* Two button heights (GlimStone rule 19). --btn-h matches a text field (a 20px
-   line box plus 12px padding), so a button in a row of fields lines up with
-   them. --btn-h-key is for the button a surface exists for: the one that
-   creates what the page lists, or one that is hard to undo. A key control in a
-   field row is centred against its neighbours.
+/* The button heights (GlimStone rule 19). --btn-h matches a text field (a
+   20px line box plus 12px padding), so a button in a row of fields lines up
+   with them. --btn-h-transport is the head bar's transport squares and nothing
+   else. GlimStone's key height, one step up from --btn-h, has no button here
+   to carry it.
 
    The four width stages are minimum widths chosen from the label, so a button
    keeps its width whichever label mode is active and a translation that runs
@@ -136,19 +136,13 @@
    `min-w-[var(--btn-w-sm)]`. */
 :root {
   --btn-h: 2rem;
-  --btn-h-key: 2.5rem;
+  /* Only for the transport squares of a head bar; see `.glim-btn-transport`. */
+  --btn-h-transport: 3rem;
 
   --btn-w-xs: 5.5rem;
   --btn-w-sm: 8rem;
   --btn-w-md: 11.5rem;
   --btn-w-lg: 15rem;
-}
-
-/* The key control's height as a class. A glyph-only key control is square:
-   add `w-[var(--btn-h-key)]`. Unlayered, so it beats an `h-*` utility on the
-   same element. */
-.glim-btn-key {
-  height: var(--btn-h-key);
 }
 
 /* A glyph-only control: a square at the button height, sized by its glyph.
@@ -159,15 +153,11 @@
   min-width: 0;
   padding-inline: 0;
 }
-.glim-btn-icon.glim-btn-key {
-  width: var(--btn-h-key);
-}
 
 /* A glyph beside a button's words is as tall as the words, 14px. A larger one
-   outweighs the label, and a row of buttons reads as a row of icons. The key
-   control's taller box takes 16px, and a glyph alone in a square fills half of
-   it. The rules are GlimStone's (reference/tokens.css); no call site sets a
-   glyph size of its own. */
+   outweighs the label, and a row of buttons reads as a row of icons. A glyph
+   alone in a square takes 16px, half of it. The rules are GlimStone's
+   (reference/tokens.css); no call site sets a glyph size of its own. */
 .glim-btn-glyph {
   display: inline-flex;
   flex: none;
@@ -178,17 +168,26 @@
   height: 0.875rem;
   flex: none;
 }
-.glim-btn-key .glim-btn-glyph > svg {
-  width: 1rem;
-  height: 1rem;
-}
 .glim-btn-icon .glim-btn-glyph > svg {
   width: 1rem;
   height: 1rem;
 }
-.glim-btn-icon.glim-btn-key .glim-btn-glyph > svg {
-  width: 1.25rem;
-  height: 1.25rem;
+
+/* The transport squares of an app's head bar: play, pause, stop and the
+   square beside them that opens the quick settings. They are the controls the
+   whole app runs on and sit in a bar of their own, with no field or ordinary
+   button beside them to be out of line with, so they take a height that no
+   other control uses. The glyph is half the box, as on the other squares.
+   Button sets it in place of --btn-h (components/ui.tsx). */
+.glim-btn-transport {
+  width: var(--btn-h-transport);
+  height: var(--btn-h-transport);
+  min-width: 0;
+  padding-inline: 0;
+}
+.glim-btn-transport .glim-btn-glyph > svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 /* What the phone's bottom bar takes from the foot of the window: the bar's 3rem
@@ -296,9 +295,9 @@
 
   /* One elevation, one hairline. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
-  /* The ground behind every floating window, in one place. .65 rather than .60
-     so the eye stops reading the page behind. */
-  --glim-scrim: rgba(0, 0, 0, .65);
+  /* The ground behind every floating window, in one place. The blur beneath
+     it is --glim-scrim-blur, the same in every theme. */
+  --glim-scrim: rgba(0, 0, 0, .72);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 
@@ -375,7 +374,7 @@
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
     /* A light page separates the card from the page with less. */
-    --glim-scrim: rgba(0, 0, 0, .55);
+    --glim-scrim: rgba(0, 0, 0, .62);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
 
@@ -451,7 +450,7 @@
   --status-neutral-solid: #8d8d8d;
 
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
-  --glim-scrim: rgba(0, 0, 0, .55);
+  --glim-scrim: rgba(0, 0, 0, .62);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 
@@ -1168,11 +1167,15 @@ body {
   }
 
   /* Two animations, one duration: the movement on the level's curve, the fade
-     on one that cannot overshoot. */
+     on one that cannot overshoot. Both fill backwards only: held past their
+     end they leave an identity transform and an opacity layer on the wrapper,
+     which make it the containing block and the backdrop root of every window
+     inside the page, and a window's scrim and blur then stop at the page's
+     edge (check-scrim.mjs). */
   .glim-page-enter {
     animation:
-      glim-page-in var(--motion-page-dur) var(--motion-page-ease) both,
-      glim-fade-in var(--motion-page-dur) ease-out both;
+      glim-page-in var(--motion-page-dur) var(--motion-page-ease) backwards,
+      glim-fade-in var(--motion-page-dur) ease-out backwards;
   }
   .glim-toast {
     animation:
@@ -1427,7 +1430,7 @@ body {
    animations keep their stop at every level, since wanting more movement is not
    wanting something that never stops. */
 @media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 180ms ease both; }
+  :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 180ms ease backwards; }
   :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease both; }
   :root:not([data-motion="storm"]) .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
   /* Both halves of the floating window become the same short fade, so the
@@ -1448,8 +1451,8 @@ body {
   /* The storm restored, with the values from its token block. */
   :root[data-motion="storm"] .glim-page-enter {
     animation:
-      glim-page-in var(--motion-page-dur) var(--motion-page-ease) both,
-      glim-fade-in var(--motion-page-dur) ease-out both;
+      glim-page-in var(--motion-page-dur) var(--motion-page-ease) backwards,
+      glim-fade-in var(--motion-page-dur) ease-out backwards;
   }
   :root[data-motion="storm"] .glim-toast {
     animation:
@@ -1561,11 +1564,22 @@ body {
   background-color: var(--carbon-surface3);
 }
 
-/* The scrim behind every floating window. Its strength is --glim-scrim in each
-   theme block, so no component paints its own ground. The arrival animation
+/* The blur takes the page's detail away and the scrim its contrast, so the
+   window is the one thing left to read. Both are tokens, so every window
+   changes in one place, and a system that asks for less transparency gets the
+   darkening without the blur. The scrim's strength is --glim-scrim in each
+   theme block; the blur is one length for all of them. The arrival animation
    is in the motion engine above; .glim-modal-card has no paint of its own. */
+:root {
+  --glim-scrim-blur: 6px;
+}
 .glim-modal-backdrop {
   background: var(--glim-scrim);
+  -webkit-backdrop-filter: blur(var(--glim-scrim-blur));
+  backdrop-filter: blur(var(--glim-scrim-blur));
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glim-scrim-blur: 0px; }
 }
 
 /* A button carrying a brand's mark (GlimStone 1.9.0). At rest the mark uses
@@ -1767,8 +1781,9 @@ body {
 
   .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
 
-  /* Subtle halves the travel; off keeps only the change of light. */
-  [data-motion='subtle'] .kl-egg {
+  /* Subtle halves the travel; off keeps only the change of light. The rows
+     are not inside the mark, so they take the numbers themselves. */
+  [data-motion='subtle'] :is(.kl-egg, .kl-egg-struck) {
     --egg-draw: 5%;
     --egg-shove: 3px;
     --egg-quake: 1.5px;

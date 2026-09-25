@@ -76,36 +76,52 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	return base
 }
 
-// HosterPresetFor is the preset a host's links stage with: the saved one, or
+// HosterPresetFor is the preset a host's links stage with: the one saved for
+// the host or for another address of its site (ytdlp.PresetKeys), or
 // ytdlp.DefaultHosterPreset.
 func (a *App) HosterPresetFor(host string) ytdlp.HosterPreset {
-	host = strings.ToLower(strings.TrimSpace(host))
-	if host == "" {
-		return ytdlp.DefaultHosterPreset()
-	}
-	if p, ok := a.Settings.Get().YtdlpPresets[host]; ok {
+	if _, p, ok := savedPreset(a.Settings.Get().YtdlpPresets, host); ok {
 		return p.Sanitize()
 	}
 	return ytdlp.DefaultHosterPreset()
 }
 
-// SetHosterPreset saves a host's preset. host is lower-cased and stripped of
-// "www." as task hosts are, so a preset matches every link from the site.
+// savedPreset finds the preset host's links stage with and the key it is saved
+// under.
+func savedPreset(presets map[string]ytdlp.HosterPreset, host string) (string, ytdlp.HosterPreset, bool) {
+	for _, k := range ytdlp.PresetKeys(host) {
+		if p, ok := presets[k]; ok {
+			return k, p, true
+		}
+	}
+	return "", ytdlp.HosterPreset{}, false
+}
+
+// SetHosterPreset saves the preset host's links stage with. Where they stage
+// with one saved for another address of the site, that one is replaced, so the
+// gear on a youtu.be package edits the youtube.com preset rather than starting
+// a second one. Otherwise it is saved for the whole site (ytdlp.SitePresetKey),
+// so one set from an m.youtube.com package covers youtu.be as well, and a host
+// the site table does not know is saved lower-cased and stripped of "www." as
+// task hosts are.
 //
 // It goes through PatchSettings so a concurrent save of another field is not
 // clobbered. The presets map itself is still read then written, which only
 // matters if two hosts' presets are saved at the same instant.
 func (a *App) SetHosterPreset(host string, p ytdlp.HosterPreset) error {
-	host = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(host, "www.")))
-	if host == "" {
+	cur := a.Settings.Get().YtdlpPresets
+	key, _, ok := savedPreset(cur, host)
+	if !ok {
+		key = ytdlp.SitePresetKey(host)
+	}
+	if key == "" {
 		return nil
 	}
-	cur := a.Settings.Get().YtdlpPresets
 	presets := make(map[string]ytdlp.HosterPreset, len(cur)+1)
 	for k, v := range cur {
 		presets[k] = v
 	}
-	presets[host] = p.Sanitize()
+	presets[key] = p.Sanitize()
 	raw, err := json.Marshal(presets)
 	if err != nil {
 		return err
@@ -508,6 +524,7 @@ func (a *App) backfillYtdlpProbes() {
 // probe filled in the shape its pickers read: "best" first, then formats. A
 // stored row can carry the one-menu shape instead, tracks and formats mixed
 // ("m4a 129k" beside "aac"), which the format picker would offer as formats.
+// It can also name AAC "m4a" after its file, and its tracks with it.
 func pickerMenusRead(t *core.Task, kind ytdlp.Variant) bool {
 	formats := t.AvailableVideoFormats
 	if kind == ytdlp.VariantAudio {
@@ -517,8 +534,38 @@ func pickerMenusRead(t *core.Task, kind ytdlp.Variant) bool {
 		return false
 	}
 	return !slices.ContainsFunc(formats, func(f string) bool {
-		return f == "aac" || ytdlp.IsVideoTrack(f) || ytdlp.IsAudioTrack(f)
+		return f == "m4a" || ytdlp.IsVideoTrack(f) || ytdlp.IsAudioTrack(f)
 	})
+}
+
+// HosterFormats is what a host's preset offers: the formats the site is known
+// to serve and those that probes of its links found, from the kept format lists
+// and from the menus of every variant row of the host, finished ones included,
+// since those outlast a restart (see ytdlp.HostFormats).
+func (a *App) HosterFormats(host string) ytdlp.HostMenus {
+	host = strings.TrimPrefix(strings.ToLower(strings.TrimSpace(host)), "www.")
+	var video, audio []string
+	probed := false
+	a.mu.Lock()
+	for u, formats := range a.probed {
+		if hostOf(u) == host {
+			video = append(video, ytdlp.VideoContainers(formats)...)
+			audio = append(audio, ytdlp.AudioFormatsOf(formats)...)
+			probed = true
+		}
+	}
+	for _, t := range a.tasks {
+		if t.Host != host || t.Variant == "" {
+			continue
+		}
+		if len(t.AvailableVideoFormats) > 0 || len(t.AvailableAudioFormats) > 0 {
+			video = append(video, t.AvailableVideoFormats...)
+			audio = append(audio, t.AvailableAudioFormats...)
+			probed = true
+		}
+	}
+	a.mu.Unlock()
+	return ytdlp.HostFormats(host, video, audio, probed)
 }
 
 // applyFixedVariantExts gives existing variant rows the extension
