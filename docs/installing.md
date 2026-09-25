@@ -173,8 +173,8 @@ one file for Chrome, Edge, Brave and Opera:
 5. Paste your connection phrase into the Remote access card on the options
    page, which opens by itself on a fresh install.
 
-Firefox installs only add-ons Mozilla has signed, and those come from the
-add-on's listing on Firefox Add-ons, which is in review. Until it is listed,
+Firefox installs only add-ons Mozilla has signed. Those come from the
+add-on's page on Firefox Add-ons, which is not listed yet. Until it is,
 `about:debugging`, This Firefox, **Load Temporary Add-on** loads the ZIP until
 the next restart. What the extension does is in
 [Bookmarklet, extension and share target](browser-tools.md).

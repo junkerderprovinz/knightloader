@@ -46,11 +46,11 @@ submission and for a fixed download.
   comparison, the screenshots and a quick start, and its download row gains a
   Docs button after Source. The comparison table marks each cell with ✅, ⚠️ or
   ❌ like the other repositories' tables.
-- **Browser extension 1.1.0, for the browser stores.** It goes to the Chrome
-  Web Store, Microsoft Edge Add-ons and Firefox Add-ons. Once the add-on is
-  listed on Firefox Add-ons, every extension tag is submitted there for review,
-  and Firefox installs and updates it from its listing. The README's Firefox
-  button leads there as soon as the listing is live.
+- **Browser extension 1.1.0 goes to the browser stores**: the Chrome Web
+  Store, Microsoft Edge Add-ons and Firefox Add-ons. Once the add-on is listed
+  on Firefox Add-ons, every extension tag is submitted there for review, and
+  Firefox installs and updates it from the listing. Until then the README's
+  Firefox button says "coming soon".
 - **KnightLoader runs under a path behind a reverse proxy.** Set
   `KL_BASE_PATH=/kl` and it serves the interface and the API at
   `https://example.com/kl/`. A proxy that strips the prefix and sends
