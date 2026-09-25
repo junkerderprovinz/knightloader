@@ -67,9 +67,11 @@ jobs:
               - 'extension/**'
               - 'web/src/lib/donate.ts'
               - '.github/workflows/ci.yml'
+            # check-relay-url.mjs reads its cases from internal/relay's tests.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
+              - 'internal/relay/client_test.go'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either
             # can break it.
@@ -458,6 +460,9 @@ jobs:
 
       - name: House font
         run: node check-house-font.mjs
+
+      - name: Relay addresses
+        run: node check-relay-url.mjs
 
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed

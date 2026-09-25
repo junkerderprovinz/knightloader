@@ -1,5 +1,6 @@
 import type { SelfTestRequestView, SelfTestResult, SelfTestStatus } from './api';
 import { ltr } from './bidi';
+import { socketURL } from './basePath';
 
 // The part of the self-test only a browser can answer. The reverse-proxy
 // checks compare what the browser sent with what the server received; a probe
@@ -40,8 +41,7 @@ export function probeWebSocket(timeoutMs: number = WS_PROBE_TIMEOUT_MS): Promise
     };
     let sock: WebSocket;
     try {
-      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-      sock = new WebSocket(`${proto}://${location.host}/api/ws`);
+      sock = new WebSocket(socketURL('/api/ws'));
     } catch {
       resolve(false);
       return;
@@ -144,20 +144,17 @@ function protoVerdict(view: SelfTestRequestView, loc: { protocol: string }): Sel
   return row('proto', 'fail', 'proxy.proto.missing');
 }
 
-// Serving under a path prefix is unsupported, so the verdict is "give the app
-// its own host": the base path, the manifest, the icons, every fetch and the
-// websocket are all rooted at '/'. A stripped prefix is only visible through
-// X-Forwarded-Prefix, which Traefik's StripPrefix and most nginx setups send.
+// The instance echoes the prefix it served the request under, from KL_BASE_PATH
+// or the proxy's X-Forwarded-Prefix. A proxy naming a different one, or one
+// the instance refused as unsafe, mounts the app where its links do not lead.
 function prefixVerdict(view: SelfTestRequestView): SelfTestResult {
-  if (view.forwardedPrefix !== '') {
-    return row('prefix', 'fail', 'proxy.prefix.underPath', { path: view.forwardedPrefix });
+  if (view.forwardedPrefix !== '' && view.forwardedPrefix !== view.basePath) {
+    return row('prefix', 'fail', 'proxy.prefix.mismatch', { path: view.forwardedPrefix, base: view.basePath || '/' });
   }
-  // A weaker signal: the received path differs from the one requested, so
-  // something in between rewrote it.
-  if (view.path !== '' && view.path !== '/api/selftest/request') {
-    return row('prefix', 'fail', 'proxy.prefix.underPath', { path: view.path });
+  if (view.basePath !== '') {
+    return row('prefix', 'pass', 'proxy.prefix.underPath', { path: view.basePath });
   }
-  return row('prefix', 'pass', 'proxy.prefix.ok', { host: view.host });
+  return row('prefix', 'pass', 'proxy.prefix.root', { host: view.host });
 }
 
 /**

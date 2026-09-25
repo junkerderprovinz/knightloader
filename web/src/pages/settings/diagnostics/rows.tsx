@@ -59,7 +59,7 @@ const ADVICE: Record<string, TranslationKey> = {
   'torrentPort.notChecked': 'settings.selftest.torrentPort.notCheckedAdvice',
   'proxy.host.rewritten': 'settings.selftest.proxy.host.rewrittenAdvice',
   'proxy.proto.missing': 'settings.selftest.proxy.proto.missingAdvice',
-  'proxy.prefix.underPath': 'settings.selftest.proxy.prefix.underPathAdvice',
+  'proxy.prefix.mismatch': 'settings.selftest.proxy.prefix.mismatchAdvice',
   'proxy.ws.failed': 'settings.selftest.proxy.ws.failedAdvice',
 };
 

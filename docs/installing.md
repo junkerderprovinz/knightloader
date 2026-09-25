@@ -24,6 +24,80 @@ docker run -d --name knightloader \
 Then open `http://<host>:8749`. On Unraid add `--user 99:100`, so finished
 files land as `nobody:users`.
 
+### Behind a reverse proxy
+
+KnightLoader works on a host name of its own, such as `https://kl.example.com`,
+and just as well in a folder of another one, such as `https://example.com/kl/`.
+Either way the proxy has to pass the WebSocket upgrade through and, when it
+terminates TLS, send `X-Forwarded-Proto`. The self-test under Settings,
+Diagnostics checks both from your browser.
+
+For a folder, KnightLoader has to know the path. There are two ways to tell it:
+
+- Set `KL_BASE_PATH=/kl` in the container's environment. The proxy may pass
+  the prefix on or strip it.
+- Set nothing, and let the proxy strip the prefix and name it in
+  `X-Forwarded-Prefix`. Traefik's StripPrefix middleware sends that header by
+  itself; in nginx add `proxy_set_header X-Forwarded-Prefix /kl;`.
+
+If both are there, `KL_BASE_PATH` wins. The prefix has to be a plain path:
+letters, digits and `-._~` between the slashes. It cannot begin with `/api` or
+`/relay`, since the instance answers those without the prefix too.
+
+nginx, passing the prefix on, with `KL_BASE_PATH=/kl`:
+
+```nginx
+location /kl/ {
+    proxy_pass http://knightloader:8749;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
+Traefik, stripping it, with nothing set:
+
+```yaml
+labels:
+  - traefik.http.routers.knightloader.rule=Host(`example.com`) && PathPrefix(`/kl`)
+  - traefik.http.routers.knightloader.middlewares=knightloader-strip
+  - traefik.http.middlewares.knightloader-strip.stripprefix.prefixes=/kl
+  - traefik.http.services.knightloader.loadbalancer.server.port=8749
+```
+
+Caddy, passing it on, with `KL_BASE_PATH=/kl`. The `redir` line sends the bare
+`/kl` to `/kl/`, which `handle /kl/*` would not match. `handle_path` in place of
+`handle` works too: it strips the prefix, and `KL_BASE_PATH` still names it.
+
+```
+example.com {
+    redir /kl /kl/
+    handle /kl/* {
+        reverse_proxy knightloader:8749
+    }
+}
+```
+
+Once the path is known, the instance uses it everywhere: the session cookie,
+the addresses and QR code on the Remote access page, the installed web app, its
+share target and the bookmarklet all include it. Where you name the instance
+yourself, include the path too: for the Click'n'Load bridge
+(`-bridge https://example.com/kl`), for another instance on the Instances page,
+and as the relay address on the others when this one is switched to "Use this
+instance as the relay". The phone app and the browser extension reach the
+instance through the relay with the twelve words and need no address.
+
+The path does not separate the instance from the other applications on the
+host. They share one origin with it, so a page served by any of them can call
+KnightLoader's API with your session, whatever path the cookie carries. Only a
+host name of its own keeps them apart, so give it one unless you trust
+everything else on that host.
+
+The container's health check and the LAN address `http://<host>:8749` keep
+working without the prefix.
+
 ### Building the image yourself
 
 ```sh

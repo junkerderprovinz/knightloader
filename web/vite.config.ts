@@ -12,11 +12,13 @@ const mobileVersion = (
 ).expo.version;
 
 // Builds the SPA into web/dist, which the Go binary embeds. Stable asset names
-// keep the committed dist clean. In dev, /api (incl. WebSocket) is proxied to
-// the Go backend on :8749.
+// keep the committed dist clean. Asset paths are relative, resolved against the
+// <base> element the server puts into index.html, so one build serves at the
+// root and under a reverse proxy's path prefix. In dev, /api (incl. WebSocket)
+// is proxied to the Go backend on :8749.
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: './',
   define: {
     __MOBILE_VERSION__: JSON.stringify(mobileVersion),
   },

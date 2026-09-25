@@ -27,8 +27,9 @@ import (
 	"github.com/coder/websocket"
 )
 
-// connectPath is appended when the configured address has no path, so the
-// bare "https://relay.example.com" given to a reverse proxy still works.
+// connectPath is appended to an address that does not name the socket itself,
+// so the bare "https://relay.example.com" given to a reverse proxy works, and
+// so does "https://example.com/kl" for an instance a proxy serves under /kl.
 const connectPath = "/relay/connect"
 
 // proxyTimeout bounds one call to a sibling over the relay. It matches
@@ -544,10 +545,13 @@ func connectURL(raw string) (string, error) {
 	default:
 		return "", fmt.Errorf("relay: %q must be an http(s) or ws(s) address", raw)
 	}
-	// A typed path stays, since a relay behind a reverse proxy can be mounted
-	// anywhere.
-	if u.Path == "" || u.Path == "/" {
-		u.Path = connectPath
+	// A path ending in /connect names the socket and stays, since a relay
+	// behind a reverse proxy can be mounted anywhere. Any other path is where
+	// a proxy serves an instance, whose relay sits below it.
+	p := strings.TrimRight(u.Path, "/")
+	if !strings.HasSuffix(p, "/connect") {
+		p += connectPath
 	}
+	u.Path, u.RawPath = p, ""
 	return u.String(), nil
 }

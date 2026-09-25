@@ -8,6 +8,7 @@ the Accounts page. None of them is required.
 | Var | Default | Meaning |
 |---|---|---|
 | `KL_ADDR` | `:8749` | listen address |
+| `KL_BASE_PATH` | | path the interface and the API are served under behind a reverse proxy, e.g. `/kl` for `https://example.com/kl/`. Unset means the root, or the prefix a proxy sends in `X-Forwarded-Prefix`; see [Behind a reverse proxy](installing.md#behind-a-reverse-proxy) |
 | `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. A copy fetched by the Resolvers settings page ("keeping yt-dlp current") is started ahead of this one, and that page says so and offers to remove it again |
 | `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |

@@ -4,9 +4,11 @@
 package api
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"html"
 	"io"
 	"io/fs"
 	"mime"
@@ -19,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/web"
 )
@@ -30,7 +33,7 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := sameOrigin(guard(a, reg, mux))
+	h := withBasePath(sameOrigin(guard(a, reg, mux)))
 
 	// A relay-proxied call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Wiring the relay and the peer
@@ -107,7 +110,7 @@ func setSession(w http.ResponseWriter, r *http.Request, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     auth.CookieName,
 		Value:    token,
-		Path:     "/",
+		Path:     cookiePath(r),
 		HttpOnly: true,
 		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
@@ -116,10 +119,29 @@ func setSession(w http.ResponseWriter, r *http.Request, token string) {
 }
 
 func clearSession(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name: auth.CookieName, Value: "", Path: "/", HttpOnly: true,
-		Secure: r.TLS != nil, SameSite: http.SameSiteLaxMode, MaxAge: -1,
-	})
+	paths := []string{cookiePath(r)}
+	// The browser sends a cookie set at the root along with this one: one from
+	// before the base path was configured, or from the LAN address of the same
+	// host. Left alone, it would keep the session alive after the logout.
+	if paths[0] != "/" {
+		paths = append(paths, "/")
+	}
+	for _, p := range paths {
+		http.SetCookie(w, &http.Cookie{
+			Name: auth.CookieName, Value: "", Path: p, HttpOnly: true,
+			Secure: r.TLS != nil, SameSite: http.SameSiteLaxMode, MaxAge: -1,
+		})
+	}
+}
+
+// cookiePath keeps the session cookie under the base path, so requests to
+// other applications on the same host do not carry it. It is no boundary
+// against their scripts, which share the origin and can call the API.
+func cookiePath(r *http.Request) string {
+	if p := requestBasePath(r); p != "" {
+		return p
+	}
+	return "/"
 }
 
 // guard refuses API calls without a session once a password is set. The open
@@ -238,6 +260,7 @@ func spaHandler() http.Handler {
 	sub, _ := fs.Sub(web.Dist, "dist")
 	etags := buildETags(sub)
 	fileServer := http.FileServer(http.FS(sub))
+	index, _ := fs.ReadFile(sub, "index.html")
 
 	serve := func(w http.ResponseWriter, r *http.Request, name string) {
 		if tag, ok := etags[name]; ok {
@@ -249,18 +272,28 @@ func spaHandler() http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := strings.TrimPrefix(r.URL.Path, "/")
-		if p == "" {
-			serve(w, r, "index.html")
-			return
+		if p != "" {
+			if _, err := fs.Stat(sub, p); err == nil {
+				serve(w, r, p)
+				return
+			}
 		}
-		if _, err := fs.Stat(sub, p); err == nil {
-			serve(w, r, p)
-			return
-		}
-		r2 := r.Clone(r.Context())
-		r2.URL.Path = "/"
-		serve(w, r2, "index.html")
+		serveIndex(w, r, index)
 	})
+}
+
+// serveIndex answers with the page every client-side route starts from. Its
+// <base> element names where the app lives, and the build writes every asset
+// path relative to it, so one build works at the root and under any prefix.
+func serveIndex(w http.ResponseWriter, r *http.Request, index []byte) {
+	base := []byte("<head>\n    <base href=\"" + html.EscapeString(requestBasePath(r)) + "/\" />")
+	page := bytes.Replace(index, []byte("<head>"), base, 1)
+	w.Header().Set("ETag", etagOf(page))
+	w.Header().Set("Cache-Control", "no-cache")
+	if buildinfo.BasePath == "" {
+		w.Header().Add("Vary", "X-Forwarded-Prefix")
+	}
+	http.ServeContent(w, r, "index.html", time.Time{}, bytes.NewReader(page))
 }
 
 // buildETags hashes every embedded file once at startup; the build does not
@@ -275,11 +308,15 @@ func buildETags(sub fs.FS) map[string]string {
 		if err != nil {
 			return nil
 		}
-		sum := sha256.Sum256(b)
-		tags[path] = `"` + hex.EncodeToString(sum[:16]) + `"`
+		tags[path] = etagOf(b)
 		return nil
 	})
 	return tags
+}
+
+func etagOf(b []byte) string {
+	sum := sha256.Sum256(b)
+	return `"` + hex.EncodeToString(sum[:16]) + `"`
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

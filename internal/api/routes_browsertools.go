@@ -1,9 +1,9 @@
 package api
 
 // Packaging the MV3 extension's source (package extension) for download. The
-// bookmarklet needs no route: it is generated client-side from
-// window.location.origin (web/src/lib/browserTools.ts) and opens /quickadd,
-// which the SPA already serves.
+// bookmarklet needs no route: it is generated client-side from the page's
+// origin and base path (web/src/lib/browserTools.ts) and opens quickadd under
+// that path, which the SPA already serves.
 //
 // Two routes rather than one because Chromium browsers load an unpacked .zip
 // through Developer Mode while Firefox's install flow looks for a .xpi, which

@@ -53,11 +53,11 @@ func registerHealth(reg *Registry, a *app.App) {
 
 // metricsDetail is the live line of the metrics module row: where to point
 // the collector, and a warning when a password is set but no token can read.
-func metricsDetail(a *app.App, s settings.Settings) line {
-	path := map[string]string{"path": metricsPath}
+func metricsDetail(a *app.App, s settings.Settings, base string) line {
+	path := map[string]string{"path": base + metricsPath}
 	if !s.Metrics {
 		return line{
-			text: "off; " + metricsPath + " answers 404, the same as an endpoint that does not exist",
+			text: "off; " + path["path"] + " answers 404, the same as an endpoint that does not exist",
 			code: "metricsOff", args: path,
 		}
 	}
@@ -77,7 +77,7 @@ func metricsDetail(a *app.App, s settings.Settings) line {
 		}
 	}
 	return line{
-		text: "reachable at " + metricsPath + "; a collector on a password-protected instance sends one of this instance's API tokens as a Bearer header",
+		text: "reachable at " + path["path"] + "; a collector on a password-protected instance sends one of this instance's API tokens as a Bearer header",
 		code: "metricsReady", args: path,
 	}
 }

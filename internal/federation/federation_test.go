@@ -104,6 +104,28 @@ func TestManualPeersAreUntouchedByRelaySupport(t *testing.T) {
 	}
 }
 
+// TestAPeerUnderABasePathIsCalledThere covers a peer behind a reverse proxy at
+// https://example.com/kl/, added with the trailing slash a browser shows.
+func TestAPeerUnderABasePathIsCalledThere(t *testing.T) {
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/kl/api/tasks" {
+			http.NotFound(w, r)
+			return
+		}
+		_, _ = w.Write([]byte(`[{"id":"t1"}]`))
+	}))
+	defer peer.Close()
+
+	m := newManager(t)
+	if err := m.Add(Instance{Name: "NAS", URL: peer.URL + "/kl/"}); err != nil {
+		t.Fatalf("add: %v", err)
+	}
+	body, code, err := m.Proxy(context.Background(), "NAS", http.MethodGet, "/api/tasks", nil)
+	if err != nil || code != http.StatusOK || string(body) != `[{"id":"t1"}]` {
+		t.Errorf("got %s %d %v, want the answer from /kl/api/tasks", body, code, err)
+	}
+}
+
 func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	dir := t.TempDir()
 	m, err := Load(dir)

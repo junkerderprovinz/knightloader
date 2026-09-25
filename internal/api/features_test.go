@@ -27,7 +27,7 @@ import (
 // control without a reason beside it.
 func TestEveryModuleWithoutASwitchSaysWhy(t *testing.T) {
 	t.Parallel()
-	for _, m := range featureList(testApp(t)) {
+	for _, m := range featureList(testApp(t), "") {
 		if m.Switch == SwitchNone && strings.TrimSpace(m.Reason) == "" {
 			t.Errorf("module %q cannot be switched and does not say why", m.ID)
 		}
@@ -52,7 +52,7 @@ func TestModulePagesExist(t *testing.T) {
 		pages[p.ID] = true
 	}
 	ids := map[string]bool{}
-	for _, m := range featureList(testApp(t)) {
+	for _, m := range featureList(testApp(t), "") {
 		if ids[m.ID] {
 			t.Errorf("module %q is listed twice", m.ID)
 		}
@@ -460,7 +460,7 @@ func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
 
 func featureRow(t *testing.T, a *app.App, id string) Feature {
 	t.Helper()
-	for _, f := range featureList(a) {
+	for _, f := range featureList(a, "") {
 		if f.ID == id {
 			return f
 		}
@@ -558,7 +558,7 @@ func TestEveryModuleSentenceHasACode(t *testing.T) {
 	t.Parallel()
 	check := func(state string, a *app.App) {
 		t.Helper()
-		for _, m := range featureList(a) {
+		for _, m := range featureList(a, "") {
 			if m.Reason != "" && m.ReasonCode == "" {
 				t.Errorf("%s: module %q sends the reason %q without a code", state, m.ID, m.Reason)
 			}
@@ -601,7 +601,7 @@ func TestEnabledIsDerivedNotStored(t *testing.T) {
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
-	for _, m := range featureList(a) {
+	for _, m := range featureList(a, "") {
 		if m.ID == "watch" && !m.Enabled {
 			t.Error("a folder was set outside the switch and the module still reports off")
 		}

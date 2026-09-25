@@ -138,6 +138,8 @@ decodes to the remote instance over the normal REST API:
 knightloader -bridge http://nas:8749
 # with a password-locked instance:
 knightloader -bridge http://nas:8749 -bridge-password 'your-ui-password'
+# with an instance a reverse proxy serves under a path:
+knightloader -bridge https://example.com/kl
 ```
 
 It downloads nothing itself and needs no data directory. It is a few hundred

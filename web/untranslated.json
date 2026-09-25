@@ -18,7 +18,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "bg": [
       "settings.access.tokens.rights",
@@ -37,7 +40,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ca": [
       "settings.access.tokens.rights",
@@ -56,7 +62,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "cs": [
       "settings.access.tokens.rights",
@@ -75,7 +84,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "da": [
       "settings.access.tokens.rights",
@@ -94,7 +106,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "el": [
       "settings.access.tokens.rights",
@@ -113,7 +128,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "es": [
       "settings.access.tokens.rights",
@@ -132,7 +150,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "et": [
       "settings.access.tokens.rights",
@@ -151,7 +172,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "eu": [
       "settings.access.tokens.rights",
@@ -170,7 +194,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "fa": [
       "settings.access.tokens.rights",
@@ -189,7 +216,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "fi": [
       "settings.access.tokens.rights",
@@ -208,7 +238,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "fr": [
       "settings.access.tokens.rights",
@@ -227,7 +260,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "gl": [
       "settings.access.tokens.rights",
@@ -246,7 +282,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "he": [
       "settings.access.tokens.rights",
@@ -265,7 +304,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "hi": [
       "settings.access.tokens.rights",
@@ -284,7 +326,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "hr": [
       "settings.access.tokens.rights",
@@ -303,7 +348,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "hu": [
       "settings.access.tokens.rights",
@@ -322,7 +370,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "id": [
       "settings.access.tokens.rights",
@@ -341,7 +392,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "is": [
       "settings.access.tokens.rights",
@@ -360,7 +414,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "it": [
       "settings.access.tokens.rights",
@@ -379,7 +436,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ja": [
       "settings.access.tokens.rights",
@@ -398,7 +458,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ko": [
       "settings.access.tokens.rights",
@@ -417,7 +480,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "lt": [
       "settings.access.tokens.rights",
@@ -436,7 +502,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "lv": [
       "settings.access.tokens.rights",
@@ -455,7 +524,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ms": [
       "settings.access.tokens.rights",
@@ -474,7 +546,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "nl": [
       "settings.access.tokens.rights",
@@ -493,7 +568,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "no": [
       "settings.access.tokens.rights",
@@ -512,7 +590,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "pl": [
       "settings.access.tokens.rights",
@@ -531,7 +612,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "pt": [
       "settings.access.tokens.rights",
@@ -550,7 +634,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ro": [
       "settings.access.tokens.rights",
@@ -569,7 +656,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "ru": [
       "settings.access.tokens.rights",
@@ -588,7 +678,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "sk": [
       "settings.access.tokens.rights",
@@ -607,7 +700,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "sl": [
       "settings.access.tokens.rights",
@@ -626,7 +722,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "sr": [
       "settings.access.tokens.rights",
@@ -645,7 +744,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "sv": [
       "settings.access.tokens.rights",
@@ -664,7 +766,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "th": [
       "settings.access.tokens.rights",
@@ -683,7 +788,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "tr": [
       "settings.access.tokens.rights",
@@ -702,7 +810,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "uk": [
       "settings.access.tokens.rights",
@@ -721,7 +832,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "vi": [
       "settings.access.tokens.rights",
@@ -740,7 +854,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ],
     "zh": [
       "settings.access.tokens.rights",
@@ -759,7 +876,10 @@
       "settings.access.tokens.scope.adminHint",
       "settings.modules.detail.downloadclientNoAddReadToken",
       "settings.modules.detail.downloadclientNoAddReadTokenNoSubfolders",
-      "settings.modules.detail.metricsNoReadToken"
+      "settings.modules.detail.metricsNoReadToken",
+      "settings.selftest.proxy.prefix.root",
+      "settings.selftest.proxy.prefix.mismatch",
+      "settings.selftest.proxy.prefix.mismatchAdvice"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

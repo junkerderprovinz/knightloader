@@ -51,6 +51,17 @@ submission and for a fixed download.
   listed on Firefox Add-ons, every extension tag is submitted there for review,
   and Firefox installs and updates it from its listing. The README's Firefox
   button leads there as soon as the listing is live.
+- **KnightLoader runs under a path behind a reverse proxy.** Set
+  `KL_BASE_PATH=/kl` and it serves the interface and the API at
+  `https://example.com/kl/`. A proxy that strips the prefix and sends
+  `X-Forwarded-Prefix` needs no setting at all. Links, redirects, the session
+  cookie, the live connection, the installed web app, the bookmarklet, the
+  Sonarr and metrics hints and the addresses on the Remote access page carry
+  the path. The Click'n'Load bridge and other instances accept an address
+  that has one, and so does the relay address on the instances and in the
+  phone app: one whose path does not end in `/connect` gets `/relay/connect`
+  after it, as a bare host always did. The self-test's path check reports the
+  prefix instead of failing on it. At the root nothing changes.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the

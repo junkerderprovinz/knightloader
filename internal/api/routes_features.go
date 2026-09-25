@@ -189,7 +189,7 @@ func registerFeatures(reg *Registry, a *app.App) {
 
 	reg.Add(http.MethodGet, "/api/features", "every subsystem this build contains, with a verdict and its live on/off state",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, featureState(a))
+			writeJSON(w, featureState(a, requestBasePath(r)))
 		})
 
 	reg.Add(http.MethodPut, "/api/features/{id}", "switch one subsystem on or off; refused with a reason where there is no real switch",
@@ -211,7 +211,7 @@ func registerFeatures(reg *Registry, a *app.App) {
 			}
 			// The whole table, since one switch can change what other rows and
 			// pages may offer.
-			writeJSON(w, featureState(a))
+			writeJSON(w, featureState(a, requestBasePath(r)))
 		})
 
 	reg.Add(http.MethodGet, "/api/settings/defaults", "the factory settings and the type of every settings key, for the advanced table's per-row reset",
@@ -282,12 +282,13 @@ func collectKinds(t reflect.Type, prefix string, out map[string]string) {
 	}
 }
 
-// featureState builds the table from live state.
-func featureState(a *app.App) FeatureState {
-	return FeatureState{Modules: featureList(a), Pages: featurePages()}
+// featureState builds the table from live state. base is the path the request
+// came in under, which every address a line names starts with.
+func featureState(a *app.App, base string) FeatureState {
+	return FeatureState{Modules: featureList(a, base), Pages: featurePages()}
 }
 
-func featureList(a *app.App) []Feature {
+func featureList(a *app.App, base string) []Feature {
 	s := a.Settings.Get()
 	parked := parkedIDs(a, s)
 	return []Feature{
@@ -370,11 +371,11 @@ func featureList(a *app.App) []Feature {
 			// create downloads, not how downloads behave.
 			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
-		}, downloadClientDetail(a, s)),
+		}, downloadClientDetail(a, s, base)),
 		withDetail(Feature{
 			ID: "metrics", Verdict: VerdictShipped, Page: "health",
 			Switch: SwitchSetting, Enabled: s.Metrics,
-		}, metricsDetail(a, s)),
+		}, metricsDetail(a, s, base)),
 		withDetail(Feature{
 			// Over the scripts' own switches: off here, no event starts any of
 			// them, and each keeps its own setting for when this is back on.
@@ -490,7 +491,7 @@ func setFeature(a *app.App, id string, on bool) error {
 	// A row can lose its switch at run time (no JD wired, no yt-dlp found);
 	// the table is the one place that knows.
 	var page string
-	for _, f := range featureList(a) {
+	for _, f := range featureList(a, "") {
 		if f.ID != id {
 			continue
 		}
@@ -773,7 +774,7 @@ func extractionDetail(s settings.Settings) line {
 // calls, and when "Put each package in its own subfolder" is off, since the
 // importer then finds several releases in the folder the bridge reports. The
 // line shows on the Modules page, so it names the page the token is made on.
-func downloadClientDetail(a *app.App, s settings.Settings) line {
+func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	if !s.DownloadClientAPI {
 		return line{
 			text: "off; Sonarr and Radarr get a 404 from it, the same as for an endpoint that does not exist",
@@ -800,9 +801,12 @@ func downloadClientDetail(a *app.App, s settings.Settings) line {
 	case flat:
 		return line{text: noSubfolder, code: "downloadclientNoSubfolders"}
 	}
+	// Sonarr and Radarr put the /api after the URL Base themselves.
+	mount := base + "/api/sabnzbd"
+	args := map[string]string{"path": mount + "/api", "urlBase": strings.TrimPrefix(mount, "/")}
 	return line{
-		text: "reachable at /api/sabnzbd/api; set Sonarr's or Radarr's URL Base to \"api/sabnzbd\" and its API key to one of this instance's tokens",
-		code: "downloadclientReady",
+		text: "reachable at " + args["path"] + "; set Sonarr's or Radarr's URL Base to \"" + args["urlBase"] + "\" and its API key to one of this instance's tokens",
+		code: "downloadclientReady", args: args,
 	}
 }
 

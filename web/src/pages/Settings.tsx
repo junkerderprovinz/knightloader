@@ -6,6 +6,7 @@ import { readUIState, useUIState } from '../lib/uistate';
 import { useNavLabels } from '../lib/navLabels';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
+import { withBase } from '../lib/basePath';
 import { useToast } from '../lib/toast';
 import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
@@ -458,7 +459,7 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
           id: p.id,
           label: label(tx, 'settings.nav.', p.id),
           icon: pageIcon(p.id),
-          href: pagePath(p.id),
+          href: withBase(pagePath(p.id)),
           // A page without controls is dimmed, not hidden: it still explains itself.
           dim: !hasContent(p.id),
         }))}
