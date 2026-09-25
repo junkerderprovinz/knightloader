@@ -26,31 +26,28 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
 
 <!-- download-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(0,0,720,245.3))" alt="Download for Windows" width="195" height="66.435"></a><a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-arm64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(744,0,384,245.3))" alt="Download for Windows on ARM" width="104" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(0,0,720,245.3))" alt="Download for Windows" width="137" height="46.675"></a><a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-windows-arm64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(744,0,394.161,245.3))" alt="Download for Windows on ARM" width="75" height="46.675"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-macos-universal.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1152,0,720,245.3))" alt="Download for macOS" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-macos-universal.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1163,0,720,245.3))" alt="Download for macOS" width="137" height="46.675"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-linux-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1896,0,720,245.3))" alt="Download for Linux" width="195" height="66.435"></a><a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-linux-arm64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2640,0,384,245.3))" alt="Download for Linux on ARM" width="104" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-linux-amd64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1907,0,720,245.3))" alt="Download for Linux" width="137" height="46.675"></a><a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-linux-arm64.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2651,0,394.161,245.3))" alt="Download for Linux on ARM" width="75" height="46.675"></a>
 </p>
 <p align="center">
-  <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3048,0,720,245.3))" alt="Run it with Docker" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3070,0,720,245.3))" alt="Run it with Docker" width="137" height="46.675"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3792,0,720,245.3))" alt="Download the source archive" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3814,0,720,245.3))" alt="Download the source archive" width="137" height="46.675"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/knightloader/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4536,0,720,245.3))" alt="Read the documentation" width="195" height="66.435"></a>
+  <a href="https://junkerderprovinz.github.io/knightloader/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(4558,0,720,245.3))" alt="Read the documentation" width="137" height="46.675"></a>
 </p>
 <p align="center">
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5280,0,720,245.3))" alt="Download the Android app" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(5302,0,720,245.3))" alt="Download the Android app" width="137" height="46.675"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6024,0,720,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6046,0,720,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="137" height="46.675"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6768,0,720,245.3))" alt="Install the Firefox add-on" width="195" height="66.435"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6790,0,720,245.3))" alt="Install the Firefox add-on" width="137" height="46.675"></a>
+  <br><sub>Always the latest build</sub>
 </p>
 <!-- /download-buttons -->
-
-<p align="center">
-  <sub>Always the newest build &nbsp;·&nbsp; <a href="https://github.com/junkerderprovinz/knightloader/releases">release notes and checksums</a> &nbsp;·&nbsp; <a href="https://junkerderprovinz.github.io/knightloader/installing/">how to run each one</a></sub>
-</p>
 
 <br>
 
@@ -64,11 +61,11 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7512,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7534,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8378,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8400,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(9244,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(9266,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
 <!-- /give-buttons -->
 
@@ -340,11 +337,11 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7512,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7534,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8378,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8400,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(9244,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(9266,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
 <!-- /give-buttons -->
 

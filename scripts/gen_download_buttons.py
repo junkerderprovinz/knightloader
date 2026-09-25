@@ -12,8 +12,9 @@ portable build are segments of the Windows button, and Linux on ARM one of the
 Linux button, so the desktop row keeps to the four places a row has.
 
 Height and corner radius are the Buy Me a Coffee button's (245.3 tall, rx 38.2),
-so both stand the same height at the same width. The width is 720 rather than
-841.9, which left a third of the face empty beside the longest word.
+so at the same scale both stand the same height with the same corners. The width
+is 720 rather than 841.9, which left a third of the face empty beside the
+longest word.
 
 The logos are the platforms' own marks from Font Awesome Free (CC BY 4.0 for the
 icons; see scripts/brand-paths/). Each is a trademark of its owner, used
@@ -105,17 +106,19 @@ STORES = ("play.google.com", "chromewebstore.google.com", "addons.mozilla.org", 
 # are in screen pixels, since the canvases (720 here, 841.9 for the donation row)
 # and their rendered widths differ.
 #
-# The row is `<img width="195">` separated by a newline, two spaces and a
+# The row is `<img width="137">` separated by a newline, two spaces and a
 # `&nbsp;`, which HTML collapses to 13.16px at GitHub's 16px body text. A
 # `&nbsp;` glued to `</a>` measures 8.77px, so the separator is part of the rule.
 # The parts of the Windows button are glued with nothing between them.
 BAND_PX = 33.0     # the band's width on screen
 SPEED = 250.0      # screen pixels per second
 GAP_PX = 13.16     # measured, see above
-RENDER_PX = 195.0  # the width the README asks for
+# The donation buttons' scale, 841.9 units in 160px, so both rows stand the same
+# height with the same size of type.
+RENDER_PX = 137.0
 # Two segments and the gap they replace make one button's place. Whole pixels,
 # so no browser rounds a hairline into the seams.
-SEGMENT_PX = 104.0
+SEGMENT_PX = 75.0
 
 SCALE = W / RENDER_PX              # canvas units per screen pixel
 SEGMENT_W = SEGMENT_PX * SCALE
@@ -203,6 +206,9 @@ GIVE = [
 README = os.path.join(HERE, "..", "README.md")
 ROW_OPEN = "<!-- download-buttons: written by scripts/gen_download_buttons.py -->"
 ROW_CLOSE = "<!-- /download-buttons -->"
+# Inside the last download row's paragraph, so it sits right under the buttons
+# rather than a paragraph margin away.
+CAPTION = "Always the latest build"
 GIVE_OPEN = "<!-- give-buttons: written by scripts/gen_download_buttons.py -->"
 GIVE_CLOSE = "<!-- /give-buttons -->"
 
@@ -407,7 +413,7 @@ def read_readme():
     return text
 
 
-def row(items, nl):
+def row(items, nl, caption=None):
     """One centred row: a link per image, the separator on its own line, two
     spaces in, because that is the gap GAP_PX was measured on. The parts of one
     button share a line with nothing between them."""
@@ -421,6 +427,8 @@ def row(items, nl):
                    % (SPRITE_URL, num(x), num(width), num(height), escape(alt), num(render), num(render * height / width)))
             imgs.append('<a href="%s">%s</a>' % (escape(href), img) if href else img)
         lines.append("  " + "".join(imgs))
+    if caption:
+        lines.append("  <br><sub>%s</sub>" % caption)
     lines.append("</p>")
     return nl.join(lines) + nl
 
@@ -431,10 +439,11 @@ def write_readme(text, downloads, donations):
     Both width and height are set, because the image's own proportions are the
     whole sprite's, not the button's.
     """
-    for opener, closer, table in ((ROW_OPEN, ROW_CLOSE, downloads), (GIVE_OPEN, GIVE_CLOSE, donations)):
+    for opener, closer, table, caption in ((ROW_OPEN, ROW_CLOSE, downloads, CAPTION), (GIVE_OPEN, GIVE_CLOSE, donations, None)):
         for start, end in reversed(blocks(text, opener, closer)):
             nl = "\r\n" if text[start:].split("\n", 1)[0].endswith("\r") else "\n"
-            body = "".join(row(items, nl) for items in table)
+            last = len(table) - 1
+            body = "".join(row(items, nl, caption if i == last else None) for i, items in enumerate(table))
             text = text[:start] + opener + nl + body + text[end:]
     io.open(README, "w", encoding="utf-8", newline="").write(text)
     print("README.md  download rows of %s, donation rows of %d"
