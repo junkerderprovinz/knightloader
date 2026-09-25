@@ -46,11 +46,11 @@ submission and for a fixed download.
   comparison, the screenshots and a quick start, and its download row gains a
   Docs button after Source. The comparison table marks each cell with ✅, ⚠️ or
   ❌ like the other repositories' tables.
-- **Browser extension 1.0.3: a build Mozilla has signed, for Firefox.** Firefox
-  installs only signed add-ons, so the zip loaded there only until the next
-  restart. Each extension tag has Mozilla sign the package on the unlisted
-  channel, and the release carries the `.xpi` beside the zip. The README's
-  Firefox button installs it with one click.
+- **Browser extension 1.1.0, for the browser stores.** It goes to the Chrome
+  Web Store, Microsoft Edge Add-ons and Firefox Add-ons. Once the add-on is
+  listed on Firefox Add-ons, every extension tag is submitted there for review,
+  and Firefox installs and updates it from its listing. The README's Firefox
+  button leads there as soon as the listing is live.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the
@@ -468,7 +468,7 @@ submission and for a fixed download.
   The preview kept the package where it was and moved the finished file to the
   top of it, while the drop put the package where the pointer was.
 
-- **Browser extension 1.0.1: a tooltip no longer stays up after a click.**
+- **Browser extension 1.1.0: a tooltip no longer stays up after a click.**
   Focus opens a tooltip only after keyboard input now, so Cancel in the
   "leave the group" window, which hands focus back to the bin, no longer leaves
   the bin's tooltip standing where the pointer is not. The tooltip engine
@@ -812,7 +812,7 @@ submission and for a fixed download.
   The ring on the tab's icon still shows the progress.
 - **The settings tiles sit closer to the sidebar.**
 - **The logo in the sidebar no longer fades under the pointer.**
-- **The web UI and the browser extension (1.0.2) are set in Noto Sans**,
+- **The web UI and the browser extension (1.1.0) are set in Noto Sans**,
   shipped with them, so they look the same on every system instead of taking
   whatever font the system has. A page loads only the alphabets it shows, the
   Latin one 35 KB. Chinese, Japanese and Korean use the system's own font,

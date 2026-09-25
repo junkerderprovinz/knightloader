@@ -99,9 +99,10 @@ one file for Chrome, Edge, Brave and Opera:
 5. Paste your connection phrase into the Remote access card on the options
    page, which opens by itself on a fresh install.
 
-For Firefox, open the
-[signed add-on](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.xpi)
-and confirm the installation. What the extension does is in
+Firefox installs only add-ons Mozilla has signed, and those come from the
+add-on's listing on Firefox Add-ons, which is in review. Until it is listed,
+`about:debugging`, This Firefox, **Load Temporary Add-on** loads the ZIP until
+the next restart. What the extension does is in
 [Bookmarklet, extension and share target](browser-tools.md).
 
 ## From a checkout

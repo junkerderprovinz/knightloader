@@ -265,15 +265,17 @@ single purpose, no use for creditworthiness or lending).
   (the source file's hash is in its header). `vendor/qrcode.js` is
   qrcode-generator 2.0.4's `dist/qrcode.js` from npm, unmodified;
   `check-donate.mjs` pins it by hash.
-- **Signed builds before the listing**: each `extension/vX.Y.Z` tag has Mozilla
-  sign the package on the unlisted channel, for the README's Firefox button. The
-  first of those signings creates the add-on on AMO, so the listing is a new
-  version of that add-on, not a new add-on: open it in the Developer Hub and
-  upload a new version "On this site". AMO takes each version number once across
-  both channels, so the listed version needs a number the workflow has not signed.
-  Once the listing is live, point the `firefox` entry in
-  `scripts/download_buttons.py` at it; until the first signed build exists that
-  entry is empty and the button shows "soon".
+- **The add-on already exists on AMO**, from a build signed on the unlisted
+  channel, so the listing is a new version of that add-on, not a new add-on:
+  open it in the Developer Hub and upload a new version "On this site". AMO takes
+  each version number once across both channels. Upload the release zip of the
+  first version that has no build on AMO yet; the release workflow leaves a tag
+  alone while the add-on has no listed version, so the tag does not take the
+  number first (`.github/scripts/amo-listed.mjs`).
+- **After the listing** the release workflow submits every new tag to the listed
+  channel for review; the signed file comes from AMO once it passes. Point the
+  `firefox` entry in `scripts/download_buttons.py` at the listing when it is live;
+  until then the entry is empty and the button shows "coming soon".
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
   `extension/PRIVACY.md`, or link to it.
 
@@ -373,13 +375,13 @@ because the last line is what the field cuts.
 
 1. Bump `version` in `extension/src/manifest.json`, write
    `.github/release-notes/extension/vX.Y.Z.md`, push the tag `extension/vX.Y.Z`
-   from `main`. The release workflow checks the tag against the manifest and
-   attaches the zip.
-2. Upload that zip to each store. Every upload is reviewed again: Chrome in a few
-   days, Edge in up to seven business days, AMO usually within a day.
+   from `main`. The release workflow checks the tag against the manifest,
+   attaches the zip and submits the version to AMO.
+2. Upload that zip to the Chrome Web Store and Edge Add-ons. Every upload is
+   reviewed again: Chrome in a few days, Edge in up to seven business days, AMO
+   usually within a day.
 3. Users' browsers pick up a published update on their own.
 
-The upload can be automated once each listing exists: Chrome Web Store API v2
-(`upload`, `publish`) with a service account, the Edge Add-ons API v1.1 with an API
-key, and `web-ext sign --channel=listed` with AMO API credentials. That needs the
-three sets of credentials as repository secrets.
+The Chrome and Edge uploads can be automated as well once their listings exist:
+Chrome Web Store API v2 (`upload`, `publish`) with a service account and the
+Edge Add-ons API v1.1 with an API key, both as repository secrets.
