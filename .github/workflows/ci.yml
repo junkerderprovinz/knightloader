@@ -265,7 +265,7 @@ jobs:
       - name: The app mark never outgrows the rail's own
         run: node check-mark-scale.mjs
 
-      - name: A picker tile hovers to the tile grey
+      - name: A brand tile lights up in its brand's colour
         run: node check-tile-hover.mjs
 
       - name: The version on a download card is the one it downloads
