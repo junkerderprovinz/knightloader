@@ -79,6 +79,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerYtdlpCookies(reg, a)
 	registerFeeds(reg, a)
 	registerEventTargets(reg, a)
+	registerEventPrograms(reg, a)
 	registerMediaHooks(reg, a)
 }
 

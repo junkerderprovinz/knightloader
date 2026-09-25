@@ -70,6 +70,10 @@ const (
 	SlotBodyJSON
 	// SlotBodyForm is inside an application/x-www-form-urlencoded body.
 	SlotBodyForm
+	// SlotArg is one argument handed to a program with no shell in between
+	// (internal/eventprog), so the value goes in as it is: there is nothing
+	// that would read a quote or a semicolon in it.
+	SlotArg
 )
 
 // Placeholder is one name the picker may offer, as the route serves it.
@@ -347,6 +351,14 @@ func BodySlot(headers map[string]string) Slot {
 // ignored, matching reconnect's expander, so a template copied out of a
 // half-remembered example still works.
 func Expand(s string, slot Slot, f script.Firing, instanceName string) string {
+	return ExpandWith(s, slot, f, instanceName, nil)
+}
+
+// ExpandWith is Expand with names of the caller's own, keyed in lower case and
+// looked up before the table. It is one pass rather than a second Expand over
+// the result, because a file name that happens to contain "%%task.name%%" would
+// otherwise be expanded again.
+func ExpandWith(s string, slot Slot, f script.Firing, instanceName string, extra map[string]string) string {
 	if !strings.Contains(s, marker) {
 		return s
 	}
@@ -367,7 +379,10 @@ func Expand(s string, slot Slot, f script.Firing, instanceName string) string {
 			return b.String()
 		}
 		b.WriteString(before)
-		if e, ok := byName[strings.ToLower(strings.TrimSpace(name))]; ok {
+		key := strings.ToLower(strings.TrimSpace(name))
+		if v, ok := extra[key]; ok {
+			b.WriteString(escape(v, slot))
+		} else if e, ok := byName[key]; ok {
 			b.WriteString(escape(e.value(f, instanceName), slot))
 		} else {
 			// The typo is kept, since a name that expands to nothing produces a

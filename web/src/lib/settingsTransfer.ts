@@ -165,9 +165,10 @@ function asImported(s: Record<string, unknown>, defaults: Record<string, unknown
 }
 
 /**
- * secretlessKeys marks the keys that arrive without their password, mirroring
- * settings.Secretless, so the rows can carry a badge before anything is
- * written. It inspects the settings rather than the editable `secrets` field.
+ * secretlessKeys marks the keys that arrive without their password or command
+ * line, mirroring settings.Secretless, so the rows can carry a badge before
+ * anything is written. It inspects the settings rather than the editable
+ * `secrets` field.
  */
 function secretlessKeys(doc: SettingsExportDoc): Set<string> {
   const out = new Set<string>();
@@ -198,6 +199,14 @@ function secretlessKeys(doc: SettingsExportDoc): Set<string> {
 
   const archives = s.archivePasswords;
   if (Array.isArray(archives) && archives.length === 0) out.add('archivePasswords');
+
+  // A program row whose command line stayed behind arrives with no program.
+  const programs = s.eventPrograms;
+  if (Array.isArray(programs)) {
+    const stored = (row: unknown) =>
+      isPlainObject(row) && isPlainObject(row.command) && row.command.program === '********';
+    if (programs.some(stored)) out.add('eventPrograms');
+  }
 
   return out;
 }
@@ -267,6 +276,7 @@ const GROUPS: Record<string, TransferGroup> = {
   // Timetable and quiet mode.
   schedule: 'schedule',
   idleAction: 'schedule',
+  keepAwake: 'schedule',
   quiet: 'schedule',
 
   // Connections and reconnect, plus the relay this box dials out to.

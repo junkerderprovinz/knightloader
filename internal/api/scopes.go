@@ -105,6 +105,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/discovery":                 apitoken.ScopeAdmin,
 	"GET /api/diskspace":                 apitoken.ScopeRead,
 
+	// An event program is code this instance runs, as a script is.
+	"GET /api/eventprograms":              apitoken.ScopeAdmin,
+	"GET /api/eventprograms/placeholders": apitoken.ScopeAdmin,
+
 	"GET /api/eventtargets":              apitoken.ScopeAdmin,
 	"GET /api/eventtargets/placeholders": apitoken.ScopeAdmin,
 	"POST /api/eventtargets/test":        apitoken.ScopeAdmin,

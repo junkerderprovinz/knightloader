@@ -1,6 +1,7 @@
 // Type-only imports: these types belong to the modules that own their data, so
 // they are named here rather than restated.
 import type { BarLabelMode, NavLabelMode } from './navLabels';
+import type { EventProgramRow } from './eventprograms';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
 import { socketURL, withBase } from './basePath';
@@ -504,6 +505,12 @@ export interface Settings {
    * server merges the real ones in while the row keeps its address.
    */
   eventTargets?: EventTargetRow[] | null;
+  /**
+   * What this instance starts on events, read with `?? []` for the same
+   * reason. The program and its arguments arrive masked and are sent back
+   * untouched; the server merges the real ones in by row id.
+   */
+  eventPrograms?: EventProgramRow[] | null;
   verifyChecksums: boolean;
   /** Finds links anywhere in a paste instead of reading one line as one link
    *  (JDownloader's AddLinksPreParserEnabled). */
@@ -527,6 +534,8 @@ export interface Settings {
   autoUpdateCheck: boolean;
   /** Needs autoUpdateCheck, and only the desktop build acts on it. */
   autoUpdateInstall: boolean;
+  /** Holds off sleep while a download runs. Only the desktop build acts on it. */
+  keepAwake: boolean;
 
   /** One request to api.github.com when the Resolvers page loads. It never
    *  installs anything: replacing the extractor unattended would change what

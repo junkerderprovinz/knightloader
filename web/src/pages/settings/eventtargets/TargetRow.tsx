@@ -384,12 +384,13 @@ function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: st
 /**
  * Placeholders lists the names the server fills into the address, a header or
  * the body, and marks the ones no ticked event carries, which expand to nothing.
+ * The event programs show their own list with it, under their own (i).
  */
-function Placeholders({ list, picked }: { list: Placeholder[]; picked: string[] }) {
+export function Placeholders({ list, picked, hint }: { list: Placeholder[]; picked: string[]; hint?: string }) {
   const { t } = useT();
   if (list.length === 0) return null;
   return (
-    <FieldGroup label={t('settings.eventTargets.placeholders')} hint={t('settings.eventTargets.placeholdersHint')}>
+    <FieldGroup label={t('settings.eventTargets.placeholders')} hint={hint ?? t('settings.eventTargets.placeholdersHint')}>
       <div className="flex flex-wrap gap-1.5">
         {list.map((p) => {
           // Empty triggers means every event carries it. Nothing ticked is

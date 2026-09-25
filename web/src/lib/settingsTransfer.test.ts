@@ -36,4 +36,10 @@ describe('the import preview', () => {
     expect(row({ autoStart: false }, { autoStart: true }, 'autoStart').arrives).toBe(true);
     expect(row({ autoStart: false, autoConfirm: false }, { autoStart: true }, 'autoStart').arrives).toBe(false);
   });
+
+  it('marks event programs whose command line stayed behind', () => {
+    const program = (value: string) => ({ eventPrograms: [{ id: 'a1', command: { program: value } }] });
+    expect(row(program('********'), {}, 'eventPrograms').secretless).toBe(true);
+    expect(row(program('/usr/local/bin/file-it'), {}, 'eventPrograms').secretless).toBe(false);
+  });
 });

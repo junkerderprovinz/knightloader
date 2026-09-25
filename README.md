@@ -161,7 +161,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Paid captcha solvers | ✅ 2Captcha, Anti-Captcha, also for reCAPTCHA | ✅ | ✅ | ➖ |
 | Unpacking | ✅ no outside tools | ✅ | ⚠️ calls unrar and 7z | ✅ |
 | Rules for links and packages | ✅ with a test box | ✅ Packagizer, link filter | ⚠️ words in the link | ⚠️ patterns and a minimum size |
-| Scripts on events | ✅ JavaScript in a sandbox | ✅ Event Scripter | ✅ outside scripts | ⚠️ when a torrent finishes |
+| Scripts on events | ✅ JavaScript in a sandbox, or a program of yours | ✅ Event Scripter | ✅ outside scripts | ⚠️ when a torrent finishes |
 | Sonarr and Radarr | ✅ qBittorrent's API for torrents, SABnzbd's for link lists | ❌ | ❌ | ✅ qBittorrent's and SABnzbd's API |
 
 ✅ yes · ⚠️ with a catch, named in the cell · ❌ no · ➖ does not apply: the debrid service fetches everything, so there is nothing to solve

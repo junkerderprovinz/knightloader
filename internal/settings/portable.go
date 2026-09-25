@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/eventprog"
+	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"golang.org/x/mod/semver"
@@ -243,9 +245,11 @@ const (
 	SecretlessReconnect        = "reconnect.password"
 	SecretlessConnections      = "connections.password"
 	SecretlessArchivePasswords = "archivePasswords"
+	SecretlessEventPrograms    = "eventPrograms.command"
 )
 
-// Secretless names the keys in d that arrive without their password.
+// Secretless names the keys in d that arrive without their password, or for
+// the event programs without their command lines.
 //
 // Derived from what the document holds, never from d.Secrets, which is a claim
 // somebody can edit in a text editor. It is a machine-readable list rather than
@@ -308,6 +312,22 @@ func (d PortableDoc) Secretless() []string {
 		var list []string
 		if err := json.Unmarshal(raw, &list); err == nil && len(list) == 0 {
 			out = append(out, SecretlessArchivePasswords)
+		}
+	}
+
+	// A row's command line arrives as the placeholder, and eventprog.Merge
+	// clears a placeholder it has nothing stored for, so the row lands with
+	// no program. Its IDs were handed out on the box that wrote the file, so
+	// this box has nothing stored for them.
+	if raw, ok := d.Settings["eventPrograms"]; ok {
+		var rows []eventprog.Program
+		if err := json.Unmarshal(raw, &rows); err == nil {
+			for _, p := range rows {
+				if p.Command.Program == idleaction.RedactedCommand {
+					out = append(out, SecretlessEventPrograms)
+					break
+				}
+			}
 		}
 	}
 

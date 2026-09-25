@@ -45,8 +45,8 @@ or a domain.
 - [Bookmarklet, extension and share target](browser-tools.md).
 - [Connecting instances and apps](connecting.md), with the twelve words or on
   your own network.
-- [Where files land](where-files-land.md): folder templates, and telling a
-  media library to rescan.
+- [Where files land](where-files-land.md): folder templates, telling a media
+  library to rescan, and starting a program of your own.
 
 Problems, wishes or suggestions? Open an
 [issue](https://github.com/junkerderprovinz/knightloader/issues).

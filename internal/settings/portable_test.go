@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/eventprog"
+	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/script"
 )
 
 // configured is a settings document with something in every corner this feature
@@ -173,6 +177,31 @@ func TestSecretlessIsQuietWhenNothingIsMissing(t *testing.T) {
 	}
 	if got := doc.Secretless(); len(got) != 0 {
 		t.Errorf("Secretless() = %v on a document that is missing nothing", got)
+	}
+}
+
+// A program row that travels without its command line is imported with no
+// program at all, which would otherwise pass for a complete import.
+func TestAnEventProgramExportedWithoutSecretsIsReportedIncomplete(t *testing.T) {
+	s := Defaults()
+	s.EventPrograms = eventprog.Sanitize([]eventprog.Program{{
+		Name: "file it", Enabled: true,
+		Command:  idleaction.CommandSpec{Program: "/home/someone/bin/file-it.sh"},
+		Triggers: []script.Trigger{script.TriggerTaskDone},
+	}})
+	doc, err := Portable(s, false, "v1.2.3", "container", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := doc.Secretless(); !slices.Contains(got, SecretlessEventPrograms) {
+		t.Errorf("Secretless() = %v, want %s among them", got, SecretlessEventPrograms)
+	}
+	whole, err := Portable(s, true, "v1.2.3", "container", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := whole.Secretless(); slices.Contains(got, SecretlessEventPrograms) {
+		t.Errorf("Secretless() = %v for an export that carries the command line", got)
 	}
 }
 

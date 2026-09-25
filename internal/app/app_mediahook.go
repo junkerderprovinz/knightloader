@@ -139,19 +139,12 @@ func (a *App) packageFilesLanded(name string) bool {
 	var pending []string
 	a.mu.Lock()
 	for _, t := range a.tasks {
-		if strings.TrimSpace(t.Package) != name || t.Status != core.StatusDone {
+		if strings.TrimSpace(t.Package) != name {
 			continue
 		}
-		// The same refusals deliverDownload makes, in the same order.
-		if !deliverable(t) || t.Name == "" || t.Name == t.URL {
-			continue
+		if src, ok := a.toDeliverLocked(t); ok {
+			pending = append(pending, src)
 		}
-		dest, work := a.dirFor(t), a.workDirFor(t)
-		src := a.fileOfLocked(t)
-		if dest == work || !sameDir(filepath.Dir(src), work) {
-			continue
-		}
-		pending = append(pending, src)
 	}
 	a.mu.Unlock()
 	for _, src := range pending {
@@ -160,4 +153,38 @@ func (a *App) packageFilesLanded(name string) bool {
 		}
 	}
 	return true
+}
+
+// taskFileLanded is packageFilesLanded for one download.
+func (a *App) taskFileLanded(id string) bool {
+	if a.workRoot() == "" {
+		return true
+	}
+	a.mu.Lock()
+	var src string
+	var ok bool
+	if t := a.tasks[id]; t != nil {
+		src, ok = a.toDeliverLocked(t)
+	}
+	a.mu.Unlock()
+	if !ok {
+		return true
+	}
+	_, err := os.Lstat(src)
+	return err != nil
+}
+
+// toDeliverLocked is the file deliverDownload would move out of the working
+// folder for t, and false when it would move nothing. It makes the same
+// refusals deliverDownload makes, in the same order. Caller holds a.mu.
+func (a *App) toDeliverLocked(t *core.Task) (string, bool) {
+	if t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL {
+		return "", false
+	}
+	dest, work := a.dirFor(t), a.workDirFor(t)
+	src := a.fileOfLocked(t)
+	if dest == work || !sameDir(filepath.Dir(src), work) {
+		return "", false
+	}
+	return src, true
 }

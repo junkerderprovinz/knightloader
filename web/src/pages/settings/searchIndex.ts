@@ -726,6 +726,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.downloads.idleTitle',
       rows: [
+        { key: 'settings.downloads.keepAwake', hint: 'settings.downloads.keepAwakeHint' },
         { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
         { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
         { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },
@@ -752,6 +753,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.downloads.idleArmHint',
         'settings.downloads.idleCommandSecretHint',
         'settings.downloads.idleCommandStored',
+        'settings.downloads.keepAwakeContainerHint',
       ],
     },
     {
@@ -828,6 +830,35 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.testTruncated',
         'settings.eventTargets.testEmptyBody',
         'settings.eventTargets.testNoAnswer',
+      ],
+    },
+    {
+      title: 'settings.module.eventprograms',
+      hint: 'settings.eventPrograms.titleHint',
+      rows: [
+        { key: 'settings.eventPrograms.enabled', hint: 'settings.eventPrograms.enabledHint' },
+        { key: 'settings.eventPrograms.name', hint: 'settings.eventPrograms.nameHint' },
+        { key: 'settings.eventPrograms.program', hint: 'settings.eventPrograms.programHint' },
+        { key: 'settings.eventPrograms.args', hint: 'settings.eventPrograms.argsHint' },
+        { key: 'settings.eventTargets.placeholders', hint: 'settings.eventPrograms.placeholdersHint' },
+        { key: 'settings.eventPrograms.env', hint: 'settings.eventPrograms.envHint' },
+        { key: 'settings.eventTargets.events', hint: 'settings.eventPrograms.eventsHint' },
+        { key: 'settings.eventPrograms.timeout', hint: 'settings.eventPrograms.timeoutHint' },
+        { key: 'settings.eventPrograms.parallel', hint: 'settings.eventPrograms.parallelHint' },
+        { key: 'settings.eventPrograms.status', hint: 'settings.eventPrograms.statusHint' },
+      ],
+      also: ['settings.eventPrograms.add', 'settings.eventPrograms.remove'],
+      body: [
+        'settings.eventPrograms.empty',
+        'settings.eventPrograms.emptyHint',
+        'settings.eventPrograms.eventsNone',
+        'settings.eventPrograms.eventsBurst',
+        'settings.eventPrograms.statusUnknown',
+        'settings.eventPrograms.checkOk',
+        'settings.eventPrograms.lastRun',
+        'settings.eventPrograms.lastRunOk',
+        'settings.eventPrograms.runCount',
+        'settings.eventPrograms.dropped',
       ],
     },
     {

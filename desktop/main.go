@@ -17,6 +17,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/keepawake"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 	"github.com/junkerderprovinz/knightloader/internal/update"
@@ -113,6 +114,16 @@ func main() {
 	// the action when this is set. See power.go.
 	a.RequestSuspend = requestSuspend
 
+	// The other half of power: while a download or the work after it runs and
+	// the setting is on, the machine stays up. See awake_*.go for how each OS
+	// is asked.
+	awake := keepawake.New(keepawake.Options{
+		Busy:    a.Working,
+		Enabled: func() bool { return a.Settings.Get().KeepAwake },
+		Hold:    preventSleep,
+	})
+	awake.Start()
+
 	// Wails and systray both want the main thread on macOS and systray.Run
 	// blocks, so the tray runs in a goroutine started before wails.Run. It is
 	// not tracked by tc.spawn: onShutdown waits on that group before calling
@@ -144,6 +155,8 @@ func main() {
 		OnShutdown: func(context.Context) {
 			tc.onShutdown()
 			a.CnL.Stop()
+			// Before a.Close, whose task list the guard reads.
+			_ = awake.Close()
 			_ = a.Close()
 			// After a.Close so the shutdown's own records reach the file.
 			// Writes are unbuffered; closing releases the Windows handle.

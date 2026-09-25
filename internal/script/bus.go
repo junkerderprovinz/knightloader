@@ -4,9 +4,9 @@ package script
 // subscribes instead of being added as a second call beside every site that
 // fires, so two readers cannot disagree about what happened.
 //
-// Only the script Host subscribes (see NewHost). The Hub does not: every fact
-// published here already reaches the browser as its own hub message, and a
-// bridge would send each UI update twice.
+// The script Host, the event targets, the event programs and the media hooks
+// subscribe. The Hub does not: every fact published here already reaches the
+// browser as its own hub message, and a bridge would send each UI update twice.
 
 import (
 	"log"

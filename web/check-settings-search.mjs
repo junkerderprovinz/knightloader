@@ -72,6 +72,8 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Schedule.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/EventTargets.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/eventtargets/', pages: ['automation'] },
+  { file: 'src/pages/settings/EventPrograms.tsx', pages: ['automation'] },
+  { file: 'src/pages/settings/eventprograms/', pages: ['automation'] },
   { file: 'src/pages/settings/Scripts.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/Health.tsx', pages: ['health'] },
   { file: 'src/pages/settings/health/', pages: ['health'] },
