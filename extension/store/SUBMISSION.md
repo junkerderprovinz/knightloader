@@ -265,6 +265,14 @@ single purpose, no use for creditworthiness or lending).
   (the source file's hash is in its header). `vendor/qrcode.js` is
   qrcode-generator 2.0.4's `dist/qrcode.js` from npm, unmodified;
   `check-donate.mjs` pins it by hash.
+- **Signed builds before the listing**: each `extension/vX.Y.Z` tag has Mozilla
+  sign the package on the unlisted channel, for the README's Firefox button. The
+  first of those signings creates the add-on on AMO, so the listing is a new
+  version of that add-on, not a new add-on: open it in the Developer Hub and
+  upload a new version "On this site". AMO takes each version number once across
+  both channels, so the listed version needs a number the workflow has not signed.
+  Once the listing is live, point the `firefox` entry in
+  `scripts/download_buttons.py` at it.
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
   `extension/PRIVACY.md`, or link to it.
 
