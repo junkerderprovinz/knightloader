@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10110 245.3">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10132 245.3">
 <svg x="0" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download for Windows">
   <title>Download for Windows</title>
   <defs>
@@ -15,11 +15,11 @@
   </defs>
   <style>
     @keyframes b0-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b0-band { animation: b0-pass 11.526s linear 0.000s infinite backwards; }
+    .b0-band { animation: b0-pass 9.206s linear 0.000s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b0-band { animation: none; opacity: 0; }
     }
@@ -32,16 +32,16 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">x64</text>
   <g clip-path="url(#b0-edge)">
     <g class="b0-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b0-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="744" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 245.3" width="384" height="245.3" role="img" aria-label="Download for Windows on ARM">
+<svg x="744" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 394.161 245.3" width="394.161" height="245.3" role="img" aria-label="Download for Windows on ARM">
   <title>Download for Windows on ARM</title>
   <defs>
     <clipPath id="b1-edge">
-      <path d="M0,0 H345.8 A38.2,38.2 0 0 1 384,38.2 V207.1 A38.2,38.2 0 0 1 345.8,245.3 H0 V0 Z"/>
+      <path d="M0,0 H355.961 A38.2,38.2 0 0 1 394.161,38.2 V207.1 A38.2,38.2 0 0 1 355.961,245.3 H0 V0 Z"/>
     </clipPath>
     <linearGradient id="b1-sheen" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0"    stop-color="#fff" stop-opacity="0"/>
@@ -52,27 +52,27 @@
   </defs>
   <style>
     @keyframes b1-pass {
-      0%       { transform: translateX(-226.6px); }
-      7.87%   { transform: translateX(610.6px); }
-      100%     { transform: translateX(610.6px); }
+      0%       { transform: translateX(-278.2px); }
+      7.86%   { transform: translateX(672.3px); }
+      100%     { transform: translateX(672.3px); }
     }
-    .b1-band { animation: b1-pass 11.526s linear 0.780s infinite backwards; }
+    .b1-band { animation: b1-pass 9.206s linear 0.548s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b1-band { animation: none; opacity: 0; }
     }
   </style>
-  <path d="M0,0 H345.8 A38.2,38.2 0 0 1 384,38.2 V207.1 A38.2,38.2 0 0 1 345.8,245.3 H0 V0 Z" fill="#0078d4"/>
-  <rect width="5.538" height="245.3" fill="#000" fill-opacity="0.28"/>
-  <text x="192" y="110" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="66" font-weight="700" fill="#ffffff">Windows</text>
-  <text x="192" y="180" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">ARM64</text>
+  <path d="M0,0 H355.961 A38.2,38.2 0 0 1 394.161,38.2 V207.1 A38.2,38.2 0 0 1 355.961,245.3 H0 V0 Z" fill="#0078d4"/>
+  <rect width="7.883" height="245.3" fill="#000" fill-opacity="0.28"/>
+  <text x="197.08" y="110" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="66" font-weight="700" fill="#ffffff">Windows</text>
+  <text x="197.08" y="180" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">ARM64</text>
   <g clip-path="url(#b1-edge)">
     <g class="b1-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b1-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="1152" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download for macOS">
+<svg x="1163" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download for macOS">
   <title>Download for macOS</title>
   <defs>
     <clipPath id="b2-edge">
@@ -87,11 +87,11 @@
   </defs>
   <style>
     @keyframes b2-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b2-band { animation: b2-pass 11.526s linear 1.249s infinite backwards; }
+    .b2-band { animation: b2-pass 9.206s linear 0.901s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b2-band { animation: none; opacity: 0; }
     }
@@ -104,12 +104,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">Universal</text>
   <g clip-path="url(#b2-edge)">
     <g class="b2-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b2-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="1896" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download for Linux">
+<svg x="1907" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download for Linux">
   <title>Download for Linux</title>
   <defs>
     <clipPath id="b3-edge">
@@ -124,11 +124,11 @@
   </defs>
   <style>
     @keyframes b3-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b3-band { animation: b3-pass 11.526s linear 2.081s infinite backwards; }
+    .b3-band { animation: b3-pass 9.206s linear 1.501s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b3-band { animation: none; opacity: 0; }
     }
@@ -141,16 +141,16 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#1b1b1b" fill-opacity="0.72">x64</text>
   <g clip-path="url(#b3-edge)">
     <g class="b3-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b3-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="2640" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 245.3" width="384" height="245.3" role="img" aria-label="Download for Linux on ARM">
+<svg x="2651" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 394.161 245.3" width="394.161" height="245.3" role="img" aria-label="Download for Linux on ARM">
   <title>Download for Linux on ARM</title>
   <defs>
     <clipPath id="b4-edge">
-      <path d="M0,0 H345.8 A38.2,38.2 0 0 1 384,38.2 V207.1 A38.2,38.2 0 0 1 345.8,245.3 H0 V0 Z"/>
+      <path d="M0,0 H355.961 A38.2,38.2 0 0 1 394.161,38.2 V207.1 A38.2,38.2 0 0 1 355.961,245.3 H0 V0 Z"/>
     </clipPath>
     <linearGradient id="b4-sheen" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0"    stop-color="#fff" stop-opacity="0"/>
@@ -161,27 +161,27 @@
   </defs>
   <style>
     @keyframes b4-pass {
-      0%       { transform: translateX(-226.6px); }
-      7.87%   { transform: translateX(610.6px); }
-      100%     { transform: translateX(610.6px); }
+      0%       { transform: translateX(-278.2px); }
+      7.86%   { transform: translateX(672.3px); }
+      100%     { transform: translateX(672.3px); }
     }
-    .b4-band { animation: b4-pass 11.526s linear 2.861s infinite backwards; }
+    .b4-band { animation: b4-pass 9.206s linear 2.049s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b4-band { animation: none; opacity: 0; }
     }
   </style>
-  <path d="M0,0 H345.8 A38.2,38.2 0 0 1 384,38.2 V207.1 A38.2,38.2 0 0 1 345.8,245.3 H0 V0 Z" fill="#fcc624"/>
-  <rect width="5.538" height="245.3" fill="#000" fill-opacity="0.28"/>
-  <text x="192" y="110" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="66" font-weight="700" fill="#1b1b1b">Linux</text>
-  <text x="192" y="180" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#1b1b1b" fill-opacity="0.72">ARM64</text>
+  <path d="M0,0 H355.961 A38.2,38.2 0 0 1 394.161,38.2 V207.1 A38.2,38.2 0 0 1 355.961,245.3 H0 V0 Z" fill="#fcc624"/>
+  <rect width="7.883" height="245.3" fill="#000" fill-opacity="0.28"/>
+  <text x="197.08" y="110" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="66" font-weight="700" fill="#1b1b1b">Linux</text>
+  <text x="197.08" y="180" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#1b1b1b" fill-opacity="0.72">ARM64</text>
   <g clip-path="url(#b4-edge)">
     <g class="b4-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b4-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="3048" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Run it with Docker">
+<svg x="3070" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Run it with Docker">
   <title>Run it with Docker</title>
   <defs>
     <clipPath id="b5-edge">
@@ -196,11 +196,11 @@
   </defs>
   <style>
     @keyframes b5-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b5-band { animation: b5-pass 11.526s linear 3.330s infinite backwards; }
+    .b5-band { animation: b5-pass 9.206s linear 2.402s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b5-band { animation: none; opacity: 0; }
     }
@@ -213,12 +213,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">Container</text>
   <g clip-path="url(#b5-edge)">
     <g class="b5-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b5-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="3792" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the source archive">
+<svg x="3814" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the source archive">
   <title>Download the source archive</title>
   <defs>
     <clipPath id="b6-edge">
@@ -233,11 +233,11 @@
   </defs>
   <style>
     @keyframes b6-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b6-band { animation: b6-pass 11.526s linear 4.163s infinite backwards; }
+    .b6-band { animation: b6-pass 9.206s linear 3.003s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b6-band { animation: none; opacity: 0; }
     }
@@ -250,12 +250,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">zip archive</text>
   <g clip-path="url(#b6-edge)">
     <g class="b6-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b6-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="4536" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Read the documentation">
+<svg x="4558" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Read the documentation">
   <title>Read the documentation</title>
   <defs>
     <clipPath id="b7-edge">
@@ -270,11 +270,11 @@
   </defs>
   <style>
     @keyframes b7-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b7-band { animation: b7-pass 11.526s linear 4.995s infinite backwards; }
+    .b7-band { animation: b7-pass 9.206s linear 3.603s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b7-band { animation: none; opacity: 0; }
     }
@@ -287,12 +287,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#0d0c23" fill-opacity="0.72">online manual</text>
   <g clip-path="url(#b7-edge)">
     <g class="b7-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b7-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="5280" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the Android app">
+<svg x="5302" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the Android app">
   <title>Download the Android app</title>
   <defs>
     <clipPath id="b8-edge">
@@ -307,11 +307,11 @@
   </defs>
   <style>
     @keyframes b8-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b8-band { animation: b8-pass 11.526s linear 5.828s infinite backwards; }
+    .b8-band { animation: b8-pass 9.206s linear 4.204s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b8-band { animation: none; opacity: 0; }
     }
@@ -324,12 +324,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#1b1b1b" fill-opacity="0.72">APK</text>
   <g clip-path="url(#b8-edge)">
     <g class="b8-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b8-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="6024" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the extension for Chrome, Edge, Brave and Opera">
+<svg x="6046" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Download the extension for Chrome, Edge, Brave and Opera">
   <title>Download the extension for Chrome, Edge, Brave and Opera</title>
   <defs>
     <clipPath id="b9-edge">
@@ -344,11 +344,11 @@
   </defs>
   <style>
     @keyframes b9-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b9-band { animation: b9-pass 11.526s linear 6.660s infinite backwards; }
+    .b9-band { animation: b9-pass 9.206s linear 4.804s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b9-band { animation: none; opacity: 0; }
     }
@@ -361,12 +361,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#ffffff" fill-opacity="0.72">Edge, Brave</text>
   <g clip-path="url(#b9-edge)">
     <g class="b9-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b9-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="6768" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Install the Firefox add-on">
+<svg x="6790" y="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 245.3" width="720" height="245.3" role="img" aria-label="Install the Firefox add-on">
   <title>Install the Firefox add-on</title>
   <defs>
     <clipPath id="b10-edge">
@@ -381,11 +381,11 @@
   </defs>
   <style>
     @keyframes b10-pass {
-      0%       { transform: translateX(-226.6px); }
-      11.03%   { transform: translateX(946.6px); }
-      100%     { transform: translateX(946.6px); }
+      0%       { transform: translateX(-278.2px); }
+      10.55%   { transform: translateX(998.2px); }
+      100%     { transform: translateX(998.2px); }
     }
-    .b10-band { animation: b10-pass 11.526s linear 7.493s infinite backwards; }
+    .b10-band { animation: b10-pass 9.206s linear 5.405s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b10-band { animation: none; opacity: 0; }
     }
@@ -398,12 +398,12 @@
   <text x="240" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="50" font-weight="400" fill="#1b1b1b" fill-opacity="0.72">Add-on</text>
   <g clip-path="url(#b10-edge)">
     <g class="b10-band">
-      <rect x="0" y="-60" width="121.8" height="365.3"
+      <rect x="0" y="-60" width="173.4" height="365.3"
             fill="url(#b10-sheen)" transform="skewX(-16)"/>
     </g>
   </g>
 </svg>
-<svg x="7512" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+<svg x="7534" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
      version="1.1" viewBox="0 0 841.9 245.3" width="841.9" height="245.3">
   <defs>
     <clipPath id="b11-edge">
@@ -419,14 +419,14 @@
   <style>
     @keyframes b11-pass {
       0%             { transform: translateX(-278.4px); }
-      9.23%   { transform: translateX(1120.3px); }
+      11.55%   { transform: translateX(1120.3px); }
       100%           { transform: translateX(1120.3px); }
     }
     /* Linear, so the hand-off from one button to the next stays on time. The
        backwards fill mode holds the 0% state, off the left edge, during the
        delay; without it the band would wait motionless at x=0, inside the
        button, until the first pass starts. */
-    .b11-band { animation: b11-pass 11.526s linear 8.326s infinite backwards; }
+    .b11-band { animation: b11-pass 9.206s linear 6.006s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b11-band { animation: none; opacity: 0; }
     }
@@ -439,7 +439,7 @@
     </g>
   </g>
 </svg>
-<svg x="8378" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+<svg x="8400" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
      version="1.1" viewBox="0 0 841.9 245.3" width="841.9" height="245.3">
   <defs>
     <clipPath id="b12-edge">
@@ -455,14 +455,14 @@
   <style>
     @keyframes b12-pass {
       0%             { transform: translateX(-278.4px); }
-      9.23%   { transform: translateX(1120.3px); }
+      11.55%   { transform: translateX(1120.3px); }
       100%           { transform: translateX(1120.3px); }
     }
     /* Linear, so the hand-off from one button to the next stays on time. The
        backwards fill mode holds the 0% state, off the left edge, during the
        delay; without it the band would wait motionless at x=0, inside the
        button, until the first pass starts. */
-    .b12-band { animation: b12-pass 11.526s linear 9.018s infinite backwards; }
+    .b12-band { animation: b12-pass 9.206s linear 6.698s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b12-band { animation: none; opacity: 0; }
     }
@@ -475,7 +475,7 @@
     </g>
   </g>
 </svg>
-<svg x="9244" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+<svg x="9266" y="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
      version="1.1" viewBox="0 0 841.9 245.3" width="841.9" height="245.3">
   <defs>
     <clipPath id="b13-edge">
@@ -491,14 +491,14 @@
   <style>
     @keyframes b13-pass {
       0%             { transform: translateX(-278.4px); }
-      9.23%   { transform: translateX(1120.3px); }
+      11.55%   { transform: translateX(1120.3px); }
       100%           { transform: translateX(1120.3px); }
     }
     /* Linear, so the hand-off from one button to the next stays on time. The
        backwards fill mode holds the 0% state, off the left edge, during the
        delay; without it the band would wait motionless at x=0, inside the
        button, until the first pass starts. */
-    .b13-band { animation: b13-pass 11.526s linear 9.711s infinite backwards; }
+    .b13-band { animation: b13-pass 9.206s linear 7.391s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .b13-band { animation: none; opacity: 0; }
     }
