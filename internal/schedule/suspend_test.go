@@ -54,6 +54,21 @@ func TestSuspensionEndingOutsideAWindowSkipsToTheTimetable(t *testing.T) {
 	}
 }
 
+// The browser sends "until midnight" as a UTC instant, and the rows are wall
+// clock times where the server runs.
+func TestSuspensionEndSentInUTCIsReadInTheServersZone(t *testing.T) {
+	vienna := time.FixedZone("CEST", 2*60*60)
+	s := Compile([]Entry{{Days: everyDay(), Start: "00:00", End: "01:00", Action: ActionPause}})
+	now := time.Date(2026, time.September, 25, 20, 0, 0, 0, vienna)
+	midnight := time.Date(2026, time.September, 26, 0, 0, 0, 0, vienna)
+	sp := Suspension{On: true, Until: midnight.UTC()}
+
+	next, ok := sp.Next(s, now, State{})
+	if !ok || !next.Equal(midnight) {
+		t.Errorf("Next = %s, %v; want local midnight, where the suspension ends inside the pause window", next, ok)
+	}
+}
+
 func TestZeroSuspensionLeavesTheTimetableAlone(t *testing.T) {
 	var sp Suspension
 	if got := sp.At(nightlyPause(), ts(2, 23, 0), State{}); got != (State{Paused: true}) {

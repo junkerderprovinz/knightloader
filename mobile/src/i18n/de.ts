@@ -139,7 +139,7 @@ export const de: Dict = {
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Sturm',
   'settings.accentRainbowOwns': 'Der Regenbogenmodus vergibt die Farben gerade nach Position. Die Akzentfarbe färbt weiter alles, was keine Position hat.',
-  'settings.motionReduced': 'Dein Telefon ist auf weniger Bewegung eingestellt. Solange das gilt, bewegt sich hier nichts, egal welche Stufe gewählt ist.',
+  'settings.motionReduced': 'Auf deinem Handy ist reduzierte Bewegung eingestellt. Solange das gilt, bewegt sich hier nichts, egal welche Stufe gewählt ist.',
   'settings.rainbowPaletteNoInstance': 'Die Palette gehört zur Instanz. Ohne Verbindung lässt sich nirgends eine Farbe speichern, also behalten die Positionen die acht eingebauten Farben.',
 
   'settings.motionHint': 'Aus schaltet jede nicht notwendige Animation ab; Dezent hält Einblendungen kurz; Wild hat am meisten Bewegung.',

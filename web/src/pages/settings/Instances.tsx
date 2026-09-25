@@ -16,7 +16,7 @@ export function InstancesTab() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.instances.setupTitle')}</SectionTitle>
-        <ModuleToggle id="federation" />
+        <ModuleToggle id="federation" hue={0} />
         <ToggleRow
           hue={1}
           label={t('settings.instances.showInSidebar')}

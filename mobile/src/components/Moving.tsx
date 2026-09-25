@@ -109,9 +109,14 @@ function useArrival() {
   const v = useRef(new Animated.Value(line && n.travel > 0 && !late.current ? 0 : 1)).current;
   const round = line?.round;
   const born = useRef(round);
+  // A level picked in the settings shapes the next arrival and does not replay
+  // this one, so the numbers ride in a ref rather than in the effect's deps.
+  const live = useRef(n);
+  live.current = n;
 
   useEffect(() => {
-    if (round === undefined || n.travel === 0 || (late.current && round === born.current)) {
+    const m = live.current;
+    if (round === undefined || m.travel === 0 || (late.current && round === born.current)) {
       v.setValue(1);
       return;
     }
@@ -121,13 +126,22 @@ function useArrival() {
     const { place, inBatch } = slot.current!;
     const run = Animated.spring(v, {
       toValue: 1,
-      delay: arrivalDelay(round === born.current ? inBatch : place, n),
+      delay: arrivalDelay(round === born.current ? inBatch : place, m),
       useNativeDriver: true,
-      ...springOf(n.bounce),
+      ...springOf(m.bounce),
     });
     run.start();
     return () => run.stop();
-  }, [round, n, v]);
+  }, [round, v]);
+
+  // A level without travel lands every card at once. One waiting under another
+  // screen would otherwise stay hidden until that screen comes back, and one in
+  // flight would fly on.
+  useEffect(() => {
+    if (n.travel !== 0) return;
+    v.stopAnimation();
+    v.setValue(1);
+  }, [n.travel, v]);
 
   // Built once per level: Animated keys a view's native props on the nodes in
   // its style, and a fresh interpolation on every render puts the view back at

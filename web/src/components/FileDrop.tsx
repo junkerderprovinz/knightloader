@@ -9,10 +9,9 @@ import { ltr } from '../lib/bidi';
 import { fmtBytes } from '../lib/format';
 import { containerRefusal, message } from '../lib/intake';
 import { useT } from '../lib/i18n';
-import { Button } from './ui';
+import { Button, Toggle } from './ui';
 import { Tip } from './columns';
 import { ProgressBar } from './ProgressBar';
-import { IconCheck } from '../lib/icons';
 
 // fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3m 5s", "1h 2m".
 function fmtElapsed(totalSeconds: number): string {
@@ -141,40 +140,29 @@ interface Pending {
   selected: boolean[];
 }
 
-// TorrentFileRow is one line of the tree; the row itself is the control, as in
-// CollectorFacets.tsx's FacetRow.
+// TorrentFileRow is one line of the tree. The whole row answers a click: a
+// <label> hands it to the switch inside, as in CollectorFacets.tsx's FacetRow.
 function TorrentFileRow({
   path,
   size,
   checked,
+  hue,
   onToggle,
 }: {
   path: string;
   size: number;
   checked: boolean;
+  hue: number;
   onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      onClick={onToggle}
-      className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start text-xs text-carbon-textSub transition-colors hover:bg-carbon-hover"
-    >
-      <span
-        aria-hidden
-        className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
-          checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent'
-        }`}
-      >
-        <IconCheck width={12} height={12} />
-      </span>
+    <label className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-xs text-carbon-textSub transition-colors hover:bg-carbon-hover">
       <Tip dir="ltr" tip={path} className="min-w-0 flex-1 truncate text-start">
         {path}
       </Tip>
       <span className="glim-num shrink-0 text-carbon-textMuted">{fmtBytes(size)}</span>
-    </button>
+      <Toggle hideLabel label={path} checked={checked} onChange={onToggle} hue={hue} />
+    </label>
   );
 }
 
@@ -235,7 +223,14 @@ function TorrentTreeCard({
       {/* Hairlines rather than a fill, which would vanish on the surface2 well. */}
       <div className="max-h-64 divide-y divide-carbon-border/60 overflow-y-auto rounded-[var(--radius-control)]">
         {pending.tree.files.map((f, i) => (
-          <TorrentFileRow key={f.path} path={f.path} size={f.size} checked={pending.selected[i]} onToggle={() => toggle(i)} />
+          <TorrentFileRow
+            key={f.path}
+            path={f.path}
+            size={f.size}
+            checked={pending.selected[i]}
+            hue={i}
+            onToggle={() => toggle(i)}
+          />
         ))}
       </div>
 

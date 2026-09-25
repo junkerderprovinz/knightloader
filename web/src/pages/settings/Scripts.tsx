@@ -86,7 +86,7 @@ export function ScriptsCard({ hue }: { hue: number }) {
       key: freshKey(),
       saved: null,
       // Translated, so the starter comment follows the reader's language.
-      draft: { name: '', trigger: 'manual', enabled: true, code: t('settings.scripts.codeStarter') },
+      draft: { name: '', trigger: 'manual', enabled: true, code: t('settings.scripts.starter') },
     };
     setRows([row, ...rows]);
     setOpenKey(row.key);

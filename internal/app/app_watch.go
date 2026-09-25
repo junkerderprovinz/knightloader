@@ -55,37 +55,45 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 	a.wmu.Lock()
 	defer a.wmu.Unlock()
 
+	w := a.watcher.Load()
 	if len(folders) == 0 {
-		if a.watcher != nil {
-			_ = a.watcher.Close()
-			a.watcher = nil
+		if w != nil {
+			a.watcher.Store(nil)
+			_ = w.Close()
 		}
 		return
 	}
-	if a.watcher == nil {
+	if w == nil {
 		w, err := watch.New(watch.Options{Folders: folders, OnJob: a.onWatchIntake})
 		if err != nil {
 			log.Printf("no drop folder could be watched (%v); intake is off", err)
 			return
 		}
 		w.Start()
-		a.watcher = w
+		a.watcher.Store(w)
 		log.Printf("watching %s for dropped links", strings.Join(w.Dirs(), ", "))
 		return
 	}
-	for _, err := range a.watcher.Apply(folders) {
+	for _, err := range w.Apply(folders) {
 		log.Printf("drop folder is not being watched: %v", err)
 	}
-	dirs := a.watcher.Dirs()
+	dirs := w.Dirs()
 	if len(dirs) == 0 {
 		// Every folder failed. Closing it means the next save builds a fresh
 		// watcher.
-		_ = a.watcher.Close()
-		a.watcher = nil
+		a.watcher.Store(nil)
+		_ = w.Close()
 		log.Print("no drop folder could be watched; intake is off")
 		return
 	}
 	log.Printf("watching %s for dropped links", strings.Join(dirs, ", "))
+}
+
+// WatchFolderMissing reports whether the drop folder dir was not there the last
+// time its poller looked, without looking again (see watch.Watcher.Missing).
+func (a *App) WatchFolderMissing(dir string) bool {
+	w := a.watcher.Load()
+	return w != nil && w.Missing(dir)
 }
 
 // onWatchIntake receives one job on the folder's polling goroutine and hands it

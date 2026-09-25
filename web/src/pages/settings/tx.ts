@@ -2,6 +2,7 @@ import { ApiError } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import type { Feature } from './features';
+import { moduleArgs } from './moduleArgs';
 
 /** useTx returns `t` under the name `tx` that the settings pages use. */
 export function useTx(): {
@@ -51,11 +52,15 @@ function moduleLine(
   english: string | undefined,
 ): string | undefined {
   if (!code) return english;
-  // A reconnect problem comes with the code the Reconnect page words already.
-  const key = (
-    code.startsWith('reconnect.') ? `settings.reconnect.reason.${code.slice('reconnect.'.length)}` : prefix + code
-  ) as TranslationKey;
-  return key in en ? tx(key, args) : english;
+  // A reconnect problem comes with the code the Reconnect page words already,
+  // and with the method as it was typed, which an unknown one has to repeat.
+  if (code.startsWith('reconnect.')) {
+    const key = `settings.reconnect.reason.${code.slice('reconnect.'.length)}` as TranslationKey;
+    return key in en ? tx(key, args) : english;
+  }
+  const key = (prefix + code) as TranslationKey;
+  if (!(key in en)) return english;
+  return tx(key, moduleArgs(args, (k) => (k in en ? tx(k as TranslationKey) : undefined)));
 }
 
 /**

@@ -12,10 +12,15 @@
 // A key under the two prefixes that no code produces is reported too, so a
 // sentence the server stopped sending does not linger in the locale files.
 //
+// The values a line carries can be ids, such as a reconnect method or a
+// quality, and those have to read the way the pages name them
+// (pages/settings/moduleArgs.ts).
+//
 // Run: `node web/check-module-lines.mjs`
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { moduleArgs } from './src/pages/settings/moduleArgs.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const read = (...p) => readFileSync(join(here, ...p), 'utf8');
@@ -47,6 +52,34 @@ for (const locale of ['en', 'de']) {
   for (const key of keys) {
     const code = key.slice(key.lastIndexOf('.') + 1);
     if (!codes.has(code)) problems.push(`${locale}.ts has ${key}, which no module row sends`);
+  }
+}
+
+// The ids inside a line wear the names the pages give them: the Network page's
+// tab says "Requests", so the reconnect row must not say "Method: http".
+const catalogue = (locale) => {
+  const text = read('src', 'lib', 'locales', `${locale}.ts`);
+  const dict = new Map();
+  for (const m of text.matchAll(/^\s*'([\w.]+)':\s*'((?:[^'\\]|\\.)*)',?$/gm)) {
+    dict.set(m[1], m[2].replace(/\\'/g, "'"));
+  }
+  return (key) => dict.get(key);
+};
+const named = [
+  ['en', { method: 'http' }, { method: 'Requests' }],
+  ['de', { method: 'http' }, { method: 'Anfragen' }],
+  [
+    'de',
+    { version: '2026.08.11', source: 'managed', quality: 'best' },
+    { version: '2026.08.11', source: 'Eigene Kopie von KnightLoader', quality: 'Beste verfügbare' },
+  ],
+  ['en', { quality: '1080p' }, { quality: 'Up to 1080p' }],
+  ['en', { method: 'pigeon', n: '2' }, { method: 'pigeon', n: '2' }],
+];
+for (const [locale, args, want] of named) {
+  const got = moduleArgs(args, catalogue(locale));
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
+    problems.push(`${locale}: ${JSON.stringify(args)} reads as ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
   }
 }
 

@@ -163,6 +163,12 @@ var migrations = []string{
 	// When a pending auto-confirm countdown runs out, in Unix milliseconds, 0
 	// for none. Without it a restart would leave the batch in the collector.
 	`ALTER TABLE tasks ADD COLUMN confirm_due INTEGER NOT NULL DEFAULT 0`,
+	// The nanoseconds of the creation time below created_at's millisecond.
+	// Links staged together are a nanosecond apart, and without this they come
+	// back from a restart in whatever order they were last saved. A column of
+	// its own rather than created_at in nanoseconds, so a backup still opens in
+	// a build from before it.
+	`ALTER TABLE tasks ADD COLUMN created_ns INTEGER NOT NULL DEFAULT 0`,
 }
 
 func Open(path string) (*Store, error) {
@@ -264,7 +270,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
-	category,extract_dir,variant_off,audio_bitrate,confirm_due`
+	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -338,7 +344,8 @@ func (s *Store) Save(t *core.Task) error {
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
-		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue)
+		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
+		t.CreatedAt.Nanosecond()%int(time.Millisecond))
 	if err != nil {
 		return err
 	}
@@ -356,7 +363,7 @@ func (s *Store) Delete(id string) error {
 }
 
 func (s *Store) All() ([]*core.Task, error) {
-	rows, err := s.db.Query(`SELECT ` + columns + ` FROM tasks ORDER BY created_at`)
+	rows, err := s.db.Query(`SELECT ` + columns + ` FROM tasks ORDER BY created_at, created_ns`)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +372,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	for rows.Next() {
 		t := &core.Task{}
 		var status, online, matched, reason, origin, torrentFiles, trackers, mode string
-		var created, nextTry, finishedAt, changedAt, confirmDue int64
+		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
@@ -376,7 +383,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
-			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue); err != nil {
+			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
+			&createdNs); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -384,7 +392,7 @@ func (s *Store) All() ([]*core.Task, error) {
 		t.Reason = core.Reason(reason)
 		t.Mode = core.DownloadMode(mode)
 		t.Origin = core.Origin(origin)
-		t.CreatedAt = time.UnixMilli(created)
+		t.CreatedAt = time.UnixMilli(created).Add(time.Duration(createdNs))
 		if nextTry > 0 {
 			t.NextTry = time.UnixMilli(nextTry)
 		}

@@ -6,6 +6,7 @@ import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { FIELD_TRIGGER, useTooltip } from './ui';
 import { IconChevronDown } from '../lib/icons';
+import { useShake } from '../lib/useShake';
 
 export interface DropdownOption<T extends string = string> {
   value: T;
@@ -70,7 +71,9 @@ export function Dropdown<T extends string>({
   look = 'field',
   width = look === 'field' ? 'fill' : 'widest',
   disabled,
+  busy = false,
   tip,
+  wheel = true,
   shake = 0,
   className = '',
 }: {
@@ -87,20 +90,32 @@ export function Dropdown<T extends string>({
   width?: DropdownWidth;
   disabled?: boolean;
   /**
+   * A choice is out and its answer not back yet. The trigger takes no input
+   * meanwhile, but unlike `disabled` it keeps the focus the menu has just
+   * handed back to it.
+   */
+  busy?: boolean;
+  /**
    * A hover bubble for a trigger with no caption beside it, where the value it
    * shows does not say what it picks.
    */
   tip?: string;
   /**
+   * Whether the wheel steps through the options. A choice that acts on the
+   * server, such as suspending every schedule, must not be made by scrolling
+   * the page past it.
+   */
+  wheel?: boolean;
+  /**
    * The caller's failure counter. Each bump shakes the trigger once, since a
-   * value shown before the server refused it only snaps back otherwise. The
-   * trigger is keyed on the number, so a second refusal shakes again.
+   * value shown before the server refused it only snaps back otherwise.
    */
   shake?: number;
   className?: string;
 }) {
   const menu = useContextMenu();
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const shakeRef = useShake<HTMLButtonElement>(shake);
   // Whether the menu was open when the press began: the menu closes itself on
   // that press, and the click that follows must not open it again.
   const wasOpen = useRef(false);
@@ -112,18 +127,18 @@ export function Dropdown<T extends string>({
   const text = all.find((o) => o.value === value)?.label ?? value;
 
   // Read through a ref, so the listener is attached once per trigger node.
-  const live = useRef({ value, options, onChange, disabled });
+  const live = useRef({ value, options, onChange, inert: disabled || busy });
   useEffect(() => {
-    live.current = { value, options, onChange, disabled };
+    live.current = { value, options, onChange, inert: disabled || busy };
   });
   useEffect(() => {
     const el = trigger.current;
-    if (!el) return;
+    if (!el || !wheel) return;
     const onWheel = (e: WheelEvent) => {
       const s = live.current;
       // Only the sign of deltaY counts: a trackpad reports fractions, and a
       // sideways flick says nothing about this control.
-      if (s.disabled || s.options.length < 2 || e.deltaY === 0) return;
+      if (s.inert || s.options.length < 2 || e.deltaY === 0) return;
       e.preventDefault();
       const at = s.options.findIndex((o) => o.value === s.value);
       // A value the list does not carry steps onto the first option.
@@ -132,14 +147,14 @@ export function Dropdown<T extends string>({
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-    // The shake remounts the trigger, and the listener has to follow it.
-  }, [shake]);
+  }, [wheel]);
 
   function open(el: HTMLElement) {
     menu.openAt(anchorBelow(el));
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (busy) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       open(e.currentTarget);
@@ -162,13 +177,14 @@ export function Dropdown<T extends string>({
   return (
     <>
       <button
-        key={shake}
         ref={(el) => {
           trigger.current = el;
           tipRef.current = el;
+          shakeRef.current = el;
         }}
         type="button"
         disabled={disabled}
+        aria-disabled={busy || undefined}
         aria-haspopup="menu"
         aria-expanded={menu.anchor !== null}
         aria-label={`${label}: ${text}`}
@@ -180,12 +196,13 @@ export function Dropdown<T extends string>({
         onClick={(e: MouseEvent<HTMLButtonElement>) => {
           // A dropdown in a list row must not also select the row.
           e.stopPropagation();
+          if (busy) return;
           const closing = wasOpen.current && e.detail > 0;
           wasOpen.current = false;
           if (!closing) open(e.currentTarget);
         }}
         onKeyDown={onKeyDown}
-        className={`${WIDTH[width]} ${LOOK[look]} ${shake > 0 ? 'glim-shake' : ''} ${className}`}
+        className={`${WIDTH[width]} ${LOOK[look]} ${busy ? 'opacity-40' : ''} ${className}`}
       >
         <span className="grid min-w-0 flex-1">
           {labels.map((l) => (

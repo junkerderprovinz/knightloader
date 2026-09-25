@@ -55,11 +55,11 @@ export function Torrents() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('settings.torrents.title')} />
 
-      {/* Seed ratio, seed duration and port reach the engine; the upload limit
-          and the DHT/PEX default for ordinary torrents have no gopeed setting
-          to reach, and the note says which is which. */}
+      {/* The upload limit and the DHT/PEX default for ordinary torrents have no
+          gopeed setting to reach. Saying that this build does not apply them
+          is the one note on the page that is not behind an (i). */}
       <div className="glim-well px-3 py-2.5 text-[11px] text-statusWarn">
-        {t('settings.torrents.engineLimits')}
+        {t('settings.torrents.notApplied')}
       </div>
 
       <Card hue={0} className="flex flex-col gap-5">
@@ -109,7 +109,10 @@ export function Torrents() {
 
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.portTitle')}</SectionTitle>
-        <Field label={t('settings.torrents.port')} hint={t('settings.torrents.portHint')}>
+        <Field
+          label={t('settings.torrents.port')}
+          hint={[t('settings.torrents.portHint'), t('settings.torrents.portRestartHint')]}
+        >
           <NumberInput
             value={tr.port}
             min={0}
@@ -187,16 +190,26 @@ function PortMapPanel({ port }: { port: number }) {
     }
   }
 
-  const disabled = busy || port <= 0;
+  const noPort = port <= 0;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" disabled={disabled} hint={t('settings.torrents.portMapHint')} onClick={() => void attempt()}>
+        {/* The (i) inside the button stays readable while it is disabled, so the
+            reason goes there rather than under it. */}
+        <Button
+          kind="secondary"
+          disabled={busy || noPort}
+          hint={
+            noPort
+              ? `${t('settings.torrents.portMapNeedsPort')} ${t('settings.torrents.portMapHint')}`
+              : t('settings.torrents.portMapHint')
+          }
+          onClick={() => void attempt()}
+        >
           {busy ? t('settings.torrents.portMapping') : t('settings.torrents.portMapButton')}
         </Button>
       </div>
-      {port <= 0 && <p className="text-[11px] text-statusWarn">{t('settings.torrents.portMapNeedsPort')}</p>}
       {unavailable && <p className="text-xs text-carbon-textMuted">{t('settings.torrents.portMapUnavailable')}</p>}
       {error && <p className="text-xs text-statusFail">{t('settings.torrents.portMapFailed', { error })}</p>}
       {result?.outcome === 'confirmed' && (

@@ -6086,10 +6086,12 @@ async function setLanguage(code) {
   else await chrome.storage.local.remove('language');
 }
 
+// The value goes in through a function, since a replacement string would read
+// "$&" in a file name as a pattern.
 function formatMsg(str, vars) {
   if (!vars) return str;
   let s = str;
-  for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+  for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, () => String(v));
   return s;
 }
 

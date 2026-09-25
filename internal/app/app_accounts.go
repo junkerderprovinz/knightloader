@@ -104,6 +104,12 @@ func (a *App) rewireBackends() {
 	newDebrid := map[string]backend{}
 	// Every slot wired in this pass, for the sweep at the end.
 	wired := map[string]bool{}
+	// claimed is every file hoster a wired account fetches, which the direct
+	// download and the HTTP fallback leave to it (see hostClaims). TorBox's
+	// list is fetched above without a key as well, and it names GitHub,
+	// archive.org and Google's file servers, so it counts only with a TorBox
+	// account.
+	claimed := map[string]bool{}
 	// Host lists are per service, not per account, and HostCache keeps one
 	// set per service id.
 	hostsByService := map[string]map[string]bool{}
@@ -131,6 +137,7 @@ func (a *App) rewireBackends() {
 				ytdlpExclude = map[string]bool{}
 			}
 			ytdlpExclude[h] = true
+			claimed[h] = true
 		}
 		log.Printf("%s%s debrid backend enabled (%d supported hosts)", d.svc.Label(), accountSuffix(d.account), len(hosts))
 	}
@@ -183,18 +190,6 @@ func (a *App) rewireBackends() {
 		}
 	}
 
-	// The same file-hoster set tells JD's resolver not to take media links
-	// from yt-dlp (see jd.SetFileHosts) and the catch-all resolvers which hosts
-	// to leave alone (see hostClaims). Without yt-dlp nil is pushed to JD,
-	// which means nothing was classified rather than an empty classification.
-	if newYtdlp != nil {
-		jd.SetFileHosts(ytdlpExclude)
-		a.claims.set(ytdlpExclude, mediaSites)
-	} else {
-		jd.SetFileHosts(nil)
-		a.claims.set(ytdlpExclude, nil)
-	}
-
 	// Optional TorBox backend, one per account like the one-shot services.
 	// newTorbox is the default account's, which backendFor's "torbox" case
 	// returns; every account is also in newDebrid under its slot id.
@@ -204,6 +199,9 @@ func (a *App) rewireBackends() {
 		// streaming sites to yt-dlp. TorBox outranks yt-dlp and would otherwise
 		// take YouTube links, which then get no variant rows and no title.
 		torboxHosts := torboxRoutingHosts(hosterSet, torboxFileHosts, newYtdlp != nil)
+		for h := range torboxFileHosts {
+			claimed[h] = true
+		}
 		for _, acct := range torboxAccounts {
 			be := torbox.NewBackend(torbox.NewClient(acct.cred.APIKey), eng, a.onUpdate)
 			slot := resolver.SlotID("torbox", acct.account)
@@ -216,6 +214,15 @@ func (a *App) rewireBackends() {
 			log.Printf("TorBox%s debrid backend enabled (%d supported hosts)", accountSuffix(acct.account), len(torboxHosts))
 		}
 	}
+
+	// While yt-dlp runs, JD, the direct download and the HTTP fallback leave it
+	// the video sites (see jd.SetMediaHosts and hostClaims).
+	var media map[string]bool
+	if newYtdlp != nil {
+		media = mediaSites
+	}
+	jd.SetMediaHosts(media)
+	a.claims.set(claimed, media)
 
 	// Optional headless-JD backend: the lowest-priority catch-all for hoster
 	// links nothing else claims.

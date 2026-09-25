@@ -70,6 +70,8 @@ func (a *App) SuspendSchedule(until time.Time) error {
 	if err != nil {
 		return err
 	}
+	a.suspendMu.Lock()
+	defer a.suspendMu.Unlock()
 	if err := a.Store.SetUIState(suspendBucket, string(b)); err != nil {
 		return err
 	}
@@ -79,6 +81,8 @@ func (a *App) SuspendSchedule(until time.Time) error {
 
 // ResumeSchedule lets the timetable apply again at once.
 func (a *App) ResumeSchedule() error {
+	a.suspendMu.Lock()
+	defer a.suspendMu.Unlock()
 	if err := a.Store.SetUIState(suspendBucket, ""); err != nil {
 		return err
 	}

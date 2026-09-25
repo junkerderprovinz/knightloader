@@ -940,6 +940,21 @@ function segment(host, options, current, onPick) {
  */
 let liveAccentCustoms = {};
 
+/**
+ * editPaletteColour stores one position of the rainbow palette and paints it
+ * while the picker is still open. A walking disco keeps a loop built from the
+ * palette it started with, and its next frame would paint those colours back,
+ * so it is applied again too.
+ */
+async function editPaletteColour(i, hex) {
+  const palette = (await readAppearance()).rainbow.palette.slice();
+  palette[i] = hex;
+  await writeAppearance({ rainbowPalette: palette });
+  const a = await readAppearance();
+  applyRainbow(a.rainbow);
+  applyDisco(a.disco);
+}
+
 async function renderAppearance() {
   const a = await readAppearance();
   liveAccentCustoms = { ...a.accentCustoms };
@@ -1052,10 +1067,7 @@ async function renderAppearance() {
     const b = swatch(hex, {
       label: t('options.palettePosition', { position: i + 1 }),
       onEdit: async (next) => {
-        const palette = (await readAppearance()).rainbow.palette.slice();
-        palette[i] = next;
-        await writeAppearance({ rainbowPalette: palette });
-        applyRainbow((await readAppearance()).rainbow);
+        await editPaletteColour(i, next);
         b.style.backgroundColor = next;
         paintHues();
       },
@@ -1372,7 +1384,11 @@ function closeCrypto() {
   cryptoBtn.focus();
 }
 
-/** Escape closes the window, and Tab stays inside it, as aria-modal promises. */
+/**
+ * Escape closes the window, and Tab stays inside it, as aria-modal promises.
+ * The stops include the (i) on the heading, which holds the window's
+ * introduction and would otherwise open only under a mouse.
+ */
 function onCryptoKey(event) {
   if (event.key === 'Escape') {
     event.preventDefault();
@@ -1380,7 +1396,7 @@ function onCryptoKey(event) {
     return;
   }
   if (event.key !== 'Tab') return;
-  const stops = [...cryptoEl.querySelectorAll('button')];
+  const stops = [...cryptoEl.querySelectorAll('button, [tabindex="0"]')];
   const at = stops.indexOf(document.activeElement);
   event.preventDefault();
   const next = event.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === stops.length - 1 ? 0 : at + 1;

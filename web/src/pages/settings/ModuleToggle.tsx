@@ -4,6 +4,7 @@ import { linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { IconChevronEnd } from '../../lib/icons';
 import { useNavLabels } from '../../lib/navLabels';
+import { useShake } from '../../lib/useShake';
 import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
 import type { Feature, FeatureVerdict } from './features';
@@ -24,7 +25,7 @@ import { label, moduleDetail, moduleReason, switchRefusal, useTx } from './tx';
  */
 export function ModuleToggle({
   id,
-  hue = 0,
+  hue,
   hint,
   setUpHint,
   parkedHint,
@@ -32,6 +33,7 @@ export function ModuleToggle({
   children,
 }: {
   id: string;
+  /** A palette position of its own, for a switch among sibling switches; alone, it takes its card's colour. */
   hue?: number;
   /** What the module does, the first paragraph of the switch's (i). */
   hint?: string;
@@ -47,9 +49,9 @@ export function ModuleToggle({
   const { features, toggle } = useFeatures();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
-  // Keyed onto the row, so a switch the server refuses shakes again on every
-  // refusal.
+  // A switch the server refuses shakes, again on every refusal.
   const [shake, setShake] = useState(0);
+  const shakeRef = useShake<HTMLDivElement>(shake);
 
   const m = features.modules.find((f) => f.id === id);
   if (!m || m.verdict !== 'shipped') return null;
@@ -75,7 +77,7 @@ export function ModuleToggle({
   }
 
   const row = (
-    <div key={shake} className={shake > 0 ? 'glim-shake' : undefined}>
+    <div ref={shakeRef}>
       <ToggleRow
         hue={hue}
         label={label(tx, 'settings.module.', id)}
@@ -114,21 +116,23 @@ export function moduleSection(verdict: FeatureVerdict): TranslationKey {
 
 /**
  * ModulesPageBadge leads to a module's row on the Modules page. Its words say
- * the switch is there as well, unless `title` says something else.
+ * the switch is there as well, unless `title` says something else. `onFollow`
+ * runs once the row is asked for, such as to close the panel the badge is in.
  */
-export function ModulesPageBadge({ m, title }: { m: Feature; title?: string }) {
+export function ModulesPageBadge({ m, title, onFollow }: { m: Feature; title?: string; onFollow?: () => void }) {
   const { tx } = useTx();
   return (
     <PageBadge
       page="modules"
       title={title ?? tx('settings.modules.alsoOn', { page: tx('settings.nav.modules') })}
-      onFollow={() =>
+      onFollow={() => {
         requestJump({
           page: 'modules',
           title: moduleSection(m.verdict),
           label: `settings.module.${m.id}` as TranslationKey,
-        })
-      }
+        });
+        onFollow?.();
+      }}
     />
   );
 }

@@ -224,7 +224,7 @@ func (a *App) insertVariantSibling(t *core.Task) {
 // against it by applyProbeLocked without another probe.
 func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	p := readProbe(formats)
-	embedThumbnail := a.Settings.Get().Ytdlp.Embed.Thumbnail
+	yt := a.Settings.Get().Ytdlp
 
 	a.mu.Lock()
 	a.keepProbeLocked(rawurl, formats)
@@ -242,7 +242,7 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 			}
 			changed = true
 		}
-		if t.Status == core.StatusCollected && applyProbeLocked(t, p, embedThumbnail) {
+		if t.Status == core.StatusCollected && applyProbeLocked(t, p, yt) {
 			changed = true
 		}
 		if changed {
@@ -320,8 +320,8 @@ func readProbe(formats []ytdlp.FormatEntry) probeFacts {
 
 // applyProbeLocked brings one row in line with a probe: its menus, a preset's
 // pick resolved to one of the source's tracks, and the extension and size of
-// what its kind and pick will download. It reports whether anything changed.
-// Caller holds a.mu.
+// what its kind and pick will download. yt is the instance's yt-dlp settings.
+// It reports whether anything changed. Caller holds a.mu.
 //
 // Per kind, matching buildArgs (backend.go):
 //   - description: Ext is always "description".
@@ -331,10 +331,11 @@ func readProbe(formats []ytdlp.FormatEntry) probeFacts {
 //     gives Ext and an unknown Size.
 //   - video: the menus are the resolution caps up to the source's own, the
 //     formats, and every track. A track gives its own Ext, following
-//     embedThumbnail for a webm one, and the Size of it and the audio merged
-//     with it; a cap or best gives the Size of what yt-dlp would take.
+//     Embed.Thumbnail for a webm one, and the Size of it and the audio merged
+//     with it; a cap or best gives the Size of what yt-dlp would take, and a
+//     custom format string gives neither.
 //   - thumbnail and subtitle: jpg and srt, from the forced conversions.
-func applyProbeLocked(t *core.Task, p probeFacts, embedThumbnail bool) bool {
+func applyProbeLocked(t *core.Task, p probeFacts, yt ytdlp.Options) bool {
 	changed := false
 	setExt := func(ext string) {
 		if t.Ext != ext {
@@ -383,7 +384,7 @@ func applyProbeLocked(t *core.Task, p probeFacts, embedThumbnail bool) bool {
 		setMenu(&t.AvailableVideoTracks, p.videoTracks)
 		pick := ytdlp.ResolveVideoPick(sub, p.formats)
 		setPick(pick)
-		ext, size := ytdlp.VideoFile(pick, p.formats, embedThumbnail)
+		ext, size := ytdlp.VideoFile(pick, p.formats, yt)
 		setExt(ext)
 		setSize(size)
 	case ytdlp.VariantThumbnail:
@@ -409,7 +410,7 @@ func (a *App) reapplyProbeLocked(t *core.Task) bool {
 		t.Size = 0
 		return false
 	}
-	applyProbeLocked(t, readProbe(formats), a.Settings.Get().Ytdlp.Embed.Thumbnail)
+	applyProbeLocked(t, readProbe(formats), a.Settings.Get().Ytdlp)
 	return true
 }
 

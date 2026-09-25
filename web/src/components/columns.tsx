@@ -1142,8 +1142,8 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     // of two boxes with one letter in each, which is not.
     <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
-      {pair && <VariantDropdown picker={pair[0]} disabled={busy} shake={shakeFirst} />}
-      {pair?.[1] && <VariantDropdown picker={pair[1]} disabled={busy} shake={shakeSecond} />}
+      {pair && <VariantDropdown picker={pair[0]} busy={busy} shake={shakeFirst} />}
+      {pair?.[1] && <VariantDropdown picker={pair[1]} busy={busy} shake={shakeSecond} />}
     </span>
   );
 }

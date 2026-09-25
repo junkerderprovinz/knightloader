@@ -410,6 +410,13 @@ func TestVideoSitesStayWithYtdlpAndFilehostersWithJD(t *testing.T) {
 		t.Errorf("an ordinary file goes to %q, want direct", got)
 	}
 
+	// Switched off, yt-dlp takes no link, and a video site's file is a file.
+	switchModulesOff(t, a, "ytdlp")
+	if got := resolverIDOf(a.resolverForTaskLocked(video)); got != "direct" {
+		t.Errorf("with yt-dlp switched off a video site's file goes to %q, want direct", got)
+	}
+	switchModulesOff(t, a)
+
 	// Without yt-dlp a video site's file is a file like any other.
 	a.claims.set(nil, nil)
 	if got := resolverIDOf(a.resolverForTaskLocked(video)); got != "direct" {
@@ -476,6 +483,39 @@ func TestALoginRowDecidesBetweenTheOwnAccountAndADebrid(t *testing.T) {
 	}
 	if got := route("jd", "fakedebrid", "login:ddownload.com"); got != "fakedebrid" {
 		t.Errorf("JD's own row on top, the login below the debrid: link goes to %q, want fakedebrid", got)
+	}
+}
+
+// A login the saved order does not name yet goes out at JD's own row, and the
+// card shows it right below JD, so saving the card as it stands keeps the
+// login's links where they go.
+func TestALoginRowTheOrderDoesNotNameSitsBelowJD(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	a.Registry.Register(fakeResolver{id: "fakedebrid", prio: 50, host: "ddownload.com"})
+	if _, err := a.SaveResolverOrder([]string{"jd", "fakedebrid", "direct"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.SetHosterLogin("ddownload.com", "user", "secret"); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { jd.SetHostActive("ddownload.com", false) })
+	jd.SetHostActive("ddownload.com", true)
+	link := &core.Task{URL: "https://ddownload.com/abc123/movie.mkv"}
+
+	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
+		t.Fatalf("fixture broken: the link goes to %q, want jd", got)
+	}
+	card := cardIDs(a.ResolverPriority(""))
+	if j, l, d := slices.Index(card, "jd"), slices.Index(card, "login:ddownload.com"), slices.Index(card, "fakedebrid"); j < 0 || l != j+1 || d < l {
+		t.Errorf("card = %q, want the login right below jd and above fakedebrid", card)
+	}
+	if _, err := a.SaveResolverOrder(card); err != nil {
+		t.Fatal(err)
+	}
+	if got := resolverIDOf(a.resolverForTaskLocked(link)); got != "jd" {
+		t.Errorf("after saving the card as shown the link goes to %q, want jd", got)
 	}
 }
 

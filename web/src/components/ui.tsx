@@ -492,7 +492,7 @@ const FIELD_SHELL_ROW_TEXT = 'flex flex-wrap items-baseline gap-3';
  */
 type Hint = string | string[];
 
-function HintBubble({ hint }: { hint?: Hint }) {
+export function HintBubble({ hint }: { hint?: Hint }) {
   const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
   if (paragraphs.length === 0) return null;
   return (
@@ -1581,10 +1581,28 @@ export function SectionTitle({
   );
 }
 
-// The windows that are open, the one on top last. A window opened from a
-// window, such as the folder chooser from a download's options, leaves both
-// listening for Escape, and one press closes only the top one.
-const openModals: symbol[] = [];
+// The windows that are open, by backdrop, each with its way out. A window
+// opened from a window, such as the folder chooser from a download's options,
+// leaves both open, and one press of Escape closes only the top one. One
+// listener decides for all of them: with one each, the window below would
+// already be on top when its own listener ran, and the same press would close
+// it too.
+const openModals = new Map<HTMLElement, () => void>();
+
+/**
+ * closeTopModal closes the window painted over the others: the last backdrop
+ * in the document, since every backdrop is the same fixed z-50 layer. Opening
+ * order would not do, because the folder chooser is portalled to <body> and
+ * paints over a captcha window that arrives later inside the app.
+ */
+function closeTopModal(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return;
+  let top: HTMLElement | undefined;
+  for (const el of openModals.keys()) {
+    if (!top || top.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) top = el;
+  }
+  if (top) openModals.get(top)?.();
+}
 
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
 // Escape and a click on the backdrop both close it, so it never traps anyone.
@@ -1636,25 +1654,24 @@ export function Modal({
   const { t } = useT();
   const dialogs = useDialogMute();
   const titleId = useId();
-  // A ref, so a new callback identity does not move this window's listener
-  // behind one opened later and change which window Escape closes.
+  // A ref, so the entry registered once always closes with the latest callback.
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+  const backdrop = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const me = Symbol('modal');
-    openModals.push(me);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && openModals[openModals.length - 1] === me) closeRef.current();
-    };
-    document.addEventListener('keydown', onKey);
+    const me = backdrop.current;
+    if (!me) return;
+    if (openModals.size === 0) document.addEventListener('keydown', closeTopModal);
+    openModals.set(me, () => closeRef.current());
     return () => {
-      document.removeEventListener('keydown', onKey);
-      openModals.splice(openModals.indexOf(me), 1);
+      openModals.delete(me);
+      if (openModals.size === 0) document.removeEventListener('keydown', closeTopModal);
     };
   }, []);
 
   return (
     <div
+      ref={backdrop}
       // glim-modal-backdrop, not a number typed here: GlimStone 1.11.0 made the
       // scrim a token so it lives in one place, .65 on a dark ground and .55 on
       // a light one. Any lighter and the eye keeps reading the page behind it.

@@ -1,6 +1,6 @@
 // The download list's drag arithmetic, on plain numbers.
 //
-// Five faults are guarded here:
+// Six faults are guarded here:
 //
 //   1. A folder aims at whole folders, not at their headers. A header is 44px
 //      of a folder three hundred pixels tall once it is open, so aiming at
@@ -18,6 +18,9 @@
 //   5. The carried block floats under the pointer as one run, the way it will
 //      land, and stops at either end of the list instead of growing a
 //      scrollbar (carriedOffsets).
+//   6. A move the queue would refuse is known before anything lifts
+//      (moveRefusal), so a finger held on such rows gets the row's menu rather
+//      than a refusal nobody asked for.
 //
 // Run: `node web/check-row-drag.mjs`. Node reads the TypeScript module
 // directly; nothing here touches React or a DOM, which is why the arithmetic
@@ -25,6 +28,7 @@
 import {
   aimAt,
   carriedOffsets,
+  moveRefusal,
   pastThreshold,
   previewOrder,
   selectedBlock,
@@ -248,6 +252,19 @@ const gathered = carriedOffsets(
 );
 check('a scattered selection gathers under the pressed row', [gathered.get('task:a1'), gathered.get('task:b1')], [10, -106]);
 check('a carried row the snapshot never measured is left alone', gathered.has('task:zz'), false);
+
+// 10. Which moves the queue refuses. A touch hold asks before it lifts
+// anything: a refused one stays a long press that opens the row's menu, and
+// says why only once the finger travels.
+const queued = (u) => (u.kind === 'task' ? (u.id === 'done' ? [] : [u.id]) : u.name === 'Finished' ? [] : ['a1']);
+check('a sorted view refuses every move', moveRefusal(true, [task('a1')], queued), 'sorted');
+check('a finished row alone is refused', moveRefusal(false, [task('done')], queued), 'settled');
+check('a folder with nothing queued is refused', moveRefusal(false, [pkg('Finished')], queued), 'settled');
+check(
+  'one queued row makes a marking with a finished one movable',
+  moveRefusal(false, [task('done'), task('a1')], queued),
+  null,
+);
 
 if (failed > 0) {
   console.error(`\n${failed} drag check(s) failed.`);

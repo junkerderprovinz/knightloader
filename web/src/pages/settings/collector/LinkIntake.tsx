@@ -84,6 +84,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             placeholder="/watch"
             title={t('settings.module.watch')}
             label={t('settings.module.watch')}
+            missingHint={t('folders.newWatch')}
           />
         )}
       </ModuleToggle>

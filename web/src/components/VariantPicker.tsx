@@ -45,13 +45,14 @@ export interface PickerProps {
 export function VariantDropdown({
   picker,
   width = 'value',
-  disabled,
+  busy,
   shake,
 }: {
   picker: PickerProps;
   /** `value` on a list row, `widest` where a column should not move. */
   width?: DropdownWidth;
-  disabled?: boolean;
+  /** A pick is out and its answer not back yet; see Dropdown. */
+  busy?: boolean;
   /** The caller's failure counter; see Dropdown. */
   shake?: number;
 }) {
@@ -66,7 +67,7 @@ export function VariantDropdown({
       tip={picker.label}
       look="dense"
       width={width}
-      disabled={disabled}
+      busy={busy}
       shake={shake}
     />
   );

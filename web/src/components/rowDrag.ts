@@ -53,6 +53,27 @@ export function selectedBlock(rows: readonly BlockRow[], selected: ReadonlySet<s
   return out;
 }
 
+/** Why the queue will not take a move: see moveRefusal. */
+export type MoveRefusal = 'sorted' | 'settled';
+
+/**
+ * moveRefusal says why moving `block` would be refused, or null when it would
+ * not be. A sorted view is not the queue's order, so nothing moves in it; and a
+ * block whose every unit has left the wait queue has nothing to reorder.
+ * Asked of the whole block rather than of the pressed row, because a marking
+ * holding one finished row and four queued ones is a good move. `idsOf` gives
+ * the task ids of a unit that the queue can move.
+ */
+export function moveRefusal(
+  sorted: boolean,
+  block: readonly RowDragKey[],
+  idsOf: (u: RowDragKey) => readonly string[],
+): MoveRefusal | null {
+  if (sorted) return 'sorted';
+  if (block.every((u) => idsOf(u).length === 0)) return 'settled';
+  return null;
+}
+
 /** Whether two drag units are the same row or the same folder. */
 export function sameUnit(a: RowDragKey, b: RowDragKey): boolean {
   if (a.kind !== b.kind) return false;

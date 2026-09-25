@@ -180,12 +180,17 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 			if !l.Enabled {
 				continue
 			}
-			id := loginRowID(l.Host)
+			// Ranked where dynamicPrio sends the login's links: at its own row,
+			// else at JD's. A login the saved order does not name yet then sits
+			// right below JD, and saving the card as shown keeps its links there.
+			host := hostalias.Canonical(l.Host)
 			prio := jd.ActiveLoginPrio
-			if i := slices.Index(order, id); i >= 0 {
+			if i := slices.IndexFunc(order, func(entry string) bool { return loginRowFor(entry, host) }); i >= 0 {
+				prio = orderBase - i
+			} else if i := slices.Index(order, "jd"); i >= 0 {
 				prio = orderBase - i
 			}
-			rows = append(rows, row{resolver.Info{ID: id, Prio: jd.ActiveLoginPrio}, prio})
+			rows = append(rows, row{resolver.Info{ID: loginRowID(l.Host), Prio: jd.ActiveLoginPrio}, prio})
 		}
 		sort.SliceStable(rows, func(i, j int) bool { return rows[i].prio > rows[j].prio })
 	}
@@ -196,13 +201,17 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	return out
 }
 
-// perLinkResolvers claim nearly any link: JD and the HTTP fallback any http
-// link, yt-dlp any host that is not a file hoster, and direct anything that
-// looks like a file. Which hosts they leave alone is part of their claim (see
-// hostClaims), so the priority card can order them like any other service.
-// Past a switched-off backend they may not take its link over (see
-// resolverForTaskLocked).
-var perLinkResolvers = map[string]bool{"direct": true, "jd": true, "ytdlp": true, "http": true}
+// barredPastOff reports whether a resolver may not take over the link of a
+// switched-off backend ranked above it (see resolverForTaskLocked). JD and the
+// HTTP fallback claim any http link and yt-dlp any host that is not a file
+// hoster, so each would hand a video to JD or save a hoster's or a player's
+// page. A service that lists the host, such as a debrid account, may take the
+// link over, and so may the direct download: it claims only a path that ends
+// in a file extension, and it leaves file hosters and, while yt-dlp is on,
+// video sites alone (see hostClaims).
+func barredPastOff(id string) bool {
+	return id == "jd" || id == "ytdlp" || id == "http"
+}
 
 // offCard reports whether the priority card leaves a resolver out: a stored
 // header profile, which goes first for its origin, the user's own servers and
@@ -290,10 +299,10 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 		return a.pinnedResolverLocked(t)
 	}
 	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
-	// A fallback may have recorded the direct download or yt-dlp while a
+	// A fallback may have recorded JD, yt-dlp or the HTTP fallback while a
 	// backend above it was switched off; that backend decides, not the fallback.
 	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) && !a.resolverOff(t.Resolver) &&
-		!(perLinkResolvers[t.Resolver] && a.switchedOffAboveLocked(chain, t.Resolver)) {
+		!(barredPastOff(t.Resolver) && a.switchedOffAboveLocked(chain, t.Resolver)) {
 		for _, res := range a.Registry.All(t.URL) {
 			if res.Info().ID == t.Resolver {
 				return res
@@ -315,10 +324,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 			passedOff = true
 			continue
 		}
-		// Past a switched-off backend only a service that lists the host, such
-		// as a debrid account, may take the link over. The backends that take
-		// any link would fetch the hoster's page or hand a video to JD.
-		if passedOff && perLinkResolvers[id] {
+		if passedOff && barredPastOff(id) {
 			return nil
 		}
 		if a.accountRoutableLocked(id) {

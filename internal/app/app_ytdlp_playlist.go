@@ -69,9 +69,9 @@ func (a *App) ytdlpPlaylist(u string) (ytdlp.Playlist, bool) {
 	if !a.Settings.Get().Ytdlp.Playlist {
 		return ytdlp.Playlist{}, false
 	}
-	// Only links routed to yt-dlp, so a hoster link a debrid or JD backend
-	// claims never reaches a yt-dlp process.
-	if res := a.Registry.For(u); res == nil || res.Info().ID != "ytdlp" {
+	// Only links staging routes to yt-dlp, in the order the priority card set,
+	// so a link a debrid or JD backend takes never reaches a yt-dlp process.
+	if res := a.stagingResolverFor(u); res == nil || res.Info().ID != "ytdlp" {
 		return ytdlp.Playlist{}, false
 	}
 	pp, ok := a.ytdlpPlaylistProber()
@@ -144,7 +144,8 @@ func (a *App) stagePlaylistEntries(playlistURL string, pl ytdlp.Playlist, pkg st
 			continue
 		}
 		created = append(created, t)
-		if !t.Skipped {
+		// Only rows yt-dlp downloads, as stage probes only those.
+		if !t.Skipped && t.Resolver == "ytdlp" {
 			probes = append(probes, probeTarget{id: t.ID, url: e.URL})
 		}
 	}

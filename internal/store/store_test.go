@@ -147,6 +147,50 @@ func TestEveryFieldSurvivesARestart(t *testing.T) {
 	}
 }
 
+// Links pasted together are stamped a nanosecond apart so they start in the
+// order they were pasted. A restart has to bring that order back even when the
+// earlier link was the one saved last, as happens when its availability check
+// answers later.
+func TestLinksStagedANanosecondApartKeepTheirOrderAcrossARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := time.Date(2026, time.September, 25, 20, 0, 0, 123_456_789, time.Local)
+	second := first.Add(time.Nanosecond)
+	for _, task := range []core.Task{
+		{ID: "a", URL: "https://host.example/one.bin", CreatedAt: first},
+		{ID: "b", URL: "https://host.example/two.bin", CreatedAt: second},
+		{ID: "a", URL: "https://host.example/one.bin", CreatedAt: first},
+	} {
+		if err := s.Save(&task); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	for _, task := range all {
+		ids = append(ids, task.ID)
+	}
+	if len(ids) != 2 || ids[0] != "a" || ids[1] != "b" {
+		t.Fatalf("reloaded %v, want a before b", ids)
+	}
+	if !all[0].CreatedAt.Equal(first) || !all[1].CreatedAt.Equal(second) {
+		t.Errorf("stamps came back as %s and %s, want %s and %s", all[0].CreatedAt, all[1].CreatedAt, first, second)
+	}
+}
+
 // A file selection is a decision the user made, unlike the swarm numbers a
 // torrent task also carries (peers, seeds, ratio, uploaded, seeding), which
 // are a reading of the world and are not persisted. A restart that forgot it

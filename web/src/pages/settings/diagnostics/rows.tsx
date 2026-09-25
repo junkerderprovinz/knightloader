@@ -1,6 +1,7 @@
 import { useCallback, type ReactNode } from 'react';
 import type { SelfTestResult, SelfTestStatus } from '../../../lib/api';
-import { interpolate, useT, type TranslationKey } from '../../../lib/i18n';
+import { useT, type TranslationKey } from '../../../lib/i18n';
+import { interpolate } from '../../../lib/interpolate';
 import { InfoBubble } from '../../../components/ui';
 import { IconCheck, IconClock, IconClose, IconHelp, IconWarning } from '../../../lib/icons';
 

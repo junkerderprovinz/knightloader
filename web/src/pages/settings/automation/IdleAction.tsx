@@ -90,16 +90,19 @@ export function useIdleActions(): string[] {
 /**
  * IdleActionPicker is the choice of action as this card draws it. The shell
  * bar's quick settings show the same strip, so both places offer the same
- * menu and write the same value.
+ * menu and write the same value. The panel there is too narrow for the big
+ * well, which would stack one action per line, so it asks for `sm`.
  */
 export function IdleActionPicker({
   actions,
   value,
   onValue,
+  size = 'md',
 }: {
   actions: string[];
   value: string;
   onValue: (action: string) => void;
+  size?: 'sm' | 'md';
 }) {
   const { t } = useT();
   const hint = ACTION_HINTS[value];
@@ -111,6 +114,7 @@ export function IdleActionPicker({
     >
       <Tabs
         variant="well"
+        size={size}
         label={t('settings.downloads.idleAction')}
         active={value}
         onSelect={onValue}

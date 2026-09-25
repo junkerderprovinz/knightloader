@@ -39,8 +39,11 @@ func (sp Suspension) Next(s Schedule, t time.Time, base State) (time.Time, bool)
 	if sp.Until.IsZero() {
 		return time.Time{}, false
 	}
-	if s.At(sp.Until, base) != base {
-		return sp.Until, true
+	// The rows are read in t's zone. An end that arrived as UTC from a browser
+	// would otherwise be matched against the timetable in UTC.
+	end := sp.Until.In(t.Location())
+	if s.At(end, base) != base {
+		return end, true
 	}
-	return s.Next(sp.Until, base)
+	return s.Next(end, base)
 }

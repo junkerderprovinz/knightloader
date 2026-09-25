@@ -14,6 +14,7 @@ import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from '
 import {
   afterRound,
   foldAnswer,
+  heldAfter,
   noAnswer,
   pendingFields,
   same,
@@ -22,6 +23,7 @@ import {
   shownAt,
   toSend,
   topKey,
+  typedIn,
   type Answer,
 } from './settings/paths';
 import { FALLBACK_PAGE, hasContent, pageIcon, pageId, renderSettingsPage } from './settings/registry';
@@ -34,16 +36,13 @@ const pagePath = (id: string) => `/settings/${id}`;
 type Doc = Record<string, unknown>;
 
 /**
- * typingIn reports whether the text box that has focus shows value, which is
- * how a save that comes back tells the field someone is still typing in.
+ * focusedText is what the text box that has focus shows, or null when focus is
+ * not in one. A save that comes back tells by it which field someone is still
+ * typing in.
  */
-function typingIn(value: unknown): boolean {
+function focusedText(): string | null {
   const el = document.activeElement;
-  return (
-    typeof value === 'string' &&
-    (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) &&
-    el.value === value
-  );
+  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : null;
 }
 
 /**
@@ -78,8 +77,9 @@ export function SettingsPage() {
   // What the server did not take of the draft. A refused value shows beside
   // its field and is not sent again until the field holds something else.
   const [answer, setAnswer] = useState<Answer>(noAnswer);
-  // A value the server tidied while its text box still had focus, by settings
-  // key, holding what was sent. The box keeps the typed text until it is left.
+  // A value the server tidied or masked while its text box still had focus, by
+  // settings key, holding what was sent. The box keeps the typed text until it
+  // is left.
   const held = useRef<Doc>({});
 
   // Something the autosave has yet to send.
@@ -217,14 +217,15 @@ export function SettingsPage() {
     return () => document.removeEventListener('focusout', onFocusOut);
   }, []);
 
-  async function onSave() {
-    if (!draft || !saved || saving) return;
+  /** onSave sends what is pending and returns the answer as it stands after the save. */
+  async function onSave(): Promise<Answer> {
+    if (!draft || !saved || saving) return answer;
     // A PATCH of only the top-level fields that differ from `saved`, walking
     // the runtime object, so a field another tab saved in the meantime is not
     // put back (patchSettings in lib/api.ts).
     const savedDoc = saved as unknown as Doc;
     const fields = toSend(draft as unknown as Doc, savedDoc, held.current, answer);
-    if (Object.keys(fields).length === 0) return;
+    if (Object.keys(fields).length === 0) return answer;
     setSaving(true);
     try {
       const round = await saveRound(fields, async (p) => (await patchSettings(p as Partial<Settings>)) as unknown as Doc);
@@ -236,16 +237,21 @@ export function SettingsPage() {
       }
       if (round.failed) toast(refusalText(tx, round.failed.error), 'fail');
       const { applied: reply, sent } = round;
-      if (!reply) return;
-      // Replacing the text in a box that still has focus would move the caret
-      // and could drop the space someone is about to type a word after.
-      const keep = Object.keys(sent).filter((k) => !same(reply[k], sent[k]) && typingIn(sent[k]));
-      for (const k of keep) held.current[k] = sent[k];
-      setSaved(reply as unknown as Settings);
-      setDraft((d) => (d ? (foldAnswer(d as unknown as Doc, reply, sent, savedDoc, keep) as unknown as Settings) : d));
-      // A save can move a module, such as clearing the watch folder.
-      reloadFeatures();
-      toast(t('settings.saved'), 'ok');
+      if (reply) {
+        // Replacing the text in a box that still has focus would move the caret
+        // and could drop the space someone is about to type a word after. A
+        // masked secret would even empty the box, and the next keystrokes
+        // would be stored as the whole secret.
+        const text = focusedText();
+        const keep = text === null ? [] : Object.keys(sent).filter((k) => typedIn(sent[k], reply[k], text));
+        held.current = heldAfter(held.current, sent, keep);
+        setSaved(reply as unknown as Settings);
+        setDraft((d) => (d ? (foldAnswer(d as unknown as Doc, reply, sent, savedDoc, keep) as unknown as Settings) : d));
+        // A save can move a module, such as clearing the watch folder.
+        reloadFeatures();
+        toast(t('settings.saved'), 'ok');
+      }
+      return afterRound(answer, round);
     } finally {
       setSaving(false);
     }
@@ -276,21 +282,22 @@ export function SettingsPage() {
     async (id: string, enabled: boolean) => {
       // Flush a pending autosave first rather than refusing the switch, so both
       // writes happen in order.
+      let now = answer;
       if (pending) {
         if (saveTimer.current !== null) {
           window.clearTimeout(saveTimer.current);
           saveTimer.current = null;
         }
-        await onSave();
+        now = await onSave();
       }
       const next = await setFeature(id, enabled);
       setFeatures(next);
       // A module switch changes settings on the server; the draft must follow,
       // or the next save would undo the switch. A refused, unsent or held
-      // value stays in its box.
+      // value stays in its box, the flush's own refusals included.
       const fresh = await fetchSettings();
-      const kept: Doc = { ...answer.failed, ...held.current };
-      for (const [k, r] of Object.entries(answer.refused)) kept[k] = r.value;
+      const kept: Doc = { ...now.failed, ...held.current };
+      for (const [k, r] of Object.entries(now.refused)) kept[k] = r.value;
       setSaved(fresh);
       setDraft((d) => {
         if (!d) return fresh;

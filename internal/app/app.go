@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
@@ -173,6 +174,10 @@ type App struct {
 	// is the only writer of the speed limit, so a saved settings page cannot lift
 	// a nightly cap that is still in force.
 	sched *schedule.Runner
+	// suspendMu makes a suspension's stored record and the runner's copy one
+	// step, so two requests at once cannot leave the store saying one thing and
+	// the running process doing the other until the next restart.
+	suspendMu sync.Mutex
 
 	// idleAction carries out the configured end-of-queue action after its
 	// cancellable countdown (see app_idle.go). It owns one goroutine.
@@ -215,9 +220,11 @@ type App struct {
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
 
-	// wmu guards watcher, which is replaced whenever the watched folder changes.
+	// wmu serialises changes to watcher, which is replaced whenever the watched
+	// folders change. The pointer itself is atomic so that a reader never waits
+	// behind a save whose Apply is probing a share.
 	wmu     sync.Mutex
-	watcher *watch.Watcher
+	watcher atomic.Pointer[watch.Watcher]
 
 	// fmu guards feeds, the RSS/Atom subscriptions. It is separate from wmu
 	// because applyWatchFolders probes shares and applyFeeds reads the store,
@@ -352,6 +359,7 @@ func New(dataDir string) (*App, error) {
 	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
 	a.ctx, a.cancel = context.WithCancel(context.Background())
+	a.claims.ytdlpOn = func() bool { return !a.resolverOff("ytdlp") }
 	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
 	a.Registry.Register(resolver.HTTPFallback{Leave: a.claims.pageOnly})
 	// Torrents need no account, so unlike the resolvers in app_accounts.go this
@@ -728,9 +736,8 @@ func (a *App) Close() error {
 	// from both.
 	a.wg.Wait()
 	a.wmu.Lock()
-	if a.watcher != nil {
-		_ = a.watcher.Close()
-		a.watcher = nil
+	if w := a.watcher.Swap(nil); w != nil {
+		_ = w.Close()
 	}
 	a.wmu.Unlock()
 	// Waits for a poll in flight so no entry is still being added. cancel has

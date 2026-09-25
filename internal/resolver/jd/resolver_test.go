@@ -115,9 +115,9 @@ func TestSetKnownHostsReplacesRatherThanAccumulates(t *testing.T) {
 
 // JD has a plugin for YouTube too, but only yt-dlp offers formats and quality.
 func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
-	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
+	t.Cleanup(func() { SetKnownHosts(nil); SetMediaHosts(nil) })
 	SetKnownHosts([]string{"rapidgator.net", "youtube.com"})
-	SetFileHosts(map[string]bool{"rapidgator.net": true})
+	SetMediaHosts(map[string]bool{"youtube.com": true})
 
 	if got := PriorityFor("https://rapidgator.net/file/abc"); got != knownHostPrio {
 		t.Errorf("PriorityFor(file hoster) = %d, want %d - JD is still what fetches from a hoster", got, knownHostPrio)
@@ -136,14 +136,15 @@ func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
 // FileHoster answers for exactly the hosts PriorityFor lifts above a plain GET,
 // so the app can keep that GET off them whatever the order says.
 func TestFileHosterMatchesTheHostsJDIsLiftedFor(t *testing.T) {
-	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil); SetHostActive("login-only.example", false) })
-	SetKnownHosts([]string{"rapidgator.net", "youtube.com"})
-	SetFileHosts(map[string]bool{"rapidgator.net": true})
+	t.Cleanup(func() { SetKnownHosts(nil); SetMediaHosts(nil); SetHostActive("login-only.example", false) })
+	SetKnownHosts([]string{"rapidgator.net", "uploadgig.com", "youtube.com"})
+	SetMediaHosts(map[string]bool{"youtube.com": true})
 	SetHostActive("login-only.example", true)
 
 	for host, want := range map[string]bool{
 		"rapidgator.net":     true,
 		"WWW.Rapidgator.net": true,
+		"uploadgig.com":      true,
 		"login-only.example": true,
 		"youtube.com":        false,
 		"cdn.rapidgator.net": false,
@@ -162,9 +163,8 @@ func TestFileHosterMatchesTheHostsJDIsLiftedFor(t *testing.T) {
 // JD lists a hoster by its main domain, and a link to one of its alias domains
 // is the same hoster.
 func TestAnAliasDomainCountsAsItsHoster(t *testing.T) {
-	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil); SetHostActive("ddownload.com", false) })
+	t.Cleanup(func() { SetKnownHosts(nil); SetHostActive("ddownload.com", false) })
 	SetKnownHosts([]string{"rapidgator.net", "ddownload.com"})
-	SetFileHosts(map[string]bool{"rapidgator.net": true, "ddownload.com": true})
 
 	for _, host := range []string{"rg.to", "www.rg.to", "RG.TO"} {
 		if !FileHoster(host) {
@@ -184,15 +184,24 @@ func TestAnAliasDomainCountsAsItsHoster(t *testing.T) {
 	}
 }
 
-// Without a debrid account or TorBox key nothing classifies hosts, and JD is
-// the only way to fetch from a hoster.
-func TestNoClassificationKeepsTheKnownHostBoost(t *testing.T) {
-	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
-	SetKnownHosts([]string{"rapidgator.net"})
-	SetFileHosts(nil)
+// A host JD knows is a file hoster unless it is named as a video site; no
+// debrid or TorBox list has to name it too.
+func TestAKnownHostNobodyCallsAVideoSiteKeepsTheBoost(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil); SetMediaHosts(nil) })
+	SetKnownHosts([]string{"rapidgator.net", "uploadgig.com"})
+	SetMediaHosts(map[string]bool{"youtube.com": true})
 
-	if got := PriorityFor("https://rapidgator.net/file/abc"); got != knownHostPrio {
-		t.Errorf("PriorityFor = %d, want %d with no classification available", got, knownHostPrio)
+	for _, raw := range []string{"https://rapidgator.net/file/abc", "https://uploadgig.com/file/download/0a1b2c3d/movie.part1.rar"} {
+		if got := PriorityFor(raw); got != knownHostPrio {
+			t.Errorf("PriorityFor(%q) = %d, want %d", raw, got, knownHostPrio)
+		}
+	}
+
+	// Without yt-dlp no host is left to it, YouTube included.
+	SetKnownHosts([]string{"youtube.com"})
+	SetMediaHosts(nil)
+	if got := PriorityFor("https://youtube.com/watch?v=x"); got != knownHostPrio {
+		t.Errorf("PriorityFor(youtube.com) without yt-dlp = %d, want %d", got, knownHostPrio)
 	}
 }
 
