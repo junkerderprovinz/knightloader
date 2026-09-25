@@ -220,11 +220,13 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// wsControl is the one message a client sends up the socket: which broadcast
-// kinds it wants from here on (see hub.Subscribe).
+// wsControl is what a client sends up the socket: which broadcast kinds it
+// wants from here on (see hub.Subscribe), or whether its viewer can see it
+// (see hub.SetVisible).
 type wsControl struct {
-	Type  string   `json:"type"`
-	Kinds []string `json:"kinds"`
+	Type    string   `json:"type"`
+	Kinds   []string `json:"kinds"`
+	Visible *bool    `json:"visible"`
 }
 
 // handleWSControl applies one client frame. A frame it cannot parse is ignored
@@ -240,6 +242,10 @@ func handleWSControl(a *app.App, c hub.Conn, data []byte) {
 		a.Hub.Subscribe(c, msg.Kinds)
 	case "unsubscribe":
 		a.Hub.Unsubscribe(c, msg.Kinds)
+	case "visibility":
+		if msg.Visible != nil {
+			a.Hub.SetVisible(c, *msg.Visible)
+		}
 	}
 }
 

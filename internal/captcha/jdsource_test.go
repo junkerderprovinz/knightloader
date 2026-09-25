@@ -185,6 +185,7 @@ func TestJDSourceListClassifiesEveryVerifiedChallengeFamily(t *testing.T) {
 		{"MultiClickCaptchaChallenge", KindClick},
 		{"RecaptchaV2Challenge", KindWidget},
 		{"HCaptchaChallenge", KindWidget},
+		{"CloudflareTurnstileChallenge", KindWidget},
 		{"AccountLoginOAuthChallenge", KindUnsupported},
 		{"SomeFutureChallengeTypeNobodyHasSeenYet", KindUnsupported},
 	}
@@ -268,6 +269,7 @@ func TestJDSourceListNamesTheWidgetVendor(t *testing.T) {
 		{"reCAPTCHA", "RecaptchaV2Challenge", "RecaptchaV2Challenge", VendorRecaptcha},
 		{"hCaptcha", "HCaptchaChallenge", "HCaptchaChallenge", VendorHCaptcha},
 		{"hCaptcha relabelled for the web interface", "HCaptchaChallenge", "RecaptchaV2Challenge", VendorHCaptcha},
+		{"Cloudflare Turnstile", "CloudflareTurnstileChallenge", "CloudflareTurnstileChallenge", VendorTurnstile},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

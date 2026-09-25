@@ -29,3 +29,24 @@ func TestDefaultsHaveNoCaptchaSolverOrder(t *testing.T) {
 		t.Errorf("Defaults().CaptchaSolverOrder = %v, want empty", got)
 	}
 }
+
+// The solvers start at once on a fresh install, and a minute is what they wait
+// once somebody asks them to wait for a watcher.
+func TestDefaultsStartTheSolversWithoutWaiting(t *testing.T) {
+	d := Defaults()
+	if d.CaptchaSolverOnlyUnwatched {
+		t.Error("CaptchaSolverOnlyUnwatched is on by default, want off")
+	}
+	if d.CaptchaSolverWait != DefaultCaptchaSolverWait {
+		t.Errorf("CaptchaSolverWait = %d, want %d", d.CaptchaSolverWait, DefaultCaptchaSolverWait)
+	}
+}
+
+func TestCaptchaSolverWaitIsClampedIntoItsBounds(t *testing.T) {
+	cases := map[int]int{0: MinCaptchaSolverWait, 3: MinCaptchaSolverWait, 90: 90, 10000: MaxCaptchaSolverWait}
+	for in, want := range cases {
+		if got := sanitizeCaptcha(Settings{CaptchaSolverWait: in}).CaptchaSolverWait; got != want {
+			t.Errorf("sanitizeCaptcha(wait %d) = %d, want %d", in, got, want)
+		}
+	}
+}

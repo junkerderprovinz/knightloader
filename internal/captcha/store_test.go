@@ -97,6 +97,31 @@ func TestStoreRemoveIsIdempotentAndSyncDoesNotRepeatIt(t *testing.T) {
 	}
 }
 
+// The Source never sends a solver report, so the next poll must not wipe what
+// the prompt shows about the paid solvers, nor count it as a change.
+func TestStoreKeepsTheSolverReportAcrossASync(t *testing.T) {
+	s := NewStore()
+	s.Sync([]Challenge{{ID: "1", Host: "a.example"}})
+
+	got, ok := s.Report("1", SolverReport{State: SolverSolving, Solver: "2Captcha"})
+	if !ok || got.Solver == nil || got.Solver.Solver != "2Captcha" {
+		t.Fatalf("Report(1) = %+v, %v; want the challenge with the report on it", got, ok)
+	}
+
+	_, changed, _ := s.Sync([]Challenge{{ID: "1", Host: "a.example"}})
+	if len(changed) != 0 {
+		t.Errorf("a poll without a report counted as a change: %+v", changed)
+	}
+	c, _ := s.Get("1")
+	if c.Solver == nil || c.Solver.State != SolverSolving {
+		t.Errorf("after the next Sync the report is %+v, want it kept", c.Solver)
+	}
+
+	if _, ok := s.Report("gone", SolverReport{State: SolverStopped}); ok {
+		t.Error("Report on an id the store does not hold answered ok")
+	}
+}
+
 func TestStoreByTask(t *testing.T) {
 	s := NewStore()
 	if _, ok := s.ByTask("t1"); ok {

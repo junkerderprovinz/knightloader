@@ -84,23 +84,30 @@ type jdCaptchaJob struct {
 // KindUnsupported fires for a class JD supports and this app has no renderer
 // for. AccountLoginOAuthChallenge is the live example: it never overrides
 // getAPIStorable, so there is no payload to relay for it either way.
+//
+// CloudflareTurnstileChallenge reaches this table only when
+// CaptchaAPISolver.isChallengeSupported lets it through. It is mapped for the
+// paid solvers: its base class's API storable names the site key and page the
+// way jdWidgetToken reads them.
 var jdKindByClass = map[string]Kind{
-	"ImageCaptchaChallenge":       KindImage,
-	"BasicCaptchaChallenge":       KindImage,
-	"SolveMediaCaptchaChallenge":  KindImage,
-	"RecaptchaV1CaptchaChallenge": KindImage,
-	"ClickCaptchaChallenge":       KindClick,
-	"MultiClickCaptchaChallenge":  KindClick,
-	"RecaptchaV2Challenge":        KindWidget,
-	"HCaptchaChallenge":           KindWidget,
+	"ImageCaptchaChallenge":        KindImage,
+	"BasicCaptchaChallenge":        KindImage,
+	"SolveMediaCaptchaChallenge":   KindImage,
+	"RecaptchaV1CaptchaChallenge":  KindImage,
+	"ClickCaptchaChallenge":        KindClick,
+	"MultiClickCaptchaChallenge":   KindClick,
+	"RecaptchaV2Challenge":         KindWidget,
+	"HCaptchaChallenge":            KindWidget,
+	"CloudflareTurnstileChallenge": KindWidget,
 }
 
 // jdWidgetVendorByClass names the vendor behind each KindWidget class. JD's
-// rawtoken payload has the same fields for both, so the class is the only
-// place the vendor shows.
+// rawtoken payload has the same fields for all of them, so the class is the
+// only place the vendor shows.
 var jdWidgetVendorByClass = map[string]string{
-	"RecaptchaV2Challenge": VendorRecaptcha,
-	"HCaptchaChallenge":    VendorHCaptcha,
+	"RecaptchaV2Challenge":         VendorRecaptcha,
+	"HCaptchaChallenge":            VendorHCaptcha,
+	"CloudflareTurnstileChallenge": VendorTurnstile,
 }
 
 // classify turns one JD challenge class name into a Kind, defaulting to

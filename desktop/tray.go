@@ -21,8 +21,8 @@ import (
 const raisePulse = 300 * time.Millisecond
 
 // minimizePollInterval is how often the window state is polled for
-// minimize-to-tray. Wails v2 has no minimize hook, and
-// document.visibilitychange is unreliable across engines.
+// minimize-to-tray and for whether the window is on screen. Wails v2 has no
+// minimize hook, and document.visibilitychange is unreliable across engines.
 const minimizePollInterval = 500 * time.Millisecond
 
 // trayController owns the desktop preferences and the tray icon, and decides
@@ -41,6 +41,11 @@ type trayController struct {
 	unavailReason string
 
 	quitting bool // set before wailsruntime.Quit so onBeforeClose lets it through
+
+	// shown is false while the window is hidden to the tray. Wails v2 can say
+	// whether a window is minimised but not whether it is hidden, so every
+	// hide and show goes through hide and show below.
+	shown bool
 
 	seenCaptcha map[string]struct{}
 
@@ -64,17 +69,35 @@ func newTrayController(h *hub.Hub, cfgPath string) *trayController {
 	tc := &trayController{
 		cfg:           loadConfig(cfgPath),
 		cfgPath:       cfgPath,
-		hub:           h,
 		trayAvailable: ok,
 		unavailReason: reason,
 		seenCaptcha:   map[string]struct{}{},
 		closed:        make(chan struct{}),
 	}
+	tc.shown = !tc.effectiveStartHidden()
 	if h != nil {
-		tc.hubConn = &deskHubConn{tc: tc}
-		h.Add(tc.hubConn)
+		tc.joinHub(h)
 	}
 	return tc
+}
+
+// joinHub registers the window with the hub. It asks for the captcha events
+// by name, so the window counts as watching captchas while it reports itself
+// on screen (see reportVisible); the page inside it does not report, since
+// the webview's own visibility is unreliable.
+func (tc *trayController) joinHub(h *hub.Hub) {
+	tc.hub = h
+	tc.hubConn = &deskHubConn{tc: tc}
+	h.Add(tc.hubConn)
+	h.Subscribe(tc.hubConn, []string{"captcha", "captchaResolved"})
+}
+
+// reportVisible tells the hub whether the window is on screen, which decides
+// whether the paid captcha solvers wait for an answer at the prompt.
+func (tc *trayController) reportVisible(visible bool) {
+	if tc.hub != nil {
+		tc.hub.SetVisible(tc.hubConn, visible)
+	}
 }
 
 // spawn runs f in a goroutine that onShutdown waits for, so nothing touches
@@ -143,7 +166,7 @@ func (tc *trayController) onWailsStartup(ctx context.Context) {
 	tc.ctx = ctx
 	tc.mu.Unlock()
 
-	tc.spawn(tc.pollMinimize)
+	tc.spawn(tc.pollWindow)
 
 	if msg, show := tc.startupNotice(); show {
 		tc.spawn(func() {
@@ -168,7 +191,7 @@ func (tc *trayController) onBeforeClose(ctx context.Context) bool {
 	if quitting || !toTray {
 		return false
 	}
-	wailsruntime.WindowHide(ctx)
+	tc.hide(ctx)
 	return true
 }
 
@@ -207,9 +230,9 @@ func (tc *trayController) onShutdown() {
 	}
 }
 
-// pollMinimize hides a newly minimised window to the tray when the preference
-// asks for it.
-func (tc *trayController) pollMinimize() {
+// pollWindow hides a newly minimised window to the tray when the preference
+// asks for it, and reports whether the window is on screen.
+func (tc *trayController) pollWindow() {
 	ticker := time.NewTicker(minimizePollInterval)
 	defer ticker.Stop()
 
@@ -231,10 +254,32 @@ func (tc *trayController) pollMinimize() {
 
 		isMin := wailsruntime.WindowIsMinimised(ctx)
 		if isMin && !wasMinimised && toTray {
-			wailsruntime.WindowHide(ctx)
+			tc.hide(ctx)
 		}
 		wasMinimised = isMin
+
+		tc.mu.Lock()
+		shown := tc.shown
+		tc.mu.Unlock()
+		tc.reportVisible(shown && !isMin)
 	}
+}
+
+// hide puts the window away and show brings it back, recording which for
+// reportVisible.
+func (tc *trayController) hide(ctx context.Context) {
+	tc.mu.Lock()
+	tc.shown = false
+	tc.mu.Unlock()
+	wailsruntime.WindowHide(ctx)
+}
+
+func (tc *trayController) show(ctx context.Context) {
+	tc.mu.Lock()
+	tc.shown = true
+	tc.mu.Unlock()
+	wailsruntime.WindowShow(ctx)
+	wailsruntime.WindowUnminimise(ctx)
 }
 
 // raiseIfNeeded brings the window forward for a new captcha at the configured
@@ -248,8 +293,7 @@ func (tc *trayController) raiseIfNeeded() {
 	if ctx == nil || level == RaiseOff {
 		return
 	}
-	wailsruntime.WindowShow(ctx)
-	wailsruntime.WindowUnminimise(ctx)
+	tc.show(ctx)
 	if level != RaiseFocus {
 		return
 	}
@@ -325,9 +369,9 @@ func (tc *trayController) forgetCaptcha(id string) {
 	delete(tc.seenCaptcha, id)
 }
 
-// deskHubConn is an in-process hub.Conn that feeds the tray the same broadcasts
-// a browser tab gets, so a captcha can raise the native window without changes
-// to the shared frontend.
+// deskHubConn is an in-process hub.Conn that feeds the tray the captcha
+// broadcasts a browser tab gets, so a captcha can raise the native window
+// without changes to the shared frontend.
 type deskHubConn struct {
 	tc *trayController
 }
@@ -429,8 +473,7 @@ func (tc *trayController) showWindow() {
 	if ctx == nil {
 		return
 	}
-	wailsruntime.WindowShow(ctx)
-	wailsruntime.WindowUnminimise(ctx)
+	tc.show(ctx)
 }
 
 func (tc *trayController) hideWindow() {
@@ -440,7 +483,7 @@ func (tc *trayController) hideWindow() {
 	if ctx == nil {
 		return
 	}
-	wailsruntime.WindowHide(ctx)
+	tc.hide(ctx)
 }
 
 func (tc *trayController) setRaiseLevel(level string, on *systray.MenuItem, offs ...*systray.MenuItem) {

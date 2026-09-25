@@ -9,6 +9,9 @@ package captcha
 
 import (
 	"context"
+	"encoding/json"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -22,9 +25,9 @@ const (
 	// KindClick is a picture answered by clicking points rather than typing.
 	// Payload is *ImagePayload as well; see ClickPayload.
 	KindClick Kind = "click"
-	// KindWidget is a hosted third-party JS challenge (reCAPTCHA v2, hCaptcha)
-	// that has to be embedded and solved in a browser context. Payload is
-	// *WidgetPayload.
+	// KindWidget is a hosted third-party JS challenge (reCAPTCHA, hCaptcha,
+	// Cloudflare Turnstile) that has to be embedded and solved in a browser
+	// context. Payload is *WidgetPayload.
 	KindWidget Kind = "widget"
 	// KindUnsupported is a real challenge a Source cannot describe as one of
 	// the above. Payload is *UnsupportedPayload, which names the origin so the
@@ -51,14 +54,15 @@ type ClickPayload = ImagePayload
 const (
 	VendorRecaptcha = "recaptcha"
 	VendorHCaptcha  = "hcaptcha"
+	VendorTurnstile = "turnstile"
 )
 
 // WidgetPayload is Challenge.Payload for KindWidget: the sitekey data a hosted
-// reCAPTCHA (v2, v3 or Enterprise) or hCaptcha widget needs to render and
-// solve itself in a browser. See jdsource.go's jdWidgetToken for which JD call
-// it is read from.
+// reCAPTCHA (v2, v3 or Enterprise), hCaptcha or Turnstile widget needs to
+// render and solve itself in a browser. See jdsource.go's jdWidgetToken for
+// which JD call it is read from.
 type WidgetPayload struct {
-	// Vendor is VendorRecaptcha or VendorHCaptcha. The two load different
+	// Vendor is one of the Vendor constants. The vendors load different
 	// scripts from different origins, and nothing else in the payload tells
 	// them apart for certain.
 	Vendor     string `json:"vendor"`
@@ -78,6 +82,28 @@ type WidgetPayload struct {
 	// but JD's wire format carries it, so dropping the field would regress the
 	// day a JD build starts sending one.
 	SecureToken string `json:"secureToken,omitempty"`
+}
+
+// recaptchaActionName is what reCAPTCHA accepts as an action: letters, digits,
+// slashes and underscores.
+var recaptchaActionName = regexp.MustCompile(`^[A-Za-z0-9/_]{1,100}$`)
+
+// RecaptchaAction reads the action out of a WidgetPayload's V3Action: the
+// object JD writes, {"action":"login"}, or a bare name. ok is false when there
+// is no action reCAPTCHA accepts, and a token asked for without the hoster's
+// action would be refused by the hoster.
+func RecaptchaAction(raw string) (action string, ok bool) {
+	action = raw
+	if strings.HasPrefix(raw, "{") {
+		var v struct {
+			Action string `json:"action"`
+		}
+		if json.Unmarshal([]byte(raw), &v) != nil {
+			return "", false
+		}
+		action = strings.TrimSpace(v.Action)
+	}
+	return action, recaptchaActionName.MatchString(action)
 }
 
 // UnsupportedPayload is Challenge.Payload for KindUnsupported.
@@ -117,6 +143,67 @@ type Challenge struct {
 	// creation, so a later List can move it further out. Zero means the Source
 	// could not say.
 	ExpiresAt time.Time `json:"expiresAt,omitempty"`
+	// Solver is what the paid solvers have done with this challenge so far,
+	// nil until one is set to work on it. The Source never fills it; Store
+	// keeps it across a Sync.
+	Solver *SolverReport `json:"solver,omitempty"`
+}
+
+// The states a SolverReport can be in.
+const (
+	// SolverWaiting holds the solvers back while somebody is watching.
+	SolverWaiting = "waiting"
+	// SolverSolving means the solver named in the report is working on it.
+	SolverSolving = "solving"
+	// SolverStopped means no solver will try it any more, and Refusals says
+	// why.
+	SolverStopped = "stopped"
+)
+
+// SolverReport is what the paid solvers have done with one challenge, for the
+// prompt to show beside it.
+type SolverReport struct {
+	// State is SolverWaiting, SolverSolving or SolverStopped.
+	State string `json:"state"`
+	// Solver names the service at work by its catalogue label, such as
+	// "2Captcha", since the report is for a person to read.
+	Solver string `json:"solver,omitempty"`
+	// Until is when the solvers stop waiting, set while State is
+	// SolverWaiting.
+	Until time.Time `json:"until,omitzero"`
+	// Refusals is every solver that did not deliver, in the order they were
+	// tried.
+	Refusals []SolverRefusal `json:"refusals,omitempty"`
+}
+
+// The codes a SolverRefusal carries for reasons that did not come from the
+// provider itself. Anything else is the provider's own error code.
+const (
+	// RefusalUnsupported is a provider that does not take this kind of
+	// captcha. Nothing was sent.
+	RefusalUnsupported = "unsupported"
+	// RefusalNoAnswer is a provider that may hold the task and sent no
+	// answer: the wait ran out, the connection dropped, or the solution came
+	// back empty. It may still charge for it.
+	RefusalNoAnswer = "noAnswer"
+	// RefusalFailed is a provider that could not be reached: the request
+	// never left this machine. Detail says what went wrong.
+	RefusalFailed = "failed"
+)
+
+// SolverRefusal is one solver that did not deliver an answer.
+type SolverRefusal struct {
+	// Solver is the service's catalogue label, as in SolverReport.
+	Solver string `json:"solver"`
+	// Code is one of the Refusal constants or the provider's own error code,
+	// such as ERROR_ZERO_BALANCE.
+	Code string `json:"code"`
+	// Detail is the provider's description of Code, or the error for
+	// RefusalFailed.
+	Detail string `json:"detail,omitempty"`
+	// Taken is set when the provider may hold the task and bill it, which is
+	// why no other solver was asked after it.
+	Taken bool `json:"taken,omitempty"`
 }
 
 // AbortScope is how far a skipped challenge reaches, named for what the user is

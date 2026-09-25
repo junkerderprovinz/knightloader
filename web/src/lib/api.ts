@@ -530,6 +530,11 @@ export interface Settings {
    * install.
    */
   captchaSolverOrder: string[] | null;
+  /** Holds the solvers back while a prompt is watched: they take over once
+   *  nobody watches or captchaSolverWait seconds pass without an answer. */
+  captchaSolverOnlyUnwatched: boolean;
+  /** Seconds, 10 to 600. */
+  captchaSolverWait: number;
 
   /** What happens after a cancellable countdown once the queue runs dry. The
    *  live countdown comes from fetchIdleAction. */
@@ -2336,12 +2341,12 @@ export interface CaptchaImagePayload {
   dataUrl: string;
 }
 
-/** The payload for 'widget': the sitekey data a reCAPTCHA v2 or hCaptcha
- *  widget needs to render itself. See captchaWidgetUrl. */
+/** The payload for 'widget': the sitekey data a reCAPTCHA, hCaptcha or
+ *  Turnstile widget needs to render itself. See captchaWidgetUrl. */
 export interface CaptchaWidgetPayload {
   /** Which script the widget page loads; the rest of the payload looks the
-   *  same for both. */
-  vendor: 'recaptcha' | 'hcaptcha';
+   *  same for every vendor. The page renders reCAPTCHA and hCaptcha only. */
+  vendor: 'recaptcha' | 'hcaptcha' | 'turnstile';
   siteKey: string;
   siteUrl: string;
   contextUrl: string;
@@ -2373,6 +2378,30 @@ export interface CaptchaChallenge {
   /** When this stops being answerable. The zero time "0001-01-01T00:00:00Z"
    *  means the source could not say, not that it has expired. */
   expiresAt: string;
+  /** What the paid solvers have done with it, absent until one is set to
+   *  work on it. */
+  solver?: CaptchaSolverReport;
+}
+
+/** captcha.SolverReport. */
+export interface CaptchaSolverReport {
+  state: 'waiting' | 'solving' | 'stopped';
+  /** The service at work, by its display name. */
+  solver?: string;
+  /** When a waiting solver takes over. */
+  until?: string;
+  refusals?: CaptchaSolverRefusal[];
+}
+
+/** One solver that did not deliver: 'unsupported', 'noAnswer', 'failed', or
+ *  the provider's own error code. */
+export interface CaptchaSolverRefusal {
+  solver: string;
+  code: string;
+  detail?: string;
+  /** The provider may hold the task and bill it, so no other solver was
+   *  asked after it. */
+  taken?: boolean;
 }
 
 /** How far a skipped challenge's effect reaches (captcha.AbortScope). */
@@ -2390,9 +2419,13 @@ export interface CaptchaResolution {
  * fetchCaptchas is every challenge this instance knows about, read from a
  * cache. The "captcha" and "captchaResolved" websocket events keep it current
  * afterwards.
+ *
+ * watch=0 because a plain read counts as somebody watching the captchas, for
+ * a client that polls. This page says so over its socket, and a read after a
+ * reconnect in a background tab must not count.
  */
 export async function fetchCaptchas(): Promise<CaptchaChallenge[]> {
-  return (await json<CaptchaChallenge[]>(await fetch('/api/captcha'))) ?? [];
+  return (await json<CaptchaChallenge[]>(await fetch('/api/captcha?watch=0'))) ?? [];
 }
 
 /** refreshCaptchas polls the source right now instead of waiting for the next
@@ -3613,18 +3646,30 @@ export async function leaveConnect(): Promise<void> {
  * on every reconnect because a fresh socket starts unfiltered; omitted, the
  * connection gets everything. Direct sends such as 'snapshot' arrive
  * regardless.
+ *
+ * `reportVisibility` tells the server whenever the page goes to the background
+ * or comes back, which decides whether somebody is watching the captcha prompt
+ * (hub.Watched). A connection that never reports is not counted as a viewer.
  */
-export function connectWS(onMessage: (type: string, data: any) => void, kinds?: string[]): () => void {
+export function connectWS(
+  onMessage: (type: string, data: any) => void,
+  kinds?: string[],
+  reportVisibility = false,
+): () => void {
   let ws: WebSocket | null = null;
   let closed = false;
+  const sendVisibility = () => {
+    if (ws?.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'visibility', visible: document.visibilityState === 'visible' }));
+  };
   const open = () => {
     // A reconnect timer can fire after the caller has closed the stream.
     if (closed) return;
     ws = new WebSocket(socketURL('/api/ws'));
-    if (kinds && kinds.length > 0) {
-      const subscribe = kinds;
-      ws.onopen = () => ws?.send(JSON.stringify({ type: 'subscribe', kinds: subscribe }));
-    }
+    ws.onopen = () => {
+      if (kinds && kinds.length > 0) ws?.send(JSON.stringify({ type: 'subscribe', kinds }));
+      if (reportVisibility) sendVisibility();
+    };
     ws.onmessage = (e) => {
       try {
         const m = JSON.parse(e.data);
@@ -3637,9 +3682,11 @@ export function connectWS(onMessage: (type: string, data: any) => void, kinds?: 
       if (!closed) setTimeout(open, 1500);
     };
   };
+  if (reportVisibility) document.addEventListener('visibilitychange', sendVisibility);
   open();
   return () => {
     closed = true;
+    if (reportVisibility) document.removeEventListener('visibilitychange', sendVisibility);
     ws?.close();
   };
 }

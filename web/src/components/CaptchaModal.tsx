@@ -10,11 +10,14 @@ import {
   type CaptchaChallenge,
   type CaptchaImagePayload,
   type CaptchaResolution,
+  type CaptchaSolverRefusal,
+  type CaptchaSolverReport,
   type CaptchaUnsupportedPayload,
   type CaptchaWidgetPayload,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
+import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
@@ -28,6 +31,11 @@ import { isOnTop } from '../lib/windowStack';
 // A 'click' answer uses JD's shapes: ClickedPoint {x:int,y:int} for one point
 // and MultiClickedPoint {x:int[],y:int[]} for several. Kind does not say which
 // JD expects, so the number of clicked points decides.
+//
+// The socket reports whether this tab is in the foreground: with "only when
+// nobody is watching" on, the paid solvers wait while it is. In the desktop app
+// the shell reports its window instead, since a webview's visibilityState is
+// not reliable.
 
 // Go's encoding/json writes a zero time.Time as year 1 rather than omitting it.
 const GO_ZERO_YEAR = 1;
@@ -75,6 +83,64 @@ interface ClickPoint {
   // Fractions of the rendered image, converted to natural pixels on submit.
   xFrac: number;
   yFrac: number;
+}
+
+/**
+ * SolverStatus says what the paid solvers are doing with the challenge on
+ * screen: waiting for the person watching, solving it, or done without an
+ * answer, with each solver's reason in the bubble.
+ */
+export function SolverStatus({ report, now }: { report: CaptchaSolverReport; now: number }) {
+  const { t } = useT();
+
+  function line(r: CaptchaSolverRefusal): string {
+    if (r.code === 'unsupported') return t('captcha.solverUnsupported', { solver: r.solver });
+    if (r.code === 'noAnswer') return t('captcha.solverNoAnswer', { solver: r.solver });
+    if (r.code === 'failed') return t('captcha.solverFailed', { solver: r.solver });
+    const reason = r.detail ? `${r.detail} (${r.code})` : r.code;
+    return t(r.taken ? 'captcha.solverGaveUp' : 'captcha.solverRefused', { solver: r.solver, reason });
+  }
+
+  // The solvers stop at one that may hold the task, so there is one at most.
+  const taken = report.refusals?.find((r) => r.taken);
+  let text: string;
+  let hint: string | undefined;
+  if (report.state === 'waiting') {
+    const until = expiryMs(report.until);
+    const left = until === null ? 0 : Math.max(0, Math.round((until - now) / 1000));
+    text = t('captcha.solverWaiting', { time: fmtCountdown(left) });
+    hint = t('captcha.solverWaitingHint');
+  } else if (report.state === 'solving') {
+    text = t('captcha.solverSolving', { solver: report.solver ?? '?' });
+    hint = t('captcha.solverSolvingHint');
+  } else if (taken) {
+    text = t('captcha.solverStoppedTaken', { solver: taken.solver });
+    hint = t('captcha.solverNotPassedOn', { solver: taken.solver });
+  } else {
+    text = t('captcha.solverStopped');
+  }
+  const lines = (report.refusals ?? []).map(line);
+
+  return (
+    <p className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
+      <span dir="auto">{text}</span>
+      {(hint || lines.length > 0) && (
+        <InfoBubble
+          label={text}
+          tip={
+            <span className="flex flex-col gap-1.5">
+              {hint && <span>{hint}</span>}
+              {lines.map((l, i) => (
+                <span key={i} dir="auto">
+                  {l}
+                </span>
+              ))}
+            </span>
+          }
+        />
+      )}
+    </p>
+  );
 }
 
 export function CaptchaModal() {
@@ -142,6 +208,7 @@ export function CaptchaModal() {
         }
       },
       ['captcha', 'captchaResolved'],
+      !isDesktop(),
     );
     return () => {
       live = false;
@@ -170,12 +237,14 @@ export function CaptchaModal() {
     if (el && isOnTop(el)) el.focus();
   }, [current?.id, current?.kind]);
 
-  // Ticks only while a real deadline is on screen.
+  // Ticks only while a real deadline is on screen: the captcha's own, or when
+  // a waiting solver takes over.
+  const solverWaiting = current?.solver?.state === 'waiting';
   useEffect(() => {
-    if (!current || expiryMs(current.expiresAt) === null) return;
+    if (!current || (expiryMs(current.expiresAt) === null && !solverWaiting)) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [current?.id, current?.expiresAt]);
+  }, [current?.id, current?.expiresAt, solverWaiting]);
 
   // The widget answers by postMessage, trusted only from this origin: the
   // page's frame-ancestors CSP does not protect what this side receives.
@@ -270,18 +339,25 @@ export function CaptchaModal() {
   const showContinue = current.kind === 'image' || current.kind === 'click';
   const continueDisabled = busy || (current.kind === 'image' ? answer.trim() === '' : points.length === 0);
   const title = moreWaiting > 0 ? t('captcha.titleMore', { n: moreWaiting }) : t('captcha.title');
-  const why = widgetStatus === 'unsolvable' && widgetError ? UNSOLVABLE_WHY[widgetError] : undefined;
+  const widget = current.kind === 'widget' ? (current.payload as CaptchaWidgetPayload | undefined) : undefined;
+  // The widget page renders reCAPTCHA and hCaptcha only, so a Turnstile is
+  // left to the solvers without loading it.
+  const turnstile = widget?.vendor === 'turnstile';
+  const unsolvable = turnstile || widgetStatus === 'unsolvable';
+  const why = turnstile
+    ? 'captcha.unsolvableTurnstile'
+    : widgetStatus === 'unsolvable' && widgetError
+      ? UNSOLVABLE_WHY[widgetError]
+      : undefined;
   // A score-based reCAPTCHA has nothing to click: the page asks for the token
   // itself.
-  const widgetHint = (current.payload as CaptchaWidgetPayload | undefined)?.v3Action
-    ? t('captcha.widgetScoreHint')
-    : t('captcha.widgetHint');
+  const widgetHint = widget?.v3Action ? t('captcha.widgetScoreHint') : t('captcha.widgetHint');
   const hint =
     current.kind === 'click'
       ? t('captcha.clickHint')
-      : current.kind === 'widget'
+      : current.kind === 'widget' && !turnstile
         ? widgetHint
-        : current.kind === 'unsupported'
+        : current.kind === 'unsupported' || turnstile
           ? t('captcha.unsupportedHint')
           : undefined;
 
@@ -326,6 +402,7 @@ export function CaptchaModal() {
             {current.prompt}
           </p>
         )}
+        {current.solver && <SolverStatus report={current.solver} now={now} />}
       </div>
 
       {current.kind === 'image' && (
@@ -393,7 +470,7 @@ export function CaptchaModal() {
         </div>
       )}
 
-      {current.kind === 'widget' && widgetStatus !== 'error' && widgetStatus !== 'unsolvable' && (
+      {current.kind === 'widget' && widgetStatus !== 'error' && !unsolvable && (
         <div className="flex flex-col gap-2">
           <div className="overflow-hidden rounded-[var(--radius-control)] bg-white">
             <iframe
@@ -408,7 +485,7 @@ export function CaptchaModal() {
         </div>
       )}
 
-      {current.kind === 'widget' && widgetStatus === 'error' && (
+      {current.kind === 'widget' && widgetStatus === 'error' && !turnstile && (
         <p className="flex items-center gap-1.5 text-sm text-statusFail">
           {t('captcha.widgetUnavailable')}
           <InfoBubble
@@ -421,7 +498,7 @@ export function CaptchaModal() {
         </p>
       )}
 
-      {current.kind === 'widget' && widgetStatus === 'unsolvable' && (
+      {current.kind === 'widget' && unsolvable && (
         <p className="flex items-center gap-1.5 text-sm text-carbon-text">
           {t('captcha.unsolvable')}
           {why && <InfoBubble tip={t(why)} />}

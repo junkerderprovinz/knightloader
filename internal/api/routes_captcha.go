@@ -14,8 +14,14 @@ import (
 )
 
 func registerCaptcha(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/captcha", "every captcha challenge currently pending on this instance",
+	reg.Add(http.MethodGet, "/api/captcha", "every captcha challenge currently pending on this instance; reading it counts as watching them for a few seconds unless watch=0 is passed",
 		func(w http.ResponseWriter, r *http.Request) {
+			// An app that polls this list, over the relay as well, holds no
+			// socket to report itself on, so its reads say it is watching.
+			// The web interface reports over its socket and reads with watch=0.
+			if r.URL.Query().Get("watch") != "0" {
+				a.Hub.Seen("captcha")
+			}
 			writeJSON(w, a.CaptchaChallenges())
 		})
 

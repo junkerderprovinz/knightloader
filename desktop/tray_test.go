@@ -6,6 +6,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/hub"
 )
 
 // newTestController builds a trayController without probing the OS for a tray
@@ -290,4 +293,50 @@ func contains(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// The page inside the window never reports whether it is visible, so the
+// window itself is what counts as watching captchas, and only while it is on
+// screen.
+func TestTheWindowWatchesCaptchasWhileItIsOnScreen(t *testing.T) {
+	h := hub.New()
+	tc := newTestController(t)
+	tc.joinHub(h)
+	t.Cleanup(func() { h.Remove(tc.hubConn) })
+
+	if h.Watched("captcha", 0) {
+		t.Fatal("the window watched captchas before it reported itself on screen")
+	}
+	tc.reportVisible(true)
+	if !h.Watched("captcha", 0) {
+		t.Error("the window on screen does not count as watching captchas")
+	}
+	tc.reportVisible(false)
+	if h.Watched("captcha", 0) {
+		t.Error("the window hidden or minimised still counts as watching captchas")
+	}
+}
+
+// Asking for captcha events by name must not cost the tray the captchas that
+// raise the window.
+func TestTheWindowStillHearsOfNewCaptchas(t *testing.T) {
+	h := hub.New()
+	tc := newTestController(t)
+	tc.joinHub(h)
+	t.Cleanup(func() { h.Remove(tc.hubConn) })
+
+	h.Broadcast("captcha", map[string]string{"id": "c1"})
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		tc.mu.Lock()
+		_, seen := tc.seenCaptcha["c1"]
+		tc.mu.Unlock()
+		if seen {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("a captcha broadcast never reached the tray")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
 }

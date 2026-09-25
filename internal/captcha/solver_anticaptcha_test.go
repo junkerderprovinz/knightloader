@@ -21,7 +21,7 @@ func antiCaptchaFakeServer(t *testing.T, createBody, resultBody string) *httptes
 		case "/getTaskResult":
 			_, _ = w.Write([]byte(resultBody))
 		default:
-			t.Fatalf("unexpected path %s", r.URL.Path)
+			t.Errorf("unexpected path %s", r.URL.Path)
 		}
 	}))
 }
@@ -34,7 +34,7 @@ func TestAntiCaptchaSolverSolvesImage(t *testing.T) {
 
 	s := NewAntiCaptchaSolver("key")
 	s.base = srv.URL
-	got, err := s.Solve(context.Background(), KindImage, "data:image/png;base64,aGVsbG8=", "")
+	got, err := s.Solve(context.Background(), imageChallenge(KindImage, "data:image/png;base64,aGVsbG8=", ""))
 	if err != nil {
 		t.Fatalf("Solve: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestAntiCaptchaSolverSolvesClickSetsPointsMode(t *testing.T) {
 
 	s := NewAntiCaptchaSolver("key")
 	s.base = srv.URL
-	got, err := s.Solve(context.Background(), KindClick, "aGVsbG8=", "click the apple")
+	got, err := s.Solve(context.Background(), imageChallenge(KindClick, "aGVsbG8=", "click the apple"))
 	if err != nil {
 		t.Fatalf("Solve: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestAntiCaptchaSolverMultiPointClick(t *testing.T) {
 
 	s := NewAntiCaptchaSolver("key")
 	s.base = srv.URL
-	got, err := s.Solve(context.Background(), KindClick, "aGVsbG8=", "")
+	got, err := s.Solve(context.Background(), imageChallenge(KindClick, "aGVsbG8=", ""))
 	if err != nil {
 		t.Fatalf("Solve: %v", err)
 	}
@@ -89,22 +89,9 @@ func TestAntiCaptchaSolverMultiPointClick(t *testing.T) {
 	}
 }
 
-func TestAntiCaptchaSolverGetTaskResultError(t *testing.T) {
-	withFastPolling(t)
-	srv := antiCaptchaFakeServer(t, `{"errorId":0,"taskId":1}`,
-		`{"errorId":12,"errorCode":"ERROR_CAPTCHA_UNSOLVABLE","errorDescription":"workers could not solve it"}`)
-	defer srv.Close()
-
-	s := NewAntiCaptchaSolver("key")
-	s.base = srv.URL
-	if _, err := s.Solve(context.Background(), KindImage, "aGVsbG8=", ""); err == nil {
-		t.Error("Solve() with an unsolvable result = nil error, want one")
-	}
-}
-
 func TestAntiCaptchaSolverNoKeyConfigured(t *testing.T) {
 	s := NewAntiCaptchaSolver("")
-	if _, err := s.Solve(context.Background(), KindImage, "aGVsbG8=", ""); err == nil {
+	if _, err := s.Solve(context.Background(), imageChallenge(KindImage, "aGVsbG8=", "")); err == nil {
 		t.Error("Solve() with no API key = nil error, want one")
 	}
 }

@@ -474,3 +474,87 @@ func TestSubscribeUnderConcurrency(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+// Only a connection that asked for the kind by name counts as a watcher, and
+// only while it says its page is on screen.
+func TestOnlyAVisibleSubscriberOfTheKindWatchesIt(t *testing.T) {
+	h := New()
+	prompt, other, everything := newFakeConn(), newFakeConn(), newFakeConn()
+	for _, c := range []*fakeConn{prompt, other, everything} {
+		h.Add(c)
+		t.Cleanup(func() { h.Remove(c) })
+		h.SetVisible(c, true)
+	}
+	h.Subscribe(prompt, []string{"captcha", "captchaResolved"})
+	h.Subscribe(other, []string{"task"})
+
+	if !h.Watched("captcha", 0) {
+		t.Fatal("Watched(captcha) = false with the prompt's connection on screen")
+	}
+	h.SetVisible(prompt, false)
+	if h.Watched("captcha", time.Hour) {
+		t.Error("Watched(captcha) = true after the tab went to the background")
+	}
+	h.SetVisible(prompt, true)
+	if !h.Watched("captcha", 0) {
+		t.Error("Watched(captcha) = false once the tab is back")
+	}
+}
+
+// A connection that subscribed but never said whether its page is on screen
+// cannot tell anybody is looking, such as a page inside the desktop app, whose
+// shell reports the window instead.
+func TestASubscriberThatNeverReportsIsNotAWatcher(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+	h.Subscribe(c, []string{"captcha"})
+
+	if h.Watched("captcha", time.Hour) {
+		t.Error("Watched(captcha) = true for a connection that never reported its visibility")
+	}
+}
+
+// A dropped socket may be a viewer reconnecting, so it still counts for the
+// grace period; a closed one after that does not.
+func TestADroppedWatcherCountsForTheGracePeriod(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	h.Subscribe(c, []string{"captcha"})
+	h.SetVisible(c, true)
+
+	h.Remove(c)
+	if !h.Watched("captcha", time.Hour) {
+		t.Error("Watched(captcha) = false right after the socket dropped, want true within the grace period")
+	}
+	if h.Watched("captcha", 0) {
+		t.Error("Watched(captcha) = true with no grace period and nobody connected")
+	}
+}
+
+// A client that polls holds no socket, so each poll counts for the grace
+// period.
+func TestAPollingClientCountsForTheGracePeriod(t *testing.T) {
+	h := New()
+	if h.Watched("captcha", time.Hour) {
+		t.Fatal("Watched(captcha) = true before anybody polled")
+	}
+	h.Seen("captcha")
+	if !h.Watched("captcha", time.Hour) {
+		t.Error("Watched(captcha) = false right after a poll")
+	}
+	if h.Watched("task", time.Hour) {
+		t.Error("a captcha poll counted as watching tasks")
+	}
+}
+
+// A visibility frame racing the socket's close must not resurrect a client.
+func TestSetVisibleOnAnUnregisteredConnectionIsANoOp(t *testing.T) {
+	h := New()
+	h.SetVisible(newFakeConn(), false)
+	if h.Len() != 0 {
+		t.Fatal("SetVisible on an unregistered connection created a client entry")
+	}
+}

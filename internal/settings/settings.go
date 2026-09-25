@@ -568,6 +568,15 @@ type Settings struct {
 	//
 	// No omitempty, see CrawlInclude. The frontend types it `string[] | null`.
 	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
+	// CaptchaSolverOnlyUnwatched holds the solvers above back while somebody
+	// is watching: the prompt comes first, and a solver takes the captcha once
+	// nobody watches any more or CaptchaSolverWait has passed without an
+	// answer. See app.holdForWatchers for who counts as watching. Off by
+	// default, where the solvers start at once, alongside the prompt.
+	CaptchaSolverOnlyUnwatched bool `json:"captchaSolverOnlyUnwatched"`
+	// CaptchaSolverWait is how long, in seconds, the solvers hold back for a
+	// watcher before they take over anyway. See settings_captcha.go.
+	CaptchaSolverWait int `json:"captchaSolverWait"`
 
 	// ResolverOrder is the hand-arranged order the download services are asked
 	// in, most-preferred first, by resolver id ("torbox", "alldebrid", "jd",
@@ -772,6 +781,7 @@ func Defaults() Settings {
 		// neither of these does anything until somebody types a number.
 		VolumeCapResetDay: DefaultVolumeCapResetDay,
 		VolumeCapAction:   VolumeCapReport,
+		CaptchaSolverWait: DefaultCaptchaSolverWait,
 	}
 }
 

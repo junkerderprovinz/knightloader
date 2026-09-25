@@ -221,3 +221,42 @@ func TestWSNeedsASession(t *testing.T) {
 		t.Errorf("handshake failed with status %d, want 401", status)
 	}
 }
+
+// A captcha prompt that subscribes counts as a watcher while its page reports
+// itself visible over the same socket.
+func TestWSVisibilityFrameDecidesWhetherAPromptIsWatched(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	c := dialWS(t, srv.URL)
+	readOneOfType(t, c, "snapshot")
+	readOneOfType(t, c, "activitySnapshot")
+
+	send := func(msg map[string]any) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		b, _ := json.Marshal(msg)
+		if err := c.Write(ctx, websocket.MessageText, b); err != nil {
+			t.Fatal(err)
+		}
+	}
+	waitWatched := func(want bool) {
+		t.Helper()
+		deadline := time.Now().Add(5 * time.Second)
+		for a.Hub.Watched("captcha", 0) != want {
+			if time.Now().After(deadline) {
+				t.Fatalf("Watched(captcha) = %v, want %v", !want, want)
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+
+	send(map[string]any{"type": "subscribe", "kinds": []string{"captcha", "captchaResolved"}})
+	send(map[string]any{"type": "visibility", "visible": true})
+	waitWatched(true)
+	send(map[string]any{"type": "visibility", "visible": false})
+	waitWatched(false)
+	send(map[string]any{"type": "visibility", "visible": true})
+	waitWatched(true)
+}
