@@ -127,15 +127,25 @@ func connectVia(t *testing.T, addr, target string) net.Conn {
 		t.Fatal(err)
 	}
 	_ = c.SetReadDeadline(time.Now().Add(5 * time.Second))
-	resp, err := http.ReadResponse(bufio.NewReader(c), nil)
+	br := bufio.NewReader(c)
+	resp, err := http.ReadResponse(br, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("CONNECT answered %s", resp.Status)
 	}
-	return c
+	return bufferedConn{Conn: c, r: br}
 }
+
+// bufferedConn reads through the reader that parsed the CONNECT answer, which
+// may already hold the first bytes of the tunnel.
+type bufferedConn struct {
+	net.Conn
+	r *bufio.Reader
+}
+
+func (c bufferedConn) Read(p []byte) (int, error) { return c.r.Read(p) }
 
 // A tunnel whose server has gone silent is closed on both sides, so the
 // download engine asks for the rest again instead of waiting for ever.
