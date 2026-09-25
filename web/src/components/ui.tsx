@@ -1346,6 +1346,12 @@ export function SectionTitle({
   );
 }
 
+const MODAL_SIZE = {
+  content: 'max-w-md',
+  screen: 'max-w-lg h-[calc(100vh-7rem)]',
+  capped: 'max-w-lg max-h-[calc(100vh-7rem)]',
+} as const;
+
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
 // Escape and a click on the backdrop both close it, so it never traps anyone.
 export function Modal({
@@ -1354,6 +1360,7 @@ export function Modal({
   children,
   footer,
   mute,
+  height = 'content',
 }: {
   title: string;
   onClose: () => void;
@@ -1374,6 +1381,13 @@ export function Modal({
    * a person who flips it and then cancels still meant it.
    */
   mute?: DialogId;
+  /**
+   * `screen` makes the window as tall as the screen allows less a margin,
+   * for a framed page that needs every pixel; `capped` lets it grow to that
+   * and then scroll its body. Both are a step wider than a question window,
+   * since what they hold was laid out by another site.
+   */
+  height?: 'content' | 'screen' | 'capped';
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1401,7 +1415,7 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className="glim-card glim-modal-card w-full max-w-md p-5 flex flex-col gap-5"
+        className={`glim-card glim-modal-card w-full p-5 flex flex-col gap-5 ${MODAL_SIZE[height]}`}
         role="dialog"
         aria-modal="true"
         // The heading IS the window's name, so it is pointed at rather than
@@ -1413,7 +1427,14 @@ export function Modal({
             SectionTitle itself rather than a copy of its markup, which is the
             drift this file exists to prevent. */}
         <SectionTitle id={titleId}>{title}</SectionTitle>
-        {children}
+        {height === 'content' ? (
+          children
+        ) : (
+          // The inset keeps focus rings clear of the scroll edge.
+          <div className={`-m-1 flex min-h-0 flex-1 flex-col gap-5 p-1 ${height === 'capped' ? 'overflow-y-auto' : ''}`}>
+            {children}
+          </div>
+        )}
         {/* Above the buttons, not among them: it decides whether this window
             appears again, which is a different kind of thing from the two
             answers it is asking for right now. */}

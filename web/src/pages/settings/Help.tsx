@@ -6,7 +6,11 @@ import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconGithub, IconMail } from '../../lib/icons';
 import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
+import { CoffeeDialog } from '../../components/CoffeeDialog';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
+import { PaypalDialog } from '../../components/PaypalDialog';
+import { PAYPAL_PAGE } from '../../lib/donate';
+import { followExternal, openExternal, popupsWork } from '../../lib/external';
 
 /**
  * The help page answers the questions people have ("how do I get past a hoster
@@ -174,13 +178,6 @@ export function Help() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
-/**
- * PayPal's hosted donation button, the address README.md's donate row links.
- * Typed as string so an empty value stays a case this file handles.
- */
-const PAYPAL: string = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
-/** The coffee handle from README.md's donate row. */
-const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /**
  * The shared class of the About card's controls. `glim-brand-btn` gives every
@@ -229,6 +226,7 @@ function VersionNumber({
       href={`${repo}/releases/tag/${encodeURIComponent(tag)}`}
       target="_blank"
       rel="noreferrer noopener"
+      onClick={followExternal}
       className="text-carbon-textMuted no-underline hover:text-carbon-text"
     >
       {version.replace(/^v/, '')}
@@ -244,7 +242,16 @@ function VersionNumber({
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
-  const [cryptoOpen, setCryptoOpen] = useState(false);
+  // One window at a time, and each mounts only while open, so nothing from
+  // BMAC or PayPal loads before somebody asks for it.
+  const [giving, setGiving] = useState<'coffee' | 'paypal' | 'crypto' | null>(null);
+  const stopGiving = () => setGiving(null);
+  // The window's wallet button logs in through a popup. Where the webview
+  // cannot open one, PayPal's own donation page does the whole job.
+  const givePaypal = async () => {
+    if (await popupsWork()) setGiving('paypal');
+    else openExternal(PAYPAL_PAGE);
+  };
   useEffect(() => {
     fetchHealth()
       .then((h) => {
@@ -258,42 +265,27 @@ export function About({ hue }: { hue: number }) {
       <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
       {/* Each sentence sits directly above the button it asks for. */}
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
-      {/* The ways to give share one row: the hosted pages first, the wallet
-          last. */}
+      {/* The ways to give share one row: the hosted payments first, the
+          wallet last. Each opens its own window in the app. */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href={COFFEE_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          className={`${ABOUT_BTN} glim-brand-coffee`}
-        >
+        <button type="button" className={`${ABOUT_BTN} glim-brand-coffee`} onClick={() => setGiving('coffee')}>
           <IconBuyMeACoffee size={15} />
           {t('settings.about.coffeeButton')}
-        </a>
-        {PAYPAL !== '' && (
-          <a
-            href={PAYPAL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className={`${ABOUT_BTN} glim-brand-paypal`}
-          >
-            <IconPayPal size={15} />
-            {t('settings.about.paypal')}
-          </a>
-        )}
-        {/* A button rather than an anchor, since it opens a window in the app.
-            Its mark is the bare letterform in one colour, which a brand class
+        </button>
+        <button type="button" className={`${ABOUT_BTN} glim-brand-paypal`} onClick={givePaypal}>
+          <IconPayPal size={15} />
+          {t('settings.about.paypal')}
+        </button>
+        {/* The mark is the bare letterform in one colour, which a brand class
             can paint (check-brand-marks.mjs). */}
-        <button
-          type="button"
-          className={`${ABOUT_BTN} glim-brand-bitcoin`}
-          onClick={() => setCryptoOpen(true)}
-        >
+        <button type="button" className={`${ABOUT_BTN} glim-brand-bitcoin`} onClick={() => setGiving('crypto')}>
           <IconBitcoin size={15} />
           {t('settings.about.crypto')}
         </button>
       </div>
-      {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
+      {giving === 'coffee' && <CoffeeDialog onClose={stopGiving} />}
+      {giving === 'paypal' && <PaypalDialog onClose={stopGiving} />}
+      {giving === 'crypto' && <CryptoDonateDialog onClose={stopGiving} />}
       {/* The extra space keeps the coffee button paired with its own sentence. */}
       <p className="mt-2 text-sm text-carbon-textSub">{t('settings.about.report')}</p>
       <div className="flex flex-wrap gap-2">
@@ -302,6 +294,7 @@ export function About({ hue }: { hue: number }) {
           href={REPO_URL}
           target="_blank"
           rel="noreferrer noopener"
+          onClick={followExternal}
           className={`${ABOUT_BTN} glim-brand-github`}
         >
           <IconGithub width={15} height={15} />
@@ -311,6 +304,7 @@ export function About({ hue }: { hue: number }) {
             the user's accent. */}
         <a
           href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
+          onClick={followExternal}
           className={`${ABOUT_BTN} glim-brand-house`}
         >
           <IconMail width={15} height={15} />

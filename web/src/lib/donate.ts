@@ -121,3 +121,30 @@ export const ADDRESS_BY_CHAIN: Record<string, string> = {
   sui: SUI,
   xrpl: XRP,
 };
+
+/**
+ * The Buy Me a Coffee window's frame. The widget page is the one BMAC page
+ * that may be framed; the profile page answers X-Frame-Options: SAMEORIGIN.
+ */
+export const COFFEE_WIDGET = 'https://buymeacoffee.com/widget/page/junkerderprovinz?description=&color=%23FFDD00';
+
+/**
+ * PayPal's hosted donation page, the address README.md's donate row links. It
+ * stands in for the PayPal window wherever popups do not work.
+ */
+export const PAYPAL_PAGE = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
+
+/** The PayPal window's account, read by lib/paypal.ts. */
+export const PAYPAL = {
+  /** The public client id of the live PayPal app. */
+  clientId: 'BAAbFqgNYfuCIBT_gwVE64oqj-E-jmxFiLaoR1yMIF9KK-CW16x5Pt2bSjBloqbTF4TvjFYw3ZTLnRP8_U',
+  /**
+   * One plan per interval, each priced at 1 EUR per unit, so any whole amount
+   * is the plan times a quantity.
+   */
+  plans: { month: 'P-2ND5083133959702RNK2375A', year: 'P-2FN843952N550243RNK2375A' },
+  currency: 'EUR',
+};
+
+/** The PayPal window's preset amounts, in whole euros. */
+export const PAYPAL_AMOUNTS = ['10', '25', '50'];
