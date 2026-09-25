@@ -1,5 +1,5 @@
-// The two version numbers on the Browser & App page come from where the
-// downloads beside them come from, never from a number typed into the page.
+// The two version numbers on the App page come from where the downloads
+// beside them come from, never from a number typed into the page.
 //
 // The browser tiles download the copy of extension/src the server embeds, so
 // the extension's number is read at runtime from that same embedded

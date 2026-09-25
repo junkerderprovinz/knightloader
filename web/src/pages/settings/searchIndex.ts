@@ -1044,12 +1044,32 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   browsertools: [
     {
+      title: 'settings.browsertools.phoneTitle',
+      hint: 'settings.browsertools.phoneHint',
+      rows: [],
+      also: [
+        'settings.browsertools.storeAndroid',
+        'settings.browsertools.download',
+        'settings.browsertools.qrCode',
+        'settings.browsertools.installPwaLabel',
+      ],
+    },
+    // Only one of the next two is drawn: the desktop app in a container, a
+    // server install in the desktop app.
+    { title: 'settings.browsertools.desktopTitle', hint: 'settings.browsertools.desktopHint', rows: [] },
+    {
+      title: 'settings.browsertools.serverTitle',
+      hint: 'settings.browsertools.serverHint',
+      rows: [],
+      also: ['settings.browsertools.sourceZip'],
+      body: ['settings.browsertools.dockerHint'],
+    },
+    {
       title: 'settings.browsertools.bookmarkletTitle',
       rows: [],
       body: ['settings.browsertools.bookmarkletStep1', 'settings.browsertools.bookmarkletStep2'],
     },
     { title: 'settings.browsertools.extensionTitle', rows: [], also: ['settings.browsertools.installLabel'] },
-    { title: 'settings.browsertools.appTitle', hint: 'settings.browsertools.appBody', rows: [] },
   ],
 
   shortcuts: [

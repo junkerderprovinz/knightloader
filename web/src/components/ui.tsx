@@ -1596,10 +1596,17 @@ export function Modal({
   footer,
   mute,
   hue,
+  tall = false,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
   hint?: string;
+  /**
+   * As tall as the screen allows less a margin, and wider, for a window whose
+   * content is a page of somebody else's, such as the coffee window's frame.
+   * The child that should take the height carries `flex-1 min-h-0`.
+   */
+  tall?: boolean;
   onClose: () => void;
   children: ReactNode;
   /**
@@ -1661,7 +1668,9 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full max-w-md p-5 flex flex-col gap-5`}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full ${
+          tall ? 'h-[calc(100dvh-7rem)] max-w-lg' : 'max-w-md'
+        } p-5 flex flex-col gap-5`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"

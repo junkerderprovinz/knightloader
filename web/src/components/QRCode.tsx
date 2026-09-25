@@ -10,11 +10,14 @@ export function QRCode({
   matrix,
   label,
   size = 176,
+  bare = false,
 }: {
   matrix: QRMatrix;
   /** The accessible name: what scanning the code leads to. */
   label: string;
   size?: number;
+  /** Without the white card around it, for a caller that is white already. */
+  bare?: boolean;
 }) {
   // The quiet zone the QR spec requires around the modules.
   const quiet = 4;
@@ -29,19 +32,23 @@ export function QRCode({
     }
   }
 
+  const code = (
+    <svg
+      viewBox={`0 0 ${total} ${total}`}
+      width={size}
+      height={size}
+      shapeRendering="crispEdges"
+      role="img"
+      aria-label={label}
+    >
+      <rect x={0} y={0} width={total} height={total} fill="#ffffff" />
+      <g fill="#000000">{modules}</g>
+    </svg>
+  );
+  if (bare) return code;
   return (
     <div className="inline-block rounded-[var(--radius-card)] bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.25)]">
-      <svg
-        viewBox={`0 0 ${total} ${total}`}
-        width={size}
-        height={size}
-        shapeRendering="crispEdges"
-        role="img"
-        aria-label={label}
-      >
-        <rect x={0} y={0} width={total} height={total} fill="#ffffff" />
-        <g fill="#000000">{modules}</g>
-      </svg>
+      {code}
     </div>
   );
 }

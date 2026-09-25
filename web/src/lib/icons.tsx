@@ -427,6 +427,18 @@ export const IconApp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A QR code: three finder squares and a corner of modules. */
+export const IconQr = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.5 2.5h6v6h-6Zm1.4 1.4v3.2h3.2V3.9ZM4.75 4.75h1.5v1.5h-1.5ZM11.5 2.5h6v6h-6Zm1.4 1.4v3.2h3.2V3.9Zm.85.85h1.5v1.5h-1.5ZM2.5 11.5h6v6h-6Zm1.4 1.4v3.2h3.2v-3.2Zm.85.85h1.5v1.5h-1.5Z"
+    />
+    <path d="M11.5 11.5h2v2h-2Zm4 0h2v2h-2Zm-2 2h2v2h-2Zm-2 2h2v2h-2Zm4 0h2v2h-2Z" />
+  </svg>
+);
+
 /** A warning triangle with the "!" carved out, for remote access's loud warning. */
 export const IconWarning = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>

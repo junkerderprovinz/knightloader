@@ -2,8 +2,8 @@
 
 Three ways to hand KnightLoader a link from somewhere that is not KnightLoader
 itself: a page you are already looking at, a right-click menu, or your
-device's own Share sheet. All three are configured from **Settings > Browser &
-App**. The bookmarklet and the share target land on `/quickadd`
+device's own Share sheet. All three are configured from **Settings > App**.
+The bookmarklet and the share target land on `/quickadd`
 (`web/src/pages/QuickAdd.tsx`); the extension no longer does, and the section
 on it below says what it does instead and why.
 
@@ -36,7 +36,7 @@ an address, and the extension no longer knows any.
 
 ## Bookmarklet
 
-Settings > Browser & App shows a link built from `window.location.origin`,
+Settings > App shows a link built from `window.location.origin`,
 whatever address you are looking at the settings page on. Drag it to your
 bookmarks bar. Clicking it on any page opens `/quickadd` with that page's URL
 and title, plus whatever text you had selected (useful for a page listing
@@ -143,11 +143,8 @@ optimisation).
 Installing is what turns the share target on: an uninstalled tab has no
 Share-menu entry to offer. `web/src/lib/pwaInstall.ts` exports
 `useInstallPrompt()`, a small shared hook around the browser's
-`beforeinstallprompt` event. Settings > Browser & App uses it for its own
-"Install" button. That tab is now the only caller: the app card moved there
-from the Zugang tab, so the two install buttons that used to sit on separate
-pages are one, and the event is captured once because there is only one place
-left that wants it.
+`beforeinstallprompt` event. Settings > App uses it for the "Install" button
+on its phone card, the one caller, so the event is captured in one place.
 
 ## What this deliberately does not do
 

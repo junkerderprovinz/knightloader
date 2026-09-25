@@ -3,8 +3,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // The mobile app's version, read out of mobile/app.json at build time. Kept in
-// one place so the Browser & App card cannot offer a download beside a number
-// somebody forgot to raise.
+// one place so the phone card on the App page cannot offer a download beside
+// a number somebody forgot to raise.
 const mobileVersion = (
   JSON.parse(readFileSync(new URL('../mobile/app.json', import.meta.url), 'utf8')) as {
     expo: { version: string };

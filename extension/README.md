@@ -40,7 +40,7 @@ wrong in one direction or the other. See the Versioning section of the root
 `CHANGELOG.md`.
 
 The copy most people run does not come from that tag. The zip served by
-Settings > Browser & App is built from the copy embedded in whatever server
+Settings > App is built from the copy embedded in whatever server
 binary is running (`embed.go`), so that one tracks the server. The tag exists
 for a browser store submission and for anyone who wants a fixed download.
 
@@ -51,7 +51,8 @@ reproducible from a checkout.
 
 ## Loading it
 
-**From a running instance:** Settings > Browser & App > Download extension.
+**From a running instance:** Settings > App, your browser's tile on the
+Browser extension card.
 
 **From this checkout (for development):**
 

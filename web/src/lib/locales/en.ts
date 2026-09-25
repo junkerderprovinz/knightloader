@@ -1564,6 +1564,7 @@ export const en = {
   'settings.about.title': 'About KnightLoader',
   'settings.about.body': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.about.coffeeButton': 'Buy me a coffee',
+  'settings.about.coffeeIntro': 'The payment goes through Buy Me a Coffee, by card or wallet. You do not need an account.',
   'settings.about.crypto': 'Crypto',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donate with crypto',
@@ -1715,21 +1716,26 @@ export const en = {
   'settings.access.phrase.hide': 'Hide the phrase',
   'settings.access.phrase.leave': 'Leave the group',
 
-  // Sending KnightLoader a link from outside the app - the bookmarklet, the
-  // MV3 browser extension and the PWA install step
-  // (pages/settings/BrowserTools.tsx). settings.nav.browsertools is this
-  // page's rail label.
-  'settings.nav.browsertools': 'Browser & App',
+  // Every other way to get KnightLoader: the phone app, the desktop app or a
+  // server install, the bookmarklet, the MV3 browser extension and the PWA
+  // install step (pages/settings/BrowserTools.tsx). settings.nav.browsertools
+  // is this page's rail label.
+  'settings.nav.browsertools': 'App',
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar. It is saved like any other bookmark, and nothing gets installed.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in. Review it and add it as a download from there.',
   'settings.browsertools.installLabel': 'How to install',
-  // The app card lives on this tab with its own keys rather than under
-  // settings.access.remote.*: a key named after the page a card used to be on
-  // is one nobody dares delete.
-  'settings.browsertools.appTitle': 'App',
-  'settings.browsertools.appBody': 'The KnightLoader app for your phone. Android can also install the APK directly; on iPhone and iPad the App Store is the only way, which is why there is no download beside it.',
+  'settings.browsertools.phoneTitle': 'Phone app',
+  'settings.browsertools.phoneHint': 'The KnightLoader app for Android phones. It shows and steers the downloads on your instances and sends them links. The APK is the version shown in the corner.',
   'settings.browsertools.storeAndroid': 'Google Play',
-  'settings.browsertools.storeIOS': 'App Store',
+  'settings.browsertools.soon': 'Soon',
+  'settings.browsertools.download': 'Download',
+  'settings.browsertools.qrCode': 'QR code',
+  'settings.browsertools.desktopTitle': 'Desktop app',
+  'settings.browsertools.desktopHint': 'KnightLoader as a program on your computer, with this interface in a window of its own. Every download is the newest release.',
+  'settings.browsertools.serverTitle': 'On a server',
+  'settings.browsertools.serverHint': 'On a server KnightLoader keeps downloading while this computer is off. Install it from Unraid’s Community Applications, run it as a Docker container, or build it from the source code.',
+  'settings.browsertools.dockerHint': 'A click copies the command that starts the container:',
+  'settings.browsertools.sourceZip': 'Source code.zip',
   'settings.browsertools.installPwaLabel': 'Or install this page as an app',
   'settings.browsertools.install': 'Install',
   'settings.browsertools.installIOS':
