@@ -633,7 +633,11 @@ submission and for a fixed download.
   stretch at the end of a line; now the options share each line and reach its
   end, and the lines hold as nearly the same number of options as they can.
   They are shared out again when the window changes size. A selector that fits
-  on one line keeps its width.
+  on one line keeps its width. Where an option's name would break onto a
+  second line while the options still fit side by side, the selector spans its
+  card and gives each option the width of its name, so „Ein Eintrag, dass
+  dieser Download sie geschrieben hat“ under "When a file already on the disk
+  counts as the download" reads on one line.
 - **A button's icon is the size of its label**: 14 pixels instead of 20, and 16
   instead of 22 in the taller buttons, so a row of buttons no longer looks like
   a row of icons. A button that shows only its icon keeps it at half the

@@ -17,6 +17,7 @@ import {
 } from 'react';
 import { useNavLabels, type NavLabelMode } from '../lib/navLabels';
 import { useReorder } from './dragLift';
+import { segmentLayout, type SegmentWidths } from './segmentLayout';
 import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
 
 export interface TabDef {
@@ -148,7 +149,8 @@ function emWidth(units: number): string {
 
 /**
  * A big well segment is at least this wide, so every page-level selector in
- * the app matches, and at most this many rem, past which its label wraps.
+ * the app matches, and at most this many rem. A longer label takes its own
+ * width where the row has room for it (segmentLayout) and wraps where not.
  */
 const WELL_FLOOR_PX = 200;
 const WELL_CEIL_REM = 22;
@@ -158,16 +160,21 @@ const WELL_GAP = '0.2rem';
 const STRIP_GAP = '0.25rem';
 
 /**
- * perRowFor is how many pinned segments share a row: all of them while they
- * fit, otherwise as even a share as the rows allow, so six that fit four to a
- * row go three and three and seven go four and three (GlimStone, "A selector
- * that wraps fills its box").
+ * segmentWidths measures each segment at max-content and at min-content. The
+ * segments are held to their flex share, so each is set to the size being read
+ * and given its own style back straight after. The width comes from the
+ * computed style, since a window's scale-in animation shrinks the box.
  */
-function perRowFor(count: number, room: number, width: number, gap: number): number {
-  const fit = Math.max(1, Math.floor((room + gap) / (width + gap)));
-  if (count <= fit) return count;
-  const rows = Math.ceil(count / fit);
-  return Math.ceil(count / rows);
+function segmentWidths(segs: HTMLElement[]): SegmentWidths[] {
+  const own = segs.map((s) => s.style.cssText);
+  const at = (width: string) => {
+    for (const s of segs) Object.assign(s.style, { flex: 'none', width, minWidth: '0', maxWidth: 'none' });
+    return segs.map((s) => parseFloat(getComputedStyle(s).width));
+  };
+  const oneLine = at('max-content');
+  const narrowest = at('min-content');
+  segs.forEach((s, i) => (s.style.cssText = own[i]));
+  return segs.map((_, i) => ({ oneLine: oneLine[i], narrowest: narrowest[i] }));
 }
 
 /** Tabs renders a tab strip or chip row; see the props above for its modes. */
@@ -231,7 +238,7 @@ export function Tabs(props: TabsProps) {
   // derived from the labels so it is known before first paint: the widest
   // label plus four units for the glyph, its gap and the padding. A big well
   // adds a 200px floor, so short labels are not cramped and every page-level
-  // selector matches, and a 22rem ceiling past which the label wraps. A small
+  // selector matches, and a 22rem ceiling past which it stops growing. A small
   // well takes the label width alone, since its labels are single words.
   // Undefined where each segment hugs its own label, and in glyph mode, where
   // the labels are not drawn and a glyph is as wide as the next.
@@ -246,35 +253,41 @@ export function Tabs(props: TabsProps) {
         : undefined;
   const gap = isWell ? WELL_GAP : STRIP_GAP;
 
-  // How many pinned segments share a row of the room the strip has. The room
-  // is the parent's: while the strip hugs its segments its own width says
+  // How the pinned segments share the room the strip has (segmentLayout). The
+  // room is the parent's: while the strip hugs its segments its own width says
   // nothing about the space around it. Worked out again whenever the parent
-  // resizes, since a narrower window holds fewer to a row.
+  // resizes, since a narrower window holds fewer to a row, and whenever a
+  // segment does, since a font that arrives late changes what a label needs.
   const [perRow, setPerRow] = useState(items.length);
+  const [byContent, setByContent] = useState(false);
   const [room, setRoom] = useState<number | null>(null);
+  const labels = items.map((i) => i.label).join('\n');
   useLayoutEffect(() => {
     const el = strip.current;
     const parent = el?.parentElement;
     if (pinned === undefined || !el || !parent) return;
+    const segs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-tab-id]'));
     function measure() {
-      const seg = el?.querySelector<HTMLElement>('[data-tab-id]');
-      if (!el || !parent || !seg) return;
+      if (!el || !parent || segs.length === 0) return;
       const outer = getComputedStyle(parent);
       const own = getComputedStyle(el);
       const inset = parseFloat(own.paddingLeft) + parseFloat(own.paddingRight);
       const room = parent.clientWidth - parseFloat(outer.paddingLeft) - parseFloat(outer.paddingRight) - inset;
       // The same sum `pinned` hands the stylesheet, in pixels.
-      const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(seg).fontSize);
+      const label = pinUnits * EM_PER_UNIT * parseFloat(getComputedStyle(segs[0]).fontSize);
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
       const width = bigWell ? Math.max(WELL_FLOOR_PX, Math.min(label, WELL_CEIL_REM * rem)) : label;
-      setPerRow(perRowFor(items.length, room, width, parseFloat(own.columnGap) || 0));
+      const layout = segmentLayout(room, width, segmentWidths(segs), parseFloat(own.columnGap) || 0);
+      setPerRow(layout.perRow);
+      setByContent(layout.byContent);
       setRoom(Math.floor(room));
     }
     measure();
     const watch = new ResizeObserver(measure);
     watch.observe(parent);
+    for (const seg of segs) watch.observe(seg);
     return () => watch.disconnect();
-  }, [pinned, bigWell, pinUnits, items.length]);
+  }, [pinned, bigWell, pinUnits, labels]);
 
   // A pinned segment keeps the pinned width as its floor and grows into its
   // share of the row, so a wrapped strip fills every row to its end. The basis
@@ -283,10 +296,12 @@ export function Tabs(props: TabsProps) {
   // grow into. The floor gives way to the measured room, so a window narrower
   // than one segment squeezes it instead of pushing it out of the card; it is
   // a length because a percentage would count as zero while the track sizes
-  // itself to its content. A segment that hugs its label grows too.
+  // itself to its content. A segment that hugs its label grows too, and so
+  // does a pinned one whose strip is laid out by content.
+  const contentRow = pinned !== undefined && byContent;
   const segmentFlex: CSSProperties = vertical
     ? {}
-    : pinned === undefined
+    : pinned === undefined || contentRow
       ? { flex: '1 0 auto' }
       : {
           minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
@@ -374,7 +389,10 @@ export function Tabs(props: TabsProps) {
       // A horizontal track is as wide as its content and never wider than its
       // room: on one row it hugs its segments, which also keeps a flex column
       // from stretching it, and once it wraps it is as wide as the room and
-      // its segments grow to fill every row (segmentFlex).
+      // its segments grow to fill every row (segmentFlex). A track laid out by
+      // content takes the whole room and does not wrap, since its fit allows
+      // for a pixel of rounding that would otherwise push the last segment
+      // onto a row of its own.
       className={
         vertical
           ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
@@ -385,7 +403,7 @@ export function Tabs(props: TabsProps) {
               p-[0.2rem] ${className}`
             : `flex w-fit max-w-full flex-wrap items-center ${reorderable ? 'relative' : ''} ${className}`
       }
-      style={vertical ? undefined : { gap }}
+      style={vertical ? undefined : contentRow ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
