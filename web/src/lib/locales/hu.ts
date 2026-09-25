@@ -181,6 +181,8 @@ export const hu: Dict = {
   'task.online': 'Elérhető',
   'task.offline': 'Nem elérhető',
   'task.retryPending': 'Automatikusan újrapróbálkozik',
+  'task.forced': '„Indítás most” beállítva',
+  'task.held': 'Visszatartva',
   'task.folder': 'Mappa',
   'task.password': 'Archívum jelszava',
   'task.priorityUp': 'Prioritás növelése',

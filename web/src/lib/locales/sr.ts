@@ -181,6 +181,8 @@ export const sr: Dict = {
   'task.online': 'Доступно',
   'task.offline': 'Недоступно',
   'task.retryPending': 'Аутоматски покушај поново',
+  'task.forced': 'Означено „Покрени одмах“',
+  'task.held': 'Задржано',
   'task.folder': 'Фасцикла',
   'task.password': 'Лозинка архиве',
   'task.priorityUp': 'Повећај приоритет',

@@ -181,6 +181,8 @@ export const ms: Dict = {
   'task.online': 'Dalam talian',
   'task.offline': 'Luar talian',
   'task.retryPending': 'Dicuba semula automatik',
+  'task.forced': 'Ditanda “Mula sekarang”',
+  'task.held': 'Ditahan',
   'task.folder': 'Folder',
   'task.password': 'Kata laluan arkib',
   'task.priorityUp': 'Naikkan keutamaan',

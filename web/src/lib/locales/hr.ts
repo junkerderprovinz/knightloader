@@ -181,6 +181,8 @@ export const hr: Dict = {
   'task.online': 'Dostupno',
   'task.offline': 'Nedostupno',
   'task.retryPending': 'Ponavlja se automatski',
+  'task.forced': 'Označeno „Pokreni sada”',
+  'task.held': 'Zadržano',
   'task.folder': 'Mapa',
   'task.password': 'Lozinka arhive',
   'task.priorityUp': 'Povisi prioritet',

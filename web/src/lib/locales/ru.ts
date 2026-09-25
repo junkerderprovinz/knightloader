@@ -173,6 +173,8 @@ export const ru: Dict = {
   'task.online': 'Доступен',
   'task.offline': 'Недоступен',
   'task.retryPending': 'Будет повторено автоматически',
+  'task.forced': 'Отмечено «Запустить сейчас»',
+  'task.held': 'Придержано',
   'task.folder': 'Папка',
   'task.password': 'Пароль архива',
   'task.priorityUp': 'Повысить приоритет',

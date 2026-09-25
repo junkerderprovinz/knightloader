@@ -8,9 +8,9 @@ per row, and the decision is recorded in the Verdict column as we go.
 
 | Status | Count | Meaning |
 |---|---|---|
-| have | 81 | present and working here |
-| partial | 215 | some of it exists, the table says which part is missing |
-| missing | 632 | not built |
+| have | 82 | present and working here |
+| partial | 217 | some of it exists, the table says which part is missing |
+| missing | 629 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
 L several days, XL a project. The Blocker column is empty unless something
@@ -26,8 +26,8 @@ survey nobody re-added.
 ## Contents
 
 1. [Extensions and add-ons](#1-extensions-and-add-ons) - 69 features: 6 have, 22 partial, 41 missing
-2. [Downloads tab](#2-downloads-tab) - 104 features: 20 have, 30 partial, 54 missing
-3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 21 partial, 44 missing
+2. [Downloads tab](#2-downloads-tab) - 104 features: 21 have, 31 partial, 52 missing
+3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 22 partial, 43 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) - 102 features: 3 have, 5 partial, 94 missing
 5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 24 partial, 99 missing
 6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 11 have, 37 partial, 58 missing
@@ -121,7 +121,7 @@ JD2 has exactly 11 extension modules: Extraction + Tray Icon ship inside the bas
 
 Everything below is verified against the JD2 source (a shallow clone of github.com/mirror/jdownloader): the authoritative files are src/org/jdownloader/gui/views/downloads/** (table, columns, actions, overviewpanel, bottombar, properties), contextmenumanager/MenuManagerDownloadTableContext.java (the full default context-menu tree), and GuiTranslation.java (English @Default labels) plus translations/.../GuiTranslation.de.lng (German labels). Structurally: the Downloads tab and the LinkGrabber tab share one generic package/children table framework (PackageControllerTable/PackageControllerTableModel), so tree, sorting, drag-drop, search and many columns are common code with only the Downloads-specific columns and actions layered on top; every menu is data-driven through the Menu Manager and is fully user-reorderable, so "the context menu" is a default structure, not a fixed one. The download engine state (running/paused/stopping, stop mark, forced links, mirror detection) lives in jd/controlling/downloadcontroller/DownloadWatchDog.java + DownloadSession.java, entirely separate from the view, which is why the same semantics are reachable from toolbar, context menu and My.JDownloader.
 
-104 features - 20 have, 30 partial, 54 missing.
+104 features - 21 have, 31 partial, 52 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -154,7 +154,7 @@ Everything below is verified against the JD2 source (a shallow clone of github.c
 | **Clean Up... / Säubern...** | Submenu of bulk removals: remove disabled, failed, finished or offline links, remove everything except the selection, or remove all and move the files to the recycle bin. | Downloads tab > right-click > 'Clean Up...'; same set on the bottom bar's delete dropdown | common | partial | S | none; missing: no remove-disabled, no remove-all-except-selection, no recycle-bin variant, and the removals loop one HTTP DELETE per task |  |
 | **Comment / Kommentar** | Free-text note the user attached to a link or package, editable in the cell. | Downloads tab > column 'Comment' | common | missing | S | none; core.Task has no comment field |  |
 | **Connection / Verbindung** | Shows how many parallel connections (chunks) this download is currently using, plus badges for forced/resumable, and a tooltip naming the proxy/gateway, the account and the source host. | Downloads tab > column 'Connection' | common | missing | M | none; connection count is fixed at 4 (app.go:945) and never reported back per task |  |
-| **Download Control / Stoppmarke** | Narrow icon column that marks which row currently carries the stop mark; auto-appears when a stop mark is set. | Downloads tab > column 'Download Control' (StopSignColumn, auto-show via downloadcontrolcolumnautoshowenabled) | common | missing | S |  |  |
+| **Download Control / Stoppmarke** | Narrow icon column that marks which row currently carries the stop mark; auto-appears when a stop mark is set. | Downloads tab > column 'Download Control' (StopSignColumn, auto-show via downloadcontrolcolumnautoshowenabled) | common | have | S | none: no column of its own; the row that carries the mark, and its package row, wear the stop glyph beside the name |  |
 | **Downloads nach Programmstart automatisch starten** | Whether the list resumes downloading on launch (always, only if JD was closed while downloading, or never) with an optional countdown dialog. | Settings > General > Autostart (AutoDownloadStartOption, default ONLY_IF_EXIT_WITH_RUNNING_DOWNLOADS) | common | missing | S | none; settings.go:24 AutoStart means 'start pasted links immediately', a different feature - on boot app.go:168 forces in-flight tasks to paused with no option to resume automatically |  |
 | **Drag & Drop** | Rows can be dragged to reorder them or to move files between packages, and external links/files dropped onto the table are added. | Downloads tab, table (DownloadsTableTransferHandler) | common | partial | M | none; missing: no drag on the Downloads list at all - no row reordering, no dragging files between packages, no drop target on that page |  |
 | **Expand/Collapse All** | Opens or closes every package in the list at once, optionally only the selected ones. | Downloads tab > right-click (optional item, off by default); also a toolbar action | common | missing | S | none; depends on per-package collapse state existing first |  |
@@ -181,7 +181,7 @@ Everything below is verified against the JD2 source (a shallow clone of github.c
 | **Save to / Speichern unter** | Target folder the file will be written to, clickable to change it. | Downloads tab > column 'Save to' | common | have | S |  |  |
 | **Set Download Directory / Downloadpfad setzen** | Changes the destination folder for the selection, with an option to append a per-package subfolder. | Downloads tab > right-click > 'Properties' > 'Set Download Directory' | common | have | S |  |  |
 | **Set Priority / Priorität setzen** | Assigns one of seven priorities (Highest, Higher, High, Default, Low, Lower, Lowest) that biases which link the engine picks next. | Downloads tab > right-click > 'Properties' (Einstellungen) > 'Set Priority' | common | partial | S | none; missing: 5 levels instead of 7, and the UI offers only two nudge buttons rather than a picker |  |
-| **Set/Remove Stopmark - Haltmarke setzen/entfernen** | Marks one row as the point where downloading should halt: on a file it stops after that file, on a package it stops after the whole package is done. | Downloads tab > right-click > 'Set/Remove Stopmark'; also shown by the Download Control column | common | missing | M |  |  |
+| **Set/Remove Stopmark - Haltmarke setzen/entfernen** | Marks one row as the point where downloading should halt: on a file it stops after that file, on a package it stops after the whole package is done. | Downloads tab > right-click > 'Set/Remove Stopmark'; also shown by the Download Control column | common | partial | M | none; missing: a package cannot carry the mark, only a single link |  |
 | **Skip Download / Überspringen - Unskip / Nicht überspringen** | Marks links to be jumped over for now, or clears that mark; skipping a running non-resumable download warns about the bytes you would lose. | Downloads tab > right-click > 'Skip Download' | common | missing | M | none; core.Status (task.go:9) has no skipped state |  |
 | **Skip-Gründe** | JD also auto-skips with a typed reason: no connection, too many retries, captcha, disk full, no account, invalid destination, file exists, ffmpeg/ffprobe/phantomjs missing, plugin defect, restart required. | Engine: SkipReason enum, surfaced in the Status column and the Skipped quick filter | common | missing | L | per-hoster plugin knowledge for the captcha/no-account/plugin-defect reasons; the disk/destination/file-exists ones are reachable locally |  |
 | **Sort Package(s) on '<Spalte>'** | Permanently reorders the files inside the selected packages by the column you clicked, rather than just changing the view. | Downloads tab > right-click > 'Sort Package(s) on ...' | common | missing | M | none; no sorting exists and Task.Position (task.go:77) is only written by MoveTasks top/bottom |  |
@@ -236,7 +236,7 @@ Everything below is verified against the JD2 source (a shallow clone of github.c
 
 Grounded in JD2 source: MenuManagerMainToolbar.java and MenuManagerMainmenu.java literally encode the shipped default layouts, StatusBarImpl.java the status bar, MenuManagerTrayIcon.java the tray menu, and GuiTranslation.java the English/German labels. Structurally, every bar in JD is the same thing: a ContextMenuManager whose default tree is a list of Action classes, so toolbar, main menu, tray menu, both bottom bars and both table context menus are all user-rebuildable through one Menu Customizer dialog and all serialize to .jdToolbar/.jdmenu/.jdtray files. Items marked hidden-by-default live in an invisible "More Actions..." (OptionalContainer) branch: they exist and are wired up, but only appear once a user drags them in.
 
-79 features - 14 have, 21 partial, 44 missing.
+79 features - 14 have, 22 partial, 43 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -290,7 +290,7 @@ Grounded in JD2 source: MenuManagerMainToolbar.java and MenuManagerMainmenu.java
 | **Reset** | Resets selected links so they are downloaded again from scratch. | Main toolbar item, hidden by default (ResetToolbarAction) | common | have | S |  |  |
 | **Restart** | Restarts JDownloader. | File menu (RestartAction); accelerator Ctrl+Shift+R | common | missing | S | privileged host access for the container build (restart is Docker's job); trivial in the Wails desktop build |  |
 | **Search** | Opens the table search/filter box for the active tab. | Main toolbar item, hidden by default (SearchToolbarAction) | common | partial | S | none: Downloads only; the Collector page (web/src/pages/Collector.tsx) has no search box |  |
-| **Set/Remove Stopmark (Stop after this download)** | Marks one link or package after which the download engine stops by itself. | Downloads table context menu (StopsignAction); has a stopmark column renderer, not on the default toolbar | common | missing | S | none: a marker field on core.Task plus a check in dispatchLocked (internal/app/app.go:895) |  |
+| **Set/Remove Stopmark (Stop after this download)** | Marks one link or package after which the download engine stops by itself. | Downloads table context menu (StopsignAction); has a stopmark column renderer, not on the default toolbar | common | partial | S | none; missing: only a single link can carry the mark, not a package |  |
 | **Silent Mode / Ruhemodus** | Suppresses popups and dialogs (captcha/confirm dialogs are queued or auto-handled) until switched off. | Main toolbar (SilentModeToggleAction); rules under SilentModeSettings incl. auto-trigger and captcha/dialog behaviour | common | missing | M | none, but there is nothing to silence yet: no captcha subsystem and no blocking dialogs, only toasts (web/src/lib/toast.tsx) |  |
 | **Skipped Downloads! (Skipped Downloads: N. Click here to retry them.)** | Indicator that appears when links were skipped; clicking it unskips them all. | Status bar, appears only when the watchdog skip counter is above zero | common | missing | M | none: no skipped status exists in the model (web/src/lib/api.ts:1 TaskStatus, internal/core/task.go) |  |
 | **Status label** | Right-aligned free-text label for the current global status message. | Status bar, right of the premium bar (StatusBarImpl.statusLabel) | common | partial | S | none: transient toasts only, no persistent global status line |  |

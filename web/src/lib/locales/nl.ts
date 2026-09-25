@@ -173,6 +173,8 @@ export const nl: Dict = {
   'task.online': 'Online',
   'task.offline': 'Offline',
   'task.retryPending': 'Wordt automatisch opnieuw geprobeerd',
+  'task.forced': 'Op “Nu starten” gezet',
+  'task.held': 'Vastgehouden',
   'task.folder': 'Map',
   'task.password': 'Archiefwachtwoord',
   'task.priorityUp': 'Prioriteit verhogen',

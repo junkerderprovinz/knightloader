@@ -181,6 +181,8 @@ export const sk: Dict = {
   'task.online': 'Online',
   'task.offline': 'Offline',
   'task.retryPending': 'Automaticky sa opakuje',
+  'task.forced': 'Nastavené „Spustiť hneď“',
+  'task.held': 'Zadržané',
   'task.folder': 'Priečinok',
   'task.password': 'Heslo k archívu',
   'task.priorityUp': 'Zvýšiť prioritu',

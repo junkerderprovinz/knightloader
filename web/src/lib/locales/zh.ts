@@ -181,6 +181,8 @@ export const zh: Dict = {
   'task.online': '可用',
   'task.offline': '不可用',
   'task.retryPending': '将自动重试',
+  'task.forced': '已设为“立即开始”',
+  'task.held': '已扣住',
   'task.folder': '文件夹',
   'task.password': '压缩包密码',
   'task.priorityUp': '提高优先级',

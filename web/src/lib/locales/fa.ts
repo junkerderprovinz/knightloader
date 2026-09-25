@@ -181,6 +181,8 @@ export const fa: Dict = {
   'task.online': 'آنلاین',
   'task.offline': 'آفلاین',
   'task.retryPending': 'تلاش خودکار دوباره',
+  'task.forced': 'روی «همین حالا شروع کن» تنظیم شده',
+  'task.held': 'نگه‌داشته',
   'task.folder': 'پوشه',
   'task.password': 'رمز آرشیو',
   'task.priorityUp': 'بالا بردن اولویت',

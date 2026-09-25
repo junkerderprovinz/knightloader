@@ -12,7 +12,7 @@ import {
   useCollapsedPackages,
   type Selection,
 } from '../components/TaskList';
-import { PackageActions } from '../components/PackageActions';
+import { usePackageMenu } from '../components/PackageActions';
 import { AddLinksForm } from '../components/AddLinksForm';
 import { FileDrop, type FileDropHandle } from '../components/FileDrop';
 import { FilteredLinks } from '../components/FilteredLinks';
@@ -20,12 +20,14 @@ import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
   ListMenu,
+  SelectionMore,
   cleanupItems,
   matchesQuickFilters,
   offeredQuickFilters,
   targetPackage,
   targetTaskId,
   useCleanup,
+  useQueueVerbs,
   useRemoval,
   useRename,
   type ListContext,
@@ -50,7 +52,6 @@ import {
   IconRetry,
   IconSearch,
   IconTrash,
-  IconTrashFiles,
   IconWarning,
 } from '../lib/icons';
 
@@ -97,6 +98,8 @@ export function Collector() {
   const menu = useContextMenu();
   // The clean-up badge's own dropdown, apart from the context menu.
   const cleanupMenu = useContextMenu();
+  // The priorities and the stop mark, for the right-click menu and the rows.
+  const queueVerbs = useQueueVerbs('/api');
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
   const folds = useCollapsedPackages('collector');
 
@@ -335,7 +338,12 @@ export function Collector() {
 
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
   const selectedIds = selectedTasks.map((x) => x.id);
-  const selectedOnDisk = selectedTasks.some((x) => x.loaded > 0);
+  const packageMenu = usePackageMenu({
+    tasks: collected,
+    selected,
+    base: '/api',
+    onDone: () => toast(t('task.applied'), 'ok'),
+  });
 
   return (
     // flex-1 rather than h-full, since app/Layout.tsx's wrapper is a flex column.
@@ -377,7 +385,11 @@ export function Collector() {
             and the page actions, wrapping when narrow. Downloads.tsx draws the
             same row, and the two must hold the same control in every slot. The
             search opens as a popover under its badge, so nothing else moves. */}
-        <div className="flex flex-wrap shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
+        <div
+          className="flex flex-wrap shrink-0 items-center justify-end gap-2"
+          role="group"
+          aria-label={t('list.actions')}
+        >
           {/* Left of the spacer, which nothing else here uses. */}
           <SavedViewChips
             profile="collector"
@@ -442,30 +454,9 @@ export function Collector() {
             </span>
           )}
 
-          {/* The selection count beside the filter chips, with the badge that
-              clears it. */}
-          {selected.size > 0 && (
-            <>
-              <SelectionReach
-                mode="select"
-                total={selected.size}
-                hidden={reach.hidden.length}
-                onReduce={reduceToShown}
-              />
-              <IconBadge
-                labelled
-                hue={1}
-                icon={<IconClose width={16} height={16} />}
-                title={t('select.none')}
-                aria-label={t('select.none')}
-                onClick={clearSelection}
-              />
-            </>
-          )}
-
           <div ref={searchRef} className="relative">
+            {/* A glyph whatever the label setting, as on Downloads.tsx. */}
             <IconBadge
-              labelled
               hue={0}
               // Lit while its popover is open, as on Downloads.tsx.
               active={searchOpen}
@@ -511,87 +502,91 @@ export function Collector() {
             </>
           )}
 
-          {selected.size > 0 ? (
-            <>
-              <PackageActions
-                tasks={collected}
-                selected={selected}
-                base="/api"
-                onDone={() => toast(t('task.applied'), 'ok')}
-              />
-              {/* Secondary: the page's one accent button is "Add to collector". */}
-              <IconBadge
-                labelled
-                hue={2}
-                icon={<IconPlay width={16} height={16} />}
-                title={t('collector.startSelected')}
-                aria-label={t('collector.startSelected')}
-                onClick={startSelected}
-              />
-              <IconBadge
-                labelled
-                hue={4}
-                icon={<IconTrash width={16} height={16} />}
-                title={t('task.remove')}
-                aria-label={t('task.remove')}
-                onClick={() => void removal.removeNow(selectedIds)}
-              />
-              {/* Only when there is something on disk to erase. */}
-              {selectedOnDisk && (
+          {/* The verbs in one piece after the count they act on, as on
+              Downloads.tsx. */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {selected.size > 0 ? (
+              <>
+                {/* The count and its ×, as on Downloads.tsx. */}
+                <span className="flex items-center gap-1.5">
+                  <SelectionReach
+                    mode="select"
+                    total={selected.size}
+                    hidden={reach.hidden.length}
+                    onReduce={reduceToShown}
+                  />
+                  <IconBadge
+                    hue={1}
+                    icon={<IconClose width={16} height={16} />}
+                    title={t('select.none')}
+                    aria-label={t('select.none')}
+                    onClick={clearSelection}
+                  />
+                </span>
+                {/* Secondary: the page's one accent button is "Add to collector". */}
                 <IconBadge
                   labelled
-                  hue={5}
-                  icon={<IconTrashFiles width={16} height={16} />}
-                  title={t('task.removeWithFiles')}
-                  aria-label={t('task.removeWithFiles')}
-                  onClick={() => removal.askWithFiles(selectedIds)}
+                  hue={2}
+                  icon={<IconPlay width={16} height={16} />}
+                  title={t('collector.startSelected')}
+                  aria-label={t('collector.startSelected')}
+                  onClick={startSelected}
                 />
-              )}
-            </>
-          ) : (
-            <>
-              <IconBadge
-                labelled
-                hue={1}
-                icon={<IconCheck width={16} height={16} />}
-                title={allChosen ? t('select.none') : t('select.all')}
-                aria-label={allChosen ? t('select.none') : t('select.all')}
-                disabled={filtered.length === 0}
-                onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-              />
-              <IconBadge
-                labelled
-                hue={2}
-                icon={<IconTrash width={16} height={16} />}
-                title={t('cleanup.menu')}
-                aria-label={t('cleanup.menu')}
-                onClick={(e) => void openCleanup(e.currentTarget)}
-              />
-              <IconBadge
-                labelled
-                hue={3}
-                icon={<IconRetry width={16} height={16} />}
-                title={t('collector.checkAll')}
-                aria-label={t('collector.checkAll')}
-                disabled={collected.length === 0}
-                onClick={() => {
-                  // An empty id list means every staged link on this route,
-                  // unlike the bulk routes, which refuse it.
-                  recheckTasks([]);
-                  toast(t('task.recheck'), 'info');
-                }}
-              />
-              <IconBadge
-                labelled
-                hue={4}
-                icon={<IconPlay width={16} height={16} />}
-                title={t('collector.startAll')}
-                aria-label={t('collector.startAll')}
-                disabled={collected.length === 0}
-                onClick={startAll}
-              />
-            </>
-          )}
+                <IconBadge
+                  labelled
+                  hue={4}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('task.remove')}
+                  aria-label={t('task.remove')}
+                  onClick={() => void removal.removeNow(selectedIds)}
+                />
+                <SelectionMore hue={5} chosen={selectedTasks} removal={removal} groups={[packageMenu.group]} />
+              </>
+            ) : (
+              <>
+                <IconBadge
+                  labelled
+                  hue={1}
+                  icon={<IconCheck width={16} height={16} />}
+                  title={allChosen ? t('select.none') : t('select.all')}
+                  aria-label={allChosen ? t('select.none') : t('select.all')}
+                  disabled={filtered.length === 0}
+                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+                />
+                <IconBadge
+                  labelled
+                  hue={2}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('cleanup.menu')}
+                  aria-label={t('cleanup.menu')}
+                  onClick={(e) => void openCleanup(e.currentTarget)}
+                />
+                <IconBadge
+                  labelled
+                  hue={3}
+                  icon={<IconRetry width={16} height={16} />}
+                  title={t('collector.checkAll')}
+                  aria-label={t('collector.checkAll')}
+                  disabled={collected.length === 0}
+                  onClick={() => {
+                    // An empty id list means every staged link on this route,
+                    // unlike the bulk routes, which refuse it.
+                    recheckTasks([]);
+                    toast(t('task.recheck'), 'info');
+                  }}
+                />
+                <IconBadge
+                  labelled
+                  hue={4}
+                  icon={<IconPlay width={16} height={16} />}
+                  title={t('collector.startAll')}
+                  aria-label={t('collector.startAll')}
+                  disabled={collected.length === 0}
+                  onClick={startAll}
+                />
+              </>
+            )}
+          </div>
         </div>
 
         {/* The one scrolling region: everything above keeps its height and the
@@ -620,6 +615,7 @@ export function Collector() {
               profile="collector"
               // As in Downloads.tsx: one removal question for the whole page.
               onRemovePackage={removal.askWithFiles}
+              stopMark={queueVerbs.stopMark}
               title={t('collector.listTitle')}
               hue={3}
             />
@@ -644,6 +640,7 @@ export function Collector() {
         selected={selected}
         base="/api"
         removal={removal}
+        queue={queueVerbs}
         target={target}
         list={listContext}
         rename={rename}
@@ -651,6 +648,7 @@ export function Collector() {
       />
       {removal.dialog}
       {rename.dialog}
+      {packageMenu.dialog}
       {cleanup.dialog}
     </div>
   );

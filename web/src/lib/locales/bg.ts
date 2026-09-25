@@ -181,6 +181,8 @@ export const bg: Dict = {
   'task.online': 'Онлайн',
   'task.offline': 'Офлайн',
   'task.retryPending': 'Повтаря се автоматично',
+  'task.forced': 'Зададено „Стартирай сега“',
+  'task.held': 'Задържано',
   'task.folder': 'Папка',
   'task.password': 'Парола за архива',
   'task.priorityUp': 'Повиши приоритета',

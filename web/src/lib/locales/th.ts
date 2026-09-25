@@ -181,6 +181,8 @@ export const th: Dict = {
   'task.online': 'ใช้ได้',
   'task.offline': 'ใช้ไม่ได้',
   'task.retryPending': 'จะลองใหม่โดยอัตโนมัติ',
+  'task.forced': 'ตั้งเป็น “เริ่มเดี๋ยวนี้”',
+  'task.held': 'ถูกหน่วงไว้',
   'task.folder': 'โฟลเดอร์',
   'task.password': 'รหัสผ่านไฟล์บีบอัด',
   'task.priorityUp': 'เพิ่มลำดับความสำคัญ',

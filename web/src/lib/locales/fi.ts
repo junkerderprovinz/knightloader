@@ -181,6 +181,8 @@ export const fi: Dict = {
   'task.online': 'Saatavilla',
   'task.offline': 'Ei saatavilla',
   'task.retryPending': 'Yritetään automaattisesti uudelleen',
+  'task.forced': 'Merkitty ”Aloita nyt”',
+  'task.held': 'Pidätetty',
   'task.folder': 'Kansio',
   'task.password': 'Arkiston salasana',
   'task.priorityUp': 'Nosta prioriteettia',

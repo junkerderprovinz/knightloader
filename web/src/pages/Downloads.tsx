@@ -12,10 +12,11 @@ import {
   useCollapsedPackages,
   type Selection,
 } from '../components/TaskList';
-import { PackageActions } from '../components/PackageActions';
+import { usePackageMenu } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
+  SelectionMore,
   matchesQuickFilters,
   offeredQuickFilters,
   targetPackage,
@@ -50,7 +51,6 @@ import {
   IconClose,
   IconPause,
   IconPlay,
-  IconPriority,
   IconRetry,
   IconTrash,
   IconTrashFiles,
@@ -79,10 +79,8 @@ export function Downloads() {
   const menu = useContextMenu();
   // The clean-up menu opens under a badge; `menu` above opens at the pointer.
   const cleanupMenu = useContextMenu();
-  // The queue-order badge's own anchor, apart from the right-click menu.
-  const orderMenu = useContextMenu();
-  // The priorities the server implements and where the stop mark sits, fetched
-  // on mount so the menu opens complete.
+  // The priorities the server implements and where the stop mark sits, for the
+  // right-click menu, the More menu and the rows.
   const queueVerbs = useQueueVerbs(base);
   // A link, a package header and empty space each offer their own menu.
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
@@ -312,12 +310,11 @@ export function Downloads() {
   };
 
   const selectedIds = chosen.map((x) => x.id);
-  const selectedOnDisk = chosen.some((x) => x.loaded > 0);
+  const packageMenu = usePackageMenu({ tasks: list, selected, base });
 
-  // The queue-order badge's menu, built by the right-click menu's own function
-  // (queueMenuGroup), so the badge shows only when the group has entries. The
-  // server sets a priority in every state, so finished and failed rows keep
-  // the seven rungs.
+  // The queue entries under More, built by the right-click menu's own function
+  // (queueMenuGroup). The server sets a priority in every state, so finished
+  // and failed rows keep the seven rungs.
   const queueGroup = queueMenuGroup({
     chosen,
     ids: selectedIds,
@@ -334,9 +331,13 @@ export function Downloads() {
       <PageHeader title={t('downloads.title')} />
 
       {/* One right-aligned row for every action, directly above the list, in
-          the collector's order. */}
+          the collector's order. A line that wraps stays on the right. */}
       {list.length > 0 && (
-        <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
+        <div
+          className="flex shrink-0 flex-wrap items-center justify-end gap-2"
+          role="group"
+          aria-label={t('list.actions')}
+        >
           {/* Left of the spacer, which nothing else here uses. */}
           <SavedViewChips
             profile="downloads"
@@ -374,34 +375,15 @@ export function Downloads() {
             </span>
           )}
 
-          {selected.size > 0 && (
-            <>
-              <SelectionReach
-                mode="select"
-                total={selected.size}
-                hidden={reach.hidden.length}
-                onReduce={reduceToShown}
-              />
-              <IconBadge
-                labelled
-                hue={1}
-                icon={<IconClose width={16} height={16} />}
-                title={t('select.none')}
-                aria-label={t('select.none')}
-                onClick={clearSelection}
-              />
-            </>
-          )}
-
           <div ref={searchRef} className="relative">
+            {/* A glyph whatever the label setting: the magnifier needs no
+                word, and the row needs the room for the selection's verbs. */}
             <IconBadge
-              labelled
               hue={0}
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
-              // The badge's own name rather than the field's placeholder, which
-              // Beschriftung would print; web/check-placeholder-as-label.mjs
-              // keeps it so.
+              // The badge's own name rather than the field's placeholder;
+              // web/check-placeholder-as-label.mjs keeps it so.
               title={t('search.toggle')}
               aria-label={t('search.toggle')}
               aria-expanded={searchOpen}
@@ -440,107 +422,109 @@ export function Downloads() {
             </>
           )}
 
-          {selected.size > 0 ? (
-            <>
-              <PackageActions tasks={list} selected={selected} base={base} />
-              {/* One badge for queue order, opening the same group as the
-                  right-click menu: moves by step and the seven priorities by
-                  name. It shows whenever the group has entries. */}
-              {queueGroup.items.length > 0 && (
-                <IconBadge
-                  labelled
-                  icon={<IconPriority width={16} height={16} />}
-                  // Not 0: with rainbow on and search open, two adjacent badges
-                  // of one hue would read as one control.
-                  hue={2}
-                  title={t('queue.order')}
-                  aria-label={t('queue.order')}
-                  aria-haspopup="menu"
-                  aria-expanded={!!orderMenu.anchor}
-                  onClick={(e) => orderMenu.openAt(anchorBelow(e.currentTarget))}
-                />
-              )}
-              <IconBadge
-                labelled
-                hue={3}
-                icon={<IconRetry width={16} height={16} />}
-                title={t('task.restart')}
-                aria-label={t('task.restart')}
-                onClick={() => restartTasks(ids(), base)}
-              />
-              <IconBadge
-                labelled
-                hue={4}
-                icon={<IconTrash width={16} height={16} />}
-                title={t('task.remove')}
-                aria-label={t('task.remove')}
-                onClick={() => void removal.removeNow(selectedIds)}
-              />
-              {selectedOnDisk && (
-                <IconBadge
-                  labelled
-                  hue={5}
-                  icon={<IconTrashFiles width={16} height={16} />}
-                  title={t('task.removeWithFiles')}
-                  aria-label={t('task.removeWithFiles')}
-                  onClick={() => removal.askWithFiles(selectedIds)}
-                />
-              )}
-            </>
-          ) : (
-            <>
-              {/* Each bulk verb appears only when it can do something. */}
-              {counts.running > 0 && (
-                <IconBadge
-                  labelled
-                  hue={2}
-                  icon={<IconPause width={16} height={16} />}
-                  title={t('downloads.pauseAll')}
-                  aria-label={t('downloads.pauseAll')}
-                  onClick={pauseAll}
-                />
-              )}
-              {list.some((x) => x.status === 'paused') && (
+          {/* The verbs in one piece, after the count of what they act on, so
+              a row too narrow for everything breaks between the filters and
+              the verbs. */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {selected.size > 0 ? (
+              <>
+                {/* The × stays a glyph whatever the label setting, since the
+                    count beside it already says what it clears. */}
+                <span className="flex items-center gap-1.5">
+                  <SelectionReach
+                    mode="select"
+                    total={selected.size}
+                    hidden={reach.hidden.length}
+                    onReduce={reduceToShown}
+                  />
+                  <IconBadge
+                    hue={1}
+                    icon={<IconClose width={16} height={16} />}
+                    title={t('select.none')}
+                    aria-label={t('select.none')}
+                    onClick={clearSelection}
+                  />
+                </span>
                 <IconBadge
                   labelled
                   hue={3}
-                  icon={<IconPlay width={16} height={16} />}
-                  title={t('downloads.resumeAll')}
-                  aria-label={t('downloads.resumeAll')}
-                  onClick={resumeAll}
+                  icon={<IconRetry width={16} height={16} />}
+                  title={t('task.restart')}
+                  aria-label={t('task.restart')}
+                  onClick={() => restartTasks(ids(), base)}
                 />
-              )}
-              {counts.error > 0 && (
                 <IconBadge
                   labelled
                   hue={4}
-                  icon={<IconRetry width={16} height={16} />}
-                  title={t('downloads.retryFailed')}
-                  aria-label={t('downloads.retryFailed')}
-                  onClick={retryFailed}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('task.remove')}
+                  aria-label={t('task.remove')}
+                  onClick={() => void removal.removeNow(selectedIds)}
                 />
-              )}
-              <IconBadge
-                labelled
-                hue={1}
-                icon={<IconCheck width={16} height={16} />}
-                title={allChosen ? t('select.none') : t('select.all')}
-                aria-label={allChosen ? t('select.none') : t('select.all')}
-                disabled={filtered.length === 0}
-                onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-              />
-              <IconBadge
-                labelled
-                hue={2}
-                icon={<IconTrashFiles width={16} height={16} />}
-                title={t('cleanup.menu')}
-                aria-label={t('cleanup.menu')}
-                disabled={instance !== ''}
-                hint={instance !== '' ? t('cleanup.localOnly') : undefined}
-                onClick={(e) => void openCleanup(e.currentTarget)}
-              />
-            </>
-          )}
+                {/* The rarer verbs: the package entries, the right-click menu's
+                    queue group and deleting the files. */}
+                <SelectionMore
+                  hue={5}
+                  chosen={chosen}
+                  removal={removal}
+                  groups={[packageMenu.group, { ...queueGroup, heading: t('queue.order') }]}
+                />
+              </>
+            ) : (
+              <>
+                {/* Each bulk verb appears only when it can do something. */}
+                {counts.running > 0 && (
+                  <IconBadge
+                    labelled
+                    hue={2}
+                    icon={<IconPause width={16} height={16} />}
+                    title={t('downloads.pauseAll')}
+                    aria-label={t('downloads.pauseAll')}
+                    onClick={pauseAll}
+                  />
+                )}
+                {list.some((x) => x.status === 'paused') && (
+                  <IconBadge
+                    labelled
+                    hue={3}
+                    icon={<IconPlay width={16} height={16} />}
+                    title={t('downloads.resumeAll')}
+                    aria-label={t('downloads.resumeAll')}
+                    onClick={resumeAll}
+                  />
+                )}
+                {counts.error > 0 && (
+                  <IconBadge
+                    labelled
+                    hue={4}
+                    icon={<IconRetry width={16} height={16} />}
+                    title={t('downloads.retryFailed')}
+                    aria-label={t('downloads.retryFailed')}
+                    onClick={retryFailed}
+                  />
+                )}
+                <IconBadge
+                  labelled
+                  hue={1}
+                  icon={<IconCheck width={16} height={16} />}
+                  title={allChosen ? t('select.none') : t('select.all')}
+                  aria-label={allChosen ? t('select.none') : t('select.all')}
+                  disabled={filtered.length === 0}
+                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+                />
+                <IconBadge
+                  labelled
+                  hue={2}
+                  icon={<IconTrashFiles width={16} height={16} />}
+                  title={t('cleanup.menu')}
+                  aria-label={t('cleanup.menu')}
+                  disabled={instance !== ''}
+                  hint={instance !== '' ? t('cleanup.localOnly') : undefined}
+                  onClick={(e) => void openCleanup(e.currentTarget)}
+                />
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -574,23 +558,13 @@ export function Downloads() {
               // The same removal path as the selection bar and the context menu.
               onRemovePackage={removal.askWithFiles}
               extractions={extractions}
+              stopMark={queueVerbs.stopMark}
               title={t('downloads.listTitle')}
               hue={0}
             />
           </div>
         )}
       </div>
-
-      {/* The queue-order menu under its badge, the same group as the
-          right-click menu's queue section. */}
-      {orderMenu.anchor && queueGroup.items.length > 0 && (
-        <ContextMenu
-          anchor={orderMenu.anchor}
-          label={t('queue.order')}
-          onClose={orderMenu.close}
-          groups={[queueGroup]}
-        />
-      )}
 
       {cleanupMenu.anchor && cleanup.classes && (
         <ContextMenu
@@ -609,6 +583,7 @@ export function Downloads() {
         selected={selected}
         base={base}
         removal={removal}
+        queue={queueVerbs}
         target={target}
         list={listContext}
         rename={rename}
@@ -616,6 +591,7 @@ export function Downloads() {
       />
       {removal.dialog}
       {rename.dialog}
+      {packageMenu.dialog}
       {/* The dialog of this page's useCleanup(), also raised by the "clear
           finished" command. */}
       {cleanup.dialog}

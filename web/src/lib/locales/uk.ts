@@ -181,6 +181,8 @@ export const uk: Dict = {
   'task.online': 'Доступний',
   'task.offline': 'Недоступний',
   'task.retryPending': 'Буде повторено автоматично',
+  'task.forced': 'Позначено «Запустити зараз»',
+  'task.held': 'Притримано',
   'task.folder': 'Тека',
   'task.password': 'Пароль архіву',
   'task.priorityUp': 'Підвищити пріоритет',

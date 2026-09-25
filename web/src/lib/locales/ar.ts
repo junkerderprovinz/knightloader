@@ -183,6 +183,8 @@ export const ar: Dict = {
   'task.online': 'متاح',
   'task.offline': 'غير متاح',
   'task.retryPending': 'ستُعاد المحاولة تلقائيًا',
+  'task.forced': 'مضبوط على «ابدأ الآن»',
+  'task.held': 'محجوز',
   'task.folder': 'المجلد',
   'task.password': 'كلمة مرور الأرشيف',
   'task.priorityUp': 'رفع الأولوية',

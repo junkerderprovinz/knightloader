@@ -202,6 +202,8 @@ export const en = {
   'task.online': 'Online',
   'task.offline': 'Offline',
   'task.retryPending': 'Retrying automatically',
+  'task.forced': 'Set to start now',
+  'task.held': 'Held',
   'task.folder': 'Folder',
   'task.password': 'Archive password',
   'task.priorityUp': 'Raise priority',

@@ -181,6 +181,8 @@ export const ko: Dict = {
   'task.online': '사용 가능',
   'task.offline': '사용 불가',
   'task.retryPending': '자동으로 다시 시도합니다',
+  'task.forced': '“지금 시작” 설정됨',
+  'task.held': '보류',
   'task.folder': '폴더',
   'task.password': '압축 파일 암호',
   'task.priorityUp': '우선순위 올리기',

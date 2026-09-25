@@ -485,6 +485,15 @@ export const IconMenu = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Three dots, for a badge that holds the verbs too rare for a badge of their own. */
+export const IconMore = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="4.5" cy="10" r="1.75" />
+    <circle cx="10" cy="10" r="1.75" />
+    <circle cx="15.5" cy="10" r="1.75" />
+  </svg>
+);
+
 /** System: the power glyph, for the page that quits, restarts, backs up and restores. */
 export const IconPower = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>

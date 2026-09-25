@@ -25,7 +25,7 @@ import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '.
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconCheck, IconRetry, PriorityGlyph } from '../lib/icons';
+import { IconBolt, IconCheck, IconPin, IconPower, IconRetry, IconStopMark, PriorityGlyph } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
 import { adviceFor } from '../lib/failureAdvice';
 import { FailureAdvice } from './FailureAdvice';
@@ -139,6 +139,13 @@ export interface CellContext {
    * extractionsByTask). Absent in the collector, where nothing is unpacked.
    */
   extractions?: ReadonlyMap<string, ExtractJob>;
+  /** The task the queue halts after (QueueState.stopMark), when one is marked. */
+  stopMark?: string;
+  /**
+   * Whether the Enabled column is drawn. A switched-off row wears a mark of its
+   * own only where that column's switch is not there to show it.
+   */
+  switchShown?: boolean;
 }
 
 export interface ColumnDef {
@@ -646,7 +653,43 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
   );
 }
 
-function NameCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
+/**
+ * RowMarks shows what the right-click menu leaves on a row: the stop mark,
+ * Start now, Hold and Switch off, each as the glyph of its menu entry with the
+ * state's name in the bubble. On a package row `items` is its links, and it
+ * wears a mark when every link carries it, as with PriorityTag. The stop mark
+ * is the exception: one link carries it, and a folded package would hide
+ * where the queue is going to stop.
+ */
+export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
+  const { t, stopMark, switchShown } = ctx;
+  // The two that change what the queue does next take --accent-ink, as a
+  // raised priority does; the two that park a row stay in the quiet ink.
+  const marks: { id: string; label: string; icon: ReactNode; ink: string }[] = [];
+  // The server clears the mark as its download finishes, which on a peer's
+  // list only the row itself reports.
+  if (stopMark && items.some((x) => x.id === stopMark && x.status !== 'done'))
+    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentInk' });
+  if (items.every((x) => !!x.forced))
+    marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentInk' });
+  if (items.every((x) => !!x.hold))
+    marks.push({ id: 'held', label: t('task.held'), icon: <IconPin />, ink: 'text-carbon-textSub' });
+  if (!switchShown && items.every((x) => !x.enabled))
+    marks.push({ id: 'off', label: t('task.waiting.disabled'), icon: <IconPower />, ink: 'text-carbon-textSub' });
+  return marks.map((m) => (
+    <Tip
+      key={m.id}
+      tip={m.label}
+      label={m.label}
+      className={`inline-flex shrink-0 leading-none [&_svg]:h-3.5 [&_svg]:w-3.5 ${m.ink}`}
+    >
+      {m.icon}
+    </Tip>
+  ));
+}
+
+function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
+  const { t, base } = ctx;
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
   //
@@ -673,6 +716,7 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
+        <RowMarks items={[task]} ctx={ctx} />
         <PriorityTag value={task.priority} names={priorityNames} t={t} />
         {/* text-sm is the scale's body row; a half-pixel value is not a step
             the four-row table has. */}
@@ -1328,7 +1372,7 @@ export const COLUMNS: ColumnDef[] = [
     align: 'start',
     hideable: false,
     compare: (a, b) => cmpText(label(a), label(b)),
-    render: (task, ctx) => <NameCell task={task} t={ctx.t} base={ctx.base} />,
+    render: (task, ctx) => <NameCell task={task} ctx={ctx} />,
     // No aggregate: in a package row this cell is the tree control, which is
     // list state the registry has no access to.
   },

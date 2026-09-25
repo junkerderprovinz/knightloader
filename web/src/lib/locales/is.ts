@@ -181,6 +181,8 @@ export const is: Dict = {
   'task.online': 'Tengt',
   'task.offline': 'Ótengt',
   'task.retryPending': 'Reynt aftur sjálfkrafa',
+  'task.forced': 'Merkt „Hefja núna“',
+  'task.held': 'Haldið eftir',
   'task.folder': 'Mappa',
   'task.password': 'Lykilorð safnskrár',
   'task.priorityUp': 'Hækka forgang',

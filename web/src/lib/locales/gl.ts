@@ -181,6 +181,8 @@ export const gl: Dict = {
   'task.online': 'En liña',
   'task.offline': 'Fóra de liña',
   'task.retryPending': 'Reintentarase automaticamente',
+  'task.forced': 'Marcado con «Iniciar agora»',
+  'task.held': 'Retido',
   'task.folder': 'Cartafol',
   'task.password': 'Contrasinal do arquivo',
   'task.priorityUp': 'Subir a prioridade',

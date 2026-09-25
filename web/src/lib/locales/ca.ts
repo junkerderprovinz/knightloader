@@ -181,6 +181,8 @@ export const ca: Dict = {
   'task.online': 'En línia',
   'task.offline': 'Fora de línia',
   'task.retryPending': 'Es reintenta automàticament',
+  'task.forced': 'Marcat amb «Inicia ara»',
+  'task.held': 'Retingut',
   'task.folder': 'Carpeta',
   'task.password': "Contrasenya de l'arxiu",
   'task.priorityUp': 'Puja la prioritat',

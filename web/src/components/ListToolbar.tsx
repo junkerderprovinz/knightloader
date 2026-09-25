@@ -13,7 +13,9 @@ import {
   type Task,
   type TaskOptionsPatch,
   type TaskStatus,
+  apiBase,
   cleanupPreview,
+  connectWS,
   deleteTasks,
   fetchOptions,
   priorityChoices,
@@ -42,7 +44,7 @@ import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
-import { Button, Field, Modal, NumberInput, TextInput } from './ui';
+import { Button, Field, IconBadge, Modal, NumberInput, TextInput } from './ui';
 import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
 import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
@@ -68,6 +70,7 @@ import {
   IconEdit,
   IconFolder,
   IconKey,
+  IconMore,
   IconPause,
   IconPin,
   IconPlay,
@@ -83,7 +86,9 @@ import {
 
 /**
  * useQueueVerbs fetches, on mount rather than when the menu opens, the
- * server's priority choices and which task carries the stop mark.
+ * server's priority choices and which task carries the stop mark. A page
+ * holds one and hands it to its right-click menu, so the row that wears the
+ * mark and the menu entry that sets it read the same state.
  */
 export function useQueueVerbs(base: string) {
   const [choices, setChoices] = useState<PriorityChoice[]>([]);
@@ -110,6 +115,15 @@ export function useQueueVerbs(base: string) {
     return () => {
       live = false;
     };
+  }, [base]);
+
+  // This instance's server announces every change to the mark, including the
+  // ones nobody pressed here: another window setting it, or the marked
+  // download finishing. A peer's stream is not ours to read; there a finished
+  // download is recognised by its row instead (RowMarks).
+  useEffect(() => {
+    if (base !== apiBase('')) return;
+    return connectWS((type, data) => type === 'queue' && setQueue(data as QueueState), ['queue']);
   }, [base]);
 
   // Only one task carries the mark, so the answer replaces the old state.
@@ -740,9 +754,9 @@ export function cleanupItems(
 }
 
 /**
- * MenuTarget is what a right-click landed on: a link row or the More button
- * (the selection), a package header (the same verbs over the package, plus the
- * fold), or empty space (entries for the list itself).
+ * MenuTarget is what a right-click landed on: a link row (the selection), a
+ * package header (the same verbs over the package, plus the fold), or empty
+ * space (entries for the list itself).
  */
 export type MenuTarget =
   | { kind: 'selection' }
@@ -1080,17 +1094,22 @@ function taskMenuGroups({
         icon: <IconTrash width={14} height={14} />,
         onSelect: () => void removal.removeNow(ids),
       },
-      {
-        id: 'removeFiles',
-        label: t('task.removeWithFiles'),
-        detail: 'Shift+Del',
-        icon: <IconTrashFiles />,
-        onSelect: () => removal.askWithFiles(ids),
-      },
+      removeWithFilesItem(ids, removal, t),
     ],
   };
 
   return [transport, queueGroup, state, options, gone];
+}
+
+/** The entry that erases files, the same in the right-click menu and under More. */
+function removeWithFilesItem(ids: string[], removal: Removal, t: (key: TranslationKey) => string): MenuItem {
+  return {
+    id: 'removeFiles',
+    label: t('task.removeWithFiles'),
+    detail: 'Shift+Del',
+    icon: <IconTrashFiles />,
+    onSelect: () => removal.askWithFiles(ids),
+  };
 }
 
 /** targetTaskId reads the `data-task-id` of the row a right-click landed on. */
@@ -1110,11 +1129,10 @@ export function targetPackage(e: { target: EventTarget | null }): string | null 
 }
 
 /**
- * ListMenu is the page's one menu: the same groups whether it was opened by
- * right-click on a link, on a package header, on empty space, or from the
- * selection strip's More button. It stays mounted while nothing is open so the
- * dialogs it raises outlive it; the menu closes before an entry runs, and a
- * dialog would otherwise open underneath it.
+ * ListMenu is the page's right-click menu: the same groups whether it was
+ * opened on a link, on a package header or on empty space. It stays mounted
+ * while nothing is open so the dialogs it raises outlive it; the menu closes
+ * before an entry runs, and a dialog would otherwise open underneath it.
  */
 export function ListMenu({
   anchor,
@@ -1123,6 +1141,7 @@ export function ListMenu({
   selected,
   base,
   removal,
+  queue,
   target = { kind: 'selection' },
   list,
   rename,
@@ -1134,7 +1153,9 @@ export function ListMenu({
   selected: Set<string>;
   base: string;
   removal: Removal;
-  /** What the pointer landed on. Defaults to the selection, which is what More means. */
+  /** The page's useQueueVerbs, whose stop mark the rows show. */
+  queue: QueueVerbs;
+  /** What the pointer landed on. Defaults to the selection. */
   target?: MenuTarget;
   list?: ListContext;
   /** The page's rename window, whose dialog the page renders. */
@@ -1146,10 +1167,9 @@ export function ListMenu({
   const { toast } = useToast();
   const fail = useCallback((e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail'), [t, toast]);
   const cleanup = useCleanup(all);
-  const queue = useQueueVerbs(base);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
-  // The rows being moved into a package right now. PackageMoveDialog is the
-  // selection row's own folder badge's window, shared rather than rebuilt.
+  // The rows being moved into a package right now. PackageMoveDialog is also
+  // the window of the selection row's More menu, shared rather than rebuilt.
   const [movePkg, setMovePkg] = useState<Task[] | null>(null);
 
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
@@ -1247,8 +1267,8 @@ export function ListMenu({
     // JDownloader's own right-click. A package header renames its package and
     // a link row the link, when it is the only one selected: one name for
     // several files would point them all at one destination. Moving is also
-    // the folder glyph in the selection row above the list, where nobody
-    // finds it.
+    // under More in the selection row above the list, which is not where
+    // people look for it.
     let renameThis: (() => void) | null = null;
     if (rename && target.kind === 'package' && target.name !== '') {
       const name = target.name;
@@ -1345,6 +1365,49 @@ export function ListMenu({
         />
       )}
       {cleanup.dialog}
+    </>
+  );
+}
+
+/**
+ * SelectionMore is the selection row's last badge and the menu under it, for
+ * the verbs too rare to earn a badge of their own: the caller's groups, then
+ * deleting the files, offered while something selected has bytes on disk.
+ * Deleting stays apart from Remove, which acts at once and can be undone.
+ */
+export function SelectionMore({
+  groups,
+  chosen,
+  removal,
+  hue,
+}: {
+  groups: MenuGroup[];
+  chosen: Task[];
+  removal: Removal;
+  hue?: number;
+}) {
+  const { t } = useT();
+  const menu = useContextMenu();
+  const onDisk = chosen.some((x) => x.loaded > 0);
+  const all: MenuGroup[] = [
+    ...groups,
+    { id: 'removeFiles', items: onDisk ? [removeWithFilesItem(chosen.map((x) => x.id), removal, t)] : [] },
+  ];
+  if (!all.some((g) => g.items.length > 0)) return null;
+
+  return (
+    <>
+      <IconBadge
+        labelled
+        hue={hue}
+        icon={<IconMore width={16} height={16} />}
+        title={t('menu.more')}
+        aria-label={t('menu.more')}
+        aria-haspopup="menu"
+        aria-expanded={!!menu.anchor}
+        onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
+      />
+      {menu.anchor && <ContextMenu anchor={menu.anchor} label={t('menu.label')} onClose={menu.close} groups={all} />}
     </>
   );
 }

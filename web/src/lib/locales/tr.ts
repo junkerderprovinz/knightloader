@@ -181,6 +181,8 @@ export const tr: Dict = {
   'task.online': 'Erişilebilir',
   'task.offline': 'Erişilemiyor',
   'task.retryPending': 'Otomatik olarak yeniden denenecek',
+  'task.forced': '“Şimdi başlat” ayarlı',
+  'task.held': 'Bekletiliyor',
   'task.folder': 'Klasör',
   'task.password': 'Arşiv parolası',
   'task.priorityUp': 'Önceliği yükselt',

@@ -96,6 +96,7 @@ import {
   usePriorityNames,
   variantKindOf,
   PriorityTag,
+  RowMarks,
   type CellContext,
   type ColumnDef,
   type ColumnId,
@@ -531,12 +532,14 @@ function TaskRow({
 function PackageName({
   name,
   items,
+  ctx,
   collapsed,
   onToggle,
   focusable,
 }: {
   name: string;
   items: Task[];
+  ctx: CellContext;
   collapsed: boolean;
   onToggle: () => void;
   /** Whether this row owns the list's tab stop; see TaskRow's `current`. The
@@ -591,6 +594,7 @@ function PackageName({
           only on expanded rows, so a collapsed package would hide the thing it
           is there to announce. Rows that disagree show nothing here and keep
           their own marks inside. */}
+      <RowMarks items={items} ctx={ctx} />
       <PriorityTag value={sharedPriority(items)} names={priorityNames} t={t} />
       {/* The name wins the room: everything after it shrinks and the name does
           not, below its own floor. With the counts pinned instead, a package
@@ -902,6 +906,7 @@ function PackageRow({
             <PackageName
               name={name}
               items={items}
+              ctx={ctx}
               collapsed={collapsed}
               onToggle={onToggleCollapsed}
               focusable={current}
@@ -1562,6 +1567,7 @@ export function TaskListCard({
   revealKey,
   onRemovePackage,
   extractions,
+  stopMark,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1592,6 +1598,8 @@ export function TaskListCard({
   onRemovePackage?: (ids: string[]) => void;
   /** See CellContext.extractions. */
   extractions?: ReadonlyMap<string, ExtractJob>;
+  /** See CellContext.stopMark. */
+  stopMark?: string;
 }) {
   const { t } = useT();
   // Only the row move reports through this so far (see dropBlock and
@@ -1625,9 +1633,10 @@ export function TaskListCard({
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const switchShown = layout.visible.some((c) => c.id === 'enabled');
   const ctx = useMemo<CellContext>(
-    () => ({ t, base, profile, onRemovePackage, extractions }),
-    [t, base, profile, onRemovePackage, extractions],
+    () => ({ t, base, profile, onRemovePackage, extractions, stopMark, switchShown }),
+    [t, base, profile, onRemovePackage, extractions, stopMark, switchShown],
   );
 
   // A sort on a column that is currently hidden is ignored rather than cleared,

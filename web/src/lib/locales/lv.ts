@@ -181,6 +181,8 @@ export const lv: Dict = {
   'task.online': 'Pieejams',
   'task.offline': 'Nav pieejams',
   'task.retryPending': 'Mēģinās automātiski vēlreiz',
+  'task.forced': 'Atzīmēts „Sākt tūlīt“',
+  'task.held': 'Aizturēts',
   'task.folder': 'Mape',
   'task.password': 'Arhīva parole',
   'task.priorityUp': 'Paaugstināt prioritāti',
