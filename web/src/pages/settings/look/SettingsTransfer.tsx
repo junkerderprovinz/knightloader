@@ -35,7 +35,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreStatus, setRestoreStatus] = useState('');
-  // Keyed onto the confirm button so a repeated refusal shakes again.
+  // The failure counter of the confirm button, so a repeated refusal shakes it again.
   const [restoreShake, setRestoreShake] = useState(0);
 
   const fileInput = useRef<HTMLInputElement>(null);
@@ -257,8 +257,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
                 disabled={restoring}
               />
               <Button
-                key={restoreShake}
-                className={restoreShake > 0 ? 'glim-shake' : ''}
+                shake={restoreShake}
                 kind="ghost"
                 onClick={() => void confirmRestore()}
                 disabled={restoring}

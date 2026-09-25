@@ -669,6 +669,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <Tabs
           label={t('settings.theme')}
           variant="well"
+          labelled
           active={theme}
           onSelect={(id) => setTheme(id as 'dark' | 'light')}
           items={[
@@ -751,7 +752,7 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
   const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
   const [acting, setActing] = useState(false);
 
-  // Keyed onto the confirm button so a repeated refusal shakes again.
+  // The failure counter of the confirm button, so a repeated refusal shakes it again.
   const [actShake, setActShake] = useState(0);
 
   async function confirmLifecycle() {
@@ -839,8 +840,7 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
                 disabled={acting}
               />
               <Button
-                key={actShake}
-                className={actShake > 0 ? 'glim-shake' : ''}
+                shake={actShake}
                 kind="ghost"
                 onClick={() => void confirmLifecycle()}
                 disabled={acting}
@@ -874,7 +874,7 @@ function UpdateCard({ hue }: { hue: number }) {
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
   const [installing, setInstalling] = useState(false);
-  // Keyed onto the button so a repeated refusal shakes again.
+  // The failure counter of the button, so a repeated refusal shakes it again.
   const [installShake, setInstallShake] = useState(0);
   // Once true, stays true: the process is on its way to relaunch.
   const [installed, setInstalled] = useState(false);
@@ -960,8 +960,7 @@ function UpdateCard({ hue }: { hue: number }) {
         </Button>
         {canInstallNow && (
           <Button
-            key={installShake}
-            className={installShake > 0 ? 'glim-shake' : ''}
+            shake={installShake}
             kind="primary"
             onClick={() => void onInstall()}
             disabled={installing}

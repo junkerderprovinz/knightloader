@@ -652,9 +652,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
   const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
-  // Counted and read as the Save button's `key`: an animation already at rest
-  // does not replay because a class left and came back in one frame, so a
-  // second identical refusal needs a fresh DOM node to shake against.
+  // The Save button's failure counter, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
   useEffect(() => {
@@ -709,7 +707,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
       footer={
         <>
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button key={shake} className={shake > 0 ? 'glim-shake' : ''} onClick={() => void save()} disabled={!preset || saving}>
+          <Button shake={shake} onClick={() => void save()} disabled={!preset || saving}>
             {t('settings.save')}
           </Button>
         </>
@@ -1466,8 +1464,7 @@ export function TaskProperties({
 
         <div className="flex items-center gap-3">
           <Button
-            key={shake}
-            className={shake > 0 ? 'glim-shake' : ''}
+            shake={shake}
             disabled={touched.size === 0 || busy}
             onClick={() => void apply()}
           >

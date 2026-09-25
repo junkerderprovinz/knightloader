@@ -112,10 +112,18 @@
     document.addEventListener('keydown', () => (pointerWasLast = false), true);
     // Capture, so scrolling an inner container also hides the fixed bubble.
     window.addEventListener('scroll', hide, true);
-    // Escape hides the tip but keeps focus on the trigger.
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && currentTrigger) hide();
-    });
+    // Escape hides the tip but keeps focus on the trigger. An (i) is caught on
+    // the way down and the key goes no further, so the first press closes its
+    // bubble and leaves the window around it open.
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key !== 'Escape' || !currentTrigger) return;
+        if (currentTrigger.classList.contains('glim-info-icon')) event.stopPropagation();
+        hide();
+      },
+      true,
+    );
     // The pages redraw rows and swatches by replacing them, and a trigger taken
     // out of the page fires neither mouseout nor focusout, so its bubble would
     // stay up for good.

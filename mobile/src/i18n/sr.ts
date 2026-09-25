@@ -75,7 +75,7 @@ export const sr: Dict = {
   'settings.corners.soft': 'Благи',
   'settings.corners.square': 'Оштри',
   'settings.accent': 'Нагласак',
-  'settings.rainbow': 'Дуга',
+  'settings.rainbow': 'Режим дуге',
   'settings.disco': 'Диско',
   'settings.discoGlideHint': 'Док је дугин режим укључен, сви обојени елементи заједно клизе кроз палету, једна боја на свака 2,4 секунде. Ако је „Покрет“ на „Искључено“ или је у подешавањима телефона укључено смањење покрета, боја уместо тога само прескаче на следећу.',
   'settings.problems': 'Проблеми?',

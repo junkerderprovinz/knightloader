@@ -37,6 +37,16 @@ func TestHelpListsEveryRegisteredRoute(t *testing.T) {
 	}
 }
 
+// The index calls the JDownloader backend by the name every page gives it.
+func TestHelpNamesTheJDownloaderBackendAsThePagesDo(t *testing.T) {
+	t.Parallel()
+	for _, r := range buildRegistry(t).Routes() {
+		if strings.Contains(strings.ToLower(r.Summary), "sidecar") {
+			t.Errorf("%s %s: %q calls the JDownloader backend a sidecar", r.Method, r.Path, r.Summary)
+		}
+	}
+}
+
 // TestHelpExplainsWhyThereIsNoMyJDShim: reading this route has to turn up the
 // decision rather than silence, since MyJDownloader's own clients speak to
 // AppWork's relay and cannot be pointed at a plain server, so a shim would not

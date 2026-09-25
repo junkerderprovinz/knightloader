@@ -115,6 +115,7 @@ export function IdleActionPicker({
       <Tabs
         variant="well"
         size={size}
+        labelled
         label={t('settings.downloads.idleAction')}
         active={value}
         onSelect={onValue}

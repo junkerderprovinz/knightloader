@@ -75,7 +75,7 @@ export const et: Dict = {
   'settings.corners.soft': 'Pehmed',
   'settings.corners.square': 'Teravad',
   'settings.accent': 'Rõhuvärv',
-  'settings.rainbow': 'Vikerkaar',
+  'settings.rainbow': 'Vikerkaarerežiim',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kuni vikerkaarerežiim on sees, liuglevad kõik värvilised elemendid koos läbi paleti, üks värv iga 2,4 sekundi järel. Kui Liikumine on seatud valikule „Väljas“ või su telefoni seadetes on vähendatud liikumine sisse lülitatud, hüppavad värvid selle asemel ühelt teisele.',
   'settings.problems': 'Probleemid?',

@@ -75,7 +75,7 @@ export const is: Dict = {
   'settings.corners.soft': 'Mjúk',
   'settings.corners.square': 'Bein',
   'settings.accent': 'Áherslulitur',
-  'settings.rainbow': 'Regnbogi',
+  'settings.rainbow': 'Regnbogahamur',
   'settings.disco': 'Diskó',
   'settings.discoGlideHint': 'Á meðan kveikt er á regnbogaham líða öll lituð atriði saman í gegnum litaspjaldið og skipta um lit á 2,4 sekúndna fresti. Sé Hreyfing stillt á „Slökkt“, eða kveikt á minni hreyfingu í stillingum símans, stökkva þau í staðinn frá einum lit yfir í þann næsta.',
   'settings.problems': 'Vandamál?',

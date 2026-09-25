@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -238,6 +239,9 @@ type App struct {
 	// exactly as this instance answers its own UI.
 	smu       sync.RWMutex
 	selfServe http.Handler
+	// savedHooks run after every saved settings document; see OnSettingsSaved.
+	hookMu     sync.Mutex
+	savedHooks []func(settings.Settings)
 	// discovery is the multicast announce/listen service, nil unless a main
 	// package enabled it (buildinfo.DiscoveryEnabled).
 	discovery io.Closer
@@ -947,8 +951,23 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	// ends when auto-confirm was switched off. After the presets, so a
 	// countdown the save makes due leaves out the rows it set aside.
 	a.wakeAutoConfirm()
+	a.hookMu.Lock()
+	hooks := slices.Clone(a.savedHooks)
+	a.hookMu.Unlock()
+	for _, fn := range hooks {
+		fn(applied)
+	}
 	// Other open tabs reload their settings pages and the modules list.
 	a.Hub.Broadcast("settings", nil)
+}
+
+// OnSettingsSaved adds fn to what runs after every saved settings document,
+// whichever route, import or switch saved it, for state the interface keeps
+// beside the settings.
+func (a *App) OnSettingsSaved(fn func(settings.Settings)) {
+	a.hookMu.Lock()
+	defer a.hookMu.Unlock()
+	a.savedHooks = append(a.savedHooks, fn)
 }
 
 // pushJDSpeedLimit hands the limit in force to the JD backend, which meters its

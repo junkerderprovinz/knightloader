@@ -441,7 +441,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  // Keyed onto the reading button so a repeated refusal shakes again.
+  // The failure counter of the reading button, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
   // The server reports a refused line by number only, since the line may hold
@@ -483,8 +483,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
             </Button>
           ) : (
             <Button
-              key={shake}
-              className={shake > 0 ? 'glim-shake' : ''}
+              shake={shake}
               disabled={busy || text.trim() === ''}
               onClick={read}
             >

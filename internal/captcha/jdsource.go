@@ -335,7 +335,7 @@ func (c *jdClient) skip(ctx context.Context, id int64, scope jdSkipRequest) erro
 // ErrJDNotConfigured is returned by every JDSource method when jdBase() is
 // empty. No headless JD configured is an ordinary state, not a failure worth
 // logging on every poll tick, so a caller can match on it and stay quiet.
-var ErrJDNotConfigured = errors.New("captcha: no JD sidecar is configured (KL_JD is unset)")
+var ErrJDNotConfigured = errors.New("captcha: no JDownloader backend is configured (KL_JD is unset)")
 
 // JDSource is the Source backed by a headless JD's Deprecated API.
 type JDSource struct {

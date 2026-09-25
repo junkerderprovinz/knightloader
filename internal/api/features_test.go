@@ -262,6 +262,35 @@ func TestAStaleParkedValueNeverReplacesTheSetting(t *testing.T) {
 	}
 }
 
+// A folder set through the API while the switch is off takes the parked one's
+// place, so once it is cleared again the switch has nothing to bring back.
+func TestAValueSavedWhileParkedReplacesTheParkedOne(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	s := a.Settings.Get()
+	s.WatchDir = t.TempDir()
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if err := setFeature(a, "watch", false); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, dir := range []string{t.TempDir(), ""} {
+		body, _ := json.Marshal(map[string]string{"watchDir": dir})
+		if code, _, msg := patchSettings(t, srv.URL, string(body)); code != http.StatusOK {
+			t.Fatalf("PATCH watchDir=%q answered %d: %s", dir, code, msg)
+		}
+	}
+	if featureRow(t, a, "watch").Parked {
+		t.Error("the folder was set and cleared again, and the row still offers the one parked before")
+	}
+	if err := setFeature(a, "watch", true); err == nil {
+		t.Errorf("switching on brought back %q, parked before a folder was set and cleared", a.Settings.Get().WatchDir)
+	}
+}
+
 // TestSwitchingOnWithNothingParkedSaysSo checks that the error names the page
 // the value has to be set on.
 func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {

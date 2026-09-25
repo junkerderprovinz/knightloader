@@ -14,6 +14,7 @@ import { IconClose, IconSearch } from '../lib/icons';
 import { Button, SectionTitle } from './ui';
 // Shared with the settings search, so both rank a word the same way.
 import { score } from '../lib/rank';
+import { openWindow } from '../lib/windowStack';
 
 /** The route's first segment mapped to its surface, as in Layout.tsx. */
 const SECTION_SURFACE: Record<string, CommandSurface> = {
@@ -42,6 +43,7 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef(new Map<string, HTMLButtonElement>());
+  const backdrop = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
   const section = location.pathname.split('/')[1] ?? '';
@@ -60,6 +62,14 @@ export function CommandPalette() {
       cancelAnimationFrame(raf);
       opener?.focus?.();
     };
+  }, [open]);
+
+  // On the window stack like every window, so a captcha that arrives while the
+  // palette is open leaves the focus in its search box.
+  useEffect(() => {
+    const el = backdrop.current;
+    if (!open || !el) return;
+    return openWindow(el, () => setCommandPaletteOpen(false));
   }, [open]);
 
   const filtered = useMemo(() => {
@@ -96,7 +106,10 @@ export function CommandPalette() {
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Escape') {
+      // Kept from the stack's listener, which would otherwise also close a
+      // window portalled in after the palette, under it.
       e.preventDefault();
+      e.stopPropagation();
       setCommandPaletteOpen(false);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -121,6 +134,7 @@ export function CommandPalette() {
 
   return (
     <div
+      ref={backdrop}
       className="glim-modal-backdrop fixed inset-0 z-[70] flex justify-center px-4 pt-[14vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) setCommandPaletteOpen(false);

@@ -941,14 +941,23 @@ function segment(host, options, current, onPick) {
 let liveAccentCustoms = {};
 
 /**
+ * The rainbow palette as the swatches show it, updated on every drag frame for
+ * the reason liveAccentCustoms is: a frame that read the palette back from
+ * storage could miss the frame before it and write that colour back over its
+ * edit. renderAppearance reseeds it.
+ */
+let livePalette = [];
+
+/**
  * editPaletteColour stores one position of the rainbow palette and paints it
  * while the picker is still open. A walking disco keeps a loop built from the
  * palette it started with, and its next frame would paint those colours back,
  * so it is applied again too.
  */
 async function editPaletteColour(i, hex) {
-  const palette = (await readAppearance()).rainbow.palette.slice();
+  const palette = livePalette.slice();
   palette[i] = hex;
+  livePalette = palette;
   await writeAppearance({ rainbowPalette: palette });
   const a = await readAppearance();
   applyRainbow(a.rainbow);
@@ -958,6 +967,7 @@ async function editPaletteColour(i, hex) {
 async function renderAppearance() {
   const a = await readAppearance();
   liveAccentCustoms = { ...a.accentCustoms };
+  livePalette = a.rainbow.palette.slice();
 
   // Light and dark only; readAppearance selects the machine's setting until
   // the user picks one.

@@ -57,10 +57,12 @@ function isSubmenu<T extends string>(e: DropdownEntry<T>): e is DropdownSubmenu<
 }
 
 /**
- * Dropdown picks one of `options`. The wheel steps through them while the
- * pointer rests on the trigger, clamped at both ends (rule 14): a real
- * listener with `{ passive: false }`, since React registers onWheel passive and
- * the page would scroll away under the pointer while the value changes.
+ * Dropdown picks one of `options`. The wheel steps through them, clamped at
+ * both ends (rule 14), but only while the trigger has focus, as a number field
+ * does: answering it on hover alone changes whatever the page scrolls past,
+ * such as a link's variant, which goes to the server at once. A real listener
+ * with `{ passive: false }`, since React registers onWheel passive and the page
+ * would scroll away under the pointer while the value changes.
  */
 export function Dropdown<T extends string>({
   value,
@@ -73,7 +75,6 @@ export function Dropdown<T extends string>({
   disabled,
   busy = false,
   tip,
-  wheel = true,
   shake = 0,
   className = '',
 }: {
@@ -101,12 +102,6 @@ export function Dropdown<T extends string>({
    */
   tip?: string;
   /**
-   * Whether the wheel steps through the options. A choice that acts on the
-   * server, such as suspending every schedule, must not be made by scrolling
-   * the page past it.
-   */
-  wheel?: boolean;
-  /**
    * The caller's failure counter. Each bump shakes the trigger once, since a
    * value shown before the server refused it only snaps back otherwise.
    */
@@ -133,12 +128,12 @@ export function Dropdown<T extends string>({
   });
   useEffect(() => {
     const el = trigger.current;
-    if (!el || !wheel) return;
+    if (!el) return;
     const onWheel = (e: WheelEvent) => {
       const s = live.current;
       // Only the sign of deltaY counts: a trackpad reports fractions, and a
       // sideways flick says nothing about this control.
-      if (s.inert || s.options.length < 2 || e.deltaY === 0) return;
+      if (document.activeElement !== el || s.inert || s.options.length < 2 || e.deltaY === 0) return;
       e.preventDefault();
       const at = s.options.findIndex((o) => o.value === s.value);
       // A value the list does not carry steps onto the first option.
@@ -147,7 +142,7 @@ export function Dropdown<T extends string>({
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [wheel]);
+  }, []);
 
   function open(el: HTMLElement) {
     menu.openAt(anchorBelow(el));

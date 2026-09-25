@@ -75,7 +75,7 @@ export const zh: Dict = {
   'settings.corners.soft': '微圆',
   'settings.corners.square': '方正',
   'settings.accent': '强调色',
-  'settings.rainbow': '彩虹',
+  'settings.rainbow': '彩虹模式',
   'settings.disco': '迪斯科',
   'settings.discoGlideHint': '彩虹模式开启时，所有带颜色的元素会一起在调色板中平滑过渡，每 2.4 秒换一种颜色。如果“动效”设为“关闭”，或者手机设置里开启了减弱动态效果，就改为从一种颜色直接跳到下一种。',
   'settings.problems': '遇到问题？',

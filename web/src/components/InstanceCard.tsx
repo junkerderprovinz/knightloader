@@ -3,7 +3,7 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Card, Button, IconBadge, LabelBadge, useTooltip } from './ui';
+import { Card, Button, IconBadge, LabelBadge, NamedHint, useTooltip } from './ui';
 import { IconTrash } from '../lib/icons';
 
 interface Stats {
@@ -52,12 +52,15 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
-  const state = online ? t('instances.online') : refused ? t('instances.refusedByPassword') : t('instances.offline');
+  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
 
-  // The dot shows state by colour alone, so it gets a tooltip. Only the hover
-  // props are spread: the row can be a <button>, which must not contain a
-  // tabindex, and aria-label already names the state.
-  const tip = useTooltip<HTMLSpanElement>(state);
+  // The dot shows state by colour alone, so it gets a tooltip, which for a
+  // refusal also says what to do about it. Only the hover props are spread:
+  // the row can be a <button>, which must not contain a tabindex, and
+  // aria-label already names the state.
+  const tip = useTooltip<HTMLSpanElement>(
+    refused ? <NamedHint name={state} hint={t('instances.refusedByPassword')} /> : state,
+  );
   const { ref: tipRef, onMouseEnter, onMouseLeave, 'aria-describedby': tipDescribedBy } = tip.triggerProps;
 
   const body = (
@@ -122,8 +125,9 @@ export function InstanceCard({
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
-  // "Refused" takes a rainbow hue, since it is neither ok nor failed.
-  const state = online ? t('instances.online') : refused ? t('instances.refusedByPassword') : t('instances.offline');
+  // "Refused" takes a rainbow hue, since it is neither ok nor failed, and its
+  // (i) says why and what makes the two instances trust each other.
+  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
 
   return (
     // padding="none" so the logo runs flush to the start edge at full height,
@@ -148,7 +152,12 @@ export function InstanceCard({
               <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
               {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
               <span className="ms-auto flex items-center gap-2">
-                <LabelBadge label={state} tone={online ? 'ok' : refused ? undefined : 'fail'} hue={refused ? 3 : undefined} />
+                <LabelBadge
+                  label={state}
+                  tip={refused ? t('instances.refusedByPassword') : undefined}
+                  tone={online ? 'ok' : refused ? undefined : 'fail'}
+                  hue={refused ? 3 : undefined}
+                />
                 {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
                 {onRemove && (
                   <IconBadge

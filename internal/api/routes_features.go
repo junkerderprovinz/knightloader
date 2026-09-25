@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"maps"
 	"net/http"
 	"reflect"
 	"slices"
@@ -175,6 +177,15 @@ func writeSwitchRefusal(w http.ResponseWriter, err error) {
 }
 
 func registerFeatures(reg *Registry, a *app.App) {
+	// A value saved while its module is parked, from the Advanced table, an
+	// import or the API, takes the parked copy's place, so clearing it again
+	// leaves nothing for the switch to bring back.
+	a.OnSettingsSaved(func(s settings.Settings) {
+		if err := dropFilledParks(a, s); err != nil {
+			log.Printf("features: a parked value could not be dropped: %v", err)
+		}
+	})
+
 	reg.Add(http.MethodGet, "/api/features", "every subsystem this build contains, with a verdict and its live on/off state",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, featureState(a))
@@ -600,7 +611,8 @@ func setFeature(a *app.App, id string, on bool) error {
 	if _, err := a.ApplySettings(next); err != nil || !on {
 		return err
 	}
-	// Back in the settings, the value no longer waits for the switch.
+	// The parked value is in the settings again, so nothing is left waiting
+	// for the switch.
 	return forgetParked(a, id)
 }
 
@@ -633,6 +645,8 @@ func parkValue(a *app.App, id string, v any) error {
 	if isEmptyJSON(b) {
 		return nil
 	}
+	parkMu.Lock()
+	defer parkMu.Unlock()
 	doc, err := parkDoc(a)
 	if err != nil {
 		return err
@@ -641,16 +655,33 @@ func parkValue(a *app.App, id string, v any) error {
 	return storeParkDoc(a, doc)
 }
 
+// parkMu makes each change to the parked values one read and one write, since
+// a settings save drops them from outside featureMu.
+var parkMu sync.Mutex
+
 // forgetParked drops what a module has parked.
 func forgetParked(a *app.App, id string) error {
+	return dropParked(a, func(parked string) bool { return parked == id })
+}
+
+// dropFilledParks drops what every module parked whose setting holds a value
+// again.
+func dropFilledParks(a *app.App, s settings.Settings) error {
+	return dropParked(a, func(id string) bool { return parkSlotFilled(s, id) })
+}
+
+func dropParked(a *app.App, drop func(id string) bool) error {
+	parkMu.Lock()
+	defer parkMu.Unlock()
 	doc, err := parkDoc(a)
 	if err != nil {
 		return err
 	}
-	if _, ok := doc[id]; !ok {
+	before := len(doc)
+	maps.DeleteFunc(doc, func(id string, _ json.RawMessage) bool { return drop(id) })
+	if len(doc) == before {
 		return nil
 	}
-	delete(doc, id)
 	return storeParkDoc(a, doc)
 }
 

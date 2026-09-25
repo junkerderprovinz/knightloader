@@ -11,6 +11,8 @@ import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
 import { IconExternalLink, IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
+import { useShake } from '../lib/useShake';
+import { openWindow } from '../lib/windowStack';
 
 /**
  * There is no 'danger' kind. What warns is the question: an irreversible action
@@ -69,6 +71,7 @@ export function Button({
   keyControl = false,
   title,
   hint,
+  shake = 0,
   ...rest
 }: {
   kind?: ButtonKind;
@@ -93,7 +96,10 @@ export function Button({
    * the explanation follows the name in the button's own bubble.
    */
   hint?: string;
+  /** The caller's failure counter; each bump shakes the button once (lib/useShake.ts). */
+  shake?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const shakeRef = useShake<HTMLButtonElement>(shake);
   const labelMode = useNavLabels();
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
@@ -119,6 +125,7 @@ export function Button({
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  const hover = title && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
@@ -130,7 +137,11 @@ export function Button({
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
       aria-label={iconOnly && title ? title : undefined}
-      {...(title && !boxed ? tipHoverProps : undefined)}
+      {...hover}
+      ref={(el) => {
+        shakeRef.current = el;
+        if (hover) tip.triggerProps.ref.current = el;
+      }}
       {...rest}
     >
       {!hideIcon && icon && <Glyph>{icon}</Glyph>}
@@ -218,7 +229,7 @@ function TipBox({ tip, children }: { tip: TooltipHandle<HTMLButtonElement>; chil
 }
 
 /** The bubble of a glyph-only button with a hint: its name, then the explanation. */
-function NamedHint({ name, hint }: { name?: string; hint: string }) {
+export function NamedHint({ name, hint }: { name?: string; hint: string }) {
   return (
     <>
       {name && <span className="block font-medium">{name}</span>}
@@ -331,6 +342,7 @@ export function IconBadge({
   style,
   title,
   hint,
+  shake = 0,
   ...rest
 }: {
   icon: ReactNode;
@@ -364,7 +376,10 @@ export function IconBadge({
    * name in the badge's bubble.
    */
   hint?: string;
+  /** The caller's failure counter; each bump shakes the badge once (lib/useShake.ts). */
+  shake?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const shakeRef = useShake<HTMLButtonElement>(shake);
   const hued = hue !== undefined;
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
@@ -390,6 +405,7 @@ export function IconBadge({
   // and the "note" role would take these badges' click semantics away from a
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
+  const hover = title && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       type="button"
@@ -408,7 +424,11 @@ export function IconBadge({
       // cannot act as the accessible name the way a native tooltip does.
       // Before the spread, so a call site's own aria-label still wins.
       aria-label={!showText && title ? title : undefined}
-      {...(title && !boxed ? tipHoverProps : undefined)}
+      {...hover}
+      ref={(el) => {
+        shakeRef.current = el;
+        if (hover) tip.triggerProps.ref.current = el;
+      }}
       {...rest}
     >
       {showIcon && <Glyph>{icon}</Glyph>}
@@ -645,17 +665,23 @@ export function InfoBubble({
 
   // A bubble opened by keyboard has to be closable by keyboard without moving
   // focus first, and a pointerdown closes it because a press means somebody is
-  // acting rather than reading.
+  // acting rather than reading. Escape is caught on the way down and goes no
+  // further, so the first press closes the bubble alone and not the window
+  // around it as well.
   useEffect(() => {
     if (!shown) return;
     const close = () => setShown(false);
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      close();
+    };
     const onScroll = () => close(); // a measured position goes stale the moment the page moves
-    window.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     window.addEventListener('scroll', onScroll, true);
     document.addEventListener('pointerdown', close, true);
     return () => {
-      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       window.removeEventListener('scroll', onScroll, true);
       document.removeEventListener('pointerdown', close, true);
     };
@@ -1583,29 +1609,6 @@ export function SectionTitle({
   );
 }
 
-// The windows that are open, by backdrop, each with its way out. A window
-// opened from a window, such as the folder chooser from a download's options,
-// leaves both open, and one press of Escape closes only the top one. One
-// listener decides for all of them: with one each, the window below would
-// already be on top when its own listener ran, and the same press would close
-// it too.
-const openModals = new Map<HTMLElement, () => void>();
-
-/**
- * closeTopModal closes the window painted over the others: the last backdrop
- * in the document, since every backdrop is the same fixed z-50 layer. Opening
- * order would not do, because the folder chooser is portalled to <body> and
- * paints over a captcha window that arrives later inside the app.
- */
-function closeTopModal(e: KeyboardEvent) {
-  if (e.key !== 'Escape') return;
-  let top: HTMLElement | undefined;
-  for (const el of openModals.keys()) {
-    if (!top || top.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) top = el;
-  }
-  if (top) openModals.get(top)?.();
-}
-
 const MODAL_SIZE = {
   content: 'max-w-md',
   screen: 'max-w-lg h-[calc(100dvh-7rem)]',
@@ -1670,12 +1673,7 @@ export function Modal({
   useEffect(() => {
     const me = backdrop.current;
     if (!me) return;
-    if (openModals.size === 0) document.addEventListener('keydown', closeTopModal);
-    openModals.set(me, () => closeRef.current());
-    return () => {
-      openModals.delete(me);
-      if (openModals.size === 0) document.removeEventListener('keydown', closeTopModal);
-    };
+    return openWindow(me, () => closeRef.current());
   }, []);
 
   return (

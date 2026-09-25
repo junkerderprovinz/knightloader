@@ -150,11 +150,37 @@ submission and for a fixed download.
   field disappeared and only the switch was left, and it put the old value
   back. Event targets that were all switched off could even be replaced by the
   old list. The switch now drops its copy once it has brought the value back,
-  and it never replaces anything set up since.
+  and it never replaces anything set up since. A value set while the module was
+  switched off, on the Advanced page, by a settings import or through the API,
+  takes the copy's place too, so clearing it again leaves nothing to bring back.
 
 - **Escape closes only the window on top.** In the folder chooser opened from a
   download's options, it closed the options too. A captcha that arrived while
-  the chooser was open was skipped by the Escape meant for the chooser.
+  the chooser was open was skipped by the Escape meant for the chooser. Escape
+  on an (i) closes its bubble first and the window only on the next press, in
+  the web interface and in the extension's windows.
+
+- **A captcha no longer takes the focus from the window you are typing in.**
+  Its answer box took the focus the moment it arrived, even under the folder
+  chooser or the command palette. It takes it only when the captcha window is
+  the top one.
+
+- **A refused button keeps the keyboard focus.** A button that shook after a
+  refusal, such as Save in a download's properties, the passkey and second
+  factor buttons or a link's on/off switch, was drawn anew to shake again, and
+  the focus fell back to the top of the page.
+
+- **An instance that refuses this one says "Refused"** next to its name, with
+  the reason and what to do about it in its (i), instead of the whole paragraph
+  in the badge.
+
+- **The folder chooser opens for a folder made only of placeholders**, such as
+  `<jd:packagename>/x`. On Windows it refused such a folder as not a full path.
+  It opens where an empty field would, as on Linux, and puts the placeholders
+  back after the folder you pick.
+
+- **Dragging a rainbow colour in the extension keeps every step.** Two steps of
+  the drag could overlap, and the later one wrote the earlier colour back.
 
 - **A name with a dollar sign shows as typed in messages.** A saved view,
   passkey, script, package or file called "AT$&T" or "$$$ deals" came out as
@@ -583,9 +609,10 @@ submission and for a fixed download.
   trigger, a category's media server address, a host preset's quality and audio
   format, the log source, the speed unit and the search box's field open the
   app's menu with a check mark on the current choice, like the quality picker
-  in the collector, instead of the browser's own list. The mouse wheel still
-  steps through the choices while the pointer rests on one, except on "Suspend
-  schedules", where each choice takes effect at once.
+  in the collector, instead of the browser's own list. The mouse wheel steps
+  through the choices once you have clicked or tabbed into the dropdown, so
+  scrolling the page past a link's variant or "Suspend schedules" changes
+  nothing. The extension's language picker works the same way.
 - **Text fields, dropdowns, the time fields and the search boxes are one
   height**, the height of the buttons beside them, and share one look.
 - **A selector that needs more than one line fills them evenly.** "When two
@@ -624,7 +651,15 @@ submission and for a fixed download.
 - **The JDownloader backend has one name**, the one its switch on the Modules
   page has. The Accounts card, the Health page, the self-test and the hoster
   password hint called it "JDownloader sidecar", and in German also
-  "Beiwagen".
+  "Beiwagen". The route list of `GET /api/help` and the errors about a missing
+  backend use the name too, and a captcha answer or skip refused for that
+  reason carries the code `noJD`.
+- **Rainbow mode has one name**, the one on its switch in the web interface.
+  The phone app's switch said "Rainbow", and German texts wrote
+  „Regenbogenmodus“ beside the switch's „Regenbogen-Modus“.
+- **The end-of-queue action, the theme and the reconnect method follow
+  "Navigation labels"** like the badges do: set to "Icon only" or "On hover",
+  each choice shows its icon alone, with its name in the bubble.
 - **Hints name the settings pages the way their tabs do**: "Remote access"
   where they said "Settings → Access" or "the Access page", and "Rules &
   categories" where they said "the Rules page".

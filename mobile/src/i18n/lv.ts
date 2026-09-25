@@ -75,7 +75,7 @@ export const lv: Dict = {
   'settings.corners.soft': 'Maigi',
   'settings.corners.square': 'Asi',
   'settings.accent': 'Akcents',
-  'settings.rainbow': 'Varavīksne',
+  'settings.rainbow': 'Varavīksnes režīms',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kamēr varavīksnes režīms ir ieslēgts, visi krāsainie elementi kopā slīd cauri paletei, viena krāsa ik pēc 2,4 sekundēm. Ja Kustība ir iestatīta uz „Izslēgts“ vai tālruņa iestatījumos ir ieslēgta samazināta kustība, krāsas tā vietā pārlec no vienas uz nākamo.',
   'settings.problems': 'Problēmas?',

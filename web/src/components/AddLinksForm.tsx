@@ -85,7 +85,7 @@ export function AddLinksForm({
   const [links, setLinks] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
-  // The add badge's key, bumped on failure so .glim-shake replays on a repeat.
+  // The add badge's failure counter, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
   const [optionsOpen, setOptionsOpen] = useUIState(OPTIONS_OPEN_KEY, false);
@@ -218,13 +218,13 @@ export function AddLinksForm({
               onClick={onChooseFile}
             />
             <IconBadge
-              key={shake}
               labelled
               icon={<IconPlus width={16} height={16} />}
               hue={2}
               title={t('collector.add')}
               aria-label={t('collector.add')}
-              className={`bg-accent text-accentContrast hover:brightness-110${shake ? ' glim-shake' : ''}`}
+              className="bg-accent text-accentContrast hover:brightness-110"
+              shake={shake}
               onClick={() => void onAdd()}
               disabled={!links.trim() || busy}
             />

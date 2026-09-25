@@ -25,6 +25,7 @@ import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
 import { RetryNote, retryPending } from './RetryCountdown';
+import { useShake } from '../lib/useShake';
 import { useTooltip } from './ui';
 import {
   NO_PRESET_MENUS,
@@ -279,11 +280,8 @@ export function EnabledSwitch({
   const [busy, setBusy] = useState(false);
   // Both halves of GlimStone's failure feedback: the toast carries the
   // sentence, and this counter makes the switch itself say that it refused.
-  // Counted rather than flagged, and read as a `key`, because an animation
-  // already at rest does not restart when its class leaves and comes back in
-  // the same frame; a second identical rejection needs a fresh DOM node to play
-  // against, the same way lib/toast.tsx mints a new id for a repeated message.
   const [shake, setShake] = useState(0);
+  const shakeRef = useShake<HTMLButtonElement>(shake);
   const label = t(on ? 'task.disable' : 'task.enable');
   const tip = useTooltip<HTMLButtonElement>(label);
   const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
@@ -316,17 +314,20 @@ export function EnabledSwitch({
   return (
     <>
       <button
-        key={shake}
         type="button"
         role="switch"
         aria-checked={on}
         aria-label={label}
         {...hover}
+        ref={(el) => {
+          shakeRef.current = el;
+          hover.ref.current = el;
+        }}
         disabled={busy}
         onClick={flip}
         className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
           on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
-        } ${shake > 0 ? 'glim-shake' : ''}`}
+        }`}
       >
         {/* start-0 is load-bearing: without it the knob starts from its static
             position, which the button's inherited text-align centres, and the

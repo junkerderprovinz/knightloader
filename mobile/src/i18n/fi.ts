@@ -75,7 +75,7 @@ export const fi: Dict = {
   'settings.corners.soft': 'Pehmeät',
   'settings.corners.square': 'Terävät',
   'settings.accent': 'Korostusväri',
-  'settings.rainbow': 'Sateenkaari',
+  'settings.rainbow': 'Sateenkaaritila',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Kun sateenkaaritila on päällä, kaikki värilliset elementit liukuvat yhdessä paletin läpi, yksi väri 2,4 sekunnin välein. Jos Liike-asetuksena on ”Pois” tai puhelimesi asetuksissa on vähennetty liike käytössä, värit vaihtuvat sen sijaan suoraan väristä toiseen.',
   'settings.problems': 'Ongelmia?',

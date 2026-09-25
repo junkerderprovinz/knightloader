@@ -101,9 +101,6 @@ export function ScheduleSuspendField({
         label={t('settings.schedule.suspend')}
         disabled={idle}
         busy={busy}
-        // Each choice suspends or resumes every schedule at once, and the list
-        // gains an entry at the top after a suspension with an end.
-        wheel={false}
         shake={shake}
       />
     </Field>

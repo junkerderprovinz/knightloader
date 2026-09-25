@@ -75,7 +75,7 @@ export const eu: Dict = {
   'settings.corners.soft': 'Leunak',
   'settings.corners.square': 'Zuzenak',
   'settings.accent': 'Azentua',
-  'settings.rainbow': 'Ostadarra',
+  'settings.rainbow': 'Ostadar modua',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Ostadar modua piztuta dagoen bitartean, elementu koloredun guztiak batera irristatzen dira paletan zehar, kolore bat 2,4 segundoro. Mugimendua Desaktibatuta badago, edo telefonoaren ezarpenetan mugimendu murriztua aktibatuta badago, kolorez kolore jauzi egiten du horren ordez.',
   'settings.problems': 'Arazoak?',

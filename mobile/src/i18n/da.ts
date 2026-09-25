@@ -75,7 +75,7 @@ export const da: Dict = {
   'settings.corners.soft': 'Bløde',
   'settings.corners.square': 'Skarpe',
   'settings.accent': 'Accent',
-  'settings.rainbow': 'Regnbue',
+  'settings.rainbow': 'Regnbuetilstand',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Mens regnbuetilstanden er slået til, glider alle farvede elementer samlet gennem paletten og skifter farve hvert 2,4 sekund. Står Bevægelse på „Fra“, eller er reduceret bevægelse slået til i telefonens indstillinger, springer de i stedet fra den ene farve til den næste.',
   'settings.problems': 'Problemer?',

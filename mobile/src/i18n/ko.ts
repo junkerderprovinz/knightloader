@@ -75,7 +75,7 @@ export const ko: Dict = {
   'settings.corners.soft': '살짝 둥글게',
   'settings.corners.square': '각지게',
   'settings.accent': '강조 색',
-  'settings.rainbow': '레인보우',
+  'settings.rainbow': '무지개 모드',
   'settings.disco': '디스코',
   'settings.discoGlideHint': '무지개 모드가 켜져 있는 동안 색이 있는 모든 요소가 함께 팔레트를 따라 부드럽게 바뀌며, 2.4초마다 한 색씩 넘어갑니다. 모션이 “끄기”이거나 휴대폰 설정에서 동작 줄이기가 켜져 있으면 부드럽게 바뀌지 않고 한 색에서 다음 색으로 바로 넘어갑니다.',
   'settings.problems': '문제가 있나요?',

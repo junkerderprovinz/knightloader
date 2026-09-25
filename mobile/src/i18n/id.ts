@@ -75,7 +75,7 @@ export const id: Dict = {
   'settings.corners.soft': 'Lembut',
   'settings.corners.square': 'Tegas',
   'settings.accent': 'Aksen',
-  'settings.rainbow': 'Pelangi',
+  'settings.rainbow': 'Mode pelangi',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Selama mode pelangi menyala, setiap elemen berwarna bergeser bersama melewati palet, satu warna setiap 2,4 detik. Jika Gerakan disetel ke Nonaktif, atau pengurangan gerakan dinyalakan di pengaturan ponsel, warnanya melompat dari satu warna ke warna berikutnya.',
   'settings.problems': 'Ada masalah?',

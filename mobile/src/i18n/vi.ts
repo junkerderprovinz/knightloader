@@ -75,7 +75,7 @@ export const vi: Dict = {
   'settings.corners.soft': 'Mềm',
   'settings.corners.square': 'Vuông',
   'settings.accent': 'Màu nhấn',
-  'settings.rainbow': 'Cầu vồng',
+  'settings.rainbow': 'Chế độ cầu vồng',
   'settings.disco': 'Disco',
   'settings.discoGlideHint': 'Khi chế độ cầu vồng đang bật, mọi phần tử có màu cùng lướt qua bảng màu, cứ 2,4 giây sang một màu. Nếu Chuyển động đặt là “Tắt”, hoặc cài đặt điện thoại của bạn bật giảm chuyển động, màu sẽ nhảy thẳng từ màu này sang màu kế tiếp.',
   'settings.problems': 'Gặp vấn đề?',

@@ -75,7 +75,7 @@ export const no: Dict = {
   'settings.corners.soft': 'Myke',
   'settings.corners.square': 'Skarpe',
   'settings.accent': 'Aksent',
-  'settings.rainbow': 'Regnbue',
+  'settings.rainbow': 'Regnbuemodus',
   'settings.disco': 'Disko',
   'settings.discoGlideHint': 'Mens regnbuemodus er på, glir alle fargede elementer sammen gjennom paletten og bytter farge hvert 2,4 sekund. Står Bevegelse på «Av», eller er redusert bevegelse slått på i telefoninnstillingene, hopper de i stedet fra én farge til den neste.',
   'settings.problems': 'Problemer?',

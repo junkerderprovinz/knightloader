@@ -354,15 +354,16 @@ function listbox(host, options, current, onPick) {
   trigger.addEventListener('click', open);
 
   /**
-   * The wheel changes the choice without opening the list, as a closed
-   * <select> does (GlimStone rule 14). `passive: false` so preventDefault keeps
-   * the page from scrolling at the same time. It stops at both ends rather
-   * than wrapping.
+   * The wheel changes the choice without opening the list (GlimStone rule 14),
+   * but only while the trigger has focus, as the number fields do: on hover
+   * alone, scrolling the page past it would switch the language. `passive:
+   * false` so preventDefault keeps the page from scrolling at the same time. It
+   * stops at both ends rather than wrapping.
    */
   trigger.addEventListener(
     'wheel',
     (event) => {
-      if (event.deltaY === 0 || options.length < 2) return;
+      if (document.activeElement !== trigger || event.deltaY === 0 || options.length < 2) return;
       event.preventDefault();
       const at = options.findIndex((o) => o.value === chosen.value);
       const next = Math.min(options.length - 1, Math.max(0, at + (event.deltaY > 0 ? 1 : -1)));
