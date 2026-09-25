@@ -99,9 +99,21 @@ submission and for a fixed download.
   else, and the captcha window says so. The window also says which solver is
   working on a captcha and why one declined. A new switch on the Captcha page,
   Only when nobody is watching, holds the solvers back while KnightLoader is
-  open in the foreground in a browser tab or the desktop app, or another app
-  keeps reading its captcha list, and hands over once you switch away or a
-  wait you set runs out.
+  open in the foreground in a browser tab, the desktop app or the phone app,
+  or another app keeps reading its captcha list, and hands over once you
+  switch away or a wait you set runs out.
+- **Captchas can be answered in the Android app.** A card on an instance's
+  downloads, a count on its overview card and a banner over the open screen
+  say when one is waiting, and the Captchas screen answers picture and click
+  captchas. reCAPTCHA and hCaptcha open in the instance's own widget page only
+  on a connection saved by address in an earlier build; on one made with the
+  twelve words their card points to the web UI, and Cancel still skips them.
+  The banner also says when a captcha timed out or was answered elsewhere. The
+  relay carries the captcha list, answers and skips to the app, and
+  `/api/queue/counters` counts what is waiting, so the overview downloads no
+  pictures. The app watches the instance it has open while it is in front: a
+  captcha that came in while it was in the background is announced when it
+  returns, unless Android closed it meanwhile. There are no notifications.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the

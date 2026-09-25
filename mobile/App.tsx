@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { loadActiveConnection, removeConnection, setActiveConnectionId } from './src/storage/connections';
 import type { Instance, ServerConnection } from './src/api/types';
@@ -10,8 +10,10 @@ import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import RelayConnectScreen from './src/screens/RelayConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
+import CaptchasScreen from './src/screens/CaptchasScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
+import { CaptchaWatch } from './src/components/CaptchaWatch';
 import { fetchAppearance, setRainbowPalette } from './src/api/client';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { MotionProvider } from './src/theme/MotionContext';
@@ -24,6 +26,7 @@ type RootStackParamList = {
   RelayConnect: undefined;
   Downloads: { peer?: Instance } | undefined;
   AddDownload: { peer?: Instance } | undefined;
+  Captchas: undefined;
   Settings: undefined;
   LanguagePicker: undefined;
 };
@@ -64,6 +67,10 @@ function Shell() {
   // empty list would put a form in front of somebody who has not seen the app
   // yet, and ConnectionsScreen's empty state offers the same action.
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Connections');
+  // The captcha banner sits over every screen and opens the list from any of
+  // them, and it steps aside while the list is the screen in front.
+  const nav = useNavigationContainerRef<RootStackParamList>();
+  const [screen, setScreen] = useState<string | undefined>();
 
   useEffect(() => {
     (async () => {
@@ -106,139 +113,153 @@ function Shell() {
 
   return (
     <HouseFontReady value={fontLoaded}>
-      <NavigationContainer
-        theme={{
-          dark,
-          // Built from the resolved tokens rather than a second fixed set: the
-          // navigator paints the gaps between screens, and a hard-coded dark
-          // there gives a light theme black bars.
-          colors: {
-            primary: accent,
-            background: c.bg,
-            card: c.surface,
-            text: c.text,
-            border: c.border,
-            notification: accent,
-          },
-          fonts: navFonts,
-        }}
+      <CaptchaWatch
+        conn={conn}
+        bannerHidden={screen === 'Captchas'}
+        onOpen={() => nav.navigate('Captchas')}
       >
-        <StatusBar style={dark ? 'light' : 'dark'} />
-        <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Connections">
-            {({ navigation }) => (
-              <ConnectionsScreen
-                onActivate={(c) => {
-                  setConn(c);
-                  navigation.navigate('Downloads', {});
-                }}
-                onAddPress={() => navigation.navigate('RelayConnect')}
-                // The one door to Settings in the whole app. Settings are not
-                // a property of one instance, and a gear inside one would
-                // suggest they were.
-                onOpenSettings={() => navigation.navigate('Settings')}
-              />
-            )}
-          </Stack.Screen>
-
-          {/* The phrase screen is the one way in, as it is in the browser
-              extension. The name-and-address form it replaced also carried the
-              remote-access QR, which is a bare address, and hand-typed token
-              entry; a connection saved through it keeps working, but there is
-              no way to create another one. */}
-          <Stack.Screen name="RelayConnect" options={{ presentation: 'modal' }}>
-            {({ navigation }) => (
-              <RelayConnectScreen
-                onConnected={(c) => {
-                  setConn(c);
-                  navigation.navigate('Downloads', {});
-                }}
-                // goBack rather than navigate('Connections'): this screen is
-                // reached from the overview and from its empty state, and back
-                // means whichever of those it was.
-                onBack={() => navigation.goBack()}
-              />
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name="Downloads">
-            {({ navigation, route }) =>
-              conn ? (
-                <DownloadsScreen
-                  conn={conn}
-                  peer={route.params?.peer}
-                  onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
-                  onSwitchConnection={async () => {
-                    await setActiveConnectionId(null);
-                    navigation.navigate('Connections');
+        <NavigationContainer
+          ref={nav}
+          onReady={() => setScreen(nav.getCurrentRoute()?.name)}
+          onStateChange={() => setScreen(nav.getCurrentRoute()?.name)}
+          theme={{
+            dark,
+            // Built from the resolved tokens rather than a second fixed set: the
+            // navigator paints the gaps between screens, and a hard-coded dark
+            // there gives a light theme black bars.
+            colors: {
+              primary: accent,
+              background: c.bg,
+              card: c.surface,
+              text: c.text,
+              border: c.border,
+              notification: accent,
+            },
+            fonts: navFonts,
+          }}
+        >
+          <StatusBar style={dark ? 'light' : 'dark'} />
+          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Connections">
+              {({ navigation }) => (
+                <ConnectionsScreen
+                  onActivate={(c) => {
+                    setConn(c);
+                    navigation.navigate('Downloads', {});
                   }}
-                    onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
-                  // Removing the connection this screen is about leaves it as
-                  // well, back to the overview, where the list of what is left
-                  // lives.
-                  onRemoveConnection={
-                    route.params?.peer
-                      ? undefined
-                      : async () => {
-                          await removeConnection(conn.id);
-                          await setActiveConnectionId(null);
-                          setConn(null);
-                          navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
-                        }
+                  onAddPress={() => navigation.navigate('RelayConnect')}
+                  // The one door to Settings in the whole app. Settings are not
+                  // a property of one instance, and a gear inside one would
+                  // suggest they were.
+                  onOpenSettings={() => navigation.navigate('Settings')}
+                />
+              )}
+            </Stack.Screen>
+
+            {/* The phrase screen is the one way in, as it is in the browser
+                extension. The name-and-address form it replaced also carried the
+                remote-access QR, which is a bare address, and hand-typed token
+                entry; a connection saved through it keeps working, but there is
+                no way to create another one. */}
+            <Stack.Screen name="RelayConnect" options={{ presentation: 'modal' }}>
+              {({ navigation }) => (
+                <RelayConnectScreen
+                  onConnected={(c) => {
+                    setConn(c);
+                    navigation.navigate('Downloads', {});
+                  }}
+                  // goBack rather than navigate('Connections'): this screen is
+                  // reached from the overview and from its empty state, and back
+                  // means whichever of those it was.
+                  onBack={() => navigation.goBack()}
+                />
+              )}
+            </Stack.Screen>
+
+            <Stack.Screen name="Downloads">
+              {({ navigation, route }) =>
+                conn ? (
+                  <DownloadsScreen
+                    conn={conn}
+                    peer={route.params?.peer}
+                    onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
+                    onSwitchConnection={async () => {
+                      await setActiveConnectionId(null);
+                      navigation.navigate('Connections');
+                    }}
+                    onOpenCaptchas={() => navigation.navigate('Captchas')}
+                      onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+                    // Removing the connection this screen is about leaves it as
+                    // well, back to the overview, where the list of what is left
+                    // lives.
+                    onRemoveConnection={
+                      route.params?.peer
+                        ? undefined
+                        : async () => {
+                            await removeConnection(conn.id);
+                            await setActiveConnectionId(null);
+                            setConn(null);
+                            navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
+                          }
+                    }
+                  />
+                ) : null
+              }
+            </Stack.Screen>
+
+            {/* There is no Instances screen: the overview is the list of
+                instances, since every member of the group is a connection there.
+                DownloadsScreen and AddDownloadScreen keep their `peer` branch,
+                the proxy path (/api/instances/{name}) a peer view would need,
+                although nothing sets it today. */}
+
+            <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
+              {({ navigation, route }) =>
+                conn ? (
+                  <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
+                ) : null
+              }
+            </Stack.Screen>
+
+            <Stack.Screen name="Captchas">
+              {({ navigation }) => (conn ? <CaptchasScreen conn={conn} onBack={() => navigation.goBack()} /> : null)}
+            </Stack.Screen>
+
+            <Stack.Screen name="Settings">
+              {({ navigation }) => (
+                <SettingsScreen
+                  onBack={() => navigation.goBack()}
+                  onOpenLanguagePicker={() => navigation.navigate('LanguagePicker')}
+                  onRemovedAllConnections={() => {
+                    setConn(null);
+                    navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
+                  }}
+                  onRefreshAppearance={() => {
+                    // "Follow the instance" has just cleared the local
+                    // overrides, so the instance is asked again rather than the
+                    // screen falling back to the look fetched at startup.
+                    if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
+                  }}
+                  // The rainbow palette belongs to the instance, so editing one
+                  // is a write over the wire rather than a local preference (see
+                  // setRainbowPalette. Passed only when there is a connection,
+                  // which is what makes the settings screen drop the row and say
+                  // why instead of drawing eight swatches no press can reach.
+                  onSetPalette={
+                    conn
+                      ? async (palette) => setInstanceAppearance(await setRainbowPalette(conn, palette))
+                      : undefined
                   }
                 />
-              ) : null
-            }
-          </Stack.Screen>
+              )}
+            </Stack.Screen>
 
-          {/* There is no Instances screen: the overview is the list of
-              instances, since every member of the group is a connection there.
-              DownloadsScreen and AddDownloadScreen keep their `peer` branch,
-              the proxy path (/api/instances/{name}) a peer view would need,
-              although nothing sets it today. */}
-
-          <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
-            {({ navigation, route }) =>
-              conn ? (
-                <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
-              ) : null
-            }
-          </Stack.Screen>
-
-          <Stack.Screen name="Settings">
-            {({ navigation }) => (
-              <SettingsScreen
-                onBack={() => navigation.goBack()}
-                onOpenLanguagePicker={() => navigation.navigate('LanguagePicker')}
-                onRemovedAllConnections={() => {
-                  setConn(null);
-                  navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
-                }}
-                onRefreshAppearance={() => {
-                  // "Follow the instance" has just cleared the local
-                  // overrides, so the instance is asked again rather than the
-                  // screen falling back to the look fetched at startup.
-                  if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
-                }}
-                // The rainbow palette belongs to the instance, so editing one
-                // is a write over the wire rather than a local preference (see
-                // setRainbowPalette. Passed only when there is a connection,
-                // which is what makes the settings screen drop the row and say
-                // why instead of drawing eight swatches no press can reach.
-                onSetPalette={
-                  conn
-                    ? async (palette) => setInstanceAppearance(await setRainbowPalette(conn, palette))
-                    : undefined
-                }
-              />
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name="LanguagePicker">
-            {({ navigation }) => <LanguagePickerScreen onBack={() => navigation.goBack()} />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
+            <Stack.Screen name="LanguagePicker">
+              {({ navigation }) => <LanguagePickerScreen onBack={() => navigation.goBack()} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </CaptchaWatch>
     </HouseFontReady>
   );
 }

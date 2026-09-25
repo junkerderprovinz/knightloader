@@ -3,6 +3,7 @@ package app
 import (
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -49,6 +50,22 @@ func TestCountersKeepDisabledLinksInTheFileCountOnly(t *testing.T) {
 	}
 	if c.ETA == nil || *c.ETA != 12 {
 		t.Errorf("ETA = %v, want 12 seconds at 100 B/s", c.ETA)
+	}
+}
+
+// The captchas waiting ride along with the figures, so an overview of several
+// instances counts them without downloading every picture.
+func TestCountersCountTheCaptchasWaiting(t *testing.T) {
+	a := newQueueApp(t)
+	if c := a.Counters(); c.Captchas != 0 {
+		t.Errorf("Captchas = %d with nothing waiting, want 0", c.Captchas)
+	}
+	a.captchaStateFor().store.Sync([]captcha.Challenge{
+		{ID: "c1", Host: "host.example", Kind: captcha.KindImage},
+		{ID: "c2", Host: "host.example", Kind: captcha.KindWidget},
+	})
+	if c := a.Counters(); c.Captchas != 2 {
+		t.Errorf("Captchas = %d, want the 2 waiting", c.Captchas)
 	}
 }
 
