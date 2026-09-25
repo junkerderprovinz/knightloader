@@ -76,7 +76,6 @@ export const hu: Dict = {
   'settings.accent': 'Kiemelőszín',
   'settings.rainbow': 'Szivárvány',
   'settings.disco': 'Diszkó',
-  'settings.discoHint': 'Amíg a szivárvány mód be van kapcsolva, minden színes elem másodpercenként egyszer a paletta következő színére vált.',
   'settings.problems': 'Gondok?',
   'settings.problemsHint': 'Küldd el ezt is, amikor bejelentesz valamit. Egy kérdezz-felelek kört megspórolsz vele, és sem cím, sem token nincs benne.',
   'settings.problemsCopy': 'Jelentés másolása',

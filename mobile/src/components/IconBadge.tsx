@@ -31,10 +31,9 @@ const BADGE = BTN_H;
  * GlimStone states the proportion as 16 in 32 and 20 in 40, so a square on the
  * house height lands on the first of those rather than extrapolating a third
  * pair. A proportion rather than a size, because a lone glyph has no text
- * beside it to be measured against. The 20px a glyph takes next to 14px text
- * answers a different question, where a mark and its label have to read as one
- * control, and carrying that number into a square fills two thirds of the
- * frame, which reads as chunky.
+ * beside it to be measured against. Beside a label a glyph is the label's size
+ * instead (GLYPH_BOX below), since there the mark and its words have to read
+ * as one control and neither may outweigh the other.
  *
  * One constant for both the drawn glyphs and the character fallback, or the two
  * arrive at different sizes in identical boxes.
@@ -174,15 +173,21 @@ function drawGlyph(icon: ReactNode, symbol: string | undefined, color: string): 
  * number serving both leaves a glyph correct beside a word and too small inside
  * a badge. */
 
-/** The box a glyph is given, in points, when nothing else is said. */
-const GLYPH_BOX = 15;
+/**
+ * The box a glyph is given, in points, when nothing else is said: its size
+ * beside a label. Every labelled button here is the key control, where
+ * GlimStone sets that glyph at 16 against the 14 of an ordinary button, so a
+ * row of buttons reads as buttons and not as a row of icons.
+ */
+const GLYPH_BOX = 16;
 
 /**
- * How much of that box the drawn shape fills, on its longest side. Below the
- * box so a round shape and a square one look equally big beside each other, and
- * so a glyph never touches the edge of the badge it sits in.
+ * How much of that box the drawn shape fills, on its longest side, four fifths
+ * of it. Below the box so a round shape and a square one look equally big
+ * beside each other, and so a glyph never touches the edge of the badge it
+ * sits in.
  */
-const GLYPH_EXTENT = 12;
+const GLYPH_EXTENT = 12.8;
 
 /**
  * The drawing unit for a glyph whose own longest side is `natural` units.

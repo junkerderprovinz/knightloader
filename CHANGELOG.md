@@ -64,7 +64,7 @@ submission and for a fixed download.
   in it. Together they name one track, which keeps its own container and is
   not converted, where it used to be a height merged into mkv. The audio row
   lists only the formats the source has, plus Auto for its best track, and
-  beside it the bitrates of the chosen format. The per-host defaults on the
+  beside it the bitrates of the chosen format. The variant defaults on the
   yt-dlp page and the gear on a package in the collector offer the same two
   pairs, and a new link from that host starts with them.
 - **hCaptcha challenges can be solved in KnightLoader.** JDownloader's
@@ -97,6 +97,17 @@ submission and for a fixed download.
   reconnect is set up or the module is switched off; its (i) says which, and a
   link below leads to the page that changes it. The button on the Network page
   is called "Reconnect now" as well.
+- **A Packagizer rule can say where the unpacked files go.** The rule editor
+  has a "Move the unpacked files to" field with the folder chooser, next to
+  "Extract automatically". For the links the rule matches it takes the place
+  of the setting of that name on the Archives page, and variables work in it.
+  Rules could carry this before, but only an imported rule set could set it.
+- **Settings with a fixed set of values are a menu on the Advanced page.**
+  What happens when unpacked files collide, what becomes of an archive, file
+  name collisions, mirrors, duplicates, offline links, the trust level for
+  files already on disk and what a restart resumes each offer their values by
+  the names their own page uses. They were free text fields, and a typo was
+  saved as the default without a word.
 
 ### Fixed
 
@@ -225,6 +236,24 @@ submission and for a fixed download.
   the top of the downloaded volume scale keep the number before its unit.
   Switches, number and password fields, menus, toasts and the other notices
   sit on the correct side.
+- **Every figure keeps its order in Arabic, Hebrew and Persian.** A size,
+  speed, bitrate, duration, date, percentage or count inside a sentence could
+  trade places with its unit or with the words around it: the Accounts page
+  showed "GB 0,1 >", a bitrate read "kbit/s 128" and a size "GiB 2.7". They
+  all keep their order now, in the web interface and in the phone app.
+  The smallest allowance reads "< 0.1 GB" in every language, where it had a
+  decimal comma.
+- **A portrait video offers the qualities it has.** yt-dlp names a video
+  filmed upright by its shorter side, so a 1080x1920 track is 1080p. The
+  quality menu went by the height instead: it offered 1440p down to 144p for
+  such a video, and "Up to 1080p" downloaded a 480p track. Qualities, caps and
+  tracks follow yt-dlp's names now, so the menu lists 1080p down to 144p and a
+  cap downloads the quality it names. A track picked earlier takes its new
+  name when the link is checked again, and until then the menu lists it in
+  order of resolution instead of at the end.
+- **"Unpack to" and "Move the unpacked files to" keep their caption level with
+  the box** when the box shows an error under it. The caption dropped by about
+  9 pixels.
 - **Disabled buttons in the queue and status bar show their name** under the
   pointer, such as Stop while nothing runs.
 - **The Schedules card keeps each row's name and times readable.** With
@@ -234,6 +263,41 @@ submission and for a fixed download.
   ran into each other on a narrow card. A figure that does not fit moves to the
   next line, the state badge sits in the name's row, and the Instances page
   puts fewer cards side by side in a narrow window.
+- **Links you add together start in the order you added them.** On Windows,
+  several links from one paste could get the same timestamp. The queue starts
+  the oldest link first, so it then took those links in any order.
+- **Typing a folder no longer leaves half-typed folders behind.** The settings
+  page saves while you type, and every save created the download or working
+  folder it was given, so typing "D:\Downloads" could leave "D:\Down" on the
+  disk. The watch folder did the same. A save now only checks the folder: one
+  that exists has to be writable, and for one that does not exist yet the
+  nearest folder above it has to allow a new folder. The first download
+  creates it, and so does New folder in the folder chooser. A watch folder
+  that is not there yet is watched anyway, the Modules page says so, and
+  files dropped into it are taken once it exists.
+- **A setting unrelated to categories saves even when a category's folder is
+  unusable.** Every save checked, and created, the folder of every category,
+  so a category on a share that was offline refused a change of theme. The
+  category folders are checked when the categories are saved.
+- **The folder chooser stays inside KL_BROWSE_ROOTS through Windows
+  junctions.** A junction inside the allowed folders led out of them, both for
+  browsing and for New folder, and the same held for fetching a finished
+  file. Junctions and mounted folders are followed to where they really point
+  before the boundary is checked.
+- **A hoster login saved under an alias domain is matched to JDownloader's
+  account.** JDownloader files an rg.to login as rapidgator.net, so the login
+  looked missing and was added again on every pass.
+- **Server messages call pages and settings by the names the interface
+  uses.** The metrics line spoke of "the Access page" and the update check of
+  "the General tab", and the download client's warning said "this page" while
+  it is shown on the Modules page. A module switch that has nothing to switch
+  back on, and an encrypted container while JDownloader is off or missing,
+  are now explained in your language.
+- **reCAPTCHA Enterprise and v3 captchas can be solved.** They loaded the
+  classic script and showed a checkbox that never worked. An Enterprise
+  captcha loads Google's Enterprise script, and a v3 check fetches its answer
+  by itself under the action the hoster asked for. Where a captcha cannot be
+  solved in KnightLoader, the captcha window says so, and its (i) says why.
 
 ### Changed
 
@@ -242,6 +306,20 @@ submission and for a fixed download.
   the Modules page lands on the switch itself. Switched off, the folder is kept
   and comes back with the switch; the field has the folder picker, and the
   module is called "Watch folder" in both places.
+- **Every module can be switched on its own settings page as well as on the
+  Modules page.** Archive extraction, the page crawler, checksum verification,
+  feed subscriptions, event targets, schedules, reconnect, the Packagizer, the
+  link filter and the metrics address now have a switch on their own page,
+  like the modules that already did. Both switches are one switch. A badge
+  beside each of them leads to the other and lands on it. The card, the switch
+  and the Modules row share one name: "Extraction" is now "Archive extraction",
+  "Page crawl" is "Page crawler", "Monitoring" is "Metrics address for a
+  monitoring system", "Your scripts" is "Event scripts", "Scheduler" is
+  "Schedules", and "RSS and Atom subscriptions" is "Feed subscriptions".
+  Switched off, the feed, event target and schedule cards show the switch alone
+  instead of claiming there are none yet. Reconnect's method strip no longer
+  has an "Off" tab, because the switch turns it off and keeps the method for
+  later.
 - **The Link intake card keeps its explanations in (i) bubbles.** The address
   Click'n'Load listens on is in its bubble and in your language, also on the
   Modules page and in the tooltip of the collector's Click'n'Load button.
@@ -389,9 +467,14 @@ submission and for a fixed download.
   height**, the height of the buttons beside them, and share one look.
 - **A selector that needs more than one line fills them evenly.** "When two
   links count as the same file" and the idle action used to leave an empty
-  stretch at the end of a line; now the options share each line, and the lines
-  hold as nearly the same number of options as they can. A selector that fits
+  stretch at the end of a line; now the options share each line and reach its
+  end, and the lines hold as nearly the same number of options as they can.
+  They are shared out again when the window changes size. A selector that fits
   on one line keeps its width.
+- **A button's icon is the size of its label**: 14 pixels instead of 20, and 16
+  instead of 22 in the taller buttons, so a row of buttons no longer looks like
+  a row of icons. A button that shows only its icon keeps it at half the
+  button's height. The extension and the phone app use the same sizes.
 - **Buttons carry their (i) inside them**, such as Import and Export on the
   rules card, "Check integrity", "Check again", "Play here" and "Connect an
   instance". The (i) stays readable on a button that is switched off, and where
@@ -403,19 +486,45 @@ submission and for a fixed download.
   a code with its values, next to the English sentence.
 - **The web interface fits a phone.** In a window narrower than 768 pixels the
   sidebar becomes a bar along the bottom with the same entries in the same
-  colours, so every page keeps the full width. The bar follows "Navigation
-  labels", and toasts and notices stand above it. The settings tabs show their
-  icons only there.
+  colours, so every page keeps the full width. The bar has its own setting,
+  "Bottom bar labels" under Appearance, which uses "Navigation labels" until you
+  pick something else, so the bar can show icons alone while the sidebar keeps
+  its words. Toasts and notices stand above the bar. The settings tabs show
+  their icons only there.
 - **The direct download has one name**: "Direct download" on the priority
   card, on a download's backend badge and in the "By backend" view of the
   downloaded volume, where it read "Direct link" in one place and "Direct" in
   the others. The plain HTTP fallback and "Torrent and magnet" are named the
   same way in all three.
+- **The package gear in the collector and the table on the yt-dlp page have
+  one name, "Variant defaults"**, since they change the same settings. The
+  gear's tooltip and its window said "Variant settings" and the table
+  "Per-host defaults".
 - **"Move to a package" offers the existing package names in the app's own
   menu**, which narrows as you type, instead of the browser's list.
 - **The account windows' links are buttons.** "Choose a different account"
   goes back to the list, and "Where do I get this?" opens the service's page in
   a new tab.
+- **Explanations sit behind (i) bubbles across the app.** The grey sentences
+  next to or under a control moved into the (i) of the card, field or button
+  they explain: in the captcha window, the hoster login window, the second
+  factor step of the sign-in page, the setup tour, the crypto window and the
+  quick add page, on the connection phrase, relay, second factor and settings
+  transfer cards, and on the Rules, Torrents, Network, Diagnostics, Automation
+  and Browser & App pages. A window's title badge can carry an (i) too. What
+  stays on the page: notes about what this build or this machine cannot do,
+  status and error lines, and empty lists. The crypto window in the Android app
+  and in the browser extension keeps its introduction in an (i) as well.
+- **The Collector's filters are switches** instead of tick boxes, and a click
+  anywhere on a row flips its switch.
+- **Links look like buttons.** "Get a key" on the captcha page is a badge
+  called "Where do I get this?", as in the account windows. The update card
+  names the new version and opens its release notes from a badge. "Open
+  Collector" on the quick add page, "Set the disk limits" on the Overview, "Open
+  the whole log" on a download, the page links under each help topic, "Open the
+  setting" on a failed idle action, a log file's download, "Select all" and
+  "Select none" in a torrent's file list, the captcha window's extra options
+  and the reason on a failed download are buttons or badges.
 
 ### Removed
 

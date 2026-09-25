@@ -11,7 +11,8 @@
 //   coverage  every .tsx under src/pages/settings is in FILE_PAGES or in
 //             NOT_PAGE_SOURCES with a reason.
 //   forward   every label, hint and SectionTitle key a page draws is in the
-//             index under that page, or in EXCLUDED with a reason.
+//             index under that page, or in EXCLUDED with a reason. A
+//             `<ModuleToggle id="x">` draws settings.module.x as its label.
 //   reverse   every indexed key exists in en.ts and still appears in one of
 //             its page's sources.
 //   expiry    an EXCLUDED entry waiting on a key fails once that key is in en.ts.
@@ -92,10 +93,6 @@ const EXCLUDED = new Map([
     'the whole-page LoadingCard four settings pages show while their own fetch is in flight. Page furniture, on no card at all',
   ],
   ['settings.rules.testRunning', "the same, for the Rules page's dry run"],
-  [
-    'settings.modules.off',
-    'the badge on the feeds card that reads, in full, "Off". As a search result it would be the word Off pointing at a card; findable is not the same as useful',
-  ],
   [
     'settings.system.shuttingDownTitle',
     'the card that replaces the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
@@ -202,6 +199,17 @@ function wrapperTitles(text, tags) {
   return out;
 }
 
+/**
+ * Every `<ModuleToggle id="x"` as {at, key}. The switch draws the module's
+ * name, settings.module.x, as its label without the page ever naming the key.
+ */
+function moduleToggles(text) {
+  return [...text.matchAll(/<ModuleToggle\s[^>]*?(?<![\w-])id="([a-z]+)"/g)].map((m) => ({
+    at: m.index,
+    key: `settings.module.${m[1]}`,
+  }));
+}
+
 /** Everything one source file says, in source order, bucketed by card. */
 function scanFile(entry) {
   const text = src(entry.file);
@@ -212,6 +220,7 @@ function scanFile(entry) {
       for (const key of keysIn(span)) rows.push({ at, key, kind: attr, tag });
     }
   }
+  for (const { at, key } of moduleToggles(text)) rows.push({ at, key, kind: 'label', tag: 'ModuleToggle' });
   rows.sort((a, b) => a.at - b.at);
 
   // A row belongs to the last card title above it. Rows before the first title
@@ -239,7 +248,8 @@ const NOT_PAGE_SOURCES = new Map([
   ['registry.tsx', 'the id-to-component map. check-settings-pages.mjs is what reads it'],
   ['context.tsx', 'the draft/feature provider - no catalogue text of its own'],
   ['controls.tsx', 'NeutralSwitch, a control. Its labels come from its callers'],
-  ['ModuleToggle.tsx', "a module's switch on the page the module lives on. Its label is the module's name, which the Modules page already indexes"],
+  ['ModuleToggle.tsx', "a module's switch and the badges between it and the Modules page. The switch's label is read where a page draws it, from `<ModuleToggle id=\"x\"`"],
+  ['pageIcons.tsx', 'the glyph of each page in the rail, no catalogue text'],
   ['Empty.tsx', 'the registered-but-not-built placeholder, which is not a card on any page'],
   ['Appearance.tsx', 'three lines: it renders <Look section="appearance" />, and Look.tsx is mapped'],
   ['SettingsSearch.tsx', 'the search box itself. It sits above the pages rather than on one, and indexing it would make it a result in its own list'],
@@ -369,10 +379,14 @@ for (const s of scans) {
 // Reverse: nothing in the index is a key the catalogue lost, or a key the page
 // stopped drawing.
 const sourceOf = new Map();
+const switchesOf = new Map();
 for (const s of scans) {
+  const text = src(s.file);
   for (const page of s.pages) {
     if (!sourceOf.has(page)) sourceOf.set(page, '');
-    sourceOf.set(page, sourceOf.get(page) + src(s.file));
+    sourceOf.set(page, sourceOf.get(page) + text);
+    if (!switchesOf.has(page)) switchesOf.set(page, new Set());
+    for (const { key } of moduleToggles(text)) switchesOf.get(page).add(key);
   }
 }
 for (const [page, keys] of index) {
@@ -388,7 +402,7 @@ for (const [page, keys] of index) {
       problems.push(`${page} is in the search index but no source file is mapped to it - add it to FILE_PAGES`);
       break;
     }
-    if (!text.includes(`'${key}'`)) {
+    if (!text.includes(`'${key}'`) && !switchesOf.get(page).has(key)) {
       problems.push(`${key} is in the search index under ${page} but no source of that page mentions it any more - a result that jumps to a row that is not there`);
     }
   }

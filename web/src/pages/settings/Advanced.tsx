@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import type { Settings } from '../../lib/api';
+import { fetchOptions, type ApiOptions, type Settings } from '../../lib/api';
+import type { TranslationKey } from '../../lib/i18n';
 import { reasonKey } from '../../components/columns';
+import { Dropdown, type DropdownOption } from '../../components/Dropdown';
 import {
   Card,
   FieldGroup,
@@ -14,11 +16,13 @@ import {
 import { PathInput } from '../../components/FolderPicker';
 import { IconRetry, IconSearch } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
+import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
+import { CONFIRM_LABEL } from './collector/Collector';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
 import { getPath, rowsFor, same, setPath, type Row, type ValueKind } from './paths';
-import { useTx } from './tx';
+import { label, useTx, type ChoicePrefix } from './tx';
 
 /**
  * Advanced lists every setting by key, generated from the settings document so
@@ -44,6 +48,41 @@ const RETRY_REASONS = Object.entries(reasonKey);
 // settings.maxRetryTries; sanitizeRetryRule cuts anything above it on save.
 const MAX_TRIES = 20;
 
+type Namer = (tx: (key: TranslationKey) => string, id: string) => string;
+
+const fromMap =
+  (labels: Partial<Record<string, TranslationKey>>): Namer =>
+  (tx, id) => {
+    const key = labels[id];
+    return key ? tx(key) : id;
+  };
+
+const fromPrefix =
+  (prefix: ChoicePrefix): Namer =>
+  (tx, id) =>
+    label(tx, prefix, id);
+
+type ChoiceList = {
+  [K in keyof ApiOptions]-?: ApiOptions[K] extends string[] ? K : never;
+}[keyof ApiOptions];
+
+/**
+ * The settings whose values GET /api/options lists, each with the list and the
+ * words its own page uses. Their rows pick from a menu: sanitize folds a value
+ * it does not know back to the default, so a typo in a text field would be
+ * saved as something nobody chose.
+ */
+const CHOICE_ROWS: Partial<Record<string, { list: ChoiceList; name: Namer }>> = {
+  extractCollision: { list: 'archiveCollisions', name: fromMap(COLLISION_LABEL) },
+  archiveDisposal: { list: 'archiveDisposals', name: fromMap(DISPOSAL_LABEL) },
+  collisionPolicy: { list: 'collisionPolicies', name: fromMap(COLLISION_LABEL) },
+  mirrorPolicy: { list: 'mirrorPolicies', name: fromPrefix('settings.advanced.mirror.') },
+  onDupes: { list: 'confirmPolicies', name: fromMap(CONFIRM_LABEL) },
+  onOffline: { list: 'confirmPolicies', name: fromPrefix('settings.advanced.offline.') },
+  reclaimTrust: { list: 'reclaimTrustModes', name: fromPrefix('settings.advanced.reclaim.') },
+  resumeOnStart: { list: 'resumeModes', name: fromPrefix('settings.resume.') },
+};
+
 export function Advanced() {
   const { tx } = useTx();
   const { cfg, patch, replace } = useDraft();
@@ -51,6 +90,8 @@ export function Advanced() {
 
   const [schema, setSchema] = useState<SettingsSchema | null>(null);
   const [schemaFailed, setSchemaFailed] = useState(false);
+  // Until the lists arrive, or when they do not, those rows are text fields.
+  const [options, setOptions] = useState<ApiOptions | null>(null);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   // Debounced, since the filter re-renders every visible editor.
@@ -67,12 +108,23 @@ export function Advanced() {
     fetchSettingsSchema()
       .then((d) => live && setSchema(d))
       .catch(() => live && setSchemaFailed(true));
+    fetchOptions().then(
+      (o) => live && setOptions(o),
+      () => {},
+    );
     return () => {
       live = false;
     };
   }, []);
 
   const rows = useMemo(() => rowsFor(doc, schema?.kinds ?? {}, NOT_SETTINGS), [doc, schema]);
+
+  function choicesFor(path: string): DropdownOption[] | undefined {
+    const row = CHOICE_ROWS[path];
+    const ids = row && options?.[row.list];
+    if (!row || !ids?.length) return undefined;
+    return ids.map((id) => ({ value: id, label: row.name(tx, id) }));
+  }
 
   const shown = useMemo(() => {
     return rows.filter((r) => {
@@ -196,6 +248,7 @@ export function Advanced() {
                     hue={i}
                     fallback={schema ? getPath(schema.values, r.path) : undefined}
                     canReset={schema !== null}
+                    choices={choicesFor(r.path)}
                     onWrite={write}
                   />
                 ))
@@ -213,12 +266,14 @@ function KeyRow({
   hue,
   fallback,
   canReset,
+  choices,
   onWrite,
 }: {
   row: Row;
   hue: number;
   fallback: unknown;
   canReset: boolean;
+  choices?: DropdownOption[];
   onWrite: (path: string, value: unknown) => void;
 }) {
   const { tx } = useTx();
@@ -243,7 +298,7 @@ function KeyRow({
       </div>
 
       <div className="w-full sm:w-72">
-        <ValueEditor row={row} hue={hue} onWrite={onWrite} />
+        <ValueEditor row={row} hue={hue} choices={choices} onWrite={onWrite} />
       </div>
 
       {/* Reset shows only where there is something to undo. */}
@@ -265,10 +320,12 @@ function KeyRow({
 function ValueEditor({
   row,
   hue,
+  choices,
   onWrite,
 }: {
   row: Row;
   hue: number;
+  choices?: DropdownOption[];
   onWrite: (path: string, value: unknown) => void;
 }) {
   const { tx } = useTx();
@@ -317,6 +374,9 @@ function ValueEditor({
       );
     default: {
       const value = row.value === null || row.value === undefined ? '' : String(row.value);
+      if (choices) {
+        return <Dropdown label={row.path} value={value} options={choices} onChange={(v) => onWrite(row.path, v)} />;
+      }
       if (PATH_KEYS.includes(row.path)) {
         return <PathInput label={row.path} value={value} onValue={(v) => onWrite(row.path, v)} />;
       }

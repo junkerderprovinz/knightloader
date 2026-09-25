@@ -44,8 +44,8 @@ var videoFamilies = []codecFamily{
 }
 
 // preferredVideoCodecs is the order yt-dlp's own format sort ranks codecs in
-// at an equal height and frame rate, which is how it picks between them when
-// only a height is asked for.
+// at an equal resolution and frame rate, which is how it picks between them
+// when only a resolution is asked for.
 var preferredVideoCodecs = []string{"av1", "vp9", "hevc", "avc1", "vp8"}
 
 var audioFamilies = []codecFamily{
@@ -62,10 +62,11 @@ var audioFamilies = []codecFamily{
 var keyToken = regexp.MustCompile(`^[a-z0-9]{1,10}$`)
 
 var (
-	// qualityToken is the first word of a video track's key: a height, and the
-	// frame rate where it is above 30.
+	// qualityToken is the first word of a video track's key: a resolution, and
+	// the frame rate where it is above 30.
 	qualityToken = regexp.MustCompile(`^([1-9][0-9]{1,4})p([1-9][0-9]{1,2})?$`)
-	// capToken is the last word of a video wish: the height it may not exceed.
+	// capToken is the last word of a video wish: the resolution it may not
+	// exceed.
 	capToken = regexp.MustCompile(`^([1-9][0-9]{1,4})p$`)
 	audioKey = regexp.MustCompile(`^([a-z0-9]{1,10}) ([1-9][0-9]{0,3})k$`)
 )
@@ -195,12 +196,12 @@ func (c videoContainer) mergeFormat(embedThumbnail bool) string {
 	return "mkv"
 }
 
-// videoFormat is one distinct video track: a height, a frame rate and a
-// container.
+// videoFormat is one distinct video track: a resolution (FormatEntry.Res), a
+// frame rate and a container.
 type videoFormat struct {
-	height int
+	res int
 	// fps is the track's rate rounded to a whole number when that is above 30,
-	// and 0 otherwise, which is how one height's 30 and 60 fps tracks tell
+	// and 0 otherwise, which is how one resolution's 30 and 60 fps tracks tell
 	// apart.
 	fps int
 	videoContainer
@@ -212,7 +213,7 @@ func (v videoFormat) quality() string {
 	if v.fps > 0 {
 		fps = strconv.Itoa(v.fps)
 	}
-	return fmt.Sprintf("%dp%s", v.height, fps)
+	return fmt.Sprintf("%dp%s", v.res, fps)
 }
 
 func (v videoFormat) key() string { return v.quality() + " " + v.id() }
@@ -226,7 +227,7 @@ func parseVideoFormat(key string) (videoFormat, bool) {
 	if m == nil {
 		return videoFormat{}, false
 	}
-	h, _ := strconv.Atoi(m[1])
+	res, _ := strconv.Atoi(m[1])
 	fps := 0
 	if m[2] != "" {
 		fps, _ = strconv.Atoi(m[2])
@@ -238,7 +239,7 @@ func parseVideoFormat(key string) (videoFormat, bool) {
 	if !ok {
 		return videoFormat{}, false
 	}
-	return videoFormat{height: h, fps: fps, videoContainer: c}, true
+	return videoFormat{res: res, fps: fps, videoContainer: c}, true
 }
 
 // videoFormatOf reads a format as a video track. A format that reports a
@@ -264,19 +265,26 @@ func videoFormatOf(f FormatEntry) (videoFormat, bool) {
 	if r := int(math.Round(f.FPS)); r > 30 {
 		fps = r
 	}
-	return videoFormat{height: f.Height, fps: fps, videoContainer: c}, true
+	return videoFormat{res: f.Res(), fps: fps, videoContainer: c}, true
 }
 
-// filter matches the track by its attributes.
-func (v videoFormat) filter() string {
-	f := fmt.Sprintf("[height=%d]", v.height) + v.videoContainer.filter()
+// filters match the track by its attributes, once for each way up it may
+// stand, since its key names a resolution and not the side it is measured on.
+func (v videoFormat) filters() []string {
+	rest := v.videoContainer.filter()
 	if v.fps > 0 {
-		return f + fmt.Sprintf("[fps>%d][fps<%d]", v.fps-1, v.fps+1)
+		rest += fmt.Sprintf("[fps>%d][fps<%d]", v.fps-1, v.fps+1)
+	} else {
+		// Below 30.5, the rate that rounds to 31, so a 30.3 fps track keeps the
+		// key videoFormatOf gave it. The ? keeps a track that reports no rate,
+		// as most outside YouTube do.
+		rest += "[fps<?30.5]"
 	}
-	// Below 30.5, the rate that rounds to 31, so a 30.3 fps track keeps the key
-	// videoFormatOf gave it. The ? keeps a track that reports no rate, as most
-	// outside YouTube do.
-	return f + "[fps<?30.5]"
+	out := atRes(v.res)
+	for i := range out {
+		out[i] += rest
+	}
+	return out
 }
 
 // selector asks for the track plus audio, the kind that keeps the track's own
@@ -284,30 +292,67 @@ func (v videoFormat) filter() string {
 // Nothing falls back to another track: a pick that is gone fails with yt-dlp's
 // own sentence rather than quietly fetching something else.
 func (v videoFormat) selector() string {
-	f := v.filter()
-	s := "bv" + f + "+ba/b" + f
-	if a := v.companionAudio(); a != "" {
-		s = "bv" + f + "+ba[ext=" + a + "]/" + s
+	return mergeSelector(v.filters(), v.companionAudio())
+}
+
+// atRes matches a track of resolution r either way up: a portrait track by its
+// width, any other by its height. A track that reports no width counts as
+// landscape, as it does for FormatEntry.Res.
+func atRes(r int) []string {
+	return []string{
+		fmt.Sprintf("[width=%d][height>%d]", r, r),
+		fmt.Sprintf("[height=%d][width>=?%d]", r, r),
 	}
-	return s
+}
+
+// underRes keeps the tracks whose resolution is at most r. yt-dlp filters by
+// width or by height but not by the smaller of the two, so a portrait track
+// taller than r but no wider is asked for first; the height filter alone would
+// pass over it for a far smaller one. "<=?" keeps a track of unknown height in
+// the running, where "<=" would drop it.
+func underRes(r int) []string {
+	return []string{
+		fmt.Sprintf("[width<=%d][height>%d]", r, r),
+		fmt.Sprintf("[height<=?%d]", r),
+	}
+}
+
+// mergeSelector asks for a video-only format that one of filters matches,
+// merged with audio of the companion container where there is one and then
+// with any audio, and last for a matching format that carries its own audio.
+// Each step tries the filters in order.
+func mergeSelector(filters []string, companion string) string {
+	var alts []string
+	if companion != "" {
+		for _, f := range filters {
+			alts = append(alts, "bv"+f+"+ba[ext="+companion+"]")
+		}
+	}
+	for _, f := range filters {
+		alts = append(alts, "bv"+f+"+ba")
+	}
+	for _, f := range filters {
+		alts = append(alts, "b"+f)
+	}
+	return strings.Join(alts, "/")
 }
 
 // videoWish is a host preset's video pick before a probe has resolved it: a
-// container with a codec, and the height it may not exceed (0 for none).
+// container with a codec, and the resolution it may not exceed (0 for none).
 type videoWish struct {
 	videoContainer
-	capHeight int
+	capRes int
 }
 
 func parseVideoWish(s string) (videoWish, bool) {
 	words := strings.Split(s, " ")
-	capHeight := 0
+	capRes := 0
 	if len(words) == 3 {
 		m := capToken.FindStringSubmatch(words[2])
 		if m == nil {
 			return videoWish{}, false
 		}
-		capHeight, _ = strconv.Atoi(m[1])
+		capRes, _ = strconv.Atoi(m[1])
 		words = words[:2]
 	}
 	// Two words, so a quality cap or "best" alone is never a wish, and the
@@ -319,30 +364,25 @@ func parseVideoWish(s string) (videoWish, bool) {
 	if !ok {
 		return videoWish{}, false
 	}
-	return videoWish{videoContainer: c, capHeight: capHeight}, true
+	return videoWish{videoContainer: c, capRes: capRes}, true
 }
 
 // selector asks for the best track of the container under the cap, then for
 // what the cap alone would give.
 func (w videoWish) selector() string {
-	g := w.filter()
-	fallback := "bv*+ba/b"
-	if w.capHeight > 0 {
-		h := strconv.Itoa(w.capHeight)
-		g += "[height<=?" + h + "]"
-		fallback = capSelector(h)
+	if w.capRes == 0 {
+		return mergeSelector([]string{w.filter()}, w.companionAudio()) + "/bv*+ba/b"
 	}
-	s := "bv" + g + "+ba/b" + g
-	if a := w.companionAudio(); a != "" {
-		s = "bv" + g + "+ba[ext=" + a + "]/" + s
+	filters := underRes(w.capRes)
+	for i := range filters {
+		filters[i] = w.filter() + filters[i]
 	}
-	return s + "/" + fallback
+	return mergeSelector(filters, w.companionAudio()) + "/" + capSelector(w.capRes)
 }
 
-// capSelector is the -f value for a height cap. "<=?" keeps formats with an
-// unknown height in the running, where "<=" would drop them.
-func capSelector(h string) string {
-	return "bestvideo[height<=?" + h + "]+bestaudio/best[height<=?" + h + "]"
+// capSelector is the -f value for a resolution cap.
+func capSelector(r int) string {
+	return mergeSelector(underRes(r), "")
 }
 
 // pickedContainer is the container a video track or wish asks for.
@@ -380,8 +420,8 @@ func IsVideoContainer(s string) bool {
 	return ok
 }
 
-// VideoTracks lists the distinct video tracks in formats, tallest first, as
-// the keys the video row stores.
+// VideoTracks lists the distinct video tracks in formats, highest resolution
+// first, as the keys the video row stores.
 func VideoTracks(formats []FormatEntry) []string {
 	seen := map[string]bool{}
 	var found []videoFormat
@@ -395,8 +435,8 @@ func VideoTracks(formats []FormatEntry) []string {
 	}
 	sort.Slice(found, func(i, j int) bool {
 		a, b := found[i], found[j]
-		if a.height != b.height {
-			return a.height > b.height
+		if a.res != b.res {
+			return a.res > b.res
 		}
 		if a.fps != b.fps {
 			return a.fps > b.fps
@@ -451,8 +491,16 @@ func containerRank(c videoContainer) int {
 
 // ResolveVideoPick turns a preset's wish into the best track of its container
 // under its cap, or, when the source has no track in that container, into the
-// cap alone. Any other pick comes back as it is.
+// cap alone. A track's key that the source does not list may name a portrait
+// track by its height, and takes that track's key. Any other pick comes back
+// as it is.
 func ResolveVideoPick(pick string, formats []FormatEntry) string {
+	if v, ok := parseVideoFormat(pick); ok {
+		if k, ok := v.byHeight(formats); ok {
+			return k
+		}
+		return pick
+	}
 	w, ok := parseVideoWish(pick)
 	if !ok {
 		return pick
@@ -461,20 +509,40 @@ func ResolveVideoPick(pick string, formats []FormatEntry) string {
 	found := false
 	for _, f := range formats {
 		v, ok := videoFormatOf(f)
-		if !ok || v.id() != w.id() || (w.capHeight > 0 && v.height > w.capHeight) {
+		if !ok || v.id() != w.id() || (w.capRes > 0 && v.res > w.capRes) {
 			continue
 		}
-		if !found || v.height > best.height || (v.height == best.height && v.fps > best.fps) {
+		if !found || v.res > best.res || (v.res == best.res && v.fps > best.fps) {
 			best, found = v, true
 		}
 	}
 	if found {
 		return best.key()
 	}
-	if q := Quality(fmt.Sprintf("%dp", w.capHeight)); w.capHeight > 0 && validQuality(q) {
+	if q := Quality(fmt.Sprintf("%dp", w.capRes)); w.capRes > 0 && validQuality(q) {
 		return string(q)
 	}
 	return string(QualityBest)
+}
+
+// byHeight reads v's number as a height and finds the key of that track: one
+// of the same container and frame rate that is that tall. It reports false
+// when the source lists v itself or has no such track.
+func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
+	renamed := ""
+	for _, f := range formats {
+		got, ok := videoFormatOf(f)
+		if !ok || got.fps != v.fps || got.id() != v.id() {
+			continue
+		}
+		if got.res == v.res {
+			return "", false
+		}
+		if f.Height == v.res && renamed == "" {
+			renamed = got.key()
+		}
+	}
+	return renamed, renamed != ""
 }
 
 // VideoFile predicts what a video row's pick downloads from formats: the
@@ -487,14 +555,14 @@ func VideoFile(pick string, formats []FormatEntry, embedThumbnail bool) (ext str
 	if v, ok := parseVideoFormat(pick); ok {
 		return v.file(formats, embedThumbnail)
 	}
-	if h, ok := HeightCap(Quality(pick)); ok {
+	if r, ok := ResCap(Quality(pick)); ok {
 		// capSelector: a video-only track and audio, else one that has both.
-		if v := bestVideo(formats, h, isVideoOnly); v != nil {
+		if v := bestVideo(formats, r, isVideoOnly); v != nil {
 			if a := bestAudio(formats, ""); a != nil {
 				return "mkv", mergedSize(v, a)
 			}
 		}
-		if v := bestVideo(formats, h, carriesBoth); v != nil {
+		if v := bestVideo(formats, r, carriesBoth); v != nil {
 			return v.Ext, v.Size()
 		}
 		return "", 0
@@ -583,12 +651,12 @@ func isVideoOnly(f FormatEntry) bool { return carries(f.Vcodec) && f.Acodec == "
 func carriesBoth(f FormatEntry) bool { return f.Vcodec != "none" && f.Acodec != "none" }
 
 // bestVideo is the video format yt-dlp's sort puts first among those that
-// want accepts and whose height is at most capHeight (0 for no cap): tallest,
-// then the highest frame rate, then the codec it prefers.
-func bestVideo(formats []FormatEntry, capHeight int, want func(FormatEntry) bool) *FormatEntry {
+// want accepts and whose resolution is at most capRes (0 for no cap): the
+// highest resolution, then the highest frame rate, then the codec it prefers.
+func bestVideo(formats []FormatEntry, capRes int, want func(FormatEntry) bool) *FormatEntry {
 	var best *FormatEntry
 	for i, f := range formats {
-		if f.Vcodec == "none" || !want(f) || (capHeight > 0 && f.Height > capHeight) {
+		if f.Vcodec == "none" || !want(f) || (capRes > 0 && f.Res() > capRes) {
 			continue
 		}
 		if best == nil || preferVideo(f, *best) {
@@ -599,8 +667,8 @@ func bestVideo(formats []FormatEntry, capHeight int, want func(FormatEntry) bool
 }
 
 func preferVideo(a, b FormatEntry) bool {
-	if a.Height != b.Height {
-		return a.Height > b.Height
+	if ra, rb := a.Res(), b.Res(); ra != rb {
+		return ra > rb
 	}
 	if ra, rb := math.Round(a.FPS), math.Round(b.FPS); ra != rb {
 		return ra > rb
@@ -916,6 +984,17 @@ func AudioFile(pick string, formats []FormatEntry) (ext string, size int64) {
 		return ExtractedExt(*a), a.Size()
 	}
 	return "", 0
+}
+
+// Res is the resolution a quality such as 1080p names, as yt-dlp's format
+// sort reads it: the smaller of width and height, so a portrait 1080x1920
+// track is 1080p like a landscape 1920x1080 one. A format that reports no
+// width is taken by its height.
+func (f FormatEntry) Res() int {
+	if f.Width > 0 && f.Width < f.Height {
+		return f.Width
+	}
+	return f.Height
 }
 
 // Size is a format's best known byte count: exact when the host reports one,

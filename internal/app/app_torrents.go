@@ -13,8 +13,6 @@
 package app
 
 import (
-	"time"
-
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -33,7 +31,7 @@ import (
 // (Task.Skipped), or nil when the mirror set folded it into one already listed.
 // The error is always nil; it matches AddLinksWithOptions.
 func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origin core.Origin) (*core.Task, error) {
-	now := time.Now()
+	now := a.stamps.next()
 	cand := rules.Candidate{URL: uri, Package: pkg, Added: now}
 	if v := a.filter(cand); v.Rejected {
 		return a.hold(cand, v, origin, now), nil

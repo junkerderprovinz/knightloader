@@ -76,7 +76,6 @@ export const fa: Dict = {
   'settings.accent': 'رنگ تأکید',
   'settings.rainbow': 'رنگین‌کمان',
   'settings.disco': 'دیسکو',
-  'settings.discoHint': 'تا وقتی حالت رنگین‌کمان روشن است، هر عنصر رنگی هر ثانیه یک بار به رنگ بعدی پالت می‌رود.',
   'settings.problems': 'مشکلی هست؟',
   'settings.problemsHint': 'وقتی چیزی را گزارش می‌کنید، این را هم بفرستید. یک دور پرسش و پاسخ را کم می‌کند و نه آدرسی در آن هست و نه توکنی.',
   'settings.problemsCopy': 'کپی گزارش',

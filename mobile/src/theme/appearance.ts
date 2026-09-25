@@ -10,6 +10,8 @@
 // rounding a luminance constant is how two apps on one design language stop
 // looking like one product.
 
+import { colourAt, type Loop } from './discoLoop';
+
 export type Shape = 'round' | 'soft' | 'square';
 
 export const SHAPES: Shape[] = ['round', 'soft', 'square'];
@@ -129,13 +131,34 @@ export function rainbowColor(state: RainbowState, i: number): string | undefined
   return state.on ? rainbowAt(state, i) : undefined;
 }
 
-// Disco, the colour engine's easter egg from reference/appearance.ts: while it
-// is on, the palette steps one position a second, so every hued element moves
-// to the next colour together. It animates nothing; each step is a render.
+// Disco, the colour engine's easter egg from reference/disco.ts: while it is
+// on, every hued element glides along the palette together, round the colour
+// wheel. A phone has no root variables for a frame loop to write, so the walk
+// is a theme that renders again on a timer (AppearanceContext), over the loop
+// in discoLoop.ts, which is the reference's file as it is.
 
-/** One step a second, well under the 3Hz flicker threshold photosensitivity
- *  guidance names, which is what decides the number. */
-export const DISCO_TICK_MS = 1000;
+/** The walk covers one palette colour's worth of loop every 2.4 seconds, a
+ *  full turn of eight in 19.2. Stepping, it moves one colour on at the same
+ *  interval, well under the 3Hz flicker threshold. */
+export const DISCO_TICK_MS = 2400;
+
+/** How often the glide redraws: ten times a second is smooth enough for a
+ *  colour that takes 2.4 seconds to arrive, and cheap enough for a whole
+ *  screen of hued controls. */
+export const DISCO_FRAME_MS = 100;
+
+/**
+ * The colour disco has walked position `i` to. `travelled` is how much of a
+ * full turn the walk has covered, from 0 up to 1, and `start` the palette
+ * entry position 0 sits on at rest. Stepping, the walk jumps from palette
+ * colour to palette colour instead of gliding between them.
+ */
+export function walkedColour(loop: Loop, start: number, travelled: number, i: number, steps: boolean): string {
+  const n = loop.palette.length;
+  const at = (((Math.trunc(i) + start) % n) + n) % n;
+  if (steps) return loop.palette[(at + Math.floor(travelled * n)) % n]!;
+  return colourAt(loop, loop.at[at]! + travelled * loop.at[n]!);
+}
 
 /** Turn-ons of rainbow mode that unlock it. */
 export const DISCO_UNLOCK_TURN_ONS = 5;

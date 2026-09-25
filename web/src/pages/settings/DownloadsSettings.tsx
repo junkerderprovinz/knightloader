@@ -5,6 +5,7 @@ import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
+import { ModuleToggle } from './ModuleToggle';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
 import { CollisionCard } from './downloads/Collision';
@@ -124,12 +125,7 @@ export function DownloadsSettings() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <ToggleRow
-            hue={1}
-            checked={cfg.verifyChecksums}
-            onChange={(v) => patch({ verifyChecksums: v })}
-            label={t('settings.verifyChecksums')}
-          />
+          <ModuleToggle id="checksums" hue={1} hint={t('settings.verifyChecksums')} />
           <ToggleRow
             hue={2}
             checked={cfg.preParserEnabled}

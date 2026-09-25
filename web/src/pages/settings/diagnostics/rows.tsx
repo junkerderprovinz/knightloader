@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode } from 'react';
 import type { SelfTestResult, SelfTestStatus } from '../../../lib/api';
-import { useT, type TranslationKey } from '../../../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../../../lib/i18n';
 import { InfoBubble } from '../../../components/ui';
 import { IconCheck, IconClock, IconClose, IconHelp, IconWarning } from '../../../lib/icons';
 
@@ -80,10 +80,7 @@ export function useLine() {
   return useCallback(
     (code: string, params?: Record<string, string>): string => {
       const raw = t(`settings.selftest.${code}` as TranslationKey) as string | undefined;
-      if (raw === undefined) return code;
-      let s = raw;
-      if (params) for (const [k, v] of Object.entries(params)) s = s.replaceAll(`{${k}}`, v);
-      return s;
+      return raw === undefined ? code : interpolate(raw, params);
     },
     [t],
   );

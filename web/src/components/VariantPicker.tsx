@@ -5,16 +5,19 @@
 // after the colon of core.Task.Variant (the grammar is
 // internal/resolver/ytdlp/formats.go's):
 //
-//   video   best, custom, 1080p         no format chosen, at most that height
+//   video   best, custom, 1080p         no format chosen, a resolution cap
 //           1080p60 webm vp9, 720p avi  one track
 //           webm vp9, webm vp9 1080p    a preset's format no probe has resolved
 //   audio   best, m4a, mp3              a format, its best track or a conversion
 //           opus 160k                   one track
 //
-// An audio row keeps a bitrate beside a format the source has no track in,
-// which is what a conversion encodes to (core.Task.AudioBitrate).
+// A resolution is yt-dlp's, the smaller side, so an upright 1080x1920 video
+// is 1080p (ytdlp.FormatEntry.Res). An audio row keeps a bitrate beside a
+// format the source has no track in, which is what a conversion encodes to
+// (core.Task.AudioBitrate).
 
 import type { ApiOptions, YtdlpHosterPreset } from '../lib/api';
+import { isolate } from '../lib/bidi';
 import type { TranslationKey } from '../lib/i18n';
 import { Dropdown, type DropdownWidth } from './Dropdown';
 
@@ -84,13 +87,14 @@ export const QUALITY_KEYS: Record<string, TranslationKey> = {
   custom: 'settings.resolvers.quality.custom',
 };
 
-/** How a height cap reads where there is room: "Up to 1080p", "Best available". */
+/** How a resolution cap reads where there is room: "Up to 1080p", "Best available". */
 export const capLabel = (q: string, t: Translate): string => (QUALITY_KEYS[q] ? t(QUALITY_KEYS[q]) : q);
 
 /**
  * How the quality picker reads a value: Auto for best, as the format picker
- * beside it does, and a height or track by its id. The picker has no room for
- * "Up to", and a cap and a track of one height rarely download different files.
+ * beside it does, and a resolution or track by its id. The picker has no room
+ * for "Up to", and a cap and a track of one resolution rarely download
+ * different files.
  */
 function qualityLabel(q: string, t: Translate): string {
   if (q === 'best') return t('columns.variant.auto');
@@ -106,16 +110,37 @@ export function formatLabel(format: string, t: Translate): string {
 
 /** How a bitrate reads: "160 kbit/s", and Auto for none. */
 export const bitrateLabel = (b: string, t: Translate): string =>
-  b ? t('columns.variant.kbps', { kbps: b }) : t('columns.variant.auto');
+  b ? isolate(t('columns.variant.kbps', { kbps: Number(b) })) : t('columns.variant.auto');
 
 const VIDEO_TRACK = /^(\d+)p(\d*) (.+)$/;
 const CAP = /^\d+p$/;
 const AUDIO_TRACK = /^([a-z0-9]+) (\d+)k$/;
 
-const heightOf = (q: string): number => Number(/^(\d+)p/.exec(q)?.[1] ?? 0);
+const resOf = (q: string): number => Number(/^(\d+)p/.exec(q)?.[1] ?? 0);
 
 /** A stored value the menu does not list stays on it, or picking would lose it. */
 const withValue = (list: string[], value: string): string[] => (list.includes(value) ? list : [...list, value]);
+
+/** Where a quality stands in its menu: by resolution, then by frame rate. */
+const rankOf = (q: string): number => {
+  const m = /^(\d+)p(\d*)$/.exec(q);
+  return m ? Number(m[1]) * 1000 + Number(m[2] || 0) : 0;
+};
+
+/**
+ * withValue for the quality picker: a stored quality the menu does not list,
+ * such as a track the last probe did not see, takes its place in the order
+ * rather than trailing after the smallest one.
+ */
+function withQuality(list: string[], value: string): string[] {
+  if (list.includes(value)) return list;
+  const rank = rankOf(value);
+  if (rank === 0) return [...list, value];
+  let at = list.findIndex((q) => rankOf(q) > 0 && rankOf(q) < rank);
+  if (at < 0) at = list.indexOf('custom');
+  if (at < 0) at = list.length;
+  return [...list.slice(0, at), value, ...list.slice(at)];
+}
 
 /**
  * Every format menu starts with best, a server that sent none included. aac
@@ -153,9 +178,9 @@ export function readVideoPick(pick: string): { format: string; quality: string }
 
 /**
  * The qualities a format offers. With tracks, a chosen format offers its own
- * tracks' heights and frame rates. Without them, as for a preset or a link no
- * probe has answered for, it offers the height caps, custom aside, since a
- * custom format string already says everything a format would.
+ * tracks' resolutions and frame rates. Without them, as for a preset or a link
+ * no probe has answered for, it offers the resolution caps, custom aside,
+ * since a custom format string already says everything a format would.
  */
 function qualitiesFor(format: string, tracks: string[] | null, caps: string[]): string[] {
   if (format === 'best') return caps;
@@ -168,11 +193,11 @@ function qualitiesFor(format: string, tracks: string[] | null, caps: string[]): 
   return out;
 }
 
-/** The quality a new format keeps: the same, else the tallest not above it, else the first. */
+/** The quality a new format keeps: the same, else the highest not above it, else the first. */
 function qualityIn(options: string[], current: string): string {
   if (options.includes(current)) return current;
-  const h = heightOf(current);
-  const under = h > 0 ? options.find((o) => heightOf(o) > 0 && heightOf(o) <= h) : undefined;
+  const r = resOf(current);
+  const under = r > 0 ? options.find((o) => resOf(o) > 0 && resOf(o) <= r) : undefined;
   return under ?? options[0] ?? 'best';
 }
 
@@ -185,7 +210,8 @@ function composeVideo(format: string, quality: string, tracks: string[] | null):
 /**
  * videoPickers lays out a video pick as its format picker and its quality
  * picker. `tracks` is null where nothing was probed, a preset or a link whose
- * probe has not answered, and the quality is then a height cap in any format.
+ * probe has not answered, and the quality is then a resolution cap in any
+ * format.
  */
 export function videoPickers(o: {
   pick: string;
@@ -198,7 +224,7 @@ export function videoPickers(o: {
 }): { format: PickerProps; quality: PickerProps } {
   const { format, quality } = readVideoPick(o.pick || 'best');
   const formats = withValue(formatMenu(o.formats), format);
-  const qualities = withValue(qualitiesFor(format, o.tracks, o.caps), quality);
+  const qualities = withQuality(qualitiesFor(format, o.tracks, o.caps), quality);
   const caps = format === 'best' || o.tracks === null;
   return {
     format: {
@@ -216,8 +242,8 @@ export function videoPickers(o: {
       groups: caps
         ? [
             qualities.filter((q) => q === 'best'),
-            qualities.filter((q) => heightOf(q) > 0),
-            qualities.filter((q) => q !== 'best' && heightOf(q) === 0),
+            qualities.filter((q) => resOf(q) > 0),
+            qualities.filter((q) => q !== 'best' && resOf(q) === 0),
           ]
         : [qualities],
       label: o.t('settings.resolvers.quality'),
@@ -354,13 +380,13 @@ export function presetPickers(o: {
 export function videoSummary(pick: string, t: Translate): string {
   const { format, quality } = readVideoPick(pick || 'best');
   if (format === 'best') return quality === 'best' ? formatLabel(format, t) : capLabel(quality, t);
-  if (VIDEO_TRACK.test(pick)) return `${quality} ${formatLabel(format, t)}`;
-  return `${formatLabel(format, t)} ${capLabel(quality, t)}`;
+  if (VIDEO_TRACK.test(pick)) return isolate(`${quality} ${formatLabel(format, t)}`);
+  return isolate(`${formatLabel(format, t)} ${capLabel(quality, t)}`);
 }
 
 /** How an audio pick reads in one line: "Auto", "opus 160 kbit/s", "mp3". */
 export function audioSummary(pick: string, bitrate: string, t: Translate): string {
   const { format, bitrate: b } = readAudioPick(pick, bitrate);
   if (format === 'best' || !b) return formatLabel(format, t);
-  return `${formatLabel(format, t)} ${bitrateLabel(b, t)}`;
+  return isolate(`${formatLabel(format, t)} ${bitrateLabel(b, t)}`);
 }

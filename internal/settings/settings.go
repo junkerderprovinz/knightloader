@@ -347,6 +347,12 @@ type Settings struct {
 	// which is not what the word suggests.
 	NavLabels string `json:"navLabels"`
 
+	// BottomBarLabels is how much of an entry the bar along the bottom of the
+	// phone layout draws: "follow", the default, draws it the way NavLabels
+	// says, and NavLabels' own four values set it apart from the sidebar. It
+	// changes nothing on a wider screen, where there is no bar.
+	BottomBarLabels string `json:"bottomBarLabels"`
+
 	// AutoUpdateCheck asks the desktop build to call update.Check once at
 	// startup, and the Allgemein tab to do the same on load, instead of only on
 	// a click of "Check for updates". The container build reads it nowhere. Off
@@ -700,10 +706,11 @@ func Defaults() Settings {
 		// three that is not, so that confirming a link still starts it.
 		AutoStart: true,
 		// Never ExcludeAndRemove, see confirm.DefaultPolicy.
-		OnDupes:   string(confirm.DefaultPolicy),
-		OnOffline: string(confirm.DefaultPolicy),
-		Shape:     ShapeRound,
-		NavLabels: NavLabelsBoth,
+		OnDupes:         string(confirm.DefaultPolicy),
+		OnOffline:       string(confirm.DefaultPolicy),
+		Shape:           ShapeRound,
+		NavLabels:       NavLabelsBoth,
+		BottomBarLabels: BottomBarFollowsNav,
 		// Keep the archive, unpack beside it, and write into the folder that is
 		// already there. The retention is only consulted once somebody switches
 		// disposal to trash.

@@ -9,7 +9,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
-import { fmtBytes } from '../api/stats';
+import { fmtSpeed } from '../api/stats';
 import { deleteTasks, reorderTasks, startTasks } from '../api/client';
 import { Text } from '../components/Text';
 
@@ -173,7 +173,7 @@ export default function DownloadsScreen({
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
                   {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '-'}
                   {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
-                  {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
+                  {speed > 0 ? ` · ${fmtSpeed(speed)}` : ''}
                 </Text>
                 {/* BOTH options, always on screen, with only the one in force
                     filled - the same control the overview's own summary card

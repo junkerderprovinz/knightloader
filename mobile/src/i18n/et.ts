@@ -76,7 +76,6 @@ export const et: Dict = {
   'settings.accent': 'Rõhuvärv',
   'settings.rainbow': 'Vikerkaar',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Kuni vikerkaarerežiim on sees, liigub iga värviline element kord sekundis paleti järgmisele värvile.',
   'settings.problems': 'Probleemid?',
   'settings.problemsHint': 'Saada see kaasa, kui millestki teatad. See säästab ühe küsimustevooru ja selles ei ole aadressi ega võtit.',
   'settings.problemsCopy': 'Kopeeri aruanne',

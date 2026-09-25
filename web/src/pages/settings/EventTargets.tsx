@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, LabelBadge, SectionTitle } from '../../components/ui';
+import { Button, Card, SectionTitle } from '../../components/ui';
 import { IconPlus } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
@@ -12,6 +12,7 @@ import {
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
 import { useDraft, useFeatures } from './context';
 import { TargetRow } from './eventtargets/TargetRow';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * EventTargetsCard lists the addresses this instance reports to when something
@@ -106,8 +107,8 @@ export function EventTargetsCard({ hue }: { hue: number }) {
   const health = useHealth();
   const { triggers, placeholders } = useVocabulary();
 
-  // The Modules page parks the rows and clears the list. Checked with `parked`,
-  // because an empty list on a fresh install also reads as off.
+  // Switching the module off parks the rows and clears the list. Checked with
+  // `parked`, because an empty list on a fresh install also reads as off.
   const module = features.modules.find((m) => m.id === 'eventtargets');
   const parked = module !== undefined && !module.enabled && module.parked;
 
@@ -144,34 +145,32 @@ export function EventTargetsCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.eventTargets.titleHint')}
         right={
-          <div className="flex items-center gap-2">
-            {/* While the module is off the badge replaces the Add button. */}
-            {parked && <LabelBadge label={t('settings.modules.off')} />}
-            {!parked && (
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-                {t('settings.eventTargets.add')}
-              </Button>
-            )}
-          </div>
+          // A row added while the module is off would take the place of the
+          // parked ones, so Add waits for the switch.
+          !parked && (
+            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              {t('settings.eventTargets.add')}
+            </Button>
+          )
         }
       >
-        {t('settings.eventTargets.title')}
+        {t('settings.module.eventtargets')}
       </SectionTitle>
+      <ModuleToggle id="eventtargets" />
 
-      {/* Parking clears the list on the server, so while the module is off
-          only the empty-state sentence remains. */}
+      {/* Parking clears the list on the server. "No targets yet" would not be
+          true while they wait for the switch, so the switch stands alone. */}
       <div>
         {total === 0 ? (
-          // Inside the card rather than an EmptyState, which would hide Add.
-          <p className="py-6 text-center text-sm text-carbon-textSub">
-            {t('settings.eventTargets.empty')}
-            {/* The invitation to add one goes with the Add button. */}
-            {!parked && (
+          !parked && (
+            // Inside the card rather than an EmptyState, which would hide Add.
+            <p className="py-6 text-center text-sm text-carbon-textSub">
+              {t('settings.eventTargets.empty')}
               <span className="mt-1 block text-[11px] text-carbon-textMuted">
                 {t('settings.eventTargets.emptyHint')}
               </span>
-            )}
-          </p>
+            </p>
+          )
         ) : (
           <ul className="flex flex-col">
             {rows.map((row, i) => (

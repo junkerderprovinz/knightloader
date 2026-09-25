@@ -76,7 +76,6 @@ export const fr: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Arc-en-ciel',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Tant que le mode arc-en-ciel est activé, chaque élément coloré passe à la couleur suivante de la palette une fois par seconde.',
   'settings.problems': 'Un problème ?',
   'settings.problemsHint': 'Joignez ceci quand vous signalez quelque chose. Cela évite un aller-retour de questions, et ni adresse ni jeton n’y figurent.',
   'settings.problemsCopy': 'Copier le rapport',

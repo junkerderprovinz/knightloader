@@ -306,7 +306,7 @@ function applyStaticText() {
   label('rainbowLabel', t('options.rainbow'), t('options.rainbowHint'));
   label('rainbowReactiveLabel', t('options.rainbowReactive'), t('options.rainbowReactiveHint'));
   label('rainbowRotateLabel', t('options.rainbowRotate'), t('options.rainbowRotateHint'));
-  label('rainbowDiscoLabel', t('options.disco'), t('options.discoHint'));
+  label('rainbowDiscoLabel', t('options.disco'), t('options.discoGlideHint'));
   label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
 
@@ -842,9 +842,9 @@ const shapeSeg = document.getElementById('shapeSeg');
 const accentSwatches = document.getElementById('accentSwatches');
 
 /**
- * paintHues gives every card a palette position and the three rainbow rows
- * their own run. Rerun after every appearance change, since rotation changes
- * what each position resolves to.
+ * paintHues gives every card a palette position and the rainbow rows their own
+ * run. A position points at the root's colours, so a palette change or a
+ * rotation needs no second pass.
  */
 function paintHues() {
   // Positions go on the card, so everything inside that uses --accent follows.
@@ -1091,11 +1091,10 @@ async function renderAppearance() {
     a.rainbow.on ? `${t('options.accentHint')} ${t('options.accentRainbowOwns')}` : t('options.accentHint'),
   );
 
-  // The hues last, since the palette decides what each position resolves to;
-  // the report names the look too. Disco after them: it walks from the stored
-  // palette, which the calls above have just put back.
+  // The report names the look, so it comes last. Disco before it: it walks on
+  // from the stored palette, which the calls above have just applied.
   paintHues();
-  applyDisco(a.disco, a.rainbow);
+  applyDisco(a.disco);
   void renderReport();
 }
 
@@ -1148,21 +1147,21 @@ function renderAbout() {
   if (coffeeText) coffeeText.textContent = t('options.aboutCoffee');
   if (coffeeBtn) {
     coffeeBtn.href = COFFEE_URL;
-    coffeeBtn.replaceChildren(glyph(D_COFFEE, 15, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
+    coffeeBtn.replaceChildren(glyph(D_COFFEE, 14, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
   }
   const paypalBtn = document.getElementById('aboutPaypalBtn');
   if (paypalBtn) {
     paypalBtn.href = PAYPAL_URL;
-    paypalBtn.replaceChildren(glyph(D_PAYPAL, 15, BRAND_BOX), document.createTextNode(t('options.aboutPaypal')));
+    paypalBtn.replaceChildren(glyph(D_PAYPAL, 14, BRAND_BOX), document.createTextNode(t('options.aboutPaypal')));
   }
   // Bitcoin's letterform reads as "crypto" to somebody who has never held any;
   // the window then shows every coin on offer, so nobody takes it for the only
   // one.
-  cryptoBtn.replaceChildren(glyph(BTC_LETTER.d, 15, BTC_LETTER.box), document.createTextNode(t('options.aboutCrypto')));
+  cryptoBtn.replaceChildren(glyph(BTC_LETTER.d, 14, BTC_LETTER.box), document.createTextNode(t('options.aboutCrypto')));
   const reportText = document.getElementById('aboutReport');
   if (reportText) reportText.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
-  gh.replaceChildren(glyph(D_GITHUB, 15), document.createTextNode(t('options.aboutGithub')));
+  gh.replaceChildren(glyph(D_GITHUB, 14), document.createTextNode(t('options.aboutGithub')));
   // The subject names the product; a prefilled body would read like a form.
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
   mail.replaceChildren(glyph(D_MAIL, 14), document.createTextNode(t('options.aboutMail')));
@@ -1176,7 +1175,6 @@ function renderAbout() {
 const cryptoBtn = document.getElementById('aboutCryptoBtn');
 const cryptoEl = document.getElementById('cryptoDonate');
 const cryptoTitleEl = document.getElementById('cryptoTitle');
-const cryptoIntroEl = document.getElementById('cryptoIntro');
 const cryptoQrEl = document.getElementById('cryptoQr');
 const cryptoAddressEl = document.getElementById('cryptoAddress');
 const cryptoChainsEl = document.getElementById('cryptoChains');
@@ -1223,7 +1221,7 @@ function qrSvg(value, size) {
  *  tiles and the chips apart. */
 function renderCrypto() {
   cryptoTitleEl.textContent = t('options.cryptoTitle');
-  cryptoIntroEl.textContent = t('options.cryptoIntro');
+  glimSetInfo('cryptoHeading', t('options.cryptoIntro'));
   cryptoQrEl.replaceChildren(qrSvg(cryptoNetwork.address, 168));
   cryptoAddressEl.textContent = cryptoNetwork.address;
 

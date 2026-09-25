@@ -166,7 +166,7 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 			writeValidationError(w, err)
 			return
 		}
-		if err := validateRows(preview); err != nil {
+		if err := validateRows(preview, patched(patch)); err != nil {
 			writeValidationError(w, err)
 			return
 		}

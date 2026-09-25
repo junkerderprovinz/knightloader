@@ -85,12 +85,10 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
       <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
         {/* Swallows the press so a tap inside the window closes nothing. */}
         <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
-          <NotchCard title={t('settings.cryptoTitle')} style={styles.flush}>
+          <NotchCard title={t('settings.cryptoTitle')} info={t('settings.cryptoIntro')} style={styles.flush}>
             {/* Only the body scrolls, so the title and the bottom row stay in
                 place on a short screen (rule 15). */}
             <ScrollView style={{ maxHeight: height * 0.66 }} contentContainerStyle={styles.body}>
-              <Text style={[styles.intro, { color: c.textSub }]}>{t('settings.cryptoIntro')}</Text>
-
               <View style={[styles.code, { backgroundColor: c.surface2, borderRadius: radii.card }]}>
                 {/* Black on white in both themes: an inverted code is outside
                     the standard, and the scanners that refuse it are the wallet
@@ -263,7 +261,6 @@ const styles = StyleSheet.create({
   window: { width: '100%', maxWidth: 480 },
   flush: { marginTop: 0 },
   body: { gap: 16, paddingTop: 4 },
-  intro: { fontSize: TYPE.body, lineHeight: 20 },
   code: { alignItems: 'center', gap: 12, padding: 16 },
   plate: { padding: 12, backgroundColor: '#ffffff' },
   address: {

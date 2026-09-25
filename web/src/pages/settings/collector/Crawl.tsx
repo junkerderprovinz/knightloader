@@ -1,8 +1,9 @@
 import { Card, Field, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { useDraft } from '../context';
+import { ModuleToggle } from '../ModuleToggle';
 
-// The page crawl: a pasted page is opened and the files it links to are
+// The page crawler: a pasted page is opened and the files it links to are
 // collected instead of the page itself.
 
 export function CrawlCard({ hue }: { hue: number }) {
@@ -11,8 +12,8 @@ export function CrawlCard({ hue }: { hue: number }) {
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
-      <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
+      <SectionTitle>{t('settings.module.crawler')}</SectionTitle>
+      <ModuleToggle id="crawler" hue={0} hint={t('settings.crawl')} />
 
       {cfg.crawl && (
       <div className="flex flex-col gap-5">

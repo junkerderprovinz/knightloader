@@ -276,6 +276,7 @@ func TestAFinishedDownloadKeepsNoCeiling(t *testing.T) {
 // The second half matters as much: a guard that never fires would pass the
 // stale case and switch the automatic retries off altogether.
 func TestAnAbandonedRetryTimerIsNotThisTasksRetry(t *testing.T) {
+	t.Parallel()
 	a := retryApp(t, func(*settings.Settings) {})
 	abandoned := time.Now().Add(-5 * time.Minute) // what the old timer was armed for
 	current := time.Now().Add(10 * time.Minute)   // what the row is counting down to

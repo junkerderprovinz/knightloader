@@ -18,7 +18,7 @@ import (
 // holds a few rows, so reported sizes are real.
 func newMaintApp(t *testing.T) *App {
 	t.Helper()
-	a, err := New(t.TempDir())
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -414,6 +414,7 @@ func TestTheScheduleStandsDownWhileDownloadsRun(t *testing.T) {
 // TestTheScheduledPassOnlyChecksUnlessToldOtherwise: compaction needs room for
 // a second copy of the database, so the schedule only compacts when asked to.
 func TestTheScheduledPassOnlyChecksUnlessToldOtherwise(t *testing.T) {
+	t.Parallel()
 	a := newMaintApp(t)
 	cfg := a.Settings.Get()
 	cfg.MaintenanceIntervalDays = 30

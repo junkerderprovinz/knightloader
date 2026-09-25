@@ -1,11 +1,10 @@
 import { useMemo, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, type Settings, fetchInstances, fetchSettings } from '../lib/api';
-import { hueVars, rainbowAt } from '../lib/appearance';
-import { useRainbow } from '../lib/useRainbow';
+import { hueVars } from '../lib/appearance';
 import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
-import { fmtBytes, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtRate, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { Card, PageHeader, SectionTitle, EmptyState } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
@@ -19,7 +18,6 @@ import { IconDownloads } from '../lib/icons';
 
 export function Dashboard() {
   const { t } = useT();
-  useRainbow();
   const tasks = useTasks('');
   const { data: instances } = useResource<Instance[]>(fetchInstances);
   // Carries the configured instance name and the speed limit.
@@ -64,16 +62,12 @@ export function Dashboard() {
           together, or `.glim-hue` resolves --accent to nothing. */}
       <div
         className="glim-card glim-hue grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8"
-        style={hueVars(rainbowAt(0)) as CSSProperties}
+        style={hueVars(0) as CSSProperties}
       >
         <div>
           <div className="glim-eyebrow">{t('overview.totalSpeed')}</div>
-          {/* The figure keeps its own order in a right-to-left page, where a
-              number followed by a Latin unit would otherwise read unit first;
-              the inner span isolates it and the line still starts at the start
-              edge. */}
           <div className="glim-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
-            <span dir="ltr">{fmtSpeed(counts.speed) || '0 B/s'}</span>
+            {fmtRate(counts.speed)}
           </div>
           <div className="mt-4">
             <Counters counts={counts} />
@@ -105,7 +99,7 @@ export function Dashboard() {
                       />
                     </div>
                   </div>
-                  <span className="glim-num text-xs text-carbon-textSub" dir="ltr">
+                  <span className="glim-num text-xs text-carbon-textSub">
                     {fmtBytes(x.size)}
                   </span>
                   <StatusPill status={x.status} />

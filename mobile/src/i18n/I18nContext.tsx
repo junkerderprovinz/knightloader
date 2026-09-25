@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { getLocales } from 'expo-localization';
 import { en, type Dict, type TranslationKey } from './en';
 import { AVAILABLE, load, loaded } from './index';
+import { isolate, setRightToLeft } from './bidi';
+import { LANGUAGES } from './catalogue';
 import { getLanguageOverride, setLanguageOverride } from '../storage/languagePreference';
 
 export type { TranslationKey, Dict };
@@ -56,7 +58,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let current = true;
     load(lang).then((d) => {
-      if (current) setDict(d);
+      if (!current) return;
+      // Before the dictionary, so the render it causes already isolates.
+      setRightToLeft(LANGUAGES.some((l) => l.code === lang && l.rtl));
+      setDict(d);
     });
     return () => {
       current = false;
@@ -71,7 +76,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>) => {
       let s: string = dict[key] ?? en[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+      // A text value is isolated so it keeps its own order in a right-to-left
+      // sentence; a number is not, since digits already stay together and an
+      // isolate would turn "{n}/{total}" into "5/1".
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          s = s.replaceAll(`{${k}}`, typeof v === 'number' ? String(v) : isolate(v));
+        }
+      }
       return s;
     },
     [dict]

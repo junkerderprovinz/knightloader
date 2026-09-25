@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/realpath"
 )
 
 // envBrowseRoots is the variable internal/api/routes_folders.go reads too, so
@@ -49,10 +50,10 @@ type TaskFile struct {
 //
 //  1. The task's files must be local (see filesAreLocal).
 //  2. The stored name must pass usableFilename, the same rule a rename uses.
-//  3. dirFor(t), after filepath.EvalSymlinks, must be inside fileServeRoots.
+//  3. dirFor(t), with every link resolved, must be inside fileServeRoots.
 //     t.Dir is a client-supplied override with no validation of its own, so
 //     without this a crafted Dir could serve settings.json or the database.
-//  4. The joined file, after filepath.EvalSymlinks, must still be inside that
+//  4. The joined file, with every link resolved, must still be inside that
 //     folder, which catches a planted symlink.
 func (a *App) SafeTaskFile(id string) (TaskFile, error) {
 	a.mu.Lock()
@@ -79,11 +80,11 @@ func (a *App) SafeTaskFile(id string) (TaskFile, error) {
 	dir := a.dirFor(&snap)
 	full := filepath.Join(dir, name)
 
-	realDir, err := filepath.EvalSymlinks(dir)
+	realDir, err := realpath.Resolve(dir)
 	if err != nil {
 		return TaskFile{}, ErrTaskFileNoBytes
 	}
-	realFull, err := filepath.EvalSymlinks(full)
+	realFull, err := realpath.Resolve(full)
 	if err != nil {
 		return TaskFile{}, ErrTaskFileNoBytes
 	}
@@ -129,7 +130,7 @@ func (a *App) fileServeRoots(p string) ([]string, error) {
 	set := strings.TrimSpace(os.Getenv(envBrowseRoots))
 	if set == "" {
 		root := fixedPathPrefix(a.defaultDir())
-		real, err := filepath.EvalSymlinks(root)
+		real, err := realpath.Resolve(root)
 		if err != nil {
 			// Refuse rather than fall back to something wider while setup is
 			// incomplete.
@@ -143,7 +144,7 @@ func (a *App) fileServeRoots(p string) ([]string, error) {
 		if part == "" || !filepath.IsAbs(part) {
 			continue
 		}
-		if real, err := filepath.EvalSymlinks(part); err == nil {
+		if real, err := realpath.Resolve(part); err == nil {
 			out = append(out, filepath.Clean(real))
 			continue
 		}

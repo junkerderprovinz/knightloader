@@ -5,8 +5,9 @@
 // a convenience, not a gate.
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
+import { ltr } from '../lib/bidi';
 import { fmtBytes } from '../lib/format';
-import { message } from '../lib/intake';
+import { containerRefusal, message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { Button } from './ui';
 import { Tip } from './columns';
@@ -16,11 +17,11 @@ import { IconCheck } from '../lib/icons';
 // fmtElapsed prints seconds in fmtEta's compact shape: "12s", "3m 5s", "1h 2m".
 function fmtElapsed(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
-  if (s < 60) return `${s}s`;
+  if (s < 60) return ltr(`${s}s`);
   const m = Math.floor(s / 60);
-  if (s < 3600) return `${m}m ${s % 60}s`;
+  if (s < 3600) return ltr(`${m}m ${s % 60}s`);
   const h = Math.floor(s / 3600);
-  return `${h}h ${Math.floor((s % 3600) / 60)}m`;
+  return ltr(`${h}h ${Math.floor((s % 3600) / 60)}m`);
 }
 
 /**
@@ -222,13 +223,13 @@ function TorrentTreeCard({
         )}
       </div>
 
-      <div className="flex items-center gap-3 text-xs">
-        <button type="button" className="text-accentInk hover:underline" onClick={() => setAll(true)}>
+      <div className="flex items-center gap-2">
+        <Button kind="secondary" onClick={() => setAll(true)}>
           {t('torrent.tree.selectAll')}
-        </button>
-        <button type="button" className="text-accentInk hover:underline" onClick={() => setAll(false)}>
+        </Button>
+        <Button kind="secondary" onClick={() => setAll(false)}>
           {t('torrent.tree.selectNone')}
-        </button>
+        </Button>
       </div>
 
       {/* Hairlines rather than a fill, which would vanish on the surface2 well. */}
@@ -324,7 +325,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
         pkg: landed.size === 1 ? [...landed][0] : '',
       };
     } catch (e) {
-      return { file: f.name, kind: 'failed', reason: message(e) };
+      return { file: f.name, kind: 'failed', reason: containerRefusal(t, e) };
     }
   }
 

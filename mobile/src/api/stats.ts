@@ -1,5 +1,6 @@
 import { fetchQueue, request } from './client';
 import type { ServerConnection } from './types';
+import { ltr } from '../i18n/bidi';
 
 /**
  * What one instance is doing, in the figures the whole family shows. The
@@ -79,8 +80,7 @@ export function aggregate(all: (InstanceStats | null)[]): InstanceStats & {
   };
 }
 
-/** Binary units, the same ladder the web UI and the extension walk. */
-export function fmtBytes(n: number): string {
+function bytes(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return '0 B';
   const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
   let v = n;
@@ -91,3 +91,12 @@ export function fmtBytes(n: number): string {
   }
   return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(1)} ${units[i]}`;
 }
+
+/**
+ * Binary units, the same ladder the web UI and the extension walk. The figure
+ * and its unit keep their order in a right-to-left line (i18n/bidi.ts).
+ */
+export const fmtBytes = (n: number): string => ltr(bytes(n));
+
+/** A transfer rate, one token with its unit for the same reason. */
+export const fmtSpeed = (n: number): string => ltr(`${bytes(n)}/s`);

@@ -102,14 +102,7 @@ export function RetryNote({ task, form }: { task: Task; form: 'compact' | 'full'
     state.kind === 'gaveUp' ? undefined : { n: state.n, max: state.max ?? 0, countdown };
   const full = t(fullKey(state), vars);
 
-  if (form === 'full') {
-    // Translated prose, overriding the tooltip field's dir="ltr".
-    return (
-      <span dir="auto" className="glim-num block">
-        {full}
-      </span>
-    );
-  }
+  if (form === 'full') return <span className="glim-num block">{full}</span>;
 
   // "2/3 · 4:12" while counting down; the verdicts are short enough already.
   // Styled like the cell's other notes.

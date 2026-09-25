@@ -9,7 +9,8 @@ package app
 //
 //   - no UPnP mapping (routes_portmap.go writes a rule into the router);
 //   - no reconnect, which would drop the WAN link under the other checks;
-//   - no MkdirAll, which is why settings.Validate is not used here;
+//   - no folder made, which is why settings.Validate is not used here: it
+//     answers for a missing folder by making and removing a throwaway one;
 //   - no machine the operator did not configure, so there is no external "is my
 //     torrent port open" probe (see internal/proxycfg/probe.go);
 //   - no report to the account-health tracker (see selfTestAccountsRO).
@@ -384,7 +385,7 @@ func folderRow(v VolumeReport, mark int64) selftest.Result {
 }
 
 // probeWritable writes and removes settings.WriteProbeName in dir, which must
-// already exist. settings.Validate would also create the folder.
+// already exist. settings.Validate would pass a folder that is not there yet.
 func probeWritable(dir string) error {
 	probe := filepath.Join(dir, settings.WriteProbeName)
 	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {

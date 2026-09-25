@@ -29,7 +29,7 @@ func leftovers(t *testing.T, dir string) []string {
 // from the data directory, so a leftover probe file is unambiguous.
 func newPreflightApp(t *testing.T) (*App, string) {
 	t.Helper()
-	a, err := New(t.TempDir())
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,6 +102,7 @@ func TestMarkStartupCheckOffIsNotAnEmptyPass(t *testing.T) {
 
 // Every configured folder gets a row at boot, and none of them gets a file.
 func TestBootPassLooksAtEverythingAndWritesNothing(t *testing.T) {
+	t.Parallel()
 	a, downloads := newPreflightApp(t)
 
 	a.StartStartupCheck()
@@ -140,6 +141,7 @@ func TestBootPassLooksAtEverythingAndWritesNothing(t *testing.T) {
 // The button runs the write test and keeps the stored boot reading, which is
 // what a support thread needs.
 func TestPressingCheckAgainWritesAndKeepsTheBootReading(t *testing.T) {
+	t.Parallel()
 	a, downloads := newPreflightApp(t)
 
 	a.StartStartupCheck()

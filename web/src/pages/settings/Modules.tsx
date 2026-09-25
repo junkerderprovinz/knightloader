@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Card, InfoBubble, SectionTitle, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
-import { IconChevronEnd } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 import { useFeatures } from './context';
 import type { Feature } from './features';
 import { clearJump, requestJump } from './jump';
+import { PageBadge } from './ModuleToggle';
 import { SETTINGS_INDEX } from './searchIndex';
-import { label, moduleDetail, moduleReason, useTx } from './tx';
+import { label, moduleDetail, moduleReason, switchRefusal, useTx } from './tx';
 
 /**
  * Modules lists what this build contains, with a switch on every module the
@@ -67,6 +66,7 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
     ? tx('settings.modules.configureFirst', { page: label(tx, 'settings.nav.', m.page) })
     : moduleReason(tx, m);
   const dimmed = !m.enabled && shipped;
+  const name = label(tx, 'settings.module.', m.id);
   const page = m.page !== 'modules' ? m.page : '';
 
   async function onToggle(next: boolean) {
@@ -75,65 +75,64 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
       await toggle(m.id, next);
     } catch (e) {
       // The server refuses a switch it cannot honour and says why.
-      toast(tx('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      toast(tx('settings.modules.switchFailed', { reason: switchRefusal(tx, e) }), 'fail');
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div
-      className={`flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 transition-opacity hover:bg-carbon-hover ${
-        dimmed ? 'opacity-55' : ''
-      }`}
-    >
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[var(--radius-control)] px-3 py-2.5 hover:bg-carbon-hover">
+      {/* data-glim-label lets a jump land here; on this column rather than on
+          the name, so the switch is the first control beside it and takes the
+          focus. The dimming is on the words, never on the row, so the (i), the
+          badge and the switch stay at full strength. */}
+      <div data-glim-label={name} className="flex min-w-[min(100%,12rem)] flex-1 flex-col gap-0.5">
         <span className="flex items-center text-sm text-carbon-text">
-          {label(tx, 'settings.module.', m.id)}
+          <span className={dimmed ? 'opacity-55' : ''}>{name}</span>
           {reason && <InfoBubble tip={reason} />}
         </span>
         {detailText && (
           // Truncated so a long path does not push the switch down a line; the
           // tooltip carries the whole of it.
-          <span {...detail.triggerProps} className="truncate text-[11px] text-carbon-textMuted" dir="auto">
+          <span
+            {...detail.triggerProps}
+            className={`truncate text-[11px] text-carbon-textMuted ${dimmed ? 'opacity-55' : ''}`}
+            dir="auto"
+          >
             {detailText}
           </span>
         )}
-        {page && (
-          <Link
-            to={`/settings/${page}`}
-            onClick={() => jumpToSwitch(m.id, page)}
-            className="flex w-fit items-center gap-1 text-[11px] text-carbon-textSub underline-offset-2 hover:text-carbon-text hover:underline focus-visible:underline"
-          >
-            {tx('settings.modules.configuredOn', { page: label(tx, 'settings.nav.', page) })}
-            <IconChevronEnd className="h-3 w-3 rtl:-scale-x-100" aria-hidden />
-          </Link>
-        )}
       </div>
 
-      {shipped ? (
-        <NeutralSwitch
-          on={m.enabled}
-          disabled={busy || blocked}
-          name={label(tx, 'settings.module.', m.id)}
-          onChange={onToggle}
-          hue={hue}
-        />
-      ) : (
-        <StateChip m={m} />
-      )}
+      {/* Wraps under the name where the row runs out of width. */}
+      <div className="ms-auto flex items-center gap-3">
+        {page && (
+          <PageBadge
+            page={page}
+            title={tx('settings.modules.configuredOn', { page: label(tx, 'settings.nav.', page) })}
+            onFollow={() => jumpToSwitch(m.id, page)}
+          />
+        )}
+        {shipped ? (
+          <NeutralSwitch on={m.enabled} disabled={busy || blocked} name={name} onChange={onToggle} hue={hue} />
+        ) : (
+          <StateChip m={m} />
+        )}
+      </div>
       {detail.node}
     </div>
   );
 }
 
 /**
- * jumpToSwitch makes a row's page link land on the module's own switch where
- * the settings index knows its row, and on the page alone otherwise.
+ * jumpToSwitch makes a row's page badge land on the module's own switch where
+ * the settings index knows it, as a row or as the title of a card named after
+ * the module, and on the page alone otherwise.
  */
 function jumpToSwitch(id: string, page: string) {
   const key = `settings.module.${id}` as TranslationKey;
-  const card = SETTINGS_INDEX[page]?.find((c) => c.rows.some((r) => r.key === key));
+  const card = SETTINGS_INDEX[page]?.find((c) => c.title === key || c.rows.some((r) => r.key === key));
   // A link to the page alone still retires a jump that is looking, or it
   // would mark something on the new page.
   if (card) requestJump({ page, title: card.title, label: key });

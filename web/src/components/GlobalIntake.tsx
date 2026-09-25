@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
-import { isEditableTarget, message } from '../lib/intake';
+import { containerRefusal, isEditableTarget, message } from '../lib/intake';
 import { useClipboardWatch } from '../lib/useClipboardWatch';
 import { startClipboardWatch } from '../lib/clipboardWatch';
 import { useToast } from '../lib/toast';
@@ -45,7 +45,7 @@ export function GlobalIntake() {
           toast(t('container.allKnown', { file: file.name, n: r.links }), 'info');
         }
       } catch (e) {
-        toast(t('container.failed', { file: file.name, reason: message(e) }), 'fail');
+        toast(t('container.failed', { file: file.name, reason: containerRefusal(t, e) }), 'fail');
       }
     }
 

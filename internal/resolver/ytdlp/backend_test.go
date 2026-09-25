@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		// carrying both codecs.
 		fmt.Println(`{"title":"Formats Video","formats":[` +
 			`{"format_id":"160","ext":"mp4","vcodec":"avc1.4d400b","acodec":"none","height":144,"filesize":195278},` +
-			`{"format_id":"137","ext":"mp4","vcodec":"avc1.640028","acodec":"none","height":1080,"filesize_approx":52428800},` +
+			`{"format_id":"137","ext":"mp4","vcodec":"avc1.640028","acodec":"none","width":1920,"height":1080,"filesize_approx":52428800},` +
 			`{"format_id":"140","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","filesize":3145728},` +
 			`{"format_id":"18","ext":"mp4","vcodec":"avc1.42001E","acodec":"mp4a.40.2","height":360,"filesize":8388608}` +
 			`]}`)
@@ -148,6 +148,9 @@ func TestProbeTitleReturnsTheParsedFormats(t *testing.T) {
 	videoOnly := got.Formats[1] // format_id "137", 1080p
 	if videoOnly.FormatID != "137" || videoOnly.Height != 1080 || videoOnly.Vcodec == "none" || videoOnly.Acodec != "none" {
 		t.Errorf("video-only entry = %+v, want format_id 137, height 1080, a real vcodec, acodec \"none\"", videoOnly)
+	}
+	if videoOnly.Width != 1920 {
+		t.Errorf("video-only entry width = %d, want 1920", videoOnly.Width)
 	}
 	if videoOnly.Filesize != 0 || videoOnly.FilesizeApprox != 52428800 {
 		t.Errorf("video-only entry sizes = filesize=%d filesize_approx=%d, want filesize 0 (never reported) and filesize_approx 52428800", videoOnly.Filesize, videoOnly.FilesizeApprox)

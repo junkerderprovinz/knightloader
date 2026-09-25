@@ -20,7 +20,8 @@ import {
 } from '../../lib/scripts';
 import { same } from './paths';
 import { useResource } from '../../lib/useResource';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { fmtUnit } from '../../lib/format';
+import { useT } from '../../lib/i18n';
 import { useTriggerLabel } from '../../lib/triggers';
 import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
 
@@ -36,8 +37,6 @@ import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
  * most visitors never open a script.
  */
 const CodeEditor = lazy(() => import('../../components/CodeEditor').then((m) => ({ default: m.CodeEditor })));
-
-const DEFAULT_CODE_KEY: PendingKey = 'settings.scripts.codeStarter';
 
 interface Row {
   key: string;
@@ -61,73 +60,8 @@ function toRows(list: Script[]): Row[] {
     .map((s) => ({ key: s.id, saved: s, draft: inputOf(s) }));
 }
 
-/**
- * PENDING holds the English strings until the catalogue has them; the lookup
- * asks the catalogue first.
- */
-const PENDING = {
-  'settings.scripts.subtitle': 'Automate KnightLoader with your own JavaScript, run on an event or on demand.',
-  'settings.scripts.listTitle': 'Your scripts',
-  'settings.scripts.add': 'Add script',
-  'settings.scripts.empty': 'No scripts yet',
-  'settings.scripts.emptyHint':
-    'A script runs your own JavaScript when something happens - a download finishes, one fails, the queue goes idle - or on demand, from Test Run here and from the “Run script” entry this wave adds to the download list’s right-click menu. Add one to get started.',
-  'settings.scripts.loadFailed':
-    'Scripts could not be loaded. If this build does not yet include the automation engine, this page has nothing to show yet - try again once it does.',
-  'settings.scripts.name': 'Name',
-  'settings.scripts.namePlaceholder': 'e.g. Notify on failure',
-  'settings.scripts.unnamed': 'Untitled script {n}',
-  'settings.scripts.trigger': 'Runs on',
-  'settings.scripts.triggerHint':
-    'What starts this script. Manual only ever runs when you ask for it - from Test Run below, or from the “Run script” entry this wave adds to the download list’s right-click menu.',
-  'settings.scripts.trigger.manual': 'Manual (on demand only)',
-  'settings.scripts.trigger.taskDone': 'A download finishes',
-  'settings.scripts.trigger.taskFailed': 'A download fails',
-  'settings.scripts.trigger.queueIdle': 'The queue goes idle',
-  'settings.scripts.use': 'Enable this script',
-  'settings.scripts.code': 'Code',
-  'settings.scripts.codeStarter':
-    '// This script runs on the trigger picked above.\n// The sandbox API it runs against is still being finished - see Settings › Help once it lands.\n',
-  'settings.scripts.timeout': 'Time limit',
-  'settings.scripts.timeoutHint':
-    'How long this script may run before it is stopped. Between 100 ms and 30 s; 0 uses the default of 5000 ms.',
-  'settings.scripts.timeoutUnit': 'ms',
-  'settings.scripts.saveFailed': 'Could not save: {error}',
-  'settings.scripts.remove': 'Remove',
-  'settings.scripts.removeNew': 'Cancel',
-  'settings.scripts.removeFailed': 'Could not remove: {error}',
-  'settings.scripts.unsaved': 'Unsaved',
-  'settings.scripts.run': 'Test run',
-  'settings.scripts.running': 'Running…',
-  'settings.scripts.runNeedsSaveHint': 'Give it a name or some code to create it, then test it here.',
-  'settings.scripts.runDirtyHint': 'Your changes are still saving - test run will use them in a moment.',
-  'settings.scripts.runOk': 'Ran successfully',
-  'settings.scripts.runOkDuration': 'Ran successfully in {ms} ms',
-  'settings.scripts.runTimedOut': 'Stopped: ran longer than its time limit',
-  'settings.scripts.runFailed': 'Failed: {error}',
-  'settings.scripts.output': 'Output',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-type Cx = (key: PendingKey, vars?: Record<string, string | number>) => string;
-
-function useCx(): Cx {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      // These keys are not in the union yet; only PENDING keys can be passed.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
-}
-
 export function ScriptsCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const cx = useCx();
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<Script[]>(fetchScripts);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [openKey, setOpenKey] = useState('');
@@ -151,8 +85,8 @@ export function ScriptsCard({ hue }: { hue: number }) {
     const row: Row = {
       key: freshKey(),
       saved: null,
-      // Through cx, so the starter comment follows the catalogue's language.
-      draft: { name: '', trigger: 'manual', enabled: true, code: cx(DEFAULT_CODE_KEY) },
+      // Translated, so the starter comment follows the reader's language.
+      draft: { name: '', trigger: 'manual', enabled: true, code: t('settings.scripts.codeStarter') },
     };
     setRows([row, ...rows]);
     setOpenKey(row.key);
@@ -179,7 +113,7 @@ export function ScriptsCard({ hue }: { hue: number }) {
 
   if (loading) return <LoadingCard label={t('common.loading')} />;
   if (failed || rows === null) {
-    return <ErrorCard message={cx('settings.scripts.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
+    return <ErrorCard message={t('settings.scripts.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
   }
 
   return (
@@ -187,16 +121,16 @@ export function ScriptsCard({ hue }: { hue: number }) {
       <SectionTitle
         right={
           <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-            {cx('settings.scripts.add')}
+            {t('settings.scripts.add')}
           </Button>
         }
       >
-        {cx('settings.scripts.listTitle')}
+        {t('settings.module.scripting')}
       </SectionTitle>
       <ModuleToggle id="scripting" />
 
       {rows.length === 0 ? (
-        <EmptyState nested icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />
+        <EmptyState nested icon={<IconCode width={26} height={26} />} title={t('settings.scripts.empty')} hint={t('settings.scripts.emptyHint')} />
       ) : (
         <ul className="flex flex-col">
           {rows.map((row, i) => (
@@ -208,7 +142,6 @@ export function ScriptsCard({ hue }: { hue: number }) {
               open={openKey === row.key}
               onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
               triggers={triggers}
-              cx={cx}
               onSaved={handleSaved}
               onRemoved={handleRemoved}
             />
@@ -226,7 +159,6 @@ function ScriptRow({
   open,
   onToggle,
   triggers,
-  cx,
   onSaved,
   onRemoved,
 }: {
@@ -236,7 +168,6 @@ function ScriptRow({
   open: boolean;
   onToggle: () => void;
   triggers: ScriptTrigger[];
-  cx: Cx;
   onSaved: (oldKey: string, script: Script) => void;
   onRemoved: (key: string, id: string | null) => void;
 }) {
@@ -269,7 +200,7 @@ function ScriptRow({
       toast(t('settings.saved'), 'ok');
     } catch (e) {
       // Only a toast: the debounced save has no button to shake.
-      toast(cx('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
+      toast(t('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
     } finally {
       setSaving(false);
     }
@@ -305,7 +236,7 @@ function ScriptRow({
       onRemoved(row.key, row.saved.id);
     } catch (e) {
       // Its own sentence rather than the save one, and the trash badge shakes.
-      toast(cx('settings.scripts.removeFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
+      toast(t('settings.scripts.removeFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
       setRemoveShake((n) => n + 1);
       setRemoving(false);
     }
@@ -319,7 +250,7 @@ function ScriptRow({
       setRunResult(await runScript(row.saved.id));
     } catch (e) {
       // The run could not start. A verdict about the script is runResult below.
-      toast(cx('settings.scripts.runFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
+      toast(t('settings.scripts.runFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
       setRunShake((n) => n + 1);
     } finally {
       setRunning(false);
@@ -327,9 +258,9 @@ function ScriptRow({
   }
 
   const triggerLabel = useTriggerLabel();
-  const title = draft.name.trim() || cx('settings.scripts.unnamed', { n: index + 1 });
+  const title = draft.name.trim() || t('settings.scripts.unnamed', { n: index + 1 });
   const runDisabled = running || !row.saved || dirty;
-  const runHint = !row.saved ? cx('settings.scripts.runNeedsSaveHint') : dirty ? cx('settings.scripts.runDirtyHint') : undefined;
+  const runHint = !row.saved ? t('settings.scripts.runNeedsSaveHint') : dirty ? t('settings.scripts.runDirtyHint') : undefined;
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
@@ -337,7 +268,7 @@ function ScriptRow({
         <NeutralSwitch
           on={draft.enabled}
           onChange={(v) => update({ enabled: v })}
-          name={cx('settings.scripts.use')}
+          name={t('settings.scripts.use')}
           hue={index}
         />
         <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
@@ -346,7 +277,7 @@ function ScriptRow({
               <span className="truncate text-sm text-carbon-text">{title}</span>
               {dirty && (
                 <span className="shrink-0 rounded-[var(--radius-control)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
-                  {cx('settings.scripts.unsaved')}
+                  {t('settings.scripts.unsaved')}
                 </span>
               )}
             </span>
@@ -365,8 +296,8 @@ function ScriptRow({
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
-            title={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
-            aria-label={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
+            title={row.saved ? t('settings.scripts.remove') : t('settings.scripts.removeNew')}
+            aria-label={row.saved ? t('settings.scripts.remove') : t('settings.scripts.removeNew')}
             disabled={removing}
             onClick={() => void onRemove()}
           />
@@ -376,22 +307,22 @@ function ScriptRow({
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Field label={cx('settings.scripts.name')}>
+            <Field label={t('settings.scripts.name')}>
               <TextInput
                 value={draft.name}
-                placeholder={cx('settings.scripts.namePlaceholder')}
+                placeholder={t('settings.scripts.namePlaceholder')}
                 onChange={(e) => update({ name: e.target.value })}
               />
             </Field>
-            <Field label={cx('settings.scripts.trigger')} hint={cx('settings.scripts.triggerHint')}>
+            <Field label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
               <TriggerSelect
-                label={cx('settings.scripts.trigger')}
+                label={t('settings.scripts.trigger')}
                 value={draft.trigger}
                 options={triggers}
                 onChange={(t) => update({ trigger: t })}
               />
             </Field>
-            <Field label={cx('settings.scripts.timeout')} hint={cx('settings.scripts.timeoutHint')}>
+            <Field label={t('settings.scripts.timeout')} hint={t('settings.scripts.timeoutHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
@@ -401,17 +332,17 @@ function ScriptRow({
                   max={30000}
                   step={100}
                 />
-                <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{cx('settings.scripts.timeoutUnit')}</span>
+                <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{t('settings.scripts.timeoutUnit')}</span>
               </div>
             </Field>
           </div>
 
           {/* The placeholder uses the house pulse and the editor fades in, so
               both follow the motion level and reduced motion. */}
-          <Field label={cx('settings.scripts.code')}>
+          <Field label={t('settings.scripts.code')}>
             <Suspense fallback={<div className="glim-well glim-live" style={{ minHeight: '220px' }} />}>
               <div className="glim-content-in">
-                <CodeEditor value={draft.code} onChange={(code) => update({ code })} ariaLabel={cx('settings.scripts.code')} />
+                <CodeEditor value={draft.code} onChange={(code) => update({ code })} ariaLabel={t('settings.scripts.code')} />
               </div>
             </Suspense>
           </Field>
@@ -424,12 +355,12 @@ function ScriptRow({
               kind="secondary"
               icon={<IconPlay width={16} height={16} />}
               disabled={runDisabled}
+              hint={running ? undefined : runHint}
               onClick={() => void onRun()}
             >
-              {running ? cx('settings.scripts.running') : cx('settings.scripts.run')}
+              {running ? t('settings.scripts.running') : t('settings.scripts.run')}
             </Button>
           </div>
-          {runHint && !running && <p className="text-end text-[11px] text-carbon-textMuted">{runHint}</p>}
 
           {/* The run's verdict stays inline, even when the news is bad; a run
               that could not start is handled in onRun. */}
@@ -437,14 +368,14 @@ function ScriptRow({
             <div className="glim-well flex flex-col gap-1.5 p-3 text-xs">
               <p className={runResult.ok ? 'text-statusOk' : 'text-statusFail'}>
                 {runResult.ok
-                  ? cx('settings.scripts.runOkDuration', { ms: runResult.durationMs })
+                  ? t('settings.scripts.ranIn', { duration: fmtUnit(runResult.durationMs, 'ms') })
                   : runResult.timedOut
-                    ? cx('settings.scripts.runTimedOut')
-                    : cx('settings.scripts.runFailed', { error: runResult.error ?? '' })}
+                    ? t('settings.scripts.runTimedOut')
+                    : t('settings.scripts.runFailed', { error: runResult.error ?? '' })}
               </p>
               {runResult.output && runResult.output.length > 0 && (
                 <>
-                  <span className="text-[11px] text-carbon-textMuted">{cx('settings.scripts.output')}</span>
+                  <span className="text-[11px] text-carbon-textMuted">{t('settings.scripts.output')}</span>
                   <pre dir="ltr" className="glim-well overflow-x-auto whitespace-pre-wrap p-2 text-[11px] text-carbon-textSub">
                     {runResult.output.join('\n')}
                   </pre>

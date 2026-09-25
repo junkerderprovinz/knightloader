@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // A folder that is not an absolute path is refused with its field named, and
@@ -79,5 +81,30 @@ func TestAPatchIsNotRefusedForAFolderItDoesNotName(t *testing.T) {
 	}
 	if code, _, _ := patchSettings(t, srv.URL, fmt.Sprintf(`{"downloadDir":%q}`, s.DownloadDir)); code != http.StatusBadRequest {
 		t.Errorf("a patch naming the unusable download folder answered %d, want it refused", code)
+	}
+}
+
+// A category's folder is checked when a save sends the categories, and only
+// then, so a stored drawer whose share is offline does not refuse a patch that
+// never mentions it.
+func TestAPatchIsNotRefusedForACategoryFolderItDoesNotName(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+	blocker := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(blocker, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	s := a.Settings.Get()
+	s.Categories = []settings.Category{{ID: "filme", Name: "Filme", Dir: filepath.Join(blocker, "filme")}}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	if code, _, msg := patchSettings(t, srv.URL, `{"maxConcurrent":2}`); code != http.StatusOK {
+		t.Errorf("a patch of maxConcurrent answered %d: %s", code, msg)
+	}
+	cats, _ := json.Marshal(a.Settings.Get().Categories)
+	if code, _, _ := patchSettings(t, srv.URL, fmt.Sprintf(`{"categories":%s}`, cats)); code != http.StatusBadRequest {
+		t.Errorf("a patch sending the category with the unusable folder answered %d, want it refused", code)
 	}
 }

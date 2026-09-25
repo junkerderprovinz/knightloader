@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addLinksWithOptions, remove, type Task } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { Button, Card, Field, TextArea } from '../components/ui';
@@ -17,6 +17,7 @@ type Phase = { kind: 'form' } | { kind: 'busy' } | { kind: 'done'; created: Task
 export function QuickAdd() {
   const { t } = useT();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const url = params.get('url') ?? '';
   const text = params.get('text') ?? '';
   const title = params.get('title') ?? '';
@@ -83,8 +84,7 @@ export function QuickAdd() {
         <Card className="flex flex-col gap-4">
           {phase.kind === 'form' && (
             <>
-              <p className="text-xs text-carbon-textMuted">{t('quickadd.emptyHint')}</p>
-              <Field label={t('quickadd.manualLabel')}>
+              <Field label={t('quickadd.manualLabel')} hint={t('quickadd.manualHint')}>
                 <TextArea
                   rows={4}
                   autoFocus
@@ -119,9 +119,9 @@ export function QuickAdd() {
                     {t('quickadd.close')}
                   </Button>
                 ) : (
-                  <a href="/collector" className="text-xs text-accentInk hover:underline">
+                  <Button kind="secondary" className="px-2.5 text-xs" onClick={() => navigate('/collector')}>
                     {t('quickadd.openCollector')}
-                  </a>
+                  </Button>
                 )}
               </div>
             </>

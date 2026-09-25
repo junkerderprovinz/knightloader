@@ -22,6 +22,7 @@ import {
   type IdleRun,
 } from '../../../lib/api';
 import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
+import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
 
@@ -317,10 +318,10 @@ export function IdleActionCard({ hue }: { hue: number }) {
             {!lastRun ? (
               <p className="text-carbon-textSub">{t('idleAction.lastRunNever')}</p>
             ) : lastRun.ok ? (
-              <p className="text-carbon-textSub">{t('idleAction.lastRunOk', { at: when(lastRun.at) })}</p>
+              <p className="text-carbon-textSub">{t('idleAction.lastRunOk', { at: fmtDate(lastRun.at) })}</p>
             ) : (
               <>
-                <p className="text-statusWarn">{t('idleAction.lastRunFailed', { at: when(lastRun.at) })}</p>
+                <p className="text-statusWarn">{t('idleAction.lastRunFailed', { at: fmtDate(lastRun.at) })}</p>
                 <p className="text-carbon-textSub">
                   {idleProblemText(t, lastRun.problem, {
                     program: lastRun.program ?? probeName,
@@ -363,11 +364,4 @@ export function IdleActionCard({ hue }: { hue: number }) {
       )}
     </Card>
   );
-}
-
-/** when formats a run's instant in the reader's locale and zone. */
-function when(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString();
 }

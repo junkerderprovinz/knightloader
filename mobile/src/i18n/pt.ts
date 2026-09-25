@@ -76,7 +76,6 @@ export const pt: Dict = {
   'settings.accent': 'Destaque',
   'settings.rainbow': 'Arco-íris',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Enquanto o modo arco-íris estiver ativo, cada elemento colorido passa para a cor seguinte da paleta uma vez por segundo.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envia isto junto quando relatares algo. Poupa uma ronda de perguntas e não leva nem endereço nem token.',
   'settings.problemsCopy': 'Copiar relatório',

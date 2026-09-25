@@ -15,7 +15,16 @@ export function TasksCard({ hue, report }: { hue: number; report: HealthReport }
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={t('settings.health.tasksHint')}>{t('settings.health.tasks')}</SectionTitle>
+      <SectionTitle
+        hint={
+          <span className="flex flex-col gap-1.5">
+            <span>{t('settings.health.tasksHint')}</span>
+            <span>{t('settings.health.diskWhere')}</span>
+          </span>
+        }
+      >
+        {t('settings.health.tasks')}
+      </SectionTitle>
 
       <div className="grid grid-cols-3 gap-4">
         <Count label={t('settings.health.running')} n={tasks.running} />
@@ -35,8 +44,6 @@ export function TasksCard({ hue, report }: { hue: number; report: HealthReport }
         counts={tasks.failedBy}
         label={(id) => breakdownLabel(t, 'task.reason.', id)}
       />
-
-      <span className="text-[11px] text-carbon-textMuted">{t('settings.health.diskLink')}</span>
     </Card>
   );
 }

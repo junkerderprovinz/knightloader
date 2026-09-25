@@ -70,7 +70,22 @@ export function refusalText(tx: Tx, e: unknown): string {
   return String(e).replace(/^(Error|ApiError):\s*/, '');
 }
 
-type ChoicePrefix = 'settings.advanced.mirror.' | 'settings.advanced.offline.' | 'settings.advanced.reclaim.';
+/**
+ * switchRefusal words a module switch the server refused. A parked module with
+ * nothing to bring back names the page it is set up on, in the rail's words.
+ */
+export function switchRefusal(tx: Tx, e: unknown): string {
+  if (e instanceof ApiError && e.code === 'configureFirst') {
+    return tx('settings.modules.configureFirst', { page: label(tx, 'settings.nav.', String(e.params?.page ?? '')) });
+  }
+  return String(e).replace(/^(Error|ApiError):\s*/, '');
+}
+
+export type ChoicePrefix =
+  | 'settings.advanced.mirror.'
+  | 'settings.advanced.offline.'
+  | 'settings.advanced.reclaim.'
+  | 'settings.resume.';
 
 /** choices turns the ids of a server-sent menu into tabs, labelled as label() does. */
 export function choices(tx: (key: TranslationKey) => string, prefix: ChoicePrefix, ids: string[]) {

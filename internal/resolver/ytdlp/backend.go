@@ -379,12 +379,14 @@ func wroteSubtitle(line string) bool {
 
 // FormatEntry is one entry of the "formats" array in yt-dlp's info dict,
 // reduced to the fields KnightLoader reads. Vcodec or Acodec is "none" for
-// the side a format does not carry, and Height is 0 for audio.
+// the side a format does not carry, and Width and Height are 0 for audio and
+// wherever the host reports none.
 type FormatEntry struct {
 	FormatID string
 	Ext      string
 	Vcodec   string
 	Acodec   string
+	Width    int
 	Height   int
 	// FPS is the frame rate, 0 when not reported or for an audio format.
 	FPS float64
@@ -458,6 +460,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 			Ext                string  `json:"ext"`
 			Vcodec             string  `json:"vcodec"`
 			Acodec             string  `json:"acodec"`
+			Width              int     `json:"width"`
 			Height             int     `json:"height"`
 			FPS                float64 `json:"fps"`
 			Filesize           int64   `json:"filesize"`
@@ -507,7 +510,8 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		}
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
-			Height: f.Height, FPS: f.FPS, Filesize: f.Filesize, FilesizeApprox: approx,
+			Width: f.Width, Height: f.Height, FPS: f.FPS,
+			Filesize: f.Filesize, FilesizeApprox: approx,
 			Abr: f.Abr, Language: f.Language, LanguagePreference: f.LanguagePreference,
 			Protocol: f.Protocol, Default: picked[f.FormatID],
 		})
@@ -746,7 +750,7 @@ func progressTemplateFor(o Options) string {
 
 // formatSelector turns a picked track, a preset's format wish or a resolution
 // preset into yt-dlp's -f value, or "" for no selector (QualityBest and
-// anything else without a height cap, including a stored QualityAudioOnly).
+// anything else without a resolution cap, including a stored QualityAudioOnly).
 // QualityCustom passes through verbatim.
 func formatSelector(o Options) string {
 	if v, ok := parseVideoFormat(o.VideoPick); ok {
@@ -758,8 +762,8 @@ func formatSelector(o Options) string {
 	if o.Quality == QualityCustom {
 		return o.CustomFormat
 	}
-	if h, ok := heightCaps[o.Quality]; ok {
-		return capSelector(h)
+	if r, ok := ResCap(o.Quality); ok {
+		return capSelector(r)
 	}
 	return ""
 }

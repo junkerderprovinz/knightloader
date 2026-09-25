@@ -72,7 +72,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
         className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
       />
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
-      <span className="glim-num text-xs text-carbon-textSub" dir="ltr">
+      <span className="glim-num text-xs text-carbon-textSub">
         {stats ? fmtSpeed(stats.speed) || '-' : '-'}
       </span>
     </>
@@ -189,11 +189,7 @@ export function InstanceCard({
 function Metric({ value, label }: { value: React.ReactNode; label: string }) {
   return (
     <div className="shrink-0">
-      {/* A speed is a number and a Latin unit, which keep their order in a
-          right-to-left page only inside a span of their own. */}
-      <div className="glim-num text-sm font-semibold text-carbon-text">
-        <span dir="ltr">{value}</span>
-      </div>
+      <div className="glim-num text-sm font-semibold text-carbon-text">{value}</div>
       <div className="glim-eyebrow">{label}</div>
     </div>
   );

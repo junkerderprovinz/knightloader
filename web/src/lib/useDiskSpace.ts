@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { type DiskReport, type DiskVolume, fetchDiskSpace } from './api';
-import { fmtBytes } from './format';
 import { useT, type TranslationKey } from './i18n';
 import { en } from './locales/en';
 
@@ -77,10 +76,6 @@ export function worst(report: DiskReport | null): DiskVolume | null {
   const home = downloadsVolume(report);
   return home && home.known ? home : null;
 }
-
-/** fmtSpace prints free room. Zero is "0 B" rather than fmtBytes's no-data
- *  dash, since a full disk is a real answer. */
-export const fmtSpace = (n: number): string => (n > 0 ? fmtBytes(n) : '0 B');
 
 /**
  * folderName is the last segment of a path, on either separator since the

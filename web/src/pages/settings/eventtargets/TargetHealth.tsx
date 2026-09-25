@@ -1,5 +1,6 @@
 import { FieldGroup } from '../../../components/ui';
 import { happened } from '../../../lib/countdown';
+import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { EventTargetStatus } from '../../../lib/eventtargets';
 
@@ -59,5 +60,5 @@ function problemText(t: (key: TranslationKey) => string, code: string): string {
 function fmtWhen(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? iso : fmtDate(iso);
 }

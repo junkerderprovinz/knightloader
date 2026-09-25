@@ -308,7 +308,7 @@ var ErrNoContainerBackend = fmt.Errorf(
 // switched off on the modules page.
 var ErrJDOff = errors.New(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
-		"JDownloader is switched off on the Modules page")
+		"\"JDownloader backend\" is switched off on the Modules page")
 
 // ContainerBackendConfigured reports whether a JD backend that can open an
 // encrypted container is wired, switched on or not. It is asked before an

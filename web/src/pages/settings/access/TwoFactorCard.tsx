@@ -4,6 +4,7 @@ import {
   Card,
   Field,
   IconBadge,
+  InfoBubble,
   SectionTitle,
   TextInput,
 } from '../../../components/ui';
@@ -122,25 +123,23 @@ export function TwoFactorCard({
 
       {!passwordSet && <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.needsPassword')}</p>}
 
-      {/* The sentence warns that the recovery codes are shown once, before the
-          enrolment starts. The button shares its word with the passkey card's
-          and is told apart by the shield. */}
+      {/* The button's (i) warns that the recovery codes are shown once, before
+          the enrolment starts. It shares its word with the passkey card's
+          button and is told apart by the shield. */}
       {passwordSet && !enabled && step.kind === 'idle' && (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.beforeYouStart')}</p>
-          <div>
-            <Button
-              key={shake}
-              className={shake > 0 ? 'glim-shake' : ''}
-              kind="secondary"
-              hue={hue}
-              icon={<IconShieldCheck width={16} height={16} />}
-              disabled={busy}
-              onClick={() => void begin()}
-            >
-              {t('auth.twoFactor.enable')}
-            </Button>
-          </div>
+        <div>
+          <Button
+            key={shake}
+            className={shake > 0 ? 'glim-shake' : ''}
+            kind="secondary"
+            hue={hue}
+            icon={<IconShieldCheck width={16} height={16} />}
+            disabled={busy}
+            hint={t('auth.twoFactor.beforeYouStart')}
+            onClick={() => void begin()}
+          >
+            {t('auth.twoFactor.enable')}
+          </Button>
         </div>
       )}
 
@@ -215,8 +214,10 @@ export function TwoFactorCard({
           that the codes were saved. */}
       {step.kind === 'codes' && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-medium text-carbon-text">{t('auth.twoFactor.codesTitle')}</p>
-          <p className="text-sm text-carbon-textSub">{t('auth.twoFactor.codesHint')}</p>
+          <p className="flex items-center text-sm font-medium text-carbon-text">
+            {t('auth.twoFactor.codesTitle')}
+            <InfoBubble tip={t('auth.twoFactor.codesHint')} />
+          </p>
           <ul
             className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-[var(--radius-control)] bg-carbon-surface2 p-4"
             dir="ltr"
@@ -248,7 +249,7 @@ export function TwoFactorCard({
         <div className="flex flex-col gap-3">
           {recoveryLeft !== undefined && (
             <p className="text-sm text-carbon-textSub">
-              {t('auth.twoFactor.recoveryLeft').replace('{n}', String(recoveryLeft))}
+              {t('auth.twoFactor.recoveryLeft', { n: recoveryLeft })}
             </p>
           )}
           {!disarming ? (

@@ -436,9 +436,9 @@
         aria-modal="true"
         aria-labelledby="cryptoTitle"
       >
-        <h2 class="glim-section-badge" id="cryptoTitle"></h2>
+        <!-- The name is the words alone, so the (i) stays out of it. -->
+        <h2 class="glim-section-badge" id="cryptoHeading"><span id="cryptoTitle"></span></h2>
         <div class="glim-crypto-body">
-          <p class="glim-crypto-intro" id="cryptoIntro"></p>
           <div class="glim-crypto-code">
             <div class="glim-crypto-qr" id="cryptoQr"></div>
             <p class="glim-crypto-address" id="cryptoAddress" dir="ltr"></p>
@@ -455,6 +455,8 @@
     </div>
 
     <script src="appearance.js"></script>
+    <script src="discoLoop.js"></script>
+    <script src="disco.js"></script>
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>

@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState } from '../lib/api';
 import { Button } from './ui';
 import { IconClock, IconCode, IconMoon, IconPause, IconPower, IconWarning } from '../lib/icons';
+import { fmtCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 
@@ -68,14 +69,6 @@ const actionIcon: Record<string, ReactNode> = {
   suspend: <IconMoon width={15} height={15} />,
 };
 
-function fmtCountdown(totalSeconds: number): string {
-  const s = Math.max(0, totalSeconds);
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  if (m === 0) return `${rem}s`;
-  return `${m}:${String(rem).padStart(2, '0')}`;
-}
-
 // Go's encoding/json writes a zero time.Time as year 1 rather than omitting it.
 const GO_ZERO_YEAR = 1;
 
@@ -93,6 +86,7 @@ function fireAtMs(iso: string | undefined): number | null {
  */
 export function IdleActionBanner() {
   const { t } = useT();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [state, setState] = useState<IdleActionState | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -153,9 +147,9 @@ export function IdleActionBanner() {
                 output: failed.output,
               })}
             </span>
-            <Link to="/settings/automation" className="text-accent hover:underline">
+            <Button kind="secondary" className="mt-1 self-start" onClick={() => navigate('/settings/automation')}>
               {t('idleAction.openSettings')}
-            </Link>
+            </Button>
           </span>
           <Button kind="secondary" onClick={() => setDismissed(failed.at)} className="px-2.5 text-xs">
             {t('idleAction.dismiss')}

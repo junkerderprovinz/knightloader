@@ -76,7 +76,6 @@ export const sk: Dict = {
   'settings.accent': 'Zvýraznenie',
   'settings.rainbow': 'Dúha',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Kým je zapnutý dúhový režim, každý farebný prvok raz za sekundu prejde na ďalšiu farbu palety.',
   'settings.problems': 'Problémy?',
   'settings.problemsHint': 'Prilož to, keď niečo hlásiš. Ušetrí to jedno kolo otázok a nie je v tom adresa ani token.',
   'settings.problemsCopy': 'Kopírovať hlásenie',

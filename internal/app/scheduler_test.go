@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -43,7 +44,8 @@ func expectNone(t *testing.T, ch chan string) {
 // AddLinks stages tasks as collected without dispatching them; only StartTasks
 // moves them into the download pipeline.
 func TestCollectorStaging(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +145,8 @@ func TestRestartFailed(t *testing.T) {
 // The dispatch rules: global and per-host slots, FIFO with per-host skip-ahead,
 // slot release on completion, queue-aware pause.
 func TestScheduler(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,5 +202,27 @@ func TestScheduler(t *testing.T) {
 	third := collect(t, stub.got, 1)
 	if !third[byURL["https://hostb.example/two"]] {
 		t.Fatalf("after resume = %v, want hostb/two", third)
+	}
+}
+
+// Dispatch is FIFO by CreatedAt, so a paste has to be stamped in the order it
+// was given even when the clock does not move between two links, which on
+// Windows happens for links staged within half a millisecond of each other.
+func TestAPasteIsStampedInTheOrderItWasGiven(t *testing.T) {
+	a := newQueueApp(t)
+	urls := make([]string, 40)
+	for i := range urls {
+		urls[i] = fmt.Sprintf("https://host.example/%02d.bin", i)
+	}
+
+	created := a.AddLinks(urls, "Batch")
+	if len(created) != len(urls) {
+		t.Fatalf("created %d tasks, want %d", len(created), len(urls))
+	}
+	for i := 1; i < len(created); i++ {
+		prev, cur := created[i-1], created[i]
+		if !prev.CreatedAt.Before(cur.CreatedAt) {
+			t.Fatalf("%s is stamped %v, not after %s at %v", cur.URL, cur.CreatedAt, prev.URL, prev.CreatedAt)
+		}
 	}
 }

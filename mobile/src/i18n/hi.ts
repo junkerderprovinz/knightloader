@@ -76,7 +76,6 @@ export const hi: Dict = {
   'settings.accent': 'एक्सेंट रंग',
   'settings.rainbow': 'रेनबो',
   'settings.disco': 'डिस्को',
-  'settings.discoHint': 'जब तक रेनबो चालू है, हर रंगीन तत्व हर सेकंड एक बार रंग पैलेट के अगले रंग पर चला जाता है।',
   'settings.problems': 'कोई समस्या?',
   'settings.problemsHint': 'जब कुछ रिपोर्ट करें तो इसे भी भेजें। इससे सवाल-जवाब का एक दौर बच जाता है, और इसमें न पता होता है, न टोकन।',
   'settings.problemsCopy': 'रिपोर्ट कॉपी करें',

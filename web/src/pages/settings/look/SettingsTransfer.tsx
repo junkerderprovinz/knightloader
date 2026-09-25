@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, InfoBubble, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
 import { IconClose, IconDownloads, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
@@ -128,8 +128,10 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       <SectionTitle hint={t('settings.transfer.cardHint')}>{t('settings.transfer.cardTitle')}</SectionTitle>
 
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-carbon-text">{t('settings.transfer.archiveLabel')}</span>
-        <p className="text-xs leading-relaxed text-carbon-textSub">{t('settings.transfer.archiveText')}</p>
+        <span className="flex items-center text-sm font-medium text-carbon-text">
+          {t('settings.transfer.archiveLabel')}
+          <InfoBubble tip={t('settings.transfer.archiveText')} />
+        </span>
         <input
           ref={archiveInput}
           type="file"
@@ -169,8 +171,10 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       </div>
 
       <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
-        <span className="text-sm font-medium text-carbon-text">{t('settings.transfer.settingsLabel')}</span>
-        <p className="text-xs leading-relaxed text-carbon-textSub">{t('settings.transfer.settingsText')}</p>
+        <span className="flex items-center text-sm font-medium text-carbon-text">
+          {t('settings.transfer.settingsLabel')}
+          <InfoBubble tip={t('settings.transfer.settingsText')} />
+        </span>
 
         <ToggleRow
           label={t('settings.transfer.withSecrets')}

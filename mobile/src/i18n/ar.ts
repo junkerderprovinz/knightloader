@@ -76,7 +76,6 @@ export const ar: Dict = {
   'settings.accent': 'لون التمييز',
   'settings.rainbow': 'قوس قزح',
   'settings.disco': 'ديسكو',
-  'settings.discoHint': 'ما دام وضع قوس قزح مفعلًا، ينتقل كل عنصر ملون إلى اللون التالي في لوحة الألوان مرة كل ثانية.',
   'settings.problems': 'مشكلات؟',
   'settings.problemsHint': 'أرسل هذا عندما تبلّغ عن شيء. فهو يوفّر جولة من الأسئلة، ولا يحتوي على عنوان ولا على رمز وصول.',
   'settings.problemsCopy': 'نسخ التقرير',

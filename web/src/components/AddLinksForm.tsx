@@ -6,8 +6,7 @@
 // "Overrule" is on; a destination picked here always wins (see
 // app.LinkBatchOptions).
 import { useEffect, useState, type CSSProperties } from 'react';
-import { hueVars, rainbowAt } from '../lib/appearance';
-import { useRainbow } from '../lib/useRainbow';
+import { hueVars } from '../lib/appearance';
 import {
   addLinksWithOptions,
   priorityChoices,
@@ -82,7 +81,6 @@ export function AddLinksForm({
   const { t } = useT();
   const { toast } = useToast();
   const priorities = usePriorityTabs();
-  useRainbow();
 
   const [links, setLinks] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -157,7 +155,7 @@ export function AddLinksForm({
           parent's items-stretch only reaches this wrapper. No overflow-hidden,
           which would clip SectionTitle's pill over the top edge. .glim-hue
           needs the hueVars style beside it. */}
-      <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(rainbowAt(0)) as CSSProperties}>
+      <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(0) as CSSProperties}>
         <div className="px-4 pt-3">
           <SectionTitle>{t('collector.addTitle')}</SectionTitle>
         </div>

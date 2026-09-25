@@ -76,7 +76,6 @@ export const he: Dict = {
   'settings.accent': 'צבע הדגשה',
   'settings.rainbow': 'קשת',
   'settings.disco': 'דיסקו',
-  'settings.discoHint': 'כל עוד מצב קשת פעיל, כל רכיב צבעוני עובר לצבע הבא בלוח הצבעים פעם בשנייה.',
   'settings.problems': 'בעיות?',
   'settings.problemsHint': 'שלחו את זה כשאתם מדווחים על משהו. זה חוסך סבב שאלות, ואין בו כתובת או טוקן.',
   'settings.problemsCopy': 'העתקת הדוח',

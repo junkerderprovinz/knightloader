@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { fetchFileOwner, type FileOwnerIdentity } from '../../../lib/api';
-import { useT, type TranslationKey } from '../../../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
-import { Card, SectionTitle } from '../../../components/ui';
+import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
 
 /**
  * The card shows the uid, gid and umask this instance writes files as. The
@@ -36,9 +36,7 @@ function useCx() {
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );
@@ -86,13 +84,15 @@ export function OwnershipCard({ hue }: { hue: number }) {
 
       {data.deployment !== 'desktop' && ignored.length > 0 && (
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] uppercase tracking-wide text-carbon-textMuted">{cx('settings.owner.asked')}</span>
+          <span className="flex items-center text-[11px] uppercase tracking-wide text-carbon-textMuted">
+            {cx('settings.owner.asked')}
+            <InfoBubble tip={cx('settings.owner.envHow')} />
+          </span>
           {ignored.map(([name, value]) => (
             <span key={name} className="text-sm text-statusWarn">
               {cx('settings.owner.envIgnored', { name, value, owner: who })}
             </span>
           ))}
-          <span className="text-[11px] text-carbon-textMuted">{cx('settings.owner.envHow')}</span>
         </div>
       )}
     </Card>

@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
+	"os"
 	"reflect"
 	"slices"
 	"strconv"
@@ -153,6 +155,27 @@ const parkBucket = "features"
 // answers 400.
 var errNoSwitch = errors.New("this module has no switch here")
 
+// nothingParked refuses to switch on a parked module that has nothing to bring
+// back. page is the settings page the value is set on, so the interface can
+// name it in the reader's language.
+type nothingParked struct {
+	page, text string
+}
+
+func (e *nothingParked) Error() string { return e.text }
+
+// writeSwitchRefusal answers a refused switch in the envelope a refused save
+// uses, with a code where the interface has words for the refusal.
+func writeSwitchRefusal(w http.ResponseWriter, err error) {
+	out := map[string]any{"error": err.Error()}
+	var np *nothingParked
+	if errors.As(err, &np) {
+		out["code"] = "configureFirst"
+		out["params"] = map[string]string{"page": np.page}
+	}
+	writeJSONStatus(w, http.StatusBadRequest, out)
+}
+
 func registerFeatures(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/features", "every subsystem this build contains, with a verdict and its live on/off state",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +192,7 @@ func registerFeatures(reg *Registry, a *app.App) {
 			}
 			id := r.PathValue("id")
 			if err := setFeature(a, id, body.Enabled); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				writeSwitchRefusal(w, err)
 				return
 			}
 			if id == "cnl" {
@@ -333,8 +356,8 @@ func featureList(a *app.App) []Feature {
 			torrentsDetail(a))),
 		captchaFeature(a, s),
 		withDetail(Feature{
-			// On the access tab: it decides who may reach in and create
-			// downloads, not how downloads behave.
+			// On the Remote access page: it decides who may reach in and
+			// create downloads, not how downloads behave.
 			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 		}, downloadClientDetail(a, s)),
@@ -386,13 +409,13 @@ func updaterVerdict() FeatureVerdict {
 func updaterReason() line {
 	if buildinfo.Deployment == "desktop" {
 		return line{
-			text: "checks GitHub for a newer release on demand from the General tab, or automatically on load there if its toggle is on; " +
-				"downloading and installing it is a manual step there, and nothing is applied silently",
+			text: "checks GitHub for a newer release when asked on the General page, and on startup if \"Check automatically on startup\" is on; " +
+				"it installs what it finds only if \"Install automatically when found\" is on, and otherwise leaves installing to you there",
 			code: "updaterDesktop",
 		}
 	}
 	return line{
-		text: "a container cannot replace itself from the inside, so the General tab's update check only tells you a newer release exists " +
+		text: "a container cannot replace itself from the inside, so the update check on the General page only tells you a newer release exists " +
 			"and points at it, same as on desktop; to update, pull the new image the way you deployed this one " +
 			"(docker pull, Unraid Community Applications, Watchtower, ...), which your deployment already does for you or lets you do",
 		code: "updaterContainer",
@@ -406,8 +429,8 @@ func updaterReason() line {
 // holds the logins it uses and not the backend itself.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
-		// The General tab keeps the id "look" so bookmarked addresses and the
-		// stored tab order still resolve.
+		// The General page keeps the id "look" so bookmarked addresses and the
+		// stored page order still resolve.
 		{ID: "look", Modules: []string{"updater"}},
 		{ID: "appearance"},
 		{ID: "modules"},
@@ -456,11 +479,17 @@ func setFeature(a *app.App, id string, on bool) error {
 
 	// A row can lose its switch at run time (no JD wired, no yt-dlp found);
 	// the table is the one place that knows.
+	var page string
 	for _, f := range featureList(a) {
-		if f.ID == id && f.Switch == SwitchNone {
+		if f.ID != id {
+			continue
+		}
+		if f.Switch == SwitchNone {
 			return fmt.Errorf("%s: %w", id, errNoSwitch)
 		}
+		page = f.Page
 	}
+	nothing := func(text string) error { return &nothingParked{page: page, text: text} }
 
 	switch id {
 	case "cnl":
@@ -498,7 +527,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var dir string
 		if !unparkValue(a, id, &dir) || strings.TrimSpace(dir) == "" {
-			return errors.New("there is no watch folder to switch back on; set one on the Link collector page")
+			return nothing("there is no watch folder to switch back on; set one on the Link collector page")
 		}
 		next.WatchDir = dir
 
@@ -512,7 +541,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var subs []feed.Subscription
 		if !unparkValue(a, id, &subs) || len(subs) == 0 {
-			return errors.New("there is no subscription to switch back on; add a feed on the Downloads page")
+			return nothing("there is no subscription to switch back on; add a feed on the Downloads page")
 		}
 		next.Feeds = subs
 
@@ -526,7 +555,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var targets []notify.Target
 		if !unparkValue(a, id, &targets) || len(targets) == 0 {
-			return errors.New("there is no event target to switch back on; add one on the Automation page")
+			return nothing("there is no event target to switch back on; add one on the Automation page")
 		}
 		next.EventTargets = targets
 
@@ -540,7 +569,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var entries []schedule.Entry
 		if !unparkValue(a, id, &entries) || len(entries) == 0 {
-			return errors.New("there is no timetable to switch back on; add a window on the Automation page")
+			return nothing("there is no timetable to switch back on; add a window on the Automation page")
 		}
 		next.Schedule = entries
 
@@ -554,7 +583,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		}
 		var method string
 		if !unparkValue(a, id, &method) || method == "" || method == reconnect.MethodNone {
-			return errors.New("there is no reconnect method to switch back on; pick one on the Network page")
+			return nothing("there is no reconnect method to switch back on; pick one on the Network page")
 		}
 		next.Reconnect.Method = method
 
@@ -665,8 +694,9 @@ func extractionDetail(s settings.Settings) line {
 
 // downloadClientDetail is the live line of the SABnzbd bridge row. It warns
 // when no API token exists, since the route then refuses every call, and when
-// per-package folders are off, since the importer then finds several releases
-// in the folder the bridge reports.
+// "Put each package in its own subfolder" is off, since the importer then
+// finds several releases in the folder the bridge reports. The line shows on
+// the Modules page, so it names the page the token is made on.
 func downloadClientDetail(a *app.App, s settings.Settings) line {
 	if !s.DownloadClientAPI {
 		return line{
@@ -675,8 +705,8 @@ func downloadClientDetail(a *app.App, s settings.Settings) line {
 		}
 	}
 	const (
-		noToken     = "no API token exists yet, so every call is refused; create one on this page"
-		noSubfolder = "per-package folders are off, so every grab lands in one folder and the importer cannot tell them apart"
+		noToken     = "no API token exists yet, so every call is refused; create one on the Remote access page"
+		noSubfolder = "\"Put each package in its own subfolder\" is off, so every grab lands in one folder and the importer cannot tell them apart"
 	)
 	tokenless, flat := len(a.APITokens.List()) == 0, !s.SubfolderByPackage
 	switch {
@@ -693,9 +723,17 @@ func downloadClientDetail(a *app.App, s settings.Settings) line {
 	}
 }
 
+// watchDetail names the watch folder, and says so when it is not there yet: the
+// watcher waits for it rather than creating it (see internal/watch.resolveDir).
+// That comes first, since the row cuts a long line at its end.
 func watchDetail(s settings.Settings) line {
 	if dir := strings.TrimSpace(s.WatchDir); dir != "" {
-		return line{text: dir, code: "watchFolder", args: map[string]string{"folder": dir}}
+		args := map[string]string{"folder": dir}
+		if _, err := os.Stat(dir); errors.Is(err, fs.ErrNotExist) {
+			return line{text: "the folder does not exist yet; files dropped into it are taken once it does: " + dir,
+				code: "watchFolderMissing", args: args}
+		}
+		return line{text: dir, code: "watchFolder", args: args}
 	}
 	return line{text: "no folder set", code: "watchNone"}
 }
@@ -873,8 +911,8 @@ func captchaDetail(a *app.App) line {
 // the row says so and has no switch, rather than reading KL_CNL and claiming a
 // listener nobody opened.
 func cnlFeature(a *app.App) Feature {
-	// On the link collector tab: Click'n'Load is how links get in, while the
-	// access tab is about who gets in.
+	// On the Link collector page: Click'n'Load is how links get in, while the
+	// Remote access page is about who gets in.
 	f := Feature{ID: "cnl", Verdict: VerdictShipped, Page: "collector", Switch: SwitchNone}
 	l := a.CnL
 	if l == nil {

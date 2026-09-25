@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow } from '../../components/ui';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -75,8 +75,8 @@ const PENDING = {
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
     'A private torrent switches both off automatically once its metadata is known, regardless of what is set here - immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
-  'settings.torrents.engineNote':
-    'Seed ratio, seed duration and port now reach every torrent this engine starts - port only for the very first one since this instance’s last restart, because the engine’s own torrent client is built once and never rebuilt afterwards; a later save is still stored correctly and takes effect from the next restart on. Upload limit is still saved and validated only, with nowhere yet for the engine to carry it into a running download. DHT and PEX below are the same story for an ORDINARY torrent: this instance’s own default does not yet reach a running download either, so a torrent still seeds with both on regardless of what is set here - a PRIVATE torrent is a different case entirely, see the note further down. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
+  'settings.torrents.engineLimits':
+    'Seed ratio and seed duration reach every torrent this engine starts. The port reaches only the first torrent started since this instance’s last restart, because the engine builds its own torrent client once and never rebuilds it. A later port change is still saved correctly and takes effect after the next restart. The upload limit is only saved and validated so far; the engine has no way yet to apply it to a running download. For an ordinary torrent, DHT and PEX below do not take effect yet either: this instance’s own default does not reach a running download, so a torrent seeds with both on regardless of what is set here. A private torrent is a different case, explained in the (i) of Peer discovery further down. The mapping button further down works regardless: it asks the router to forward the port number typed above, whether or not a torrent is listening on it yet.',
 } as const;
 
 type PendingKey = keyof typeof PENDING;
@@ -88,9 +88,7 @@ function useCx(): Cx {
     (key: PendingKey, vars?: Record<string, string | number>) => {
       // These keys are not in the union yet; only PENDING keys can be passed.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );
@@ -121,7 +119,7 @@ export function Torrents() {
           and the DHT/PEX default for ordinary torrents have no gopeed setting
           to reach, and the note says which is which. */}
       <div className="glim-well px-3 py-2.5 text-[11px] text-statusWarn">
-        {cx('settings.torrents.engineNote')}
+        {cx('settings.torrents.engineLimits')}
       </div>
 
       <Card hue={0} className="flex flex-col gap-5">
@@ -183,7 +181,7 @@ export function Torrents() {
       </Card>
 
       <Card hue={3} className="flex flex-col gap-4">
-        <SectionTitle>{cx('settings.torrents.networkTitle')}</SectionTitle>
+        <SectionTitle hint={cx('settings.torrents.privateNote')}>{cx('settings.torrents.networkTitle')}</SectionTitle>
         <ToggleRow
           checked={tr.dhtEnabled}
           onChange={(v) => write({ dhtEnabled: v })}
@@ -196,9 +194,6 @@ export function Torrents() {
           label={cx('settings.torrents.pex')}
           hint={cx('settings.torrents.pexHint')}
         />
-        {/* Visible rather than behind an (i), since it changes what the
-            switches above mean. */}
-        <p className="text-[11px] text-carbon-textMuted">{cx('settings.torrents.privateNote')}</p>
       </Card>
     </div>
   );
@@ -256,10 +251,9 @@ function PortMapPanel({ cx, port }: { cx: Cx; port: number }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" disabled={disabled} onClick={() => void attempt()}>
+        <Button kind="secondary" disabled={disabled} hint={cx('settings.torrents.portMapHint')} onClick={() => void attempt()}>
           {busy ? cx('settings.torrents.portMapping') : cx('settings.torrents.portMapButton')}
         </Button>
-        <span className="text-[11px] text-carbon-textMuted">{cx('settings.torrents.portMapHint')}</span>
       </div>
       {port <= 0 && <p className="text-[11px] text-statusWarn">{cx('settings.torrents.portMapNeedsPort')}</p>}
       {unavailable && <p className="text-xs text-carbon-textMuted">{cx('settings.torrents.portMapUnavailable')}</p>}

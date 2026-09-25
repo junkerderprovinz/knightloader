@@ -76,7 +76,6 @@ export const it: Dict = {
   'settings.accent': 'Accento',
   'settings.rainbow': 'Arcobaleno',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Finché la modalità arcobaleno è attiva, ogni elemento colorato passa al colore successivo della tavolozza una volta al secondo.',
   'settings.problems': 'Problemi?',
   'settings.problemsHint': 'Allega questo quando segnali qualcosa. Risparmia un giro di domande e non contiene né indirizzo né token.',
   'settings.problemsCopy': 'Copia il rapporto',

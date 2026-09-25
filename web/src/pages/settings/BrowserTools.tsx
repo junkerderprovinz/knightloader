@@ -48,11 +48,16 @@ export function BrowserTools() {
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
-        <ol className="list-decimal space-y-1.5 ps-4 text-sm text-carbon-textSub">
-          <li>{t('settings.browsertools.bookmarkletStep1')}</li>
-          <li>{t('settings.browsertools.bookmarkletStep2')}</li>
-        </ol>
+        <SectionTitle
+          hint={
+            <ol className="list-decimal space-y-1 ps-4">
+              <li>{t('settings.browsertools.bookmarkletStep1')}</li>
+              <li>{t('settings.browsertools.bookmarkletStep2')}</li>
+            </ol>
+          }
+        >
+          {t('settings.browsertools.bookmarkletTitle')}
+        </SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
           {/* A real javascript: link, since only that can be dragged into a
               bookmarks bar. */}

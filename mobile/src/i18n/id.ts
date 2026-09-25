@@ -76,7 +76,6 @@ export const id: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Pelangi',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Selama mode pelangi aktif, setiap elemen berwarna berpindah ke warna berikutnya di palet sekali setiap detik.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Kirimkan ini saat kamu melaporkan sesuatu. Ini menghemat satu putaran pertanyaan, dan tidak ada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',

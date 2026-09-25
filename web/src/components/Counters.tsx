@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Task } from '../lib/api';
-import { fmtBytes, fmtEta } from '../lib/format';
+import { fmtEta, fmtTotal } from '../lib/format';
 import { useT } from '../lib/i18n';
 import type { ListView } from '../lib/listview';
 import { InfoBubble, Toggle } from './ui';
@@ -131,15 +131,12 @@ export function OverviewStrip({
   // Reuses fmtEta so the strip rounds like the list's ETA column.
   const eta = fmtEta(0, f.remaining, f.speed);
 
-  // fmtBytes renders zero as a dash, which reads as a fault in "of 5 GiB".
-  const bytes = (n: number) => (n > 0 ? fmtBytes(n) : '0 B');
-
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5" role="group" aria-label={t('strip.label')}>
       <span className="flex items-baseline gap-1.5">
-        <span className="glim-num text-[14px] font-semibold leading-none text-carbon-text">{bytes(f.loaded)}</span>
+        <span className="glim-num text-[14px] font-semibold leading-none text-carbon-text">{fmtTotal(f.loaded)}</span>
         <span className="text-[11px] text-carbon-textMuted">{t('strip.of')}</span>
-        <span className="glim-num text-[12px] leading-none text-carbon-textSub">{bytes(f.total)}</span>
+        <span className="glim-num text-[12px] leading-none text-carbon-textSub">{fmtTotal(f.total)}</span>
         <InfoBubble tip={t('strip.hint')} />
       </span>
 

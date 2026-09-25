@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -83,7 +84,8 @@ func TestAHostWithoutCodecsStillOffersItsTracks(t *testing.T) {
 		t.Errorf("VideoContainers = %v, want %v", got, want)
 	}
 	sel, _ := valueAfter(buildArgs("d", Options{VideoPick: "720p avi"}), "-f")
-	if want := "bv[height=720][ext=avi][fps<?30.5]+ba/b[height=720][ext=avi][fps<?30.5]"; sel != want {
+	portrait, landscape := "[width=720][height>720][ext=avi][fps<?30.5]", "[height=720][width>=?720][ext=avi][fps<?30.5]"
+	if want := "bv" + portrait + "+ba/bv" + landscape + "+ba/b" + portrait + "/b" + landscape; sel != want {
 		t.Errorf("-f = %q, want %q", sel, want)
 	}
 	if ext, size := VideoFile("720p avi", archiveLike, false); ext != "avi" || size != 332243668 {
@@ -145,8 +147,11 @@ func TestKeysRefuseAnythingTheyCouldNotHaveProduced(t *testing.T) {
 func TestAPickedVideoTrackSelectsByItsAttributesAndKeepsItsContainer(t *testing.T) {
 	args := buildArgs("d", Options{VideoPick: "1080p mp4 avc1"})
 	got, _ := valueAfter(args, "-f")
-	filter := "[height=1080][ext=mp4][vcodec~='(?i)^(avc|h264)'][fps<?30.5]"
-	want := "bv" + filter + "+ba[ext=m4a]/bv" + filter + "+ba/b" + filter
+	rest := "[ext=mp4][vcodec~='(?i)^(avc|h264)'][fps<?30.5]"
+	portrait, landscape := "[width=1080][height>1080]"+rest, "[height=1080][width>=?1080]"+rest
+	want := "bv" + portrait + "+ba[ext=m4a]/bv" + landscape + "+ba[ext=m4a]/" +
+		"bv" + portrait + "+ba/bv" + landscape + "+ba/" +
+		"b" + portrait + "/b" + landscape
 	if got != want {
 		t.Errorf("-f =\n  %q\nwant\n  %q", got, want)
 	}
@@ -165,7 +170,7 @@ func TestAHighFrameRateTrackSelectsAroundItsRoundedRate(t *testing.T) {
 
 func TestAPickedVideoTrackOutranksTheQualityCap(t *testing.T) {
 	got, _ := valueAfter(buildArgs("d", Options{Quality: Quality720p, VideoPick: "1080p webm vp9"}), "-f")
-	if !strings.Contains(got, "[height=1080][ext=webm][vcodec~='(?i)^vp0?9']") {
+	if !strings.Contains(got, "[height=1080][width>=?1080][ext=webm][vcodec~='(?i)^vp0?9']") {
 		t.Errorf("-f = %q, want the picked 1080p webm track, not the 720p cap", got)
 	}
 }
@@ -263,8 +268,11 @@ func TestAPresetWishResolvesToTheBestTrackOfItsFormatUnderTheCap(t *testing.T) {
 func TestAnUnresolvedWishFallsBackToTheCap(t *testing.T) {
 	args := buildArgs("d", Options{VideoPick: "webm vp9 1080p"})
 	got, _ := valueAfter(args, "-f")
-	g := "[ext=webm][vcodec~='(?i)^vp0?9'][height<=?1080]"
-	want := "bv" + g + "+ba[ext=webm]/bv" + g + "+ba/b" + g + "/bestvideo[height<=?1080]+bestaudio/best[height<=?1080]"
+	container := "[ext=webm][vcodec~='(?i)^vp0?9']"
+	tall, short := container+"[width<=1080][height>1080]", container+"[height<=?1080]"
+	want := "bv" + tall + "+ba[ext=webm]/bv" + short + "+ba[ext=webm]/" +
+		"bv" + tall + "+ba/bv" + short + "+ba/" +
+		"b" + tall + "/b" + short + "/" + capSelector(1080)
 	if got != want {
 		t.Errorf("-f =\n  %q\nwant\n  %q", got, want)
 	}
@@ -495,4 +503,148 @@ func TestSanitizeRepairsAPresetsFormats(t *testing.T) {
 	if p := (HosterPreset{}).Sanitize(); p.VideoFormat != "best" || p.AudioFormat != "best" {
 		t.Errorf("Sanitize of a preset saved before formats existed = %+v, want best for both", p)
 	}
+}
+
+// portraitLike is a video filmed upright, as YouTube serves it: the landscape
+// ladder stood on end.
+var portraitLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.5, Filesize: 3000, Protocol: "https"},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1080, Height: 1920, FPS: 30, Filesize: 50000, Protocol: "https"},
+	{FormatID: "136", Ext: "mp4", Vcodec: "avc1.4d401f", Acodec: "none", Width: 720, Height: 1280, FPS: 30, Filesize: 20000, Protocol: "https"},
+	{FormatID: "135", Ext: "mp4", Vcodec: "avc1.4d401e", Acodec: "none", Width: 480, Height: 854, FPS: 30, Filesize: 9000, Protocol: "https"},
+	{FormatID: "134", Ext: "mp4", Vcodec: "avc1.4d401e", Acodec: "none", Width: 360, Height: 640, FPS: 30, Filesize: 5000, Protocol: "https"},
+}
+
+var landscapeLike = []FormatEntry{
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129.5, Filesize: 3000, Protocol: "https"},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1920, Height: 1080, FPS: 30, Filesize: 50000, Protocol: "https"},
+	{FormatID: "136", Ext: "mp4", Vcodec: "avc1.4d401f", Acodec: "none", Width: 1280, Height: 720, FPS: 30, Filesize: 20000, Protocol: "https"},
+	{FormatID: "135", Ext: "mp4", Vcodec: "avc1.4d401e", Acodec: "none", Width: 854, Height: 480, FPS: 30, Filesize: 9000, Protocol: "https"},
+}
+
+func TestAPortraitVideoNamesItsTracksByTheSmallerSide(t *testing.T) {
+	want := []string{"1080p mp4 avc1", "720p mp4 avc1", "480p mp4 avc1", "360p mp4 avc1"}
+	if got := VideoTracks(portraitLike); !reflect.DeepEqual(got, want) {
+		t.Errorf("VideoTracks = %v, want %v", got, want)
+	}
+}
+
+// yt-dlp's filters see a track's width and height but never the smaller of
+// the two, so the -f value is read here the way yt-dlp reads it.
+func TestAQualityDownloadsTheTrackItNamesEitherWayUp(t *testing.T) {
+	portrait, landscape := "portrait", "landscape"
+	sources := map[string][]FormatEntry{portrait: portraitLike, landscape: landscapeLike}
+	cases := []struct {
+		source string
+		pick   string
+		want   string
+	}{
+		{portrait, "1080p mp4 avc1", "137"},
+		{portrait, "480p mp4 avc1", "135"},
+		{portrait, "1080p", "137"},
+		{portrait, "720p", "136"},
+		{portrait, "480p", "135"},
+		{portrait, "2160p", "137"},
+		{portrait, "mp4 avc1 720p", "136"},
+		{landscape, "1080p mp4 avc1", "137"},
+		{landscape, "720p", "136"},
+		{landscape, "480p", "135"},
+		{landscape, "mp4 avc1 1080p", "137"},
+	}
+	for _, c := range cases {
+		o := Options{VideoPick: c.pick}
+		if !IsVideoPick(c.pick) {
+			o = Options{Quality: Quality(c.pick)}
+		}
+		sel, _ := valueAfter(buildArgs("d", o), "-f")
+		if got := ytdlpVideoPick(t, sel, sources[c.source]); got != c.want {
+			t.Errorf("%s, %s: -f %q takes format %q, want %q", c.source, c.pick, sel, got, c.want)
+		}
+	}
+	if ext, size := VideoFile("1080p", portraitLike, false); ext != "mkv" || size != 50000+3000 {
+		t.Errorf("VideoFile(1080p) = %q, %d; want the 1080x1920 track merged with the audio", ext, size)
+	}
+}
+
+// A track's key can name a portrait track by its height; the next probe gives
+// it the key the track has. A key the source lists, or one it has no track
+// for, stays as it is.
+func TestAPortraitTrackKeyedByItsHeightTakesItsOwnKey(t *testing.T) {
+	cases := map[string]string{
+		"1920p mp4 avc1": "1080p mp4 avc1",
+		"1280p mp4 avc1": "720p mp4 avc1",
+		"1080p mp4 avc1": "1080p mp4 avc1",
+		"1440p mp4 avc1": "1440p mp4 avc1",
+		"1920p webm vp9": "1920p webm vp9",
+	}
+	for pick, want := range cases {
+		if got := ResolveVideoPick(pick, portraitLike); got != want {
+			t.Errorf("ResolveVideoPick(%q) = %q, want %q", pick, got, want)
+		}
+	}
+}
+
+// ytdlpVideoPick is the id of the video format yt-dlp takes for sel from
+// formats: the first alternative that matches any, and in it the highest
+// resolution. It reads the filters this package writes and fails the test on
+// any other.
+func ytdlpVideoPick(t *testing.T, sel string, formats []FormatEntry) string {
+	t.Helper()
+	filter := regexp.MustCompile(`\[(\w+)(<=|>=|~=|<|>|=)(\??)('[^']*'|[^\]]*)\]`)
+	for _, alt := range strings.Split(sel, "/") {
+		video, _, _ := strings.Cut(alt, "+")
+		kind, filters, _ := strings.Cut(video, "[")
+		if kind != "bv" && kind != "bv*" && kind != "b" {
+			t.Fatalf("-f %q has a selector %q the reader does not know", sel, kind)
+		}
+		matches := filter.FindAllStringSubmatch("["+filters, -1)
+		var best *FormatEntry
+		for i, f := range formats {
+			if !carries(f.Vcodec) || (kind != "b" && f.Acodec != "none") || (kind == "b" && !carries(f.Acodec)) {
+				continue
+			}
+			if matchesFilters(t, matches, f) && (best == nil || f.Res() > best.Res()) {
+				best = &formats[i]
+			}
+		}
+		if best != nil {
+			return best.FormatID
+		}
+	}
+	return ""
+}
+
+func matchesFilters(t *testing.T, matches [][]string, f FormatEntry) bool {
+	t.Helper()
+	for _, m := range matches {
+		key, op, orNone, value := m[1], m[2], m[3] == "?", m[4]
+		switch key {
+		case "ext":
+			if f.Ext != value {
+				return false
+			}
+			continue
+		case "vcodec":
+			if !regexp.MustCompile(strings.Trim(value, "'")).MatchString(f.Vcodec) {
+				return false
+			}
+			continue
+		}
+		have, known := map[string]float64{"width": float64(f.Width), "height": float64(f.Height), "fps": f.FPS}[key]
+		if !known {
+			t.Fatalf("filter %q is not one the reader knows", m[0])
+		}
+		if have == 0 {
+			if !orNone {
+				return false
+			}
+			continue
+		}
+		want, _ := strconv.ParseFloat(value, 64)
+		ok := map[string]bool{"<=": have <= want, ">=": have >= want, "<": have < want, ">": have > want, "=": have == want}[op]
+		if !ok {
+			return false
+		}
+	}
+	return true
 }

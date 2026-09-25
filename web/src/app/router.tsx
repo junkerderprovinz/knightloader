@@ -15,8 +15,8 @@ import { RainbowProvider } from '../lib/useRainbow';
 
 export function AppRouter() {
   return (
-    // Outermost, so the sign-in screen, the toasts and every route follow a
-    // palette that moves (lib/useRainbow.ts).
+    // Outermost, so the sign-in screen, the toasts and every route can read
+    // the rainbow state (lib/useRainbow.ts).
     <RainbowProvider>
     <I18nProvider>
     <ToastProvider>

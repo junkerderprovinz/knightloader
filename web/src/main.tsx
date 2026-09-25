@@ -10,12 +10,15 @@ import './index.css';
 import { AppRouter } from './app/router';
 import { applyStoredTheme } from './lib/theme';
 import { applyStoredLanguage } from './lib/i18n';
-import { applyCachedAppearance } from './lib/appearance';
+import { applyCachedAppearance, readCachedDisco } from './lib/appearance';
+import { applyDisco } from './lib/disco';
 
-// Apply persisted preferences before first paint (no flash).
+// Apply persisted preferences before first paint (no flash). Disco starts from
+// the rainbow state, so it comes after it.
 applyStoredTheme();
 applyStoredLanguage();
 applyCachedAppearance();
+applyDisco(readCachedDisco());
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

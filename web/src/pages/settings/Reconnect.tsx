@@ -16,7 +16,6 @@ import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
   IconArrowUp,
-  IconClose,
   IconCollector,
   IconGlobe,
   IconInstances,
@@ -28,6 +27,7 @@ import {
 } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * ReconnectCards set how this box asks the router for a new public address.
@@ -157,9 +157,11 @@ const DEFAULTS: ReconnectConfig = {
   timeoutSeconds: TIMEOUT.fallback,
 };
 
-/** The five methods in the order the Go constants declare them. */
-const METHODS: { id: Method; icon: ReactNode }[] = [
-  { id: 'none', icon: <IconClose width={16} height={16} /> },
+/**
+ * The methods in the order the Go constants declare them. "none" is not among
+ * them: off is the module switch above, which keeps the method for later.
+ */
+const METHODS: { id: Exclude<Method, 'none'>; icon: ReactNode }[] = [
   { id: 'command', icon: <IconPlay width={16} height={16} /> },
   { id: 'http', icon: <IconGlobe width={16} height={16} /> },
   { id: 'upnp', icon: <IconInstances width={16} height={16} /> },
@@ -223,7 +225,8 @@ export function ReconnectCards({ hue }: { hue: number }) {
   return (
     <>
       <Card hue={hue} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.reconnect.setupTitle')}</SectionTitle>
+        <SectionTitle>{t('settings.module.reconnect')}</SectionTitle>
+        <ModuleToggle id="reconnect" />
         {/* FieldGroup, because a Field's label would pass a click on the
             caption to the first tab. */}
         <FieldGroup layout="row" label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
@@ -231,7 +234,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
             label={t('settings.reconnect.method')}
             variant="well"
             size="sm"
-            active={rc.method}
+            active={off ? null : rc.method}
             onSelect={(id) => write({ method: id as Method })}
             items={METHODS.map((m) => ({
               id: m.id,
@@ -294,8 +297,10 @@ function UPnPFields({ rc, write }: FieldProps) {
   const { t } = useT();
   return (
     <>
-      <StateLine tone="muted">{t('settings.reconnect.upnpState')}</StateLine>
-      <Field label={t('settings.reconnect.upnpLocation')} hint={t('settings.reconnect.upnpLocationHint')}>
+      <Field
+        label={t('settings.reconnect.upnpLocation')}
+        hint={[t('settings.reconnect.upnpState'), t('settings.reconnect.upnpLocationHint')]}
+      >
         <TextInput
           dir="ltr"
           spellCheck={false}

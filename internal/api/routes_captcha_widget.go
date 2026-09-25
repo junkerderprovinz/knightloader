@@ -9,10 +9,22 @@ package api
 //
 // The vendor comes from the payload's vendor field, which JDSource fills from
 // JD's challenge class. Without it, Enterprise or a V3Action still prove
-// reCAPTCHA; anything else gets a page without scripts rather than a guess.
+// reCAPTCHA; anything else gets the unsolvable page rather than a guess.
+//
+// JD reports reCAPTCHA v2, v3 and Enterprise under one class and tells them
+// apart in the rawtoken payload: enterprise is set when the hoster loads
+// enterprise.js, and v3Action holds the object the hoster passes to execute,
+// {"action":"login"}. An Enterprise key goes through enterprise.js and
+// grecaptcha.enterprise, as on the hoster's page, since a key created in
+// Enterprise does not answer to api.js. A score-based key has no widget to
+// click: the page asks for a token under the hoster's action once the script
+// is ready, as the hoster's own page would. Without a usable action that token
+// would be refused, so such a check gets the unsolvable page, which loads no
+// vendor script and tells the parent why.
 //
 // The reCAPTCHA sources follow https://developers.google.com/recaptcha/docs/display
-// and are path-scoped to /recaptcha/. The hCaptcha sources are the two hosts
+// and are path-scoped to /recaptcha/, which covers enterprise.js as well. The
+// hCaptcha sources are the two hosts
 // https://docs.hcaptcha.com/#content-security-policy-settings lists, since its
 // asset subdomains change. A per-response nonce covers the page's own inline
 // script and style, so nothing needs 'unsafe-inline'; styles are in a <style>
@@ -29,9 +41,10 @@ package api
 // window.parent at its own origin: kind is "ready" on load, then "solved"
 // (detail is the token), "expired" or "error" (detail is the vendor's error
 // code, "network", "script" when its script did not load, "timeout", or the
-// message the render call threw). The receiver still has to check the message
-// origin; frame-ancestors 'self' only keeps other sites from embedding the
-// page.
+// message the render or execute call threw). The unsolvable page posts only
+// "unsolvable", with "vendor" or "action" as the detail. The receiver still
+// has to check the message origin; frame-ancestors 'self' only keeps other
+// sites from embedding the page.
 //
 // Both vendors let a site owner lock a key to the hoster's domains
 // (https://developers.google.com/recaptcha/docs/domain_validation), and the
@@ -44,6 +57,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -90,7 +104,7 @@ var errCaptchaWidgetNoSiteKey = errors.New("captcha widget: siteKey is required"
 
 func registerCaptchaWidget(reg *Registry, _ *app.App) {
 	reg.Add(http.MethodGet, "/api/captcha/{id}/widget",
-		"render a live captcha widget behind a Content-Security-Policy scoped to the one vendor the challenge names; a page without scripts when it names none",
+		"render a live captcha widget behind a Content-Security-Policy scoped to the one vendor the challenge names, or a page that says it cannot be solved here",
 		func(w http.ResponseWriter, r *http.Request) {
 			page, err := buildCaptchaWidgetPage(parseCaptchaWidgetRequest(r))
 			if err != nil {
@@ -184,22 +198,30 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 		csp = hcaptchaCSP(nonce)
 	case captcha.VendorRecaptcha:
 		data.Global = "grecaptcha"
-		data.ScriptURL = captchaWidgetScriptURL("https://www.google.com/recaptcha/api.js", req.Lang)
+		script := "https://www.google.com/recaptcha/api.js"
+		if req.Enterprise {
+			script = "https://www.google.com/recaptcha/enterprise.js"
+			data.Namespace = "enterprise"
+		}
+		csp = recaptchaCSP(nonce)
+		if req.V3Action != "" {
+			action, ok := captchaWidgetAction(req.V3Action)
+			if !ok {
+				return unsolvableWidgetPage(nonce, req, "action")
+			}
+			data.Action = action
+			data.ScriptURL = captchaWidgetScoreScriptURL(script, req.SiteKey, req.Lang)
+			break
+		}
+		data.ScriptURL = captchaWidgetScriptURL(script, req.Lang)
 		if strings.EqualFold(req.Size, "invisible") {
 			data.Params["size"] = "invisible"
 		}
 		if req.SecureToken != "" {
 			data.Params["stoken"] = req.SecureToken
 		}
-		csp = recaptchaCSP(nonce)
 	default:
-		var buf bytes.Buffer
-		if err := unidentifiedWidgetPageTmpl.Execute(&buf, unidentifiedWidgetPageData{
-			Nonce: nonce, Host: req.Host,
-		}); err != nil {
-			return captchaWidgetPage{}, fmt.Errorf("rendering the unidentified-vendor page: %w", err)
-		}
-		return captchaWidgetPage{csp: unidentifiedVendorCSP(nonce), body: buf.Bytes()}, nil
+		return unsolvableWidgetPage(nonce, req, "vendor")
 	}
 
 	var buf bytes.Buffer
@@ -218,6 +240,50 @@ func captchaWidgetScriptURL(base, lang string) string {
 		q.Set("hl", lang)
 	}
 	return base + "?" + q.Encode()
+}
+
+// captchaWidgetScoreScriptURL is reCAPTCHA's address for a score-based key:
+// render names the key, which loads it without a widget, and klWidgetLoaded
+// then asks for the token.
+func captchaWidgetScoreScriptURL(base, siteKey, lang string) string {
+	q := url.Values{"onload": {"klWidgetLoaded"}, "render": {siteKey}}
+	if lang != "" {
+		q.Set("hl", lang)
+	}
+	return base + "?" + q.Encode()
+}
+
+// captchaWidgetActionName is what reCAPTCHA accepts as an action: letters,
+// digits, slashes and underscores.
+var captchaWidgetActionName = regexp.MustCompile(`^[A-Za-z0-9/_]{1,100}$`)
+
+// captchaWidgetAction reads the action out of a v3Action: the object JD
+// writes, {"action":"login"}, or the bare name.
+func captchaWidgetAction(raw string) (string, bool) {
+	action := raw
+	if strings.HasPrefix(raw, "{") {
+		var v struct {
+			Action string `json:"action"`
+		}
+		if json.Unmarshal([]byte(raw), &v) != nil {
+			return "", false
+		}
+		action = strings.TrimSpace(v.Action)
+	}
+	return action, captchaWidgetActionName.MatchString(action)
+}
+
+// unsolvableWidgetPage is the page for a challenge this route cannot solve:
+// no vendor script and no vendor origin, and a message that tells the parent
+// why, so it can say so in the reader's language.
+func unsolvableWidgetPage(nonce string, req captchaWidgetRequest, why string) (captchaWidgetPage, error) {
+	var buf bytes.Buffer
+	if err := unsolvableWidgetPageTmpl.Execute(&buf, unsolvableWidgetPageData{
+		Nonce: nonce, ID: req.ID, Host: req.Host, Why: why,
+	}); err != nil {
+		return captchaWidgetPage{}, fmt.Errorf("rendering the unsolvable page: %w", err)
+	}
+	return captchaWidgetPage{csp: unsolvableWidgetCSP(nonce), body: buf.Bytes()}, nil
 }
 
 // newCaptchaWidgetNonce is one response's CSP nonce. It only has to be
@@ -263,12 +329,14 @@ func hcaptchaCSP(nonce string) string {
 	}, "; ")
 }
 
-// unidentifiedVendorCSP trusts no vendor origin; only the page's own style
-// block may load.
-func unidentifiedVendorCSP(nonce string) string {
+// unsolvableWidgetCSP trusts no vendor origin; only the page's own script and
+// style block may run.
+func unsolvableWidgetCSP(nonce string) string {
+	n := "'nonce-" + nonce + "'"
 	return strings.Join([]string{
 		"default-src 'none'",
-		"style-src 'self' 'nonce-" + nonce + "'",
+		"script-src " + n,
+		"style-src 'self' " + n,
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'self'",
@@ -280,11 +348,16 @@ func unidentifiedVendorCSP(nonce string) string {
 // escapes each for its context.
 type widgetPageData struct {
 	Nonce, ID, Host, Prompt string
-	// Global is the vendor's script object, grecaptcha or hcaptcha.
-	Global    string
-	ScriptURL string
+	// Global is the vendor's script object, grecaptcha or hcaptcha, and
+	// Namespace the member of it the calls go to, "enterprise" for reCAPTCHA
+	// Enterprise.
+	Global, Namespace string
+	ScriptURL         string
 	// Params is the render call's parameters without the callbacks.
-	Params        map[string]string
+	Params map[string]string
+	// Action is set for a score-based reCAPTCHA key, which is not rendered:
+	// the token comes from execute under this action.
+	Action        string
 	LoadTimeoutMS int64
 }
 
@@ -296,6 +369,9 @@ type widgetPageData struct {
 // challenge-closed and challenge-expired are hCaptcha's codes for a challenge
 // the user closed or left too long; the widget is reset for another try rather
 // than given up.
+//
+// A score-based key keeps the watchdog running until execute hands over the
+// token, since a key that refuses this origin may never answer at all.
 var widgetPageTmpl = template.Must(template.New("captcha-widget").Parse(`<!doctype html>
 <html>
 <head>
@@ -333,9 +409,25 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
   }
   var watchdog = setTimeout(function(){ fail("timeout"); }, {{.LoadTimeoutMS}});
   window.klWidgetLoaded = function(){
-    clearTimeout(watchdog);
     var api = window[{{.Global}}];
+    {{- if .Namespace}}
+    api = api[{{.Namespace}}];
+    {{- end}}
     var params = {{.Params}};
+    {{- if .Action}}
+    api.ready(function(){
+      // execute throws for a key it does not know, and rejects for one that
+      // refuses; the promise turns both into one failure.
+      new Promise(function(resolve){ resolve(api.execute(params.sitekey, {action: {{.Action}}})); }).then(function(token){
+        if (failed) return;
+        clearTimeout(watchdog);
+        post("solved", token);
+      }, function(e){
+        fail(String((e && e.message) || e || "refused"));
+      });
+    });
+    {{- else}}
+    clearTimeout(watchdog);
     params.callback = function(token){ post("solved", token); };
     params["expired-callback"] = function(){ post("expired", null); };
     params["error-callback"] = function(code){
@@ -351,6 +443,7 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
     } catch (e) {
       fail(String((e && e.message) || e));
     }
+    {{- end}}
   };
   var script = document.createElement("script");
   script.src = {{.ScriptURL}};
@@ -364,14 +457,17 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
 </html>
 `))
 
-// unidentifiedWidgetPageData feeds unidentifiedWidgetPageTmpl.
-type unidentifiedWidgetPageData struct {
-	Nonce, Host string
+// unsolvableWidgetPageData feeds unsolvableWidgetPageTmpl. Why is "vendor"
+// when the vendor cannot be identified and "action" for a score-based key
+// without a usable action.
+type unsolvableWidgetPageData struct {
+	Nonce, ID, Host, Why string
 }
 
-// unidentifiedWidgetPageTmpl is the page for a vendor that cannot be
-// identified: text only, no script and no vendor origin.
-var unidentifiedWidgetPageTmpl = template.Must(template.New("captcha-widget-unidentified").Parse(`<!doctype html>
+// unsolvableWidgetPageTmpl loads no vendor script. Its own script only tells
+// the parent, which words the reason in the interface language; the English
+// is for anyone who opens the page on its own.
+var unsolvableWidgetPageTmpl = template.Must(template.New("captcha-widget-unsolvable").Parse(`<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -384,9 +480,13 @@ body{display:flex;align-items:center;justify-content:center;padding:24px;box-siz
 </head>
 <body>
 <div id="kl-wrap">
-<p><strong>This captcha cannot be shown here.</strong></p>
-<p>JD reported a widget challenge{{if .Host}} for {{.Host}}{{end}} without saying which vendor it is, and this page will not guess.</p>
-</div>
+<p><strong>This captcha cannot be solved in KnightLoader.</strong></p>
+{{if eq .Why "action"}}<p>It is a reCAPTCHA v3 check{{if .Host}} for {{.Host}}{{end}} without the action the hoster asks for, and a token without it would be refused.</p>
+{{else}}<p>JD reported a widget challenge{{if .Host}} for {{.Host}}{{end}} without saying which vendor it is, and this page will not guess.</p>
+{{end}}</div>
+<script nonce="{{.Nonce}}">
+window.parent.postMessage({source:"knightloader-captcha-widget",id:{{.ID}},kind:"unsolvable",detail:{{.Why}}}, window.location.origin);
+</script>
 </body>
 </html>
 `))

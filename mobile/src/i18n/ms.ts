@@ -76,7 +76,6 @@ export const ms: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Pelangi',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Selagi mod pelangi dihidupkan, setiap elemen berwarna beralih ke warna seterusnya dalam palet sekali setiap saat.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Hantar ini sekali apabila anda melaporkan sesuatu. Ia menjimatkan satu pusingan soalan, dan tiada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',

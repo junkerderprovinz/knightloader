@@ -76,7 +76,6 @@ export const lt: Dict = {
   'settings.accent': 'Akcentas',
   'settings.rainbow': 'Vaivorykštė',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Kol įjungtas vaivorykštės režimas, kiekvienas spalvotas elementas kas sekundę pereina prie kitos paletės spalvos.',
   'settings.problems': 'Kilo problemų?',
   'settings.problemsHint': 'Atsiųsk tai kartu, kai apie ką nors pranešai. Taip sutaupomas vienas klausimų ratas, o jame nėra nei adreso, nei prieigos rakto.',
   'settings.problemsCopy': 'Kopijuoti ataskaitą',

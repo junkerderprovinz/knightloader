@@ -81,7 +81,7 @@ func registerDownloadClient(reg *Registry, a *app.App) {
 	// even without a password, and answers 404 while the module is off.
 	reg.AddOpen(http.MethodGet, sabnzbdPath,
 		"SABnzbd-shaped download client for Sonarr and Radarr (set their URL Base to \"api/sabnzbd\"); "+
-			"off unless the downloadclient module is switched on, and the ?apikey= is an API token of this instance",
+			"off unless \"Download client for Sonarr and Radarr\" is switched on (Remote access page or Modules page), and the ?apikey= is an API token of this instance",
 		dc.serve)
 	reg.AddOpen(http.MethodPost, sabnzbdPath,
 		"the same door for mode=addfile, which is the only call Sonarr and Radarr make as a POST",

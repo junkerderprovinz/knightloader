@@ -15,7 +15,7 @@ import (
 
 // errFederationOff answers every call that would reach a peer while the
 // module is switched off. The peers stay stored and come back with it.
-var errFederationOff = errors.New("peer instances are switched off on the Modules page")
+var errFederationOff = errors.New("\"Peer instances\" is switched off on the Modules page")
 
 func registerFederation(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/instances", "the peer instances this one knows about; none while the module is switched off",

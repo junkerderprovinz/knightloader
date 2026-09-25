@@ -76,7 +76,6 @@ export const ro: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Curcubeu',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Cât timp modul curcubeu este activ, fiecare element colorat trece la următoarea culoare din paletă o dată pe secundă.',
   'settings.problems': 'Probleme?',
   'settings.problemsHint': 'Trimite asta când raportezi ceva. Scutește o rundă de întrebări și nu conține nici adresă, nici token.',
   'settings.problemsCopy': 'Copiază raportul',

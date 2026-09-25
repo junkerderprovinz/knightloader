@@ -2,6 +2,8 @@
 // internal/api/routes_features.go and accept values they do not know, so a new
 // module or page renders as an unlabelled row instead of breaking the page.
 
+import { json } from '../../lib/api';
+
 /** Open on purpose: the server may add a verdict before this file learns it. */
 export type FeatureVerdict = 'shipped' | 'desktop' | 'not-built' | (string & {});
 
@@ -63,9 +65,9 @@ export async function setFeature(id: string, enabled: boolean): Promise<FeatureS
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enabled }),
   });
-  // The server refuses a switch that cannot do anything and names the reason.
-  if (!r.ok) throw new Error((await r.text()).trim());
-  return r.json();
+  // The server refuses a switch that cannot do anything and names the reason,
+  // with a code where switchRefusal has words for it.
+  return json<FeatureState>(r);
 }
 
 /**

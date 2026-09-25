@@ -42,7 +42,7 @@ func registerSettings(reg *Registry, a *app.App) {
 				return
 			}
 			// Refused with the reason rather than silently dropped by sanitize.
-			if err := validateRows(s); err != nil {
+			if err := validateRows(s, nil); err != nil {
 				writeValidationError(w, err)
 				return
 			}
@@ -90,7 +90,7 @@ func registerSettings(reg *Registry, a *app.App) {
 				writeValidationError(w, err)
 				return
 			}
-			if err := validateRows(preview); err != nil {
+			if err := validateRows(preview, patched(patch)); err != nil {
 				writeValidationError(w, err)
 				return
 			}
@@ -195,8 +195,9 @@ func patched(patch map[string]json.RawMessage) func(key string) bool {
 
 // validateRows refuses the rows that carry their own validator, naming the one
 // that failed. Otherwise only sanitize would see them, and it drops what it
-// cannot use without saying so.
-func validateRows(s settings.Settings) error {
+// cannot use without saying so. named is CheckFolders' filter: nil checks every
+// row, and a patch that does not send categories leaves their folders alone.
+func validateRows(s settings.Settings, named func(key string) bool) error {
 	for i, e := range s.Connections {
 		if err := proxycfg.Validate(e); err != nil {
 			return fmt.Errorf("connection %d: %w", i+1, err)
@@ -234,8 +235,11 @@ func validateRows(s settings.Settings) error {
 	if err := s.ValidateMediaHooks(); err != nil {
 		return err
 	}
-	// settings.Validate creates and probes each category folder, as it does
-	// for the download folder.
+	// The only check here that touches the disk, so a stored category whose
+	// share is offline does not refuse a change of theme.
+	if named != nil && !named("categories") {
+		return nil
+	}
 	for i, c := range s.Categories {
 		if err := settings.Validate("the folder", c.Dir); err != nil {
 			return fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)

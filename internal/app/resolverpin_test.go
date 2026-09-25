@@ -120,6 +120,7 @@ func wantNothingHandled(t *testing.T, be *pinBackend, why string) {
 // The control: without it every assertion below could be explained by the
 // ranking already agreeing with the pin.
 func TestAnUnpinnedTaskFollowsTheRanking(t *testing.T) {
+	t.Parallel()
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "")
 
@@ -134,6 +135,7 @@ func TestAnUnpinnedTaskFollowsTheRanking(t *testing.T) {
 // A pinned task goes to the backend it names, so a link that only one service
 // can fetch does not have to be pasted again with the instance switched over.
 func TestAPinnedTaskGoesToTheBackendItNames(t *testing.T) {
+	t.Parallel()
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "torbox")
 
@@ -156,6 +158,7 @@ func TestAPinnedTaskGoesToTheBackendItNames(t *testing.T) {
 // wrong outcome is not the failure but the app fetching the link through the
 // healthy backend beside it, which would make the pin decorative.
 func TestAPinnedBackendWithABenchedAccountFailsWhereItCanBeSeen(t *testing.T) {
+	t.Parallel()
 	a, bes := pinApp(t)
 	a.acctHealthTracker().ReportFailure("alldebrid", "", accounts.HealthInvalid, "test", 0)
 	queuePinned(a, "p1", "alldebrid")
@@ -204,6 +207,7 @@ func TestAPinNamingABackendThatCannotTakeTheLinkSaysSo(t *testing.T) {
 // Honouring the pin at dispatch and forgetting it in the fallback would move
 // the task to another backend the first time the pinned one said "not mine".
 func TestAPinnedTaskNeverWalksTheFallbackChain(t *testing.T) {
+	t.Parallel()
 	a, bes := pinApp(t)
 	queuePinned(a, "p1", "alldebrid")
 
@@ -231,6 +235,7 @@ func TestAPinnedTaskNeverWalksTheFallbackChain(t *testing.T) {
 // key of it, which is how settings.ResolverOrder is matched too. Otherwise a pin
 // would break as soon as a second key turned the slot ids into service#account.
 func TestAPinMayNameTheServiceAndReachOneOfItsAccounts(t *testing.T) {
+	t.Parallel()
 	a, bes := pinApp(t)
 	// Only the named account of the service is registered, so a pin that
 	// insisted on an exact id match would find nothing.

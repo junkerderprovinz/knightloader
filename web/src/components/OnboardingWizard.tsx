@@ -101,10 +101,19 @@ export function OnboardingWizard() {
     accounts: 'onboarding.accounts.title',
     finished: 'onboarding.finished.title',
   } as const;
+  // The welcome and the closing words are what their steps are for, so they
+  // stay on the page; the other two explain the control below them.
+  const hintKey = {
+    welcome: undefined,
+    folder: 'onboarding.folder.body',
+    accounts: 'onboarding.accounts.body',
+    finished: undefined,
+  } as const;
 
   return (
     <Modal
       title={t(titleKey[step])}
+      hint={hintKey[step] && t(hintKey[step])}
       onClose={close}
       footer={
         <>
@@ -150,34 +159,27 @@ export function OnboardingWizard() {
           </div>
         )}
 
-        {step === 'folder' && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-carbon-textSub">{t('onboarding.folder.body')}</p>
-            {settings ? (
-              <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
-                <PathInput
-                  value={downloadDir}
-                  placeholder="/downloads"
-                  onValue={(dir) => {
-                    setDownloadDir(dir);
-                    setFolderError(undefined);
-                  }}
-                  error={folderError}
-                />
-              </Field>
-            ) : (
-              <LoadingCard nested label={t('common.loading')} />
-            )}
-          </div>
-        )}
+        {step === 'folder' &&
+          (settings ? (
+            <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
+              <PathInput
+                value={downloadDir}
+                placeholder="/downloads"
+                onValue={(dir) => {
+                  setDownloadDir(dir);
+                  setFolderError(undefined);
+                }}
+                error={folderError}
+              />
+            </Field>
+          ) : (
+            <LoadingCard nested label={t('common.loading')} />
+          ))}
 
         {step === 'accounts' && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-carbon-textSub">{t('onboarding.accounts.body')}</p>
-            <Button kind="secondary" className="w-fit" onClick={openAccounts}>
-              {t('onboarding.accounts.link')}
-            </Button>
-          </div>
+          <Button kind="secondary" className="w-fit" onClick={openAccounts}>
+            {t('onboarding.accounts.link')}
+          </Button>
         )}
 
         {step === 'finished' && <p className="text-sm text-carbon-textSub">{t('onboarding.finished.body')}</p>}

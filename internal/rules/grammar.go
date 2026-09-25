@@ -118,6 +118,10 @@ func Describe() Grammar {
 			{ID: "priority", Kind: "int", Flavour: "packagizer",
 				Min: intPtr(PriorityMin), Max: intPtr(PriorityMax)},
 			{ID: "autoExtract", Kind: "bool", Flavour: "packagizer"},
+			// Beside the unpacking switch, since it only matters for links that
+			// get unpacked: where their files move afterwards, in place of
+			// ExtractMoveTo (see Action.ExtractDir).
+			{ID: "extractDir", Kind: "template", Flavour: "packagizer"},
 			{ID: "chunks", Kind: "int", Flavour: "packagizer", Min: intPtr(1), Max: intPtr(MaxChunks)},
 			{ID: "reject", Kind: "reject", Flavour: "filter"},
 			{ID: "reason", Kind: "template", Flavour: "filter"},

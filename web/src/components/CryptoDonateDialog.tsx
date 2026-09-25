@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Button, Modal, useTooltip } from './ui';
 import { CoinMark } from './donateMarks';
 import { QRCode } from './QRCode';
-import { hueVars, rainbowAt } from '../lib/appearance';
+import { hueVars } from '../lib/appearance';
 import { qrMatrix } from '../lib/qrmatrix';
 import { IconClose } from '../lib/icons';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
 import { useNavLabels } from '../lib/navLabels';
-import { useRainbow } from '../lib/useRainbow';
 
 /**
  * CryptoDonateDialog shows a QR code and address for the chosen coin and
@@ -22,7 +21,6 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const [network, setNetwork] = useState<CryptoNetwork>(CRYPTO_COINS[0]!.networks[0]!);
   const [copied, setCopied] = useState(false);
   const matrix = useMemo(() => qrMatrix(network.address), [network.address]);
-  useRainbow();
 
   // In `hover` mode the ticker shows under the pointer, and the selected coin
   // always keeps its word.
@@ -47,6 +45,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   return (
     <Modal
       title={t('settings.about.cryptoTitle')}
+      hint={t('settings.about.cryptoIntro')}
       onClose={onClose}
       footer={
         <Button
@@ -58,8 +57,6 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
         />
       }
     >
-      <p className="text-sm text-carbon-textSub">{t('settings.about.cryptoIntro')}</p>
-
       <div className="flex flex-col items-center gap-3 rounded-[var(--radius-card)] bg-carbon-surface2 p-4">
         <QRCode matrix={matrix} label={network.address} size={168} />
         {/* Never shortened: an address is checked by eye before sending. */}
@@ -83,7 +80,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
                 setNetwork(n);
                 setCopied(false);
               }}
-              style={hueVars(rainbowAt(i)) as CSSProperties}
+              style={hueVars(i) as CSSProperties}
               // The pill token, not rounded-full, so the square shape setting applies.
               className={`glim-hue rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium transition-colors ${
                 n.id === network.id
@@ -170,7 +167,7 @@ function CoinTile({
         aria-selected={selected}
         aria-label={`${coin.name} (${coin.symbol})`}
         onClick={onPick}
-        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        style={hueVars(hue) as CSSProperties}
         {...tipHoverProps}
         className={`kl-coin-tile group flex aspect-square flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]
           px-2 transition-colors ${showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'} ${

@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
-import { hueVars, rainbowAt } from '../../lib/appearance';
-import { useRainbow } from '../../lib/useRainbow';
+import { hueVars } from '../../lib/appearance';
 
 /**
  * NeutralSwitch is the switch for columns of switches, such as the module list
@@ -27,7 +26,6 @@ export function NeutralSwitch({
   /** Position among the switches of one card, 0-based like Toggle's; omit for a lone switch. */
   hue?: number;
 }) {
-  useRainbow();
   const worded = Boolean(onLabel || offLabel);
   return (
     <button
@@ -38,7 +36,7 @@ export function NeutralSwitch({
       disabled={disabled}
       onClick={() => onChange(!on)}
       className={`${hue !== undefined ? 'glim-hue' : ''} flex shrink-0 items-center gap-2.5 text-start text-xs text-carbon-textSub select-none disabled:opacity-40`}
-      style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
     >
       {worded && <span className="glim-num w-6 text-end">{on ? onLabel : offLabel}</span>}
       <span

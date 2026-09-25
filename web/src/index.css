@@ -127,6 +127,46 @@
   height: var(--btn-h-key);
 }
 
+/* A glyph-only control: a square at the button height, sized by its glyph.
+   components/ui.tsx sets it on Button, IconBadge, IconTile and LinkBadge once
+   no words are shown. */
+.glim-btn-icon {
+  width: var(--btn-h);
+  min-width: 0;
+  padding-inline: 0;
+}
+.glim-btn-icon.glim-btn-key {
+  width: var(--btn-h-key);
+}
+
+/* A glyph beside a button's words is as tall as the words, 14px. A larger one
+   outweighs the label, and a row of buttons reads as a row of icons. The key
+   control's taller box takes 16px, and a glyph alone in a square fills half of
+   it. The rules are GlimStone's (reference/tokens.css); no call site sets a
+   glyph size of its own. */
+.glim-btn-glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+.glim-btn-glyph > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
+.glim-btn-key .glim-btn-glyph > svg {
+  width: 1rem;
+  height: 1rem;
+}
+.glim-btn-icon .glim-btn-glyph > svg {
+  width: 1rem;
+  height: 1rem;
+}
+.glim-btn-icon.glim-btn-key .glim-btn-glyph > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* What the phone's bottom bar takes from the foot of the window: the bar's 3rem
    and the frame's 1rem under it. A toast or banner pinned to the foot stands
    this much higher. The width is lib/phoneLayout.ts's. */

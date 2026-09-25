@@ -1,5 +1,7 @@
-// Package testenv holds the one decision every test that opens a socket on a
-// real network interface has to make, so it is made once instead of per test.
+// Package testenv holds the decisions that many test packages share, so each
+// is made once instead of per test: whether a test may open a socket on a real
+// network interface, how durable a test's SQLite store has to be, and what the
+// test binary finds when it looks outside itself for a name or for yt-dlp.
 //
 // It exists only for tests. Nothing in the built binaries imports it, which is
 // why importing "testing" here is harmless: the flags that import registers

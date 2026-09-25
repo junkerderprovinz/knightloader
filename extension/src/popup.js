@@ -15,13 +15,13 @@ const tabsEl = document.getElementById('tabs');
 const paneSendEl = document.getElementById('paneSend');
 
 /**
- * Every button carries a filled glyph beside its label (GlimStone "Icon
- * glyphs"), built with createElementNS because Mozilla's linter, a release
- * gate here, fails an innerHTML assignment from a variable. `label()` sets
- * text and glyph together.
+ * Every button carries a filled glyph beside its label, 14px like the label's
+ * text (GlimStone "Icon glyphs" and "The sidebar"), built with createElementNS
+ * because Mozilla's linter, a release gate here, fails an innerHTML assignment
+ * from a variable. `label()` sets text and glyph together.
  */
 const NS = 'http://www.w3.org/2000/svg';
-function glyph(d, size = 15) {
+function glyph(d, size = 14) {
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
   svg.setAttribute('width', String(size));
@@ -68,8 +68,8 @@ function paintHues() {
   const look = await applyAppearance();
   paintHues();
   // Disco walks here too, or the popup would sit still beside a settings page
-  // that moves. rehue() reaches the cards drawn later as well.
-  applyDisco(look.disco, look.rainbow);
+  // that moves. The walk writes the root, so the cards drawn later follow.
+  applyDisco(look.disco);
   await loadLanguage();
   wireTooltips();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));

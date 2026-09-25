@@ -54,8 +54,9 @@ const (
 )
 
 // WidgetPayload is Challenge.Payload for KindWidget: the sitekey data a hosted
-// reCAPTCHA v2 or hCaptcha widget needs to render and solve itself in a
-// browser. See jdsource.go's jdWidgetToken for which JD call it is read from.
+// reCAPTCHA (v2, v3 or Enterprise) or hCaptcha widget needs to render and
+// solve itself in a browser. See jdsource.go's jdWidgetToken for which JD call
+// it is read from.
 type WidgetPayload struct {
 	// Vendor is VendorRecaptcha or VendorHCaptcha. The two load different
 	// scripts from different origins, and nothing else in the payload tells
@@ -68,7 +69,9 @@ type WidgetPayload struct {
 	// "INVISIBLE" for either vendor. It is passed on as it arrives.
 	Type string `json:"type,omitempty"`
 	// Enterprise and V3Action apply to reCAPTCHA; hCaptcha leaves them at the
-	// zero value.
+	// zero value. Enterprise means the hoster loads reCAPTCHA Enterprise.
+	// V3Action is set for a score-based key and is what the hoster hands to
+	// execute, written by JD as a JSON object such as {"action":"login"}.
 	Enterprise bool   `json:"enterprise,omitempty"`
 	V3Action   string `json:"v3Action,omitempty"`
 	// SecureToken is JD's "stoken". hCaptcha's Storable hardcodes it to nil,

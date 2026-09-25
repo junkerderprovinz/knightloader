@@ -277,41 +277,31 @@ function rainbowAt(i) {
 }
 
 /**
- * hueVars are the custom properties an element with a palette position sets on
- * itself. The `.glim-hue` rules in glimstone.css decide whether the hue shows
- * at rest or on hover. The class needs these properties, or the accent
- * resolves to nothing.
+ * hueVars are the custom properties an element at palette position `i` sets
+ * on itself. The `.glim-hue` rules in glimstone.css decide whether the hue
+ * shows at rest or on hover. They point at the root's `--rb-*` properties
+ * rather than holding a colour, so a palette change or disco's walk lands on
+ * the root alone and no element has to be touched again. The class needs these
+ * properties, or the accent resolves to nothing.
  */
-function hueVars(hex) {
-  if (!validHex(hex)) return {};
-  const { r, g, b } = parseHex(hex);
+function hueVars(i) {
+  const n = ((Math.trunc(i) % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
+  const hue = `var(--rb-${n})`;
   return {
-    '--item-hue': hex,
-    '--item-hue-ink': contrastOn(hex),
-    '--item-hue-soft': `rgba(${r}, ${g}, ${b}, 0.22)`,
-    '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.16)`,
-    '--item-hue-badge': `rgba(${r}, ${g}, ${b}, 0.5)`,
-    '--item-hue-ring': `rgba(${r}, ${g}, ${b}, 0.55)`,
+    '--item-hue': hue,
+    '--item-hue-ink': `var(--rb-ink-${n})`,
+    '--item-hue-soft': `color-mix(in srgb, ${hue} 22%, transparent)`,
+    '--item-hue-wash': `color-mix(in srgb, ${hue} 16%, transparent)`,
+    '--item-hue-badge': `color-mix(in srgb, ${hue} 50%, transparent)`,
+    '--item-hue-ring': `color-mix(in srgb, ${hue} 55%, transparent)`,
   };
 }
 
 /** setHue puts a palette position on one element, class and properties
- *  together. The position is kept on the element for rehue(). */
+ *  together. */
 function setHue(el, i) {
   el.classList.add('glim-hue');
-  el.dataset.hue = String(i);
-  const vars = hueVars(rainbowAt(i));
-  for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
-}
-
-/**
- * rehue recomputes every position already placed on the page. hueVars bakes
- * the hex into each element's inline style, so a palette that moves while the
- * page stays up reaches only the elements drawn again, unless something walks
- * all of them.
- */
-function rehue() {
-  for (const el of document.querySelectorAll('.glim-hue[data-hue]')) setHue(el, Number(el.dataset.hue));
+  for (const [k, v] of Object.entries(hueVars(i))) el.style.setProperty(k, v);
 }
 
 /**
@@ -324,6 +314,8 @@ function setHues(elements) {
   elements.filter(Boolean).forEach((el, i) => setHue(el, i));
 }
 
+/** applyRainbow stores the state and writes the palette, with the ink for each
+ *  colour, onto the root. Disco lives in disco.js. */
 function applyRainbow(next) {
   const merged = { ...RAINBOW_OFF, ...next };
   merged.palette = usablePalette(merged.palette);
@@ -331,77 +323,11 @@ function applyRainbow(next) {
   rainbowNow = merged;
 
   const root = document.documentElement;
-  for (let i = 0; i < RAINBOW.length; i++) root.style.setProperty(`--rb-${i}`, rainbowAt(i));
+  for (let i = 0; i < RAINBOW.length; i++) {
+    root.style.setProperty(`--rb-${i}`, rainbowAt(i));
+    root.style.setProperty(`--rb-ink-${i}`, contrastOn(rainbowAt(i)));
+  }
   const mode = !merged.on ? 'off' : merged.reactive ? 'reactive' : 'on';
   if (mode === 'off') root.removeAttribute('data-rainbow');
   else root.setAttribute('data-rainbow', mode);
-}
-
-// Disco, the colour engine's easter egg from reference/appearance.ts: while it
-// is on, the palette steps one position a second, so every hued element moves
-// to the next colour together. It animates nothing; each step is a repaint.
-
-/** One step a second, well under the 3Hz flicker threshold photosensitivity
- *  guidance names, which is what decides the number. */
-const DISCO_TICK_MS = 1000;
-
-/** Turn-ons of rainbow mode that unlock it. */
-const DISCO_UNLOCK_TURN_ONS = 5;
-
-/** The longest pause between two turn-ons of one run. Without it, somebody
- *  comparing the page with and without the rainbow over a minute unlocks a
- *  mode they never went looking for. */
-const DISCO_UNLOCK_WINDOW_MS = 3000;
-
-let discoTimer = null;
-
-/**
- * applyDisco starts or stops the walk. `stored` is the rainbow as saved, which
- * stopping puts back, so a stopped disco does not look like rotation having
- * switched itself on.
- *
- * Each step rotates, since rainbowAt ignores the seed while rotation is off,
- * and each step only applies: storing it would write the user's own seed
- * forward once a second. With the rainbow off nothing hued is on screen, so
- * the walk waits and starts by itself when the rainbow comes back.
- */
-function applyDisco(on, stored) {
-  const wasWalking = discoTimer !== null;
-  if (wasWalking) {
-    clearInterval(discoTimer);
-    discoTimer = null;
-  }
-  const root = document.documentElement;
-  if (on) root.setAttribute('data-disco', 'on');
-  else root.removeAttribute('data-disco');
-
-  if (!on || !rainbowNow.on) {
-    if (wasWalking) {
-      applyRainbow(stored);
-      rehue();
-    }
-    return;
-  }
-  discoTimer = setInterval(() => {
-    applyRainbow({ ...rainbowNow, rotate: true, seed: rainbowNow.seed + 1 });
-    rehue();
-  }, DISCO_TICK_MS);
-}
-
-/**
- * discoTap counts the unlock gesture: five turn-ons of rainbow mode, each
- * within DISCO_UNLOCK_WINDOW_MS of the last, and true on the fifth. Turn-ons
- * rather than clicks, so the gesture ends with the rainbow on, the one state
- * in which the reward can be seen. The count lives with the caller and never
- * in storage, or finding the mode once would leave its switch on the page for
- * good.
- */
-function discoTap(state, turnedOn, now) {
-  if (!turnedOn) return false;
-  const gap = now - state.last;
-  state.last = now;
-  state.taps = state.taps > 0 && gap <= DISCO_UNLOCK_WINDOW_MS ? state.taps + 1 : 1;
-  if (state.taps < DISCO_UNLOCK_TURN_ONS) return false;
-  state.taps = 0;
-  return true;
 }

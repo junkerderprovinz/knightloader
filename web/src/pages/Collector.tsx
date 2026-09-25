@@ -183,7 +183,7 @@ export function Collector() {
   const reduceToShown = useCallback(() => {
     const before = new Set(selected);
     setSelected(new Set(reach.shown));
-    toast(t('select.reduced').replace('{n}', String(reach.hidden.length)), 'info', 'action-done', {
+    toast(t('select.reduced', { n: reach.hidden.length }), 'info', 'action-done', {
       label: t('remove.undo'),
       run: () => setSelected(before),
     });

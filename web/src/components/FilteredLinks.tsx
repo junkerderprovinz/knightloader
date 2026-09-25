@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Task } from '../lib/api';
 import { fmtDate } from '../lib/format';
-import { useT, type TranslationKey } from '../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
@@ -158,9 +158,7 @@ export function useFx() {
   return useCallback(
     (key: FilteredKey, vars?: Record<string, string | number>) => {
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? FILTERED_STRINGS[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? FILTERED_STRINGS[key], vars);
     },
     [t],
   );

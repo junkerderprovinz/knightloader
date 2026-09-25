@@ -13,9 +13,13 @@ import (
 )
 
 // idleActionPoll overrides internal/idleaction's own poll interval when it is
-// not zero. Tests push it out of the way, so that a check that ApplySettings
-// arms the countdown cannot pass because of the poll.
+// not zero. Tests shorten it, or push it out of the way so that a check that
+// ApplySettings arms the countdown cannot pass because of the poll.
 var idleActionPoll time.Duration
+
+// idleActionClock replaces the wall clock of the countdown when it is not nil,
+// so a test can run out a countdown without waiting for it.
+var idleActionClock idleaction.Clock
 
 // queueIdleForAction reports whether the queue has nothing enabled left to run,
 // start or finish. Disabled links are subtracted so they cannot hold the

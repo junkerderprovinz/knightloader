@@ -370,15 +370,15 @@ type Task struct {
 	// app_ytdlp_variants.go's applyProbeFormats); the backend's real name
 	// supersedes it once the download runs.
 	Ext string `json:"ext,omitempty"`
-	// AvailableQualities narrows the quality picker to the height caps a
+	// AvailableQualities narrows the quality picker to the resolution caps a
 	// probed yt-dlp video source offers, for when no format is chosen. Empty
 	// means not probed yet, and the full menu is shown.
 	AvailableQualities []string `json:"availableQualities,omitempty"`
 	// AvailableVideoFormats lists the containers and codecs a probed source's
 	// video comes in, "best" first (see ytdlp.VideoContainers), for the format
-	// picker. AvailableVideoTracks is every track in them by height, frame rate
-	// and format (see ytdlp.VideoTracks), which the quality picker offers once
-	// a format is chosen.
+	// picker. AvailableVideoTracks is every track in them by resolution, frame
+	// rate and format (see ytdlp.VideoTracks), which the quality picker offers
+	// once a format is chosen.
 	AvailableVideoFormats []string `json:"availableVideoFormats,omitempty"`
 	AvailableVideoTracks  []string `json:"availableVideoTracks,omitempty"`
 	// AvailableAudioFormats lists the codecs a probed source's audio comes in,

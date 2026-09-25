@@ -149,16 +149,17 @@ function Generations({ generations }: { generations: LogGeneration[] }) {
               ? t('settings.diagnostics.fileCurrent')
               : t('settings.diagnostics.fileOlder', { n: g.index })}
           </span>
-          <span className="glim-num text-carbon-text" dir="ltr">
+          <span className="glim-num text-carbon-text">
             {fmtBytes(g.bytes)}
           </span>
           <span className="text-[11px] text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
           <span className="flex-1" />
+          {/* An anchor for its download attribute, drawn as a badge. */}
           <a
             href={logFileHref(g.index)}
             download
-            className="rounded-[var(--radius-control)] px-2 py-1 text-[11px] text-carbon-textMuted
-              transition-colors hover:bg-carbon-hover hover:text-carbon-text"
+            className="inline-flex h-[var(--btn-h)] shrink-0 items-center rounded-[var(--radius-control)] bg-carbon-surface2
+              px-2.5 text-xs font-medium text-carbon-textSub transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
           >
             {t('settings.diagnostics.fileDownload')}
           </a>

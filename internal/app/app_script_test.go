@@ -50,7 +50,8 @@ func TestScriptFiresOnTaskDone(t *testing.T) {
 // This goes through onUpdate, since ClassifyTaskUpdate relies on NextTry being
 // set before the broadcast.
 func TestScriptDoesNotFireOnTaskFailedWithRetryPending(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +168,8 @@ func TestScriptActionsRetryRefusesEmptyTaskID(t *testing.T) {
 // It polls with its own deadline because scriptIdlePoll is 2s, which leaves too
 // little of waitFor's 3s on a loaded machine.
 func TestWatchQueueIdleForScriptsFiresOnce(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -76,7 +76,6 @@ export const ru: Dict = {
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Радуга',
   'settings.disco': 'Диско',
-  'settings.discoHint': 'Пока включён радужный режим, каждый цветной элемент раз в секунду переходит к следующему цвету палитры.',
   'settings.problems': 'Проблемы?',
   'settings.problemsHint': 'Приложите это, когда о чём-то сообщаете. Это экономит один круг вопросов, и в нём нет ни адреса, ни токена.',
   'settings.problemsCopy': 'Копировать отчёт',

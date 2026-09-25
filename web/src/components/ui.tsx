@@ -4,10 +4,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, RefObject } from 'react';
-import { hueVars, rainbowAt } from '../lib/appearance';
-// Every component in this file that paints a palette position calls
-// useRainbow(), so it renders again when the palette moves under it.
-import { useRainbow } from '../lib/useRainbow';
+import { hueVars } from '../lib/appearance';
 import { useNavLabels } from '../lib/navLabels';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
@@ -45,20 +42,15 @@ const BTN_H = 'h-[var(--btn-h)]';
 const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
 
 /**
- * A glyph alone in a square is half its box (rule 13), and 20px beside words,
- * where the mark and 14px text have to read as one control. `[&>svg]` beats the
- * width and height written on the glyph itself, which are SVG presentation
- * attributes and lose to any CSS rule, so a call site passing its own number
- * still gets the right size.
+ * Every glyph in a button stands in a `.glim-btn-glyph` span, and index.css
+ * sizes it from the button's classes: the size of the words beside it, 14px,
+ * or 16px in the key control, and half the box when it stands alone in a
+ * square (`.glim-btn-icon`). A CSS rule beats the width and height written on
+ * the glyph itself, which are SVG presentation attributes, so a call site
+ * passing its own number still gets the house size.
  */
-const GLYPH_16 = '[&>svg]:h-4 [&>svg]:w-4';
-const GLYPH_20 = '[&>svg]:h-5 [&>svg]:w-5';
-/** The mark grows with the box: the key control's step matches the height's. */
-const GLYPH_22 = '[&>svg]:h-[1.375rem] [&>svg]:w-[1.375rem]';
-
-function glyphSize(shape: 'square' | 'besideWords', height: 'btn' | 'key'): string {
-  if (shape === 'square') return height === 'key' ? GLYPH_20 : GLYPH_16;
-  return height === 'key' ? GLYPH_22 : GLYPH_20;
+function Glyph({ children }: { children: ReactNode }) {
+  return <span className="glim-btn-glyph">{children}</span>;
 }
 
 /**
@@ -101,7 +93,6 @@ export function Button({
    */
   hint?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  useRainbow();
   const labelMode = useNavLabels();
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
@@ -111,7 +102,7 @@ export function Button({
   const hideIcon = labelled && labelMode === 'text' && !!fallback;
   const iconOnly = !!icon && !body;
   const hued = hue !== undefined;
-  const hueCss = hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined;
+  const hueCss = hued ? (hueVars(hue) as CSSProperties) : undefined;
   const slotted = !!hint && !iconOnly;
   // A disabled button takes no pointer events, so a square's name, which is all
   // it shows, is held by a box around it; see IconBadge.
@@ -132,8 +123,7 @@ export function Button({
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
-        ${iconOnly ? (keyControl ? 'w-[var(--btn-h-key)] px-0' : 'w-[var(--btn-h)] px-0') : 'px-3.5'}
-        ${glyphSize(iconOnly ? 'square' : 'besideWords', keyControl ? 'key' : 'btn')}
+        ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}
         ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
       style={hueCss}
       // `title` never reaches the DOM, so a glyph-only button states its name
@@ -142,7 +132,7 @@ export function Button({
       {...(title && !boxed ? tipHoverProps : undefined)}
       {...rest}
     >
-      {!hideIcon && icon}
+      {!hideIcon && icon && <Glyph>{icon}</Glyph>}
       {body}
       {slotted && HINT_SLOT}
     </button>
@@ -261,16 +251,15 @@ export function IconTile({
   hue?: number;
   className?: string;
 }) {
-  useRainbow();
   const hued = hue !== undefined;
   return (
     <span
       aria-hidden
-      className={`flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-control)]
-        ${GLYPH_16} bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
-      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      className={`glim-btn-icon flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-control)]
+        bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
+      style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
-      {icon}
+      <Glyph>{icon}</Glyph>
     </span>
   );
 }
@@ -295,7 +284,6 @@ export function LabelBadge({
   tone?: 'ok' | 'fail';
   onClick?: () => void;
 }) {
-  useRainbow();
   const hued = hue !== undefined && !tone;
   const toneClass =
     tone === 'ok'
@@ -316,7 +304,7 @@ export function LabelBadge({
         text-[11px] font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
         ${onClick ? 'motion-safe:active:scale-[.98] hover:opacity-80' : ''}`}
-      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <span className="whitespace-nowrap">{label}</span>
       {tip && <InfoBubble tip={tip} label={label} />}
@@ -376,7 +364,6 @@ export function IconBadge({
    */
   hint?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  useRainbow();
   const hued = hue !== undefined;
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
@@ -412,10 +399,10 @@ export function IconBadge({
       className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.98]
-        ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`}
+        ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'}
         ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
         ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
-      style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
+      style={hued ? { ...(hueVars(hue) as CSSProperties), ...style } : style}
       // `title` is pulled out for the bubble and never reaches the DOM, so it
       // cannot act as the accessible name the way a native tooltip does.
       // Before the spread, so a call site's own aria-label still wins.
@@ -423,7 +410,7 @@ export function IconBadge({
       {...(title && !boxed ? tipHoverProps : undefined)}
       {...rest}
     >
-      {showIcon && icon}
+      {showIcon && <Glyph>{icon}</Glyph>}
       {showText && <span className="whitespace-nowrap">{title}</span>}
       {slotted && HINT_SLOT}
     </button>
@@ -447,6 +434,16 @@ export function IconBadge({
 }
 
 /**
+ * linkBadgeClass is the look of a badge that is a link rather than a button,
+ * with its words beside the glyph or the glyph alone.
+ */
+export function linkBadgeClass(showText: boolean): string {
+  return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+    transition duration-150 select-none motion-safe:active:scale-[.98]
+    ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
+}
+
+/**
  * LinkBadge is a labelled IconBadge that opens a website in a new tab, since a
  * link is clickable and everything clickable is a badge (GlimStone rule 13).
  */
@@ -463,11 +460,13 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
         {...tipHoverProps}
-        className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
-          transition duration-150 select-none motion-safe:active:scale-[.98]
-          ${showText ? `px-2.5 text-xs font-medium ${GLYPH_20}` : `w-[var(--btn-h)] ${GLYPH_16}`} ${iconBadgeClass} ${className}`}
+        className={`${linkBadgeClass(showText)} ${className}`}
       >
-        {labelMode !== 'text' && <IconExternalLink />}
+        {labelMode !== 'text' && (
+          <Glyph>
+            <IconExternalLink />
+          </Glyph>
+        )}
         {showText && <span className="whitespace-nowrap">{title}</span>}
       </a>
       {tip.node}
@@ -482,8 +481,39 @@ const FIELD_SHELL = 'flex flex-col gap-1.5';
 // that reads fine on one line; most captions are long enough, or their control
 // wide enough, that stacking is still the right call.
 const FIELD_SHELL_ROW = 'flex flex-wrap items-center gap-3';
+// A text field's caption sits on the field's baseline rather than its middle,
+// so a line the field grows under itself, such as PathInput's error, does not
+// pull the caption down with it.
+const FIELD_SHELL_ROW_TEXT = 'flex flex-wrap items-baseline gap-3';
 
-function Caption({ label, hint }: { label: string; hint?: string }) {
+/**
+ * A caption's or a row's (i). Several strings are paragraphs of one bubble,
+ * such as what a control does and what the current choice changes about it.
+ */
+type Hint = string | string[];
+
+function HintBubble({ hint }: { hint?: Hint }) {
+  const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
+  if (paragraphs.length === 0) return null;
+  return (
+    <InfoBubble
+      tip={
+        paragraphs.length === 1 ? (
+          paragraphs[0]
+        ) : (
+          <span className="flex flex-col gap-1.5">
+            {paragraphs.map((p) => (
+              <span key={p}>{p}</span>
+            ))}
+          </span>
+        )
+      }
+      label={paragraphs.join(' ')}
+    />
+  );
+}
+
+function Caption({ label, hint }: { label: string; hint?: Hint }) {
   return (
     // data-glim-label is the settings search's anchor, here rather than at the
     // call sites because this one span is every Field and FieldGroup in the
@@ -493,7 +523,7 @@ function Caption({ label, hint }: { label: string; hint?: string }) {
     // may contain a quote in any of 42 languages.
     <span data-glim-label={label} className="flex shrink-0 items-center text-xs text-carbon-textSub">
       {label}
-      {hint && <InfoBubble tip={hint} />}
+      <HintBubble hint={hint} />
     </span>
   );
 }
@@ -515,14 +545,14 @@ export function Field({
   children,
 }: {
   label: string;
-  hint?: string;
+  hint?: Hint;
   /** `'row'` puts the caption and the control on one line instead of stacking
    *  them; the control gets `flex-1` so it still fills the line. */
   layout?: 'stack' | 'row';
   children: ReactNode;
 }) {
   return (
-    <label className={layout === 'row' ? FIELD_SHELL_ROW : FIELD_SHELL}>
+    <label className={layout === 'row' ? FIELD_SHELL_ROW_TEXT : FIELD_SHELL}>
       <Caption label={label} hint={hint} />
       {layout === 'row' ? <span className="min-w-0 flex-1">{children}</span> : children}
     </label>
@@ -545,7 +575,7 @@ export function FieldGroup({
   children,
 }: {
   label: string;
-  hint?: string;
+  hint?: Hint;
   /** `'row'` puts the caption beside the control set instead of above it.
    *  Unlike Field's row mode the children keep their natural width: a tab strip
    *  or a swatch row hugs its content rather than filling the line. */
@@ -889,12 +919,12 @@ export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-
  * carries `glim-hue` and gets these inline properties, and keeping the two
  * together matters because `.glim-hue` with no `--item-hue` under it resolves
  * the accent to nothing. Pass the item's index; positions never come from a
- * hash of an id. It reads the live palette during render, so the calling
- * component must also subscribe with `useRainbow()`.
+ * hash of an id. The properties point at the root's palette, so a palette
+ * change or disco's walk reaches the element without a render.
  */
 export function hueStyle(index: number | undefined): CSSProperties {
   if (index === undefined) return {};
-  return hueVars(rainbowAt(index)) as CSSProperties;
+  return hueVars(index) as CSSProperties;
 }
 
 /**
@@ -1162,7 +1192,6 @@ export function Toggle({
    */
   hue?: number;
 }) {
-  useRainbow();
   return (
     <button
       type="button"
@@ -1171,7 +1200,7 @@ export function Toggle({
       aria-label={hideLabel ? label : undefined}
       onClick={() => onChange(!checked)}
       className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-start text-sm text-carbon-text select-none`}
-      style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <span
         className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
@@ -1209,10 +1238,17 @@ export function ToggleRow({
   onChange,
   disabled = false,
   hue,
+  aside,
 }: {
   label: string;
-  /** The (i) text. Several strings are paragraphs of one bubble, such as an explanation and a live reading. */
-  hint?: string | string[];
+  /** The (i) text; see HintBubble. */
+  hint?: Hint;
+  /**
+   * A badge beside the switch, such as the way to the same switch on another
+   * page. It stays at full strength and reachable while the switch is
+   * disabled, and the row wraps it under the caption where the width runs out.
+   */
+  aside?: ReactNode;
   checked: boolean;
   onChange: (v: boolean) => void;
   /**
@@ -1228,9 +1264,17 @@ export function ToggleRow({
    *  with nothing beside it to distinguish. */
   hue?: number;
 }) {
-  const paragraphs = (typeof hint === 'string' ? [hint] : (hint ?? [])).filter(Boolean);
+  const toggle = (
+    <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
+      <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
+    </span>
+  );
   return (
-    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none' : ''}`}>
+    <div
+      className={`flex items-center justify-between ${aside ? 'flex-wrap gap-x-4 gap-y-2' : 'gap-4'} ${
+        disabled ? 'pointer-events-none' : ''
+      }`}
+    >
       {/* The dimming is on the parts, never on the row: `opacity` composites a
           whole subtree, so the (i) inside a dimmed row would render at 40% too,
           in precisely the state it exists for. pointer-events-auto re-opens
@@ -1241,26 +1285,16 @@ export function ToggleRow({
           every switch but never scroll to it. */}
       <span data-glim-label={label} className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
         <span className={disabled ? 'opacity-40' : ''}>{label}</span>
-        {paragraphs.length > 0 && (
-          <InfoBubble
-            tip={
-              paragraphs.length === 1 ? (
-                paragraphs[0]
-              ) : (
-                <span className="flex flex-col gap-1.5">
-                  {paragraphs.map((p) => (
-                    <span key={p}>{p}</span>
-                  ))}
-                </span>
-              )
-            }
-            label={paragraphs.join(' ')}
-          />
-        )}
+        <HintBubble hint={hint} />
       </span>
-      <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
-        <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
-      </span>
+      {aside ? (
+        <span className="ms-auto flex items-center gap-3">
+          <span className="pointer-events-auto flex">{aside}</span>
+          {toggle}
+        </span>
+      ) : (
+        toggle
+      )}
     </div>
   );
 }
@@ -1293,7 +1327,6 @@ export function Card({
    */
   padding?: 'normal' | 'none';
 }) {
-  useRainbow();
   return (
     <div
       // The trailing space lives inside the string, never after the
@@ -1302,7 +1335,7 @@ export function Card({
       className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}${padding === 'normal' ? 'p-5' : ''} ${
         hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''
       } ${className}`}
-      style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
     >
       {children}
     </div>
@@ -1466,9 +1499,11 @@ export function ErrorCard({
 // divided into titled sections, give each section's wrapper `relative`;
 // Access.tsx's remote-access card is the worked example.
 //
-// `hint` renders inside the filled badge rather than beside it. `hue` opts the
-// badge into a rainbow position; omit it for a card that is the only one of its
-// kind on the page. `right` is for a far-right header action. `second` is a
+// `hint` renders inside the filled badge rather than beside it. A hint that is
+// not a plain sentence, such as a list of steps, takes the title's words as its
+// accessible name, so give it a string title. `hue` opts the badge into a
+// rainbow position; omit it for a card that is the only one of its kind on the
+// page. `right` is for a far-right header action. `second` is a
 // badge beside the title, filled the same way; with it the h2 takes the notch's
 // placement and lays both out in a row, so the pair centres on the card edge
 // as one group (GlimStone's rule for a pair of heading badges).
@@ -1481,19 +1516,19 @@ export function SectionTitle({
   id,
 }: {
   children: ReactNode;
-  hint?: string;
+  hint?: ReactNode;
   hue?: number;
   right?: ReactNode;
   second?: { label: ReactNode; hint?: string };
   /**
-   * Names the heading element so a window can point `aria-labelledby` at it.
-   * Modal is the one caller that has to say which element is its accessible
-   * name, and pointing at the real heading beats copying the words into an
-   * aria-label that could later disagree with them.
+   * Names the heading's words so a window can point `aria-labelledby` at
+   * them. Modal is the one caller that has to say which element is its
+   * accessible name, and pointing at the real heading beats copying the words
+   * into an aria-label that could later disagree with them. The id sits on the
+   * words rather than the h2, or the text of the (i) would join the name.
    */
   id?: string;
 }) {
-  useRainbow();
   // The half-overlap is self-relative: `top-0` plus `-translate-y-1/2` resolves
   // against the positioned element's own rendered height, so it re-centres
   // whether the badge takes one line or two, which in 42 locales a long card
@@ -1501,7 +1536,7 @@ export function SectionTitle({
   // and the badges are not, or both would land on the same spot.
   const notch = 'absolute top-0 z-10 -translate-y-1/2';
   const hued = hue !== undefined ? 'glim-hue ' : '';
-  const hueStyle = hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined;
+  const hueStyle = hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined;
   const look = `glim-section-badge inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
     text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
   // The position lives on the Card (GlimStone 1.4.0), so a badge carries only
@@ -1512,10 +1547,12 @@ export function SectionTitle({
   // is true exactly when there is something to inherit. `hue` is for a title
   // with no hued card above it and sets the properties here.
   const title = (
-    <h2 id={id} className="flex items-center">
+    <h2 className="flex items-center">
       <span className={`${hued}${second ? '' : `${notch} `}${look}`} style={hueStyle}>
-        {children}
-        {hint && <InfoBubble tip={hint} onColor />}
+        <span id={id}>{children}</span>
+        {hint && (
+          <InfoBubble tip={hint} label={typeof hint !== 'string' && typeof children === 'string' ? children : undefined} onColor />
+        )}
       </span>
     </h2>
   );
@@ -1551,6 +1588,7 @@ const openModals: symbol[] = [];
 // Escape and a click on the backdrop both close it, so it never traps anyone.
 export function Modal({
   title,
+  hint,
   onClose,
   children,
   footer,
@@ -1558,6 +1596,8 @@ export function Modal({
   hue,
 }: {
   title: string;
+  /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
+  hint?: string;
   onClose: () => void;
   children: ReactNode;
   /**
@@ -1587,7 +1627,6 @@ export function Modal({
   const { t } = useT();
   const dialogs = useDialogMute();
   const titleId = useId();
-  useRainbow();
   // A ref, so a new callback identity does not move this window's listener
   // behind one opened later and change which window Escape closes.
   const closeRef = useRef(onClose);
@@ -1621,7 +1660,7 @@ export function Modal({
           motion. Two windows in one app must not arrive in two ways. */}
       <div
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full max-w-md p-5 flex flex-col gap-5`}
-        style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+        style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"
         // The heading IS the window's name, so it is pointed at rather than
@@ -1632,7 +1671,9 @@ export function Modal({
             title as a badge, so one app does not carry two heading treatments.
             SectionTitle itself rather than a copy of its markup, which is the
             drift this file exists to prevent. */}
-        <SectionTitle id={titleId}>{title}</SectionTitle>
+        <SectionTitle id={titleId} hint={hint}>
+          {title}
+        </SectionTitle>
         {children}
         {/* Above the buttons, not among them: it decides whether this window
             appears again, which is a different kind of thing from the two

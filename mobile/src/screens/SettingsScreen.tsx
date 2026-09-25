@@ -434,7 +434,7 @@ export default function SettingsScreen({
         {rainbow.on && discoFound && (
           <GlimRow
             label={t('settings.disco')}
-            info={t('settings.discoHint')}
+            info={t('settings.discoGlideHint')}
             control={<GlimToggle hue={2} value={disco} onChange={setDisco} />}
           />
         )}
