@@ -7,9 +7,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
-// The tests here stay serial. Handler sets package variables such as
-// discoveryRefresh, so two test servers built side by side would race, and a
-// settings save on one would call the other's closure.
+// A test that touches process-wide state stays serial: an environment
+// variable, a buildinfo value, the relay TTL, or the log ring the diagnostics
+// read. Every other test calls t.Parallel, and Go starts those only once the
+// serial ones have finished.
 func TestMain(m *testing.M) {
 	testenv.VolatileSQLite()
 	testenv.NoDNS()

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { interpolate, useT, type TranslationKey } from '../lib/i18n';
+import { useT, type TranslationKey } from '../lib/i18n';
 // A Categories-page drawer, aliased because this file's own Category is the
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
@@ -151,232 +151,20 @@ export interface Report {
   disabled?: boolean;
 }
 
-// English fallbacks behind the catalogue, which already has every key. RuleKey
-// is derived from this table.
-export const RULE_STRINGS = {
-  // The page around the editor.
-  'settings.rules.setupTitle': 'Rule set',
-  'settings.rules.flavourLabel': 'Which rule list',
-  'settings.rules.packagizerHint':
-    'Runs on every link as it is staged and rewrites what it can: package, folder, comment, priority, chunks, auto-extract. Every matching rule contributes and a later rule wins per field.',
-  'settings.rules.filterHint':
-    'Decides whether a link is taken into the collector at all. A rejected link is not deleted: it is held aside with the rule and the reason that stopped it, so nothing ever disappears without saying why.',
-  'settings.rules.setOff': 'This list is switched off',
-  'settings.rules.setSwitchHint':
-    'The master switch for the whole list. Off, no rule below runs - but they are all still edited and dry-run normally, because a list cannot be repaired while it is off if being off also hides what is wrong with it.',
-  'settings.rules.stopAfterMatch': 'Stop at the first matching rule',
-  'settings.rules.stopHint':
-    'Off, every matching rule contributes and a later rule wins per field, which is what the Packagizer wants. On, evaluation ends at the first match, which is what a filter usually wants: an accept placed above a broad reject then actually protects the link.',
-  'settings.rules.listTitle': 'Rules, in the order they run',
-  'settings.rules.add': 'Add rule',
-  'settings.rules.import': 'Import',
-  'settings.rules.export': 'Export',
-  'settings.rules.exportTitle': 'Save this list as a JSON file',
-  'settings.rules.importTitle': 'Replace this list from a JSON file',
-  'settings.rules.importFailed': 'That file is not a rule list: {reason}',
-  'settings.rules.importedCount': 'Loaded {n} rules. Nothing is saved until you save the page.',
-  'settings.rules.empty': 'No rules yet',
-  'settings.rules.emptyPackagizer':
-    'Every link keeps the package, folder and options it arrived with. Add a rule to sort them as they come in.',
-  'settings.rules.emptyFilter': 'Every link is taken. Add a rule to hold some of them aside.',
-  'settings.rules.unnamed': 'Rule {n}',
-  'settings.rules.duplicate': 'Duplicate this rule',
-  'settings.rules.remove': 'Remove this rule',
-  'settings.rules.moveUp': 'Move up',
-  'settings.rules.moveDown': 'Move down',
-  'settings.rules.ruleOn': 'This rule runs',
-  'settings.rules.ruleOff': 'This rule is switched off',
-  'settings.rules.problemCount': '{n} problems',
-  'settings.rules.problemOne': '1 problem',
-  'settings.rules.notRunning': 'This rule is not being applied. Fix what is listed and it starts working again.',
-  'settings.rules.matchedCount': 'matched {n} of {total}',
-
-  // The editor.
-  'settings.rules.name': 'Name',
-  'settings.rules.namePlaceholder': 'What this rule is for',
-  'settings.rules.nameHint':
-    'Only ever shown to you - in this list, on a problem, and on the reason a link was held aside. An unnamed rule is called by its position, which changes when you reorder the list.',
-  'settings.rules.sectionIf': 'If all of these are true',
-  'settings.rules.ifHint':
-    'Every condition has to hold. An either/or is written as two rules, which keeps the list readable top to bottom. A rule with NO conditions matches every link, which is how a catch-all folder or a blanket reject at the end is written.',
-  'settings.rules.fieldPicker': 'What to look at',
-  'settings.rules.opPicker': 'How to compare it',
-  'settings.rules.sectionThen': 'Then',
-  'settings.rules.thenHintPackagizer':
-    'An empty box means "leave this alone", never "clear it": a rule that only sets the folder must not wipe the package name an earlier rule chose.',
-  'settings.rules.thenHintFilter':
-    'A rule that rejects holds the link aside with its reason. A rule that accepts is worth having too: placed above a broad reject, with "stop at the first match" on, it is how one hoster is let through.',
-  'settings.rules.addCondition': 'Add condition',
-  'settings.rules.removeCondition': 'Remove this condition',
-  'settings.rules.noConditions': 'No conditions - this rule matches every link.',
-  'settings.rules.value': 'Value',
-  'settings.rules.min': 'At least',
-  'settings.rules.max': 'At most',
-  'settings.rules.noUpperBound': 'no upper bound',
-  'settings.rules.sizeHint':
-    'A plain number is bytes. A unit is understood too - 700 MB, 1.5 GiB - and both are read as 1024-based, the same as every size the rest of the app prints.',
-  'settings.rules.badSize': 'This is not a size.',
-  'settings.rules.pattern': 'Pattern',
-  'settings.rules.patternHint':
-    'A Go regular expression, unanchored, and the one operator that does NOT ignore case - put (?i) at the front if you want it to. An unparsable pattern is refused with the reason rather than quietly matching nothing.',
-  'settings.rules.category': 'File type',
-  'settings.rules.categoryCustom': 'Custom pattern',
-  'settings.rules.categoryHint':
-    'A shortcut that fills in the pattern for a whole family of extensions. It is stored as an ordinary pattern, so you can pick one and then edit it - after which this goes back to "custom pattern", because it no longer says what the rule does.',
-  'settings.rules.categoryExtensions': 'Covers: {list}',
-  'settings.rules.unchanged': 'Unchanged',
-  'settings.rules.yes': 'On',
-  'settings.rules.no': 'Off',
-  'settings.rules.reject': 'Reject the link',
-  'settings.rules.accept': 'Accept the link',
-  'settings.rules.priorityHint':
-    'Higher runs earlier. The range is the one the queue itself accepts, so a rule cannot hand a task a priority you have no way to undo. Leave it empty to change nothing.',
-  'settings.rules.chunksHint':
-    'How many connections this one file is downloaded with. Leave it empty to use the global setting. Connections beyond a handful buy nothing on a hoster that limits per file and are a reliable way to get an account flagged.',
-  'settings.rules.emptyMeansUnchanged': 'empty = unchanged',
-
-  // The variables menu.
-  'settings.rules.variables': 'Variables',
-  'settings.rules.variablesTitle': 'Insert a variable',
-  'settings.rules.variablesHint':
-    'Every one of these resolves against the link AS IT ARRIVED, so rules do not chain onto each other: a folder template in rule four sees the name the hoster gave, not what rule two renamed it to. What a rule does can be read off that rule alone.',
-  'settings.rules.varParams': 'replace {params}',
-
-  // Field names.
-  'settings.rules.field.filename': 'File name',
-  'settings.rules.field.url': 'Link URL',
-  'settings.rules.field.hoster': 'Hoster',
-  'settings.rules.field.source': 'Source page',
-  'settings.rules.field.filetype': 'File type',
-  'settings.rules.field.filesize': 'File size',
-  'settings.rules.field.package': 'Package',
-
-  // Operators.
-  'settings.rules.op.contains': 'contains',
-  'settings.rules.op.contains-not': 'does not contain',
-  'settings.rules.op.equals': 'is',
-  'settings.rules.op.equals-not': 'is not',
-  'settings.rules.op.matches': 'matches pattern',
-  'settings.rules.op.is-between': 'is between',
-
-  // Actions.
-  'settings.rules.action.packageName': 'Package name',
-  'settings.rules.action.downloadDir': 'Download folder',
-  'settings.rules.action.extractDir': 'Move the unpacked files to',
-  'settings.rules.action.comment': 'Comment',
-  'settings.rules.action.priority': 'Priority',
-  'settings.rules.action.autoExtract': 'Extract automatically',
-  'settings.rules.action.chunks': 'Connections',
-  // For a task detail rule chip whose rule was renamed or deleted.
-  'settings.rules.notFound':
-    'No rule here is called "{name}". It was renamed or deleted since the link that names it was added.',
-  'settings.rules.action.category': 'Category',
-  'settings.rules.action.categoryHint':
-    'Files matching links in one of the drawers from the Categories list further down this page, which brings its own folder, queue position, unpacking switch and collision rule with it.',
-  'settings.rules.action.categoryNone':
-    'No categories yet. Create one under Categories further down this page first, otherwise this rule would file links in a drawer that does not exist.',
-  'settings.rules.action.categoryMissing': '{id} (deleted)',
-  'settings.rules.action.reject': 'Verdict',
-  'settings.rules.action.reason': 'Reason',
-  'settings.rules.action.reasonHint':
-    'Shown next to the held-aside link. Left empty one is written for you, because a rejection nobody can explain is exactly what this list exists to avoid.',
-  'settings.rules.action.downloadDirHint':
-    'Where a matching link is downloaded to. This box and "Move the unpacked files to" are the only ones that may spell out path levels. Every other box is cut back to a single name, because a file name with a slash in it is a way out of the folder you picked.',
-  'settings.rules.action.extractDirHint':
-    'Where the unpacked files of a matching link go once unpacking has finished. For these links it replaces "Move the unpacked files to" on the Archives page. Variables work here.',
-
-  // File-type categories.
-  'settings.rules.category.video': 'Video',
-  'settings.rules.category.audio': 'Audio',
-  'settings.rules.category.image': 'Images',
-  'settings.rules.category.archive': 'Archives',
-  'settings.rules.category.document': 'Documents and books',
-  'settings.rules.category.subtitle': 'Subtitles',
-  'settings.rules.category.disc': 'Disc images',
-  'settings.rules.category.program': 'Programs and packages',
-
-  // Variables. The source and match entries explain how they differ from
-  // JDownloader's <jd:source:N>.
-  'settings.rules.var.packagename': 'The package the link arrived in',
-  'settings.rules.var.hoster': 'The hoster, without www.',
-  'settings.rules.var.filename': 'The file name as it arrived',
-  'settings.rules.var.orgfilename': 'The file name as it arrived',
-  'settings.rules.var.orgfilenamewithoutext': 'The file name without its extension',
-  'settings.rules.var.orgfiletype': 'The extension without its dot, empty when there is none',
-  'settings.rules.var.date': 'Today, as YYYY-MM-DD',
-  'settings.rules.var.year': 'The year, as YYYY',
-  'settings.rules.var.month': 'The month, as MM',
-  'settings.rules.var.day': 'The day, as DD',
-  'settings.rules.var.simpledate': 'The date in a pattern you write, in Java’s date syntax',
-  'settings.rules.var.source':
-    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. This is not what JDownloader means by this tag; the (i) beside “Insert a variable” says how they differ.',
-  'settings.rules.var.match':
-    'Capture group N of this rule’s "matches" pattern on FIELD. This is JDownloader’s <jd:source:N>, under a name that says which pattern it reads. A rule with no matching pattern on that field is refused when you save it, rather than quietly producing a folder called <jd:match:url:1>.',
-  'settings.rules.var.append': 'Nothing the first time this value comes up, then _2, _3 and so on',
-  'settings.rules.sourceDivergence':
-    'Copying a template out of a JDownloader config? <jd:source:N> means something different here - a path segment of the source URL, not a capture group. JD’s meaning is spelled <jd:match:FIELD:N>. The two agree often enough to be dangerous, so a copied template is worth dry-running below before you save it.',
-
-  // The test box.
-  'settings.rules.testTitle': 'Try it on a link',
-  'settings.rules.testHint':
-    'Nothing here is downloaded, stored or saved. The list as it stands on this page is run against these samples, through the same code that runs at staging time.',
-  'settings.rules.testUrl': 'Link URL',
-  'settings.rules.testFilename': 'File name',
-  'settings.rules.testSource': 'Source page',
-  'settings.rules.testSourceHint':
-    'The page a crawl found the link on. Only worth filling in for a rule that tests the source field or uses <jd:source:N>.',
-  'settings.rules.testSize': 'Size',
-  'settings.rules.testPackage': 'Package',
-  'settings.rules.testPackageHint':
-    'The package the link would arrive in, before any rule runs. It is what <jd:packagename> resolves to, which is worth knowing: a folder template does not see the package name a rule sets in the same pass.',
-  'settings.rules.testAdd': 'Add a sample',
-  'settings.rules.testRemove': 'Remove this sample',
-  'settings.rules.testEmpty': 'Paste a link and a file name to see where it would land.',
-  'settings.rules.testRunning': 'Checking…',
-  'settings.rules.testFailed': 'The dry run could not be reached: {reason}',
-  'settings.rules.resultMatched': 'Matched, in order',
-  'settings.rules.resultNone': 'No rule matched',
-  'settings.rules.resultPackage': 'Package',
-  'settings.rules.resultFolder': 'Folder',
-  'settings.rules.resultFilename': 'File name',
-  'settings.rules.resultRejected': 'Held aside',
-  'settings.rules.resultAccepted': 'Taken',
-  'settings.rules.resultBy': 'by {rule}',
-  'settings.rules.folderFromSettings': 'from the download settings',
-  'settings.rules.folderFromSettingsHint':
-    'No rule named a folder, so the link lands in the configured download folder - possibly inside a per-package subfolder, if that setting is on. This page will not guess the full path at you: what it can say for certain is that no rule changed it.',
-  'settings.rules.alsoSets': 'Also sets',
-} as const;
-
-export type RuleKey = keyof typeof RULE_STRINGS;
-
-/** useRx returns `t` for RuleKey, falling back to RULE_STRINGS. */
-export function useRx() {
-  const { t } = useT();
-  return useCallback(
-    (key: RuleKey, vars?: Record<string, string | number>) => {
-      // Only RULE_STRINGS keys get through this cast.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? RULE_STRINGS[key], vars);
-    },
-    [t],
-  );
-}
-
-export type Rx = ReturnType<typeof useRx>;
+type Translate = ReturnType<typeof useT>['t'];
 
 // named falls back to the raw id for a grammar entry the catalogue does not
 // know, since the grammar comes from the server.
-function named(rx: Rx, prefix: string, id: string): string {
-  const key = (prefix + id) as RuleKey;
-  return key in en ? rx(key) : id;
+function named(t: Translate, prefix: string, id: string): string {
+  const key = (prefix + id) as TranslationKey;
+  return key in en ? t(key) : id;
 }
 
-export const fieldLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.field.', id);
-export const opLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.op.', id);
-export const actionLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.action.', id);
-export const categoryLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.category.', id);
-export const variableLabel = (rx: Rx, id: string) => named(rx, 'settings.rules.var.', id);
+export const fieldLabel = (t: Translate, id: string) => named(t, 'settings.rules.field.', id);
+export const opLabel = (t: Translate, id: string) => named(t, 'settings.rules.op.', id);
+export const actionLabel = (t: Translate, id: string) => named(t, 'settings.rules.action.', id);
+export const categoryLabel = (t: Translate, id: string) => named(t, 'settings.rules.category.', id);
+export const variableLabel = (t: Translate, id: string) => named(t, 'settings.rules.var.', id);
 
 // The engine takes plain bytes, so sizes like "700 MB" are parsed here.
 const SIZE_UNITS: Record<string, number> = {
@@ -428,13 +216,13 @@ export function formatSize(n: number | undefined): string {
 const MARGIN = 8;
 
 function VariablesMenu({
-  rx,
+  t,
   variables,
   at,
   onPick,
   onClose,
 }: {
-  rx: Rx;
+  t: Translate;
   variables: Variable[];
   at: { x: number; y: number };
   onPick: (tag: string) => void;
@@ -475,21 +263,21 @@ function VariablesMenu({
     <div
       ref={ref}
       role="menu"
-      aria-label={rx('settings.rules.variablesTitle')}
+      aria-label={t('settings.rules.variablesTitle')}
       style={{ top: pos.top, left: pos.left }}
       className="glim-card glim-fade fixed z-50 max-h-[70vh] w-[26rem] max-w-[calc(100vw-1rem)] overflow-y-auto p-1.5"
     >
       <div className="flex items-center px-2 py-1.5 text-[11px] font-semibold text-carbon-textSub">
-        {rx('settings.rules.variablesTitle')}
+        {t('settings.rules.variablesTitle')}
         {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
         <InfoBubble
           tip={
             <span className="flex flex-col gap-1.5">
-              <span>{rx('settings.rules.variablesHint')}</span>
-              <span>{rx('settings.rules.sourceDivergence')}</span>
+              <span>{t('settings.rules.variablesHint')}</span>
+              <span>{t('settings.rules.sourceDivergence')}</span>
             </span>
           }
-          label={rx('settings.rules.variablesHint')}
+          label={t('settings.rules.variablesHint')}
         />
       </div>
       {variables.map((v) => (
@@ -504,8 +292,8 @@ function VariablesMenu({
             {v.tag}
           </span>
           <span className="text-[11px] leading-snug text-carbon-textMuted">
-            {variableLabel(rx, v.id)}
-            {v.params?.length ? ` · ${rx('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
+            {variableLabel(t, v.id)}
+            {v.params?.length ? ` · ${t('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
           </span>
         </button>
       ))}
@@ -516,7 +304,7 @@ function VariablesMenu({
 
 /** A text box whose content is a template, with the variables menu attached. */
 function TemplateInput({
-  rx,
+  t,
   variables,
   value,
   onChange,
@@ -524,7 +312,7 @@ function TemplateInput({
   label,
   folder = false,
 }: {
-  rx: Rx;
+  t: Translate;
   variables: Variable[];
   value: string;
   onChange: (next: string) => void;
@@ -535,7 +323,6 @@ function TemplateInput({
   /** The template names a folder, so the box gets the folder chooser too. */
   folder?: boolean;
 }) {
-  const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   const [browsing, setBrowsing] = useState(false);
@@ -600,11 +387,11 @@ function TemplateInput({
           setMenuAt({ x: r.left, y: r.bottom + 4 });
         }}
       >
-        {rx('settings.rules.variables')}
+        {t('settings.rules.variables')}
       </Button>
       {menuAt && (
         <VariablesMenu
-          rx={rx}
+          t={t}
           variables={variables}
           at={menuAt}
           onPick={insert}
@@ -617,13 +404,13 @@ function TemplateInput({
 
 /** SizeInput is a size box that flags what it cannot parse instead of reading zero. */
 function SizeInput({
-  rx,
+  t,
   value,
   onChange,
   placeholder,
   label,
 }: {
-  rx: Rx;
+  t: Translate;
   value: number | undefined;
   onChange: (next: number) => void;
   placeholder?: string;
@@ -653,7 +440,7 @@ function SizeInput({
         }}
         onBlur={() => setTouched(false)}
       />
-      {parsed === null && <span className="text-[11px] text-statusFail">{rx('settings.rules.badSize')}</span>}
+      {parsed === null && <span className="text-[11px] text-statusFail">{t('settings.rules.badSize')}</span>}
     </div>
   );
 }
@@ -679,7 +466,7 @@ export function RuleEditor({
   categories: Drawer[];
   onChange: (next: Rule) => void;
 }) {
-  const rx = useRx();
+  const { t } = useT();
   const conditions = rule.conditions ?? [];
 
   const setAction = (fields: Partial<RuleAction>) =>
@@ -702,12 +489,12 @@ export function RuleEditor({
     <div className="flex flex-col gap-5">
       <label className="flex flex-col gap-1.5">
         <span className="flex items-center text-xs text-carbon-textSub">
-          {rx('settings.rules.name')}
-          <InfoBubble tip={rx('settings.rules.nameHint')} />
+          {t('settings.rules.name')}
+          <InfoBubble tip={t('settings.rules.nameHint')} />
         </span>
         <TextInput
           value={rule.name ?? ''}
-          placeholder={rx('settings.rules.namePlaceholder')}
+          placeholder={t('settings.rules.namePlaceholder')}
           onChange={(e) => onChange({ ...rule, name: e.target.value })}
         />
       </label>
@@ -716,18 +503,18 @@ export function RuleEditor({
           edge that this inline editor does not have. */}
       <section className="flex flex-col gap-2.5">
         <h3 className="glim-eyebrow flex items-center">
-          {rx('settings.rules.sectionIf')}
-          <InfoBubble tip={rx('settings.rules.ifHint')} />
+          {t('settings.rules.sectionIf')}
+          <InfoBubble tip={t('settings.rules.ifHint')} />
         </h3>
 
         {conditions.length === 0 && (
-          <p className="text-[11px] text-carbon-textMuted">{rx('settings.rules.noConditions')}</p>
+          <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
         )}
 
         {conditions.map((c, i) => (
           <ConditionRow
             key={i}
-            rx={rx}
+            t={t}
             grammar={grammar}
             condition={c}
             index={i}
@@ -740,19 +527,19 @@ export function RuleEditor({
 
         <div>
           <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={addCondition}>
-            {rx('settings.rules.addCondition')}
+            {t('settings.rules.addCondition')}
           </Button>
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
         <h3 className="glim-eyebrow flex items-center">
-          {rx('settings.rules.sectionThen')}
+          {t('settings.rules.sectionThen')}
           <InfoBubble
             tip={
               flavour === 'packagizer'
-                ? rx('settings.rules.thenHintPackagizer')
-                : rx('settings.rules.thenHintFilter')
+                ? t('settings.rules.thenHintPackagizer')
+                : t('settings.rules.thenHintFilter')
             }
           />
         </h3>
@@ -760,7 +547,7 @@ export function RuleEditor({
           {actions.map((a) => (
             <ActionField
               key={a.id}
-              rx={rx}
+              t={t}
               grammar={grammar}
               action={a}
               value={rule.action}
@@ -788,7 +575,7 @@ export function RuleEditor({
 }
 
 function ConditionRow({
-  rx,
+  t,
   grammar,
   condition,
   index,
@@ -796,7 +583,7 @@ function ConditionRow({
   onChange,
   onRemove,
 }: {
-  rx: Rx;
+  t: Translate;
   grammar: Grammar;
   condition: Condition;
   /** The condition's 0-based position, which sets the badge hue. */
@@ -830,63 +617,63 @@ function ConditionRow({
       <div className="flex flex-wrap items-start gap-2">
         <Dropdown
           width="widest"
-          label={rx('settings.rules.fieldPicker')}
+          label={t('settings.rules.fieldPicker')}
           value={condition.field}
           onChange={pickField}
-          options={grammar.fields.map((f) => ({ value: f.id, label: fieldLabel(rx, f.id) }))}
+          options={grammar.fields.map((f) => ({ value: f.id, label: fieldLabel(t, f.id) }))}
         />
         <Dropdown
           width="widest"
-          label={rx('settings.rules.opPicker')}
+          label={t('settings.rules.opPicker')}
           value={condition.op}
           onChange={(id) => onChange({ ...condition, op: id })}
-          options={field.ops.map((o) => ({ value: o, label: opLabel(rx, o) }))}
+          options={field.ops.map((o) => ({ value: o, label: opLabel(t, o) }))}
         />
 
         <div className="flex min-w-[12rem] flex-1 flex-col gap-1.5">
           {op?.range ? (
             <div className="flex items-start gap-2">
               <SizeInput
-                rx={rx}
-                label={rx('settings.rules.min')}
+                t={t}
+                label={t('settings.rules.min')}
                 value={condition.min}
                 onChange={(n) => onChange({ ...condition, min: n })}
-                placeholder={rx('settings.rules.min')}
+                placeholder={t('settings.rules.min')}
               />
               <SizeInput
-                rx={rx}
-                label={rx('settings.rules.max')}
+                t={t}
+                label={t('settings.rules.max')}
                 value={condition.max}
                 onChange={(n) => onChange({ ...condition, max: n })}
                 // The engine reads an empty maximum as no upper bound.
-                placeholder={rx('settings.rules.noUpperBound')}
+                placeholder={t('settings.rules.noUpperBound')}
               />
             </div>
           ) : field.numeric ? (
             <SizeInput
-              rx={rx}
-              label={rx('settings.rules.value')}
+              t={t}
+              label={t('settings.rules.value')}
               value={Number(condition.value) || 0}
               onChange={(n) => onChange({ ...condition, value: String(n) })}
             />
           ) : op?.regex ? (
             <div className="flex items-center">
               <TextInput
-                aria-label={rx('settings.rules.pattern')}
+                aria-label={t('settings.rules.pattern')}
                 dir="ltr"
                 className="min-w-0 flex-1"
                 value={condition.value ?? ''}
-                placeholder={rx('settings.rules.pattern')}
+                placeholder={t('settings.rules.pattern')}
                 onChange={(e) => onChange({ ...condition, value: e.target.value })}
               />
-              <InfoBubble tip={rx('settings.rules.patternHint')} />
+              <InfoBubble tip={t('settings.rules.patternHint')} />
             </div>
           ) : (
             <TextInput
-              aria-label={rx('settings.rules.value')}
+              aria-label={t('settings.rules.value')}
               dir="ltr"
               value={condition.value ?? ''}
-              placeholder={rx('settings.rules.value')}
+              placeholder={t('settings.rules.value')}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
             />
           )}
@@ -895,22 +682,22 @@ function ConditionRow({
             <div className="flex flex-wrap items-center gap-2">
               <Dropdown
                 look="dense"
-                label={rx('settings.rules.category')}
+                label={t('settings.rules.category')}
                 value={category?.id ?? ''}
                 onChange={(id) => {
                   const picked = grammar.categories.find((c) => c.id === id);
                   if (picked) onChange({ ...condition, value: picked.pattern });
                 }}
                 options={[
-                  { value: '', label: rx('settings.rules.categoryCustom') },
-                  ...grammar.categories.map((c) => ({ value: c.id, label: categoryLabel(rx, c.id) })),
+                  { value: '', label: t('settings.rules.categoryCustom') },
+                  ...grammar.categories.map((c) => ({ value: c.id, label: categoryLabel(t, c.id) })),
                 ]}
               />
               <InfoBubble
                 tip={
                   category
-                    ? rx('settings.rules.categoryExtensions', { list: category.extensions.join(', ') })
-                    : rx('settings.rules.categoryHint')
+                    ? t('settings.rules.categoryExtensions', { list: category.extensions.join(', ') })
+                    : t('settings.rules.categoryHint')
                 }
               />
             </div>
@@ -923,8 +710,8 @@ function ConditionRow({
           icon={<IconTrash width={16} height={16} />}
           hue={index}
           labelled
-          aria-label={rx('settings.rules.removeCondition')}
-          title={rx('settings.rules.removeCondition')}
+          aria-label={t('settings.rules.removeCondition')}
+          title={t('settings.rules.removeCondition')}
           onClick={onRemove}
         />
       </div>
@@ -940,7 +727,7 @@ function ConditionRow({
   );
 }
 
-const ACTION_HINTS: Partial<Record<keyof RuleAction, RuleKey>> = {
+const ACTION_HINTS: Partial<Record<keyof RuleAction, TranslationKey>> = {
   downloadDir: 'settings.rules.action.downloadDirHint',
   extractDir: 'settings.rules.action.extractDirHint',
   reason: 'settings.rules.action.reasonHint',
@@ -954,23 +741,23 @@ const FOLDER_ACTIONS: ReadonlySet<keyof RuleAction> = new Set(['downloadDir', 'e
 
 /** ActionField renders one action in the control its grammar kind calls for. */
 function ActionField({
-  rx,
+  t,
   grammar,
   action,
   value,
   categories,
   onChange,
 }: {
-  rx: Rx;
+  t: Translate;
   grammar: Grammar;
   action: ActionGrammar;
   value: RuleAction;
   categories: Drawer[];
   onChange: (fields: Partial<RuleAction>) => void;
 }) {
-  const label = actionLabel(rx, action.id);
+  const label = actionLabel(t, action.id);
   const hintKey = ACTION_HINTS[action.id];
-  const hint = hintKey ? rx(hintKey) : undefined;
+  const hint = hintKey ? t(hintKey) : undefined;
 
   const head = (
     <span className="flex items-center text-xs text-carbon-textSub">
@@ -984,7 +771,7 @@ function ActionField({
       <div className={`flex flex-col gap-1.5 ${FOLDER_ACTIONS.has(action.id) ? 'sm:col-span-2' : ''}`}>
         {head}
         <TemplateInput
-          rx={rx}
+          t={t}
           label={label}
           folder={FOLDER_ACTIONS.has(action.id)}
           variables={grammar.variables}
@@ -1008,7 +795,7 @@ function ActionField({
           max={action.max}
           // Empty means unchanged; 0 is a real value.
           value={current === undefined ? '' : String(current)}
-          placeholder={rx('settings.rules.emptyMeansUnchanged')}
+          placeholder={t('settings.rules.emptyMeansUnchanged')}
           onChange={(e) => {
             const raw = e.target.value.trim();
             onChange({ [action.id]: raw === '' ? undefined : Number(raw) } as Partial<RuleAction>);
@@ -1029,9 +816,9 @@ function ActionField({
             onChange({ [action.id]: v === 'unset' ? undefined : v === 'on' } as Partial<RuleAction>)
           }
           options={[
-            { value: 'unset', label: rx('settings.rules.unchanged') },
-            { value: 'on', label: rx('settings.rules.yes') },
-            { value: 'off', label: rx('settings.rules.no') },
+            { value: 'unset', label: t('settings.rules.unchanged') },
+            { value: 'on', label: t('settings.rules.yes') },
+            { value: 'off', label: t('settings.rules.no') },
           ]}
           label={label}
         />
@@ -1046,19 +833,19 @@ function ActionField({
     // the rule shows what it points at and the wheel steps from there.
     const options =
       current && !categories.some((c) => c.id === current)
-        ? [{ value: current, label: rx('settings.rules.action.categoryMissing', { id: current }) }, ...known]
+        ? [{ value: current, label: t('settings.rules.action.categoryMissing', { id: current }) }, ...known]
         : known;
     return (
       <div className="flex flex-col gap-1.5">
         {head}
         {categories.length === 0 && !current ? (
-          <span className="text-xs text-carbon-textSub">{rx('settings.rules.action.categoryNone')}</span>
+          <span className="text-xs text-carbon-textSub">{t('settings.rules.action.categoryNone')}</span>
         ) : (
           <Dropdown
             value={current}
             // Undefined rather than "", which ValidateCategories would refuse.
             onChange={(next) => onChange({ category: next === '' ? undefined : next })}
-            options={[{ value: '', label: rx('settings.rules.unchanged') }, ...options]}
+            options={[{ value: '', label: t('settings.rules.unchanged') }, ...options]}
             label={label}
           />
         )}
@@ -1075,8 +862,8 @@ function ActionField({
         value={value.reject ? 'reject' : 'accept'}
         onChange={(v) => onChange({ reject: v === 'reject' })}
         options={[
-          { value: 'reject', label: rx('settings.rules.reject') },
-          { value: 'accept', label: rx('settings.rules.accept') },
+          { value: 'reject', label: t('settings.rules.reject') },
+          { value: 'accept', label: t('settings.rules.accept') },
         ]}
         label={label}
       />
@@ -1115,39 +902,39 @@ export function Segments<T extends string>({
  * ruleSummary is a one-line reading of a rule for the collapsed row, built from
  * the editor's own labels.
  */
-export function ruleSummary(rx: Rx, rule: Rule, flavour: Flavour): string {
+export function ruleSummary(t: Translate, rule: Rule, flavour: Flavour): string {
   const conds = (rule.conditions ?? []).map((c) => {
-    const op = opLabel(rx, c.op);
+    const op = opLabel(t, c.op);
     if (c.op === 'is-between') {
-      const max = c.max ? formatSize(c.max) : rx('settings.rules.noUpperBound');
-      return `${fieldLabel(rx, c.field)} ${op} ${formatSize(c.min) || '0'} - ${max}`;
+      const max = c.max ? formatSize(c.max) : t('settings.rules.noUpperBound');
+      return `${fieldLabel(t, c.field)} ${op} ${formatSize(c.min) || '0'} - ${max}`;
     }
-    return `${fieldLabel(rx, c.field)} ${op} ${c.value ?? ''}`.trim();
+    return `${fieldLabel(t, c.field)} ${op} ${c.value ?? ''}`.trim();
   });
 
   const acts: string[] = [];
   if (flavour === 'filter') {
-    acts.push(rule.action.reject ? rx('settings.rules.reject') : rx('settings.rules.accept'));
+    acts.push(rule.action.reject ? t('settings.rules.reject') : t('settings.rules.accept'));
   } else {
     for (const [key, label] of [
-      ['packageName', actionLabel(rx, 'packageName')],
-      ['downloadDir', actionLabel(rx, 'downloadDir')],
-      ['extractDir', actionLabel(rx, 'extractDir')],
-      ['comment', actionLabel(rx, 'comment')],
+      ['packageName', actionLabel(t, 'packageName')],
+      ['downloadDir', actionLabel(t, 'downloadDir')],
+      ['extractDir', actionLabel(t, 'extractDir')],
+      ['comment', actionLabel(t, 'comment')],
     ] as const) {
       const v = rule.action[key];
       if (v) acts.push(`${label}: ${v}`);
     }
-    if (rule.action.priority !== undefined) acts.push(`${actionLabel(rx, 'priority')} ${rule.action.priority}`);
-    if (rule.action.chunks !== undefined) acts.push(`${actionLabel(rx, 'chunks')} ${rule.action.chunks}`);
+    if (rule.action.priority !== undefined) acts.push(`${actionLabel(t, 'priority')} ${rule.action.priority}`);
+    if (rule.action.chunks !== undefined) acts.push(`${actionLabel(t, 'chunks')} ${rule.action.chunks}`);
     if (rule.action.autoExtract !== undefined) {
       acts.push(
-        `${actionLabel(rx, 'autoExtract')} ${rule.action.autoExtract ? rx('settings.rules.yes') : rx('settings.rules.no')}`,
+        `${actionLabel(t, 'autoExtract')} ${rule.action.autoExtract ? t('settings.rules.yes') : t('settings.rules.no')}`,
       );
     }
   }
 
-  const left = conds.length ? conds.join(' · ') : rx('settings.rules.noConditions');
+  const left = conds.length ? conds.join(' · ') : t('settings.rules.noConditions');
   return acts.length ? `${left} → ${acts.join(' · ')}` : left;
 }
 

@@ -1397,7 +1397,6 @@ export const sl: Dict = {
   'settings.browsertools.install': 'Namesti',
   'settings.browsertools.installIOS':
     'Na iPhonu ali iPadu: odpri to stran v Safariju, tapni Deli, nato „Dodaj na začetni zaslon“.',
-  'settings.access.intakePortsHint': 'Drugi načini za neposreden dostop do te instance, mimo običajne prijave. Pri vsakem tukaj vidiš, ali je dosegljiv.',
   'settings.nav.browsertools': 'Brskalnik in aplikacija',
   'settings.browsertools.bookmarkletStep1': 'Povleci spodnji gumb v vrstico z zaznamki brskalnika. Shrani se kot vsak drug zaznamek, ničesar se ne namesti.',
   'settings.browsertools.bookmarkletStep2': 'Na kateri koli strani klikni nanj (najprej izberi besedilo, če želiš samo tega). Odpre se majhen zavihek KnightLoader, v katerem sta povezava te strani ali izbrano besedilo že vpisana. Preglej vnos in ga od tam dodaj kot prenos.',
@@ -1485,7 +1484,6 @@ export const sl: Dict = {
   'settings.nav.torrents': 'Torrenti',
   'settings.module.torrents': 'Torrenti',
   'settings.torrents.title': 'Torrenti',
-  'settings.torrents.subtitle': 'Cilji sejanja, omejitve prenosa, preslikava vrat in DHT/PEX za magnetne povezave in datoteke .torrent.',
   'settings.torrents.seedingTitle': 'Sejanje',
   'settings.torrents.seedRatio': 'Ciljno razmerje sejanja',
   'settings.torrents.seedRatioHint': 'Nadaljuje sejanje dokončanega torrenta, dokler roju ni vrnjen ta delež glede na njegovo lastno velikost. 0 = brez cilja razmerja.',

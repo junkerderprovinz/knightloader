@@ -1396,7 +1396,6 @@ export const fa: Dict = {
   'settings.browsertools.install': 'نصب',
   'settings.browsertools.installIOS':
     'روی آیفون یا آیپد: این صفحه را در Safari باز کنید، روی اشتراک‌گذاری بزنید، سپس «افزودن به صفحهٔ اصلی».',
-  'settings.access.intakePortsHint': 'راه‌های دیگر برای دسترسی مستقیم به این نمونه، بیرون از ورود معمولی. هر کدام اینجا نشان می‌دهد که در دسترس است یا نه.',
   'settings.nav.browsertools': 'مرورگر و برنامه',
   'settings.browsertools.bookmarkletStep1': 'دکمهٔ زیر را به نوار نشانک‌های مرورگرت بکش. مثل هر نشانک دیگری ذخیره می‌شود و چیزی نصب نمی‌شود.',
   'settings.browsertools.bookmarkletStep2': 'در هر صفحه‌ای رویش کلیک کن (اگر فقط متنی را می‌خواهی، اول آن را انتخاب کن). یک زبانهٔ کوچک KnightLoader باز می‌شود که پیوند آن صفحه یا متن انتخاب‌شده از قبل در آن پر شده است. بررسی‌اش کن و از همان‌جا به‌عنوان دانلود اضافه‌اش کن.',
@@ -1484,7 +1483,6 @@ export const fa: Dict = {
   'settings.nav.torrents': 'تورنت‌ها',
   'settings.module.torrents': 'تورنت‌ها',
   'settings.torrents.title': 'تورنت‌ها',
-  'settings.torrents.subtitle': 'هدف‌های سید، محدودیت‌های انتقال، نگاشت درگاه و DHT/PEX برای پیوندهای مگنت و فایل‌های torrent.',
   'settings.torrents.seedingTitle': 'سید کردن',
   'settings.torrents.seedRatio': 'نسبت هدف سید',
   'settings.torrents.seedRatioHint': 'یک تورنت تمام‌شده را تا زمانی که این نسبت، نسبت به اندازهٔ خودش، به ازدحام بازگردانده شود سید می‌کند. 0 = بدون هدف نسبت.',

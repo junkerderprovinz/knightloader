@@ -10,6 +10,7 @@ import (
 // TestAnSVGIconCannotRunScriptWhenOpenedDirectly: an <img> never runs an SVG's
 // script, but the icon URL opened in a tab would, on the instance's origin.
 func TestAnSVGIconCannotRunScriptWhenOpenedDirectly(t *testing.T) {
+	t.Parallel()
 	svg := []byte(`<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.cookie)</script></svg>`)
 	rec := httptest.NewRecorder()
 	serveHosterIcon(rec, httptest.NewRequest(http.MethodGet, "/api/hosters/icon?host=example.org", nil), svg, "image/svg+xml")

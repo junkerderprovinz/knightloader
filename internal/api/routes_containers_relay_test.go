@@ -44,6 +44,7 @@ func (c *countSpy) all() []int {
 }
 
 func TestRelayPublishesCountOnPutAndTake(t *testing.T) {
+	t.Parallel()
 	spy := &countSpy{}
 	cr := newContainerRelay()
 	cr.onCount = spy.record
@@ -75,6 +76,7 @@ func TestRelayPublishesCountOnPutAndTake(t *testing.T) {
 // inside take may have dropped an expired entry, which the strip has to hear
 // about.
 func TestRelayPublishesOnUnknownToken(t *testing.T) {
+	t.Parallel()
 	spy := &countSpy{}
 	cr := newContainerRelay()
 	cr.onCount = spy.record
@@ -119,6 +121,7 @@ func TestRelayClearsCountAfterTTL(t *testing.T) {
 // registerContainers always wires one, but put and take are also called
 // directly.
 func TestRelayWithoutListener(t *testing.T) {
+	t.Parallel()
 	cr := newContainerRelay()
 	tok, err := cr.put("quiet.dlc", []byte("x"))
 	if err != nil {

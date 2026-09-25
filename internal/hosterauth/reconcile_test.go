@@ -81,6 +81,9 @@ func TestPlanQueuedWithinGraceNotRejected(t *testing.T) {
 	if got.Status != StatusQueued {
 		t.Fatalf("status = %q, want %q; JD has not had rejectGrace to validate this yet", got.Status, StatusQueued)
 	}
+	if got.Code != codeChecking {
+		t.Errorf("code = %q, want %q, which the next pass reads to keep the grace clock", got.Code, codeChecking)
+	}
 }
 
 // Once the grace window has passed with JD still saying invalid, the status
@@ -96,6 +99,9 @@ func TestPlanRejectedAfterGraceElapses(t *testing.T) {
 	if got.Status != StatusRejected {
 		t.Fatalf("status = %q, want %q after the grace window", got.Status, StatusRejected)
 	}
+	if got.Code != codeInvalid {
+		t.Errorf("code = %q, want %q", got.Code, codeInvalid)
+	}
 }
 
 // A login that is in neither actual nor firstFail has not reached JD at all,
@@ -103,8 +109,12 @@ func TestPlanRejectedAfterGraceElapses(t *testing.T) {
 func TestPlanNotYetOnJDIsQueuedNotRejected(t *testing.T) {
 	desired := []DesiredLogin{{Host: "rapidgator.net", Username: "u", Password: "p"}}
 	p := plan(desired, nil, map[string]time.Time{}, time.Now())
-	if got := p.States["rapidgator.net"].Status; got != StatusQueued {
-		t.Fatalf("status = %q, want %q for a login not yet sent to JD at all", got, StatusQueued)
+	got := p.States["rapidgator.net"]
+	if got.Status != StatusQueued {
+		t.Fatalf("status = %q, want %q for a login not yet sent to JD at all", got.Status, StatusQueued)
+	}
+	if got.Code != codeAdding {
+		t.Errorf("code = %q, want %q", got.Code, codeAdding)
 	}
 }
 
@@ -341,8 +351,8 @@ func TestDisabledLoginReadsAsOffNotAsActive(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("States returned %d rows, want the one stored login", len(got))
 	}
-	if got[0].Status != StatusOff {
-		t.Errorf("status = %q, want %q", got[0].Status, StatusOff)
+	if got[0].Status != StatusOff || got[0].Code != codeOff {
+		t.Errorf("status = %q with code %q, want %q with code %q", got[0].Status, got[0].Code, StatusOff, codeOff)
 	}
 	if got[0].Enabled {
 		t.Error("Enabled is true on a switched-off row")

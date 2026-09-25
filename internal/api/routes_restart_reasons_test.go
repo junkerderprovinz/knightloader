@@ -87,6 +87,7 @@ func statusOf(t *testing.T, a *app.App, id string) core.Status {
 // again; throwing the dead links at the host once more only proves what the
 // host already said.
 func TestRestartOnlyTheNamedCause(t *testing.T) {
+	t.Parallel()
 	srv, a, seeded := seedFailed(t, core.ReasonGone, core.ReasonLimit, core.ReasonGone)
 
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/restart",
@@ -110,6 +111,7 @@ func TestRestartOnlyTheNamedCause(t *testing.T) {
 // written the obvious way throws out, and the rows nothing classified are
 // usually the largest pile in the list.
 func TestRestartCanAimAtTheUnclassifiedGroup(t *testing.T) {
+	t.Parallel()
 	srv, a, seeded := seedFailed(t, core.ReasonUnknown, core.ReasonGone)
 
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/restart",
@@ -129,6 +131,7 @@ func TestRestartCanAimAtTheUnclassifiedGroup(t *testing.T) {
 // TestRestartWithNoReasonsStillTakesEverything: an absent reason list means
 // every errored task.
 func TestRestartWithNoReasonsStillTakesEverything(t *testing.T) {
+	t.Parallel()
 	srv, a, seeded := seedFailed(t, core.ReasonGone, core.ReasonLimit)
 
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/restart", map[string]any{})

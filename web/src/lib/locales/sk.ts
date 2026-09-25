@@ -1397,7 +1397,6 @@ export const sk: Dict = {
   'settings.browsertools.install': 'Nainštalovať',
   'settings.browsertools.installIOS':
     'Na iPhone alebo iPad: otvor túto stránku v Safari, klepni na Zdieľať a potom na „Pridať na plochu“.',
-  'settings.access.intakePortsHint': 'Ďalšie spôsoby, ako sa k tejto inštancii dostať priamo, mimo bežného prihlásenia. Pri každom tu vidíš, či je dostupný.',
   'settings.nav.browsertools': 'Prehliadač a aplikácia',
   'settings.browsertools.bookmarkletStep1': 'Presuň tlačidlo nižšie na panel záložiek prehliadača. Uloží sa ako každá iná záložka a nič sa neinštaluje.',
   'settings.browsertools.bookmarkletStep2': 'Na ktorejkoľvek stránke naň klikni (ak chceš len nejaký text, najprv ho označ). Otvorí sa malá karta KnightLoadera, v ktorej je už vyplnený odkaz na túto stránku alebo označený text. Skontroluj ho a odtiaľ ho pridaj ako sťahovanie.',
@@ -1485,7 +1484,6 @@ export const sk: Dict = {
   'settings.nav.torrents': 'Torrenty',
   'settings.module.torrents': 'Torrenty',
   'settings.torrents.title': 'Torrenty',
-  'settings.torrents.subtitle': 'Ciele seedovania, limity prenosu, mapovanie portu a DHT/PEX pre magnet odkazy a súbory .torrent.',
   'settings.torrents.seedingTitle': 'Seedovanie',
   'settings.torrents.seedRatio': 'Cieľový pomer seedovania',
   'settings.torrents.seedRatioHint': 'Pokračuje v seedovaní dokončeného torrentu, kým sa do roja nevráti tento pomer vzhľadom na jeho vlastnú veľkosť. 0 = žiadny cieľ pomeru.',

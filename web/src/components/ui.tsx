@@ -1480,7 +1480,9 @@ export function ErrorCard({
 }) {
   return (
     <div className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-3 p-10 text-center`}>
-      <div className="text-sm text-statusFail">{message}</div>
+      <div dir="auto" className="text-sm text-statusFail">
+        {message}
+      </div>
       {retry && (
         <Button kind="secondary" onClick={retry}>
           {retryLabel}

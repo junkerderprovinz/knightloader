@@ -350,6 +350,30 @@ func (p *ConfigProblem) detail() string {
 // tell "not finished setting up" from "the router refused".
 func (p *ConfigProblem) Unwrap() error { return ErrNotConfigured }
 
+// Field is the part of a Config the problem is about, as a dotted path of its
+// JSON names with a request counted from 0, so the settings form can show the
+// problem beside that field.
+func (p *ConfigProblem) Field() string {
+	switch p.Code {
+	case ProblemNoCommand:
+		return "command"
+	case ProblemNoRequests:
+		return "requests"
+	case ProblemRequestNoURL:
+		return fmt.Sprintf("requests.%d.url", p.N-1)
+	case ProblemNoInterpreter:
+		return "interpreter"
+	case ProblemNoScript:
+		return "script"
+	case ProblemNoCheckURL:
+		return "checkUrl"
+	case ProblemNoRouter:
+		return "router"
+	default:
+		return "method"
+	}
+}
+
 // usesRouterVar reports whether anything this method would run references the
 // router address.
 func (c Config) usesRouterVar() bool {

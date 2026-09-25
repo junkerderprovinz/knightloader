@@ -76,6 +76,7 @@ func expectNothingOfType(t *testing.T, c *websocket.Conn, typ string, within tim
 // sends a subscribe frame, and a broadcast of an unsubscribed kind never
 // reaches it while a subscribed one does.
 func TestWSSubscribeNarrowsTheLiveStream(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -111,6 +112,7 @@ func TestWSSubscribeNarrowsTheLiveStream(t *testing.T) {
 // narrowing itself must not narrow a second, independent socket on the same
 // hub.
 func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -141,6 +143,7 @@ func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
 // on this socket, through a bug or an unrelated protocol version, is not
 // disconnected over it. See handleWSControl.
 func TestWSMalformedControlFrameDoesNotCloseTheSocket(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -166,6 +169,7 @@ func TestWSMalformedControlFrameDoesNotCloseTheSocket(t *testing.T) {
 // TestWSSubscribeWildcardReturnsToEverything exercises the "*" reset over the
 // wire, the way a client leaves a narrowed stream.
 func TestWSSubscribeWildcardReturnsToEverything(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -196,6 +200,7 @@ func TestWSSubscribeWildcardReturnsToEverything(t *testing.T) {
 // TestWSNeedsASession pins the ordinary guard for the socket itself: the
 // live stream is not on the small list of routes that answer without one.
 func TestWSNeedsASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {

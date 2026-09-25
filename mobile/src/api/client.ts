@@ -3,14 +3,43 @@ import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import { relayIdentity } from '../storage/relayIdentity';
+import type { TranslationKey } from '../i18n/en';
 
 export class ApiError extends Error {
   constructor(
     message: string,
-    public status: number
+    public status: number,
+    /** Names the reason where the server sent one, so it can be translated. */
+    public code?: string
   ) {
     super(message);
   }
+}
+
+// refusal reads a refused call. A refusal the interface can translate comes as
+// {error, code}; the message is then the sentence, not the envelope.
+function refusal(body: string, status: number): ApiError {
+  try {
+    const p = JSON.parse(body) as { error?: unknown; code?: unknown };
+    if (p && typeof p.error === 'string') {
+      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined);
+    }
+  } catch {
+    // Plain text.
+  }
+  return new ApiError(body, status);
+}
+
+// The refusals this app words itself. The rest show the server's sentence.
+const REFUSALS: Partial<Record<string, TranslationKey>> = {
+  federationOff: 'error.federationOff',
+};
+
+/** errorText is what a failed call shows: translated where the code is known. */
+export function errorText(t: (key: TranslationKey) => string, e: unknown): string {
+  const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+  if (key) return t(key);
+  return e instanceof Error ? e.message : String(e);
 }
 
 // Every call takes a connection and a base path prefix. base is '/api' for the
@@ -29,7 +58,7 @@ export async function request<T>(conn: ServerConnection, base: string, path: str
     : await httpRequest(conn, base + path, init);
 
   if (status < 200 || status >= 300) {
-    throw new ApiError(body || statusText, status);
+    throw refusal(body || statusText, status);
   }
   if (status === 204 || body === '') return undefined as T;
   return JSON.parse(body) as T;

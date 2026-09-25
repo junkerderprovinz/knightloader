@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { addLinks, ApiError } from '../api/client';
+import { addLinks, ApiError, errorText } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
@@ -41,7 +41,7 @@ export default function AddDownloadScreen({
       await addLinks(conn, links, base);
       onDone();
     } catch (err) {
-      setError(err instanceof ApiError ? t('addDownload.errorServer', { message: err.message }) : t('addDownload.errorGeneric'));
+      setError(err instanceof ApiError ? t('addDownload.errorServer', { message: errorText(t, err) }) : t('addDownload.errorGeneric'));
     } finally {
       setBusy(false);
     }

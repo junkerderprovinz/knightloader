@@ -12,6 +12,7 @@ import (
 // TestRelayModeOfReadsAnOldInstallTheWayItBehaved checks the migration, which
 // is a read rather than a rewrite of settings.json, so a downgrade still works.
 func TestRelayModeOfReadsAnOldInstallTheWayItBehaved(t *testing.T) {
+	t.Parallel()
 	if got := (settings.Settings{}).RelayModeOf(); got != settings.RelayModeProject {
 		t.Errorf("an old install with no relay address = %q, want %q; that install used the project's relay",
 			got, settings.RelayModeProject)
@@ -30,6 +31,7 @@ func TestRelayModeOfReadsAnOldInstallTheWayItBehaved(t *testing.T) {
 // TestAnExplicitModeAlwaysWinsOverTheInference covers switching back to the
 // project relay while an address is still in the field.
 func TestAnExplicitModeAlwaysWinsOverTheInference(t *testing.T) {
+	t.Parallel()
 	withAddress := "wss://relay.example.com/relay/connect"
 	cases := []struct {
 		name string
@@ -55,6 +57,7 @@ func TestAnExplicitModeAlwaysWinsOverTheInference(t *testing.T) {
 // TestAnUnknownModeFallsBackRatherThanBreaking checks that a mode written by a
 // newer build reads as not set, so rolling back does not cut the instance off.
 func TestAnUnknownModeFallsBackRatherThanBreaking(t *testing.T) {
+	t.Parallel()
 	s := settings.Settings{RelayMode: "mesh", RelayURL: "wss://relay.example.com/relay/connect"}
 	if got := s.RelayModeOf(); got != settings.RelayModeOwn {
 		t.Errorf("an unknown mode with an address = %q, want the legacy reading %q", got, settings.RelayModeOwn)

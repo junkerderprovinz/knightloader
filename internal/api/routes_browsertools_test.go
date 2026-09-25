@@ -33,6 +33,7 @@ func browserToolsServer(t *testing.T) (*httptest.Server, string) {
 // connection phrase and never learns an address, so the archive is
 // byte-identical to a checkout and to what goes into a store.
 func TestDownloadExtensionIsAValidZip(t *testing.T) {
+	t.Parallel()
 	testDownloadExtension(t, "/api/browser-extension.zip", "application/zip", "knightloader-extension.zip")
 }
 
@@ -40,6 +41,7 @@ func TestDownloadExtensionIsAValidZip(t *testing.T) {
 // Firefox's install flow looks for: a different name and content-type on the
 // identical bytes, not a second build.
 func TestDownloadExtensionXpiForFirefox(t *testing.T) {
+	t.Parallel()
 	testDownloadExtension(t, "/api/browser-extension.xpi", "application/x-xpinstall", "knightloader-extension.xpi")
 }
 
@@ -113,6 +115,7 @@ func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename str
 // the archive the browser tiles hand out and to the manifest in the checkout,
 // so a number written into the route fails here the day the manifest moves on.
 func TestExtensionVersionIsTheOneInTheDownload(t *testing.T) {
+	t.Parallel()
 	srv, _ := browserToolsServer(t)
 
 	resp, err := http.Get(srv.URL + "/api/browser-extension/version")
@@ -173,6 +176,7 @@ func TestExtensionVersionIsTheOneInTheDownload(t *testing.T) {
 // is middleware api.go wraps around the mux, so a test that skipped Handler
 // would pass whichever of reg.Add and reg.AddOpen registered the route.
 func TestDownloadExtensionRequiresASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "at-least-8-chars"); err != nil {

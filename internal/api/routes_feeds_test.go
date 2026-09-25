@@ -74,6 +74,7 @@ func postFeedTest(t *testing.T, base, url, filter string) (int, feedTest, string
 // subscription has seeded and remembers nothing, so a poll would both stage
 // and record.
 func TestATestFetchStagesNothingAndRemembersNothing(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	feeds := feedServer(t)
@@ -126,6 +127,7 @@ func stagedWithin(a *app.App, d time.Duration) []string {
 // TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst checks that each title
 // comes back with whether the filter takes it, not only a count.
 func TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 	feeds := feedServer(t)
@@ -160,6 +162,7 @@ func TestATestFetchShowsTheTitlesAFilterIsWrittenAgainst(t *testing.T) {
 // validation a subscription gets, so a file:// address cannot read files on
 // the box.
 func TestATestFetchRefusesAnAddressThisProcessMustNotFetch(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -181,6 +184,7 @@ func TestATestFetchRefusesAnAddressThisProcessMustNotFetch(t *testing.T) {
 // TestAFeedThatCannotBeReadIsAnAnswerNotAnError checks that a failing
 // publisher yields a 200 with the reason, since the request itself was fine.
 func TestAFeedThatCannotBeReadIsAnAnswerNotAnError(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 	dead := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -204,6 +208,7 @@ func TestAFeedThatCannotBeReadIsAnAnswerNotAnError(t *testing.T) {
 }
 
 func TestTheFeedTableReportsASubscriptionThatIsBeingPolled(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	feeds := feedServer(t)
@@ -254,6 +259,7 @@ func TestTheFeedTableReportsASubscriptionThatIsBeingPolled(t *testing.T) {
 // TestTheFeedTableNamesARowThatIsNotBeingPolled covers a saved row the runner
 // does not poll, which a listing of the runner alone would leave out.
 func TestTheFeedTableNamesARowThatIsNotBeingPolled(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -283,6 +289,7 @@ func TestTheFeedTableNamesARowThatIsNotBeingPolled(t *testing.T) {
 // TestTheFeedTableIsAListEvenWithNoSubscriptions: a nil slice encodes as JSON
 // null, and a client that walks the answer would then have to check for it.
 func TestTheFeedTableIsAListEvenWithNoSubscriptions(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

@@ -74,6 +74,7 @@ func metricNameOf(line string) string {
 // TestAWindowsPathSurvivesTheLabelEscaping covers the desktop build's folder
 // paths in label values; one unescaped backslash drops the whole scrape.
 func TestAWindowsPathSurvivesTheLabelEscaping(t *testing.T) {
+	t.Parallel()
 	body := prometheusText(promFixture())
 
 	if !strings.Contains(body, `dir="C:\\Users\\x\\Downloads"`) {
@@ -99,6 +100,7 @@ func TestAWindowsPathSurvivesTheLabelEscaping(t *testing.T) {
 // TestAnUnmeasurableVolumeEmitsNoByteSeries checks that a volume with Known
 // false writes no byte series, which an alert rule would read as a full disk.
 func TestAnUnmeasurableVolumeEmitsNoByteSeries(t *testing.T) {
+	t.Parallel()
 	body := prometheusText(promFixture())
 
 	if !strings.Contains(body, `knightloader_disk_measurable{role="work",dir="/downloads"} 0`) {
@@ -126,6 +128,7 @@ func TestAnUnmeasurableVolumeEmitsNoByteSeries(t *testing.T) {
 // TestEveryPartIsEmittedInAllFiveStates checks that each part writes all five
 // states, so a recovered fault clears at once instead of going stale.
 func TestEveryPartIsEmittedInAllFiveStates(t *testing.T) {
+	t.Parallel()
 	rep := promFixture()
 	body := prometheusText(rep)
 
@@ -161,6 +164,7 @@ func TestEveryPartIsEmittedInAllFiveStates(t *testing.T) {
 // TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous checks the format's
 // rule that a family is declared once and never interleaved.
 func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
+	t.Parallel()
 	lines := promLines(t, prometheusText(promFixture()))
 
 	helps, types := map[string]int{}, map[string]int{}
@@ -218,6 +222,7 @@ func TestEachFamilyIsDeclaredOnceAndItsSamplesAreContiguous(t *testing.T) {
 // TestNoSeriesIsEmittedTwice looks at the whole body, since a duplicate
 // usually comes from a family written in two places.
 func TestNoSeriesIsEmittedTwice(t *testing.T) {
+	t.Parallel()
 	seen := map[string]int{}
 	for _, line := range promLines(t, prometheusText(promFixture())) {
 		if strings.HasPrefix(line, "#") {
@@ -245,6 +250,7 @@ func TestNoSeriesIsEmittedTwice(t *testing.T) {
 // TestTwoRendersOfOneReportAreIdentical guards against map iteration order
 // reaching the output.
 func TestTwoRendersOfOneReportAreIdentical(t *testing.T) {
+	t.Parallel()
 	rep := promFixture()
 	first := prometheusText(rep)
 	for i := 0; i < 20; i++ {
@@ -262,6 +268,7 @@ func TestTwoRendersOfOneReportAreIdentical(t *testing.T) {
 // TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers checks flags as 0 or
 // 1, counts without separators, and that every family is still written.
 func TestTheTaskBucketsAndTheFlagsAreWrittenAsPlainNumbers(t *testing.T) {
+	t.Parallel()
 	body := prometheusText(promFixture())
 	for _, want := range []string{
 		`knightloader_build_info{version="v1.2.3",deployment="desktop"} 1`,

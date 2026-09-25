@@ -84,6 +84,7 @@ func refuseImport(t *testing.T, srv *httptest.Server, doc settings.PortableDoc, 
 // nothing else changed. Routing the import through the PUT path would reset
 // omitted keys to their zero values.
 func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
+	t.Parallel()
 	a, srv := transferServer(t)
 
 	stored := a.Settings.Get()
@@ -142,6 +143,7 @@ func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 // makes the nightly reconnect fail. Both must come back as codes, and the
 // redaction placeholder must never be stored.
 func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
+	t.Parallel()
 	a, srv := transferServer(t)
 
 	src := settings.Defaults()
@@ -201,6 +203,7 @@ func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
 // TestImportKeepsThisBoxIdentity checks at the route that a hand-edited
 // document cannot give this box another instance id.
 func TestImportKeepsThisBoxIdentity(t *testing.T) {
+	t.Parallel()
 	a, srv := transferServer(t)
 	mine := a.Settings.Get().InstanceID
 	if mine == "" {
@@ -235,6 +238,7 @@ func TestImportKeepsThisBoxIdentity(t *testing.T) {
 // field for, such as the old deleteArchive, is reported rather than dropped
 // silently by encoding/json.
 func TestImportReportsKeysThisBuildDoesNotHave(t *testing.T) {
+	t.Parallel()
 	_, srv := transferServer(t)
 
 	doc, err := settings.Portable(settings.Defaults(), false, "v0.0.1", "container", time.Now())
@@ -299,6 +303,7 @@ func TestImportRefusesADocumentFromANewerBuild(t *testing.T) {
 // TestExportOmitsSecretsUnlessAskedFor checks that only the exact spelling
 // "include" puts passwords into the export.
 func TestExportOmitsSecretsUnlessAskedFor(t *testing.T) {
+	t.Parallel()
 	a, srv := transferServer(t)
 	s := a.Settings.Get()
 	s.ArchivePasswords = []string{"hunter2"}
@@ -362,6 +367,7 @@ func TestExportOmitsSecretsUnlessAskedFor(t *testing.T) {
 // TestImportReportsRulesThisBuildCannotCompile checks that an imported rule
 // set that saves cleanly but cannot compile is counted in the answer.
 func TestImportReportsRulesThisBuildCannotCompile(t *testing.T) {
+	t.Parallel()
 	_, srv := transferServer(t)
 
 	src := settings.Defaults()

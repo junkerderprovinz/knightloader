@@ -56,6 +56,7 @@ func postIdleActionCancel(t *testing.T, url string) (int, idleActionStateWire) {
 // TestIdleActionDefaultState: on a fresh install the queue reads idle and
 // nothing is armed to act on it.
 func TestIdleActionDefaultState(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -86,6 +87,7 @@ func TestIdleActionDefaultState(t *testing.T) {
 // draws, which is why it serves Offered while the settings sanitiser reads the
 // unfiltered Actions.
 func TestIdleActionActionsRoute(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -116,6 +118,7 @@ func TestIdleActionActionsRoute(t *testing.T) {
 // and runs nothing. A 500 for "that program is not in this image" could not be
 // read by the page that asked, and that sentence is what the button is for.
 func TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -157,6 +160,7 @@ func TestIdleActionCheckAnswers200EvenWhenTheAnswerIsBad(t *testing.T) {
 // 400, since nothing about the request is malformed and the instance is not in
 // a state where it means anything.
 func TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -186,6 +190,7 @@ func TestIdleActionRunIsRefusedUnlessTheActionIsTheCommandOne(t *testing.T) {
 // Without the merge in Store.setLocked, any save on the Automation page
 // empties it.
 func TestTheStoredCommandIsNeverServedBackAndASaveDoesNotWipeIt(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -301,6 +306,7 @@ func postIdleActionCheck(t *testing.T, url string) (int, idleaction.Check) {
 // the single writer (routes_idleaction.go), so GET /api/idle-action has to
 // read back what was saved through it.
 func TestIdleActionConfigReachesGETThroughSettingsPUT(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -327,6 +333,7 @@ func TestIdleActionConfigReachesGETThroughSettingsPUT(t *testing.T) {
 // clamped the way every other plain number on that document is (MaxRetries,
 // AutoConfirmDelay) rather than rejected. See idleaction.Config.Sanitize.
 func TestIdleActionConfigIsSanitizedThroughSettingsPUT(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -352,6 +359,7 @@ func TestIdleActionConfigIsSanitizedThroughSettingsPUT(t *testing.T) {
 // route answers 200 rather than an error, like
 // internal/idleaction.Controller.Cancel.
 func TestIdleActionCancelIsANoOpWhenNothingArmed(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -370,6 +378,7 @@ func TestIdleActionCancelIsANoOpWhenNothingArmed(t *testing.T) {
 // the two routes and their JSON connect a save to a countdown a client can
 // read and cancel.
 func TestIdleActionArmsFiresAndCanBeCancelledOverHTTP(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 

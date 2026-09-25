@@ -80,6 +80,7 @@ func TestAnUnsetVariableIsEmptyAndNeverZero(t *testing.T) {
 // TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt checks that no
 // probe file is left in a folder that media scanners watch.
 func TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt(t *testing.T) {
+	t.Parallel()
 	_, srv, dl := fileOwnerServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/fileowner/check", nil)
@@ -129,6 +130,7 @@ func TestTheCheckAnswersAListAndLeavesTheFolderExactlyAsItFoundIt(t *testing.T) 
 // TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto checks that a foreign
 // folder is refused with a 400 and left untouched, since the check writes.
 func TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto(t *testing.T) {
+	t.Parallel()
 	_, srv, _ := fileOwnerServer(t)
 	stranger := t.TempDir()
 
@@ -145,6 +147,7 @@ func TestTheCheckRefusesAFolderThisInstanceDoesNotWriteInto(t *testing.T) {
 }
 
 func TestNamingOneFolderChecksOnlyThatFolder(t *testing.T) {
+	t.Parallel()
 	a, srv, dl := fileOwnerServer(t)
 	s := a.Settings.Get()
 	s.WorkDir = t.TempDir()
@@ -169,6 +172,7 @@ func TestNamingOneFolderChecksOnlyThatFolder(t *testing.T) {
 // ownership rows in the diagnostics bundle carry a role and no path, since a
 // desktop download folder lies inside the user's home directory.
 func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	id, folders := ownershipDiagnostics(a)
 	if len(folders) == 0 {
@@ -206,6 +210,7 @@ func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
 // TestTheOwnershipRoutesAreNotForwardedToAPeer guards against a peer's uids
 // and folders being shown under this machine's name.
 func TestTheOwnershipRoutesAreNotForwardedToAPeer(t *testing.T) {
+	t.Parallel()
 	if relayForwardable(http.MethodGet, "/api/fileowner") {
 		t.Error("GET /api/fileowner is forwardable to a peer; one machine's uid answered under another machine's name is a wrong number nobody can spot")
 	}
@@ -215,6 +220,7 @@ func TestTheOwnershipRoutesAreNotForwardedToAPeer(t *testing.T) {
 }
 
 func TestTheOwnershipRoutesNeedASession(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerFileOwner(reg, testApp(t))
 	for _, path := range []string{"/api/fileowner", "/api/fileowner/check"} {
@@ -228,6 +234,7 @@ func TestTheOwnershipRoutesNeedASession(t *testing.T) {
 // envReadByThisBuild in step with the Dockerfile's USER line, in both
 // directions.
 func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
+	t.Parallel()
 	b, err := os.ReadFile(filepath.Join("..", "..", "Dockerfile"))
 	if err != nil {
 		t.Fatalf("the image's Dockerfile could not be read (%v); this guard is about what that file declares, so it cannot be skipped quietly", err)

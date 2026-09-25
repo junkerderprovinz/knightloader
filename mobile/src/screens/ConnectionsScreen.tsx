@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { checkConnection, setQueueHalted } from '../api/client';
 import { listConnections, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
@@ -9,9 +9,10 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
-import { GlimButton, StatusBadge } from '../components/glim';
+import { CardButton, GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
 import { Text } from '../components/Text';
+import { Arrive, MovingList } from '../components/Moving';
 
 /**
  * The one line under an instance's name: the same four figures, in the same
@@ -196,7 +197,7 @@ export default function ConnectionsScreen({
         </View>
       </View>
 
-      <FlatList
+      <MovingList
         data={connections}
         /* The rows read `status`, `stats` and `why`, three pieces of state the
            list knows nothing about, while `connections` is set once and never
@@ -223,7 +224,7 @@ export default function ConnectionsScreen({
                   the top line and the graph sits under them inside the same
                   card, so the group's numbers and the group's curve are one
                   object rather than two saying the same thing. */}
-              <View style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+              <Arrive style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
                 <View style={styles.summaryTop}>
                   <View style={styles.summaryText}>
                     <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
@@ -282,7 +283,7 @@ export default function ConnectionsScreen({
                     <SpeedGraph speed={gesamt.speed} />
                   </View>
                 )}
-              </View>
+              </Arrive>
 
               {/* Why the last start/stop did not take. One line, in the fail
                   colour, and only when there is something to say. Outside the
@@ -330,51 +331,53 @@ export default function ConnectionsScreen({
           const laeuft = st != null && !st.halted && st.running > 0;
           const hue = hueAt(index);
           return (
-            <TouchableOpacity
-              style={[
-                styles.row,
-                { backgroundColor: c.surface, borderRadius: radii.card },
-                hue && (!rainbow.reactive || laeuft)
-                  ? { backgroundColor: blend(c.surface, hue, laeuft ? 0.22 : 0.16) }
-                  : null,
-              ]}
-              onPress={() => activate(item)}
-            >
-              {/* The same card the extension draws: logo, name, what it is
-                  doing. The mark is bare, because the tile the extension puts
-                  behind it is there for a page ground; inside a card it would be
-                  a second surface on a first one, drawing a grey square around
-                  a logo rather than a logo. */}
-              <View style={styles.rowMark}>
-                <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
-              </View>
-              <View style={styles.rowText}>
-                <View style={styles.rowTop}>
-                  <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {/* A badge with the word on it rather than a coloured dot: a
-                      dot asks the reader to know the colour code and says
-                      nothing to somebody who cannot tell the green from the
-                      red. The word carries the meaning and the colour carries
-                      the urgency. */}
-                  <StatusBadge status={s} />
+            <Arrive style={styles.cell}>
+              <CardButton
+                style={[
+                  styles.row,
+                  { backgroundColor: c.surface, borderRadius: radii.card },
+                  hue && (!rainbow.reactive || laeuft)
+                    ? { backgroundColor: blend(c.surface, hue, laeuft ? 0.22 : 0.16) }
+                    : null,
+                ]}
+                onPress={() => activate(item)}
+              >
+                {/* The same card the extension draws: logo, name, what it is
+                    doing. The mark is bare, because the tile the extension puts
+                    behind it is there for a page ground; inside a card it would be
+                    a second surface on a first one, drawing a grey square around
+                    a logo rather than a logo. */}
+                <View style={styles.rowMark}>
+                  <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
                 </View>
-                {/* What the instance is doing rather than where the connection
-                    goes. The relay address is the same for every card in the
-                    list, so it distinguishes nothing while taking the one line
-                    that could. Same four figures and the same order as the
-                    extension's card. */}
-                <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
-                  {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
-                </Text>
-              </View>
-              {/* No delete here. A bin on every row of a list somebody taps to
-                  open is a mis-tap waiting to happen, and it competes with the
-                  only action the row has. It lives inside the instance, where
-                  the thing being removed is what is on screen; see
-                  DownloadsScreen. */}
-            </TouchableOpacity>
+                <View style={styles.rowText}>
+                  <View style={styles.rowTop}>
+                    <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    {/* A badge with the word on it rather than a coloured dot: a
+                        dot asks the reader to know the colour code and says
+                        nothing to somebody who cannot tell the green from the
+                        red. The word carries the meaning and the colour carries
+                        the urgency. */}
+                    <StatusBadge status={s} />
+                  </View>
+                  {/* What the instance is doing rather than where the connection
+                      goes. The relay address is the same for every card in the
+                      list, so it distinguishes nothing while taking the one line
+                      that could. Same four figures and the same order as the
+                      extension's card. */}
+                  <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
+                    {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
+                  </Text>
+                </View>
+                {/* No delete here. A bin on every row of a list somebody taps to
+                    open is a mis-tap waiting to happen, and it competes with the
+                    only action the row has. It lives inside the instance, where
+                    the thing being removed is what is on screen; see
+                    DownloadsScreen. */}
+              </CardButton>
+            </Arrive>
           );
         }}
         /* The shared empty state: a card, a muted glyph at reduced opacity, a
@@ -387,13 +390,13 @@ export default function ConnectionsScreen({
            a drawn glyph fills less than the box it is handed. */
         ListEmptyComponent={
           loaded ? (
-            <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+            <Arrive style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
               <View style={styles.emptyIcon}>
                 <Connect color={c.textMuted} size={boxForInk(26)} />
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
               <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />
-            </View>
+            </Arrive>
           ) : null
         }
       />
@@ -463,13 +466,15 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.heading, fontWeight: '700', letterSpacing: -0.5 },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
+  // The cell is what two cards on a tablet's line share. The card fills it, so
+  // the two stand the same height; in a one-column list neither flex does
+  // anything.
+  cell: { flex: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     gap: 12,
-    // flex only bites inside a column wrapper, where two siblings share a line;
-    // in a one-column list it does nothing.
     flex: 1,
   },
   columns: { gap: 8 },

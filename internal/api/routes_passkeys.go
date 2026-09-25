@@ -318,7 +318,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			// A passkey stands beside the password, so there has to be one.
 			if !a.Auth.Enabled() {
-				http.Error(w, "set a password before registering a passkey", http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "passwordFirst", "set a password before registering a passkey", nil)
 				return
 			}
 			wa, rpID, err := webAuthnFor(r)
@@ -369,7 +369,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			}
 			cer, ok := ceremonies.take(body.CeremonyID)
 			if !ok {
-				http.Error(w, "that registration has expired, start it again", http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "expired", "that registration has expired, start it again", nil)
 				return
 			}
 			wa, rpID, err := webAuthnFor(r)
@@ -378,7 +378,8 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				return
 			}
 			if rpID != cer.rpID {
-				http.Error(w, "this registration was started on a different address; open the one you want the key to work on and start again", http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "otherAddress",
+					"this registration was started on a different address; open the one you want the key to work on and start again", nil)
 				return
 			}
 			user, _, err := passkeyUserFor(a, rpID)

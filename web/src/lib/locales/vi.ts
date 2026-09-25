@@ -1396,7 +1396,6 @@ export const vi: Dict = {
   'settings.browsertools.install': 'Cài đặt',
   'settings.browsertools.installIOS':
     'Trên iPhone hoặc iPad: mở trang này trong Safari, chạm vào Chia sẻ, sau đó chạm «Thêm vào Màn hình chính».',
-  'settings.access.intakePortsHint': 'Các cách khác để vào trực tiếp phiên bản này, ngoài đăng nhập thông thường. Với mỗi cách, ở đây cho thấy nó có truy cập được hay không.',
   'settings.nav.browsertools': 'Trình duyệt và ứng dụng',
   'settings.browsertools.bookmarkletStep1': 'Kéo nút bên dưới vào thanh dấu trang của trình duyệt. Nó được lưu như mọi dấu trang khác, không cài đặt gì cả.',
   'settings.browsertools.bookmarkletStep2': 'Trên bất kỳ trang nào, nhấp vào nó (chọn trước một đoạn văn bản nếu bạn chỉ muốn đoạn đó). Một thẻ KnightLoader nhỏ mở ra, đã điền sẵn liên kết của trang đó hoặc đoạn văn bản đã chọn. Xem lại rồi thêm nó thành lượt tải từ đó.',
@@ -1484,7 +1483,6 @@ export const vi: Dict = {
   'settings.nav.torrents': 'Torrent',
   'settings.module.torrents': 'Torrent',
   'settings.torrents.title': 'Torrent',
-  'settings.torrents.subtitle': 'Mục tiêu seed, giới hạn truyền tải, ánh xạ cổng và DHT/PEX cho liên kết magnet và tệp .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Tỷ lệ seed mục tiêu',
   'settings.torrents.seedRatioHint': 'Tiếp tục seed một torrent đã hoàn tất cho đến khi trả lại cho bầy tỷ lệ này so với kích thước của chính nó. 0 = không có mục tiêu tỷ lệ.',

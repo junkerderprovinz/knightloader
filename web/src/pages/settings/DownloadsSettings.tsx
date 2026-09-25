@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
-import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
+import { SettingPathInput } from './controls';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
 import { CollisionCard } from './downloads/Collision';
@@ -21,7 +21,7 @@ import { VolumeCapCard } from './downloads/VolumeCap';
 // Not Downloads, which is already the name of pages/Downloads.
 export function DownloadsSettings() {
   const { t } = useT();
-  const { cfg, patch, fieldError } = useDraft();
+  const { cfg, patch } = useDraft();
 
   // The resume modes come from the server.
   const [modes, setModes] = useState<string[]>([]);
@@ -49,11 +49,11 @@ export function DownloadsSettings() {
           hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
         >
           {/* The chooser browses the server and keeps a <jd:…> tail. */}
-          <PathInput
+          <SettingPathInput
+            field="downloadDir"
             value={cfg.downloadDir}
             placeholder="/downloads"
             onValue={(downloadDir) => patch({ downloadDir })}
-            error={fieldError('downloadDir')}
           />
         </Field>
         <ToggleRow
@@ -64,12 +64,12 @@ export function DownloadsSettings() {
         {/* The hint names no variables, because a template here would scatter
             the parts of a multi-volume archive across folders. */}
         <Field label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
-          <PathInput
+          <SettingPathInput
+            field="workDir"
             value={cfg.workDir}
             placeholder="/downloads/.incoming"
             title={t('settings.downloads.workDir')}
             onValue={(workDir) => patch({ workDir })}
-            error={fieldError('workDir')}
           />
         </Field>
       </Card>

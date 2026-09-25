@@ -14,6 +14,7 @@ import (
 // yields a relying-party id and an IP address is refused, since WebAuthn binds
 // a credential to a domain.
 func TestRPIDRefusesAnAddressThatCannotCarryAPasskey(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		host string
 		want string // "" means the address is refused
@@ -54,6 +55,7 @@ func TestRPIDRefusesAnAddressThatCannotCarryAPasskey(t *testing.T) {
 // half: `supported: false` plus an English diagnostic. That the interface never
 // renders the diagnostic is checked by web/check-passkey-reason.mjs.
 func TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -87,6 +89,7 @@ func TestTheVerdictTravelsAsABooleanAndTheReasonIsADiagnostic(t *testing.T) {
 // public, for the login screen, while the registered keys are listed only to a
 // session.
 func TestThePasskeyListIsOnlyForSomebodySignedIn(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if _, err := a.Store.AddPasskey(store.Passkey{
@@ -155,6 +158,7 @@ func TestThePasskeyListIsOnlyForSomebodySignedIn(t *testing.T) {
 // caller cannot enrol a key, and that a signed-in one on an IP address is
 // refused.
 func TestRegisteringAPasskeyNeedsASessionAndAPassword(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -185,9 +189,33 @@ func TestRegisteringAPasskeyNeedsASessionAndAPassword(t *testing.T) {
 	}
 }
 
+func TestAPasskeySetupThatTimedOutSaysSoWithACode(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	client := &http.Client{Jar: newJar(t)}
+	if code := login(t, client, srv.URL, "a-good-password"); code != http.StatusOK {
+		t.Fatalf("login answered %d", code)
+	}
+	resp, err := client.Post(srv.URL+"/api/auth/passkey/register/finish", "application/json",
+		strings.NewReader(`{"ceremonyId":"long-gone","name":"phone","credential":{}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var out struct{ Code string }
+	_ = json.NewDecoder(resp.Body).Decode(&out)
+	if resp.StatusCode != http.StatusBadRequest || out.Code != "expired" {
+		t.Errorf("finishing a setup nobody started answered %d with code %q, want 400 expired", resp.StatusCode, out.Code)
+	}
+}
+
 // TestPasskeyLoginRefusesWhenNoneCanAnswerHere checks that no ceremony starts
 // when no credential is registered for this address.
 func TestPasskeyLoginRefusesWhenNoneCanAnswerHere(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -204,6 +232,7 @@ func TestPasskeyLoginRefusesWhenNoneCanAnswerHere(t *testing.T) {
 }
 
 func TestRenamingAndRemovingAPasskey(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	saved, err := a.Store.AddPasskey(store.Passkey{
@@ -255,6 +284,7 @@ func TestRenamingAndRemovingAPasskey(t *testing.T) {
 // TestAnAnonymousCallerCannotRemoveAPasskey checks that clearing keys needs a
 // session, so nobody can strip that protection without defeating it.
 func TestAnAnonymousCallerCannotRemoveAPasskey(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	saved, err := a.Store.AddPasskey(store.Passkey{

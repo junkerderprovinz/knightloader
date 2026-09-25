@@ -58,7 +58,8 @@ func registerConnect(reg *Registry, a *app.App) {
 			// Replacing an existing secret would orphan every instance joined
 			// to the old phrase; leaving is an explicit DELETE.
 			if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
-				http.Error(w, "this instance already has a connection phrase - remove it first to start a new group", http.StatusConflict)
+				writeRefusal(w, http.StatusConflict, "phraseExists",
+					"this instance already has a connection phrase; remove it first to start a new group", nil)
 				return
 			}
 			secret, phrase, err := seedphrase.New()
@@ -127,7 +128,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			// unattended screen, and the phrase unlocks every instance in the
 			// group.
 			if a.Auth.Enabled() && !a.Auth.Check(body.Password) {
-				http.Error(w, "the password is required to show the phrase again", http.StatusForbidden)
+				writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
 				return
 			}
 			secretHex, err := a.Accounts.Get(relay.SeedAccountService)

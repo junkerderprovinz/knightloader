@@ -1396,7 +1396,6 @@ export const ja: Dict = {
   'settings.browsertools.install': 'インストール',
   'settings.browsertools.installIOS':
     'iPhoneまたはiPadでは、このページをSafariで開き、共有をタップしてから「ホーム画面に追加」をタップしてください。',
-  'settings.access.intakePortsHint': '通常のログインとは別に、このインスタンスに直接到達する方法です。それぞれに到達できるかどうかがここに表示されます。',
   'settings.nav.browsertools': 'ブラウザーとアプリ',
   'settings.browsertools.bookmarkletStep1': '下のボタンをブラウザーのブックマークバーにドラッグしてください。ほかのブックマークと同じように保存されるだけで、何もインストールされません。',
   'settings.browsertools.bookmarkletStep2': 'どのページでもこれをクリックしてください（一部のテキストだけを送りたい場合は、先に選択しておきます）。そのページのリンクか選択したテキストが入力済みの、小さな KnightLoader タブが開きます。内容を確認して、そこからダウンロードとして追加してください。',
@@ -1484,7 +1483,6 @@ export const ja: Dict = {
   'settings.nav.torrents': 'トレント',
   'settings.module.torrents': 'トレント',
   'settings.torrents.title': 'トレント',
-  'settings.torrents.subtitle': 'マグネットリンクと.torrentファイル向けのシード目標、転送制限、ポートマッピング、DHT/PEX。',
   'settings.torrents.seedingTitle': 'シード',
   'settings.torrents.seedRatio': '目標シードレシオ',
   'settings.torrents.seedRatioHint': '完了したトレントを、自身のサイズに対してこの割合をスウォームに還元するまでシードし続けます。0 = レシオ目標なし。',

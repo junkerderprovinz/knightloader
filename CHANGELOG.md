@@ -123,6 +123,22 @@ submission and for a fixed download.
   and your other changes still save. A save that comes back while you are
   still typing no longer replaces the text in the field.
 
+- **A refused setting is no longer sent again and again.** Picking a reconnect
+  method before the IP check URL was filled in, or adding a connection before
+  its host, was refused and then sent again about every 600 ms, each time with
+  an error message. A refused change now waits for your next edit, and the
+  reason shows once, under the field it is about: the IP check URL, the
+  reconnect program, a connection, a category, a feed, an event target, a rule
+  or a row on the Advanced page. The rest of your changes still save. A stored
+  setting that no longer passes the check, such as a reconnect switched back on
+  after its check URL was cleared, no longer blocks saves on other pages.
+
+- **A database upgrade cut short no longer keeps KnightLoader from starting.**
+  Each upgrade step and the note of how far the upgrade got are written
+  together, so a crash between them cannot make a step run a second time on the
+  next start, where it failed and the app stopped. A new install sets up its
+  database in one go.
+
 - **Alias domains count as the filehoster they belong to.** A link to rg.to,
   ul.to, k2s.cc, ddl.to or one of 1fichier's other domains was not recognised
   as a filehoster, so the direct download could take it and save the landing
@@ -298,6 +314,27 @@ submission and for a fixed download.
   captcha loads Google's Enterprise script, and a v3 check fetches its answer
   by itself under the action the hoster asked for. Where a captcha cannot be
   solved in KnightLoader, the captcha window says so, and its (i) says why.
+- **More refusals are in your language.** The folder chooser says why it
+  cannot list a folder: a path that does not start at the top, a folder
+  outside the allowed roots, one KnightLoader may not open, or a
+  KL_BROWSE_ROOTS that names no usable folder. The same goes for a hoster
+  login that JDownloader has not accepted or confirmed yet, adding a found
+  instance while "Peer instances" is switched off (in the web UI and in the
+  Android app), a wrong password when showing the connection phrase again, a
+  header profile or media hook the server turns down, and a passkey setup
+  that took too long or was started on another address. The server sends
+  each of these with a code next to its English sentence, and
+  `GET /api/folders` answers a refusal as JSON, like creating a folder does.
+- **Error messages no longer start with "ApiError:".** A diagnostics bundle
+  that could not be built or a folder check that could not run showed the
+  error's type in front of the server's words.
+- **Error lines read the right way round in right-to-left languages.** The
+  line under a folder field, a refused save, a failed test and the card shown
+  when a page cannot load set their own direction, so an English sentence on
+  an Arabic page keeps its full stop at the end.
+- **The paste and reveal buttons in the extension's phrase field sit side by
+  side.** Both were drawn on the same spot, which looked like a grey blob. The
+  eye is the one the web UI uses.
 
 ### Changed
 
@@ -402,7 +439,7 @@ submission and for a fixed download.
   Arabic, Hebrew, Thai, Chinese, Japanese and Korean use the phone's own font
   for those alphabets.
 - **The web UI, the browser extension and the phone app follow GlimStone
-  2.8.0.** Every window has its way out as a button in its bottom row, tooltips
+  2.9.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
   the default motion level is "subtle", and the About card of the extension and
   the app offers PayPal and crypto beside the coffee. There a coin tile under
@@ -412,6 +449,15 @@ submission and for a fixed download.
   slide aside, and it keeps its new place until the server confirms the order.
   An open package takes its files along, and a drop the server would not
   apply slides straight back.
+- **The phone app moves like the other apps of the family.** At Wild the cards
+  of the overview, the download list, the settings and the language list fly
+  in from both sides and bounce into place, each time you come back to the
+  screen and when you switch between downloads and collector. At Subtle they
+  rise a little. Rows you scroll to appear without flying in. Buttons and cards
+  give way under your finger, and at Wild a list flung against its top or
+  bottom runs on a little and springs back instead of Android's glow. Off, like
+  the phone's own reduce motion setting, keeps it all still, and the colour
+  picker and the QR scanner now open without sliding or fading there too.
 - **The interface texts were reworked** in the web UI, the extension, the app,
   the README and the user docs: plainer hints, and no dashes as punctuation.
 - **A release waits for its images too**, not only for the desktop bundles, so
@@ -523,8 +569,14 @@ submission and for a fixed download.
   Collector" on the quick add page, "Set the disk limits" on the Overview, "Open
   the whole log" on a download, the page links under each help topic, "Open the
   setting" on a failed idle action, a log file's download, "Select all" and
-  "Select none" in a torrent's file list, the captcha window's extra options
-  and the reason on a failed download are buttons or badges.
+  "Select none" in a torrent's file list, the captcha window's "More options"
+  and the two entries it opens, and the reason on a failed download are
+  buttons or badges.
+- **Below 1024 pixels the settings tabs show their icons only**, as they
+  already did on a phone, with each name in its bubble. Beside the full
+  sidebar their names left the page a card about 220 pixels wide in an
+  800 pixel window, so a selector put one option on each line; the card is
+  about 370 pixels wide now.
 
 ### Removed
 

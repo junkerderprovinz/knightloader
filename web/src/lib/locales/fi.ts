@@ -1396,7 +1396,6 @@ export const fi: Dict = {
   'settings.browsertools.install': 'Asenna',
   'settings.browsertools.installIOS':
     'iPhonessa tai iPadissa: avaa tämä sivu Safarissa, napauta Jaa, ja sitten ”Lisää Koti-valikkoon”.',
-  'settings.access.intakePortsHint': 'Muita tapoja tavoittaa tämä instanssi suoraan tavallisen kirjautumisen ulkopuolella. Kunkin kohdalla näet tässä, onko se tavoitettavissa.',
   'settings.nav.browsertools': 'Selain ja sovellus',
   'settings.browsertools.bookmarkletStep1': 'Vedä alla oleva painike selaimesi kirjanmerkkipalkkiin. Se tallentuu kuten mikä tahansa muu kirjanmerkki, eikä mitään asenneta.',
   'settings.browsertools.bookmarkletStep2': 'Napsauta sitä millä tahansa sivulla (valitse ensin tekstiä, jos haluat vain sen). Pieni KnightLoader-välilehti avautuu, ja siinä on valmiiksi täytettynä sivun linkki tai valittu teksti. Tarkista se ja lisää se sieltä lataukseksi.',
@@ -1484,7 +1483,6 @@ export const fi: Dict = {
   'settings.nav.torrents': 'Torrentit',
   'settings.module.torrents': 'Torrentit',
   'settings.torrents.title': 'Torrentit',
-  'settings.torrents.subtitle': 'Jakotavoitteet, siirtorajat, portin uudelleenohjaus ja DHT/PEX magnet-linkeille ja .torrent-tiedostoille.',
   'settings.torrents.seedingTitle': 'Jakaminen',
   'settings.torrents.seedRatio': 'Jaon tavoitesuhde',
   'settings.torrents.seedRatioHint': 'Jatkaa valmiin torrentin jakamista, kunnes tämä osuus sen omasta koosta on annettu takaisin parville. 0 = ei ratiotavoitetta.',

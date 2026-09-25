@@ -49,31 +49,39 @@ func sanitizeMediaHooks(n Settings) Settings {
 // id to leave alone.
 func (s Settings) ValidateMediaHooks() error {
 	if len(s.MediaHooks) > mediahook.MaxHooks {
-		return fmt.Errorf("there are %d stored addresses; the limit is %d", len(s.MediaHooks), mediahook.MaxHooks)
+		return &FieldError{Field: "mediaHooks",
+			Err: fmt.Errorf("there are %d stored addresses; the limit is %d", len(s.MediaHooks), mediahook.MaxHooks)}
 	}
 	known := make(map[string]bool, len(s.MediaHooks))
 	for i, h := range s.MediaHooks {
-		id := mediahook.HookID(h.ID)
-		if id == "" {
-			return fmt.Errorf("address %d has no usable name, so no drawer could ever point at it", i+1)
-		}
-		if known[id] {
-			return fmt.Errorf("address %d repeats the name %q; two addresses with one key cannot be told apart", i+1, id)
-		}
-		known[id] = true
-		if err := h.Validate(); err != nil {
-			return err
+		if err := validateMediaHook(h, i, known); err != nil {
+			return &FieldError{Field: fmt.Sprintf("mediaHooks.%d", i), Err: err}
 		}
 	}
-	for _, c := range s.Categories {
+	for i, c := range s.Categories {
 		want := mediahook.HookID(c.Notify)
 		if want == "" || known[want] {
 			continue
 		}
-		return fmt.Errorf("the category %q calls the address %q after a package, and there is no address stored under that name",
-			categoryKey(c), want)
+		return &FieldError{Field: fmt.Sprintf("categories.%d", i),
+			Err: fmt.Errorf("the category %q calls the address %q after a package, and there is no address stored under that name",
+				categoryKey(c), want)}
 	}
 	return nil
+}
+
+// validateMediaHook checks row i of the table and records its id in known,
+// which holds the ids of the rows before it.
+func validateMediaHook(h mediahook.Hook, i int, known map[string]bool) error {
+	id := mediahook.HookID(h.ID)
+	if id == "" {
+		return fmt.Errorf("address %d has no usable name, so no drawer could ever point at it", i+1)
+	}
+	if known[id] {
+		return fmt.Errorf("address %d repeats the name %q; two addresses with one key cannot be told apart", i+1, id)
+	}
+	known[id] = true
+	return h.Validate()
 }
 
 // categoryKey names a drawer the way a message about it has to: its own id when

@@ -13,9 +13,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
-// errFederationOff answers every call that would reach a peer while the
-// module is switched off. The peers stay stored and come back with it.
-var errFederationOff = errors.New("\"Peer instances\" is switched off on the Modules page")
+// refuseFederationOff answers every call that would reach a peer while the
+// module is switched off. The peers stay stored and come back with it. The
+// code lets the interface say it in the reader's language.
+func refuseFederationOff(w http.ResponseWriter) {
+	writeRefusal(w, http.StatusServiceUnavailable, "federationOff",
+		`"Peer instances" is switched off on the Modules page`, nil)
+}
 
 func registerFederation(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/instances", "the peer instances this one knows about; none while the module is switched off",
@@ -33,7 +37,7 @@ func registerFederation(reg *Registry, a *app.App) {
 				return
 			}
 			if a.ModuleOff("federation") {
-				http.Error(w, errFederationOff.Error(), http.StatusServiceUnavailable)
+				refuseFederationOff(w)
 				return
 			}
 			if err := addPeer(a, in); err != nil {
@@ -75,7 +79,7 @@ func registerFederation(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
 			if a.ModuleOff("federation") {
-				http.Error(w, errFederationOff.Error(), http.StatusServiceUnavailable)
+				refuseFederationOff(w)
 				return
 			}
 			// The queue travels with the task list, being that list's master

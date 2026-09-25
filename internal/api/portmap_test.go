@@ -33,6 +33,7 @@ const portmapPath = "/api/torrents/portmap"
 // TestPortmapRefusesBadJSON is the same first line of defence every other
 // POST route in this package has, through the shared decodeJSON helper.
 func TestPortmapRefusesBadJSON(t *testing.T) {
+	t.Parallel()
 	_, srv := portmapServer(t)
 	req, err := http.NewRequest(http.MethodPost, srv.URL+portmapPath, strings.NewReader("not json"))
 	if err != nil {
@@ -54,6 +55,7 @@ func TestPortmapRefusesBadJSON(t *testing.T) {
 // web/src/pages/settings/Torrents.tsx's request body, not portmap.Request's
 // internal and external split; this route takes one number for both protocols.
 func TestPortmapRefusesAnOutOfRangePort(t *testing.T) {
+	t.Parallel()
 	_, srv := portmapServer(t)
 	for _, port := range []int{0, -1, 65536} {
 		code, raw := postJSON(t, http.MethodPost, srv.URL+portmapPath, map[string]int{"port": port})

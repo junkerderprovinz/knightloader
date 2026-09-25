@@ -45,6 +45,7 @@ func undo(t *testing.T, base, token string) bulkResult {
 // checks the list rather than only the answer, because a route that reports
 // two ids and restores nothing is what an answer-only test would call a pass.
 func TestRemovedRowsComeBack(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -86,6 +87,7 @@ func TestRemovedRowsComeBack(t *testing.T) {
 // the row comes back pointing at a file that does not exist, and whoever
 // pressed it finds out at the next transfer.
 func TestErasingTheFilesOffersNoUndo(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -104,6 +106,7 @@ func TestErasingTheFilesOffersNoUndo(t *testing.T) {
 // get pressed twice; the second press answers "nothing came back" rather than
 // duplicating a download that is already in the list.
 func TestAnUndoTokenIsGoodOnce(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -126,6 +129,7 @@ func TestAnUndoTokenIsGoodOnce(t *testing.T) {
 // as a broken button by everybody who pressed one second after the bin
 // emptied.
 func TestAnUnknownUndoTokenIsNotAnError(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

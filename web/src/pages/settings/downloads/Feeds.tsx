@@ -26,6 +26,7 @@ import {
 } from '../../../lib/api';
 import { happened } from '../../../lib/countdown';
 import { useDraft, useFeatures } from '../context';
+import { RowRefusal } from '../controls';
 import { ModuleToggle } from '../ModuleToggle';
 
 // Feeds lists the RSS and Atom subscriptions this instance follows, each
@@ -414,6 +415,7 @@ function FeedRow({
           />
         </div>
       </div>
+      {stored && <RowRefusal field={`feeds.${index}`} />}
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
@@ -616,7 +618,7 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
           {busy ? t('settings.feeds.testBusy') : t('settings.feeds.test')}
         </Button>
 
-        {refused && <p className="text-xs text-statusWarn">{refused}</p>}
+        {refused && <p dir="auto" className="text-xs text-statusWarn">{refused}</p>}
 
         {result && (
           <div className="glim-well flex flex-col gap-2 p-3 text-xs">

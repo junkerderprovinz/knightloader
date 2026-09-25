@@ -66,6 +66,7 @@ func ids(tasks []*core.Task) []string {
 // literal that forgets the field arrives switched off, and nothing in the
 // interface would explain why it never starts.
 func TestStagedLinksAreEnabled(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -80,6 +81,7 @@ func TestStagedLinksAreEnabled(t *testing.T) {
 // can be parked without being confused with a paused download, and the route
 // answers with what it touched so the interface need not re-fetch the list.
 func TestBulkEnableAndHold(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -126,6 +128,7 @@ func TestBulkEnableAndHold(t *testing.T) {
 // request, a store write and a broadcast per row, which on a real list is slow
 // enough to look like a hang.
 func TestBulkDeleteIsOneRequest(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -148,6 +151,7 @@ func TestBulkDeleteIsOneRequest(t *testing.T) {
 // so the confirmation dialog has to be able to say what it is about to do, and
 // a preview that removed anything would be a trap.
 func TestCleanupPreviewDoesNotRemove(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -183,6 +187,7 @@ func TestCleanupPreviewDoesNotRemove(t *testing.T) {
 // list, so only an old build talking to a new one reaches this, which is when
 // naming the classes that exist is worth the two lines.
 func TestUnknownCleanupClassSaysWhichExist(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -198,6 +203,7 @@ func TestUnknownCleanupClassSaysWhichExist(t *testing.T) {
 // TestUIStateSurvivesAReload: column widths and a collapse tree come back
 // after a reload without a settings field per column.
 func TestUIStateSurvivesAReload(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -247,6 +253,7 @@ func TestUIStateSurvivesAReload(t *testing.T) {
 // TestUIStateRefusesWhatItCannotHandBack keeps a client from storing something
 // it will fail to parse on the next load, with nothing to say when it broke.
 func TestUIStateRefusesWhatItCannotHandBack(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -288,6 +295,7 @@ func uploadContainer(t *testing.T, url, name string, data []byte) (int, []byte) 
 // TestTextContainerIsStagedDirectly: a links.txt needs no key and is staged
 // like a paste.
 func TestTextContainerIsStagedDirectly(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -306,6 +314,7 @@ func TestTextContainerIsStagedDirectly(t *testing.T) {
 // that. "Unsupported file" would send somebody looking for a corrupt download
 // that is not corrupt.
 func TestEncryptedContainerRefusesWithTheReason(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -327,6 +336,7 @@ func TestEncryptedContainerRefusesWithTheReason(t *testing.T) {
 // wording: a truncated download and an HTML error page saved under a .dlc name
 // are both routine, and each has a different fix.
 func TestBrokenContainerSaysWhatIsWrongWithIt(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -344,6 +354,7 @@ func TestBrokenContainerSaysWhatIsWrongWithIt(t *testing.T) {
 // gone, the rows its preset set aside must go too, or ticking their kind later
 // would bring them back for a link that was removed.
 func TestRemovingALinksShownRowsOneByOneLeavesNothingBehind(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	st, err := store.Open(filepath.Join(dir, "knightloader.db"))
 	if err != nil {

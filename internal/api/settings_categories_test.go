@@ -51,6 +51,7 @@ func patchSettings(t *testing.T, url, body string) (int, map[string]any, string)
 // creation has to survive the rename, or every download already filed in it
 // stops being in it.
 func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -106,6 +107,7 @@ func TestADrawerIsCreatedAndChangedThroughTheSettingsAPI(t *testing.T) {
 // somebody who has just typed two drawers with one name is otherwise left with
 // two rows on screen, one save and one row.
 func TestARefusedDrawerSaysWhy(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -152,6 +154,7 @@ func TestARefusedDrawerSaysWhy(t *testing.T) {
 // drawer in it saves cleanly, so deleting a category means sending the rule
 // change with it rather than being impossible.
 func TestARuleFilingLinksInAMissingDrawerIsRefused(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -186,6 +189,7 @@ func TestARuleFilingLinksInAMissingDrawerIsRefused(t *testing.T) {
 // frontend: a fresh install serves the key as null rather than omitting it, or
 // there is no way to type a field that is sometimes absent.
 func TestTheCategoriesKeyIsAlwaysOnThePage(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

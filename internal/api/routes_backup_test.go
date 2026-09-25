@@ -34,6 +34,7 @@ func backupServer(t *testing.T) (*app.App, *httptest.Server) {
 // produces has to be what internal/backup.Stage accepts, carrying the three
 // entries a restore needs and naming a task that was in the store at the time.
 func TestDownloadBackupIsARestorableArchive(t *testing.T) {
+	t.Parallel()
 	a, srv := backupServer(t)
 	if err := a.Store.Save(&core.Task{ID: "t1", Name: "file.bin", CreatedAt: time.Now()}); err != nil {
 		t.Fatal(err)
@@ -115,6 +116,7 @@ func TestDownloadBackupIsARestorableArchive(t *testing.T) {
 // default on testApp) it says a manual restart is needed rather than claiming
 // one is under way.
 func TestUploadRestoreStagesAValidBackup(t *testing.T) {
+	t.Parallel()
 	a, srv := backupServer(t)
 	if err := a.Store.Save(&core.Task{ID: "t1", Name: "file.bin", CreatedAt: time.Now()}); err != nil {
 		t.Fatal(err)
@@ -167,6 +169,7 @@ func TestUploadRestoreStagesAValidBackup(t *testing.T) {
 // the same mechanism quit and restart do, so a successful upload does not sit
 // waiting for somebody to press restart.
 func TestUploadRestoreTriggersRequestExit(t *testing.T) {
+	t.Parallel()
 	a, srv := backupServer(t)
 	resp, err := http.Get(srv.URL + "/api/system/backup")
 	if err != nil {
@@ -203,6 +206,7 @@ func TestUploadRestoreTriggersRequestExit(t *testing.T) {
 // internal/backup's own validation tests: the HTTP layer has to surface the
 // specific reason, as plain text, rather than a generic 400.
 func TestUploadRestoreRejectsGarbage(t *testing.T) {
+	t.Parallel()
 	_, srv := backupServer(t)
 	code, body := postMultipartFile(t, srv.URL+"/api/system/restore", "file", "backup.zip", []byte("not a zip"))
 	if code != http.StatusBadRequest {
@@ -216,6 +220,7 @@ func TestUploadRestoreRejectsGarbage(t *testing.T) {
 // TestUploadRestoreRequiresTheFileField pins the multipart contract the error
 // message promises: a request with no "file" field is a client bug, not a 500.
 func TestUploadRestoreRequiresTheFileField(t *testing.T) {
+	t.Parallel()
 	_, srv := backupServer(t)
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)

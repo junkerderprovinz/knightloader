@@ -78,6 +78,10 @@ func (e *Engine) SetMetadataTimeout(d time.Duration) {
 	e.metadataTimeout = d
 }
 
+// newDownloaderMu is held around download.NewDownloader, which sets a zerolog
+// package variable on every call, so two engines built at once would race.
+var newDownloaderMu sync.Mutex
+
 // New boots an embedded Gopeed downloader that saves into dir and reports
 // per-task changes through onUpdate.
 func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
@@ -88,7 +92,9 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 			MaxRunning:  5,
 		},
 	}).Init()
+	newDownloaderMu.Lock()
 	d := download.NewDownloader(cfg)
+	newDownloaderMu.Unlock()
 	if err := d.Setup(); err != nil {
 		return nil, err
 	}

@@ -1,6 +1,5 @@
-import { useCallback } from 'react';
 import { fetchFileOwner, type FileOwnerIdentity } from '../../../lib/api';
-import { interpolate, useT, type TranslationKey } from '../../../lib/i18n';
+import { useT } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
 import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
 
@@ -8,42 +7,9 @@ import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
  * The card shows the uid, gid and umask this instance writes files as. The
  * image runs as a fixed user and reads no PUID, PGID or UMASK, so any of them
  * that is set is echoed beside the identity in force, marked as ignored.
- * PENDING holds the English strings until the catalogue has them; the lookup
- * asks the catalogue first.
  */
-const PENDING = {
-  'settings.owner.identityTitle': 'Who this instance writes as',
-  'settings.owner.identityHint':
-    'Every file this instance creates gets this owner and these permissions, and so does everything it starts: yt-dlp, ffmpeg and the bundled JDownloader. In a container the identity is fixed the moment the container starts, by the account it was started under, and nothing on this page can change it.',
-  'settings.owner.uid': 'User',
-  'settings.owner.gid': 'Group',
-  'settings.owner.umask': 'Umask',
-  'settings.owner.umaskUnknown': 'This kernel does not report it',
-  'settings.owner.asked': 'Asked for',
-  'settings.owner.envIgnored':
-    '{name}={value} is set, but nothing in this image reads it. The identity is fixed by the account the container was started under, which is {owner}.',
-  'settings.owner.envHow':
-    'To run under another account, name it in the run command: --user <uid>:<gid>. On Unraid that goes in Extra Parameters, and the container has to be recreated for it to take.',
-  'settings.owner.desktopNote':
-    'The desktop app runs under your own account. PUID, PGID and UMASK are container settings and do nothing here.',
-  'settings.owner.noOwners': 'This system has no file owners, so there is nothing to compare. That is not a fault.',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? PENDING[key], vars);
-    },
-    [t],
-  );
-}
-
 export function OwnershipCard({ hue }: { hue: number }) {
-  const cx = useCx();
+  const { t } = useT();
   const { data, failed } = useResource<FileOwnerIdentity>(fetchFileOwner);
 
   // A failed side request draws nothing rather than covering the page.
@@ -62,35 +28,35 @@ export function OwnershipCard({ hue }: { hue: number }) {
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={cx('settings.owner.identityHint')}>{cx('settings.owner.identityTitle')}</SectionTitle>
+      <SectionTitle hint={t('settings.owner.identityHint')}>{t('settings.owner.identityTitle')}</SectionTitle>
 
       {!data.known ? (
         // Windows has no unix owners, and "0:0" would read as root.
-        <span className="text-sm text-carbon-textSub">{cx('settings.owner.noOwners')}</span>
+        <span className="text-sm text-carbon-textSub">{t('settings.owner.noOwners')}</span>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <Stat label={cx('settings.owner.uid')} value={named(data.uid, data.user)} />
-          <Stat label={cx('settings.owner.gid')} value={named(data.gid, data.group)} />
+          <Stat label={t('settings.owner.uid')} value={named(data.uid, data.user)} />
+          <Stat label={t('settings.owner.gid')} value={named(data.gid, data.group)} />
           <Stat
-            label={cx('settings.owner.umask')}
-            value={data.umaskKnown ? data.umask : cx('settings.owner.umaskUnknown')}
+            label={t('settings.owner.umask')}
+            value={data.umaskKnown ? data.umask : t('settings.owner.umaskUnknown')}
           />
         </div>
       )}
 
       {data.deployment === 'desktop' && (
-        <span className="text-[11px] text-carbon-textMuted">{cx('settings.owner.desktopNote')}</span>
+        <span className="text-[11px] text-carbon-textMuted">{t('settings.owner.desktopNote')}</span>
       )}
 
       {data.deployment !== 'desktop' && ignored.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="flex items-center text-[11px] uppercase tracking-wide text-carbon-textMuted">
-            {cx('settings.owner.asked')}
-            <InfoBubble tip={cx('settings.owner.envHow')} />
+            {t('settings.owner.asked')}
+            <InfoBubble tip={t('settings.owner.envHow')} />
           </span>
           {ignored.map(([name, value]) => (
             <span key={name} className="text-sm text-statusWarn">
-              {cx('settings.owner.envIgnored', { name, value, owner: who })}
+              {t('settings.owner.envIgnored', { name, value, owner: who })}
             </span>
           ))}
         </div>

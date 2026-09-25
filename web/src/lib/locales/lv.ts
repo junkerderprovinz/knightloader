@@ -1396,7 +1396,6 @@ export const lv: Dict = {
   'settings.browsertools.install': 'Instalēt',
   'settings.browsertools.installIOS':
     'iPhone vai iPad: atveriet šo lapu Safari, pieskarieties Kopīgot, tad „Pievienot sākuma ekrānam“.',
-  'settings.access.intakePortsHint': 'Citi veidi, kā tieši sasniegt šo instanci ārpus parastās pieteikšanās. Pie katra šeit redzams, vai tas ir sasniedzams.',
   'settings.nav.browsertools': 'Pārlūks un lietotne',
   'settings.browsertools.bookmarkletStep1': 'Ievelc zemāk esošo pogu sava pārlūka grāmatzīmju joslā. Tā tiek saglabāta kā jebkura cita grāmatzīme, un nekas netiek instalēts.',
   'settings.browsertools.bookmarkletStep2': 'Jebkurā lapā noklikšķini uz tās (ja gribi tikai daļu teksta, vispirms to atlasi). Atveras neliela KnightLoader cilne, kurā jau ir ierakstīta šīs lapas saite vai atlasītais teksts. Pārskati to un no turienes pievieno kā lejupielādi.',
@@ -1484,7 +1483,6 @@ export const lv: Dict = {
   'settings.nav.torrents': 'Torrenti',
   'settings.module.torrents': 'Torrenti',
   'settings.torrents.title': 'Torrenti',
-  'settings.torrents.subtitle': 'Sēšanas mērķi, pārraides ierobežojumi, porta pārsūtīšana un DHT/PEX magnet saitēm un .torrent failiem.',
   'settings.torrents.seedingTitle': 'Sēšana',
   'settings.torrents.seedRatio': 'Mērķa sēšanas attiecība',
   'settings.torrents.seedRatioHint': 'Turpina sēt pabeigtu torrentu, līdz rojam ir atdota šī daļa attiecībā pret tā paša izmēru. 0 = bez attiecības mērķa.',

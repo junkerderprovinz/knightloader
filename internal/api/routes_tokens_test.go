@@ -44,6 +44,7 @@ func getTokens(t *testing.T, url string) []apitoken.Token {
 // TestTokenLifecycleOverHTTP walks the CRUD: issue, see it listed without its
 // secret, revoke it, see it gone.
 func TestTokenLifecycleOverHTTP(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -89,6 +90,7 @@ func TestTokenLifecycleOverHTTP(t *testing.T) {
 // HTTP layer: an empty POST body, or a name of only spaces, must not create an
 // unlabelled credential nobody can tell from the next one.
 func TestCreateTokenRefusesAnEmptyName(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -104,6 +106,7 @@ func TestCreateTokenRefusesAnEmptyName(t *testing.T) {
 // TestRevokeUnknownTokenIs404 stops a client from believing a typo'd id
 // revoked something.
 func TestRevokeUnknownTokenIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -122,6 +125,7 @@ func TestRevokeUnknownTokenIs404(t *testing.T) {
 // assuming it: none of the token routes is on the open list the login routes
 // are on.
 func TestManagingTokensNeedsASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {

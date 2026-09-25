@@ -1396,7 +1396,6 @@ export const id: Dict = {
   'settings.browsertools.install': 'Pasang',
   'settings.browsertools.installIOS':
     'Di iPhone atau iPad: buka halaman ini di Safari, ketuk Bagikan, lalu «Tambah ke Layar Utama».',
-  'settings.access.intakePortsHint': 'Cara lain untuk menjangkau instans ini secara langsung, di luar login biasa. Untuk masing-masing, di sini terlihat apakah ia bisa dijangkau.',
   'settings.nav.browsertools': 'Peramban dan aplikasi',
   'settings.browsertools.bookmarkletStep1': 'Seret tombol di bawah ke bilah markah browsermu. Tombol itu tersimpan seperti markah lainnya, dan tidak ada yang dipasang.',
   'settings.browsertools.bookmarkletStep2': 'Di halaman mana pun, klik tombol itu (pilih teks dulu kalau kamu hanya ingin bagian itu). Tab KnightLoader kecil terbuka dengan tautan halaman itu, atau teks yang dipilih, sudah terisi. Periksa lalu tambahkan sebagai unduhan dari sana.',
@@ -1484,7 +1483,6 @@ export const id: Dict = {
   'settings.nav.torrents': 'Torrent',
   'settings.module.torrents': 'Torrent',
   'settings.torrents.title': 'Torrent',
-  'settings.torrents.subtitle': 'Target seed, batas transfer, pemetaan port, dan DHT/PEX untuk tautan magnet dan berkas .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Target rasio seed',
   'settings.torrents.seedRatioHint': 'Terus melakukan seed pada torrent yang selesai hingga proporsi ini, relatif terhadap ukurannya sendiri, telah dikembalikan ke swarm. 0 = tanpa target rasio.',

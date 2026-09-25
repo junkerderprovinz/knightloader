@@ -76,6 +76,7 @@ func TestAJunctionInsideTheBoundaryIsOffered(t *testing.T) {
 // The file route shares the boundary: a task folder that is a junction out of
 // the download tree is refused as outside it, not reported as empty.
 func TestServingAFileThroughAJunctionOutOfTheDownloadsIsRefused(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	outside := t.TempDir()
 	if err := os.WriteFile(filepath.Join(outside, "settings.json"), []byte("not for this task"), 0o644); err != nil {
@@ -95,6 +96,7 @@ func TestServingAFileThroughAJunctionOutOfTheDownloadsIsRefused(t *testing.T) {
 }
 
 func TestServingAFileThroughAJunctionInsideTheDownloadsWorks(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	real := filepath.Join(base, "real")
 	if err := os.Mkdir(real, 0o755); err != nil {
@@ -112,5 +114,24 @@ func TestServingAFileThroughAJunctionInsideTheDownloadsWorks(t *testing.T) {
 
 	if code, body := getRaw(t, srv.URL+"/api/tasks/"+id+"/file"); code != http.StatusOK || string(body) != "hello" {
 		t.Fatalf("serving through a junction that stays inside answered %d: %q", code, body)
+	}
+}
+
+func TestADriveThatIsNotThereIsRefusedWithACode(t *testing.T) {
+	missing := ""
+	for letter := 'Z'; letter >= 'D'; letter-- {
+		if _, err := os.Stat(string(letter) + `:\`); err != nil {
+			missing = string(letter) + `:\downloads`
+			break
+		}
+	}
+	if missing == "" {
+		t.Skip("every drive letter is taken")
+	}
+	_, srv := foldersServer(t)
+
+	code, out := listingRefusal(t, foldersURL(srv, missing))
+	if code != http.StatusNotFound || out["code"] != "unreachable" {
+		t.Errorf("listing %q answered %d %v, want 404 unreachable", missing, code, out)
 	}
 }

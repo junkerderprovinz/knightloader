@@ -1396,7 +1396,6 @@ export const ca: Dict = {
   'settings.browsertools.install': 'Instal·la',
   'settings.browsertools.installIOS':
     'A l’iPhone o l’iPad: obre aquesta pàgina a Safari, toca Comparteix i després «Afegeix a la pantalla d’inici».',
-  'settings.access.intakePortsHint': 'Altres maneres d’arribar directament a aquesta instància, fora de l’inici de sessió normal. Cadascuna mostra aquí si és accessible.',
   'settings.nav.browsertools': 'Navegador i aplicació',
   'settings.browsertools.bookmarkletStep1': 'Arrossega el botó de sota a la barra d’adreces d’interès del navegador. Es desa com qualsevol altra adreça d’interès, i no s’instal·la res.',
   'settings.browsertools.bookmarkletStep2': 'A qualsevol pàgina, fes-hi clic (selecciona primer un text si només vols això). S’obre una petita pestanya de KnightLoader amb l’enllaç d’aquella pàgina, o el text seleccionat, ja emplenat. Revisa-ho i afegeix-ho des d’allà com a baixada.',
@@ -1484,7 +1483,6 @@ export const ca: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Objectius de seed, límits de transferència, redirecció de port i DHT/PEX per a enllaços magnet i fitxers .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Ràtio de seed objectiu',
   'settings.torrents.seedRatioHint': 'Continua fent seed d’un torrent acabat fins que s’hagi retornat a l’eixam aquesta proporció, relativa a la seva pròpia mida. 0 = sense objectiu de ràtio.',

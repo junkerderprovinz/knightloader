@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -30,6 +30,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
 import { Text } from '../components/Text';
+import { MovingScroll } from '../components/Moving';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
@@ -238,7 +239,7 @@ export default function SettingsScreen({
   const [donating, setDonating] = useState(false);
 
   return (
-    <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
+    <MovingScroll style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
       <View style={styles.topBar}>
         {/* A square badge, the one the overview's top bar uses, rather than a
             bare chevron: a single glyph makes the touchable about 12 by 22
@@ -794,7 +795,7 @@ export default function SettingsScreen({
           });
         }}
       />
-    </ScrollView>
+    </MovingScroll>
   );
 }
 

@@ -65,23 +65,24 @@ type folderListing struct {
 	Truncated bool `json:"truncated"`
 }
 
-// folderRefusal is a refusal that carries its HTTP status.
+// folderRefusal is a listing or a new folder the chooser turns down. Code
+// names the reason for the interface to translate, and text says the same for
+// everybody else.
 type folderRefusal struct {
-	status int
-	reason string
-}
-
-func (e folderRefusal) Error() string { return e.reason }
-
-// createRefusal is a folder that was not created. Code names the reason for
-// the interface to translate, and text says the same for everybody else.
-type createRefusal struct {
 	status int
 	code   string
 	text   string
 }
 
-func (e createRefusal) Error() string { return e.text }
+func (e folderRefusal) Error() string { return e.text }
+
+// writeFolderRefusal answers with a refusal's status and code, and with a 500
+// in the error's own words for anything else.
+func writeFolderRefusal(w http.ResponseWriter, err error) {
+	ref := folderRefusal{status: http.StatusInternalServerError, text: err.Error()}
+	errors.As(err, &ref)
+	writeRefusal(w, ref.status, ref.code, ref.text, nil)
+}
 
 func registerFolders(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/folders",
@@ -94,17 +95,7 @@ func registerFolders(reg *Registry, a *app.App) {
 			}
 			out, err := listFolders(path)
 			if err != nil {
-				var ref folderRefusal
-				switch {
-				case errors.As(err, &ref):
-					http.Error(w, ref.reason, ref.status)
-				case errors.Is(err, fs.ErrPermission):
-					// The error names the folder, which a bare "forbidden"
-					// would not.
-					http.Error(w, err.Error(), http.StatusForbidden)
-				default:
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
+				writeFolderRefusal(w, err)
 				return
 			}
 			writeJSON(w, out)
@@ -122,12 +113,7 @@ func registerFolders(reg *Registry, a *app.App) {
 			}
 			path, err := createFolder(body.Parent, body.Name)
 			if err != nil {
-				ref := createRefusal{status: http.StatusInternalServerError, text: err.Error()}
-				var bounds folderRefusal
-				if !errors.As(err, &ref) && errors.As(err, &bounds) {
-					ref = createRefusal{status: bounds.status, text: bounds.reason}
-				}
-				writeJSONStatus(w, ref.status, map[string]string{"error": ref.text, "code": ref.code})
+				writeFolderRefusal(w, err)
 				return
 			}
 			writeJSONStatus(w, http.StatusCreated, map[string]string{"path": path})
@@ -144,7 +130,7 @@ func listFolders(raw string) (folderListing, error) {
 	if !filepath.IsAbs(fixed) {
 		// As in settings.Validate: a relative path would depend on the
 		// process's working directory.
-		return folderListing{}, folderRefusal{http.StatusBadRequest, "the folder must be an absolute path"}
+		return folderListing{}, folderRefusal{http.StatusBadRequest, "relative", "the folder must be an absolute path"}
 	}
 	fixed = filepath.Clean(fixed)
 
@@ -155,16 +141,20 @@ func listFolders(raw string) (folderListing, error) {
 
 	listed := deepestExisting(fixed)
 	if fi, err := os.Stat(listed); err != nil || !fi.IsDir() {
-		return folderListing{}, folderRefusal{http.StatusNotFound,
+		return folderListing{}, folderRefusal{http.StatusNotFound, "unreachable",
 			"there is no folder at or above " + fixed + " that this instance can read"}
 	}
 	real, ok := b.resolve(listed)
 	if !ok {
-		return folderListing{}, folderRefusal{http.StatusForbidden,
+		return folderListing{}, folderRefusal{http.StatusForbidden, "outside",
 			"this instance may not list " + listed + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
 
 	entries, truncated, err := readFolders(real, listed, b)
+	if errors.Is(err, fs.ErrPermission) {
+		// The error names the folder, which a bare refusal would not.
+		return folderListing{}, folderRefusal{http.StatusForbidden, "unreadable", err.Error()}
+	}
 	if err != nil {
 		return folderListing{}, err
 	}
@@ -250,7 +240,7 @@ func browseRoots(p string) (boundary, error) {
 	if len(out) == 0 {
 		// A typo in the variable must not widen the chooser back to
 		// everything.
-		return boundary{}, folderRefusal{http.StatusInternalServerError,
+		return boundary{}, folderRefusal{http.StatusInternalServerError, "roots",
 			envBrowseRoots + " is set but names no absolute folder, so nothing may be listed"}
 	}
 	return boundary{roots: out}, nil
@@ -368,7 +358,7 @@ func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) 
 // and a single checked name cannot lead anywhere else.
 func createFolder(parent, name string) (string, error) {
 	if !filepath.IsAbs(parent) {
-		return "", createRefusal{http.StatusBadRequest, "parent", "the folder to create it in must be an absolute path"}
+		return "", folderRefusal{http.StatusBadRequest, "relative", "the folder to create it in must be an absolute path"}
 	}
 	parent = filepath.Clean(parent)
 	if err := checkFolderName(name); err != nil {
@@ -379,11 +369,11 @@ func createFolder(parent, name string) (string, error) {
 		return "", err
 	}
 	if fi, err := os.Stat(parent); err != nil || !fi.IsDir() {
-		return "", createRefusal{http.StatusNotFound, "missing", "there is no folder at " + parent + " that this instance can see"}
+		return "", folderRefusal{http.StatusNotFound, "missing", "there is no folder at " + parent + " that this instance can see"}
 	}
 	real, ok := b.resolve(parent)
 	if !ok {
-		return "", createRefusal{http.StatusForbidden, "outside",
+		return "", folderRefusal{http.StatusForbidden, "outside",
 			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
 	err = os.Mkdir(filepath.Join(real, name), 0o755)
@@ -391,9 +381,9 @@ func createFolder(parent, name string) (string, error) {
 	case err == nil:
 		return filepath.Join(parent, name), nil
 	case errors.Is(err, fs.ErrExist):
-		return "", createRefusal{http.StatusConflict, "exists", "there is already something named " + name + " in " + parent}
+		return "", folderRefusal{http.StatusConflict, "exists", "there is already something named " + name + " in " + parent}
 	case errors.Is(err, fs.ErrPermission):
-		return "", createRefusal{http.StatusForbidden, "denied",
+		return "", folderRefusal{http.StatusForbidden, "denied",
 			"this instance has no permission to create a folder in " + parent}
 	}
 	return "", err
@@ -419,7 +409,7 @@ var windowsDeviceNames = map[string]bool{
 // the start of a variable.
 func checkFolderName(name string) error {
 	refuse := func(code, text string) error {
-		return createRefusal{http.StatusBadRequest, code, text}
+		return folderRefusal{http.StatusBadRequest, code, text}
 	}
 	switch {
 	case strings.TrimSpace(name) == "":

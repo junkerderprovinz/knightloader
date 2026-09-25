@@ -10,6 +10,7 @@ import (
 // the index cannot list fewer routes than the server answers, nor one that was
 // renamed or removed.
 func TestHelpListsEveryRegisteredRoute(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -41,6 +42,7 @@ func TestHelpListsEveryRegisteredRoute(t *testing.T) {
 // AppWork's relay and cannot be pointed at a plain server, so a shim would not
 // work.
 func TestHelpExplainsWhyThereIsNoMyJDShim(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -59,6 +61,7 @@ func TestHelpExplainsWhyThereIsNoMyJDShim(t *testing.T) {
 // feature reads as a decision on this route, not only on a settings page a
 // script never looks at.
 func TestHelpExplainsNoHostedRelay(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -78,6 +81,7 @@ func TestHelpExplainsNoHostedRelay(t *testing.T) {
 // instance should not get for free. See routes.go for what "open" means;
 // neither reason fits this route.
 func TestHelpNeedsASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -98,6 +102,7 @@ func TestHelpNeedsASession(t *testing.T) {
 // reading this index should not need a second call to learn which build it is
 // talking to.
 func TestHelpReportsVersionAndDeployment(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

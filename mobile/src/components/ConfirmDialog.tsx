@@ -5,6 +5,7 @@ import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { GlimButton, NotchCard } from './glim';
 import { Cross } from './IconBadge';
+import { NoArrival } from './Moving';
 import { Text } from './Text';
 
 /**
@@ -44,18 +45,20 @@ export function ConfirmDialog({
   const { motion } = useMotion();
   return (
     <Modal visible={visible} transparent animationType={motion === 'off' ? 'none' : 'fade'} onRequestClose={onCancel}>
-      <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onCancel}>
-        {/* Swallows the press so a tap on the card itself cancels nothing. */}
-        <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
-          <NotchCard title={title} style={styles.flush}>
-            <Text style={[styles.message, { color: c.textSub }]}>{message}</Text>
-            <View style={styles.actions}>
-              <GlimButton tone="quiet" grow label={cancelLabel} icon={(ink) => <Cross color={ink} />} onPress={onCancel} />
-              <GlimButton tone="quiet" grow label={confirmLabel} icon={confirmIcon} onPress={onConfirm} />
-            </View>
-          </NotchCard>
+      <NoArrival>
+        <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onCancel}>
+          {/* Swallows the press so a tap on the card itself cancels nothing. */}
+          <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
+            <NotchCard title={title} style={styles.flush}>
+              <Text style={[styles.message, { color: c.textSub }]}>{message}</Text>
+              <View style={styles.actions}>
+                <GlimButton tone="quiet" grow label={cancelLabel} icon={(ink) => <Cross color={ink} />} onPress={onCancel} />
+                <GlimButton tone="quiet" grow label={confirmLabel} icon={confirmIcon} onPress={onConfirm} />
+              </View>
+            </NotchCard>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </NoArrival>
     </Modal>
   );
 }

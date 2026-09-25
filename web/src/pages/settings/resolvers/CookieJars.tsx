@@ -111,7 +111,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
           >
             {t('cookies.add')}
           </Button>
-          {error && <p className="text-xs text-statusWarn">{error}</p>}
+          {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
         </div>
       </div>
 

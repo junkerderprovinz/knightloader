@@ -14,6 +14,7 @@ import (
 // A folder that is not an absolute path is refused with its field named, and
 // the stored folder stays, so a half-typed "C:" does not empty the field.
 func TestARelativeFolderIsRefusedAndTheStoredOneKept(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	watch := filepath.Join(t.TempDir(), "watch")
@@ -47,6 +48,7 @@ func TestARelativeFolderIsRefusedAndTheStoredOneKept(t *testing.T) {
 // A template counts as absolute by its fixed head, so a folder per package is
 // kept while a template with no fixed part is refused.
 func TestAnExtractionTemplateNeedsAnAbsoluteHead(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	good := filepath.Join(t.TempDir(), "<jd:packagename>")
@@ -64,6 +66,7 @@ func TestAnExtractionTemplateNeedsAnAbsoluteHead(t *testing.T) {
 // A patch is checked for the folders it names, so a stored download folder
 // that cannot be created does not refuse an edit to something else.
 func TestAPatchIsNotRefusedForAFolderItDoesNotName(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	blocker := filepath.Join(t.TempDir(), "file")
@@ -88,6 +91,7 @@ func TestAPatchIsNotRefusedForAFolderItDoesNotName(t *testing.T) {
 // then, so a stored drawer whose share is offline does not refuse a patch that
 // never mentions it.
 func TestAPatchIsNotRefusedForACategoryFolderItDoesNotName(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	blocker := filepath.Join(t.TempDir(), "file")

@@ -26,6 +26,7 @@ func rulesServer(t *testing.T) *httptest.Server {
 // offering an operator this build refuses produces a rule that saves cleanly
 // and never fires, which cannot be found from the interface.
 func TestGrammarIsServedWhole(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	resp, err := http.Get(srv.URL + "/api/rules/grammar")
 	if err != nil {
@@ -57,6 +58,7 @@ func TestGrammarIsServedWhole(t *testing.T) {
 // that rule; treated as a rule that matches nothing, it is the most confusing
 // failure a rule engine has.
 func TestPreviewReportsABadPatternAgainstItsRule(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	rep := postRules(t, srv, map[string]any{
 		"set": rules.Set{Rules: []rules.Rule{
@@ -92,6 +94,7 @@ func TestPreviewReportsABadPatternAgainstItsRule(t *testing.T) {
 // TestPreviewSaysWhereALinkLands covers the answer the box is opened for: which
 // rules fired, in order, and what came out.
 func TestPreviewSaysWhereALinkLands(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	rep := postRules(t, srv, map[string]any{
 		"set": rules.Set{Rules: []rules.Rule{
@@ -136,6 +139,7 @@ func TestPreviewSaysWhereALinkLands(t *testing.T) {
 // TestPreviewWorksOnASwitchedOffSet: a set cannot be repaired while it is off if
 // being off also hides what is wrong with it.
 func TestPreviewWorksOnASwitchedOffSet(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	rep := postRules(t, srv, map[string]any{
 		"set": rules.Set{Disabled: true, Rules: []rules.Rule{
@@ -156,6 +160,7 @@ func TestPreviewWorksOnASwitchedOffSet(t *testing.T) {
 // TestPreviewRefusesTooManySamples: the cost is rules times links and both come
 // from the request, so the ceiling has to be stated rather than discovered.
 func TestPreviewRefusesTooManySamples(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	links := make([]map[string]any, maxPreviewLinks+1)
 	for i := range links {
@@ -175,6 +180,7 @@ func TestPreviewRefusesTooManySamples(t *testing.T) {
 // own Matcher: a preview that counted would hand the next real download a
 // suffix earned by somebody pressing a button.
 func TestPreviewDoesNotAdvanceTheLiveAppendCounter(t *testing.T) {
+	t.Parallel()
 	srv := rulesServer(t)
 	set := rules.Set{Rules: []rules.Rule{
 		{Name: "append", Action: rules.Action{PackageName: "Set<jd:append>"}},
@@ -209,6 +215,7 @@ func postRules(t *testing.T, srv *httptest.Server, body any) rules.Report {
 // collector would fill it while somebody was still typing the rule meant to
 // keep those links out.
 func TestADryRunStagesNothing(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerRules(reg, a)

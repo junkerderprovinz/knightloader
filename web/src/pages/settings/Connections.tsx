@@ -14,9 +14,9 @@ import { Dropdown } from '../../components/Dropdown';
 import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
-import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
+import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
-import { NeutralSwitch } from './controls';
+import { NeutralSwitch, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -66,83 +66,7 @@ interface ImportResult {
   rejected: Rejection[];
 }
 
-/**
- * PENDING holds the English strings until the catalogue has them; the lookup
- * asks the catalogue first.
- */
-const PENDING = {
-  'settings.connections.add': 'Add connection',
-  'settings.connections.import': 'Import list',
-  'settings.connections.empty': 'Everything goes out over this machine',
-  'settings.connections.emptyHint':
-    'No outbound connections are configured, so every download uses this machine’s own connection. Add a proxy to route downloads through, or a direct row to keep certain hosts off one.',
-  'settings.connections.use': 'Use this connection',
-  'settings.connections.moveUp': 'Move up',
-  'settings.connections.moveDown': 'Move down',
-  'settings.connections.remove': 'Remove this connection',
-  'settings.connections.edit': 'Edit this connection',
-  'settings.connections.type': 'Type',
-  'settings.connections.typeHint':
-    'None and direct are not the same row. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice - go out over this machine’s own connection and deliberately bypass every proxy for the hosts named below, which is how a NAS is excluded from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
-  'settings.connections.kind.none': 'None',
-  'settings.connections.kind.direct': 'Direct',
-  'settings.connections.warnDirectCatchAll':
-    'This direct row has no host filter, so it takes its turn in the rotation and sends downloads out unproxied at random. Name the hosts it should claim.',
-  'settings.connections.stateSocks4':
-    'SOCKS4 carries a user id and has no password field at all, so no password is stored for this row.',
-  'settings.connections.host': 'Host',
-  'settings.connections.port': 'Port',
-  'settings.connections.username': 'User name',
-  'settings.connections.usernameHint':
-    'The proxy’s own credentials, not a hoster account. Clearing the user name clears the stored password with it.',
-  'settings.connections.password': 'Password',
-  'settings.connections.passwordStored': 'stored - leave empty to keep it',
-  'settings.connections.passwordHint':
-    'A stored password is never sent to this page, which is why the box is empty. Leave it empty and the saved one is kept. A stored password does not follow the row to a different host, port or type: change one of those and this has to be set again.',
-  'settings.connections.filter': 'Host filter',
-  'settings.connections.filterHint':
-    'One host per line. A bare domain covers everything under it, so example.org is enough for dl2.example.org, and * ? [ ] work as wildcards. Empty means this row is a catch-all, which is weaker than a row whose filter matches the host.',
-  'settings.connections.filterAll': 'all hosts',
-  'settings.connections.filterCount': '{n} hosts',
-  'settings.connections.cap': 'Downloads at once',
-  'settings.connections.capHint':
-    'How many downloads may share this connection at the same time. 0 uses the default of 2 - spreading downloads is what the list is for, and one connection taking the whole queue would defeat it.',
-  'settings.connections.capDefault': 'default',
-  'settings.connections.test': 'Test',
-  'settings.connections.testing': 'Testing…',
-  'settings.connections.testTarget': 'Test against',
-  'settings.connections.testTargetHint':
-    'Optional. Left empty the test only shows that the proxy answers. Name a host and the proxy is asked to forward to it, which is what actually checks the credentials and shows whether that one hoster is being refused.',
-  'settings.connections.testFailed': 'The test could not be run: {error}',
-  'settings.connections.importTitle': 'Import a proxy list',
-  'settings.connections.importLabel': 'Proxy list',
-  'settings.connections.importHint':
-    'One per line, as socks5://user:pass@host:port. https, socks4 and socks4a work too, and a line that cannot be read is listed below with the reason rather than dropped.',
-  'settings.connections.importPlaceholder': 'socks5://user:pass@proxy.example.org:1080',
-  'settings.connections.importRead': 'Read list',
-  'settings.connections.importReading': 'Reading…',
-  'settings.connections.importReady': '{n} ready to add',
-  'settings.connections.importAdd': 'Add {n}',
-  'settings.connections.importRefused': '{n} refused',
-  'settings.connections.importNothing': 'Nothing in this list could be read.',
-  'settings.connections.importLine': 'Line {n}',
-  'settings.connections.importFailed': 'The list could not be read: {error}',
-  'settings.connections.cancel': 'Cancel',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      // These keys are not in the union yet; only PENDING keys can be passed.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? PENDING[key], vars);
-    },
-    [t],
-  );
-}
+type Translate = ReturnType<typeof useT>['t'];
 
 /** lib/api.ts's Settings does not declare `connections`, hence the casts. */
 function readConnections(cfg: unknown): Connection[] {
@@ -156,7 +80,6 @@ const freshID = () => `n${Date.now().toString(36)}${newRowCounter++}`;
 
 export function ConnectionsCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const cx = useCx();
   const { cfg, patch } = useDraft();
   const rows = readConnections(cfg);
 
@@ -196,10 +119,10 @@ export function ConnectionsCard({ hue }: { hue: number }) {
           right={
             <div className="flex items-center gap-2">
               <Button kind="secondary" onClick={() => setImporting(true)}>
-                {cx('settings.connections.import')}
+                {t('settings.connections.import')}
               </Button>
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-                {cx('settings.connections.add')}
+                {t('settings.connections.add')}
               </Button>
             </div>
           }
@@ -211,9 +134,9 @@ export function ConnectionsCard({ hue }: { hue: number }) {
         {rows.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
-            {cx('settings.connections.empty')}
+            {t('settings.connections.empty')}
             <span className="mt-1 block text-[11px] text-carbon-textMuted">
-              {cx('settings.connections.emptyHint')}
+              {t('settings.connections.emptyHint')}
             </span>
           </p>
         ) : (
@@ -269,7 +192,7 @@ function ConnectionRow({
   onMove: (by: number) => void;
   onRemove: () => void;
 }) {
-  const cx = useCx();
+  const { t } = useT();
   const inert = row.type === 'none' || row.type === 'direct';
 
   return (
@@ -278,28 +201,28 @@ function ConnectionRow({
         <NeutralSwitch
           on={row.enabled}
           onChange={(v) => onChange({ enabled: v })}
-          name={cx('settings.connections.use')}
+          name={t('settings.connections.use')}
           hue={index}
         />
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={open}
-          aria-label={cx('settings.connections.edit')}
+          aria-label={t('settings.connections.edit')}
           className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="w-16 shrink-0 text-[11px] font-medium uppercase tracking-wide text-carbon-textSub">
-            {kindLabel(cx, row.type)}
+            {kindLabel(t, row.type)}
           </span>
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {endpointOf(row) || <span className="text-carbon-textMuted">-</span>}
           </span>
           <span dir="ltr" className="hidden min-w-0 truncate text-xs text-carbon-textMuted sm:block sm:max-w-[14rem]">
-            {filterSummary(cx, row.filter)}
+            {filterSummary(t, row.filter)}
           </span>
           <span className="glim-num hidden w-16 shrink-0 text-end text-xs text-carbon-textMuted md:block">
-            {row.maxDownloads ? row.maxDownloads : cx('settings.connections.capDefault')}
+            {row.maxDownloads ? row.maxDownloads : t('settings.connections.capDefault')}
           </span>
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the summary
@@ -309,8 +232,8 @@ function ConnectionRow({
             labelled
             icon={<IconArrowUp width={16} height={16} />}
             hue={index}
-            title={cx('settings.connections.moveUp')}
-            aria-label={cx('settings.connections.moveUp')}
+            title={t('settings.connections.moveUp')}
+            aria-label={t('settings.connections.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
@@ -318,8 +241,8 @@ function ConnectionRow({
             labelled
             icon={<IconArrowDown width={16} height={16} />}
             hue={index}
-            title={cx('settings.connections.moveDown')}
-            aria-label={cx('settings.connections.moveDown')}
+            title={t('settings.connections.moveDown')}
+            aria-label={t('settings.connections.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
@@ -327,12 +250,14 @@ function ConnectionRow({
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
-            title={cx('settings.connections.remove')}
-            aria-label={cx('settings.connections.remove')}
+            title={t('settings.connections.remove')}
+            aria-label={t('settings.connections.remove')}
             onClick={onRemove}
           />
         </div>
       </div>
+
+      <RowRefusal field={`connections.${index}`} className="ps-12" />
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
@@ -345,24 +270,24 @@ function ConnectionRow({
 }
 
 function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial<Connection>) => void }) {
-  const cx = useCx();
+  const { t } = useT();
   const inert = row.type === 'none' || row.type === 'direct';
   const socks4 = row.type === 'socks4' || row.type === 'socks4a';
 
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr_6rem]">
-        <Field label={cx('settings.connections.type')} hint={cx('settings.connections.typeHint')}>
+        <Field label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
           <Dropdown
-            label={cx('settings.connections.type')}
+            label={t('settings.connections.type')}
             value={row.type}
             onChange={(v) => onChange({ type: v })}
-            options={KINDS.map((k) => ({ value: k, label: kindLabel(cx, k) }))}
+            options={KINDS.map((k) => ({ value: k, label: kindLabel(t, k) }))}
           />
         </Field>
         {!inert && (
           <>
-            <Field label={cx('settings.connections.host')}>
+            <Field label={t('settings.connections.host')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -371,7 +296,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 onChange={(e) => onChange({ host: e.target.value })}
               />
             </Field>
-            <Field label={cx('settings.connections.port')}>
+            <Field label={t('settings.connections.port')}>
               <NumberInput
                 value={row.port ?? 0}
                 min={1}
@@ -384,17 +309,17 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
       </div>
 
       {row.type === 'direct' && (row.filter ?? []).length === 0 && (
-        <StateLine>{cx('settings.connections.warnDirectCatchAll')}</StateLine>
+        <StateLine>{t('settings.connections.warnDirectCatchAll')}</StateLine>
       )}
 
       {!inert && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
-            label={cx('settings.connections.username')}
+            label={t('settings.connections.username')}
             hint={
               socks4
-                ? [cx('settings.connections.stateSocks4'), cx('settings.connections.usernameHint')]
-                : cx('settings.connections.usernameHint')
+                ? [t('settings.connections.stateSocks4'), t('settings.connections.usernameHint')]
+                : t('settings.connections.usernameHint')
             }
           >
             <TextInput
@@ -406,14 +331,14 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
             />
           </Field>
           {!socks4 && (
-            <Field label={cx('settings.connections.password')} hint={cx('settings.connections.passwordHint')}>
+            <Field label={t('settings.connections.password')} hint={t('settings.connections.passwordHint')}>
               <TextInput
                 type="password"
                 dir="ltr"
                 autoComplete="new-password"
                 value={row.password ?? ''}
                 // Tells a stored password apart from none.
-                placeholder={row.hasPassword ? cx('settings.connections.passwordStored') : ''}
+                placeholder={row.hasPassword ? t('settings.connections.passwordStored') : ''}
                 onChange={(e) => onChange({ password: e.target.value })}
               />
             </Field>
@@ -422,7 +347,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_10rem]">
-        <Field label={cx('settings.connections.filter')} hint={cx('settings.connections.filterHint')}>
+        <Field label={t('settings.connections.filter')} hint={t('settings.connections.filterHint')}>
           <TextArea
             dir="ltr"
             rows={2}
@@ -435,7 +360,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
             }
           />
         </Field>
-        <Field label={cx('settings.connections.cap')} hint={cx('settings.connections.capHint')}>
+        <Field label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>
           <NumberInput
             value={row.maxDownloads ?? 0}
             min={0}
@@ -453,7 +378,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
  * password back as a save would, so the test covers what a save would write.
  */
 function TestPanel({ row }: { row: Connection }) {
-  const cx = useCx();
+  const { t } = useT();
   const [target, setTarget] = useState('');
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
@@ -474,7 +399,7 @@ function TestPanel({ row }: { row: Connection }) {
       setReport({
         ok: false,
         stage: 'refused',
-        detail: cx('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
+        detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
         millis: 0,
       });
     } finally {
@@ -486,7 +411,7 @@ function TestPanel({ row }: { row: Connection }) {
     <div className="flex flex-col gap-3 border-t border-carbon-border/60 pt-4">
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
-          <Field label={cx('settings.connections.testTarget')} hint={cx('settings.connections.testTargetHint')}>
+          <Field label={t('settings.connections.testTarget')} hint={t('settings.connections.testTargetHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -497,7 +422,7 @@ function TestPanel({ row }: { row: Connection }) {
           </Field>
         </div>
         <Button kind="secondary" onClick={run} disabled={busy} icon={<IconGlobe width={16} height={16} />}>
-          {busy ? cx('settings.connections.testing') : cx('settings.connections.test')}
+          {busy ? t('settings.connections.testing') : t('settings.connections.test')}
         </Button>
       </div>
       {report && (
@@ -511,7 +436,7 @@ function TestPanel({ row }: { row: Connection }) {
 }
 
 function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries: Connection[]) => void }) {
-  const cx = useCx();
+  const { t } = useT();
   const { toast } = useToast();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -534,7 +459,7 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
       setResult((await r.json()) as ImportResult);
     } catch (e) {
-      toast(cx('settings.connections.importFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      toast(t('settings.connections.importFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setShake((n) => n + 1);
     } finally {
       setBusy(false);
@@ -545,16 +470,16 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
 
   return (
     <Modal
-      title={cx('settings.connections.importTitle')}
+      title={t('settings.connections.importTitle')}
       onClose={onClose}
       footer={
         <>
           <span className="flex-1" />
-          <Button kind="ghost" labelled icon={<IconClose />} title={cx('settings.connections.cancel')} onClick={onClose} />
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.connections.cancel')} onClick={onClose} />
           {/* The spacer puts the advancing button at the end of the row. */}
           {result ? (
             <Button disabled={ready === 0} onClick={() => onAdd(result.entries)}>
-              {cx('settings.connections.importAdd', { n: ready })}
+              {t('settings.connections.importAdd', { n: ready })}
             </Button>
           ) : (
             <Button
@@ -563,19 +488,19 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
               disabled={busy || text.trim() === ''}
               onClick={read}
             >
-              {busy ? cx('settings.connections.importReading') : cx('settings.connections.importRead')}
+              {busy ? t('settings.connections.importReading') : t('settings.connections.importRead')}
             </Button>
           )}
         </>
       }
     >
-      <Field label={cx('settings.connections.importLabel')} hint={cx('settings.connections.importHint')}>
+      <Field label={t('settings.connections.importLabel')} hint={t('settings.connections.importHint')}>
         <TextArea
           dir="ltr"
           rows={7}
           spellCheck={false}
           value={text}
-          placeholder={cx('settings.connections.importPlaceholder')}
+          placeholder={t('settings.connections.importPlaceholder')}
           // Any edit invalidates the last reading, so Add never uses stale rows.
           onChange={(e) => {
             setText(e.target.value);
@@ -587,16 +512,16 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
       {result && (
         <div className="flex flex-col gap-2">
           <p className="text-xs text-carbon-textSub">
-            {cx('settings.connections.importReady', { n: ready })}
+            {t('settings.connections.importReady', { n: ready })}
             {result.rejected.length > 0 && (
               <span className="text-statusWarn">
                 {' · '}
-                {cx('settings.connections.importRefused', { n: result.rejected.length })}
+                {t('settings.connections.importRefused', { n: result.rejected.length })}
               </span>
             )}
           </p>
           {ready === 0 && result.rejected.length === 0 && (
-            <p className="text-xs text-carbon-textMuted">{cx('settings.connections.importNothing')}</p>
+            <p className="text-xs text-carbon-textMuted">{t('settings.connections.importNothing')}</p>
           )}
           {result.rejected.length > 0 && (
             // Every refused line, named, so nothing is lost silently.
@@ -604,14 +529,14 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
               {result.rejected.map((r) => (
                 <li key={r.line} className="text-xs">
                   <span className="glim-num text-carbon-textMuted">
-                    {cx('settings.connections.importLine', { n: r.line })}
+                    {t('settings.connections.importLine', { n: r.line })}
                   </span>
                   {/* A real space, so a screen reader does not run number and line together. */}
                   {' '}
                   <span dir="ltr" className="ms-2 break-all text-carbon-textSub">
                     {lines[r.line - 1]}
                   </span>
-                  <span className="mt-0.5 block text-statusWarn">{r.reason}</span>
+                  <span dir="auto" className="mt-0.5 block text-statusWarn">{r.reason}</span>
                 </li>
               ))}
             </ul>
@@ -627,9 +552,9 @@ function StateLine({ children }: { children: ReactNode }) {
   return <p className="text-xs text-statusWarn">{children}</p>;
 }
 
-function kindLabel(cx: (k: PendingKey) => string, kind: Kind): string {
-  if (kind === 'none') return cx('settings.connections.kind.none');
-  if (kind === 'direct') return cx('settings.connections.kind.direct');
+function kindLabel(t: Translate, kind: Kind): string {
+  if (kind === 'none') return t('settings.connections.kind.none');
+  if (kind === 'direct') return t('settings.connections.kind.direct');
   return kind; // a protocol identifier, not a word to translate
 }
 
@@ -641,9 +566,9 @@ function endpointOf(row: Connection): string {
   return row.port ? `${host}:${row.port}` : host;
 }
 
-function filterSummary(cx: (k: PendingKey, vars?: Record<string, string | number>) => string, filter?: string[]): string {
+function filterSummary(t: Translate, filter?: string[]): string {
   const list = filter ?? [];
-  if (list.length === 0) return cx('settings.connections.filterAll');
+  if (list.length === 0) return t('settings.connections.filterAll');
   if (list.length === 1) return list[0];
-  return cx('settings.connections.filterCount', { n: list.length });
+  return t('settings.connections.filterCount', { n: list.length });
 }

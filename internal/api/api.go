@@ -279,6 +279,17 @@ func writeJSONStatus(w http.ResponseWriter, code int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// writeRefusal answers with a refusal the interface translates: code names
+// the reason and params fill its sentence, while text says the same in
+// English for every other client.
+func writeRefusal(w http.ResponseWriter, status int, code, text string, params map[string]string) {
+	out := map[string]any{"error": text, "code": code}
+	if params != nil {
+		out["params"] = params
+	}
+	writeJSONStatus(w, status, out)
+}
+
 // decodeJSON reads a JSON body and answers 400 itself when it cannot. It
 // reports whether the body was usable.
 func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {

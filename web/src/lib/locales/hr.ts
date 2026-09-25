@@ -1397,7 +1397,6 @@ export const hr: Dict = {
   'settings.browsertools.install': 'Instaliraj',
   'settings.browsertools.installIOS':
     'Na iPhoneu ili iPadu: otvori ovu stranicu u Safariju, dodirni Podijeli, zatim „Dodaj na početni zaslon“.',
-  'settings.access.intakePortsHint': 'Drugi načini izravnog pristupa ovoj instanci, izvan uobičajene prijave. Za svaki ovdje vidiš je li dostupan.',
   'settings.nav.browsertools': 'Preglednik i aplikacija',
   'settings.browsertools.bookmarkletStep1': 'Povuci gumb ispod na traku oznaka svog preglednika. Sprema se kao svaka druga oznaka i ništa se ne instalira.',
   'settings.browsertools.bookmarkletStep2': 'Na bilo kojoj stranici klikni na njega (prije toga označi tekst ako želiš samo njega). Otvara se mala kartica KnightLoadera u kojoj je već upisana poveznica te stranice ili označeni tekst. Pregledaj je i odande dodaj kao preuzimanje.',
@@ -1485,7 +1484,6 @@ export const hr: Dict = {
   'settings.nav.torrents': 'Torrenti',
   'settings.module.torrents': 'Torrenti',
   'settings.torrents.title': 'Torrenti',
-  'settings.torrents.subtitle': 'Ciljevi seedanja, ograničenja prijenosa, mapiranje porta i DHT/PEX za magnet poveznice i .torrent datoteke.',
   'settings.torrents.seedingTitle': 'Seedanje',
   'settings.torrents.seedRatio': 'Ciljni omjer seedanja',
   'settings.torrents.seedRatioHint': 'Nastavlja seedati dovršeni torrent dok se u roj ne vrati ovaj udio, u odnosu na njegovu vlastitu veličinu. 0 = bez cilja omjera.',

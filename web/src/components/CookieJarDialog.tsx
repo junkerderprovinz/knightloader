@@ -85,7 +85,7 @@ export function CookieJarDialog({
       footer={
         <>
           {/* The forward button ends the row, so the message goes first. */}
-          {error && <p className="min-w-0 text-xs text-statusWarn">{error}</p>}
+          {error && <p dir="auto" className="min-w-0 text-xs text-statusWarn">{error}</p>}
           <span className="flex-1" />
           <Button
             kind="secondary"

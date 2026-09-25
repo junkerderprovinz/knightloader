@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, PanResponder, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Animated, Easing, PanResponder, StyleSheet, View, type ViewStyle } from 'react-native';
 // The cell wrapper's prop shape, taken from the list rather than re-declared,
 // since a hand-written copy can drift from the version installed.
 import type { CellRendererProps } from '@react-native/virtualized-lists';
 import { settle, useMotion } from '../theme/MotionContext';
+import { Arrive, MovingList } from './Moving';
 import {
   bandFolgt,
   blockEnde,
@@ -89,6 +90,7 @@ export default function DragList({
   contentContainerStyle,
   header,
   empty,
+  lineKey,
 }: {
   rows: DragRow[];
   /** Called with the band's new order and the dragged row's key, only when a
@@ -100,6 +102,8 @@ export default function DragList({
   contentContainerStyle?: ViewStyle | ViewStyle[];
   header?: React.ReactNode;
   empty?: React.ReactNode;
+  /** Which set of rows is shown; see MovingList. */
+  lineKey?: string;
 }) {
   /** `gelandet` marks the one render between the drop arriving and the new
    *  order going in; see the effect that reads it. */
@@ -319,11 +323,10 @@ export default function DragList({
     });
     nachbarn.current = neu;
     startWiggle();
-    // The row rises on the level's own spring, which is where GlimStone
-    // 1.17.0's springDamping is spent: a little overshoot at the top visible
-    // level, a longer wobble at the hidden one. At `off` settle() writes the
-    // value instead of animating it, and liftScale is 1 there, so the row does
-    // not grow.
+    // The row rises on the level's own spring: a little overshoot at the top
+    // visible level, a longer wobble at the hidden one. At `off` settle()
+    // writes the value instead of animating it, and liftScale is 1 there, so
+    // the row does not grow.
     hebung.setValue(0);
     settle(hebung, 1, motionRef.current);
   }, [hebung, lift, startWiggle]);
@@ -558,8 +561,9 @@ export default function DragList({
   const tragEnde = drag ? blockEnde(rows, drag.from) : 0;
 
   return (
-    <FlatList
+    <MovingList
       style={style}
+      lineKey={lineKey}
       data={rows}
       keyExtractor={(r) => r.key}
       /**
@@ -590,13 +594,16 @@ export default function DragList({
         const armed = drag !== null;
         const nachbar = drag ? nachbarn.current.get(item.key) : undefined;
         return (
+          // The lift sits on the outermost view of the row, the arrival's, since
+          // a stacking order only counts among siblings and the neighbours'
+          // rows are siblings of that view, not of the one inside it.
+          //
           // No onLayout here: it would measure against the cell wrapper this
           // row exactly fills and report y = 0 for every row, overwriting the
           // box Zelle measured on the next re-layout.
-          <Animated.View
-            style={[
-              gezogen ? styles.lifted : null,
-              {
+          <Arrive style={gezogen ? styles.lifted : null}>
+            <Animated.View
+              style={{
                 transform: [
                   // A plain zero once the drag is over, not the values left at
                   // the offsets they landed on; see the effect on `gelandet`.
@@ -604,61 +611,61 @@ export default function DragList({
                   { scale: gezogen ? skala : 1 },
                   { rotate: armed && !gezogen ? drehung : '0deg' },
                 ],
-              },
-            ]}
-            {...responder.panHandlers}
-            /* The long press is timed off the raw touch events rather than with
-               a Pressable wrapped around the row. These rows are full of their
-               own touchables, a fold chevron, a start badge, a bin, and a child
-               that takes the responder on touch-down is a child the parent's
-               onLongPress never hears about, so the gesture would work only on
-               the parts of the card with no button on them.
+              }}
+              {...responder.panHandlers}
+              /* The long press is timed off the raw touch events rather than with
+                 a Pressable wrapped around the row. These rows are full of their
+                 own touchables, a fold chevron, a start badge, a bin, and a child
+                 that takes the responder on touch-down is a child the parent's
+                 onLongPress never hears about, so the gesture would work only on
+                 the parts of the card with no button on them.
 
-               onTouchStart and onTouchEnd are not the responder system: React
-               Native dispatches them by bubbling, so they reach this view for a
-               touch anywhere inside it, whoever holds the responder. The timer
-               starts on any touch on the row and the row's own buttons keep
-               working. */
-            onTouchStart={(e) => {
-              // A new touch while a drag is still live means the last one never
-              // ended or is still landing: a row unmounted mid-gesture, a
-              // responder force-terminated, a tap during the slide. Rather than
-              // enumerate the ways, the next touch cleans up, so the list cannot
-              // be left in a state where nothing moves any more.
-              if (dragRef.current) {
-                griffe.current.beenden();
-                return;
-              }
-              const y = e.nativeEvent.pageY;
-              touch.current = { y, key: item.key, timer: setTimeout(() => arm(item.key), 400) };
-            }}
-            onTouchMove={(e) => {
-              // Moved before the timer fired: that was a scroll, not a hold.
-              // 10 points rather than 0, because a finger resting on glass is
-              // never completely still.
-              const s = touch.current;
-              if (s && Math.abs(e.nativeEvent.pageY - s.y) > 10) cancelArm();
-            }}
-            /* Lifting ends it, armed or not: the drag lives as long as the
-               touch that started it. A mode that outlived the finger would let
-               the next touch anywhere in the list move the row armed minutes
-               ago.
+                 onTouchStart and onTouchEnd are not the responder system: React
+                 Native dispatches them by bubbling, so they reach this view for a
+                 touch anywhere inside it, whoever holds the responder. The timer
+                 starts on any touch on the row and the row's own buttons keep
+                 working. */
+              onTouchStart={(e) => {
+                // A new touch while a drag is still live means the last one never
+                // ended or is still landing: a row unmounted mid-gesture, a
+                // responder force-terminated, a tap during the slide. Rather than
+                // enumerate the ways, the next touch cleans up, so the list cannot
+                // be left in a state where nothing moves any more.
+                if (dragRef.current) {
+                  griffe.current.beenden();
+                  return;
+                }
+                const y = e.nativeEvent.pageY;
+                touch.current = { y, key: item.key, timer: setTimeout(() => arm(item.key), 400) };
+              }}
+              onTouchMove={(e) => {
+                // Moved before the timer fired: that was a scroll, not a hold.
+                // 10 points rather than 0, because a finger resting on glass is
+                // never completely still.
+                const s = touch.current;
+                if (s && Math.abs(e.nativeEvent.pageY - s.y) > 10) cancelArm();
+              }}
+              /* Lifting ends it, armed or not: the drag lives as long as the
+                 touch that started it. A mode that outlived the finger would let
+                 the next touch anywhere in the list move the row armed minutes
+                 ago.
 
-               Only when the pan never took over, though. Once it has, its
-               release and its termination tell a drop from a gesture taken
-               away, which a raw touch end cannot, and landen() already ignores
-               whichever of two calls for one lift comes second. */
-            onTouchEnd={() => {
-              cancelArm();
-              if (!panning.current) griffe.current.landen(false);
-            }}
-            onTouchCancel={() => {
-              cancelArm();
-              if (!panning.current) griffe.current.landen(true);
-            }}
-          >
-            {item.render(gezogen, armed)}
-          </Animated.View>
+                 Only when the pan never took over, though. Once it has, its
+                 release and its termination tell a drop from a gesture taken
+                 away, which a raw touch end cannot, and landen() already ignores
+                 whichever of two calls for one lift comes second. */
+              onTouchEnd={() => {
+                cancelArm();
+                if (!panning.current) griffe.current.landen(false);
+              }}
+              onTouchCancel={() => {
+                cancelArm();
+                if (!panning.current) griffe.current.landen(true);
+              }}
+            >
+              {item.render(gezogen, armed)}
+            </Animated.View>
+          </Arrive>
         );
       }}
     />

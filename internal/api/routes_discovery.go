@@ -39,14 +39,10 @@ func registerDiscovery(reg *Registry, a *app.App) {
 	svc := startDiscovery(a)
 	if svc != nil {
 		a.SetDiscovery(svc)
-	}
-	// Rebuilt on a settings save, so renaming an instance reaches the network
-	// on the next announce rather than after a restart. Same shape as
-	// applyRelay in routes_settings.go.
-	discoveryRefresh = func() {
-		if svc != nil {
-			svc.SetSelf(discoverySelf(a))
-		}
+		// Rebuilt on a settings save, so renaming an instance reaches the
+		// network on the next announce rather than after a restart. Same shape
+		// as applyRelay in routes_settings.go.
+		reg.refreshDiscovery = func() { svc.SetSelf(discoverySelf(a)) }
 	}
 
 	reg.Add(http.MethodGet, "/api/discovery",
@@ -91,10 +87,6 @@ func registerDiscovery(reg *Registry, a *app.App) {
 			writeJSON(w, out)
 		})
 }
-
-// discoveryRefresh re-reads what this instance announces. Set by
-// registerDiscovery, a no-op until then and on a build with no discovery.
-var discoveryRefresh = func() {}
 
 // discoverySelf is what this instance announces right now.
 func discoverySelf(a *app.App) discovery.Peer {

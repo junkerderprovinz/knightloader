@@ -426,7 +426,7 @@ export function CaptchaModal() {
 
       <div className="flex flex-col items-start gap-2">
         <Button
-          kind="ghost"
+          kind="secondary"
           icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
           aria-expanded={moreOpen}
           onClick={() => setMoreOpen((v) => !v)}

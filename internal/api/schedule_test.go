@@ -106,6 +106,7 @@ func weeknight() schedule.Entry {
 }
 
 func TestScheduleRoundTrip(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -130,6 +131,7 @@ func TestScheduleRoundTrip(t *testing.T) {
 // TestScheduleRefusesEachBadRowByPosition checks that every bad row is
 // reported, not only the first.
 func TestScheduleRefusesEachBadRowByPosition(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -160,6 +162,7 @@ func TestScheduleRefusesEachBadRowByPosition(t *testing.T) {
 // TestScheduleRefusalDoesNotPartiallyApply checks that one bad row leaves the
 // stored timetable untouched rather than saving the good rows.
 func TestScheduleRefusalDoesNotPartiallyApply(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -186,6 +189,7 @@ func TestScheduleRefusalDoesNotPartiallyApply(t *testing.T) {
 // TestScheduleWriteLeavesOtherSettingsAlone checks that saving the timetable
 // rewrites only Schedule.
 func TestScheduleWriteLeavesOtherSettingsAlone(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -216,6 +220,7 @@ func TestScheduleWriteLeavesOtherSettingsAlone(t *testing.T) {
 // runner. An empty timetable has no next change and any real window has one
 // within the horizon, so the test does not depend on the wall clock.
 func TestScheduleWriteReachesTheLiveRunner(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

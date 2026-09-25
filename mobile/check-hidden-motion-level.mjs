@@ -33,9 +33,11 @@
 //             storm that leaves a figure out inherits the top visible level's
 //             value and arrives as a slightly longer wild; one that invents a
 //             figure the other levels lack is a forked animation wearing an
-//             intensity's clothes. springDamping 0.34 against wild's 0.68 is
-//             checked as a value, because it is what makes the two surfaces
-//             overshoot alike rather than merely both overshooting.
+//             intensity's clothes. Every figure GlimStone's reference table
+//             (motionNative.ts) sets reaches its level unchanged, because
+//             that table is what makes the apps of the family move alike
+//             rather than merely all move, and the two quiet levels never
+//             overshoot.
 //
 //   picker    The list a picker renders must not contain storm. The first build
 //             stored a "found it" flag, so one gesture put a fourth option in
@@ -63,8 +65,18 @@
 //
 // Run by hand and by CI, from mobile/: `node check-hidden-motion-level.mjs`
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { registerHooks } from 'node:module';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// The app imports its own modules without an extension, which Metro resolves
+// and Node does not, so a relative import without one is tried as a .ts file.
+registerHooks({
+  resolve(specifier, context, next) {
+    if (/^\.\.?\//.test(specifier) && !/\.\w+$/.test(specifier)) return next(`${specifier}.ts`, context);
+    return next(specifier, context);
+  },
+});
 
 const here = dirname(fileURLToPath(import.meta.url));
 const rel = (p) => relative(here, p).replace(/\\/g, '/');
@@ -73,6 +85,7 @@ const problems = [];
 const fail = (why) => problems.push(why);
 
 const MOTION_MODULE = 'src/theme/motion.ts';
+const NATIVE_MODULE = 'src/theme/motionNative.ts';
 const GATE_FILE = 'src/theme/MotionContext.tsx';
 
 let m = null;
@@ -80,6 +93,12 @@ try {
   m = await import(new URL(`./${MOTION_MODULE}`, import.meta.url).href);
 } catch (e) {
   fail(`${MOTION_MODULE}: cannot be loaded - ${String(e).split('\n')[0]}`);
+}
+let ref = null;
+try {
+  ref = await import(new URL(`./${NATIVE_MODULE}`, import.meta.url).href);
+} catch (e) {
+  fail(`${NATIVE_MODULE}: cannot be loaded - ${String(e).split('\n')[0]}`);
 }
 
 if (m) {
@@ -155,7 +174,7 @@ if (m) {
     }
   }
 
-  // The same figures at every level, and the two the language names.
+  // The same figures at every level, and GlimStone's own as it wrote them.
   const table = m.MOTION;
   if (!table || typeof table !== 'object') {
     fail(`${MOTION_MODULE}: no MOTION table - a level has to be a set of numbers, or it is a forked animation`);
@@ -186,19 +205,28 @@ if (m) {
           );
         }
       }
-      // The one figure GlimStone 1.17.0 writes down for the phone by hand.
-      if (table.storm?.springDamping !== 0.34 || table.wild?.springDamping !== 0.68) {
-        fail(
-          `${MOTION_MODULE}: springDamping is ${JSON.stringify(table.wild?.springDamping)} at wild and ` +
-            `${JSON.stringify(table.storm?.springDamping)} at storm; GlimStone 1.17.0 names 0.68 and 0.34 for the phone, ` +
-            `so that this surface and the web overshoot alike rather than merely both overshooting`,
-        );
+      const native = ref?.NATIVE_MOTION;
+      if (!native?.wild) {
+        fail(`${NATIVE_MODULE}: no NATIVE_MOTION table - copy reference/motionNative.ts from GlimStone as it is`);
+      } else {
+        for (const level of ['off', 'subtle', 'wild', 'storm']) {
+          for (const [k, v] of Object.entries(native[level] ?? {})) {
+            if (table[level]?.[k] !== v) {
+              fail(
+                `${MOTION_MODULE}: level '${level}' has ${k} ${JSON.stringify(table[level]?.[k])} where GlimStone's table says ` +
+                  `${JSON.stringify(v)} - the table is what makes the apps of the family move alike`,
+              );
+            }
+          }
+        }
       }
       // Somebody who asked for less movement asked for less movement, not for a
       // faster bounce: only the top two levels may overshoot at all.
       for (const level of ['off', 'subtle']) {
-        if (table[level]?.springDamping < 1) {
-          fail(`${MOTION_MODULE}: level '${level}' overshoots (springDamping ${table[level].springDamping} < 1) - a quieter level is not a bouncier one`);
+        for (const k of ['damping', 'bounce']) {
+          if (table[level]?.[k] < 1) {
+            fail(`${MOTION_MODULE}: level '${level}' overshoots (${k} ${table[level][k]} < 1) - a quieter level is not a bouncier one`);
+          }
         }
       }
     }

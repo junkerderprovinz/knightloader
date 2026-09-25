@@ -58,6 +58,7 @@ type loginAnswer struct {
 // TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed: the right password with
 // no code opens nothing, and says why.
 func TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	sec, _ := armTwoFactor(t, a, "a-good-password")
@@ -115,6 +116,7 @@ func TestThePasswordAloneIsNotEnoughOnceAFactorIsArmed(t *testing.T) {
 // way past the first factor, so a valid code with the wrong password opens
 // nothing and the answer says nothing about the code either way.
 func TestAWrongPasswordIsStillAWrongPassword(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	sec, _ := armTwoFactor(t, a, "a-good-password")
@@ -138,6 +140,7 @@ func TestAWrongPasswordIsStillAWrongPassword(t *testing.T) {
 // TestARecoveryCodeIsAWayIn: the login route takes one wherever it takes a
 // six-digit code, which is what the recovery sheet is for.
 func TestARecoveryCodeIsAWayIn(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	_, codes := armTwoFactor(t, a, "a-good-password")
@@ -160,6 +163,7 @@ func TestARecoveryCodeIsAWayIn(t *testing.T) {
 // is not one. The throttle turns that into years, and it covers the password
 // half of the route as well.
 func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	sec, _ := armTwoFactor(t, a, "a-good-password")
@@ -187,6 +191,7 @@ func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 // to know, while an anonymous prober is told only whether a password exists,
 // which the login screen has to be told anyway.
 func TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	sec, _ := armTwoFactor(t, a, "a-good-password")
@@ -247,6 +252,7 @@ func TestAuthStateTellsASignedInCallerAboutTheFactorAndNobodyElse(t *testing.T) 
 // behind the lock except the login itself, since an anonymous caller who could
 // start an enrolment could arm a factor on somebody else's instance.
 func TestTheEnrolmentRoutesNeedASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -267,6 +273,7 @@ func TestTheEnrolmentRoutesNeedASession(t *testing.T) {
 // TestTheEnrolmentRunsEndToEndOverHTTP walks the three steps a person walks, so
 // the routes are pinned together rather than one at a time.
 func TestTheEnrolmentRunsEndToEndOverHTTP(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {

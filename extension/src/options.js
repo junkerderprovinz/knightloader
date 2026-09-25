@@ -170,13 +170,38 @@ const D_TRASH =
 const D_PASTE =
   'M4.1 2.8h7.8a1.6 1.6 0 0 1 1.6 1.6v8.8a1.6 1.6 0 0 1-1.6 1.6H4.1a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z' +
   'M5.8 1.2h4.4a.8.8 0 0 1 .8.8v1a.8.8 0 0 1-.8.8H5.8a.8.8 0 0 1-.8-.8V2a.8.8 0 0 1 .8-.8z';
-const D_EYE =
-  'M8 3C4.4 3 1.5 6.1.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13s6.5-3.1 7.3-4.6a.8.8 0 0 0 0-.8' +
-  'C14.5 6.1 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-1.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z';
-const D_EYE_OFF =
-  'M2.3 1.3 1.2 2.4l2 2C1.9 5.4.9 6.7.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13c1.2 0 2.3-.4 3.3-.9' +
-  'l2.3 2.3 1.1-1.1L2.3 1.3zM8 11a3 3 0 0 1-2.6-4.5l1.2 1.2A1.4 1.4 0 0 0 8 9.4l1.2 1.2A3 3 0 0 1 8 11z' +
-  'm7.3-2.6C14.7 9.4 13 11 11 12l-1.4-1.4A3 3 0 0 0 5.4 6.4L4 5a7.6 7.6 0 0 1 4-2c3.6 0 6.5 3.1 7.3 4.6a.8.8 0 0 1 0 .8z';
+/**
+ * The web UI's IconEye and IconEyeOff (web/src/lib/icons.tsx), copied shape for
+ * shape so the reveal eye looks the same everywhere: an almond with the iris
+ * cut out, and for the shown phrase the same almond at .55 behind a bar.
+ */
+function eyeGlyph(off, size) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 20 20');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  const eye = document.createElementNS(NS, 'path');
+  eye.setAttribute('fill-rule', 'evenodd');
+  eye.setAttribute(
+    'd',
+    'M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z' +
+      'M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z',
+  );
+  svg.appendChild(eye);
+  if (off) {
+    eye.setAttribute('opacity', '.55');
+    const bar = document.createElementNS(NS, 'rect');
+    bar.setAttribute('x', '9.1');
+    bar.setAttribute('width', '1.8');
+    bar.setAttribute('height', '20');
+    bar.setAttribute('rx', '0.9');
+    bar.setAttribute('transform', 'rotate(45 10 10)');
+    svg.appendChild(bar);
+  }
+  return svg;
+}
 
 /**
  * The page's status line, which clears itself after four seconds like a
@@ -366,7 +391,7 @@ async function renderPinHint() {
 function renderPhraseEye() {
   const shown = phraseInput.type === 'text';
   // Half of .glim-eye's 28px box.
-  phraseEye.replaceChildren(glyph(shown ? D_EYE_OFF : D_EYE, 14));
+  phraseEye.replaceChildren(eyeGlyph(shown, 14));
   const name = shown ? t('options.phraseHide') : t('options.phraseShow');
   phraseEye.setAttribute('aria-label', name);
   phraseEye.setAttribute('data-tip', name);

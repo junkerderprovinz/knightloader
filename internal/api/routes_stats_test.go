@@ -52,6 +52,7 @@ func statsFetched(t *testing.T, a *app.App, id, host, resolver string, size int6
 // look identical in a list that leaves both out, and the oldest field beside
 // the curves is what tells them apart.
 func TestTheCurveIsBoundedAndGapFree(t *testing.T) {
+	t.Parallel()
 	_, srv := statsServer(t)
 
 	var got volumeStats
@@ -95,6 +96,7 @@ func TestTheCurveIsBoundedAndGapFree(t *testing.T) {
 // history it claims to read, at both units, with the splits the legend is
 // drawn from.
 func TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths(t *testing.T) {
+	t.Parallel()
 	a, srv := statsServer(t)
 	statsFetched(t, a, "one", "host.example", "jd", 4096)
 
@@ -122,6 +124,7 @@ func TestAFinishedDownloadLandsInTodaysBucketAndInThisMonths(t *testing.T) {
 // draw one number, and it needs the cap and the action with it to say why a
 // queue is waiting.
 func TestTheUsageRouteAnswersTheCounterAlone(t *testing.T) {
+	t.Parallel()
 	a, srv := statsServer(t)
 	s := settings.Defaults()
 	s.DownloadDir = t.TempDir()

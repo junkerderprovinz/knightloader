@@ -1396,7 +1396,6 @@ export const ko: Dict = {
   'settings.browsertools.install': '설치',
   'settings.browsertools.installIOS':
     'iPhone 또는 iPad에서: Safari에서 이 페이지를 열고, 공유를 탭한 다음 "홈 화면에 추가"를 탭하세요.',
-  'settings.access.intakePortsHint': '일반 로그인 외에 이 인스턴스에 직접 접근하는 다른 방법입니다. 각 방법에 접근할 수 있는지 여기에 표시됩니다.',
   'settings.nav.browsertools': '브라우저 및 앱',
   'settings.browsertools.bookmarkletStep1': '아래 버튼을 브라우저의 북마크 바로 끌어다 놓으세요. 다른 북마크처럼 저장될 뿐 아무것도 설치되지 않습니다.',
   'settings.browsertools.bookmarkletStep2': '아무 페이지에서나 이것을 클릭하세요(일부만 보내려면 먼저 텍스트를 선택하세요). 그 페이지의 링크나 선택한 텍스트가 이미 채워진 작은 KnightLoader 탭이 열립니다. 내용을 확인하고 거기서 다운로드로 추가하세요.',
@@ -1484,7 +1483,6 @@ export const ko: Dict = {
   'settings.nav.torrents': '토렌트',
   'settings.module.torrents': '토렌트',
   'settings.torrents.title': '토렌트',
-  'settings.torrents.subtitle': '마그넷 링크와 .torrent 파일을 위한 시드 목표, 전송 제한, 포트 매핑, DHT/PEX.',
   'settings.torrents.seedingTitle': '시드',
   'settings.torrents.seedRatio': '목표 시드 비율',
   'settings.torrents.seedRatioHint': '완료된 토렌트를 자신의 크기 대비 이 비율만큼 스웜에 되돌려줄 때까지 계속 시드합니다. 0 = 비율 목표 없음.',

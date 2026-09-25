@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Task } from '../lib/api';
 import { fmtDate } from '../lib/format';
-import { interpolate, useT, type TranslationKey } from '../lib/i18n';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
@@ -18,23 +18,22 @@ import { IconRetry, IconTrash } from '../lib/icons';
  */
 export function FilteredLinks({ held }: { held: Task[] }) {
   const { t } = useT();
-  const fx = useFx();
   const { toast } = useToast();
   const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Not optimistic: the server broadcasts the changed tasks.
   const act = useCallback(
-    async (run: () => Promise<Response>, failKey: FilteredKey) => {
+    async (run: () => Promise<Response>, failKey: TranslationKey) => {
       setBusy(true);
       try {
         const resp = await run().catch(() => null);
-        if (!resp?.ok) toast(fx(failKey), 'fail');
+        if (!resp?.ok) toast(t(failKey), 'fail');
       } finally {
         setBusy(false);
       }
     },
-    [fx, toast],
+    [t, toast],
   );
 
   const restore = (ids: string[]) => act(() => restoreFiltered(ids), 'collector.filtered.restoreFailed');
@@ -49,8 +48,8 @@ export function FilteredLinks({ held }: { held: Task[] }) {
     <div className="glim-well overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 px-4 py-2">
         <span className="glim-num flex items-center text-xs text-carbon-textSub">
-          {fx('collector.filtered.summary', { n: held.length })}
-          <InfoBubble tip={fx('collector.filtered.info')} />
+          {t('collector.filtered.summary', { n: held.length })}
+          <InfoBubble tip={t('collector.filtered.info')} />
         </span>
         <span className="flex-1" />
         {held.length > 1 && (
@@ -65,7 +64,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           disabled={busy}
           onClick={() => restore(held.map((h) => h.id))}
         >
-          {fx('collector.filtered.restoreAll')}
+          {t('collector.filtered.restoreAll')}
         </Button>
         <Button
           kind="ghost"
@@ -74,7 +73,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           disabled={busy}
           onClick={() => clear(held.map((h) => h.id))}
         >
-          {fx('collector.filtered.clear')}
+          {t('collector.filtered.clear')}
         </Button>
       </div>
 
@@ -83,7 +82,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
             {/* The rule first, since it is what gets edited. */}
             <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
-              {ruleOf(h) || fx('collector.filtered.noRule')}
+              {ruleOf(h) || t('collector.filtered.noRule')}
             </Tip>
             <Tip tip={h.skipReason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
               {h.skipReason}
@@ -92,8 +91,8 @@ export function FilteredLinks({ held }: { held: Task[] }) {
               {h.url}
             </Tip>
             <span className="flex shrink-0 items-center text-carbon-textMuted">
-              {originLabel(fx, h.origin)}
-              <InfoBubble tip={fx('collector.filtered.originTitle')} />
+              {originLabel(t, h.origin)}
+              <InfoBubble tip={t('collector.filtered.originTitle')} />
             </span>
             <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
             <Button
@@ -102,7 +101,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
               disabled={busy}
               onClick={() => restore([h.id])}
             >
-              {fx('collector.filtered.restore')}
+              {t('collector.filtered.restore')}
             </Button>
           </div>
         ))}
@@ -129,45 +128,10 @@ const restoreFiltered = (ids: string[]) =>
 const clearFiltered = (ids: string[]) =>
   fetch(`/api/collector/filtered?ids=${encodeURIComponent(ids.join(','))}`, { method: 'DELETE' });
 
-// English fallbacks behind the catalogue, which already has every key.
-export const FILTERED_STRINGS = {
-  'collector.filtered.summary': '{n} link(s) held by the link filter',
-  'collector.filtered.info':
-    'Links a filter rule refused. They are kept here rather than in the list above, so a filter that is working does not look like a collector full of junk - nothing was lost. Restore puts a link back and lets it past the rule that caught it, which is what you want when the rule turned out to be too broad. Clear deletes it; no file has been downloaded either way.',
-  'collector.filtered.restore': 'Restore',
-  'collector.filtered.restoreAll': 'Restore all',
-  'collector.filtered.clear': 'Clear',
-  'collector.filtered.noRule': 'the link filter',
-  'collector.filtered.originTitle': 'Where this link came from',
-  'collector.filtered.origin.paste': 'pasted',
-  'collector.filtered.origin.crawl': 'crawled',
-  'collector.filtered.origin.cnl': "Click'n'Load",
-  'collector.filtered.origin.watch': 'watch folder',
-  'collector.filtered.origin.container': 'container',
-  'collector.filtered.restoreFailed': 'Could not restore those links. Is the server reachable?',
-  'collector.filtered.clearFailed': 'Could not clear those links. Is the server reachable?',
-  'collector.filtered.toastHeld': 'Staged {n} link(s); {held} held by the link filter',
-  'collector.filtered.toastAllHeld': 'Nothing was staged: the link filter is holding {held} link(s)',
-} as const;
-
-export type FilteredKey = keyof typeof FILTERED_STRINGS;
-
-/** `t` for the keys the catalogue does not have yet. */
-export function useFx() {
-  const { t } = useT();
-  return useCallback(
-    (key: FilteredKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? FILTERED_STRINGS[key], vars);
-    },
-    [t],
-  );
-}
-
 // originLabel falls back to the raw origin for one the catalogue does not
 // know, since the server's set grows.
-function originLabel(fx: ReturnType<typeof useFx>, origin?: string): string {
+function originLabel(t: ReturnType<typeof useT>['t'], origin?: string): string {
   if (!origin) return '';
-  const key = `collector.filtered.origin.${origin}` as FilteredKey;
-  return key in en ? fx(key) : origin;
+  const key = `collector.filtered.origin.${origin}` as TranslationKey;
+  return key in en ? t(key) : origin;
 }

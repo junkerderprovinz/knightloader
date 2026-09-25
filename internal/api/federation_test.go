@@ -17,6 +17,7 @@ import (
 // TestFederationProxy runs two real instances and drives instance B entirely
 // through instance A's proxy routes: register, list tasks, add a link, remove.
 func TestFederationProxy(t *testing.T) {
+	t.Parallel()
 	aApp, err := app.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -152,6 +153,7 @@ func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, bo
 //  2. POST /api/instances/{name}/links reaches it over the relay, so the
 //     extension does not show a peer it cannot send to.
 func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
+	t.Parallel()
 	a, err := app.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -220,6 +222,7 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 // as "offline" that is the same word a switched-off machine gets, with a
 // different fix behind it.
 func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
+	t.Parallel()
 	locked, err := app.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)

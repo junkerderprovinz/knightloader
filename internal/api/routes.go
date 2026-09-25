@@ -101,12 +101,19 @@ type Route struct {
 	handler http.HandlerFunc
 }
 
-// Registry collects the routes as each subsystem registers them.
+// Registry collects the routes as each subsystem registers them. It also holds
+// what one subsystem's routes call in another, so two handlers in one process
+// never call each other's.
 type Registry struct {
 	routes []Route
 	// seen catches a duplicate in any test that builds a handler, instead of
 	// ServeMux panicking at startup in production.
 	seen map[string]bool
+
+	// refreshDiscovery re-reads what this instance announces on the network,
+	// for a settings save that renames it. registerDiscovery sets it; until
+	// then, and on a build without discovery, it does nothing.
+	refreshDiscovery func()
 
 	openOnce   sync.Once
 	openExact  map[string]bool
@@ -114,7 +121,7 @@ type Registry struct {
 }
 
 func newRegistry() *Registry {
-	return &Registry{seen: map[string]bool{}}
+	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}}
 }
 
 // Add registers a route that needs a session once a password is set.

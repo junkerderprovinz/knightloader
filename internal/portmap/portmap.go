@@ -312,7 +312,7 @@ func oneLine(r Result) string {
 	if r.Detail == "" {
 		return string(r.Outcome)
 	}
-	return string(r.Outcome) + " - " + r.Detail
+	return string(r.Outcome) + " (" + r.Detail + ")"
 }
 
 // mapping is the one port mapping being attempted. It does not change across

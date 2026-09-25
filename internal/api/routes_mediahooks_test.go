@@ -97,6 +97,7 @@ func decodeRows(t *testing.T, raw []byte) []hookRow {
 }
 
 func TestTheListingCarriesNamesAndNeverTheValue(t *testing.T) {
+	t.Parallel()
 	_, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 
@@ -134,6 +135,7 @@ func TestTheListingCarriesNamesAndNeverTheValue(t *testing.T) {
 // TestThePlaceholderKeepsTheStoredValue checks that editing the wait with the
 // placeholder in the value field keeps the stored token.
 func TestThePlaceholderKeepsTheStoredValue(t *testing.T) {
+	t.Parallel()
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 
@@ -156,6 +158,7 @@ func TestThePlaceholderKeepsTheStoredValue(t *testing.T) {
 }
 
 func TestAnEmptyValueClears(t *testing.T) {
+	t.Parallel()
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 
@@ -173,16 +176,19 @@ func TestAnEmptyValueClears(t *testing.T) {
 }
 
 func TestASaveIsRefusedWithASentenceNamingTheField(t *testing.T) {
+	t.Parallel()
 	for _, c := range []struct {
 		name string
 		edit func(map[string]any)
 		want string
+		// code is the refusal's code where the interface words it itself.
+		code string
 	}{
-		{"a name nothing could point at", func(b map[string]any) { b["id"] = "jellyfin lan" }, "letters, digits"},
-		{"a relative address", func(b map[string]any) { b["url"] = "/Library/Refresh" }, "http://"},
-		{"a method this build does not send", func(b map[string]any) { b["method"] = "DELETE" }, "GET"},
-		{"a whole header line in the name", func(b map[string]any) { b["headerName"] = "X-Emby-Token: abc" }, "header name"},
-		{"a wait outside the range", func(b map[string]any) { b["waitSeconds"] = 99999 }, "outside"},
+		{"a name nothing could point at", func(b map[string]any) { b["id"] = "jellyfin lan" }, "letters, digits", "nameInvalid"},
+		{"a relative address", func(b map[string]any) { b["url"] = "/Library/Refresh" }, "http://", ""},
+		{"a method this build does not send", func(b map[string]any) { b["method"] = "DELETE" }, "GET", ""},
+		{"a whole header line in the name", func(b map[string]any) { b["headerName"] = "X-Emby-Token: abc" }, "header name", ""},
+		{"a wait outside the range", func(b map[string]any) { b["waitSeconds"] = 99999 }, "outside", ""},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			a, srv := mediaHookServer(t)
@@ -194,6 +200,9 @@ func TestASaveIsRefusedWithASentenceNamingTheField(t *testing.T) {
 			}
 			if !strings.Contains(string(raw), c.want) {
 				t.Errorf("the refusal is %q, which does not say %q", raw, c.want)
+			}
+			if c.code != "" && !strings.Contains(string(raw), `"code":"`+c.code+`"`) {
+				t.Errorf("the refusal is %q, which carries no code %q", raw, c.code)
 			}
 			// Neither the row nor the value was stored.
 			if len(a.Settings.Get().MediaHooks) != 0 || a.MediaHookStore().Has("jellyfin") {
@@ -207,6 +216,7 @@ func TestASaveIsRefusedWithASentenceNamingTheField(t *testing.T) {
 // drawer from pointing at a missing address, which would make every settings
 // save fail.
 func TestDeleteIsRefusedWhileADrawerStillCallsIt(t *testing.T) {
+	t.Parallel()
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 
@@ -234,6 +244,7 @@ func TestDeleteIsRefusedWhileADrawerStillCallsIt(t *testing.T) {
 }
 
 func TestDeleteTakesTheSealedValueWithIt(t *testing.T) {
+	t.Parallel()
 	a, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 
@@ -250,6 +261,7 @@ func TestDeleteTakesTheSealedValueWithIt(t *testing.T) {
 }
 
 func TestDeletingSomethingThatIsNotThereIs404(t *testing.T) {
+	t.Parallel()
 	_, srv := mediaHookServer(t)
 	code, raw := postJSON(t, http.MethodDelete, srv.URL+"/api/mediahooks/kodi", nil)
 	if code != http.StatusNotFound {
@@ -258,6 +270,7 @@ func TestDeletingSomethingThatIsNotThereIs404(t *testing.T) {
 }
 
 func TestTheTestCallAnswers200WithTheReasonInTheBody(t *testing.T) {
+	t.Parallel()
 	_, srv := mediaHookServer(t)
 
 	// A listener closed straight away gives an address nothing listens on.
@@ -299,6 +312,7 @@ func TestTheTestCallAnswers200WithTheReasonInTheBody(t *testing.T) {
 }
 
 func TestTestingSomethingThatIsNotStoredIs404(t *testing.T) {
+	t.Parallel()
 	_, srv := mediaHookServer(t)
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/mediahooks/kodi/test", nil)
 	if code != http.StatusNotFound {
@@ -309,6 +323,7 @@ func TestTestingSomethingThatIsNotStoredIs404(t *testing.T) {
 // TestTheSecondAddressDoesNotReplaceTheFirst also checks that an edit keeps
 // the address's place in the Categories picker.
 func TestTheSecondAddressDoesNotReplaceTheFirst(t *testing.T) {
+	t.Parallel()
 	_, srv := mediaHookServer(t)
 	storeHook(t, srv, jellyfinBody())
 	storeHook(t, srv, map[string]any{

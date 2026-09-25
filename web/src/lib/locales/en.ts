@@ -464,10 +464,9 @@ export const en = {
   'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
   'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Modules page.',
 
-  // Wave 11.5D: uploading a .torrent file, and the file-tree step a
-  // multi-file torrent shows before it is added. A magnet link needs none of
-  // this - it already stages through the paste box above, the moment
-  // internal/resolver/torrent.Resolver.Match recognises the scheme.
+  // Uploading a .torrent file, and the file tree a multi-file torrent shows
+  // before it is added. A magnet link needs none of this: it stages through
+  // the paste box like any other link.
   'torrent.staging': 'Adding…',
   'torrent.staged': 'Added {file} to the collector.',
   'torrent.stagedIn': 'Added {file} to the collector in “{pkg}”.',
@@ -1104,6 +1103,10 @@ export const en = {
   'folders.error.trailing': 'A name cannot end in a dot or a space.',
   'folders.error.reserved': '“{name}” is reserved on Windows and cannot be a folder name.',
   'folders.error.tooLong': 'That name is too long. The limit is 255 bytes.',
+  'folders.error.relative': 'Type a full path that starts at the top, such as / or C:\\.',
+  'folders.error.unreachable': 'There is no folder at or above this path that KnightLoader can open.',
+  'folders.error.unreadable': 'KnightLoader may not open this folder. Check who owns it and its permissions.',
+  'folders.error.roots': 'KL_BROWSE_ROOTS is set but names no absolute folder, so there is nothing to browse. Fix the variable and restart.',
 
   // Unpacking as a job of its own, with progress and a stop button, rather than
   // a word the download wears for a while. The states below name what the job
@@ -1155,10 +1158,9 @@ export const en = {
   'settings.archives.optionsFailed':
     'The extractor’s own lists could not be fetched, so the choices that come from it are not shown.',
 
-  // Wave 6: the accounts page grew a service catalogue and a real accounts
-  // table with two sections (debrid, hoster logins), account health, priority
-  // routing and a hoster-login reconciler that hands credentials to the
-  // headless-JD sidecar rather than reimplementing a hoster's own login.
+  // The accounts page: the service catalogue, the debrid and hoster-login
+  // tables, account health, priority routing, and the hoster logins handed
+  // to the JDownloader backend, whose own plugins do the logging in.
   'accounts.accountLabel': 'Account name',
   'accounts.accountLabelHint':
     'This service already has a default account. Name this one to add a second login beside it.',
@@ -1244,6 +1246,11 @@ export const en = {
   'accounts.hoster.status.off': 'Off',
   'accounts.hoster.status.queued': 'Queued',
   'accounts.hoster.status.rejected': 'Rejected',
+  'accounts.hoster.detail.adding': 'Waiting for JDownloader to accept this login.',
+  'accounts.hoster.detail.checking': 'JDownloader is still checking this login.',
+  'accounts.hoster.detail.invalid': 'JDownloader could not confirm this login. Check the username and password.',
+  'accounts.hoster.detail.off': 'Switched off, so JDownloader is not using this login.',
+  'accounts.hoster.detail.waiting': 'Waiting for the next check.',
   'accounts.hoster.enableLogin': 'Use the login for {host}',
   'accounts.hoster.removed': 'Removed.',
   'accounts.hoster.pickAccount': 'Choose a hoster account',
@@ -1307,9 +1314,8 @@ export const en = {
   'settings.captcha.removed': 'API key removed.',
   'settings.captcha.saveFailed': 'Could not save the key: {error}',
 
-  // AddLinksForm.tsx's own per-batch options (build-plan.md section 8A) - the
-  // destination, its recent-use history, and the archive/link password pair,
-  // landed here now that this wave's locale pass has reached the form.
+  // AddLinksForm.tsx's per-batch options: the destination, its recent-use
+  // history, and the archive and link passwords.
   'collector.options': 'Options',
   'collector.destination': 'Destination',
   'collector.destinationRecent': 'Recently used',
@@ -1322,10 +1328,7 @@ export const en = {
   'collector.overruleHint':
     'When off, a matching Packagizer rule wins over priority, unpacking and the comment above. When on, these values win instead. The destination is never part of this: it always applies as typed.',
 
-  // The collector's facet sidebar (components/CollectorFacets.tsx) - landed
-  // here verbatim from that file's own PENDING table (see its doc comment)
-  // now that this wave's locale pass has reached it; PENDING itself is left
-  // in place, unread once every key here resolves through the real catalogue.
+  // The collector's facet sidebar (components/CollectorFacets.tsx).
   'collector.facets.title': 'Filters',
   'collector.facets.hint':
     'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
@@ -1339,9 +1342,7 @@ export const en = {
   'collector.facets.type.document': 'Documents',
   'collector.facets.type.other': 'Other',
 
-  // The collector's own totals strip (components/CollectorStats.tsx) - same
-  // PENDING-table arrangement as CollectorFacets.tsx above, landed the same
-  // way.
+  // The collector's totals card (components/CollectorStats.tsx).
   'collector.stats.label': 'Collector totals',
   'collector.stats.packages': 'Packages',
   'collector.stats.links': 'Links',
@@ -1349,13 +1350,7 @@ export const en = {
   'collector.stats.hosts': 'Hosts',
   'collector.hosterPresetHint': 'Which variants of the links from {host} the collector shows, and the format and quality new links start with. Once a link is checked, it switches to the track of its own that comes closest. A link without this video format gets its best video up to this quality, and one without this audio format has its audio converted.',
 
-  // The ambient-activity status strip (components/StatusStrip.tsx, Wave 9's
-  // 9A) - its LABEL record and formatCount()/tooltip strings were left
-  // hardcoded in English on purpose (see that file's own doc comment):
-  // landed here now that this wave's locale pass has reached them.
-  // StatusStrip.tsx itself still needs a follow-up pass to read these
-  // through useT() instead of its literals - components/* is 9A's own file,
-  // named here rather than taken (this wave's report).
+  // The activity strip (components/StatusStrip.tsx).
   'activity.crawl': 'Crawling pages',
   'activity.linkcheck': 'Checking links',
   'activity.captcha': 'Captcha',
@@ -1368,28 +1363,17 @@ export const en = {
   'activity.autoconfirmCountdown': 'These links move to the download list when the countdown runs out. Stop it and they stay in the collector.',
   'activity.autoconfirmStop': 'Stop the countdown',
 
-  // The notification centre's quiet-mode row (lib/toast.tsx, Wave 9's 9B) -
-  // landed here verbatim from that file's own PENDING table (see its doc
-  // comment), same arrangement as CollectorFacets/CollectorStats above;
-  // PENDING itself is left in place, unread once these resolve through the
-  // real catalogue.
+  // The notification centre's quiet-mode row (lib/toast.tsx).
   'notifications.quiet': 'Quiet mode',
   'notifications.quietHint':
     'Hides success and info notifications. A failure, a captcha waiting on you, or a benched account still shows.',
 
-  // The task list's row tooltip (components/columns.tsx, Wave 9's 9D) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement.
+  // The task list's row tooltip (components/columns.tsx).
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Last changed',
 
-  // The row tooltip's swarm detail and the three hidden-by-default swarm
-  // columns (components/columns.tsx, Wave 11.5E) - the six tooltip strings
-  // land here verbatim from that file's own PENDING table (see its doc
-  // comment); columns.peers/seeds/ratio do not go through PENDING at all -
-  // TaskList.tsx/ColumnMenu.tsx call t(col.labelKey) directly with no
-  // fallback of their own, so these three are what resolves the labelKey
-  // casts the moment this lands.
+  // The row tooltip's swarm detail, and the swarm and variant columns, which
+  // TaskList.tsx and ColumnMenu.tsx name through each column's labelKey.
   'task.tooltip.infoHash': 'Info hash',
   'task.tooltip.trackers': 'Trackers',
   'task.tooltip.swarm': 'Peers / seeds / ratio',
@@ -1408,17 +1392,15 @@ export const en = {
   'columns.variant.auto': 'Auto',
   'columns.variant.kbps': '{kbps} kbit/s',
 
-  // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
-  // "Open" streams it through the browser; the other two are desktop-only and
-  // carry their reason in file.desktopOnly when they are shown disabled.
+  // Reaching a task's own file (components/FileActions.tsx). "Open" streams
+  // it through the browser; the other two are desktop-only and carry their
+  // reason in file.desktopOnly when they are shown disabled.
   'file.open': 'Open',
   'file.openNatively': 'Open with default app',
   'file.revealInFolder': 'Show in folder',
   'file.desktopOnly': 'Desktop app only',
 
-  // The timetable editor (pages/settings/Schedule.tsx, Wave 10's 10A) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement as Connections.tsx and Captcha.tsx before it.
+  // The timetable editor (pages/settings/Schedule.tsx).
   'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
   'settings.schedule.statusTitle': 'Schedule status',
   'settings.schedule.orderHint':
@@ -1474,15 +1456,7 @@ export const en = {
   'settings.schedule.saveFailed': 'The schedules could not be saved: {error}',
   'settings.schedule.rowError': 'Row {row}: {error}',
 
-  // The end-of-queue countdown banner (components/IdleActionBanner.tsx,
-  // Wave 10's 10B) - its STRINGS object and the one hardcoded toast string
-  // were left in plain English on purpose (see that file's own doc comment):
-  // landed here now that this wave's locale pass has reached them.
-  // IdleActionBanner.tsx itself still needs a follow-up pass to read these
-  // through useT() instead of its literals - components/* is 10B's own file,
-  // named here rather than taken (this wave's report). idleAction.cancelFailed
-  // is re-cased to match this catalogue's sentence style; the source literal
-  // itself was lowercase with no closing period.
+  // The end-of-queue countdown banner (components/IdleActionBanner.tsx).
   'idleAction.title': 'The queue is idle',
   'idleAction.action.pause': 'Pausing',
   'idleAction.actionFallback': '"{action}" running',
@@ -1491,18 +1465,8 @@ export const en = {
   'idleAction.cancelling': 'Cancelling…',
   'idleAction.cancelFailed': 'Could not cancel: the server did not answer.',
 
-  // The end-of-queue action's own settings row (pages/settings/
-  // DownloadsSettings.tsx, Wave 10's 10B) - IDLE_ACTION_LABELS and the
-  // group's label/hint/InfoBubble were left hardcoded for the same reason as
-  // IdleActionBanner.tsx above (see that file's own doc comment); landed
-  // here verbatim. DownloadsSettings.tsx still needs the same follow-up pass
-  // to read these through useT().
-
-  // The diagnostics page (pages/settings/Diagnostics.tsx, Wave 10's 10C) -
-  // landed here verbatim from that file's own PENDING table, same
-  // arrangement as Schedule.tsx above. settings.nav.diagnostics is this
-  // page's rail label (registry.tsx registers the id, tx.ts's label() looks
-  // up settings.nav.<id>).
+  // The diagnostics page (pages/settings/Diagnostics.tsx). settings.nav.* is
+  // a page's rail label, looked up by id through tx.ts's label().
   'settings.nav.diagnostics': 'Diagnostics',
   'settings.diagnostics.subtitle':
     'What this build is, what it is running on, and its recent log output, for attaching to a bug report.',
@@ -1524,10 +1488,7 @@ export const en = {
   'settings.diagnostics.refresh': 'Refresh',
   'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
 
-  // The help page (pages/settings/Help.tsx, Wave 10's 10C) - landed here
-  // verbatim from that file's own PENDING table, same arrangement as
-  // Diagnostics.tsx above. settings.nav.help is this page's rail label, the
-  // same relationship settings.nav.diagnostics has to Diagnostics.tsx.
+  // The help page (pages/settings/Help.tsx).
   'settings.nav.help': 'Help',
 
   'settings.help.intake.title': 'Adding downloads',
@@ -1658,19 +1619,16 @@ export const en = {
   'settings.scripts.runFailed': 'Failed: {error}',
   'settings.scripts.output': 'Output',
 
-  // The manual-invocation half of Wave 11B (components/ScriptActions.tsx) -
-  // the "Run script" entry on the download list's own right-click menu.
+  // The "Run script" entry on both lists' context menus
+  // (components/ScriptActions.tsx).
   'task.runScript': 'Run script',
   'task.runScriptUnnamed': 'Untitled script',
   'task.runScriptDone': 'Ran “{name}”',
   'task.runScriptFailed': '“{name}” failed: {error}',
 
-  // The Remote access section and API tokens (pages/settings/Access.tsx,
-  // Wave 11C) - build-plan.md section 8's Wave 11 amendment on 11C: named,
-  // individually revocable tokens; the addresses this instance answers on,
-  // with a QR code; the PWA install BrowserTools.tsx also offers; and the
-  // loud warning when the server is reachable from off this machine with no
-  // password set.
+  // Remote access and API tokens (pages/settings/Access.tsx): the relay, the
+  // connection phrase, named tokens that can be revoked one by one, and the
+  // warning when the server is reachable from outside with no password set.
   'settings.access.relay.title': 'Project relay',
   'settings.access.relay.body': 'A relay is a go-between that makes all your instances reachable from outside your home network, and so from anywhere. This one is provided by the project, free of charge.',
   'settings.access.relay.use': 'Use the project relay',
@@ -1747,6 +1705,7 @@ export const en = {
   'settings.access.phrase.errChecksum': 'That phrase is not valid. Check for a mistyped or swapped word.',
   'settings.access.phrase.errUnknownWord': 'Word {position} ("{word}") is not one of the accepted words.',
   'settings.access.phrase.errWordCount': 'That is {count} words. A phrase needs {need}.',
+  'settings.access.phrase.errExists': 'This instance already has a phrase. Leave the group first to start a new one.',
   'settings.access.phrase.yourPhrase': 'Your connection phrase',
   'settings.access.phrase.pasteHint': 'Paste these twelve words into every other instance you want connected.',
   'settings.access.phrase.qrHint': 'Or scan this from the other device instead of typing.',
@@ -1755,7 +1714,6 @@ export const en = {
   'settings.access.phrase.showAgain': 'Show the phrase',
   'settings.access.phrase.hide': 'Hide the phrase',
   'settings.access.phrase.leave': 'Leave the group',
-  'settings.access.intakePortsHint': 'Other ways to reach this instance directly, outside the normal login. Each one shows its own reachability here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the
   // MV3 browser extension and the PWA install step
@@ -1841,16 +1799,11 @@ export const en = {
   'settings.system.restoreStaged': '{status}',
   'settings.system.loadFailed': 'Could not load. Is the server reachable?',
 
-  // Two more rail labels this wave's pages need: Resolvers.tsx (11E, yt-dlp
-  // format/subtitle/output-template options) and the "ytdlp" module row
-  // (routes_features.go) both already call label()/tx() against these keys.
+  // The Resolvers page's rail label and the yt-dlp module's name.
   'settings.nav.resolvers': 'Resolvers',
   'settings.module.ytdlp': 'yt-dlp',
 
-  // Resolvers.tsx's own page body - it shipped with no PENDING table at all
-  // (see that file's earlier doc comment), so unlike every sibling page above
-  // there were no ready-made keys to land verbatim; this is that pass,
-  // written directly against the real catalogue instead.
+  // The Resolvers page (pages/settings/Resolvers.tsx).
   'settings.resolvers.moduleUnavailable': 'Module unavailable',
   'settings.resolvers.moduleUnavailableHint':
     'Everything below is still saved and takes effect the moment yt-dlp becomes available. Nothing you edit now is lost.',
@@ -1880,20 +1833,11 @@ export const en = {
   'settings.resolvers.outputHint':
     "yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s.",
 
-  // The Torrents settings page (pages/settings/Torrents.tsx, Wave 11.5E) -
-  // seed target, transfer limit, port + UPnP mapping, DHT/PEX. Landed here
-  // verbatim from that file's own PENDING table (see its doc comment); two
-  // more, settings.nav.torrents and settings.module.torrents, are not in
-  // that table at all - registry.tsx and routes_features.go already call
-  // label() against them (Settings.tsx's rail, Modules.tsx's row), falling
-  // back to the raw "torrents" id until now, the same gap this wave's own
-  // report closes the way 11G's report closed it for settings.nav.resolvers/
-  // settings.module.ytdlp just above.
+  // The Torrents page (pages/settings/Torrents.tsx): seed targets, the
+  // transfer limit, the port and its UPnP mapping, DHT and PEX.
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle':
-    'Seed targets, transfer limits, port mapping and DHT/PEX for magnet links and .torrent files.',
   'settings.torrents.seedingTitle': 'Seeding',
   'settings.torrents.seedRatio': 'Seed ratio target',
   'settings.torrents.seedRatioHint':
@@ -1957,14 +1901,9 @@ export const en = {
   'onboarding.finished.body':
     'That covers the tour. The Help page under Settings has a full walkthrough of everything else this build does, and most controls carry their own explanation behind an (i) icon.',
 
-  // The command registry core (lib/commands/, Wave 12A) - the first, small
-  // set of commands visible on every surface: open the palette itself, the
-  // theme switch (its own label already existed as theme.toggle, reused
-  // rather than duplicated) and one "go to X" per main page. `group` on a
-  // Command is a real TranslationKey string, not literal English - see
-  // lib/commands/types.ts's own doc comment on why - so every later surface
-  // file reuses commands.group.navigation below or adds its own key here,
-  // never a bare word inline.
+  // The commands every surface offers (lib/commands/). A command's `group` is
+  // a key rather than English, so a new surface reuses a group below or adds
+  // its own key here.
   'commands.openPalette': 'Open command palette',
   'commands.group.general': 'General',
   'commands.group.navigation': 'Go to',
@@ -1975,37 +1914,25 @@ export const en = {
   'commands.goAccounts': 'Go to Accounts',
   'commands.goSettings': 'Go to Settings',
 
-  // lib/commands/settings.ts (Wave 12): one command per settings sub-page,
-  // e.g. "Settings: Torrents" - see that file's own doc comment. Every
-  // labelKey below reuses the page's existing settings.nav.<id> string
-  // rather than minting a second name per page.
+  // One command per settings page (lib/commands/settings.ts), each labelled
+  // with the page's settings.nav.<id>.
   'commands.group.settings': 'Settings',
-  // lib/commands/queue.ts (Wave 12): the shell's own master switch
-  // (QueueBar.tsx), reachable from every page rather than only Downloads'
-  // own copy (commands/downloads.ts) - see that file's own doc comment.
+  // The queue's master switch (lib/commands/queue.ts), from every page.
   'commands.group.queue': 'Queue',
-  // lib/commands/language.ts (Wave 12): open/close the sidebar's language
-  // dropdown (components/LanguagePicker.tsx) from the palette.
+  // Opening the language picker from the palette (lib/commands/language.ts).
   'commands.group.language': 'Language',
-  // lib/commands/downloads.ts and lib/commands/collector.ts (Wave 12): the
-  // bulk/page-level actions those two pages' toolbars already had a plain
-  // onClick for - pause/resume/retry, select all, remove selected, clear
-  // finished, start selected/all, check all. See either file's own doc
-  // comment for which existing function each command calls.
+  // The page-wide actions of the download list and the collector
+  // (lib/commands/downloads.ts, lib/commands/collector.ts).
   'commands.group.downloads': 'Downloads',
   'commands.group.collector': 'Link collector',
 
-  // components/CommandPalette.tsx (Wave 12): the overlay itself, not any one
-  // command in it.
+  // The palette itself (components/CommandPalette.tsx).
   'commands.paletteLabel': 'Command palette',
   'commands.searchPlaceholder': 'Type a command…',
   'commands.noResults': 'No matching commands',
 
-  // The Shortcuts settings tab (pages/settings/Shortcuts.tsx, Wave 12): every
-  // command with a default keyboard shortcut, grouped and rebindable. See
-  // that file's own doc comment for why it reads lib/commands/allCommands.ts
-  // rather than useCommands(), and why `group` is shown through a
-  // fall-back-to-raw-string lookup instead of a plain t() call.
+  // The Shortcuts page (pages/settings/Shortcuts.tsx): every command with a
+  // default keyboard shortcut, grouped and rebindable.
   'settings.nav.shortcuts': 'Shortcuts',
   'settings.shortcuts.subtitle':
     'Every command that ships with a default keyboard shortcut, grouped by where it applies. Change a binding, or reset it back to its default.',
@@ -2251,6 +2178,11 @@ export const en = {
   'settings.headerProfiles.headerValue': 'Value',
   'settings.headerProfiles.valueStored': 'Stored',
   'settings.headerProfiles.valueStoredHint': 'The value stays on this instance and is never sent back to this page. Leave this field as it is to keep it, or type a new value to replace it.',
+  'settings.headerProfiles.error.originInvalid': 'That is not an http or https address. Paste the address of the site, such as https://forum.example.org.',
+  'settings.headerProfiles.error.originTaken': 'The profile “{profile}” already covers this site. Edit that one, or delete it first.',
+  'settings.headerProfiles.error.nameNeeded': 'No profile covers this site yet, so give this one a name.',
+  'settings.headerProfiles.error.nameInvalid': 'A profile name holds letters, digits and - _ or . only, at most 64 characters.',
+  'settings.headerProfiles.error.noHeaders': 'Add at least one header with a value, or delete the profile.',
   'settings.headerProfiles.addHeader': 'Add a header',
   'settings.headerProfiles.removeHeader': 'Remove this header',
   'settings.headerProfiles.count': '{n} headers',
@@ -2677,6 +2609,7 @@ export const en = {
   'settings.mediahook.wait': 'Wait before calling',
   'settings.mediahook.waitHint': 'How long this address is left alone after a package finishes, so that twenty packages finishing at once become one call instead of twenty. A library scan costs the media server real work, and one that arrives a minute later costs you nothing. Set to 0 the call goes out as soon as a package\'s files are in place, without waiting for more.',
   'settings.mediahook.waitImmediate': 'The call goes out as soon as a package is ready, without waiting for more.',
+  'settings.mediahook.error.nameInvalid': 'A name holds letters, digits and - _ or . only, at most 64 characters.',
   'settings.mediahook.save': 'Save address',
   'settings.mediahook.delete': 'Delete address',
   'settings.mediahook.deleteConfirm': 'Delete {name}? The stored header value goes with it, and it cannot be put back from this page.',
@@ -3131,6 +3064,8 @@ export const en = {
   'auth.passkey.removed': 'Passkey removed.',
   'auth.passkey.signIn': 'Sign in with a passkey',
   'auth.passkey.signInFailed': 'That passkey did not sign you in.',
+  'auth.passkey.error.expired': 'The setup took too long. Start it again.',
+  'auth.passkey.error.otherAddress': 'This setup was started on a different address. Open KnightLoader on the address the key should work on, and start again there.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

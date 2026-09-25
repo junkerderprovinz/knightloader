@@ -120,6 +120,7 @@ func seedBigRows(t *testing.T, a *app.App, rows, sizeEach int) {
 // than a placeholder, and a zero renders as a confident claim about somebody's
 // disk.
 func TestMaintenanceReportsRealSizes(t *testing.T) {
+	t.Parallel()
 	srv, a := maintServer(t)
 	seedBigRows(t, a, 4, 64<<10)
 
@@ -155,6 +156,7 @@ func TestMaintenanceReportsRealSizes(t *testing.T) {
 // TestCheckRunsAndReportsThroughTheRoute walks the loop the page performs:
 // start, poll, read the verdict.
 func TestCheckRunsAndReportsThroughTheRoute(t *testing.T) {
+	t.Parallel()
 	srv, a := maintServer(t)
 	seedBigRows(t, a, 4, 32<<10)
 
@@ -191,6 +193,7 @@ func TestCheckRunsAndReportsThroughTheRoute(t *testing.T) {
 // StartMaintenance before the 202 is written, so the second request cannot
 // arrive early.
 func TestASecondStartIsAConflict(t *testing.T) {
+	t.Parallel()
 	srv, a := maintServer(t)
 	// Kept rather than deleted: a compaction's cost is the live bytes it
 	// copies, so a database that is mostly free list would be rewritten
@@ -225,6 +228,7 @@ func TestASecondStartIsAConflict(t *testing.T) {
 // TestAnUnknownActionIsRefused keeps the route from answering 202 to a typo
 // and then doing nothing, which is where a free-text verb ends up.
 func TestAnUnknownActionIsRefused(t *testing.T) {
+	t.Parallel()
 	srv, _ := maintServer(t)
 	for _, action := range []string{"", "vacuum", "Compact", "drop"} {
 		code, _, raw := postMaintenance(t, srv.URL, action)
@@ -252,6 +256,7 @@ func TestAnUnknownActionIsRefused(t *testing.T) {
 // /api/ here, because this route sends the data directory's real paths and
 // starts work that freezes every write on the box.
 func TestMaintenanceNeedsASession(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerDBMaintenance(reg, a)

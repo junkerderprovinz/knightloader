@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useT } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { Text } from '../components/Text';
+import { CardButton } from '../components/glim';
+import { Arrive, MovingList } from '../components/Moving';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
   const { t, lang, setLanguage } = useT();
@@ -36,7 +38,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
         <Text style={[styles.title, { color: c.text }]}>{t('settings.language')}</Text>
       </View>
 
-      <FlatList
+      <MovingList
         data={rows}
         keyExtractor={(r) => r.code}
         contentContainerStyle={styles.list}
@@ -47,20 +49,22 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
           // open on first sight.
           const isSelected = (override ?? lang) === item.code;
           return (
-            <TouchableOpacity
-              style={[
-                styles.row,
-                // The chosen row is a deeper fill with accent ink rather than
-                // an outline: this language separates by shade, and a ring here
-                // would be the one drawn border on the screen.
-                { backgroundColor: isSelected ? c.surface2 : c.surface, borderRadius: radii.card },
-              ]}
-              onPress={() => pick(item.code)}
-            >
-              <Text style={styles.flag}>{item.flag}</Text>
-              <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
-              {isSelected && <Text style={[styles.check, { color: accentInk }]}>✓</Text>}
-            </TouchableOpacity>
+            <Arrive>
+              <CardButton
+                style={[
+                  styles.row,
+                  // The chosen row is a deeper fill with accent ink rather than
+                  // an outline: this language separates by shade, and a ring
+                  // here would be the one drawn border on the screen.
+                  { backgroundColor: isSelected ? c.surface2 : c.surface, borderRadius: radii.card },
+                ]}
+                onPress={() => pick(item.code)}
+              >
+                <Text style={styles.flag}>{item.flag}</Text>
+                <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
+                {isSelected && <Text style={[styles.check, { color: accentInk }]}>✓</Text>}
+              </CardButton>
+            </Arrive>
           );
         }}
       />

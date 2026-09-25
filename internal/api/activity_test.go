@@ -29,6 +29,7 @@ func postAbort(t *testing.T, base, kind string) (int, int) {
 // on an idle instance is a legitimate zero, so the JSON body with a count is
 // what tells the two apart.
 func TestAbortActivityRouteIsRegistered(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -45,6 +46,7 @@ func TestAbortActivityRouteIsRegistered(t *testing.T) {
 // answer: "nothing was running" and "that is not a kind" are the same number,
 // and only one of them is a client bug.
 func TestAbortActivityRefusesAnUnknownKind(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

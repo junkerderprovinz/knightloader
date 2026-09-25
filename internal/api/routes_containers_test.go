@@ -12,6 +12,7 @@ import (
 // An encrypted container nobody can open is refused with a code, so the
 // upload's toast can say why in the reader's language.
 func TestAnEncryptedContainerWithoutJDIsRefusedWithACode(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerContainers(reg, a)

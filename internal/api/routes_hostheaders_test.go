@@ -110,6 +110,7 @@ func sealedProfile(t *testing.T, a *app.App, id, origin string) map[string]strin
 // TestTheProfileListingCarriesNoHeaderValue checks that the listing a settings
 // page loads carries no header value.
 func TestTheProfileListingCarriesNoHeaderValue(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -141,6 +142,7 @@ func TestTheProfileListingCarriesNoHeaderValue(t *testing.T) {
 // nor the log tail in the bundle picks up a value, including from refusals,
 // whose natural wording would quote what was wrong.
 func TestNoDiagnosticsBundleCarriesAHeaderValue(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -175,6 +177,7 @@ func TestNoDiagnosticsBundleCarriesAHeaderValue(t *testing.T) {
 // placeholder keeps the stored values, and that a save without an id edits the
 // profile its origin already has.
 func TestChangingAProfileDoesNotMeanRetypingItsHeaders(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -206,6 +209,7 @@ func TestChangingAProfileDoesNotMeanRetypingItsHeaders(t *testing.T) {
 // a profile at another host with the placeholder cannot file a forum's session
 // under that host.
 func TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -232,6 +236,7 @@ func TestAStoredHeaderDoesNotFollowAProfileToAnotherOrigin(t *testing.T) {
 // through the live resolver's store, whose origin index only its own writes
 // reset.
 func TestASavedProfileIsRoutableWithoutARestart(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	link := forumTyped + "/attachments/1/x.rar"
 
@@ -263,6 +268,7 @@ func claimsLink(a *app.App, link string) bool {
 // TestDeletingAProfileRemovesIt also checks that an unknown name is a 404, so
 // a typo cannot look like a removed session.
 func TestDeletingAProfileRemovesIt(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -286,6 +292,7 @@ func TestDeletingAProfileRemovesIt(t *testing.T) {
 // TestASaveThatWouldQuietlyDestroyAProfileIsRefused covers bodies a page can
 // send by accident that would otherwise lose a working profile.
 func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
+	t.Parallel()
 	a, srv := hostHeaderServer(t)
 	plantProfile(t, srv, "forum", forumTyped)
 
@@ -293,27 +300,33 @@ func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
 		what string
 		body map[string]any
 		want int
+		code string
 	}{
 		{"a form that lost its rows", map[string]any{
 			"id": "forum", "origin": forumTyped, "headers": []map[string]string{},
-		}, http.StatusBadRequest},
+		}, http.StatusBadRequest, "noHeaders"},
 		{"every header blanked", map[string]any{
 			"id": "forum", "origin": forumTyped, "headers": []map[string]string{{"name": "Cookie", "value": ""}},
-		}, http.StatusBadRequest},
+		}, http.StatusBadRequest, "noHeaders"},
 		{"a second profile for one origin", map[string]any{
 			"id": "forum-2", "origin": forumTyped, "headers": []map[string]string{{"name": "Cookie", "value": "x"}},
-		}, http.StatusConflict},
+		}, http.StatusConflict, "originTaken"},
 		{"a name nothing can address", map[string]any{
 			"id": "forum/2", "origin": "https://other.example.org", "headers": []map[string]string{{"name": "Cookie", "value": "x"}},
-		}, http.StatusBadRequest},
+		}, http.StatusBadRequest, "nameInvalid"},
 		{"a new origin with no name", map[string]any{
 			"origin": "https://other.example.org", "headers": []map[string]string{{"name": "Cookie", "value": "x"}},
-		}, http.StatusBadRequest},
+		}, http.StatusBadRequest, "nameNeeded"},
+		{"an origin that is not a web address", map[string]any{
+			"id": "forum", "origin": "forum", "headers": []map[string]string{{"name": "Cookie", "value": "x"}},
+		}, http.StatusBadRequest, "originInvalid"},
 	}
 	for _, c := range cases {
 		code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/hostheaders", c.body)
-		if code != c.want {
-			t.Errorf("%s answered %d, want %d: %s", c.what, code, c.want, raw)
+		var out struct{ Code string }
+		_ = json.Unmarshal(raw, &out)
+		if code != c.want || out.Code != c.code {
+			t.Errorf("%s answered %d %s, want %d %s", c.what, code, raw, c.want, c.code)
 		}
 	}
 
@@ -326,6 +339,7 @@ func TestASaveThatWouldQuietlyDestroyAProfileIsRefused(t *testing.T) {
 }
 
 func TestHeaderProfileRoutesNeedASession(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerHostHeaders(reg, testApp(t))
 	for _, r := range reg.Routes() {

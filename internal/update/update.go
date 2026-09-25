@@ -324,9 +324,9 @@ func Download(ctx context.Context, current string) (zipPath string, tag string, 
 		// ever looks at "latest", and every release from this feature
 		// onward publishes checksums.txt in the same job run that publishes
 		// the platform zips, so this can only mean the release is broken or
-		// was tampered with after publishing - either way, not something to
+		// was tampered with after publishing. Either way, not something to
 		// quietly proceed past.
-		return "", "", fmt.Errorf("update: release %s has no %s asset - refusing to install an unverifiable download", rel.TagName, checksumAssetName)
+		return "", "", fmt.Errorf("update: release %s has no %s asset, so the unverifiable download is not installed", rel.TagName, checksumAssetName)
 	}
 
 	path, err := downloadAsset(ctx, *asset)
@@ -414,7 +414,7 @@ func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
 	}
 	if asset.Size > 0 && n != asset.Size {
 		os.Remove(out.Name())
-		return "", fmt.Errorf("update: downloaded %d bytes, release reports %d - refusing a partial/corrupt asset", n, asset.Size)
+		return "", fmt.Errorf("update: downloaded %d bytes, but the release reports %d, so the partial or corrupt asset is refused", n, asset.Size)
 	}
 	return out.Name(), nil
 }
@@ -439,7 +439,7 @@ func downloadChecksums(ctx context.Context, asset ghAsset) ([]byte, error) {
 		return nil, err
 	}
 	if asset.Size > 0 && int64(len(body)) != asset.Size {
-		return nil, fmt.Errorf("update: downloaded %s is %d bytes, release reports %d - refusing a partial/corrupt asset", checksumAssetName, len(body), asset.Size)
+		return nil, fmt.Errorf("update: downloaded %s is %d bytes, but the release reports %d, so the partial or corrupt asset is refused", checksumAssetName, len(body), asset.Size)
 	}
 	return body, nil
 }
@@ -487,7 +487,7 @@ func verifyChecksum(zipPath, wantAssetName string, checksumsData []byte) error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("update: checksum mismatch for %s against %s - refusing to install a download that does not match its published digest", wantAssetName, checksumAssetName)
+		return fmt.Errorf("update: checksum mismatch for %s against %s; a download that does not match its published digest is not installed", wantAssetName, checksumAssetName)
 	}
 	return nil
 }

@@ -174,7 +174,7 @@ func Open(path string) (*Store, error) {
 	// gets SQLITE_BUSY at once, and callers ignore Save's error, so one of two
 	// concurrent updates would be lost. A single connection queues them.
 	db.SetMaxOpenConns(1)
-	if err := migrate(db); err != nil {
+	if err := migrate(db, migrations); err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -203,21 +203,45 @@ func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }
 
-func migrate(db *sql.DB) error {
+// migrate brings the schema up to date with steps. A fresh database takes them
+// all in one transaction, so a failure leaves no half-built schema behind. An
+// existing one takes each pending step together with its version stamp, so a
+// step that ran is never run again: a second ALTER TABLE ADD COLUMN fails and
+// would keep the store from opening.
+func migrate(db *sql.DB, steps []string) error {
 	var version int
 	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
 		return fmt.Errorf("store: read schema version: %w", err)
 	}
-	for i := version; i < len(migrations); i++ {
-		if _, err := db.Exec(migrations[i]); err != nil {
-			return fmt.Errorf("store: migration %d: %w", i+1, err)
-		}
-		// PRAGMA does not take a bound parameter.
-		if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, i+1)); err != nil {
-			return fmt.Errorf("store: bump schema version to %d: %w", i+1, err)
+	if version == 0 {
+		return applySteps(db, steps, 0, len(steps))
+	}
+	for i := version; i < len(steps); i++ {
+		if err := applySteps(db, steps, i, i+1); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// applySteps runs steps[from:to] and records to as the schema version in one
+// transaction.
+func applySteps(db *sql.DB, steps []string, from, to int) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("store: begin migration %d: %w", from+1, err)
+	}
+	defer tx.Rollback()
+	for i := from; i < to; i++ {
+		if _, err := tx.Exec(steps[i]); err != nil {
+			return fmt.Errorf("store: migration %d: %w", i+1, err)
+		}
+	}
+	// PRAGMA does not take a bound parameter.
+	if _, err := tx.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, to)); err != nil {
+		return fmt.Errorf("store: bump schema version to %d: %w", to, err)
+	}
+	return tx.Commit()
 }
 
 func (s *Store) Close() error { return s.db.Close() }

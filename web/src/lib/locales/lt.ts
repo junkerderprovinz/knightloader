@@ -1396,7 +1396,6 @@ export const lt: Dict = {
   'settings.browsertools.install': 'Įdiegti',
   'settings.browsertools.installIOS':
     '„iPhone“ ar „iPad“: atverkite šį puslapį „Safari“, palieskite Bendrinti, tada „Pridėti prie pradžios ekrano“.',
-  'settings.access.intakePortsHint': 'Kiti būdai pasiekti šį egzempliorių tiesiogiai, be įprasto prisijungimo. Prie kiekvieno čia rodoma, ar jis pasiekiamas.',
   'settings.nav.browsertools': 'Naršyklė ir programėlė',
   'settings.browsertools.bookmarkletStep1': 'Nutempk žemiau esantį mygtuką į naršyklės žymelių juostą. Jis išsaugomas kaip bet kuri kita žymelė, nieko nediegiama.',
   'settings.browsertools.bookmarkletStep2': 'Bet kuriame puslapyje spustelėk jį (jei nori tik dalies teksto, pirmiausia jį pažymėk). Atsidarys mažas KnightLoader skirtukas, kuriame jau bus įrašyta to puslapio nuoroda arba pažymėtas tekstas. Peržiūrėk ir iš ten pridėk kaip atsisiuntimą.',
@@ -1484,7 +1483,6 @@ export const lt: Dict = {
   'settings.nav.torrents': 'Torrentai',
   'settings.module.torrents': 'Torrentai',
   'settings.torrents.title': 'Torrentai',
-  'settings.torrents.subtitle': 'Sėjimo tikslai, perdavimo ribos, prievado nukreipimas ir DHT/PEX magnet nuorodoms bei .torrent failams.',
   'settings.torrents.seedingTitle': 'Sėjimas',
   'settings.torrents.seedRatio': 'Tikslinis sėjimo santykis',
   'settings.torrents.seedRatioHint': 'Toliau sėja baigtą torrentą, kol į spiečių bus grąžinta tiek, kiek sudaro šis santykis, palyginti su jo paties dydžiu. 0 = jokio santykio tikslo.',

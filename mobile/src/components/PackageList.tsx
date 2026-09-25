@@ -5,6 +5,7 @@ import TaskRow from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Trash } from './IconBadge';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Arrive } from './Moving';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
@@ -62,6 +63,7 @@ export default function PackageList({
   onReorder,
   empty,
   header,
+  lineKey,
 }: {
   tasks: Task[];
   /** Everything that belongs above the list and has to line up with it: the
@@ -83,6 +85,8 @@ export default function PackageList({
    *  write. DragList holds the dropped order until the promise settles. */
   onReorder?: (ids: string[]) => Promise<void>;
   empty: string;
+  /** Which tab the rows belong to, so switching tabs lets the new rows arrive. */
+  lineKey?: string;
 }) {
   const { t } = useT();
   const { c, radii } = useAppearance();
@@ -254,6 +258,7 @@ export default function PackageList({
         onReorder={applyOrder}
         contentContainerStyle={styles.list}
         header={header}
+        lineKey={lineKey}
         /**
          * A list with nothing in it gets a card, a muted glyph at reduced
          * opacity and a muted title rather than blank space. One sentence
@@ -266,12 +271,12 @@ export default function PackageList({
          * same.
          */
         empty={
-          <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+          <Arrive style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
             <View style={styles.emptyGlyph}>
               <Folder color={c.textMuted} size={44} />
             </View>
             <Text style={[styles.emptyText, { color: c.textMuted }]}>{empty}</Text>
-          </View>
+          </Arrive>
         }
       />
       <ConfirmDialog

@@ -208,10 +208,15 @@ header on the socket too, not a query parameter. See `src/api/client.ts`'s
 
   Motion is the second axis and sits in its own pair, `motion.ts` (the table
   of figures per level, plus the gesture that reveals the level no picker
-  lists) and `MotionContext.tsx`. It is separate from appearance because an
-  instance may lead on colour and corners and has no business leading on this:
-  how much a phone moves belongs to that phone, and half of it is an
-  operating-system setting. `MotionContext` is the **only** reader of
+  lists) and `MotionContext.tsx`. Most of the table is GlimStone's
+  `reference/motionNative.ts`, copied unchanged as `motionNative.ts`, so the
+  cards arriving on a page, a button giving way under the finger and a flung
+  page springing back at its edge move as they do in the other apps of the
+  family. `src/components/Moving.tsx` puts them on the pages and lists, and
+  `motion.ts` adds only the gestures this app has on its own. Motion is
+  separate from appearance because an instance may lead on colour and corners
+  and has no business leading on this: how much a phone moves belongs to that
+  phone, and half of it is an operating-system setting. `MotionContext` is the **only** reader of
   `AccessibilityInfo.isReduceMotionEnabled` in the app, and that is the phone's
   stand-in for the web's `@media (prefers-reduced-motion: no-preference)`
   block: there the accessibility signal wins because of where the CSS sits,

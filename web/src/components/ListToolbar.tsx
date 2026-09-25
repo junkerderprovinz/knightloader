@@ -387,7 +387,7 @@ export function TaskOptionsDialog({
       footer={
         <>
           {/* The forward button ends the row, so the error goes first. */}
-          {error && <span className="min-w-0 text-statusFail text-sm">{error}</span>}
+          {error && <span dir="auto" className="min-w-0 text-statusFail text-sm">{error}</span>}
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button onClick={apply}>{t('settings.save')}</Button>

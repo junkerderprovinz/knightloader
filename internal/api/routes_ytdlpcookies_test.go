@@ -79,6 +79,7 @@ func getCookieHosts(t *testing.T, srv *httptest.Server) (int, []byte, []string) 
 // for the session, since a leak added later would arrive in a field this test
 // does not know.
 func TestCookieListNeverCarriesTheJar(t *testing.T) {
+	t.Parallel()
 	srv, _ := cookieServer(t)
 
 	code, saved := postCookieJSON(t, srv, "/api/ytdlp/cookies", map[string]any{
@@ -117,6 +118,7 @@ func TestCookieListNeverCarriesTheJar(t *testing.T) {
 // the host is pasted, the jar lands under the lower-cased, "www."-stripped key
 // CookieStore.Text looks up.
 func TestCookieJarIsStoredUnderTheHostALookupUses(t *testing.T) {
+	t.Parallel()
 	srv, a := cookieServer(t)
 
 	for _, typed := range []string{
@@ -150,6 +152,7 @@ func TestCookieJarIsStoredUnderTheHostALookupUses(t *testing.T) {
 // scheme, which accounts.Store would otherwise seal under a key nothing
 // matches.
 func TestCookieHostThatIsNotAHostIsRefused(t *testing.T) {
+	t.Parallel()
 	srv, _ := cookieServer(t)
 
 	for _, typed := range []string{"", "   ", "youtube.com/watch?v=x", "youtube.com:443"} {
@@ -170,6 +173,7 @@ func TestCookieHostThatIsNotAHostIsRefused(t *testing.T) {
 // field is refused rather than read as a clear, since the page can never send
 // a stored jar back.
 func TestSavingWithNoTextKeepsTheStoredJar(t *testing.T) {
+	t.Parallel()
 	srv, a := cookieServer(t)
 
 	if code, body := postCookieJSON(t, srv, "/api/ytdlp/cookies", map[string]any{
@@ -194,6 +198,7 @@ func TestSavingWithNoTextKeepsTheStoredJar(t *testing.T) {
 // TestEmptyTextClearsTheJar checks that an empty text clears the jar, as in
 // CookieStore.Set, and that the listing agrees at once.
 func TestEmptyTextClearsTheJar(t *testing.T) {
+	t.Parallel()
 	srv, a := cookieServer(t)
 
 	if code, body := postCookieJSON(t, srv, "/api/ytdlp/cookies", map[string]any{
@@ -221,6 +226,7 @@ func TestEmptyTextClearsTheJar(t *testing.T) {
 // TestRemovingAHostWithNoJarIs404 checks that a typo cannot look like a
 // removed session.
 func TestRemovingAHostWithNoJarIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := cookieServer(t)
 
 	if code, body := postCookieJSON(t, srv, "/api/ytdlp/cookies", map[string]any{
@@ -244,6 +250,7 @@ func TestRemovingAHostWithNoJarIs404(t *testing.T) {
 // TestAnEmptyCookieListIsAnEmptyArray checks that a fresh instance answers []
 // rather than null.
 func TestAnEmptyCookieListIsAnEmptyArray(t *testing.T) {
+	t.Parallel()
 	srv, _ := cookieServer(t)
 
 	code, raw, hosts := getCookieHosts(t, srv)

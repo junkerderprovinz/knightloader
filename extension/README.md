@@ -136,13 +136,14 @@ group sibling and is admitted on that basis alone (`relayForwardable` in
 
 `popup.html` (the toolbar popup, which is also the send-to window when a send
 is parked for a choice or a Click'n'Load batch is caught) and `options.html`.
-Both draw the same instance card and the same GlimStone
-(`glimstone.css`, currently 1.17.0), one implementation each in `shared.js`,
-because three pages of one product drawing their own version of the same card is
-how three pages become three slightly different products. Appearance, including
-the rainbow, follows the same engines as the web UI (`appearance.js`), and can be
-adopted from the default instance in one switch, where there is a group to adopt
-from. Where there is not, the switch is not offered at all and a paragraph says
+Both draw the same instance card and the same GlimStone (`glimstone.css`, at
+the release `GLIMSTONE_VERSION` in `appearance.js` names), one implementation
+each in `shared.js`, because three pages of one product drawing their own
+version of the same card is how three pages become three slightly different
+products. Appearance, including the rainbow, follows the same engines as the
+web UI (`appearance.js`), and can be adopted from the default instance in one
+switch, where there is a group to adopt from. Where there is not, the switch is
+not offered at all and a paragraph says
 why, which is what the language asks for when the environment, rather than a
 setting, is what rules a control out.
 

@@ -16,6 +16,7 @@ import (
 // TestUnprotectedByDefault: a fresh install has no password, no login and
 // nothing in the way.
 func TestUnprotectedByDefault(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -32,6 +33,7 @@ func TestUnprotectedByDefault(t *testing.T) {
 // TestPasswordLocksTheApi: once a password is set an unauthenticated caller is
 // turned away, and a correct login gets back in.
 func TestPasswordLocksTheApi(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -93,6 +95,7 @@ func TestPasswordLocksTheApi(t *testing.T) {
 // TestForgedSessionRejected checks the cookie is actually signed and not just
 // present.
 func TestForgedSessionRejected(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -114,6 +117,7 @@ func TestForgedSessionRejected(t *testing.T) {
 // TestCrossOriginRefused stops another website from driving this instance
 // through the visitor's browser.
 func TestCrossOriginRefused(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -146,6 +150,7 @@ func TestCrossOriginRefused(t *testing.T) {
 // TestChangePasswordNeedsCurrent stops a stolen session from locking the owner
 // out of their own instance.
 func TestChangePasswordNeedsCurrent(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -175,6 +180,7 @@ func TestChangePasswordNeedsCurrent(t *testing.T) {
 // TestAPITokenGrantsAccess: a client that sends no session cookie gets in with
 // a Bearer token, and a bad one is refused like a bad password.
 func TestAPITokenGrantsAccess(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -211,6 +217,7 @@ func TestAPITokenGrantsAccess(t *testing.T) {
 // TestRevokedTokenStopsAuthenticating: one device's credential can be pulled
 // without touching the shared password or any other token.
 func TestRevokedTokenStopsAuthenticating(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -245,6 +252,7 @@ func TestRevokedTokenStopsAuthenticating(t *testing.T) {
 // apitoken.Store.RevokeAll exists for: a token minted while the instance had
 // no password must stop working once one is set.
 func TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -308,6 +316,7 @@ func TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet(t *testing.T) {
 // TestAPITokenNotNeededWithoutAPassword: a fresh, unprotected install answers
 // every route already, so a token is neither required nor checked.
 func TestAPITokenNotNeededWithoutAPassword(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -358,6 +367,7 @@ func newJar(t *testing.T) http.CookieJar {
 // no modification time, so without an ETag nothing tells the browser that
 // app.js changed.
 func TestAssetsRevalidate(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -400,6 +410,7 @@ func TestAssetsRevalidate(t *testing.T) {
 // .webmanifest, so without it http.FileServer sniffs the leading "{" as plain
 // text, and the PWA install prompt expects application/manifest+json.
 func TestManifestServesTheRealContentType(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

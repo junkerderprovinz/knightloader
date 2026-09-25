@@ -1397,7 +1397,6 @@ export const sv: Dict = {
   'settings.browsertools.install': 'Installera',
   'settings.browsertools.installIOS':
     'På iPhone eller iPad: öppna denna sida i Safari, tryck på Dela, sedan ”Lägg till på hemskärmen”.',
-  'settings.access.intakePortsHint': 'Andra sätt att nå den här instansen direkt, utanför den vanliga inloggningen. Här visas för var och en om den går att nå.',
   'settings.nav.browsertools': 'Webbläsare och app',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedan till webbläsarens bokmärkesfält. Den sparas som vilket bokmärke som helst, och inget installeras.',
   'settings.browsertools.bookmarkletStep2': 'Klicka på den på valfri sida (markera text först om du bara vill ha den). En liten KnightLoader-flik öppnas med sidans länk, eller den markerade texten, redan ifylld. Granska den och lägg till den som en nedladdning därifrån.',
@@ -1485,7 +1484,6 @@ export const sv: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Delningsmål, överföringsgränser, portmappning och DHT/PEX för magnetlänkar och .torrent-filer.',
   'settings.torrents.seedingTitle': 'Delning',
   'settings.torrents.seedRatio': 'Mål-ratio för delning',
   'settings.torrents.seedRatioHint': 'Fortsätter dela en färdig torrent tills denna andel, i förhållande till dess egen storlek, har lämnats tillbaka till svärmen. 0 = inget ratiomål.',

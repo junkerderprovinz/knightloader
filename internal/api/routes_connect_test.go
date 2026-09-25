@@ -14,6 +14,7 @@ import (
 )
 
 func TestConnectStartsInactive(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -41,6 +42,7 @@ func TestConnectStartsInactive(t *testing.T) {
 // address is answered while another relay, or none, is in use, since the
 // project relay card names it before anybody switches to it.
 func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -70,6 +72,7 @@ func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 // TestActivateReturnsAUsablePhrase checks that activation hands back a phrase
 // that decodes and stores the matching secret.
 func TestActivateReturnsAUsablePhrase(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -101,21 +104,25 @@ func TestActivateReturnsAUsablePhrase(t *testing.T) {
 // TestActivateRefusesToReplaceAnExistingPhrase guards the instances already
 // joined with the old phrase.
 func TestActivateRefusesToReplaceAnExistingPhrase(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
 	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
 		t.Fatalf("first activate answered %d: %s", code, body)
 	}
-	code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
-	if code != http.StatusConflict {
-		t.Fatalf("second activate answered %d, want %d", code, http.StatusConflict)
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
+	var out struct{ Code string }
+	_ = json.Unmarshal(body, &out)
+	if code != http.StatusConflict || out.Code != "phraseExists" {
+		t.Fatalf("second activate answered %d %s, want %d phraseExists", code, body, http.StatusConflict)
 	}
 }
 
 // TestJoinAcceptsAPhraseFromElsewhere checks that a phrase minted on one
 // instance leaves another holding the same secret.
 func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
+	t.Parallel()
 	first, firstApp := testServer(t)
 	defer first.Close()
 	second, secondApp := testServer(t)
@@ -143,6 +150,7 @@ func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 // TestJoinRejectsABadPhraseAndSaysWhy checks that a mistyped phrase comes back
 // as a reason plus details the browser can put into the user's language.
 func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -213,6 +221,7 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 // TestRevealWithoutAPasswordJustAnswers covers an instance without a password,
 // where there is nothing to re-enter.
 func TestRevealWithoutAPasswordJustAnswers(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -243,6 +252,7 @@ func TestRevealWithoutAPasswordJustAnswers(t *testing.T) {
 // not show the phrase once a password is set, since the phrase reaches every
 // instance in the group.
 func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -283,11 +293,17 @@ func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 			if resp.StatusCode != c.want {
 				t.Fatalf("reveal answered %d, want %d", resp.StatusCode, c.want)
 			}
+			var out struct{ Code string }
+			_ = json.NewDecoder(resp.Body).Decode(&out)
+			if c.want == http.StatusForbidden && out.Code != "passwordWrong" {
+				t.Errorf("the refusal carries the code %q, want passwordWrong", out.Code)
+			}
 		})
 	}
 }
 
 func TestRevealWithNoPhraseIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -299,6 +315,7 @@ func TestRevealWithNoPhraseIs404(t *testing.T) {
 // TestDeleteForgetsTheSecretAndIsIdempotent also covers a stale page's second
 // click, which is not an error.
 func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -325,6 +342,7 @@ func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 // TestRelayTargetDerivesRatherThanSendingTheSecret checks that the relay gets
 // a derived key and never the secret, so its operator cannot rebuild a phrase.
 func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -363,6 +381,7 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 // TestRelayTargetHonoursASelfHostedOverride checks that the same phrase can be
 // pointed at somebody's own relay.
 func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -392,6 +411,7 @@ func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 // without an address dials nothing rather than falling back to the project
 // relay.
 func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
