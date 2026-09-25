@@ -291,7 +291,7 @@ submission and for a fixed download.
   guard added in 1.1.6 decided nothing: on v1.1.6 the build moved `latest` half
   an hour before the release was created, and the job meant to decide it only
   corrected it afterwards. The build sets version tags only now.
-- **The APK tile on Settings > Browser & App downloads the app version the
+- **The APK tile on Settings > App downloads the app version the
   card shows.** The number came from `mobile/app.json`, but the tile opened the
   list of all releases, where the newest app can be another version. The tile
   now fetches the APK of exactly that release. A check ties the number and the
@@ -678,7 +678,7 @@ submission and for a fixed download.
   factor step of the sign-in page, the setup tour, the crypto window and the
   quick add page, on the connection phrase, relay, second factor and settings
   transfer cards, and on the Modules, Rules, Torrents, Network, Diagnostics,
-  Automation and Browser & App pages. A window's title badge can carry an (i) too. What
+  Automation and App pages. A window's title badge can carry an (i) too. What
   stays on the page: notes about what this build or this machine cannot do,
   status and error lines, and empty lists. The crypto window in the Android app
   and in the browser extension keeps its introduction in an (i) as well.
