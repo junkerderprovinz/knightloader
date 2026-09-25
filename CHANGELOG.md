@@ -236,6 +236,17 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **A removed download stays removed.** A change that was still being saved
+  when the download was removed, such as the reason it waits in a stopped queue
+  or the result of a link check, wrote the download back to the database. It
+  was then in the list again after the next restart.
+- **A download no longer falls back to an older state.** Two changes to the
+  same download that were saved at almost the same time could land in the
+  wrong order. The list then showed the older state, and after a restart the
+  download came back with it.
+- **The bookmarklet can be dragged to the bookmarks bar again.** The link on
+  the App page had been replaced with one that only raised an error, so a
+  bookmark made from it did nothing. Copying its code worked all along.
 - **Unpacking an archive again clears its last failure from the row.** The red
   error under its first file used to stay until the new attempt ended, next to
   a status that said it was unpacking.

@@ -255,11 +255,14 @@ const NOT_PAGE_SOURCES = new Map([
   ['SettingsSearch.tsx', 'the search box itself. It sits above the pages rather than on one, and indexing it would make it a result in its own list'],
 ]);
 
+// A test beside a page renders it but is not one, and its strings are fixtures.
+const isSource = (name) => name.endsWith('.tsx') && !name.endsWith('.test.tsx');
+
 /** A table entry ending in `/` is a directory: every .tsx in it, in name order. */
 function expand(entry) {
   if (!entry.file.endsWith('/')) return [entry];
   return readdirSync(join(here, entry.file))
-    .filter((f) => f.endsWith('.tsx'))
+    .filter(isSource)
     .sort()
     .map((f) => ({ ...entry, file: entry.file + f }));
 }
@@ -272,7 +275,7 @@ function everySettingsSource(rel = 'src/pages/settings') {
   for (const name of readdirSync(join(here, rel))) {
     const child = `${rel}/${name}`;
     if (statSync(join(here, child)).isDirectory()) out.push(...everySettingsSource(child));
-    else if (name.endsWith('.tsx')) out.push(child);
+    else if (isSource(name)) out.push(child);
   }
   return out;
 }

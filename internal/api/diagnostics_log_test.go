@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -315,7 +316,9 @@ func TestTheDiagnosticsBundleCarriesNoLogPath(t *testing.T) {
 func TestThePerDownloadLogFindsItsLinesAndAdmitsWhatItMisses(t *testing.T) {
 	srv := logServer(t)
 
-	const id = "aabbccddeeff0011"
+	// A new id every run: the log ring belongs to the process, so under -count a
+	// fixed one would also collect the lines the earlier runs wrote.
+	id := fmt.Sprintf("%016x", rand.Uint64())
 	log.Printf("task %s stood still for 2m0s and was started again (restart 1)", id)
 	log.Printf("checksum %s: this is a hash and not a download", id)
 

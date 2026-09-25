@@ -43,13 +43,13 @@ func (a *App) SetCategory(ids []string, category string) []string {
 	a.mu.Lock()
 	members := a.sharingLinksLocked(ids)
 	a.keepFoldersLocked(members, func(t *core.Task) { t.Category = id })
-	copies := make([]core.Task, 0, len(members))
+	copies := make([]taskCopy, 0, len(members))
 	for _, t := range members {
 		t.Category = id
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(members)
 }
 
@@ -63,7 +63,7 @@ func (a *App) PauseTasks(ids []string) []string {
 	a.mu.Lock()
 	var stopped []pausing
 	var touched []string
-	var copies []core.Task
+	var copies []taskCopy
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil || (t.Status != core.StatusRunning && t.Status != core.StatusQueued) {
@@ -78,13 +78,13 @@ func (a *App) PauseTasks(ids []string) []string {
 		t.Speed = 0
 		t.StalledSince = time.Time{}
 		touched = append(touched, id)
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	if len(touched) > 0 {
 		a.dispatchLocked()
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	// As in stop: the state the app commanded is recorded first, and a later
 	// event from the backend can still correct it.
 	for _, p := range stopped {
@@ -113,12 +113,9 @@ func (a *App) ResumeTasks(ids []string) []string {
 		a.dispatchLocked()
 	}
 	// Copied after dispatching, as in startTasks.
-	copies := make([]core.Task, 0, len(resumed))
-	for _, t := range resumed {
-		copies = append(copies, *t)
-	}
+	copies := a.copiesLocked(resumed)
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(resumed)
 }
 
@@ -139,7 +136,7 @@ func (a *App) editAndDispatch(ids []string, edit func(*core.Task)) []string {
 func (a *App) editAll(ids []string, edit func(*core.Task)) []string {
 	a.mu.Lock()
 	touched := make([]string, 0, len(ids))
-	copies := make([]core.Task, 0, len(ids))
+	copies := make([]taskCopy, 0, len(ids))
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil {
@@ -147,10 +144,10 @@ func (a *App) editAll(ids []string, edit func(*core.Task)) []string {
 		}
 		edit(t)
 		touched = append(touched, id)
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return touched
 }
 

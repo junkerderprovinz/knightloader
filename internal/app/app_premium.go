@@ -87,11 +87,11 @@ func (a *App) refreshPremiumHolds() {
 	// only the marks an earlier setting left need taking off.
 	anywhere := premiumOnlyAnywhere(a.Settings.Get())
 	a.mu.Lock()
-	var changed []core.Task
+	var changed []taskCopy
 	held := false
 	for _, t := range a.tasks {
 		if (anywhere || t.Waiting == core.WaitingPremium) && a.markPremiumLocked(t) {
-			changed = append(changed, *t)
+			changed = append(changed, a.copyLocked(t))
 		}
 		if t.Status == core.StatusQueued && t.Waiting == core.WaitingPremium {
 			held = true

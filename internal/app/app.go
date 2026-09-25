@@ -264,6 +264,15 @@ type App struct {
 	filtRules *rules.Matcher
 	filtProb  []rules.Problem
 
+	// saveMu orders the publishing of task copies, against removeTask's delete
+	// and against each other (see publish). It is taken before mu, never under
+	// it.
+	saveMu sync.Mutex
+	// saved and shown hold, per task, the revision of the newest copy written
+	// to the store and of the newest one broadcast. Under saveMu.
+	saved map[string]uint64
+	shown map[string]uint64
+
 	mu sync.Mutex
 	// halted stops the dispatcher from handing anything new to a backend.
 	// Running downloads keep running: this is a queue switch, not a kill
@@ -305,6 +314,8 @@ type App struct {
 	// then stop".
 	stopMark string
 	tasks    map[string]*core.Task
+	// revision is the last one copyLocked handed out.
+	revision uint64
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
@@ -374,6 +385,8 @@ func New(dataDir string) (*App, error) {
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
 		tasks:      map[string]*core.Task{},
+		saved:      map[string]uint64{},
+		shown:      map[string]uint64{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
 		fellBack:   map[string]map[string]bool{},

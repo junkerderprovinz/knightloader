@@ -151,10 +151,9 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 		live.VariantOff = true
 		live.Enabled = false
 	}
-	pc := *live
+	pc := a.copyLocked(live)
 	a.mu.Unlock()
-	_ = a.Store.Save(&pc)
-	a.Hub.Broadcast("task", &pc)
+	a.publish(&pc)
 
 	for _, v := range ytdlp.Variants() {
 		if v == ytdlp.VariantVideo {
@@ -221,10 +220,9 @@ func (a *App) insertVariantSibling(t *core.Task) {
 	a.mu.Lock()
 	t.ID = a.freshIDLocked()
 	a.tasks[t.ID] = t
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 }
 
 // applyProbeFormats applies a completed probe's format list to the family's
@@ -244,7 +242,7 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 
 	a.mu.Lock()
 	a.keepProbeLocked(rawurl, formats)
-	var touched []core.Task
+	var touched []taskCopy
 	for _, t := range a.tasks {
 		if t.URL != rawurl {
 			continue
@@ -262,11 +260,11 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 			changed = true
 		}
 		if changed {
-			touched = append(touched, *t)
+			touched = append(touched, a.copyLocked(t))
 		}
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(touched)
+	a.publishTasks(touched)
 }
 
 // keepProbeLocked records a link's format list. The map is pruned to the links
@@ -572,7 +570,7 @@ func (a *App) HosterFormats(host string) ytdlp.HostMenus {
 // extension (an audio row resolved to m4a) is more accurate than the table.
 func (a *App) applyFixedVariantExts() {
 	a.mu.Lock()
-	var touched []core.Task
+	var touched []taskCopy
 	for _, t := range a.tasks {
 		if t.Ext != "" || t.Variant == "" {
 			continue
@@ -583,10 +581,10 @@ func (a *App) applyFixedVariantExts() {
 			continue
 		}
 		t.Ext = ext
-		touched = append(touched, *t)
+		touched = append(touched, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(touched)
+	a.publishTasks(touched)
 }
 
 // applyVariantPresets brings the collector in line with the hoster presets: a
@@ -601,7 +599,7 @@ func (a *App) applyFixedVariantExts() {
 func (a *App) applyVariantPresets() {
 	presets := map[string]ytdlp.HosterPreset{}
 	a.mu.Lock()
-	var touched []core.Task
+	var touched []taskCopy
 	for _, t := range a.tasks {
 		if t.Status != core.StatusCollected || t.Variant == "" {
 			continue
@@ -618,10 +616,10 @@ func (a *App) applyVariantPresets() {
 		}
 		t.VariantOff = off
 		t.Enabled = !off
-		touched = append(touched, *t)
+		touched = append(touched, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(touched)
+	a.publishTasks(touched)
 }
 
 // variantSiblingsLocked lists the collected rows that share a yt-dlp link with

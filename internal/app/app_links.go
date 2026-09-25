@@ -317,7 +317,7 @@ func (a *App) nameBucket(b *bucket) {
 // regressGuessedPackages replaces a URL-guessed package for tasks that already
 // have a real name (see nameBucket).
 func (a *App) regressGuessedPackages(ids []string) {
-	changed := make([]core.Task, 0, len(ids))
+	var changed []taskCopy
 	a.mu.Lock()
 	for _, id := range ids {
 		t := a.tasks[id]
@@ -327,14 +327,10 @@ func (a *App) regressGuessedPackages(ids []string) {
 		}
 		// The whole variant family comes back, since the siblings are in no id
 		// list of their own.
-		changed = append(changed, reguessPackageLocked(a.tasks, t, t.Name)...)
+		changed = append(changed, a.copiesLocked(reguessPackageLocked(a.tasks, t, t.Name))...)
 	}
 	a.mu.Unlock()
-	for i := range changed {
-		c := changed[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
-	}
+	a.publishTasks(changed)
 }
 
 // catchAllPackage is where links without a name of their own are filed, so
@@ -937,14 +933,14 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	all := len(ids) == 0
 
 	a.mu.Lock()
-	var freed []core.Task
+	var freed []taskCopy
 	for id, t := range a.tasks {
 		if !t.Skipped || !(all || want[id]) {
 			continue
 		}
 		t.Skipped = false
 		// SkipReason stays as the record of the waiver.
-		freed = append(freed, *t)
+		freed = append(freed, a.copyLocked(t))
 	}
 	a.mu.Unlock()
 
@@ -952,10 +948,9 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	out := make([]*core.Task, 0, len(freed))
 	restored := make([]string, 0, len(freed))
 	for i := range freed {
-		c := freed[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
-		out = append(out, &c)
+		c := &freed[i]
+		a.publish(c)
+		out = append(out, &c.Task)
 		restored = append(restored, c.ID)
 	}
 	// Held links were never resolved, so recheck them in the background.

@@ -205,7 +205,7 @@ func (a *App) volumeSetLocked(t *core.Task) []*core.Task {
 // stampPartsLocked numbers the parts of t's set in reading order, so the list
 // shows them as one archive, and returns the rows it changed. Caller holds
 // a.mu.
-func (a *App) stampPartsLocked(t *core.Task) []core.Task {
+func (a *App) stampPartsLocked(t *core.Task) []taskCopy {
 	if t == nil {
 		// Removed between queueing and running.
 		return nil
@@ -215,13 +215,13 @@ func (a *App) stampPartsLocked(t *core.Task) []core.Task {
 		return nil
 	}
 	sort.Slice(set, func(i, j int) bool { return volumeBefore(set[i], set[j]) })
-	var changed []core.Task
+	var changed []taskCopy
 	for i, part := range set {
 		if part.ArchivePart == i+1 {
 			continue
 		}
 		part.ArchivePart = i + 1
-		changed = append(changed, *part)
+		changed = append(changed, a.copyLocked(part))
 	}
 	return changed
 }
@@ -463,7 +463,7 @@ func (a *App) runExtractions() {
 		path := job.path
 		a.mu.Unlock()
 
-		a.saveAndBroadcast(parts)
+		a.publishTasks(parts)
 		a.Hub.Broadcast("extract", snap)
 
 		id := snap.ID
@@ -489,7 +489,7 @@ func (a *App) runExtractions() {
 // they forget how the last unpacking ended, which stops being true once this
 // one writes: cancelled or cut off by a restart, it leaves no result. Caller
 // holds a.mu.
-func (a *App) beginUnpackLocked(job *extractJob, target *core.Task) []core.Task {
+func (a *App) beginUnpackLocked(job *extractJob, target *core.Task) []taskCopy {
 	forgot := map[string]bool{}
 	for _, id := range job.Parts {
 		if t := a.tasks[id]; t != nil && t.Unpack != core.UnpackNone {
@@ -503,7 +503,7 @@ func (a *App) beginUnpackLocked(job *extractJob, target *core.Task) []core.Task 
 	}
 	for _, id := range job.Parts {
 		if forgot[id] {
-			changed = append(changed, *a.tasks[id])
+			changed = append(changed, a.copyLocked(a.tasks[id]))
 		}
 	}
 	return changed
@@ -644,13 +644,13 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 			}
 		}
 	}
-	settled := make([]core.Task, 0, len(touched))
+	settled := make([]taskCopy, 0, len(touched))
 	for id := range touched {
-		settled = append(settled, *a.tasks[id])
+		settled = append(settled, a.copyLocked(a.tasks[id]))
 	}
 	a.mu.Unlock()
 
-	a.saveAndBroadcast(settled)
+	a.publishTasks(settled)
 	a.Hub.Broadcast("extract", snap)
 	// The remaining volumes may leave the working folder only after extraction.
 	a.deliverVolumes(snap.TaskID)
@@ -687,7 +687,7 @@ func (a *App) StartExtraction(ids []string) error {
 	var refused []string
 
 	a.mu.Lock()
-	var started []core.Task
+	var started []taskCopy
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil {
@@ -710,11 +710,11 @@ func (a *App) StartExtraction(ids []string) error {
 			continue
 		}
 		if job := a.enqueueExtractLocked(target, path); job != nil {
-			started = append(started, *target)
+			started = append(started, a.copyLocked(target))
 		}
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(started)
+	a.publishTasks(started)
 
 	if len(refused) > 0 {
 		return errors.New(strings.Join(refused, "; "))
@@ -755,16 +755,16 @@ func (a *App) AbortExtraction(jobID string) error {
 		j.Status = ExtractCancelled
 		j.EndedAt = time.Now()
 		snap := j.ExtractJob
-		var settled *core.Task
+		var settled *taskCopy
 		if t := a.tasks[j.TaskID]; t != nil && t.Status == core.StatusExtracting {
 			// Nothing ran, so only the row needs to go back to done.
 			t.Status = core.StatusDone
-			c := *t
+			c := a.copyLocked(t)
 			settled = &c
 		}
 		a.mu.Unlock()
 		if settled != nil {
-			a.saveAndBroadcast([]core.Task{*settled})
+			a.publish(settled)
 		}
 		a.Hub.Broadcast("extract", snap)
 		return nil

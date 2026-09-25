@@ -49,10 +49,9 @@ func (a *App) putSibling(t *core.Task) {
 	}
 	a.tasks[t.ID] = t
 	a.dupes.Add(linkEntry(t))
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 }
 
 // mirrorCanHelp reports whether a second hoster could plausibly get past a
@@ -135,7 +134,7 @@ func (a *App) parkedMirrorLocked(dead *core.Task) *core.Task {
 // handovers. The original stays in StatusError with its reason and retry count,
 // so the list still shows that the first hoster failed. The sibling starts with
 // a full retry budget, since it is a different host.
-func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*core.Task, time.Duration) {
+func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*taskCopy, time.Duration) {
 	if !a.Settings.Get().MirrorFailover || !mirrorCanHelp(dead.Reason) {
 		return nil, retryIn
 	}
@@ -166,6 +165,6 @@ func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*c
 	a.queue = append(a.queue, m.ID)
 	a.dispatchLocked()
 	// Copied after the dispatch, which may settle a refusal onto the task.
-	c := *m
+	c := a.copyLocked(m)
 	return &c, 0
 }
