@@ -31,7 +31,7 @@ export const is: Dict = {
   'instance.captchasOne': '1 captcha bíður núna',
   'downloads.start': 'Byrja',
   'downloads.stop': 'Stöðva',
-  'downloads.startSkipped': 'Tenglasían heldur {n} tenglum eftir.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Áætlun heldur biðröðinni stöðvaðri.',
   'downloads.tabDownloads': 'Niðurhal',
   'downloads.tabCollector': 'Safnari',

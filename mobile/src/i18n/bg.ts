@@ -31,7 +31,7 @@ export const bg: Dict = {
   'instance.captchasOne': '1 captcha чака в момента',
   'downloads.start': 'Старт',
   'downloads.stop': 'Спри',
-  'downloads.startSkipped': '{n} връзки са задържани от филтъра за връзки.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Опашката е спряна от график.',
   'downloads.tabDownloads': 'Изтегляния',
   'downloads.tabCollector': 'Събирач',

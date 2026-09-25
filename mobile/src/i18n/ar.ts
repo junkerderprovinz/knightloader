@@ -31,7 +31,7 @@ export const ar: Dict = {
   'instance.captchasOne': 'كابتشا واحدة تنتظر الآن',
   'downloads.start': 'ابدأ',
   'downloads.stop': 'أوقف',
-  'downloads.startSkipped': 'تم استبعاد {n} من الروابط بواسطة مرشّح الروابط.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'قائمة الانتظار متوقفة بموجب جدول زمني.',
   'downloads.tabDownloads': 'التنزيلات',
   'downloads.tabCollector': 'المُجمِّع',

@@ -1,6 +1,9 @@
 package settings
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 // The numbers in defaultTorrent are gopeed's, so a dependency bump that changes
 // its DefaultConfig fails here rather than drifting between what this app
@@ -65,10 +68,83 @@ func TestSanitizeTorrentFloorsNegativesAndBadPort(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			got := sanitizeTorrent(Settings{Torrent: c.in}).Torrent
-			if got != c.want {
+			if !reflect.DeepEqual(got, c.want) {
 				t.Errorf("sanitizeTorrent(%+v) = %+v, want %+v", c.in, got, c.want)
 			}
 		})
+	}
+}
+
+// A fresh install picks every file and adds and bans no tracker.
+func TestFileRulesAndTrackerListsStartOff(t *testing.T) {
+	d := Defaults().Torrent
+	if d.MinFileSize != 0 || len(d.IncludeFiles) != 0 || len(d.ExcludeFiles) != 0 {
+		t.Errorf("file rules default to %d, %q, %q, want none", d.MinFileSize, d.IncludeFiles, d.ExcludeFiles)
+	}
+	if len(d.ExtraTrackers) != 0 || d.TrackerListURL != "" || len(d.BannedTrackers) != 0 {
+		t.Errorf("trackers default to %q, %q, %q, want none", d.ExtraTrackers, d.TrackerListURL, d.BannedTrackers)
+	}
+}
+
+// A textarea leaves blank lines behind, and a blank exclude pattern matches
+// every file. Patterns keep their spaces, which can be part of a match;
+// addresses do not.
+func TestSanitizeTorrentDropsBlankLinesAndKeepsPatternsAsTyped(t *testing.T) {
+	in := Torrent{
+		TorrentFileRules: TorrentFileRules{
+			MinFileSize:  -5,
+			IncludeFiles: []string{"", `\.mkv$`, "   "},
+			ExcludeFiles: []string{" sample ", "", `(unclosed`},
+		},
+		ExtraTrackers:  []string{"  udp://tracker.example.org:6969/announce ", "", "\t"},
+		TrackerListURL: "  https://lists.example.org/best.txt\n",
+		BannedTrackers: []string{" tracker.bad.example ", ""},
+	}
+	got := sanitizeTorrent(Settings{Torrent: in}).Torrent
+	want := Torrent{
+		TorrentFileRules: TorrentFileRules{
+			IncludeFiles: []string{`\.mkv$`},
+			ExcludeFiles: []string{" sample ", `(unclosed`},
+		},
+		ExtraTrackers:  []string{"udp://tracker.example.org:6969/announce"},
+		TrackerListURL: "https://lists.example.org/best.txt",
+		BannedTrackers: []string{"tracker.bad.example"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("sanitizeTorrent = %+v, want %+v", got, want)
+	}
+	if in.ExtraTrackers[0] != "  udp://tracker.example.org:6969/announce " {
+		t.Error("sanitizeTorrent trimmed the caller's own list in place")
+	}
+}
+
+// A drawer's own file selection replaces the global one as a whole, so a
+// minimum of 0 there lets through the small files a global minimum skips.
+func TestADrawersOwnFileSelectionReplacesTheGlobalOne(t *testing.T) {
+	s := Defaults()
+	s.Torrent.TorrentFileRules = TorrentFileRules{MinFileSize: 50 << 20, ExcludeFiles: []string{`\.nfo$`}}
+	s.Categories = []Category{
+		{ID: "music", TorrentFiles: &TorrentFileRules{}},
+		{ID: "films", Dir: absPath("media", "films")},
+	}
+	if got := s.TorrentFileRulesFor("music"); got.MinFileSize != 0 || len(got.ExcludeFiles) != 0 {
+		t.Errorf("TorrentFileRulesFor(music) = %+v, want the drawer's empty set", got)
+	}
+	for _, id := range []string{"films", "", "gone"} {
+		if got := s.TorrentFileRulesFor(id); !reflect.DeepEqual(got, s.Torrent.TorrentFileRules) {
+			t.Errorf("TorrentFileRulesFor(%q) = %+v, want the Torrents page's", id, got)
+		}
+	}
+}
+
+func TestSanitizeCleansADrawersFileSelectionOnACopy(t *testing.T) {
+	own := &TorrentFileRules{MinFileSize: -1, ExcludeFiles: []string{"", `(?i)sample`}}
+	got := sanitizeCategories(Settings{Categories: []Category{{ID: "films", TorrentFiles: own}}}).Categories[0].TorrentFiles
+	if got == nil || got.MinFileSize != 0 || !reflect.DeepEqual(got.ExcludeFiles, []string{`(?i)sample`}) {
+		t.Fatalf("TorrentFiles = %+v, want the minimum floored and the blank line gone", got)
+	}
+	if got == own || own.MinFileSize != -1 {
+		t.Error("sanitizeCategories wrote through the caller's pointer")
 	}
 }
 

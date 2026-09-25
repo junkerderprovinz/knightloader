@@ -310,6 +310,16 @@ func validateRows(s settings.Settings, named func(key string) bool) error {
 			return err
 		}
 	}
+	if sent("torrent") {
+		if err := checkTorrentSettings(s.Torrent); err != nil {
+			return err
+		}
+	}
+	if sent("categories") {
+		if err := checkCategoryFileRules(s.Categories); err != nil {
+			return err
+		}
+	}
 	if sent("mediaHooks", "categories") {
 		if err := s.ValidateMediaHooks(); err != nil {
 			return err

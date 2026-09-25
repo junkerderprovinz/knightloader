@@ -75,6 +75,17 @@ submission and for a fixed download.
   the computer from sleeping while a download runs and while its files are
   checked, unpacked or moved, and lets it sleep once nothing is left to do, a
   switch that is on by default and has no effect in the container.
+- **Torrents can skip files by rule and find more trackers.** The Torrents
+  page has a file selection: a minimum file size and regular expressions for
+  files to fetch and files to skip, so samples, `.nfo` and `.exe` files stay
+  out. It picks the files of a magnet once its file list arrives, and of a
+  `.torrent` added without touching its file list; that list now opens with
+  its choice ticked. A category can carry its own file selection instead. What
+  you tick yourself always wins. Extra trackers, typed in or taken from a
+  public list fetched at most once a day, are added to magnets and to
+  `.torrent` files not marked private; a magnet counts as private only when its
+  own tracker address carries a passkey. A torrent that announces to a banned
+  tracker is held back in the collector with the reason.
 - **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
   Installing, what it does, configuration, getting links in, Click'n'Load,
   connecting instances and where files land, built from `docs/` with MkDocs

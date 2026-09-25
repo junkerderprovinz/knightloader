@@ -24,6 +24,42 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
 - **Sonarr and Radarr**: they hand their grabs over as if KnightLoader were
   qBittorrent or SABnzbd. See below.
 
+## Torrents
+
+Paste a magnet link like any other link, or drop a `.torrent` file onto the
+collector. A `.torrent` with more than one file opens its file list first, so
+you can untick what you do not want.
+
+**File selection** on the Torrents page picks the files when nobody has picked
+them by hand: a minimum size, and regular expressions for files to fetch and
+files to skip. They are matched against a file's path inside the torrent, the
+way "matches pattern" works in a Packagizer rule, so `(?i)sample` catches a
+sample folder as well as a sample file. The choice is made when a torrent
+starts. For a magnet that is once the swarm has sent its file list; a
+`.torrent` opens its file list with the choice already ticked. Whatever you
+tick yourself wins, and if the selection would leave nothing, every file is
+fetched. A category can have a file selection of its own instead, for example
+a music category where the small files are the album. It applies to every
+torrent filed there, whether you picked the category or a Packagizer rule did.
+
+**Extra trackers** help a torrent with few peers. Type addresses in, or give
+the address of a public list such as
+[ngosang/trackerslist](https://github.com/ngosang/trackerslist), which is
+fetched at most once a day. If a fetch fails, the last good list stays in use.
+A `.torrent` marked private never gets them. A magnet link cannot say it is
+private before its metadata arrives, and by then its trackers are set, so a
+magnet whose own tracker address carries a passkey counts as private too. A
+private tracker that knows its members by their IP address instead of a
+passkey cannot be told apart this way: leave the extra trackers empty if you
+take magnet links from one.
+
+**Banned trackers** keep a torrent out. One that announces to a banned host is
+held back with the reason, next to the links the link filter holds, and a ban
+added later still stops it from starting. Restoring it lets it past the line
+that caught it, not past one added afterwards. It is refused rather than
+stripped of that tracker: the rest of the torrent would still announce the same
+info hash, and a private torrent without its tracker finds no peers.
+
 ## Own servers (FTP, SFTP, WebDAV)
 
 A seedbox, a NAS or your own Nextcloud is a source like any other. Paste

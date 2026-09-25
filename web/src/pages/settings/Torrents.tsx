@@ -1,15 +1,30 @@
-import { useCallback, useState } from 'react';
-import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow, UnitNumberInput } from '../../components/ui';
-import { RATE_UNITS } from '../../lib/format';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  Button,
+  Card,
+  Field,
+  NumberInput,
+  PageHeader,
+  SectionTitle,
+  TextArea,
+  TextInput,
+  ToggleRow,
+  UnitNumberInput,
+} from '../../components/ui';
+import type { TorrentFileRules } from '../../lib/api';
+import { happened } from '../../lib/countdown';
+import { fmtDate, RATE_UNITS } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
+import { RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
- * and DHT/PEX. settings.Torrent is a flat group of fields, so the page uses the
- * shared draft like Reconnect.tsx. lib/api.ts's Settings does not name
- * `torrent`, so readTorrent casts the way readReconnect does.
+ * DHT/PEX, the file selection and the trackers. settings.Torrent is a flat
+ * group of fields, so the page uses the shared draft like Reconnect.tsx.
+ * lib/api.ts's Settings does not name `torrent`, so readTorrent casts the way
+ * readReconnect does.
  */
 
 interface TorrentSettings {
@@ -19,6 +34,13 @@ interface TorrentSettings {
   port: number;
   dhtEnabled: boolean;
   pexEnabled: boolean;
+  minFileSize: number;
+  // The server sends null for an empty list.
+  includeFiles: string[] | null;
+  excludeFiles: string[] | null;
+  extraTrackers: string[] | null;
+  trackerListUrl: string;
+  bannedTrackers: string[] | null;
 }
 
 // For an older server that sends no `torrent`; mirrors settings.defaultTorrent().
@@ -29,9 +51,22 @@ const DEFAULTS: TorrentSettings = {
   port: 0,
   dhtEnabled: true,
   pexEnabled: true,
+  minFileSize: 0,
+  includeFiles: [],
+  excludeFiles: [],
+  extraTrackers: [],
+  trackerListUrl: '',
+  bannedTrackers: [],
 };
 
 const KIB = 1024;
+
+// A file size is entered like a speed, without the "/s".
+const SIZE_UNITS = [
+  { label: 'KiB', factor: KIB, step: 256 * KIB },
+  { label: 'MiB', factor: KIB ** 2, step: KIB ** 2 },
+  { label: 'GiB', factor: KIB ** 3, step: KIB ** 3 },
+] as const;
 
 function readTorrent(cfg: unknown): TorrentSettings {
   return { ...DEFAULTS, ...((cfg as { torrent?: Partial<TorrentSettings> }).torrent ?? {}) };
@@ -39,7 +74,7 @@ function readTorrent(cfg: unknown): TorrentSettings {
 
 export function Torrents() {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, saved, patch } = useDraft();
   const tr = readTorrent(cfg);
 
   const write = useCallback(
@@ -138,6 +173,204 @@ export function Torrents() {
           hint={t('settings.torrents.pexHint')}
         />
       </Card>
+
+      <Card hue={4} className="flex flex-col gap-5">
+        <SectionTitle hint={t('settings.torrents.filesHint')}>{t('settings.torrents.filesTitle')}</SectionTitle>
+        <FileSelectionFields
+          rules={{ minFileSize: tr.minFileSize, includeFiles: tr.includeFiles, excludeFiles: tr.excludeFiles }}
+          onChange={write}
+          refusedAt="torrent"
+        />
+      </Card>
+
+      <Card hue={5} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.torrents.trackersTitle')}</SectionTitle>
+        <LinesField
+          lines={tr.extraTrackers}
+          label={t('settings.torrents.extraTrackers')}
+          hint={t('settings.torrents.extraTrackersHint')}
+          refusal="torrent.extraTrackers"
+          onLines={(extraTrackers) => write({ extraTrackers })}
+        />
+        <div className="flex flex-col gap-1.5">
+          <Field label={t('settings.torrents.trackerList')} hint={t('settings.torrents.trackerListHint')}>
+            <TextInput
+              type="url"
+              dir="ltr"
+              spellCheck={false}
+              placeholder="https://ngosang.github.io/trackerslist/trackers_best.txt"
+              value={tr.trackerListUrl}
+              onChange={(e) => write({ trackerListUrl: e.target.value })}
+            />
+          </Field>
+          <RowRefusal field="torrent.trackerListUrl" className="pb-0" />
+          <TrackerListStatus saved={readTorrent(saved).trackerListUrl.trim()} />
+        </div>
+        <LinesField
+          lines={tr.bannedTrackers}
+          label={t('settings.torrents.bannedTrackers')}
+          hint={t('settings.torrents.bannedTrackersHint')}
+          refusal="torrent.bannedTrackers"
+          onLines={(bannedTrackers) => write({ bannedTrackers })}
+        />
+      </Card>
+    </div>
+  );
+}
+
+/**
+ * FileSelectionFields edits a torrent file selection: the minimum size and the
+ * two pattern boxes. The Torrents page draws it, and so does a category with a
+ * selection of its own. refusedAt is the settings path the server files a
+ * refused box under; without it a refusal shows where the caller puts it, as a
+ * category does on its row.
+ */
+export function FileSelectionFields({
+  rules,
+  onChange,
+  refusedAt,
+}: {
+  rules: TorrentFileRules;
+  onChange: (next: TorrentFileRules) => void;
+  refusedAt?: string;
+}) {
+  const { t } = useT();
+  return (
+    <>
+      {/* Stored in bytes, so a sample of 40 MiB is as easy to write as an
+          .nfo of 3 KiB. */}
+      <Field label={t('settings.torrents.minFileSize')} hint={t('settings.torrents.minFileSizeHint')}>
+        <UnitNumberInput
+          value={rules.minFileSize}
+          units={SIZE_UNITS}
+          snap={(bytes) => Math.round(bytes)}
+          onValue={(minFileSize) => onChange({ ...rules, minFileSize })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <LinesField
+          lines={rules.includeFiles}
+          label={t('settings.torrents.includeFiles')}
+          hint={t('settings.torrents.includeFilesHint')}
+          refusal={refusedAt && `${refusedAt}.includeFiles`}
+          onLines={(includeFiles) => onChange({ ...rules, includeFiles })}
+        />
+        <LinesField
+          lines={rules.excludeFiles}
+          label={t('settings.torrents.excludeFiles')}
+          hint={t('settings.torrents.excludeFilesHint')}
+          refusal={refusedAt && `${refusedAt}.excludeFiles`}
+          onLines={(excludeFiles) => onChange({ ...rules, excludeFiles })}
+        />
+      </div>
+    </>
+  );
+}
+
+/**
+ * LinesField edits a list as a box with one entry per line, with the server's
+ * refusal of the list beneath it when refusal names where that is filed. Blank
+ * lines go out as they are and the server drops them: taken out here, the new
+ * line an Enter starts would vanish before anything could be typed on it.
+ */
+function LinesField({
+  lines,
+  label,
+  hint,
+  refusal,
+  onLines,
+}: {
+  lines: string[] | null;
+  label: string;
+  hint: string;
+  refusal?: string;
+  onLines: (lines: string[]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Field label={label} hint={hint}>
+        <TextArea
+          rows={3}
+          spellCheck={false}
+          dir="ltr"
+          value={(lines ?? []).join('\n')}
+          onChange={(e) => onLines(e.target.value.split('\n'))}
+        />
+      </Field>
+      {refusal && <RowRefusal field={refusal} className="pb-0" />}
+    </div>
+  );
+}
+
+/** TrackerListState mirrors internal/trackerlist.Status and its json tags. */
+interface TrackerListState {
+  url: string;
+  trackers: number;
+  fetchedAt?: string;
+  error?: string;
+  triedAt?: string;
+  fetching: boolean;
+}
+
+// How often, and how many times at most, the line looks again while a fetch
+// is under way.
+const LIST_POLL_MS = 1500;
+const LIST_POLL_TRIES = 20;
+
+/**
+ * TrackerListStatus says how the saved tracker list address fared. Saving an
+ * address starts a fetch on the server, so the line looks again whenever the
+ * saved address changes, and keeps looking while that fetch runs.
+ */
+function TrackerListStatus({ saved }: { saved: string }) {
+  const { t } = useT();
+  const [state, setState] = useState<TrackerListState | null>(null);
+
+  useEffect(() => {
+    if (!saved) {
+      setState(null);
+      return;
+    }
+    let live = true;
+    let tries = 0;
+    let timer: number | undefined;
+    const look = async () => {
+      try {
+        const r = await fetch('/api/torrents/trackers');
+        if (!r.ok) return;
+        const next = (await r.json()) as TrackerListState;
+        if (!live) return;
+        setState(next);
+        // The first look can come before the save's fetch has begun.
+        if ((next.fetching || (!happened(next.fetchedAt) && !next.error)) && ++tries < LIST_POLL_TRIES) {
+          timer = window.setTimeout(() => void look(), LIST_POLL_MS);
+        }
+      } catch {
+        // An older server without the route shows no line.
+      }
+    };
+    void look();
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [saved]);
+
+  if (!saved || !state || state.url !== saved) return null;
+  return (
+    <div className="flex flex-col gap-0.5 text-xs">
+      {state.trackers > 0 ? (
+        <p className="text-carbon-textSub">
+          {t('settings.torrents.trackerListFetched', { n: state.trackers, when: fmtDate(state.fetchedAt) })}
+        </p>
+      ) : (
+        !state.error && (
+          <p className="text-carbon-textMuted">
+            {state.fetching ? t('settings.torrents.trackerListFetching') : t('settings.torrents.trackerListPending')}
+          </p>
+        )
+      )}
+      {state.error && <p className="text-statusWarn">{t('settings.torrents.trackerListFailed', { error: state.error })}</p>}
     </div>
   );
 }

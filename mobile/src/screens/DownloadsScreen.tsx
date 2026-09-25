@@ -293,7 +293,7 @@ export default function DownloadsScreen({
                   // The server reports which one it was, and leaving that
                   // unread here would put the silence back one layer down.
                   if (r.blocked) setStartError(t('downloads.startBlocked'));
-                  else if (r.started === 0 && r.skipped > 0) setStartError(t('downloads.startSkipped', { n: r.skipped }));
+                  else if (r.started === 0 && r.skipped > 0) setStartError(t('downloads.startHeld', { n: r.skipped }));
                   // The switch flipped on the server, so show it now rather
                   // than at the next five-second poll.
                   if (r.released) setQueue((q) => (q ? { ...q, halted: false } : q));

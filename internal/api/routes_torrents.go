@@ -7,16 +7,23 @@ package api
 // Parsing and staging are separate routes so parsing has no side effects: a
 // browser can show a large file tree and the user can change their mind
 // without leaving a half-staged task behind.
+//
+// The torrent settings' own checks live here as well: the file rules and
+// tracker lists a save is refused over, and how the public tracker list fared.
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // maxStageBody bounds POST /api/torrents' body: the uri field carries the
@@ -26,15 +33,21 @@ const maxStageBody = torrent.MaxTorrentBytes + 1<<20
 
 func registerTorrents(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/torrents/parse",
-		"validate an uploaded .torrent and return its file tree; stages nothing",
+		"validate an uploaded .torrent and return its file tree, with the files the torrent file selection chooses selected; stages nothing",
 		func(w http.ResponseWriter, r *http.Request) {
-			parseTorrentUpload(w, r)
+			parseTorrentUpload(w, r, a)
 		})
 
 	reg.Add(http.MethodPost, "/api/torrents",
 		"stage a magnet or an uploaded .torrent (from /api/torrents/parse) with a file selection",
 		func(w http.ResponseWriter, r *http.Request) {
 			stageTorrent(w, r, a)
+		})
+
+	reg.Add(http.MethodGet, "/api/torrents/trackers",
+		"the public tracker list the torrent settings name: how many trackers it gave, when, and why the last fetch failed",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, a.TrackerListStatus())
 		})
 }
 
@@ -58,7 +71,10 @@ type torrentTree struct {
 // geometry, file count and, above all, that no file path escapes the download
 // folder; this handler adds the size cap that has to apply before the body is
 // read (see torrent.MaxTorrentBytes), as uploadRestore does.
-func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
+//
+// The tree comes back with the files the file rules choose already selected,
+// so the review shows what staging it untouched would fetch.
+func parseTorrentUpload(w http.ResponseWriter, r *http.Request, a *app.App) {
 	// The extra megabyte is for multipart boundaries and headers.
 	r.Body = http.MaxBytesReader(w, r.Body, torrent.MaxTorrentBytes+1<<20)
 	file, _, err := r.FormFile("file")
@@ -82,6 +98,10 @@ func parseTorrentUpload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// torrent.Parse's errors are written to be read, so they go out as
 		// they are.
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if md.Files, err = a.PickTorrentFiles(md.Files); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -120,8 +140,9 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 	var body struct {
 		URI     string `json:"uri"`
 		Package string `json:"package"`
-		// SelectedPaths is a pointer: absent keeps every file selected, while
-		// an empty list means every box was unticked (see
+		// SelectedPaths is a pointer: absent leaves the choice to the file
+		// rules of the category the task ends up in (see App.AddTorrent),
+		// while an empty list means every box was unticked (see
 		// core.SelectedTorrentIndices).
 		SelectedPaths *[]string `json:"selectedPaths"`
 	}
@@ -141,15 +162,16 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 		return
 	}
 
-	files := make([]core.TorrentFile, len(md.Files))
-	copy(files, md.Files)
+	var files []core.TorrentFile
 	if body.SelectedPaths != nil {
 		want := make(map[string]bool, len(*body.SelectedPaths))
 		for _, p := range *body.SelectedPaths {
 			want[p] = true
 		}
-		for i := range files {
-			files[i].Selected = want[files[i].Path]
+		files = make([]core.TorrentFile, len(md.Files))
+		for i, f := range md.Files {
+			f.Selected = want[f.Path]
+			files[i] = f
 		}
 	}
 
@@ -159,4 +181,53 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 		return
 	}
 	writeJSON(w, task) // null when the mirror set folded this into a task already in the list
+}
+
+// checkTorrentSettings refuses what sanitize would keep but nothing could use,
+// naming the box it is in: a file pattern that does not compile, a line that
+// is no tracker address, a list address that is not http or https, and a
+// banned line that names no host. Blank lines are sanitize's to drop.
+func checkTorrentSettings(t settings.Torrent) error {
+	refuse := func(field string, err error) error {
+		return &settings.FieldError{Field: "torrent." + field, Err: err}
+	}
+	if err := torrent.CheckPatterns(t.IncludeFiles); err != nil {
+		return refuse("includeFiles", fmt.Errorf("only these files: %w", err))
+	}
+	if err := torrent.CheckPatterns(t.ExcludeFiles); err != nil {
+		return refuse("excludeFiles", fmt.Errorf("never these files: %w", err))
+	}
+	for i, line := range t.ExtraTrackers {
+		if strings.TrimSpace(line) != "" && !torrent.ValidTracker(line) {
+			return refuse("extraTrackers", fmt.Errorf("extra trackers, line %d: %q is not a tracker address (udp, http, https, ws or wss)", i+1, line))
+		}
+	}
+	if raw := strings.TrimSpace(t.TrackerListURL); raw != "" {
+		// The address is left out of the message, in case it carries a login.
+		if u, err := url.Parse(raw); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return refuse("trackerListUrl", errors.New("the tracker list address is not an http or https address"))
+		}
+	}
+	for i, line := range t.BannedTrackers {
+		if strings.TrimSpace(line) != "" && torrent.BannedHost(line) == "" {
+			return refuse("bannedTrackers", fmt.Errorf("banned trackers, line %d: %q names no host", i+1, line))
+		}
+	}
+	return nil
+}
+
+// checkCategoryFileRules refuses a category whose own torrent file selection
+// has a pattern that does not compile, on that category's row.
+func checkCategoryFileRules(cats []settings.Category) error {
+	for i, c := range cats {
+		r := c.TorrentFiles
+		if r == nil {
+			continue
+		}
+		if _, err := (torrent.FileRules{Include: r.IncludeFiles, Exclude: r.ExcludeFiles}).Compile(); err != nil {
+			return &settings.FieldError{Field: fmt.Sprintf("categories.%d", i),
+				Err: fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)}
+		}
+	}
+	return nil
 }

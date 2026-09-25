@@ -31,7 +31,7 @@ export const el: Dict = {
   'instance.captchasOne': '1 captcha περιμένει αυτή τη στιγμή',
   'downloads.start': 'Έναρξη',
   'downloads.stop': 'Διακοπή',
-  'downloads.startSkipped': 'Το φίλτρο συνδέσμων κράτησε πίσω {n} συνδέσμους.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Η ουρά είναι σε παύση λόγω χρονοδιαγράμματος.',
   'downloads.tabDownloads': 'Λήψεις',
   'downloads.tabCollector': 'Συλλέκτης',

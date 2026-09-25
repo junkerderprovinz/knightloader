@@ -18,13 +18,13 @@ import (
 )
 
 // StartResult is what a start actually did, so the interface can say why
-// nothing moved: the queue was halted, the named tasks were held by a filter
-// or disabled, or the ids matched nothing.
+// nothing moved: the queue was halted, the named tasks were held back or
+// disabled, or the ids matched nothing.
 type StartResult struct {
 	// Started is how many tasks left the collector for the queue.
 	Started int `json:"started"`
-	// Skipped is how many named tasks a link-filter rule is holding back. Only
-	// Restore releases them.
+	// Skipped is how many named tasks the holding area keeps, for a link-filter
+	// rule or a banned tracker. Only Restore releases them.
 	Skipped int `json:"skipped"`
 	// Disabled is how many were passed over because their own switch is off.
 	// It is separate from Skipped because the cure differs: turn the switch
@@ -78,8 +78,8 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 			continue
 		}
 		if t.Skipped {
-			// Held by the filter: counted so the answer can say so, never
-			// started. Only Restore releases it.
+			// Held back: counted so the answer can say so, never started.
+			// Only Restore releases it.
 			out.Skipped++
 			continue
 		}

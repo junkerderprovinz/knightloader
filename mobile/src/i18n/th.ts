@@ -31,7 +31,7 @@ export const th: Dict = {
   'instance.captchasOne': 'ตอนนี้มีแคปช่ารออยู่ 1 รายการ',
   'downloads.start': 'เริ่ม',
   'downloads.stop': 'หยุด',
-  'downloads.startSkipped': 'ตัวกรองลิงก์กำลังกัน {n} ลิงก์ไว้',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'กำหนดการกำลังหยุดคิวไว้',
   'downloads.tabDownloads': 'ดาวน์โหลด',
   'downloads.tabCollector': 'ตัวเก็บ',

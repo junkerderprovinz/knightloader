@@ -31,7 +31,7 @@ export const zh: Dict = {
   'instance.captchasOne': '当前有 1 个验证码在等待',
   'downloads.start': '开始',
   'downloads.stop': '停止',
-  'downloads.startSkipped': '链接过滤器保留了 {n} 个链接。',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': '计划任务正暂停队列。',
   'downloads.tabDownloads': '下载',
   'downloads.tabCollector': '收集器',

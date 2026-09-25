@@ -27,12 +27,14 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { COLLISION_LABEL } from './Archives';
 import { useDraft, useFieldError } from './context';
 import { RowRefusal } from './controls';
+import { FileSelectionFields } from './Torrents';
 
 /**
  * CategoriesCard edits the named drawers, each a folder plus defaults, that a
- * Packagizer rule files a download into. The folder, unpacking, collision rule
- * and queue position are live; the speed limit has no caller yet, since
- * internal/throttle is one limiter for the whole app, and its hint says so.
+ * Packagizer rule files a download into. The folder, unpacking, collision rule,
+ * queue position and torrent file selection are live; the speed limit has no
+ * caller yet, since internal/throttle is one limiter for the whole app, and its
+ * hint says so.
  *
  * The server derives a key from the name once, on save, so renaming is free;
  * this page only previews that key and never writes it. ValidateCategories
@@ -92,6 +94,7 @@ const keyOf = (c: Category): string => (c.id.trim() !== '' ? categoryID(c.id) : 
  * id the server may send; it never leaves this file.
  */
 const INHERIT = ' inherit';
+const OWN = 'own';
 
 // React keys for the rows: a new row's id is empty and array indexes shift on
 // removal.
@@ -368,6 +371,9 @@ function summarise(
     const key = COLLISION_LABEL[collision];
     parts.push(key ? t(key) : collision);
   }
+  if (cat.torrentFiles) {
+    parts.push(`${t('settings.categories.torrentFiles')}: ${t('settings.categories.torrentFilesOwn')}`);
+  }
   return parts.join(' · ');
 }
 
@@ -430,6 +436,14 @@ function CategoryRow({
     const next = { ...cat };
     if (v === undefined) delete next.premiumOnly;
     else next.premiumOnly = v;
+    onChange(next);
+  };
+  // An own selection starts empty, which fetches every file: the drawer that
+  // wants one is usually the one the Torrents page's skips do not fit.
+  const setOwnTorrentFiles = (own: boolean) => {
+    const next = { ...cat };
+    if (own) next.torrentFiles = { minFileSize: 0, includeFiles: [], excludeFiles: [] };
+    else delete next.torrentFiles;
     onChange(next);
   };
 
@@ -634,6 +648,30 @@ function CategoryRow({
               />
             )}
           </FieldGroup>
+
+          {/* Two segments rather than a switch, like the rows above: Inherit
+              is "no opinion", not "off". */}
+          <FieldGroup label={t('settings.categories.torrentFiles')} hint={t('settings.categories.torrentFilesHint')}>
+            <Tabs
+              variant="well"
+              size="sm"
+              label={t('settings.categories.torrentFiles')}
+              active={cat.torrentFiles ? OWN : INHERIT}
+              onSelect={(id) => setOwnTorrentFiles(id === OWN)}
+              items={[
+                { id: INHERIT, label: t('props.inherit') },
+                { id: OWN, label: t('settings.categories.torrentFilesOwn') },
+              ]}
+            />
+          </FieldGroup>
+          {/* A refused pattern shows on the row, since the server files it
+              under the category. */}
+          {cat.torrentFiles && (
+            <FileSelectionFields
+              rules={cat.torrentFiles}
+              onChange={(torrentFiles) => onChange({ ...cat, torrentFiles })}
+            />
+          )}
         </div>
       )}
     </li>

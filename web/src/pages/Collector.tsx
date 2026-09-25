@@ -253,8 +253,8 @@ export function Collector() {
     if (heldNow) {
       toast(
         staged
-          ? t('collector.filtered.toastHeld', { n: staged, held: heldNow })
-          : t('collector.filtered.toastAllHeld', { held: heldNow }),
+          ? t('collector.filtered.toastHeldBack', { n: staged, held: heldNow })
+          : t('collector.filtered.toastAllHeldBack', { held: heldNow }),
         staged ? 'ok' : 'info',
       );
       return;
@@ -276,7 +276,7 @@ export function Collector() {
     try {
       const r = await startTasks(ids);
       if (r.blocked) return toast(t('collector.toastStartBlocked'), 'fail');
-      if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartSkipped', { n: r.skipped }), 'fail');
+      if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartHeld', { n: r.skipped }), 'fail');
       // A disabled link is not started, and the toast says so.
       if (r.started === 0 && (r.disabled ?? 0) > 0)
         return toast(t('collector.toastStartDisabled', { n: r.disabled ?? 0 }), 'fail');

@@ -462,8 +462,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.categories.collision', hint: 'settings.categories.collisionHint' },
         { key: 'settings.categories.premiumOnly', hint: 'settings.categories.premiumOnlyHint' },
         { key: 'settings.categories.notify', hint: 'settings.categories.notifyHint' },
+        { key: 'settings.categories.torrentFiles', hint: 'settings.categories.torrentFilesHint' },
       ],
-      also: ['settings.categories.notifyNone'],
+      also: ['settings.categories.notifyNone', 'settings.categories.torrentFilesOwn'],
       body: ['settings.pathVars', 'settings.categories.notifyEmpty', 'settings.categories.notifyMissing'],
     },
   ],
@@ -677,6 +678,23 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.torrents.dht', hint: 'settings.torrents.dhtHint' },
         { key: 'settings.torrents.pex', hint: 'settings.torrents.pexHint' },
+      ],
+    },
+    {
+      title: 'settings.torrents.filesTitle',
+      hint: 'settings.torrents.filesHint',
+      rows: [
+        { key: 'settings.torrents.minFileSize', hint: 'settings.torrents.minFileSizeHint' },
+        { key: 'settings.torrents.includeFiles', hint: 'settings.torrents.includeFilesHint' },
+        { key: 'settings.torrents.excludeFiles', hint: 'settings.torrents.excludeFilesHint' },
+      ],
+    },
+    {
+      title: 'settings.torrents.trackersTitle',
+      rows: [
+        { key: 'settings.torrents.extraTrackers', hint: 'settings.torrents.extraTrackersHint' },
+        { key: 'settings.torrents.trackerList', hint: 'settings.torrents.trackerListHint' },
+        { key: 'settings.torrents.bannedTrackers', hint: 'settings.torrents.bannedTrackersHint' },
       ],
     },
   ],

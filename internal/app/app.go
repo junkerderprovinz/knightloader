@@ -363,6 +363,9 @@ type App struct {
 	// iconCache is the hoster-icon cache (app_hostericons.go), embedded so its
 	// fields stay in that file. It is built on first use.
 	iconCache
+	// trackerListState is the public tracker list (app_torrentrules.go), the
+	// same way.
+	trackerListState
 	// mediaToolsState describes yt-dlp and ffmpeg on this machine
 	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
@@ -1076,11 +1079,13 @@ func (a *App) applyConnections(s settings.Settings) {
 // applyTorrentConfig pushes the seed ratio, seed duration and port into the
 // engine. The seed settings apply to torrents added from now on; the port only
 // if no torrent has started in this process (see Engine.SetTorrentConfig). A
-// failure is logged rather than failing the save or the boot.
+// failure is logged rather than failing the save or the boot. It also fetches
+// the public tracker list when that is due.
 func (a *App) applyTorrentConfig(t settings.Torrent) {
 	if err := a.Engine.SetTorrentConfig(t.Port, t.SeedRatioTarget, t.SeedDurationSeconds); err != nil {
 		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
 	}
+	a.refreshTrackerList(t.TrackerListURL)
 }
 
 func newID() string {

@@ -31,7 +31,7 @@ export const ms: Dict = {
   'instance.captchasOne': '1 captcha sedang menunggu',
   'downloads.start': 'Mula',
   'downloads.stop': 'Henti',
-  'downloads.startSkipped': 'Penapis pautan menahan {n} pautan.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Jadual sedang menahan baris gilir.',
   'downloads.tabDownloads': 'Muat turun',
   'downloads.tabCollector': 'Pengumpul',

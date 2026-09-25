@@ -31,7 +31,7 @@ export const vi: Dict = {
   'instance.captchasOne': '1 captcha đang chờ lúc này',
   'downloads.start': 'Bắt đầu',
   'downloads.stop': 'Dừng',
-  'downloads.startSkipped': 'Bộ lọc liên kết đang giữ lại {n} liên kết.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Một lịch trình đang giữ hàng đợi tạm dừng.',
   'downloads.tabDownloads': 'Tải xuống',
   'downloads.tabCollector': 'Bộ thu thập',

@@ -4,11 +4,12 @@ package settings
 // times.
 //
 // A category carries a destination folder, a priority, an unpacking switch, a
-// speed limit and a collision rule under one word somebody chose. It is picked
-// when links are thrown in, it is a facet the list can be filtered by, and a
-// Packagizer rule can set it. The alternative was a Packagizer rule per drawer
-// keyed on something in the file name, which works only while the name says:
-// "S01E03" is a series, "1080p" is anything at all.
+// speed limit, a collision rule and a torrent's file selection under one word
+// somebody chose. It is picked when links are thrown in, it is a facet the
+// list can be filtered by, and a Packagizer rule can set it. The alternative
+// was a Packagizer rule per drawer keyed on something in the file name, which
+// works only while the name says: "S01E03" is a series, "1080p" is anything
+// at all.
 //
 // Folder precedence, most specific first: the task's own Dir, then the
 // category, then DownloadDir. A Packagizer rule's downloadDir is already
@@ -137,6 +138,16 @@ type Category struct {
 	// otherwise holds such links, which a plain bool cannot say, as with
 	// Extract.
 	PremiumOnly *bool `json:"premiumOnly,omitempty"`
+
+	// TorrentFiles is this drawer's own file selection for a torrent, in place
+	// of the Torrents page's as a whole. Nil is "no opinion"; a set with
+	// nothing in it is a drawer that fetches every file whatever the global
+	// rules skip, a music drawer where the small files are the album.
+	//
+	// It is read when the torrent starts, the one moment a magnet's file list
+	// exists and a Packagizer rule has had its say, see
+	// Settings.TorrentFileRulesFor.
+	TorrentFiles *TorrentFileRules `json:"torrentFiles,omitempty"`
 }
 
 // CategoryFor is the category an id names, or the zero Category when it names
@@ -331,6 +342,11 @@ func sanitizeCategories(n Settings) Settings {
 		// undo a drawer's setting the moment somebody hand-edited their hooks
 		// list. ValidateMediaHooks refuses that state at the door.
 		c.Notify = mediahook.HookID(c.Notify)
+		if c.TorrentFiles != nil {
+			// A fresh pointer, for the reason clampCategoryPriority gives.
+			r := c.TorrentFiles.sanitized()
+			c.TorrentFiles = &r
+		}
 		out = append(out, c)
 		if len(out) == MaxCategories {
 			break

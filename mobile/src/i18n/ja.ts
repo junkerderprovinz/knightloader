@@ -31,7 +31,7 @@ export const ja: Dict = {
   'instance.captchasOne': 'いま待っているキャプチャ 1 件',
   'downloads.start': '開始',
   'downloads.stop': '停止',
-  'downloads.startSkipped': 'リンクフィルターが {n} 件のリンクを保留しています。',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'スケジュールによりキューが停止しています。',
   'downloads.tabDownloads': 'ダウンロード',
   'downloads.tabCollector': 'コレクター',

@@ -270,10 +270,15 @@ type Job struct {
 	Route proxycfg.Route
 
 	// TorrentSelect names which files of a multi-file torrent to fetch, by
-	// index in the resolved file list. Nil fetches all of them.
+	// index in the resolved file list. Nil fetches all of them, or what
+	// FileRules choose.
 	TorrentSelect []int
-	// Trackers are extra announce URLs for a torrent. The library ignores
-	// them for a private torrent.
+	// FileRules choose the files of a torrent whose TorrentSelect is nil: an
+	// upload's from its own file list, a magnet's once the swarm has sent it.
+	FileRules torrent.FileRules
+	// Trackers are extra announce URLs for a torrent. The library leaves them
+	// out for a private .torrent file, but adds them to a magnet before its
+	// metadata can say it is private, so for a magnet the caller decides.
 	Trackers []string
 
 	// Collision is what to do when the resolved name is taken. Empty means no

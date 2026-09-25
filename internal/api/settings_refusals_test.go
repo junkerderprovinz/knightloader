@@ -84,6 +84,31 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "packagizer.rules.0",
 		},
 		{
+			name:  "a torrent file pattern that does not compile",
+			patch: `{"torrent":{"includeFiles":["\\.mkv$"],"excludeFiles":["\\.nfo$","(unclosed"]}}`,
+			field: "torrent.excludeFiles",
+		},
+		{
+			name:  "a category's own torrent file pattern that does not compile",
+			patch: `{"categories":[{"id":"filme","name":"Filme"},{"id":"musik","name":"Musik","torrentFiles":{"excludeFiles":["(unclosed"]}}]}`,
+			field: "categories.1",
+		},
+		{
+			name:  "an extra tracker that is no tracker address",
+			patch: `{"torrent":{"extraTrackers":["udp://tracker.example.org:6969/announce","tracker.example.org"]}}`,
+			field: "torrent.extraTrackers",
+		},
+		{
+			name:  "a tracker list that is not on the web",
+			patch: `{"torrent":{"trackerListUrl":"ftp://lists.example.org/best.txt"}}`,
+			field: "torrent.trackerListUrl",
+		},
+		{
+			name:  "a banned tracker line that names no host",
+			patch: `{"torrent":{"bannedTrackers":[":6969"]}}`,
+			field: "torrent.bannedTrackers",
+		},
+		{
 			name:  "a value of the wrong type",
 			patch: `{"reconnect":[]}`,
 			field: "reconnect",

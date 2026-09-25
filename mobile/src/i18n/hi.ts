@@ -31,7 +31,7 @@ export const hi: Dict = {
   'instance.captchasOne': 'अभी 1 कैप्चा प्रतीक्षा में है',
   'downloads.start': 'शुरू करें',
   'downloads.stop': 'रोकें',
-  'downloads.startSkipped': 'लिंक फ़िल्टर ने {n} लिंक रोके हैं।',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'एक शेड्यूल कतार को रोके हुए है।',
   'downloads.tabDownloads': 'डाउनलोड',
   'downloads.tabCollector': 'संग्राहक',
