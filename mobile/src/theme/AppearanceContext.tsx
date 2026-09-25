@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ACCENTS,
   DEFAULT_ACCENT,
+  DEFAULT_SHAPE,
   DISCO_FRAME_MS,
   DISCO_TICK_MS,
   asShape,
@@ -19,7 +20,7 @@ import {
 } from './appearance';
 import { buildLoop } from './discoLoop';
 import { useMotion } from './MotionContext';
-import { DARK, LIGHT, RADII, TYPE, inkFor, type Palette, type Radii } from './tokens';
+import { DARK, LIGHT, TYPE, cornersFor, inkFor, type Corners, type Palette } from './tokens';
 
 // Where the app's look comes from, and in which order.
 //
@@ -33,7 +34,7 @@ import { DARK, LIGHT, RADII, TYPE, inkFor, type Palette, type Radii } from './to
 //
 //   1. a local override, where somebody has set one here
 //   2. whatever the active instance reports
-//   3. GlimStone's defaults, Sunflower and round
+//   3. GlimStone's defaults, Sunflower and soft
 //
 // Light and dark have only layers 1 and 3: an instance carries no theme
 // setting, on the web either, where it follows the device through
@@ -57,7 +58,11 @@ export interface Appearance {
   accentInk: string;
   /** The accent at low opacity, for a fill behind it. */
   accentSoft: string;
-  radii: Radii;
+  /** The shape in force, for the picker that marks it. */
+  shape: Shape;
+  /** Each radius as a style to spread, since the leaf needs more than one
+   *  number per element. */
+  corners: Corners;
   type: typeof TYPE;
   /** The colour for one list position, or undefined when the mode is off and
    *  the single accent applies. While disco walks, a new function every frame
@@ -330,7 +335,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     const chosen = override.accent ?? (valid(instance?.accent) ? instance?.accent : undefined);
     const accent = chosen ?? DEFAULT_ACCENT;
 
-    const shape = override.shape ?? asShape(instance?.shape) ?? 'round';
+    const shape = override.shape ?? asShape(instance?.shape) ?? DEFAULT_SHAPE;
 
     // What disco draws: each position walked along the loop from the colour it
     // has at rest, rotation included, so switching it on moves nothing until
@@ -347,7 +352,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       accentContrast: contrastOn(accent),
       accentInk: dark ? accent : inkFor(accent),
       accentSoft: softOn(accent),
-      radii: RADII[shape] ?? RADII.round,
+      shape,
+      corners: cornersFor(shape),
       type: TYPE,
       hueAt,
       rainbow,

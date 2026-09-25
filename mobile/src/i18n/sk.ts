@@ -72,7 +72,6 @@ export const sk: Dict = {
   'settings.theme.dark': 'Tmavý',
   'settings.corners': 'Rohy',
   'settings.corners.round': 'Okrúhle',
-  'settings.corners.soft': 'Jemné',
   'settings.corners.square': 'Ostré',
   'settings.accent': 'Zvýraznenie',
   'settings.rainbow': 'Režim dúha',

@@ -72,7 +72,6 @@ export const pt: Dict = {
   'settings.theme.dark': 'Escuro',
   'settings.corners': 'Cantos',
   'settings.corners.round': 'Arredondados',
-  'settings.corners.soft': 'Suaves',
   'settings.corners.square': 'Retos',
   'settings.accent': 'Destaque',
   'settings.rainbow': 'Modo arco-íris',

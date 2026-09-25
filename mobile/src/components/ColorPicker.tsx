@@ -100,7 +100,7 @@ export default function ColorPicker({
   onPick: (hex: string) => void;
   onClose: () => void;
 }) {
-  const { c, radii, accent } = useAppearance();
+  const { c, corners, accent } = useAppearance();
   const { motion } = useMotion();
   const { t } = useT();
   const start = hexToHsv(initial) ?? { h: 45, s: 1, v: 1 };
@@ -197,14 +197,14 @@ export default function ColorPicker({
           stylesheet is built once and cannot follow a theme change. */}
       <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
         <Pressable
-          style={[styles.panel, { backgroundColor: c.surface, borderRadius: radii.card }]}
+          style={[styles.panel, { backgroundColor: c.surface, ...corners.card }]}
           onPress={() => {}}
         >
           {/* The pad: saturation left to right, value bottom to top, at the
               hue chosen on the rail below. */}
           <View
             ref={padRef}
-            style={[styles.pad, { borderRadius: radii.control }]}
+            style={[styles.pad, { ...corners.control }]}
             // measureInWindow rather than the layout event's own x/y, which
             // are relative to the parent while the gesture reports screen
             // coordinates. Re-measured on every layout, because the panel is
@@ -239,7 +239,7 @@ export default function ColorPicker({
 
           {/* The hue rail. Tapped rather than dragged: it is 24 wide targets in
               a row, and a tap lands on the one you meant. */}
-          <View style={[styles.rail, { borderRadius: radii.control }]}>
+          <View style={[styles.rail, { ...corners.control }]}>
             {Array.from({ length: HUES }, (_, i) => {
               const h = (i * 360) / HUES;
               return (
@@ -259,9 +259,9 @@ export default function ColorPicker({
           </View>
 
           <View style={styles.foot}>
-            <View style={[styles.preview, { backgroundColor: current, borderRadius: radii.pill }]} />
+            <View style={[styles.preview, { backgroundColor: current, ...corners.pill }]} />
             <TextInput
-              style={[styles.hex, { backgroundColor: c.surface2, color: c.text, borderRadius: radii.control }]}
+              style={[styles.hex, { backgroundColor: c.surface2, color: c.text, ...corners.control }]}
               value={current.toUpperCase()}
               autoCapitalize="characters"
               autoCorrect={false}

@@ -696,7 +696,7 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
                 <button
                   type="button"
                   {...openHover}
-                  className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5
+                  className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5
                     transition-colors hover:bg-carbon-surface3 hover:text-carbon-textSub"
                   onClick={() => setWhyOpen(true)}
                 >

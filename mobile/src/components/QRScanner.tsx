@@ -14,7 +14,7 @@ import { Text } from './Text';
 // navigation stack.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
-  const { c, accent, radii } = useAppearance();
+  const { c, accent, corners } = useAppearance();
   const { motion } = useMotion();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
@@ -53,7 +53,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
               onBarcodeScanned={(result) => handleScanned(result.data)}
             />
             <View style={styles.overlay} pointerEvents="none">
-              <View style={[styles.frame, { borderColor: accent, borderRadius: radii.card }]} />
+              <View style={[styles.frame, { borderColor: accent, ...corners.card }]} />
               <Text style={[styles.hint, { color: c.text }]}>{hint}</Text>
             </View>
           </>

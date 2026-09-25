@@ -72,7 +72,6 @@ export const gl: Dict = {
   'settings.theme.dark': 'Escuro',
   'settings.corners': 'Esquinas',
   'settings.corners.round': 'Redondeadas',
-  'settings.corners.soft': 'Suaves',
   'settings.corners.square': 'Rectas',
   'settings.accent': 'Acento',
   'settings.rainbow': 'Modo arco da vella',

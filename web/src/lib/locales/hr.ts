@@ -225,7 +225,6 @@ export const hr: Dict = {
   'settings.shape': 'Kutovi',
   'settings.shapeHint': 'Vrijedi odjednom za kartice, gumbe, jezičce, polja i oznake.',
   'settings.shape.round': 'Zaobljeni',
-  'settings.shape.soft': 'Blagi',
   'settings.shape.square': 'Ravni',
   'settings.accent': 'Boja naglaska',
   'settings.accentHint': 'Jedina boja za aktivnost. Tekst na njoj bira se prema kontrastu.',

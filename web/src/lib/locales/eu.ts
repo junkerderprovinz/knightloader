@@ -225,7 +225,6 @@ export const eu: Dict = {
   'settings.shape': 'Izkinak',
   'settings.shapeHint': 'Txartel, botoi, fitxa, eremu eta bereizgarrietan aldi berean aplikatzen da.',
   'settings.shape.round': 'Biribilak',
-  'settings.shape.soft': 'Leunak',
   'settings.shape.square': 'Zuzenak',
   'settings.accent': 'Azentu kolorea',
   'settings.accentHint': 'Jarduerarako kolore bakarra. Gaineko testua kontrastearen arabera aukeratzen da.',

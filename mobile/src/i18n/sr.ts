@@ -72,7 +72,6 @@ export const sr: Dict = {
   'settings.theme.dark': 'Тамна',
   'settings.corners': 'Углови',
   'settings.corners.round': 'Округли',
-  'settings.corners.soft': 'Благи',
   'settings.corners.square': 'Оштри',
   'settings.accent': 'Нагласак',
   'settings.rainbow': 'Режим дуге',

@@ -217,7 +217,6 @@ export const es: Dict = {
   'settings.shape': 'Esquinas',
   'settings.shapeHint': 'Se aplica a la vez a tarjetas, botones, pestañas, campos e insignias.',
   'settings.shape.round': 'Redondas',
-  'settings.shape.soft': 'Suaves',
   'settings.shape.square': 'Rectas',
   'settings.accent': 'Color de acento',
   'settings.accentHint': 'El único color para la actividad. El texto encima se elige por contraste.',

@@ -1,4 +1,4 @@
-// Appearance is the set of looks the user owns: how rounded the interface is,
+// Appearance is the set of looks the user owns: what shape the corners take,
 // and which colour marks activity, one accent or a palette handed out by
 // position. Everything is applied to the document root, so components pick it
 // up through the tokens they already read.
@@ -7,9 +7,27 @@
 // useRainbow.ts. The reference copy lives at
 // https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
 
-export type Shape = 'round' | 'soft' | 'square';
+/**
+ * The corner shapes. Like the motion levels these strings are a wire format:
+ * they go into `data-shape`, index.css, the server's settings and the cache,
+ * and what the user reads comes from the catalogues.
+ *
+ * `leaf` is a real shape (see `data-shape="leaf"` in index.css) that no picker
+ * offers; `leafTap` reveals it.
+ */
+export type Shape = 'round' | 'soft' | 'square' | 'leaf';
 
+/** The shapes a picker shows. */
 export const SHAPES: Shape[] = ['round', 'soft', 'square'];
+
+/**
+ * The shapes a stored value may hold. Validate against this and populate a
+ * picker from SHAPES, or a found leaf forgets itself on reload.
+ */
+export const SHAPES_STORED: Shape[] = [...SHAPES, 'leaf'];
+
+/** Only reaches somebody with no stored shape; a stored choice stays. */
+export const DEFAULT_SHAPE: Shape = 'soft';
 
 /** The built-in accent, shared with the sibling apps. Empty in settings means this. */
 export const DEFAULT_ACCENT = '#FCC419';
@@ -65,9 +83,32 @@ export const RAINBOW_OFF: RainbowState = {
 
 /** applyShape sets the attribute the radius tokens key off. */
 export function applyShape(shape: Shape | string | undefined): void {
-  const s = SHAPES.includes(shape as Shape) ? (shape as Shape) : 'round';
+  const s = SHAPES_STORED.includes(shape as Shape) ? (shape as Shape) : DEFAULT_SHAPE;
   document.documentElement.setAttribute('data-shape', s);
   armShapeTransition();
+}
+
+/** How many taps on `square`, once it is chosen, reveal the leaf. */
+export const LEAF_TAPS = 5;
+
+/**
+ * leafTap counts the gesture that reveals the leaf, the storm's gesture on the
+ * shape picker: with the shape at `square`, tap `square` five more times.
+ * Tapping another shape resets the count. As with the storm, the caller keeps
+ * `found` and the count in the state of the screen that found it, never in
+ * storage.
+ *
+ * Returns the shape to switch to, or undefined when the tap was not the fifth.
+ */
+export function leafTap(state: { taps: number }, tapped: string, current: string): Shape | undefined {
+  if (tapped !== 'square' || current !== 'square') {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < LEAF_TAPS) return undefined;
+  state.taps = 0;
+  return 'leaf';
 }
 
 let shapeTransitionArmed = false;
@@ -308,11 +349,11 @@ export function applyCachedAppearance(): void {
       applyAccent(accent);
       applyRainbow(rainbow);
     } else {
-      applyShape('round');
+      applyShape(DEFAULT_SHAPE);
       applyRainbow(undefined);
     }
   } catch {
-    applyShape('round');
+    applyShape(DEFAULT_SHAPE);
     applyRainbow(undefined);
   }
 }

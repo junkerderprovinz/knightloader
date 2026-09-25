@@ -217,7 +217,6 @@ export const pt: Dict = {
   'settings.shape': 'Cantos',
   'settings.shapeHint': 'Aplica-se de uma vez a cartões, botões, separadores, campos e emblemas.',
   'settings.shape.round': 'Redondos',
-  'settings.shape.soft': 'Suaves',
   'settings.shape.square': 'Retos',
   'settings.accent': 'Cor de destaque',
   'settings.accentHint': 'A única cor da atividade. O texto por cima é escolhido por contraste.',

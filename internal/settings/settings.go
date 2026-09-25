@@ -303,8 +303,9 @@ type Settings struct {
 	// default, and a bool has no wrong value.
 	Metrics bool `json:"metrics"`
 
-	// Shape is how rounded the whole interface is: "round", "soft" or "square".
-	// One knob drives every corner, so the app never looks half-converted.
+	// Shape is what shape the interface's corners take: "round", "soft",
+	// "square", or "leaf", which no picker offers until it is found. One knob
+	// drives every corner, so the app never looks half-converted.
 	Shape string `json:"shape"`
 	// Accent is the one colour the interface uses for activity, as #rrggbb.
 	// Empty means the built-in heraldic gold.
@@ -708,7 +709,7 @@ func Defaults() Settings {
 		// Never ExcludeAndRemove, see confirm.DefaultPolicy.
 		OnDupes:         string(confirm.DefaultPolicy),
 		OnOffline:       string(confirm.DefaultPolicy),
-		Shape:           ShapeRound,
+		Shape:           DefaultShape,
 		NavLabels:       NavLabelsBoth,
 		BottomBarLabels: BottomBarFollowsNav,
 		// Keep the archive, unpack beside it, and write into the folder that is

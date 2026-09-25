@@ -72,7 +72,6 @@ export const ru: Dict = {
   'settings.theme.dark': 'Тёмная',
   'settings.corners': 'Углы',
   'settings.corners.round': 'Круглые',
-  'settings.corners.soft': 'Мягкие',
   'settings.corners.square': 'Острые',
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Режим радуги',

@@ -99,7 +99,7 @@ function useDrawAndStrike(): {
 // filled with the accent. No `gap` here: the centred modes need none, and two
 // gap utilities on one element resolve by stylesheet order.
 export const navBase =
-  'glim-nav-row relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
+  'glim-nav-row relative flex items-center rounded-[var(--radius-pill)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
 // The 2px nudge toward the content makes hover readable on a quiet rail.
 export const navInactive =
@@ -338,7 +338,7 @@ async function signOut(): Promise<void> {
 // make the segments equal whatever their words, so the filled one keeps its
 // shape from page to page (GlimStone, "The bottom bar").
 export const barSegment =
-  'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-control)] px-0.5 text-[11px] font-medium leading-[14px] transition-colors duration-150 select-none';
+  'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-pill)] px-0.5 text-[11px] font-medium leading-[14px] transition-colors duration-150 select-none';
 export const barIdle = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 /**

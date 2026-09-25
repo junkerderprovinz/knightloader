@@ -63,7 +63,7 @@ function statusColor(status: string, c: Palette, accentInk: string): string {
 
 export default function TaskRow({ task, index }: { task: Task; index: number }) {
   const { t } = useT();
-  const { c, accent, dark, radii, hueAt, rainbow } = useAppearance();
+  const { c, accent, dark, corners, hueAt, rainbow } = useAppearance();
   // The rainbow hands colours out by position, so this row's colour comes from
   // where it sits rather than from its id. A hash keeps a row's colour when the
   // rows above it finish, and with three rows and eight colours it gives two
@@ -84,7 +84,7 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
     <View
       style={[
         styles.row,
-        { backgroundColor: c.surface, borderRadius: radii.card },
+        { backgroundColor: c.surface, ...corners.card },
         // The row carries a wash of its colour. Without it the hue reaches the
         // row only through the progress bar, which turns green when a download
         // finishes, so a list of finished downloads would show nothing of the
@@ -112,7 +112,7 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
       </View>
 
       {task.status === 'running' && (
-        <View style={[styles.progressTrack, { backgroundColor: c.surface2, borderRadius: radii.pill }]}>
+        <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
           <View style={[styles.progressFill, { width: `${pct ?? 0}%`, backgroundColor: rowAccent }]} />
         </View>
       )}

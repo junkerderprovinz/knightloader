@@ -72,7 +72,6 @@ export const th: Dict = {
   'settings.theme.dark': 'มืด',
   'settings.corners': 'มุม',
   'settings.corners.round': 'มน',
-  'settings.corners.soft': 'มนเล็กน้อย',
   'settings.corners.square': 'เหลี่ยม',
   'settings.accent': 'สีเน้น',
   'settings.rainbow': 'โหมดสายรุ้ง',

@@ -392,7 +392,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
               setOpen(false);
               inputRef.current?.focus();
             }}
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)]
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
               text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
           >
             <IconClose width={13} height={13} />

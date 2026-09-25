@@ -225,7 +225,6 @@ export const th: Dict = {
   'settings.shape': 'มุม',
   'settings.shapeHint': 'ใช้กับการ์ด ปุ่ม แท็บ ช่องกรอก และป้ายพร้อมกัน',
   'settings.shape.round': 'โค้ง',
-  'settings.shape.soft': 'มนเล็กน้อย',
   'settings.shape.square': 'เหลี่ยม',
   'settings.accent': 'สีเน้น',
   'settings.accentHint': 'สีเดียวที่ใช้แสดงการทำงาน ตัวอักษรบนสีนี้เลือกตามความต่างของสี',

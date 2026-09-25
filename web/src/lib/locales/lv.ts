@@ -225,7 +225,6 @@ export const lv: Dict = {
   'settings.shape': 'Stūri',
   'settings.shapeHint': 'Attiecas uzreiz uz kartēm, pogām, cilnēm, laukiem un nozīmītēm.',
   'settings.shape.round': 'Apaļi',
-  'settings.shape.soft': 'Mīksti',
   'settings.shape.square': 'Taisni',
   'settings.accent': 'Akcenta krāsa',
   'settings.accentHint': 'Vienīgā krāsa aktivitātei. Teksts uz tās tiek izvēlēts pēc kontrasta.',

@@ -472,7 +472,7 @@ function RuleRow({
           {/* Red reports the rule's state; it sits inside the expand button,
               whose own classes carry no status colour. */}
           {broken && (
-            <span className="shrink-0 rounded-[var(--radius-control)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
+            <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
               {problems.length === 1
                 ? t('settings.rules.problemOne')
                 : t('settings.rules.problemCount', { n: problems.length })}
@@ -696,7 +696,7 @@ function Outcomes({
           <li key={i} className="glim-well flex flex-col gap-1.5 p-3 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`rounded-[var(--radius-control)] px-2 py-0.5 text-[11px] ${
+                className={`rounded-[var(--radius-pill)] px-2 py-0.5 text-[11px] ${
                   rejected ? 'bg-statusFailBg text-statusFail' : 'text-carbon-textSub'
                 }`}
               >

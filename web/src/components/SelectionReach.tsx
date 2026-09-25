@@ -48,7 +48,7 @@ export function SelectionReach({
           type="button"
           {...tipHoverProps}
           aria-label={aria}
-          className="rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5 transition-colors
+          className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 transition-colors
             hover:bg-carbon-surface3 hover:text-carbon-text focus-visible:text-carbon-text"
           onClick={onReduce}
         >

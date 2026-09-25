@@ -225,7 +225,6 @@ export const tr: Dict = {
   'settings.shape': 'Köşeler',
   'settings.shapeHint': 'Kartlara, düğmelere, sekmelere, alanlara ve rozetlere aynı anda uygulanır.',
   'settings.shape.round': 'Yuvarlak',
-  'settings.shape.soft': 'Hafif',
   'settings.shape.square': 'Köşeli',
   'settings.accent': 'Vurgu rengi',
   'settings.accentHint': 'Etkinlik için tek renk. Üzerindeki yazı karşıtlığa göre seçilir.',

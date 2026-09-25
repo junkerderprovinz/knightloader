@@ -11,7 +11,7 @@ import { Arrive, MovingList } from '../components/Moving';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
   const { t, lang, setLanguage } = useT();
-  const { c, accentInk, radii } = useAppearance();
+  const { c, accentInk, corners } = useAppearance();
   const [override, setOverride] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
                   // The chosen row is a deeper fill with accent ink rather than
                   // an outline: this language separates by shade, and a ring
                   // here would be the one drawn border on the screen.
-                  { backgroundColor: isSelected ? c.surface2 : c.surface, borderRadius: radii.card },
+                  { backgroundColor: isSelected ? c.surface2 : c.surface, ...corners.card },
                 ]}
                 onPress={() => pick(item.code)}
               >

@@ -18,7 +18,7 @@ import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabelSetting, useNavLabels } from '../../lib/navLabels';
-import { useT } from '../../lib/i18n';
+import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
@@ -26,6 +26,7 @@ import {
   MOTION_LEVELS,
   RAINBOW,
   SHAPES,
+  SHAPES_STORED,
   type Motion,
   type Shape,
   applyAccent,
@@ -36,6 +37,7 @@ import {
   cacheDisco,
   cacheMotionIntensity,
   hueVars,
+  leafTap,
   rainbowFromSettings,
   readCachedDisco,
   readCachedMotionIntensity,
@@ -84,6 +86,15 @@ const SLOTS_KEY = 'kl-accent-slots';
 
 /** The appearance fields this page saves on every change. */
 const LOOK_KEYS = ['shape', 'accent', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'] as const;
+
+/** The shape picker's words. Soft's key says what the shape is rather than
+ *  repeating the English word, so a translation starts from the meaning. */
+const SHAPE_LABELS: Record<Shape, TranslationKey> = {
+  round: 'settings.shape.round',
+  soft: 'settings.shape.slightlyRounded',
+  square: 'settings.shape.square',
+  leaf: 'settings.shape.leaf',
+};
 
 interface SlotMemory {
   /**
@@ -256,6 +267,15 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // Counting, not rendering; any tap off the top level resets it.
   const stormTaps = useRef({ taps: 0 });
 
+  // The hidden fourth shape (lib/appearance.ts's leafTap), found and offered
+  // by the storm's rule. The shape arrives with the settings rather than from
+  // this browser, so an effect marks it found once it is the one in force.
+  const [leafFound, setLeafFound] = useState(false);
+  useEffect(() => {
+    if (cfg.shape === 'leaf') setLeafFound(true);
+  }, [cfg.shape]);
+  const leafTaps = useRef({ taps: 0 });
+
   // Disco, the colour engine's egg (lib/disco.ts's discoTap), found by
   // turning rainbow mode on five times in quick succession. The switch is
   // stored per browser; having found it is state of this screen, like the
@@ -397,13 +417,22 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <SectionTitle hint={t('settings.shapeHint')}>
           {t('settings.shape')}
         </SectionTitle>
-        {/* The well variant of Tabs: one padded track, equal segments, no glyphs. */}
+        {/* The well variant of Tabs: one padded track, equal segments, no glyphs.
+            The leaf joins it only while it has just been found or is in force. */}
         <Tabs
           label={t('settings.shape')}
           variant="well"
           active={cfg.shape}
-          onSelect={(id) => patch({ shape: id as Shape })}
-          items={SHAPES.map((s) => ({ id: s, label: t(`settings.shape.${s}` as never) }))}
+          onSelect={(id) => {
+            // Taps on a chosen square count toward the hidden shape.
+            const found = leafTap(leafTaps.current, id, cfg.shape);
+            if (found) setLeafFound(true);
+            patch({ shape: found ?? (id as Shape) });
+          }}
+          items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
+            id: s,
+            label: t(SHAPE_LABELS[s]),
+          }))}
         />
       </Card>
       )}

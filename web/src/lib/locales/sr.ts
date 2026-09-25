@@ -225,7 +225,6 @@ export const sr: Dict = {
   'settings.shape': 'Углови',
   'settings.shapeHint': 'Важи одједном за картице, дугмад, језичке, поља и ознаке.',
   'settings.shape.round': 'Заобљени',
-  'settings.shape.soft': 'Благи',
   'settings.shape.square': 'Оштри',
   'settings.accent': 'Боја нагласка',
   'settings.accentHint': 'Једина боја за активност. Текст на њој се бира по контрасту.',

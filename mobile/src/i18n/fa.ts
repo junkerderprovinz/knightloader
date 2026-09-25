@@ -72,7 +72,6 @@ export const fa: Dict = {
   'settings.theme.dark': 'تیره',
   'settings.corners': 'گوشه‌ها',
   'settings.corners.round': 'گرد',
-  'settings.corners.soft': 'ملایم',
   'settings.corners.square': 'تیز',
   'settings.accent': 'رنگ تأکید',
   'settings.rainbow': 'حالت رنگین‌کمان',

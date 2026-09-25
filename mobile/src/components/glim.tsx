@@ -41,7 +41,7 @@ export function NotchCard({
   style?: ViewStyle;
   children: ReactNode;
 }) {
-  const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
+  const { c, accent, accentContrast, corners, hueAt, rainbow } = useAppearance();
   const { fill, ink } = restingFill(hue, {
     accent,
     accentContrast,
@@ -52,8 +52,8 @@ export function NotchCard({
   });
   return (
     <Arrive style={[styles.cardWrap, style]}>
-      <View style={[styles.card, { backgroundColor: c.surface, borderRadius: radii.card }]}>{children}</View>
-      <View style={[styles.notch, { backgroundColor: fill, borderRadius: radii.pill }]}>
+      <View style={[styles.card, { backgroundColor: c.surface, ...corners.card }]}>{children}</View>
+      <View style={[styles.notch, { backgroundColor: fill, ...corners.pill }]}>
         <Text style={[styles.notchText, { color: ink }]} numberOfLines={1}>
           {title}
         </Text>
@@ -74,7 +74,7 @@ export function WellSelector<T extends string>({
   value: T;
   onPick: (v: T) => void;
 }) {
-  const { c, accent, accentContrast, radii, hueAt } = useAppearance();
+  const { c, accent, accentContrast, corners, hueAt } = useAppearance();
   // Four segments do not fit a narrow phone at the three-segment geometry.
   //
   // The groove sizes itself to its content and each segment carries a floor of
@@ -89,7 +89,7 @@ export function WellSelector<T extends string>({
   // labels stay on one line.
   const eng = options.length > 3;
   return (
-    <View style={[styles.well, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
+    <View style={[styles.well, { backgroundColor: c.surface2, ...corners.pill }]}>
       {options.map((o, i) => {
         const on = o.value === value;
         // Each segment owns a palette position. The design language names a
@@ -102,11 +102,10 @@ export function WellSelector<T extends string>({
           <TouchableOpacity
             key={o.value}
             onPress={() => onPick(o.value)}
-            /* No radius on the segment. The groove is the one shape here and
-               the radius sits on it; a segment that rounds its own corners
-               inside a rounded track reads as a key loose in a slot rather
-               than as one control with several settled positions. */
-            style={[styles.segment, eng && styles.segmentEng, on && { backgroundColor: fill }]}
+            /* The segment takes the groove's radius, so in round the groove is
+               a pill with a pill inside it. Its 3 points of padding are far
+               too few to keep a square corner inside a pill's arc. */
+            style={[styles.segment, eng && styles.segmentEng, corners.pill, on && { backgroundColor: fill }]}
           >
             {/* Computed against the fill it landed on rather than the flat
                 accent's contrast: a palette position can be far lighter or
@@ -148,21 +147,21 @@ export function GlimToggle({
   onChange: (v: boolean) => void;
   hue?: number;
 }) {
-  const { c, accent, radii, hueAt } = useAppearance();
+  const { c, accent, corners, hueAt } = useAppearance();
   const on = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   return (
     <TouchableOpacity
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
       onPress={() => onChange(!value)}
-      style={[styles.track, { borderRadius: radii.pill, backgroundColor: value ? on : c.surface3 }]}
+      style={[styles.track, { ...corners.pill, backgroundColor: value ? on : c.surface3 }]}
     >
       {/* The knob is the page's own ground sitting on the track rather than a
           fixed white, so it reads dark in dark mode and light in light. */}
       <View
         style={[
           styles.knob,
-          { borderRadius: radii.pill, backgroundColor: c.bg, alignSelf: value ? 'flex-end' : 'flex-start' },
+          { ...corners.pill, backgroundColor: c.bg, alignSelf: value ? 'flex-end' : 'flex-start' },
         ]}
       />
     </TouchableOpacity>
@@ -206,9 +205,9 @@ export function GlimRow({
  * hang a bubble on.
  */
 export function UnavailableNotice({ title, reason }: { title: string; reason: string }) {
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   return (
-    <View style={[styles.notice, { backgroundColor: c.statusWarnBgSoft, borderRadius: radii.card }]}>
+    <View style={[styles.notice, { backgroundColor: c.statusWarnBgSoft, ...corners.card }]}>
       <Text style={[styles.noticeTitle, { color: c.text }]}>{title}</Text>
       <Text style={[styles.noticeReason, { color: c.textSub }]}>{reason}</Text>
     </View>
@@ -219,11 +218,11 @@ export function UnavailableNotice({ title, reason }: { title: string; reason: st
  *  card colour and then the ink, drawn as nested views rather than a border,
  *  because a border is a line and this language has none. */
 export function Swatch({ hex, selected, onPress, label }: { hex: string; selected: boolean; onPress: () => void; label: string }) {
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   return (
-    <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={[styles.swatchRing, { borderRadius: radii.pill, backgroundColor: selected ? c.text : 'transparent' }]}>
-      <View style={[styles.swatchGap, { borderRadius: radii.pill, backgroundColor: selected ? c.surface : 'transparent' }]}>
-        <View style={[styles.swatchFill, { borderRadius: radii.pill, backgroundColor: hex }]} />
+    <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={[styles.swatchRing, { ...corners.pill, backgroundColor: selected ? c.text : 'transparent' }]}>
+      <View style={[styles.swatchGap, { ...corners.pill, backgroundColor: selected ? c.surface : 'transparent' }]}>
+        <View style={[styles.swatchFill, { ...corners.pill, backgroundColor: hex }]} />
       </View>
     </TouchableOpacity>
   );
@@ -237,13 +236,13 @@ export function Swatch({ hex, selected, onPress, label }: { hex: string; selecte
  * things, which is how the extension's row has looked since GlimStone 1.6.0.
  */
 export function SwatchReset({ onPress, label }: { onPress: () => void; label: string }) {
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   return (
     <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={styles.swatchRing}>
-      <View style={[styles.swatchGap, { borderRadius: radii.pill, backgroundColor: c.surface2 }]}>
+      <View style={[styles.swatchGap, { ...corners.pill, backgroundColor: c.surface2 }]}>
         {/* A counter-clockwise arrow, drawn as an open ring with a head, in the
             same filled register as every other glyph. */}
-        <View style={[styles.resetRing, { borderColor: c.textSub, borderRadius: radii.pill }]} />
+        <View style={[styles.resetRing, { borderColor: c.textSub, ...corners.pill }]} />
         <View style={[styles.resetHead, { borderBottomColor: c.textSub }]} />
       </View>
     </TouchableOpacity>
@@ -431,7 +430,7 @@ const styles = StyleSheet.create({
  * every status colour it is handed is a six-digit hex.
  */
 export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' }) {
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   const { t } = useT();
   const ink =
     status === 'online' ? c.statusOkSolid : status === 'checking' ? c.statusWarnSolid : c.statusFailSolid;
@@ -440,7 +439,7 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
   const label =
     status === 'online' ? t('instance.online') : status === 'checking' ? t('instance.checking') : t('instance.offline');
   return (
-    <View style={[styles.statusBadge, { backgroundColor: ground, borderRadius: radii.pill }]}>
+    <View style={[styles.statusBadge, { backgroundColor: ground, ...corners.pill }]}>
       <Text style={[styles.statusText, { color: ink }]}>{label}</Text>
     </View>
   );
@@ -514,7 +513,7 @@ export function GlimButton({
   grow?: boolean;
   style?: ViewStyle;
 }) {
-  const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
+  const { c, accent, accentContrast, corners, hueAt, rainbow } = useAppearance();
   const { fill, ink: filledInk } = restingFill(hue, {
     accent,
     accentContrast,
@@ -532,7 +531,7 @@ export function GlimButton({
     <TouchableOpacity
       style={[
         styles.button,
-        { backgroundColor: ground, borderRadius: radii.control },
+        { backgroundColor: ground, ...corners.pill },
         grow ? { flex: 1 } : null,
         disabled || busy ? styles.buttonOff : null,
         style,
@@ -612,7 +611,7 @@ export function BrandButton({
   onPress: () => void;
   hue?: number;
 }) {
-  const { c, dark, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
+  const { c, dark, accent, accentContrast, corners, hueAt, rainbow } = useAppearance();
   let rest: string;
   let fill: string;
   let ink: string;
@@ -643,7 +642,7 @@ export function BrandButton({
         onPressOut={press.onPressOut}
         accessibilityRole="button"
         accessibilityLabel={label}
-        style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, borderRadius: radii.control }]}
+        style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, ...corners.pill }]}
       >
         {({ pressed }) => (
           <>

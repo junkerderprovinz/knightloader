@@ -225,7 +225,6 @@ export const ca: Dict = {
   'settings.shape': 'Cantons',
   'settings.shapeHint': "S'aplica alhora a targetes, botons, pestanyes, camps i distintius.",
   'settings.shape.round': 'Rodons',
-  'settings.shape.soft': 'Suaus',
   'settings.shape.square': 'Rectes',
   'settings.accent': "Color d'accent",
   'settings.accentHint': "L'únic color per a l'activitat. El text a sobre es tria per contrast.",

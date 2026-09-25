@@ -72,7 +72,6 @@ export const tr: Dict = {
   'settings.theme.dark': 'Koyu',
   'settings.corners': 'Köşeler',
   'settings.corners.round': 'Yuvarlak',
-  'settings.corners.soft': 'Yumuşak',
   'settings.corners.square': 'Keskin',
   'settings.accent': 'Vurgu',
   'settings.rainbow': 'Gökkuşağı modu',

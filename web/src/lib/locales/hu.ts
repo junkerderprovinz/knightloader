@@ -225,7 +225,6 @@ export const hu: Dict = {
   'settings.shape': 'Sarkok',
   'settings.shapeHint': 'Egyszerre vonatkozik a kártyákra, gombokra, fülekre, mezőkre és jelvényekre.',
   'settings.shape.round': 'Kerek',
-  'settings.shape.soft': 'Enyhe',
   'settings.shape.square': 'Szögletes',
   'settings.accent': 'Kiemelőszín',
   'settings.accentHint': 'Az egyetlen szín a tevékenységhez. A rajta lévő szöveget a kontraszt dönti el.',

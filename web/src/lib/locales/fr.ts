@@ -217,7 +217,6 @@ export const fr: Dict = {
   'settings.shape': 'Angles',
   'settings.shapeHint': 'S’applique d’un coup aux cartes, boutons, onglets, champs et badges.',
   'settings.shape.round': 'Arrondis',
-  'settings.shape.soft': 'Légers',
   'settings.shape.square': 'Droits',
   'settings.accent': 'Couleur d’accent',
   'settings.accentHint': 'La seule couleur de l’activité. Le texte dessus est choisi par contraste.',

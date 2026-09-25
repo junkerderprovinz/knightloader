@@ -217,7 +217,6 @@ export const ru: Dict = {
   'settings.shape': 'Углы',
   'settings.shapeHint': 'Действует сразу на карточки, кнопки, вкладки, поля и значки.',
   'settings.shape.round': 'Круглые',
-  'settings.shape.soft': 'Слегка',
   'settings.shape.square': 'Прямые',
   'settings.accent': 'Акцентный цвет',
   'settings.accentHint': 'Единственный цвет активности. Текст поверх подбирается по контрасту.',

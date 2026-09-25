@@ -23,7 +23,7 @@ function Chip({ label, hint, tone }: { label: string; hint?: string; tone: 'neut
   return (
     <span
       dir="auto"
-      className={`inline-flex min-w-0 shrink items-center rounded-[var(--radius-control)] px-2 py-0.5 text-[11px] ${ground}`}
+      className={`inline-flex min-w-0 shrink items-center rounded-[var(--radius-pill)] px-2 py-0.5 text-[11px] ${ground}`}
     >
       <span className="truncate">{label}</span>
       {hint && <InfoBubble tip={hint} label={label} />}

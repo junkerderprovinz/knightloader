@@ -227,7 +227,6 @@ export const no: Dict = {
   'settings.shape': 'Hjørner',
   'settings.shapeHint': 'Gjelder kort, knapper, faner, felt og merker på én gang.',
   'settings.shape.round': 'Runde',
-  'settings.shape.soft': 'Myke',
   'settings.shape.square': 'Skarpe',
   'settings.accent': 'Aksentfarge',
   'settings.accentHint': 'Den ene fargen for aktivitet. Teksten oppå velges etter kontrast.',

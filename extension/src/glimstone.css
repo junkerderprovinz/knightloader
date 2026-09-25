@@ -5,8 +5,13 @@
  */
 
 :root {
-  --radius-card: 1rem;
-  --radius-control: 0.625rem;
+  /* --radius-card is for cards, windows and menus, --radius-control for
+     fields, panels and tiles, and --radius-pill for everything somebody
+     presses: buttons, tabs, badges, selector segments and switches. Only round
+     tells the last two apart, and there the pressable things are true pills
+     while a text field keeps a corner a paragraph can sit in. */
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
   --radius-pill: 9999px;
 
   /* The fixed type scale. --text-caption serves the plain caption, the
@@ -60,6 +65,24 @@ body {
   --radius-card: 0;
   --radius-control: 0;
   --radius-pill: 0;
+}
+
+/* The hidden shape (leafTap in appearance.js): two opposite corners rounded,
+   the other two sharp. The tokens stay single lengths, so a calc() on them
+   keeps working, and one rule takes the other diagonal away from every
+   element. It is physical rather than logical so the leaf leans the same way
+   in every language. */
+:root[data-shape="leaf"] {
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+  --radius-pill: 1.125rem;
+}
+
+:root[data-shape="leaf"] *,
+:root[data-shape="leaf"] *::before,
+:root[data-shape="leaf"] *::after {
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 /* The inline direction as a sign, for transforms and keyframes, which take no
@@ -366,16 +389,17 @@ body {
   gap: 2px;
   padding: 3px;
   background: var(--carbon-surface2);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
 }
 
-/* The segments have no radius of their own; the track is the one shape. Its
-   3px padding keeps a square corner inside the track's arc for every shape
-   setting, since a corner at (p,p) stays inside radius R while p >= 0.293R. */
+/* The segments take the track's radius, so in round the track is a pill with a
+   pill inside it. Its 3px padding is far too little to keep a square corner
+   inside a pill's arc. */
 .glim-seg button {
   flex: 1 0 auto;
   padding: 6px 14px;
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--carbon-text-sub);
   font: inherit;
@@ -880,7 +904,7 @@ body {
   height: var(--btn-h);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background: var(--carbon-surface3);
   color: var(--carbon-text);
   cursor: pointer;

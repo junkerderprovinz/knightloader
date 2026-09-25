@@ -85,7 +85,7 @@ export function BrowserTools() {
           <a
             href={bookmarklet}
             onClick={(e) => e.preventDefault()}
-            className="inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2
+            className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-carbon-surface2
               px-3.5 py-2 text-sm font-medium text-carbon-text hover:bg-carbon-surface3"
           >
             <img src={logoUrl} alt="" aria-hidden className="h-5 w-auto shrink-0" />

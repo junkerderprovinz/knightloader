@@ -68,7 +68,7 @@ export function SearchField({
             onChange({ ...value, text: '' });
             input.current?.focus();
           }}
-          className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)]
+          className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
             text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
         >
           {/* The glyph fills half the box. The hover is surface3 because the

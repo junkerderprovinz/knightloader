@@ -563,7 +563,7 @@ function PackageName({
         aria-expanded={!collapsed}
         aria-label={label}
         {...hover}
-        className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)] text-carbon-textSub
+        className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
           transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
       >
         <Twisty open={!collapsed} />

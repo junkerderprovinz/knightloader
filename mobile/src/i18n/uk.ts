@@ -72,7 +72,6 @@ export const uk: Dict = {
   'settings.theme.dark': 'Темна',
   'settings.corners': 'Кути',
   'settings.corners.round': 'Круглі',
-  'settings.corners.soft': 'М’які',
   'settings.corners.square': 'Гострі',
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Режим райдуги',

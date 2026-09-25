@@ -276,7 +276,7 @@ function ScriptRow({
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>
               {dirty && (
-                <span className="shrink-0 rounded-[var(--radius-control)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
+                <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
                   {t('settings.scripts.unsaved')}
                 </span>
               )}

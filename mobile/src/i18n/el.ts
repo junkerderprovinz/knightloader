@@ -72,7 +72,6 @@ export const el: Dict = {
   'settings.theme.dark': 'Σκούρο',
   'settings.corners': 'Γωνίες',
   'settings.corners.round': 'Στρογγυλές',
-  'settings.corners.soft': 'Απαλές',
   'settings.corners.square': 'Κοφτές',
   'settings.accent': 'Τονισμός',
   'settings.rainbow': 'Λειτουργία ουράνιου τόξου',

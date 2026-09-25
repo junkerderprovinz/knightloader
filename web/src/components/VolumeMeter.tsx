@@ -71,7 +71,7 @@ export function VolumeUsageRow() {
       {/* Without a cap a track could never fill. */}
       {capped && (
         <div
-          className="h-1.5 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
+          className="h-1.5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -79,7 +79,7 @@ export function VolumeUsageRow() {
           aria-label={t('volume.meter')}
         >
           <div
-            className="h-full rounded-[var(--radius-control)] transition-[width] duration-500 ease-out"
+            className="h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
             style={{
               width: `${filled}%`,
               background: usage.reached ? 'var(--status-fail-solid)' : 'var(--accent)',
@@ -125,7 +125,7 @@ export function VolumeMeter() {
       </span>
       {/* A thin track of its own; ProgressBar's h-5 would outweigh the controls above. */}
       <span
-        className="block h-1 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
+        className="block h-1 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -133,7 +133,7 @@ export function VolumeMeter() {
         aria-label={t('volume.meter')}
       >
         <span
-          className="block h-full rounded-[var(--radius-control)] transition-[width] duration-500 ease-out"
+          className="block h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
           style={{
             width: `${filled}%`,
             background: usage.reached ? 'var(--status-fail-solid)' : 'var(--accent)',

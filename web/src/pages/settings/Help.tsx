@@ -181,7 +181,7 @@ const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
  * mark the same colouring; each call site adds its own `glim-brand-<name>`.
  */
 const ABOUT_BTN =
-  'glim-brand-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2' +
+  'glim-brand-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-carbon-surface2' +
   ' px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none' +
   ' hover:bg-carbon-surface3 motion-safe:active:scale-[.98]';
 

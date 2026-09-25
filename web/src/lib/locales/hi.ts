@@ -225,7 +225,6 @@ export const hi: Dict = {
   'settings.shape': 'कोने',
   'settings.shapeHint': 'कार्ड, बटन, टैब, इनपुट और बैज सब पर एक साथ लागू।',
   'settings.shape.round': 'गोल',
-  'settings.shape.soft': 'हल्के',
   'settings.shape.square': 'सीधे',
   'settings.accent': 'एक्सेंट रंग',
   'settings.accentHint': 'गतिविधि का एक ही रंग। उस पर का टेक्स्ट कंट्रास्ट से चुना जाता है।',

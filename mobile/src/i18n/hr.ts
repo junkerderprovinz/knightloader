@@ -72,7 +72,6 @@ export const hr: Dict = {
   'settings.theme.dark': 'Tamna',
   'settings.corners': 'Kutovi',
   'settings.corners.round': 'Okrugli',
-  'settings.corners.soft': 'Blagi',
   'settings.corners.square': 'Oštri',
   'settings.accent': 'Naglasak',
   'settings.rainbow': 'Način rada duga',

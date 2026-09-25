@@ -72,7 +72,6 @@ export const hi: Dict = {
   'settings.theme.dark': 'डार्क',
   'settings.corners': 'कोने',
   'settings.corners.round': 'गोल',
-  'settings.corners.soft': 'नरम',
   'settings.corners.square': 'नुकीले',
   'settings.accent': 'एक्सेंट रंग',
   'settings.rainbow': 'इंद्रधनुष मोड',

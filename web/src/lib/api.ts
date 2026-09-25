@@ -2,6 +2,7 @@
 // they are named here rather than restated.
 import type { BarLabelMode, NavLabelMode } from './navLabels';
 import type { EventTargetRow } from './eventtargets';
+import type { Shape } from './appearance';
 
 export type TaskStatus =
   | 'collected'
@@ -482,7 +483,7 @@ export interface Settings {
   /** Finds links anywhere in a paste instead of reading one line as one link
    *  (JDownloader's AddLinksPreParserEnabled). */
   preParserEnabled: boolean;
-  shape: 'round' | 'soft' | 'square';
+  shape: Shape;
   accent: string;
   rainbow: boolean;
   rainbowReactive: boolean;

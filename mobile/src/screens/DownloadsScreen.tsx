@@ -40,7 +40,7 @@ export default function DownloadsScreen({
   onRemoveConnection?: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, accentInk, accentContrast, radii } = useAppearance();
+  const { c, accent, accentInk, accentContrast, corners } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -173,7 +173,7 @@ export default function DownloadsScreen({
                 on a tablet the two stand side by side. The overview's summary
                 card holds both in one box, and this is the same reading of the
                 same instance. */}
-            <Arrive style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+            <Arrive style={[styles.queueCard, { backgroundColor: c.surface, ...corners.card }]}>
               <View style={styles.queueBar}>
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
                   {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '-'}
@@ -336,7 +336,7 @@ export default function DownloadsScreen({
       />
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: accent, borderRadius: radii.pill, transform: [{ scale: fabPress.scale }] }]}
+        style={[styles.fab, { backgroundColor: accent, ...corners.pill, transform: [{ scale: fabPress.scale }] }]}
         onPress={onAddPress}
         onPressIn={fabPress.onPressIn}
         onPressOut={fabPress.onPressOut}

@@ -225,7 +225,6 @@ export const sv: Dict = {
   'settings.shape': 'Hörn',
   'settings.shapeHint': 'Gäller kort, knappar, flikar, fält och märken på en gång.',
   'settings.shape.round': 'Rundade',
-  'settings.shape.soft': 'Mjuka',
   'settings.shape.square': 'Raka',
   'settings.accent': 'Accentfärg',
   'settings.accentHint': 'Den enda färgen för aktivitet. Texten på den väljs efter kontrast.',

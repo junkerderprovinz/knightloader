@@ -72,7 +72,6 @@ export const sl: Dict = {
   'settings.theme.dark': 'Temna',
   'settings.corners': 'Vogali',
   'settings.corners.round': 'Okrogli',
-  'settings.corners.soft': 'Blagi',
   'settings.corners.square': 'Ostri',
   'settings.accent': 'Poudarek',
   'settings.rainbow': 'Mavrični način',
