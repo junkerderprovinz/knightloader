@@ -29,7 +29,6 @@ BUTTONS = {
     # One zip for every Chromium browser.
     "chrome": NEWEST % "extension" + "knightloader-extension.zip",
     # Firefox takes only a signed add-on, which release-extension.yml has
-    # Mozilla sign. Until a signed build is published the button has no link;
-    # then it becomes NEWEST % "extension" + "knightloader-extension.xpi".
-    "firefox": None,
+    # Mozilla sign.
+    "firefox": NEWEST % "extension" + "knightloader-extension.xpi",
 }
