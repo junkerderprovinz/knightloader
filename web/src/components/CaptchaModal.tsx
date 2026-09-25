@@ -76,6 +76,7 @@ const UNREACHABLE = ['script', 'timeout', 'network'];
 // Why the widget page gave up on a challenge before loading anything.
 const UNSOLVABLE_WHY: Partial<Record<string, TranslationKey>> = {
   vendor: 'captcha.unsolvableVendor',
+  turnstile: 'captcha.unsolvableTurnstile',
   action: 'captcha.unsolvableAction',
 };
 

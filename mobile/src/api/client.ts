@@ -1,4 +1,15 @@
-import { isRelayConnection, type AuthState, type Instance, type QueueState, type ServerConnection, type Task } from './types';
+import {
+  isRelayConnection,
+  type AuthState,
+  type CaptchaAbortScope,
+  type CaptchaChallenge,
+  type DirectConnection,
+  type Instance,
+  type QueueState,
+  type ServerConnection,
+  type Task,
+} from './types';
+import { widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
@@ -363,6 +374,19 @@ export function pollTasks(
   onError?: (err: unknown) => void,
   intervalMs = 3000
 ): UnsubscribeFn {
+  const sorted = async () => (await fetchTasks(conn, base)).slice().sort((a, b) => a.position - b.position);
+  return poll(sorted, onSnapshot, onError, intervalMs);
+}
+
+/** A running poll: calling it stops it, and `refresh` pulls once, now. */
+export type Polling = UnsubscribeFn & { refresh: () => Promise<void> };
+
+function poll<T>(
+  get: () => Promise<T>,
+  onValue: (value: T) => void,
+  onError: ((err: unknown) => void) | undefined,
+  intervalMs: number
+): Polling {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
   // Which request is the newest. An immediate refresh on top of the running
@@ -375,8 +399,8 @@ export function pollTasks(
     if (stopped) return;
     const mine = ++issued;
     try {
-      const tasks = await fetchTasks(conn, base);
-      if (!stopped && mine === issued) onSnapshot(tasks.slice().sort((a, b) => a.position - b.position));
+      const value = await get();
+      if (!stopped && mine === issued) onValue(value);
     } catch (err) {
       if (!stopped && mine === issued) onError?.(err);
     } finally {
@@ -399,6 +423,70 @@ export function pollTasks(
     await tick();
   };
   return stop;
+}
+
+// The captcha calls the web UI's CaptchaModal makes, on the same routes
+// (internal/api/routes_captcha.go). Over the relay they reach an instance that
+// forwards them (relayCaptchaRoute); an older one refuses them with a 403, see
+// captchaErrorText.
+
+/** Every captcha waiting on the connected instance, read from its cache. */
+export async function fetchCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
+  return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha')) ?? [];
+}
+
+/** Has the instance ask JD now instead of at its next check. */
+export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
+  return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha/refresh', { method: 'POST', body: '{}' })) ?? [];
+}
+
+/** stillValid is JD's verdict on whether the answer arrived in time; trust it
+ *  over the countdown on screen. */
+export async function answerCaptcha(conn: ServerConnection, id: string, text: string): Promise<{ stillValid: boolean }> {
+  return request<{ stillValid: boolean }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
+}
+
+/** Gives up on one challenge. JD keeps the blacklist for the two wider scopes. */
+export async function skipCaptcha(conn: ServerConnection, id: string, scope: CaptchaAbortScope): Promise<void> {
+  await request(conn, '/api', `/captcha/${encodeURIComponent(id)}/skip`, {
+    method: 'POST',
+    body: JSON.stringify({ scope }),
+  });
+}
+
+export function pollCaptchas(
+  conn: ServerConnection,
+  onList: (list: CaptchaChallenge[]) => void,
+  onError?: (err: unknown) => void,
+  intervalMs = 5000
+): Polling {
+  return poll(() => fetchCaptchas(conn), onList, onError, intervalMs);
+}
+
+/**
+ * What a WebView loads for a widget challenge: the instance's widget page and
+ * the token it asks for. Only a direct connection has an address to load it
+ * from.
+ */
+export function captchaWidgetSource(
+  conn: DirectConnection,
+  ch: CaptchaChallenge,
+  lang: string
+): { uri: string; headers: Record<string, string> } {
+  return {
+    uri: `${conn.baseUrl}/api${widgetPath(ch, lang)}`,
+    headers: conn.token ? { Authorization: `Bearer ${conn.token}` } : {},
+  };
+}
+
+/** errorText for a captcha call. The relay refuses a route the instance does
+ *  not forward with a bare 403, which on these routes means it predates them. */
+export function captchaErrorText(t: (key: TranslationKey) => string, conn: ServerConnection, e: unknown): string {
+  if (isRelayConnection(conn) && e instanceof ApiError && e.status === 403) return t('captcha.relayRefused');
+  return errorText(t, e);
 }
 
 /**

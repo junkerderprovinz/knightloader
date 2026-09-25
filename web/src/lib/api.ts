@@ -1630,6 +1630,8 @@ export interface QueueCounters {
   remaining: number;
   speed: number;
   eta: number | null;
+  /** Challenges waiting for an answer, as many as /api/captcha lists. */
+  captchas: number;
 }
 
 /**

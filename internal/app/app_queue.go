@@ -1073,6 +1073,10 @@ type QueueCounters struct {
 	// ETA is seconds, and nil when nothing is moving or nothing is left; zero
 	// would read as "done in a moment".
 	ETA *int64 `json:"eta"`
+	// Captchas is how many challenges GET /api/captcha would list. Each one
+	// holds a download up, and a view of several instances reads the number
+	// here rather than downloading every picture to count them.
+	Captchas int `json:"captchas"`
 }
 
 // Counters computes the figures under the list.
@@ -1082,9 +1086,9 @@ type QueueCounters struct {
 // counts as a file but not in the bytes or the ETA. Held links count fully,
 // since a hold is a pause the user means to lift.
 func (a *App) Counters() QueueCounters {
+	c := QueueCounters{Captchas: len(a.captchaStateFor().store.List())}
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	var c QueueCounters
 	for _, t := range a.tasks {
 		switch t.Status {
 		case core.StatusDone, core.StatusError, core.StatusCollected:

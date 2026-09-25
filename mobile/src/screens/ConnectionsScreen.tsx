@@ -125,7 +125,8 @@ export default function ConnectionsScreen({
   // The numbers behind every card and behind the summary above them. Polled
   // rather than streamed, since a socket per instance is a lot of machinery for
   // a five-second refresh of a list somebody glances at. Two calls each: the
-  // queue for whether it is halted, /api/queue/counters for the figures.
+  // queue for whether it is halted, /api/queue/counters for the figures and
+  // how many captchas are waiting.
   const load = useCallback(async () => {
     const list = await listConnections();
     const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
@@ -368,6 +369,16 @@ export default function ConnectionsScreen({
                       that could. Same four figures and the same order as the
                       extension's card. */}
                   <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
+                    {/* Ahead of the figures and in the warn colour: a captcha
+                        holds a download until somebody answers it. */}
+                    {st && st.captchas > 0 ? (
+                      <>
+                        <Text style={{ color: c.statusWarnText }}>
+                          {st.captchas === 1 ? t('instance.captchasOne') : t('instance.captchas', { n: st.captchas })}
+                        </Text>
+                        {' · '}
+                      </>
+                    ) : null}
                     {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
                   </Text>
                 </View>

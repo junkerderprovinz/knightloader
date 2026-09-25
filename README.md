@@ -157,7 +157,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Browser extension | ✅ Chromium browsers and Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ Android | ✅ Android, iOS from a third party | ✅ Android, on F-Droid | ❌ |
 | Captchas answered in the app or browser | ✅ | ✅ | ✅ | ➖ |
-| Captchas answered on the phone | ❌ | ✅ | ✅ | ➖ |
+| Captchas answered on the phone | ⚠️ picture and click only | ✅ | ✅ | ➖ |
 | Paid captcha solvers | ✅ 2Captcha, Anti-Captcha, also for reCAPTCHA | ✅ | ✅ | ➖ |
 | Unpacking | ✅ no outside tools | ✅ | ⚠️ calls unrar and 7z | ✅ |
 | Rules for links and packages | ✅ with a test box | ✅ Packagizer, link filter | ⚠️ words in the link | ⚠️ patterns and a minimum size |

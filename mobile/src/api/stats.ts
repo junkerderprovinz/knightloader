@@ -21,6 +21,8 @@ export interface InstanceStats {
   /** Bytes still to fetch across everything unfinished. */
   remaining: number;
   halted: boolean;
+  /** Captchas waiting for an answer. */
+  captchas: number;
 }
 
 interface RawCounters {
@@ -29,6 +31,7 @@ interface RawCounters {
   disabled?: number;
   speed?: number;
   remaining?: number;
+  captchas?: number;
 }
 
 /**
@@ -40,10 +43,7 @@ export type StatsResult = { ok: true; stats: InstanceStats } | { ok: false; reas
 
 export async function fetchInstanceStats(conn: ServerConnection): Promise<StatsResult> {
   try {
-    const [queue, counters] = await Promise.all([
-      fetchQueue(conn),
-      request<RawCounters>(conn, '/api', '/queue/counters'),
-    ]);
+    const [queue, counters] = await Promise.all([fetchQueue(conn), request<RawCounters>(conn, '/api', '/queue/counters')]);
     return {
       ok: true,
       stats: {
@@ -52,6 +52,9 @@ export async function fetchInstanceStats(conn: ServerConnection): Promise<StatsR
         speed: counters.speed ?? 0,
         remaining: counters.remaining ?? 0,
         halted: queue.halted,
+        // Missing from an instance that predates the field, which reads as
+        // none rather than as a failed card.
+        captchas: counters.captchas ?? 0,
       },
     };
   } catch (e) {
@@ -75,6 +78,7 @@ export function aggregate(all: (InstanceStats | null)[]): InstanceStats & {
     // instance means the group is not stopped, and a play button that claimed
     // otherwise would be lying about what it offers to do.
     halted: live.length > 0 && live.every((s) => s.halted),
+    captchas: live.reduce((n, s) => n + s.captchas, 0),
     online: live.length,
     total: all.length,
   };

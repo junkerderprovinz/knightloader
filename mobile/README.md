@@ -90,9 +90,9 @@ rather than choices:
   the group key is the credential now: a request arriving that way came off a
   socket the relay only joins to connections presenting the same key, so the
   instance accepts it. This is what the phrase bought. What it admits is an
-  allowlist, not the whole API: tasks, links and the queue, plus reading the
-  auth state, the peer list and the instance's own accent. Not the settings,
-  not the accounts, not the phrase itself.
+  allowlist, not the whole API: tasks, links, the queue and the captchas
+  holding it up, plus reading the auth state, the peer list and the instance's
+  own accent. Not the settings, not the accounts, not the phrase itself.
 - **The phrase is the whole federation's admission ticket.** Every instance in
   the group is reachable by anything holding it, which is worth knowing before
   putting one on a device that gets lost. Leaving the group on that phone does
@@ -157,6 +157,79 @@ headers (browsers' does not), so the token rides as a real `Authorization`
 header on the socket too, not a query parameter. See `src/api/client.ts`'s
 `subscribeTasks` for the exact mechanics and the reconnect/backoff behaviour.
 
+## Captchas
+
+A captcha that holds up a download shows in three places: a card at the top of
+that instance's downloads, a count on its card in the overview, and a banner over
+whatever screen is open when a new one arrives. Each leads to the Captchas
+screen, which lists what is waiting, nearest deadline first, and answers what it
+can:
+
+- **Picture and click captchas** are answered on the phone. Type what the
+  picture says, or tap the points it asks for; the taps go out in the picture's
+  own pixels, in the shape JD takes (`clickAnswer` in `src/api/captcha.ts`).
+- **reCAPTCHA and hCaptcha** open the instance's own widget page
+  (`internal/api/routes_captcha_widget.go`) in a WebView. It is the page the web
+  UI puts in an iframe, loaded from the same address under its own
+  Content-Security-Policy, so the app runs no vendor script itself. The page
+  posts its result to its own origin, and in a WebView it is the top window, so
+  the message lands on the page itself; `WIDGET_BRIDGE` hands it to the app.
+  The WebView runs with `scalesPageToFit={false}`, because the page sets no
+  viewport and a wide one draws the checkbox at a third of its size. When the
+  instance answers the page with an error status, such as the 400 for a
+  challenge JD sent without a site key, the window says so with the status
+  rather than blaming the network (`widgetFailure`).
+- **Over the relay those two are not answered yet**, and since the phrase is
+  the only way to add a connection, that is every connection made today. Only
+  one saved by address in an earlier build opens the widget. The page has to
+  come from an address, and a connection made with the phrase has none. Loaded
+  from a string it would have no origin: both vendors refuse `about:blank`, the
+  page's own `postMessage` to `location.origin` throws, and its CSP header is
+  gone. Loading its HTML under an address it did not come from would get round
+  that, either the instance's own from `/api/remote-access` (empty on the
+  desktop build) or the hoster's domain, which a site key is usually locked
+  to. Which origin the app may claim is a decision still to be made, not a
+  missing piece of code. Until then such a card says to answer it in the web
+  UI, and Cancel and the two blocking choices still work.
+- **Cloudflare Turnstile** is not among them. The widget page runs reCAPTCHA
+  and hCaptcha only (`captchaWidgetVendor`), so the card for any other service
+  names it and offers Cancel rather than a window that would only refuse
+  (`widgetRuns`). Teaching the page Turnstile would not be enough on its own:
+  every Turnstile key runs only on the hostnames its owner lists, so a page
+  from the instance's address is refused. It would need the hoster's domain
+  as its origin, one of the two ways round the relay case above.
+- Anything else shows JD's name for it and offers Cancel.
+
+The list comes from `/api/captcha`, the route the web UI's `CaptchaModal` reads,
+polled every five seconds while the app is in front (`CaptchaWatch`), over
+either transport, for the active connection only. An instance forwards these
+routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
+an older one refuses them with a 403, which the screen words as "update
+KnightLoader there". The overview counts the captchas on every saved instance
+from the `captchas` field of `/api/queue/counters`, which it reads anyway, so
+counting sends no pictures.
+
+The relay carries no socket, so the app does not get the web UI's
+`captchaResolved` event. `noticeFor` works out the same thing from two looks
+in a row: a captcha that has gone after its deadline timed out, one gone before
+it was answered or dropped elsewhere, unless this phone answered or skipped it
+itself. The banner then says so, as the web UI's toast does.
+
+**No notification while the app is closed.** The app runs nothing in the
+background and asks for no notification permission, so a captcha that arrives
+while it is away is announced by the banner once it is back in front. That
+comparison needs the last look, which lives in memory: after Android has
+killed the app in the background, the first look has nothing to compare with
+and announces nothing, and the card on the downloads is what shows it. A
+captcha on another saved instance gets no banner either, only the count on the
+overview. A real notification needs two things this app does not have:
+`expo-notifications` with Android 13's `POST_NOTIFICATIONS` permission, and a
+way to hear about the captcha while asleep. Polling from the background is not that way, since
+Android runs a background task at most every fifteen minutes and a captcha can
+expire before the phone looks. It takes a push from the instance through FCM:
+a Firebase project for the app, and a route on the server where a phone
+registers its push token.
+
 ## Structure
 
 - `src/api/types.ts`: mirrors `internal/core/task.go`'s `Task` shape (plus
@@ -167,6 +240,15 @@ header on the socket too, not a query parameter. See `src/api/client.ts`'s
   connected server or `/api/instances/{name}` for a proxied peer), the
   WebSocket task subscription for the connected server, and `pollTasks` as
   its polling equivalent for a peer.
+- `src/api/captcha.ts`: the rules the captcha screen follows (the order, the
+  countdown, a click answer, the widget page's address and the vendors it runs,
+  which of the page's messages count, who to blame when it does not load, the
+  bridge script, and what the banner says after a look), kept free of React so
+  `check-captcha.mjs` runs them as they are.
+- `src/components/CaptchaWatch.tsx`, `CaptchaCard.tsx` and `CaptchaWidget.tsx`:
+  the watch and its banner, one captcha's card, and the WebView window. See
+  "Captchas" above. `react-native-webview` is a native module, so it needs a
+  build of the app rather than an update over Expo Go's bundle.
 - `src/storage/connections.ts`: every saved connection plus which one is
   active, in the OS keychain.
 - `src/api/seedphrase.ts`: twelve words to the group key, entirely on the
@@ -196,7 +278,7 @@ header on the socket too, not a query parameter. See `src/api/client.ts`'s
   landing screen), Connect (add one), RelayConnect (add one that is only
   reachable through a relay), Downloads (the live queue, a connected
   server's own or a peer's), Instances (that server's federation peers),
-  Add Download, Settings, Language (the picker Settings opens).
+  Add Download, Captchas, Settings, Language (the picker Settings opens).
 - `src/theme/`: GlimStone, the same design language the web UI carries:
   `tokens.ts` (palette, radii, type scale), `appearance.ts` (the
   framework-free helpers, a straight copy of the shared reference so the two
@@ -358,10 +440,10 @@ project to point it at.
   client relies on reconnecting after the drop instead. In practice an open
   Downloads screen polls often enough to keep the link warm, and a backgrounded
   app reconnects when it comes back.
-- Push notifications for captcha challenges / finished downloads. The
-  desktop tray already has an attention mechanism for captchas
-  (`desktop/tray.go`); the mobile equivalent would need Expo push
-  notifications plus a server-side trigger, neither exists yet.
+- Notifications for captchas and finished downloads while the app is closed.
+  The desktop tray already has an attention mechanism for captchas
+  (`desktop/tray.go`); what the phone would need is under "Captchas" above.
+- reCAPTCHA and hCaptcha over the relay; see "Captchas" above for why.
 - Per-task actions beyond adding links: pause/resume/delete a single task
   exist on the server's `/api/tasks/*` routes but have no UI here yet; only
   the queue's whole master switch does (the halted/running toggle on the

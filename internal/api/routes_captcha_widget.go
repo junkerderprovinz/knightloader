@@ -9,7 +9,9 @@ package api
 //
 // The vendor comes from the payload's vendor field, which JDSource fills from
 // JD's challenge class. Without it, Enterprise or a V3Action still prove
-// reCAPTCHA; anything else gets the unsolvable page rather than a guess.
+// reCAPTCHA; anything else gets the unsolvable page rather than a guess. So
+// does Cloudflare Turnstile, which the page cannot run and only a paid solver
+// can answer.
 //
 // JD reports reCAPTCHA v2, v3 and Enterprise under one class and tells them
 // apart in the rawtoken payload: enterprise is set when the hoster loads
@@ -42,7 +44,7 @@ package api
 // (detail is the token), "expired" or "error" (detail is the vendor's error
 // code, "network", "script" when its script did not load, "timeout", or the
 // message the render or execute call threw). The unsolvable page posts only
-// "unsolvable", with "vendor" or "action" as the detail. The receiver still
+// "unsolvable", with "vendor", "turnstile" or "action" as the detail. The receiver still
 // has to check the message origin; frame-ancestors 'self' only keeps other
 // sites from embedding the page.
 //
@@ -220,6 +222,9 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 			data.Params["stoken"] = req.SecureToken
 		}
 	default:
+		if req.Vendor == captcha.VendorTurnstile {
+			return unsolvableWidgetPage(nonce, req, "turnstile")
+		}
 		return unsolvableWidgetPage(nonce, req, "vendor")
 	}
 
@@ -437,8 +442,8 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
 `))
 
 // unsolvableWidgetPageData feeds unsolvableWidgetPageTmpl. Why is "vendor"
-// when the vendor cannot be identified and "action" for a score-based key
-// without a usable action.
+// when the vendor cannot be identified, "turnstile" for Cloudflare Turnstile
+// and "action" for a score-based key without a usable action.
 type unsolvableWidgetPageData struct {
 	Nonce, ID, Host, Why string
 }
@@ -459,10 +464,12 @@ body{display:flex;align-items:center;justify-content:center;padding:24px;box-siz
 </head>
 <body>
 <div id="kl-wrap">
-<p><strong>This captcha cannot be solved in KnightLoader.</strong></p>
+{{if eq .Why "turnstile"}}<p><strong>This captcha cannot be shown here.</strong></p>
+<p>It is a Cloudflare Turnstile check{{if .Host}} for {{.Host}}{{end}}, which this page cannot run. Only a solver from the Captcha settings can answer it.</p>
+{{else}}<p><strong>This captcha cannot be solved in KnightLoader.</strong></p>
 {{if eq .Why "action"}}<p>It is a reCAPTCHA v3 check{{if .Host}} for {{.Host}}{{end}} without the action the hoster asks for, and a token without it would be refused.</p>
 {{else}}<p>JD reported a widget challenge{{if .Host}} for {{.Host}}{{end}} without saying which vendor it is, and this page will not guess.</p>
-{{end}}</div>
+{{end}}{{end}}</div>
 <script nonce="{{.Nonce}}">
 window.parent.postMessage({source:"knightloader-captcha-widget",id:{{.ID}},kind:"unsolvable",detail:{{.Why}}}, window.location.origin);
 </script>

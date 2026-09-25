@@ -183,7 +183,8 @@ could have joined the group and been handed one anyway.
 
 That makes the reachable surface the thing to bound, and it is an allowlist
 rather than a property each route happens to have. A sibling may read and
-drive **tasks, links and the queue**, and may read whether a password is set,
+drive **tasks, links and the queue**, answer or skip the captchas holding them
+up, and may read whether a password is set,
 who else is in the group, and the instance's own accent and corner shape. It
 cannot read the settings or the accounts, change the password, mint an API
 token, or ask for the phrase back. A route added later is outside the list
@@ -195,7 +196,18 @@ and cannot be explained.
 
 ## The Android app
 
-- **Find on this network** sweeps the phone's own /24 over HTTP and fills in
+- **The phrase** is the one way in, as it is in the browser extension: twelve
+  words, typed or scanned from the QR the web UI shows beside them, and every
+  instance in the group appears at once, with no address, no token and nothing
+  to look up. The phone derives the same key its siblings do and dials the same
+  relay, which is what authenticates it, so a password on an instance costs
+  nothing extra here.
+- **A connection saved by address** in an earlier build of the app keeps
+  working, but the app no longer makes one. Those builds took the address
+  typed in, scanned from the Access tab's QR or found with **Find on this
+  network**, plus a token where the instance had a password.
+
+  Find on this network sweeps the phone's own /24 over HTTP and fills in
   the address of anything that answers as a KnightLoader. React Native has no
   UDP socket, so the app cannot join the multicast group the servers use; asking
   every address on the subnet for `/api/health` gets to the same place with the
@@ -231,16 +243,24 @@ and cannot be explained.
   specifically and reads `0.0.0.0` when Wi-Fi is off, which passes a naive check
   and would sweep `0.0.0.1` through `0.0.0.254` over a metered mobile
   connection.
-- **Scan the QR** from the Access tab fills in the address. There is one kind
-  of QR here now; it used to have to tell an address QR apart from a pairing
-  one before it knew what it had scanned.
-- **A token** is the one thing still typed by hand on this path, and only when
-  that instance has a password.
-- **The phrase** is the other way in, and the better one: twelve words, and
-  every instance in the group appears at once, with no address, no token and
-  nothing to look up. The phone derives the same key its siblings do and dials the
-  same relay, which is what authenticates it, so a password on an instance
-  costs nothing extra here.
+- **Captchas** are answered on the phone. A card on the instance's downloads,
+  a count on its overview card and a banner over the open screen lead to a list
+  of what is waiting, and picture and click captchas are answered right there.
+  reCAPTCHA and hCaptcha open the instance's own widget page in a WebView, which
+  loads from the instance's address, so only a connection saved by address
+  shows them. On one made with the phrase, which is every connection made
+  today, their card points to the web UI, and Cancel still skips them.
+  The banner also says when a captcha timed out or was answered somewhere else,
+  as the web UI's messages do.
+
+  The app watches the instance it has open, and only while it is in front; the
+  overview counts what waits on the others. A captcha that arrives while the
+  app is in the background is announced when you come back to it, as long as
+  Android has kept the app in memory. After Android has closed it, the card on
+  the downloads still shows what is waiting, but no banner comes up. The app
+  sends no notification while it is closed. While it watches, the instance
+  counts you as watching, so with **Only when nobody is watching** switched on
+  on the Captcha settings page the paid solvers wait for your answer first.
 
 ## The browser extension
 

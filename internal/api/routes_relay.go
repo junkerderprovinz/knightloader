@@ -305,9 +305,10 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 // and asks things a browser never asks a peer.
 //
 // The task, link and queue routes take any method, since showing a sibling's
-// downloads without being able to stop them would be half a connection. The
-// rest is read-only apart from the appearance fields. Settings, accounts,
-// tokens, scripts and the phrase are not on the list.
+// downloads without being able to stop them would be half a connection. So do
+// the captcha routes: a captcha holds a download up, and the phone answers or
+// skips it. The rest is read-only apart from the appearance fields. Settings,
+// accounts, tokens, scripts and the phrase are not on the list.
 func relayForwardable(method, path string) bool {
 	// The decision is about the route, not its query arguments.
 	if i := strings.IndexByte(path, '?'); i >= 0 {
@@ -323,6 +324,9 @@ func relayForwardable(method, path string) bool {
 		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
 		return true
 	}
+	if relayCaptchaRoute(method, rest) {
+		return true
+	}
 	// Setting the seven appearance fields is less than a phrase holder can
 	// already do through the queue.
 	if method == http.MethodPost && rest == "appearance" {
@@ -336,6 +340,24 @@ func relayForwardable(method, path string) bool {
 		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access"
 	}
 	return false
+}
+
+// relayCaptchaRoute reports whether rest is one of the captcha calls the phone
+// makes: the list, a refresh, and answering or skipping one challenge. Matched
+// by shape rather than by prefix, so a route added under /api/captcha later is
+// not forwarded until it is named here.
+func relayCaptchaRoute(method, rest string) bool {
+	switch {
+	case method == http.MethodGet && rest == "captcha":
+		return true
+	case method != http.MethodPost:
+		return false
+	case rest == "captcha/refresh":
+		return true
+	}
+	parts := strings.Split(rest, "/")
+	return len(parts) == 3 && parts[0] == "captcha" && parts[1] != "" &&
+		(parts[2] == "answer" || parts[2] == "skip")
 }
 
 // relayRecorder buffers one handler's response in memory, so production code

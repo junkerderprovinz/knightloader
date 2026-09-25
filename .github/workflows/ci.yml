@@ -464,6 +464,9 @@ jobs:
       - name: Relay addresses
         run: node check-relay-url.mjs
 
+      - name: Captcha answers
+        run: node check-captcha.mjs
+
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed
   # because Ubuntu 24.04 ships only webkit2gtk-4.1.

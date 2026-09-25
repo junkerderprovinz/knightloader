@@ -3,7 +3,8 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 import { fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
-import { WellSelector } from '../components/glim';
+import { GlimButton, WellSelector } from '../components/glim';
+import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
@@ -29,6 +30,7 @@ export default function DownloadsScreen({
   onSwitchConnection,
   onBackToOwn,
   onRemoveConnection,
+  onOpenCaptchas,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -38,9 +40,13 @@ export default function DownloadsScreen({
   /** Undefined for a federation peer: a peer is not a saved connection, so
    *  there is nothing here to remove. */
   onRemoveConnection?: () => void;
+  onOpenCaptchas: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, corners } = useAppearance();
+  // The watch follows the connection, so a peer's queue shows none of them.
+  const { list: captchas } = useCaptchas();
+  const waiting = peer ? [] : captchas;
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -167,6 +173,21 @@ export default function DownloadsScreen({
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
         header={
           <>
+            {/* First, because a download is stuck until somebody answers. */}
+            {waiting.length > 0 && (
+              <Arrive style={[styles.captchaCard, { backgroundColor: c.statusWarnBg, ...corners.card }]}>
+                <View style={styles.captchaText}>
+                  <Text style={[styles.captchaTitle, { color: c.text }]}>
+                    {waiting.length > 1 ? t('captcha.titleMore', { n: waiting.length - 1 }) : t('captcha.title')}
+                  </Text>
+                  <Text style={[styles.captchaHosts, { color: c.textSub }]} numberOfLines={1}>
+                    {[...new Set(waiting.map((ch) => ch.host || '?'))].join(', ')}
+                  </Text>
+                </View>
+                <GlimButton label={t('captcha.open')} onPress={onOpenCaptchas} />
+              </Arrive>
+            )}
+
             {/* One card, figures and curve together. A graph sitting below the
                 queue bar with a surface and a radius of its own is a second
                 card by every property that makes something look like one, and
@@ -377,6 +398,10 @@ const styles = StyleSheet.create({
   // overview's summary card, so the two readings of one instance are drawn in
   // one box on both screens.
   queueCard: { padding: 14, gap: 10, marginBottom: 12 },
+  captchaCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, marginBottom: 12 },
+  captchaText: { flex: 1, minWidth: 0, gap: 2 },
+  captchaTitle: { fontSize: TYPE.body, fontWeight: '600' },
+  captchaHosts: { fontSize: TYPE.dense },
   // The top line inside it: state on the left, the start/stop pair on the right.
   queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   queueActions: { flexDirection: 'row', gap: 8 },

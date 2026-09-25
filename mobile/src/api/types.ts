@@ -130,3 +130,49 @@ export interface QueueState {
   stopMark?: string;
   running: number;
 }
+
+// Mirrors internal/captcha's Challenge and its payloads, the same shapes the
+// web UI's lib/api.ts reads.
+export type CaptchaKind = 'image' | 'click' | 'widget' | 'unsupported';
+
+/** The payload of an 'image' or 'click' challenge: a complete data: URL. */
+export interface CaptchaImagePayload {
+  dataUrl: string;
+}
+
+/** The payload of a 'widget' challenge, everything the instance's widget page
+ *  needs to render the vendor's script. */
+export interface CaptchaWidgetPayload {
+  /** The service JD's challenge class names, such as "recaptcha"; widgetRuns
+   *  says whether the widget page can run it. */
+  vendor: string;
+  siteKey: string;
+  siteUrl: string;
+  contextUrl: string;
+  type?: string;
+  enterprise?: boolean;
+  v3Action?: string;
+  secureToken?: string;
+}
+
+/** The payload of an 'unsupported' challenge: JD's own name for it. */
+export interface CaptchaUnsupportedPayload {
+  vendor: string;
+}
+
+export interface CaptchaChallenge {
+  /** Opaque: handed back to answer and skip unchanged. */
+  id: string;
+  source: string;
+  host: string;
+  taskId?: string;
+  kind: CaptchaKind;
+  /** What the hoster asks, in its own language. */
+  prompt?: string;
+  payload?: CaptchaImagePayload | CaptchaWidgetPayload | CaptchaUnsupportedPayload;
+  /** When it stops being answerable. Go writes an unknown deadline as year 1. */
+  expiresAt: string;
+}
+
+/** How far a skip reaches, captcha.AbortScope on the server. */
+export type CaptchaAbortScope = 'skip-once' | 'blacklist-hoster' | 'blacklist-everywhere';

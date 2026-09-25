@@ -327,10 +327,10 @@ func TestCaptchaWidgetHandsTheInterfaceLanguageToTheVendor(t *testing.T) {
 	}
 }
 
-// A request that names no known vendor and could be either, and a score-based
-// reCAPTCHA check without an action it could ask for a token under, get the
-// page that loads no vendor script and tells the captcha window why, so the
-// window can say it in the reader's language.
+// A request that names no known vendor and could be either, a Cloudflare
+// Turnstile, and a score-based reCAPTCHA check without an action it could ask
+// for a token under, get the page that loads no vendor script and tells the
+// captcha window why, so the window can say it in the reader's language.
 func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
@@ -342,7 +342,8 @@ func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 		{"explicit-normal", url.Values{"siteKey": {"anykey"}, "type": {"normal"}}, "vendor"},
 		{"explicit-false-enterprise", url.Values{"siteKey": {"anykey"}, "enterprise": {"false"}}, "vendor"},
 		{"invisible, which both vendors have", url.Values{"siteKey": {"anykey"}, "type": {"INVISIBLE"}}, "vendor"},
-		{"a vendor this page does not know", url.Values{"vendor": {"turnstile"}, "siteKey": {"anykey"}}, "vendor"},
+		{"a vendor this page does not know", url.Values{"vendor": {"friendlycaptcha"}, "siteKey": {"anykey"}}, "vendor"},
+		{"Cloudflare Turnstile, which only a solver answers", url.Values{"vendor": {"turnstile"}, "siteKey": {"0x4AAAA-key"}}, "turnstile"},
 		{"a v3 object without an action", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "v3Action": {`{"score":0.5}`}}, "action"},
 		{"a v3 action reCAPTCHA would refuse", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {`{"action":"free download"}`}}, "action"},
 		{"a v3 object that is not JSON", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"1"}, "v3Action": {`{action:`}}, "action"},
@@ -362,8 +363,13 @@ func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 			if strings.Contains(html, "g-recaptcha") || strings.Contains(html, "h-captcha") {
 				t.Error("the unsolvable page must not embed either vendor's widget div")
 			}
-			if !strings.Contains(html, "cannot be solved in KnightLoader") {
-				t.Error("the unsolvable page must say plainly that this challenge cannot be solved here")
+			headline := "cannot be solved in KnightLoader"
+			if c.why == "turnstile" {
+				// A solver can still answer it, so the page only says it cannot show it.
+				headline = "cannot be shown here"
+			}
+			if !strings.Contains(html, headline) {
+				t.Errorf("the unsolvable page must say plainly that this challenge %s", headline)
 			}
 			want := `kind:"unsolvable",detail:"` + c.why + `"`
 			if !strings.Contains(html, want) || !strings.Contains(html, `id:"7"`) {

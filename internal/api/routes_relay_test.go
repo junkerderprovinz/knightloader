@@ -446,6 +446,75 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	}
 }
 
+// TestTheAppCanAnswerCaptchasOverTheRelay drives the captcha calls a phone
+// joined with the phrase makes through the relay, against a JD holding one
+// hCaptcha, and checks that no other route under /api/captcha is forwarded.
+func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
+	jd, solvedWith := fakeJDWithHCaptcha(t)
+	t.Setenv("KL_JD", jd.URL)
+	a := testApp(t)
+	serve := relayProxyHandler(Handler(a))
+	// With a password set, a call the relay did not vouch for is a 401.
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	call := func(method, path, body string) (int, []byte) {
+		return serve(context.Background(), relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
+	}
+	type listed struct {
+		ID string `json:"id"`
+	}
+
+	status, body := call(http.MethodPost, "/api/captcha/refresh", `{}`)
+	var refreshed []listed
+	if status != http.StatusOK || json.Unmarshal(body, &refreshed) != nil || len(refreshed) != 1 {
+		t.Fatalf("POST /api/captcha/refresh = %d (%s), want the one challenge JD holds", status, body)
+	}
+	id := refreshed[0].ID
+
+	status, body = call(http.MethodGet, "/api/captcha", "")
+	var pending []listed
+	if status != http.StatusOK || json.Unmarshal(body, &pending) != nil || len(pending) != 1 || pending[0].ID != id {
+		t.Fatalf("GET /api/captcha = %d (%s), want challenge %s", status, body, id)
+	}
+
+	status, body = call(http.MethodPost, "/api/captcha/"+id+"/answer", `{"text":"a-token"}`)
+	var answered struct {
+		StillValid bool `json:"stillValid"`
+	}
+	if status != http.StatusOK || json.Unmarshal(body, &answered) != nil || !answered.StillValid {
+		t.Errorf("POST /api/captcha/%s/answer = %d (%s), want 200 and stillValid", id, status, body)
+	}
+	if len(solvedWith()) == 0 {
+		t.Error("the answer never reached JD")
+	}
+
+	if status, body := call(http.MethodPost, "/api/captcha/"+id+"/skip", `{"scope":"skip-once"}`); status != http.StatusNoContent {
+		t.Errorf("POST /api/captcha/%s/skip = %d (%s), want 204", id, status, body)
+	}
+
+	// An escaped slash keeps the id one segment, so the call reaches the skip
+	// route whole and it is JD's id check that turns it down.
+	if status, body := call(http.MethodPost, "/api/captcha/7%2F8/skip", `{"scope":"skip-once"}`); status != http.StatusBadRequest ||
+		!bytes.Contains(body, []byte(`"7/8"`)) {
+		t.Errorf("POST /api/captcha/7%%2F8/skip = %d (%s), want the skip route's 400 about id 7/8", status, body)
+	}
+
+	for _, c := range []struct{ method, path string }{
+		{http.MethodPost, "/api/captcha"},
+		{http.MethodGet, "/api/captcha/refresh"},
+		{http.MethodGet, "/api/captcha/c1/widget"},
+		{http.MethodPost, "/api/captcha/c1/answer/again"},
+		{http.MethodPost, "/api/captcha//answer"},
+		{http.MethodPost, "/api/captcha/solvers"},
+		{http.MethodPost, "/api/captchas/c1/answer"},
+	} {
+		if status, _ := call(c.method, c.path, `{}`); status != http.StatusForbidden {
+			t.Errorf("%s %s = %d, want 403; only the calls the app makes are forwarded", c.method, c.path, status)
+		}
+	}
+}
+
 // fixedSibling is a second relay client standing in for another instance, so a
 // test can prove a relay carried something rather than only that a socket
 // opened.
