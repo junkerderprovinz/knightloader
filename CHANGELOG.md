@@ -86,6 +86,28 @@ submission and for a fixed download.
   `.torrent` files not marked private; a magnet counts as private only when its
   own tracker address carries a passkey. A torrent that announces to a banned
   tracker is held back in the collector with the reason.
+- **An `.nzb` is fetched from Usenet through TorBox or Premiumize.me.** One
+  from Sonarr or Radarr, the upload button or the watched folder goes to your
+  TorBox account, or to Premiumize.me when there is no TorBox account, TorBox
+  turns it down or TorBox is not taking new ones for the moment. Once the
+  service has fetched and unpacked it, its files download here like any other
+  link, folders inside the release included. Sonarr's queue shows the job at
+  the service's progress, and its history names the folder to import from.
+  TorBox takes 60 NZBs an hour per key; without Premiumize.me the ones over
+  that wait until TorBox takes files again, and a download TorBox queues for a
+  free slot is followed until it starts. An `.nzb` may be up to 64 MB. The
+  status strip counts the ones still at the service, and one the service gives
+  up on is listed with the links that were not added. Without an account that
+  can take it, a real `.nzb` is refused with that reason. It is not read for
+  links, since the only address in one is its XML namespace. The category
+  Sonarr or Radarr sends to the SABnzbd bridge is now a KnightLoader category:
+  a grab is filed in the one of the same name, created with its own folder
+  inside the download folder the first time, and the bridge offers Sonarr's
+  and Radarr's own defaults, `tv` and `movies`, so their connection test
+  passes on a fresh install. The
+  watched folder also takes `.torrent`, `.magnet`, `.dlc`, `.ccf`, `.rsdf` and
+  `.nzb` files; one nothing here can open stays in the folder with the reason
+  in the log, and an `.nzb` left there is taken once an account is added.
 - **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
   Installing, what it does, configuration, getting links in, Click'n'Load,
   connecting instances and where files land, built from `docs/` with MkDocs

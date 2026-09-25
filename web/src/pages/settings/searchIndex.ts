@@ -59,7 +59,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.module.cnl', hint: 'settings.linkIntake.cnlHint' },
         { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
         { key: 'settings.autoStart', hint: 'settings.autoStartHint' },
-        { key: 'settings.module.watch', hint: 'settings.watchDirHint' },
+        { key: 'settings.module.watch', hint: 'settings.watchDirFilesHint' },
       ],
       // What the watch folder's (i) adds while there is nothing to switch on,
       // or a parked folder to bring back.

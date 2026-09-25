@@ -169,11 +169,18 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 // submission, whose payload has no URL and goes to JD as inline content (see
 // Client.AddContainerData).
 func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
+	return b.AddContainerFile("dlc", data, packageName, timeout)
+}
+
+// AddContainerFile is AddContainer for a container whose bytes are at hand,
+// such as one dropped into a watched folder. ext is its format, "dlc", "ccf"
+// or "rsdf", which JD reads the bytes as.
+func (b *Backend) AddContainerFile(ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
 	b.holdGrabber(marker)
 	defer b.releaseGrabber(marker)
 	b.sweepGrabber()
-	job, err := b.c.AddContainerData("dlc", data, marker)
+	job, err := b.c.AddContainerData(ext, data, marker)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ package watch
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -20,12 +21,36 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
 // maxIntakeSize caps what we are willing to read into memory. An intake file is
-// a link list; anything larger is somebody's ISO that happened to be named
-// .txt, and reading it would be a self-inflicted denial of service.
+// a link list, a .torrent or a container; anything larger is somebody's ISO
+// that happened to be named .txt, and reading it would be a self-inflicted
+// denial of service. An .nzb, which lists every article of a release, has a
+// cap of its own (see sizeCap).
 const maxIntakeSize = 8 << 20
+
+// sizeCap is the most that is read of the file name.
+func sizeCap(name string) int64 {
+	if strings.EqualFold(filepath.Ext(name), ".nzb") {
+		return usenet.MaxNZBBytes
+	}
+	return maxIntakeSize
+}
+
+// wholeFiles are the extensions handed over as they are rather than read for
+// links (see File).
+var wholeFiles = map[string]bool{".torrent": true, ".dlc": true, ".ccf": true, ".rsdf": true, ".nzb": true}
+
+// File is a dropped file handed over whole: a .torrent, an encrypted container
+// or an .nzb. Which of them this instance can open depends on the backends it
+// has, which only the app knows.
+type File struct {
+	// Name is the file's name as it was dropped, extension included.
+	Name string
+	Data []byte
+}
 
 // Job is one entry of an intake file: the links, and everything else that entry
 // asked for which this app can carry out.
@@ -80,6 +105,9 @@ type Job struct {
 	// a rule that switches unpacking off has to survive a global that is on,
 	// and with a plain bool the two are the same value.
 	Extract *bool
+	// File is set, and URLs empty, for a dropped file that is not a link list.
+	// Package is then the file's base name, as for a .txt.
+	File *File
 }
 
 // schemeURL matches anything carrying a scheme. The intake stays permissive:
@@ -87,32 +115,42 @@ type Job struct {
 // link the user handed over is the worse failure.
 var schemeURL = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*://\S+$`)
 
-// Parse reads one intake file into the jobs it holds. Two formats are accepted:
+// Parse reads one intake file into the jobs it holds. These formats are
+// accepted:
 //
 //	*.crawljob - JDownloader's key=value format, one entry per blank-line-
 //	             separated block
 //	*.txt      - one URL per line, always a single job
+//	*.magnet   - the same, holding magnet links
+//	*.torrent, *.dlc, *.ccf, *.rsdf, *.nzb - handed over whole as one job's
+//	             File
 //
 // The package name defaults to the file's base name, so dropping "Season 3.txt"
 // produces a package called "Season 3" without the user configuring anything.
 func Parse(name string, r io.Reader) ([]Job, error) {
 	base := filepath.Base(name)
+	fallback := strings.TrimSuffix(base, filepath.Ext(base))
 	var (
 		jobs []Job
 		err  error
 	)
-	switch strings.ToLower(filepath.Ext(base)) {
-	case ".crawljob":
+	switch ext := strings.ToLower(filepath.Ext(base)); {
+	case ext == ".crawljob":
 		jobs, err = parseCrawljob(r)
-	case ".txt":
+	case ext == ".txt" || ext == ".magnet":
 		jobs, err = parseText(r)
+	case wholeFiles[ext]:
+		f, err := readWhole(base, r)
+		if err != nil {
+			return nil, fmt.Errorf("watch: %s: %w", base, err)
+		}
+		return []Job{{File: f, Package: fallback}}, nil
 	default:
-		return nil, fmt.Errorf("watch: %s: not an intake file (want .crawljob or .txt)", base)
+		return nil, fmt.Errorf("watch: %s: not an intake file (want .crawljob, .txt, .magnet, .torrent, .dlc, .ccf, .rsdf or .nzb)", base)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("watch: %s: %w", base, err)
 	}
-	fallback := strings.TrimSuffix(base, filepath.Ext(base))
 	out := jobs[:0]
 	for _, j := range jobs {
 		// An entry that set a package or a folder but carries no link is dropped
@@ -131,6 +169,21 @@ func Parse(name string, r io.Reader) ([]Job, error) {
 		return nil, fmt.Errorf("watch: %s: no links found", base)
 	}
 	return out, nil
+}
+
+// readWhole reads a file that is handed over as it is.
+func readWhole(name string, r io.Reader) (*File, error) {
+	limit := sizeCap(name)
+	data, err := io.ReadAll(io.LimitReader(r, limit+1))
+	switch {
+	case err != nil:
+		return nil, err
+	case int64(len(data)) > limit:
+		return nil, fmt.Errorf("larger than %d bytes", limit)
+	case len(data) == 0:
+		return nil, errors.New("the file is empty")
+	}
+	return &File{Name: name, Data: data}, nil
 }
 
 // parseCrawljob reads JD's key=value format.

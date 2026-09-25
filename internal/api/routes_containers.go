@@ -1,7 +1,7 @@
 package api
 
 // Link containers: the .txt/.dlc/.ccf/.rsdf files people are handed instead of
-// links.
+// links, and the .nzb, which goes to a Usenet-capable account.
 //
 // A plain list is parsed here and staged like any paste. An encrypted one is
 // not decrypted here and never will be: the key is issued by a service to
@@ -30,6 +30,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/container"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
 // relayTTL is how long a handed-over container stays fetchable. Long enough for
@@ -164,30 +165,39 @@ func registerContainers(reg *Registry, a *app.App) {
 	relay := newContainerRelay()
 	relay.onCount = a.SetContainerActivity
 
-	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list is staged, an encrypted one goes to the JD backend",
+	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list is staged, an encrypted one goes to the JD backend, an .nzb to TorBox or Premiumize.me",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The cap is on the request, not on the part: without it the multipart
 			// reader will happily buffer whatever is sent before the size of the file
-			// inside it is known.
-			r.Body = http.MaxBytesReader(w, r.Body, container.MaxBytes+1<<20)
+			// inside it is known. It is the larger of the two; the file's own cap
+			// follows from its name.
+			r.Body = http.MaxBytesReader(w, r.Body, usenet.MaxNZBBytes+1<<20)
 			file, header, err := r.FormFile("file")
 			if err != nil {
 				http.Error(w, "send the container as a multipart form field named \"file\"", http.StatusBadRequest)
 				return
 			}
 			defer file.Close()
-			data, err := io.ReadAll(io.LimitReader(file, container.MaxBytes+1))
+			name := path.Base(header.Filename)
+			limit, tooBig := container.MaxBytes, "a container over %d bytes is not one"
+			if strings.EqualFold(path.Ext(name), ".nzb") {
+				limit, tooBig = usenet.MaxNZBBytes, "an .nzb over %d bytes is refused"
+			}
+			data, err := io.ReadAll(io.LimitReader(file, int64(limit)+1))
 			if err != nil {
 				http.Error(w, "could not read the uploaded file", http.StatusBadRequest)
 				return
 			}
-			if len(data) > container.MaxBytes {
-				http.Error(w, fmt.Sprintf("a container over %d bytes is not one", container.MaxBytes), http.StatusRequestEntityTooLarge)
+			if len(data) > limit {
+				http.Error(w, fmt.Sprintf(tooBig, limit), http.StatusRequestEntityTooLarge)
 				return
 			}
-			name := path.Base(header.Filename)
 			pkg := r.FormValue("package")
 
+			if usenet.IsNZB(data) {
+				sendNZB(w, a, name, data, pkg)
+				return
+			}
 			links, err := container.Links(name, data)
 			switch {
 			case err == nil:
@@ -260,6 +270,27 @@ func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *contain
 		"kind":      container.Detect(name, data),
 		"handedTo":  "jd",
 		"expiresIn": int(relayTTL.Seconds()),
+	})
+}
+
+// sendNZB queues an uploaded .nzb for a Usenet-capable account. Nothing is
+// staged yet; the files arrive over the websocket once the service has them.
+// The refusal carries a code, like handToJD's, for the upload's toast.
+func sendNZB(w http.ResponseWriter, a *app.App, name string, data []byte, pkg string) {
+	service, ok := a.UsenetService()
+	if !ok {
+		writeJSONStatus(w, http.StatusServiceUnavailable,
+			map[string]string{"error": app.ErrNZBNeedsUsenet.Error(), "code": "noUsenet"})
+		return
+	}
+	if _, err := a.AddNZB(app.NZB{Name: releaseName(name), Data: data, Package: pkg, Origin: app.OriginContainer}); err != nil {
+		http.Error(w, "the .nzb could not be queued: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSONStatus(w, http.StatusAccepted, map[string]any{
+		"kind":     "nzb",
+		"handedTo": "usenet",
+		"service":  service,
 	})
 }
 

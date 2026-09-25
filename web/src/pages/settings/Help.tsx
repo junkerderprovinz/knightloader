@@ -77,7 +77,8 @@ export function Help() {
             t('settings.help.intake.b1'),
             t('settings.help.intake.b2'),
             t('settings.help.intake.b3'),
-            t('settings.help.intake.b4'),
+            t('settings.help.intake.watchFiles'),
+            t('settings.help.intake.nzb'),
           ]}
         />
       </Topic>

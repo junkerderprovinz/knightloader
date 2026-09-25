@@ -207,7 +207,6 @@ export const ja: Dict = {
   'settings.pathProblem.notAbsolute': '/downloads や D:\\Downloads のような完全なパスを入力してください。',
   'settings.pathProblem.cannotCreate': '{dir} を作成できませんでした。',
   'settings.pathProblem.cannotWrite': '{dir} に書き込めませんでした。',
-  'settings.watchDirHint': 'ここに .txt または .crawljob として置かれたリンクは自動で取り込まれます。',
   'settings.crawl': 'ページをたどってリンク先のファイルを集める',
   'settings.crawl.depth': '巡回の深さ',
   'settings.crawl.depthHint': 'どこまで辿るかです。1 は貼り付けたページだけ、2 はリンク先のページも開き、3 はそのリンク先まで開きます。同じページを二度開くことはないので、互いに張り合ったリンクは巡回を終わらせ、堂々巡りにはなりません。',
@@ -1322,7 +1321,6 @@ export const ja: Dict = {
     'ホスターやフォーラムのページにある Click\'n\'Load ボタンはそのまま使えます。KnightLoader は 127.0.0.1:9666 で応答します。ほかのダウンローダーと同じポートです。',
   'settings.help.intake.b3':
     'ファイルリンクの代わりにページのURLを貼り付け、クロールをオンにすると、そのページ自体をダウンロードする代わりに、そこからリンクされているすべてのファイルを抽出します。',
-  'settings.help.intake.b4': '監視フォルダーは、そこにドロップされた.txt/.crawljobファイルを自動的に取り込みます。',
   'settings.help.intake.link1': 'リンクコレクター設定を開く',
 
   'settings.help.collector.title': '何かがダウンロードされる前のコレクター',
@@ -3023,4 +3021,11 @@ export const ja: Dict = {
   'settings.categories.torrentFiles': 'Torrent file selection',
   'settings.categories.torrentFilesHint': 'Which files of a torrent filed here are fetched when nobody ticked them by hand. Inherit uses the file selection on the Torrents page. Own replaces it for this category, for example a music category where the small files are the album. It applies when the torrent starts, so it also covers a torrent a Packagizer rule files here. Files you tick yourself always win.',
   'settings.categories.torrentFilesOwn': 'Own',
+  'settings.watchDirFilesHint': 'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
+  'settings.help.intake.watchFiles': 'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.nzbTooBig': 'it is larger than {max}, the most an .nzb may be',
+  'container.noUsenet': 'it is an .nzb, and those are fetched from Usenet through a TorBox or Premiumize.me account. None of your accounts can do that: add one under Accounts.',
+  'activity.usenet': 'Usenet',
+  'settings.help.intake.nzb': 'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
 };

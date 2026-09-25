@@ -207,7 +207,6 @@ export const ms: Dict = {
   'settings.pathProblem.notAbsolute': 'Masukkan laluan penuh, seperti /downloads atau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Tidak dapat mencipta {dir}.',
   'settings.pathProblem.cannotWrite': 'Tidak dapat menulis ke {dir}.',
-  'settings.watchDirHint': 'Pautan yang diletak di sini sebagai fail .txt atau .crawljob diambil automatik.',
   'settings.crawl': 'Ikut halaman dan kumpul fail yang dipautkan',
   'settings.crawl.depth': 'Kedalaman perayapan',
   'settings.crawl.depthHint': 'Sedalam mana hendak pergi. 1 hanya halaman yang ditampal, 2 turut membuka halaman yang dipautkannya, 3 membuka pautan mereka. Satu halaman tidak pernah dibuka dua kali, jadi pautan yang saling menunjuk menamatkan larian, bukan memusingkannya.',
@@ -1322,7 +1321,6 @@ export const ms: Dict = {
     'Butang Click\'n\'Load pada halaman hoster dan forum berfungsi tanpa perubahan. KnightLoader menjawab pada 127.0.0.1:9666, port yang sama yang digunakan oleh setiap pengurus muat turun lain.',
   'settings.help.intake.b3':
     'Tampal URL halaman dan bukannya pautan fail dan hidupkan Rayapan untuk mengekstrak setiap fail yang dipautnya, bukannya memuat turun halaman itu sendiri.',
-  'settings.help.intake.b4': 'Folder yang diawasi secara automatik mengambil fail .txt/.crawljob yang dilepaskan ke dalamnya.',
   'settings.help.intake.link1': 'Buka tetapan Pengumpul pautan',
 
   'settings.help.collector.title': 'Pengumpul, sebelum apa-apa dimuat turun',
@@ -3022,4 +3020,11 @@ export const ms: Dict = {
   'settings.categories.torrentFiles': 'Torrent file selection',
   'settings.categories.torrentFilesHint': 'Which files of a torrent filed here are fetched when nobody ticked them by hand. Inherit uses the file selection on the Torrents page. Own replaces it for this category, for example a music category where the small files are the album. It applies when the torrent starts, so it also covers a torrent a Packagizer rule files here. Files you tick yourself always win.',
   'settings.categories.torrentFilesOwn': 'Own',
+  'settings.watchDirFilesHint': 'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
+  'settings.help.intake.watchFiles': 'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.nzbTooBig': 'it is larger than {max}, the most an .nzb may be',
+  'container.noUsenet': 'it is an .nzb, and those are fetched from Usenet through a TorBox or Premiumize.me account. None of your accounts can do that: add one under Accounts.',
+  'activity.usenet': 'Usenet',
+  'settings.help.intake.nzb': 'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
 };

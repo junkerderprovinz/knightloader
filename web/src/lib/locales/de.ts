@@ -219,7 +219,8 @@ export const de: Dict = {
   'settings.pathProblem.notAbsolute': 'Gib einen vollständigen Pfad ein, etwa /downloads oder D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} lässt sich nicht anlegen.',
   'settings.pathProblem.cannotWrite': 'In {dir} lässt sich nichts schreiben.',
-  'settings.watchDirHint': 'Links, die hier als .txt- oder .crawljob-Datei landen, werden automatisch übernommen.',
+  'settings.watchDirFilesHint':
+    'Was du hier ablegst, wird automatisch übernommen: Linklisten (.txt, .crawljob, .magnet), .torrent-Dateien, Container (.dlc, .ccf, .rsdf) und .nzb-Dateien.',
   'settings.crawl': 'Seiten folgen und die verlinkten Dateien einsammeln',
   'settings.crawl.depth': 'Crawl-Tiefe',
   'settings.crawl.depthHint': 'Wie tief gegangen wird. 1 ist nur die eingefügte Seite, 2 öffnet auch die verlinkten Seiten, 3 deren Verlinkungen. Eine Seite wird nie zweimal geöffnet, gegenseitige Links beenden den Lauf also, statt ihn im Kreis laufen zu lassen.',
@@ -423,6 +424,7 @@ export const de: Dict = {
   'container.choose': 'Datei wählen',
   'container.uploading': 'Wird hochgeladen…',
   'container.tooBig': 'sie ist größer als {max}, und so groß ist kein Container',
+  'container.nzbTooBig': 'sie ist größer als {max}, und größer darf eine .nzb nicht sein',
   'container.staged': '{n} Link(s) aus {file} gesammelt.',
   'container.stagedIn': '{n} Link(s) aus {file} in „{pkg}“ gesammelt.',
   'container.alsoKnown': '{n} weitere waren schon in der Liste.',
@@ -431,6 +433,8 @@ export const de: Dict = {
   'container.failed': '{file} wurde nicht angenommen: {reason}',
   'container.noJD': 'sie ist verschlüsselt, und nur ein JDownloader-Backend kann sie öffnen. Es ist keins eingerichtet: Setz KL_JD auf einen JDownloader, den diese Instanz erreicht, und starte neu.',
   'container.jdOff': 'sie ist verschlüsselt, und nur das JDownloader-Backend kann sie öffnen. „JDownloader-Backend“ ist auf der Seite Module ausgeschaltet.',
+  'container.usenet': '{file} ging an {service}. Ihre Dateien erscheinen hier, sobald {service} sie aus dem Usenet geholt hat.',
+  'container.noUsenet': 'sie ist eine .nzb, und die holt ein TorBox- oder Premiumize.me-Konto aus dem Usenet. Keins deiner Konten kann das: Leg eins unter Konten an.',
 
   'settings.nav.modules': 'Module',
   'settings.nav.collector': 'Linksammler',
@@ -1269,6 +1273,7 @@ export const de: Dict = {
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisch bestätigen',
   'activity.container': 'Container',
+  'activity.usenet': 'Usenet',
   'activity.pending': '{n} warten',
   'activity.ofTotal': '{n} von {total}',
   'activity.tooltipHint': '{active} aktiv von {total} in diesem Lauf',
@@ -1401,7 +1406,10 @@ export const de: Dict = {
     'Click\'n\'Load-Buttons auf Hoster- und Forenseiten funktionieren unverändert. KnightLoader antwortet auf 127.0.0.1:9666, demselben Port, den jeder andere Downloadmanager verwendet.',
   'settings.help.intake.b3':
     'Statt eines Dateilinks eine Seiten-URL einfügen und Crawlen einschalten, um jede darauf verlinkte Datei herauszuziehen, statt die Seite selbst herunterzuladen.',
-  'settings.help.intake.b4': 'Ein Überwachungsordner nimmt automatisch .txt-/.crawljob-Dateien auf, die hineingelegt werden.',
+  'settings.help.intake.watchFiles':
+    'Ein Überwachungsordner nimmt auf, was du hineinlegst: Linklisten (.txt, .crawljob, .magnet), .torrent-Dateien, Container (.dlc, .ccf, .rsdf) und .nzb-Dateien.',
+  'settings.help.intake.nzb':
+    'Eine .nzb, die du hier hochlädst oder die Sonarr oder Radarr schicken, geht an dein TorBox- oder Premiumize.me-Konto, das sie aus dem Usenet holt. Ihre Dateien laden danach wie jeder andere Link.',
   'settings.help.intake.link1': 'Linksammler-Einstellungen öffnen',
 
   'settings.help.collector.title': 'Der Sammler, bevor irgendetwas lädt',

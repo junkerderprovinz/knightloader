@@ -72,7 +72,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
       <ModuleToggle
         id="watch"
         hue={3}
-        hint={t('settings.watchDirHint')}
+        hint={t('settings.watchDirFilesHint')}
         setUpHint={t('settings.linkIntake.watchPickFolder')}
         parkedHint={t('settings.linkIntake.watchParked')}
       >

@@ -4,7 +4,7 @@
                     +------------------------------------------+
   browser --------> |  api      REST + WebSocket + embedded UI  |
   CnL button -----> |  cnl      127.0.0.1:9666                  |
-  dropped file ---> |  watch    .txt / .crawljob                |
+  dropped file ---> |  watch    link lists, .torrent, .nzb      |
                     +--------------------+---------------------+
                                          |
                               +----------v----------+

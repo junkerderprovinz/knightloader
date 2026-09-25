@@ -121,7 +121,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "bg": [
       "settings.access.tokens.rights",
@@ -243,7 +250,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ca": [
       "settings.access.tokens.rights",
@@ -365,7 +379,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "cs": [
       "settings.access.tokens.rights",
@@ -487,7 +508,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "da": [
       "settings.access.tokens.rights",
@@ -609,7 +637,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "el": [
       "settings.access.tokens.rights",
@@ -731,7 +766,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "es": [
       "settings.access.tokens.rights",
@@ -853,7 +895,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "et": [
       "settings.access.tokens.rights",
@@ -975,7 +1024,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "eu": [
       "settings.access.tokens.rights",
@@ -1097,7 +1153,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "fa": [
       "settings.access.tokens.rights",
@@ -1219,7 +1282,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "fi": [
       "settings.access.tokens.rights",
@@ -1341,7 +1411,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "fr": [
       "settings.access.tokens.rights",
@@ -1463,7 +1540,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "gl": [
       "settings.access.tokens.rights",
@@ -1585,7 +1669,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "he": [
       "settings.access.tokens.rights",
@@ -1707,7 +1798,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "hi": [
       "settings.access.tokens.rights",
@@ -1829,7 +1927,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "hr": [
       "settings.access.tokens.rights",
@@ -1951,7 +2056,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "hu": [
       "settings.access.tokens.rights",
@@ -2073,7 +2185,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "id": [
       "settings.access.tokens.rights",
@@ -2195,7 +2314,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "is": [
       "settings.access.tokens.rights",
@@ -2317,7 +2443,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "it": [
       "settings.access.tokens.rights",
@@ -2439,7 +2572,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ja": [
       "settings.access.tokens.rights",
@@ -2561,7 +2701,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ko": [
       "settings.access.tokens.rights",
@@ -2683,7 +2830,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "lt": [
       "settings.access.tokens.rights",
@@ -2805,7 +2959,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "lv": [
       "settings.access.tokens.rights",
@@ -2927,7 +3088,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ms": [
       "settings.access.tokens.rights",
@@ -3049,7 +3217,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "nl": [
       "settings.access.tokens.rights",
@@ -3171,7 +3346,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "no": [
       "settings.access.tokens.rights",
@@ -3293,7 +3475,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "pl": [
       "settings.access.tokens.rights",
@@ -3415,7 +3604,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "pt": [
       "settings.access.tokens.rights",
@@ -3537,7 +3733,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ro": [
       "settings.access.tokens.rights",
@@ -3659,7 +3862,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "ru": [
       "settings.access.tokens.rights",
@@ -3781,7 +3991,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "sk": [
       "settings.access.tokens.rights",
@@ -3903,7 +4120,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "sl": [
       "settings.access.tokens.rights",
@@ -4025,7 +4249,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "sr": [
       "settings.access.tokens.rights",
@@ -4147,7 +4378,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "sv": [
       "settings.access.tokens.rights",
@@ -4269,7 +4507,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "th": [
       "settings.access.tokens.rights",
@@ -4391,7 +4636,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "tr": [
       "settings.access.tokens.rights",
@@ -4513,7 +4765,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "uk": [
       "settings.access.tokens.rights",
@@ -4635,7 +4894,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "vi": [
       "settings.access.tokens.rights",
@@ -4757,7 +5023,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ],
     "zh": [
       "settings.access.tokens.rights",
@@ -4879,7 +5152,14 @@
       "detail.heldBecause",
       "settings.categories.torrentFiles",
       "settings.categories.torrentFilesHint",
-      "settings.categories.torrentFilesOwn"
+      "settings.categories.torrentFilesOwn",
+      "settings.watchDirFilesHint",
+      "container.usenet",
+      "settings.help.intake.watchFiles",
+      "container.nzbTooBig",
+      "container.noUsenet",
+      "activity.usenet",
+      "settings.help.intake.nzb"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

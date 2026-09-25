@@ -34,10 +34,15 @@ type poller struct {
 	dir      string // resolved, see resolveDir: it is also the key the set is deduped on
 	interval time.Duration
 	onJob    func(Job)
-	del      bool
+	// check is Options.Check, nil for none.
+	check func(Job) error
+	del   bool
 
 	// pending is touched only by the polling goroutine, so it needs no lock.
 	pending map[string]fileState
+	// retry asks the next poll to forget which files it found unusable (see
+	// Watcher.Retry).
+	retry atomic.Bool
 
 	// missing is whether the last look found no folder at dir. It is written
 	// by the poll and read by Watcher.Missing on a request's goroutine.
@@ -118,6 +123,12 @@ func (p *poller) poll() {
 		// The share can be briefly unreachable; the next tick tries again.
 		return
 	}
+	if p.retry.Swap(false) {
+		for name, st := range p.pending {
+			st.bad = false
+			p.pending[name] = st
+		}
+	}
 	seen := make(map[string]fileState, len(entries))
 	for _, e := range entries {
 		if e.IsDir() {
@@ -143,7 +154,7 @@ func (p *poller) poll() {
 			seen[name] = cur
 			continue
 		}
-		if prev.bad || cur.size > maxIntakeSize {
+		if prev.bad || cur.size > sizeCap(name) {
 			// Already known to be unusable at these exact bytes. Keep the
 			// verdict so we do not re-read it on every single poll, and leave
 			// the file alone so the user can see and fix it.
@@ -176,12 +187,13 @@ func isIntakeName(name string) bool {
 	if strings.HasPrefix(name, ".") {
 		return false
 	}
-	switch strings.ToLower(filepath.Ext(name)) {
-	case ".crawljob", ".txt":
+	switch ext := strings.ToLower(filepath.Ext(name)); ext {
+	case ".crawljob", ".txt", ".magnet":
 		return true
+	default:
+		// Anything else, ".done" included, is not ours.
+		return wholeFiles[ext]
 	}
-	// Anything else, ".done" included, is not ours.
-	return false
 }
 
 // consume parses one file and retires it. The file is retired before the jobs
@@ -197,6 +209,16 @@ func (p *poller) consume(path string) error {
 	f.Close()
 	if err != nil {
 		return err
+	}
+	// Asked before the file is retired: a file nothing here can open stays
+	// where it was dropped, with the reason in the log, like one that does
+	// not parse.
+	if p.check != nil {
+		for _, j := range jobs {
+			if err := p.check(j); err != nil {
+				return err
+			}
+		}
 	}
 	if p.del {
 		if err := os.Remove(path); err != nil {

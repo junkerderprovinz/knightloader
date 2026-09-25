@@ -876,7 +876,17 @@ export interface ContainerHandedOver {
   expiresIn: number;
 }
 
-export type ContainerResult = ContainerStaged | ContainerHandedOver;
+/**
+ * An .nzb, sent to the TorBox or Premiumize account named in `service`.
+ * Nothing is staged yet; its files appear once the service has fetched them.
+ */
+export interface ContainerSentToUsenet {
+  kind: 'nzb';
+  handedTo: 'usenet';
+  service: string;
+}
+
+export type ContainerResult = ContainerStaged | ContainerHandedOver | ContainerSentToUsenet;
 
 /**
  * ApiError is a refusal the server explained. `code` and `params` make it
@@ -1311,11 +1321,12 @@ export async function fetchSkipped(): Promise<SkippedLink[]> {
 export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DELETE' });
 
 /**
- * uploadContainer sends a .txt/.dlc/.ccf/.rsdf file. A plain link list comes
- * back staged in `created`; an encrypted container is handed to the JD backend
- * and its links arrive later over the websocket, which the caller has to say
- * rather than report "0 links added". A failure throws the server's sentence,
- * with a code when the container is encrypted and no JDownloader can open it.
+ * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A plain link list
+ * comes back staged in `created`; an encrypted container is handed to the JD
+ * backend and an .nzb to a Usenet-capable account, and their links arrive
+ * later over the websocket, which the caller has to say rather than report
+ * "0 links added". A failure throws the server's sentence, with a code when
+ * nothing here can open the file.
  */
 export async function uploadContainer(file: File, pkg = ''): Promise<ContainerResult> {
   const form = new FormData();

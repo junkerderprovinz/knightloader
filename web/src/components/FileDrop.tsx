@@ -1,5 +1,5 @@
-// The collector's file intake for .torrent and link-container files
-// (.txt/.dlc/.ccf/.rsdf), reached through AddLinksForm's picker button and
+// The collector's file intake for .torrent, link-container (.txt/.dlc/.ccf/
+// .rsdf) and .nzb files, reached through AddLinksForm's picker button and
 // paste box. A file is tried as a torrent first, which the server sniffs by
 // content, and falls back to the container endpoint. The picker's `accept` is
 // a convenience, not a gate.
@@ -78,15 +78,20 @@ export interface FileDropHandle {
   handleFiles: (files: File[]) => void;
 }
 
-const FILE_ACCEPT = '.torrent,.txt,.dlc,.ccf,.rsdf';
+const FILE_ACCEPT = '.torrent,.txt,.dlc,.ccf,.rsdf,.nzb';
 
-// Mirrors container.MaxBytes in internal/container.
+// Mirror container.MaxBytes in internal/container and usenet.MaxNZBBytes in
+// internal/usenet.
 const MAX_CONTAINER_BYTES = 8 << 20;
+const MAX_NZB_BYTES = 64 << 20;
+
+const isNZB = (name: string) => name.toLowerCase().endsWith('.nzb');
 
 // Structured, so the sentence follows a language change after the upload.
 type Outcome =
   | { file: string; kind: 'container-staged'; links: number; created: number; pkg: string }
   | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
+  | { file: string; kind: 'nzb-sent'; service: string }
   | { file: string; kind: 'torrent-staged'; task: Task }
   | { file: string; kind: 'torrent-held'; reason: string }
   | { file: string; kind: 'torrent-duplicate' }
@@ -97,6 +102,9 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
 
   if (o.kind === 'failed') {
     return <p className="text-xs text-statusFail">{t('container.failed', { file: o.file, reason: o.reason })}</p>;
+  }
+  if (o.kind === 'nzb-sent') {
+    return <p className="text-xs text-carbon-textSub">{t('container.usenet', { file: o.file, service: o.service })}</p>;
   }
   if (o.kind === 'torrent-duplicate') {
     return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
@@ -303,23 +311,32 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
   // sendOne tries a file as a torrent, then as a container. It returns
   // 'pending' after opening the review for a multi-file torrent.
   async function sendOne(f: File): Promise<Outcome | 'pending'> {
-    try {
-      const tree = await parseTorrentUpload(f);
-      if (tree.files.length <= 1) {
-        return await commitTorrent(f.name, tree, tree.files.map(() => true));
+    // An .nzb is never a torrent, and a large one is not worth uploading twice.
+    if (!isNZB(f.name)) {
+      try {
+        const tree = await parseTorrentUpload(f);
+        if (tree.files.length <= 1) {
+          return await commitTorrent(f.name, tree, tree.files.map(() => true));
+        }
+        setPending({ file: f.name, tree, selected: tree.files.map((x) => x.selected) });
+        return 'pending';
+      } catch {
+        // Not a torrent; try it as a container.
       }
-      setPending({ file: f.name, tree, selected: tree.files.map((x) => x.selected) });
-      return 'pending';
-    } catch {
-      // Not a torrent; try it as a container.
     }
-    if (f.size > MAX_CONTAINER_BYTES) {
+    if (isNZB(f.name) && f.size > MAX_NZB_BYTES) {
+      return { file: f.name, kind: 'failed', reason: t('container.nzbTooBig', { max: fmtBytes(MAX_NZB_BYTES) }) };
+    }
+    if (!isNZB(f.name) && f.size > MAX_CONTAINER_BYTES) {
       return { file: f.name, kind: 'failed', reason: t('container.tooBig', { max: fmtBytes(MAX_CONTAINER_BYTES) }) };
     }
     try {
       const r = await uploadContainer(f, pkg);
       if (r.handedTo === 'jd') {
         return { file: f.name, kind: 'container-handed', expiresIn: r.expiresIn, startedAt: Date.now() };
+      }
+      if (r.handedTo === 'usenet') {
+        return { file: f.name, kind: 'nzb-sent', service: r.service };
       }
       // Read from the created tasks, since a Packagizer rule may have renamed it.
       const landed = new Set(r.created.map((c) => c.package).filter(Boolean));

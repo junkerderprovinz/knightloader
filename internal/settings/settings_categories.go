@@ -35,6 +35,7 @@ package settings
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -391,6 +392,55 @@ func normalizeCategoryCollision(raw string) string {
 	}
 	// collide.Ask lands here with the typos. See Category.Collision.
 	return ""
+}
+
+// CategoryByName finds the category a name from outside refers to, such as
+// the one a download client sends: the category of that name without regard
+// to case, or else the one whose id the name folds to.
+func (s Settings) CategoryByName(name string) (Category, bool) {
+	name = strings.TrimSpace(name)
+	for _, c := range s.Categories {
+		if strings.EqualFold(strings.TrimSpace(c.Name), name) {
+			return c, true
+		}
+	}
+	if want := CategoryID(name); want != "" {
+		for _, c := range s.Categories {
+			if c.ID == want {
+				return c, true
+			}
+		}
+	}
+	return Category{}, false
+}
+
+// EnsureCategory returns the id of the category name refers to (see
+// CategoryByName) and files a new one with the folder dir when there is none.
+// The id is matched too since a new row with a taken id would be dropped on
+// save. created reports whether this call filed it.
+//
+// The lookup and the save hold one lock, so two Sonarr grabs arriving under a
+// new name at once create it once.
+func (s *Store) EnsureCategory(name, dir string) (id string, created bool, err error) {
+	name = trimTo(name, maxCategoryName)
+	want := CategoryID(name)
+	if want == "" {
+		return "", false, fmt.Errorf("%q cannot name a category", name)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if c, ok := s.cur.CategoryByName(name); ok {
+		return c.ID, false, nil
+	}
+	if len(s.cur.Categories) >= MaxCategories {
+		return "", false, fmt.Errorf("there are already %d categories, which is the limit", MaxCategories)
+	}
+	next := s.cur
+	next.Categories = append(slices.Clone(s.cur.Categories), Category{ID: want, Name: name, Dir: dir})
+	if _, err := s.setLocked(next); err != nil {
+		return "", false, err
+	}
+	return want, true, nil
 }
 
 // ValidateCategories reports the first thing wrong with the table, in words

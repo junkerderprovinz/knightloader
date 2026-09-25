@@ -207,7 +207,6 @@ export const lv: Dict = {
   'settings.pathProblem.notAbsolute': 'Ievadi pilnu ceļu, piemēram, /downloads vai D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Neizdevās izveidot {dir}.',
   'settings.pathProblem.cannotWrite': 'Neizdevās ierakstīt mapē {dir}.',
-  'settings.watchDirHint': 'Šeit ieliktie .txt vai .crawljob faili ar saitēm tiek paņemti automātiski.',
   'settings.crawl': 'Sekot lapām un savākt failus, uz kuriem tās norāda',
   'settings.crawl.depth': 'Apstaigāšanas dziļums',
   'settings.crawl.depthHint': 'Cik dziļi iet. 1 ir tikai ielīmētā lapa, 2 atver arī lapas, uz kurām tā norāda, 3 atver to saites. Lapa nekad netiek atvērta divreiz, tāpēc savstarpējas saites pabeidz gājienu, nevis riņķo pa apli.',
@@ -1322,7 +1321,6 @@ export const lv: Dict = {
     'Click\'n\'Load pogas hosteru un forumu lapās darbojas bez izmaiņām. KnightLoader atbild uz 127.0.0.1:9666, to pašu portu, ko izmanto visi pārējie lejupielādētāji.',
   'settings.help.intake.b3':
     'Ielīmējiet lapas URL failu saites vietā un ieslēdziet Rāpošanu, lai izgūtu katru failu, uz ko tā norāda, tā vietā, lai lejupielādētu pašu lapu.',
-  'settings.help.intake.b4': 'Pārraudzīta mape automātiski paņem .txt/.crawljob failus, kas tajā tiek ievietoti.',
   'settings.help.intake.link1': 'Atvērt Saišu savācēja iestatījumus',
 
   'settings.help.collector.title': 'Kolektors, pirms kaut kas tiek lejupielādēts',
@@ -3013,4 +3011,11 @@ export const lv: Dict = {
   'settings.categories.torrentFiles': 'Torrent file selection',
   'settings.categories.torrentFilesHint': 'Which files of a torrent filed here are fetched when nobody ticked them by hand. Inherit uses the file selection on the Torrents page. Own replaces it for this category, for example a music category where the small files are the album. It applies when the torrent starts, so it also covers a torrent a Packagizer rule files here. Files you tick yourself always win.',
   'settings.categories.torrentFilesOwn': 'Own',
+  'settings.watchDirFilesHint': 'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
+  'settings.help.intake.watchFiles': 'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.nzbTooBig': 'it is larger than {max}, the most an .nzb may be',
+  'container.noUsenet': 'it is an .nzb, and those are fetched from Usenet through a TorBox or Premiumize.me account. None of your accounts can do that: add one under Accounts.',
+  'activity.usenet': 'Usenet',
+  'settings.help.intake.nzb': 'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
 };

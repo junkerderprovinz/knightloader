@@ -51,12 +51,17 @@ type Options struct {
 	// it must not block for long or that folder's next poll is delayed behind it.
 	// Folders poll independently, so a slow sink holds up only its own.
 	OnJob func(Job)
+	// Check, when set, is asked about every job of a file before the file is
+	// retired. An error leaves the file in place and is logged once, which is
+	// how a .dlc on an instance without JDownloader is refused.
+	Check func(Job) error
 }
 
 // Watcher polls a set of directories and hands each new file to a sink.
 type Watcher struct {
 	interval time.Duration
 	onJob    func(Job)
+	check    func(Job) error
 
 	// mu guards live, started and closed. It is held across a poller's close on
 	// purpose - see Apply.
@@ -105,6 +110,7 @@ func New(o Options) (*Watcher, error) {
 	w := &Watcher{
 		interval: interval,
 		onJob:    o.OnJob,
+		check:    o.Check,
 		live:     make(map[Folder]*poller, len(folders)),
 	}
 	errs := w.Apply(folders)
@@ -207,6 +213,7 @@ func (w *Watcher) Apply(folders []Folder) []error {
 			continue
 		}
 		p := newPoller(dir, f.Delete, w.interval, w.onJob)
+		p.check = w.check
 		p.missing.Store(err != nil)
 		served[dir] = p
 		byDir[f.Dir] = p
@@ -244,6 +251,18 @@ func (w *Watcher) Start() {
 	w.started = true
 	for _, p := range w.live {
 		p.start()
+	}
+}
+
+// Retry has every folder take up again, on its next poll, the files it left
+// lying because they could not be read or opened. It is for the moment
+// something that opens them is set up, such as the first Usenet account for a
+// dropped .nzb.
+func (w *Watcher) Retry() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for _, p := range w.live {
+		p.retry.Store(true)
 	}
 }
 

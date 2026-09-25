@@ -69,10 +69,11 @@ type intake struct {
 	// not asked again here or at the queue (see filterWaived).
 	waived string
 
-	// priority, autoExtract, comment and category are the add-links form's
-	// batch options, carried onto every task the batch creates, crawled ones
-	// included. stage sets them before the Packagizer runs, so a matching rule
-	// wins by default (see LinkBatchOptions.Overrule).
+	// priority, autoExtract, comment and category are the batch options,
+	// carried onto every task the batch creates, crawled ones included. stage
+	// sets them before the Packagizer runs, so a matching rule wins: by default
+	// for the first three (see LinkBatchOptions.Overrule), and always for the
+	// category, which is an id.
 	priority    *int
 	autoExtract *bool
 	comment     string
@@ -105,7 +106,7 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 // playlist listing, which could only mistake a resolved file for a page; the
 // filter, Packagizer, duplicate check, naming and auto-confirm run as usual.
 func (a *App) AddResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
-	return a.detached(a.addResolvedLinksFrom(links, pkg, origin))
+	return a.detached(a.addResolvedLinksFrom(links, intake{pkg: pkg, origin: origin}))
 }
 
 // verdict is one link's known availability, written through the locked path
@@ -115,7 +116,15 @@ type verdict struct {
 	avail core.Availability
 }
 
-func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
+func (a *App) addResolvedLinksFrom(links []resolver.Result, in intake) []*core.Task {
+	created := a.stageResolvedLinks(links, in)
+	a.autoConfirm(idsOf(created))
+	return created
+}
+
+// stageResolvedLinks is addResolvedLinksFrom without the auto-confirm, for a
+// caller that still writes to the tasks before anything may start.
+func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Task {
 	var created []*core.Task
 	var verdicts []verdict
 	seen := map[string]bool{}
@@ -126,14 +135,14 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 			continue
 		}
 		seen[u] = true
-		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
+		cand := rules.Candidate{URL: u, Package: in.pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, origin, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, in.origin, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
 		}
-		if t := a.stage(u, l.Name, l.Size, intake{pkg: pkg, origin: origin}); t != nil {
+		if t := a.stage(u, l.Name, l.Size, in); t != nil {
 			// Collected and written later through setAvailability, since the
 			// task is shared and only that path takes a.mu and broadcasts.
 			if l.Available != "" {
@@ -143,7 +152,7 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 			created = append(created, t)
 		}
 	}
-	if strings.TrimSpace(pkg) == "" {
+	if strings.TrimSpace(in.pkg) == "" {
 		a.nameBucket(b)
 	}
 	// Before catchAll and auto-confirm, so the verdict is on the rows first.
@@ -151,7 +160,6 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 		a.setAvailability(v.id, v.avail, "", core.ReasonUnknown)
 	}
 	a.catchAll(created)
-	a.autoConfirm(idsOf(created))
 	return created
 }
 

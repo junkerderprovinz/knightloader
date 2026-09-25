@@ -631,6 +631,7 @@ func New(dataDir string) (*App, error) {
 	a.rearmAutoConfirm()
 	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
+	a.startUsenet()
 	return a, nil
 }
 

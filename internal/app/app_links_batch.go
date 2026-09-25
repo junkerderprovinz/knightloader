@@ -25,9 +25,10 @@ type LinkBatchOptions struct {
 	DownloadPassword string
 	// Comment is the note attached to every task in the batch.
 	Comment string
-	// Category is the category every task in the batch is filed under. Like
-	// Dir it is applied after staging, so it wins over a Packagizer rule. The
-	// tasks are staged in it as well, so they start at its priority.
+	// Category is the id of the category every task in the batch is filed
+	// in. It is set before the Packagizer runs, so a rule that names a
+	// category wins, whatever Overrule says, and the tasks start at the
+	// category's priority.
 	Category string
 	// KeepCollected leaves the batch in the collector whatever AutoConfirm
 	// says, for a caller that was asked to add it stopped.
@@ -105,11 +106,8 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 	if password != "" {
 		a.rememberPasswords([]string{password})
 	}
-	if category := strings.TrimSpace(opts.Category); category != "" {
-		a.SetCategory(ids, category)
-	}
-	// Last, so the batch's own folder and category are on the tasks before a
-	// confirm can start one.
+	// Last, so the batch's own folder is on the tasks before a confirm can
+	// start one.
 	if !opts.KeepCollected {
 		a.autoConfirm(ids)
 	}
