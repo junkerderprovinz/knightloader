@@ -39,6 +39,8 @@ export function GlobalIntake() {
         const r = await uploadContainer(file);
         if (r.handedTo === 'jd') {
           toast(t('container.handed', { file: file.name, n: r.expiresIn }), 'info');
+        } else if (r.handedTo === 'usenet') {
+          toast(t('container.usenet', { file: file.name, service: r.service }), 'info');
         } else if (r.created.length > 0) {
           toast(t('container.staged', { n: r.created.length, file: file.name }), 'ok');
         } else {

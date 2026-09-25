@@ -64,7 +64,7 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 		return
 	}
 	if w == nil {
-		w, err := watch.New(watch.Options{Folders: folders, OnJob: a.onWatchIntake})
+		w, err := watch.New(watch.Options{Folders: folders, OnJob: a.onWatchIntake, Check: a.checkWatchJob})
 		if err != nil {
 			log.Printf("no drop folder could be watched (%v); intake is off", err)
 			return
@@ -89,6 +89,14 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 	log.Printf("watching %s for dropped links", strings.Join(dirs, ", "))
 }
 
+// retryWatchFiles has every drop folder look again at the files it left lying,
+// once something that can open them has been set up.
+func (a *App) retryWatchFiles() {
+	if w := a.watcher.Load(); w != nil {
+		w.Retry()
+	}
+}
+
 // WatchFolderMissing reports whether the drop folder dir was not there the last
 // time its poller looked, without looking again (see watch.Watcher.Missing).
 func (a *App) WatchFolderMissing(dir string) bool {
@@ -106,6 +114,10 @@ func (a *App) onWatchIntake(j watch.Job) {
 // file asked for, and only then start anything, so a folder override cannot
 // arrive after a download has chosen where to write.
 func (a *App) stageWatchJob(j watch.Job) {
+	if j.File != nil {
+		a.stageWatchFile(j.File, j.Package)
+		return
+	}
 	staged := idsOf(a.addLinksWithPasswords(j.URLs, j.Package, j.Passwords, OriginWatch))
 	if len(staged) == 0 {
 		return

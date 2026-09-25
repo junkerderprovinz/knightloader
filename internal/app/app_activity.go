@@ -29,11 +29,14 @@ const (
 	// and not yet collected. The api package publishes it through
 	// SetContainerActivity, since its relay holds the count.
 	ActivityContainer ActivityKind = "container"
+	// ActivityUsenet counts the .nzb files that are waiting for an account or
+	// being fetched by one, whose files are not in the list yet.
+	ActivityUsenet ActivityKind = "usenet"
 )
 
 // Activity is the hub's "activity" message: what one kind of background work
 // is currently doing. For burst kinds Active never exceeds Total; gauge kinds
-// (captcha, container) publish a live count with Active equal to Total.
+// (captcha, container, usenet) publish a live count with Active equal to Total.
 type Activity struct {
 	Kind   ActivityKind `json:"kind"`
 	Active int          `json:"active"`
@@ -273,4 +276,4 @@ func (a *App) ActivitySnapshot() []Activity {
 }
 
 // activityOrder is every kind ActivitySnapshot reports.
-var activityOrder = []ActivityKind{ActivityCrawl, ActivityLinkCheck, ActivityCaptcha, ActivityAutoConfirm, ActivityContainer}
+var activityOrder = []ActivityKind{ActivityCrawl, ActivityLinkCheck, ActivityCaptcha, ActivityAutoConfirm, ActivityContainer, ActivityUsenet}

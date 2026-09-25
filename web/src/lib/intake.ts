@@ -21,6 +21,7 @@ export function message(e: unknown): string {
 const CONTAINER_REFUSALS: Partial<Record<string, TranslationKey>> = {
   noJD: 'container.noJD',
   jdOff: 'container.jdOff',
+  noUsenet: 'container.noUsenet',
 };
 
 /**

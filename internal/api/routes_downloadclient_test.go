@@ -283,8 +283,9 @@ func TestDownloadClientConfigSatisfiesSonarrsChecks(t *testing.T) {
 			t.Errorf("category %q has dir %q; a trailing * is what Sonarr reads as \"job folders off\" and warns about", name, dir)
 		}
 	}
-	// The two an untouched Sonarr and an untouched Radarr are configured with.
-	for _, want := range []string{"tv-sonarr", "radarr", "*"} {
+	// What an untouched Sonarr and an untouched Radarr are configured with, for
+	// a SABnzbd client and for qBittorrent.
+	for _, want := range []string{"tv", "movies", "tv-sonarr", "radarr", "*"} {
 		if !seen[want] {
 			t.Errorf("category %q is not advertised, so Sonarr's category validation fails for a default install", want)
 		}
@@ -554,8 +555,8 @@ const otherMagnet = "magnet:?xt=urn:btih:fedcba9876543210fedcba9876543210fedcba9
 func nzoIDOf(t *testing.T, add map[string]any) string {
 	t.Helper()
 	ids, _ := add["nzo_ids"].([]any)
-	if len(ids) != 1 {
-		t.Fatalf("addfile staged nothing: %+v", add)
+	if add["status"] != true || len(ids) != 1 {
+		t.Fatalf("addfile answered %+v, want it accepted", add)
 	}
 	id, _ := ids[0].(string)
 	return id

@@ -207,7 +207,6 @@ export const zh: Dict = {
   'settings.pathProblem.notAbsolute': '请输入完整路径，例如 /downloads 或 D:\\Downloads。',
   'settings.pathProblem.cannotCreate': '无法创建 {dir}。',
   'settings.pathProblem.cannotWrite': '无法写入 {dir}。',
-  'settings.watchDirHint': '放到这里的 .txt 或 .crawljob 文件中的链接会被自动接收。',
   'settings.crawl': '跟进页面并收集其中链接的文件',
   'settings.crawl.depth': '抓取深度',
   'settings.crawl.depthHint': '要走多深。1 只是粘贴的那一页，2 会打开它链接到的页面，3 再打开那些页面的链接。同一页不会打开两次，因此互相指向的链接会让抓取结束，而不是绕圈。',
@@ -1321,7 +1320,6 @@ export const zh: Dict = {
     '网盘和论坛页面上的 Click\'n\'Load 按钮照常可用。KnightLoader 在 127.0.0.1:9666 上响应，这和其他所有下载器用的端口相同。',
   'settings.help.intake.b3':
     '粘贴页面 URL 而非文件链接，并打开爬取，以提取它链接到的每个文件，而不是下载页面本身。',
-  'settings.help.intake.b4': '受监视的文件夹会自动接收放入其中的 .txt/.crawljob 文件。',
   'settings.help.intake.link1': '打开链接收集器设置',
 
   'settings.help.collector.title': '收集器，在任何内容下载之前',
@@ -3009,4 +3007,11 @@ export const zh: Dict = {
   'settings.categories.torrentFiles': 'Torrent file selection',
   'settings.categories.torrentFilesHint': 'Which files of a torrent filed here are fetched when nobody ticked them by hand. Inherit uses the file selection on the Torrents page. Own replaces it for this category, for example a music category where the small files are the album. It applies when the torrent starts, so it also covers a torrent a Packagizer rule files here. Files you tick yourself always win.',
   'settings.categories.torrentFilesOwn': 'Own',
+  'settings.watchDirFilesHint': 'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
+  'settings.help.intake.watchFiles': 'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'container.nzbTooBig': 'it is larger than {max}, the most an .nzb may be',
+  'container.noUsenet': 'it is an .nzb, and those are fetched from Usenet through a TorBox or Premiumize.me account. None of your accounts can do that: add one under Accounts.',
+  'activity.usenet': 'Usenet',
+  'settings.help.intake.nzb': 'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
 };

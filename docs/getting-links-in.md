@@ -9,8 +9,13 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   submission in the page itself and routes it through the relay to whichever
   instance you pick, or the same binary run as a bridge on your desktop
   (`knightloader -bridge http://nas:8749`) for a browser with no extension in it.
-- **Watched folder**: drop a `.txt` or a JDownloader `.crawljob` onto a share and
-  the box picks it up, with its package name, destination and archive password.
+- **Watched folder**: drop a `.txt`, a `.magnet` or a JDownloader `.crawljob`
+  onto a share and the box picks it up, with its package name, destination and
+  archive password. A `.torrent`, a container and an `.nzb` are taken too, and
+  go where an upload of the same file would. A file that has been taken is
+  renamed to `.done`. One this instance cannot open, such as an encrypted
+  container with no JDownloader backend, stays where it is, and the log says
+  why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.
 - **A page**: paste one, and the files it links to are staged instead.
 - **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link list is
@@ -20,6 +25,7 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
   no backend at all, a container is recognised and refused, with the missing
   backend named as the reason.
+- **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
 - **Your own server**: see below.
 - **Sonarr and Radarr**: they hand their grabs over as if KnightLoader were
   qBittorrent or SABnzbd. See below.
@@ -59,6 +65,33 @@ added later still stops it from starting. Restoring it lets it past the line
 that caught it, not past one added afterwards. It is refused rather than
 stripped of that tracker: the rest of the torrent would still announce the same
 info hash, and a private torrent without its tracker finds no peers.
+
+## Usenet
+
+KnightLoader has no newsreader of its own. An `.nzb` goes to a debrid service
+that has one: your TorBox account first, or Premiumize.me when there is no
+TorBox account, TorBox turns the file down, or TorBox is not taking new ones
+for the moment. Add the account under Accounts; there is nothing else to set
+up. The service downloads the articles, repairs and unpacks them, and hands
+back ordinary files, which then download into the package's folder like any
+other link. A release that unpacks into folders keeps them, so a subtitle in
+`Subs/` lands in `Subs/` inside the package's folder. An `.nzb` can come from
+the upload button, the watched folder, or Sonarr and Radarr, and may be up to
+64 MB, which covers a release of about 450 GB.
+
+TorBox takes at most 60 NZBs an hour per API key. When it is at that limit or
+says it is busy, the next `.nzb` goes to your Premiumize.me account if you
+have one, and otherwise waits and goes out once TorBox takes files again, so
+nothing fails for being one too many. A download TorBox queues because every
+slot of the account is taken is followed until it starts. An account whose
+plan does not include Usenet is passed over for an hour once it has said so.
+With no account that can take it, a real `.nzb` is refused, with that as the
+reason. A DDL indexer's "nzb" that is really a list of links is read for its
+links either way.
+
+While an `.nzb` waits for an account or is being fetched, the status strip
+counts it under Usenet. One the service gives up on is listed with the links
+that were not added, together with the service's reason.
 
 ## Own servers (FTP, SFTP, WebDAV)
 
@@ -147,11 +180,27 @@ again by itself.
 
 ### Usenet and DDL indexers through SABnzbd's API
 
-Add SABnzbd instead, with URL Base `api/sabnzbd` and an API token as its API
-key. KnightLoader scans what Sonarr uploads for links, the way it scans a paste,
-so a DDL indexer whose "NZB" is really a list of links works. A real `.nzb` is
-refused with that reason, because this build has no Usenet backend to fetch it
-with.
+Add SABnzbd instead, with this instance's address, the URL Base `api/sabnzbd`
+and an API token as its API key. A real `.nzb` goes to Usenet as described
+above. While the service fetches an `.nzb`, Sonarr's queue shows it
+downloading at the service's own progress. Once the files are here it follows
+them, and its history names the folder to import from. A download that fails
+with a retry still to come stays in the queue, so Sonarr does not give up on
+a release that is about to arrive.
+
+Anything else Sonarr uploads is scanned for links, the way a paste is, so a
+DDL indexer whose "NZB" is really a list of links works.
+
+The category Sonarr or Radarr sends here is a KnightLoader category. A grab is filed
+in the category of the same name, whatever the case. When there is none, one
+is created with its own folder inside the download folder, so `tv` lands in
+`/downloads/tv`, and the log says it was created. Sonarr accepts only a
+category it finds under exactly the name it has, so this instance offers each
+of its categories under its name and its id, plus the defaults Sonarr and
+Radarr come with: `tv` and `movies`, and `tv-sonarr` and `radarr` from their
+qBittorrent settings. With "Put each package in its own subfolder" on, every
+release gets a folder of its own inside that, which is what the importer needs
+to tell two grabs apart.
 
 ## Sites that want their own headers
 

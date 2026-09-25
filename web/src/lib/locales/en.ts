@@ -239,7 +239,8 @@ export const en = {
   'settings.pathProblem.notAbsolute': 'Enter a full path, such as /downloads or D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Could not create {dir}.',
   'settings.pathProblem.cannotWrite': 'Could not write to {dir}.',
-  'settings.watchDirHint': 'Links dropped here as .txt or .crawljob files are picked up automatically.',
+  'settings.watchDirFilesHint':
+    'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
   'settings.crawl': 'Follow pages and collect the files they link to',
   'settings.crawl.depth': 'Crawl depth',
   'settings.crawl.depthHint': 'How deep to go. 1 is the pasted page alone, 2 also opens the pages it links to, 3 opens theirs. A page is never opened twice, so links pointing back at each other end the run instead of looping.',
@@ -461,6 +462,7 @@ export const en = {
   'container.choose': 'Choose a file',
   'container.uploading': 'Uploading…',
   'container.tooBig': 'it is larger than {max}, which no container is',
+  'container.nzbTooBig': 'it is larger than {max}, the most an .nzb may be',
   'container.staged': 'Staged {n} link(s) from {file}.',
   'container.stagedIn': 'Staged {n} link(s) from {file} in “{pkg}”.',
   'container.alsoKnown': '{n} more were already in the list.',
@@ -469,6 +471,8 @@ export const en = {
   'container.failed': '{file} was not taken: {reason}',
   'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
   'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Modules page.',
+  'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
+  'container.noUsenet': 'it is an .nzb, and those are fetched from Usenet through a TorBox or Premiumize.me account. None of your accounts can do that: add one under Accounts.',
 
   // Uploading a .torrent file, and the file tree a multi-file torrent shows
   // before it is added. A magnet link needs none of this: it stages through
@@ -1420,6 +1424,7 @@ export const en = {
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Auto-confirming',
   'activity.container': 'Containers',
+  'activity.usenet': 'Usenet',
   'activity.pending': '{n} pending',
   'activity.ofTotal': '{n} of {total}',
   'activity.tooltipHint': '{active} active of {total} this run',
@@ -1565,7 +1570,10 @@ export const en = {
     'Click\'n\'Load buttons on hoster and forum pages work unchanged. KnightLoader answers on 127.0.0.1:9666, the same port every other downloader uses.',
   'settings.help.intake.b3':
     'Paste a page URL instead of a file link and switch Crawl on to pull out every file it links to, instead of downloading the page itself.',
-  'settings.help.intake.b4': 'A watch folder picks up .txt/.crawljob files dropped into it automatically.',
+  'settings.help.intake.watchFiles':
+    'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
   'settings.help.intake.link1': 'Open Link collector settings',
 
   'settings.help.collector.title': 'The collector, before anything downloads',

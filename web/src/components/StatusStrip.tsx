@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { abortActivity, connectWS } from '../lib/api';
 import { fmtCountdown, goTimeMs, useCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconArchive, IconCaptcha, IconCheck, IconClose, IconGlobe, IconSearch } from '../lib/icons';
+import { IconArchive, IconCaptcha, IconCheck, IconClose, IconDownloads, IconGlobe, IconSearch } from '../lib/icons';
 import { Button, InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
@@ -10,7 +10,7 @@ type Translate = ReturnType<typeof useT>['t'];
 // Background work the app does on its own, broadcast over the hub as
 // "activity". It is a live signal only, with no REST route.
 
-export type ActivityKind = 'crawl' | 'linkcheck' | 'captcha' | 'autoconfirm' | 'container';
+export type ActivityKind = 'crawl' | 'linkcheck' | 'captcha' | 'autoconfirm' | 'container' | 'usenet';
 
 /** ActivitySignal mirrors app.Activity in internal/app/app_activity.go. */
 export interface ActivitySignal {
@@ -30,17 +30,23 @@ export interface ActivitySignal {
 }
 
 // A fixed order, so rows do not jump as bursts start and stop.
-const ORDER: ActivityKind[] = ['crawl', 'linkcheck', 'captcha', 'autoconfirm', 'container'];
+const ORDER: ActivityKind[] = ['crawl', 'linkcheck', 'captcha', 'autoconfirm', 'container', 'usenet'];
 
 const LABEL_KEY: Record<
   ActivityKind,
-  'activity.crawl' | 'activity.linkcheck' | 'activity.captcha' | 'activity.autoconfirm' | 'activity.container'
+  | 'activity.crawl'
+  | 'activity.linkcheck'
+  | 'activity.captcha'
+  | 'activity.autoconfirm'
+  | 'activity.container'
+  | 'activity.usenet'
 > = {
   crawl: 'activity.crawl',
   linkcheck: 'activity.linkcheck',
   captcha: 'activity.captcha',
   autoconfirm: 'activity.autoconfirm',
   container: 'activity.container',
+  usenet: 'activity.usenet',
 };
 
 function kindIcon(kind: ActivityKind): ReactElement {
@@ -56,14 +62,16 @@ function kindIcon(kind: ActivityKind): ReactElement {
       return <IconCheck {...p} />;
     case 'container':
       return <IconArchive {...p} />;
+    case 'usenet':
+      return <IconDownloads {...p} />;
   }
 }
 
-// Captcha and container counts are gauges of what is outstanding. The burst
-// kinds always read "N of M", so the figure fills up rather than jumping from
-// a bare count to a fraction.
+// Captcha, container and Usenet counts are gauges of what is outstanding. The
+// burst kinds always read "N of M", so the figure fills up rather than jumping
+// from a bare count to a fraction.
 function formatCount(t: Translate, kind: ActivityKind, s: ActivitySignal): string {
-  if (kind === 'captcha' || kind === 'container') {
+  if (kind === 'captcha' || kind === 'container' || kind === 'usenet') {
     return t('activity.pending', { n: s.active });
   }
   return t('activity.ofTotal', { n: s.total - s.active, total: s.total });

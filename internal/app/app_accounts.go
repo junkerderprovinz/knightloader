@@ -265,6 +265,7 @@ func (a *App) rewireBackends() {
 	a.debrid, a.ytdlp, a.torbox, a.jd = newDebrid, newYtdlp, newTorbox, newJD
 	a.remotefs = newRemoteFS
 	a.bmu.Unlock()
+	a.rewireUsenet()
 
 	// Starts the account-health ticker on the first call (New always calls
 	// rewireBackends); later calls do nothing.

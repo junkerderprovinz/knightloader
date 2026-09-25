@@ -31,6 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
 // modeForLocked reports whether a task routed to resolverID goes out on an
@@ -221,12 +222,13 @@ func barredPastOff(id string) bool {
 }
 
 // offCard reports whether the priority card leaves a resolver out: a stored
-// header profile, which goes first for its origin, the user's own servers and
-// the HTTP fallback. The first two take only links the user pointed them at,
-// so there is nothing to rank, and the fallback is by definition last.
-// dynamicPrio ignores an order entry naming any of them.
+// header profile, which goes first for its origin, the user's own servers, the
+// files an .nzb came back as, and the HTTP fallback. The first three take only
+// links that were pointed at them, so there is nothing to rank, and the
+// fallback is by definition last. dynamicPrio ignores an order entry naming
+// any of them.
 func offCard(id string) bool {
-	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID
+	return id == "http" || id == hostheaders.ResolverID || id == remotefs.ResolverID || id == usenet.ResolverID
 }
 
 // SaveResolverOrder stores the order the priority card sends and answers with
@@ -1121,7 +1123,7 @@ func (a *App) Resume(id string) {
 // uses this to avoid offering controls that would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *torbox.Backend:
+	case *engine.Engine, *debrid.Backend, *torbox.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1144,6 +1146,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.torbox
 	case resolverID == "ytdlp" && a.ytdlp != nil:
 		return a.ytdlp
+	case resolverID == usenet.ResolverID:
+		return a.usenetStateFor().files
 	default:
 		return a.Engine
 	}

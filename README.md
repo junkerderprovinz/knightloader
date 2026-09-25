@@ -152,7 +152,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Premium hoster logins | ⚠️ used by that JDownloader | ✅ | ✅ | ❌ |
 | Video sites | ✅ every site yt-dlp reads | ✅ plugins for many | ⚠️ a few, such as YouTube | ❌ |
 | Torrents | ✅ built-in client | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
-| Usenet | ❌ | ⚠️ basic, no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize |
+| Usenet | ⚠️ through TorBox or Premiumize.me | ⚠️ basic, no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize.me |
 | Click'n'Load | ✅ also to another machine | ✅ also through MyJDownloader | ⚠️ an addon, off by default | ❌ |
 | Browser extension | ✅ Chromium browsers and Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ Android | ✅ Android, iOS from a third party | ✅ Android, on F-Droid | ❌ |
@@ -162,7 +162,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Unpacking | ✅ no outside tools | ✅ | ⚠️ calls unrar and 7z | ✅ |
 | Rules for links and packages | ✅ with a test box | ✅ Packagizer, link filter | ⚠️ words in the link | ⚠️ patterns and a minimum size |
 | Scripts on events | ✅ JavaScript in a sandbox, or a program of yours | ✅ Event Scripter | ✅ outside scripts | ⚠️ when a torrent finishes |
-| Sonarr and Radarr | ✅ qBittorrent's API for torrents, SABnzbd's for link lists | ❌ | ❌ | ✅ qBittorrent's and SABnzbd's API |
+| Sonarr and Radarr | ✅ qBittorrent's API for torrents, SABnzbd's for link lists and for NZBs through TorBox or Premiumize.me | ❌ | ❌ | ✅ qBittorrent's and SABnzbd's API |
 
 ✅ yes · ⚠️ with a catch, named in the cell · ❌ no · ➖ does not apply: the debrid service fetches everything, so there is nothing to solve
 
