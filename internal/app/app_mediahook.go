@@ -147,10 +147,11 @@ func (a *App) packageFilesLanded(name string) bool {
 			continue
 		}
 		dest, work := a.dirFor(t), a.workDirFor(t)
-		if dest == work {
+		src := a.fileOfLocked(t)
+		if dest == work || !sameDir(filepath.Dir(src), work) {
 			continue
 		}
-		pending = append(pending, filepath.Join(work, t.Name))
+		pending = append(pending, src)
 	}
 	a.mu.Unlock()
 	for _, src := range pending {

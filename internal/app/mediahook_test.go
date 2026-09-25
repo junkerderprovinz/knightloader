@@ -121,6 +121,30 @@ func TestTheCallWaitsUntilTheFileHasLeftTheWorkingFolder(t *testing.T) {
 	}
 }
 
+// A download that had to be written under another name is just as much still
+// in the working folder.
+func TestTheCallWaitsForAFileWrittenUnderAnotherName(t *testing.T) {
+	work := t.TempDir()
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.WorkDir = work
+	})
+	folder := workdir.For(work, base)
+	stagedIn(t, folder, "film (1).mkv", "the whole film")
+	stageFiled(t, a, "1", "film.mkv", "Der.Film", "filme")
+	editTask(a, "1", func(task *core.Task) { task.File = filepath.Join(folder, "film (1).mkv") })
+
+	if a.packageFilesLanded("Der.Film") {
+		t.Fatal("the package reads as landed while its file is still in the working folder")
+	}
+
+	a.deliverDownload("1")
+
+	if !a.packageFilesLanded("Der.Film") {
+		t.Error("the package still reads as unlanded after its file was moved")
+	}
+}
+
 // With no working folder the bytes are written straight into the folder they
 // belong in, so there is nothing to wait for.
 func TestAnInstallWithNoWorkingFolderNeverWaits(t *testing.T) {
@@ -160,8 +184,9 @@ func TestAFinishedPackageReachesTheAddress(t *testing.T) {
 	var hits atomic.Int32
 	var token atomic.Value
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		hits.Add(1)
+		// The header first, so a counted call always has one to look at.
 		token.Store(r.Header.Get("X-Emby-Token"))
+		hits.Add(1)
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	t.Cleanup(srv.Close)
@@ -178,19 +203,22 @@ func TestAFinishedPackageReachesTheAddress(t *testing.T) {
 	// Published exactly as watchPackagesForScripts publishes it, off the lock.
 	a.publishEvent(script.Firing{Trigger: script.TriggerPackageDone, Package: &script.PackageView{Name: "Die.Serie.S01", Files: 1, Done: 1}})
 
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) && hits.Load() == 0 {
-		time.Sleep(20 * time.Millisecond)
+	// The runner records a call once the answer is back, which is later than
+	// the server counting it, so the wait is for the record.
+	var last mediahook.Result
+	waitFor(t, "the call being recorded", func() bool {
+		var ok bool
+		last, ok = a.LastMediaHookCall("jellyfin")
+		return ok
+	})
+	if !last.OK || last.Package != "Die.Serie.S01" {
+		t.Errorf("LastMediaHookCall = %+v", last)
 	}
-	if hits.Load() != 1 {
-		t.Fatalf("the address was called %d times, want once", hits.Load())
+	if n := hits.Load(); n != 1 {
+		t.Fatalf("the address was called %d times, want once", n)
 	}
 	if got, _ := token.Load().(string); got != "the-sealed-token" {
 		t.Errorf("the server saw the header %q, want the sealed value", got)
-	}
-	last, ok := a.LastMediaHookCall("jellyfin")
-	if !ok || !last.OK || last.Package != "Die.Serie.S01" {
-		t.Errorf("LastMediaHookCall = %+v, ok=%v", last, ok)
 	}
 }
 

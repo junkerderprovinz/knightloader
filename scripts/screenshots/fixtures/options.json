@@ -1,0 +1,20 @@
+{
+  "archiveCollisions": ["rename", "skip", "overwrite"],
+  "archiveDisposals": ["keep", "trash", "delete"],
+  "archiveFormats": [".tar", ".gz", ".bz2", ".xz", ".zst", ".zip", ".rar", ".7z"],
+  "archiveTrashFolder": ".knightloader-trash",
+  "cleanupClasses": ["finished", "offline", "disabled", "duplicates", "incompleteArchives"],
+  "collisionPolicies": ["rename", "skip", "overwrite"],
+  "confirmPolicies": ["include", "exclude", "exclude-and-remove", "ask"],
+  "maxCategories": 64,
+  "mediaHookMethods": ["GET", "POST"],
+  "mirrorPolicies": ["off", "filename-only", "size-only", "filename-and-size", "filename-or-hash", "hash-only"],
+  "proxyKinds": ["none", "direct", "http", "https", "socks4", "socks4a", "socks5"],
+  "reclaimTrustModes": ["checksum", "record", "size"],
+  "resumeModes": ["never", "running", "all"],
+  "scheduleActions": ["pause", "resume", "limit"],
+  "ytdlpAudioBitrates": ["", "64", "96", "128", "160", "192", "256", "320"],
+  "ytdlpAudioFormats": ["best", "aac", "alac", "flac", "mp3", "opus", "vorbis", "wav"],
+  "ytdlpQualities": ["best", "4320p", "2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p", "custom"],
+  "ytdlpVideoFormats": ["best", "mp4 avc1", "mp4 hevc", "mp4 av1", "webm vp9", "webm av1"]
+}

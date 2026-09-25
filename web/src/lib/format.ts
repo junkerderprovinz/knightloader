@@ -51,24 +51,24 @@ export function fmtEta(loaded: number, size: number, speed: number): string {
   if (speed <= 0 || size <= 0 || loaded >= size) return '';
   const secs = Math.round((size - loaded) / speed);
   if (secs < 60) return ltr(`${secs}s`);
-  if (secs < 3600) return ltr(`${Math.round(secs / 60)}m`);
+  if (secs < 3600) return ltr(`${Math.round(secs / 60)}min`);
   const h = Math.floor(secs / 3600);
   const m = Math.round((secs % 3600) / 60);
-  return ltr(`${h}h ${m}m`);
+  return ltr(`${h}h ${m}min`);
 }
 
 /**
  * fmtUptime prints a duration in fmtEta's untranslated units, such as `4d 6h`,
  * matching the task list. Only the two largest units are shown. Seconds appear
- * below a minute, where `0m` would look like not running.
+ * below a minute, where `0min` would look like not running.
  */
 export function fmtUptime(seconds: number): string {
   const secs = Math.max(0, Math.floor(seconds));
   if (secs < 60) return ltr(`${secs}s`);
-  if (secs < 3600) return ltr(`${Math.floor(secs / 60)}m`);
+  if (secs < 3600) return ltr(`${Math.floor(secs / 60)}min`);
   if (secs < 86400) {
     const h = Math.floor(secs / 3600);
-    return ltr(`${h}h ${Math.floor((secs % 3600) / 60)}m`);
+    return ltr(`${h}h ${Math.floor((secs % 3600) / 60)}min`);
   }
   const d = Math.floor(secs / 86400);
   return ltr(`${d}d ${Math.floor((secs % 86400) / 3600)}h`);
@@ -80,11 +80,15 @@ export const fmtPct = (n: number): string => ltr(`${n}%`);
 /** fmtUnit prints a number with a unit that has no formatter of its own: "120 ms". */
 export const fmtUnit = (n: number | string, unit: string): string => ltr(`${n} ${unit}`);
 
-/** The units a speed limit may be entered in, smallest first. */
+/**
+ * The units a speed is entered in, smallest first, each stepping by a round
+ * amount of its own. Every speed field in the app is a UnitNumberInput over
+ * these, so they all read and step alike.
+ */
 export const RATE_UNITS = [
-  { label: 'KiB/s', factor: 1024 },
-  { label: 'MiB/s', factor: 1024 * 1024 },
-  { label: 'GiB/s', factor: 1024 * 1024 * 1024 },
+  { label: 'KiB/s', factor: 1024, step: 256 * 1024 },
+  { label: 'MiB/s', factor: 1024 ** 2, step: 1024 ** 2 },
+  { label: 'GiB/s', factor: 1024 ** 3, step: 1024 ** 3 },
 ] as const;
 
 export type RateUnit = (typeof RATE_UNITS)[number]['label'];
@@ -102,12 +106,6 @@ export function splitRate(bytesPerSecond: number): { value: number; unit: RateUn
     if (n >= u.factor) chosen = u;
   }
   return { value: n / chosen.factor, unit: chosen.label };
-}
-
-/** joinRate is the inverse: what to store for a number the user typed. */
-export function joinRate(value: number, unit: RateUnit): number {
-  const u = RATE_UNITS.find((x) => x.label === unit) ?? RATE_UNITS[0];
-  return Math.max(0, Math.round(value * u.factor));
 }
 
 /** fmtRateValue prints the number beside the unit, with at most two decimals

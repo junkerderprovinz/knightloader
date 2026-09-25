@@ -1,0 +1,40 @@
+[
+  {
+    "id": "6ad2342be3bf5a01",
+    "url": "https://files.example/d/3r6t1/spring_2019_1080p.mp4",
+    "name": "spring_2019_1080p.mp4",
+    "package": "Spring",
+    "resolver": "alldebrid",
+    "mode": "premium",
+    "size": 441450496,
+    "loaded": 353160396,
+    "speed": 3565158,
+    "status": "running",
+    "createdAt": "2026-09-24T14:23:00Z",
+    "priority": 0,
+    "position": 1,
+    "finishedAt": "0001-01-01T00:00:00Z",
+    "enabled": true,
+    "host": "files.example",
+    "origin": "paste"
+  },
+  {
+    "id": "6ad2342be3bf5a02",
+    "url": "https://files.example/d/3r6t2/agent_327_operation_barbershop.mp4",
+    "name": "agent_327_operation_barbershop.mp4",
+    "package": "Agent 327",
+    "resolver": "alldebrid",
+    "mode": "premium",
+    "size": 219152384,
+    "loaded": 219152384,
+    "speed": 0,
+    "status": "done",
+    "createdAt": "2026-09-24T13:30:00Z",
+    "priority": 0,
+    "position": 0,
+    "finishedAt": "2026-09-24T13:35:00Z",
+    "enabled": true,
+    "host": "files.example",
+    "origin": "paste"
+  }
+]

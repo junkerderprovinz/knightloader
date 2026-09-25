@@ -191,7 +191,7 @@ func (o Options) Extract(path string) (*Result, error) {
 // name already sits, which for "dump.sql.gz" next to "dump.sql" is the normal
 // case.
 func extractInto(path, dest string, passwords []string) (*Result, error) {
-	res, err := extractOnce(path, dest, "")
+	res, err := attempt(path, dest, "")
 	if err == nil || !errors.Is(err, ErrPasswordRequired) {
 		return res, err
 	}
@@ -199,12 +199,26 @@ func extractInto(path, dest string, passwords []string) (*Result, error) {
 		if pw == "" {
 			continue
 		}
-		res, err = extractOnce(path, dest, pw)
+		res, err = attempt(path, dest, pw)
 		if err == nil || !errors.Is(err, ErrPasswordRequired) {
 			return res, err
 		}
 	}
 	return nil, ErrPasswordRequired
+}
+
+// attempt is one pass over the archive with one password. A rar or 7z whose
+// contents are encrypted only turns the password down once an entry is being
+// written, so inside a job a pass that fails on it takes back what it wrote:
+// the next pass starts clean, and the job counts only the pass that worked.
+func attempt(path, dest, password string) (*Result, error) {
+	s := bound.Load()
+	mark := s.checkpoint()
+	res, err := extractOnce(path, dest, password)
+	if errors.Is(err, ErrPasswordRequired) {
+		s.rewind(mark)
+	}
+	return res, err
 }
 
 // destination is the folder this extraction writes into, with the collision

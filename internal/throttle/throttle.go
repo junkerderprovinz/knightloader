@@ -18,10 +18,25 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// chunk is how much a single copy step moves. Small enough that a limit change
+// chunk is the most a single copy step moves. Small enough that a limit change
 // takes effect within a fraction of a second, large enough not to dominate the
 // copy with bookkeeping.
 const chunk = 32 * 1024
+
+// minStep is the least a copy step reads, however low the limit. A TLS
+// server's first flight, certificates included, fits in it, so a new
+// connection gets its handshake through in one step.
+const minStep = 8 * 1024
+
+// stepFor is how much one copy step reads at bps bytes per second: a quarter
+// of a second's allowance, between minStep and chunk. Every connection pays
+// for its step before it reads the next, so under a low limit it waits about
+// as many steps as there are connections. Smaller steps keep that wait far
+// below the 15 s a download engine gives a read before it drops the
+// connection.
+func stepFor(bps int64) int {
+	return int(min(max(bps/4, minStep), chunk))
+}
 
 // Limiter hands out bandwidth. The zero value is not usable; call New.
 type Limiter struct {
@@ -177,26 +192,30 @@ func (l *Limiter) current() *rate.Limiter {
 	return l.lim
 }
 
-// Copy moves src into dst, waiting for allowance between chunks. With no limit
+// Copy moves src into dst, waiting for allowance between steps. With no limit
 // set it degrades to a plain copy, so the unlimited path costs nothing.
+//
+// A step is paid for after it is passed on, and only for the bytes that
+// arrived. A connection's first bytes, a TLS server's handshake among them,
+// then never queue behind the other transfers' allowance, which under a low
+// limit can take longer than a client waits for a handshake.
 func (l *Limiter) Copy(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
 	buf := make([]byte, chunk)
 	var total int64
 	for {
-		// The pause is checked before the tokens are taken, so a held transfer
-		// does not sit on an allowance it cannot use. A pause that lands after
-		// this check still lets the chunk already in flight land: stopping that
-		// one means abandoning a read that is halfway through, which is the
-		// connection loss the pause exists to avoid.
+		// The pause is checked before the read, so a held transfer takes no
+		// new bytes. A pause that lands after this check still lets the step
+		// already in flight land: stopping that one means abandoning a read
+		// that is halfway through, which is the connection loss the pause
+		// exists to avoid.
 		if err := l.wait(ctx); err != nil {
 			return total, err
 		}
+		step := chunk
 		if lim := l.current(); lim != nil {
-			if err := lim.WaitN(ctx, chunk); err != nil {
-				return total, err
-			}
+			step = stepFor(int64(lim.Limit()))
 		}
-		n, err := src.Read(buf)
+		n, err := src.Read(buf[:step])
 		if n > 0 {
 			w, werr := dst.Write(buf[:n])
 			total += int64(w)
@@ -205,6 +224,12 @@ func (l *Limiter) Copy(ctx context.Context, dst io.Writer, src io.Reader) (int64
 			}
 			if f, ok := dst.(interface{ Flush() error }); ok {
 				_ = f.Flush()
+			}
+			// Set keeps the burst at chunk or above, so n always fits.
+			if lim := l.current(); lim != nil {
+				if werr := lim.WaitN(ctx, n); werr != nil {
+					return total, werr
+				}
 			}
 		}
 		if err != nil {

@@ -230,15 +230,21 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			t.Reason = core.ReasonUnknown
 			t.Loaded = 0
 			t.Speed = 0
+			// The file is fetched again, and how its archive was last unpacked
+			// says nothing about the new one.
+			t.Unpack = core.UnpackNone
+			// This is the retry the failure was waiting for.
+			t.NextTry = time.Time{}
 			// Routing is decided again as well. What may have changed since the
 			// failure (a key entered, an account added, a debrid service back
 			// from its cool-down) is a routing change, and keeping the failed
 			// backend would fail the same way. An empty resolver goes through
-			// resolverForTaskLocked's search, and nothing lets a user pin one.
+			// resolverForTaskLocked's search; a pin still decides.
 			t.Resolver = ""
 			t.Mode = core.ModeUnknown
 			delete(a.active, id)
 			delete(a.started, id) // dispatch will hand it to the backend fresh
+			delete(a.fellBack, id)
 		}
 	}
 	a.mu.Unlock()
@@ -494,8 +500,9 @@ func (a *App) sortQueueLocked() {
 		if x == nil || y == nil {
 			return y == nil && x != nil
 		}
-		// Forced outranks priority: it means "fetch this one first". It only
-		// reorders; a forced link still waits for a slot.
+		// Forced outranks priority: it means "fetch this one first". Here it
+		// only reorders; dispatchLocked is what starts it past the ordinary
+		// limits, in the forced pool.
 		if x.Forced != y.Forced {
 			return x.Forced
 		}
@@ -871,6 +878,9 @@ func (a *App) SetHalted(halted bool) {
 	// so a release inside a pause window holds until the next boundary.
 	a.manualHalt = halted
 	a.halted = halted
+	// The switch is the newer word on the whole queue, so a link still
+	// waiting on "Start now" waits for it too.
+	clear(a.startNow)
 	if !halted {
 		// A stop mark left armed would halt the queue again at the next
 		// finished download.
@@ -909,6 +919,7 @@ func (a *App) StopAll() []string {
 	a.mu.Lock()
 	a.manualHalt = true
 	a.halted = true
+	clear(a.startNow)
 	ids := make([]string, 0, len(a.active))
 	for id := range a.active {
 		ids = append(ids, id)
@@ -974,9 +985,12 @@ func (a *App) StopCost() StopCost {
 // not an eighth priority; a forced link must never wait behind a high-priority
 // package.
 //
-// It does not lift the master switch, which is a decision about the whole box;
-// the interface says so instead. Staged links go through StartTasks, where the
-// collector's rules apply.
+// On a stopped queue the selection starts all the same and nothing else does,
+// as JDownloader's forced start works: the master switch is a decision about
+// the whole box and stays where it is (see App.startNow). Staged links go
+// through StartTasks, where the collector's rules apply. How the flag counts
+// against the limits once the download runs is said where dispatchLocked
+// counts the slots.
 func (a *App) ForceDownload(sel Selection) []string {
 	a.mu.Lock()
 	chosen := a.pickLocked(sel, movable)
@@ -996,7 +1010,7 @@ func (a *App) ForceDownload(sel Selection) []string {
 	}
 
 	a.mu.Lock()
-	copies := make([]core.Task, 0, len(ids))
+	var forced []*core.Task
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil {
@@ -1014,9 +1028,17 @@ func (a *App) ForceDownload(sel Selection) []string {
 			a.dequeueLocked(id)
 			a.queue = append(a.queue, id)
 		}
-		copies = append(copies, *t)
+		if t.Status == core.StatusQueued {
+			a.startNow[id] = true
+		}
+		forced = append(forced, t)
 	}
 	a.dispatchLocked()
+	// Copied after dispatching, as in startTasks.
+	copies := make([]core.Task, 0, len(forced))
+	for _, t := range forced {
+		copies = append(copies, *t)
+	}
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
 	return ids
@@ -1088,8 +1110,11 @@ func (a *App) Counters() QueueCounters {
 	return c
 }
 
-// dequeueLocked removes id from the wait queue. Caller holds a.mu.
+// dequeueLocked removes id from the wait queue, and with it a press of "Start
+// now" the link was waiting on: paused, resumed or removed, it waits for the
+// queue like any other. Caller holds a.mu.
 func (a *App) dequeueLocked(id string) {
+	delete(a.startNow, id)
 	for i, q := range a.queue {
 		if q == id {
 			a.queue = append(a.queue[:i], a.queue[i+1:]...)

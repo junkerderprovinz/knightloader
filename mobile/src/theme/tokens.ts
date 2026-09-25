@@ -137,10 +137,10 @@ export const DARK: Palette = {
   statusNeutralBg: 'rgba(255, 255, 255, 0.05)',
   statusNeutralSolid: '#8d8d8d',
 
-  // .65, the value tokens.css carries on a dark ground. At .60 the panel in
-  // front and the page behind sit close enough in value that the eye keeps
-  // reading the page.
-  scrim: 'rgba(0, 0, 0, 0.65)',
+  // .72, the value tokens.css carries on a dark ground, where the web adds a
+  // blur beneath it. Without the blur the darkening does that work alone, and
+  // any lighter the eye keeps reading the page behind the panel.
+  scrim: 'rgba(0, 0, 0, 0.72)',
 
   // On #393939 these measure 8.6, 5.0, 5.1 and 11.6 to 1, the extension's
   // values.
@@ -184,10 +184,10 @@ export const LIGHT: Palette = {
   statusNeutralBg: 'rgba(0, 0, 0, 0.045)',
   statusNeutralSolid: '#8d8d8d',
 
-  // .55, not the dark theme's .65: black over a near-white page separates at a
+  // .62, not the dark theme's .72: black over a near-white page separates at a
   // lower alpha than black over a near-black one, and the darker value in light
   // mode looks like a power cut.
-  scrim: 'rgba(0, 0, 0, 0.55)',
+  scrim: 'rgba(0, 0, 0, 0.62)',
 
   // On #e8e8e8 these measure 4.0, 4.1, 9.7 and 14.6 to 1.
   brandCoffee: '#8a6d00',

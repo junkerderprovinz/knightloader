@@ -128,7 +128,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.maxConcurrent', hint: 'settings.maxConcurrentHint' },
         { key: 'settings.maxPerHost', hint: 'settings.maxPerHostHint' },
         { key: 'settings.chunks', hint: 'settings.chunksHint' },
-        { key: 'settings.speedLimit', hint: 'settings.speedHint' },
+        { key: 'settings.globalSpeedLimit', hint: 'settings.speedHint' },
         { key: 'settings.maxRetries', hint: 'settings.maxRetriesHint' },
         { key: 'settings.resumeOnStart', hint: 'settings.resumeOnStartHint' },
         { key: 'settings.keepFinishedDays', hint: 'settings.keepFinishedDaysHint' },
@@ -142,6 +142,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.stall.enabled', hint: 'settings.stall.enabledHint' },
         { key: 'settings.stall.timeout', hint: 'settings.stall.timeoutHint' },
+        { key: 'settings.stall.reconnect', hint: 'settings.stall.reconnectHint' },
         { key: 'settings.stall.restart', hint: 'settings.stall.restartHint' },
         { key: 'settings.stall.maxRestarts', hint: 'settings.stall.maxRestartsHint' },
       ],
@@ -1056,7 +1057,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     // Only one of the next two is drawn: the desktop app in a container, a
     // server install in the desktop app.
-    { title: 'settings.browsertools.desktopTitle', hint: 'settings.browsertools.desktopHint', rows: [] },
+    {
+      title: 'settings.browsertools.desktopTitle',
+      hint: 'settings.browsertools.desktopHint',
+      rows: [],
+      body: ['settings.browsertools.desktopArchHint'],
+    },
     {
       title: 'settings.browsertools.serverTitle',
       hint: 'settings.browsertools.serverHint',

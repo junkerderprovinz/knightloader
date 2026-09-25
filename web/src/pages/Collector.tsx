@@ -27,6 +27,7 @@ import {
   targetTaskId,
   useCleanup,
   useRemoval,
+  useRename,
   type ListContext,
   type MenuTarget,
   type QuickFilterId,
@@ -189,6 +190,9 @@ export function Collector() {
   }, [selected, reach, toast, t]);
 
   const removal = useRemoval({ all, selected, base: '/api', drawn, onDone: clearSelection });
+  // Every staged link of a package, rows the filters and facets hide included.
+  const members = useCallback((pkg: string) => collected.filter((x) => (x.package || '') === pkg), [collected]);
+  const rename = useRename({ all, base: '/api', members, command: 'collector.rename' });
   // The clean-up instance behind the badge row, loaded at once so "clear
   // finished" knows whether it applies. Downloads.tsx draws the same row; the
   // two must hold the same controls.
@@ -210,8 +214,9 @@ export function Collector() {
         removal,
         cleanup,
         openFilePicker: () => fileDrop.current?.openPicker(),
+        rename: rename.fromKeyboard,
       }),
-      [removal, cleanup],
+      [removal, cleanup, rename.fromKeyboard],
     ),
   );
   // Staged rows only, the scope of every figure on this page.
@@ -325,6 +330,7 @@ export function Collector() {
     onSelectNone: clearSelection,
     // The collector is always this instance's own.
     local: true,
+    members,
   };
 
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
@@ -589,8 +595,11 @@ export function Collector() {
         </div>
 
         {/* The one scrolling region: everything above keeps its height and the
-            list takes the rest. */}
-        <div className="flex min-h-0 flex-1 flex-col" onContextMenu={onContextMenu}>
+            list takes the rest down to the window's edge, never less than a
+            few rows. A window too short for that scrolls the frame instead,
+            as on Downloads.tsx. On a phone the page scrolls as a whole and the
+            list runs at full length (app/Layout.tsx). */}
+        <div className="flex min-h-48 flex-1 flex-col" onContextMenu={onContextMenu}>
         {collected.length === 0 ? (
           <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
             {t('collector.empty')}
@@ -603,7 +612,7 @@ export function Collector() {
           // A flex column, since h-full on TaskListCard does not resolve through
           // a flex-grown overflow box. pt-3 keeps the card's title badge inside
           // this box's clip edge.
-          <div ref={listScroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
+          <div ref={listScroll} className="flex min-h-0 flex-1 flex-col pt-3 md:overflow-y-auto">
             <TaskListCard
               groups={groups}
               base="/api"
@@ -637,9 +646,11 @@ export function Collector() {
         removal={removal}
         target={target}
         list={listContext}
+        rename={rename}
         extraGroups={scriptGroups}
       />
       {removal.dialog}
+      {rename.dialog}
       {cleanup.dialog}
     </div>
   );

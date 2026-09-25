@@ -8,20 +8,29 @@
 //   video   best, custom, 1080p         no format chosen, a resolution cap
 //           1080p60 webm vp9, 720p avi  one track
 //           webm vp9, webm vp9 1080p    a preset's format no probe has resolved
-//   audio   best, m4a, mp3              a format, its best track or a conversion
+//   audio   best, aac, mp3              a format, its best track or a conversion
 //           opus 160k                   one track
 //
 // A resolution is yt-dlp's, the smaller side, so an upright 1080x1920 video
 // is 1080p (ytdlp.FormatEntry.Res). An audio row keeps a bitrate beside a
 // format the source has no track in, which is what a conversion encodes to
-// (core.Task.AudioBitrate).
+// (core.Task.AudioBitrate). AAC reads with the .m4a container it is written
+// into, since that is the name YouTube lists it under. A format the source has
+// no track in is offered below the ones it has, under "Convert to", and yt-dlp
+// converts to it with ffmpeg.
 
-import type { ApiOptions, YtdlpHosterPreset } from '../lib/api';
+import type { ApiOptions, YtdlpHosterPreset, YtdlpHostMenus } from '../lib/api';
 import { isolate } from '../lib/bidi';
 import type { TranslationKey } from '../lib/i18n';
 import { Dropdown, type DropdownWidth } from './Dropdown';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+/** One run of a picker's menu, under a heading where it needs one. */
+export interface PickerGroup {
+  heading?: string;
+  options: string[];
+}
 
 /** What one picker shows and offers, built by videoPickers and audioPickers. */
 export interface PickerProps {
@@ -29,7 +38,7 @@ export interface PickerProps {
   /** Every choice in menu order, which is what the wheel steps through. */
   options: string[];
   /** The same choices in the runs the menu separates with a hairline. */
-  groups: string[][];
+  groups: PickerGroup[];
   /** What this picker chooses: its accessible name and its tooltip. */
   label: string;
   /** How one option reads on screen; the raw value is what is sent. */
@@ -61,7 +70,9 @@ export function VariantDropdown({
     <Dropdown
       value={picker.value}
       options={picker.options.map(option)}
-      groups={picker.groups.filter((g) => g.length > 0).map((g) => g.map(option))}
+      groups={picker.groups
+        .filter((g) => g.options.length > 0)
+        .map((g) => ({ heading: g.heading, entries: g.options.map(option) }))}
       onChange={picker.onPick}
       label={picker.label}
       tip={picker.label}
@@ -102,11 +113,29 @@ function qualityLabel(q: string, t: Translate): string {
   return q === 'custom' ? capLabel(q, t) : q;
 }
 
-/** How a format reads: "mp4 (avc1)", "avi", "opus", and Auto for best. */
+/**
+ * Containers and codecs under the names people know them by, keyed by the
+ * lower-case word the server stores. Every other word is an abbreviation and
+ * reads in capitals: MP3, FLAC, WAV, ALAC, MP4, AVI, VP9, AV1.
+ */
+const FORMAT_NAMES: Record<string, string> = {
+  aac: 'AAC (M4A)',
+  opus: 'Opus',
+  vorbis: 'Vorbis',
+  webm: 'WebM',
+  ogg: 'Ogg',
+  avc1: 'H.264',
+  hevc: 'H.265',
+  theora: 'Theora',
+};
+
+const formatName = (word: string): string => FORMAT_NAMES[word] ?? word.toUpperCase();
+
+/** How a format reads: "MP4 (H.264)", "AVI", "Opus", "AAC (M4A)", and Auto for best. */
 export function formatLabel(format: string, t: Translate): string {
   if (format === 'best') return t('columns.variant.auto');
-  const [ext, codec] = format.split(' ');
-  return codec ? `${ext} (${codec})` : ext;
+  const [container, codec] = format.split(' ');
+  return codec ? `${formatName(container)} (${formatName(codec)})` : formatName(container);
 }
 
 /** How a bitrate reads: "160 kbit/s", and Auto for none. */
@@ -143,13 +172,16 @@ function withQuality(list: string[], value: string): string[] {
   return [...list.slice(0, at), value, ...list.slice(at)];
 }
 
+/** Every format menu starts with best, a server that sent none included. */
+const formatMenu = (list: string[]): string[] => [...new Set(['best', ...list])];
+
 /**
- * Every format menu starts with best, a server that sent none included. aac
- * reads as m4a, as the server folds it: yt-dlp writes both into an .m4a file.
+ * An audio format or track under the name the pickers list it by. A row
+ * stored with AAC under its file's extension, "m4a" or "m4a 129k", means the
+ * same audio, as the server reads it (ytdlp.foldAudioFormat).
  */
-const formatMenu = (list: string[]): string[] => [
-  ...new Set(['best', ...list.map((f) => (f === 'aac' ? 'm4a' : f))]),
-];
+export const aacNamed = (pick: string): string =>
+  pick === 'm4a' || pick.startsWith('m4a ') ? `aac${pick.slice(3)}` : pick;
 
 /**
  * A row's probed format list, or undefined where there is none to go by. A
@@ -162,9 +194,9 @@ export function probedFormats(list: string[] | undefined): string[] | undefined 
 }
 
 /** best in a run of its own above the rest, as every one of these menus has it. */
-const bestApart = (list: string[], best: string): string[][] => [
-  list.filter((x) => x === best),
-  list.filter((x) => x !== best),
+const bestApart = (list: string[], best: string): PickerGroup[] => [
+  { options: list.filter((x) => x === best) },
+  { options: list.filter((x) => x !== best) },
 ];
 
 /** A video pick's two halves: "best" or a format, and a quality. */
@@ -242,11 +274,11 @@ export function videoPickers(o: {
       options: qualities,
       groups: caps
         ? [
-            qualities.filter((q) => q === 'best'),
-            qualities.filter((q) => resOf(q) > 0),
-            qualities.filter((q) => q !== 'best' && resOf(q) === 0),
+            { options: qualities.filter((q) => q === 'best') },
+            { options: qualities.filter((q) => resOf(q) > 0) },
+            { options: qualities.filter((q) => q !== 'best' && resOf(q) === 0) },
           ]
-        : [qualities],
+        : [{ options: qualities }],
       label: o.t('settings.resolvers.quality'),
       render: (q) => qualityLabel(q, o.t),
       onPick: (q) => o.onPick(composeVideo(format, q, o.tracks), 'quality'),
@@ -256,7 +288,7 @@ export function videoPickers(o: {
 
 /** An audio pick's two halves: "best" or a format, and a bitrate, "" for none. */
 export function readAudioPick(pick: string, bitrate = ''): { format: string; bitrate: string } {
-  const p = pick === 'aac' ? 'm4a' : pick || 'best';
+  const p = aacNamed(pick || 'best');
   const track = AUDIO_TRACK.exec(p);
   if (track) return { format: track[1], bitrate: track[2] };
   return { format: p, bitrate: p === 'best' ? '' : bitrate };
@@ -268,11 +300,15 @@ export function readAudioPick(pick: string, bitrate = ''): { format: string; bit
  * resolves to one of them; any other format is a conversion, offered at
  * `conversions`. `tracks` is null where nothing was probed, and every format
  * is then offered at the conversion bitrates. Best has no bitrate picker.
+ *
+ * `formats` are what the source or the host has. The ones in `convertTo` it
+ * lacks are offered below them, under "Convert to".
  */
 export function audioPickers(o: {
   pick: string;
   bitrate: string;
   formats: string[];
+  convertTo: string[];
   tracks: string[] | null;
   conversions: string[];
   t: Translate;
@@ -280,12 +316,14 @@ export function audioPickers(o: {
   onPick: (pick: string, bitrate: string, from: 'format' | 'bitrate') => void;
 }): { format: PickerProps; bitrate: PickerProps | null } {
   const current = readAudioPick(o.pick, o.bitrate);
-  const offered = formatMenu(o.formats);
-  const native = (f: string) => o.tracks !== null && f !== 'best' && offered.includes(f);
+  const offered = formatMenu(o.formats.map(aacNamed));
+  const converted = o.convertTo.map(aacNamed).filter((f) => f !== 'best' && !offered.includes(f));
+  const tracks = o.tracks?.map(aacNamed) ?? null;
+  const native = (f: string) => tracks !== null && f !== 'best' && offered.includes(f);
   const bitratesFor = (f: string): string[] => {
     if (!native(f)) return o.conversions;
     const own = [''];
-    for (const t of o.tracks ?? []) {
+    for (const t of tracks ?? []) {
       const m = AUDIO_TRACK.exec(t);
       if (m && m[1] === f) own.push(m[2]);
     }
@@ -296,13 +334,14 @@ export function audioPickers(o: {
     else if (!native(f)) o.onPick(f, b, from);
     else o.onPick(b ? `${f} ${b}k` : f, '', from);
   };
-  const formats = withValue(offered, current.format);
+  // A stored format neither list has stays with the source's own.
+  const own = converted.includes(current.format) ? offered : withValue(offered, current.format);
   const bitrates = withValue(bitratesFor(current.format), current.bitrate);
   return {
     format: {
       value: current.format,
-      options: formats,
-      groups: bestApart(formats, 'best'),
+      options: [...own, ...converted],
+      groups: [...bestApart(own, 'best'), { heading: o.t('columns.variant.convertTo'), options: converted }],
       label: o.t('settings.resolvers.audioFormat'),
       render: (f) => formatLabel(f, o.t),
       onPick: (f) => pick(f, bitratesFor(f).includes(current.bitrate) ? current.bitrate : '', 'format'),
@@ -321,22 +360,51 @@ export function audioPickers(o: {
   };
 }
 
-/** The menus a host preset offers, which knows no source yet: /api/options' full lists. */
+/**
+ * The menus a host preset offers, which knows no source yet: /api/options'
+ * full lists, or with hostPresetMenus the formats of one host.
+ */
 export interface PresetMenus {
   videoFormats: string[];
   qualities: string[];
   audioFormats: string[];
+  /** Offered below audioFormats under "Convert to"; empty beside the full list. */
+  audioConvertTo: string[];
   audioBitrates: string[];
 }
 
-export const NO_PRESET_MENUS: PresetMenus = { videoFormats: [], qualities: [], audioFormats: [], audioBitrates: [] };
+export const NO_PRESET_MENUS: PresetMenus = {
+  videoFormats: [],
+  qualities: [],
+  audioFormats: [],
+  audioConvertTo: [],
+  audioBitrates: [],
+};
 
 export const presetMenusOf = (o: ApiOptions): PresetMenus => ({
   videoFormats: o.ytdlpVideoFormats ?? [],
   qualities: o.ytdlpQualities ?? [],
   audioFormats: o.ytdlpAudioFormats ?? [],
+  audioConvertTo: [],
   audioBitrates: o.ytdlpAudioBitrates ?? [],
 });
+
+/**
+ * The formats one host serves in place of the full lists (GET
+ * /api/ytdlp/formats), where the server answered, and the audio formats it
+ * lacks to convert to. The qualities and bitrates stay whole: a preset's
+ * quality is a cap and its bitrate what the nearest track or a conversion aims
+ * at, neither one a promise of a track.
+ */
+export const hostPresetMenus = (menus: PresetMenus, host: YtdlpHostMenus | null | undefined): PresetMenus =>
+  host
+    ? {
+        ...menus,
+        videoFormats: host.videoFormats,
+        audioFormats: host.audioFormats,
+        audioConvertTo: menus.audioFormats.filter((f) => !host.audioFormats.includes(f)),
+      }
+    : menus;
 
 /**
  * presetPickers lays out a host preset as the same two pairs a link's rows
@@ -369,6 +437,7 @@ export function presetPickers(o: {
       pick: o.preset.audioFormat || 'best',
       bitrate: o.preset.audioBitrate ?? '',
       formats: o.menus.audioFormats,
+      convertTo: o.menus.audioConvertTo,
       tracks: null,
       conversions: o.menus.audioBitrates,
       t: o.t,
@@ -377,7 +446,7 @@ export function presetPickers(o: {
   };
 }
 
-/** How a video pick reads in one line: "Auto", "Up to 1080p", "1080p60 webm (vp9)". */
+/** How a video pick reads in one line: "Auto", "Up to 1080p", "1080p60 WebM (VP9)". */
 export function videoSummary(pick: string, t: Translate): string {
   const { format, quality } = readVideoPick(pick || 'best');
   if (format === 'best') return quality === 'best' ? formatLabel(format, t) : capLabel(quality, t);
@@ -385,7 +454,7 @@ export function videoSummary(pick: string, t: Translate): string {
   return isolate(`${formatLabel(format, t)} ${capLabel(quality, t)}`);
 }
 
-/** How an audio pick reads in one line: "Auto", "opus 160 kbit/s", "mp3". */
+/** How an audio pick reads in one line: "Auto", "Opus 160 kbit/s", "MP3". */
 export function audioSummary(pick: string, bitrate: string, t: Translate): string {
   const { format, bitrate: b } = readAudioPick(pick, bitrate);
   if (format === 'best' || !b) return formatLabel(format, t);

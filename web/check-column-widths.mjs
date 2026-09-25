@@ -29,7 +29,8 @@
 //
 //   size            68  "1023 MiB", the longest a size gets
 //   speed           78  "1023 MiB/s"
-//   time left       72  "123h 45m"
+//   time left       82  "123h 45min"; 75 for "19h 58min", the widest value
+//                       under a hundred hours
 //   status         133  the widest transfer state in the 42 locales (fr)
 //   host           116  "rapidgator.net" behind its logo; longer hosts
 //                       truncate into their bubble
@@ -41,23 +42,22 @@
 // on one line plus the cell's own 16px of padding:
 //
 //   video row       max 287.1  (lt: "Vaizdo įrašas" and two pickers reading
-//                               "Automatinis"); 228.3 in English and German,
-//                               with "webm (vp9)" and "2160p60"
-//   audio row       max 229.7  (pl: label, format picker and bitrate picker,
-//                               with "vorbis" and the widest bitrate label)
+//                               "Automatinis"); 230.7 in English and German,
+//                               with "MP4 (H.265)" and "2160p60"
+//   audio row       max 261.3  (fa: label, "AAC (M4A)" and the bitrate picker)
 //   the other kinds max  86.8  (he)
-//   widest single   max 129.1  (fi: the "Automaattinen" picker and padding).
-//   control                     A picker cannot shrink (shrink-0), so below
-//                               this the cell's own overflow clips it.
+//   widest single   max 143.7  (fa: the bitrate picker at 320 kbit/s and
+//   control                     padding). A picker cannot shrink (shrink-0),
+//                               so below this the cell's own overflow clips it.
 //
 // The rules that follow from them, and nothing beyond them:
 //
-//   1. In the collector, the variant column's minWidth >= 130. The floor is the
+//   1. In the collector, the variant column's minWidth >= 144. The floor is the
 //      widest single control rather than the whole row: wrapping saves a
 //      narrow column, clipping does not, and a picker is clipped rather than
 //      shrunk. The download list shows a line of text there that truncates
 //      into its tooltip, so its own floor can be lower.
-//   2. In the collector, 229 <= variant.width <= 288. The lower bound is the
+//   2. In the collector, 231 <= variant.width <= 288. The lower bound is the
 //      video row, which every yt-dlp package has exactly one of, on one line
 //      in English and German. In a language with a longer word for Auto its
 //      quality picker wraps under the format picker, rather than the column
@@ -72,6 +72,9 @@
 //      what is left for the name is at least the widest of those defaults. It
 //      carries the file name, which is what the row is for, and it is the one
 //      column that cannot be read anywhere else.
+//   5. The time-left column's minWidth >= 75, so a column dragged to its floor
+//      still shows hours and minutes below a hundred hours instead of cutting
+//      the minutes off.
 //
 // It reads the source rather than the running app: the measurement is the
 // expensive half and stands above, while what rots is the number in columns.tsx
@@ -124,9 +127,10 @@ function blankComments(src) {
 const text = blankComments(readFileSync(file, 'utf8'));
 
 // Measured on the live instance. See the header.
-const WRAP_FLOOR = 130; // widest single control + the cell's padding (fi)
-const COMMON_ROW = 229; // widest one-line video row in English and German
+const WRAP_FLOOR = 144; // widest single control + the cell's padding (fa)
+const COMMON_ROW = 231; // widest one-line video row in English and German
 const WIDEST_ROW = 288; // widest one-line video row there can be (lt)
+const ETA_FLOOR = 75; // "19h 58min" + the cell's padding
 const CARD_1280 = 934;
 const CARD_1440 = 1094;
 const FURNITURE = 128; // row padding + the actions track
@@ -260,6 +264,18 @@ if (!variant) {
       );
     }
   }
+}
+
+// The time-left column against its own measured cell.
+
+const eta = columns.get('eta');
+if (!eta) {
+  problems.push("there is no 'eta' column any more - re-measure before deleting this rule");
+} else if (minWidth(eta, 'downloads') < ETA_FLOOR) {
+  problems.push(
+    `eta's minWidth is ${minWidth(eta, 'downloads')}, below the measured ${ETA_FLOOR}px of "19h 58min". ` +
+      'At its floor the column would cut the minutes off.',
+  );
 }
 
 // The default columns against the card: they fit it at 1280px, and at 1440px

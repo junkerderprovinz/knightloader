@@ -47,7 +47,7 @@ function entries(file) {
     if (start) {
       close();
       key = start[1];
-      buf = [start[2]];
+      buf = start[2] ? [start[2]] : [];
       if (/,\s*$/.test(start[2])) close();
       continue;
     }

@@ -36,10 +36,10 @@ const kindClass: Record<ButtonKind, string> = {
 };
 
 /**
- * The two button heights, and there is no third (GlimStone rule 19). `--btn-h`
- * (2rem) is what a text field measures, so a button in a row of fields matches
- * it; `--btn-h-key` (2.5rem, `.glim-btn-key`) is the one step up. Both live in
- * index.css, so nothing here writes a height of its own.
+ * The button heights (GlimStone rule 19). `--btn-h` (2rem) is what a text field
+ * measures, so a button in a row of fields matches it, and `--btn-h-transport`
+ * (3rem, `.glim-btn-transport`) belongs to the head bar's transport squares
+ * alone. Both live in index.css, so nothing here writes a height of its own.
  */
 const BTN_H = 'h-[var(--btn-h)]';
 const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
@@ -47,10 +47,10 @@ const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
 /**
  * Every glyph in a button stands in a `.glim-btn-glyph` span, and index.css
  * sizes it from the button's classes: the size of the words beside it, 14px,
- * or 16px in the key control, and half the box when it stands alone in a
- * square (`.glim-btn-icon`). A CSS rule beats the width and height written on
- * the glyph itself, which are SVG presentation attributes, so a call site
- * passing its own number still gets the house size.
+ * and half the box when it stands alone in a square (`.glim-btn-icon`). A CSS
+ * rule beats the width and height written on the glyph itself, which are SVG
+ * presentation attributes, so a call site passing its own number still gets
+ * the house size.
  */
 function Glyph({ children }: { children: ReactNode }) {
   return <span className="glim-btn-glyph">{children}</span>;
@@ -68,7 +68,7 @@ export function Button({
   className = '',
   hue,
   labelled,
-  keyControl = false,
+  transport = false,
   title,
   hint,
   shake = 0,
@@ -84,12 +84,10 @@ export function Button({
    */
   labelled?: boolean;
   /**
-   * The second height (`--btn-h-key`), for the control that creates the thing
-   * the page lists or one whose press is hard to undo. A key control in a row
-   * of fields is centred by that row's `items-center`, which this component
-   * cannot set for its parent.
+   * The transport height (`--btn-h-transport`), a glyph-only square for the head
+   * bar's play, pause, stop and quick-settings controls and for nothing else.
    */
-  keyControl?: boolean;
+  transport?: boolean;
   /**
    * What the button does beyond its label, as an (i) inside the button; see
    * HintSlot. A button showing its glyph alone has no room for one, so there
@@ -130,8 +128,9 @@ export function Button({
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
-        ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}
+        motion-safe:active:scale-[.98] ${
+          transport ? 'glim-btn-transport' : `${BTN_H} ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}`
+        }
         ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
       style={hueCss}
       // `title` never reaches the DOM, so a glyph-only button states its name
@@ -1029,6 +1028,62 @@ function Stepper({ up = false }: { up?: boolean }) {
 }
 
 /**
+ * useFocusWheel steps a field with the wheel, but only while the field has
+ * focus: answering it on hover alone edits whatever a pointer passed over on
+ * its way down the page. Only the sign of the delta is read, because a trackpad
+ * reports fractions. A real listener with `{ passive: false }` rather than
+ * React's `onWheel`, which React registers passive at the root, so without
+ * preventDefault the page scrolls the field out from under the pointer.
+ *
+ * The listener is attached once and reaches the current `onStep` through a
+ * ref rather than being torn down and rebuilt on every keystroke: a number
+ * field re-renders on each character typed into it.
+ */
+function useFocusWheel(field: RefObject<HTMLInputElement | null>, onStep: (up: boolean) => void) {
+  const step = useRef(onStep);
+  useEffect(() => {
+    step.current = onStep;
+  });
+  useEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (el.disabled || el.readOnly) return;
+      if (document.activeElement !== el) return;
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      step.current(e.deltaY < 0);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [field]);
+}
+
+/** The pair of in-field arrows NumberInput and UnitNumberInput share. */
+function Steppers({
+  className,
+  onStep,
+  upDisabled,
+  downDisabled,
+}: {
+  className: string;
+  onStep: (up: boolean) => void;
+  upDisabled: boolean;
+  downDisabled: boolean;
+}) {
+  return (
+    <span className={`flex flex-col justify-center gap-0.5 ${className}`}>
+      <button type="button" tabIndex={-1} aria-hidden disabled={upDisabled} onClick={() => onStep(true)} className={STEPPER}>
+        <Stepper up />
+      </button>
+      <button type="button" tabIndex={-1} aria-hidden disabled={downDisabled} onClick={() => onStep(false)} className={STEPPER}>
+        <Stepper />
+      </button>
+    </span>
+  );
+}
+
+/**
  * Under `color-scheme: dark` the browser's own spinner is one native widget, a
  * themed box behind the arrows that `background-color` on
  * `::-webkit-inner-spin-button` cannot strip, because Chromium renders it as a
@@ -1059,46 +1114,20 @@ export function NumberInput({
    * the range is laid out once, in the attributes the field already carries.
    * The value is read back off the field rather than recomputed.
    */
-  function nudge(dir: 'up' | 'down') {
+  function nudge(up: boolean) {
     const el = field.current;
     if (!el) return;
-    if (dir === 'up') el.stepUp();
+    if (up) el.stepUp();
     else el.stepDown();
     if (Number.isNaN(el.valueAsNumber)) return;
     onValue(el.valueAsNumber);
   }
-  // The handler is attached once and reads the current props through this box
-  // rather than being torn down and rebuilt on every keystroke: a number field
-  // re-renders on each character typed into it.
-  const live = useRef({ value, step, min, max, onValue, disabled: rest.disabled, readOnly: rest.readOnly });
-  useEffect(() => {
-    live.current = { value, step, min, max, onValue, disabled: rest.disabled, readOnly: rest.readOnly };
-  });
 
-  /**
-   * The wheel steps the value, but only while the field has focus: answering it
-   * on hover alone edits whatever a pointer passed over on its way down the
-   * page. Only the sign of the delta is read, because a trackpad reports
-   * fractions. A real listener with `{ passive: false }` rather than React's
-   * `onWheel`, which React registers passive at the root, so without
-   * preventDefault the page scrolls the field out from under the pointer.
-   */
-  useEffect(() => {
-    const el = field.current;
-    if (!el) return;
-    function onWheel(e: WheelEvent) {
-      const s = live.current;
-      if (s.disabled || s.readOnly) return;
-      if (document.activeElement !== el) return;
-      if (e.deltaY === 0) return;
-      e.preventDefault();
-      const next = s.value + (e.deltaY < 0 ? s.step : -s.step);
-      const clamped = s.min !== undefined && next < s.min ? s.min : s.max !== undefined && next > s.max ? s.max : next;
-      if (clamped !== s.value) s.onValue(clamped);
-    }
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, []);
+  useFocusWheel(field, (up) => {
+    const next = value + (up ? step : -step);
+    const clamped = min !== undefined && next < min ? min : max !== undefined && next > max ? max : next;
+    if (clamped !== value) onValue(clamped);
+  });
 
   return (
     <span className="relative inline-block w-full">
@@ -1113,28 +1142,167 @@ export function NumberInput({
         onChange={(e) => onValue(Number(e.target.value))}
         {...rest}
       />
-      <span className="absolute inset-y-0 end-1.5 flex flex-col justify-center gap-0.5">
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-hidden
-          disabled={max !== undefined && value >= max}
-          onClick={() => nudge('up')}
-          className={STEPPER}
-        >
-          <Stepper up />
-        </button>
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-hidden
-          disabled={min !== undefined && value <= min}
-          onClick={() => nudge('down')}
-          className={STEPPER}
-        >
-          <Stepper />
-        </button>
+      <Steppers
+        className="absolute inset-y-0 end-1.5"
+        onStep={nudge}
+        upDisabled={max !== undefined && value >= max}
+        downDisabled={min !== undefined && value <= min}
+      />
+    </span>
+  );
+}
+
+/** One unit a UnitNumberInput can show its value in. */
+export interface FieldUnit {
+  /** The symbol inside the field, such as `MiB/s`. */
+  label: string;
+  /** How many of the value's own units one of this makes. */
+  factor: number;
+  /** What an arrow, a wheel notch or an arrow key moves, in the value's own units. */
+  step: number;
+}
+
+/**
+ * unitAt is the unit a value reads in, the largest it makes at least one of.
+ * `below` asks about the values just under it, which is where a step down
+ * lands: from 1 MiB/s among the KiB/s.
+ */
+function unitAt(units: readonly FieldUnit[], value: number, below = false): FieldUnit {
+  let found = units[0];
+  for (const u of units) if (below ? u.factor < value : u.factor <= value) found = u;
+  return found;
+}
+
+/** stepFrom is the next whole step on that side, so a typed 1.3 MiB/s steps to 2 or to 1. */
+function stepFrom(units: readonly FieldUnit[], value: number, up: boolean): number {
+  const u = unitAt(units, value, !up);
+  return up ? (Math.floor(value / u.step) + 1) * u.step : (Math.ceil(value / u.step) - 1) * u.step;
+}
+
+/** A value in a unit, with at most two decimals and no trailing zeros. */
+function inUnit(value: number, u: FieldUnit): string {
+  return String(Math.round((value / u.factor) * 100) / 100);
+}
+
+/**
+ * unitNamed is the unit a suffix typed after a number names, compared without
+ * case or spaces. A suffix names a unit when either begins with the other, the
+ * unit also read without its binary "i": "k", "KiB" and "kb/s" all name KiB/s,
+ * "m" and "minutes" name min. Units are tried smallest first.
+ */
+function unitNamed(units: readonly FieldUnit[], suffix: string): FieldUnit | undefined {
+  const typed = suffix.toLowerCase().replace(/\s+/g, '');
+  return units.find((u) => {
+    const label = u.label.toLowerCase();
+    return [label, label.replace('i', '')].some((l) => l.startsWith(typed) || typed.startsWith(l));
+  });
+}
+
+/**
+ * readTyped reads a field's text as an amount and the unit it counts in: its
+ * own suffix where it has one, `shown` where it has none. Null for anything
+ * else, which the field then holds without sending.
+ */
+function readTyped(
+  text: string,
+  units: readonly FieldUnit[],
+  shown: FieldUnit,
+): { amount: number; unit: FieldUnit } | null {
+  const parts = /^\s*([-+]?[\d.,]+)\s*(.*?)\s*$/.exec(text);
+  if (!parts) return null;
+  const amount = Number(parts[1].replace(',', '.'));
+  const unit = parts[2] ? unitNamed(units, parts[2]) : shown;
+  return Number.isFinite(amount) && unit ? { amount, unit } : null;
+}
+
+/**
+ * UnitNumberInput edits a value kept in one unit, such as bytes per second, and
+ * shows it in whichever of `units` reads best, with the symbol inside the
+ * field. A number typed counts in the unit on show unless it names its own,
+ * "500k" or "2 min", and goes out while it is typed; the field moves to another
+ * unit only once it lets go, on Enter or when focus leaves, so the digits under
+ * the caret never change. A step moves it at once. `snap` rounds a value to one
+ * the caller can use.
+ */
+export function UnitNumberInput({
+  value,
+  onValue,
+  units,
+  min = 0,
+  max = Infinity,
+  snap = (v) => v,
+}: {
+  value: number;
+  onValue: (n: number) => void;
+  /** Smallest first. */
+  units: readonly FieldUnit[];
+  min?: number;
+  max?: number;
+  snap?: (n: number) => number;
+}) {
+  const field = useRef<HTMLInputElement>(null);
+  // The text being typed and the unit on show when typing began; null shows
+  // the value.
+  const [draft, setDraft] = useState<{ text: string; unit: FieldUnit } | null>(null);
+  const unit = draft?.unit ?? unitAt(units, value);
+  const typed = draft ? readTyped(draft.text, units, draft.unit) : null;
+  const text = draft?.text ?? inUnit(value, unit);
+  // The symbol beside the digits follows a unit typed after them, so "2m"
+  // reads as the MiB/s it will be.
+  const symbol = typed?.unit.label ?? unit.label;
+  const settle = (n: number) => Math.min(max, Math.max(min, snap(n)));
+
+  function type(next: string) {
+    setDraft({ text: next, unit });
+    const read = readTyped(next, units, unit);
+    if (read) onValue(settle(Math.round(read.amount * read.unit.factor)));
+  }
+
+  function step(up: boolean) {
+    setDraft(null);
+    const next = settle(stepFrom(units, value, up));
+    if (next !== value) onValue(next);
+  }
+
+  useFocusWheel(field, step);
+
+  return (
+    <span
+      className={`${FIELD_BOX} flex w-full items-center overflow-hidden has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]`}
+    >
+      {/* The figure and its unit read left to right in every language, like
+          every other figure with a unit, while the arrows keep the end of the
+          field as NumberInput's do. */}
+      <span dir="ltr" className="flex h-full min-w-0 flex-1 items-center">
+        <input
+          ref={field}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          role="spinbutton"
+          aria-valuenow={value}
+          aria-valuemin={min}
+          aria-valuemax={Number.isFinite(max) ? max : undefined}
+          aria-valuetext={`${typed ? typed.amount : text} ${symbol}`}
+          className="glim-focus-drawn glim-num h-full min-w-0 flex-1 bg-transparent ps-3 text-sm outline-none rtl:text-right"
+          value={text}
+          onChange={(e) => type(e.target.value)}
+          onBlur={() => setDraft(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') setDraft(null);
+            if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+            e.preventDefault();
+            step(e.key === 'ArrowUp');
+          }}
+        />
+        <span className="shrink-0 ps-1.5 text-sm text-carbon-textSub rtl:pe-3">{symbol}</span>
       </span>
+      <Steppers
+        className="shrink-0 px-1.5"
+        onStep={step}
+        upDisabled={value >= max}
+        downDisabled={value <= min}
+      />
     </span>
   );
 }
@@ -1418,21 +1586,30 @@ export function PageHeader({
 // because this is called both as a whole-page replacement and from inside an
 // existing Card as that card's own empty state. A card with its own drop shadow
 // inside another card is what index.css forbids.
+//
+// `fill` is for a page whose list takes the rest of the window: standing in for
+// that list, the card takes the same height, so the page keeps its shape.
 export function EmptyState({
   icon,
   title,
   hint,
   action,
   nested,
+  fill,
 }: {
   icon?: ReactNode;
   title: string;
   hint?: string;
   action?: ReactNode;
   nested?: boolean;
+  fill?: boolean;
 }) {
   return (
-    <div className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-2 p-10 text-center`}>
+    <div
+      className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-2 p-10 text-center ${
+        fill ? 'flex-1 justify-center' : ''
+      }`}
+    >
       {/* The sleeping knight (docs/easter-eggs.md): the mark itself blinks,
           twice and slowly, because every caller hands this slot a house glyph
           rather than a figure with eyes to close. One CSS animation-delay, no
@@ -1679,9 +1856,9 @@ export function Modal({
   return (
     <div
       ref={backdrop}
-      // glim-modal-backdrop, not a number typed here: GlimStone 1.11.0 made the
-      // scrim a token so it lives in one place, .65 on a dark ground and .55 on
-      // a light one. Any lighter and the eye keeps reading the page behind it.
+      // glim-modal-backdrop, not a number typed here: the darkening and the
+      // blur behind a window are tokens (index.css), so every window in the
+      // app changes with them.
       className="glim-modal-backdrop fixed inset-0 z-50 grid place-items-center p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();

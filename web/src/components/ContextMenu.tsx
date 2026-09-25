@@ -42,9 +42,11 @@ export interface MenuItem {
   submenu?: MenuGroup[];
 }
 
-/** A run of items separated from its neighbours by a hairline, without a heading. */
+/** A run of items separated from its neighbours by a hairline. */
 export interface MenuGroup {
   id: string;
+  /** Quiet text above the run, for one that means something different from the runs above it. */
+  heading?: string;
   items: MenuItem[];
 }
 
@@ -336,7 +338,14 @@ function Panel({
             divide-y divide-carbon-border/60 overflow-y-auto py-0.5"
         >
           {shown.map((g) => (
-            <div key={g.id} className="py-1">
+            <div key={g.id} role={g.heading ? 'group' : undefined} aria-label={g.heading} className="py-1">
+              {/* In line with the labels, past the rows' 16px glyph gutter. The
+                  group carries the name for a screen reader. */}
+              {g.heading && (
+                <div aria-hidden className="pe-3 ps-[38px] pb-1 pt-0.5 text-[11px] font-medium text-carbon-textMuted">
+                  {g.heading}
+                </div>
+              )}
               {g.items.map((item) => {
                 index++;
                 const i = index;

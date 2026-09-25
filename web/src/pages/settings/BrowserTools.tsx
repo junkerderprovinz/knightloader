@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
+import { ARCH_LABEL, desktopSlug, visitorArch, type Arch, type DesktopOS, type DesktopSlug } from '../../lib/desktopBuild';
 import { fetchDeploymentInfo, fetchExtensionVersion, fetchHealth } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { useInstallPrompt } from '../../lib/pwaInstall';
@@ -212,26 +213,67 @@ function PhoneCard() {
   );
 }
 
-/** DesktopCard offers the desktop app to a reader in a container or a browser. */
+/**
+ * DesktopCard offers the desktop app to a reader in a container or a browser.
+ * The Windows and Linux tiles give the build for this computer's architecture,
+ * x64 where the browser does not tell, and the buttons beside them the other.
+ */
 function DesktopCard() {
   const { t } = useT();
   const soon = t('settings.browsertools.soon');
+  const [arch, setArch] = useState<Arch>('x64');
+  useEffect(() => {
+    void visitorArch().then((found) => found && setArch(found));
+  }, []);
+  const other: Arch = arch === 'x64' ? 'arm64' : 'x64';
+
   return (
     <Card hue={1} className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.browsertools.desktopHint')}>{t('settings.browsertools.desktopTitle')}</SectionTitle>
-      <div className="flex flex-wrap gap-3">
+      <SectionTitle
+        hint={
+          <>
+            <span className="block">{t('settings.browsertools.desktopHint')}</span>
+            <span className="mt-1.5 block">{t('settings.browsertools.desktopArchHint')}</span>
+          </>
+        }
+      >
+        {t('settings.browsertools.desktopTitle')}
+      </SectionTitle>
+      <div className="flex flex-wrap items-center gap-3">
         <AppTile
           soonLabel={soon}
           name="Windows"
           logo={<BrandMark svg={WINDOWS_SVG} className="glim-windows-mark" />}
-          href={desktopZip('windows-amd64')}
+          href={desktopZip(desktopSlug('windows', arch))}
         />
         <AppTile soonLabel={soon} name="macOS" logo={<BrandMark svg={APPLE_SVG} />} href={desktopZip('macos-universal')} />
-        <AppTile soonLabel={soon} name="Linux" logo={<BrandMark svg={LINUX_SVG} />} href={desktopZip('linux-amd64')} />
+        <AppTile
+          soonLabel={soon}
+          name="Linux"
+          logo={<BrandMark svg={LINUX_SVG} />}
+          href={desktopZip(desktopSlug('linux', arch))}
+        />
+        <div className="flex flex-col gap-2">
+          {DESKTOP_OS.map(({ os, name }) => (
+            <Button
+              key={os}
+              kind="secondary"
+              icon={<IconDownloads width={16} height={16} />}
+              onClick={() => openExternal(desktopZip(desktopSlug(os, other)))}
+            >
+              {`${name} ${ARCH_LABEL[other]}`}
+            </Button>
+          ))}
+        </div>
       </div>
     </Card>
   );
 }
+
+const DESKTOP_OS: { os: DesktopOS; name: string }[] = [
+  { os: 'windows', name: 'Windows' },
+  { os: 'linux', name: 'Linux' },
+];
 
 /**
  * ServerCard offers the desktop app's reader a server install: Unraid's
@@ -318,7 +360,7 @@ const UNRAID_CA_URL = '';
  * desktopZip is the desktop bundle release.yml attaches to every release,
  * under the name without a version that /releases/latest/download/ can find.
  */
-function desktopZip(slug: 'windows-amd64' | 'macos-universal' | 'linux-amd64'): string {
+function desktopZip(slug: DesktopSlug): string {
   return `${REPO_URL}/releases/latest/download/knightloader-${slug}.zip`;
 }
 

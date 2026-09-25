@@ -13,13 +13,17 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  fetchPinChoices,
   priorityChoices,
+  type ExtractJob,
+  type PinChoice,
   type PriorityChoice,
   type Task,
   type TaskOptionsPatch,
   type YtdlpHosterPreset,
   type YtdlpVariantKind,
   YTDLP_VARIANT_KINDS,
+  fetchHosterFormats,
   fetchHosterPreset,
   fetchOptions,
   saveHosterPreset,
@@ -34,6 +38,7 @@ import {
   recheckTasks,
   setPackage,
   setTaskOptions,
+  refusal,
   reorderTasks,
   // Aliased: TaskProperties further down owns local useState setters called
   // setPriority/setForced, and a module-scope import of the same two names
@@ -42,6 +47,7 @@ import {
   setForced as setTaskForced,
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { resolverLabel } from '../lib/resolverLabels';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import {
@@ -61,16 +67,19 @@ import {
   useTooltip,
 } from './ui';
 import { Tabs } from './Tabs';
+import { Dropdown } from './Dropdown';
 import { PathInput } from './FolderPicker';
 import {
   NO_PRESET_MENUS,
   VariantDropdown,
+  hostPresetMenus,
   presetMenusOf,
   presetPickers,
   type PickerProps,
   type PresetMenus,
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
+import { renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
   FOLDER_GLYPH,
@@ -650,6 +659,8 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
   const { toast } = useToast();
   const [preset, setPreset] = useState<YtdlpHosterPreset | null>(null);
   const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
+  // Nothing is known of the host's formats, so the menus are the full lists.
+  const [unknownHost, setUnknownHost] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
   // The Save button's failure counter, so a repeated refusal shakes it again.
@@ -657,11 +668,15 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
 
   useEffect(() => {
     let live = true;
-    void Promise.all([fetchHosterPreset(host, base), fetchOptions()]).then(
-      ([p, o]) => {
+    // An instance too old to answer for the host's formats leaves the full
+    // menus standing, which is what it offered anyway.
+    const formats = fetchHosterFormats(host, base).catch(() => null);
+    void Promise.all([fetchHosterPreset(host, base), fetchOptions(), formats]).then(
+      ([p, o, f]) => {
         if (!live) return;
         setPreset(p);
-        setMenus(presetMenusOf(o));
+        setMenus(hostPresetMenus(presetMenusOf(o), f));
+        setUnknownHost(f?.known === false);
       },
       (err) => {
         if (live) setLoadError(err instanceof Error && err.message ? err.message : String(err));
@@ -729,7 +744,12 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
               const pair = menus.qualities.length > 0 ? pairs[kind] : undefined;
               return (
                 <Fragment key={kind}>
-                  <span className="text-sm text-carbon-text">{kindLabel}</span>
+                  <span className="flex items-center gap-1 text-sm text-carbon-text">
+                    {kindLabel}
+                    {unknownHost && pair && (
+                      <InfoBubble tip={t('settings.resolvers.presetFormatsUnknown', { host })} />
+                    )}
+                  </span>
                   {[0, 1].map((i) => {
                     const p = pair?.[i];
                     return p ? <VariantDropdown key={i} picker={p} width="fill" /> : <span key={i} />;
@@ -1193,7 +1213,32 @@ function Header({
 }
 
 /** Which box was edited. Nothing else is sent; see TaskProperties. */
-type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract';
+type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
+
+/**
+ * The backends the selection can be pinned to, asked of the instance its rows
+ * live on, since a peer's rows go to the peer's backends. Null until it
+ * answers. A failed question leaves only Automatic to offer.
+ */
+function usePinChoices(ids: string[], base: string): PinChoice[] | null {
+  const [choices, setChoices] = useState<PinChoice[] | null>(null);
+  const key = ids.join(',');
+  useEffect(() => {
+    let live = true;
+    void fetchPinChoices(key.split(','), base).then(
+      (c) => {
+        if (live) setChoices(c);
+      },
+      () => {
+        if (live) setChoices([]);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [key, base]);
+  return choices;
+}
 
 /**
  * The priorities, from the server, low to high so the strip reads as a scale
@@ -1276,6 +1321,7 @@ export function TaskProperties({
   const { t } = useT();
   const { toast } = useToast();
   const priorities = usePriorities();
+  const pinChoices = usePinChoices(ids, base);
 
   // Read once, at mount. The panel is remounted whenever the selection changes
   // (see the key in TaskListCard), so this is the only moment these values are
@@ -1287,6 +1333,7 @@ export function TaskProperties({
     comment: agree(tasks, (x) => x.comment ?? ''),
     priority: agree(tasks, (x) => String(x.priority ?? 0)),
     autoExtract: agree(tasks, extractId),
+    pin: agree(tasks, (x) => x.resolverPin ?? ''),
   }));
 
   const [name, setName] = useState(start.name);
@@ -1294,6 +1341,7 @@ export function TaskProperties({
   const [comment, setComment] = useState(start.comment ?? '');
   const [priority, setPriority] = useState(start.priority);
   const [extract, setExtract] = useState(start.autoExtract);
+  const [pin, setPin] = useState(start.pin);
   const [touched, setTouched] = useState<Set<PropField>>(() => new Set());
   const [busy, setBusy] = useState(false);
   // The Save button's own failure counter, read as its `key`. A refused save
@@ -1322,6 +1370,13 @@ export function TaskProperties({
   const hint = (text: string, mixed: boolean) => (mixed ? `${text} ${t('props.mixedHint')}` : text);
   const placeholder = (mixed: boolean) => (mixed ? t('props.mixed') : undefined);
 
+  // Automatic first and apart, then what the selection can go to. A pin the
+  // server does not offer, such as one on a backend whose module is switched
+  // off, still shows its name.
+  const autoPin = { value: '', label: t('props.backendAuto') };
+  const backends = (pinChoices ?? []).map((c) => ({ value: c.id, label: c.label || resolverLabel(c.id, t) }));
+  if (pin && !backends.some((b) => b.value === pin)) backends.push({ value: pin, label: resolverLabel(pin, t) });
+
   async function apply(): Promise<void> {
     const opts: TaskOptionsPatch = {};
     if (touched.has('name')) opts.name = name;
@@ -1334,16 +1389,20 @@ export function TaskProperties({
     if (touched.has('autoExtract') && extract !== null) {
       opts.autoExtract = extract === 'inherit' ? null : extract === 'on';
     }
+    if (touched.has('resolver') && pin !== null) opts.resolver = pin;
 
     setBusy(true);
     const r = await setTaskOptions(ids, opts, base);
     setBusy(false);
     if (!r.ok) {
-      // These routes refuse with a sentence, and the sentence is why refusing
-      // is useful: a rename that could not happen has a reason, and hiding it
-      // behind "save failed" leaves the row promising a name the folder does
-      // not have. It goes to the toast, which is where a failure is read.
-      toast((await r.text()).trim() || t('list.optionsFailed'), 'fail');
+      // These routes refuse with a reason, and the reason is why refusing is
+      // useful: a rename that could not happen has one, and hiding it behind
+      // "save failed" leaves the row promising a name the folder does not
+      // have. It goes to the toast, which is where a failure is read.
+      const e = await refusal(r);
+      // refusal falls back to the bare status, which says nothing to a reader.
+      const said = e.message === String(r.status) ? '' : e.message;
+      toast(renameRefusal(e, t) ?? (said || t('list.optionsFailed')), 'fail');
       setShake((n) => n + 1);
       return;
     }
@@ -1462,6 +1521,22 @@ export function TaskProperties({
           </FieldGroup>
         </div>
 
+        {/* Half the width, the grid the rows above use: a menu of a few
+            service names does not need the whole line. */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t('props.backend')} hint={hint(t('props.backendHint'), start.pin === null)}>
+            <Dropdown
+              label={t('props.backend')}
+              value={pin}
+              placeholder={t('props.mixed')}
+              options={[autoPin, ...backends]}
+              groups={backends.length > 0 ? [[autoPin], backends] : undefined}
+              onChange={edit('resolver', setPin)}
+              busy={pinChoices === null}
+            />
+          </Field>
+        </div>
+
         <div className="flex items-center gap-3">
           <Button
             shake={shake}
@@ -1486,6 +1561,7 @@ export function TaskListCard({
   hue,
   revealKey,
   onRemovePackage,
+  extractions,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1514,6 +1590,8 @@ export function TaskListCard({
   revealKey?: string;
   /** See CellContext.onRemovePackage: the page asks the question, not the row. */
   onRemovePackage?: (ids: string[]) => void;
+  /** See CellContext.extractions. */
+  extractions?: ReadonlyMap<string, ExtractJob>;
 }) {
   const { t } = useT();
   // Only the row move reports through this so far (see dropBlock and
@@ -1548,8 +1626,8 @@ export function TaskListCard({
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const ctx = useMemo<CellContext>(
-    () => ({ t, base, profile, onRemovePackage }),
-    [t, base, profile, onRemovePackage],
+    () => ({ t, base, profile, onRemovePackage, extractions }),
+    [t, base, profile, onRemovePackage, extractions],
   );
 
   // A sort on a column that is currently hidden is ignored rather than cleared,

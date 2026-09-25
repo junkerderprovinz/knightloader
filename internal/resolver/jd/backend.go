@@ -485,14 +485,23 @@ func statedAvailability(jd string) core.Availability {
 }
 
 // Download hands the link to JD (auto-crawl + start) and polls its progress.
-// The task's own leftover package from an earlier attempt is dropped first,
-// or JD's duplicate manager would silently drop the new submission.
+// What an earlier attempt of this task left in JD is cleared first, or JD's
+// duplicate check would hold the new submission back: the grabber package, and
+// a download-list package that never loaded a byte. A package that did is
+// picked up where it stands instead, since removing it would throw its partial
+// file away.
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 	pkg := b.pkgName(taskID)
 	b.holdGrabber(pkg)
 	go func() {
 		b.dropGrabberPackage(pkg)
-		if _, err := b.c.AddLinks(url, pkg, b.dirFor(taskID), true); err != nil {
+		if b.keepLeftover(pkg) {
+			b.setEnabled(taskID, true)
+			// Without an added link, autostart does not run, and a JD that
+			// restarted with every download paused keeps its controller
+			// stopped.
+			_ = b.c.StartDownloads()
+		} else if _, err := b.c.AddLinks(url, pkg, b.dirFor(taskID), true); err != nil {
 			b.releaseGrabber(pkg)
 			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + err.Error()})
 			return
@@ -500,6 +509,28 @@ func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 		defer b.releaseGrabber(pkg)
 		b.poll(taskID)
 	}()
+}
+
+// keepLeftover looks for the download-list package an earlier attempt named
+// pkg left behind, which JD keeps across restarts. It removes one that never
+// loaded a byte and reports whether one with progress remains. A package whose
+// links cannot be read is kept, since what it holds is unknown.
+func (b *Backend) keepLeftover(pkg string) bool {
+	puuid, err := b.c.PackageUUID(pkg)
+	if err != nil || puuid == 0 {
+		return false
+	}
+	links, err := b.c.QueryDownloads(puuid)
+	if err != nil {
+		return true
+	}
+	for _, l := range links {
+		if l.BytesLoaded > 0 || l.Finished {
+			return true
+		}
+	}
+	_ = b.c.RemoveLinks(nil, []int64{puuid})
+	return false
 }
 
 // fatalPackageStatus reports whether JD's package status is a permanent
@@ -581,6 +612,15 @@ func (b *Backend) poll(taskID string) {
 				})
 				return
 			}
+			if !seen && b.offlineInGrabber(pkg) {
+				b.dropGrabberPackage(pkg)
+				b.onUpdate(taskID, core.Update{
+					Status: core.StatusError,
+					Err:    "jd: the hoster says the file is offline",
+					Reason: core.ReasonGone,
+				})
+				return
+			}
 
 			p, err := b.c.Package(pkg)
 			if err != nil || p == nil || p.UUID == 0 {
@@ -626,6 +666,34 @@ func (b *Backend) poll(taskID string) {
 			}
 		}
 	}
+}
+
+// offlineInGrabber reports whether JD's link check found every link of the
+// grabber package pkg offline. Such a link never reaches the download list: a
+// JD that KnightLoader provisioned keeps it in the grabber (see
+// provision.confirmAnswers), and any other JD holds it there until somebody
+// answers whether to add it.
+func (b *Backend) offlineInGrabber(pkg string) bool {
+	pkgs, err := b.c.CrawledPackages()
+	if err != nil {
+		return false
+	}
+	var ids []int64
+	for _, p := range pkgs {
+		if p.Name == pkg && p.UUID != 0 {
+			ids = append(ids, p.UUID)
+		}
+	}
+	links, err := b.c.CrawledLinks(ids...)
+	if err != nil || len(links) == 0 {
+		return false
+	}
+	for _, l := range links {
+		if jdAvailability(l.Availability) != core.AvailOffline {
+			return false
+		}
+	}
+	return true
 }
 
 // appearLimit is how long JD gets to turn a submitted link into a download.

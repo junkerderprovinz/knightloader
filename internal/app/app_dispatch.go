@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
@@ -22,9 +23,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -288,10 +291,11 @@ func maxPerHostFor(cfg settings.Settings, host string) int {
 }
 
 // resolverForTaskLocked picks the resolver for a task: its pin if it has one,
-// else the recorded resolver if its account is usable, else the first usable
-// entry of rankedChain. A benched account stays registered and is skipped
-// here, so a second account of the same service is simply the next entry in
-// the chain. Caller holds a.mu.
+// else a usable debrid service ranked above the recorded resolver where
+// rerankLocked allows it, else the recorded resolver if its account is usable,
+// else the first usable entry of the chain chainFromLocked leaves. A benched
+// account stays registered and is skipped here, so a second account of the
+// same service is simply the next entry in the chain. Caller holds a.mu.
 func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	// A pin is the whole answer and may be nil (see pinnedResolverLocked);
 	// the caller reports that rather than falling back to the chain.
@@ -299,9 +303,14 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 		return a.pinnedResolverLocked(t)
 	}
 	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
+	if a.rerankLocked(t) {
+		if res := a.debridAboveLocked(chain, t); res != nil {
+			return res
+		}
+	}
 	// A fallback may have recorded JD, yt-dlp or the HTTP fallback while a
 	// backend above it was switched off; that backend decides, not the fallback.
-	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) && !a.resolverOff(t.Resolver) &&
+	if t.Resolver != "" && a.routableForLocked(t.Resolver, t.URL) && !a.resolverOff(t.Resolver) &&
 		!(barredPastOff(t.Resolver) && a.switchedOffAboveLocked(chain, t.Resolver)) {
 		for _, res := range a.Registry.All(t.URL) {
 			if res.Info().ID == t.Resolver {
@@ -309,16 +318,8 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 			}
 		}
 	}
-	// A task whose recorded backend is switched off stands at that backend's
-	// place in the chain. The backends above it have had the link already, and
-	// asking them again would loop between a decline and the switch.
-	if a.resolverOff(t.Resolver) {
-		if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
-			chain = chain[i:]
-		}
-	}
 	passedOff := false
-	for _, res := range chain {
+	for _, res := range a.chainFromLocked(t, chain) {
 		id := res.Info().ID
 		if a.resolverOff(id) {
 			passedOff = true
@@ -327,7 +328,51 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 		if passedOff && barredPastOff(id) {
 			return nil
 		}
-		if a.accountRoutableLocked(id) {
+		if a.routableForLocked(id, t.URL) {
+			return res
+		}
+	}
+	return nil
+}
+
+// chainFromLocked cuts the ranked chain at the task's recorded backend when
+// that backend is switched off or the task was handed to it down the chain.
+// The backends above it have had the link already, and asking them again
+// would loop between a decline and the switch or the refusal. Caller holds
+// a.mu.
+func (a *App) chainFromLocked(t *core.Task, chain []resolver.Resolver) []resolver.Resolver {
+	if !a.resolverOff(t.Resolver) && !a.fellBack[t.ID] {
+		return chain
+	}
+	if i := slices.IndexFunc(chain, func(r resolver.Resolver) bool { return r.Info().ID == t.Resolver }); i >= 0 {
+		return chain[i:]
+	}
+	return chain
+}
+
+// rerankLocked reports whether a task's recorded backend is only a pick from
+// staging or an earlier run, which a usable debrid service ranked above it
+// overrules: JD or a debrid slot, with nothing fetched yet, and not where the
+// chain led in this process. A yt-dlp row and a torrent keep their backend,
+// since it is part of what they are. Caller holds a.mu.
+func (a *App) rerankLocked(t *core.Task) bool {
+	service, _ := resolver.SplitSlot(t.Resolver)
+	if t.Resolver != "jd" && !isDebridService(service) {
+		return false
+	}
+	return t.Loaded == 0 && !a.fellBack[t.ID] &&
+		t.Variant == "" && t.InfoHash == "" && len(t.TorrentFiles) == 0
+}
+
+// debridAboveLocked returns the first usable debrid slot chain ranks above the
+// task's recorded backend, or nil. Caller holds a.mu.
+func (a *App) debridAboveLocked(chain []resolver.Resolver, t *core.Task) resolver.Resolver {
+	for _, res := range chain {
+		id := res.Info().ID
+		if id == t.Resolver {
+			return nil
+		}
+		if service, _ := resolver.SplitSlot(id); isDebridService(service) && a.routableForLocked(id, t.URL) {
 			return res
 		}
 	}
@@ -393,9 +438,67 @@ func (a *App) ResolverPinnable(resolverID string) error {
 	return fmt.Errorf("%q is not a download backend this instance has", id)
 }
 
+// PinChoice is one backend a selection of tasks can be pinned to.
+type PinChoice struct {
+	ID string `json:"id"`
+	// Label is the service's name from the account catalogue, and empty for a
+	// backend the interface names itself, such as JDownloader.
+	Label string `json:"label,omitempty"`
+}
+
+// PinChoices lists the backends every one of the given tasks can be pinned
+// to, one per service, in the order the first task's chain ranks them. What
+// the priority card leaves out is left out here too, since it takes only the
+// links it was set up for, and so is a backend whose module is switched off.
+func (a *App) PinChoices(ids []string) []PinChoice {
+	a.mu.Lock()
+	urls := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil {
+			urls = append(urls, t.URL)
+		}
+	}
+	a.mu.Unlock()
+	order := a.Settings.Get().ResolverOrder
+	var out []PinChoice
+	for i, u := range urls {
+		here := a.pinChoicesFor(u, order)
+		if i == 0 {
+			out = here
+			continue
+		}
+		out = slices.DeleteFunc(out, func(c PinChoice) bool {
+			return !slices.ContainsFunc(here, func(h PinChoice) bool { return h.ID == c.ID })
+		})
+	}
+	return out
+}
+
+func (a *App) pinChoicesFor(url string, order []string) []PinChoice {
+	var out []PinChoice
+	for _, res := range rankedChain(a.Registry.All(url), url, order) {
+		service, _ := resolver.SplitSlot(res.Info().ID)
+		if offCard(service) || a.resolverOff(service) ||
+			slices.ContainsFunc(out, func(c PinChoice) bool { return c.ID == service }) {
+			continue
+		}
+		c := PinChoice{ID: service}
+		if svc, ok := accounts.Lookup(service); ok {
+			c.Label = svc.Label
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
 // PinResolver pins each task to one backend, or unpins it when resolverID is
 // empty, and dispatches right away so the result shows at once. A running
 // transfer is not moved; the pin decides where the next attempt goes.
+//
+// A paused or requeued task would resume on the backend it started on and
+// pass the pin by, so a pin naming another backend takes it off that one
+// first: it drops its partial file, JD its package, and the task starts afresh
+// on the pinned backend.
 func (a *App) PinResolver(ids []string, resolverID string) error {
 	id := strings.TrimSpace(resolverID)
 	// Validated before any task is touched, so a refusal never leaves half a
@@ -403,8 +506,13 @@ func (a *App) PinResolver(ids []string, resolverID string) error {
 	if err := a.ResolverPinnable(id); err != nil {
 		return err
 	}
+	type leaving struct {
+		id string
+		be backend
+	}
 	a.mu.Lock()
 	var touched []string
+	var moved []leaving
 	for _, taskID := range ids {
 		t := a.tasks[taskID]
 		if t == nil || t.ResolverPin == id {
@@ -412,6 +520,25 @@ func (a *App) PinResolver(ids []string, resolverID string) error {
 		}
 		t.ResolverPin = id
 		touched = append(touched, taskID)
+		stopped := t.Status == core.StatusPaused || t.Status == core.StatusQueued
+		if id != "" && stopped && a.started[taskID] && !a.active[taskID] && !pinMatches(id, t.Resolver) {
+			moved = append(moved, leaving{taskID, a.backendFor(t.Resolver)})
+			a.moving[taskID] = true
+			delete(a.started, taskID)
+			t.Resolver = ""
+			t.Mode = core.ModeUnknown
+			t.Loaded = 0
+		}
+	}
+	if len(moved) > 0 {
+		a.mu.Unlock()
+		for _, m := range moved {
+			m.be.Remove(m.id, true)
+		}
+		a.mu.Lock()
+		for _, m := range moved {
+			delete(a.moving, m.id)
+		}
 	}
 	if len(touched) > 0 {
 		a.dispatchLocked()
@@ -519,7 +646,7 @@ func (a *App) dispatchLocked() {
 	a.ensureStallWatcher()
 	a.ensureDiskWatcher()
 	a.ensureVolumeCapWatcher()
-	if a.halted {
+	if a.halted && len(a.startNow) == 0 {
 		// Every queued row says why, so a stopped queue does not look like a
 		// full one.
 		a.setWaitingLocked(a.queue, core.WaitingHalted)
@@ -546,7 +673,13 @@ func (a *App) dispatchLocked() {
 	waiting := map[string]core.Waiting{}
 	perHost := map[string]int{}
 	// Forced tasks are counted apart, so a forced download cannot push an
-	// ordinary one out of its slot.
+	// ordinary one out of its slot. This recount is where a forced start stands
+	// against the limits for as long as it is active: it holds a place in the
+	// forced pool, never one of MaxConcurrent's or its host's. The flag
+	// outlives the start, so a forced download paused, retried or restarted
+	// comes back past the limits too. Unforced while it runs (SetForced), it
+	// counts as ordinary from the next pass on, and nothing new starts until
+	// the ordinary pool is below its limit again.
 	forcedActive := 0
 	normalActive := 0
 	for id := range a.active {
@@ -570,6 +703,17 @@ func (a *App) dispatchLocked() {
 		t := a.tasks[id]
 		if t == nil {
 			continue // removed while queued
+		}
+		// A stopped queue lets out only what "Start now" was pressed for, and
+		// that still through the forced pool below.
+		if a.halted && !(t.Forced && a.startNow[id]) {
+			waiting[id] = core.WaitingHalted
+			rest = append(rest, id)
+			continue
+		}
+		if a.moving[id] {
+			rest = append(rest, id)
+			continue
 		}
 		// Nothing in the queue has been given up on. Cleared here, where every
 		// requeue path (fallback, Resume, boot, RestartTasks) meets.
@@ -629,6 +773,8 @@ func (a *App) dispatchLocked() {
 			a.active[id] = true
 			a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
 			space.commit(dir, t)
+			// A retry date belongs to the failure, not to the run it led to.
+			t.NextTry = time.Time{}
 			go a.backendFor(t.Resolver).Resume(id)
 			continue
 		}
@@ -665,7 +811,7 @@ func (a *App) dispatchLocked() {
 				settled = append(settled, *t)
 				continue
 			}
-			if a.hasUnroutableMatchLocked(t.URL) {
+			if a.hasUnroutableMatchLocked(t) {
 				// A backend does claim the link, but its account is benched;
 				// hold the task rather than call it unsupported.
 				waiting[id] = core.WaitingAccount
@@ -678,6 +824,7 @@ func (a *App) dispatchLocked() {
 			settled = append(settled, *t)
 			continue
 		}
+		prev := t.Resolver
 		t.Resolver = res.Info().ID
 		t.Mode = a.modeForLocked(t, t.Resolver)
 		// a.ctx, because a.mu is held: a hanging resolver must not keep the
@@ -696,14 +843,20 @@ func (a *App) dispatchLocked() {
 		// CollisionFor resolves the category's rule; ParsePolicy alone would
 		// turn an unset category rule into rename.
 		policy := collide.ParsePolicy(cfg.CollisionFor(t.Category))
+		// What an earlier attempt of this task left. The library would find it
+		// under the task's name and write this attempt beside it as
+		// "name (1).ext", once per restart, so it goes before the backend
+		// starts.
+		own := a.ownFileLocked(t)
 		// Skip is the one policy decidable here, since it only refuses to
 		// start; rename and overwrite need to name the file, which only the
 		// engine can be told. Without a resolved name there is nothing to
 		// check.
 		if policy == collide.Skip && filename(t) != "" {
-			// The sanitised name is what would land on disk.
+			// The sanitised name is what would land on disk. The task's own
+			// leftover is not in its way.
 			target := filepath.Join(dir, collide.SafeName(t.Name))
-			if taken, err := collide.Check(target); err == nil && taken {
+			if taken, err := collide.Check(target); err == nil && taken && !own.at(target) {
 				// Availability is untouched: this is about the folder, not the
 				// link.
 				t.Status = core.StatusError
@@ -717,30 +870,50 @@ func (a *App) dispatchLocked() {
 		a.started[id] = true
 		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
 		space.commit(dir, t)
+		t.NextTry = time.Time{}
+		// The backend the task leaves may still hold it, as JD keeps its
+		// download list across restarts, and would fetch the file a second
+		// time. The bytes it counted go with it. Nothing of this task runs
+		// there in this process, so the new start does not wait for it.
+		if prev != "" && prev != t.Resolver {
+			if old := a.backendFor(prev); old != be {
+				t.Loaded = 0
+				go old.Remove(id, true)
+			}
+		}
 		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
 		route, chosen := a.routeForLocked(t, h)
 		if chosen != t.Connection {
 			t.Connection = chosen
 		}
+		// The new attempt reports the file it writes itself.
+		t.File = ""
 		if be == a.Engine {
-			// Only the engine can be told a name, so only it gets the
-			// collision policy.
-			go a.Engine.Start(engine.Job{
-				TaskID: id, URL: result.DirectURL, Headers: result.Headers,
-				Conns: conns, Dir: dir, WorkDir: a.stagedDirFor(t), Route: route,
-				Collision: policy, MaxCollisionAttempts: cfg.CollisionMaxAttempts,
-				// nil for non-torrent tasks, and read only for torrent URLs.
-				// Without it, files unticked in the collector would be
-				// downloaded anyway, since an empty selection means everything.
-				TorrentSelect: core.SelectedTorrentIndices(t.TorrentFiles),
-			})
+			job := a.engineJobLocked(t, cfg, result.DirectURL, result.Headers, conns)
+			job.Route = route
+			// nil for non-torrent tasks, and read only for torrent URLs.
+			// Without it, files unticked in the collector would be downloaded
+			// anyway, since an empty selection means everything.
+			job.TorrentSelect = core.SelectedTorrentIndices(t.TorrentFiles)
+			go func() {
+				own.drop(id)
+				a.Engine.Start(job)
+			}()
 		} else {
 			// Delegated backends reach the internet their own way, so they get
-			// no route.
-			go be.Download(id, result.DirectURL, result.Headers, conns)
+			// no route. Those that pass their link on to the engine go through
+			// engineHandoff, which gives the engine the same job as above.
+			go func() {
+				own.drop(id)
+				be.Download(id, result.DirectURL, result.Headers, conns)
+			}()
 		}
 	}
 	a.queue = rest
+	// A link turned down here has had its start.
+	for _, t := range settled {
+		delete(a.startNow, t.ID)
+	}
 	// Reasons are recomputed for everything queued at the start, so a stale
 	// one never survives.
 	a.setWaitingLocked(before, core.WaitingNone, waiting)
@@ -748,6 +921,17 @@ func (a *App) dispatchLocked() {
 		// Off this goroutine, since a.mu is held. A caller publishing the same
 		// state again afterwards is harmless.
 		a.spawn(func() { a.publishTasks(settled) })
+	}
+}
+
+// engineJobLocked is t's transfer as the engine takes it: written into t's
+// folder, or its working folder, under the collision policy of t's category.
+// Caller holds a.mu.
+func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, headers map[string]string, conns int) engine.Job {
+	return engine.Job{
+		TaskID: t.ID, URL: url, Headers: headers, Conns: conns,
+		Dir: a.dirFor(t), WorkDir: a.stagedDirFor(t),
+		Collision: collide.ParsePolicy(cfg.CollisionFor(t.Category)), MaxCollisionAttempts: cfg.CollisionMaxAttempts,
 	}
 }
 
@@ -867,11 +1051,16 @@ func (a *App) Resume(id string) {
 }
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
-// a task on this resolver writes. Delegated backends name files themselves, so
-// only skip applies to them. The interface uses this to avoid offering
-// controls that would be ignored.
+// a task on this resolver writes: the engine's own downloads and those a
+// debrid service or TorBox passes on to it (see engineHandoff). The other
+// backends name files themselves, so only skip applies to them. The interface
+// uses this to avoid offering controls that would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
-	return a.backendFor(resolverID) == a.Engine
+	switch a.backendFor(resolverID).(type) {
+	case *engine.Engine, *debrid.Backend, *torbox.Backend:
+		return true
+	}
+	return false
 }
 
 func (a *App) backendFor(resolverID string) backend {
@@ -965,6 +1154,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Size > 0 {
 		t.Size = u.Size
 	}
+	// A fact about the disk, so a stale update still counts.
+	a.recordFileLocked(t, u.File)
 	if u.Status != "" && !stale {
 		t.Status = u.Status
 	}
@@ -998,9 +1189,15 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// Account health learns of the outcome before the freed slot is
 	// redispatched, so queued tasks on the same account see the new verdict.
-	// Resolvers without a tracked account are unaffected.
+	// Resolvers without a tracked account are unaffected. A site the service
+	// has switched off is benched on its own and says nothing about the
+	// account.
+	siteDown := u.Status == core.StatusError && u.HostDown
+	if siteDown {
+		a.benchSiteLocked(t.Resolver, t.URL)
+	}
 	var accountUnroutable bool
-	if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok {
+	if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok && !siteDown {
 		switch u.Status {
 		case core.StatusError:
 			accountUnroutable = a.reportAccountFailure(svc, acct, t.Reason, u.Err)
@@ -1028,7 +1225,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.MaxTries = 0
 		t.StallRestarts = 0
 		// Renamed before anything below builds a path from t.Name.
-		a.renameFinishedLocked(t)
+		_ = a.renameFinishedLocked(t)
 		if a.stopMark == id {
 			// Also recorded as a manual halt, so the next schedule boundary
 			// does not restart the queue.
@@ -1038,7 +1235,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 			hitStopMark = true
 		}
 		// Verified where it was written, then delivered (see app_deliver.go).
-		path := filepath.Join(a.workDirFor(t), t.Name)
+		path := a.fileOfLocked(t)
 		verify := a.Settings.Get().VerifyChecksums
 		a.spawn(func() {
 			if verify {
@@ -1050,6 +1247,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// A backend that says the link is not its business hands the task to the
 	// next one in the chain. Only this explicit signal advances the chain, and
 	// it only moves down, so it terminates.
+	//
+	// The task waits in the queue until the backend it leaves has let go of
+	// it (see handOnLocked).
 	var fallbackTo backend
 	if u.Status == core.StatusError && u.Unsupported {
 		if next := a.nextResolverLocked(t); next != "" {
@@ -1057,14 +1257,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
 			t.Resolver = next
 			t.Mode = a.modeForLocked(t, next)
-			t.Status = core.StatusQueued
-			t.Error = ""
-			t.Reason = core.ReasonUnknown
-			t.Loaded = 0
-			t.Speed = 0
-			delete(a.started, id)
-			a.queue = append(a.queue, id)
-			a.dispatchLocked()
+			a.handOnLocked(t)
 		} else {
 			// Every matching backend has declined the link.
 			t.Reason = core.ReasonUnsupported
@@ -1073,28 +1266,28 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// Pinned, so no move to another backend: the failure stands, named
 		// after the pin, and the ordinary retry below applies.
 		t.Error, t.Reason = a.pinFailureLocked(t)
-	} else if u.Status == core.StatusError && accountUnroutable {
-		// The account failed, not the link, so the task is requeued for the
-		// next backend like u.Unsupported rather than failed.
+	} else if u.Status == core.StatusError && (accountUnroutable || (siteDown && t.ResolverPin == "")) {
+		// The account failed, or the service has switched off this site, not
+		// the link, so the task is requeued for the next backend like
+		// u.Unsupported rather than failed. A pinned task that met a
+		// switched-off site keeps the service's own words and the ordinary
+		// retry.
 		fallbackTo = a.backendFor(t.Resolver)
+		why := "the account behind " + t.Resolver + " is unavailable"
+		if siteDown {
+			why = t.Resolver + " has switched off " + siteOf(t.URL)
+		}
 		next := a.nextResolverLocked(t)
 		if next != "" {
-			log.Printf("task %s: the account behind %s is unavailable, trying %s", id, t.Resolver, next)
+			log.Printf("task %s: %s, trying %s", id, why, next)
 		} else {
 			// With the resolver cleared, the next pass searches again, and
 			// hasUnroutableMatchLocked holds the task if nothing is usable.
-			log.Printf("task %s: the account behind %s is unavailable, holding for it to recover", id, t.Resolver)
+			log.Printf("task %s: %s, holding it until that changes", id, why)
 		}
 		t.Resolver = next
 		t.Mode = a.modeForLocked(t, next)
-		t.Status = core.StatusQueued
-		t.Error = ""
-		t.Reason = core.ReasonUnknown
-		t.Loaded = 0
-		t.Speed = 0
-		delete(a.started, id)
-		a.queue = append(a.queue, id)
-		a.dispatchLocked()
+		a.handOnLocked(t)
 	}
 
 	// The mirror set follows the task's own status, since a task handed to the
@@ -1170,6 +1363,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if retryIn > 0 && limitHit && !a.halted && addressMayHelp(t.Reason) && a.reconnectConfigured() {
 		reconnectFor = id
 	}
+	// "Start now" holds through a fallback and a retry, which put the link back
+	// in the queue by themselves, and ends with the download.
+	if u.Status == core.StatusDone || (t.Status == core.StatusError && retryIn == 0) {
+		delete(a.startNow, id)
+	}
 	// A finished download that completes an archive continues as an
 	// extraction (see extractionDueLocked).
 	var extractCopy *core.Task
@@ -1182,8 +1380,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 	c := *t
 	a.mu.Unlock()
 	if fallbackTo != nil {
-		// Drop the old backend's state so a restart does not resume there.
+		// The old backend lets go of the task, its partial file included, before
+		// the task starts anywhere else. Two debrid services both hand their
+		// link to the engine under the task's id, and a Remove after the new
+		// start would take the new transfer with it.
 		fallbackTo.Remove(id, true)
+		moved := a.handedOn(id)
+		if moved == nil {
+			// Removed from the list while the old backend let go.
+			return
+		}
+		c = *moved
 	}
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
@@ -1220,6 +1427,36 @@ func (a *App) onUpdate(id string, u core.Update) {
 		log.Printf("stop mark reached at %s; the queue is halted", c.Name)
 		a.Hub.Broadcast("queue", a.Queue())
 	}
+}
+
+// handOnLocked queues t for the backend onUpdate has just recorded, as
+// moving: the dispatcher leaves it alone until handedOn, once the backend it
+// leaves has let go. Caller holds a.mu.
+func (a *App) handOnLocked(t *core.Task) {
+	t.Status = core.StatusQueued
+	t.Error = ""
+	t.Reason = core.ReasonUnknown
+	t.Loaded = 0
+	t.Speed = 0
+	delete(a.started, t.ID)
+	a.fellBack[t.ID] = true
+	a.moving[t.ID] = true
+	a.queue = append(a.queue, t.ID)
+}
+
+// handedOn lets the dispatcher start a task handOnLocked held back and returns
+// the task as the dispatch left it, or nil when it was removed meanwhile.
+func (a *App) handedOn(id string) *core.Task {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	delete(a.moving, id)
+	a.dispatchLocked()
+	t := a.tasks[id]
+	if t == nil {
+		return nil
+	}
+	c := *t
+	return &c
 }
 
 // retryDelay doubles from base per attempt up to ceiling, which come from

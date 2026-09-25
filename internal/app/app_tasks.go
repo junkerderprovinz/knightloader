@@ -7,7 +7,6 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -51,23 +50,70 @@ func (a *App) Tasks() []*core.Task {
 }
 
 // SetPackage moves tasks into a package (an empty name ungroups them). A
-// variant family moves together even when only one of its ids is named; see
-// setPackageLocked.
+// variant family moves together even when only one of its ids is named, and
+// files already on disk stay where they are (keepFoldersLocked), as they do
+// when their package is renamed.
 func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
-	var copies []core.Task
-	seen := make(map[string]bool, len(ids))
-	for _, id := range ids {
-		if t := a.tasks[id]; t != nil {
-			copies = setPackageLocked(a.tasks, t, pkg, copies, seen)
-		}
+	members := a.sharingLinksLocked(ids)
+	a.keepFoldersLocked(members, pkg)
+	copies := make([]core.Task, 0, len(members))
+	for _, t := range members {
+		t.Package = pkg
+		copies = append(copies, *t)
 	}
 	a.mu.Unlock()
-	for i := range copies {
-		c := copies[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
+	a.saveAndBroadcast(copies)
+}
+
+// sharingLinksLocked returns the tasks named by ids and every task that shares
+// a link with one of them, oldest first. The rows of one yt-dlp link are one
+// folder on disk, so they move together although staging hands back only the
+// first. Caller holds a.mu.
+func (a *App) sharingLinksLocked(ids []string) []*core.Task {
+	links := map[string]bool{}
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil {
+			links[t.URL] = true
+		}
+	}
+	var members []*core.Task
+	for _, t := range a.tasks {
+		if links[t.URL] {
+			members = append(members, t)
+		}
+	}
+	sortByAge(members)
+	return members
+}
+
+// keepFoldersLocked pins members to the folder each downloads to, by writing
+// it into Dir, where that folder is built from the package name and pkg would
+// change it. It does so for every member of a folder one of them has already
+// written to: a file there would otherwise be looked for where it is not, and
+// the volumes of an archive are only unpacked together while they share one
+// folder. Members of a folder none of them has touched follow pkg. Caller
+// holds a.mu.
+func (a *App) keepFoldersLocked(members []*core.Task, pkg string) {
+	folder := make(map[string]string, len(members))
+	written := map[string]bool{}
+	for _, t := range members {
+		folder[t.ID] = a.dirFor(t)
+		if a.hasFilesLocked(t) {
+			written[folder[t.ID]] = true
+		}
+	}
+	for _, t := range members {
+		current := folder[t.ID]
+		if t.Dir != "" || !written[current] {
+			continue
+		}
+		moved := *t
+		moved.Package = pkg
+		if a.dirFor(&moved) != current {
+			t.Dir = current
+		}
 	}
 }
 
@@ -155,7 +201,7 @@ func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string
 	if !packageIsStillAGuess(t) || !noSiblingHasARealNameYet(tasks, t) {
 		return nil
 	}
-	return setPackageLocked(tasks, t, sanitizeSegment(name), nil, nil)
+	return setPackageLocked(tasks, t, sanitizeSegment(name))
 }
 
 // packageIsStillAGuess reports whether t's package was made up by the app
@@ -178,31 +224,21 @@ func packageIsStillAGuess(t *core.Task) bool {
 }
 
 // setPackageLocked files t in pkg, and with it every task sharing t's exact URL
-// (its variant siblings). Every task it touched is appended to out and
-// returned for the caller to save and broadcast; seen, when non-nil, keeps a
-// task from being listed twice.
+// (its variant siblings), and returns every task it touched for the caller to
+// save and broadcast.
 //
 // The five rows of one video must share one package to be one folder on disk.
 // The siblings are created after a bucket is assembled, so they are in nobody's
-// id list, and the rule has to hold for every write, including a package
-// picked by hand. Caller holds a.mu.
-func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string, out []core.Task, seen map[string]bool) []core.Task {
-	add := func(x *core.Task) {
-		x.Package = pkg
-		if seen != nil {
-			if seen[x.ID] {
-				return
-			}
-			seen[x.ID] = true
-		}
-		out = append(out, *x)
-	}
-	add(t)
+// id list. A package picked by hand keeps the same rule through
+// sharingLinksLocked. Caller holds a.mu.
+func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string) []core.Task {
+	t.Package = pkg
+	out := []core.Task{*t}
 	for _, other := range tasks {
-		if other == t || other.URL != t.URL {
-			continue
+		if other != t && other.URL == t.URL {
+			other.Package = pkg
+			out = append(out, *other)
 		}
-		add(other)
 	}
 	return out
 }
@@ -469,7 +505,7 @@ func (a *App) fileUnprobedMedia(id string) {
 	if guess == "" {
 		guess = catchAllPackage
 	}
-	changed := setPackageLocked(a.tasks, t, sanitizeSegment(guess), nil, nil)
+	changed := setPackageLocked(a.tasks, t, sanitizeSegment(guess))
 	a.mu.Unlock()
 	a.publishTasks(changed)
 }
@@ -534,10 +570,10 @@ type TaskOptions struct {
 	// over the file, separate from Password, the archive password extraction
 	// tries first.
 	DownloadPassword *string `json:"downloadPassword,omitempty"`
-	// Name is a rename from the properties panel. It is cut to one path segment
-	// and applied according to what the task is doing (see renameLocked), unlike
-	// Filename, which is written as given and acted on once the bytes stop. With
-	// both, Name wins.
+	// Name is a rename typed by hand. It has to be one path segment (see
+	// checkName) and is applied according to what the task is doing (see
+	// renameLocked), unlike Filename, which is written as given and acted on
+	// once the bytes stop. With both, Name wins.
 	//
 	// It is refused for more than one task, since one name for many rows would
 	// point them all at one destination.
@@ -595,12 +631,13 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if len(ids) > 1 {
 			return fmt.Errorf("a name belongs to one file, and %d are selected", len(ids))
 		}
-		if strings.TrimSpace(*o.Name) == "" {
-			return errors.New("a download cannot be renamed to nothing")
+		name, err := checkName("download", *o.Name)
+		if err != nil {
+			return err
 		}
-		// Cut rather than refused, by the same function a Packagizer rename
-		// uses.
-		renameTo = rules.FileSegment(*o.Name)
+		// What checkName lets through still passes the function a Packagizer
+		// rename uses, so the two cannot write different names for one input.
+		renameTo = rules.FileSegment(name)
 	}
 	if o.Chunks != nil && (*o.Chunks < 0 || *o.Chunks > rules.MaxChunks) {
 		return fmt.Errorf("chunk count %d is outside 0..%d", *o.Chunks, rules.MaxChunks)
@@ -650,7 +687,7 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if o.Filename != nil {
 			t.Filename = newName
 			if t.Status == core.StatusDone {
-				a.renameFinishedLocked(t)
+				_ = a.renameFinishedLocked(t)
 			}
 		}
 		if o.Name != nil {
@@ -701,42 +738,121 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 // renameLocked applies a rename asked for by hand, according to the task's
 // status:
 //
-//	done                the file moves on disk and the row follows, since
-//	                    extraction and checksums build their path from the name.
-//	running, extracting the backend holds the file open under its own name, so
-//	                    the name is only recorded and the settle path applies
-//	                    it; renaming now would orphan the .part file.
-//	everything else     the row takes the name at once. The backend reports the
-//	                    name it used when the download starts, and the override
-//	                    is applied at the end.
+//	done             the file moves on disk and the row follows, since
+//	                 extraction and checksums build their path from the name.
+//	running          the backend holds the file open under its own name, so the
+//	                 name is only recorded and the settle path applies it;
+//	                 renaming now would orphan the .part file.
+//	extracting       refused: the unpacker has the file open, and nothing would
+//	                 carry a recorded name out once it lets go.
+//	everything else  the row takes the name at once. The backend reports the
+//	                 name it used when the download starts, and the override
+//	                 is applied at the end.
 //
-// Caller holds a.mu.
+// A torrent, a JDownloader download and one part of a multi-volume archive are
+// refused in every state, since none of them would ever take the name: the
+// settle path skips the first two and refuses the third. A refusal leaves the
+// task as it was. Caller holds a.mu.
 func (a *App) renameLocked(t *core.Task, want string) error {
+	switch {
+	case t.InfoHash != "":
+		// The swarm asks for the files by the names the torrent gives them.
+		return refuseRename("torrent", t.Name, "%s is a torrent, and a torrent names its own files", t.Name)
+	case !filesAreLocal(t):
+		return refuseRename("remote", t.Name,
+			"%s is downloaded by JDownloader on its own machine, so it cannot be renamed from here", t.Name)
+	case t.Status == core.StatusExtracting:
+		return refuseRename("unpacking", t.Name, "%s is being unpacked; it can be renamed once that is over", t.Name)
+	case len(a.volumeSetLocked(t)) > 1:
+		return refuseRename("volume", t.Name,
+			"%s is one part of a multi-volume archive, and the parts keep their names so it can be unpacked", t.Name)
+	}
 	// The override is always set: no backend accepts a destination file name,
 	// so a rename is applied to the finished download.
 	t.Filename = want
 	switch t.Status {
 	case core.StatusDone:
-		if !filesAreLocal(t) {
-			return fmt.Errorf("%s was downloaded on another machine, so it cannot be renamed from here", t.Name)
+		if err := a.renameFinishedLocked(t); err != nil {
+			return err
 		}
-		before := t.Error
-		a.renameFinishedLocked(t)
 		if t.Name == want {
 			return nil
 		}
-		// renameFinishedLocked records a refusal on the task for the settle
-		// path; here a caller is waiting for the answer.
-		if t.Error != before && t.Error != "" {
-			return errors.New(t.Error)
-		}
 		return fmt.Errorf("%s was not renamed", t.Name)
-	case core.StatusRunning, core.StatusExtracting:
+	case core.StatusRunning:
 		return nil
 	default:
 		t.Name = want
 		return nil
 	}
+}
+
+// checkName refuses a name typed for a download or a package that cannot
+// stand as one path segment. A separator is refused rather than cut: cut, a
+// name typed as "Season 1/Episode 2" would quietly become one nobody typed.
+// Characters only some file systems refuse are left to rules.FileSegment and
+// sanitizeSegment, where every other name goes through too.
+func checkName(what, name string) (string, error) {
+	name = strings.TrimSpace(name)
+	switch {
+	case name == "":
+		return "", refuseRename("empty", name, "a %s cannot be renamed to nothing", what)
+	case strings.ContainsAny(name, `/\`):
+		return "", refuseRename("separator", name, "%q cannot name a %s: / and \\ separate folders", name, what)
+	case strings.Trim(name, ".") == "":
+		return "", refuseRename("dots", name, "%q cannot name a %s: there is nothing in it but dots", name, what)
+	}
+	return name, nil
+}
+
+// RenameRefusal is a rename turned down for a reason the interface words in
+// the reader's language. Code names the reason: torrent, remote, unpacking,
+// volume, empty, separator, dots or exists. Name is the file or the name it is
+// about, and Error says the same in English for every other client.
+type RenameRefusal struct {
+	Code string
+	Name string
+	text string
+}
+
+func (e *RenameRefusal) Error() string { return e.text }
+
+func refuseRename(code, name, format string, args ...any) error {
+	return &RenameRefusal{Code: code, Name: name, text: fmt.Sprintf(format, args...)}
+}
+
+// RenamePackage gives the named tasks, and every task sharing one of their
+// links (sharingLinksLocked), a new package name. Where the download folder is
+// built from the package name, it follows the new name only while nothing
+// downloading into it has started (keepFoldersLocked).
+func (a *App) RenamePackage(ids []string, name string) ([]string, error) {
+	name, err := checkName("package", name)
+	if err != nil {
+		return nil, err
+	}
+	a.mu.Lock()
+	members := a.sharingLinksLocked(ids)
+	a.keepFoldersLocked(members, name)
+	copies := make([]core.Task, 0, len(members))
+	for _, t := range members {
+		t.Package = name
+		// A probe that names the link later must not put the package back.
+		t.ManualPackage = true
+		copies = append(copies, *t)
+	}
+	a.mu.Unlock()
+	a.saveAndBroadcast(copies)
+	return idsOf(members), nil
+}
+
+// hasFilesLocked reports whether a task has put bytes on disk or been handed
+// to a backend that is about to. Caller holds a.mu.
+func (a *App) hasFilesLocked(t *core.Task) bool {
+	switch t.Status {
+	case core.StatusRunning, core.StatusExtracting, core.StatusDone:
+		return true
+	}
+	return t.Loaded > 0 || a.started[t.ID]
 }
 
 // copyBool detaches a caller's pointer, so a value written onto several tasks
@@ -760,38 +876,52 @@ func usableFilename(name string) bool {
 // the engine keys its .part file on its own name.
 //
 // A rename that cannot be done leaves the file alone and records why on the
-// task, so the list never shows a name the disk does not have. Caller holds
-// a.mu.
-func (a *App) renameFinishedLocked(t *core.Task) {
+// task, so the list never shows a name the disk does not have. The same reason
+// is returned for a caller that is waiting for the answer. Caller holds a.mu.
+func (a *App) renameFinishedLocked(t *core.Task) error {
 	want := strings.TrimSpace(t.Filename)
 	// A task whose name is still its URL has not been resolved, so there is no
 	// file under the old name to move.
 	if want == "" || want == t.Name || t.Name == "" || t.Name == t.URL || !filesAreLocal(t) {
-		return
+		return nil
+	}
+	refuse := func(err error) error {
+		t.Error = err.Error()
+		return err
 	}
 	if !usableFilename(want) {
-		t.Error = "not renamed: " + strconv.Quote(want) + " is not a single file name"
-		return
+		return refuse(fmt.Errorf("not renamed: %s is not a single file name", strconv.Quote(want)))
 	}
 	if len(a.volumeSetLocked(t)) > 1 {
 		// extract.SetKey groups volumes by name, and a fixed rule name would
 		// give every part the same one and overwrite the set.
-		t.Error = "not renamed: " + t.Name + " is one part of a multi-volume archive"
-		return
+		return refuse(refuseRename("volume", t.Name, "not renamed: %s is one part of a multi-volume archive", t.Name))
 	}
-	dir := a.dirFor(t)
-	to := filepath.Join(dir, want)
+	from := t.File
+	if from == "" {
+		// Where the file is now: the working folder until the delivery has
+		// moved it on, the destination after. The settle path renames before
+		// that move.
+		dir := a.workDirFor(t)
+		if _, err := os.Lstat(filepath.Join(dir, t.Name)); err != nil {
+			dir = a.dirFor(t)
+		}
+		from = filepath.Join(dir, t.Name)
+	}
+	to := filepath.Join(filepath.Dir(from), want)
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
 	if _, err := os.Stat(to); err == nil {
-		t.Error = "not renamed: " + to + " already exists"
-		return
+		return refuse(refuseRename("exists", want, "not renamed: %s already exists", to))
 	}
-	if err := os.Rename(filepath.Join(dir, t.Name), to); err != nil {
-		t.Error = "not renamed: " + err.Error()
-		return
+	if err := os.Rename(from, to); err != nil {
+		return refuse(fmt.Errorf("not renamed: %w", err))
 	}
 	t.Name = want
+	if t.File != "" {
+		t.File = to
+	}
+	return nil
 }
 
 // saveAndBroadcast persists task snapshots and pushes them to connected UIs.
@@ -819,16 +949,24 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	collected = t != nil && t.Status == core.StatusCollected
+	var own leftover
+	if t != nil && deleteFiles {
+		own = a.ownFileLocked(t)
+	}
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
 	delete(a.active, id)
 	delete(a.started, id)
+	delete(a.fellBack, id)
 	a.dequeueLocked(id)
 	a.dispatchLocked()
 	a.mu.Unlock()
 	if t != nil {
 		a.backendFor(t.Resolver).Remove(id, deleteFiles)
+		// The engine only deletes files of transfers it still knows, and it
+		// forgets them all on a restart.
+		own.drop(id)
 	}
 	_ = a.Store.Delete(id)
 	a.Hub.Broadcast("removed", map[string]string{"id": id})

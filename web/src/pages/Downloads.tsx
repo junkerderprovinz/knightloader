@@ -25,6 +25,7 @@ import {
   useCleanup,
   useQueueVerbs,
   useRemoval,
+  useRename,
   type ListContext,
   type MenuTarget,
   type QuickFilterId,
@@ -36,7 +37,7 @@ import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
 import { ErrorCauses } from '../components/ErrorCauses';
-import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
+import { extractionsByTask, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../components/ContextMenu';
@@ -89,7 +90,9 @@ export function Downloads() {
   const folds = useCollapsedPackages('downloads');
   const tasks = useTasks(instance);
   // Extraction has its own progress, failure and stop, so it is its own stream.
+  // The status column reads it per row and the right-click menu stops it.
   const jobs = useExtractJobs(instance);
+  const extractions = useMemo(() => extractionsByTask(jobs), [jobs]);
 
   useEffect(() => {
     fetchInstances().then(setInstances);
@@ -184,6 +187,9 @@ export function Downloads() {
   }, [selected, reach, toast, t]);
 
   const removal = useRemoval({ all, selected, base, drawn, onDone: clearSelection });
+  // Every link of a package in this list, rows the filters hide included.
+  const members = useCallback((pkg: string) => list.filter((x) => (x.package || '') === pkg), [list]);
+  const rename = useRename({ all, base, members, command: 'downloads.rename' });
   // The command surface's clean-up instance, loaded at once so "clear finished"
   // knows whether it applies.
   const cleanup = useCleanup(all);
@@ -212,8 +218,14 @@ export function Downloads() {
   // toolbar (lib/commands/pageContext.ts).
   usePublishCommandPageContext(
     useMemo(
-      () => ({ setSelection: setSelected, removal, cleanup, toggleSearch: () => setSearchOpen((v) => !v) }),
-      [removal, cleanup],
+      () => ({
+        setSelection: setSelected,
+        removal,
+        cleanup,
+        toggleSearch: () => setSearchOpen((v) => !v),
+        rename: rename.fromKeyboard,
+      }),
+      [removal, cleanup, rename.fromKeyboard],
     ),
   );
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
@@ -296,6 +308,7 @@ export function Downloads() {
     onSelectNone: clearSelection,
     // Clean-up always runs here, never on the peer whose list is being shown.
     local: instance === '',
+    members,
   };
 
   const selectedIds = chosen.map((x) => x.id);
@@ -315,7 +328,9 @@ export function Downloads() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    // flex-1 rather than h-full, as in Collector.tsx: the page takes the height
+    // app/Layout.tsx leaves it and the list is the one part that scrolls.
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
       {/* One right-aligned row for every action, directly above the list, in
@@ -533,31 +548,38 @@ export function Downloads() {
           below two groups. */}
       <ErrorCauses tasks={list} base={base} />
 
-      <div onContextMenu={onContextMenu}>
+      {/* The one scrolling region: everything above keeps its height and the
+          list takes the rest, never less than a few rows. A window too short
+          for that scrolls the frame instead. */}
+      <div className="flex min-h-48 flex-1 flex-col" onContextMenu={onContextMenu}>
         {list.length === 0 ? (
           <EmptyState
+            fill
             icon={<IconDownloads width={26} height={26} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
           />
         ) : filtered.length === 0 ? (
-          <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
+          <EmptyState fill icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
         ) : (
-          <TaskListCard
-            groups={groups}
-            base={base}
-            selection={selection}
-            revealKey={revealRow}
-            // The same removal path as the selection bar and the context menu.
-            onRemovePackage={removal.askWithFiles}
-            title={t('downloads.listTitle')}
-            hue={0}
-          />
+          // The collector's scroll box: a flex column, since h-full on
+          // TaskListCard does not resolve through a flex-grown overflow box, and
+          // pt-3 keeps the card's title badge inside its clip edge.
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
+            <TaskListCard
+              groups={groups}
+              base={base}
+              selection={selection}
+              revealKey={revealRow}
+              // The same removal path as the selection bar and the context menu.
+              onRemovePackage={removal.askWithFiles}
+              extractions={extractions}
+              title={t('downloads.listTitle')}
+              hue={0}
+            />
+          </div>
         )}
       </div>
-
-      {/* Under the rows, while an extraction is running. */}
-      <ArchiveJobs jobs={jobs} base={base} />
 
       {/* The queue-order menu under its badge, the same group as the
           right-click menu's queue section. */}
@@ -589,9 +611,11 @@ export function Downloads() {
         removal={removal}
         target={target}
         list={listContext}
+        rename={rename}
         extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
       />
       {removal.dialog}
+      {rename.dialog}
       {/* The dialog of this page's useCleanup(), also raised by the "clear
           finished" command. */}
       {cleanup.dialog}

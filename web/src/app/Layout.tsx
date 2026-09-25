@@ -208,6 +208,18 @@ export function Layout() {
   // the sidebar, which the padded, page-scrolling wrapper below cannot give.
   // pages/Settings.tsx scrolls its own content column.
   const ownsFrame = section === 'settings';
+  // The download list and the link collector scroll inside their own cards, so
+  // those pages get exactly the height left under the shell bar, which only
+  // Downloads shows. With min-h-full instead, a long list pushes the page past
+  // the frame and the list never scrolls itself. On a phone the collector's
+  // form, figures and filters stack above its list and would leave it two
+  // rows, so below `md` that page scrolls as a whole (Collector.tsx).
+  const height =
+    section === 'downloads'
+      ? 'min-h-0 flex-1'
+      : section === 'collector'
+        ? 'min-h-full shrink-0 md:min-h-0 md:flex-1'
+        : 'min-h-full shrink-0';
   return (
     // Wraps the bar and the outlet, so both agree on the instance.
     <InstanceProvider>
@@ -218,11 +230,13 @@ export function Layout() {
           the dynamic height keeps it above the browser's own toolbar. */}
       <div className="flex h-dvh flex-col gap-4 overflow-hidden bg-carbon-background p-4 md:flex-row">
         <Sidebar />
-        <main className={`flex-1 min-w-0 ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        <main className={`flex min-w-0 flex-1 flex-col ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <ShellBar visible={section === 'downloads'} />
-          {/* flex flex-col min-h-full lets a page fill the height with
-              flex-grow (Collector.tsx), which a percentage height would not do
-              reliably through an auto-height parent.
+          {/* flex flex-col lets a fitted page fill the height with flex-grow
+              (Downloads.tsx, Collector.tsx), which a percentage height would
+              not do reliably through an auto-height parent. The frame still
+              scrolls past a fitted page whose content is taller than the
+              window.
 
               No vertical padding, so the first and last cards line up with
               the sidebar; the frame's 1rem keeps them off the window edge.
@@ -233,7 +247,7 @@ export function Layout() {
             className={
               ownsFrame
                 ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
-                : 'glim-page-enter glim-column-top flex w-full min-h-full flex-col sm:px-6 md:px-8'
+                : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
             }
           >
             <Outlet />

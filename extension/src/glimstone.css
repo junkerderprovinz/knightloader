@@ -172,9 +172,10 @@ body {
   /* One elevation and one hairline, in neutral black so the shadow casts no
      colour. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
-  /* The ground behind a floating window (GlimStone 1.11.0). At .60 the page
-     behind still draws the eye. */
-  --glim-scrim: rgba(0, 0, 0, .65);
+  /* The ground behind a floating window, and the blur that takes the page's
+     detail away beneath it (GlimStone 2.11.0). */
+  --glim-scrim: rgba(0, 0, 0, .72);
+  --glim-scrim-blur: 6px;
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 }
@@ -237,7 +238,7 @@ body {
 
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
   /* A light page separates with less. */
-  --glim-scrim: rgba(0, 0, 0, .55);
+  --glim-scrim: rgba(0, 0, 0, .62);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 }
@@ -325,7 +326,7 @@ body {
     --status-neutral-solid: #8d8d8d;
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
-    --glim-scrim: rgba(0, 0, 0, .55);
+    --glim-scrim: rgba(0, 0, 0, .62);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
   }
@@ -1019,6 +1020,11 @@ body {
   justify-content: center;
   padding: 24px;
   background: var(--glim-scrim);
+  -webkit-backdrop-filter: blur(var(--glim-scrim-blur));
+  backdrop-filter: blur(var(--glim-scrim-blur));
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glim-scrim-blur: 0px; }
 }
 .glim-modal-card {
   box-sizing: border-box;

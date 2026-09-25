@@ -85,7 +85,10 @@ type HostLimiter interface {
 
 // Downloader is the byte-transfer backend a resolved link is handed to.
 type Downloader interface {
-	Download(taskID, url string, headers map[string]string, conns int)
+	// Handover starts the transfer of url. relink unlocks the hoster link
+	// again for a fresh url to the same file, for what is left when this one
+	// stops working part way.
+	Handover(taskID, url string, conns int, relink func(context.Context) (string, error))
 	Pause(taskID string)
 	Resume(taskID string)
 	Remove(taskID string, deleteFiles bool)
@@ -171,8 +174,21 @@ func (b *Backend) start(taskID, link string) {
 		b.handed[taskID] = true
 		b.mu.Unlock()
 		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: d.Name, Size: d.Size})
-		b.eng.Download(taskID, d.URL, nil, conns)
+		b.eng.Handover(taskID, d.URL, conns, b.relinker(link))
 	}()
+}
+
+// relinker unlocks link again, within the unlock's own time limit.
+func (b *Backend) relinker(link string) func(context.Context) (string, error) {
+	return func(ctx context.Context) (string, error) {
+		ctx, cancel := context.WithTimeout(ctx, b.timeout)
+		defer cancel()
+		d, err := b.svc.Unlock(ctx, link)
+		if err != nil {
+			return "", fmt.Errorf("%s: %w", b.svc.ID(), err)
+		}
+		return d.URL, nil
+	}
 }
 
 func (b *Backend) Pause(taskID string) {

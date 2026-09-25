@@ -252,3 +252,29 @@ func TestPortableDocCheck(t *testing.T) {
 		}
 	})
 }
+
+// A migration looks at the whole document but changes only what the import
+// names. The legacy autoStart below would also set autoConfirm, which nobody
+// named, so the patch stays one key long.
+func TestMigratedRewritesOnlyTheNamedKeys(t *testing.T) {
+	doc := PortableDoc{Kind: PortableKind, Settings: map[string]json.RawMessage{
+		"autoStart":    json.RawMessage(`true`),
+		"stallTimeout": json.RawMessage(`0`),
+		"speedLimit":   json.RawMessage(`1048576`),
+	}}
+
+	got := doc.Migrated(map[string]json.RawMessage{
+		"stallTimeout": doc.Settings["stallTimeout"],
+		"speedLimit":   doc.Settings["speedLimit"],
+	})
+
+	if len(got) != 2 {
+		t.Fatalf("the patch holds %d keys, want the 2 that were named: %v", len(got), got)
+	}
+	if s := string(got["stallTimeout"]); s != "120" {
+		t.Errorf("stallTimeout = %s, want the 120 an older build's 0 is read as", s)
+	}
+	if s := string(got["speedLimit"]); s != "1048576" {
+		t.Errorf("speedLimit = %s, want it untouched", s)
+	}
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "files.example",
+    "label": "files.example"
+  },
+  {
+    "id": "media.example.org",
+    "label": "media.example.org"
+  },
+  {
+    "id": "mirror.example.net",
+    "label": "mirror.example.net"
+  },
+  {
+    "id": "podcasts.example.net",
+    "label": "podcasts.example.net"
+  }
+]

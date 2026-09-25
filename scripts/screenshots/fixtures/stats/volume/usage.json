@@ -1,0 +1,9 @@
+{
+  "used": 578000000000,
+  "cap": 1500000000000,
+  "action": "report",
+  "throttle": 0,
+  "periodStart": "2026-09-01T00:00:00Z",
+  "periodEnd": "2026-10-01T00:00:00Z",
+  "reached": false
+}

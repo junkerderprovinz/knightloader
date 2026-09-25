@@ -7,8 +7,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -61,6 +63,34 @@ func TestTheOptionsRoutePinsABackend(t *testing.T) {
 		if task.ID == id && task.ResolverPin != "" {
 			t.Fatalf("ResolverPin = %q after clearing it, want empty", task.ResolverPin)
 		}
+	}
+}
+
+// The properties panel asks which backends a selection can be pinned to. The
+// route sits under /api/tasks/ so a peer's rows are answered by the peer.
+func TestTheBackendsRouteListsWhatASelectionCanBePinnedTo(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	id := stage(t, a, "https://host.example/three.bin")[0].ID
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/backends", map[string]any{"ids": []string{id}})
+	if code != http.StatusOK {
+		t.Fatalf("POST /api/tasks/backends = %d (%s), want 200", code, body)
+	}
+	var got []app.PinChoice
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("answer %s: %v", body, err)
+	}
+	if !slices.ContainsFunc(got, func(c app.PinChoice) bool { return c.ID == "direct" }) {
+		t.Errorf("choices %v, want the direct download among them", got)
+	}
+	if slices.ContainsFunc(got, func(c app.PinChoice) bool { return c.ID == "http" }) {
+		t.Errorf("choices %v offer the HTTP fallback, which only saves a page", got)
+	}
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/backends", map[string]any{"ids": []string{}}); code != http.StatusBadRequest {
+		t.Errorf("POST without ids = %d, want 400", code)
 	}
 }
 

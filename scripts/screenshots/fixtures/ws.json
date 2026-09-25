@@ -1,0 +1,37 @@
+[
+  {
+    "type": "activitySnapshot",
+    "data": [
+      {
+        "kind": "crawl",
+        "active": 0,
+        "total": 0,
+        "cancellable": 0
+      },
+      {
+        "kind": "linkcheck",
+        "active": 0,
+        "total": 0,
+        "cancellable": 0
+      },
+      {
+        "kind": "captcha",
+        "active": 0,
+        "total": 0,
+        "cancellable": 0
+      },
+      {
+        "kind": "autoconfirm",
+        "active": 0,
+        "total": 0,
+        "cancellable": 0
+      },
+      {
+        "kind": "container",
+        "active": 0,
+        "total": 0,
+        "cancellable": 0
+      }
+    ]
+  }
+]

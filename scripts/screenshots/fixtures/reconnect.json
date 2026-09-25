@@ -1,0 +1,6 @@
+{
+  "busy": false,
+  "configured": false,
+  "reason": "reconnect: not configured: reconnect is switched off",
+  "reasonCode": "off"
+}

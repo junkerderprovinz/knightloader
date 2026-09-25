@@ -39,6 +39,11 @@ func (f *fakeFolderJD) handler() http.Handler {
 			f.setDirs = append(f.setDirs, q)
 			_, _ = w.Write([]byte(`{"data":""}`))
 		case "/downloadsV2/queryPackages":
+			// The package exists once the link has been added.
+			if len(f.adds) == 0 {
+				_, _ = w.Write([]byte(`{"data":[]}`))
+				return
+			}
 			_, _ = w.Write([]byte(`{"data":[{"uuid":9,"name":"KL-t1","status":"` + f.status + `"}]}`))
 		case "/downloadsV2/queryLinks":
 			f.linkCall++

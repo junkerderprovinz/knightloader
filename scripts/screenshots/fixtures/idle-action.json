@@ -1,0 +1,12 @@
+{
+  "config": {
+    "action": "none",
+    "delaySeconds": 60,
+    "command": {
+      "program": "",
+      "timeoutSeconds": 60
+    }
+  },
+  "idle": true,
+  "armed": false
+}

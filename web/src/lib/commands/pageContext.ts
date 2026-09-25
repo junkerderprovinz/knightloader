@@ -1,8 +1,8 @@
 // The verbs the mounted list page offers the command registry: change the
-// selection, remove rows, run the clean-up flow. lib/listview.ts reports only
-// what is visible and selected, for the shell's overview strip; this is the
-// write side. A page publishes only the fields it has, and useCommandContext
-// fills the rest with no-ops.
+// selection, remove or rename rows, run the clean-up flow. lib/listview.ts
+// reports only what is visible and selected, for the shell's overview strip;
+// this is the write side. A page publishes only the fields it has, and
+// useCommandContext fills the rest with no-ops.
 
 import { useEffect, useSyncExternalStore } from 'react';
 import type { CleanupState, Removal } from '../../components/ListToolbar';
@@ -17,6 +17,9 @@ export interface CommandPageContext {
   /** Toggles the Downloads page's search panel, the same call as its search
    *  badge. The Collector has no such panel. */
   toggleSearch?: () => void;
+  /** Opens the rename window the list's menu opens, for what has the
+   *  keyboard or else a selection of one link (ListToolbar's useRename). */
+  rename?: (selection: readonly string[]) => void;
 }
 
 let current: CommandPageContext | null = null;

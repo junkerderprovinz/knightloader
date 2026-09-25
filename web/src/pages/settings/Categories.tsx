@@ -5,9 +5,9 @@ import {
   Field,
   FieldGroup,
   IconBadge,
-  NumberInput,
   SectionTitle,
   TextInput,
+  UnitNumberInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
@@ -21,7 +21,7 @@ import {
   type MediaHook,
   type PriorityChoice,
 } from '../../lib/api';
-import { fmtSpeed } from '../../lib/format';
+import { RATE_UNITS, fmtSpeed } from '../../lib/format';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { COLLISION_LABEL } from './Archives';
@@ -554,13 +554,11 @@ function CategoryRow({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Bytes per second stored, KiB shown; 0 means no opinion. */}
             <Field label={t('settings.categories.speedLimit')} hint={t('settings.categories.speedLimitHint')}>
-              <NumberInput
-                value={Math.round((cat.speedLimit ?? 0) / 1024)}
-                min={0}
-                step={256}
-                onValue={(v) => onChange({ ...cat, speedLimit: Math.max(0, v) * 1024 })}
+              <UnitNumberInput
+                value={cat.speedLimit ?? 0}
+                units={RATE_UNITS}
+                onValue={(speedLimit) => onChange({ ...cat, speedLimit })}
               />
             </Field>
 

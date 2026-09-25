@@ -53,8 +53,15 @@ type ExtractJob struct {
 	Depth   int    `json:"depth,omitempty"`
 	Files   int    `json:"files"`
 	Bytes   int64  `json:"bytes"`
+	// Unpacked and Size measure the archive open now, as extract.Progress
+	// does, so the list can say how far through it the job is.
+	Unpacked int64 `json:"unpacked,omitempty"`
+	Size     int64 `json:"size,omitempty"`
 	// Volumes is how many files the set is made of.
 	Volumes int `json:"volumes"`
+	// Parts is the task of every file in the set, in reading order, so each of
+	// those rows shows the unpacking and not only the one it started on.
+	Parts []string `json:"parts"`
 	// Nested counts archives found inside the output and unpacked in turn.
 	Nested int `json:"nested,omitempty"`
 	// MovedTo is where the unpacked content was moved afterwards, or empty
@@ -127,14 +134,13 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 	key, isVolume := setKey(done.Name)
 	if !isVolume {
 		if extract.Startable(done.Name) {
-			return done, filepath.Join(a.workDirFor(done), done.Name)
+			return done, a.fileOfLocked(done)
 		}
 		return nil, ""
 	}
-	// The set is identified by its destination; the path uses where the parts
-	// actually are, which differs when a working folder is set.
+	// The set is identified by its destination and its names; the path uses
+	// where the parts actually are, which differs when a working folder is set.
 	dir := a.dirFor(done)
-	work := a.workDirFor(done)
 	set := a.membersLocked(key, dir)
 	var first *core.Task
 	for _, t := range set {
@@ -155,7 +161,7 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 		// A single numbered file without siblings is not a split file.
 		return nil, ""
 	}
-	return first, filepath.Join(work, first.Name)
+	return first, a.setPathLocked(first, len(set))
 }
 
 // volumeBefore orders two parts of one set the way the archive is read.
@@ -310,13 +316,12 @@ func (a *App) packageFilesLocked(t *core.Task) []string {
 	}
 	// Grouped by destination, listed where the files actually are.
 	dir := a.dirFor(t)
-	work := a.workDirFor(t)
 	var out []string
 	for _, other := range a.tasks {
 		if other.Package != t.Package || other.Name == "" || a.dirFor(other) != dir {
 			continue
 		}
-		out = append(out, filepath.Join(work, other.Name))
+		out = append(out, a.fileOfLocked(other))
 	}
 	sort.Strings(out)
 	return out
@@ -337,9 +342,9 @@ func (a *App) disposable(paths []string) []string {
 		if t.Name == "" {
 			continue
 		}
-		// workDirFor, because the paths come from internal/extract, which saw
-		// the files where they were written.
-		claims[filepath.Clean(filepath.Join(a.workDirFor(t), t.Name))]++
+		// Where the file was written, because the paths come from
+		// internal/extract, which saw the files there.
+		claims[filepath.Clean(a.fileOfLocked(t))]++
 	}
 	out := make([]string, 0, len(paths))
 	for _, p := range paths {
@@ -369,6 +374,12 @@ func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 			return nil
 		}
 	}
+	set := a.volumeSetLocked(target)
+	sort.Slice(set, func(i, j int) bool { return volumeBefore(set[i], set[j]) })
+	parts := make([]string, len(set))
+	for i, t := range set {
+		parts[i] = t.ID
+	}
 	job := &extractJob{
 		ExtractJob: ExtractJob{
 			ID:       newID(),
@@ -377,12 +388,18 @@ func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 			Dir:      filepath.Dir(path),
 			Package:  target.Package,
 			Status:   ExtractQueued,
-			Volumes:  len(a.volumeSetLocked(target)),
+			Volumes:  len(set),
+			Parts:    parts,
 			QueuedAt: time.Now(),
 		},
 		path: path,
 	}
 	target.Status = core.StatusExtracting
+	// The last attempt's failure is stale while the archive is unpacked again,
+	// and the row would show it beside the progress. A new failure writes its own.
+	if strings.HasPrefix(target.Error, extractErrorPrefix) {
+		target.Error = ""
+	}
 	st.jobs[job.ID] = job
 	st.order = append(st.order, job.ID)
 	a.pruneJobsLocked(st)
@@ -435,7 +452,13 @@ func (a *App) runExtractions() {
 		target := a.tasks[job.TaskID]
 		opts := a.extractOptionsFor(target, a.Settings.Get())
 		siblings := a.packageFilesLocked(target)
-		parts := a.stampPartsLocked(target)
+		parts := a.beginUnpackLocked(job, target)
+		// Checked when the job starts rather than when it was queued, since a
+		// part can finish again in between.
+		var refused error
+		if target != nil {
+			refused = a.volumeMismatchLocked(target)
+		}
 		snap := job.ExtractJob
 		path := job.path
 		a.mu.Unlock()
@@ -444,6 +467,11 @@ func (a *App) runExtractions() {
 		a.Hub.Broadcast("extract", snap)
 
 		id := snap.ID
+		if refused != nil {
+			cancel()
+			a.settleExtraction(id, opts, siblings, nil, refused)
+			continue
+		}
 		out, err := extract.Run(ctx, extract.Request{
 			Path:    path,
 			Options: opts,
@@ -454,6 +482,31 @@ func (a *App) runExtractions() {
 		cancel()
 		a.settleExtraction(id, opts, siblings, out, err)
 	}
+}
+
+// beginUnpackLocked readies the parts of a job about to run and returns the
+// rows it changed. They are numbered in reading order (stampPartsLocked), and
+// they forget how the last unpacking ended, which stops being true once this
+// one writes: cancelled or cut off by a restart, it leaves no result. Caller
+// holds a.mu.
+func (a *App) beginUnpackLocked(job *extractJob, target *core.Task) []core.Task {
+	forgot := map[string]bool{}
+	for _, id := range job.Parts {
+		if t := a.tasks[id]; t != nil && t.Unpack != core.UnpackNone {
+			t.Unpack = core.UnpackNone
+			forgot[id] = true
+		}
+	}
+	changed := a.stampPartsLocked(target)
+	for _, c := range changed {
+		delete(forgot, c.ID)
+	}
+	for _, id := range job.Parts {
+		if forgot[id] {
+			changed = append(changed, *a.tasks[id])
+		}
+	}
+	return changed
 }
 
 // nextQueuedLocked returns the oldest waiting job. Caller holds a.mu.
@@ -476,6 +529,7 @@ func (a *App) publishExtractProgress(jobID string, p extract.Progress) {
 		return
 	}
 	j.Archive, j.Depth, j.Files, j.Bytes = p.Archive, p.Depth, p.Files, p.Bytes
+	j.Unpacked, j.Size = p.Unpacked, p.Size
 	snap := j.ExtractJob
 	a.mu.Unlock()
 	a.Hub.Broadcast("extract", snap)
@@ -529,6 +583,7 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	}
 	j.cancel = nil
 	j.EndedAt = time.Now()
+	result := core.UnpackNone
 	switch {
 	case cancelled:
 		j.Status = ExtractCancelled
@@ -536,8 +591,13 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		j.Status = ExtractFailed
 		j.Error = err.Error()
 		j.Password = errors.Is(err, extract.ErrPasswordRequired)
+		result = core.UnpackFailed
+		if j.Password {
+			result = core.UnpackPassword
+		}
 	default:
 		j.Status = ExtractDone
+		result = core.UnpackDone
 		j.Error = ""
 		if out != nil {
 			j.Files, j.Bytes, j.Nested = out.Files, out.Bytes, out.Nested
@@ -555,7 +615,7 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	}
 	snap := j.ExtractJob
 
-	var settled *core.Task
+	touched := map[string]bool{}
 	if t := a.tasks[j.TaskID]; t != nil {
 		// The download itself finished, whatever the archive did.
 		if t.Status == core.StatusExtracting {
@@ -572,14 +632,25 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 			// archive clears it.
 			t.Error = extractErrorPrefix + moved.Err.Error()
 		}
-		c := *t
-		settled = &c
+		touched[t.ID] = true
+	}
+	// On every part, since each row shows the unpacking, and after a restart
+	// no job is left to say it.
+	if !cancelled {
+		for _, id := range j.Parts {
+			if t := a.tasks[id]; t != nil && t.Unpack != result {
+				t.Unpack = result
+				touched[id] = true
+			}
+		}
+	}
+	settled := make([]core.Task, 0, len(touched))
+	for id := range touched {
+		settled = append(settled, *a.tasks[id])
 	}
 	a.mu.Unlock()
 
-	if settled != nil {
-		a.saveAndBroadcast([]core.Task{*settled})
-	}
+	a.saveAndBroadcast(settled)
 	a.Hub.Broadcast("extract", snap)
 	// The remaining volumes may leave the working folder only after extraction.
 	a.deliverVolumes(snap.TaskID)

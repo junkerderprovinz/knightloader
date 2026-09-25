@@ -1,0 +1,9 @@
+[
+  {
+    "id": "0c4f7a2e9b1d5c8f",
+    "name": "Stable",
+    "url": "http://stable.home.arpa:8749",
+    "deployment": "desktop",
+    "known": false
+  }
+]

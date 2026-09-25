@@ -5,8 +5,18 @@ package app
 // assertions are about the rule rather than about how long the test ran.
 
 import (
+	"bytes"
 	"context"
+	cryptorand "crypto/rand"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -304,6 +314,246 @@ func TestAutomaticRestartIsCounted(t *testing.T) {
 	case <-be.got:
 		t.Error("restarted a second time past the cap")
 	case <-time.After(200 * time.Millisecond):
+	}
+}
+
+// flakyOrigin serves one file with ranges until it goes quiet. Quiet, it cuts
+// off every body under way and holds each new request without an answer, as an
+// upstream that has stopped talking does. After heal it answers new requests
+// again, while those it is already holding stay unanswered.
+type flakyOrigin struct {
+	srv  *httptest.Server
+	data []byte
+	stop chan struct{}
+
+	mu     sync.Mutex
+	quiet  bool
+	healed bool
+	// last is when the latest request came in, bodies how many answers are
+	// being written right now.
+	last   time.Time
+	bodies int
+	// afterHeal is the Range header of every request answered after heal.
+	afterHeal []string
+}
+
+func newFlakyOrigin(t *testing.T, size int) *flakyOrigin {
+	t.Helper()
+	o := &flakyOrigin{data: make([]byte, size), stop: make(chan struct{})}
+	_, _ = cryptorand.Read(o.data)
+	o.srv = httptest.NewServer(http.HandlerFunc(o.serve))
+	t.Cleanup(func() {
+		close(o.stop)
+		o.srv.Close()
+	})
+	return o
+}
+
+func (o *flakyOrigin) serve(w http.ResponseWriter, r *http.Request) {
+	o.mu.Lock()
+	o.last = time.Now()
+	held := o.quiet && !o.healed
+	if !held {
+		o.bodies++
+		if o.healed {
+			o.afterHeal = append(o.afterHeal, r.Header.Get("Range"))
+		}
+	}
+	o.mu.Unlock()
+	if held {
+		select {
+		case <-r.Context().Done():
+		case <-o.stop:
+		}
+		return
+	}
+	defer func() {
+		o.mu.Lock()
+		o.bodies--
+		o.mu.Unlock()
+	}()
+
+	lo, hi := 0, len(o.data)-1
+	if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok {
+		from, to, _ := strings.Cut(rg, "-")
+		lo, _ = strconv.Atoi(from)
+		if to != "" {
+			hi, _ = strconv.Atoi(to)
+		}
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", lo, hi, len(o.data)))
+	}
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
+	if r.Header.Get("Range") != "" {
+		w.WriteHeader(http.StatusPartialContent)
+	}
+	for off := lo; off <= hi; off += 32 << 10 {
+		o.mu.Lock()
+		cut := o.quiet && !o.healed
+		o.mu.Unlock()
+		if cut {
+			panic(http.ErrAbortHandler)
+		}
+		if _, err := w.Write(o.data[off:min(off+32<<10, hi+1)]); err != nil {
+			return
+		}
+		w.(http.Flusher).Flush()
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// settled reports whether the origin is quiet and nothing has asked it for
+// anything for a while: every connection the client has is held.
+func (o *flakyOrigin) settled(quietFor time.Duration) bool {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return o.bodies == 0 && time.Since(o.last) > quietFor
+}
+
+// A download whose server stopped answering sits at 0 B/s for good, since the
+// engine waits for response headers without a limit. The watcher reconnects
+// it: it finishes, keeps the bytes it had and is not restarted.
+func TestAStalledDownloadIsReconnectedAndKeepsItsBytes(t *testing.T) {
+	if raceEnabled {
+		// gopeed v1.9.3 writes a running task's status, progress and timer on
+		// its own goroutines while it hands the same task to its listener and
+		// clones it to JSON, all without a lock, so every real HTTP transfer
+		// trips -race inside the library. The run without -race covers this.
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see comment")
+	}
+	t.Parallel()
+	const size = 16 << 20
+	o := newFlakyOrigin(t, size)
+	a := newQueueApp(t)
+	s := settings.Defaults()
+	s.DownloadDir = t.TempDir()
+	s.Crawl = false
+	s.StallTimeout = 60
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	task := &core.Task{
+		ID: "t1", URL: o.srv.URL + "/big.bin", Name: "big.bin", Dir: dir,
+		Status: core.StatusQueued, Enabled: true,
+	}
+	a.mu.Lock()
+	a.tasks[task.ID] = task
+	a.queue = append(a.queue, task.ID)
+	a.dispatchLocked()
+	a.mu.Unlock()
+
+	waitFor(t, "the first MiB arriving", func() bool { return liveTask(a, "t1").Loaded >= 1<<20 })
+	o.mu.Lock()
+	o.quiet = true
+	o.mu.Unlock()
+	// The engine waits up to five seconds before it asks again for a range
+	// that broke off, and every such request is held from here on.
+	waitFor(t, "every connection being held", func() bool { return o.settled(6 * time.Second) })
+	kept := liveTask(a, "t1").Loaded
+	if kept >= size {
+		t.Fatalf("the download finished before the origin went quiet (%d bytes)", kept)
+	}
+	o.mu.Lock()
+	o.healed = true
+	o.mu.Unlock()
+
+	base := time.Now()
+	a.stallPass(base)
+	a.stallPass(base.Add(61 * time.Second))
+
+	waitFor(t, "the download finishing", func() bool { return liveTask(a, "t1").Status == core.StatusDone })
+	if got := liveTask(a, "t1").StallRestarts; got != 0 {
+		t.Errorf("restarted %d times; a reconnect was enough", got)
+	}
+	o.mu.Lock()
+	asked := slices.Clone(o.afterHeal)
+	o.mu.Unlock()
+	for _, rg := range asked {
+		if rg == "" || strings.HasPrefix(rg, "bytes=0-") {
+			t.Errorf("after the reconnect the file was asked for from the start (Range %q); the %d bytes it had were thrown away", rg, kept)
+		}
+	}
+	got, err := os.ReadFile(filepath.Join(dir, "big.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, o.data) {
+		t.Errorf("the finished file (%d bytes) is not what the origin served (%d bytes)", len(got), len(o.data))
+	}
+}
+
+// With the restart switched on, the first timeout still reconnects, since that
+// keeps the bytes. Only a standstill the reconnect did not end is restarted.
+func TestARestartWaitsForAReconnectThatDidNotHelp(t *testing.T) {
+	if raceEnabled {
+		// See TestAStalledDownloadIsReconnectedAndKeepsItsBytes.
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
+	}
+	t.Parallel()
+	// Headers for the first request, which the engine needs before it starts
+	// the transfer, and not a byte after them.
+	var mu sync.Mutex
+	requests := 0
+	stop := make(chan struct{})
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		requests++
+		first := requests == 1
+		mu.Unlock()
+		if first {
+			w.Header().Set("Accept-Ranges", "bytes")
+			w.Header().Set("Content-Length", strconv.Itoa(64<<20))
+			w.WriteHeader(http.StatusOK)
+			w.(http.Flusher).Flush()
+		}
+		select {
+		case <-r.Context().Done():
+		case <-stop:
+		}
+	}))
+	t.Cleanup(func() {
+		close(stop)
+		origin.Close()
+	})
+	asked := func() int {
+		mu.Lock()
+		defer mu.Unlock()
+		return requests
+	}
+
+	a := newQueueApp(t)
+	s := settings.Defaults()
+	s.DownloadDir = t.TempDir()
+	s.Crawl = false
+	s.StallTimeout = 60
+	s.StallRestart = true
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	task := &core.Task{
+		ID: "t1", URL: origin.URL + "/big.bin", Name: "big.bin", Dir: t.TempDir(),
+		Status: core.StatusQueued, Enabled: true,
+	}
+	a.mu.Lock()
+	a.tasks[task.ID] = task
+	a.queue = append(a.queue, task.ID)
+	a.dispatchLocked()
+	a.mu.Unlock()
+	waitFor(t, "the engine taking the transfer on", func() bool { return a.Engine.Reconnectable("t1") })
+
+	base := time.Now()
+	a.stallPass(base)
+	before := asked()
+	a.stallPass(base.Add(61 * time.Second))
+	if got := liveTask(a, "t1").StallRestarts; got != 0 {
+		t.Fatalf("restarted %d times at the first timeout, before any reconnect", got)
+	}
+	waitFor(t, "the reconnect asking the server again", func() bool { return asked() > before })
+
+	a.stallPass(base.Add(122 * time.Second))
+	if got := liveTask(a, "t1").StallRestarts; got != 1 {
+		t.Errorf("StallRestarts = %d after a reconnect that did not help, want 1", got)
 	}
 }
 

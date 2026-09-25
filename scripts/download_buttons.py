@@ -14,8 +14,10 @@ NEWEST = "https://github.com/junkerderprovinz/knightloader/releases/download/%s/
 
 BUTTONS = {
     "windows": RELEASE + "knightloader-windows-amd64.zip",
+    "windows-arm": RELEASE + "knightloader-windows-arm64.zip",
     "macos": RELEASE + "knightloader-macos-universal.zip",
     "linux": RELEASE + "knightloader-linux-amd64.zip",
+    "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
     # A browser cannot download an image, so this opens the package page, which
     # carries the pull command and every tag.
     "docker": "https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader",

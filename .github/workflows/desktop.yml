@@ -20,6 +20,14 @@ jobs:
             platform: windows/amd64
             slug: windows-amd64
             extra: ""
+          # Cross-built on the x64 runner, which can still run the host binary
+          # Wails generates the bindings with. WebView2 needs no cgo, and with
+          # cgo on, the build would want an arm64 C compiler the runner lacks.
+          - os: windows-latest
+            platform: windows/arm64
+            slug: windows-arm64
+            extra: ""
+            cgo: "0"
           - os: macos-latest
             platform: darwin/universal
             slug: macos-universal
@@ -31,6 +39,12 @@ jobs:
           - os: ubuntu-latest
             platform: linux/amd64
             slug: linux-amd64
+            extra: "-tags webkit2_41"
+          # Built natively: webkit2gtk is linked through cgo, and Wails does
+          # not cross-compile to Linux.
+          - os: ubuntu-24.04-arm
+            platform: linux/arm64
+            slug: linux-arm64
             extra: "-tags webkit2_41"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -78,6 +92,9 @@ jobs:
         working-directory: desktop
         env:
           KL_STARTUP_CHECK: "0"
+          # Empty for every entry without a cgo key, which leaves Go's own
+          # default; Wails turns it on for Linux and macOS regardless.
+          CGO_ENABLED: ${{ matrix.cgo }}
         run: |
           go mod tidy
           wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}

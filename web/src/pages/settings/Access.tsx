@@ -485,51 +485,53 @@ function RemoteAccessCard({
               <span className="text-xs font-semibold text-carbon-textSub">
                 {t('settings.access.phrase.yourPhrase')}
               </span>
-              {/* The QR code on the left and the words beside it; without a
-                  code the row is just the words. */}
+              {/* The QR code on the left, the words and their buttons beside
+                  it; without a code the row is just that column. */}
               <div className="flex flex-col items-start gap-3 sm:flex-row">
                 {phraseQr && (
                   <div className="shrink-0">
                     <QRCode matrix={phraseQr} label={phrase} size={144} />
                   </div>
                 )}
-                <div className="flex min-w-0 flex-1 items-start gap-1.5">
-                  {/* Larger than the page's scale, since the words are read
-                      aloud or typed on a phone. */}
-                  <code
-                    className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
-                      text-base leading-relaxed text-carbon-text"
-                    dir="ltr"
-                  >
-                    {phrase}
-                  </code>
-                  <InfoBubble
-                    tip={paragraphs(
-                      phraseQr
-                        ? `${t('settings.access.phrase.pasteHint')}\n\n${t('settings.access.phrase.qrHint')}`
-                        : t('settings.access.phrase.pasteHint'),
-                    )}
-                    label={t('settings.access.phrase.pasteHint')}
-                  />
+                <div className="flex w-full min-w-0 flex-1 flex-col gap-2">
+                  <div className="flex items-start gap-1.5">
+                    {/* Larger than the page's scale, since the words are read
+                        aloud or typed on a phone. */}
+                    <code
+                      className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
+                        text-base leading-relaxed text-carbon-text"
+                      dir="ltr"
+                    >
+                      {phrase}
+                    </code>
+                    <InfoBubble
+                      tip={paragraphs(
+                        phraseQr
+                          ? `${t('settings.access.phrase.pasteHint')}\n\n${t('settings.access.phrase.qrHint')}`
+                          : t('settings.access.phrase.pasteHint'),
+                      )}
+                      label={t('settings.access.phrase.pasteHint')}
+                    />
+                  </div>
+                  {/* Hide puts the key to the group away again; Copy sits beside it. */}
+                  <div className="flex flex-wrap gap-2">
+                    <Button hue={4} onClick={() => { setPhrase(''); setPhraseQr(null); }}>
+                      {t('settings.access.phrase.hide')}
+                    </Button>
+                    <Button
+                      kind="secondary"
+                      icon={phraseCopied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                      onClick={async () => {
+                        if (await copyToClipboard(phrase)) {
+                          setPhraseCopied(true);
+                          setTimeout(() => setPhraseCopied(false), 1800);
+                        }
+                      }}
+                    >
+                      {phraseCopied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              {/* Hide puts the key to the group away again; Copy sits beside it. */}
-              <div className="flex flex-wrap gap-2">
-                <Button hue={4} onClick={() => { setPhrase(''); setPhraseQr(null); }}>
-                  {t('settings.access.phrase.hide')}
-                </Button>
-                <Button
-                  kind="secondary"
-                  icon={phraseCopied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
-                  onClick={async () => {
-                    if (await copyToClipboard(phrase)) {
-                      setPhraseCopied(true);
-                      setTimeout(() => setPhraseCopied(false), 1800);
-                    }
-                  }}
-                >
-                  {phraseCopied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
-                </Button>
               </div>
             </div>
           ) : revealOpen ? (

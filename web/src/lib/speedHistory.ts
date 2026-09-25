@@ -41,6 +41,11 @@ const FINE_STEP_S = 1;
 const COARSE_STEP_S = 10;
 const COARSE_EVERY = COARSE_STEP_S / FINE_STEP_S;
 
+/** stepOf is the seconds between two samples at a scale. */
+export function stepOf(scale: SpeedScale): number {
+  return scale === 'hour' ? COARSE_STEP_S : FINE_STEP_S;
+}
+
 // Live history kept beyond the seed: an hour of each resolution, a few
 // kilobytes.
 const LIVE_CAP = 360;
@@ -209,7 +214,7 @@ if (typeof document !== 'undefined') {
 
 function windowFor(instance: string, points: number, scale: SpeedScale): SpeedWindow {
   const sc = scopeFor(instance);
-  const step = scale === 'hour' ? COARSE_STEP_S : FINE_STEP_S;
+  const step = stepOf(scale);
   const seeded = scale === 'hour' ? sc.seedHour : sc.seedRecent;
   const live = scale === 'hour' ? sc.live10s : sc.live1s;
 

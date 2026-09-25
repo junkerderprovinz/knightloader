@@ -1,8 +1,12 @@
 package engine
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +16,7 @@ import (
 	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
+	"github.com/GopeedLab/gopeed/pkg/download"
 	gopeed "github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -275,6 +280,153 @@ func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 	}
 	if plain.Name != "movie (2).mkv" {
 		t.Fatalf("Options.Name = %q, want movie (2).mkv", plain.Name)
+	}
+}
+
+// settle runs one real download from a local server and returns every update
+// it produced, the last one being done or an error.
+func settle(t *testing.T, dir, name string, body []byte) []core.Update {
+	t.Helper()
+	if raceEnabled {
+		// gopeed v1.9.3 spawns a task's watch goroutine, which reads
+		// Task.Status without a lock, before it writes the status (doStart
+		// against watch in downloader.go). Every real transfer can hit it. The
+		// fix belongs in gopeed; the plain test run still covers this.
+		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts; see comment")
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(body))
+	}))
+	defer srv.Close()
+
+	var mu sync.Mutex
+	var got []core.Update
+	finished := make(chan struct{})
+	e, err := New(dir, func(_ string, u core.Update) {
+		mu.Lock()
+		defer mu.Unlock()
+		select {
+		case <-finished:
+			// A progress tick that was already on its way.
+			return
+		default:
+		}
+		got = append(got, u)
+		if u.Status == core.StatusDone || u.Status == core.StatusError {
+			close(finished)
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+
+	e.Download("t1", srv.URL+"/"+name, nil, 1)
+	select {
+	case <-finished:
+	case <-time.After(30 * time.Second):
+		t.Fatal("the download never settled")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	return append([]core.Update(nil), got...)
+}
+
+// Without a collision policy the library writes beside a file that is already
+// there, and the task has to learn that name: the one it resolved belongs to
+// the file it stepped around.
+func TestADownloadThatSteppedAroundAFileReportsWhereItWrote(t *testing.T) {
+	dir := t.TempDir()
+	theirs := filepath.Join(dir, "set.part3.rar")
+	writeFile(t, theirs)
+	body := bytes.Repeat([]byte("volume three "), 1000)
+
+	got := settle(t, dir, "set.part3.rar", body)
+	last := got[len(got)-1]
+	if last.Status != core.StatusDone {
+		t.Fatalf("the download ended as %q: %s", last.Status, last.Err)
+	}
+	want := filepath.Join(dir, "set.part3 (1).rar")
+	if last.File != want {
+		t.Fatalf("done reported the file %q, want %q", last.File, want)
+	}
+	for _, u := range got {
+		if u.Name != "" && u.Name != "set.part3.rar" {
+			t.Errorf("the task was renamed to %q; set detection keys on the resolved name", u.Name)
+		}
+	}
+	if b, err := os.ReadFile(want); err != nil || !bytes.Equal(b, body) {
+		t.Errorf("the reported file holds %d bytes, %v; want the download", len(b), err)
+	}
+	if b, err := os.ReadFile(theirs); err != nil || string(b) != "already here" {
+		t.Errorf("the file that was already there was touched: %q, %v", b, err)
+	}
+}
+
+// libraryTask is a finished plain HTTP task as the library describes it,
+// written to dir under name after the resource came back as resolved.
+func libraryTask(t *testing.T, dir, resolved, name string) *download.Task {
+	t.Helper()
+	raw, err := json.Marshal(map[string]any{
+		"id": "g1", "protocol": "http",
+		"meta": map[string]any{
+			"res":  map[string]any{"size": 5, "files": []any{map[string]any{"name": resolved}}},
+			"opts": map[string]any{"path": dir, "name": name},
+		},
+		"progress": map[string]any{"downloaded": 5},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var task download.Task
+	if err := json.Unmarshal(raw, &task); err != nil {
+		t.Fatal(err)
+	}
+	return &task
+}
+
+// eventEngine is an engine that records what it reports and already maps the
+// library's task g1 to t1.
+func eventEngine(t *testing.T) (*Engine, *[]core.Update) {
+	t.Helper()
+	var got []core.Update
+	e, err := New(t.TempDir(), func(_ string, u core.Update) { got = append(got, u) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { e.Close() })
+	e.toKL["g1"], e.toGopeed["t1"] = "t1", "g1"
+	return e, &got
+}
+
+// A transfer short enough to finish before the library has sent its start
+// event still reports the file it wrote.
+func TestADoneThatOvertakesItsStartStillReportsTheFile(t *testing.T) {
+	e, got := eventEngine(t)
+	dir := t.TempDir()
+
+	e.onEvent(&download.Event{Key: download.EventKeyDone, Task: libraryTask(t, dir, "set.part3.rar", "set.part3 (1).rar")})
+
+	want := filepath.Join(dir, "set.part3 (1).rar")
+	if len(*got) != 1 || (*got)[0].File != want {
+		t.Fatalf("reported %+v, want one done update naming %s", *got, want)
+	}
+}
+
+// A transfer that fails before its first progress report still says which
+// file it left, or a restart before the next attempt could not tell that file
+// from somebody else's.
+func TestAFailedTransferReportsTheFileItLeft(t *testing.T) {
+	e, got := eventEngine(t)
+	dir := t.TempDir()
+	task := libraryTask(t, dir, "set.part3.rar", "set.part3.rar")
+
+	e.onEvent(&download.Event{Key: download.EventKeyStart, Task: task})
+	e.onEvent(&download.Event{Key: download.EventKeyError, Task: task, Err: errors.New("connection reset")})
+
+	want := filepath.Join(dir, "set.part3.rar")
+	if len(*got) != 1 || (*got)[0].Status != core.StatusError || (*got)[0].File != want {
+		t.Fatalf("reported %+v, want one error update naming %s", *got, want)
 	}
 }
 

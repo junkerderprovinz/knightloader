@@ -199,6 +199,12 @@ function Row({
         <span className={`min-w-0 break-all text-[11px] text-carbon-textSub ${dim}`}>
           {t('settings.transfer.colFile')}: {describe(row.incoming)}
         </span>
+        {row.arrives !== row.incoming && (
+          <span className={`flex min-w-0 flex-wrap items-center break-all text-[11px] text-carbon-text ${dim}`}>
+            {t('settings.transfer.colArrives')}: {describe(row.arrives)}
+            <InfoBubble tip={t('settings.transfer.colArrivesHint')} />
+          </span>
+        )}
       </div>
     </div>
   );

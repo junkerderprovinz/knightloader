@@ -2,7 +2,8 @@
 // same function as the page's own buttons, or what the page publishes
 // through pageContext.ts.
 import { recheckTasks, startTasks, type Task } from '../api';
-import { IconCheck, IconFolder, IconPlay, IconSearch, IconTrash } from '../icons';
+import { RENAME_SHORTCUT } from '../../components/ListToolbar';
+import { IconCheck, IconEdit, IconFolder, IconPlay, IconSearch, IconTrash } from '../icons';
 import type { Command, CommandContext } from './types';
 
 // ctx.tasks holds every task, so this applies the same filter the Collector
@@ -89,5 +90,16 @@ export const collectorCommands: Command[] = [
     visible: (ctx) => ctx.selection.length > 0,
     // No shortcut: useRemoval already binds Del to the same call.
     run: (ctx) => ctx.removeSelected(ctx.selection),
+  },
+  {
+    id: 'collector.rename',
+    labelKey: 'rename.menu',
+    icon: IconEdit,
+    group: 'commands.group.collector',
+    surfaces: ['collector'],
+    defaultShortcut: RENAME_SHORTCUT,
+    enabled: (ctx) => ctx.selection.length > 0,
+    visible: (ctx) => ctx.selection.length > 0,
+    run: (ctx) => ctx.rename(ctx.selection),
   },
 ];

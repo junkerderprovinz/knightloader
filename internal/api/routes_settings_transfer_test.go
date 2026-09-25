@@ -138,6 +138,39 @@ func TestImportLeavesUnnamedSettingsExactlyAsStored(t *testing.T) {
 	}
 }
 
+// An export from a build without the stall reconnect carries the stall
+// timeout that build shipped with, 0, which says nothing about a watcher that
+// reconnects. The import reads it as a restart reads that build's own settings
+// file, and a 0 chosen with the reconnect on offer stays 0.
+func TestImportReadsAnOlderBuildsSettingsAsARestartDoes(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name string
+		doc  map[string]json.RawMessage
+		want int
+	}{
+		{"an older build's default", map[string]json.RawMessage{
+			"stallTimeout": json.RawMessage(`0`), "stallRestart": json.RawMessage(`false`),
+		}, settings.DefaultStallTimeout},
+		{"switched off on purpose", map[string]json.RawMessage{
+			"stallTimeout": json.RawMessage(`0`), "stallReconnect": json.RawMessage(`true`),
+		}, 0},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			a, srv := transferServer(t)
+			doc := settings.PortableDoc{Kind: settings.PortableKind, Version: "v0.9.0", Settings: c.doc}
+
+			postImport(t, srv, doc, []string{"stallTimeout"})
+
+			if got := a.Settings.Get().StallTimeout; got != c.want {
+				t.Errorf("stallTimeout = %d after the import, want %d", got, c.want)
+			}
+		})
+	}
+}
+
 // TestImportNamesTheSecretsThatDidNotTravel covers a proxy row that arrives
 // without its password and dials anyway, and a cleared router password that
 // makes the nightly reconnect fail. Both must come back as codes, and the

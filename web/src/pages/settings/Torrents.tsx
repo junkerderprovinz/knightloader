@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow } from '../../components/ui';
+import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow, UnitNumberInput } from '../../components/ui';
+import { RATE_UNITS } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
@@ -29,6 +30,8 @@ const DEFAULTS: TorrentSettings = {
   dhtEnabled: true,
   pexEnabled: true,
 };
+
+const KIB = 1024;
 
 function readTorrent(cfg: unknown): TorrentSettings {
   return { ...DEFAULTS, ...((cfg as { torrent?: Partial<TorrentSettings> }).torrent ?? {}) };
@@ -93,17 +96,14 @@ export function Torrents() {
 
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.transferTitle')}</SectionTitle>
+        {/* Stored in whole KiB/s, shown like every other speed. */}
         <Field label={t('settings.torrents.uploadLimit')} hint={t('settings.torrents.uploadLimitHint')}>
-          <div className="flex items-center gap-2">
-            <NumberInput
-              value={tr.uploadLimitKiBs}
-              min={0}
-              onValue={(v) => write({ uploadLimitKiBs: Math.max(0, v) })}
-            />
-            <span className="glim-num shrink-0 text-xs text-carbon-textMuted">
-              {t('settings.torrents.uploadLimitUnit')}
-            </span>
-          </div>
+          <UnitNumberInput
+            value={tr.uploadLimitKiBs * KIB}
+            units={RATE_UNITS}
+            snap={(bytes) => Math.round(bytes / KIB) * KIB}
+            onValue={(bytes) => write({ uploadLimitKiBs: bytes / KIB })}
+          />
         </Field>
       </Card>
 

@@ -3,7 +3,7 @@
   <title>Download for Windows</title>
   <defs>
     <clipPath id="edge">
-      <path d="M38.2,0 H681.8 A38.2,38.2 0 0 1 720,38.2 V207.1 A38.2,38.2 0 0 1 681.8,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z"/>
+      <path d="M38.2,0 H720 V245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z"/>
     </clipPath>
     <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0"    stop-color="#fff" stop-opacity="0"/>
@@ -15,15 +15,15 @@
   <style>
     @keyframes pass {
       0%       { transform: translateX(-226.6px); }
-      12.89%   { transform: translateX(946.6px); }
+      11.89%   { transform: translateX(946.6px); }
       100%     { transform: translateX(946.6px); }
     }
-    .band { animation: pass 9.861s linear 2.078s infinite backwards; }
+    .band { animation: pass 10.693s linear 0.000s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .band { animation: none; opacity: 0; }
     }
   </style>
-  <path d="M38.2,0 H681.8 A38.2,38.2 0 0 1 720,38.2 V207.1 A38.2,38.2 0 0 1 681.8,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z" fill="#0078d4"/>
+  <path d="M38.2,0 H720 V245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z" fill="#0078d4"/>
   <g transform="translate(85.0 66.65) scale(0.21875)" fill="#ffffff">
     <path d="M0 93.7l183.6-25.3v177.4H0V93.7zm0 324.6l183.6 25.3V268.4H0v149.9zm203.8 28L448 480V268.4H203.8v177.9zm0-380.6v180.1H448V32L203.8 65.7z"/>
   </g>

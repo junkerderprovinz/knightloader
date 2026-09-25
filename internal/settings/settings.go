@@ -143,14 +143,21 @@ type Settings struct {
 	//
 	// A dead connection is indistinguishable from a slow one on a list: the row
 	// says "running", the speed says 0 B/s, and the slot it holds is gone until
-	// somebody notices. The mark stops nothing on its own; StallRestart is the
-	// half that acts on it.
+	// somebody notices. The mark stops nothing on its own; StallReconnect and
+	// StallRestart are what act on it.
 	//
 	// Clamped up to MinStallTimeout when set at all, see settings_stall.go.
 	StallTimeout int `json:"stallTimeout"`
+	// StallReconnect drops a marked download's connections and opens new ones
+	// where it left off, once per StallTimeout for as long as it stands still,
+	// or once before StallRestart takes over. It keeps the slot, and the bytes
+	// wherever the server can send part of a file, so it is on by default. Only
+	// the built-in engine can do it; a JDownloader or yt-dlp row and a torrent
+	// are only marked.
+	StallReconnect bool `json:"stallReconnect"`
 	// StallRestart hands a marked download back to the wait queue and starts it
-	// again from the top. Off by default, and a switch of its own rather than
-	// part of StallTimeout, because a restart throws away the bytes the stalled
+	// again from the top, after a reconnect has not helped. Off by default, and
+	// a switch of its own, because a restart throws away the bytes the stalled
 	// attempt did fetch: app.restartStalled goes down the same path
 	// RestartTasks does, which clears the backend's partial file.
 	StallRestart bool `json:"stallRestart"`
@@ -757,6 +764,9 @@ func Defaults() Settings {
 		// One of the volume's three numbers is on by default, see
 		// DefaultDiskReserve.
 		DiskReserve: DefaultDiskReserve,
+		// See DefaultStallTimeout.
+		StallTimeout:   DefaultStallTimeout,
+		StallReconnect: true,
 		// The allowance ships switched off: a cap of 0 is what makes it off, so
 		// neither of these does anything until somebody types a number.
 		VolumeCapResetDay: DefaultVolumeCapResetDay,
@@ -801,6 +811,7 @@ func (s *Store) Path() string { return s.path }
 func migrate(raw []byte, n Settings) Settings {
 	n = migrateArchiveDisposal(raw, n)
 	n = migrateAutoStart(raw, n)
+	n = migrateStall(raw, n)
 	return n
 }
 

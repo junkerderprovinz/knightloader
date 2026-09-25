@@ -1,0 +1,5 @@
+{
+  "videoFormats": ["best", "mp4 avc1", "mp4 vp9", "mp4 av1", "webm vp9"],
+  "audioFormats": ["best", "aac", "opus"],
+  "known": true
+}

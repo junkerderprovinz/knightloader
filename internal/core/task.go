@@ -157,6 +157,22 @@ const (
 // download depends on it.
 type Origin string
 
+// UnpackResult is how the last unpacking of a file's archive ended, as the
+// task keeps it once the job that says so is gone.
+type UnpackResult string
+
+const (
+	// UnpackNone is no unpacking that has ended since the file finished, or
+	// since the last one started.
+	UnpackNone UnpackResult = ""
+	UnpackDone UnpackResult = "done"
+	// UnpackFailed is a failure other than a missing password.
+	UnpackFailed UnpackResult = "error"
+	// UnpackPassword is a failure for want of the right password, kept apart
+	// because it is the one with an obvious remedy.
+	UnpackPassword UnpackResult = "password"
+)
+
 // Update is a change to a task reported by a download backend. Empty fields
 // are left untouched.
 type Update struct {
@@ -173,6 +189,10 @@ type Update struct {
 	// opposed to failing to fetch it. Only this hands the task to the next
 	// backend.
 	Unsupported bool
+	// HostDown says a service has switched off this link's site for a while.
+	// The task moves on like Unsupported, and the service is passed over for
+	// that site alone instead of being benched for every site.
+	HostDown bool
 	// Reason is a cause the backend itself recognised, and it wins over the
 	// shared classifier in internal/app. Only the backend has seen its tool's
 	// full output; Err is cut short. Empty means no opinion.
@@ -185,6 +205,10 @@ type Update struct {
 	// pointer so an ordinary update does not overwrite a torrent's readings
 	// with zeros.
 	Torrent *TorrentStats
+	// File is the path the bytes are being written to. It is only set by a
+	// backend that writes on this machine, and it can differ from Name when
+	// the backend had to step around a file that was already there.
+	File string
 }
 
 // TorrentStats is one reading of a torrent's swarm, taken from gopeed's
@@ -357,6 +381,11 @@ type Task struct {
 	// Filename is the name to write the file under when it is not the one the
 	// backend would choose, which is how a rename rule reaches the disk.
 	Filename string `json:"filename,omitempty"`
+	// File is where this task's bytes are on disk, as the engine reported it
+	// and as the app moved it since. It is what makes a leftover from an
+	// earlier attempt this task's own to delete, and where the file is when
+	// the engine could not use Name. Empty when nothing local was written.
+	File string `json:"file,omitempty"`
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
@@ -441,8 +470,7 @@ type Task struct {
 	//
 	// A pin does not outrank account health: a task pinned to a benched
 	// account fails visibly rather than going out through another backend
-	// (see app.pinFailureLocked). The store has no column for it, so a pin is
-	// lost on restart.
+	// (see app.pinFailureLocked).
 	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
@@ -451,6 +479,10 @@ type Task struct {
 	ChangedAt time.Time `json:"changedAt,omitempty"`
 	// ArchivePart is the volume number inside a multi-volume set, or 0.
 	ArchivePart int `json:"archivePart,omitempty"`
+	// Unpack is how the last unpacking of this file's archive ended, on every
+	// part of the set. It is persisted because the extraction jobs live in
+	// memory, and after a restart it is all that says an archive was unpacked.
+	Unpack UnpackResult `json:"unpack,omitempty"`
 
 	// The torrent fields stay zero for every other task. Peers, Seeds, Ratio,
 	// Uploaded and Seeding are live readings and not persisted; gopeed keeps

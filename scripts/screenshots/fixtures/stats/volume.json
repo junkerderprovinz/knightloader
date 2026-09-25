@@ -1,0 +1,777 @@
+{
+  "days": [
+    {
+      "key": "2026-08-26",
+      "bytes": 12000000000,
+      "count": 3,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 5520000000,
+        "media.example.org": 2040000000,
+        "mirror.example.net": 2400000000,
+        "youtube.com": 1440000000,
+        "podcasts.example.net": 600000000
+      },
+      "byResolver": {
+        "realdebrid": 4080000000,
+        "alldebrid": 2880000000,
+        "direct": 2400000000,
+        "torrent": 1680000000,
+        "ytdlp": 960000000
+      }
+    },
+    {
+      "key": "2026-08-27",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-08-28",
+      "bytes": 31000000000,
+      "count": 17,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 6200000000,
+        "media.example.org": 3720000000,
+        "mirror.example.net": 1550000000,
+        "youtube.com": 14260000000,
+        "podcasts.example.net": 5270000000
+      },
+      "byResolver": {
+        "realdebrid": 10540000000,
+        "alldebrid": 7440000000,
+        "direct": 6200000000,
+        "torrent": 4340000000,
+        "ytdlp": 2480000000
+      }
+    },
+    {
+      "key": "2026-08-29",
+      "bytes": 44000000000,
+      "count": 5,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 5280000000,
+        "media.example.org": 2200000000,
+        "mirror.example.net": 20240000000,
+        "youtube.com": 7480000000,
+        "podcasts.example.net": 8800000000
+      },
+      "byResolver": {
+        "realdebrid": 14960000000,
+        "alldebrid": 10560000000,
+        "direct": 8800000000,
+        "torrent": 6160000000,
+        "ytdlp": 3520000000
+      }
+    },
+    {
+      "key": "2026-08-30",
+      "bytes": 8000000000,
+      "count": 12,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 400000000,
+        "media.example.org": 3680000000,
+        "mirror.example.net": 1360000000,
+        "youtube.com": 1600000000,
+        "podcasts.example.net": 960000000
+      },
+      "byResolver": {
+        "realdebrid": 2720000000,
+        "alldebrid": 1920000000,
+        "direct": 1600000000,
+        "torrent": 1120000000,
+        "ytdlp": 640000000
+      }
+    },
+    {
+      "key": "2026-08-31",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-09-01",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-09-02",
+      "bytes": 57000000000,
+      "count": 14,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 11400000000,
+        "media.example.org": 6840000000,
+        "mirror.example.net": 2850000000,
+        "youtube.com": 26220000000,
+        "podcasts.example.net": 9690000000
+      },
+      "byResolver": {
+        "realdebrid": 19380000000,
+        "alldebrid": 13680000000,
+        "direct": 11400000000,
+        "torrent": 7980000000,
+        "ytdlp": 4560000000
+      }
+    },
+    {
+      "key": "2026-09-03",
+      "bytes": 23000000000,
+      "count": 21,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 2760000000,
+        "media.example.org": 1150000000,
+        "mirror.example.net": 10580000000,
+        "youtube.com": 3910000000,
+        "podcasts.example.net": 4600000000
+      },
+      "byResolver": {
+        "realdebrid": 7820000000,
+        "alldebrid": 5520000000,
+        "direct": 4600000000,
+        "torrent": 3220000000,
+        "ytdlp": 1840000000
+      }
+    },
+    {
+      "key": "2026-09-04",
+      "bytes": 16000000000,
+      "count": 9,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 800000000,
+        "media.example.org": 7360000000,
+        "mirror.example.net": 2720000000,
+        "youtube.com": 3200000000,
+        "podcasts.example.net": 1920000000
+      },
+      "byResolver": {
+        "realdebrid": 5440000000,
+        "alldebrid": 3840000000,
+        "direct": 3200000000,
+        "torrent": 2240000000,
+        "ytdlp": 1280000000
+      }
+    },
+    {
+      "key": "2026-09-05",
+      "bytes": 38000000000,
+      "count": 16,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 17480000000,
+        "media.example.org": 6460000000,
+        "mirror.example.net": 7600000000,
+        "youtube.com": 4560000000,
+        "podcasts.example.net": 1900000000
+      },
+      "byResolver": {
+        "realdebrid": 12920000000,
+        "alldebrid": 9120000000,
+        "direct": 7600000000,
+        "torrent": 5320000000,
+        "ytdlp": 3040000000
+      }
+    },
+    {
+      "key": "2026-09-06",
+      "bytes": 5000000000,
+      "count": 4,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 850000000,
+        "media.example.org": 1000000000,
+        "mirror.example.net": 600000000,
+        "youtube.com": 250000000,
+        "podcasts.example.net": 2300000000
+      },
+      "byResolver": {
+        "realdebrid": 1700000000,
+        "alldebrid": 1200000000,
+        "direct": 1000000000,
+        "torrent": 700000000,
+        "ytdlp": 400000000
+      }
+    },
+    {
+      "key": "2026-09-07",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-09-08",
+      "bytes": 29000000000,
+      "count": 18,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 3480000000,
+        "media.example.org": 1450000000,
+        "mirror.example.net": 13340000000,
+        "youtube.com": 4930000000,
+        "podcasts.example.net": 5800000000
+      },
+      "byResolver": {
+        "realdebrid": 9860000000,
+        "alldebrid": 6960000000,
+        "direct": 5800000000,
+        "torrent": 4060000000,
+        "ytdlp": 2320000000
+      }
+    },
+    {
+      "key": "2026-09-09",
+      "bytes": 61000000000,
+      "count": 6,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 3050000000,
+        "media.example.org": 28060000000,
+        "mirror.example.net": 10370000000,
+        "youtube.com": 12200000000,
+        "podcasts.example.net": 7320000000
+      },
+      "byResolver": {
+        "realdebrid": 20740000000,
+        "alldebrid": 14640000000,
+        "direct": 12200000000,
+        "torrent": 8540000000,
+        "ytdlp": 4880000000
+      }
+    },
+    {
+      "key": "2026-09-10",
+      "bytes": 18000000000,
+      "count": 13,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 8280000000,
+        "media.example.org": 3060000000,
+        "mirror.example.net": 3600000000,
+        "youtube.com": 2160000000,
+        "podcasts.example.net": 900000000
+      },
+      "byResolver": {
+        "realdebrid": 6120000000,
+        "alldebrid": 4320000000,
+        "direct": 3600000000,
+        "torrent": 2520000000,
+        "ytdlp": 1440000000
+      }
+    },
+    {
+      "key": "2026-09-11",
+      "bytes": 9000000000,
+      "count": 20,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 1530000000,
+        "media.example.org": 1800000000,
+        "mirror.example.net": 1080000000,
+        "youtube.com": 450000000,
+        "podcasts.example.net": 4140000000
+      },
+      "byResolver": {
+        "realdebrid": 3060000000,
+        "alldebrid": 2160000000,
+        "direct": 1800000000,
+        "torrent": 1260000000,
+        "ytdlp": 720000000
+      }
+    },
+    {
+      "key": "2026-09-12",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-09-13",
+      "bytes": 34000000000,
+      "count": 15,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 4080000000,
+        "media.example.org": 1700000000,
+        "mirror.example.net": 15640000000,
+        "youtube.com": 5780000000,
+        "podcasts.example.net": 6800000000
+      },
+      "byResolver": {
+        "realdebrid": 11560000000,
+        "alldebrid": 8160000000,
+        "direct": 6800000000,
+        "torrent": 4760000000,
+        "ytdlp": 2720000000
+      }
+    },
+    {
+      "key": "2026-09-14",
+      "bytes": 47000000000,
+      "count": 3,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 2350000000,
+        "media.example.org": 21620000000,
+        "mirror.example.net": 7990000000,
+        "youtube.com": 9400000000,
+        "podcasts.example.net": 5640000000
+      },
+      "byResolver": {
+        "realdebrid": 15980000000,
+        "alldebrid": 11280000000,
+        "direct": 9400000000,
+        "torrent": 6580000000,
+        "ytdlp": 3760000000
+      }
+    },
+    {
+      "key": "2026-09-15",
+      "bytes": 12000000000,
+      "count": 10,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 5520000000,
+        "media.example.org": 2040000000,
+        "mirror.example.net": 2400000000,
+        "youtube.com": 1440000000,
+        "podcasts.example.net": 600000000
+      },
+      "byResolver": {
+        "realdebrid": 4080000000,
+        "alldebrid": 2880000000,
+        "direct": 2400000000,
+        "torrent": 1680000000,
+        "ytdlp": 960000000
+      }
+    },
+    {
+      "key": "2026-09-16",
+      "bytes": 26000000000,
+      "count": 17,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 4420000000,
+        "media.example.org": 5200000000,
+        "mirror.example.net": 3120000000,
+        "youtube.com": 1300000000,
+        "podcasts.example.net": 11960000000
+      },
+      "byResolver": {
+        "realdebrid": 8840000000,
+        "alldebrid": 6240000000,
+        "direct": 5200000000,
+        "torrent": 3640000000,
+        "ytdlp": 2080000000
+      }
+    },
+    {
+      "key": "2026-09-17",
+      "bytes": 0,
+      "count": 0,
+      "unsized": 0,
+      "byHost": null,
+      "byResolver": null
+    },
+    {
+      "key": "2026-09-18",
+      "bytes": 8000000000,
+      "count": 12,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 960000000,
+        "media.example.org": 400000000,
+        "mirror.example.net": 3680000000,
+        "youtube.com": 1360000000,
+        "podcasts.example.net": 1600000000
+      },
+      "byResolver": {
+        "realdebrid": 2720000000,
+        "alldebrid": 1920000000,
+        "direct": 1600000000,
+        "torrent": 1120000000,
+        "ytdlp": 640000000
+      }
+    },
+    {
+      "key": "2026-09-19",
+      "bytes": 52000000000,
+      "count": 19,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 2600000000,
+        "media.example.org": 23920000000,
+        "mirror.example.net": 8840000000,
+        "youtube.com": 10400000000,
+        "podcasts.example.net": 6240000000
+      },
+      "byResolver": {
+        "realdebrid": 17680000000,
+        "alldebrid": 12480000000,
+        "direct": 10400000000,
+        "torrent": 7280000000,
+        "ytdlp": 4160000000
+      }
+    },
+    {
+      "key": "2026-09-20",
+      "bytes": 39000000000,
+      "count": 7,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 17940000000,
+        "media.example.org": 6630000000,
+        "mirror.example.net": 7800000000,
+        "youtube.com": 4680000000,
+        "podcasts.example.net": 1950000000
+      },
+      "byResolver": {
+        "realdebrid": 13260000000,
+        "alldebrid": 9360000000,
+        "direct": 7800000000,
+        "torrent": 5460000000,
+        "ytdlp": 3120000000
+      }
+    },
+    {
+      "key": "2026-09-21",
+      "bytes": 14000000000,
+      "count": 14,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 2380000000,
+        "media.example.org": 2800000000,
+        "mirror.example.net": 1680000000,
+        "youtube.com": 700000000,
+        "podcasts.example.net": 6440000000
+      },
+      "byResolver": {
+        "realdebrid": 4760000000,
+        "alldebrid": 3360000000,
+        "direct": 2800000000,
+        "torrent": 1960000000,
+        "ytdlp": 1120000000
+      }
+    },
+    {
+      "key": "2026-09-22",
+      "bytes": 21000000000,
+      "count": 21,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 4200000000,
+        "media.example.org": 2520000000,
+        "mirror.example.net": 1050000000,
+        "youtube.com": 9660000000,
+        "podcasts.example.net": 3570000000
+      },
+      "byResolver": {
+        "realdebrid": 7140000000,
+        "alldebrid": 5040000000,
+        "direct": 4200000000,
+        "torrent": 2940000000,
+        "ytdlp": 1680000000
+      }
+    },
+    {
+      "key": "2026-09-23",
+      "bytes": 33000000000,
+      "count": 9,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 3960000000,
+        "media.example.org": 1650000000,
+        "mirror.example.net": 15180000000,
+        "youtube.com": 5610000000,
+        "podcasts.example.net": 6600000000
+      },
+      "byResolver": {
+        "realdebrid": 11220000000,
+        "alldebrid": 7920000000,
+        "direct": 6600000000,
+        "torrent": 4620000000,
+        "ytdlp": 2640000000
+      }
+    },
+    {
+      "key": "2026-09-24",
+      "bytes": 36000000000,
+      "count": 16,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 1800000000,
+        "media.example.org": 16560000000,
+        "mirror.example.net": 6120000000,
+        "youtube.com": 7200000000,
+        "podcasts.example.net": 4320000000
+      },
+      "byResolver": {
+        "realdebrid": 12240000000,
+        "alldebrid": 8640000000,
+        "direct": 7200000000,
+        "torrent": 5040000000,
+        "ytdlp": 2880000000
+      }
+    }
+  ],
+  "months": [
+    {
+      "key": "2025-10",
+      "bytes": 310000000000,
+      "count": 3,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 142600000000,
+        "media.example.org": 52700000000,
+        "mirror.example.net": 62000000000,
+        "youtube.com": 37200000000,
+        "podcasts.example.net": 15500000000
+      },
+      "byResolver": {
+        "realdebrid": 105400000000,
+        "alldebrid": 74400000000,
+        "direct": 62000000000,
+        "torrent": 43400000000,
+        "ytdlp": 24800000000
+      }
+    },
+    {
+      "key": "2025-11",
+      "bytes": 280000000000,
+      "count": 10,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 47600000000,
+        "media.example.org": 56000000000,
+        "mirror.example.net": 33600000000,
+        "youtube.com": 14000000000,
+        "podcasts.example.net": 128800000000
+      },
+      "byResolver": {
+        "realdebrid": 95200000000,
+        "alldebrid": 67200000000,
+        "direct": 56000000000,
+        "torrent": 39200000000,
+        "ytdlp": 22400000000
+      }
+    },
+    {
+      "key": "2025-12",
+      "bytes": 455000000000,
+      "count": 17,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 91000000000,
+        "media.example.org": 54600000000,
+        "mirror.example.net": 22750000000,
+        "youtube.com": 209300000000,
+        "podcasts.example.net": 77350000000
+      },
+      "byResolver": {
+        "realdebrid": 154700000000,
+        "alldebrid": 109200000000,
+        "direct": 91000000000,
+        "torrent": 63700000000,
+        "ytdlp": 36400000000
+      }
+    },
+    {
+      "key": "2026-01",
+      "bytes": 390000000000,
+      "count": 5,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 46800000000,
+        "media.example.org": 19500000000,
+        "mirror.example.net": 179400000000,
+        "youtube.com": 66300000000,
+        "podcasts.example.net": 78000000000
+      },
+      "byResolver": {
+        "realdebrid": 132600000000,
+        "alldebrid": 93600000000,
+        "direct": 78000000000,
+        "torrent": 54600000000,
+        "ytdlp": 31200000000
+      }
+    },
+    {
+      "key": "2026-02",
+      "bytes": 342000000000,
+      "count": 12,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 17100000000,
+        "media.example.org": 157320000000,
+        "mirror.example.net": 58140000000,
+        "youtube.com": 68400000000,
+        "podcasts.example.net": 41040000000
+      },
+      "byResolver": {
+        "realdebrid": 116280000000,
+        "alldebrid": 82080000000,
+        "direct": 68400000000,
+        "torrent": 47880000000,
+        "ytdlp": 27360000000
+      }
+    },
+    {
+      "key": "2026-03",
+      "bytes": 510000000000,
+      "count": 19,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 234600000000,
+        "media.example.org": 86700000000,
+        "mirror.example.net": 102000000000,
+        "youtube.com": 61200000000,
+        "podcasts.example.net": 25500000000
+      },
+      "byResolver": {
+        "realdebrid": 173400000000,
+        "alldebrid": 122400000000,
+        "direct": 102000000000,
+        "torrent": 71400000000,
+        "ytdlp": 40800000000
+      }
+    },
+    {
+      "key": "2026-04",
+      "bytes": 468000000000,
+      "count": 7,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 79560000000,
+        "media.example.org": 93600000000,
+        "mirror.example.net": 56160000000,
+        "youtube.com": 23400000000,
+        "podcasts.example.net": 215280000000
+      },
+      "byResolver": {
+        "realdebrid": 159120000000,
+        "alldebrid": 112320000000,
+        "direct": 93600000000,
+        "torrent": 65520000000,
+        "ytdlp": 37440000000
+      }
+    },
+    {
+      "key": "2026-05",
+      "bytes": 377000000000,
+      "count": 14,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 75400000000,
+        "media.example.org": 45240000000,
+        "mirror.example.net": 18850000000,
+        "youtube.com": 173420000000,
+        "podcasts.example.net": 64090000000
+      },
+      "byResolver": {
+        "realdebrid": 128180000000,
+        "alldebrid": 90480000000,
+        "direct": 75400000000,
+        "torrent": 52780000000,
+        "ytdlp": 30160000000
+      }
+    },
+    {
+      "key": "2026-06",
+      "bytes": 620000000000,
+      "count": 21,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 74400000000,
+        "media.example.org": 31000000000,
+        "mirror.example.net": 285200000000,
+        "youtube.com": 105400000000,
+        "podcasts.example.net": 124000000000
+      },
+      "byResolver": {
+        "realdebrid": 210800000000,
+        "alldebrid": 148800000000,
+        "direct": 124000000000,
+        "torrent": 86800000000,
+        "ytdlp": 49600000000
+      }
+    },
+    {
+      "key": "2026-07",
+      "bytes": 544000000000,
+      "count": 9,
+      "unsized": 1,
+      "byHost": {
+        "files.example": 27200000000,
+        "media.example.org": 250240000000,
+        "mirror.example.net": 92480000000,
+        "youtube.com": 108800000000,
+        "podcasts.example.net": 65280000000
+      },
+      "byResolver": {
+        "realdebrid": 184960000000,
+        "alldebrid": 130560000000,
+        "direct": 108800000000,
+        "torrent": 76160000000,
+        "ytdlp": 43520000000
+      }
+    },
+    {
+      "key": "2026-08",
+      "bytes": 701000000000,
+      "count": 16,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 322460000000,
+        "media.example.org": 119170000000,
+        "mirror.example.net": 140200000000,
+        "youtube.com": 84120000000,
+        "podcasts.example.net": 35050000000
+      },
+      "byResolver": {
+        "realdebrid": 238340000000,
+        "alldebrid": 168240000000,
+        "direct": 140200000000,
+        "torrent": 98140000000,
+        "ytdlp": 56080000000
+      }
+    },
+    {
+      "key": "2026-09",
+      "bytes": 593000000000,
+      "count": 4,
+      "unsized": 0,
+      "byHost": {
+        "files.example": 100810000000,
+        "media.example.org": 118600000000,
+        "mirror.example.net": 71160000000,
+        "youtube.com": 29650000000,
+        "podcasts.example.net": 272780000000
+      },
+      "byResolver": {
+        "realdebrid": 201620000000,
+        "alldebrid": 142320000000,
+        "direct": 118600000000,
+        "torrent": 83020000000,
+        "ytdlp": 47440000000
+      }
+    }
+  ],
+  "timeZone": "UTC",
+  "oldest": "2024-11-02T18:04:11Z",
+  "trimmed": false
+}

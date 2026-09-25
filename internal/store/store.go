@@ -169,6 +169,18 @@ var migrations = []string{
 	// its own rather than created_at in nanoseconds, so a backup still opens in
 	// a build from before it.
 	`ALTER TABLE tasks ADD COLUMN created_ns INTEGER NOT NULL DEFAULT 0`,
+	// Where a task's file is on disk. The download library keeps its own record
+	// in memory only, so after a restart this is the one thing that tells a
+	// task's half-written file from somebody else's file of the same name.
+	`ALTER TABLE tasks ADD COLUMN file TEXT NOT NULL DEFAULT ''`,
+	// How the last unpacking of a task's archive ended. The jobs are kept in
+	// memory, so without it every archive reads as never unpacked after a
+	// restart.
+	`ALTER TABLE tasks ADD COLUMN unpack TEXT NOT NULL DEFAULT ''`,
+	// The backend somebody pinned a download to. It is their decision, like the
+	// category, and without it a restart hands the download back to the
+	// ranking.
+	`ALTER TABLE tasks ADD COLUMN resolver_pin TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -270,7 +282,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
-	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns`
+	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -345,7 +357,7 @@ func (s *Store) Save(t *core.Task) error {
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
-		t.CreatedAt.Nanosecond()%int(time.Millisecond))
+		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin)
 	if err != nil {
 		return err
 	}
@@ -371,7 +383,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin, torrentFiles, trackers, mode string
+		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -384,10 +396,11 @@ func (s *Store) All() ([]*core.Task, error) {
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
-			&createdNs); err != nil {
+			&createdNs, &t.File, &unpack, &t.ResolverPin); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
+		t.Unpack = core.UnpackResult(unpack)
 		t.Online = core.Availability(online)
 		t.Reason = core.Reason(reason)
 		t.Mode = core.DownloadMode(mode)

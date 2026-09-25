@@ -34,6 +34,75 @@ func (a *App) SetForced(ids []string, forced bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Forced = forced })
 }
 
+// PauseTasks pauses the running and waiting links among ids and leaves every
+// other link as it is, so a whole package can be named without staged,
+// finished or unpacking links changing state. Nothing is dispatched until all
+// of them are out of the queue, or the slot the first one frees would go to
+// the next one on the list.
+func (a *App) PauseTasks(ids []string) []string {
+	type pausing struct{ id, resolver string }
+	a.mu.Lock()
+	var stopped []pausing
+	var touched []string
+	var copies []core.Task
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || (t.Status != core.StatusRunning && t.Status != core.StatusQueued) {
+			continue
+		}
+		if a.active[id] {
+			delete(a.active, id)
+			stopped = append(stopped, pausing{id, t.Resolver})
+		}
+		a.dequeueLocked(id)
+		t.Status = core.StatusPaused
+		t.Speed = 0
+		t.StalledSince = time.Time{}
+		touched = append(touched, id)
+		copies = append(copies, *t)
+	}
+	if len(touched) > 0 {
+		a.dispatchLocked()
+	}
+	a.mu.Unlock()
+	a.saveAndBroadcast(copies)
+	// As in stop: the state the app commanded is recorded first, and a later
+	// event from the backend can still correct it.
+	for _, p := range stopped {
+		a.backendFor(p.resolver).Pause(p.id)
+	}
+	return touched
+}
+
+// ResumeTasks puts the paused links among ids back in the wait queue and
+// leaves the rest alone.
+func (a *App) ResumeTasks(ids []string) []string {
+	a.mu.Lock()
+	var resumed []*core.Task
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || t.Status != core.StatusPaused || a.active[id] {
+			continue
+		}
+		t.Status = core.StatusQueued
+		t.Speed = 0
+		a.dequeueLocked(id)
+		a.queue = append(a.queue, id)
+		resumed = append(resumed, t)
+	}
+	if len(resumed) > 0 {
+		a.dispatchLocked()
+	}
+	// Copied after dispatching, as in startTasks.
+	copies := make([]core.Task, 0, len(resumed))
+	for _, t := range resumed {
+		copies = append(copies, *t)
+	}
+	a.mu.Unlock()
+	a.saveAndBroadcast(copies)
+	return idsOf(resumed)
+}
+
 // editAndDispatch is editAll for flags the dispatcher reads, followed by a
 // dispatch pass so that switching a link back on starts it right away.
 func (a *App) editAndDispatch(ids []string, edit func(*core.Task)) []string {

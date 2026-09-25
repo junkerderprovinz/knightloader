@@ -1,6 +1,7 @@
 package app
 
 import (
+	"math"
 	"sync"
 	"time"
 
@@ -18,28 +19,47 @@ import (
 const budgetInterval = 3 * time.Second
 
 // budgetFloor is the smallest share a working backend gets, in bytes per
-// second. A backend that just started has no measured speed yet, and a purely
-// proportional split would starve it.
+// second, so a meter that has been quiet for a while can still show it wants
+// more.
 const budgetFloor = 16 * 1024
 
-// budget holds the last shares, so the yt-dlp backend can read its own.
+// budgetTick is one look at the meters and the shares it handed out. raised
+// marks a share larger than the one before it, which the meter's averaged
+// speed has not caught up with yet.
+type budgetTick struct {
+	speed   [familyCount]int64
+	working [familyCount]bool
+	share   [familyCount]int64
+	raised  [familyCount]bool
+}
+
+// budget keeps the last tick. A reading means little on its own: a meter
+// pulling 2 MB/s may be held there by its share or have nothing more to pull,
+// and only the share it was given tells the two apart. The yt-dlp backend also
+// reads its own share from here.
 type budget struct {
-	mu     sync.RWMutex
-	engine int64
-	jd     int64
-	ytdlp  int64
+	mu   sync.RWMutex
+	last budgetTick
 }
 
 func (b *budget) ytdlpLimit() int64 {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
-	return b.ytdlp
+	return b.last.share[familyYtdlp]
 }
 
-func (b *budget) set(engine, jd, ytdlp int64) {
+// next splits limit against the last tick and keeps the result for the one
+// after.
+func (b *budget) next(limit int64, speed [familyCount]int64, working [familyCount]bool) [familyCount]int64 {
 	b.mu.Lock()
-	b.engine, b.jd, b.ytdlp = engine, jd, ytdlp
-	b.mu.Unlock()
+	defer b.mu.Unlock()
+	now := budgetTick{speed: speed, working: working}
+	now.share = shareOut(limit, now, b.last)
+	for i := range now.raised {
+		now.raised[i] = now.share[i] > b.last.share[i]
+	}
+	b.last = now
+	return now.share
 }
 
 // budgetFamily names the meter a task's bytes go through. Several resolvers
@@ -69,22 +89,47 @@ func meterFor(resolverID string) budgetFamily {
 // shareOut splits limit between the three meters by what each is pulling:
 //
 //  1. A limit of 0 means unlimited and stays unlimited on every meter.
-//  2. A meter with nothing running gets 0 until the next tick.
-//  3. A meter using less than an equal share keeps what it uses plus headroom,
-//     and the rest goes to the saturated meters.
-//  4. Every working meter gets at least budgetFloor.
+//  2. A meter with nothing running gets 0. With nothing running anywhere,
+//     every meter gets the whole limit.
+//  3. A working meter pulling under nine tenths of its last share has no use
+//     for more and is offered a quarter more than its pull. Every other
+//     working meter is offered all it can get: its share is what holds it
+//     back; or it reads 0 for the first time, which is a meter unlocking,
+//     connecting or between two files rather than one with nothing to pull; or
+//     its share was raised on the last tick, and its speed, averaged over
+//     seconds, still trails the raise.
+//  4. Offers are granted smallest first, and the meters left over split what
+//     remains evenly. What nobody was offered goes to the working meters, so
+//     a lone meter always gets the whole limit.
+//  5. Every working meter gets at least budgetFloor.
+//
+// A quarter more and nine tenths are far enough apart that a meter held back
+// by its server reads four fifths of its share on the next tick and stays
+// where it is, and close enough that beside one other meter at most a tenth of
+// the limit goes unused. A meter that fills its share reads nearly all of it
+// once a raise has passed through its average, and a quarter more than nine
+// tenths of a share is more than the share, so a raise is never taken back.
 //
 // The sum exceeds limit only when the floor forces it, below 48 KiB/s.
-func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) [familyCount]int64 {
+func shareOut(limit int64, now, last budgetTick) [familyCount]int64 {
 	var out [familyCount]int64
 	if limit <= 0 {
 		return out
 	}
 
-	n := int64(0)
-	for _, w := range working {
-		if w {
-			n++
+	var offer [familyCount]int64
+	n := 0
+	for i := range offer {
+		if !now.working[i] {
+			continue
+		}
+		n++
+		offer[i] = math.MaxInt64
+		speed, given := now.speed[i], last.share[i]
+		firstZero := speed == 0 && (!last.working[i] || last.speed[i] > 0)
+		catchingUp := speed > 0 && last.raised[i]
+		if !firstZero && !catchingUp && given > 0 && speed*10 < given*9 {
+			offer[i] = max(budgetFloor, speed+speed/4)
 		}
 	}
 	if n == 0 {
@@ -96,40 +141,52 @@ func shareOut(limit int64, speed [familyCount]int64, working [familyCount]bool) 
 		return out
 	}
 
-	equal := limit / n
-	spare := int64(0)
-	greedy := int64(0)
-	for i := range out {
-		if !working[i] {
-			continue
-		}
-		if speed[i] < equal {
-			// A share pinned to the last measurement would prevent the growth
-			// it is measuring, hence the headroom.
-			take := speed[i] + speed[i]/4
-			if take < budgetFloor {
-				take = budgetFloor
-			}
-			if take > equal {
-				take = equal
-			}
-			out[i] = take
-			spare += equal - take
-			continue
-		}
-		out[i] = equal
-		greedy++
-	}
-	if greedy > 0 && spare > 0 {
-		per := spare / greedy
+	// An offer below an even split of what is left is granted as it stands,
+	// which only raises the split for the rest.
+	left, open := limit, n
+	for open > 0 {
+		even := left / int64(open)
+		granted := false
 		for i := range out {
-			if working[i] && speed[i] >= equal {
-				out[i] += per
+			if now.working[i] && out[i] == 0 && offer[i] < even {
+				out[i] = offer[i]
+				left -= offer[i]
+				open--
+				granted = true
+			}
+		}
+		if !granted {
+			for i := range out {
+				if now.working[i] && out[i] == 0 {
+					out[i] = even
+				}
+			}
+			left, open = 0, 0
+		}
+	}
+	if left > 0 {
+		// What nobody was offered goes to the meters moving bytes, since a
+		// quiet one has no use for it, or to every working meter when none is.
+		takers, k := now.working, n
+		var moving [familyCount]bool
+		m := 0
+		for i := range moving {
+			moving[i] = now.working[i] && now.speed[i] > 0
+			if moving[i] {
+				m++
+			}
+		}
+		if m > 0 {
+			takers, k = moving, m
+		}
+		for i := range out {
+			if takers[i] {
+				out[i] += left / int64(k)
 			}
 		}
 	}
 	for i := range out {
-		if working[i] && out[i] < budgetFloor {
+		if now.working[i] && out[i] < budgetFloor {
 			out[i] = budgetFloor
 		}
 	}
@@ -167,8 +224,7 @@ func (a *App) applyBudget() {
 	// writers and a third would be undone at the next window boundary.
 	limit = a.volumeCapLimit(limit)
 
-	share := shareOut(limit, speed, working)
-	a.budget.set(share[familyEngine], share[familyJD], share[familyYtdlp])
+	share := a.budget.next(limit, speed, working)
 
 	// This is the only place the engine throttle is set; anything else setting
 	// the raw limit would be undone on the next tick.

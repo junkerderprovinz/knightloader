@@ -1,0 +1,282 @@
+{
+  "fields": [
+    {
+      "id": "filename",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "url",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "hoster",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "source",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "filetype",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "package",
+      "ops": ["contains", "contains-not", "equals", "equals-not", "matches"],
+      "groups": true
+    },
+    {
+      "id": "filesize",
+      "ops": ["is-between", "equals", "equals-not"],
+      "numeric": true
+    }
+  ],
+  "operators": [
+    {
+      "id": "contains",
+      "value": true
+    },
+    {
+      "id": "contains-not",
+      "value": true
+    },
+    {
+      "id": "equals",
+      "value": true
+    },
+    {
+      "id": "equals-not",
+      "value": true
+    },
+    {
+      "id": "matches",
+      "value": true,
+      "regex": true
+    },
+    {
+      "id": "is-between",
+      "range": true
+    }
+  ],
+  "actions": [
+    {
+      "id": "packageName",
+      "kind": "template",
+      "flavour": "packagizer"
+    },
+    {
+      "id": "downloadDir",
+      "kind": "template",
+      "flavour": "packagizer"
+    },
+    {
+      "id": "category",
+      "kind": "category",
+      "flavour": "packagizer",
+      "max": 64
+    },
+    {
+      "id": "comment",
+      "kind": "template",
+      "flavour": "packagizer"
+    },
+    {
+      "id": "priority",
+      "kind": "int",
+      "flavour": "packagizer",
+      "min": -3,
+      "max": 3
+    },
+    {
+      "id": "autoExtract",
+      "kind": "bool",
+      "flavour": "packagizer"
+    },
+    {
+      "id": "extractDir",
+      "kind": "template",
+      "flavour": "packagizer"
+    },
+    {
+      "id": "chunks",
+      "kind": "int",
+      "flavour": "packagizer",
+      "min": 1,
+      "max": 16
+    },
+    {
+      "id": "reject",
+      "kind": "reject",
+      "flavour": "filter"
+    },
+    {
+      "id": "reason",
+      "kind": "template",
+      "flavour": "filter"
+    }
+  ],
+  "variables": [
+    {
+      "tag": "<jd:packagename>",
+      "id": "packagename"
+    },
+    {
+      "tag": "<jd:hoster>",
+      "id": "hoster"
+    },
+    {
+      "tag": "<jd:filename>",
+      "id": "filename"
+    },
+    {
+      "tag": "<jd:orgfilename>",
+      "id": "orgfilename"
+    },
+    {
+      "tag": "<jd:orgfilenamewithoutext>",
+      "id": "orgfilenamewithoutext"
+    },
+    {
+      "tag": "<jd:orgfiletype>",
+      "id": "orgfiletype"
+    },
+    {
+      "tag": "<jd:date>",
+      "id": "date"
+    },
+    {
+      "tag": "<jd:year>",
+      "id": "year"
+    },
+    {
+      "tag": "<jd:month>",
+      "id": "month"
+    },
+    {
+      "tag": "<jd:day>",
+      "id": "day"
+    },
+    {
+      "tag": "<jd:simpledate:yyyy-MM>",
+      "id": "simpledate",
+      "params": ["pattern"]
+    },
+    {
+      "tag": "<jd:source:N>",
+      "id": "source",
+      "params": ["n"]
+    },
+    {
+      "tag": "<jd:match:FIELD:N>",
+      "id": "match",
+      "params": ["field", "n"]
+    },
+    {
+      "tag": "<jd:append>",
+      "id": "append"
+    }
+  ],
+  "categories": [
+    {
+      "id": "video",
+      "extensions": [
+        "mkv",
+        "mp4",
+        "avi",
+        "mov",
+        "m4v",
+        "mpg",
+        "mpeg",
+        "wmv",
+        "flv",
+        "webm",
+        "ts",
+        "m2ts",
+        "vob",
+        "ogv",
+        "divx",
+        "rmvb"
+      ],
+      "pattern": "(?i)^(avi|divx|flv|m2ts|m4v|mkv|mov|mp4|mpeg|mpg|ogv|rmvb|ts|vob|webm|wmv)$"
+    },
+    {
+      "id": "audio",
+      "extensions": ["mp3", "flac", "m4a", "aac", "ogg", "opus", "wav", "wma", "alac", "aiff", "ape", "dsf", "mka"],
+      "pattern": "(?i)^(aac|aiff|alac|ape|dsf|flac|m4a|mka|mp3|ogg|opus|wav|wma)$"
+    },
+    {
+      "id": "image",
+      "extensions": [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "bmp",
+        "tif",
+        "tiff",
+        "heic",
+        "avif",
+        "svg",
+        "raw",
+        "cr2",
+        "nef"
+      ],
+      "pattern": "(?i)^(avif|bmp|cr2|gif|heic|jpeg|jpg|nef|png|raw|svg|tif|tiff|webp)$"
+    },
+    {
+      "id": "archive",
+      "extensions": ["rar", "zip", "7z", "tar", "gz", "bz2", "xz", "zst", "tgz", "lzma", "arj", "cab", "ace"],
+      "pattern": "(?i)^(7z|ace|arj|bz2|cab|gz|lzma|rar|tar|tgz|xz|zip|zst)$"
+    },
+    {
+      "id": "document",
+      "extensions": [
+        "pdf",
+        "epub",
+        "mobi",
+        "azw3",
+        "djvu",
+        "cbz",
+        "cbr",
+        "doc",
+        "docx",
+        "odt",
+        "rtf",
+        "txt",
+        "xls",
+        "xlsx",
+        "ods",
+        "ppt",
+        "pptx"
+      ],
+      "pattern": "(?i)^(azw3|cbr|cbz|djvu|doc|docx|epub|mobi|ods|odt|pdf|ppt|pptx|rtf|txt|xls|xlsx)$"
+    },
+    {
+      "id": "subtitle",
+      "extensions": ["srt", "sub", "idx", "ass", "ssa", "vtt", "sup"],
+      "pattern": "(?i)^(ass|idx|srt|ssa|sub|sup|vtt)$"
+    },
+    {
+      "id": "disc",
+      "extensions": ["iso", "img", "nrg", "mdf", "cue", "bin"],
+      "pattern": "(?i)^(bin|cue|img|iso|mdf|nrg)$"
+    },
+    {
+      "id": "program",
+      "extensions": ["exe", "msi", "apk", "dmg", "pkg", "deb", "rpm", "appimage", "jar"],
+      "pattern": "(?i)^(apk|appimage|deb|dmg|exe|jar|msi|pkg|rpm)$"
+    }
+  ],
+  "limits": {
+    "priorityMin": -3,
+    "priorityMax": 3,
+    "maxChunks": 16,
+    "maxPattern": 512
+  }
+}

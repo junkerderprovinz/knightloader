@@ -179,13 +179,13 @@ func TestResumeDoesNotPayOutThePause(t *testing.T) {
 	l.SetPaused(false)
 
 	start := time.Now()
-	if _, err := l.Copy(ctx, io.Discard, bytes.NewReader(make([]byte, 32*1024))); err != nil {
+	if _, err := l.Copy(ctx, io.Discard, bytes.NewReader(make([]byte, 64*1024))); err != nil {
 		t.Fatal(err)
 	}
-	// From an empty bucket this chunk has to be waited for. Arriving instantly
-	// means the pause was banked and paid out.
+	// From an empty bucket these two chunks take half a second to pay for.
+	// Arriving instantly means the pause was banked and paid out.
 	if took := time.Since(start); took < 300*time.Millisecond {
-		t.Errorf("a chunk arrived %v after a 1.1s pause, so the pause was banked as credit", took)
+		t.Errorf("two chunks arrived %v after a 1.1s pause, so the pause was banked as credit", took)
 	}
 }
 
@@ -215,6 +215,136 @@ func TestPauseKeepsTheConfiguredLimit(t *testing.T) {
 		t.Error("the resume threw the rate limiter away")
 	}
 }
+
+// trickle hands out at most size bytes per read, the way a socket does when
+// data arrives in small packets.
+type trickle struct {
+	size int
+	left int
+}
+
+func (r *trickle) Read(p []byte) (int, error) {
+	if r.left == 0 {
+		return 0, io.EOF
+	}
+	n := min(len(p), r.size, r.left)
+	r.left -= n
+	return n, nil
+}
+
+// A read is charged for what it brought, not for the buffer it was offered:
+// 48 KiB in 1 KiB reads fits in the opening burst of a 64 KiB/s limit.
+func TestCopyChargesOnlyTheBytesThatArrive(t *testing.T) {
+	l := New()
+	l.Set(64 * 1024)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	n, err := l.Copy(ctx, io.Discard, &trickle{size: 1024, left: 48 * 1024})
+	if err != nil {
+		t.Fatalf("after %d bytes in %v: %v", n, time.Since(start), err)
+	}
+	if took := time.Since(start); took > time.Second {
+		t.Errorf("48 KiB at 64 KiB/s with a 64 KiB burst took %v", took)
+	}
+}
+
+// endless is a source that always has another packet ready.
+type endless struct{}
+
+func (endless) Read(p []byte) (int, error) { return len(p), nil }
+
+// flight hands out one TLS server flight and then waits for the client, as a
+// server does between two handshake messages.
+type flight struct {
+	ctx  context.Context
+	sent bool
+}
+
+func (f *flight) Read(p []byte) (int, error) {
+	if !f.sent {
+		f.sent = true
+		return copy(p, make([]byte, 5*1024)), nil
+	}
+	<-f.ctx.Done()
+	return 0, f.ctx.Err()
+}
+
+// A connection opened while others use up a low limit gets its server's
+// handshake flight at once. A download engine gives a TLS handshake a few
+// seconds, and a flight queued behind the other transfers' allowance misses
+// that.
+func TestANewConnectionGetsItsHandshakeThroughUnderALowLimit(t *testing.T) {
+	l := New()
+	l.Set(16 * 1024)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	for range 8 {
+		go func() { _, _ = l.Copy(ctx, io.Discard, endless{}) }()
+	}
+	time.Sleep(500 * time.Millisecond)
+
+	w := &countingWriter{}
+	start := time.Now()
+	go func() { _, _ = l.Copy(ctx, w, &flight{ctx: ctx}) }()
+	deadline := time.Now().Add(3 * time.Second)
+	for w.count() == 0 && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	if w.count() == 0 {
+		t.Fatal("the handshake flight had not arrived after 3s")
+	}
+	if took := w.firstAt().Sub(start); took > time.Second {
+		t.Errorf("the handshake flight took %v to get through", took)
+	}
+}
+
+// Transfers sharing a low limit each move bytes every few seconds. A download
+// engine drops a connection that reads nothing for 15 s, and whole chunks
+// queued behind every other connection's add up to that.
+func TestTransfersSharingALowLimitAllKeepMoving(t *testing.T) {
+	const conns = 4
+	l := New()
+	l.Set(16 * 1024)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var mu sync.Mutex
+	writes := make([][]time.Time, conns)
+	start := time.Now()
+	for i := range conns {
+		go func() {
+			_, _ = l.Copy(ctx, writerFunc(func(p []byte) (int, error) {
+				mu.Lock()
+				writes[i] = append(writes[i], time.Now())
+				mu.Unlock()
+				return len(p), nil
+			}), endless{})
+		}()
+	}
+	time.Sleep(5 * time.Second)
+	end := time.Now()
+	cancel()
+
+	mu.Lock()
+	defer mu.Unlock()
+	for i, ws := range writes {
+		last, gap := start, time.Duration(0)
+		for _, at := range ws {
+			gap = max(gap, at.Sub(last))
+			last = at
+		}
+		gap = max(gap, end.Sub(last))
+		if gap > 3*time.Second {
+			t.Errorf("connection %d moved nothing for %v (%d writes in 5s)", i, gap.Round(time.Millisecond), len(ws))
+		}
+	}
+}
+
+type writerFunc func([]byte) (int, error)
+
+func (f writerFunc) Write(p []byte) (int, error) { return f(p) }
 
 // TestPausedCopyHonoursCancel: a paused transfer is still cancellable. Without
 // this, closing the app or removing a task while paused would block on a copy

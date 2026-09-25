@@ -215,27 +215,25 @@ var allowedAssetHosts = map[string]bool{
 	"release-assets.githubusercontent.com": true,
 }
 
-// platformSlug matches desktop.yml's own matrix.slug exactly - the three
-// values that workflow ever produces a zip for. An unsupported
-// GOOS/GOARCH (this package built for anything desktop.yml does not) is
-// reported rather than guessed at.
-func platformSlug() (string, error) {
-	switch runtime.GOOS {
-	case "windows":
-		if runtime.GOARCH == "amd64" {
-			return "windows-amd64", nil
-		}
-	case "linux":
-		if runtime.GOARCH == "amd64" {
-			return "linux-amd64", nil
-		}
-	case "darwin":
-		// desktop.yml builds one universal (amd64+arm64) bundle for macOS,
-		// not one zip per arch - so both arches this package might run on
-		// map to the same slug.
-		return "macos-universal", nil
+// desktopSlugs maps a GOOS/GOARCH pair to the matrix.slug desktop.yml zips
+// that platform's bundle under. macOS gets one universal bundle, so both of
+// its architectures download the same zip.
+var desktopSlugs = map[string]string{
+	"windows/amd64": "windows-amd64",
+	"windows/arm64": "windows-arm64",
+	"darwin/amd64":  "macos-universal",
+	"darwin/arm64":  "macos-universal",
+	"linux/amd64":   "linux-amd64",
+	"linux/arm64":   "linux-arm64",
+}
+
+// platformSlug names the release zip built for goos and goarch. A platform
+// desktop.yml builds nothing for is reported rather than guessed at.
+func platformSlug(goos, goarch string) (string, error) {
+	if slug, ok := desktopSlugs[goos+"/"+goarch]; ok {
+		return slug, nil
 	}
-	return "", fmt.Errorf("update: no published desktop build for %s/%s", runtime.GOOS, runtime.GOARCH)
+	return "", fmt.Errorf("update: no published desktop build for %s/%s", goos, goarch)
 }
 
 // assetName is exactly the string release.yml's "Package" step builds:
@@ -294,7 +292,7 @@ func Download(ctx context.Context, current string) (zipPath string, tag string, 
 		return "", "", fmt.Errorf("update: %s is already the latest release", current)
 	}
 
-	slug, err := platformSlug()
+	slug, err := platformSlug(runtime.GOOS, runtime.GOARCH)
 	if err != nil {
 		return "", "", err
 	}
@@ -424,9 +422,9 @@ func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
 // instead of staging a temp file - the file is a handful of short text
 // lines (one per platform zip), nothing that benefits from disk staging the
 // way a multi-hundred-megabyte platform bundle does. The 1 MiB cap is
-// generous headroom over anything three platforms' worth of "<hex>
-// <filename>" lines could ever need; it exists only so a compromised or
-// misbehaving host cannot turn this into an unbounded read.
+// generous headroom over the one "<hex>  <filename>" line per zip a release
+// carries; it exists only so a compromised or misbehaving host cannot turn
+// this into an unbounded read.
 func downloadChecksums(ctx context.Context, asset ghAsset) ([]byte, error) {
 	resp, err := fetchAsset(ctx, asset)
 	if err != nil {

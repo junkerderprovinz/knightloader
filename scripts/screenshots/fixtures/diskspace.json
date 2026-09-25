@@ -1,0 +1,30 @@
+{
+  "volumes": [
+    {
+      "dir": "/data/downloads",
+      "measured": "/data/downloads",
+      "exists": true,
+      "known": true,
+      "free": 1620000000000,
+      "used": 2380000000000,
+      "total": 4000000000000,
+      "queued": 8053063680,
+      "tasks": 6,
+      "role": "downloads"
+    },
+    {
+      "dir": "/data/media/films",
+      "measured": "/data/media",
+      "exists": true,
+      "known": true,
+      "free": 3100000000000,
+      "used": 4900000000000,
+      "total": 8000000000000,
+      "queued": 1060550084,
+      "tasks": 2,
+      "role": "category"
+    }
+  ],
+  "truncated": false,
+  "sampledAt": "2026-09-24T14:30:00Z"
+}

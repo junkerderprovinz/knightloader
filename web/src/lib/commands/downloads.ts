@@ -3,8 +3,20 @@
 // through pageContext.ts; nothing here reimplements an action. Stopping and
 // starting the queue live in commands/queue.ts, on every surface.
 import { pause, resume, restartTasks, moveTasks, queueMove } from '../api';
-import { MOVE_STATES } from '../../components/ListToolbar';
-import { IconArrowDown, IconArrowUp, IconBottom, IconCheck, IconPause, IconPlay, IconRetry, IconSearch, IconTop, IconTrash } from '../icons';
+import { MOVE_STATES, RENAME_SHORTCUT } from '../../components/ListToolbar';
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconBottom,
+  IconCheck,
+  IconEdit,
+  IconPause,
+  IconPlay,
+  IconRetry,
+  IconSearch,
+  IconTop,
+  IconTrash,
+} from '../icons';
 import type { Command, CommandContext } from './types';
 
 /**
@@ -104,6 +116,18 @@ export const downloadsCommands: Command[] = [
     // Keeps the files, like the toolbar's Remove. No shortcut: useRemoval
     // already binds Del to the same call.
     run: (ctx) => ctx.removeSelected(ctx.selection),
+  },
+  {
+    id: 'downloads.rename',
+    labelKey: 'rename.menu',
+    icon: IconEdit,
+    group: 'commands.group.downloads',
+    surfaces: ['downloads'],
+    defaultShortcut: RENAME_SHORTCUT,
+    enabled: (ctx) => ctx.selection.length > 0,
+    visible: (ctx) => ctx.selection.length > 0,
+    // The same window as the list menu's entry, for the focused row.
+    run: (ctx) => ctx.rename(ctx.selection),
   },
   {
     id: 'downloads.clearFinished',

@@ -15,9 +15,11 @@ package settings
 // NeverPortable below is that question written down.
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -61,10 +63,53 @@ type PortableDoc struct {
 	// build no longer has and misses keys it has gained, and decoding into the
 	// struct here would drop the first group and invent defaults for the
 	// second. Kept raw, the import can list both, see
-	// routes_settings_transfer.go. migrate() runs only inside Load against the
-	// raw bytes of settings.json, so a key renamed between builds cannot be
-	// mapped here either.
+	// routes_settings_transfer.go.
 	Settings map[string]json.RawMessage `json:"settings"`
+}
+
+// Migrated returns patch with each value read the way Load reads a
+// settings.json an earlier build wrote (see migrate), so a value whose meaning
+// changed arrives as what this build means by it. The migrations look at the
+// whole document, since what marks an earlier build's value is often a key it
+// did not have yet, but only the keys in patch are rewritten: an import takes
+// over nothing that was not named.
+//
+// A document that does not read as a whole is returned as patch, and
+// ApplyPatch then judges the named keys on their own.
+func (d PortableDoc) Migrated(patch map[string]json.RawMessage) map[string]json.RawMessage {
+	raw, err := json.Marshal(d.Settings)
+	if err != nil {
+		return patch
+	}
+	read := Defaults()
+	if json.Unmarshal(raw, &read) != nil {
+		return patch
+	}
+	before, err := fieldsOf(read)
+	if err != nil {
+		return patch
+	}
+	after, err := fieldsOf(migrate(raw, read))
+	if err != nil {
+		return patch
+	}
+	out := maps.Clone(patch)
+	for k := range patch {
+		if !bytes.Equal(before[k], after[k]) {
+			out[k] = after[k]
+		}
+	}
+	return out
+}
+
+// fieldsOf is s as its top-level JSON keys.
+func fieldsOf(s Settings) (map[string]json.RawMessage, error) {
+	raw, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+	var fields map[string]json.RawMessage
+	return fields, json.Unmarshal(raw, &fields)
 }
 
 // NeverPortable is this box's own identity: the keys that describe which
@@ -116,12 +161,8 @@ func Portable(s Settings, includeSecrets bool, version, deployment string, now t
 		s.ArchivePasswords = nil
 		secrets = SecretsOmitted
 	}
-	raw, err := json.Marshal(s)
+	fields, err := fieldsOf(s)
 	if err != nil {
-		return PortableDoc{}, err
-	}
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(raw, &fields); err != nil {
 		return PortableDoc{}, err
 	}
 	// Dropped here rather than only refused on import, so the file never holds

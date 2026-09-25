@@ -308,6 +308,26 @@ type App struct {
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	// fellBack holds the tasks a backend has handed down the chain in this
+	// process. Their recorded backend is where the chain led rather than an
+	// earlier pick, so dispatch keeps it and never goes back above it (see
+	// rerankLocked and chainFromLocked). It is not stored: after a restart
+	// the backend that refused is asked once more.
+	fellBack map[string]bool
+	// moving holds the tasks being taken off their old backend, by
+	// PinResolver or by a fallback down the chain (see handOnLocked).
+	// Dispatch leaves them where they are until that backend has let go, so
+	// the next one cannot start beside it.
+	moving map[string]bool
+	// startNow holds the links "Start now" was pressed for, until their
+	// download ends or somebody pauses, resumes or removes them. They alone
+	// leave a stopped queue, as a forced start does in JDownloader. Forced
+	// cannot say it, since it is stored: a queue held at boot or by the hard
+	// stop would let every forced link out.
+	startNow map[string]bool
+	// siteBench is when a service may be asked about a site again after it
+	// said it has switched that site off (see benchSiteLocked). Under mu.
+	siteBench map[serviceSite]time.Time
 	// stamps hands out the CreatedAt of every link that enters the list. It
 	// has its own lock.
 	stamps stagedAt
@@ -355,6 +375,10 @@ func New(dataDir string) (*App, error) {
 		tasks:      map[string]*core.Task{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
+		fellBack:   map[string]bool{},
+		moving:     map[string]bool{},
+		startNow:   map[string]bool{},
+		siteBench:  map[serviceSite]time.Time{},
 		debrid:     map[string]backend{},
 	}
 	// Every outbound client comes from internal/httpx, so proxy, user agent,

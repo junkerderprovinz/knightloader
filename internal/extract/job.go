@@ -4,12 +4,14 @@ package extract
 // this file"; this half answers "what is this job doing, how far has it got,
 // and what is left on disk when somebody stops it".
 //
-// It reaches into the reader layer through exactly one line: writeFile copies
-// through copyWatched rather than io.Copy. Every byte every format writes goes
-// through that one call, so a tap there is both the progress counter and the
-// only place a cancelled job can stop part-way through a forty-gigabyte volume.
-// Threading a context down through nine reader signatures buys the same thing
-// and edits every format in the package to get it.
+// It reaches into the reader layer in two places. writeFile copies through
+// copyWatched rather than io.Copy: every byte every format writes goes through
+// that one call, so a tap there is both the progress counter and the only place
+// a cancelled job can stop part-way through a forty-gigabyte volume. Threading a
+// context down through nine reader signatures buys the same thing and edits
+// every format in the package to get it. The other place is the password walk,
+// which marks where each attempt begins, so a wrong password's half-written
+// files come off the disk and out of the count before the next one is tried.
 
 import (
 	"context"
@@ -79,6 +81,11 @@ type Progress struct {
 	// Files and Bytes count everything this job has written, at every depth.
 	Files int   `json:"files"`
 	Bytes int64 `json:"bytes"`
+	// Unpacked and Size measure the archive open now: what it has written so
+	// far and what its headers say it holds. Size is 0 when the format does not
+	// say in advance, as a single compressed stream does not.
+	Unpacked int64 `json:"unpacked"`
+	Size     int64 `json:"size"`
 }
 
 // Request is one unpacking as the worker takes it on.
@@ -140,6 +147,15 @@ func copyWatched(f *os.File, r io.Reader) (int64, error) {
 	return io.Copy(f, r)
 }
 
+// expectWatched is the same seam for the size a reader learns from its headers
+// before it writes anything. Each attempt at an archive calls it, so a wrong
+// password that wrote half a file does not count toward the right one.
+func expectWatched(size int64) {
+	if s := bound.Load(); s != nil {
+		s.expect(size)
+	}
+}
+
 // Run unpacks the archive at req.Path, follows the archives inside what it
 // unpacked, and reports what it did.
 //
@@ -165,6 +181,9 @@ func Run(ctx context.Context, req Request) (*Outcome, error) {
 
 	out, err := s.run(ctx, req)
 	if err != nil {
+		// Unthrottled, so the list keeps how far the job got rather than
+		// whatever the last throttled report said.
+		s.emit(true)
 		s.undo()
 		return nil, err
 	}
@@ -198,6 +217,8 @@ type sink struct {
 	depth     int
 	files     int
 	bytes     int64
+	unpacked  int64
+	size      int64
 	written   []string
 	truncated bool
 	owned     []string
@@ -229,6 +250,7 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		seen[key] = true
 
 		if SplitStart(filepath.Base(cur.path)) {
+			s.open(cur.path, cur.depth)
 			joined, parts, err := s.join(cur.path)
 			if err != nil {
 				return nil, err
@@ -265,7 +287,11 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 			}
 			return nil, err
 		}
-		fresh := missing(dest)
+		// Owned from the start, so a job that fails takes the folder back with
+		// the empty subfolders its entries were written into.
+		if missing(dest) {
+			s.own(dest)
+		}
 		s.open(cur.path, cur.depth)
 		mark := s.recorded()
 
@@ -278,9 +304,6 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 			// user pointed at: "no password fits" on its own sends them back to
 			// the outer archive, which opened perfectly well.
 			return nil, fmt.Errorf("%s: %w", filepath.Base(cur.path), err)
-		}
-		if fresh {
-			s.own(dest)
 		}
 		out.Volumes = append(out.Volumes, res.Volumes...)
 		if out.Dir == "" {
@@ -361,6 +384,13 @@ func (s *sink) join(first string) (string, []string, error) {
 	if len(parts) < 2 {
 		return "", nil, fmt.Errorf("extract: %s is one part of a split file and the rest are not here", filepath.Base(first))
 	}
+	var size int64
+	for _, p := range parts {
+		if fi, err := os.Stat(p); err == nil {
+			size += fi.Size()
+		}
+	}
+	s.expect(size)
 
 	target := filepath.Join(dir, stem)
 	// O_EXCL, so a file already sitting under the joined name is a refusal and
@@ -396,8 +426,17 @@ func (s *sink) join(first string) (string, []string, error) {
 func (s *sink) open(archive string, depth int) {
 	s.mu.Lock()
 	s.archive, s.depth = filepath.Base(archive), depth
+	s.unpacked, s.size = 0, 0
 	s.mu.Unlock()
 	s.emit(true)
+}
+
+// expect starts the count for one attempt at the archive open now, against the
+// size its headers announced.
+func (s *sink) expect(size int64) {
+	s.mu.Lock()
+	s.unpacked, s.size = 0, size
+	s.mu.Unlock()
 }
 
 // note records a file this job created and counts it.
@@ -439,6 +478,43 @@ func (s *sink) recordedFrom(mark int) []string {
 	return append([]string(nil), s.written[mark:]...)
 }
 
+// checkpoint is how far a job had got when one attempt at an archive began.
+type checkpoint struct {
+	written, files int
+	bytes          int64
+}
+
+// checkpoint marks where an attempt begins. With no job bound there is no
+// record to mark, and rewind does nothing.
+func (s *sink) checkpoint() checkpoint {
+	if s == nil {
+		return checkpoint{}
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return checkpoint{written: len(s.written), files: s.files, bytes: s.bytes}
+}
+
+// rewind takes back an attempt that failed: the files it wrote come off the
+// disk and out of the count. Files past the record's cap stay where they are,
+// for undo's folder pass.
+func (s *sink) rewind(c checkpoint) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	var gone []string
+	if c.written < len(s.written) {
+		gone = append(gone, s.written[c.written:]...)
+		s.written = s.written[:c.written]
+	}
+	s.files, s.bytes = c.files, c.bytes
+	s.mu.Unlock()
+	for _, f := range gone {
+		_ = os.Remove(f)
+	}
+}
+
 func (s *sink) pipe(f *os.File, r io.Reader) (int64, error) {
 	bp := bufPool.Get().(*[]byte)
 	defer bufPool.Put(bp)
@@ -478,6 +554,7 @@ func (s *sink) copy(f *os.File, r io.Reader) (int64, error) {
 func (s *sink) add(n int64) {
 	s.mu.Lock()
 	s.bytes += n
+	s.unpacked += n
 	s.mu.Unlock()
 }
 
@@ -498,7 +575,14 @@ func (s *sink) emit(force bool) {
 		return
 	}
 	s.lastAt = now
-	p := Progress{Archive: s.archive, Depth: s.depth, Files: s.files, Bytes: s.bytes}
+	p := Progress{
+		Archive:  s.archive,
+		Depth:    s.depth,
+		Files:    s.files,
+		Bytes:    s.bytes,
+		Unpacked: s.unpacked,
+		Size:     s.size,
+	}
 	s.mu.Unlock()
 	// Off the lock: the listener takes locks of its own, and holding this one
 	// across a broadcast would put the whole extraction behind the slowest UI.

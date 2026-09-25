@@ -49,11 +49,10 @@ function useDrawAndStrike(): {
   // The impact keyframe of .kl-egg's strike: 16% of the 540ms swing.
   const IMPACT_MS = 86;
 
-  // Shudders the rail's rows one after another from the impact.
+  // Shudders the rail's rows one after another from the impact, down through
+  // the pages and on through the rows at its foot.
   function shove() {
-    const rail = document.querySelector('[data-nav-rail]');
-    if (!rail) return;
-    [...rail.children].forEach((el, i) => {
+    document.querySelectorAll('[data-nav-rail] > *').forEach((el, i) => {
       window.setTimeout(() => {
         el.classList.add('kl-egg-struck');
         window.setTimeout(() => el.classList.remove('kl-egg-struck'), 400);
@@ -299,7 +298,7 @@ export function Sidebar() {
         {!hideAccounts && <Item to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 
-      <div className={`flex flex-col gap-1 ${narrow ? 'p-2' : 'p-3'}`}>
+      <div data-nav-rail className={`flex flex-col gap-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* The bell opens a panel rather than a route, so it sits down here. */}
         <EventBell hue={nextHue()} />
         {locked && (

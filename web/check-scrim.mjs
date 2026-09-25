@@ -5,9 +5,14 @@
 // and paints no ground of its own. Both of this UI's floating windows, the
 // command palette and the Modal that sixteen call sites open, sat on a
 // hand-written `bg-black/50` instead, a strength the language uses nowhere: it
-// asks for .65 on a dark ground and .55 on a light one, and at .50 the card in
-// front and the page behind sit close enough in value that the eye keeps
-// reading the page, which is what a scrim exists to stop.
+// asks for .72 on a dark ground and .62 on a light one over a blurred page, and
+// at .50 the card in front and the page behind sit close enough in value that
+// the eye keeps reading the page, which is what a scrim exists to stop.
+//
+// The blur is the class's too (GlimStone 2.11.0): `--glim-scrim-blur` through
+// `backdrop-filter`, with the -webkit- spelling Safari still reads, and zero
+// for a system that asks for reduced transparency. A window that paints the
+// darkening without the blur is half of what the language asks for.
 //
 // A paragraph in the stylesheet is read by somebody editing the stylesheet,
 // while the person who types the number is adding a dialog in a component file
@@ -161,6 +166,36 @@ const css = maskComments(readFileSync(cssPath, 'utf8'));
 if (!/\.glim-modal-backdrop\s*(?:,[^{]*)?\{[^}]*background:\s*var\(--glim-scrim\)/.test(css)) {
   problems.push(`index.css: .${BACKDROP} does not spend var(--glim-scrim) -> every scrim above is unpainted`);
 }
+for (const prop of ['backdrop-filter', '-webkit-backdrop-filter']) {
+  const spends = new RegExp(`\\.glim-modal-backdrop\\s*(?:,[^{]*)?\\{[^}]*(?<![\\w-])${prop}:\\s*blur\\(var\\(--glim-scrim-blur\\)\\)`);
+  if (!spends.test(css)) {
+    problems.push(`index.css: .${BACKDROP} sets no ${prop}: blur(var(--glim-scrim-blur)) -> the page behind a window stays sharp`);
+  }
+}
+if (!/--glim-scrim-blur\s*:\s*[1-9]/.test(css)) {
+  problems.push('index.css: --glim-scrim-blur is never given a length -> the blur is zero everywhere');
+}
+if (!/@media\s*\(\s*prefers-reduced-transparency:\s*reduce\s*\)\s*\{[^{}]*\{[^}]*--glim-scrim-blur\s*:\s*0/.test(css)) {
+  problems.push('index.css: no prefers-reduced-transparency rule sets --glim-scrim-blur to 0 -> the blur ignores the system setting');
+}
+
+// Most windows are rendered inside the page they belong to, so the page's
+// wrapper must be neither their containing block nor their backdrop root. Its
+// enter animation ends on the wrapper's resting state, but a fill that holds
+// the last frame keeps it as an effect: the movement as an identity matrix,
+// which turns the wrapper into the box a `fixed inset-0` scrim fills, and the
+// fade as an opacity layer, past which a backdrop filter cannot see. Either
+// way the sidebar and the shell bar stay sharp beside a blurred page.
+for (const found of css.matchAll(/\.glim-page-enter\s*\{([^}]*)\}/g)) {
+  const animation = /animation\s*:([^;}]*)/.exec(found[1]);
+  for (const part of animation ? animation[1].split(',') : []) {
+    if (/\b(?:both|forwards)\b/.test(part)) {
+      problems.push(
+        `index.css:${lineOf(css, found.index)} .glim-page-enter holds the last frame of "${part.trim()}" -> fill backwards, or every window inside a page stops at the page's edge`,
+      );
+    }
+  }
+}
 
 /** The `{ … }` enclosing `at`, with the selector standing in front of it. */
 function block(text, at) {
@@ -225,5 +260,5 @@ if (problems.length) {
 
 console.log(
   `check-scrim: ${files.length} files, ${floats} floating window(s) of ${overlays} full-viewport layer(s) on .${BACKDROP}, ` +
-    `no ground typed by hand, and --glim-scrim answered in all ${themes.length} theme blocks.`,
+    `no ground typed by hand, --glim-scrim answered in all ${themes.length} theme blocks, and the page blurred by --glim-scrim-blur.`,
 );

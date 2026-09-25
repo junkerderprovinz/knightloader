@@ -79,8 +79,9 @@ type importResult struct {
 	// keys (settings.NeverPortable) and keys the document does not carry.
 	Skipped []string `json:"skipped"`
 	// Unknown are keys the document holds that this build's Settings does not
-	// have. encoding/json would drop them silently, and migrate() only runs in
-	// Load, so a renamed key from an old document would otherwise vanish.
+	// have. encoding/json would drop them silently, and PortableDoc.Migrated
+	// rewrites only the keys an import names, so a key renamed since the old
+	// document was written would otherwise vanish.
 	Unknown []string `json:"unknown"`
 	// Incomplete names applied keys whose password did not travel, as codes
 	// (see settings.Secretless).
@@ -155,6 +156,9 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 	// An empty patch writes nothing but still reports what it found.
 	current := a.Settings.Get()
 	if len(patch) > 0 {
+		// A value an older build wrote is read the way a restart reads that
+		// build's own settings file.
+		patch = req.Document.Migrated(patch)
 		// The same checks as PATCH /api/settings, against a preview of the
 		// merge, so the import is no laxer door into the store.
 		preview, err := settings.ApplyPatch(current, patch)

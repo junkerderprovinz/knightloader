@@ -9,6 +9,7 @@ import {
   IconBadge,
   SectionTitle,
   TextInput,
+  UnitNumberInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { Tabs } from '../../components/Tabs';
@@ -24,7 +25,7 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { fetchOptions } from '../../lib/api';
-import { RATE_UNITS, fmtRateValue, joinRate, splitRate, type RateUnit } from '../../lib/format';
+import { RATE_UNITS, fmtRateValue, splitRate } from '../../lib/format';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
@@ -800,7 +801,7 @@ function EntryRow({
 
           {entry.action === 'limit' && (
             <Field label={t('settings.schedule.limit')}>
-              <RateField value={entry.limit ?? 0} onChange={(v) => onChange({ limit: v })} unitLabel={t('queue.limitUnit')} />
+              <UnitNumberInput value={entry.limit ?? 0} units={RATE_UNITS} onValue={(limit) => onChange({ limit })} />
             </Field>
           )}
 
@@ -1179,50 +1180,5 @@ function DayPicker({
         />
       )}
     </FieldGroup>
-  );
-}
-
-/**
- * RateField keeps the typed amount in local state, so switching the unit does
- * not rewrite the number being typed.
- */
-function RateField({
-  value,
-  onChange,
-  unitLabel,
-}: {
-  value: number;
-  onChange: (bytes: number) => void;
-  unitLabel: string;
-}) {
-  const initial = splitRate(value);
-  const [text, setText] = useState(fmtRateValue(initial.value));
-  const [unit, setUnit] = useState<RateUnit>(initial.unit);
-
-  const commit = (nextText: string, nextUnit: RateUnit) => {
-    const bytes = joinRate(Math.max(0, Number(nextText.replace(',', '.')) || 0), nextUnit);
-    const settled = splitRate(bytes);
-    setText(fmtRateValue(settled.value));
-    setUnit(settled.unit);
-    onChange(bytes);
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <TextInput
-        dir="ltr"
-        inputMode="decimal"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => commit(text, unit)}
-      />
-      <Dropdown
-        look="dense"
-        label={unitLabel}
-        value={unit}
-        onChange={(u) => commit(text, u)}
-        options={RATE_UNITS.map((u) => ({ value: u.label, label: u.label }))}
-      />
-    </div>
   );
 }

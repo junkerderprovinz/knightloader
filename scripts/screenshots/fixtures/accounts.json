@@ -1,0 +1,68 @@
+[
+  {
+    "id": "realdebrid",
+    "service": "realdebrid",
+    "account": "",
+    "label": "Household",
+    "enabled": true,
+    "configured": true,
+    "fromEnv": false,
+    "ok": true,
+    "detail": "credential accepted",
+    "hosts": 142,
+    "hostsFetchedAt": "2026-09-24T12:55:00Z",
+    "tier": "premium",
+    "traffic": {
+      "used": 0,
+      "limit": 0,
+      "unlimited": true
+    },
+    "expiry": "2027-02-11T09:00:00Z",
+    "trafficLeft": "∞"
+  },
+  {
+    "id": "alldebrid",
+    "service": "alldebrid",
+    "account": "",
+    "label": "Travel",
+    "enabled": true,
+    "configured": true,
+    "fromEnv": false,
+    "ok": true,
+    "detail": "credential accepted",
+    "hosts": 97,
+    "hostsFetchedAt": "2026-09-24T12:55:00Z",
+    "tier": "premium",
+    "traffic": {
+      "used": 0,
+      "limit": 0,
+      "unlimited": false,
+      "usedPercent": 38,
+      "percentKnown": true,
+      "resetsAt": "2026-09-25T00:00:00Z"
+    },
+    "expiry": "2026-12-03T17:45:00Z",
+    "trafficLeft": "62 %"
+  },
+  {
+    "id": "premiumize",
+    "service": "premiumize",
+    "account": "",
+    "label": "Spare",
+    "enabled": false,
+    "configured": true,
+    "fromEnv": false,
+    "ok": true,
+    "detail": "credential accepted",
+    "hosts": 118,
+    "hostsFetchedAt": "2026-09-24T12:55:00Z",
+    "tier": "premium",
+    "traffic": {
+      "used": 0,
+      "limit": 0,
+      "unlimited": true
+    },
+    "expiry": "2026-11-14T08:00:00Z",
+    "trafficLeft": "∞"
+  }
+]
