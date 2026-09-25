@@ -211,6 +211,13 @@ type Update struct {
 	// pointer so an ordinary update does not overwrite a torrent's readings
 	// with zeros.
 	Torrent *TorrentStats
+	// Remote is a debrid service's progress on a torrent it is still fetching
+	// for this task. Like Note it describes the moment, so every update that
+	// leaves it nil clears it.
+	Remote *RemoteFetch
+	// Job is the job a debrid service holds for the task, sent whenever it
+	// changes. A zero ServiceJob says the task holds none any more.
+	Job *ServiceJob
 	// File is the path the bytes are being written to. It is only set by a
 	// backend that writes on this machine, and it can differ from Name when
 	// the backend had to step around a file that was already there.
@@ -227,6 +234,31 @@ type TorrentStats struct {
 	// Seeding is derived: gopeed's Task.Uploading is set at creation for
 	// every torrent, so seeding means that flag and a finished download.
 	Seeding bool
+}
+
+// RemoteFetch is a debrid service fetching a torrent onto its own servers
+// before any byte of it comes here. Progress runs from 0 to 1.
+type RemoteFetch struct {
+	Progress float64 `json:"progress"`
+	Speed    int64   `json:"speed,omitempty"`
+	Seeds    int     `json:"seeds,omitempty"`
+}
+
+// ServiceJob is the job a debrid service holds for a task while the files come
+// here: a torrent it fetched, or a download imported from the account.
+type ServiceJob struct {
+	// Slot is the account holding the job (resolver.SlotID).
+	Slot string `json:"slot"`
+	ID   string `json:"id"`
+	// Owned says this instance added the job, so it deletes the job there
+	// once the task has no more use for it. A job the account held before is
+	// left alone.
+	Owned bool `json:"owned,omitempty"`
+	// Done counts the files of the job already here.
+	Done int `json:"done,omitempty"`
+	// Partial is where the next file was being written, so a restart can tell
+	// what is left of it from somebody else's file.
+	Partial string `json:"partial,omitempty"`
 }
 
 // ApplyTo writes one reading onto a task, zeros included.
@@ -509,6 +541,14 @@ type Task struct {
 	// TorrentFiles is the multi-file selection. It is persisted, since it is
 	// the user's decision and forgetting it would fetch excluded files.
 	TorrentFiles []TorrentFile `json:"torrentFiles,omitempty"`
+	// Remote is set while a debrid service fetches this torrent for the task.
+	// A service can take hours over a torrent it has not cached, and nothing
+	// arrives here meanwhile. Not persisted.
+	Remote *RemoteFetch `json:"remote,omitempty"`
+	// ServiceJob is the job a debrid service holds for this task. It is
+	// persisted, so a restart carries on with that job and the files already
+	// here rather than adding the torrent a second time.
+	ServiceJob *ServiceJob `json:"serviceJob,omitempty"`
 	// InfoHash and Trackers identify the torrent. They are set once at stage
 	// time and persisted.
 	InfoHash string   `json:"infoHash,omitempty"`

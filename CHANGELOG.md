@@ -157,6 +157,30 @@ submission and for a fixed download.
   pictures. The app watches the instance it has open while it is in front: a
   captcha that came in while it was in the background is announced when it
   returns, unless Android closed it meanwhile. There are no notifications.
+- **Torrents through a debrid service.** TorBox, Real-Debrid, AllDebrid,
+  Premiumize.me and Debrid-Link can fetch magnet links and `.torrent` files in
+  place of the built-in client, the way rdt-client does: the service downloads
+  the torrent, and the files come here over HTTP through the engine. A cached
+  torrent arrives at full speed, with no seeding and no open port. The
+  priority order on the Accounts page decides between a service and the
+  built-in client, a declined torrent moves on to the next of them, and the
+  row shows the service's progress while it fetches. The files ticked by
+  hand, or else the Torrents page's file selection, decide what is fetched
+  there too. A failed file or a restart carries on with the service's copy
+  and the files already here. A finished torrent is deleted on the service
+  unless the Torrents page says to keep it.
+- **Import from the debrid account.** What you add on the website of TorBox,
+  Real-Debrid, AllDebrid, Premiumize.me or Debrid-Link can come into
+  KnightLoader by itself, like rdt-client's automatic import. Each account on
+  the Accounts page has an Import switch, off by default. KnightLoader reads
+  the account's list once a minute and puts each new torrent, and at TorBox
+  and Premiumize.me each web and usenet download too, into the link collector,
+  from where it is fetched off that account instead of being added again.
+  Nothing comes in twice, a restart included, and nothing KnightLoader added
+  itself comes in at all. The services do not say who added a download, so
+  the switch is for an account no other app uses. Removing such a download
+  here deletes it on the service unless the Torrents page keeps downloads
+  there.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the

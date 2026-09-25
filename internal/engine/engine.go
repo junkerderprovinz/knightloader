@@ -254,6 +254,9 @@ type Job struct {
 	Conns   int
 	// Dir is where the file lands; empty means the engine's own folder.
 	Dir string
+	// Name is the file name to write under, for a caller that knows it better
+	// than the server's answer does. Empty takes the server's.
+	Name string
 	// WorkDir is where the bytes are written while they arrive, when the
 	// caller keeps that apart from Dir; empty writes straight into Dir.
 	//
@@ -338,7 +341,7 @@ func (e *Engine) Start(j Job) {
 			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
 			Proxy: requestProxy(j.Route),
 		}
-		opts := &base.Options{Path: j.writeDir(), Extra: &fhttp.OptsExtra{Connections: j.Conns}}
+		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -378,6 +381,9 @@ func (e *Engine) Start(j Job) {
 // the folder that is actually written to.
 func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 	name, _ := metaOf(res)
+	if res != nil && res.Name == "" && j.Name != "" {
+		name = j.Name
+	}
 	if !j.placed() || res == nil {
 		return name, nil
 	}
@@ -387,14 +393,14 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 		// called "movie (2).mkv".
 		return name, placeFolder(j, res, opts)
 	}
-	if len(res.Files) == 0 || res.Files[0].Name == "" {
+	if len(res.Files) == 0 || name == "" {
 		// Nothing named, so nothing to reserve; the library picks the name.
 		return name, nil
 	}
 	// The library joins the file's relative path onto opts.Path.
 	dir := filepath.Join(opts.Path, filepath.FromSlash(res.Files[0].Path))
 	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
-		Handover(filepath.Join(dir, res.Files[0].Name), j.Collision)
+		Handover(filepath.Join(dir, name), j.Collision)
 	if err != nil {
 		return name, err
 	}

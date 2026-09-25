@@ -6,6 +6,23 @@ import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { Text } from './Text';
 
+// The debrid services that fetch torrents, by the resolver id the server sends.
+// Their product names are no words to translate, and the web writes them the
+// same way (web/src/lib/resolverLabels.ts).
+const SERVICE_NAMES: Record<string, string> = {
+  torbox: 'TorBox',
+  realdebrid: 'Real-Debrid',
+  alldebrid: 'AllDebrid',
+  premiumize: 'Premiumize.me',
+  debridlink: 'Debrid-Link',
+};
+
+/** serviceName is the service behind a resolver id such as "realdebrid#work". */
+function serviceName(resolver: string): string {
+  const id = resolver.split('#')[0];
+  return SERVICE_NAMES[id] ?? id;
+}
+
 const STATUS_KEYS: Record<string, TranslationKey> = {
   queued: 'status.queued',
   running: 'status.running',
@@ -77,7 +94,14 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
   // itself on a dark one. The context builds this pair for the flat accent; the
   // rainbow half has no counterpart, so a hue would reach a `color:` undarkened.
   const rowInk = dark ? rowAccent : inkFor(rowAccent);
-  const pct = task.size > 0 ? Math.min(100, Math.round((task.loaded / task.size) * 100)) : null;
+  // Nothing of a torrent comes here while a debrid service fetches it, so the
+  // bar and the percentage show how far the service has got.
+  const remote = task.status === 'running' ? task.remote : undefined;
+  const pct = remote
+    ? Math.min(100, Math.floor(remote.progress * 100))
+    : task.size > 0
+      ? Math.min(100, Math.round((task.loaded / task.size) * 100))
+      : null;
   const statusKey = STATUS_KEYS[task.status];
 
   return (
@@ -119,11 +143,16 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
 
       <View style={styles.footer}>
         <Text style={[styles.meta, { color: c.textMuted }]}>
-          {fmtBytes(task.loaded)}
-          {task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
-          {pct !== null ? ` · ${pct}%` : ''}
+          {remote ? `${pct}%` : fmtBytes(task.loaded)}
+          {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
+          {!remote && pct !== null ? ` · ${pct}%` : ''}
         </Text>
         {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}
+        {remote ? (
+          <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
+            {t('task.remote', { service: serviceName(task.resolver) })}
+          </Text>
+        ) : null}
         {/* The backend's own word for what is happening, when "running" is not
             the whole truth. The web list carries the same note column. */}
         {task.note ? (

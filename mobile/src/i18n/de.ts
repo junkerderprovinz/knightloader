@@ -145,6 +145,7 @@ export const de: Dict = {
   'settings.githubLink': 'Auf GitHub ansehen',
   'task.mode.free': 'Free',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Lädt bei {service}',
   'settings.aboutTitle': 'Über KnightLoader',
   'settings.aboutBody': 'Ein einzelner Ritter, ein Feldzug: ansehnliche quelloffene Werkzeuge, die es in der Form, die ich wollte, nicht gab, gebaut, bis nichts mehr fehlt. Alles kostenlos, ohne Konten, ohne Telemetrie, ohne Werbung, ohne Bezahlstufen. Nirgends ein Sternchen. Nichts Lesbares verlässt je deine eigenen Mauern. An Abenden und Wochenenden geschmiedet, mit Herz und Dickkopf.',
   'settings.accentReset': 'Standard',

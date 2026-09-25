@@ -53,6 +53,7 @@ func (a *App) usenetStateFor() *usenetState {
 			Finished: a.tasksFinished,
 			Failed:   a.usenetJobFailed,
 			Pending:  func(n int) { a.setActivityGauge(ActivityUsenet, n) },
+			Taken:    a.claimUsenetJob,
 		})
 		st.files = usenet.NewFiles(engineHandoff{a.Engine, a}, st.jobs.Service, a.onUpdate)
 		usenetReg[a] = st

@@ -26,6 +26,8 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   no backend at all, a container is recognised and refused, with the missing
   backend named as the reason.
 - **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
+- **Your debrid account**: what you add on the service's own website can come
+  in by itself. See below.
 - **Your own server**: see below.
 - **Sonarr and Radarr**: they hand their grabs over as if KnightLoader were
   qBittorrent or SABnzbd. See below.
@@ -47,6 +49,12 @@ tick yourself wins, and if the selection would leave nothing, every file is
 fetched. A category can have a file selection of its own instead, for example
 a music category where the small files are the album. It applies to every
 torrent filed there, whether you picked the category or a Packagizer rule did.
+
+**Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
+Premiumize.me or Debrid-Link ranks above "Torrent and magnet" on the Accounts
+page, that service fetches the torrent and the files come here over HTTP. The
+file selection counts there as well: Real-Debrid and Debrid-Link are told which
+files to fetch, and from the other services only those files come here.
 
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as
@@ -92,6 +100,43 @@ links either way.
 While an `.nzb` waits for an account or is being fetched, the status strip
 counts it under Usenet. One the service gives up on is listed with the links
 that were not added, together with the service's reason.
+
+## From your debrid account
+
+Add a torrent on your debrid service's website and KnightLoader can pick it up
+from there, as rdt-client does. Switch on **Import** in the account's row on the
+Accounts page. Every account has a switch of its own, so a second account at
+the same service can stay out while the first comes in. TorBox, Real-Debrid,
+AllDebrid, Premiumize.me and Debrid-Link can do this. The other services have
+no list of your downloads to read, and their rows show a dash.
+
+KnightLoader reads the account's list once a minute, well inside every
+service's rate limit. Anything new goes into the link collector like a pasted
+link, so the link filter, the Packagizer and "Start added links immediately"
+treat it as they treat any other. The task keeps the service's own id for the
+download, in a link such as `debrid://realdebrid/ABC123`, so the files are
+fetched from that account and the torrent is never added a second time. From
+TorBox and Premiumize.me, web downloads and usenet downloads come in as well as
+torrents. When a file fails or KnightLoader restarts, the task carries on with
+the files already here.
+
+Only what is added after you switch the import on comes in. What was on the
+account before stays where it is, and so does everything KnightLoader added
+itself, an `.nzb` from the Usenet queue and a torrent from Sonarr included.
+Every download that came in is noted in `debrid_imports.json` in the data
+directory, so a restart does not bring it in twice. Switching the import
+off and on again starts afresh.
+
+The services do not say who added a download. What another app adds with the
+same account, such as rdt-client or a second KnightLoader, comes in as well and
+is deleted there like the rest, so leave the import off for an account another
+app uses.
+
+Once its files are here, the download is deleted on the service, as a torrent
+KnightLoader added itself is. Removing an imported task before it has finished
+deletes it there too, thirty seconds later, so an undo still finds it. A
+restart within those thirty seconds does not stop it. "Keep downloads on the
+debrid service" under Settings, Torrents keeps both on the account.
 
 ## Own servers (FTP, SFTP, WebDAV)
 

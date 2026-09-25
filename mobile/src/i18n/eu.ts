@@ -129,6 +129,7 @@ export const eu: Dict = {
   'settings.githubLink': 'Ikusi GitHub-en',
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'KnightLoader-i buruz',
   'settings.aboutBody': 'Zaldun bakarra, gurutzada bakarra: nahi nuen moduan existitzen ez ziren kode irekiko tresna dotoreak, ezer falta ez den arte eraikiak. Dena doan, konturik gabe, telemetriarik gabe, iragarkirik gabe eta ordainpeko mailarik gabe. Inon ez dago izartxorik. Irakurgai denik ez da inoiz zure harresietatik ateratzen. Arratsaldeetan eta asteburuetan forjatua, bihotzez eta setaz.',
   'settings.accentReset': 'Lehenetsia',

@@ -45,6 +45,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/accounts":          apitoken.ScopeAdmin,
 	"GET /api/accounts/catalogue": apitoken.ScopeAdmin,
 	"POST /api/accounts/enabled":  apitoken.ScopeAdmin,
+	"POST /api/accounts/import":   apitoken.ScopeAdmin,
 	"POST /api/accounts/label":    apitoken.ScopeAdmin,
 	"POST /api/accounts/test":     apitoken.ScopeAdmin,
 	"POST /api/accounts/verify":   apitoken.ScopeAdmin,

@@ -29,6 +29,7 @@ import {
   saveAccountCredential,
   saveResolverPriority,
   setAccountEnabled,
+  setAccountImport,
   testAccount,
   verifyAccountCredential,
 } from '../lib/api';
@@ -149,6 +150,16 @@ export function Accounts() {
     }
   }
 
+  async function onImport(a: Account, on: boolean) {
+    setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, import: on } : x)) ?? cur);
+    try {
+      await setAccountImport(a.service, a.account, on);
+    } catch {
+      toast(t('common.loadFailed'), 'fail');
+      await load();
+    }
+  }
+
   // Confirmed first, since the key cannot be put back.
   async function doRemove(a: Account) {
     setConfirming(null);
@@ -199,6 +210,7 @@ export function Accounts() {
     refreshing,
     onRefresh,
     onToggle,
+    onImport,
     onRemove: (a: Account) => setConfirming(a),
     onEdit,
   };
@@ -334,6 +346,7 @@ interface TableActions {
   refreshing: ReadonlySet<string>;
   onRefresh: (a: Account) => void;
   onToggle: (a: Account, enabled: boolean) => void;
+  onImport: (a: Account, on: boolean) => void;
   onRemove: (a: Account) => void;
   onEdit: (a: Account) => void;
 }
@@ -345,6 +358,7 @@ function AccountsTable({
   refreshing,
   onRefresh,
   onToggle,
+  onImport,
   onRemove,
   onEdit,
 }: TableActions & { rows: Account[]; extra: AccountRow[] }) {
@@ -352,6 +366,7 @@ function AccountsTable({
   return (
     <AccountTable
       label={t('accounts.debrid.title')}
+      importColumn
       rows={[
         ...rows.map((a): AccountRow => {
           const svc = catalogue.get(a.service);
@@ -366,6 +381,7 @@ function AccountsTable({
             expiry: a.expiry,
             traffic: a.traffic,
             onToggle: (v) => onToggle(a, v),
+            importing: a.canImport ? { on: a.import, onChange: (v) => onImport(a, v) } : undefined,
             onEdit: () => onEdit(a),
             // A credential from the container's environment cannot be removed here.
             onRemove: a.fromEnv ? undefined : () => onRemove(a),
@@ -715,12 +731,14 @@ const LOGIN_ROW = 'login:';
 
 /**
  * What a row takes, for the rows whose name does not say it. A debrid
- * service's or torrent's row needs no bubble.
+ * service's row needs no bubble. The torrent row gets one because the debrid
+ * services above it may take its links.
  */
 const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   jd: 'accounts.routing.tip.jd',
   ytdlp: 'accounts.routing.tip.ytdlp',
   direct: 'accounts.routing.tip.direct',
+  torrent: 'accounts.routing.tip.torrent',
 };
 
 function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
@@ -749,7 +767,9 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.routing.orderHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+        <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
+          {t('accounts.routing.priorityTitle')}
+        </SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (

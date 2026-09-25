@@ -129,6 +129,7 @@ export const zh: Dict = {
   'settings.githubLink': '在 GitHub 上查看',
   'task.mode.free': '免费',
   'task.mode.premium': '会员',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': '关于 KnightLoader',
   'settings.aboutBody': '一位骑士，一场远征：我想要的样子本来并不存在，于是做出这些好看的开源工具，一直做到什么都不缺。全部免费，没有账号，没有遥测，没有广告，也没有付费档位。哪里都没有小星号。可读的东西永远不会离开你自己的城墙。在夜晚和周末锻造，带着心气和倔劲。',
   'settings.accentReset': '默认',

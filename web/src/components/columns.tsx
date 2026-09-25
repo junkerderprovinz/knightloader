@@ -18,6 +18,7 @@ import {
   setTaskOptions,
   type Availability,
   type ExtractJob,
+  type RemoteFetch,
   type Task,
 } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
@@ -27,6 +28,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconBolt, IconCheck, IconPin, IconPower, IconRetry, IconStopMark, PriorityGlyph } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
+import { resolverLabel } from '../lib/resolverLabels';
 import { adviceFor } from '../lib/failureAdvice';
 import { FailureAdvice } from './FailureAdvice';
 import { HosterIcon } from './HosterIcon';
@@ -950,6 +952,9 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           {task.note}
         </Tip>
       )}
+      {/* A debrid service fetching a torrent onto its own servers, whose
+          progress the bar shows until the files start coming here. */}
+      {!task.note && task.status === 'running' && task.remote && <RemoteNote task={task} remote={task.remote} t={t} />}
       {/* Why a queued row is not running: the slot count is full, this host is
           at its ceiling, the account behind the only backend that claims the
           link is benched. Without it ten queued rows all say "waiting" and
@@ -994,6 +999,21 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         </Tip>
       )}
     </span>
+  );
+}
+
+function RemoteNote({ task, remote, t }: { task: Task; remote: RemoteFetch; t: Translate }) {
+  // The resolver names an account slot, "realdebrid#work"; the label is the
+  // service's.
+  const service = resolverLabel(task.resolver.split('#')[0], t);
+  const percent = fmtPct(Math.floor(remote.progress * 100));
+  const line = t('task.remote', { service });
+  const hint = [t('task.remoteHint', { service, percent })];
+  if (remote.seeds) hint.push(t('task.remoteSeeds', { n: remote.seeds }));
+  return (
+    <Tip tip={hint.join(' ')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+      {line}
+    </Tip>
   );
 }
 
@@ -1408,15 +1428,20 @@ export const COLUMNS: ColumnDef[] = [
     align: 'start',
     hideable: true,
     compare: (a, b) => pct(a.loaded, a.size, a.status === 'done') - pct(b.loaded, b.size, b.status === 'done'),
-    render: (task) => (
-      <ProgressCell
-        loaded={task.loaded}
-        size={task.size}
-        done={task.status === 'done'}
-        active={task.status !== 'error'}
-        live={task.status === 'running' || task.status === 'extracting'}
-      />
-    ),
+    render: (task) => {
+      // Nothing of a torrent comes here while a debrid service fetches it, so
+      // the bar shows how far the service has got.
+      const remote = task.status === 'running' ? task.remote : undefined;
+      return (
+        <ProgressCell
+          loaded={remote ? remote.progress * 1000 : task.loaded}
+          size={remote ? 1000 : task.size}
+          done={task.status === 'done'}
+          active={task.status !== 'error'}
+          live={task.status === 'running' || task.status === 'extracting'}
+        />
+      );
+    },
     aggregate: (items) => {
       const size = sum(items, (x) => x.size);
       const loaded = sum(items, (x) => x.loaded);

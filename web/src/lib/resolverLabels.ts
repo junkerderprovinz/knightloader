@@ -9,6 +9,8 @@ const PRODUCT_NAMES: Record<string, string> = {
   torbox: 'TorBox',
   alldebrid: 'AllDebrid',
   realdebrid: 'Real-Debrid',
+  premiumize: 'Premiumize.me',
+  debridlink: 'Debrid-Link',
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
 };

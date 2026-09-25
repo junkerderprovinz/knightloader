@@ -30,6 +30,15 @@ func TestTorrentDefaultsMirrorGopeedsOwn(t *testing.T) {
 	}
 }
 
+// A torrent a debrid service fetched is deleted there once its files are
+// here, as rdt-client does by default, so finished jobs do not pile up
+// against the account's limits.
+func TestAFinishedDebridTorrentLeavesTheServiceByDefault(t *testing.T) {
+	if Defaults().Torrent.KeepOnService {
+		t.Error("KeepOnService defaults to true, want finished torrents deleted on the service")
+	}
+}
+
 // Nothing typed into a number field produces a value with no honest meaning.
 // The cases start from arbitrary settings rather than Defaults(), as
 // TestSanitizeKeepsLimitsUsable does, so this holds for any bad document.

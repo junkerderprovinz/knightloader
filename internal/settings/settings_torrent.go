@@ -108,6 +108,12 @@ type Torrent struct {
 	// that announces to one is held back at intake with the reason, like a
 	// link the link filter refuses, and none is ever added as an extra.
 	BannedTrackers []string `json:"bannedTrackers"`
+
+	// KeepOnService leaves on a debrid account what KnightLoader fetched from
+	// it: a torrent once its files are here, and a download imported from the
+	// account also when its task is removed. Off, both are deleted there, so
+	// they do not pile up against the account's limits.
+	KeepOnService bool `json:"keepOnService"`
 }
 
 // TorrentFileRules are the file selection resolver/torrent.FileRules applies

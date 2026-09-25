@@ -27,6 +27,11 @@ type Backend struct {
 
 	onUpdate func(taskID string, u core.Update)
 
+	// Created is told the job id of every web download this backend starts,
+	// as Torrents names it, so the import from the account knows the download
+	// for one of its own.
+	Created func(job string)
+
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
 	link   map[string]string // original hoster link, for resume
@@ -75,6 +80,9 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	if err != nil {
 		b.fail(ctx, taskID, err)
 		return
+	}
+	if b.Created != nil {
+		b.Created(webJob(id))
 	}
 	b.mu.Lock()
 	_, live := b.link[taskID]

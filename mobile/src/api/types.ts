@@ -22,6 +22,9 @@ export interface Task {
   /** What the backend is doing right now for a task that is running but not
    *  moving bytes: "Captcha recognition", "Waiting for reconnect". */
   note?: string;
+  /** A debrid service's progress on a torrent it is still fetching onto its
+   *  own servers, before any of it comes here. Progress runs from 0 to 1. */
+  remote?: { progress: number; speed?: number; seeds?: number };
   size: number;
   loaded: number;
   speed: number;

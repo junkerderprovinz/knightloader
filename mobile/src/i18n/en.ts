@@ -146,6 +146,7 @@ export const en = {
   'settings.githubLink': 'View on GitHub',
   'task.mode.free': 'Free',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'About KnightLoader',
   'settings.aboutBody': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.accentReset': 'Default',

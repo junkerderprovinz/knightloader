@@ -56,11 +56,14 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		CreatedAt:    now,
 		TorrentFiles: files,
 	}
-	// Not a.Registry.For(uri) and Resolve: resolver.Result carries no file list
-	// to compute a selection-aware size from. The registry still holds
-	// torrent.Resolver for pasted magnets and re-resolving after a restart.
+	// Not Resolve: resolver.Result carries no file list to compute a
+	// selection-aware size from. The row still names the backend the priority
+	// card puts first, which may be a debrid service.
 	res := torrent.Resolver{}
 	t.Resolver = res.Info().ID
+	if pick := a.stagingResolverFor(uri); pick != nil {
+		t.Resolver = pick.Info().ID
+	}
 	if md, err := res.Describe(uri); err != nil {
 		t.Error = err.Error()
 		t.Reason = classify(failure{err: err})

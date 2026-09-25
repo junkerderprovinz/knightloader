@@ -129,6 +129,7 @@ export const he: Dict = {
   'settings.githubLink': 'צפייה ב-GitHub',
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'על KnightLoader',
   'settings.aboutBody': 'אביר אחד, מסע צלב אחד: כלים נאים בקוד פתוח שלא היו קיימים בצורה שרציתי, נבנים עד שלא חסר דבר. הכול בחינם, בלי חשבונות, בלי טלמטריה, בלי פרסומות ובלי מסלולים בתשלום. שום כוכבית בשום מקום. שום דבר קריא לא עוזב אף פעם את החומות שלך. מחושל בערבים ובסופי שבוע, עם לב ועקשנות.',
   'settings.accentReset': 'ברירת מחדל',

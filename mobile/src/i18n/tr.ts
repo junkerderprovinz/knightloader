@@ -129,6 +129,7 @@ export const tr: Dict = {
   'settings.githubLink': "GitHub'da görüntüle",
   'task.mode.free': 'Ücretsiz',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'KnightLoader hakkında',
   'settings.aboutBody': 'Tek şövalye, tek sefer: istediğim biçimde var olmayan, düzgün görünen açık kaynak araçlar, hiçbir şey eksik kalmayana kadar inşa ediliyor. Hepsi ücretsiz, hesap yok, telemetri yok, reklam yok, ücretli katman yok. Hiçbir yerde yıldız işareti yok. Okunabilir hiçbir şey kendi duvarlarından dışarı çıkmaz. Akşamları ve hafta sonları, yürekle ve inatla dövüldü.',
   'settings.accentReset': 'Varsayılan',

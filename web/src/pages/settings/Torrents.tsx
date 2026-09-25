@@ -21,10 +21,10 @@ import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
- * DHT/PEX, the file selection and the trackers. settings.Torrent is a flat
- * group of fields, so the page uses the shared draft like Reconnect.tsx.
- * lib/api.ts's Settings does not name `torrent`, so readTorrent casts the way
- * readReconnect does.
+ * DHT/PEX, the file selection, the trackers, and whether a debrid service
+ * keeps what it fetched. settings.Torrent is a flat group of fields, so the
+ * page uses the shared draft like Reconnect.tsx. lib/api.ts's Settings does
+ * not name `torrent`, so readTorrent casts the way readReconnect does.
  */
 
 interface TorrentSettings {
@@ -41,6 +41,7 @@ interface TorrentSettings {
   extraTrackers: string[] | null;
   trackerListUrl: string;
   bannedTrackers: string[] | null;
+  keepOnService: boolean;
 }
 
 // For an older server that sends no `torrent`; mirrors settings.defaultTorrent().
@@ -57,6 +58,7 @@ const DEFAULTS: TorrentSettings = {
   extraTrackers: [],
   trackerListUrl: '',
   bannedTrackers: [],
+  keepOnService: false,
 };
 
 const KIB = 1024;
@@ -212,6 +214,16 @@ export function Torrents() {
           hint={t('settings.torrents.bannedTrackersHint')}
           refusal="torrent.bannedTrackers"
           onLines={(bannedTrackers) => write({ bannedTrackers })}
+        />
+      </Card>
+
+      <Card hue={6} className="flex flex-col gap-4">
+        <SectionTitle hint={t('settings.torrents.debridHint')}>{t('settings.torrents.debridTitle')}</SectionTitle>
+        <ToggleRow
+          checked={tr.keepOnService}
+          onChange={(v) => write({ keepOnService: v })}
+          label={t('settings.torrents.keepOnService')}
+          hint={t('settings.torrents.keepOnServiceHint')}
         />
       </Card>
     </div>

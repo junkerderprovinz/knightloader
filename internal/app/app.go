@@ -369,6 +369,15 @@ type App struct {
 	// mediaToolsState describes yt-dlp and ffmpeg on this machine
 	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
+	// torrentFiles routes the engine's reports on the files of a torrent a
+	// debrid service fetched (app_debridtorrents.go).
+	torrentFiles torrentParts
+	// serviceRuns holds what each account's torrent backend is fetching, so a
+	// rewire's new backend carries on with it (app_debridtorrents.go).
+	serviceRuns serviceRuns
+	// imports follows the debrid accounts for what is added to them outside
+	// this instance (app_debridimport.go).
+	imports accountImports
 }
 
 func New(dataDir string) (*App, error) {
@@ -419,7 +428,7 @@ func New(dataDir string) (*App, error) {
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
-	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
+	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.engineUpdate)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -562,6 +571,7 @@ func New(dataDir string) (*App, error) {
 			requeue = append(requeue, t.ID)
 		}
 		a.tasks[t.ID] = t
+		a.restoreServiceJob(t)
 		// Only live tasks are filed: pasting a finished or failed download again
 		// is a second attempt, not a duplicate.
 		if t.Status != core.StatusDone && t.Status != core.StatusError {
@@ -603,6 +613,8 @@ func New(dataDir string) (*App, error) {
 	// hands links over the moment it starts, and an unseeded set would let a
 	// listed link in twice.
 	a.applyFeeds(cfg.Get())
+	// The same holds for the import from the debrid accounts.
+	a.startAccountImports()
 	// Targets may fire on queue.idle, which is reported within two seconds.
 	a.applyEventTargets(cfg.Get())
 	a.applyEventPrograms(cfg.Get())
