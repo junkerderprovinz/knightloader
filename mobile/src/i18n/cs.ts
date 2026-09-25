@@ -129,7 +129,7 @@ export const cs: Dict = {
   'settings.githubLink': 'Zobrazit na GitHubu',
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Stahuje se ve službě {service}',
   'settings.aboutTitle': 'O KnightLoaderu',
   'settings.aboutBody': 'Jeden rytíř, jedna výprava: pěkné open source nástroje, které v podobě, jakou jsem chtěl, neexistovaly, stavěné, dokud nic nechybí. Všechno zdarma, bez účtů, bez telemetrie, bez reklam a bez placených verzí. Nikde žádná hvězdička. Nic čitelného nikdy neopustí tvoje vlastní zdi. Kováno po večerech a o víkendech, se srdcem a tvrdohlavostí.',
   'settings.accentReset': 'Výchozí',

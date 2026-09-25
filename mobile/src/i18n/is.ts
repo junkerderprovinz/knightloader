@@ -129,7 +129,7 @@ export const is: Dict = {
   'settings.githubLink': 'Skoða á GitHub',
   'task.mode.free': 'Ókeypis',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Sækir hjá {service}',
   'settings.aboutTitle': 'Um KnightLoader',
   'settings.aboutBody': 'Einn riddari, ein krossferð: falleg opin verkfæri sem voru ekki til í þeirri mynd sem ég vildi, smíðuð þar til ekkert vantar. Allt ókeypis, án aðganga, án fjarmælinga, án auglýsinga og án greiddra þrepa. Engin stjarna neins staðar. Ekkert læsilegt fer nokkurn tíma út fyrir þína eigin múra. Smíðað á kvöldin og um helgar, með hjarta og þrjósku.',
   'settings.accentReset': 'Sjálfgefið',

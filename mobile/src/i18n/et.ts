@@ -129,7 +129,7 @@ export const et: Dict = {
   'settings.githubLink': 'Vaata GitHubis',
   'task.mode.free': 'Tasuta',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Tuuakse teenuses {service}',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',
   'settings.aboutBody': 'Üks rüütel, üks ristisõda: korralikud avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu tahtsin, ei olnud, ehitatud seni, kuni midagi puudu ei ole. Kõik tasuta, ilma kontodeta, ilma telemeetriata, ilma reklaamideta ja ilma tasuliste tasemeteta. Mitte kusagil tärnikest. Miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.',
   'settings.accentReset': 'Vaikimisi',

@@ -129,7 +129,7 @@ export const fi: Dict = {
   'settings.githubLink': 'Näytä GitHubissa',
   'task.mode.free': 'Ilmainen',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Haetaan palvelussa {service}',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',
   'settings.aboutBody': 'Yksi ritari, yksi ristiretki: siistejä avoimen lähdekoodin työkaluja, joita ei ollut siinä muodossa kuin halusin, rakennettuna kunnes mitään ei puutu. Kaikki ilmaista, ilman tilejä, ilman telemetriaa, ilman mainoksia ja ilman maksullisia tasoja. Ei tähteä missään. Mikään luettava ei koskaan poistu omien muuriesi sisältä. Taottu iltaisin ja viikonloppuisin, sydämellä ja itsepäisyydellä.',
   'settings.accentReset': 'Oletus',

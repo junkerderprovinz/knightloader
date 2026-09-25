@@ -129,7 +129,7 @@ export const fa: Dict = {
   'settings.githubLink': 'مشاهده در GitHub',
   'task.mode.free': 'رایگان',
   'task.mode.premium': 'ویژه',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'در حال دانلود در {service}',
   'settings.aboutTitle': 'درباره KnightLoader',
   'settings.aboutBody': 'یک شوالیه، یک لشکرکشی: ابزارهای متن‌باز خوش‌ساخت که در شکلی که می‌خواستم وجود نداشتند و ساخته می‌شوند تا چیزی کم نماند. همه‌چیز رایگان، بدون حساب کاربری، بدون تله‌متری، بدون تبلیغات و بدون نسخهٔ پولی. هیچ ستاره‌ای در هیچ‌کجا. هیچ چیز خواندنی هرگز از دیوارهای خودت بیرون نمی‌رود. در شب‌ها و آخر هفته‌ها ساخته شده، با دل و یک‌دندگی.',
   'settings.accentReset': 'پیش‌فرض',

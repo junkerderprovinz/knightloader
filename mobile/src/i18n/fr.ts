@@ -129,7 +129,7 @@ export const fr: Dict = {
   'settings.githubLink': 'Voir sur GitHub',
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
-  'task.remote': 'Fetching on {service}',
+  'task.remote': 'Récupération chez {service}',
   'settings.aboutTitle': 'À propos de KnightLoader',
   'settings.aboutBody': "Un seul chevalier, une croisade : des outils open source soignés qui n'existaient pas sous la forme que je voulais, construits jusqu'à ce que plus rien ne manque. Tout est gratuit, sans comptes, sans télémétrie, sans publicité et sans formule payante. Aucun astérisque nulle part. Rien de lisible ne quitte jamais tes propres murs. Forgé le soir et le week-end, avec du cœur et de l'entêtement.",
   'settings.accentReset': 'Par défaut',
