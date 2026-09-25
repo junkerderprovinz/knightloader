@@ -165,10 +165,13 @@ func TestTunnelClosesAServerThatGoesSilent(t *testing.T) {
 	}
 }
 
-// Bytes the limit holds back are not silence. Here every read waits longer for
-// its allowance than the idle timeout, and the tunnel still carries it all.
+// Bytes the limit holds back are not silence. Here every read after the first
+// burst waits two seconds for its allowance, twice the idle timeout, and the
+// tunnel still carries it all. The timeout stays well above the pauses a busy
+// CI runner puts between arming a deadline and reading, since a deadline that
+// has already passed fails the read however much data is waiting.
 func TestTunnelKeepsAConnectionTheLimitHoldsBack(t *testing.T) {
-	const size = 64 * 1024
+	const size = 48 * 1024
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -185,15 +188,15 @@ func TestTunnelKeepsAConnectionTheLimitHoldsBack(t *testing.T) {
 	}()
 
 	lim := throttle.New()
-	lim.Set(16 * 1024)
-	px, err := start(lim, 300*time.Millisecond)
+	lim.Set(4 * 1024)
+	px, err := start(lim, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer px.Close()
 
 	c := connectVia(t, px.Addr(), ln.Addr().String())
-	_ = c.SetReadDeadline(time.Now().Add(10 * time.Second))
+	_ = c.SetReadDeadline(time.Now().Add(30 * time.Second))
 	n, err := io.ReadFull(c, make([]byte, size))
 	if err != nil {
 		t.Fatalf("the tunnel ended after %d of %d bytes: %v", n, size, err)
