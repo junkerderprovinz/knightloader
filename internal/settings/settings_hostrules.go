@@ -8,6 +8,7 @@ package settings
 // Task.Chunks carry. An empty table therefore changes nothing.
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -96,11 +97,21 @@ type RetryPolicy struct {
 
 // HostRule is everything one host pattern may differ in.
 //
-// One table rather than three keyed by the same host: connections, chunk count
-// and retry policy all answer what a given hoster tolerates, and somebody who
-// has just discovered that a host allows two connections and blocks for an hour
-// writes that down in one place.
+// One table rather than one per field keyed by the same host: connections,
+// chunk count, retry policy and the service that fetches the links all answer
+// what a given hoster needs, and somebody who has just discovered that a host
+// allows two connections and blocks for an hour writes that down in one place.
 type HostRule struct {
+	// Prefer is the service asked first for this host's links, named the way
+	// ResolverOrder names one ("alldebrid", "jd"). Empty leaves the order to
+	// ResolverOrder. A preferred service that cannot take a link, or whose
+	// account is benched, is passed over for the next one in the ordinary
+	// order, never for one Exclude names.
+	Prefer string `json:"prefer,omitempty"`
+	// Exclude names the services never used for this host, wherever
+	// ResolverOrder ranks them. A task pinned to one still goes there: the pin
+	// is a decision about one download, this a default for the host.
+	Exclude []string `json:"exclude,omitempty"`
 	// MaxPerHost is this host's own simultaneous-download ceiling. Zero takes
 	// the global MaxPerHost.
 	MaxPerHost int `json:"maxPerHost,omitempty"`
@@ -249,6 +260,13 @@ func sanitizeHostRules(n Settings) Settings {
 			rule.Chunks = rules.MaxChunks
 		}
 		rule.Retry = sanitizeRetryRule(rule.Retry)
+		rule.Prefer = strings.ToLower(strings.TrimSpace(rule.Prefer))
+		rule.Exclude = cleanIDList(rule.Exclude)
+		if slices.Contains(rule.Exclude, rule.Prefer) {
+			// A row asking for a service first and never at once promises one
+			// of the two falsely, and "never" is the one somebody relies on.
+			rule.Prefer = ""
+		}
 		out[raw] = rule
 	}
 	n.HostRules = out

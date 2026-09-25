@@ -78,18 +78,21 @@ func (a *App) routableForLocked(resolverID, url string) bool {
 // hasUnroutableMatchLocked reports whether the task's link matches at least
 // one resolver still open to it (see chainFromLocked) but every such match is
 // currently unroutable. dispatchLocked then keeps the task queued instead of
-// failing it with "no resolver matches".
+// failing it with "no resolver matches". A backend premium only keeps the
+// task off is not open to it.
 func (a *App) hasUnroutableMatchLocked(t *core.Task) bool {
-	chain := a.chainFromLocked(t, rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder))
-	if len(chain) == 0 {
-		return false
-	}
-	for _, res := range chain {
-		if a.routableForLocked(res.Info().ID, t.URL) {
+	benched := false
+	for _, res := range a.chainFromLocked(t, a.chainFor(t)) {
+		id := res.Info().ID
+		if a.freeRefusedLocked(t, id) {
+			continue
+		}
+		if a.routableForLocked(id, t.URL) {
 			return false
 		}
+		benched = true
 	}
-	return true
+	return benched
 }
 
 // serviceSite is one service at one site. A service switches a site off for

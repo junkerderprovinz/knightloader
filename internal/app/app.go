@@ -309,11 +309,12 @@ type App struct {
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
 	// fellBack holds the tasks a backend has handed down the chain in this
-	// process. Their recorded backend is where the chain led rather than an
-	// earlier pick, so dispatch keeps it and never goes back above it (see
-	// rerankLocked and chainFromLocked). It is not stored: after a restart
-	// the backend that refused is asked once more.
-	fellBack map[string]bool
+	// process, each with the backends ranked above where the chain led. Their
+	// recorded backend is where the chain led rather than an earlier pick, so
+	// dispatch keeps it and never goes back to those (see rerankLocked and
+	// chainFromLocked). A backend wired since is not among them. It is not
+	// stored: after a restart the backend that refused is asked once more.
+	fellBack map[string]map[string]bool
 	// moving holds the tasks being taken off their old backend, by
 	// PinResolver or by a fallback down the chain (see handOnLocked).
 	// Dispatch leaves them where they are until that backend has let go, so
@@ -375,7 +376,7 @@ func New(dataDir string) (*App, error) {
 		tasks:      map[string]*core.Task{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
-		fellBack:   map[string]bool{},
+		fellBack:   map[string]map[string]bool{},
 		moving:     map[string]bool{},
 		startNow:   map[string]bool{},
 		siteBench:  map[serviceSite]time.Time{},
@@ -968,6 +969,9 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
+	// Premium only and the host rules decide what the collector's links would
+	// wait for once started.
+	a.refreshPremiumHolds()
 	// Both preset editors save through here, so the collector follows either
 	// of them at once.
 	a.applyVariantPresets()

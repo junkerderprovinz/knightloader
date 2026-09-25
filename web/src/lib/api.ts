@@ -146,10 +146,12 @@ export interface Task {
   reason?: Reason;
   /**
    * Why a queued task has not started. Absent means nothing is holding it
-   * back. The server recomputes it on every dispatch pass. Callers fall back
-   * for values a newer server may add.
+   * back. The server recomputes it on every dispatch pass. A collected link
+   * can carry 'premium' too, for what starting it would run into, which the
+   * server updates whenever an account or the settings change. Callers fall
+   * back for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.
@@ -255,6 +257,11 @@ export interface HostRule {
   chunks?: number;
   /** Absent rather than `{}` when nothing is set. */
   retry?: RetryRule;
+  /** The service asked first for this host, as ResolverOrder names it.
+   *  Absent is Automatic. */
+  prefer?: string;
+  /** Services never used for this host. A pinned task still goes to its pin. */
+  exclude?: string[];
 }
 
 /**
@@ -281,6 +288,8 @@ export interface Category {
   /** The media hook called when a package in this drawer finishes. An unknown
    *  id is refused on save. */
   notify?: string;
+  /** This drawer's premium only switch; absent follows the instance's. */
+  premiumOnly?: boolean;
 }
 
 export interface Settings {
@@ -535,6 +544,10 @@ export interface Settings {
   captchaSolverOnlyUnwatched: boolean;
   /** Seconds, 10 to 600. */
   captchaSolverWait: number;
+
+  /** Holds a link whose only way down is a free download until an account
+   *  can fetch it. A category may say otherwise. */
+  premiumOnly: boolean;
 
   /** What happens after a cancellable countdown once the queue runs dry. The
    *  live countdown comes from fetchIdleAction. */

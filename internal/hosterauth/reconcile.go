@@ -11,9 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
@@ -157,9 +159,21 @@ type Reconciler struct {
 	// means on.
 	Off func() bool
 
+	// Reconciled is called after a pass that changed which hosts JD fetches on
+	// a login and which in free mode: a login confirmed or lost, or JD's hoster
+	// list read for the first time or changed. nil calls nothing.
+	Reconciled func()
+
 	mu        sync.Mutex
 	states    map[string]LoginState
 	firstFail map[string]time.Time // host -> when Reconcile first saw it present but invalid
+	// active and hosters are what the last pass handed to routing, so a pass
+	// that hands over the same again calls no Reconciled.
+	active  map[string]bool
+	hosters []string
+	// listed is not under mu, since dispatch reads it while holding the app's
+	// lock.
+	listed atomic.Bool
 }
 
 // NewReconciler builds a Reconciler against the app's shared credential store
@@ -298,8 +312,8 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 	}
 	jd := r.newJD(base)
 	if r.Off != nil && r.Off() {
-		if hosts, err := jd.listPremiumHosters(ctx); err == nil {
-			jdresolver.SetKnownHosts(hosts)
+		if hosts, err := jd.listPremiumHosters(ctx); err == nil && r.setHosters(hosts) {
+			r.reconciled()
 		}
 		return Plan{}, nil
 	}
@@ -327,9 +341,7 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 			log.Printf("hosterauth: removing %d stale JD account(s) failed: %v", len(p.Remove), err)
 		}
 	}
-	for host, st := range p.States {
-		jdresolver.SetHostActive(host, st.Status == StatusActive)
-	}
+	changed := r.setActive(p.States)
 
 	// The hosts JD has a plugin for, pushed on the same pass for a related
 	// purpose: JD can fetch those in free mode (the wait, the countdown, the
@@ -340,10 +352,57 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 	// applied, and keeping the last routing hints beats discarding them.
 	if hosts, err := jd.listPremiumHosters(ctx); err != nil {
 		log.Printf("hosterauth: could not read JD's hoster list (%v); keeping the last routing hints", err)
-	} else {
-		jdresolver.SetKnownHosts(hosts)
+	} else if r.setHosters(hosts) {
+		changed = true
+	}
+	if changed {
+		r.reconciled()
 	}
 	return p, nil
+}
+
+// setActive hands the logins JD confirmed to routing (jd.SetHostActive) and
+// reports whether they differ from the last pass's.
+func (r *Reconciler) setActive(states map[string]LoginState) bool {
+	active := map[string]bool{}
+	for host, st := range states {
+		on := st.Status == StatusActive
+		jdresolver.SetHostActive(host, on)
+		if on {
+			active[hostalias.Canonical(host)] = true
+		}
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	changed := !maps.Equal(active, r.active)
+	r.active = active
+	return changed
+}
+
+// setHosters hands JD's hoster list to routing (jd.SetKnownHosts) and reports
+// whether it differs from the last one. The first list is a change even when
+// it is empty, since it is the first word JD has said.
+func (r *Reconciler) setHosters(hosts []string) bool {
+	jdresolver.SetKnownHosts(hosts)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	changed := !r.listed.Load() || !slices.Equal(hosts, r.hosters)
+	r.hosters = hosts
+	r.listed.Store(true)
+	return changed
+}
+
+func (r *Reconciler) reconciled() {
+	if r.Reconciled != nil {
+		r.Reconciled()
+	}
+}
+
+// Listed reports whether a pass has read JD's hoster list since start. Until
+// one has, jd.HostKnown and jd.HostActive answer false for every host, which
+// says nothing about what JD would do with it.
+func (r *Reconciler) Listed() bool {
+	return r.listed.Load()
 }
 
 // describeAccount folds what JD says about an account into the row: the plan,

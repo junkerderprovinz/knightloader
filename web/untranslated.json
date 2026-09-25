@@ -40,7 +40,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "bg": [
       "settings.access.tokens.rights",
@@ -81,7 +90,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ca": [
       "settings.access.tokens.rights",
@@ -122,7 +140,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "cs": [
       "settings.access.tokens.rights",
@@ -163,7 +190,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "da": [
       "settings.access.tokens.rights",
@@ -204,7 +240,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "el": [
       "settings.access.tokens.rights",
@@ -245,7 +290,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "es": [
       "settings.access.tokens.rights",
@@ -286,7 +340,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "et": [
       "settings.access.tokens.rights",
@@ -327,7 +390,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "eu": [
       "settings.access.tokens.rights",
@@ -368,7 +440,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "fa": [
       "settings.access.tokens.rights",
@@ -409,7 +490,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "fi": [
       "settings.access.tokens.rights",
@@ -450,7 +540,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "fr": [
       "settings.access.tokens.rights",
@@ -491,7 +590,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "gl": [
       "settings.access.tokens.rights",
@@ -532,7 +640,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "he": [
       "settings.access.tokens.rights",
@@ -573,7 +690,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "hi": [
       "settings.access.tokens.rights",
@@ -614,7 +740,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "hr": [
       "settings.access.tokens.rights",
@@ -655,7 +790,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "hu": [
       "settings.access.tokens.rights",
@@ -696,7 +840,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "id": [
       "settings.access.tokens.rights",
@@ -737,7 +890,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "is": [
       "settings.access.tokens.rights",
@@ -778,7 +940,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "it": [
       "settings.access.tokens.rights",
@@ -819,7 +990,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ja": [
       "settings.access.tokens.rights",
@@ -860,7 +1040,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ko": [
       "settings.access.tokens.rights",
@@ -901,7 +1090,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "lt": [
       "settings.access.tokens.rights",
@@ -942,7 +1140,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "lv": [
       "settings.access.tokens.rights",
@@ -983,7 +1190,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ms": [
       "settings.access.tokens.rights",
@@ -1024,7 +1240,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "nl": [
       "settings.access.tokens.rights",
@@ -1065,7 +1290,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "no": [
       "settings.access.tokens.rights",
@@ -1106,7 +1340,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "pl": [
       "settings.access.tokens.rights",
@@ -1147,7 +1390,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "pt": [
       "settings.access.tokens.rights",
@@ -1188,7 +1440,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ro": [
       "settings.access.tokens.rights",
@@ -1229,7 +1490,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "ru": [
       "settings.access.tokens.rights",
@@ -1270,7 +1540,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "sk": [
       "settings.access.tokens.rights",
@@ -1311,7 +1590,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "sl": [
       "settings.access.tokens.rights",
@@ -1352,7 +1640,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "sr": [
       "settings.access.tokens.rights",
@@ -1393,7 +1690,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "sv": [
       "settings.access.tokens.rights",
@@ -1434,7 +1740,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "th": [
       "settings.access.tokens.rights",
@@ -1475,7 +1790,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "tr": [
       "settings.access.tokens.rights",
@@ -1516,7 +1840,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "uk": [
       "settings.access.tokens.rights",
@@ -1557,7 +1890,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "vi": [
       "settings.access.tokens.rights",
@@ -1598,7 +1940,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ],
     "zh": [
       "settings.access.tokens.rights",
@@ -1639,7 +1990,16 @@
       "settings.captcha.waitHint",
       "captcha.solverStoppedTaken",
       "captcha.solverNotPassedOn",
-      "captcha.solverGaveUp"
+      "captcha.solverGaveUp",
+      "settings.accounts.freeTitle",
+      "settings.accounts.premiumOnly",
+      "settings.accounts.premiumOnlyHint",
+      "settings.categories.premiumOnly",
+      "settings.categories.premiumOnlyHint",
+      "settings.hostRules.preferHint",
+      "settings.hostRules.backends",
+      "settings.hostRules.backendsHint",
+      "task.waiting.premium"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

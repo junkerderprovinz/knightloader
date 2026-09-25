@@ -1,21 +1,31 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
   Field,
+  FieldGroup,
   IconBadge,
   NumberInput,
   SectionTitle,
   TextInput,
   ToggleRow,
 } from '../../../components/ui';
+import { Dropdown, type DropdownOption } from '../../../components/Dropdown';
 import { IconBolt, IconDownloads, IconPlus, IconRetry, IconTrash, IconWarning } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
-import type { HostRule, RetryRule } from '../../../lib/api';
+import {
+  fetchAccountCatalogue,
+  fetchResolverPriority,
+  type HostRule,
+  type ResolverInfo,
+  type RetryRule,
+} from '../../../lib/api';
+import { resolverLabel } from '../../../lib/resolverLabels';
 import { useDraft } from '../context';
 
 // Per-host exceptions to the global counts: how many downloads one hoster may
-// have open, how many connections each gets, and how a failure is retried.
+// have open, how many connections each gets, how a failure is retried, and
+// which service fetches its links.
 //
 // settings.hostRules is a map keyed by the host pattern, so a row is written
 // only on blur and only with a name (sanitizeHostRules drops a blank one), and
@@ -62,9 +72,45 @@ const freshId = () => `p${(pendingCounter++).toString(36)}`;
 // anything somebody types.
 const storedId = (key: string) => `k:${key}`;
 
+/** The id prefix of a hoster login's row on the priority card (app.loginRowID). */
+const LOGIN_ROW = 'login:';
+
+/**
+ * useServices lists what the priority card on the Accounts page orders, named
+ * the way the card names it, for a rule to prefer or leave out. A hoster login
+ * has a row there but is no service of its own: JDownloader fetches through
+ * it. Null until the card's rows are in.
+ */
+function useServices(): DropdownOption[] | null {
+  const { t } = useT();
+  const [rows, setRows] = useState<ResolverInfo[] | null>(null);
+  const [labels, setLabels] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let live = true;
+    void fetchResolverPriority().then(
+      (p) => live && setRows(p),
+      () => live && setRows([]),
+    );
+    // Without the catalogue a debrid service falls back to resolverLabel,
+    // which names the common ones and shows the id for the rest.
+    void fetchAccountCatalogue().then(
+      (c) => live && setLabels(new Map(c.map((s) => [s.id, s.label]))),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (rows === null) return null;
+  return rows
+    .filter((r) => !r.id.startsWith(LOGIN_ROW))
+    .map((r) => ({ value: r.id, label: labels.get(r.id) ?? resolverLabel(r.id, t) }));
+}
+
 export function HostRulesCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const services = useServices();
 
   // An older settings.json sends null.
   const rules = cfg.hostRules ?? {};
@@ -133,6 +179,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
               key={storedId(key)}
               host={key}
               rule={rules[key] ?? {}}
+              services={services}
               index={i}
               last={i === rowCount - 1}
               open={openRow === storedId(key)}
@@ -157,6 +204,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
               key={row.id}
               host={row.host}
               rule={row.rule}
+              services={services}
               index={keys.length + i}
               last={keys.length + i === rowCount - 1}
               open={openRow === row.id}
@@ -182,13 +230,14 @@ export function HostRulesCard({ hue }: { hue: number }) {
 }
 
 /**
- * HostRuleRow shows one host, collapsed to its name and numbers, expanded to the
- * six fields. The typed host reaches the draft only on blur, or every prefix
+ * HostRuleRow shows one host, collapsed to its name and numbers, expanded to
+ * every field. The typed host reaches the draft only on blur, or every prefix
  * would become a map key.
  */
 function HostRuleRow({
   host,
   rule,
+  services,
   index,
   last,
   open,
@@ -199,6 +248,7 @@ function HostRuleRow({
 }: {
   host: string;
   rule: HostRule;
+  services: DropdownOption[] | null;
   index: number;
   last: boolean;
   open: boolean;
@@ -210,6 +260,37 @@ function HostRuleRow({
   const { t } = useT();
   const [text, setText] = useState(host);
   const [duplicate, setDuplicate] = useState(false);
+
+  const prefer = rule.prefer ?? '';
+  const exclude = rule.exclude ?? [];
+  // A service the rule names that is not registered right now, such as
+  // JDownloader while it is unreachable, still shows under its own name.
+  const known = services ?? [];
+  const named = [prefer, ...exclude]
+    .filter((id) => id !== '' && !known.some((s) => s.value === id))
+    .map((id) => ({ value: id, label: resolverLabel(id, t) }));
+  const all = [...known, ...named];
+  const labelOf = (id: string) => all.find((s) => s.value === id)?.label ?? id;
+  // The server drops a preference for a service the row also excludes, so
+  // neither list offers what the other has taken.
+  const auto = { value: '', label: t('props.backendAuto') };
+  const preferable = all.filter((s) => !exclude.includes(s.value));
+  const switchable = all.filter((s) => s.value !== prefer);
+
+  const setPrefer = (id: string) => {
+    const next = { ...rule };
+    if (id === '') delete next.prefer;
+    else next.prefer = id;
+    onChange(next);
+  };
+  const setUsed = (id: string, used: boolean) => {
+    const rest = exclude.filter((x) => x !== id);
+    const list = used ? rest : [...rest, id];
+    const next = { ...rule };
+    if (list.length === 0) delete next.exclude;
+    else next.exclude = list;
+    onChange(next);
+  };
 
   const retry: RetryRule = rule.retry ?? {};
   const never = retry.never ?? false;
@@ -241,6 +322,11 @@ function HostRuleRow({
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
             {host || <span className="text-carbon-textMuted">{t('settings.hostRules.pattern')}</span>}
           </span>
+          {prefer && (
+            <span className="hidden truncate text-xs text-carbon-textMuted md:block md:max-w-[10rem]">
+              {labelOf(prefer)}
+            </span>
+          )}
           {never && (
             <span className="hidden truncate text-xs text-statusWarn md:block md:max-w-[12rem]">
               {t('settings.hostRules.never')}
@@ -290,6 +376,37 @@ function HostRuleRow({
           {/* Refused, since two keys that normalise the same would both be
               stored and only one consulted. */}
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
+
+          {/* Half the width, as in a download's properties: a menu of a few
+              service names does not need the whole line. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
+              <Dropdown
+                label={t('props.backend')}
+                value={prefer}
+                options={[auto, ...preferable]}
+                groups={preferable.length > 0 ? [[auto], preferable] : undefined}
+                onChange={setPrefer}
+                busy={services === null}
+              />
+            </Field>
+          </div>
+
+          {switchable.length > 0 && (
+            <FieldGroup label={t('settings.hostRules.backends')} hint={t('settings.hostRules.backendsHint')}>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                {switchable.map((s, i) => (
+                  <ToggleRow
+                    key={s.value}
+                    hue={i}
+                    label={s.label}
+                    checked={!exclude.includes(s.value)}
+                    onChange={(used) => setUsed(s.value, used)}
+                  />
+                ))}
+              </div>
+            </FieldGroup>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('settings.hostRules.maxPerHost')} hint={t('settings.hostRules.maxPerHostHint')}>

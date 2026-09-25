@@ -318,6 +318,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.accounts.setupTitle',
       rows: [{ key: 'settings.accounts.showInSidebar', hint: 'settings.accounts.showInSidebarHint' }],
     },
+    {
+      title: 'settings.accounts.freeTitle',
+      rows: [{ key: 'settings.accounts.premiumOnly', hint: 'settings.accounts.premiumOnlyHint' }],
+    },
   ],
 
   instances: [
@@ -456,6 +460,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'props.autoExtract', hint: 'settings.categories.extractHint' },
         { key: 'settings.categories.speedLimit', hint: 'settings.categories.speedLimitHint' },
         { key: 'settings.categories.collision', hint: 'settings.categories.collisionHint' },
+        { key: 'settings.categories.premiumOnly', hint: 'settings.categories.premiumOnlyHint' },
         { key: 'settings.categories.notify', hint: 'settings.categories.notifyHint' },
       ],
       also: ['settings.categories.notifyNone'],
@@ -539,6 +544,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.hostRules.titleHint',
       rows: [
         { key: 'settings.hostRules.pattern', hint: 'settings.hostRules.patternHint' },
+        { key: 'props.backend', hint: 'settings.hostRules.preferHint' },
+        { key: 'settings.hostRules.backends', hint: 'settings.hostRules.backendsHint' },
         { key: 'settings.hostRules.maxPerHost', hint: 'settings.hostRules.maxPerHostHint' },
         { key: 'settings.hostRules.chunks', hint: 'settings.hostRules.chunksHint' },
         { key: 'settings.hostRules.never', hint: 'settings.hostRules.neverHint' },

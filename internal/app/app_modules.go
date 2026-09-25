@@ -59,7 +59,7 @@ func (a *App) switchedOffAboveLocked(chain []resolver.Resolver, resolverID strin
 // Dispatch then holds the task until that module is back on instead of
 // failing it. Caller holds a.mu.
 func (a *App) switchedOffMatchLocked(t *core.Task) string {
-	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
+	for _, res := range a.chainFor(t) {
 		id := res.Info().ID
 		if t.ResolverPin != "" && !pinMatches(t.ResolverPin, id) {
 			continue

@@ -110,6 +110,31 @@ func TestExtractOffInADrawerSurvivesAGlobalThatIsOn(t *testing.T) {
 	}
 }
 
+// Premium only has the same three answers per drawer: a drawer that allows
+// free downloads survives an instance that holds them, and one that holds
+// them survives an instance that does not.
+func TestPremiumOnlyAsksTheDrawerBeforeTheInstance(t *testing.T) {
+	s := Defaults()
+	if s.PremiumOnlyFor("") {
+		t.Fatal("premium only is on out of the box")
+	}
+	s.Categories = []Category{
+		{ID: "anything-goes", PremiumOnly: ptr(false)},
+		{ID: "paid", PremiumOnly: ptr(true)},
+		{ID: "no-opinion"},
+	}
+	if !s.PremiumOnlyFor("paid") {
+		t.Error("a drawer that holds free downloads was overruled by the instance's off")
+	}
+	s.PremiumOnly = true
+	if s.PremiumOnlyFor("anything-goes") {
+		t.Error("a drawer that allows free downloads was overruled by the instance's on")
+	}
+	if !s.PremiumOnlyFor("no-opinion") || !s.PremiumOnlyFor("") {
+		t.Error("a drawer without an opinion, or no drawer, stopped following the instance")
+	}
+}
+
 // The same argument for the other pointer: zero is the middle priority, so a
 // category asking for it has to be distinguishable from one saying nothing.
 func TestPriorityZeroIsAnAnswerAndNotSilence(t *testing.T) {

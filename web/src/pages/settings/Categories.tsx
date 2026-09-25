@@ -358,6 +358,9 @@ function summarise(
   if (cat.extract !== undefined) {
     parts.push(`${t('props.autoExtract')}: ${cat.extract ? t('props.on') : t('props.off')}`);
   }
+  if (cat.premiumOnly !== undefined) {
+    parts.push(`${t('settings.categories.premiumOnly')}: ${cat.premiumOnly ? t('props.on') : t('props.off')}`);
+  }
   // fmtSpeed returns '' at 0, the "no opinion" case.
   if (cat.speedLimit) parts.push(fmtSpeed(cat.speedLimit));
   const collision = cat.collision?.trim();
@@ -421,6 +424,12 @@ function CategoryRow({
     const next = { ...cat };
     if (v === '') delete next.collision;
     else next.collision = v;
+    onChange(next);
+  };
+  const setPremiumOnly = (v: boolean | undefined) => {
+    const next = { ...cat };
+    if (v === undefined) delete next.premiumOnly;
+    else next.premiumOnly = v;
     onChange(next);
   };
 
@@ -582,6 +591,24 @@ function CategoryRow({
                 />
               </FieldGroup>
             )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FieldGroup label={t('settings.categories.premiumOnly')} hint={t('settings.categories.premiumOnlyHint')}>
+              {/* Three segments for the reason unpacking has them. */}
+              <Tabs
+                variant="well"
+                size="sm"
+                label={t('settings.categories.premiumOnly')}
+                active={cat.premiumOnly === undefined ? INHERIT : cat.premiumOnly ? 'on' : 'off'}
+                onSelect={(id) => setPremiumOnly(id === INHERIT ? undefined : id === 'on')}
+                items={[
+                  { id: INHERIT, label: t('props.inherit') },
+                  { id: 'on', label: t('props.on') },
+                  { id: 'off', label: t('props.off') },
+                ]}
+              />
+            </FieldGroup>
           </div>
 
           {/* The media hook called once a package filed here is in place, by

@@ -327,7 +327,7 @@ func (a *App) RecheckTasks(ids []string) {
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
 		if res == nil {
-			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link", core.ReasonUnsupported)
+			a.setAvailability(t.ID, core.AvailOffline, a.unhandledError(t.URL, "no backend handles this link"), core.ReasonUnsupported)
 			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
@@ -990,6 +990,7 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	}
 	a.tasks[t.ID] = t
 	a.dupes.Add(linkEntry(t))
+	a.markPremiumLocked(t)
 	c := *t
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)

@@ -5,6 +5,8 @@ package settings
 // every other field alone.
 
 import (
+	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -28,7 +30,7 @@ func TestAnEmptyTableIsExactlyTheOldBehaviour(t *testing.T) {
 	if got.Never {
 		t.Error("a fresh install refuses to retry something")
 	}
-	if r := s.HostRuleFor("rapidgator.net"); r != (HostRule{}) {
+	if r := s.HostRuleFor("rapidgator.net"); !reflect.DeepEqual(r, HostRule{}) {
 		t.Errorf("HostRuleFor on an empty table = %+v, want the zero rule", r)
 	}
 }
@@ -173,6 +175,38 @@ func TestSanitizeBoundsBothTables(t *testing.T) {
 	}
 	if n.Retry.Delay != 0 {
 		t.Errorf("a negative global delay became %d, want 0", n.Retry.Delay)
+	}
+}
+
+// A preferred and an excluded service are ids like ResolverOrder's and are
+// folded the same way. A row that asks for a service first and never at once
+// keeps the never, since that is the half somebody relies on.
+func TestSanitizeFoldsTheServicesAndNeverBeatsFirst(t *testing.T) {
+	mine := []string{"AllDebrid", " ", "alldebrid"}
+	n := sanitize(Settings{
+		MaxConcurrent: 4,
+		HostRules: map[string]HostRule{
+			"a.example": {Prefer: "  TorBox ", Exclude: mine},
+			"b.example": {Prefer: "jd", Exclude: []string{"JD"}},
+		},
+	})
+
+	a := n.HostRules["a.example"]
+	if a.Prefer != "torbox" {
+		t.Errorf("Prefer = %q, want %q", a.Prefer, "torbox")
+	}
+	if !slices.Equal(a.Exclude, []string{"alldebrid"}) {
+		t.Errorf("Exclude = %q, want one alldebrid", a.Exclude)
+	}
+	if mine[0] != "AllDebrid" {
+		t.Error("the caller's own list was rewritten")
+	}
+	b := n.HostRules["b.example"]
+	if b.Prefer != "" {
+		t.Errorf("Prefer = %q beside an exclusion of the same service, want it dropped", b.Prefer)
+	}
+	if !slices.Equal(b.Exclude, []string{"jd"}) {
+		t.Errorf("Exclude = %q, want the exclusion kept", b.Exclude)
 	}
 }
 

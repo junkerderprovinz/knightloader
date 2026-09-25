@@ -111,9 +111,9 @@ const (
 // Waiting is why a healthy queued task has not started. It is not a Reason,
 // which belongs to a task that failed.
 //
-// Empty means nothing is holding it back. Only dispatchLocked sets it, and it
-// is recomputed on every pass, so a cause that stops applying disappears on
-// its own.
+// Empty means nothing is holding it back. dispatchLocked sets it and
+// recomputes it on every pass, so a cause that stops applying disappears on
+// its own. WaitingPremium alone is also put on a collected link, see there.
 type Waiting string
 
 const (
@@ -150,6 +150,12 @@ const (
 	// torrent engine) being switched off on the modules page. Falling through
 	// to the direct download instead would save the hoster's web page.
 	WaitingModule Waiting = "module"
+	// WaitingPremium is premium only holding a link that nothing can fetch on
+	// an account: JDownloader would fetch it in free mode. It ends once an
+	// account for the hoster, or a debrid service carrying it, is added. A
+	// collected link carries it too, so the collector says what starting it
+	// would do.
+	WaitingPremium Waiting = "premium"
 )
 
 // Origin is the intake path a link arrived by: the paste box, the watch

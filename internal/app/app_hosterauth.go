@@ -37,6 +37,10 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// as account, the same key accountEnabled uses, so this is the same switch
 	// as every other account's.
 	r.Enabled = func(host string) bool { return a.accountEnabled(hosterauth.Service, host) }
+	// A login JD has just confirmed may be the way down a link held for
+	// premium only was waiting for, and until JD's hoster list is first read
+	// every link JD would fetch is held.
+	r.Reconciled = a.refreshPremiumHolds
 	hostAuthReg[a] = r
 	return r
 }
