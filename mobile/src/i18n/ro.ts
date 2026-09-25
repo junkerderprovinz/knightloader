@@ -72,7 +72,6 @@ export const ro: Dict = {
   'settings.theme.dark': 'Închisă',
   'settings.corners': 'Colțuri',
   'settings.corners.round': 'Rotunde',
-  'settings.corners.soft': 'Moi',
   'settings.corners.square': 'Drepte',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mod curcubeu',

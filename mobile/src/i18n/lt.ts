@@ -72,7 +72,6 @@ export const lt: Dict = {
   'settings.theme.dark': 'Tamsi',
   'settings.corners': 'Kampai',
   'settings.corners.round': 'Apvalūs',
-  'settings.corners.soft': 'Švelnūs',
   'settings.corners.square': 'Statūs',
   'settings.accent': 'Akcentas',
   'settings.rainbow': 'Vaivorykštės režimas',

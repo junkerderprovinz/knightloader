@@ -72,7 +72,6 @@ export const sv: Dict = {
   'settings.theme.dark': 'Mörkt',
   'settings.corners': 'Hörn',
   'settings.corners.round': 'Runda',
-  'settings.corners.soft': 'Mjuka',
   'settings.corners.square': 'Skarpa',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbågsläge',

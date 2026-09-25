@@ -91,7 +91,7 @@ export default function IconBadge({
    *  surface for a secondary one (e.g. the settings gear). */
   accent?: boolean;
 }) {
-  const { c, accent: accentColor, accentContrast, accentInk, radii } = useAppearance();
+  const { c, accent: accentColor, accentContrast, accentInk, corners } = useAppearance();
   const press = usePress();
 
   return (
@@ -103,7 +103,7 @@ export default function IconBadge({
         // whatever is behind it: these badges sit on the page ground in the top
         // bar and on a card inside a row, and a badge that changed shade
         // between the two would be two different badges.
-        { borderRadius: radii.control, backgroundColor: c.surface2 },
+        { ...corners.pill, backgroundColor: c.surface2 },
         accent && { backgroundColor: accentColor },
         { transform: [{ scale: press.scale }] },
       ]}

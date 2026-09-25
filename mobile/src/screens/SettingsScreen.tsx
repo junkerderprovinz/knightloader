@@ -3,14 +3,14 @@ import { Animated, Linking, Platform, StyleSheet, TouchableOpacity, View } from 
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
-import { useT } from '../i18n/I18nContext';
+import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
-import { ACCENTS, SHAPES, accentSlot, discoTap, type Shape } from '../theme/appearance';
+import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GLIMSTONE_VERSION } from '../theme/version';
 import {
@@ -42,16 +42,14 @@ const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 // README's donate row use.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
 
-/** shapeOf reads the shape back out of the radii the context resolved.
- *
- *  The context exposes radii rather than the name behind them, so a component
- *  asks how round a card is rather than which setting is on. This screen is the
- *  one place that needs the name, to mark the active segment, so it derives it
- *  here rather than widening the contract for every other caller. */
-function shapeOf(radii: { card: number }): Shape {
-  if (radii.card === 0) return 'square';
-  return radii.card <= 8 ? 'soft' : 'round';
-}
+/** The shape picker's words. Soft's key says what the shape is rather than
+ *  repeating the English word, so a translation starts from the meaning. */
+const SHAPE_LABELS: Record<Shape, TranslationKey> = {
+  round: 'settings.corners.round',
+  soft: 'settings.corners.slightlyRounded',
+  square: 'settings.corners.square',
+  leaf: 'settings.corners.leaf',
+};
 
 /**
  * The settings, drawn in the same language as the product they configure:
@@ -82,7 +80,8 @@ export default function SettingsScreen({
     c,
     accent,
     accentInk,
-    radii,
+    corners,
+    shape,
     dark,
     rainbow,
     overridden,
@@ -147,6 +146,14 @@ export default function SettingsScreen({
     if (disco) setDiscoFound(true);
   }, [disco]);
   const discoTaps = useRef({ taps: 0, last: 0 });
+
+  /** The hidden fourth shape (theme/appearance.ts's leafTap), found and offered
+   *  by the storm's rule, and marked found by an effect for the storm's reason. */
+  const [leafFound, setLeafFound] = useState(false);
+  useEffect(() => {
+    if (shape === 'leaf') setLeafFound(true);
+  }, [shape]);
+  const leafTaps = useRef({ taps: 0 });
 
   /**
    * What the picker offers: MOTION_LEVELS, the list without the hidden level.
@@ -305,9 +312,17 @@ export default function SettingsScreen({
 
         <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>
         <WellSelector
-          options={SHAPES.map((s: Shape) => ({ value: s, label: t(`settings.corners.${s}`) }))}
-          value={shapeOf(radii)}
-          onPick={(v) => setShape(v)}
+          options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
+            value: s,
+            label: t(SHAPE_LABELS[s]),
+          }))}
+          value={shape}
+          onPick={(v) => {
+            // Taps on a chosen square count toward the hidden shape.
+            const found = leafTap(leafTaps.current, v, shape);
+            if (found) setLeafFound(true);
+            setShape(found ?? v);
+          }}
         />
 
         {/* Label left, swatches right, one row, the shape the web interface's
@@ -565,7 +580,7 @@ export default function SettingsScreen({
       </NotchCard>
 
       <NotchCard title={t('settings.problems')} hue={2} info={t('settings.problemsHint')}>
-        <View style={[styles.report, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
+        <View style={[styles.report, { backgroundColor: c.surface2, ...corners.control }]}>
           <Text style={[styles.reportText, { color: c.textSub }]} selectable>
             {report}
           </Text>

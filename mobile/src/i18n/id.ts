@@ -72,7 +72,6 @@ export const id: Dict = {
   'settings.theme.dark': 'Gelap',
   'settings.corners': 'Sudut',
   'settings.corners.round': 'Bulat',
-  'settings.corners.soft': 'Lembut',
   'settings.corners.square': 'Tegas',
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Mode pelangi',

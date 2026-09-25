@@ -72,7 +72,6 @@ export const lv: Dict = {
   'settings.theme.dark': 'Tumšs',
   'settings.corners': 'Stūri',
   'settings.corners.round': 'Apaļi',
-  'settings.corners.soft': 'Maigi',
   'settings.corners.square': 'Asi',
   'settings.accent': 'Akcents',
   'settings.rainbow': 'Varavīksnes režīms',

@@ -20,7 +20,7 @@ export default function AddDownloadScreen({
   onDone: () => void;
 }) {
   const { t } = useT();
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -62,7 +62,7 @@ export default function AddDownloadScreen({
       {/* Filled and borderless, as every field in the family is: a surface is
           told apart by its shade, never by a drawn line. */}
       <TextInput
-        style={[styles.textArea, { backgroundColor: c.surface, color: c.text, borderRadius: radii.control }]}
+        style={[styles.textArea, { backgroundColor: c.surface, color: c.text, ...corners.control }]}
         multiline
         placeholder={t('addDownload.placeholder')}
         placeholderTextColor={c.textMuted}

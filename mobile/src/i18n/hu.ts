@@ -72,7 +72,6 @@ export const hu: Dict = {
   'settings.theme.dark': 'Sötét',
   'settings.corners': 'Sarkok',
   'settings.corners.round': 'Kerek',
-  'settings.corners.soft': 'Lágy',
   'settings.corners.square': 'Szögletes',
   'settings.accent': 'Kiemelőszín',
   'settings.rainbow': 'Szivárvány mód',

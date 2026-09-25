@@ -53,7 +53,7 @@ const COIN_MARKS: Record<CryptoCoin['id'], number> = {
  */
 export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { t } = useT();
-  const { c, dark, radii, accent, hueAt, rainbow } = useAppearance();
+  const { c, dark, corners, accent, hueAt, rainbow } = useAppearance();
   const { motion } = useMotion();
   const { height } = useWindowDimensions();
   const [coin, setCoin] = useState<CryptoCoin>(CRYPTO_COINS[0]!);
@@ -91,12 +91,12 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
               {/* Only the body scrolls, so the title and the bottom row stay in
                   place on a short screen (rule 15). */}
               <ScrollView style={{ maxHeight: height * 0.66 }} contentContainerStyle={styles.body}>
-                <View style={[styles.code, { backgroundColor: c.surface2, borderRadius: radii.card }]}>
+                <View style={[styles.code, { backgroundColor: c.surface2, ...corners.card }]}>
                   {/* Black on white in both themes: an inverted code is outside
                       the standard, and the scanners that refuse it are the wallet
                       apps a donor holds. The plate takes the card radius, which is
                       safe because the outer four modules are the quiet zone. */}
-                  <View style={[styles.plate, { borderRadius: radii.card }]}>
+                  <View style={[styles.plate, { ...corners.card }]}>
                     <QrCode rows={rows} size={168} label={network.address} />
                   </View>
                   {/* The whole address, wrapping rather than shortened, since it
@@ -122,7 +122,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
                           accessibilityState={{ selected: on }}
                           style={({ pressed }) => [
                             styles.chip,
-                            { borderRadius: radii.pill, backgroundColor: on ? fill : pressed ? c.hoverRaised : c.surface3 },
+                            { ...corners.pill, backgroundColor: on ? fill : pressed ? c.hoverRaised : c.surface3 },
                           ]}
                         >
                           <Text style={[styles.chipText, { color: on ? ink : c.textSub }]}>{n.name}</Text>
@@ -175,7 +175,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
                         style={({ pressed }) => [
                           styles.tile,
                           {
-                            borderRadius: radii.control,
+                            ...corners.control,
                             // A press stands in for the web's hover.
                             backgroundColor: on ? fill : pressed ? c.tileHover : c.surface2,
                           },

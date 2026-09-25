@@ -800,7 +800,7 @@ function LadderGrip({
       type="button"
       disabled={disabled}
       aria-label={label}
-      className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
+      className="shrink-0 cursor-grab touch-none rounded-[var(--radius-pill)] px-1 py-0.5 text-carbon-textMuted
         outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
         active:cursor-grabbing disabled:cursor-default"
       onKeyDown={onKeyDown}

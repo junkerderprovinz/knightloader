@@ -72,7 +72,6 @@ export const zh: Dict = {
   'settings.theme.dark': '深色',
   'settings.corners': '边角',
   'settings.corners.round': '圆润',
-  'settings.corners.soft': '微圆',
   'settings.corners.square': '方正',
   'settings.accent': '强调色',
   'settings.rainbow': '彩虹模式',

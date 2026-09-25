@@ -72,8 +72,8 @@
   --color-statusNeutralBg: var(--status-neutral-bg);
   --color-statusNeutralSolid: var(--status-neutral-solid);
 
-  --radius-card: 1rem;
-  --radius-control: 0.625rem;
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
   --radius-pill: 9999px;
 
   /* A fixed type scale. --text-caption covers the plain caption, the eyebrow
@@ -86,7 +86,13 @@
 }
 
 /* Every rounded corner reads one of these three tokens, so the shape setting
-   changes cards, buttons, inputs, pills and toggles together. */
+   changes cards, buttons, inputs, pills and toggles together.
+
+   --radius-card is for cards, windows and menus, --radius-control for fields,
+   panels and tiles, and --radius-pill for everything somebody presses: buttons,
+   tabs, badges, selector segments and switches. Only round tells the last two
+   apart, and there the pressable things are true pills while a text field
+   keeps a corner a paragraph can sit in. */
 :root[data-shape="soft"] {
   --radius-card: 0.5rem;
   --radius-control: 0.3125rem;
@@ -97,6 +103,24 @@
   --radius-card: 0;
   --radius-control: 0;
   --radius-pill: 0;
+}
+
+/* The hidden shape (leafTap in lib/appearance.ts): two opposite corners
+   rounded, the other two sharp. The tokens stay single lengths, so a calc() on
+   them keeps working, and one rule takes the other diagonal away from every
+   element. It is physical rather than logical so the leaf leans the same way
+   in every language. */
+:root[data-shape="leaf"] {
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+  --radius-pill: 1.125rem;
+}
+
+:root[data-shape="leaf"] *,
+:root[data-shape="leaf"] *::before,
+:root[data-shape="leaf"] *::after {
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 /* Two button heights (GlimStone rule 19). --btn-h matches a text field (a 20px

@@ -128,7 +128,7 @@ export function Button({
   const hover = title && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
+      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.98] ${keyControl ? 'glim-btn-key' : BTN_H}
         ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}
@@ -221,7 +221,7 @@ function TipBox({ tip, children }: { tip: TooltipHandle<HTMLButtonElement>; chil
     <span
       {...tip.triggerProps}
       ref={tip.triggerProps.ref as unknown as RefObject<HTMLSpanElement | null>}
-      className="inline-flex shrink-0 rounded-[var(--radius-control)]"
+      className="inline-flex shrink-0 rounded-[var(--radius-pill)]"
     >
       {children}
     </span>
@@ -267,7 +267,7 @@ export function IconTile({
   return (
     <span
       aria-hidden
-      className={`glim-btn-icon flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-control)]
+      className={`glim-btn-icon flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-pill)]
         bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
       style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
@@ -312,7 +312,7 @@ export function LabelBadge({
       // neutral one has a tier above it, the status pair would lose the state
       // it reports, and the hue wash is an inset box-shadow a background
       // utility sits under.
-      className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-3
+      className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3
         text-[11px] font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
         ${onClick ? 'motion-safe:active:scale-[.98] hover:opacity-80' : ''}`}
@@ -413,7 +413,7 @@ export function IconBadge({
       // A badge showing text is not square: it keeps its height and
       // takes the width its words need, so the width, the padding and the
       // glyph size all fork on that.
-      className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+      className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.98]
         ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'}
@@ -459,7 +459,7 @@ export function IconBadge({
  * with its words beside the glyph or the glyph alone.
  */
 export function linkBadgeClass(showText: boolean): string {
-  return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
+  return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
     transition duration-150 select-none motion-safe:active:scale-[.98]
     ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
 }
@@ -935,7 +935,7 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(
  * one that is on" reads identically everywhere. Tabs.tsx is built from these
  * three strings, so a tab, a filter chip and a segment cannot drift apart.
  */
-export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
+export const segBase = 'rounded-[var(--radius-pill)] font-medium transition-colors';
 export const segOn = 'bg-accent text-accentContrast';
 // bg-carbon-surface2 at rest, not transparent: every tab is a badge, not just
 // the selected one, or the strip reads as unfinished. See GlimStone's

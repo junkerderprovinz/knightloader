@@ -72,7 +72,6 @@ export const ko: Dict = {
   'settings.theme.dark': '어둡게',
   'settings.corners': '모서리',
   'settings.corners.round': '둥글게',
-  'settings.corners.soft': '살짝 둥글게',
   'settings.corners.square': '각지게',
   'settings.accent': '강조 색',
   'settings.rainbow': '무지개 모드',

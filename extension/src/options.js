@@ -772,6 +772,11 @@ cnlEnabledEl.addEventListener('click', async () => {
 let discoFound = false;
 const discoTaps = { taps: 0, last: 0 };
 
+/** The same for the leaf, the shape found by tapping a chosen square five more
+ *  times (leafTap in appearance.js). */
+let leafFound = false;
+const leafTaps = { taps: 0 };
+
 /** Wires a rainbow switch: write, apply, redraw. */
 function wireRainbowSwitch(el, key) {
   el.addEventListener('click', async () => {
@@ -985,17 +990,25 @@ async function renderAppearance() {
     },
   );
 
+  // A leaf in force counts as found, so its segment stays until the page is
+  // left, as disco's switch does.
+  if (a.shape === 'leaf') leafFound = true;
   segment(
     shapeSeg,
     [
       { value: 'round', label: t('options.shapeRound') },
-      { value: 'soft', label: t('options.shapeSoft') },
+      { value: 'soft', label: t('options.shapeSlightlyRounded') },
       { value: 'square', label: t('options.shapeSquare') },
+      ...(leafFound ? [{ value: 'leaf', label: t('options.shapeLeaf') }] : []),
     ],
     a.shape,
     async (v) => {
-      await writeAppearance({ shape: v });
-      applyShape(v);
+      // Taps on a chosen square count toward the hidden shape.
+      const found = leafTap(leafTaps, v, a.shape);
+      if (found) leafFound = true;
+      const next = found ?? v;
+      await writeAppearance({ shape: next });
+      applyShape(next);
       await renderAppearance();
     },
   );

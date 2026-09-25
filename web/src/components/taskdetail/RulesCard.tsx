@@ -31,7 +31,7 @@ export function RulesCard({ task, hue }: { task: Task; hue?: number }) {
               to={`/settings/rules?rule=${encodeURIComponent(name)}`}
               title={t('detail.openRule')}
               dir="ltr"
-              className="inline-flex h-8 shrink-0 items-center rounded-[var(--radius-control)] bg-carbon-surface2
+              className="inline-flex h-8 shrink-0 items-center rounded-[var(--radius-pill)] bg-carbon-surface2
                 px-3 text-[11px] font-medium text-carbon-textSub transition duration-150
                 hover:brightness-110 hover:text-carbon-text motion-safe:active:scale-[.98]"
             >

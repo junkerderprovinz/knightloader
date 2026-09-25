@@ -225,7 +225,6 @@ export const sk: Dict = {
   'settings.shape': 'Rohy',
   'settings.shapeHint': 'Platí naraz pre karty, tlačidlá, záložky, polia a odznaky.',
   'settings.shape.round': 'Oblé',
-  'settings.shape.soft': 'Mierne',
   'settings.shape.square': 'Hranaté',
   'settings.accent': 'Farba zvýraznenia',
   'settings.accentHint': 'Jediná farba pre aktivitu. Text na nej sa volí podľa kontrastu.',

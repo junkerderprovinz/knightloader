@@ -225,7 +225,6 @@ export const et: Dict = {
   'settings.shape': 'Nurgad',
   'settings.shapeHint': 'Kehtib korraga kaartidele, nuppudele, sakkidele, väljadele ja siltidele.',
   'settings.shape.round': 'Ümarad',
-  'settings.shape.soft': 'Pehmed',
   'settings.shape.square': 'Teravad',
   'settings.accent': 'Rõhuvärv',
   'settings.accentHint': 'Ainus värv tegevuse jaoks. Tekst sellel valitakse kontrasti järgi.',

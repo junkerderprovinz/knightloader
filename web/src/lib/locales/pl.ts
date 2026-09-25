@@ -217,7 +217,6 @@ export const pl: Dict = {
   'settings.shape': 'Narożniki',
   'settings.shapeHint': 'Dotyczy naraz kart, przycisków, zakładek, pól i odznak.',
   'settings.shape.round': 'Zaokrąglone',
-  'settings.shape.soft': 'Lekkie',
   'settings.shape.square': 'Ostre',
   'settings.accent': 'Kolor akcentu',
   'settings.accentHint': 'Jedyny kolor aktywności. Tekst na nim dobierany jest pod kontrast.',

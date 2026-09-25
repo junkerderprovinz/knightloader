@@ -225,7 +225,6 @@ export const ro: Dict = {
   'settings.shape': 'Colțuri',
   'settings.shapeHint': 'Se aplică deodată cardurilor, butoanelor, filelor, câmpurilor și insignelor.',
   'settings.shape.round': 'Rotunjite',
-  'settings.shape.soft': 'Ușoare',
   'settings.shape.square': 'Drepte',
   'settings.accent': 'Culoare de accent',
   'settings.accentHint': 'Singura culoare pentru activitate. Textul de pe ea e ales după contrast.',

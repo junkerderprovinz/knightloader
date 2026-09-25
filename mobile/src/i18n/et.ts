@@ -72,7 +72,6 @@ export const et: Dict = {
   'settings.theme.dark': 'Tume',
   'settings.corners': 'Nurgad',
   'settings.corners.round': 'Ümarad',
-  'settings.corners.soft': 'Pehmed',
   'settings.corners.square': 'Teravad',
   'settings.accent': 'Rõhuvärv',
   'settings.rainbow': 'Vikerkaarerežiim',

@@ -72,7 +72,6 @@ export const ca: Dict = {
   'settings.theme.dark': 'Fosc',
   'settings.corners': 'Cantonades',
   'settings.corners.round': 'Rodones',
-  'settings.corners.soft': 'Suaus',
   'settings.corners.square': 'Rectes',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mode arc de Sant Martí',

@@ -225,7 +225,6 @@ export const bg: Dict = {
   'settings.shape': 'Ъгли',
   'settings.shapeHint': 'Важи наведнъж за карти, бутони, раздели, полета и баджове.',
   'settings.shape.round': 'Заоблени',
-  'settings.shape.soft': 'Меки',
   'settings.shape.square': 'Прави',
   'settings.accent': 'Акцентен цвят',
   'settings.accentHint': 'Единственият цвят за активност. Текстът върху него се избира по контраст.',

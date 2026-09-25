@@ -381,7 +381,7 @@ export function Tabs(props: TabsProps) {
               reorderable ? 'relative -mx-1 px-1' : ''
             } ${className}`
           : isWell
-            ? `flex w-fit max-w-full flex-wrap items-center rounded-[var(--radius-control)] bg-carbon-surface3
+            ? `flex w-fit max-w-full flex-wrap items-center rounded-[var(--radius-pill)] bg-carbon-surface3
               p-[0.2rem] ${className}`
             : `flex w-fit max-w-full flex-wrap items-center ${reorderable ? 'relative' : ''} ${className}`
       }
@@ -471,7 +471,7 @@ export function Tabs(props: TabsProps) {
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
-              { ...hueStyle(i), ...segmentFlex, borderRadius: 'var(--radius-control)' }
+              { ...hueStyle(i), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
             : { ...hueStyle(i), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.

@@ -1,6 +1,6 @@
 # Easter eggs
 
-GlimStone has two eggs of its own (`storm` and disco, below) and says plainly that
+GlimStone has three eggs of its own (`storm`, disco and the leaf, below) and says plainly that
 an adopting app's eggs belong in **that app's** notes rather than in the shared
 language. This file is KnightLoader's.
 
@@ -26,7 +26,7 @@ Two consequences that every entry below has to satisfy:
   look similar and are not. `storm` is remembered because it is the current
   setting; that the picker once offered it is remembered by nobody.
 
-Nothing below stores the fact that it was found. Three of the six have no state at all: they are a
+Nothing below stores the fact that it was found. Three of the seven have no state at all: they are a
 question asked of the current value (the limit), of a pointer that is currently
 down (the blade), or of how long an element has already been on screen
 (the knight). The parade keeps two numbers in a ref that dies with the tab.
@@ -120,6 +120,27 @@ series, would stand still, so those paint from `var(--rb-N)` as well.
   threshold.
 - The browser extension walks the same loop on its own pages, and the phone app
   imports the loop and redraws its theme ten times a second.
+
+### The leaf
+
+**Gesture:** set the corners to square, then tap square five more times. Every
+corner in the interface turns into a leaf: the top left and the bottom right
+rounded, the other two sharp.
+
+**Where:** `leafTap()` in `web/src/lib/appearance.ts`; the numbers are one token
+block, `:root[data-shape="leaf"]`, and one rule takes the other diagonal away
+from every element, both in `web/src/index.css`.
+
+**Off:** pick another shape.
+
+GlimStone's third egg, adopted like the storm. The storm's first two details
+hold for it too: the option is offered while it is chosen and otherwise only
+while the settings screen that found it stays open, and a stored `leaf` is
+still accepted at boot, by the server's settings as well as by the browser's
+cache. It is plain per-corner radii, so it looks the same in every browser, the
+desktop app, the extension and the phone app. In a right-to-left layout the
+phone names the other pair of corners, because React Native swaps left and
+right there.
 
 ### 1337
 

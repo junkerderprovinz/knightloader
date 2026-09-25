@@ -551,7 +551,12 @@ submission and for a fixed download.
   list a dragged row lands in its place instead of jumping, the rows it passes
   slide aside, and it keeps its new place until the server confirms the order.
   An open package takes its files along, and a drop the server would not
-  apply slides straight back.
+  apply slides straight back. In the round shape every button, tab, badge,
+  selector segment and switch is a true pill while fields keep a corner, and
+  cards and fields are a little rounder than before. A fresh install starts on
+  soft corners, called Abgerundet in German; a shape you already chose stays.
+  With square chosen, five more taps on it reveal a fourth shape, the leaf,
+  with two opposite corners rounded and the other two sharp.
 - **The phone app moves like the other apps of the family.** At Wild the cards
   of the overview, the download list, the settings and the language list fly
   in from both sides and bounce into place, each time you come back to the

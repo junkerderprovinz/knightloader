@@ -63,7 +63,7 @@ export function InfoTip({ text, color, size = 15 }: { text: string; color?: stri
  * is room above, with the arrow on the trigger's centre.
  */
 function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => void }) {
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   const { n } = useMotion();
   const { width: vw, height: vh } = useWindowDimensions();
   const root = useRef<View>(null);
@@ -114,7 +114,7 @@ function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => 
             styles.bubble,
             {
               backgroundColor: c.surface,
-              borderRadius: radii.control,
+              ...corners.control,
               maxWidth: Math.min(MAX_WIDTH, vw - 2 * MARGIN),
               left: place.left,
               top: place.top,

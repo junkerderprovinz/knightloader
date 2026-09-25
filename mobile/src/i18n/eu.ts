@@ -72,7 +72,6 @@ export const eu: Dict = {
   'settings.theme.dark': 'Iluna',
   'settings.corners': 'Izkinak',
   'settings.corners.round': 'Biribilak',
-  'settings.corners.soft': 'Leunak',
   'settings.corners.square': 'Zuzenak',
   'settings.accent': 'Azentua',
   'settings.rainbow': 'Ostadar modua',

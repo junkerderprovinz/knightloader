@@ -225,7 +225,6 @@ export const gl: Dict = {
   'settings.shape': 'Esquinas',
   'settings.shapeHint': 'Aplícase á vez a tarxetas, botóns, lapelas, campos e insignias.',
   'settings.shape.round': 'Redondas',
-  'settings.shape.soft': 'Suaves',
   'settings.shape.square': 'Rectas',
   'settings.accent': 'Cor de acento',
   'settings.accentHint': 'A única cor para a actividade. O texto enriba escóllese por contraste.',

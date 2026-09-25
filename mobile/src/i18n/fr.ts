@@ -72,7 +72,6 @@ export const fr: Dict = {
   'settings.theme.dark': 'Sombre',
   'settings.corners': 'Coins',
   'settings.corners.round': 'Arrondis',
-  'settings.corners.soft': 'Doux',
   'settings.corners.square': 'Carrés',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mode arc-en-ciel',

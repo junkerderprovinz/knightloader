@@ -89,7 +89,7 @@ export default function PackageList({
   lineKey?: string;
 }) {
   const { t } = useT();
-  const { c, radii } = useAppearance();
+  const { c, corners } = useAppearance();
   const packages = groupByPackage(tasks);
 
   /** Which packages are open. Closed is the default, so the state records the
@@ -200,7 +200,7 @@ export default function PackageList({
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
         return (
-          <View style={[styles.header, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
+          <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
                 you open by hitting a 12-point glyph is a folder you miss. */}
             <TouchableOpacity
@@ -271,7 +271,7 @@ export default function PackageList({
          * same.
          */
         empty={
-          <Arrive style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+          <Arrive style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
             <View style={styles.emptyGlyph}>
               <Folder color={c.textMuted} size={44} />
             </View>

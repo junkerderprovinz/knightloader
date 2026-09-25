@@ -225,7 +225,6 @@ export const zh: Dict = {
   'settings.shape': '圆角',
   'settings.shapeHint': '一次应用于卡片、按钮、标签页、输入框和徽章。',
   'settings.shape.round': '圆润',
-  'settings.shape.soft': '微圆',
   'settings.shape.square': '直角',
   'settings.accent': '强调色',
   'settings.accentHint': '表示活动的唯一颜色。其上的文字按对比度自动选取。',

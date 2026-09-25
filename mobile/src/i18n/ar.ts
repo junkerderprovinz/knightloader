@@ -72,7 +72,6 @@ export const ar: Dict = {
   'settings.theme.dark': 'داكن',
   'settings.corners': 'الزوايا',
   'settings.corners.round': 'دائرية',
-  'settings.corners.soft': 'ناعمة',
   'settings.corners.square': 'حادة',
   'settings.accent': 'لون التمييز',
   'settings.rainbow': 'وضع قوس قزح',

@@ -225,7 +225,6 @@ export const uk: Dict = {
   'settings.shape': 'Кути',
   'settings.shapeHint': 'Діє одразу на картки, кнопки, вкладки, поля та значки.',
   'settings.shape.round': 'Круглі',
-  'settings.shape.soft': 'Злегка',
   'settings.shape.square': 'Прямі',
   'settings.accent': 'Акцентний колір',
   'settings.accentHint': 'Єдиний колір активності. Текст на ньому добирається за контрастом.',

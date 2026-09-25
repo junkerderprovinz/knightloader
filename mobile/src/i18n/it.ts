@@ -72,7 +72,6 @@ export const it: Dict = {
   'settings.theme.dark': 'Scuro',
   'settings.corners': 'Angoli',
   'settings.corners.round': 'Tondi',
-  'settings.corners.soft': 'Morbidi',
   'settings.corners.square': 'Squadrati',
   'settings.accent': 'Accento',
   'settings.rainbow': 'Modalità arcobaleno',

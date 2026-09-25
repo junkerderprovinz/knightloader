@@ -72,7 +72,6 @@ export const is: Dict = {
   'settings.theme.dark': 'Dökkt',
   'settings.corners': 'Horn',
   'settings.corners.round': 'Kringlótt',
-  'settings.corners.soft': 'Mjúk',
   'settings.corners.square': 'Bein',
   'settings.accent': 'Áherslulitur',
   'settings.rainbow': 'Regnbogahamur',

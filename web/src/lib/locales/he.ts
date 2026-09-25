@@ -227,7 +227,6 @@ export const he: Dict = {
   'settings.shape': 'פינות',
   'settings.shapeHint': 'חל בבת אחת על כרטיסים, כפתורים, לשוניות, שדות ותגים.',
   'settings.shape.round': 'עגול',
-  'settings.shape.soft': 'מעט',
   'settings.shape.square': 'מרובע',
   'settings.accent': 'צבע הדגשה',
   'settings.accentHint': 'הצבע היחיד לפעילות. הטקסט מעליו נבחר לפי ניגודיות.',

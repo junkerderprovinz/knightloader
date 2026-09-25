@@ -225,7 +225,6 @@ export const id: Dict = {
   'settings.shape': 'Sudut',
   'settings.shapeHint': 'Berlaku sekaligus untuk kartu, tombol, tab, input dan lencana.',
   'settings.shape.round': 'Bulat',
-  'settings.shape.soft': 'Lembut',
   'settings.shape.square': 'Kotak',
   'settings.accent': 'Warna aksen',
   'settings.accentHint': 'Satu warna untuk aktivitas. Teks di atasnya dipilih menurut kontras.',

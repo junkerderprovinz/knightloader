@@ -72,7 +72,6 @@ export const ja: Dict = {
   'settings.theme.dark': 'ダーク',
   'settings.corners': '角',
   'settings.corners.round': '丸い',
-  'settings.corners.soft': 'やや丸い',
   'settings.corners.square': '角ばった',
   'settings.accent': 'アクセントカラー',
   'settings.rainbow': 'レインボーモード',

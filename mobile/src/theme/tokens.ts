@@ -1,4 +1,5 @@
-import type { TextStyle } from 'react-native';
+import { I18nManager, type TextStyle } from 'react-native';
+import type { Shape } from './appearance';
 
 // GlimStone's palette, as this app's tokens.
 //
@@ -286,16 +287,49 @@ export const BTN_H = 32;
 export const BTN_H_KEY = 40;
 
 /** Radii for one shape. One set for everything, with no exception list and no
- *  further mechanism behind it. */
+ *  further mechanism behind it: `card` for cards, windows and menus, `control`
+ *  for fields, panels and tiles, `pill` for everything somebody presses,
+ *  buttons, tabs, badges, selector segments and switches. */
 export interface Radii {
   card: number;
   control: number;
   pill: number;
 }
 
-// rem values from tokens.css at the usual 16px root.
-export const RADII: Record<string, Radii> = {
-  round: { card: 16, control: 10, pill: 9999 },
+// rem values from tokens.css at the usual 16px root. The leaf rounds only two
+// opposite corners, which cornersFor takes care of.
+export const RADII: Record<Shape, Radii> = {
+  round: { card: 20, control: 12, pill: 9999 },
   soft: { card: 8, control: 5, pill: 5 },
   square: { card: 0, control: 0, pill: 0 },
+  leaf: { card: 20, control: 12, pill: 18 },
 };
+
+/** One radius as a style to spread, for a leaf with its two sharp corners. */
+export interface Corner {
+  borderRadius: number;
+  borderTopLeftRadius?: number;
+  borderTopRightRadius?: number;
+  borderBottomLeftRadius?: number;
+  borderBottomRightRadius?: number;
+}
+
+export type Corners = Record<keyof Radii, Corner>;
+
+/**
+ * cornersFor is a shape's radii as styles. The leaf's sharp corners are the top
+ * right and the bottom left on screen, as in tokens.css, so it leans the same
+ * way in every language. React Native swaps left and right in a right-to-left
+ * layout, so there the other pair is named to land on the same two corners.
+ */
+export function cornersFor(shape: Shape): Corners {
+  const r = RADII[shape];
+  const mirrored = I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL;
+  const corner = (borderRadius: number): Corner => {
+    if (shape !== 'leaf') return { borderRadius };
+    return mirrored
+      ? { borderRadius, borderTopLeftRadius: 0, borderBottomRightRadius: 0 }
+      : { borderRadius, borderTopRightRadius: 0, borderBottomLeftRadius: 0 };
+  };
+  return { card: corner(r.card), control: corner(r.control), pill: corner(r.pill) };
+}

@@ -225,7 +225,6 @@ export const lt: Dict = {
   'settings.shape': 'Kampai',
   'settings.shapeHint': 'Iš karto taikoma kortelėms, mygtukams, skirtukams, laukams ir ženkleliams.',
   'settings.shape.round': 'Apvalūs',
-  'settings.shape.soft': 'Švelnūs',
   'settings.shape.square': 'Statūs',
   'settings.accent': 'Akcento spalva',
   'settings.accentHint': 'Viena spalva veiklai. Tekstas ant jos parenkamas pagal kontrastą.',

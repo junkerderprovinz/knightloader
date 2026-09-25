@@ -227,7 +227,6 @@ export const ar: Dict = {
   'settings.shape': 'الزوايا',
   'settings.shapeHint': 'ينطبق دفعة واحدة على البطاقات والأزرار والألسنة والحقول والشارات.',
   'settings.shape.round': 'دائرية',
-  'settings.shape.soft': 'خفيفة',
   'settings.shape.square': 'قائمة',
   'settings.accent': 'لون التمييز',
   'settings.accentHint': 'اللون الوحيد للنشاط. يُختار لون النص فوقه حسب التباين.',

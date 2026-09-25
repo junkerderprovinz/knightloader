@@ -28,7 +28,7 @@ const SAMPLES = 40;
 const INTERVALL_MS = 1500;
 
 export default function SpeedGraph({ speed, height = 44 }: { speed: number; height?: number }) {
-  const { c, accent, radii } = useAppearance();
+  const { c, accent, corners } = useAppearance();
   const [history, setHistory] = useState<number[]>([]);
   // A ref beside the state, so the interval below reads the current speed
   // without being torn down and rebuilt on every new value, which would reset
@@ -63,7 +63,7 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
           {fmtSpeed(peak)}
         </Text>
       </View>
-      <View style={[styles.frame, { height, backgroundColor: c.surface2, borderRadius: radii.control }]}>
+      <View style={[styles.frame, { height, backgroundColor: c.surface2, ...corners.control }]}>
         {history.map((v, i) => (
           <View
             key={i}

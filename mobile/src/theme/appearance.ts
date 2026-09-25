@@ -12,9 +12,46 @@
 
 import { colourAt, type Loop } from './discoLoop';
 
-export type Shape = 'round' | 'soft' | 'square';
+/**
+ * The corner shapes, a wire format shared with the instance's settings and
+ * storage. `leaf` is a real shape that no picker offers; leafTap reveals it.
+ */
+export type Shape = 'round' | 'soft' | 'square' | 'leaf';
 
+/** The shapes a picker shows. */
 export const SHAPES: Shape[] = ['round', 'soft', 'square'];
+
+/**
+ * The shapes a stored value may hold. Validate against this and populate a
+ * picker from SHAPES, or a found leaf forgets itself on reload.
+ */
+export const SHAPES_STORED: Shape[] = [...SHAPES, 'leaf'];
+
+/** Only reaches somebody with no stored shape; a stored choice stays. */
+export const DEFAULT_SHAPE: Shape = 'soft';
+
+/** How many taps on `square`, once it is chosen, reveal the leaf. */
+export const LEAF_TAPS = 5;
+
+/**
+ * leafTap counts the gesture that reveals the leaf, the storm's gesture on the
+ * shape picker: with the shape at `square`, tap `square` five more times.
+ * Tapping another shape resets the count. As with the storm, the caller keeps
+ * `found` and the count in the state of the screen that found it, never in
+ * storage.
+ *
+ * Returns the shape to switch to, or undefined when the tap was not the fifth.
+ */
+export function leafTap(state: { taps: number }, tapped: string, current: string): Shape | undefined {
+  if (tapped !== 'square' || current !== 'square') {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < LEAF_TAPS) return undefined;
+  state.taps = 0;
+  return 'leaf';
+}
 
 /**
  * The accent before anyone touches the picker. A fresh install of every app in
@@ -266,5 +303,5 @@ export function rainbowFromSettings(s: InstanceAppearance | undefined): RainbowS
 }
 
 export function asShape(v: string | undefined): Shape | undefined {
-  return SHAPES.includes(v as Shape) ? (v as Shape) : undefined;
+  return SHAPES_STORED.includes(v as Shape) ? (v as Shape) : undefined;
 }

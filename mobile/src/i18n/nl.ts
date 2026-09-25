@@ -72,7 +72,6 @@ export const nl: Dict = {
   'settings.theme.dark': 'Donker',
   'settings.corners': 'Hoeken',
   'settings.corners.round': 'Rond',
-  'settings.corners.soft': 'Zacht',
   'settings.corners.square': 'Recht',
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regenboogmodus',

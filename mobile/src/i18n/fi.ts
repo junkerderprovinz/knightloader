@@ -72,7 +72,6 @@ export const fi: Dict = {
   'settings.theme.dark': 'Tumma',
   'settings.corners': 'Kulmat',
   'settings.corners.round': 'Pyöreät',
-  'settings.corners.soft': 'Pehmeät',
   'settings.corners.square': 'Terävät',
   'settings.accent': 'Korostusväri',
   'settings.rainbow': 'Sateenkaaritila',

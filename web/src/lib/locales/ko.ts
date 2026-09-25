@@ -225,7 +225,6 @@ export const ko: Dict = {
   'settings.shape': '모서리',
   'settings.shapeHint': '카드, 버튼, 탭, 입력란, 배지에 한 번에 적용됩니다.',
   'settings.shape.round': '둥글게',
-  'settings.shape.soft': '살짝',
   'settings.shape.square': '각지게',
   'settings.accent': '강조 색',
   'settings.accentHint': '활동을 나타내는 단 하나의 색입니다. 위에 올라가는 글자는 대비에 맞춰 정해집니다.',

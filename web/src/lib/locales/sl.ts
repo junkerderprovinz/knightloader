@@ -225,7 +225,6 @@ export const sl: Dict = {
   'settings.shape': 'Vogali',
   'settings.shapeHint': 'Velja hkrati za kartice, gumbe, zavihke, polja in značke.',
   'settings.shape.round': 'Zaobljeni',
-  'settings.shape.soft': 'Rahli',
   'settings.shape.square': 'Ravni',
   'settings.accent': 'Poudarna barva',
   'settings.accentHint': 'Edina barva za dejavnost. Besedilo na njej se izbere po kontrastu.',

@@ -225,7 +225,6 @@ export const is: Dict = {
   'settings.shape': 'Horn',
   'settings.shapeHint': 'Gildir í einu um spjöld, hnappa, flipa, reiti og merki.',
   'settings.shape.round': 'Kringlótt',
-  'settings.shape.soft': 'Mjúk',
   'settings.shape.square': 'Ferköntuð',
   'settings.accent': 'Áherslulitur',
   'settings.accentHint': 'Eini liturinn fyrir virkni. Textinn ofan á er valinn eftir birtuskilum.',

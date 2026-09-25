@@ -225,7 +225,6 @@ export const fa: Dict = {
   'settings.shape': 'گوشه‌ها',
   'settings.shapeHint': 'یک‌جا روی کارت‌ها، دکمه‌ها، زبانه‌ها، ورودی‌ها و نشان‌ها اعمال می‌شود.',
   'settings.shape.round': 'گرد',
-  'settings.shape.soft': 'ملایم',
   'settings.shape.square': 'تیز',
   'settings.accent': 'رنگ تأکید',
   'settings.accentHint': 'تنها رنگ فعالیت. متن روی آن بر اساس کنتراست انتخاب می‌شود.',

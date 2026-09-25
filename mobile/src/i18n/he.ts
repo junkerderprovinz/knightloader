@@ -72,7 +72,6 @@ export const he: Dict = {
   'settings.theme.dark': 'כהה',
   'settings.corners': 'פינות',
   'settings.corners.round': 'עגולות',
-  'settings.corners.soft': 'רכות',
   'settings.corners.square': 'חדות',
   'settings.accent': 'צבע הדגשה',
   'settings.rainbow': 'מצב קשת',

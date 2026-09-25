@@ -92,7 +92,7 @@ export default function ConnectionsScreen({
   onOpenSettings: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, radii, hueAt, rainbow } = useAppearance();
+  const { c, accent, corners, hueAt, rainbow } = useAppearance();
   const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
@@ -224,7 +224,7 @@ export default function ConnectionsScreen({
                   the top line and the graph sits under them inside the same
                   card, so the group's numbers and the group's curve are one
                   object rather than two saying the same thing. */}
-              <Arrive style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+              <Arrive style={[styles.summary, { backgroundColor: c.surface, ...corners.card }]}>
                 <View style={styles.summaryTop}>
                   <View style={styles.summaryText}>
                     <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
@@ -335,7 +335,7 @@ export default function ConnectionsScreen({
               <CardButton
                 style={[
                   styles.row,
-                  { backgroundColor: c.surface, borderRadius: radii.card },
+                  { backgroundColor: c.surface, ...corners.card },
                   hue && (!rainbow.reactive || laeuft)
                     ? { backgroundColor: blend(c.surface, hue, laeuft ? 0.22 : 0.16) }
                     : null,
@@ -390,7 +390,7 @@ export default function ConnectionsScreen({
            a drawn glyph fills less than the box it is handed. */
         ListEmptyComponent={
           loaded ? (
-            <Arrive style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+            <Arrive style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
               <View style={styles.emptyIcon}>
                 <Connect color={c.textMuted} size={boxForInk(26)} />
               </View>

@@ -8,13 +8,20 @@ import (
 	"strings"
 )
 
-// The three shapes the interface offers. Anything else falls back to round
-// rather than producing an interface with no radius rule at all.
+// The shapes the interface draws. The picker offers the first three; leaf is
+// found by a gesture on it and has to survive a save like any other choice.
+// Anything else falls back to DefaultShape rather than producing an interface
+// with no radius rule at all.
 const (
 	ShapeRound  = "round"
 	ShapeSoft   = "soft"
 	ShapeSquare = "square"
+	ShapeLeaf   = "leaf"
 )
+
+// DefaultShape is what an install with no stored shape draws. A stored choice,
+// round included, keeps its shape.
+const DefaultShape = ShapeSoft
 
 // How much of a navigation entry is drawn, in the sidebar and in the settings
 // rail, the app's two sets of tabs.
@@ -69,9 +76,9 @@ func sanitizePalette(p []string) []string {
 
 func sanitizeAppearance(n Settings) Settings {
 	switch n.Shape {
-	case ShapeRound, ShapeSoft, ShapeSquare:
+	case ShapeRound, ShapeSoft, ShapeSquare, ShapeLeaf:
 	default:
-		n.Shape = ShapeRound
+		n.Shape = DefaultShape
 	}
 	switch n.NavLabels {
 	case NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover:

@@ -72,7 +72,6 @@ export const vi: Dict = {
   'settings.theme.dark': 'Tối',
   'settings.corners': 'Góc',
   'settings.corners.round': 'Tròn',
-  'settings.corners.soft': 'Mềm',
   'settings.corners.square': 'Vuông',
   'settings.accent': 'Màu nhấn',
   'settings.rainbow': 'Chế độ cầu vồng',

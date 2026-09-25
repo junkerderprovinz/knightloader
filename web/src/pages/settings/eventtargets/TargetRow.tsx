@@ -370,7 +370,7 @@ function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: st
       <code
         dir="ltr"
         {...tip.triggerProps}
-        className={`rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] ${
+        className={`rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] ${
           unused ? 'text-carbon-textMuted line-through' : 'text-carbon-textSub'
         }`}
       >

@@ -51,7 +51,7 @@ export default function RelayConnectScreen({
   onBack: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, radii } = useAppearance();
+  const { c, accent, corners } = useAppearance();
   const [phrase, setPhrase] = useState('');
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -210,7 +210,7 @@ export default function RelayConnectScreen({
   const inputStyle = {
     backgroundColor: c.surface,
     color: c.text,
-    borderRadius: radii.control,
+    ...corners.control,
   };
 
   return (
@@ -294,7 +294,7 @@ export default function RelayConnectScreen({
             keyExtractor={(s) => s.instanceId}
             style={styles.list}
             renderItem={({ item }) => (
-              <View style={[styles.row, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+              <View style={[styles.row, { backgroundColor: c.surface, ...corners.card }]}>
                 <View style={styles.rowText}>
                   <Text style={[styles.rowName, { color: c.text }]}>{item.name || item.instanceId}</Text>
                   <Text style={[styles.rowSub, { color: c.textMuted }]} numberOfLines={1}>
@@ -314,7 +314,7 @@ export default function RelayConnectScreen({
                because a drawn glyph fills less than the box it is handed. */
             ListEmptyComponent={
               searching ? null : (
-                <View style={[styles.empty, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+                <View style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
                   <View style={styles.emptyIcon}>
                     <Connect color={c.textMuted} size={boxForInk(26)} />
                   </View>

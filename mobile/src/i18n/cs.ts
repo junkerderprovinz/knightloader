@@ -72,7 +72,6 @@ export const cs: Dict = {
   'settings.theme.dark': 'Tmavý',
   'settings.corners': 'Rohy',
   'settings.corners.round': 'Kulaté',
-  'settings.corners.soft': 'Jemné',
   'settings.corners.square': 'Ostré',
   'settings.accent': 'Zvýraznění',
   'settings.rainbow': 'Režim duha',

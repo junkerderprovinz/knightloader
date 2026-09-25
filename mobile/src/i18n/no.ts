@@ -72,7 +72,6 @@ export const no: Dict = {
   'settings.theme.dark': 'Mørkt',
   'settings.corners': 'Hjørner',
   'settings.corners.round': 'Runde',
-  'settings.corners.soft': 'Myke',
   'settings.corners.square': 'Skarpe',
   'settings.accent': 'Aksent',
   'settings.rainbow': 'Regnbuemodus',

@@ -225,7 +225,6 @@ export const vi: Dict = {
   'settings.shape': 'Góc',
   'settings.shapeHint': 'Áp dụng cùng lúc cho thẻ, nút, tab, ô nhập và huy hiệu.',
   'settings.shape.round': 'Bo tròn',
-  'settings.shape.soft': 'Hơi bo',
   'settings.shape.square': 'Vuông',
   'settings.accent': 'Màu nhấn',
   'settings.accentHint': 'Màu duy nhất cho hoạt động. Chữ trên nền đó được chọn theo độ tương phản.',

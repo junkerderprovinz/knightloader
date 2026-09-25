@@ -13,7 +13,39 @@
  */
 const GLIMSTONE_VERSION = '2.9.0';
 
+/** The shapes the picker shows. `leaf` is a real shape (see
+ *  `data-shape="leaf"` in glimstone.css) that no picker offers; leafTap
+ *  reveals it. */
 const SHAPES = ['round', 'soft', 'square'];
+
+/** The shapes a stored value may hold. Validate against this and populate the
+ *  picker from SHAPES, or a found leaf forgets itself on reload. */
+const SHAPES_STORED = [...SHAPES, 'leaf'];
+
+/** Only reaches somebody with no stored shape; a stored choice stays. */
+const DEFAULT_SHAPE = 'soft';
+
+/** How many taps on `square`, once it is chosen, reveal the leaf. */
+const LEAF_TAPS = 5;
+
+/**
+ * leafTap counts the gesture that reveals the leaf: with the shape at
+ * `square`, tap `square` five more times. Tapping another shape resets the
+ * count. The caller keeps the count and whether the leaf was found in the
+ * page's state, never in storage.
+ *
+ * Returns the shape to switch to, or undefined when the tap was not the fifth.
+ */
+function leafTap(state, tapped, current) {
+  if (tapped !== 'square' || current !== 'square') {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < LEAF_TAPS) return undefined;
+  state.taps = 0;
+  return 'leaf';
+}
 
 /** The accent every app of the family starts with. */
 const DEFAULT_ACCENT = '#FCC419';
@@ -116,7 +148,7 @@ function applyTheme(theme) {
 }
 
 function applyShape(shape) {
-  document.documentElement.setAttribute('data-shape', SHAPES.includes(shape) ? shape : 'round');
+  document.documentElement.setAttribute('data-shape', SHAPES_STORED.includes(shape) ? shape : DEFAULT_SHAPE);
 }
 
 /**
@@ -175,7 +207,7 @@ async function readAppearance() {
     accentCustoms,
     // Undefined until a slot is chosen; callers then fall back to accentSlot().
     accentChosen,
-    shape: SHAPES.includes(s.shape) ? s.shape : 'round',
+    shape: SHAPES_STORED.includes(s.shape) ? s.shape : DEFAULT_SHAPE,
     rainbow: {
       on: s.rainbow === true,
       reactive: s.rainbowReactive === true,
@@ -235,7 +267,7 @@ async function adoptFromInstance() {
   await chrome.storage.local.remove(['accentSlotChosen', 'accentCustoms']);
   await writeAppearance({
     accent: validHex(a.accent) ? a.accent : '',
-    shape: SHAPES.includes(a.shape) ? a.shape : 'round',
+    shape: SHAPES_STORED.includes(a.shape) ? a.shape : DEFAULT_SHAPE,
     rainbow: a.rainbow === true,
     rainbowReactive: a.rainbowReactive === true,
     rainbowRotate: a.rainbowRotate === true,

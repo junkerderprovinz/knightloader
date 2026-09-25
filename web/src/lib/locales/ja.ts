@@ -225,7 +225,6 @@ export const ja: Dict = {
   'settings.shape': '角',
   'settings.shapeHint': 'カード、ボタン、タブ、入力欄、バッジにまとめて適用されます。',
   'settings.shape.round': '丸',
-  'settings.shape.soft': 'ゆるやか',
   'settings.shape.square': '角',
   'settings.accent': 'アクセントカラー',
   'settings.accentHint': '動きを示す唯一の色です。上に載る文字は読みやすさで自動的に決まります。',

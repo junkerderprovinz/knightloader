@@ -72,7 +72,6 @@ export const bg: Dict = {
   'settings.theme.dark': 'Тъмна',
   'settings.corners': 'Ъгли',
   'settings.corners.round': 'Кръгли',
-  'settings.corners.soft': 'Меки',
   'settings.corners.square': 'Остри',
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Режим „Дъга“',
