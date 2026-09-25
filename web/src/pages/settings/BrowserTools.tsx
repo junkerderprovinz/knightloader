@@ -4,6 +4,7 @@ import { buildBookmarklet } from '../../lib/browserTools';
 import { fetchDeploymentInfo, fetchExtensionVersion, fetchHealth } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { useInstallPrompt } from '../../lib/pwaInstall';
+import { followExternal, openExternal } from '../../lib/external';
 import { useT } from '../../lib/i18n';
 import { qrMatrix } from '../../lib/qrmatrix';
 import { IconDownloads, IconQr } from '../../lib/icons';
@@ -178,7 +179,7 @@ function PhoneCard() {
             labelled
             icon={<IconDownloads width={16} height={16} />}
             title={t('settings.browsertools.download')}
-            onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
+            onClick={() => openExternal(APP_URLS.apk)}
           />
           <Button
             kind={qr ? 'primary' : 'secondary'}
@@ -345,6 +346,7 @@ function ReleaseVersion({ version, tagPrefix }: { version: string; tagPrefix: 'e
       href={`${REPO_URL}/releases/tag/${tagPrefix}${version}`}
       target="_blank"
       rel="noreferrer noopener"
+      onClick={followExternal}
       className="glim-num text-[11px] text-carbon-textMuted no-underline hover:text-carbon-text"
     >
       v{version}
@@ -366,7 +368,7 @@ const STORE_URLS: Record<'Chrome' | 'Edge' | 'Firefox', string> = {
 /** badgeAction opens the store listing once one exists, else downloads the package. */
 function badgeAction(store: 'Chrome' | 'Edge' | 'Firefox', fallback: () => void): () => void {
   const url = STORE_URLS[store];
-  return url ? () => window.open(url, '_blank', 'noopener,noreferrer') : fallback;
+  return url ? () => openExternal(url) : fallback;
 }
 
 function downloadZip() {
