@@ -260,3 +260,71 @@ That replaces the whole previous shape and everything that hung off it:
 
 The site access the extension asks for at install time is for Click'n'Load and
 for nothing else; see `docs/browser-tools.md`.
+
+## API tokens and their rights
+
+A script, Sonarr, a dashboard, or the phone app connected by address rather
+than by phrase signs in with an API token: **Settings → Remote access → API
+tokens → New token**. Every token has a name, can be revoked on its own, and
+carries some of four rights:
+
+| Right | What it covers |
+|---|---|
+| Read | the download list, the queue, the history, the statistics, the health readout and the live stream |
+| Add | links, torrents, NZB files handed over by Sonarr or Radarr, and containers |
+| Control | pausing, resuming, removing and reordering downloads, the queue's own switches, captchas, unpacking, and the accent, corners and rainbow the apps take over |
+| Admin | settings, accounts, tokens, instances, scripts, the logs, backups and restarts, and picking the folder a download goes to |
+
+The window that creates a token offers four presets: **Full access** (all
+four), **Add and read**, **Read only**, and **Custom**, which shows one switch
+per right.
+
+**Add and read** is enough for Sonarr and Radarr. They send their key in the
+address (`?apikey=`), where it ends up in the log of any proxy in between, and
+a key that can only add and read is a smaller loss than one that can change the
+password. When Sonarr clears a finished download after importing it, the
+bridge stops reporting it. The download itself stays in your list unless the
+token also has Control; then it is removed, with its files if Sonarr asks for
+that. Removing a download that is still running needs Control: without it
+Sonarr shows the refusal, and the download carries on and stays in Sonarr's
+queue.
+
+Such a key cannot pick where files land either. A `dir` in `POST /api/links`
+or `POST /api/tasks/options` needs Admin, whatever the route needs otherwise,
+because a folder of the caller's choosing could be any folder the instance can
+write to. Without one, links go where the download folder, a category or a
+Packagizer rule puts them.
+
+**Read only** suits a dashboard, or a monitoring system reading `/api/metrics`.
+The phone app uses Read, Add and Control and never needs Admin. The Modules
+page warns when no token has the rights the Sonarr bridge or `/api/metrics`
+needs.
+
+A call the token has no right to is answered with a 403 that names the missing
+right:
+
+```json
+{"error": "this API token does not have the \"control\" right", "code": "tokenScope", "params": {"scope": "control"}}
+```
+
+The Sonarr bridge puts the same sentence in SABnzbd's own error document,
+because that is what Sonarr shows. `GET /api/help` lists the right each route
+needs as its `scope`. The table behind it is `internal/api/scopes.go`, and a
+test fails for any route missing from it, so a new route cannot be reached with
+a narrowed token until somebody has decided which right it needs.
+
+Only tokens are narrowed. A browser signed in with the password, a sibling that
+came in over the relay with the phrase, and the tokens instances hand each
+other when they pair all have every right. A token made before tokens had
+rights keeps all four, so scripts and apps set up earlier keep working. A token
+that may manage tokens can only issue ones with rights it holds itself. A call
+a token forwards to another instance is checked here, against the right it
+would need on this instance, before it leaves; forwarding needs no right of its
+own, so a token that may only add can add links on a peer too.
+
+The rights are kept in `token-scopes.json` beside `tokens.json` in the data
+directory. A token stays as narrow as it was even after going back to a
+release without rights for a while and upgrading again.
+
+The secret is shown once, when the token is made. The instance keeps a hash of
+it and never sends it back.

@@ -160,6 +160,16 @@ submission and for a fixed download.
   the Windows and Linux buttons say x64 and each has an ARM64 part of its own.
   An installed ARM64 app updates to the ARM64 build of the next release, and
   on Windows on ARM it fetches yt-dlp's own ARM64 build.
+- **API tokens carry rights.** A token can read, add, control or administer,
+  in any mix, picked as Full access, Add and read, Read only or Custom when it
+  is made, and the token list shows what each one may do. Add and read is
+  enough for Sonarr and Radarr, whose key travels in the address. A call a
+  token has no right to gets a 403 that names the missing right, and every
+  route in `GET /api/help` lists the right it needs. Picking the folder a
+  download goes to needs Admin, and the Modules page warns when no token can do
+  what the Sonarr bridge or `/api/metrics` needs. Tokens made before this keep
+  every right, and so do browser sessions, siblings on the relay and paired
+  instances.
 
 ### Fixed
 

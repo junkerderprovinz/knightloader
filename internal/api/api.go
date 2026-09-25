@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
@@ -58,29 +59,36 @@ func fromRelayGroup(r *http.Request) bool {
 }
 
 // authenticated reports whether the request carries a valid session or a
-// valid API token, or whether no password is set at all. A token is checked
-// even when a cookie was sent too, so one route can be tested with curl from a
-// logged-in browser machine.
+// valid API token, or whether no password is set at all.
 func authenticated(a *app.App, r *http.Request) bool {
+	_, ok := caller(a, r)
+	return ok
+}
+
+// caller works out who is asking: ok is false for nobody, and tok is set when
+// an API token is what let the request in, since only a token is narrowed by
+// scopes. A token is checked even when a cookie was sent too, so one route can
+// be tested with curl from a logged-in browser machine.
+func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 	if !a.Auth.Enabled() {
-		return true
+		return nil, true
 	}
 	// A sibling on the relay already holds the group key, derived from the
 	// connection phrase that reaches every instance in the group, so a second
 	// credential would protect nothing. relayProxyHandler limits such calls to
 	// the task and link routes.
 	if fromRelayGroup(r) {
-		return true
+		return nil, true
 	}
 	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
-		return true
+		return nil, true
 	}
-	if tok := bearerToken(r); tok != "" {
-		if _, ok := a.APITokens.Check(tok); ok {
-			return true
+	if secret := bearerToken(r); secret != "" {
+		if t, ok := a.APITokens.Check(secret); ok {
+			return &t, true
 		}
 	}
-	return false
+	return nil, false
 }
 
 // bearerToken reads the RFC 6750 Authorization header, which is how scripts,
@@ -116,10 +124,18 @@ func clearSession(w http.ResponseWriter, r *http.Request) {
 
 // guard refuses API calls without a session once a password is set. The open
 // routes come from the registration table, so there is no second list that
-// could disagree with it.
+// could disagree with it. A request let in on a token carries the token on,
+// for requireScope to check against the route.
 func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if reg.open(r.URL.Path) || authenticated(a, r) {
+		if reg.open(r.URL.Path) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if tok, ok := caller(a, r); ok {
+			if tok != nil {
+				r = withToken(r, *tok)
+			}
 			next.ServeHTTP(w, r)
 			return
 		}

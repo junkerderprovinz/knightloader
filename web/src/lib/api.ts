@@ -2681,10 +2681,18 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
 // costs one token rather than the shared password. Other clients present them
 // as "Authorization: Bearer <secret>"; this UI never does.
 
+/** One right a token can carry (apitoken.Scope). */
+export type TokenScope = 'read' | 'add' | 'control' | 'admin';
+
+/** Every right, in the server's canonical order. */
+export const TOKEN_SCOPES: readonly TokenScope[] = ['read', 'add', 'control', 'admin'];
+
 /** One token's metadata. Never the secret. */
 export interface ApiToken {
   id: string;
   name: string;
+  /** What the token may do, in canonical order. */
+  scopes: TokenScope[];
   createdAt: string;
   /** Absent until this token's first successful use. */
   lastUsed?: string;
@@ -2700,11 +2708,11 @@ export async function fetchTokens(): Promise<ApiToken[]> {
   return (await json<ApiToken[]>(await fetch('/api/tokens'))) ?? [];
 }
 
-export async function createToken(name: string): Promise<NewApiToken> {
+export async function createToken(name: string, scopes: readonly TokenScope[]): Promise<NewApiToken> {
   const r = await fetch('/api/tokens', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, scopes }),
   });
   return json<NewApiToken>(r);
 }

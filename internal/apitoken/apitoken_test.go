@@ -1,10 +1,14 @@
 package apitoken
 
 import (
+	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCreateReturnsTheSecretExactlyOnce(t *testing.T) {
@@ -226,6 +230,206 @@ func TestLastUsedFlushIsThrottledButAlwaysCorrectInMemory(t *testing.T) {
 	for _, got := range s2.List() {
 		if got.ID == tok.ID && got.LastUsed == nil {
 			t.Error("the first-ever use of a token was not flushed to disk")
+		}
+	}
+}
+
+func TestCreateGivesEveryScope(t *testing.T) {
+	s, err := Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	tok, _, err := s.Create("peer: office")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(tok.Scopes, AllScopes()) {
+		t.Errorf("Create gave %v, want every scope %v", tok.Scopes, AllScopes())
+	}
+}
+
+func TestCreateScopedKeepsExactlyTheScopesAskedFor(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Out of order and with a repeat, as a hand-written request might send it.
+	tok, secret, err := s.CreateScoped("sonarr", []Scope{ScopeAdd, ScopeRead, ScopeAdd})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Scope{ScopeRead, ScopeAdd}
+	if !slices.Equal(tok.Scopes, want) {
+		t.Errorf("scopes = %v, want %v", tok.Scopes, want)
+	}
+	if tok.Has(ScopeControl) || tok.Has(ScopeAdmin) {
+		t.Errorf("an add-and-read token also has control or admin: %v", tok.Scopes)
+	}
+
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, ok := reopened.Check(secret)
+	if !ok || !slices.Equal(got.Scopes, want) {
+		t.Errorf("after a reload the token has %v (ok=%v), want %v", got.Scopes, ok, want)
+	}
+}
+
+func TestCreateScopedRefusesAnEmptySetAndUnknownNames(t *testing.T) {
+	s, err := Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.CreateScoped("nothing", nil); !errors.Is(err, ErrNoScopes) {
+		t.Errorf("CreateScoped(no scopes) = %v, want ErrNoScopes", err)
+	}
+	if _, _, err := s.CreateScoped("typo", []Scope{ScopeRead, "delete"}); !errors.Is(err, ErrUnknownScope) {
+		t.Errorf("CreateScoped(unknown scope) = %v, want ErrUnknownScope", err)
+	}
+	if len(s.List()) != 0 {
+		t.Errorf("a refused create still stored a token: %+v", s.List())
+	}
+}
+
+// A tokens.json written before tokens had scopes has no scopes field at all.
+// Those tokens could do everything, and they keep doing so.
+func TestATokenStoredBeforeScopesKeepsEveryRight(t *testing.T) {
+	dir := t.TempDir()
+	const secret = "kl_made-before-scopes"
+	old := `[{"id":"a1b2c3","name":"old phone","createdAt":"2025-01-02T03:04:05Z","hash":"` + hashHex(secret) + `"}]`
+	if err := os.WriteFile(filepath.Join(dir, "tokens.json"), []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	listed := s.List()
+	if len(listed) != 1 || !slices.Equal(listed[0].Scopes, AllScopes()) {
+		t.Fatalf("List() = %+v, want the old token with every scope", listed)
+	}
+	got, ok := s.Check(secret)
+	if !ok || !got.Has(ScopeAdmin) {
+		t.Errorf("Check(old secret) = %+v, %v; want it accepted with admin", got, ok)
+	}
+}
+
+// A build from before scopes rewrites tokens.json with the fields it knows
+// whenever a token is used. Going back to one for a while and then forward
+// again must not turn a narrowed token into a full one.
+func TestANarrowedTokenStaysNarrowAfterAnOlderBuildRewroteTheFile(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, secret, err := s.CreateScoped("sonarr", []Scope{ScopeRead, ScopeAdd})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(dir, "tokens.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var older []struct {
+		ID        string     `json:"id"`
+		Name      string     `json:"name"`
+		CreatedAt time.Time  `json:"createdAt"`
+		LastUsed  *time.Time `json:"lastUsed,omitempty"`
+		HashHex   string     `json:"hash"`
+	}
+	if err := json.Unmarshal(b, &older); err != nil {
+		t.Fatal(err)
+	}
+	if b, err = json.MarshalIndent(older, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, b, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, ok := reopened.Check(secret)
+	if !ok {
+		t.Fatal("the token was refused after the reload")
+	}
+	if !slices.Equal(got.Scopes, []Scope{ScopeRead, ScopeAdd}) {
+		t.Errorf("after the rewrite the token has %v, want read and add", got.Scopes)
+	}
+}
+
+// A token an older build issued while it ran has no scopes on record, and it
+// was made with every right.
+func TestATokenAnOlderBuildIssuedHasEveryRight(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.CreateScoped("dashboard", []Scope{ScopeRead}); err != nil {
+		t.Fatal(err)
+	}
+	const secret = "kl_issued-by-an-older-build"
+	b, err := os.ReadFile(filepath.Join(dir, "tokens.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var recs []map[string]any
+	if err := json.Unmarshal(b, &recs); err != nil {
+		t.Fatal(err)
+	}
+	recs = append(recs, map[string]any{
+		"id": "feedfacecafebeef", "name": "script", "createdAt": "2026-01-02T03:04:05Z", "hash": hashHex(secret),
+	})
+	if b, err = json.Marshal(recs); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "tokens.json"), b, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, ok := reopened.Check(secret); !ok || !slices.Equal(got.Scopes, AllScopes()) {
+		t.Errorf("the older build's token has %v (ok=%v), want every scope", got.Scopes, ok)
+	}
+}
+
+// Which tokens were narrowed cannot be told from a garbled scopes file, so
+// none of them keeps a right rather than all of them gaining every one.
+func TestAGarbledScopesFileLeavesTokensWithoutRights(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, secret, err := s.CreateScoped("dashboard", []Scope{ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, scopesFile), []byte("not json"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, ok := reopened.Check(secret)
+	if !ok {
+		t.Fatal("the token was refused after the reload")
+	}
+	for _, sc := range AllScopes() {
+		if got.Has(sc) {
+			t.Errorf("the token has %q after its scopes file was garbled", sc)
 		}
 	}
 }

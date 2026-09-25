@@ -20,6 +20,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
@@ -768,10 +769,10 @@ func extractionDetail(s settings.Settings) line {
 }
 
 // downloadClientDetail is the live line of the SABnzbd bridge row. It warns
-// when no API token exists, since the route then refuses every call, and when
-// "Put each package in its own subfolder" is off, since the importer then
-// finds several releases in the folder the bridge reports. The line shows on
-// the Modules page, so it names the page the token is made on.
+// when no API token can add and read, since the route then refuses Sonarr's
+// calls, and when "Put each package in its own subfolder" is off, since the
+// importer then finds several releases in the folder the bridge reports. The
+// line shows on the Modules page, so it names the page the token is made on.
 func downloadClientDetail(a *app.App, s settings.Settings) line {
 	if !s.DownloadClientAPI {
 		return line{
@@ -781,14 +782,21 @@ func downloadClientDetail(a *app.App, s settings.Settings) line {
 	}
 	const (
 		noToken     = "no API token exists yet, so every call is refused; create one on the Remote access page"
+		noAddRead   = "no API token can add and read, so Sonarr and Radarr are refused; create one with \"Add and read\" on the Remote access page"
 		noSubfolder = "\"Put each package in its own subfolder\" is off, so every grab lands in one folder and the importer cannot tell them apart"
 	)
-	tokenless, flat := len(a.APITokens.List()) == 0, !s.SubfolderByPackage
+	tokens := a.APITokens.List()
+	tokenless, flat := len(tokens) == 0, !s.SubfolderByPackage
+	unfit := !tokenless && !someTokenHolds(tokens, apitoken.ScopeRead, apitoken.ScopeAdd)
 	switch {
 	case tokenless && flat:
 		return line{text: noToken + "; " + noSubfolder, code: "downloadclientNoTokenNoSubfolders"}
 	case tokenless:
 		return line{text: noToken, code: "downloadclientNoToken"}
+	case unfit && flat:
+		return line{text: noAddRead + "; " + noSubfolder, code: "downloadclientNoAddReadTokenNoSubfolders"}
+	case unfit:
+		return line{text: noAddRead, code: "downloadclientNoAddReadToken"}
 	case flat:
 		return line{text: noSubfolder, code: "downloadclientNoSubfolders"}
 	}

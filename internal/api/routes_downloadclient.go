@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
@@ -81,7 +82,7 @@ func registerDownloadClient(reg *Registry, a *app.App) {
 	// even without a password, and answers 404 while the module is off.
 	reg.AddOpen(http.MethodGet, sabnzbdPath,
 		"SABnzbd-shaped download client for Sonarr and Radarr (set their URL Base to \"api/sabnzbd\"); "+
-			"off unless \"Download client for Sonarr and Radarr\" is switched on (Remote access page or Modules page), and the ?apikey= is an API token of this instance",
+			"off unless \"Download client for Sonarr and Radarr\" is switched on (Remote access page or Modules page), and the ?apikey= is an API token of this instance that can add and read",
 		dc.serve)
 	reg.AddOpen(http.MethodPost, sabnzbdPath,
 		"the same door for mode=addfile, which is the only call Sonarr and Radarr make as a POST",
@@ -96,45 +97,59 @@ func (dc *downloadClient) serve(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no such endpoint: "+r.Method+" "+r.URL.Path, http.StatusNotFound)
 		return
 	}
-	if !dc.authorized(w, r) {
+	tok, ok := dc.authorized(w, r)
+	if !ok {
 		return
 	}
 
 	q := r.URL.Query()
-	switch mode := strings.ToLower(strings.TrimSpace(q.Get("mode"))); mode {
+	mode := strings.ToLower(strings.TrimSpace(q.Get("mode")))
+	op := mode
+	// SABnzbd overloads mode=queue and mode=history: with name=delete they
+	// remove.
+	if (mode == "queue" || mode == "history") && strings.EqualFold(q.Get("name"), "delete") {
+		op = "delete"
+	}
+	need, known := sabnzbdScopes[op]
+	if !known {
+		// Sonarr never calls retry, and only asks for fullstatus when
+		// complete_dir is relative, which serveConfig never answers.
+		sabError(w, fmt.Sprintf("mode %q is not implemented by this download client", mode))
+		return
+	}
+	// Sonarr and Radarr clear what they have imported through delete, and
+	// their token can add and read but not control. Such a token may still
+	// forget a finished grab it handed over; serveDelete leaves the downloads
+	// alone.
+	if !tok.Has(need) && !(op == "delete" && tok.Has(apitoken.ScopeAdd)) {
+		sabError(w, scopeRefusal(need))
+		return
+	}
+
+	switch op {
 	case "version":
 		writeJSON(w, map[string]string{"version": sabnzbdVersion})
 	case "get_config":
 		dc.serveConfig(w)
+	case "delete":
+		dc.serveDelete(w, r, tok.Has(apitoken.ScopeControl))
 	case "queue":
-		// SABnzbd overloads mode=queue: with name=delete it removes.
-		if strings.EqualFold(q.Get("name"), "delete") {
-			dc.serveDelete(w, r)
-			return
-		}
 		dc.serveQueue(w, r)
 	case "history":
-		if strings.EqualFold(q.Get("name"), "delete") {
-			dc.serveDelete(w, r)
-			return
-		}
 		dc.serveHistory(w, r)
 	case "addfile", "addurl":
 		dc.serveAdd(w, r, mode)
-	default:
-		// Sonarr never calls retry, and only asks for fullstatus when
-		// complete_dir is relative, which serveConfig never answers.
-		sabError(w, fmt.Sprintf("mode %q is not implemented by this download client", mode))
 	}
 }
 
-// authorized checks the credential and reports whether the caller may proceed.
+// authorized checks the credential and returns the token when the caller may
+// proceed.
 //
 // Sonarr's TestAuthentication matches on "API Key Incorrect" and "API Key
 // Required". The refusal is an HTTP 200 with an error document, as in real
 // SABnzbd, because Sonarr raises a 401 as "unable to connect" before reading
 // the document.
-func (dc *downloadClient) authorized(w http.ResponseWriter, r *http.Request) bool {
+func (dc *downloadClient) authorized(w http.ResponseWriter, r *http.Request) (apitoken.Token, bool) {
 	key := strings.TrimSpace(r.URL.Query().Get("apikey"))
 	if key == "" {
 		// Sonarr never sends a Bearer header, but curl users do.
@@ -142,14 +157,15 @@ func (dc *downloadClient) authorized(w http.ResponseWriter, r *http.Request) boo
 	}
 	if key == "" {
 		sabError(w, "API Key Required")
-		return false
+		return apitoken.Token{}, false
 	}
 	// The instance's own tokens, so there is only one place to revoke from.
-	if _, ok := dc.a.APITokens.Check(key); !ok {
+	tok, ok := dc.a.APITokens.Check(key)
+	if !ok {
 		sabError(w, "API Key Incorrect")
-		return false
+		return apitoken.Token{}, false
 	}
-	return true
+	return tok, true
 }
 
 // sabError is SABnzbd's failure document; Sonarr shows the sentence to the
@@ -368,10 +384,13 @@ func (dc *downloadClient) serveHistory(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// serveDelete removes a grab and its tasks through RemoveTasks, like every
-// other delete. del_files is honoured exactly as sent, so files are only
-// deleted when asked for.
-func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request) {
+// serveDelete removes a grab and, with removeTasks, its tasks through
+// RemoveTasks, like every other delete. del_files is honoured exactly as sent,
+// so files are only deleted when asked for. Without removeTasks a finished
+// grab is only forgotten: Sonarr stops tracking it, and its downloads and
+// files stay in the list. One still in the queue is refused instead, since
+// forgetting it would leave a download running that nobody tracks.
+func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request, removeTasks bool) {
 	q := r.URL.Query()
 	value := strings.TrimSpace(q.Get("value"))
 	if value == "" {
@@ -388,12 +407,23 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	live := dc.liveTasks()
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	grabs, err := dc.load()
 	if err != nil {
 		sabError(w, err.Error())
 		return
+	}
+	if !removeTasks {
+		for id := range wanted {
+			if g, ok := grabs[id]; ok {
+				if v, ok := dc.view(g, live); ok && !v.finished {
+					sabError(w, scopeRefusal(apitoken.ScopeControl))
+					return
+				}
+			}
+		}
 	}
 	var taskIDs []string
 	for id := range wanted {
@@ -404,7 +434,9 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request) {
 		taskIDs = append(taskIDs, g.TaskIDs...)
 		delete(grabs, id)
 	}
-	dc.a.RemoveTasks(taskIDs, delFiles)
+	if removeTasks {
+		dc.a.RemoveTasks(taskIDs, delFiles)
+	}
 	if err := dc.store(grabs); err != nil {
 		sabError(w, err.Error())
 		return
@@ -458,13 +490,7 @@ func (v grabView) timeleft() string {
 // the only reader of the document, so the prune needs no timer.
 func (dc *downloadClient) views(r *http.Request, finished bool) []grabView {
 	category := strings.TrimSpace(r.URL.Query().Get("category"))
-
-	live := map[string]*core.Task{}
-	for _, t := range dc.a.Tasks() {
-		if t != nil {
-			live[t.ID] = t
-		}
-	}
+	live := dc.liveTasks()
 
 	dc.mu.Lock()
 	grabs, err := dc.load()
@@ -505,6 +531,17 @@ func (dc *downloadClient) views(r *http.Request, finished bool) []grabView {
 		return out[i].grab.ID < out[j].grab.ID
 	})
 	return out
+}
+
+// liveTasks is the task list by id, which view reads a grab against.
+func (dc *downloadClient) liveTasks() map[string]*core.Task {
+	live := map[string]*core.Task{}
+	for _, t := range dc.a.Tasks() {
+		if t != nil {
+			live[t.ID] = t
+		}
+	}
+	return live
 }
 
 // view maps one grab's tasks onto the state SABnzbd would report, and reports

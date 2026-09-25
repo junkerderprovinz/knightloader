@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Field,
+  FieldGroup,
   IconBadge,
   IconTile,
   InfoBubble,
@@ -15,6 +16,7 @@ import {
   ToggleRow,
 } from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
+import { Tabs } from '../../components/Tabs';
 import {
   ApiError,
   type ApiToken,
@@ -24,6 +26,8 @@ import {
   type QRMatrix,
   type RelayConfig,
   type RelayMode,
+  type TokenScope,
+  TOKEN_SCOPES,
   activateConnect,
   createToken,
   fetchAuth,
@@ -55,6 +59,16 @@ import { useShake } from '../../lib/useShake';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
+import {
+  PRESET_LABEL,
+  PRESET_SCOPES,
+  SCOPE_HINT,
+  SCOPE_LABEL,
+  presetOf,
+  scopesLabel,
+  withScope,
+  type TokenPreset,
+} from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
 import { label, useTx } from './tx';
 
@@ -887,6 +901,8 @@ function TokensSection() {
   const [created, setCreated] = useState<NewApiToken | null>(null);
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
+  // Full access to start with, as for a token created without naming its rights.
+  const [scopes, setScopes] = useState<TokenScope[]>([...TOKEN_SCOPES]);
 
   const load = () => fetchTokens().then(setTokens).catch(() => {});
   useEffect(() => {
@@ -896,9 +912,10 @@ function TokensSection() {
   async function onCreate() {
     setCreating(true);
     try {
-      const tok = await createToken(name.trim());
+      const tok = await createToken(name.trim(), scopes);
       setCreated(tok);
       setName('');
+      setScopes([...TOKEN_SCOPES]);
       await load();
     } catch (e) {
       // The window stays open with the typed name; the reason goes to the toast.
@@ -923,7 +940,10 @@ function TokensSection() {
     setShowCreate(false);
     setCreated(null);
     setCopied(false);
+    setScopes([...TOKEN_SCOPES]);
   }
+
+  const canCreate = !creating && name.trim() !== '' && scopes.length > 0;
 
   return (
     <>
@@ -937,10 +957,10 @@ function TokensSection() {
         ) : (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
-              <div key={tok.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+              <div key={tok.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
                 {/* An inert tile marking the row, not a control. */}
                 <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[10rem] flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
                   <div className="text-[11px] text-carbon-textMuted">
                     {t('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
@@ -949,17 +969,22 @@ function TokensSection() {
                     {tok.lastUsed ? fmtDate(tok.lastUsed) : t('settings.access.tokens.neverUsed')}
                   </div>
                 </div>
-                {/* `labelled`, so the action follows the Beschriftung setting. */}
-                <IconBadge
-                  labelled
-                  hue={5}
-                  icon={<IconTrash width={16} height={16} />}
-                  disabled={revoking === tok.id}
-                  title={t('settings.access.tokens.revoke')}
-                  aria-label={t('settings.access.tokens.revoke')}
-                  onClick={() => void onRevoke(tok.id)}
-                  className="shrink-0"
-                />
+                {/* The rights and the revoke button go under the name on a
+                    narrow screen rather than squeezing it. */}
+                <div className="ms-auto flex shrink-0 items-center gap-3">
+                  <LabelBadge label={scopesLabel(t, tok.scopes)} hue={5} />
+                  {/* `labelled`, so the action follows the Beschriftung setting. */}
+                  <IconBadge
+                    labelled
+                    hue={5}
+                    icon={<IconTrash width={16} height={16} />}
+                    disabled={revoking === tok.id}
+                    title={t('settings.access.tokens.revoke')}
+                    aria-label={t('settings.access.tokens.revoke')}
+                    onClick={() => void onRevoke(tok.id)}
+                    className="shrink-0"
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -996,24 +1021,27 @@ function TokensSection() {
                 shake={createShake}
                 kind="primary"
                 onClick={() => void onCreate()}
-                disabled={creating || name.trim() === ''}
+                disabled={!canCreate}
               >
                 {creating ? t('settings.access.tokens.creating') : t('settings.access.tokens.create')}
               </Button>
             </>
           }
         >
-          <Field label={t('settings.access.tokens.title')}>
-            <TextInput
-              autoFocus
-              placeholder={t('settings.access.tokens.namePlaceholder')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && name.trim() !== '' && !creating) void onCreate();
-              }}
-            />
-          </Field>
+          <div className="flex flex-col gap-4">
+            <Field label={t('settings.access.tokens.title')}>
+              <TextInput
+                autoFocus
+                placeholder={t('settings.access.tokens.namePlaceholder')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && canCreate) void onCreate();
+                }}
+              />
+            </Field>
+            <TokenScopePicker scopes={scopes} onChange={setScopes} />
+          </div>
         </Modal>
       )}
 
@@ -1064,5 +1092,59 @@ function TokensSection() {
         </Modal>
       )}
     </>
+  );
+}
+
+const PRESETS: TokenPreset[] = ['full', 'addRead', 'read', 'custom'];
+
+/**
+ * TokenScopePicker chooses what a new token may do: a preset, or the four
+ * rights one by one under "custom". The preset is kept apart from the rights,
+ * so choosing "custom" opens the switches on the rights already chosen instead
+ * of snapping back to the preset they happen to match.
+ */
+function TokenScopePicker({
+  scopes,
+  onChange,
+}: {
+  scopes: readonly TokenScope[];
+  onChange: (scopes: TokenScope[]) => void;
+}) {
+  const { t } = useT();
+  const [preset, setPreset] = useState<TokenPreset>(() => presetOf(scopes));
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* FieldGroup, because a Field's label would pass a click on the
+          caption to the first segment. */}
+      <FieldGroup label={t('settings.access.tokens.rights')} hint={t('settings.access.tokens.rightsHint')}>
+        <Tabs
+          variant="well"
+          size="sm"
+          label={t('settings.access.tokens.rights')}
+          active={preset}
+          onSelect={(id) => {
+            const next = id as TokenPreset;
+            setPreset(next);
+            if (next !== 'custom') onChange([...PRESET_SCOPES[next]]);
+          }}
+          items={PRESETS.map((id) => ({ id, label: t(PRESET_LABEL[id]) }))}
+        />
+      </FieldGroup>
+      {preset === 'custom' && (
+        <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
+          {TOKEN_SCOPES.map((s, i) => (
+            <ToggleRow
+              key={s}
+              hue={i}
+              label={t(SCOPE_LABEL[s])}
+              hint={t(SCOPE_HINT[s])}
+              checked={scopes.includes(s)}
+              onChange={(on) => onChange(withScope(scopes, s, on))}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
