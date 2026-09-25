@@ -49,6 +49,7 @@ export const tr: Dict = {
   'addDownload.errorEmpty': 'En az bir bağlantı yapıştırın.',
   'addDownload.errorServer': 'Sunucu: {message}',
   'addDownload.errorGeneric': 'Bağlantılar gönderilemedi.',
+  'error.federationOff': 'Bağlı olduğun örnekte eş örnekler kapalı, bu yüzden o, diğerlerine ulaşamıyor.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 
@@ -76,6 +77,7 @@ export const tr: Dict = {
   'settings.accent': 'Vurgu',
   'settings.rainbow': 'Gökkuşağı',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Gökkuşağı modu açıkken her renkli öğe paletin içinde hep birlikte kayar, her 2,4 saniyede bir renk. Hareket “Kapalı” ise ya da telefonunun ayarlarında azaltılmış hareket açıksa, bunun yerine bir renkten ötekine atlar.',
   'settings.problems': 'Sorun mu var?',
   'settings.problemsHint': 'Bir şey bildirirken bunu da gönder. Bir tur soruyu ortadan kaldırır ve içinde ne adres ne de token bulunur.',
   'settings.problemsCopy': 'Raporu kopyala',

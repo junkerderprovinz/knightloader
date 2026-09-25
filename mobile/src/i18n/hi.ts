@@ -49,6 +49,7 @@ export const hi: Dict = {
   'addDownload.errorEmpty': 'कम से कम एक लिंक पेस्ट करें।',
   'addDownload.errorServer': 'सर्वर: {message}',
   'addDownload.errorGeneric': 'लिंक भेजे नहीं जा सके।',
+  'error.federationOff': 'जिस इंस्टेंस से आप जुड़े हैं, उस पर साथी इंस्टेंस बंद हैं, इसलिए वह दूसरों तक नहीं पहुँच सकता।',
   'addDownload.cancel': 'रद्द करें',
   'addDownload.button': 'जोड़ें',
 
@@ -76,6 +77,7 @@ export const hi: Dict = {
   'settings.accent': 'एक्सेंट रंग',
   'settings.rainbow': 'रेनबो',
   'settings.disco': 'डिस्को',
+  'settings.discoGlideHint': 'जब तक रेनबो मोड चालू है, हर रंगीन तत्व बाक़ी सबके साथ पैलेट में सरकता है, हर 2.4 सेकंड में एक रंग। गति “बंद” पर हो, या आपके फ़ोन की सेटिंग में कम गति चालू हो, तो यह इसके बजाय एक रंग से अगले रंग पर कूदता है।',
   'settings.problems': 'कोई समस्या?',
   'settings.problemsHint': 'जब कुछ रिपोर्ट करें तो इसे भी भेजें। इससे सवाल-जवाब का एक दौर बच जाता है, और इसमें न पता होता है, न टोकन।',
   'settings.problemsCopy': 'रिपोर्ट कॉपी करें',

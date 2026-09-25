@@ -49,6 +49,7 @@ export const lv: Dict = {
   'addDownload.errorEmpty': 'Ielīmējiet vismaz vienu saiti.',
   'addDownload.errorServer': 'Serveris: {message}',
   'addDownload.errorGeneric': 'Neizdevās nosūtīt saites.',
+  'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 
@@ -76,6 +77,7 @@ export const lv: Dict = {
   'settings.accent': 'Akcents',
   'settings.rainbow': 'Varavīksne',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Kamēr varavīksnes režīms ir ieslēgts, visi krāsainie elementi kopā slīd cauri paletei, viena krāsa ik pēc 2,4 sekundēm. Ja Kustība ir iestatīta uz „Izslēgts“ vai tālruņa iestatījumos ir ieslēgta samazināta kustība, krāsas tā vietā pārlec no vienas uz nākamo.',
   'settings.problems': 'Problēmas?',
   'settings.problemsHint': 'Nosūti to līdzi, kad par kaut ko ziņo. Tas ietaupa vienu jautājumu kārtu, un tajā nav ne adreses, ne piekļuves marķiera.',
   'settings.problemsCopy': 'Kopēt pārskatu',

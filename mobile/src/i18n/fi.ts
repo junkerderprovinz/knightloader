@@ -49,6 +49,7 @@ export const fi: Dict = {
   'addDownload.errorEmpty': 'Liitä vähintään yksi linkki.',
   'addDownload.errorServer': 'Palvelin: {message}',
   'addDownload.errorGeneric': 'Linkkien lähettäminen epäonnistui.',
+  'error.federationOff': 'Rinnakkaisinstanssit on kytketty pois instanssissa, johon olet yhteydessä, joten se ei tavoita muita.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 
@@ -76,6 +77,7 @@ export const fi: Dict = {
   'settings.accent': 'Korostusväri',
   'settings.rainbow': 'Sateenkaari',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Kun sateenkaaritila on päällä, kaikki värilliset elementit liukuvat yhdessä paletin läpi, yksi väri 2,4 sekunnin välein. Jos Liike-asetuksena on ”Pois” tai puhelimesi asetuksissa on vähennetty liike käytössä, värit vaihtuvat sen sijaan suoraan väristä toiseen.',
   'settings.problems': 'Ongelmia?',
   'settings.problemsHint': 'Lähetä tämä mukana, kun ilmoitat jostakin. Se säästää yhden kysymyskierroksen, eikä siinä ole osoitetta eikä tokenia.',
   'settings.problemsCopy': 'Kopioi raportti',

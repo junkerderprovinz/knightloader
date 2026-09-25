@@ -49,6 +49,7 @@ export const gl: Dict = {
   'addDownload.errorEmpty': 'Pega polo menos unha ligazón.',
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': 'Non se puideron enviar as ligazóns.',
+  'error.federationOff': 'As instancias irmás están desactivadas na instancia á que estás conectado, así que non pode chegar ás outras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 
@@ -76,6 +77,7 @@ export const gl: Dict = {
   'settings.accent': 'Acento',
   'settings.rainbow': 'Arco da vella',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Mentres o modo arco da vella estea activado, todos os elementos de cor esvaran xuntos pola paleta, unha cor cada 2,4 segundos. Con Movemento en Desactivado, ou coa redución de movemento activada nos axustes do teléfono, salta dunha cor á seguinte.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envía isto cando informes de algo. Aforra unha rolda de preguntas e non leva nin enderezo nin token.',
   'settings.problemsCopy': 'Copiar o informe',

@@ -49,6 +49,7 @@ export const et: Dict = {
   'addDownload.errorEmpty': 'Kleepige vähemalt üks link.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Linkide saatmine ebaõnnestus.',
+  'error.federationOff': 'Eksemplaril, millega oled ühendatud, on naabereksemplarid välja lülitatud, seega ei jõua see teisteni.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 
@@ -76,6 +77,7 @@ export const et: Dict = {
   'settings.accent': 'Rõhuvärv',
   'settings.rainbow': 'Vikerkaar',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Kuni vikerkaarerežiim on sees, liuglevad kõik värvilised elemendid koos läbi paleti, üks värv iga 2,4 sekundi järel. Kui Liikumine on seatud valikule „Väljas“ või su telefoni seadetes on vähendatud liikumine sisse lülitatud, hüppavad värvid selle asemel ühelt teisele.',
   'settings.problems': 'Probleemid?',
   'settings.problemsHint': 'Saada see kaasa, kui millestki teatad. See säästab ühe küsimustevooru ja selles ei ole aadressi ega võtit.',
   'settings.problemsCopy': 'Kopeeri aruanne',

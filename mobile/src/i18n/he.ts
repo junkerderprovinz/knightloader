@@ -49,6 +49,7 @@ export const he: Dict = {
   'addDownload.errorEmpty': 'הדביקו לפחות קישור אחד.',
   'addDownload.errorServer': 'שרת: {message}',
   'addDownload.errorGeneric': 'לא ניתן היה לשלוח את הקישורים.',
+  'error.federationOff': 'במופע שאתה מחובר אליו מופעים שכנים כבויים, ולכן הוא לא יכול להגיע לאחרים.',
   'addDownload.cancel': 'ביטול',
   'addDownload.button': 'הוספה',
 
@@ -76,6 +77,7 @@ export const he: Dict = {
   'settings.accent': 'צבע הדגשה',
   'settings.rainbow': 'קשת',
   'settings.disco': 'דיסקו',
+  'settings.discoGlideHint': 'כל עוד מצב הקשת פועל, כל רכיב צבעוני גולש לאורך הלוח יחד עם כל השאר, צבע אחד כל 2.4 שניות. כש„תנועה” מוגדרת ל„כבוי”, או כשהפחתת תנועה מופעלת בהגדרות הטלפון שלך, הוא קופץ במקום זאת מצבע לצבע.',
   'settings.problems': 'בעיות?',
   'settings.problemsHint': 'שלחו את זה כשאתם מדווחים על משהו. זה חוסך סבב שאלות, ואין בו כתובת או טוקן.',
   'settings.problemsCopy': 'העתקת הדוח',

@@ -49,6 +49,7 @@ export const ca: Dict = {
   'addDownload.errorEmpty': 'Enganxa almenys un enllaç.',
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': "No s'han pogut enviar els enllaços.",
+  'error.federationOff': 'Les instàncies germanes estan desactivades a la instància a la qual estàs connectat, així que no pot arribar a les altres.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 
@@ -76,6 +77,7 @@ export const ca: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Arc de Sant Martí',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Mentre el mode arc de Sant Martí està activat, tots els elements de color llisquen junts per la paleta, un color cada 2,4 segons. Amb «Moviment» a «Desactivat», o amb la reducció de moviment activada a la configuració del teu telèfon, salta en canvi d’un color al següent.',
   'settings.problems': 'Problemes?',
   'settings.problemsHint': "Envia això quan informis d'alguna cosa. Estalvia una ronda de preguntes i no conté ni adreça ni token.",
   'settings.problemsCopy': "Copia l'informe",

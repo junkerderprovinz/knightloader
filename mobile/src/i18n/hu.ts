@@ -49,6 +49,7 @@ export const hu: Dict = {
   'addDownload.errorEmpty': 'Illessz be legalább egy linket.',
   'addDownload.errorServer': 'Szerver: {message}',
   'addDownload.errorGeneric': 'Nem sikerült elküldeni a linkeket.',
+  'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 
@@ -76,6 +77,7 @@ export const hu: Dict = {
   'settings.accent': 'Kiemelőszín',
   'settings.rainbow': 'Szivárvány',
   'settings.disco': 'Diszkó',
+  'settings.discoGlideHint': 'Amíg a szivárvány mód be van kapcsolva, minden színes elem együtt siklik végig a palettán, 2,4 másodpercenként egy színnel. Ha a Mozgás „Ki” értékre van állítva, vagy a telefonod beállításaiban be van kapcsolva a csökkentett mozgás, akkor ehelyett színről színre ugrik.',
   'settings.problems': 'Gondok?',
   'settings.problemsHint': 'Küldd el ezt is, amikor bejelentesz valamit. Egy kérdezz-felelek kört megspórolsz vele, és sem cím, sem token nincs benne.',
   'settings.problemsCopy': 'Jelentés másolása',

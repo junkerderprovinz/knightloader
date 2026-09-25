@@ -49,6 +49,7 @@ export const it: Dict = {
   'addDownload.errorEmpty': 'Incolla almeno un link.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Impossibile inviare i link.',
+  'error.federationOff': 'Le istanze collegate sono disattivate sull’istanza a cui sei collegato, quindi non può raggiungere le altre.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 
@@ -76,6 +77,7 @@ export const it: Dict = {
   'settings.accent': 'Accento',
   'settings.rainbow': 'Arcobaleno',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Finché la modalità arcobaleno è attiva, tutti gli elementi colorati scorrono insieme lungo la tavolozza, un colore ogni 2,4 secondi. Con «Movimento» su «Disattivato», o con la riduzione del movimento attiva nelle impostazioni del telefono, passa invece da un colore al successivo a scatti.',
   'settings.problems': 'Problemi?',
   'settings.problemsHint': 'Allega questo quando segnali qualcosa. Risparmia un giro di domande e non contiene né indirizzo né token.',
   'settings.problemsCopy': 'Copia il rapporto',

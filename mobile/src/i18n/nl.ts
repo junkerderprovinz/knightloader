@@ -49,6 +49,7 @@ export const nl: Dict = {
   'addDownload.errorEmpty': 'Plak ten minste één link.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Kon de links niet verzenden.',
+  'error.federationOff': 'Gekoppelde instanties staan uit op de instantie waarmee je verbonden bent, dus die kan de andere niet bereiken.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 
@@ -76,6 +77,7 @@ export const nl: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regenboog',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Zolang de regenboogmodus aan staat, glijden alle gekleurde elementen samen door het palet, elke 2,4 seconden een kleur verder. Staat Beweging op “Uit”, of staat in de instellingen van je telefoon minder beweging aan, dan springen ze in plaats daarvan van de ene kleur naar de volgende.',
   'settings.problems': 'Problemen?',
   'settings.problemsHint': 'Stuur dit mee als je iets meldt. Dat scheelt een ronde vragen, en er staat geen adres of token in.',
   'settings.problemsCopy': 'Rapport kopiëren',

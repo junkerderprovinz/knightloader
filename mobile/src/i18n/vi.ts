@@ -49,6 +49,7 @@ export const vi: Dict = {
   'addDownload.errorEmpty': 'Dán ít nhất một liên kết.',
   'addDownload.errorServer': 'Máy chủ: {message}',
   'addDownload.errorGeneric': 'Không thể gửi các liên kết.',
+  'error.federationOff': '“Thực thể bạn” đang tắt trên phiên bản bạn đang kết nối, nên nó không liên lạc được với các phiên bản khác.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 
@@ -76,6 +77,7 @@ export const vi: Dict = {
   'settings.accent': 'Màu nhấn',
   'settings.rainbow': 'Cầu vồng',
   'settings.disco': 'Disco',
+  'settings.discoGlideHint': 'Khi chế độ cầu vồng đang bật, mọi phần tử có màu cùng lướt qua bảng màu, cứ 2,4 giây sang một màu. Nếu Chuyển động đặt là “Tắt”, hoặc cài đặt điện thoại của bạn bật giảm chuyển động, màu sẽ nhảy thẳng từ màu này sang màu kế tiếp.',
   'settings.problems': 'Gặp vấn đề?',
   'settings.problemsHint': 'Hãy gửi kèm phần này khi bạn báo lỗi. Nó tiết kiệm một vòng hỏi đáp, và trong đó không có địa chỉ hay token.',
   'settings.problemsCopy': 'Sao chép báo cáo',

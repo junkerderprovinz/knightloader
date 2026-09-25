@@ -49,6 +49,7 @@ export const eu: Dict = {
   'addDownload.errorEmpty': 'Itsatsi esteka bat gutxienez.',
   'addDownload.errorServer': 'Zerbitzaria: {message}',
   'addDownload.errorGeneric': 'Ezin izan dira estekak bidali.',
+  'error.federationOff': 'Konektatuta zauden instantzian kide diren instantziak itzalita daude, beraz ezin da besteetara iritsi.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 
@@ -76,6 +77,7 @@ export const eu: Dict = {
   'settings.accent': 'Azentua',
   'settings.rainbow': 'Ostadarra',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Ostadar modua piztuta dagoen bitartean, elementu koloredun guztiak batera irristatzen dira paletan zehar, kolore bat 2,4 segundoro. Mugimendua Desaktibatuta badago, edo telefonoaren ezarpenetan mugimendu murriztua aktibatuta badago, kolorez kolore jauzi egiten du horren ordez.',
   'settings.problems': 'Arazoak?',
   'settings.problemsHint': 'Bidali hau zerbait jakinarazten duzunean. Galdera-txanda bat aurrezten du, eta ez du helbiderik ez tokenik.',
   'settings.problemsCopy': 'Kopiatu txostena',

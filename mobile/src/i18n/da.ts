@@ -49,6 +49,7 @@ export const da: Dict = {
   'addDownload.errorEmpty': 'Indsæt mindst ét link.',
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Kunne ikke sende linkene.',
+  'error.federationOff': 'Søsterinstanser er slået fra på den instans, du er forbundet til, så den kan ikke nå de andre.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 
@@ -76,6 +77,7 @@ export const da: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbue',
   'settings.disco': 'Disko',
+  'settings.discoGlideHint': 'Mens regnbuetilstanden er slået til, glider alle farvede elementer samlet gennem paletten og skifter farve hvert 2,4 sekund. Står Bevægelse på „Fra“, eller er reduceret bevægelse slået til i telefonens indstillinger, springer de i stedet fra den ene farve til den næste.',
   'settings.problems': 'Problemer?',
   'settings.problemsHint': 'Send det her med, når du melder noget. Det sparer en runde spørgsmål, og der er hverken adresse eller token i.',
   'settings.problemsCopy': 'Kopiér rapport',
