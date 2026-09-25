@@ -409,7 +409,7 @@ export function Tabs(props: TabsProps) {
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
-              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-2.5'}
+              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-1'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 ${stacked ? 'basis-0' : 'basis-auto'}` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${look} ${grip}`
@@ -437,16 +437,14 @@ export function Tabs(props: TabsProps) {
             {(showLabel || glyphless) && (
               // A well segment can grow taller, so it wraps. A rail tile beside
               // its glyph takes a second line where its name needs one, split
-              // evenly, and only that tile grows: its basis is its content and
-              // every tile shares what is left of the rail. The 20px line keeps
-              // a one-line tile at the 40px floor. Elsewhere the row height is
-              // fixed, so the label truncates.
+              // evenly and set close, so two lines fit the 40px every tile has.
+              // Elsewhere the row height is fixed, so the label truncates.
               <span
                 className={`${
                   isWell
                     ? 'text-pretty break-words'
                     : vertical && !stacked
-                      ? 'line-clamp-2 break-words text-balance leading-5'
+                      ? 'line-clamp-2 break-words text-balance leading-4'
                       : 'truncate'
                 } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >

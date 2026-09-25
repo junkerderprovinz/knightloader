@@ -41,7 +41,7 @@ const LOOK: Record<DropdownLook, string> = {
   dense: `${FIELD_TRIGGER} items-center gap-1 ps-2 pe-1.5 text-start text-xs`,
   // bg-carbon-surface3/70 on the search box's surface2, and the hover one step
   // further, as the clear button beside it does.
-  inset: `h-6 cursor-pointer items-center gap-1 rounded-[var(--radius-control)]
+  inset: `glim-focus-drawn h-6 cursor-pointer items-center gap-1 rounded-[var(--radius-control)]
     bg-carbon-surface3/70 ps-2 pe-1.5 text-start text-xs text-carbon-textSub outline-none transition-colors
     hover:bg-carbon-surface3 hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]`,
 };

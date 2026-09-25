@@ -631,7 +631,12 @@ submission and for a fixed download.
   instance". The (i) stays readable on a button that is switched off, and where
   a button shows only its icon, the explanation joins its name in the bubble.
 - **Settings tile names wrap onto a second line** instead of being cut off, so
-  "Rules & categories" reads in full. Only the tile that needs it grows.
+  "Rules & categories" reads in full, set close enough that the tile keeps the
+  height of every other tile.
+- **A search box shows one focus ring.** Clicking into the list search or the
+  settings search ringed the box and the text field inside it; the box alone
+  shows the ring while you type, and the picker beside the text shows its own
+  once you tab to it.
 - **Every line on the Modules page is in your language**, not only
   Click'n'Load's. `GET /api/features` sends each module's status and reason as
   a code with its values, next to the English sentence. A value in a line reads
