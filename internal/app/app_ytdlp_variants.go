@@ -431,14 +431,19 @@ func (a *App) reapplyProbeLocked(t *core.Task) bool {
 }
 
 // reprobeYtdlp asks yt-dlp for a link's formats again and applies them to its
-// rows. One probe per link runs at a time, since the wheel on a picker sends a
-// change per notch and the probe that answers measures whatever pick the rows
-// hold by then.
+// rows.
 func (a *App) reprobeYtdlp(rawurl string) {
-	tp, ok := a.ytdlpTitleProber()
-	if !ok {
-		return
+	if tp, ok := a.ytdlpTitleProber(); ok {
+		a.probeOnce(tp, rawurl)
 	}
+}
+
+// probeOnce probes one link and applies its formats, unless a probe of that
+// link is already under way. The wheel on a picker sends a change per notch,
+// and the boot's backfill can reach a link a pick is being measured for; the
+// probe that answers measures whatever pick the rows hold by then, so a second
+// yt-dlp process for the same link learns nothing more.
+func (a *App) probeOnce(tp titleProber, rawurl string) {
 	a.mu.Lock()
 	if a.reprobing[rawurl] {
 		a.mu.Unlock()
@@ -509,14 +514,8 @@ func (a *App) backfillYtdlpProbes() {
 			return
 		default:
 		}
-		ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
-		res, err := tp.ProbeTitle(ctx, u)
-		cancel()
-		if err != nil {
-			// Unreachable now; the menu stays as wide as it was.
-			continue
-		}
-		a.applyProbeFormats(u, res.Formats)
+		// An unreachable link keeps its menu as wide as it was.
+		a.probeOnce(tp, u)
 	}
 }
 

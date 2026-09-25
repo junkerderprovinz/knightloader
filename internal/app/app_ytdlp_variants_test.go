@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -943,6 +944,64 @@ func TestAPickWithoutAKeptProbeIsMeasuredByAFreshOne(t *testing.T) {
 	defer mu.Unlock()
 	if len(asked) != 1 {
 		t.Errorf("probed %v, want one probe for %q", asked, url)
+	}
+}
+
+// heldYtdlpBackend counts its probes and holds each until release closes.
+type heldYtdlpBackend struct {
+	mu      sync.Mutex
+	probes  int
+	release chan struct{}
+}
+
+func (*heldYtdlpBackend) Download(string, string, map[string]string, int) {}
+func (*heldYtdlpBackend) Pause(string)                                    {}
+func (*heldYtdlpBackend) Resume(string)                                   {}
+func (*heldYtdlpBackend) Remove(string, bool)                             {}
+
+func (b *heldYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (ytdlp.ProbeResult, error) {
+	b.mu.Lock()
+	b.probes++
+	b.mu.Unlock()
+	select {
+	case <-b.release:
+		return ytdlp.ProbeResult{Formats: testProbeFormats}, nil
+	case <-ctx.Done():
+		return ytdlp.ProbeResult{}, ctx.Err()
+	}
+}
+
+func (b *heldYtdlpBackend) count() int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.probes
+}
+
+// The boot's backfill leaves a link alone while a probe of it is under way, so
+// a pick measured during boot costs one yt-dlp process, not two.
+func TestTheBackfillLeavesALinkAloneWhileItIsProbed(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=reprobe002"
+	putYtdlpFamily(t, a, url, nil)
+	b := &heldYtdlpBackend{release: make(chan struct{})}
+	wireYtdlp(a, b)
+	defer close(b.release)
+
+	go a.reprobeYtdlp(url)
+	waitFor(t, "the first probe to start", func() bool { return b.count() == 1 })
+
+	done := make(chan struct{})
+	go func() {
+		a.backfillYtdlpProbes()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the backfill waited on a second probe of the same link")
+	}
+	if n := b.count(); n != 1 {
+		t.Errorf("%d probes, want 1", n)
 	}
 }
 
