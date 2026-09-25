@@ -1293,6 +1293,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 		path := a.fileOfLocked(t)
 		verify := a.Settings.Get().VerifyChecksums
 		a.spawn(func() {
+			a.delivering.Add(1)
+			defer a.delivering.Add(-1)
 			if verify {
 				a.verifyTask(id, path)
 			}

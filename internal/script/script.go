@@ -37,9 +37,11 @@
 //
 // Left out on purpose: file access (it would reach the host's secrets and the
 // database), HTTP (it could exfiltrate task data from inside a home LAN),
-// processes (arbitrary code execution), loading further code, queue-wide
-// actions or new downloads (internal/schedule covers timed queue actions),
-// settings and credentials, and a persistent property store.
+// processes (arbitrary code execution; starting a program on an event is
+// internal/eventprog, set up in the settings rather than from a script),
+// loading further code, queue-wide actions or new downloads
+// (internal/schedule covers timed queue actions), settings and credentials,
+// and a persistent property store.
 //
 // # Limits
 //

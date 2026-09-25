@@ -313,6 +313,15 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchParked, Enabled: enabledEventTargets(s) > 0,
 			Parked: parked["eventtargets"],
 		}, countDetail(enabledEventTargets(s), "targetsSending", "target sending", "targets sending")),
+		withDetail(Feature{
+			// A switch over the rows rather than a parked list: the rows hold
+			// command lines, which have no business in the interface state
+			// a parked value is kept in.
+			ID: "eventprograms", Verdict: VerdictShipped, Page: "automation",
+			Switch: SwitchSetting, Enabled: !s.ModuleOff("eventprograms"),
+		}, offDetail(s.ModuleOff("eventprograms"),
+			line{text: "off; no event starts a program, and a program already running finishes", code: "eventprogramsOff"},
+			countDetail(enabledEventPrograms(s), "programsEnabled", "program switched on", "programs switched on"))),
 		{
 			ID: "crawler", Verdict: VerdictShipped, Page: "collector",
 			Switch: SwitchSetting, Enabled: s.Crawl,
@@ -462,7 +471,7 @@ func featurePages() []FeaturePage {
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
-		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "scripting"}},
+		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "advanced"},
@@ -531,7 +540,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		next.Packagizer.Disabled = !on
 	case "linkfilter":
 		next.LinkFilter.Disabled = !on
-	case "connections", "federation", "jd", "ytdlp", "torrents", "captcha", "scripting":
+	case "connections", "federation", "jd", "ytdlp", "torrents", "captcha", "scripting", "eventprograms":
 		next.ModulesOff = switchModule(next.ModulesOff, id, on)
 
 	case "watch":

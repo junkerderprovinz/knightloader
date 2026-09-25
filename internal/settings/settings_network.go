@@ -7,6 +7,7 @@ package settings
 // first: does a browser ever need to see it?
 
 import (
+	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -37,11 +38,12 @@ func sanitizeNetwork(n Settings) Settings {
 	return n
 }
 
-// Redacted returns a copy safe to hand to a browser. Four secrets live in here:
-// the router password, every proxy password, the end-of-queue command line and
-// every event target header value. The endpoint that serves the settings uses
-// nothing but this, because the moment a client is shown one of them the merge
-// machinery in Set is protecting a value the client already holds.
+// Redacted returns a copy safe to hand to a browser. Five secrets live in here:
+// the router password, every proxy password, the end-of-queue command line,
+// every event program's command line and every event target header value. The
+// endpoint that serves the settings uses nothing but this, because the moment a
+// client is shown one of them the merge machinery in Set is protecting a value
+// the client already holds.
 //
 // The packages disagree about how to hide a secret, and neither is wrapped or
 // normalised here, because each is one half of a round trip its own package
@@ -49,8 +51,8 @@ func sanitizeNetwork(n Settings) Settings {
 // so an empty string keeps meaning "clear it"; proxycfg drops it and lets Merge
 // put it back when the row still describes the same connection.
 //
-// The command line follows reconnect's shape and is merged back in
-// Store.setLocked. It is redacted because routes_diagnostics.go puts this
+// The command lines follow reconnect's shape and are merged back in
+// Store.setLocked. They are redacted because routes_diagnostics.go puts this
 // function's output into the bundle people attach to public GitHub issues, and
 // a command line is an undeclared secret store: `wget
 // --header=Authorization:\ Bearer\ abc123 http://nas/suspend`.
@@ -81,6 +83,13 @@ func (s Settings) Redacted() Settings {
 			out[i] = notify.Redacted(t)
 		}
 		s.EventTargets = out
+	}
+	if len(s.EventPrograms) > 0 {
+		out := make([]eventprog.Program, len(s.EventPrograms))
+		for i, p := range s.EventPrograms {
+			out[i] = eventprog.Redacted(p)
+		}
+		s.EventPrograms = out
 	}
 	return s
 }

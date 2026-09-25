@@ -35,6 +35,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -106,6 +107,9 @@ type App struct {
 	// address. It owns one goroutine per enabled target and must be closed
 	// (see app_notify.go).
 	EventTargets *notify.Dispatcher
+	// EventPrograms starts a configured program on an event. It owns one
+	// goroutine per enabled program and must be closed (see app_eventprog.go).
+	EventPrograms *eventprog.Dispatcher
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -189,6 +193,10 @@ type App struct {
 	// is ready to use. It has its own lock rather than a.mu because it is
 	// taken inside a spawned goroutine.
 	idleRuns idleRunLog
+
+	// delivering counts the finished downloads whose checksum or move out of
+	// the working folder is still under way (see Working).
+	delivering atomic.Int32
 
 	// wg counts the long-lived goroutines this package starts. Close waits on
 	// it because they write to the store, which closes on the way out.
@@ -505,6 +513,8 @@ func New(dataDir string) (*App, error) {
 	// running.
 	a.EventTargets = notify.New(notify.Options{InstanceName: func() string { return cfg.Get().InstanceName }})
 	a.Events.Subscribe("eventtargets", a.EventTargets.On)
+	a.EventPrograms = a.newEventPrograms(nil)
+	a.Events.Subscribe("eventprograms", a.EventPrograms.On)
 	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub, Bus: a.Events})
 	if err != nil {
 		st.Close()
@@ -592,6 +602,7 @@ func New(dataDir string) (*App, error) {
 	a.applyFeeds(cfg.Get())
 	// Targets may fire on queue.idle, which is reported within two seconds.
 	a.applyEventTargets(cfg.Get())
+	a.applyEventPrograms(cfg.Get())
 	// upkeep and budgetLoop call a.wg.Done themselves, so they use track and a
 	// bare go rather than a.spawn. Nothing can race Close here, but every
 	// a.wg.Add goes through track.
@@ -804,6 +815,11 @@ func (a *App) Close() error {
 	if a.EventTargets != nil {
 		_ = a.EventTargets.Close()
 	}
+	// Before the store and the engine go: a program's worker reads the task
+	// list to find a file.
+	if a.EventPrograms != nil {
+		_ = a.EventPrograms.Close()
+	}
 	// Pending media hook calls are dropped rather than flushed: their files
 	// were never moved into place.
 	a.stopMediaHooks()
@@ -965,6 +981,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyWatchFolders(applied)
 	a.applyFeeds(applied)
 	a.applyEventTargets(applied)
+	a.applyEventPrograms(applied)
 	a.applyLogFile(applied.LogFile)
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)

@@ -19,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
@@ -278,6 +279,13 @@ type Settings struct {
 	// settings_network.go, and notify.Merge for why the carry-back on save is
 	// bound to the address and not only to the row id.
 	EventTargets []notify.Target `json:"eventTargets,omitempty"`
+	// EventPrograms are the programs this instance starts when one of those
+	// same events happens: a path, arguments with placeholders and the events
+	// that start it, per row. See settings_eventprog.go.
+	//
+	// omitempty for the reason EventTargets gives. The command lines are
+	// secrets like the end-of-queue command, see Redacted.
+	EventPrograms []eventprog.Program `json:"eventPrograms,omitempty"`
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
@@ -376,6 +384,14 @@ type Settings struct {
 	// before this field is read. Off by default, since opting into a version
 	// check does not imply opting into replacing the running binary.
 	AutoUpdateInstall bool `json:"autoUpdateInstall"`
+
+	// KeepAwake asks the desktop build to keep the computer from going to
+	// sleep while at least one download is running, and to let it sleep again
+	// once none is. The display may still turn off. The container build reads
+	// it nowhere: the machine under a container decides its own sleep. On by
+	// default, since a laptop that sleeps halfway through a download is the
+	// surprise this exists to prevent.
+	KeepAwake bool `json:"keepAwake"`
 
 	// YtdlpVersionCheck asks the Resolvers page to call GET
 	// /api/mediatools/ytdlp/latest once when it loads, instead of only when
@@ -727,6 +743,7 @@ func Defaults() Settings {
 		CrawlSameHost:    true,
 		VerifyChecksums:  true,
 		PreParserEnabled: true,
+		KeepAwake:        true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.
@@ -935,6 +952,9 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	// the same merge back or every save from the Downloads settings page would
 	// wipe the stored command with the placeholder it was sent.
 	n.IdleAction = n.IdleAction.WithSecretsFrom(s.cur.IdleAction)
+	// The event programs' command lines are hidden the same way and matched
+	// by row, before sanitize for the IDs.
+	n.EventPrograms = eventprog.Merge(n.EventPrograms, s.cur.EventPrograms)
 	n = sanitize(n)
 	b, err := json.MarshalIndent(n, "", "  ")
 	if err != nil {
@@ -1010,6 +1030,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeIntake(n)
 	n = sanitizeFeeds(n)
 	n = sanitizeEventTargets(n)
+	n = sanitizeEventPrograms(n)
 	n = sanitizeNetwork(n)
 	n = sanitizeResolvers(n)
 	n = sanitizeRules(n)

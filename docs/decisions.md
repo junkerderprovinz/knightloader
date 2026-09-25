@@ -156,6 +156,17 @@ placeholder saying a command is stored, exactly the arrangement `Reconnect.tsx`
 already uses for a password, and `POST /api/idle-action/check` is what answers
 "what would actually run".
 
+## An event program follows its row by a random id
+
+An event program's command line is redacted whole, like the end-of-queue
+command, and a save puts the stored one back onto the incoming row with the
+same id. The id alone decides which program a row runs, so it is random rather
+than the lowest free number. With numbers, a row deleted in one tab and saved
+again from another, or a row imported from another instance's export, would
+carry an id that some other row holds by then and would run that row's program. An
+imported row whose id this instance does not know arrives with no program, and
+the import names it as incomplete.
+
 ## The start report only looks
 
 The boot pass stats folders and writes nothing anywhere, the data directory

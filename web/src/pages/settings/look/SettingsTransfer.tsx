@@ -279,10 +279,17 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
  * Labels for the incomplete-row codes the server sends. An unknown code falls
  * back to the generic "arrives without its password".
  */
-const INCOMPLETE_LABEL: Record<string, 'settings.transfer.incompleteReconnect' | 'settings.transfer.incompleteConnections' | 'settings.transfer.incompleteArchives'> = {
+const INCOMPLETE_LABEL: Record<
+  string,
+  | 'settings.transfer.incompleteReconnect'
+  | 'settings.transfer.incompleteConnections'
+  | 'settings.transfer.incompleteArchives'
+  | 'settings.transfer.incompleteEventPrograms'
+> = {
   'reconnect.password': 'settings.transfer.incompleteReconnect',
   'connections.password': 'settings.transfer.incompleteConnections',
   archivePasswords: 'settings.transfer.incompleteArchives',
+  'eventPrograms.command': 'settings.transfer.incompleteEventPrograms',
 };
 
 /** reasonOf strips the class name a stringified Error puts in front. */

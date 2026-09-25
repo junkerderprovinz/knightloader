@@ -73,3 +73,16 @@ hidden or in the background.
 Quitting from the tray menu always goes through the same graceful shutdown
 as the window's own close button and `OnShutdown` (drain, then `a.Close()`),
 never a raw process kill.
+
+## Keeping the computer awake
+
+While "Keep the computer awake while downloading" is on (Automation page, Idle
+card) and `App.Working` reports work under way (a transfer, an unpacking, a
+finished file being checked or moved, a retry waiting to start, an event
+program), the app holds off system sleep, and it gives the hold back once there
+is none. `internal/keepawake` decides when; `awake_windows.go`,
+`awake_darwin.go` and `awake_linux.go` ask the operating system:
+`SetThreadExecutionState` on Windows, `caffeinate -i -w <pid>` on macOS, and a
+logind sleep inhibitor over the system D-Bus on Linux. None of them keeps the
+screen on, and each hold ends with the process if it dies. The server binary
+never imports any of it.

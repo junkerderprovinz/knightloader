@@ -65,6 +65,16 @@ submission and for a fixed download.
   instead of starting, and the collector shows that before you start it. It
   starts by itself once you add a login for that hoster or a debrid service
   that carries it. A category can switch this on or off for its own links.
+- **Programs on events, and a desktop app that stays awake while it
+  downloads.** The Automation page can start a program of yours when a download
+  finishes or fails, a package is complete or an archive has been unpacked,
+  like pyLoad's external scripts. It runs without a shell and gets the event as
+  placeholders in its arguments and as `KL_FILE`, `KL_FOLDER` and six more
+  environment variables, with a time limit and a limit on runs at once per
+  program; the exit code and the output go into the log. The desktop app keeps
+  the computer from sleeping while a download runs and while its files are
+  checked, unpacked or moved, and lets it sleep once nothing is left to do, a
+  switch that is on by default and has no effect in the container.
 - **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
   Installing, what it does, configuration, getting links in, Click'n'Load,
   connecting instances and where files land, built from `docs/` with MkDocs

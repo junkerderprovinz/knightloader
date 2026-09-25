@@ -136,6 +136,12 @@ The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
 
+While a download is running, or its files are being checked, unpacked or moved,
+the desktop app keeps the computer from going to sleep, and once nothing is
+left to do it lets it sleep again. The screen can still turn off. The switch is on the Automation page, at the top of the Idle card. On
+Linux the app asks logind for a sleep lock, which a local desktop session gets
+without a password.
+
 ### Building it from source
 
 ```sh
