@@ -144,8 +144,24 @@ submission and for a fixed download.
   an hour before the release was created, and the job meant to decide it only
   corrected it afterwards. The build sets version tags only now.
 
+- **Links out of the desktop app open in the default browser.** On macOS and
+  Linux the GitHub and email buttons, the version numbers, the "where to find
+  it" links on the Accounts and Captcha pages, the store and APK tiles and the
+  update link did nothing, because the app's window cannot open a second one.
+  On Windows they opened a bare window with no address bar. They now go to the
+  default browser or mail program.
+
 ### Changed
 
+- **Buy Me a Coffee and PayPal open in a window inside the app** instead of a
+  browser tab. The coffee window shows Buy Me a Coffee's own donation page.
+  The PayPal window asks how often and how much, then offers PayPal's own
+  button and a card button, so a donation can be one-off, monthly or yearly,
+  with or without a PayPal account. Nothing from either service loads before
+  its window is opened. The phone app and the browser extension keep their
+  links. On macOS and Linux the desktop app's PayPal button opens PayPal's
+  donation page in the browser instead, because the window's login needs a
+  popup the app cannot open there.
 - **The speed graph is a filled area that glides** from one sample to the next,
   where it used to step once a second and rescale on every value. With motion
   switched off it moves without the glide.

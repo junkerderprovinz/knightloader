@@ -7,6 +7,7 @@ import {
   removeAccountCredential,
   saveAccountCredential,
 } from '../../lib/api';
+import { followExternal } from '../../lib/external';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
 import { Button, Card, ErrorCard, IconBadge, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
@@ -209,6 +210,7 @@ function SolverRow({
               href={svc.whereUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={followExternal}
               className="inline-flex items-center gap-1 text-[11px] text-carbon-textMuted hover:text-carbon-text hover:underline"
             >
               {cx('settings.captcha.whereToFind')}

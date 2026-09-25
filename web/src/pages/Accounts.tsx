@@ -32,6 +32,7 @@ import {
   testAccount,
   verifyAccountCredential,
 } from '../lib/api';
+import { followExternal, openExternal } from '../lib/external';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { fmtDate } from '../lib/format';
@@ -377,7 +378,7 @@ function AccountsTable({
                     // Only with an expiry and somewhere to renew.
                     disabled: !a.expiry || !svc?.whereUrl,
                     onSelect: () => {
-                      if (svc?.whereUrl) window.open(svc.whereUrl, '_blank', 'noopener,noreferrer');
+                      if (svc?.whereUrl) openExternal(svc.whereUrl);
                     },
                   },
                 ],
@@ -619,6 +620,7 @@ function CredentialDialog({
                   href={picked.whereUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={followExternal}
                   className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
                 >
                   {t('accounts.whereToFind')}

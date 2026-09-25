@@ -18,6 +18,7 @@ import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { asNavLabelMode, setNavLabels, useNavLabels } from '../../lib/navLabels';
+import { followExternal } from '../../lib/external';
 import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import {
@@ -948,7 +949,7 @@ function UpdateCard({ hue }: { hue: number }) {
           <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
         )}
         {check && check.checked && check.available && check.url && (
-          <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accentInk hover:underline">
+          <a href={check.url} target="_blank" rel="noopener noreferrer" onClick={followExternal} className="text-sm font-medium text-accentInk hover:underline">
             {t(isDesktop ? 'settings.look.updatesAvailable' : 'settings.look.updatesAvailableContainer', { version: check.latest ?? '' })}
           </a>
         )}

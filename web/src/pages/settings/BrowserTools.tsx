@@ -3,6 +3,7 @@ import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { fetchExtensionVersion } from '../../lib/api';
 import { useInstallPrompt } from '../../lib/pwaInstall';
+import { followExternal, openExternal } from '../../lib/external';
 import { useT } from '../../lib/i18n';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 
@@ -141,7 +142,7 @@ function AppCard() {
         <DownloadTile
           logo={<img src={logoUrl} alt="" aria-hidden className="h-full w-full object-contain" />}
           name={t('settings.browsertools.apkLabel')}
-          onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
+          onClick={() => openExternal(APP_URLS.apk)}
         />
       </div>
       {(canInstall || iOS) && (
@@ -182,7 +183,7 @@ const APP_URLS = {
  */
 function openIfSet(url: string): () => void {
   return () => {
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    if (url) openExternal(url);
   };
 }
 
@@ -210,6 +211,7 @@ function ExtensionVersion({ version }: { version: string }) {
       href={`${EXTENSION_REPO_URL}/releases/tag/extension/v${version}`}
       target="_blank"
       rel="noreferrer noopener"
+      onClick={followExternal}
       className="glim-num text-[11px] text-carbon-textMuted no-underline hover:text-carbon-text"
     >
       v{version}
@@ -263,7 +265,7 @@ const STORE_URLS: Record<'Chrome' | 'Edge' | 'Firefox', string> = {
 /** badgeAction opens the store listing once one exists, else downloads the package. */
 function badgeAction(store: 'Chrome' | 'Edge' | 'Firefox', fallback: () => void): () => void {
   const url = STORE_URLS[store];
-  return url ? () => window.open(url, '_blank', 'noopener,noreferrer') : fallback;
+  return url ? () => openExternal(url) : fallback;
 }
 
 function downloadZip() {
