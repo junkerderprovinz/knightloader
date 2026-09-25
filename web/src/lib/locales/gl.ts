@@ -1396,7 +1396,6 @@ export const gl: Dict = {
   'settings.browsertools.install': 'Instalar',
   'settings.browsertools.installIOS':
     'En iPhone ou iPad: abre esta páxina en Safari, toca Compartir, e despois «Engadir á pantalla de inicio».',
-  'settings.access.intakePortsHint': 'Outras formas de acceder directamente a esta instancia, fóra do inicio de sesión normal. Aquí vese se cada unha é accesible.',
   'settings.nav.browsertools': 'Navegador e aplicación',
   'settings.browsertools.bookmarkletStep1': 'Arrastra o botón de abaixo á barra de marcadores do teu navegador. Gárdase como calquera outro marcador e non se instala nada.',
   'settings.browsertools.bookmarkletStep2': 'En calquera páxina, fai clic nel (selecciona antes un texto se só queres iso). Ábrese unha pequena lapela de KnightLoader coa ligazón desa páxina, ou co texto seleccionado, xa cuberta. Revísaa e engade a descarga desde alí.',
@@ -1484,7 +1483,6 @@ export const gl: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Obxectivos de seed, límites de transferencia, redirección de porto e DHT/PEX para ligazóns magnet e ficheiros .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Ratio de seed obxectivo',
   'settings.torrents.seedRatioHint': 'Segue facendo seed dun torrent rematado ata que se devolva ao enxame esta proporción, en relación co seu propio tamaño. 0 = sen obxectivo de ratio.',

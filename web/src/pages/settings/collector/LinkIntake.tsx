@@ -1,10 +1,10 @@
-import { PathInput } from '../../../components/FolderPicker';
 import { Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
 import { useClipboardWatch } from '../../../lib/useClipboardWatch';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
+import { SettingPathInput } from '../controls';
 
 /**
  * LinkIntakeCard holds the ways a link reaches the collector without being
@@ -16,7 +16,7 @@ import { ModuleToggle } from '../ModuleToggle';
  */
 export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const { cfg, patch, fieldError } = useDraft();
+  const { cfg, patch } = useDraft();
   const { features } = useFeatures();
   const [watch, setWatch] = useClipboardWatch();
 
@@ -77,10 +77,10 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
         parkedHint={t('settings.linkIntake.watchParked')}
       >
         {!watchParked && (
-          <PathInput
+          <SettingPathInput
+            field="watchDir"
             value={cfg.watchDir}
             onValue={(watchDir) => patch({ watchDir })}
-            error={fieldError('watchDir')}
             placeholder="/watch"
             title={t('settings.module.watch')}
             label={t('settings.module.watch')}

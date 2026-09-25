@@ -13,7 +13,8 @@ import {
   saveHosterLogin,
   setHosterLoginEnabled,
 } from '../lib/api';
-import { useT } from '../lib/i18n';
+import { useT, type TranslationKey } from '../lib/i18n';
+import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
@@ -232,8 +233,18 @@ export function ConfirmRemoveLogin({
   );
 }
 
+/**
+ * loginDetail words why a login is queued or rejected, from its code where
+ * this build knows it and in the server's sentence otherwise.
+ */
+function loginDetail(t: (key: TranslationKey) => string, login: HosterLogin): string | undefined {
+  const key = `accounts.hoster.detail.${login.code ?? ''}` as TranslationKey;
+  return login.code && key in en ? t(key) : login.detail;
+}
+
 function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   const { t } = useT();
+  const detail = loginDetail(t, login);
   switch (login.status) {
     case 'off':
       // Not "queued": JD does not have a switched-off login at all.
@@ -255,7 +266,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
           {t('accounts.hoster.status.rejected')}
-          {login.detail && <InfoBubble tip={login.detail} />}
+          {detail && <InfoBubble tip={detail} />}
         </span>
       );
     default:
@@ -265,7 +276,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
           {t('accounts.hoster.status.queued')}
-          {login.detail && <InfoBubble tip={login.detail} />}
+          {detail && <InfoBubble tip={detail} />}
         </span>
       );
   }

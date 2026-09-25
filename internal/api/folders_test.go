@@ -53,6 +53,7 @@ func getFolders(t *testing.T, srv *httptest.Server, path string) folderListing {
 // settings.FixedPrefix, the folder a save checks and a download creates for the
 // same template, so it fails when the two splits come apart.
 func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	tpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:hoster>")
 
@@ -73,6 +74,7 @@ func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 // TestBrowsingReportsTheTemplateTail checks the same rule over the wire, since
 // the interface can only keep a naming scheme it is told about.
 func TestBrowsingReportsTheTemplateTail(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(base, "downloads"), 0o755); err != nil {
 		t.Fatal(err)
@@ -95,6 +97,7 @@ func TestBrowsingReportsTheTemplateTail(t *testing.T) {
 // TestAFolderThatDoesNotExistYetSaysSo checks that a typed folder that does not
 // exist yet is reported as new, with the deepest existing folder listed.
 func TestAFolderThatDoesNotExistYetSaysSo(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "already-here"), 0o755); err != nil {
 		t.Fatal(err)
@@ -119,6 +122,7 @@ func TestAFolderThatDoesNotExistYetSaysSo(t *testing.T) {
 
 // TestOnlyFoldersAreListed checks that files are neither opened nor named.
 func TestOnlyFoldersAreListed(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "keep"), 0o755); err != nil {
 		t.Fatal(err)
@@ -149,12 +153,12 @@ func TestPathsOutsideTheRootsAreRefused(t *testing.T) {
 	t.Setenv(envBrowseRoots, allowed)
 	_, srv := foldersServer(t)
 
-	code, raw := getRaw(t, foldersURL(srv, forbidden))
-	if code != http.StatusForbidden {
-		t.Fatalf("listing %q outside the roots answered %d: %s", forbidden, code, raw)
+	code, out := listingRefusal(t, foldersURL(srv, forbidden))
+	if code != http.StatusForbidden || out["code"] != "outside" {
+		t.Fatalf("listing %q outside the roots answered %d %v, want 403 outside", forbidden, code, out)
 	}
-	if strings.TrimSpace(string(raw)) == "" {
-		t.Error("the refusal says nothing, so the dialog has nothing to show")
+	if strings.TrimSpace(out["error"]) == "" {
+		t.Error("the refusal says nothing, so a client without the code has nothing to show")
 	}
 	// The allowed root still works, or the check above would pass on a route
 	// that refuses everything.
@@ -227,25 +231,62 @@ func TestARootsListThatNamesNothingIsRefusedLoudly(t *testing.T) {
 	t.Setenv(envBrowseRoots, "relative/path")
 	_, srv := foldersServer(t)
 
-	code, raw := getRaw(t, foldersURL(srv, t.TempDir()))
-	if code != http.StatusInternalServerError {
-		t.Fatalf("a roots list with nothing usable in it answered %d: %s", code, raw)
+	code, out := listingRefusal(t, foldersURL(srv, t.TempDir()))
+	if code != http.StatusInternalServerError || out["code"] != "roots" {
+		t.Fatalf("a roots list with nothing usable in it answered %d %v, want 500 roots", code, out)
 	}
-	if !strings.Contains(string(raw), envBrowseRoots) {
-		t.Errorf("the refusal %q never names the variable that caused it", raw)
+	if !strings.Contains(out["error"], envBrowseRoots) {
+		t.Errorf("the refusal %q never names the variable that caused it", out["error"])
 	}
 }
 
 // TestARelativePathIsRefused keeps the route agreeing with settings.Validate.
 func TestARelativePathIsRefused(t *testing.T) {
+	t.Parallel()
 	_, srv := foldersServer(t)
-	code, raw := getRaw(t, srv.URL+"/api/folders?path=downloads")
-	if code != http.StatusBadRequest {
-		t.Fatalf("a relative path answered %d: %s", code, raw)
+	code, out := listingRefusal(t, srv.URL+"/api/folders?path=downloads")
+	if code != http.StatusBadRequest || out["code"] != "relative" {
+		t.Fatalf("a relative path answered %d %v, want 400 relative", code, out)
 	}
 }
 
+func TestAFolderThatMayNotBeReadSaysSo(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a mode of 000 does not stop reading a folder on Windows")
+	}
+	if os.Geteuid() == 0 {
+		t.Skip("root reads folders whatever the mode says")
+	}
+	locked := filepath.Join(t.TempDir(), "locked")
+	if err := os.Mkdir(locked, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
+	_, srv := foldersServer(t)
+
+	code, out := listingRefusal(t, foldersURL(srv, locked))
+	if code != http.StatusForbidden || out["code"] != "unreadable" {
+		t.Errorf("listing a folder nobody may read answered %d %v, want 403 unreadable", code, out)
+	}
+	if !strings.Contains(out["error"], locked) {
+		t.Errorf("the refusal %q does not name the folder", out["error"])
+	}
+}
+
+// listingRefusal asks for a listing that is expected to be refused and
+// decodes the refusal, which is JSON like a refused new folder.
+func listingRefusal(t *testing.T, url string) (int, map[string]string) {
+	t.Helper()
+	code, raw := getRaw(t, url)
+	var out map[string]string
+	if err := json.Unmarshal(raw, &out); err != nil {
+		t.Fatalf("GET %s answered %d with %q, which is not JSON", url, code, raw)
+	}
+	return code, out
+}
+
 func TestTheChooserOpensWhereDownloadsGo(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "sub"), 0o755); err != nil {
 		t.Fatal(err)
@@ -288,6 +329,7 @@ func TestTheParentIsOnlyOfferedInsideTheBoundary(t *testing.T) {
 }
 
 func TestEntriesAreNeverNull(t *testing.T) {
+	t.Parallel()
 	_, srv := foldersServer(t)
 	empty := t.TempDir()
 	code, raw := getRaw(t, foldersURL(srv, empty))
@@ -302,6 +344,7 @@ func TestEntriesAreNeverNull(t *testing.T) {
 // TestTheDefaultBoundaryIsTheWholeFilesystem pins the default boundary, so
 // narrowing it takes an edit here.
 func TestTheDefaultBoundaryIsTheWholeFilesystem(t *testing.T) {
+	t.Parallel()
 	b, err := browseRoots(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -329,6 +372,7 @@ func postFolder(t *testing.T, srv *httptest.Server, parent, name string) (int, m
 }
 
 func TestANewFolderIsCreatedAndOfferedByTheChooser(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	_, srv := foldersServer(t)
 
@@ -350,6 +394,7 @@ func TestANewFolderIsCreatedAndOfferedByTheChooser(t *testing.T) {
 }
 
 func TestCreatingAFolderThatExistsIsAConflict(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "taken"), 0o755); err != nil {
 		t.Fatal(err)
@@ -368,6 +413,7 @@ func TestCreatingAFolderThatExistsIsAConflict(t *testing.T) {
 }
 
 func TestAFolderNameMustBeOnePlainName(t *testing.T) {
+	t.Parallel()
 	root := t.TempDir()
 	base := filepath.Join(root, "here")
 	if err := os.Mkdir(base, 0o755); err != nil {
@@ -462,14 +508,15 @@ func TestCreatingThroughASymlinkOutOfTheBoundaryIsRefused(t *testing.T) {
 }
 
 func TestCreatingInAParentThatIsNotThereIsRefused(t *testing.T) {
+	t.Parallel()
 	base := t.TempDir()
 	_, srv := foldersServer(t)
 
 	if code, out := postFolder(t, srv, filepath.Join(base, "gone"), "new"); code != http.StatusNotFound || out["code"] != "missing" {
 		t.Errorf("creating in a missing folder answered %d %v, want 404 missing", code, out)
 	}
-	if code, out := postFolder(t, srv, "downloads", "new"); code != http.StatusBadRequest || out["code"] != "parent" {
-		t.Errorf("creating in a relative folder answered %d %v, want 400 parent", code, out)
+	if code, out := postFolder(t, srv, "downloads", "new"); code != http.StatusBadRequest || out["code"] != "relative" {
+		t.Errorf("creating in a relative folder answered %d %v, want 400 relative", code, out)
 	}
 	if _, err := os.Stat(filepath.Join(base, "gone")); err == nil {
 		t.Error("the missing parent was created along the way")
@@ -477,6 +524,7 @@ func TestCreatingInAParentThatIsNotThereIsRefused(t *testing.T) {
 }
 
 func TestAFolderThatMayNotBeWrittenToSaysSo(t *testing.T) {
+	t.Parallel()
 	if runtime.GOOS == "windows" {
 		t.Skip("a read-only mode does not stop creating folders on Windows")
 	}
@@ -500,6 +548,7 @@ func TestAFolderThatMayNotBeWrittenToSaysSo(t *testing.T) {
 }
 
 func TestCreatingAFolderNeedsASessionAndStaysOnThisMachine(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerFolders(reg, testApp(t))
 	if reg.open("/api/folders") {

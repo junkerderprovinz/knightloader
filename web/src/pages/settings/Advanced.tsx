@@ -18,7 +18,7 @@ import { IconRetry, IconSearch } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
-import { useDraft } from './context';
+import { useDraft, useFieldError } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
 import { getPath, rowsFor, same, setPath, type Row, type ValueKind } from './paths';
@@ -279,6 +279,8 @@ function KeyRow({
   const { tx } = useTx();
   const modified = canReset && !same(row.value, fallback);
   const secret = row.value === REDACTED;
+  // A list row edits the whole list, so a refusal of one of its rows shows here.
+  const refused = useFieldError(row.path, true);
 
   return (
     <div className="flex flex-col gap-2 px-4 py-3 odd:bg-carbon-surface2/30 sm:flex-row sm:items-center sm:gap-4">
@@ -297,8 +299,9 @@ function KeyRow({
         </span>
       </div>
 
-      <div className="w-full sm:w-72">
-        <ValueEditor row={row} hue={hue} choices={choices} onWrite={onWrite} />
+      <div className="flex w-full flex-col gap-1 sm:w-72">
+        <ValueEditor row={row} hue={hue} choices={choices} refused={refused} onWrite={onWrite} />
+        {refused && !PATH_KEYS.includes(row.path) && <span className="text-xs text-statusWarn">{refused}</span>}
       </div>
 
       {/* Reset shows only where there is something to undo. */}
@@ -321,11 +324,14 @@ function ValueEditor({
   row,
   hue,
   choices,
+  refused,
   onWrite,
 }: {
   row: Row;
   hue: number;
   choices?: DropdownOption[];
+  /** Why the server refused the value; a folder field shows it itself. */
+  refused?: string;
   onWrite: (path: string, value: unknown) => void;
 }) {
   const { tx } = useTx();
@@ -378,7 +384,7 @@ function ValueEditor({
         return <Dropdown label={row.path} value={value} options={choices} onChange={(v) => onWrite(row.path, v)} />;
       }
       if (PATH_KEYS.includes(row.path)) {
-        return <PathInput label={row.path} value={value} onValue={(v) => onWrite(row.path, v)} />;
+        return <PathInput label={row.path} value={value} error={refused} onValue={(v) => onWrite(row.path, v)} />;
       }
       return (
         <TextInput dir="ltr" spellCheck={false} value={value} onChange={(e) => onWrite(row.path, e.target.value)} />

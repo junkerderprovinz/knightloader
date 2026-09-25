@@ -1398,7 +1398,6 @@ export const ar: Dict = {
   'settings.browsertools.install': 'تثبيت',
   'settings.browsertools.installIOS':
     'على آيفون أو آيباد: افتح هذه الصفحة في Safari، اضغط مشاركة، ثم «إضافة إلى الشاشة الرئيسية».',
-  'settings.access.intakePortsHint': 'طرق أخرى للوصول إلى هذه النسخة مباشرة، خارج تسجيل الدخول المعتاد. كل واحدة منها تعرض هنا إن كان يمكن الوصول إليها.',
   'settings.nav.browsertools': 'المتصفح والتطبيق',
   'settings.browsertools.bookmarkletStep1': 'اسحب الزر أدناه إلى شريط الإشارات المرجعية في متصفحك. يُحفظ مثل أي إشارة مرجعية أخرى، ولا يُثبَّت أي شيء.',
   'settings.browsertools.bookmarkletStep2': 'في أي صفحة، انقر عليه (حدّد نصًا أولًا إن كنت لا تريد غيره). يُفتح تبويب صغير لـKnightLoader فيه رابط تلك الصفحة، أو النص المحدد، معبأً مسبقًا. راجعه وأضفه من هناك كتنزيل.',
@@ -1486,7 +1485,6 @@ export const ar: Dict = {
   'settings.nav.torrents': 'التورنتات',
   'settings.module.torrents': 'التورنتات',
   'settings.torrents.title': 'التورنتات',
-  'settings.torrents.subtitle': 'أهداف البذر وحدود النقل وتوجيه المنفذ و DHT/PEX لروابط المغناطيس وملفات .torrent.',
   'settings.torrents.seedingTitle': 'البذر',
   'settings.torrents.seedRatio': 'نسبة البذر المستهدفة',
   'settings.torrents.seedRatioHint': 'يستمر في بذر تورنت مكتمل حتى تتم إعادة هذه النسبة، مقارنة بحجمه الخاص، إلى السرب. 0 = بلا هدف نسبة.',

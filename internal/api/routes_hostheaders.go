@@ -63,10 +63,10 @@ func registerHostHeaders(reg *Registry, a *app.App) {
 			// so it is never quoted back.
 			origin := hostheaders.OriginOf(body.Origin)
 			if origin == "" {
-				http.Error(w, "origin: that is not an http or https address. Give the site the headers "+
-					"belong to, scheme included (https://forum.example.org). A different port, and http "+
-					"instead of https, are different sites here and need their own profile.",
-					http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "originInvalid",
+					"origin: that is not an http or https address. Give the site the headers "+
+						"belong to, scheme included (https://forum.example.org). A different port, and http "+
+						"instead of https, are different sites here and need their own profile.", nil)
 				return
 			}
 
@@ -76,21 +76,24 @@ func registerHostHeaders(reg *Registry, a *app.App) {
 			case strings.TrimSpace(body.ID) == "":
 				id = held
 				if id == "" {
-					http.Error(w, "id: nothing covers that origin yet, so give this profile a name to "+
-						"store it under (letters, digits and - _ or .). It is the same name a Packagizer "+
-						"rule uses to send a link through this profile.", http.StatusBadRequest)
+					writeRefusal(w, http.StatusBadRequest, "nameNeeded",
+						"id: nothing covers that origin yet, so give this profile a name to "+
+							"store it under (letters, digits and - _ or .). It is the same name a Packagizer "+
+							"rule uses to send a link through this profile.", nil)
 					return
 				}
 			case id == "":
-				http.Error(w, "id: a profile name holds letters, digits and - _ or . only, at most 64 "+
-					"characters. Rename it and save again.", http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "nameInvalid",
+					"id: a profile name holds letters, digits and - _ or . only, at most 64 "+
+						"characters. Rename it and save again.", nil)
 				return
 			case held != "" && held != id:
 				// With two profiles for one origin, Store.index would silently
 				// use the one whose id sorts first, and the other would never
 				// apply.
-				http.Error(w, "origin: the profile "+held+" already covers that origin. Edit that one, or "+
-					"delete it before storing another under a new name.", http.StatusConflict)
+				writeRefusal(w, http.StatusConflict, "originTaken",
+					"origin: the profile "+held+" already covers that origin. Edit that one, or "+
+						"delete it before storing another under a new name.", map[string]string{"profile": held})
 				return
 			}
 
@@ -109,8 +112,9 @@ func registerHostHeaders(reg *Registry, a *app.App) {
 			if len(set.Headers) == 0 {
 				// Save would read an empty set as a delete, which could also be
 				// a page that lost its rows; deleting has its own route.
-				http.Error(w, "headers: there is no header with a value in this request. Add at least one "+
-					"header, or delete the profile if that is what you meant.", http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "noHeaders",
+					"headers: there is no header with a value in this request. Add at least one "+
+						"header, or delete the profile if that is what you meant.", nil)
 				return
 			}
 			if err := store.Save(id, set); err != nil {

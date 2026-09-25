@@ -70,6 +70,7 @@ func TestTheOldHealthRouteIsUntouched(t *testing.T) {
 // /api/health does not open the paths below it: Registry.buildOpen only
 // matches by prefix for wildcard routes.
 func TestNeitherNewRouteAnswersWithoutASession(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerSystem(reg, testApp(t))
 	registerHealth(reg, testApp(t))
@@ -233,6 +234,7 @@ func TestTheMetricsModuleSwitchIsWiredUp(t *testing.T) {
 }
 
 func TestTheHealthPageIsRegisteredInTheRail(t *testing.T) {
+	t.Parallel()
 	var found bool
 	for _, p := range featurePages() {
 		if p.ID == "health" {

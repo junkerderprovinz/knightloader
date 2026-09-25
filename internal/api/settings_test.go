@@ -87,6 +87,7 @@ func problemCount(t *testing.T, body map[string]any, list string) int {
 // the user sees their rule in the list, believes it is filtering, and finds
 // out otherwise from the download folder.
 func TestRuleProblemsReachTheFormOnSaveAndOnLoad(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -137,6 +138,7 @@ func TestRuleProblemsReachTheFormOnSaveAndOnLoad(t *testing.T) {
 // leaves the merge machinery that puts them back on save protecting a value
 // the client already has.
 func TestSettingsNeverShipASecret(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -187,6 +189,7 @@ func TestSettingsNeverShipASecret(t *testing.T) {
 // connection that vanishes without a word gets blamed on the proxy weeks
 // later.
 func TestRefusedRowsComeBackWithAReason(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -234,6 +237,7 @@ func TestRefusedRowsComeBackWithAReason(t *testing.T) {
 // there is neither a status for that nor a way to answer, so a task set to it
 // would sit in the queue with nothing saying why.
 func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

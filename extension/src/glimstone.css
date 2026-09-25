@@ -561,7 +561,6 @@ body {
 .glim-secret > input { width: 100%; padding-inline-end: 40px; }
 /* A second in-field control widens the padding so text stays clear of it. */
 .glim-secret--two > input { padding-inline-end: 72px; }
-.glim-eye--second { inset-inline-end: 38px; }
 .glim-eye {
   position: absolute;
   inset-inline-end: 6px;
@@ -582,6 +581,9 @@ body {
 }
 .glim-eye:hover { color: var(--carbon-text); background: var(--carbon-hover); }
 .glim-eye svg { display: block; }
+/* After .glim-eye, which carries the same weight, so this inset wins over its
+   own and the two controls stand side by side. */
+.glim-eye--second { inset-inline-end: 38px; }
 
 /* The info bubble and the switch, ported from glimstone's reference/tokens.css
    and reference/tooltip.ts so they match the web UI's. */

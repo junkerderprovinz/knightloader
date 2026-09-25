@@ -43,7 +43,7 @@ export function TargetProbe({ row }: { row: EventTargetRow }) {
           {busy ? t('settings.eventTargets.testBusy') : t('settings.eventTargets.test')}
         </Button>
 
-        {refused && <p className="text-xs text-statusWarn">{refused}</p>}
+        {refused && <p dir="auto" className="text-xs text-statusWarn">{refused}</p>}
 
         {result && (
           <div className="glim-well flex flex-col gap-2 p-3 text-xs">

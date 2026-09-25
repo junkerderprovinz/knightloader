@@ -53,6 +53,7 @@ func getCaptchaWidget(t *testing.T, u string) (*http.Response, []byte) {
 // TestCaptchaWidgetRequiresSiteKey checks that a request without a siteKey is
 // a 400, the one client error this route has.
 func TestCaptchaWidgetRequiresSiteKey(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	resp, body := getCaptchaWidget(t, captchaWidgetURL(srv, "1", url.Values{}))
 	if resp.StatusCode != http.StatusBadRequest {
@@ -124,6 +125,7 @@ func cspDirectives(csp string) map[string][]string {
 // grecaptcha.enterprise, and a score-based key is not rendered but asked for a
 // token under the hoster's action, which JD writes as a JSON object.
 func TestCaptchaWidgetRendersRecaptchaFromGoogle(t *testing.T) {
+	t.Parallel()
 	const (
 		classic    = "https://www.google.com/recaptcha/api.js"
 		enterprise = "https://www.google.com/recaptcha/enterprise.js"
@@ -201,6 +203,7 @@ func TestCaptchaWidgetRendersRecaptchaFromGoogle(t *testing.T) {
 // An invisible reCAPTCHA key only works rendered invisible and started by the
 // page; JD spells the size in capitals.
 func TestCaptchaWidgetRendersAnInvisibleRecaptchaInvisible(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	_, body := getCaptchaWidget(t, captchaWidgetURL(srv, "42", url.Values{
 		"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "type": {"INVISIBLE"},
@@ -218,6 +221,7 @@ func TestCaptchaWidgetRendersAnInvisibleRecaptchaInvisible(t *testing.T) {
 // hCaptcha's documented hosts for scripts, styles, frames and connections and
 // nothing of Google's.
 func TestCaptchaWidgetRendersHCaptchaFromItsOwnHosts(t *testing.T) {
+	t.Parallel()
 	for _, size := range []string{"NORMAL", "INVISIBLE"} {
 		t.Run(size, func(t *testing.T) {
 			srv := captchaWidgetServer(t)
@@ -281,6 +285,7 @@ func TestCaptchaWidgetRendersHCaptchaFromItsOwnHosts(t *testing.T) {
 // The page tells the parent when the vendor's script fails or never calls
 // back, instead of leaving an empty box.
 func TestCaptchaWidgetReportsAScriptThatNeverLoads(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	_, body := getCaptchaWidget(t, captchaWidgetURL(srv, "42", url.Values{
 		"vendor": {"hcaptcha"}, "siteKey": {"10000000-ffff-ffff-ffff-000000000001"},
@@ -301,6 +306,7 @@ func TestCaptchaWidgetReportsAScriptThatNeverLoads(t *testing.T) {
 // The interface language reaches the vendor's script as hl, so the widget's
 // own texts match, and anything that is not a language tag is dropped.
 func TestCaptchaWidgetHandsTheInterfaceLanguageToTheVendor(t *testing.T) {
+	t.Parallel()
 	cases := []struct{ lang, hl string }{
 		{"de", "de"},
 		{"pt-BR", "pt-BR"},
@@ -326,6 +332,7 @@ func TestCaptchaWidgetHandsTheInterfaceLanguageToTheVendor(t *testing.T) {
 // page that loads no vendor script and tells the captcha window why, so the
 // window can say it in the reader's language.
 func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name   string
 		params url.Values
@@ -383,6 +390,7 @@ func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 // TestCaptchaWidgetEscapesUntrustedFields checks that the fields JD relays from
 // a hoster's page cannot break out of their HTML or script context.
 func TestCaptchaWidgetEscapesUntrustedFields(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	xss := `"><script>alert(1)</script>`
 	for _, vendor := range []string{"recaptcha", "hcaptcha"} {
@@ -404,6 +412,7 @@ func TestCaptchaWidgetEscapesUntrustedFields(t *testing.T) {
 
 // TestCaptchaWidgetSetsDefensiveHeaders pins the headers set beside the CSP.
 func TestCaptchaWidgetSetsDefensiveHeaders(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	resp, _ := getCaptchaWidget(t, captchaWidgetURL(srv, "1", url.Values{"siteKey": {"k"}, "enterprise": {"1"}}))
 
@@ -421,6 +430,7 @@ func TestCaptchaWidgetSetsDefensiveHeaders(t *testing.T) {
 // TestCaptchaWidgetNonceDiffersPerResponse checks that the nonce is not reused;
 // a fixed one would be no better than 'unsafe-inline'.
 func TestCaptchaWidgetNonceDiffersPerResponse(t *testing.T) {
+	t.Parallel()
 	srv := captchaWidgetServer(t)
 	u := captchaWidgetURL(srv, "1", url.Values{"siteKey": {"k"}, "enterprise": {"1"}})
 	resp1, _ := getCaptchaWidget(t, u)
@@ -439,6 +449,7 @@ func TestCaptchaWidgetNonceDiffersPerResponse(t *testing.T) {
 // registration table, so a shared header middleware that widened the policy's
 // reach would fail here.
 func TestCaptchaWidgetCSPAppliesOnlyToThisRoute(t *testing.T) {
+	t.Parallel()
 	reg := buildRegistry(t)
 	mux := http.NewServeMux()
 	reg.attach(mux, http.NotFoundHandler())

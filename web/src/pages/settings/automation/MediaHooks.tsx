@@ -16,6 +16,7 @@ import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
 import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
+  ApiError,
   deleteMediaHook,
   fetchMediaHooks,
   fetchOptions,
@@ -134,8 +135,13 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       else setHooks(await fetchMediaHooks());
       setDraft(null);
     } catch (e) {
-      // The server's sentence names the field and what to send.
-      setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
+      // The server's sentence names the field and what to send; the name is
+      // the one field whose rule this page can say in the reader's language.
+      setError(
+        e instanceof ApiError && e.code === 'nameInvalid'
+          ? t('settings.mediahook.error.nameInvalid')
+          : String(e).replace(/^(Error|ApiError):\s*/, ''),
+      );
     } finally {
       setBusy(false);
     }
@@ -382,7 +388,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
               order sets it, so the row mirrors in right-to-left languages. */}
           <div className="flex items-center gap-3">
             <span className="flex-1" />
-            {error && <p className="text-xs text-statusWarn">{error}</p>}
+            {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
             <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
               {t('common.cancel')}
             </Button>

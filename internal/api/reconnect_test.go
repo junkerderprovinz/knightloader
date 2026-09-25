@@ -41,6 +41,7 @@ func getRaw(t *testing.T, url string) (int, []byte) {
 // people to the on/off switch, which is already on, while the empty field is
 // three rows further down with nothing pointing at it.
 func TestReconnectStateNamesTheMissingField(t *testing.T) {
+	t.Parallel()
 	a, srv := reconnectServer(t)
 
 	// A half-filled command method: the method is chosen, the program is not.
@@ -76,6 +77,7 @@ func TestReconnectStateNamesTheMissingField(t *testing.T) {
 // page no sentence to display, or the settings form grows a permanent
 // complaint about nothing.
 func TestReconnectStateIsQuietWhenItIsFine(t *testing.T) {
+	t.Parallel()
 	a, srv := reconnectServer(t)
 	s := a.Settings.Get()
 	s.Reconnect = reconnect.Config{
@@ -105,6 +107,7 @@ func TestReconnectStateIsQuietWhenItIsFine(t *testing.T) {
 // The alternative is an error under a forty-line paste and somebody counting
 // rows by hand.
 func TestReconnectImportShowsBothHalves(t *testing.T) {
+	t.Parallel()
 	_, srv := reconnectServer(t)
 
 	const script = "[[[HSRC]]]\n" +
@@ -149,6 +152,7 @@ func TestReconnectImportShowsBothHalves(t *testing.T) {
 // produces no per-line problem. A form that cleared itself and said nothing
 // looks like a successful import of nothing.
 func TestReconnectImportRefusesAnEmptyPasteOutLoud(t *testing.T) {
+	t.Parallel()
 	_, srv := reconnectServer(t)
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/reconnect/import", map[string]string{"text": "   \n\n"})
 	if code != http.StatusOK {
@@ -171,6 +175,7 @@ func TestReconnectImportRefusesAnEmptyPasteOutLoud(t *testing.T) {
 // are told apart. A 200 with nothing in it leaves the field blank with no
 // explanation.
 func TestReconnectRouterAnswersOrSaysWhy(t *testing.T) {
+	t.Parallel()
 	_, srv := reconnectServer(t)
 	code, raw := getRaw(t, srv.URL+"/api/reconnect/router")
 	switch code {

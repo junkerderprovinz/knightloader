@@ -137,6 +137,7 @@ func liveTasks(t *testing.T, a *app.App) int {
 // TestDownloadClientIsOffOnAFreshInstall checks that a route able to create
 // downloads and delete files is not open unless somebody chose it.
 func TestDownloadClientIsOffOnAFreshInstall(t *testing.T) {
+	t.Parallel()
 	if settings.Defaults().DownloadClientAPI {
 		t.Fatal("a fresh install ships with the download-client bridge switched on")
 	}
@@ -145,6 +146,7 @@ func TestDownloadClientIsOffOnAFreshInstall(t *testing.T) {
 // TestDownloadClientOffAcceptsNothing checks that the switched-off bridge takes
 // nothing, even from a caller holding a valid API token.
 func TestDownloadClientOffAcceptsNothing(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, func(s *settings.Settings) {
 		s.DownloadClientAPI = false
 	})
@@ -176,6 +178,7 @@ func TestDownloadClientOffAcceptsNothing(t *testing.T) {
 // TestDownloadClientRefusesWithoutAValidKey pins the exact wording, which
 // Sonarr's TestAuthentication matches on.
 func TestDownloadClientRefusesWithoutAValidKey(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 
 	for _, c := range []struct {
@@ -217,6 +220,7 @@ func TestDownloadClientRefusesWithoutAValidKey(t *testing.T) {
 // TestDownloadClientVersionParsesTheWaySonarrParsesIt checks the version
 // against Sonarr's own major.minor.patch expression.
 func TestDownloadClientVersionParsesTheWaySonarrParsesIt(t *testing.T) {
+	t.Parallel()
 	_, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{"mode": "version"})
 	if code != http.StatusOK {
@@ -235,6 +239,7 @@ func TestDownloadClientVersionParsesTheWaySonarrParsesIt(t *testing.T) {
 // needs for the client to be saved in Sonarr: the configured category, no dir
 // ending in "*", a rooted complete_dir, and a sorters list.
 func TestDownloadClientConfigSatisfiesSonarrsChecks(t *testing.T) {
+	t.Parallel()
 	_, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{"mode": "get_config"})
 	if code != http.StatusOK {
@@ -288,6 +293,7 @@ func TestDownloadClientConfigSatisfiesSonarrsChecks(t *testing.T) {
 // the payload is scanned for links, the release name becomes the package, and
 // the answer carries the nzo_id.
 func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	// The link is buried in markup, as a DDL indexer would wrap it.
 	payload := []byte("<links>\n  <item>" + testMagnet + "</item>\n</links>\n")
@@ -324,6 +330,7 @@ func TestDownloadClientAddFileStagesTheLinksItFinds(t *testing.T) {
 // which holds nothing this app can fetch, is refused with the reason instead
 // of accepted.
 func TestDownloadClientAddFileRefusesAPayloadWithNoLinks(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	nzb := []byte(`<?xml version="1.0" encoding="iso-8859-1" ?>
 <nzb>
@@ -351,6 +358,7 @@ func TestDownloadClientAddFileRefusesAPayloadWithNoLinks(t *testing.T) {
 // TestDownloadClientQueueReportsWhatItStaged walks the queue through the two
 // states reachable without a real transfer and pins the fields Sonarr reads.
 func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	_, add := sabAddFile(t, srv, key, "Show.S01E02.nzb", "tv-sonarr", []byte(testMagnet))
 	ids, _ := add["nzo_ids"].([]any)
@@ -412,6 +420,7 @@ func TestDownloadClientQueueReportsWhatItStaged(t *testing.T) {
 // one instance see neither each other's grabs nor the owner's own downloads,
 // which Sonarr would otherwise import and delete.
 func TestDownloadClientQueueKeepsTheTwoAppsApart(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	if _, doc := sabAddFile(t, srv, key, "Show.S01E03.nzb", "tv-sonarr", []byte(testMagnet)); doc["nzo_ids"] == nil {
 		t.Fatalf("addfile did not stage anything: %+v", doc)
@@ -442,6 +451,7 @@ func TestDownloadClientQueueKeepsTheTwoAppsApart(t *testing.T) {
 // holds appears as a failed history item with the rule's reason, so Sonarr
 // tries another release instead of waiting.
 func TestDownloadClientReportsAHeldLinkAsFailed(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, func(s *settings.Settings) {
 		s.LinkFilter = rules.Set{Rules: []rules.Rule{{
 			Name:       "no samples",
@@ -487,6 +497,7 @@ func TestDownloadClientReportsAHeldLinkAsFailed(t *testing.T) {
 // TestDownloadClientDeleteRemovesTheTasks covers Sonarr's cleanup after an
 // import, with del_files honoured as sent.
 func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	_, add := sabAddFile(t, srv, key, "Show.S01E05.nzb", "tv-sonarr", []byte(testMagnet))
 	ids, _ := add["nzo_ids"].([]any)
@@ -527,6 +538,7 @@ func TestDownloadClientDeleteRemovesTheTasks(t *testing.T) {
 // TestDownloadClientNamesAnUnimplementedMode checks that an unimplemented mode
 // is an error naming the mode, not an empty success.
 func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
+	t.Parallel()
 	_, srv, key := downloadClientServer(t, nil)
 	for _, mode := range []string{"retry", "fullstatus", "nonsense"} {
 		code, doc := sabGet(t, srv, key, map[string]string{"mode": mode})
@@ -545,6 +557,7 @@ func TestDownloadClientNamesAnUnimplementedMode(t *testing.T) {
 // TestDownloadClientAddUrlTakesALinkDirectly covers addurl, which neither
 // Sonarr nor Radarr calls.
 func TestDownloadClientAddUrlTakesALinkDirectly(t *testing.T) {
+	t.Parallel()
 	a, srv, key := downloadClientServer(t, nil)
 	code, doc := sabGet(t, srv, key, map[string]string{
 		"mode": "addurl", "name": testMagnet, "nzbname": "Handed.Over.By.Script", "cat": "radarr",
@@ -568,6 +581,7 @@ func TestDownloadClientAddUrlTakesALinkDirectly(t *testing.T) {
 // TestDownloadClientModuleRowTracksTheSetting checks that the module row's
 // Enabled follows the live setting.
 func TestDownloadClientModuleRowTracksTheSetting(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	find := func() Feature {
 		t.Helper()

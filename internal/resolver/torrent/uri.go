@@ -115,7 +115,7 @@ func checkMagnet(uri string) (magnetInfo, error) {
 	// both reach it.
 	if !m.InfoHash.Ok {
 		return magnetInfo{}, fmt.Errorf(
-			"%w: it is a v2-only magnet link, which this build cannot start - a link that also carries the older urn:btih hash will work", ErrBadMagnet)
+			"%w: it is a v2-only magnet link, which this build cannot start; a link that also carries the older urn:btih hash will work", ErrBadMagnet)
 	}
 	if m.InfoHash.Value.IsZero() {
 		return magnetInfo{}, fmt.Errorf("%w: its info hash is all zeroes, which is not a torrent", ErrBadMagnet)

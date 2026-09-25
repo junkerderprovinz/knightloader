@@ -9,10 +9,11 @@
 // somebody makes that reference stable, which is normally called an
 // optimisation.
 //
-// The check is blunt: find every <FlatList>, read its renderItem body, and if
-// that body mentions an identifier that is neither destructured from the render
-// argument nor imported nor a local helper, demand an `extraData`. A false
-// positive costs an extraData, which is never wrong.
+// The check is blunt: find every <FlatList>, and every <MovingList>, which is
+// one inside, read its renderItem body, and if that body mentions an identifier
+// that is neither destructured from the render argument nor imported nor a
+// local helper, demand an `extraData`. A false positive costs an extraData,
+// which is never wrong.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -28,7 +29,7 @@ function walk(dir) {
   return out;
 }
 
-/** The span of one JSX element, from `<FlatList` to its matching `/>` or `>`. */
+/** The span of one JSX element, from its opening tag to its matching `/>` or `>`. */
 function elementSpan(src, start) {
   let depth = 0;
   for (let i = start; i < src.length; i++) {
@@ -58,12 +59,9 @@ function renderItemBody(el) {
 const problems = [];
 for (const file of walk(ROOT)) {
   const src = readFileSync(file, 'utf8');
-  let from = 0;
-  for (;;) {
-    const at = src.indexOf('<FlatList', from);
-    if (at < 0) break;
-    from = at + 9;
-    const el = elementSpan(src, at);
+  for (const hit of src.matchAll(/<(FlatList|MovingList)\b/g)) {
+    const tag = hit[1];
+    const el = elementSpan(src, hit.index);
     if (el.includes('extraData')) continue;
     const body = renderItemBody(el);
     if (!body) continue;
@@ -90,7 +88,7 @@ for (const file of walk(ROOT)) {
     }
     if (reads.size > 0) {
       problems.push(
-        `src/${file.split(/[\\/]src[\\/]/).pop()}: <FlatList> has no extraData but its rows read ` +
+        `src/${file.split(/[\\/]src[\\/]/).pop()}: <${tag}> has no extraData but its rows read ` +
           `${[...reads].sort().join(', ')} - state the list cannot see. ` +
           `Add extraData with those values, or the rows will stop updating.`,
       );

@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
+import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip } from './InfoTip';
+import { Arrive } from './Moving';
 import { Text } from './Text';
 
 /**
@@ -22,7 +24,8 @@ import { Text } from './Text';
 /** One card with its notch title badge half over the top edge. `hue` is the
  *  card's rainbow position; without the mode it resolves to the accent, as the
  *  web's SectionTitle does. `info` explains the card through an (i) in the
- *  notch, in the notch's own ink, as the extension's section badges carry it. */
+ *  notch, in the notch's own ink, as the extension's section badges carry it.
+ *  On a page it arrives with the page's other cards. */
 export function NotchCard({
   title,
   hue,
@@ -48,7 +51,7 @@ export function NotchCard({
     ground: c.bg,
   });
   return (
-    <View style={[styles.cardWrap, style]}>
+    <Arrive style={[styles.cardWrap, style]}>
       <View style={[styles.card, { backgroundColor: c.surface, borderRadius: radii.card }]}>{children}</View>
       <View style={[styles.notch, { backgroundColor: fill, borderRadius: radii.pill }]}>
         <Text style={[styles.notchText, { color: ink }]} numberOfLines={1}>
@@ -56,7 +59,7 @@ export function NotchCard({
         </Text>
         {info ? <InfoTip text={info} color={ink} size={14} /> : null}
       </View>
-    </View>
+    </Arrive>
   );
 }
 
@@ -524,6 +527,7 @@ export function GlimButton({
   // Two tones, two answers, and no third branch for a destructive one: a quiet
   // button takes the page's own ink whatever it is about to do.
   const ink = tone === 'solid' ? filledInk : c.text;
+  const press = usePress();
   return (
     <TouchableOpacity
       style={[
@@ -532,8 +536,11 @@ export function GlimButton({
         grow ? { flex: 1 } : null,
         disabled || busy ? styles.buttonOff : null,
         style,
+        { transform: [{ scale: press.scale }] },
       ]}
       onPress={onPress}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       disabled={disabled || busy}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!(disabled || busy) }}
@@ -543,6 +550,34 @@ export function GlimButton({
       <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={1}>
         {label}
       </Text>
+    </TouchableOpacity>
+  );
+}
+
+/** A card that is pressed as a whole, such as a row that opens something. It
+ *  gives way under the finger as a button does. */
+export function CardButton({
+  style,
+  onPress,
+  accessibilityLabel,
+  children,
+}: {
+  style?: StyleProp<ViewStyle>;
+  onPress: () => void;
+  accessibilityLabel?: string;
+  children: ReactNode;
+}) {
+  const press = usePress();
+  return (
+    <TouchableOpacity
+      style={[style, { transform: [{ scale: press.scale }] }]}
+      onPress={onPress}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+    >
+      {children}
     </TouchableOpacity>
   );
 }
@@ -597,21 +632,28 @@ export function BrandButton({
     ({ fill, ink } = BRAND[brand]);
     rest = { coffee: c.brandCoffee, bitcoin: c.brandBitcoin, paypal: c.brandPaypal, github: c.brandGithub }[brand];
   }
+  const press = usePress();
+  // The scale sits on a view of its own, because the Pressable's style is a
+  // function of its pressed state and Animated cannot see into one.
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, borderRadius: radii.control }]}
-    >
-      {({ pressed }) => (
-        <>
-          {icon(pressed ? ink : rest, pressed ? fill : c.surface2)}
-          <Text style={[styles.buttonLabel, { color: pressed ? ink : c.text }]} numberOfLines={1}>
-            {label}
-          </Text>
-        </>
-      )}
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale: press.scale }] }}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, borderRadius: radii.control }]}
+      >
+        {({ pressed }) => (
+          <>
+            {icon(pressed ? ink : rest, pressed ? fill : c.surface2)}
+            <Text style={[styles.buttonLabel, { color: pressed ? ink : c.text }]} numberOfLines={1}>
+              {label}
+            </Text>
+          </>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }

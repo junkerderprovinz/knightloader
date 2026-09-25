@@ -1396,7 +1396,6 @@ export const tr: Dict = {
   'settings.browsertools.install': 'Yükle',
   'settings.browsertools.installIOS':
     "iPhone veya iPad'de: bu sayfayı Safari'de açın, Paylaş'a dokunun, ardından «Ana Ekrana Ekle»ye dokunun.",
-  'settings.access.intakePortsHint': 'Normal girişin dışında bu örneğe doğrudan ulaşmanın diğer yolları. Her birinin erişilebilir olup olmadığı burada gösterilir.',
   'settings.nav.browsertools': 'Tarayıcı ve uygulama',
   'settings.browsertools.bookmarkletStep1': 'Aşağıdaki düğmeyi tarayıcının yer imleri çubuğuna sürükle. Diğer yer imleri gibi kaydedilir ve hiçbir şey yüklenmez.',
   'settings.browsertools.bookmarkletStep2': 'Herhangi bir sayfada ona tıkla (yalnızca bir metni istiyorsan önce onu seç). O sayfanın bağlantısı ya da seçili metin önceden doldurulmuş küçük bir KnightLoader sekmesi açılır. Gözden geçir ve oradan indirme olarak ekle.',
@@ -1484,7 +1483,6 @@ export const tr: Dict = {
   'settings.nav.torrents': 'Torrentler',
   'settings.module.torrents': 'Torrentler',
   'settings.torrents.title': 'Torrentler',
-  'settings.torrents.subtitle': 'Magnet bağlantıları ve .torrent dosyaları için seed hedefleri, aktarım sınırları, port yönlendirme ve DHT/PEX.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Hedef seed oranı',
   'settings.torrents.seedRatioHint': 'Tamamlanan bir torrent, kendi boyutuna oranla bu kadarı sürüye geri verilene kadar seed edilmeye devam eder. 0 = oran hedefi yok.',

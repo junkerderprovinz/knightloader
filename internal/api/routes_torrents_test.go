@@ -65,6 +65,7 @@ func torrentsServer(t *testing.T) (*app.App, *httptest.Server) {
 // TestParseTorrentUploadReturnsTheFileTree checks that parsing returns the tree
 // and the uri for staging, and stages nothing itself.
 func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
+	t.Parallel()
 	a, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
 		{Length: 900, Path: []string{"one.mkv"}},
@@ -109,6 +110,7 @@ func TestParseTorrentUploadReturnsTheFileTree(t *testing.T) {
 // TestParseTorrentUploadRejectsAnOversizedFile checks the cap enforced before
 // the parser sees the bytes.
 func TestParseTorrentUploadRejectsAnOversizedFile(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	// Over MaxTorrentBytes but under the request's outer cap, so the handler's
 	// own 413 fires rather than MaxBytesReader.
@@ -120,6 +122,7 @@ func TestParseTorrentUploadRejectsAnOversizedFile(t *testing.T) {
 }
 
 func TestParseTorrentUploadRejectsGarbage(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "not-a.torrent", []byte("hello, this is not bencode"))
 	if code != http.StatusBadRequest {
@@ -134,6 +137,7 @@ func TestParseTorrentUploadRejectsGarbage(t *testing.T) {
 // the download folder is refused at parse time. bencode happily writes a ".."
 // component, so the reading side has to refuse it.
 func TestParseTorrentUploadRejectsATraversalPath(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Evil", []metainfo.FileInfo{
 		{Length: 10, Path: []string{"..", "..", "etc", "passwd"}},
@@ -150,6 +154,7 @@ func TestParseTorrentUploadRejectsATraversalPath(t *testing.T) {
 // TestParseTorrentUploadRequiresTheFileField checks that a missing "file"
 // field is a 400, not a 500.
 func TestParseTorrentUploadRequiresTheFileField(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	var buf bytes.Buffer
 	req, err := http.NewRequest(http.MethodPost, srv.URL+"/api/torrents/parse", &buf)
@@ -170,6 +175,7 @@ func TestParseTorrentUploadRequiresTheFileField(t *testing.T) {
 // TestStageTorrentAppliesTheSelection runs parse then stage and checks the task
 // carries exactly the selection.
 func TestStageTorrentAppliesTheSelection(t *testing.T) {
+	t.Parallel()
 	a, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack", []metainfo.FileInfo{
 		{Length: 900, Path: []string{"one.mkv"}},
@@ -231,6 +237,7 @@ func TestStageTorrentAppliesTheSelection(t *testing.T) {
 // selected path missing from the real torrent matches nothing, since the file
 // list comes from the server's own re-parse.
 func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack2", []metainfo.FileInfo{{Length: 10, Path: []string{"real.bin"}}})
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "pack2.torrent", data)
@@ -271,6 +278,7 @@ func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 // TestStageTorrentRefusesAMagnet checks that a magnet, which has no file tree
 // yet, is refused rather than staged with its selection ignored.
 func TestStageTorrentRefusesAMagnet(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	stageBody, _ := json.Marshal(map[string]any{
 		"uri": "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
@@ -288,6 +296,7 @@ func TestStageTorrentRefusesAMagnet(t *testing.T) {
 // TestStageTorrentRefusesAHandCraftedURI checks that a forged data: URI with
 // the right prefix is refused by the re-parse.
 func TestStageTorrentRefusesAHandCraftedURI(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	stageBody, _ := json.Marshal(map[string]any{
 		"uri": "data:application/x-bittorrent;base64,dGhpcyBpcyBub3QgYSB0b3JyZW50",
@@ -305,6 +314,7 @@ func TestStageTorrentRefusesAHandCraftedURI(t *testing.T) {
 // TestStageTorrentBoundsAnOversizedBody checks that the stage route caps its
 // body before decoding, as the upload route does.
 func TestStageTorrentBoundsAnOversizedBody(t *testing.T) {
+	t.Parallel()
 	_, srv := torrentsServer(t)
 	huge := strings.Repeat("a", torrent.MaxTorrentBytes+2<<20)
 	stageBody, err := json.Marshal(map[string]any{"uri": "data:application/x-bittorrent;base64," + huge})

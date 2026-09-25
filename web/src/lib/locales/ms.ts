@@ -1396,7 +1396,6 @@ export const ms: Dict = {
   'settings.browsertools.install': 'Pasang',
   'settings.browsertools.installIOS':
     'Pada iPhone atau iPad: buka halaman ini dalam Safari, ketik Kongsi, kemudian «Tambah ke Skrin Utama».',
-  'settings.access.intakePortsHint': 'Cara lain untuk mencapai instans ini secara terus, di luar log masuk biasa. Setiap satunya menunjukkan kebolehcapaiannya sendiri di sini.',
   'settings.nav.browsertools': 'Pelayar dan aplikasi',
   'settings.browsertools.bookmarkletStep1': 'Seret butang di bawah ke bar penanda halaman pelayar anda. Ia disimpan seperti penanda halaman lain, dan tiada apa-apa yang dipasang.',
   'settings.browsertools.bookmarkletStep2': 'Pada mana-mana halaman, klik padanya (pilih teks dahulu jika anda hanya mahukan teks itu). Tab KnightLoader kecil dibuka dengan pautan halaman itu, atau teks yang dipilih, sudah diisi. Semak dan tambahkannya sebagai muat turun dari situ.',
@@ -1484,7 +1483,6 @@ export const ms: Dict = {
   'settings.nav.torrents': 'Torrent',
   'settings.module.torrents': 'Torrent',
   'settings.torrents.title': 'Torrent',
-  'settings.torrents.subtitle': 'Sasaran seed, had pemindahan, pemetaan port dan DHT/PEX untuk pautan magnet dan fail .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Sasaran nisbah seed',
   'settings.torrents.seedRatioHint': 'Terus melakukan seed pada torrent yang selesai sehingga nisbah ini, berbanding saiznya sendiri, telah dikembalikan kepada kelompok. 0 = tiada sasaran nisbah.',

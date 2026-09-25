@@ -11,6 +11,7 @@ import {
   UnavailableNotice,
 } from '../../../components/ui';
 import {
+  ApiError,
   fetchPasskeys,
   passkeysInBrowser,
   registerPasskey,
@@ -20,9 +21,16 @@ import {
   type PasskeyView,
 } from '../../../lib/api';
 import { fmtDate } from '../../../lib/format';
-import { useT } from '../../../lib/i18n';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import { IconClose, IconEdit, IconKey, IconPlus, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
+
+/** The refusals worded here. Any other shows the server's sentence. */
+const REFUSALS: Partial<Record<string, TranslationKey>> = {
+  passwordFirst: 'auth.passkey.needsPassword',
+  expired: 'auth.passkey.error.expired',
+  otherAddress: 'auth.passkey.error.otherAddress',
+};
 
 /**
  * PasskeyCard manages signing in with a passkey instead of the password.
@@ -65,7 +73,8 @@ export function PasskeyCard({
   }, [reload]);
 
   function fail(e: unknown) {
-    toast(String(e).replace(/^Error:\s*/, ''), 'fail');
+    const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+    toast(key ? t(key) : String(e).replace(/^Error:\s*/, ''), 'fail');
     setShake((n) => n + 1);
   }
 

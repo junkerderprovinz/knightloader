@@ -46,7 +46,7 @@ export function ViewNameDialog({
       footer={
         <>
           {/* The forward button ends the row, so the refusal goes first. */}
-          {refusal && <span className="min-w-0 text-sm text-statusFail">{refusal}</span>}
+          {refusal && <span dir="auto" className="min-w-0 text-sm text-statusFail">{refusal}</span>}
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
           <Button disabled={blocked} onClick={() => onConfirm(clean)}>

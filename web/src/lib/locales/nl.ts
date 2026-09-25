@@ -1389,7 +1389,6 @@ export const nl: Dict = {
   'settings.browsertools.install': 'Installeren',
   'settings.browsertools.installIOS':
     'Op iPhone of iPad: open deze pagina in Safari, tik op Delen en dan op “Zet op beginscherm”.',
-  'settings.access.intakePortsHint': 'Andere manieren om deze instantie rechtstreeks te bereiken, buiten de normale login om. Bij elke manier zie je hier of ze bereikbaar is.',
   'settings.nav.browsertools': 'Browser & app',
   'settings.browsertools.bookmarkletStep1': 'Sleep de knop hieronder naar de bladwijzerbalk van je browser. Hij wordt opgeslagen zoals elke andere bladwijzer, en er wordt niets geïnstalleerd.',
   'settings.browsertools.bookmarkletStep2': 'Klik er op een willekeurige pagina op (selecteer eerst wat tekst als je alleen die wilt). Er opent een klein KnightLoader-tabblad waarin de link van die pagina, of de geselecteerde tekst, al is ingevuld. Controleer het en voeg het van daaruit toe als download.',
@@ -1477,7 +1476,6 @@ export const nl: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Seed-doelen, overdrachtslimieten, poort-mapping en DHT/PEX voor magnet-links en .torrent-bestanden.',
   'settings.torrents.seedingTitle': 'Seeden',
   'settings.torrents.seedRatio': 'Doel-seedratio',
   'settings.torrents.seedRatioHint': 'Blijft een voltooide torrent seeden totdat deze verhouding, ten opzichte van de eigen grootte, aan de swarm is teruggegeven. 0 = geen ratiodoel.',

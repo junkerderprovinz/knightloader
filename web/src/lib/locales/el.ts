@@ -1396,7 +1396,6 @@ export const el: Dict = {
   'settings.browsertools.install': 'Εγκατάσταση',
   'settings.browsertools.installIOS':
     'Σε iPhone ή iPad: ανοίξτε αυτήν τη σελίδα στο Safari, πατήστε Κοινοποίηση, και έπειτα «Προσθήκη στην Αρχική οθόνη».',
-  'settings.access.intakePortsHint': 'Άλλοι τρόποι για να φτάσεις απευθείας σε αυτό το στιγμιότυπο, εκτός της κανονικής σύνδεσης. Για τον καθένα φαίνεται εδώ αν είναι προσβάσιμος.',
   'settings.nav.browsertools': 'Πρόγραμμα περιήγησης και εφαρμογή',
   'settings.browsertools.bookmarkletStep1': 'Σύρε το κουμπί παρακάτω στη γραμμή σελιδοδεικτών του προγράμματος περιήγησής σου. Αποθηκεύεται όπως κάθε άλλος σελιδοδείκτης και δεν εγκαθίσταται τίποτα.',
   'settings.browsertools.bookmarkletStep2': 'Σε οποιαδήποτε σελίδα, κάνε κλικ πάνω του (επίλεξε πρώτα κείμενο αν θέλεις μόνο αυτό). Ανοίγει μια μικρή καρτέλα KnightLoader με τον σύνδεσμο της σελίδας, ή το επιλεγμένο κείμενο, ήδη συμπληρωμένο. Έλεγξέ το και πρόσθεσέ το από εκεί ως λήψη.',
@@ -1484,7 +1483,6 @@ export const el: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Στόχοι seeding, όρια μεταφοράς, προώθηση θύρας και DHT/PEX για συνδέσμους magnet και αρχεία .torrent.',
   'settings.torrents.seedingTitle': 'Seeding',
   'settings.torrents.seedRatio': 'Στόχος αναλογίας seeding',
   'settings.torrents.seedRatioHint': 'Συνεχίζει το seeding ενός ολοκληρωμένου torrent μέχρι να έχει επιστραφεί στο σμήνος αυτό το ποσοστό σε σχέση με το μέγεθός του. 0 = χωρίς στόχο αναλογίας.',

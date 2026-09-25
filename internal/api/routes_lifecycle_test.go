@@ -27,8 +27,8 @@ func lifecycleServer(t *testing.T) (*app.App, *httptest.Server) {
 }
 
 func TestDeploymentReportsContainerByDefault(t *testing.T) {
-	buildinfo.Deployment = "container"
 	_, srv := lifecycleServer(t)
+	buildinfo.Deployment = "container"
 
 	var info DeploymentInfo
 	if code := getJSON(t, srv.URL+"/api/system/deployment", &info); code != http.StatusOK {
@@ -46,8 +46,8 @@ func TestDeploymentReportsContainerByDefault(t *testing.T) {
 }
 
 func TestDeploymentReflectsDesktop(t *testing.T) {
-	buildinfo.Deployment = "desktop"
 	_, srv := lifecycleServer(t)
+	buildinfo.Deployment = "desktop"
 
 	var info DeploymentInfo
 	if code := getJSON(t, srv.URL+"/api/system/deployment", &info); code != http.StatusOK {

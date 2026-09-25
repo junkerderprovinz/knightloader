@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../components/ui';
-import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
+import { SettingPathInput } from './controls';
 
 /**
  * Archives settles everything about an archive: whether it is unpacked, where
@@ -36,7 +36,8 @@ function useArchiveOptions(): { options: ApiOptions | null; failed: boolean } {
   return { options, failed };
 }
 
-// An id without a label shows as itself. Advanced names these rows alike.
+// The collision labels for every strip that offers a collision rule. An id
+// without a label shows as itself.
 export const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
   overwrite: 'settings.archives.collision.overwrite',
   rename: 'settings.archives.collision.rename',
@@ -51,7 +52,7 @@ export const DISPOSAL_LABEL: Partial<Record<string, TranslationKey>> = {
 
 export function Archives() {
   const { t } = useT();
-  const { cfg, patch, fieldError } = useDraft();
+  const { cfg, patch } = useDraft();
   const { options, failed } = useArchiveOptions();
 
   const choices = (ids: string[] | undefined, labels: Partial<Record<string, TranslationKey>>) =>
@@ -84,12 +85,12 @@ export function Archives() {
             hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
           >
             {/* The shared chooser browses the server, which knows what is mounted. */}
-            <PathInput
+            <SettingPathInput
+              field="extractTo"
               value={extractTo}
               placeholder={t('settings.archives.besideArchive')}
               title={t('settings.archives.destination')}
               onValue={(extractTo) => patch({ extractTo })}
-              error={fieldError('extractTo')}
             />
           </Field>
 
@@ -112,12 +113,12 @@ export function Archives() {
             label={t('settings.archives.moveTo')}
             hint={`${t('settings.archives.moveToHint')} ${t('settings.pathVars')}`}
           >
-            <PathInput
+            <SettingPathInput
+              field="extractMoveTo"
               value={extractMoveTo}
               placeholder={t('settings.archives.besideArchive')}
               title={t('settings.archives.moveTo')}
               onValue={(extractMoveTo) => patch({ extractMoveTo })}
-              error={fieldError('extractMoveTo')}
             />
           </Field>
 

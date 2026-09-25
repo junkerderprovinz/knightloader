@@ -1398,7 +1398,6 @@ export const he: Dict = {
   'settings.browsertools.install': 'התקן',
   'settings.browsertools.installIOS':
     'ב-iPhone או iPad: פתח את העמוד הזה ב-Safari, הקש על שיתוף, ואז „הוסף למסך הבית”.',
-  'settings.access.intakePortsHint': 'דרכים נוספות להגיע ישירות למופע הזה, מחוץ להתחברות הרגילה. לכל אחת מוצג כאן אם היא נגישה.',
   'settings.nav.browsertools': 'דפדפן ואפליקציה',
   'settings.browsertools.bookmarkletStep1': 'גרור את הכפתור שלמטה לסרגל הסימניות של הדפדפן שלך. הוא נשמר כמו כל סימנייה אחרת, ושום דבר לא מותקן.',
   'settings.browsertools.bookmarkletStep2': 'בכל עמוד, לחץ עליו (בחר קודם טקסט אם אתה רוצה רק אותו). נפתחת לשונית קטנה של KnightLoader שבה הקישור של העמוד, או הטקסט שנבחר, כבר ממולא. עבור עליו והוסף אותו משם כהורדה.',
@@ -1486,7 +1485,6 @@ export const he: Dict = {
   'settings.nav.torrents': 'טורנטים',
   'settings.module.torrents': 'טורנטים',
   'settings.torrents.title': 'טורנטים',
-  'settings.torrents.subtitle': 'יעדי הזרעה, מגבלות העברה, מיפוי פורט ו-DHT/PEX לקישורי מגנט ולקובצי torrent.',
   'settings.torrents.seedingTitle': 'הזרעה',
   'settings.torrents.seedRatio': 'יחס הזרעה יעד',
   'settings.torrents.seedRatioHint': 'ממשיך להזריע טורנט שהושלם עד שהוחזר לנחיל חלק כזה, ביחס לגודלו שלו. 0 = ללא יעד יחס.',

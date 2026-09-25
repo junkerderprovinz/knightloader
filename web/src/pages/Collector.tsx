@@ -15,7 +15,7 @@ import {
 import { PackageActions } from '../components/PackageActions';
 import { AddLinksForm } from '../components/AddLinksForm';
 import { FileDrop, type FileDropHandle } from '../components/FileDrop';
-import { FilteredLinks, useFx } from '../components/FilteredLinks';
+import { FilteredLinks } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
@@ -60,7 +60,6 @@ const COLLECTOR_BADGE_FILTERS: QuickFilterId[] = COLLECTOR_FILTERS.filter(
 
 export function Collector() {
   const { t } = useT();
-  const fx = useFx();
   const tasks = useTasks('');
   const { toast } = useToast();
   // Kept here, since the container drop zone gives dropped links the same
@@ -246,8 +245,8 @@ export function Collector() {
     if (heldNow) {
       toast(
         staged
-          ? fx('collector.filtered.toastHeld', { n: staged, held: heldNow })
-          : fx('collector.filtered.toastAllHeld', { held: heldNow }),
+          ? t('collector.filtered.toastHeld', { n: staged, held: heldNow })
+          : t('collector.filtered.toastAllHeld', { held: heldNow }),
         staged ? 'ok' : 'info',
       );
       return;

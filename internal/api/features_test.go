@@ -23,6 +23,7 @@ import (
 // TestEveryModuleWithoutASwitchSaysWhy checks that no row renders as a dead
 // control without a reason beside it.
 func TestEveryModuleWithoutASwitchSaysWhy(t *testing.T) {
+	t.Parallel()
 	for _, m := range featureList(testApp(t)) {
 		if m.Switch == SwitchNone && strings.TrimSpace(m.Reason) == "" {
 			t.Errorf("module %q cannot be switched and does not say why", m.ID)
@@ -39,6 +40,7 @@ func TestEveryModuleWithoutASwitchSaysWhy(t *testing.T) {
 // TestModulePagesExist keeps the module rows and the page list pointing at
 // each other.
 func TestModulePagesExist(t *testing.T) {
+	t.Parallel()
 	pages := map[string]bool{}
 	for _, p := range featurePages() {
 		if pages[p.ID] {
@@ -68,6 +70,7 @@ func TestModulePagesExist(t *testing.T) {
 // TestSwitchesReachTheSubsystem checks that a switch changes the state the
 // subsystem itself reads.
 func TestSwitchesReachTheSubsystem(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 
 	if err := setFeature(a, "extraction", false); err != nil {
@@ -88,6 +91,7 @@ func TestSwitchesReachTheSubsystem(t *testing.T) {
 // TestParkedSwitchRestoresWhatItCleared checks that switching folder watch off
 // clears the folder and switching it on brings the same folder back.
 func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	// Sanitize drops a relative watch folder, and "/tmp/..." is relative on
 	// Windows.
@@ -116,6 +120,7 @@ func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
 // TestParkingAnAlreadyEmptyValueKeepsTheOldOne checks that switching an
 // already-off module off again does not park an empty value over the old one.
 func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	dir := t.TempDir()
 
@@ -140,6 +145,7 @@ func TestParkingAnAlreadyEmptyValueKeepsTheOldOne(t *testing.T) {
 // TestSwitchingOnWithNothingParkedSaysSo checks that the error names the page
 // the value has to be set on.
 func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	for _, id := range []string{"watch", "scheduler", "reconnect"} {
 		err := setFeature(a, id, true)
@@ -157,6 +163,7 @@ func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 // page's id for the interface to word it, and the page is the one the row
 // names.
 func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerFeatures(reg, a)
@@ -184,6 +191,7 @@ func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
 // TestUnswitchableModulesAreRefused checks that a request to switch a row
 // without a switch is an error rather than a silent success.
 func TestUnswitchableModulesAreRefused(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	// KL_JD is unset here, so JD and the captcha relay it feeds have no switch.
 	for _, id := range []string{"cnl", "jd", "captcha", "tray", "nonsense"} {
@@ -196,6 +204,7 @@ func TestUnswitchableModulesAreRefused(t *testing.T) {
 // TestModuleSwitchesListTheModuleOffAndBackOn checks the modules without a
 // setting of their own: off puts the id on ModulesOff once, on takes it away.
 func TestModuleSwitchesListTheModuleOffAndBackOn(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	for _, id := range []string{"connections", "federation", "torrents", "scripting"} {
 		for i := 0; i < 2; i++ {
@@ -221,6 +230,7 @@ func TestModuleSwitchesListTheModuleOffAndBackOn(t *testing.T) {
 // TestTwoSwitchesAtOnceKeepBoth checks that switches flipped together do not
 // write over each other's ModulesOff.
 func TestTwoSwitchesAtOnceKeepBoth(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	ids := []string{"connections", "federation", "torrents", "scripting"}
 	var wg sync.WaitGroup
@@ -246,6 +256,7 @@ func TestTwoSwitchesAtOnceKeepBoth(t *testing.T) {
 // TestRuleSwitchesAreTheListsOwnFlag checks that the Packagizer and link
 // filter rows switch the same flag as the Rules page, and keep the rules.
 func TestRuleSwitchesAreTheListsOwnFlag(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	if err := setFeature(a, "packagizer", false); err != nil {
 		t.Fatal(err)
@@ -268,6 +279,7 @@ func TestRuleSwitchesAreTheListsOwnFlag(t *testing.T) {
 // TestSwitchedOffFederationShowsAndReachesNoPeer checks the routes a peer is
 // reached through while the module is off.
 func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerFederation(reg, a)
@@ -282,10 +294,18 @@ func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
 	if strings.TrimSpace(rec.Body.String()) != "[]" {
 		t.Errorf("GET /api/instances = %s while federation is off, want []", rec.Body.String())
 	}
-	rec = httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/instances/peer/tasks", nil))
-	if rec.Code != http.StatusServiceUnavailable {
-		t.Errorf("proxying to a peer answered %d while federation is off, want 503", rec.Code)
+	for _, req := range []*http.Request{
+		httptest.NewRequest(http.MethodGet, "/api/instances/peer/tasks", nil),
+		httptest.NewRequest(http.MethodPost, "/api/instances", strings.NewReader(`{"name":"peer","url":"http://peer:8749"}`)),
+	} {
+		rec = httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		var body struct{ Error, Code string }
+		_ = json.Unmarshal(rec.Body.Bytes(), &body)
+		if rec.Code != http.StatusServiceUnavailable || body.Code != "federationOff" || body.Error == "" {
+			t.Errorf("%s %s answered %d %s while federation is off, want 503 federationOff",
+				req.Method, req.URL.Path, rec.Code, rec.Body.String())
+		}
 	}
 }
 
@@ -316,6 +336,7 @@ func freeLoopbackPort(t *testing.T) int {
 // TestClickNLoadRowFollowsTheListener checks that the row reports the listener
 // the process runs, as a code and the address next to the English sentence.
 func TestClickNLoadRowFollowsTheListener(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	port := freeLoopbackPort(t)
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
@@ -345,6 +366,7 @@ func TestClickNLoadRowFollowsTheListener(t *testing.T) {
 // TestClickNLoadRowReportsATakenPort checks that a listener that could not bind
 // reads as unavailable at its address, not as switched off.
 func TestClickNLoadRowReportsATakenPort(t *testing.T) {
+	t.Parallel()
 	held, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -384,6 +406,7 @@ func TestClickNLoadRowWithoutAListenerClaimsNone(t *testing.T) {
 // without the code an interface words it by, in the states a fresh install and
 // a configured one put the rows in.
 func TestEveryModuleSentenceHasACode(t *testing.T) {
+	t.Parallel()
 	check := func(state string, a *app.App) {
 		t.Helper()
 		for _, m := range featureList(a) {
@@ -419,6 +442,7 @@ func TestEveryModuleSentenceHasACode(t *testing.T) {
 // TestEnabledIsDerivedNotStored checks that a settings write from outside the
 // switch moves the module row with it.
 func TestEnabledIsDerivedNotStored(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	if err := setFeature(a, "watch", false); err != nil {
 		t.Fatal(err)
@@ -438,6 +462,7 @@ func TestEnabledIsDerivedNotStored(t *testing.T) {
 // TestScheduleAndReconnectParkTheirOwnShape checks the two parked values that
 // are not strings survive the JSON round trip through the park document.
 func TestScheduleAndReconnectParkTheirOwnShape(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	s := a.Settings.Get()
 	s.Schedule = []schedule.Entry{{
@@ -480,6 +505,7 @@ func TestScheduleAndReconnectParkTheirOwnShape(t *testing.T) {
 // TestDefaultsAreRedacted checks that the defaults served to the advanced
 // table carry no router password.
 func TestDefaultsAreRedacted(t *testing.T) {
+	t.Parallel()
 	b, err := json.Marshal(settings.Defaults().Redacted())
 	if err != nil {
 		t.Fatal(err)

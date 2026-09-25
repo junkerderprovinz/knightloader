@@ -16,6 +16,7 @@ import {
 } from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
 import {
+  ApiError,
   type ApiToken,
   type AuthState,
   type NewApiToken,
@@ -40,7 +41,7 @@ import {
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
-import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
+import { useT } from '../../lib/i18n';
 import {
   IconCheck,
   IconClipboard,
@@ -50,65 +51,14 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
-import { useDraft, useFeatures } from './context';
-import { NeutralSwitch } from './controls';
+import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import { TwoFactorCard } from './access/TwoFactorCard';
 import { label, useTx } from './tx';
 
-/**
- * PENDING holds the English strings of the Access page (password lock, intake
- * ports, API tokens and remote access) until the catalogue has them; the
- * lookup asks the catalogue first.
- */
-const PENDING = {
-  'settings.access.tokens.title': 'API tokens',
-  'settings.access.tokens.intro':
-    'Named credentials for a script, a browser extension or a phone. Each one can be revoked on its own, without changing the shared password every other client uses.',
-  'settings.access.tokens.empty': 'No tokens issued yet.',
-  'settings.access.tokens.new': 'New token',
-  'settings.access.tokens.namePlaceholder': 'e.g. my phone',
-  'settings.access.tokens.cancel': 'Cancel',
-  'settings.access.tokens.create': 'Create',
-  'settings.access.tokens.creating': 'Creating…',
-  'settings.access.tokens.created': 'Created',
-  'settings.access.tokens.lastUsed': 'Last used',
-  'settings.access.tokens.neverUsed': 'never',
-  'settings.access.tokens.revoke': 'Revoke',
-  'settings.access.tokens.secretTitle': 'Copy this token now',
-  'settings.access.tokens.secretWarning':
-    'This is the only time this token is shown. It is stored as a one-way hash on this instance, so if it is lost there is no way to read it back, only to revoke it and create a new one.',
-  'settings.access.tokens.copy': 'Copy',
-  'settings.access.tokens.copied': 'Copied',
-  'settings.access.tokens.done': 'Done',
-  'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
-  'settings.access.tokens.createFailed': 'Could not create the token: {error}',
-
-  'settings.access.identity.title': "This instance's identity",
-  'settings.access.identity.nameLabel': 'Name',
-  'settings.access.identity.namePlaceholder': 'e.g. Home server',
-  'settings.access.identity.nameHint':
-    'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional - leave it empty to keep using that.',
-  'settings.access.identity.domainsLabel': 'Known domains',
-  'settings.access.identity.domainsHint':
-    'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
-
-  'settings.access.intakePortsHint':
-    'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return (key: PendingKey, vars?: Record<string, string | number>) =>
-    interpolate((t(key as unknown as TranslationKey) as string | undefined) ?? PENDING[key], vars);
-}
-
 export function Access() {
   const { tx } = useTx();
-  const cx = useCx();
   /**
    * Bumped when the relay cards change the relay in force, so the connect card
    * re-reads /api/connect and its badge follows.
@@ -124,18 +74,18 @@ export function Access() {
   return (
     <div className="flex flex-col gap-10">
       {/* Identity first: a plain settings field that depends on no fetch. */}
-      <IdentityCard cx={cx} />
-      <PasswordCard cx={cx} onAuthChanged={() => setAuthVersion((n) => n + 1)} />
+      <IdentityCard />
+      <PasswordCard onAuthChanged={() => setAuthVersion((n) => n + 1)} />
 
       {/* The second factor and passkeys, two cards because somebody can want
           one without the other. */}
       <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
 
-      <RemoteAccessCard cx={cx} relayVersion={relayVersion} />
+      <RemoteAccessCard relayVersion={relayVersion} />
       {/* The card above is about the twelve words; these are about which relay
           carries them. */}
       <RelaySection onRelayChanged={() => setRelayVersion((n) => n + 1)} />
-      <TokensSection cx={cx} />
+      <TokensSection />
     </div>
   );
 }
@@ -143,11 +93,9 @@ export function Access() {
 // PasswordCard owns the password lock. It saves on its own button and not
 // through PUT /api/settings.
 function PasswordCard({
-  cx,
   /** Called after the password changes, so the other cards re-read the lock. */
   onAuthChanged,
 }: {
-  cx: (k: PendingKey) => string;
   onAuthChanged: () => void;
 }) {
   const { t } = useT();
@@ -271,20 +219,21 @@ function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () =
 // by, both ordinary settings fields. Domains are recorded automatically when a
 // request arrives on one (routes_remote.go's rememberDomain); the box covers a
 // domain that has not been visited yet.
-function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
+function IdentityCard() {
+  const { t } = useT();
   const { cfg, patch } = useDraft();
 
   return (
     <Card hue={2} className="flex flex-col gap-5">
-      <SectionTitle>{cx('settings.access.identity.title')}</SectionTitle>
-      <Field label={cx('settings.access.identity.nameLabel')} hint={cx('settings.access.identity.nameHint')}>
+      <SectionTitle>{t('settings.access.identity.title')}</SectionTitle>
+      <Field label={t('settings.access.identity.nameLabel')} hint={t('settings.access.identity.nameHint')}>
         <TextInput
-          placeholder={cx('settings.access.identity.namePlaceholder')}
+          placeholder={t('settings.access.identity.namePlaceholder')}
           value={cfg.instanceName}
           onChange={(e) => patch({ instanceName: e.target.value })}
         />
       </Field>
-      <Field label={cx('settings.access.identity.domainsLabel')} hint={cx('settings.access.identity.domainsHint')}>
+      <Field label={t('settings.access.identity.domainsLabel')} hint={t('settings.access.identity.domainsHint')}>
         <TextArea
           rows={3}
           spellCheck={false}
@@ -306,10 +255,8 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
 const CONN_POLL_MS = 4000;
 
 function RemoteAccessCard({
-  cx,
   relayVersion,
 }: {
-  cx: (k: PendingKey, vars?: Record<string, string | number>) => string;
   /** Changes when the relay cards switch relays. */
   relayVersion: number;
 }) {
@@ -348,7 +295,14 @@ function RemoteAccessCard({
       setPhraseQr(r.qr ?? null);
       setConn(r.info);
     } catch (e) {
-      setPhraseErr(e instanceof Error ? e.message : String(e));
+      // Another tab or another person started a group meanwhile.
+      setPhraseErr(
+        e instanceof ApiError && e.code === 'phraseExists'
+          ? t('settings.access.phrase.errExists')
+          : e instanceof Error
+            ? e.message
+            : String(e),
+      );
     } finally {
       setPhraseBusy(false);
     }
@@ -390,7 +344,9 @@ function RemoteAccessCard({
       setRevealPw('');
       setRevealOpen(false);
     } catch (e) {
-      setPhraseErr(e instanceof Error ? e.message : String(e));
+      setPhraseErr(
+        e instanceof ApiError && e.code === 'passwordWrong' ? t('auth.wrong') : e instanceof Error ? e.message : String(e),
+      );
     } finally {
       setPhraseBusy(false);
     }
@@ -572,7 +528,7 @@ function RemoteAccessCard({
                     }
                   }}
                 >
-                  {phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  {phraseCopied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 </Button>
               </div>
             </div>
@@ -915,7 +871,8 @@ function paragraphs(text: string): ReactNode {
   );
 }
 
-function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
+function TokensSection() {
+  const { t } = useT();
   const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -941,7 +898,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
       await load();
     } catch (e) {
       // The window stays open with the typed name; the reason goes to the toast.
-      toast(cx('settings.access.tokens.createFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      toast(t('settings.access.tokens.createFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setCreateShake((n) => n + 1);
     } finally {
       setCreating(false);
@@ -967,12 +924,12 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
   return (
     <>
       <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle hint={cx('settings.access.tokens.intro')}>
-          {cx('settings.access.tokens.title')}
+        <SectionTitle hint={t('settings.access.tokens.intro')}>
+          {t('settings.access.tokens.title')}
         </SectionTitle>
         <ModuleToggle id="downloadclient" hue={5} />
         {tokens.length === 0 ? (
-          <p className="text-sm text-carbon-textMuted">{cx('settings.access.tokens.empty')}</p>
+          <p className="text-sm text-carbon-textMuted">{t('settings.access.tokens.empty')}</p>
         ) : (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
@@ -982,10 +939,10 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
                   <div className="text-[11px] text-carbon-textMuted">
-                    {cx('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
+                    {t('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
                     {' · '}
-                    {cx('settings.access.tokens.lastUsed')}{' '}
-                    {tok.lastUsed ? fmtDate(tok.lastUsed) : cx('settings.access.tokens.neverUsed')}
+                    {t('settings.access.tokens.lastUsed')}{' '}
+                    {tok.lastUsed ? fmtDate(tok.lastUsed) : t('settings.access.tokens.neverUsed')}
                   </div>
                 </div>
                 {/* `labelled`, so the action follows the Beschriftung setting. */}
@@ -994,8 +951,8 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                   hue={5}
                   icon={<IconTrash width={16} height={16} />}
                   disabled={revoking === tok.id}
-                  title={cx('settings.access.tokens.revoke')}
-                  aria-label={cx('settings.access.tokens.revoke')}
+                  title={t('settings.access.tokens.revoke')}
+                  aria-label={t('settings.access.tokens.revoke')}
                   onClick={() => void onRevoke(tok.id)}
                   className="shrink-0"
                 />
@@ -1011,14 +968,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
             icon={<IconPlus width={16} height={16} />}
             onClick={() => setShowCreate(true)}
           >
-            {cx('settings.access.tokens.new')}
+            {t('settings.access.tokens.new')}
           </Button>
         </div>
       </Card>
 
       {showCreate && !created && (
         <Modal
-          title={cx('settings.access.tokens.new')}
+          title={t('settings.access.tokens.new')}
           onClose={() => (creating ? undefined : closeCreate())}
           footer={
             <>
@@ -1027,7 +984,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                 kind="ghost"
                 labelled
                 icon={<IconClose />}
-                title={cx('settings.access.tokens.cancel')}
+                title={t('settings.access.tokens.cancel')}
                 onClick={closeCreate}
                 disabled={creating}
               />
@@ -1038,15 +995,15 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                 onClick={() => void onCreate()}
                 disabled={creating || name.trim() === ''}
               >
-                {creating ? cx('settings.access.tokens.creating') : cx('settings.access.tokens.create')}
+                {creating ? t('settings.access.tokens.creating') : t('settings.access.tokens.create')}
               </Button>
             </>
           }
         >
-          <Field label={cx('settings.access.tokens.title')}>
+          <Field label={t('settings.access.tokens.title')}>
             <TextInput
               autoFocus
-              placeholder={cx('settings.access.tokens.namePlaceholder')}
+              placeholder={t('settings.access.tokens.namePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
@@ -1059,8 +1016,8 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
 
       {created && (
         <Modal
-          title={cx('settings.access.tokens.secretTitle')}
-          hint={cx('settings.access.tokens.howToUse')}
+          title={t('settings.access.tokens.secretTitle')}
+          hint={t('settings.access.tokens.howToUse')}
           onClose={closeCreate}
           footer={
             <>
@@ -1071,14 +1028,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                 kind="primary"
                 labelled
                 icon={<IconCheck />}
-                title={cx('settings.access.tokens.done')}
+                title={t('settings.access.tokens.done')}
                 onClick={closeCreate}
               />
             </>
           }
         >
           <div className="flex flex-col gap-3">
-            <p className="text-sm text-statusFail">{cx('settings.access.tokens.secretWarning')}</p>
+            <p className="text-sm text-statusFail">{t('settings.access.tokens.secretWarning')}</p>
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
                 <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
@@ -1090,8 +1047,8 @@ function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, strin
                 labelled
                 hue={5}
                 icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
-                title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                title={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
+                aria-label={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 onClick={async () => {
                   if (await copyToClipboard(created.secret)) {
                     setCopied(true);

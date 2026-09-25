@@ -203,6 +203,138 @@ func TestResumableKeepsItsThirdAnswer(t *testing.T) {
 	}
 }
 
+// schemaOf is every table and index in the database with the statement that
+// defines it, which ALTER TABLE keeps current, so two files can be compared by
+// shape.
+func schemaOf(t *testing.T, db *sql.DB) []string {
+	t.Helper()
+	rows, err := db.Query(`SELECT type, name, COALESCE(sql, '') FROM sqlite_master ORDER BY type, name`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var kind, name, def string
+		if err := rows.Scan(&kind, &name, &def); err != nil {
+			t.Fatal(err)
+		}
+		out = append(out, kind+" "+name+": "+def)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return out
+}
+
+func versionOf(t *testing.T, db *sql.DB) int {
+	t.Helper()
+	var v int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&v); err != nil {
+		t.Fatal(err)
+	}
+	return v
+}
+
+// A fresh store gets the whole schema and the stamp of the last migration, and
+// it is the same schema an older install reaches by upgrading.
+func TestAFreshStoreHasTheSchemaAnUpgradeReaches(t *testing.T) {
+	dir := t.TempDir()
+	fresh, err := Open(filepath.Join(dir, "fresh.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fresh.Close()
+
+	oldPath := filepath.Join(dir, "old.db")
+	openAtOldSchema(t, oldPath)
+	upgraded, err := Open(oldPath)
+	if err != nil {
+		t.Fatalf("upgrading an existing database failed: %v", err)
+	}
+	defer upgraded.Close()
+
+	for name, s := range map[string]*Store{"fresh": fresh, "upgraded": upgraded} {
+		if v := versionOf(t, s.db); v != len(migrations) {
+			t.Errorf("the %s store is at schema version %d, want %d", name, v, len(migrations))
+		}
+	}
+	want := schemaOf(t, fresh.db)
+	got := schemaOf(t, upgraded.db)
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("the upgraded schema differs from a fresh one\n got  %q\n want %q", got, want)
+	}
+}
+
+// A fresh database is migrated in one transaction, so a step that fails leaves
+// neither a table nor a version stamp behind, and the next start begins again
+// from nothing instead of from half a schema.
+func TestAFailedMigrationLeavesAFreshDatabaseUntouched(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	db := openRaw(t, path)
+
+	broken := append([]string{}, migrations[:beforeTheWideningMigration]...)
+	broken = append(broken, `ALTER TABLE no_such_table ADD COLUMN x TEXT`)
+	broken = append(broken, migrations[beforeTheWideningMigration:]...)
+	if err := migrate(db, broken); err == nil {
+		t.Fatal("a migration list with a broken step went through")
+	}
+	if v := versionOf(t, db); v != 0 {
+		t.Errorf("schema version is %d after the failure, want 0", v)
+	}
+	if got := schemaOf(t, db); len(got) != 0 {
+		t.Errorf("the failed migration left %q behind", got)
+	}
+
+	if err := migrate(db, migrations); err != nil {
+		t.Fatalf("migrating again after the failure: %v", err)
+	}
+	if v := versionOf(t, db); v != len(migrations) {
+		t.Errorf("schema version is %d after the second run, want %d", v, len(migrations))
+	}
+}
+
+// On an upgrade each step lands with its version stamp or not at all. A step
+// that fails halfway keeps nothing of itself, and the steps before it stay
+// done, so the next start does not run them twice.
+func TestAFailedUpgradeStepKeepsNothingOfItself(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	openAtOldSchema(t, path)
+	db := openRaw(t, path)
+
+	steps := append([]string{}, migrations[:beforeTheWideningMigration]...)
+	steps = append(steps,
+		`ALTER TABLE tasks ADD COLUMN first TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE tasks ADD COLUMN second TEXT NOT NULL DEFAULT '';
+		 ALTER TABLE no_such_table ADD COLUMN x TEXT`,
+	)
+	if err := migrate(db, steps); err == nil {
+		t.Fatal("an upgrade with a broken step went through")
+	}
+	if v := versionOf(t, db); v != beforeTheWideningMigration+1 {
+		t.Errorf("schema version is %d, want %d: the step before the broken one stays done", v, beforeTheWideningMigration+1)
+	}
+	columns := map[string]bool{}
+	rows, err := db.Query(`SELECT name FROM pragma_table_info('tasks')`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			t.Fatal(err)
+		}
+		columns[name] = true
+	}
+	rows.Close()
+	if !columns["first"] {
+		t.Error("the step that went through lost its column")
+	}
+	if columns["second"] {
+		t.Error("the broken step kept the column it added before failing")
+	}
+}
+
 // beforeTheConfirmDueColumn is how many migrations there were before the
 // column that keeps a pending auto-confirm countdown.
 const beforeTheConfirmDueColumn = 49

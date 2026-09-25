@@ -1,17 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
+import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useNavLabels } from '../lib/navLabels';
-import { usePhoneLayout } from '../lib/phoneLayout';
+import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
-import { foldAnswer, pendingFields, same } from './settings/paths';
+import {
+  afterRound,
+  foldAnswer,
+  noAnswer,
+  pendingFields,
+  same,
+  saveRound,
+  settle,
+  shownAt,
+  toSend,
+  topKey,
+  type Answer,
+} from './settings/paths';
 import { FALLBACK_PAGE, hasContent, pageIcon, pageId, renderSettingsPage } from './settings/registry';
 import { SettingsSearch } from './settings/SettingsSearch';
 import { label, refusalText, useTx } from './settings/tx';
@@ -20,12 +32,6 @@ import { label, refusalText, useTx } from './settings/tx';
 const pagePath = (id: string) => `/settings/${id}`;
 
 type Doc = Record<string, unknown>;
-
-/** Refusal is a value the server refused for one field, with its reason. */
-interface Refusal {
-  value: unknown;
-  error: ApiError;
-}
 
 /**
  * typingIn reports whether the text box that has focus shows value, which is
@@ -69,39 +75,45 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  // A value the server refused for one field, by settings key. It shows beside
-  // the field and is not sent again until the field holds something else.
-  const [refused, setRefused] = useState<Record<string, Refusal>>({});
+  // What the server did not take of the draft. A refused value shows beside
+  // its field and is not sent again until the field holds something else.
+  const [answer, setAnswer] = useState<Answer>(noAnswer);
   // A value the server tidied while its text box still had focus, by settings
   // key, holding what was sent. The box keeps the typed text until it is left.
-  const held = useRef<Record<string, unknown>>({});
+  const held = useRef<Doc>({});
 
-  const answered = useCallback((): Doc => {
-    const out: Doc = { ...held.current };
-    for (const [k, r] of Object.entries(refused)) out[k] = r.value;
-    return out;
-  }, [refused]);
-
+  // Something the autosave has yet to send.
+  const pending = useMemo(
+    () =>
+      draft !== null &&
+      saved !== null &&
+      Object.keys(toSend(draft as unknown as Doc, saved as unknown as Doc, held.current, answer)).length > 0,
+    [draft, saved, answer],
+  );
+  // The draft holds something the server does not, sent or not. A tidied
+  // value the server took counts as stored.
   const dirty = useMemo(
     () =>
       draft !== null &&
       saved !== null &&
-      Object.keys(pendingFields(draft as unknown as Doc, saved as unknown as Doc, answered())).length > 0,
-    [draft, saved, answered],
+      Object.keys(pendingFields(draft as unknown as Doc, saved as unknown as Doc, held.current)).length > 0,
+    [draft, saved],
   );
 
-  // A refusal stops counting once the field holds something else.
   useEffect(() => {
-    if (!draft) return;
-    const doc = draft as unknown as Doc;
-    setRefused((r) => {
-      const stale = Object.keys(r).filter((k) => !same(doc[k], r[k].value));
-      if (stale.length === 0) return r;
-      const next = { ...r };
-      for (const k of stale) delete next[k];
-      return next;
-    });
+    if (draft) setAnswer((a) => settle(a, draft as unknown as Doc));
   }, [draft]);
+
+  // The places a mounted control shows refusals at, so a refusal nobody shows
+  // is raised as a toast rather than lost.
+  const places = useRef<{ field: string; below: boolean }[]>([]);
+  const showRefusalsAt = useCallback((field: string, below: boolean) => {
+    const place = { field, below };
+    places.current.push(place);
+    return () => {
+      places.current = places.current.filter((p) => p !== place);
+    };
+  }, []);
 
   const patch = useCallback((fields: Partial<Settings>) => {
     // Spread, never rebuild: the server sends more fields than Settings names
@@ -211,53 +223,41 @@ export function SettingsPage() {
     // the runtime object, so a field another tab saved in the meantime is not
     // put back (patchSettings in lib/api.ts).
     const savedDoc = saved as unknown as Doc;
-    const sent = pendingFields(draft as unknown as Doc, savedDoc, answered());
-    if (Object.keys(sent).length === 0) return;
+    const fields = toSend(draft as unknown as Doc, savedDoc, held.current, answer);
+    if (Object.keys(fields).length === 0) return;
     setSaving(true);
     try {
-      // A refusal that names its field takes that field out and sends the
-      // rest, so one unusable folder does not hold back every other edit.
-      const refusedNow: Record<string, Refusal> = {};
-      let applied: Settings | null = null;
-      while (Object.keys(sent).length > 0) {
-        try {
-          applied = await patchSettings(sent as Partial<Settings>);
-          break;
-        } catch (e) {
-          if (!(e instanceof ApiError) || !e.field || !(e.field in sent)) throw e;
-          refusedNow[e.field] = { value: sent[e.field], error: e };
-          delete sent[e.field];
-        }
+      const round = await saveRound(fields, async (p) => (await patchSettings(p as Partial<Settings>)) as unknown as Doc);
+      setAnswer((a) => afterRound(a, round));
+      // Each refusal is shown once: beside its field where a control shows
+      // refusals, and as a toast where none does.
+      for (const r of Object.values(round.refused)) {
+        if (!places.current.some((p) => shownAt(r.field, p.field, p.below))) toast(refusalText(tx, r.error), 'fail');
       }
-      setRefused((r) => {
-        const next = { ...r, ...refusedNow };
-        for (const k of Object.keys(sent)) delete next[k];
-        return next;
-      });
-      if (!applied) return;
-      const answer = applied as unknown as Doc;
+      if (round.failed) toast(refusalText(tx, round.failed.error), 'fail');
+      const { applied: reply, sent } = round;
+      if (!reply) return;
       // Replacing the text in a box that still has focus would move the caret
       // and could drop the space someone is about to type a word after.
-      const keep = Object.keys(sent).filter((k) => !same(answer[k], sent[k]) && typingIn(sent[k]));
+      const keep = Object.keys(sent).filter((k) => !same(reply[k], sent[k]) && typingIn(sent[k]));
       for (const k of keep) held.current[k] = sent[k];
-      setSaved(applied);
-      setDraft((d) => (d ? (foldAnswer(d as unknown as Doc, answer, sent, savedDoc, keep) as unknown as Settings) : d));
+      setSaved(reply as unknown as Settings);
+      setDraft((d) => (d ? (foldAnswer(d as unknown as Doc, reply, sent, savedDoc, keep) as unknown as Settings) : d));
       // A save can move a module, such as clearing the watch folder.
       reloadFeatures();
       toast(t('settings.saved'), 'ok');
-    } catch (e) {
-      toast(refusalText(tx, e), 'fail');
     } finally {
       setSaving(false);
     }
   }
 
   // Every settings tab saves itself, debounced, through onSave's diff against
-  // `saved`. `dirty` starts false, so this is inert until an edit lands. An
-  // edit made while a save is out goes once that save is back.
+  // `saved`. `pending` starts false, so this is inert until an edit lands. An
+  // edit made while a save is out goes once that save is back, and a draft the
+  // server refused waits for the next edit.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!dirty || saving) return;
+    if (!pending || saving) return;
     if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       saveTimer.current = null;
@@ -276,7 +276,7 @@ export function SettingsPage() {
     async (id: string, enabled: boolean) => {
       // Flush a pending autosave first rather than refusing the switch, so both
       // writes happen in order.
-      if (dirty) {
+      if (pending) {
         if (saveTimer.current !== null) {
           window.clearTimeout(saveTimer.current);
           saveTimer.current = null;
@@ -286,10 +286,11 @@ export function SettingsPage() {
       const next = await setFeature(id, enabled);
       setFeatures(next);
       // A module switch changes settings on the server; the draft must follow,
-      // or the next save would undo the switch. A refused or held value stays
-      // in its box.
+      // or the next save would undo the switch. A refused, unsent or held
+      // value stays in its box.
       const fresh = await fetchSettings();
-      const kept = answered();
+      const kept: Doc = { ...answer.failed, ...held.current };
+      for (const [k, r] of Object.entries(answer.refused)) kept[k] = r.value;
       setSaved(fresh);
       setDraft((d) => {
         if (!d) return fresh;
@@ -299,13 +300,19 @@ export function SettingsPage() {
         return merged as unknown as Settings;
       });
     },
-    [dirty, onSave, setFeatures, setSaved, answered],
+    [pending, onSave, setFeatures, setSaved, answer],
   );
 
-  /** fieldError is the refusal shown beside a field while it holds the refused value. */
-  const fieldError = (key: keyof Settings): string | undefined => {
-    const r = refused[key];
-    if (!r || !draft || !same((draft as unknown as Doc)[key], r.value)) return undefined;
+  /**
+   * fieldError is the refusal to show at a field while it holds the refused
+   * value: one refused right there, or with below anywhere under it.
+   */
+  const fieldError = (at: string, below = false): string | undefined => {
+    const key = topKey(at);
+    const r = answer.refused[key];
+    if (!r || !draft || !same((draft as unknown as Doc)[key], r.value) || !shownAt(r.field, at, below)) {
+      return undefined;
+    }
     return refusalText(tx, r.error);
   };
 
@@ -336,6 +343,7 @@ export function SettingsPage() {
     patchNow,
     reseed,
     fieldError,
+    showRefusalsAt,
   };
 
   return (
@@ -405,11 +413,12 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
   const navigate = useNavigate();
   const here = useMatch('/settings/:page');
   // Live, since the selector that changes it sits in this page's own column
-  // (lib/navLabels.ts). A phone keeps the width for the page and shows the
-  // glyphs alone, with each name in its bubble.
-  const phone = usePhoneLayout();
+  // (lib/navLabels.ts). Below `lg` the width goes to the page and the rail
+  // shows the glyphs alone, with each name in its bubble: beside the full
+  // sidebar, a rail with words would leave a card about 220px at 800px.
+  const narrow = useTabletLayout();
   const chosen = useNavLabels();
-  const display = phone ? 'glyph' : chosen;
+  const display = narrow ? 'glyph' : chosen;
   // The drag order is a per-browser preference, like the remembered page.
   const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);
   const ordered = orderPages(pages, order);

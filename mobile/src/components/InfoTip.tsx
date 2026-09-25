@@ -64,7 +64,7 @@ export function InfoTip({ text, color, size = 15 }: { text: string; color?: stri
  */
 function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => void }) {
   const { c, radii } = useAppearance();
-  const { motion } = useMotion();
+  const { n } = useMotion();
   const { width: vw, height: vh } = useWindowDimensions();
   const root = useRef<View>(null);
   // Where the Modal's own origin sits in the window. The trigger was measured
@@ -77,11 +77,12 @@ function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => 
 
   useEffect(() => {
     if (!ready) return;
-    // Short, because the finger is already waiting; at `off` it simply appears.
-    // Opacity rides a plain ease, never a spring, which would finish it early.
-    if (motion === 'off') fade.setValue(1);
-    else Animated.timing(fade, { toValue: 1, duration: 110, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
-  }, [ready, motion, fade]);
+    // The level's fade, short because the finger is already waiting; at `off`
+    // it simply appears. Opacity rides a plain ease, never a spring, which
+    // would finish it early.
+    if (n.fade === 0) fade.setValue(1);
+    else Animated.timing(fade, { toValue: 1, duration: n.fade, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
+  }, [ready, n.fade, fade]);
 
   let place = { left: 0, top: 0, arrow: 0, above: false };
   if (ready) {

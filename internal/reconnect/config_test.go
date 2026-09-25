@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -160,6 +162,67 @@ func TestValidateNamesAnUnknownMethod(t *testing.T) {
 	if off == nil || !strings.Contains(off.Error(), "switched off") {
 		t.Errorf("Validate() on a switched-off config = %v", off)
 	}
+}
+
+// Every problem names the field it is about by a path through the Config's
+// JSON names, which is how the settings form finds the field to show it at.
+func TestEveryProblemNamesItsField(t *testing.T) {
+	const check = "http://check"
+	tests := []struct {
+		cfg  Config
+		want string
+	}{
+		{Config{Method: MethodCommand, CheckURL: check}, "command"},
+		{Config{Method: MethodHTTP, CheckURL: check}, "requests"},
+		{Config{Method: MethodHTTP, Requests: []Request{{URL: "http://router"}, {URL: " "}}, CheckURL: check}, "requests.1.url"},
+		{Config{Method: MethodScript, CheckURL: check}, "interpreter"},
+		{Config{Method: MethodScript, Interpreter: "/bin/sh", CheckURL: check}, "script"},
+		{Config{Method: MethodUPnP}, "checkUrl"},
+		{Config{Method: MethodCommand, Command: "reboot %%router%%", CheckURL: check}, "router"},
+		{Config{Method: "liveheda", CheckURL: check}, "method"},
+	}
+	for _, tc := range tests {
+		var p *ConfigProblem
+		if err := tc.cfg.Validate(); !errors.As(err, &p) {
+			t.Errorf("%+v: Validate() = %v, want a ConfigProblem", tc.cfg, err)
+			continue
+		}
+		if got := p.Field(); got != tc.want {
+			t.Errorf("%s: Field() = %q, want %q", p.Code, got, tc.want)
+		}
+		if !jsonPathExists(reflect.TypeOf(Config{}), p.Field()) {
+			t.Errorf("%s: %q is not a path through the Config's JSON names", p.Code, p.Field())
+		}
+	}
+}
+
+// jsonPathExists reports whether path leads through t by JSON field names and
+// list positions.
+func jsonPathExists(t reflect.Type, path string) bool {
+	for _, seg := range strings.Split(path, ".") {
+		switch t.Kind() {
+		case reflect.Slice:
+			if _, err := strconv.Atoi(seg); err != nil {
+				return false
+			}
+			t = t.Elem()
+		case reflect.Struct:
+			found := false
+			for i := 0; i < t.NumField(); i++ {
+				f := t.Field(i)
+				if name, _, _ := strings.Cut(f.Tag.Get("json"), ","); name == seg {
+					t, found = f.Type, true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // TestExpandVars pins the substitution rules, including that an unknown or

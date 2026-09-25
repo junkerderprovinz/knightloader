@@ -1396,7 +1396,6 @@ export const hi: Dict = {
   'settings.browsertools.install': 'इंस्टॉल करें',
   'settings.browsertools.installIOS':
     'iPhone या iPad पर: इस पेज को Safari में खोलें, शेयर पर टैप करें, फिर «होम स्क्रीन पर जोड़ें»।',
-  'settings.access.intakePortsHint': 'सामान्य लॉगिन के बाहर इस इंस्टेंस तक सीधे पहुँचने के दूसरे तरीक़े। हर एक यहाँ दिखाता है कि वह पहुँच में है या नहीं।',
   'settings.nav.browsertools': 'ब्राउज़र और ऐप',
   'settings.browsertools.bookmarkletStep1': 'नीचे दिए बटन को अपने ब्राउज़र की बुकमार्क बार पर खींचें। यह किसी भी दूसरे बुकमार्क की तरह सहेजा जाता है, और कुछ भी इंस्टॉल नहीं होता।',
   'settings.browsertools.bookmarkletStep2': 'किसी भी पेज पर उस पर क्लिक करें (अगर सिर्फ़ कुछ टेक्स्ट चाहिए तो पहले उसे चुन लें)। एक छोटा KnightLoader टैब खुलता है जिसमें उस पेज का लिंक, या चुना गया टेक्स्ट, पहले से भरा होता है। उसे देख लें और वहीं से डाउनलोड के रूप में जोड़ें।',
@@ -1484,7 +1483,6 @@ export const hi: Dict = {
   'settings.nav.torrents': 'टॉरेंट',
   'settings.module.torrents': 'टॉरेंट',
   'settings.torrents.title': 'टॉरेंट',
-  'settings.torrents.subtitle': 'मैग्नेट लिंक और .torrent फ़ाइलों के लिए सीड लक्ष्य, ट्रांसफ़र सीमाएँ, पोर्ट मैपिंग और DHT/PEX.',
   'settings.torrents.seedingTitle': 'सीडिंग',
   'settings.torrents.seedRatio': 'लक्ष्य सीड अनुपात',
   'settings.torrents.seedRatioHint': 'पूरे हो चुके टॉरेंट को तब तक सीड करता रहता है जब तक उसके अपने आकार के सापेक्ष यह अनुपात स्वार्म को वापस न दे दिया जाए। 0 = कोई अनुपात लक्ष्य नहीं।',

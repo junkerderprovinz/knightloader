@@ -5,7 +5,7 @@
 // ever dropping the tail.
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ApiError } from '../lib/api';
+import { ApiError, json } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconArrowUp, IconCheck, IconClose, IconFolder, IconFolderPlus } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
@@ -31,11 +31,9 @@ interface Listing {
   truncated: boolean;
 }
 
+/** A refusal is an ApiError whose code names the reason, as for makeFolder. */
 async function fetchFolders(path: string): Promise<Listing> {
-  const r = await fetch(`/api/folders?path=${encodeURIComponent(path)}`);
-  // The server's sentence says what is refused and why.
-  if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-  return (await r.json()) as Listing;
+  return json<Listing>(await fetch(`/api/folders?path=${encodeURIComponent(path)}`));
 }
 
 /**
@@ -54,8 +52,15 @@ async function makeFolder(parent: string, name: string): Promise<string> {
   return body.path;
 }
 
-/** The refusals a person can act on. The rest show the server's sentence. */
+/**
+ * The refusals of a listing or a new folder that a person can act on. The
+ * rest show the server's sentence.
+ */
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
+  relative: 'folders.error.relative',
+  unreachable: 'folders.error.unreachable',
+  unreadable: 'folders.error.unreadable',
+  roots: 'folders.error.roots',
   exists: 'folders.error.exists',
   denied: 'folders.error.denied',
   outside: 'folders.error.outside',
@@ -67,6 +72,13 @@ const REFUSALS: Partial<Record<string, TranslationKey>> = {
   reserved: 'folders.error.reserved',
   tooLong: 'folders.error.tooLong',
 };
+
+/** refusalText words a refusal by its code, or in the server's sentence. */
+function refusalText(t: (key: TranslationKey, vars?: Record<string, string>) => string, e: unknown, name = ''): string {
+  const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+  if (key) return t(key, { name });
+  return e instanceof Error ? e.message : String(e);
+}
 
 const TRAILING_SEP = /[\\/]+$/;
 
@@ -176,7 +188,7 @@ export function PathInput({
           )}
       </span>
       {error && (
-        <span id={errorId} className="text-xs text-statusWarn">
+        <span id={errorId} dir="auto" className="text-xs text-statusWarn">
           {error}
         </span>
       )}
@@ -205,7 +217,8 @@ export function FolderPicker({
   const [text, setText] = useState('');
   const [query, setQuery] = useState(value);
   const [data, setData] = useState<Listing | null>(null);
-  const [error, setError] = useState('');
+  // The raw refusal, worded at render so it follows the language.
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   // Taken from the first answer only: later requests name plain folders, for
   // which the server reports an empty tail.
@@ -226,7 +239,7 @@ export function FolderPicker({
       .then((d) => {
         if (!live) return;
         setData(d);
-        setError('');
+        setError(null);
         if (!seeded.current) {
           seeded.current = true;
           setText(d.path);
@@ -235,7 +248,7 @@ export function FolderPicker({
       })
       .catch((e: unknown) => {
         // The last good listing stays, so there is a way back.
-        if (live) setError(e instanceof Error ? e.message : String(e));
+        if (live) setError(e);
       })
       .finally(() => {
         if (live) setBusy(false);
@@ -276,8 +289,7 @@ export function FolderPicker({
       closeNaming();
       navigate(made);
     } catch (e) {
-      const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
-      setNameError(key ? t(key, { name: clean }) : e instanceof Error ? e.message : String(e));
+      setNameError(refusalText(t, e, clean));
     } finally {
       setMaking(false);
     }
@@ -444,7 +456,11 @@ export function FolderPicker({
         </p>
       )}
 
-      {error && <p className="text-xs text-statusFail">{error}</p>}
+      {error !== null && (
+        <p dir="auto" className="text-xs text-statusFail">
+          {refusalText(t, error)}
+        </p>
+      )}
       {fresh && <p className="text-xs text-statusWarn">{t('folders.new')}</p>}
       {data?.truncated && (
         <p className="glim-num text-xs text-carbon-textMuted">

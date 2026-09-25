@@ -1397,7 +1397,6 @@ export const sr: Dict = {
   'settings.browsertools.install': 'Инсталирај',
   'settings.browsertools.installIOS':
     'На iPhone-у или iPad-у: отвори ову страницу у Safari-ју, додирни Подели, затим „Додај на почетни екран“.',
-  'settings.access.intakePortsHint': 'Други начини да се овој инстанци приступи директно, мимо уобичајене пријаве. За сваки овде видиш да ли је доступан.',
   'settings.nav.browsertools': 'Прегледач и апликација',
   'settings.browsertools.bookmarkletStep1': 'Превуци дугме испод на траку обележивача у прегледачу. Чува се као сваки други обележивач и ништа се не инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На било којој страници кликни на њега (прво изабери текст ако желиш само њега). Отвара се мала KnightLoader картица у којој су веза те странице или изабрани текст већ уписани. Прегледај унос и одатле га додај као преузимање.',
@@ -1485,7 +1484,6 @@ export const sr: Dict = {
   'settings.nav.torrents': 'Торенти',
   'settings.module.torrents': 'Торенти',
   'settings.torrents.title': 'Торенти',
-  'settings.torrents.subtitle': 'Циљеви сидовања, ограничења преноса, мапирање порта и DHT/PEX за magnet везе и .torrent датотеке.',
   'settings.torrents.seedingTitle': 'Сидовање',
   'settings.torrents.seedRatio': 'Циљни однос сидовања',
   'settings.torrents.seedRatioHint': 'Наставља да сидује завршени торент док се рују не врати овај однос, у поређењу са његовом сопственом величином. 0 = без циља односа.',

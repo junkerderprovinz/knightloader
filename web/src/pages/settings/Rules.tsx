@@ -9,7 +9,6 @@ import {
   emptyRule,
   parseSize,
   ruleSummary,
-  useRx,
   type Flavour,
   type Grammar,
   type Problem,
@@ -22,7 +21,7 @@ import type { Category as Drawer } from '../../lib/api';
 import { useT } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
-import { NeutralSwitch } from './controls';
+import { NeutralSwitch, RowRefusal } from './controls';
 import { usePendingJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -76,7 +75,6 @@ export function Rules() {
 /** RuleCards draws the setup, the list and the test box, on hues 0 to 2. */
 function RuleCards() {
   const { t } = useT();
-  const rx = useRx();
   const { cfg, patch } = useDraft();
 
   const [flavour, setFlavour] = useState<Flavour>('packagizer');
@@ -147,7 +145,7 @@ function RuleCards() {
       }
     }
     // A renamed rule, or an unnamed one that has moved, cannot be found; say so.
-    if (!hit) setNotice(rx('settings.rules.notFound', { name: wanted }));
+    if (!hit) setNotice(t('settings.rules.notFound', { name: wanted }));
     // A one-shot instruction; left in the address it would reopen the rule on
     // every draft edit.
     setParams(
@@ -158,7 +156,7 @@ function RuleCards() {
       },
       { replace: true },
     );
-  }, [wanted, cfg, rx, setParams]);
+  }, [wanted, cfg, t, setParams]);
 
   // The dry run, debounced, on every edit to the set or the samples. Serialised,
   // because the draft hands back a fresh object when the field is absent.
@@ -202,10 +200,10 @@ function RuleCards() {
   }, [setJSON, linksJSON]);
 
   if (grammarError) {
-    return <ErrorCard message={rx('settings.rules.testFailed', { reason: grammarError })} />;
+    return <ErrorCard message={t('settings.rules.testFailed', { reason: grammarError })} />;
   }
   if (!grammar) {
-    return <LoadingCard label={rx('settings.rules.testRunning')} />;
+    return <LoadingCard label={t('settings.rules.testRunning')} />;
   }
 
   const problemsFor = (index: number): Problem[] =>
@@ -224,7 +222,7 @@ function RuleCards() {
 
   const duplicate = (index: number) => {
     const copy: Rule = JSON.parse(JSON.stringify(rules[index]));
-    copy.name = `${copy.name || rx('settings.rules.unnamed', { n: index + 1 })} (2)`;
+    copy.name = `${copy.name || t('settings.rules.unnamed', { n: index + 1 })} (2)`;
     writeRules([...rules.slice(0, index + 1), copy, ...rules.slice(index + 1)]);
     setOpenRule(index + 1);
   };
@@ -255,19 +253,19 @@ function RuleCards() {
       const parsed = parseRuleSet(await file.text());
       write(parsed);
       setOpenRule(-1);
-      setNotice(rx('settings.rules.importedCount', { n: parsed.rules?.length ?? 0 }));
+      setNotice(t('settings.rules.importedCount', { n: parsed.rules?.length ?? 0 }));
     } catch (e: unknown) {
-      setNotice(rx('settings.rules.importFailed', { reason: e instanceof Error ? e.message : String(e) }));
+      setNotice(t('settings.rules.importFailed', { reason: e instanceof Error ? e.message : String(e) }));
     }
   }
 
   return (
     <>
       <Card hue={0} className="flex flex-col gap-4">
-        <SectionTitle>{rx('settings.rules.setupTitle')}</SectionTitle>
+        <SectionTitle>{t('settings.rules.setupTitle')}</SectionTitle>
         <div className="flex">
           <Segments
-            label={rx('settings.rules.flavourLabel')}
+            label={t('settings.rules.flavourLabel')}
             value={flavour}
             onChange={pick}
             options={[
@@ -276,25 +274,25 @@ function RuleCards() {
             ]}
           />
           {/* What the chosen list does, beside the choice. */}
-          <InfoBubble tip={flavour === 'packagizer' ? rx('settings.rules.packagizerHint') : rx('settings.rules.filterHint')} />
+          <InfoBubble tip={flavour === 'packagizer' ? t('settings.rules.packagizerHint') : t('settings.rules.filterHint')} />
         </div>
         {/* Each list is a module, switched through the registry like its row
             on the Modules page. */}
         {flavour === 'packagizer' ? (
-          <ModuleToggle id="packagizer" hint={rx('settings.rules.setSwitchHint')} />
+          <ModuleToggle id="packagizer" hint={t('settings.rules.setSwitchHint')} />
         ) : (
-          <ModuleToggle id="linkfilter" hint={rx('settings.rules.setSwitchHint')} />
+          <ModuleToggle id="linkfilter" hint={t('settings.rules.setSwitchHint')} />
         )}
 
         <div className="flex items-center gap-2.5">
           <NeutralSwitch
             on={Boolean(set.stopAfterMatch)}
             onChange={(v) => write({ ...set, stopAfterMatch: v })}
-            name={rx('settings.rules.stopAfterMatch')}
+            name={t('settings.rules.stopAfterMatch')}
           />
           <span className="flex items-center text-xs text-carbon-textSub">
-            {rx('settings.rules.stopAfterMatch')}
-            <InfoBubble tip={rx('settings.rules.stopHint')} />
+            {t('settings.rules.stopAfterMatch')}
+            <InfoBubble tip={t('settings.rules.stopHint')} />
           </span>
         </div>
       </Card>
@@ -304,19 +302,19 @@ function RuleCards() {
           right={
             <div className="flex items-center gap-2">
               {/* One bubble per button, since Import and Export do different things. */}
-              <Button kind="secondary" hint={rx('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
-                {rx('settings.rules.import')}
+              <Button kind="secondary" hint={t('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
+                {t('settings.rules.import')}
               </Button>
-              <Button kind="secondary" hint={rx('settings.rules.exportTitle')} onClick={exportJSON}>
-                {rx('settings.rules.export')}
+              <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
+                {t('settings.rules.export')}
               </Button>
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-                {rx('settings.rules.add')}
+                {t('settings.rules.add')}
               </Button>
             </div>
           }
         >
-          {rx('settings.rules.listTitle')}
+          {t('settings.rules.listTitle')}
         </SectionTitle>
 
         <input
@@ -334,17 +332,17 @@ function RuleCards() {
 
         {notice && <p className="text-[11px] text-carbon-textSub">{notice}</p>}
         {previewError && (
-          <p className="text-[11px] text-statusFail">{rx('settings.rules.testFailed', { reason: previewError })}</p>
+          <p className="text-[11px] text-statusFail">{t('settings.rules.testFailed', { reason: previewError })}</p>
         )}
 
         {rules.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
-            {rx('settings.rules.empty')}
+            {t('settings.rules.empty')}
             <span className="mt-1 block text-[11px] text-carbon-textMuted">
               {flavour === 'packagizer'
-                ? rx('settings.rules.emptyPackagizer')
-                : rx('settings.rules.emptyFilter')}
+                ? t('settings.rules.emptyPackagizer')
+                : t('settings.rules.emptyFilter')}
             </span>
           </p>
         ) : (
@@ -438,7 +436,7 @@ function RuleRow({
   onDuplicate: () => void;
   onRemove: () => void;
 }) {
-  const rx = useRx();
+  const { t } = useT();
   const broken = problems.length > 0;
 
   return (
@@ -447,7 +445,7 @@ function RuleRow({
         <NeutralSwitch
           on={!rule.disabled}
           onChange={(v) => onChange({ ...rule, disabled: !v })}
-          name={rule.disabled ? rx('settings.rules.ruleOff') : rx('settings.rules.ruleOn')}
+          name={rule.disabled ? t('settings.rules.ruleOff') : t('settings.rules.ruleOn')}
           hue={index}
         />
         <button
@@ -459,16 +457,16 @@ function RuleRow({
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-carbon-text">
-              {rule.name?.trim() || rx('settings.rules.unnamed', { n: index + 1 })}
+              {rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 })}
             </span>
             <span className="block truncate text-[11px] text-carbon-textMuted">
-              {ruleSummary(rx, rule, flavour)}
+              {ruleSummary(t, rule, flavour)}
             </span>
           </span>
           {/* Shown only once there are samples, or "0 of 0" reads as broken. */}
           {samples > 0 && !broken && (
             <span className="glim-num hidden shrink-0 text-[11px] text-carbon-textMuted sm:block">
-              {rx('settings.rules.matchedCount', { n: matched, total: samples })}
+              {t('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
           {/* Red reports the rule's state; it sits inside the expand button,
@@ -476,8 +474,8 @@ function RuleRow({
           {broken && (
             <span className="shrink-0 rounded-[var(--radius-control)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
               {problems.length === 1
-                ? rx('settings.rules.problemOne')
-                : rx('settings.rules.problemCount', { n: problems.length })}
+                ? t('settings.rules.problemOne')
+                : t('settings.rules.problemCount', { n: problems.length })}
             </span>
           )}
         </button>
@@ -488,8 +486,8 @@ function RuleRow({
             labelled
             icon={<IconArrowUp width={16} height={16} />}
             hue={index}
-            title={rx('settings.rules.moveUp')}
-            aria-label={rx('settings.rules.moveUp')}
+            title={t('settings.rules.moveUp')}
+            aria-label={t('settings.rules.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
@@ -497,8 +495,8 @@ function RuleRow({
             labelled
             icon={<IconArrowDown width={16} height={16} />}
             hue={index}
-            title={rx('settings.rules.moveDown')}
-            aria-label={rx('settings.rules.moveDown')}
+            title={t('settings.rules.moveDown')}
+            aria-label={t('settings.rules.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
@@ -506,16 +504,16 @@ function RuleRow({
             labelled
             icon={<IconDuplicate width={16} height={16} />}
             hue={index}
-            title={rx('settings.rules.duplicate')}
-            aria-label={rx('settings.rules.duplicate')}
+            title={t('settings.rules.duplicate')}
+            aria-label={t('settings.rules.duplicate')}
             onClick={onDuplicate}
           />
           <IconBadge
             labelled
             icon={<IconTrash width={16} height={16} />}
             hue={index}
-            title={rx('settings.rules.remove')}
-            aria-label={rx('settings.rules.remove')}
+            title={t('settings.rules.remove')}
+            aria-label={t('settings.rules.remove')}
             onClick={onRemove}
           />
         </div>
@@ -524,12 +522,13 @@ function RuleRow({
       {/* Shown on a closed rule too, so a broken one is found without opening
           each. The engine drops a rule with any problem whole. */}
       {broken && !open && (
-        <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{rx('settings.rules.notRunning')}</p>
+        <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>
       )}
+      <RowRefusal field={`${FIELD[flavour]}.rules.${index}`} className="ps-12" />
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {broken && <p className="text-[11px] text-statusFail">{rx('settings.rules.notRunning')}</p>}
+          {broken && <p className="text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>}
           <RuleEditor
             rule={rule}
             flavour={flavour}
@@ -562,7 +561,7 @@ function TestBox({
   report: Report | null;
   downloadDir: string;
 }) {
-  const rx = useRx();
+  const { t } = useT();
   const update = (i: number, fields: Partial<Sample>) =>
     setSamples(samples.map((s, j) => (j === i ? { ...s, ...fields } : s)));
 
@@ -571,13 +570,13 @@ function TestBox({
       <SectionTitle
         right={
           <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
-            {rx('settings.rules.testAdd')}
+            {t('settings.rules.testAdd')}
           </Button>
         }
       >
         <span className="flex items-center">
-          {rx('settings.rules.testTitle')}
-          <InfoBubble tip={rx('settings.rules.testHint')} />
+          {t('settings.rules.testTitle')}
+          <InfoBubble tip={t('settings.rules.testHint')} />
         </span>
       </SectionTitle>
 
@@ -587,36 +586,36 @@ function TestBox({
             <div className="grid flex-1 gap-2 sm:grid-cols-2">
               <TextInput
                 dir="ltr"
-                aria-label={rx('settings.rules.testUrl')}
-                placeholder={rx('settings.rules.testUrl')}
+                aria-label={t('settings.rules.testUrl')}
+                placeholder={t('settings.rules.testUrl')}
                 value={s.url}
                 onChange={(e) => update(i, { url: e.target.value })}
               />
               <TextInput
                 dir="ltr"
-                aria-label={rx('settings.rules.testFilename')}
-                placeholder={rx('settings.rules.testFilename')}
+                aria-label={t('settings.rules.testFilename')}
+                placeholder={t('settings.rules.testFilename')}
                 value={s.filename}
                 onChange={(e) => update(i, { filename: e.target.value })}
               />
               <TextInput
                 dir="ltr"
-                aria-label={rx('settings.rules.testSource')}
-                placeholder={rx('settings.rules.testSource')}
+                aria-label={t('settings.rules.testSource')}
+                placeholder={t('settings.rules.testSource')}
                 value={s.source}
                 onChange={(e) => update(i, { source: e.target.value })}
               />
               <div className="flex gap-2">
                 <TextInput
                   dir="ltr"
-                  aria-label={rx('settings.rules.testSize')}
-                  placeholder={rx('settings.rules.testSize')}
+                  aria-label={t('settings.rules.testSize')}
+                  placeholder={t('settings.rules.testSize')}
                   value={s.size}
                   onChange={(e) => update(i, { size: e.target.value })}
                 />
                 <TextInput
-                  aria-label={rx('settings.rules.testPackage')}
-                  placeholder={rx('settings.rules.testPackage')}
+                  aria-label={t('settings.rules.testPackage')}
+                  placeholder={t('settings.rules.testPackage')}
                   value={s.pkg}
                   onChange={(e) => update(i, { pkg: e.target.value })}
                 />
@@ -628,24 +627,24 @@ function TestBox({
               hue={2}
               className="shrink-0"
               icon={<IconTrash width={16} height={16} />}
-              title={rx('settings.rules.testRemove')}
-              aria-label={rx('settings.rules.testRemove')}
+              title={t('settings.rules.testRemove')}
+              aria-label={t('settings.rules.testRemove')}
               disabled={samples.length === 1}
               onClick={() => setSamples(samples.filter((_, j) => j !== i))}
             />
           </div>
           <div className="flex items-center gap-3 text-[11px] text-carbon-textMuted">
             <span className="flex items-center">
-              {rx('settings.rules.testSource')}
-              <InfoBubble tip={rx('settings.rules.testSourceHint')} />
+              {t('settings.rules.testSource')}
+              <InfoBubble tip={t('settings.rules.testSourceHint')} />
             </span>
             <span className="flex items-center">
-              {rx('settings.rules.testSize')}
-              <InfoBubble tip={rx('settings.rules.sizeHint')} />
+              {t('settings.rules.testSize')}
+              <InfoBubble tip={t('settings.rules.sizeHint')} />
             </span>
             <span className="flex items-center">
-              {rx('settings.rules.testPackage')}
-              <InfoBubble tip={rx('settings.rules.testPackageHint')} />
+              {t('settings.rules.testPackage')}
+              <InfoBubble tip={t('settings.rules.testPackageHint')} />
             </span>
           </div>
         </div>
@@ -665,9 +664,9 @@ function Outcomes({
   report: Report | null;
   downloadDir: string;
 }) {
-  const rx = useRx();
+  const { t } = useT();
   if (!report || report.links.length === 0) {
-    return <p className="text-[11px] text-carbon-textMuted">{rx('settings.rules.testEmpty')}</p>;
+    return <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.testEmpty')}</p>;
   }
 
   return (
@@ -679,16 +678,16 @@ function Outcomes({
         const rejected = flavour === 'filter' && l.verdict.rejected;
         // The editor's own labels, so the preview names settings the same way.
         const extras: string[] = [];
-        if (l.effect.extractDir) extras.push(`${actionLabel(rx, 'extractDir')}: ${l.effect.extractDir}`);
-        if (l.effect.comment) extras.push(`${actionLabel(rx, 'comment')}: ${l.effect.comment}`);
+        if (l.effect.extractDir) extras.push(`${actionLabel(t, 'extractDir')}: ${l.effect.extractDir}`);
+        if (l.effect.comment) extras.push(`${actionLabel(t, 'comment')}: ${l.effect.comment}`);
         if (l.effect.priority !== undefined) {
-          extras.push(`${actionLabel(rx, 'priority')} ${l.effect.priority}`);
+          extras.push(`${actionLabel(t, 'priority')} ${l.effect.priority}`);
         }
-        if (l.effect.chunks !== undefined) extras.push(`${actionLabel(rx, 'chunks')} ${l.effect.chunks}`);
+        if (l.effect.chunks !== undefined) extras.push(`${actionLabel(t, 'chunks')} ${l.effect.chunks}`);
         if (l.effect.autoExtract !== undefined) {
           extras.push(
-            `${actionLabel(rx, 'autoExtract')} ${
-              l.effect.autoExtract ? rx('settings.rules.yes') : rx('settings.rules.no')
+            `${actionLabel(t, 'autoExtract')} ${
+              l.effect.autoExtract ? t('settings.rules.yes') : t('settings.rules.no')
             }`,
           );
         }
@@ -701,7 +700,7 @@ function Outcomes({
                   rejected ? 'bg-statusFailBg text-statusFail' : 'text-carbon-textSub'
                 }`}
               >
-                {rejected ? rx('settings.rules.resultRejected') : rx('settings.rules.resultAccepted')}
+                {rejected ? t('settings.rules.resultRejected') : t('settings.rules.resultAccepted')}
               </span>
               <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted">
                 {l.filename || l.url}
@@ -713,26 +712,26 @@ function Outcomes({
                 {l.verdict.reason}
                 {/* The engine's own reason already names the rule. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
-                  ? ` - ${rx('settings.rules.resultBy', { rule: l.verdict.rule })}`
+                  ? ` - ${t('settings.rules.resultBy', { rule: l.verdict.rule })}`
                   : ''}
               </p>
             )}
 
             <p className="text-[11px] text-carbon-textSub">
               {names.length === 0
-                ? rx('settings.rules.resultNone')
-                : `${rx('settings.rules.resultMatched')}: ${names.join(' → ')}`}
+                ? t('settings.rules.resultNone')
+                : `${t('settings.rules.resultMatched')}: ${names.join(' → ')}`}
             </p>
 
             {/* Shown for a link the filter rejects too: it is what the other
                 list would do. */}
             {flavour === 'packagizer' && (
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
-                <dt className="text-carbon-textMuted">{rx('settings.rules.resultPackage')}</dt>
+                <dt className="text-carbon-textMuted">{t('settings.rules.resultPackage')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
                   {l.result.package || '-'}
                 </dd>
-                <dt className="text-carbon-textMuted">{rx('settings.rules.resultFolder')}</dt>
+                <dt className="text-carbon-textMuted">{t('settings.rules.resultFolder')}</dt>
                 <dd dir="ltr" className="flex min-w-0 items-center truncate text-carbon-text">
                   {l.effect.dir ? (
                     l.effect.dir
@@ -741,19 +740,19 @@ function Outcomes({
                     // here, since a second copy of that logic would drift.
                     <>
                       <span className="text-carbon-textMuted">
-                        {downloadDir || rx('settings.rules.folderFromSettings')}
+                        {downloadDir || t('settings.rules.folderFromSettings')}
                       </span>
-                      <InfoBubble tip={rx('settings.rules.folderFromSettingsHint')} />
+                      <InfoBubble tip={t('settings.rules.folderFromSettingsHint')} />
                     </>
                   )}
                 </dd>
-                <dt className="text-carbon-textMuted">{rx('settings.rules.resultFilename')}</dt>
+                <dt className="text-carbon-textMuted">{t('settings.rules.resultFilename')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
                   {l.result.filename || '-'}
                 </dd>
                 {extras.length > 0 && (
                   <>
-                    <dt className="text-carbon-textMuted">{rx('settings.rules.alsoSets')}</dt>
+                    <dt className="text-carbon-textMuted">{t('settings.rules.alsoSets')}</dt>
                     <dd className="truncate text-carbon-text">{extras.join(' · ')}</dd>
                   </>
                 )}
@@ -762,7 +761,7 @@ function Outcomes({
           </li>
         );
       })}
-      {report.disabled && <li className="text-[11px] text-carbon-textMuted">{rx('settings.rules.setOff')}</li>}
+      {report.disabled && <li className="text-[11px] text-carbon-textMuted">{t('settings.rules.setOff')}</li>}
     </ul>
   );
 }

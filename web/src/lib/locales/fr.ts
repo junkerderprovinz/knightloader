@@ -1389,7 +1389,6 @@ export const fr: Dict = {
   'settings.browsertools.install': 'Installer',
   'settings.browsertools.installIOS':
     'Sur iPhone ou iPad : ouvrez cette page dans Safari, appuyez sur Partager, puis « Sur l’écran d’accueil ».',
-  'settings.access.intakePortsHint': 'D’autres façons d’atteindre directement cette instance, en dehors de la connexion normale. Chacune indique ici si elle est joignable.',
   'settings.nav.browsertools': 'Navigateur & application',
   'settings.browsertools.bookmarkletStep1': 'Faites glisser le bouton ci-dessous dans la barre de favoris de votre navigateur. Il est enregistré comme n’importe quel autre favori, et rien n’est installé.',
   'settings.browsertools.bookmarkletStep2': 'Sur n’importe quelle page, cliquez dessus (sélectionnez d’abord du texte si vous ne voulez que celui-ci). Un petit onglet KnightLoader s’ouvre avec le lien de cette page, ou le texte sélectionné, déjà rempli. Vérifiez-le et ajoutez-le comme téléchargement depuis là.',
@@ -1477,7 +1476,6 @@ export const fr: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Objectifs de partage, limites de transfert, redirection de port et DHT/PEX pour les liens magnet et les fichiers .torrent.',
   'settings.torrents.seedingTitle': 'Partage',
   'settings.torrents.seedRatio': 'Ratio de partage cible',
   'settings.torrents.seedRatioHint': 'Continue à partager un torrent terminé jusqu’à ce que ce ratio, par rapport à sa propre taille, ait été redonné à l’essaim. 0 = pas d’objectif de ratio.',

@@ -17,6 +17,7 @@ import {
   type Placeholder,
   type TargetMethod,
 } from '../../../lib/eventtargets';
+import { RowRefusal } from '../controls';
 import { TargetEvents } from './TargetEvents';
 import { TargetHealth } from './TargetHealth';
 import { TargetProbe } from './TargetProbe';
@@ -175,6 +176,7 @@ export function TargetRow({
           />
         </div>
       </div>
+      {stored && <RowRefusal field={`eventTargets.${index}`} />}
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">

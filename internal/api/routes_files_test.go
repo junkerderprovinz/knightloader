@@ -56,6 +56,7 @@ func putFile(t *testing.T, a *app.App, base, name string, data []byte) string {
 }
 
 func TestServeTaskFileInlineAllowlistedType(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	id := putFile(t, a, base, "notes.txt", []byte("hello from an nfo-like file"))
 
@@ -84,6 +85,7 @@ func TestServeTaskFileInlineAllowlistedType(t *testing.T) {
 }
 
 func TestServeTaskFileAttachmentForUnlistedType(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	id := putFile(t, a, base, "archive.bin", []byte{0x00, 0x01, 0x02})
 
@@ -113,6 +115,7 @@ func TestServeTaskFileAttachmentForUnlistedType(t *testing.T) {
 // out as text/plain, or opening it inline runs the payload at this app's
 // origin with this app's session live in the tab.
 func TestServeTaskFileNeverSniffsAnHTMLPayload(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	id := putFile(t, a, base, "readme.txt", []byte("<script>document.title='pwned'</script>"))
 
@@ -132,6 +135,7 @@ func TestServeTaskFileNeverSniffsAnHTMLPayload(t *testing.T) {
 // well as the bytes that arrive: the two can only disagree if something along
 // the way guessed rather than measured.
 func TestServeTaskFileContentLengthMatchesTheBytes(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	data := []byte("exactly this many bytes and no more")
 	id := putFile(t, a, base, "movie.mkv", data)
@@ -152,6 +156,7 @@ func TestServeTaskFileContentLengthMatchesTheBytes(t *testing.T) {
 }
 
 func TestServeTaskFileUnknownTaskIs404(t *testing.T) {
+	t.Parallel()
 	_, _, srv := filesServer(t)
 	resp, err := http.Get(srv.URL + "/api/tasks/does-not-exist/file")
 	if err != nil {
@@ -164,6 +169,7 @@ func TestServeTaskFileUnknownTaskIs404(t *testing.T) {
 }
 
 func TestServeTaskFileNotYetStartedIs404(t *testing.T) {
+	t.Parallel()
 	a, _, srv := filesServer(t)
 	created := stage(t, a, "https://host.example/still-collected.bin")
 
@@ -185,6 +191,7 @@ func TestServeTaskFileNotYetStartedIs404(t *testing.T) {
 // SafeTaskFile directly. A symlink inside the task's own folder makes the same
 // point and is something a download folder can end up holding.
 func TestServeTaskFileSymlinkEscapeIs403(t *testing.T) {
+	t.Parallel()
 	a, base, srv := filesServer(t)
 	outside := t.TempDir()
 	if err := os.WriteFile(filepath.Join(outside, "secret.bin"), []byte("not for this task"), 0o644); err != nil {
@@ -216,6 +223,7 @@ func TestServeTaskFileSymlinkEscapeIs403(t *testing.T) {
 // reg.AddOpen, so once a password is set it is as locked as every other route
 // under /api/. Verified end to end rather than read off registerFiles.
 func TestServeTaskFileRequiresASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	base := t.TempDir()
@@ -241,6 +249,7 @@ func TestServeTaskFileRequiresASession(t *testing.T) {
 // including the one refusal a stored name with a separator raises, which no
 // HTTP caller can produce (see TestServeTaskFileSymlinkEscapeIs403).
 func TestTaskFileStatusMapping(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name string
 		err  error

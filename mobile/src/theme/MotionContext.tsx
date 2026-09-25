@@ -10,6 +10,7 @@ import {
   type Motion,
   type MotionNumbers,
 } from './motion';
+import { springOf } from './motionNative';
 
 // The accessibility gate, and the only place in this app that reads it.
 //
@@ -167,12 +168,49 @@ export function useShake(): { style: { transform: { translateX: Animated.Animate
 }
 
 /**
+ * A button or card giving way under the finger: it scales to the level's
+ * `press` while held and springs back on `bounce` when let go, so a tap lands
+ * at the top levels and barely registers at `subtle`.
+ *
+ * Spread `onPressIn` and `onPressOut` onto the touchable and put `scale` in the
+ * transform of the view that should shrink. The handlers read the numbers
+ * through a ref, so they stay the same functions for the life of the control.
+ */
+export function usePress(): { scale: Animated.Value; onPressIn: () => void; onPressOut: () => void } {
+  const { n } = useMotion();
+  const scale = useRef(new Animated.Value(1)).current;
+  const live = useRef(n);
+  live.current = n;
+  // Whether this press shrank the control, so the release springs it back even
+  // when the level was turned down while the finger was still on it.
+  const shrunk = useRef(false);
+
+  return useMemo(() => {
+    const to = (value: number) =>
+      Animated.spring(scale, { toValue: value, useNativeDriver: true, ...springOf(live.current.bounce) }).start();
+    return {
+      scale,
+      onPressIn: () => {
+        if (live.current.press === 1) return;
+        shrunk.current = true;
+        to(live.current.press);
+      },
+      onPressOut: () => {
+        if (!shrunk.current) return;
+        shrunk.current = false;
+        to(1);
+      },
+    };
+  }, [scale]);
+}
+
+/**
  * settle brings an Animated.Value home, on the level's own spring.
  *
- * This is where GlimStone 1.17.0's springDamping is spent: 0.68 at the top
- * visible level swings a little past and comes back, 0.34 keeps doing it for
- * longer, and the web reaches the same two shapes with two cubic-beziers. At
- * `off` there is no spring and the value arrives.
+ * The spring is the level's layout `damping` from GlimStone's table: 0.68 at
+ * the top visible level swings a little past and comes back, 0.34 keeps doing
+ * it for longer, and the web reaches the same two shapes with two
+ * cubic-beziers. At `off` there is no spring and the value arrives.
  *
  * `done` runs when the spring ends, straight away at `off`. A spring that is
  * stopped or replaced by another ends too, before its target, so a caller that

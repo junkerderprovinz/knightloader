@@ -831,12 +831,16 @@ export class ApiError extends Error {
   /** The HTTP status, when there was one. It tells a peer that refused a call
    *  from one that could not be reached. */
   status?: number;
-  /** The settings key a refusal is about, when it is about one field. */
+  /**
+   * Where in the settings a refusal is, when it is about one place: a key, or
+   * a dotted path below one such as "reconnect.checkUrl" or "connections.2".
+   */
   field?: string;
 
+  // The name stays "Error", so String(e) reads "Error: …" like any other
+  // failure and the call sites that strip that prefix show the server's words.
   constructor(message: string, code?: string, params?: Record<string, string | number>, status?: number) {
     super(message);
-    this.name = 'ApiError';
     this.code = code;
     this.params = params;
     this.status = status;
@@ -844,39 +848,42 @@ export class ApiError extends Error {
 }
 
 /**
- * json decodes a response and throws the server's refusal, as an ApiError with
- * its code where it sent one, instead of feeding an error body to the JSON
- * parser.
+ * refusal reads a refused response. A JSON envelope keeps its code, so the
+ * refusal can be translated; any other body is the server's sentence.
+ */
+async function refusal(r: Response): Promise<ApiError> {
+  const body = (await r.text()).trim();
+  try {
+    const p = JSON.parse(body) as {
+      error?: string;
+      code?: string;
+      params?: Record<string, string | number>;
+      field?: string;
+    };
+    if (p && typeof p.error === 'string') {
+      const e = new ApiError(p.error, p.code, p.params, r.status);
+      e.field = p.field;
+      return e;
+    }
+  } catch {
+    // Plain text.
+  }
+  return new ApiError(body || String(r.status), undefined, undefined, r.status);
+}
+
+/**
+ * json decodes a response and throws the server's refusal instead of feeding
+ * an error body to the JSON parser.
  */
 export async function json<T>(r: Response): Promise<T> {
-  if (!r.ok) {
-    const body = (await r.text()).trim();
-    // Validation failures send a JSON envelope so the message can be
-    // translated; other routes send plain text.
-    try {
-      const p = JSON.parse(body) as {
-        error?: string;
-        code?: string;
-        params?: Record<string, string | number>;
-        field?: string;
-      };
-      if (p && typeof p.error === 'string') {
-        const e = new ApiError(p.error, p.code, p.params, r.status);
-        e.field = p.field;
-        throw e;
-      }
-    } catch (e) {
-      if (e instanceof ApiError) throw e;
-    }
-    throw new ApiError(body || String(r.status), undefined, undefined, r.status);
-  }
+  if (!r.ok) throw await refusal(r);
   return (await r.json()) as T;
 }
 
 // ok throws with the server's own words, for routes whose refusal tells the
 // user what to change.
 async function ok(r: Response): Promise<Response> {
-  if (!r.ok) throw new Error((await r.text()).trim() || `${r.status}`);
+  if (!r.ok) throw await refusal(r);
   return r;
 }
 
@@ -2204,6 +2211,8 @@ export interface HosterLogin {
   username: string;
   status: HosterLoginStatus;
   detail?: string;
+  /** Names `detail`, so it can be translated. */
+  code?: string;
   /** The user's own switch. `status` is what JD thinks of the login; this is
    *  whether JD was given it. */
   enabled: boolean;
@@ -3361,7 +3370,6 @@ export async function addInstance(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, url }),
   });
-  if (!r.ok) throw new Error(await r.text());
   return json(r);
 }
 
@@ -3450,9 +3458,7 @@ export async function fetchConnect(): Promise<ConnectInfo> {
 /** activateConnect mints this instance's phrase and answers with it. This is
  *  the one time it comes back without the password. */
 export async function activateConnect(): Promise<{ phrase: string; qr?: QRMatrix; info: ConnectInfo }> {
-  const r = await fetch('/api/connect/activate', { method: 'POST' });
-  if (!r.ok) throw new Error(await r.text());
-  return json(r);
+  return json(await fetch('/api/connect/activate', { method: 'POST' }));
 }
 
 /**
@@ -3510,7 +3516,6 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   });
-  if (!r.ok) throw new Error(await r.text());
   return json(r);
 }
 

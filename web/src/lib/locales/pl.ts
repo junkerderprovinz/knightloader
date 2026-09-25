@@ -1389,7 +1389,6 @@ export const pl: Dict = {
   'settings.browsertools.install': 'Zainstaluj',
   'settings.browsertools.installIOS':
     'Na iPhonie lub iPadzie: otwórz tę stronę w Safari, dotknij Udostępnij, a potem „Dodaj do ekranu głównego”.',
-  'settings.access.intakePortsHint': 'Inne sposoby bezpośredniego dotarcia do tej instancji, poza zwykłym logowaniem. Przy każdym widzisz tutaj, czy jest osiągalny.',
   'settings.nav.browsertools': 'Przeglądarka i aplikacja',
   'settings.browsertools.bookmarkletStep1': 'Przeciągnij poniższy przycisk na pasek zakładek przeglądarki. Zapisuje się jak każda inna zakładka i nic nie jest instalowane.',
   'settings.browsertools.bookmarkletStep2': 'Na dowolnej stronie kliknij go (najpierw zaznacz tekst, jeśli chcesz tylko jego). Otworzy się mała karta KnightLoadera z już wpisanym linkiem tej strony albo zaznaczonym tekstem. Sprawdź wpis i dodaj go stamtąd jako pobieranie.',
@@ -1477,7 +1476,6 @@ export const pl: Dict = {
   'settings.nav.torrents': 'Torrenty',
   'settings.module.torrents': 'Torrenty',
   'settings.torrents.title': 'Torrenty',
-  'settings.torrents.subtitle': 'Cele seedowania, limity transferu, mapowanie portów oraz DHT/PEX dla linków magnet i plików .torrent.',
   'settings.torrents.seedingTitle': 'Seedowanie',
   'settings.torrents.seedRatio': 'Docelowe ratio seedowania',
   'settings.torrents.seedRatioHint': 'Kontynuuje seedowanie ukończonego torrenta, aż do roju wróci tyle w stosunku do jego własnego rozmiaru. 0 = brak celu ratio.',

@@ -1398,7 +1398,6 @@ export const no: Dict = {
   'settings.browsertools.install': 'Installer',
   'settings.browsertools.installIOS':
     'På iPhone eller iPad: åpne denne siden i Safari, trykk på Del, og deretter «Legg til på Hjem-skjerm».',
-  'settings.access.intakePortsHint': 'Andre måter å nå denne instansen direkte på, utenom vanlig innlogging. Hver av dem viser her om den kan nås.',
   'settings.nav.browsertools': 'Nettleser og app',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedenfor til bokmerkelinja i nettleseren din. Den lagres som et hvilket som helst annet bokmerke, og ingenting installeres.',
   'settings.browsertools.bookmarkletStep2': 'Klikk på den på en hvilken som helst side (merk tekst først hvis du bare vil ha den). En liten KnightLoader-fane åpnes med lenka til siden, eller den merkede teksten, allerede fylt inn. Se over den og legg den til som nedlasting derfra.',
@@ -1486,7 +1485,6 @@ export const no: Dict = {
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
-  'settings.torrents.subtitle': 'Seedmål, overføringsgrenser, portmapping og DHT/PEX for magnetlenker og .torrent-filer.',
   'settings.torrents.seedingTitle': 'Seeding',
   'settings.torrents.seedRatio': 'Mål for seed-ratio',
   'settings.torrents.seedRatioHint': 'Fortsetter å seede en ferdig torrent til denne andelen, i forhold til dens egen størrelse, er gitt tilbake til svermen. 0 = ingen ratiomål.',

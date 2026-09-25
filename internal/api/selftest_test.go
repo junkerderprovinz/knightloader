@@ -171,6 +171,7 @@ func TestAnInstanceThatHasNeverBeenSweptAnswersTwoHundred(t *testing.T) {
 // TestTheRequestEchoReportsWhatArrivedAndCountsTheHopsWithoutNamingThem checks
 // that X-Forwarded-For travels as a count and never as addresses.
 func TestTheRequestEchoReportsWhatArrivedAndCountsTheHopsWithoutNamingThem(t *testing.T) {
+	t.Parallel()
 	r := httptest.NewRequest(http.MethodGet, "/api/selftest/request", nil)
 	r.Host = "kl.example.com"
 	r.Header.Set("X-Forwarded-Host", "knightloader.lan")
@@ -209,6 +210,7 @@ func TestTheRequestEchoReportsWhatArrivedAndCountsTheHopsWithoutNamingThem(t *te
 // TestABareForwardedPrefixIsNotAPathPrefix checks that "/" and similar values,
 // which several proxies send for the root, are not reported as a prefix.
 func TestABareForwardedPrefixIsNotAPathPrefix(t *testing.T) {
+	t.Parallel()
 	for _, header := range []string{"", "/", "  /  ", "//"} {
 		r := httptest.NewRequest(http.MethodGet, "/api/selftest/request", nil)
 		if header != "" {

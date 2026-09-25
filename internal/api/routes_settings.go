@@ -57,7 +57,7 @@ func registerSettings(reg *Registry, a *app.App) {
 			// connect, so a new name or relay address needs a reconnect.
 			if applied.InstanceName != before || applied.RelayURL != beforeRelay {
 				applyRelay(a)
-				discoveryRefresh()
+				reg.refreshDiscovery()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
@@ -81,6 +81,14 @@ func registerSettings(reg *Registry, a *app.App) {
 			// says why that is harmless.
 			preview, err := settings.ApplyPatch(a.Settings.Get(), patch)
 			if err != nil {
+				// A value of the wrong type is refused at its top-level key;
+				// the decoder's path leaves out list positions.
+				var te *json.UnmarshalTypeError
+				if errors.As(err, &te) && te.Field != "" {
+					key, _, _ := strings.Cut(te.Field, ".")
+					writeValidationError(w, &settings.FieldError{Field: key, Err: err})
+					return
+				}
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -104,7 +112,7 @@ func registerSettings(reg *Registry, a *app.App) {
 			// relay it dials.
 			if _, ok := patch["instanceName"]; ok {
 				applyRelay(a)
-				discoveryRefresh()
+				reg.refreshDiscovery()
 			} else if _, ok := patch["relayUrl"]; ok {
 				applyRelay(a)
 			}
@@ -171,14 +179,18 @@ func writeValidationError(w http.ResponseWriter, err error) {
 			out["params"] = params
 		}
 	}
-	// A top-level folder's refusal names its field, so the page shows it beside
-	// that field and saves the rest of an edit without it. A category's folder
-	// keeps the sentence, which says which category it is.
+	// A refusal that names its field is shown beside it, and the page saves the
+	// rest of an edit without it. A top-level folder's is translated; a
+	// category's folder keeps the sentence, which says which category it is.
 	var pp *settings.PathProblem
 	if errors.As(err, &pp) && pp.Field != "" {
 		out["code"] = "pathProblem." + pp.Code
 		out["params"] = map[string]any{"dir": pp.Dir}
 		out["field"] = pp.Field
+	}
+	var fe *settings.FieldError
+	if errors.As(err, &fe) {
+		out["field"] = fe.Field
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
@@ -194,55 +206,91 @@ func patched(patch map[string]json.RawMessage) func(key string) bool {
 }
 
 // validateRows refuses the rows that carry their own validator, naming the one
-// that failed. Otherwise only sanitize would see them, and it drops what it
-// cannot use without saying so. named is CheckFolders' filter: nil checks every
-// row, and a patch that does not send categories leaves their folders alone.
+// that failed and, as a settings.FieldError, where it is. Otherwise only
+// sanitize would see them, and it drops what it cannot use without saying so.
+//
+// named is CheckFolders' filter: nil checks every row, and a patch checks only
+// the lists it sends, so a stored row that went bad, such as a reconnect
+// switched back on after its check URL was cleared, does not refuse a change
+// of theme. A check across two lists runs when either is sent.
 func validateRows(s settings.Settings, named func(key string) bool) error {
-	for i, e := range s.Connections {
-		if err := proxycfg.Validate(e); err != nil {
-			return fmt.Errorf("connection %d: %w", i+1, err)
+	sent := func(keys ...string) bool {
+		if named == nil {
+			return true
+		}
+		for _, k := range keys {
+			if named(k) {
+				return true
+			}
+		}
+		return false
+	}
+	if sent("connections") {
+		for i, e := range s.Connections {
+			if err := proxycfg.Validate(e); err != nil {
+				return &settings.FieldError{Field: fmt.Sprintf("connections.%d", i),
+					Err: fmt.Errorf("connection %d: %w", i+1, err)}
+			}
 		}
 	}
 	// An unconfigured reconnect is normal on a fresh install; only a
 	// half-filled one is refused.
-	if s.Reconnect.Method != reconnect.MethodNone && s.Reconnect.Method != "" {
+	if sent("reconnect") && s.Reconnect.Method != reconnect.MethodNone && s.Reconnect.Method != "" {
 		if err := s.Reconnect.Validate(); err != nil {
-			return err
+			field := "reconnect"
+			var p *reconnect.ConfigProblem
+			if errors.As(err, &p) {
+				field += "." + p.Field()
+			}
+			return &settings.FieldError{Field: field, Err: err}
 		}
 	}
-	for i, e := range s.Schedule {
-		if err := e.Validate(); err != nil {
-			return fmt.Errorf("schedule row %d: %w", i+1, err)
+	if sent("schedule") {
+		for i, e := range s.Schedule {
+			if err := e.Validate(); err != nil {
+				return &settings.FieldError{Field: fmt.Sprintf("schedule.%d", i),
+					Err: fmt.Errorf("schedule row %d: %w", i+1, err)}
+			}
 		}
 	}
 	// A feed whose title filter does not compile must not be polled at all,
 	// or it would stage the whole feed.
-	for i, e := range s.Feeds {
-		if err := e.Validate(); err != nil {
-			return fmt.Errorf("feed row %d: %w", i+1, err)
+	if sent("feeds") {
+		for i, e := range s.Feeds {
+			if err := e.Validate(); err != nil {
+				return &settings.FieldError{Field: fmt.Sprintf("feeds.%d", i),
+					Err: fmt.Errorf("feed row %d: %w", i+1, err)}
+			}
 		}
 	}
 	// notify.Validate returns *Problem rather than error, so it is checked
 	// before being wrapped; a typed nil in an error variable is not nil.
-	for i, e := range s.EventTargets {
-		if p := notify.Validate(e); p != nil {
-			return fmt.Errorf("event target %d: %w", i+1, p)
+	if sent("eventTargets") {
+		for i, e := range s.EventTargets {
+			if p := notify.Validate(e); p != nil {
+				return &settings.FieldError{Field: fmt.Sprintf("eventTargets.%d", i),
+					Err: fmt.Errorf("event target %d: %w", i+1, p)}
+			}
 		}
 	}
-	if err := s.ValidateCategories(); err != nil {
-		return err
+	if sent("categories", "packagizer") {
+		if err := s.ValidateCategories(); err != nil {
+			return err
+		}
 	}
-	if err := s.ValidateMediaHooks(); err != nil {
-		return err
+	if sent("mediaHooks", "categories") {
+		if err := s.ValidateMediaHooks(); err != nil {
+			return err
+		}
 	}
 	// The only check here that touches the disk, so a stored category whose
-	// share is offline does not refuse a change of theme.
-	if named != nil && !named("categories") {
-		return nil
-	}
-	for i, c := range s.Categories {
-		if err := settings.Validate("the folder", c.Dir); err != nil {
-			return fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)
+	// share is offline does not refuse a change of theme either.
+	if sent("categories") {
+		for i, c := range s.Categories {
+			if err := settings.Validate("the folder", c.Dir); err != nil {
+				return &settings.FieldError{Field: fmt.Sprintf("categories.%d", i),
+					Err: fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)}
+			}
 		}
 	}
 	return nil

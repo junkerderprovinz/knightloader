@@ -2,35 +2,13 @@
 // check results, scoped like the shell strip to total, visible or selected.
 // Counters.tsx answers the different question of what the queue owes. Figures
 // stay at body size, below the paste box that heads the page.
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Task } from '../lib/api';
-import { interpolate, useT, type TranslationKey } from '../lib/i18n';
+import { useT } from '../lib/i18n';
 import { fmtTotal } from '../lib/format';
 import { hostOf } from './columns';
 import { Tabs } from './Tabs';
 import { Card, SectionTitle } from './ui';
-
-// English fallbacks for keys not yet in the catalogues, as in CollectorFacets.tsx.
-const PENDING = {
-  'collector.stats.label': 'Collector totals',
-  'collector.stats.packages': 'Packages',
-  'collector.stats.links': 'Links',
-  'collector.stats.totalSize': 'Total size',
-  'collector.stats.hosts': 'Hosts',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? PENDING[key], vars);
-    },
-    [t],
-  );
-}
 
 export type StatsScope = 'total' | 'visible' | 'selected';
 
@@ -85,7 +63,6 @@ function Item({ label, value, tone = 'text-carbon-text' }: { label: string; valu
  */
 export function CollectorStats({ all, visible, selected }: { all: Task[]; visible: Task[]; selected: Task[] }) {
   const { t } = useT();
-  const cx = useCx();
   const [scope, setScope] = useState<StatsScope>('total');
 
   const scoped = scope === 'total' ? all : scope === 'visible' ? visible : selected;
@@ -93,11 +70,11 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
 
   return (
     // h-full on the Card too: the row's items-stretch only reaches the wrapper.
-    <div role="group" aria-label={cx('collector.stats.label')} className="h-full">
+    <div role="group" aria-label={t('collector.stats.label')} className="h-full">
       {/* Fitted to its figures beside the other cards, and full width once
           the row stacks. */}
       <Card hue={1} className="flex h-full min-w-[13rem] flex-col gap-3 lg:w-fit">
-        <SectionTitle>{cx('collector.stats.label')}</SectionTitle>
+        <SectionTitle>{t('collector.stats.label')}</SectionTitle>
         <Tabs
           select="one"
           size="sm"
@@ -111,10 +88,10 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
           ]}
         />
         <div className="flex flex-col gap-2">
-          <Item label={cx('collector.stats.packages')} value={f.packages} />
-          <Item label={cx('collector.stats.links')} value={f.links} />
-          <Item label={cx('collector.stats.totalSize')} value={fmtTotal(f.bytes)} />
-          <Item label={cx('collector.stats.hosts')} value={f.hosts} />
+          <Item label={t('collector.stats.packages')} value={f.packages} />
+          <Item label={t('collector.stats.links')} value={f.links} />
+          <Item label={t('collector.stats.totalSize')} value={fmtTotal(f.bytes)} />
+          <Item label={t('collector.stats.hosts')} value={f.hosts} />
           <Item label={t('filter.online')} value={f.online} />
           <Item label={t('filter.offline')} value={f.offline} tone={f.offline > 0 ? 'text-statusFail' : 'text-carbon-textMuted'} />
           <Item label={t('filter.uncheckable')} value={f.uncheckable} tone="text-carbon-textMuted" />

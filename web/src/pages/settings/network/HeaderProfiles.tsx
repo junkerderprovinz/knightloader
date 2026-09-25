@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
 import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
-import { useT } from '../../../lib/i18n';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
+  ApiError,
   deleteHeaderProfile,
   fetchHeaderProfiles,
   REDACTED_HEADER,
@@ -17,6 +18,15 @@ import {
 // server reads as "keep", while an empty value clears the header. Profiles have
 // their own routes, outside settings.json and the draft. A download matches a
 // profile by origin (scheme, host and port); a Packagizer rule names it by id.
+
+/** The refusals worded here. Any other shows the server's sentence. */
+const REFUSALS: Partial<Record<string, TranslationKey>> = {
+  originInvalid: 'settings.headerProfiles.error.originInvalid',
+  originTaken: 'settings.headerProfiles.error.originTaken',
+  nameNeeded: 'settings.headerProfiles.error.nameNeeded',
+  nameInvalid: 'settings.headerProfiles.error.nameInvalid',
+  noHeaders: 'settings.headerProfiles.error.noHeaders',
+};
 
 /** An editor line; `stored` marks a placeholder from the server, kept rather than typed. */
 interface Line extends HeaderProfileLine {
@@ -74,8 +84,8 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       else setProfiles(await fetchHeaderProfiles());
       setDraft(null);
     } catch (e) {
-      // The server's sentence names the field and what to send.
-      setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
+      const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+      setError(key ? t(key, (e as ApiError).params) : String(e).replace(/^(Error|ApiError):\s*/, ''));
     } finally {
       setBusy(false);
     }
@@ -236,7 +246,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
               order sets it, so the row mirrors in right-to-left languages. */}
           <div className="flex items-center gap-3">
             <span className="flex-1" />
-            {error && <p className="text-xs text-statusWarn">{error}</p>}
+            {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
             <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
               {t('common.cancel')}
             </Button>

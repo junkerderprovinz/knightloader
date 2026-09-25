@@ -97,9 +97,9 @@ func (d *DebridLink) send(req *http.Request, path string, out any) error {
 func errorText(code string) string {
 	switch code {
 	case "badToken":
-		return "the API key was refused - generate a new one at debrid-link.com/webapp/apikey"
+		return "the API key was refused; generate a new one at debrid-link.com/webapp/apikey"
 	case "hidedToken":
-		return "this API key is not enabled yet - confirm it in your Debrid-Link account"
+		return "this API key is not enabled yet; confirm it in your Debrid-Link account"
 	case "notDebrid":
 		return "Debrid-Link could not unlock this link; the hoster may be down"
 	case "hostNotValid":
@@ -121,7 +121,7 @@ func errorText(code string) string {
 	case "serverNotAllowed":
 		return "Debrid-Link refuses requests from this server or VPN; contact them to allow it"
 	case "floodDetected":
-		return "too many requests - Debrid-Link rate-limited this account, try again in an hour"
+		return "too many requests: Debrid-Link rate-limited this account, try again in an hour"
 	case "":
 		return "the call failed and Debrid-Link named no reason"
 	}

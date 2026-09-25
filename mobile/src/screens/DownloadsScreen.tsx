@@ -10,8 +10,10 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
-import { deleteTasks, reorderTasks, startTasks } from '../api/client';
+import { deleteTasks, errorText, reorderTasks, startTasks } from '../api/client';
 import { Text } from '../components/Text';
+import { Arrive } from '../components/Moving';
+import { usePress } from '../theme/MotionContext';
 
 // peer, when set, means this screen is showing a federation peer of conn rather
 // than conn's own queue, so base becomes the proxy prefix (/api/instances/{name},
@@ -57,6 +59,8 @@ export default function DownloadsScreen({
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
   const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
   const queued = tasks.filter((x) => x.status !== 'collected');
+  const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
+  const fabPress = usePress();
 
   /** The live handle, kept so an action that just changed something on the
    *  server can ask for the truth immediately instead of waiting out the
@@ -107,7 +111,7 @@ export default function DownloadsScreen({
     try {
       setQueue(nextHalted ? await stopAll(conn, base) : await setQueueHalted(conn, false, base));
     } catch (e) {
-      setStartError(e instanceof Error ? e.message : String(e));
+      setStartError(errorText(t, e));
     } finally {
       setQueueBusy(false);
     }
@@ -158,7 +162,8 @@ export default function DownloadsScreen({
           list's width cap, centring and margins, four places to keep in step;
           inside the content container there are none. */}
       <PackageList
-        tasks={tab === 'collector' && collected.length > 0 ? collected : queued}
+        tasks={shown === 'collector' ? collected : queued}
+        lineKey={shown}
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
         header={
           <>
@@ -168,7 +173,7 @@ export default function DownloadsScreen({
                 on a tablet the two stand side by side. The overview's summary
                 card holds both in one box, and this is the same reading of the
                 same instance. */}
-            <View style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+            <Arrive style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
               <View style={styles.queueBar}>
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
                   {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '-'}
@@ -221,7 +226,7 @@ export default function DownloadsScreen({
                   empty instance and wrong for a queue that says "running" while
                   nothing moves, where a line flat at zero is the answer. */}
               {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} />}
-            </View>
+            </Arrive>
 
             {/* Why the last start or stop did not take. One line, in the fail
                 colour, only when there is something to say. Outside the card,
@@ -250,7 +255,7 @@ export default function DownloadsScreen({
           </>
         }
         onStartPackage={
-          tab === 'collector' && collected.length > 0
+          shown === 'collector'
             ? async (pkg) => {
                 // Straight into the queue and out of this tab. Switching tabs
                 // first would leave somebody looking at a collector one package
@@ -286,7 +291,7 @@ export default function DownloadsScreen({
                     setTab('downloads');
                   }
                 } catch (e) {
-                  setStartError(e instanceof Error ? e.message : String(e));
+                  setStartError(errorText(t, e));
                 }
               }
             : undefined
@@ -303,7 +308,7 @@ export default function DownloadsScreen({
           try {
             await deleteTasks(conn, pkg.tasks.map((x) => x.id), false, base);
           } catch (e) {
-            setStartError(e instanceof Error ? e.message : String(e));
+            setStartError(errorText(t, e));
           }
         }}
         /* Both tabs reorder. A band is every task that is neither done nor
@@ -317,7 +322,7 @@ export default function DownloadsScreen({
           try {
             await reorderTasks(conn, ids, base);
           } catch (e) {
-            setStartError(e instanceof Error ? e.message : String(e));
+            setStartError(errorText(t, e));
             // Passed on as well as shown: the list holds the dropped order
             // until this settles, and a refusal is what tells it to let go.
             throw e;
@@ -331,8 +336,10 @@ export default function DownloadsScreen({
       />
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: accent, borderRadius: radii.pill }]}
+        style={[styles.fab, { backgroundColor: accent, borderRadius: radii.pill, transform: [{ scale: fabPress.scale }] }]}
         onPress={onAddPress}
+        onPressIn={fabPress.onPressIn}
+        onPressOut={fabPress.onPressOut}
       >
         <Text style={[styles.fabText, { color: accentContrast }]}>+</Text>
       </TouchableOpacity>

@@ -22,6 +22,7 @@ import (
 // TestFormOptionsApplyWithNoRuleInvolved: every field the form can send lands
 // on the created task, through the route rather than the App method.
 func TestAddLinksBatchFieldsReachTheTask(t *testing.T) {
+	t.Parallel()
 	srv, _ := linkServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -69,6 +70,7 @@ func TestAddLinksBatchFieldsReachTheTask(t *testing.T) {
 // the whole submission with the server's own reason, rather than staging the
 // batch to the default folder in silence.
 func TestAddLinksRefusesABadDestination(t *testing.T) {
+	t.Parallel()
 	srv, a := linkServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -90,6 +92,7 @@ func TestAddLinksRefusesABadDestination(t *testing.T) {
 // AddLinksWithOptions, so a request naming none of the batch fields has to
 // behave like a plain paste.
 func TestAddLinksWithNoBatchFieldsIsStillAPlainPaste(t *testing.T) {
+	t.Parallel()
 	srv, _ := linkServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -147,6 +150,7 @@ func packagizerServer(t *testing.T) *httptest.Server {
 // does to the precedence; this only shows the field survives the JSON round
 // trip against a real Packagizer rule.
 func TestAddLinksOverruleField(t *testing.T) {
+	t.Parallel()
 	srv := packagizerServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -178,6 +182,7 @@ func TestAddLinksOverruleField(t *testing.T) {
 // with the field left out, which defaults to false on the wire as it does in
 // Go.
 func TestAddLinksWithoutOverruleLetsTheRuleWin(t *testing.T) {
+	t.Parallel()
 	srv := packagizerServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{

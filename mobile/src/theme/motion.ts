@@ -1,7 +1,12 @@
 // How much this app moves, as numbers rather than as animations. A level is a
 // different number, never a different animation, so this file is a table of
-// figures and four small functions, and every component that moves reads the
+// figures and a few small functions, and every component that moves reads the
 // table instead of typing a duration of its own.
+//
+// Most of the table is GlimStone's: motionNative.ts is the design language's
+// reference copied as it is, so the arrival, the press, the edge spring and the
+// springs themselves move the same in every app of the family. What this file
+// adds is the gestures only this app has.
 //
 // On the web the engine is CSS custom properties resolved inside
 // `@media (prefers-reduced-motion: no-preference)`, so the accessibility signal
@@ -13,12 +18,13 @@
 //
 // Free of React and of react-native, the same split theme/appearance.ts uses,
 // which also lets the check script import and run this.
+import { NATIVE_MOTION, springOf, type MotionLevel, type NativeMotion } from './motionNative';
 
 /**
  * The levels, quietest first. `storm` is a real level with real numbers, see
  * the MOTION table, that no picker offers.
  */
-export type Motion = 'off' | 'subtle' | 'wild' | 'storm';
+export type Motion = MotionLevel;
 
 /** What a picker shows. The storm is not in here; see stormTap below. */
 export const MOTION_LEVELS: Motion[] = ['off', 'subtle', 'wild'];
@@ -42,14 +48,14 @@ export const DEFAULT_MOTION: Motion = 'subtle';
 export const STORM_TAPS = 5;
 
 /**
- * Everything this app animates, as one figure per level.
+ * The gestures this app has and the reference does not, one figure per level.
  *
  * Every level carries every figure. A level that leaves one out inherits the
  * top level's value and arrives as a slightly slower version of it, which is
  * how a fourth intensity ends up reported as doing nothing. The check script
  * compares the key sets.
  */
-export interface MotionNumbers {
+interface Gestures {
   /** A control refusing an action: how long the whole gesture takes, in ms. */
   shakeDur: number;
   /** How far that refusal swings, in points, at its widest. Zero at `off`. */
@@ -65,23 +71,12 @@ export interface MotionNumbers {
   wiggleDur: number;
   /** The scale a row takes while it is in the hand. */
   liftScale: number;
-  /**
-   * The damping ratio of the spring a lifted row settles back on: 0.68 at the
-   * top visible level and 0.34 at the storm, as GlimStone 1.17.0 writes them
-   * down for the phone. The web reaches the same two shapes with
-   * `cubic-bezier(.34, 1.56, .64, 1)` and `cubic-bezier(.22, 1.94, .45, 1)`.
-   *
-   * A ratio rather than React Native's own `damping`, which means different
-   * things against different stiffnesses; springConfig converts it.
-   */
-  springDamping: number;
-  /** Whether that settle is animated at all: 1 yes, 0 snap. A figure in the
-   *  table rather than a check at the call site, because a level that needs an
-   *  exception list has stopped being a set of numbers. */
-  settleScale: number;
 }
 
-export const MOTION: Record<Motion, MotionNumbers> = {
+/** Everything a component draws with: GlimStone's numbers and this app's own. */
+export type MotionNumbers = NativeMotion & Gestures;
+
+const GESTURES: Record<Motion, Gestures> = {
   // The manual equivalent of system-level reduced motion, not a second recipe
   // tuned separately: the same numbers that signal already produces.
   off: {
@@ -91,12 +86,9 @@ export const MOTION: Record<Motion, MotionNumbers> = {
     wiggleDeg: 0,
     wiggleDur: 0,
     liftScale: 1,
-    springDamping: 1,
-    settleScale: 0,
   },
   // Smaller numbers, the same gestures. Somebody who asked for less movement
-  // asked for less movement, not for a faster bounce, so the swing halves and
-  // the spring does not overshoot at all.
+  // asked for less movement, not for a faster one, so the swing halves.
   subtle: {
     shakeDur: 220,
     shakeTravel: 2,
@@ -107,8 +99,6 @@ export const MOTION: Record<Motion, MotionNumbers> = {
     // arrangement the web's subtle block makes for this figure.
     wiggleDur: 320,
     liftScale: 1.015,
-    springDamping: 1,
-    settleScale: 1,
   },
   // The top level a picker offers, and the app's shipped numbers: the 360ms/4pt
   // shake the whole family draws, the 0.7 degree wiggle the web's token names,
@@ -122,15 +112,10 @@ export const MOTION: Record<Motion, MotionNumbers> = {
     // across one product is what these numbers are written down to prevent.
     wiggleDur: 320,
     liftScale: 1.03,
-    springDamping: 0.68,
-    settleScale: 1,
   },
   // The hidden fourth (GlimStone 1.17.0). Same gestures, same table, bigger
-  // figures: a spring that swings further and takes longer to come to rest.
-  //
-  // The multipliers are the web's own storm ladder rather than invented here,
-  // shake 1.8x the travel and 520ms, wiggle 1.8x the swing, and springDamping
-  // 0.34 is the figure the language names for the phone.
+  // figures. The multipliers are the web's own storm ladder rather than
+  // invented here: shake 1.8x the travel and 520ms, wiggle 1.8x the swing.
   storm: {
     shakeDur: 520,
     shakeTravel: 7.2,
@@ -142,9 +127,15 @@ export const MOTION: Record<Motion, MotionNumbers> = {
     // 1.4s to 2s.
     wiggleDur: 224,
     liftScale: 1.054,
-    springDamping: 0.34,
-    settleScale: 1,
   },
+};
+
+/** Every level's whole set. The reference comes first and nothing here overrides it. */
+export const MOTION: Record<Motion, MotionNumbers> = {
+  off: { ...NATIVE_MOTION.off, ...GESTURES.off },
+  subtle: { ...NATIVE_MOTION.subtle, ...GESTURES.subtle },
+  wild: { ...NATIVE_MOTION.wild, ...GESTURES.wild },
+  storm: { ...NATIVE_MOTION.storm, ...GESTURES.storm },
 };
 
 /**
@@ -187,23 +178,17 @@ export function motionNumbers(chosen: Motion, reduced: boolean): MotionNumbers {
 }
 
 /**
- * springConfig turns the level's damping ratio into what Animated.spring wants.
+ * springConfig is the spring a row settles into its new place on, for
+ * Animated.spring: the level's layout `damping`, 0.68 at the top visible level
+ * and 0.34 at the storm, the ratios the web reaches with
+ * `cubic-bezier(.34, 1.56, .64, 1)` and `cubic-bezier(.22, 1.94, .45, 1)`.
  *
- * React Native's physics config takes an absolute damping coefficient, which
- * means nothing on its own: the same number is bouncy against a stiff spring
- * and dead against a soft one. The ratio is the figure that travels, so the
- * stiffness and the mass are chosen here, once, and the coefficient computed
- * from them: damping = ratio * 2 * sqrt(stiffness * mass).
- *
- * Returns null at a level that does not animate the settle at all, so the
- * caller snaps rather than running a spring with a zero in it.
+ * Returns null at a level whose layout changes take no time, so the caller
+ * snaps rather than running a spring with a zero in it.
  */
 export function springConfig(m: Motion): { stiffness: number; damping: number; mass: number } | null {
-  const n = MOTION[m];
-  if (n.settleScale === 0) return null;
-  const stiffness = 180;
-  const mass = 1;
-  return { stiffness, mass, damping: n.springDamping * 2 * Math.sqrt(stiffness * mass) };
+  const n = NATIVE_MOTION[m];
+  return n.layout === 0 ? null : springOf(n.damping);
 }
 
 /**

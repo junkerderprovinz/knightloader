@@ -26,6 +26,7 @@ func testApp(t *testing.T) *app.App {
 // is generated from. It reads the package source because a ServeMux does not
 // report what was registered on it.
 func TestNothingRegistersOutsideTheTable(t *testing.T) {
+	t.Parallel()
 	// Split so that this test file does not match itself.
 	forbidden := []string{"mux." + "HandleFunc", "mux." + "Handle("}
 
@@ -57,6 +58,7 @@ func TestNothingRegistersOutsideTheTable(t *testing.T) {
 // TestEveryRouteDescribesItself checks that every route has a summary for the
 // help page and lives under /api/ unless it has a listed reason not to.
 func TestEveryRouteDescribesItself(t *testing.T) {
+	t.Parallel()
 	// The relay client dials the relay address plus "/relay/connect"
 	// (relay.connectURL), so an instance serving a relay has to answer there.
 	outsideAPI := map[string]string{
@@ -79,6 +81,7 @@ func TestEveryRouteDescribesItself(t *testing.T) {
 // TestOnlyTheseRoutesAreOpen pins the routes that answer without a session, so
 // opening another one takes an edit here that states the reason.
 func TestOnlyTheseRoutesAreOpen(t *testing.T) {
+	t.Parallel()
 	want := map[string]string{
 		"GET /api/health":       "a container orchestrator has to be able to probe a locked instance",
 		"GET /api/auth":         "the login screen asks this before anybody can log in",
@@ -131,6 +134,7 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 // looked up with. The relay route is the only open route with a wildcard in it,
 // and a prefix test that was too generous would open everything below it.
 func TestSessionGuardCoversWildcardRoutes(t *testing.T) {
+	t.Parallel()
 	reg := buildRegistry(t)
 	cases := []struct {
 		path string
@@ -163,6 +167,7 @@ func buildRegistry(t *testing.T) *Registry {
 // function registerAll never calls: its own tests would pass while the server
 // never attached the routes.
 func TestEverySubsystemIsRegistered(t *testing.T) {
+	t.Parallel()
 	entries, err := os.ReadDir(".")
 	if err != nil {
 		t.Fatal(err)
@@ -197,6 +202,7 @@ func TestEverySubsystemIsRegistered(t *testing.T) {
 // TestAnUnknownApiPathIs404 checks that an unclaimed /api/ path answers 404
 // instead of falling through to the single-page app's 200.
 func TestAnUnknownApiPathIs404(t *testing.T) {
+	t.Parallel()
 	reg := buildRegistry(t)
 	mux := http.NewServeMux()
 	// A fallback that answers 200, as the real one does for the app.

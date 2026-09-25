@@ -39,6 +39,16 @@ const (
 	StatusOff LoginStatus = "off"
 )
 
+// The codes a LoginState's Detail comes with, which the accounts page words in
+// the reader's language.
+const (
+	codeAdding   = "adding"
+	codeChecking = "checking"
+	codeInvalid  = "invalid"
+	codeOff      = "off"
+	codeWaiting  = "waiting"
+)
+
 // LoginState is one row the accounts page shows. It has no field that could
 // carry a password, so a snapshot cannot leak one even where a redaction step
 // is forgotten.
@@ -47,6 +57,8 @@ type LoginState struct {
 	Username string      `json:"username"`
 	Status   LoginStatus `json:"status"`
 	Detail   string      `json:"detail,omitempty"`
+	// Code names Detail, so the interface can translate it.
+	Code string `json:"code,omitempty"`
 	// Enabled is the user's own switch: Status says what JD thinks, Enabled
 	// says whether JD was ever asked. The row needs both.
 	Enabled bool `json:"enabled"`
@@ -218,7 +230,7 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 		case !present:
 			p.Add = append(p.Add, d)
 			p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusQueued,
-				Detail: "waiting for JDownloader to accept this login"}
+				Detail: "waiting for JDownloader to accept this login", Code: codeAdding}
 		case acc.InfoMap != nil && acc.InfoMap.Valid:
 			st := LoginState{Host: d.Host, Username: d.Username, Status: StatusActive}
 			describeAccount(&st, acc.InfoMap)
@@ -229,10 +241,10 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 			// for the full grace window is reported as one.
 			if first, seen := firstFail[h]; seen && now.Sub(first) > rejectGrace {
 				p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusRejected,
-					Detail: "JDownloader could not validate this login"}
+					Detail: "JDownloader could not validate this login", Code: codeInvalid}
 			} else {
 				p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusQueued,
-					Detail: "JDownloader is still checking this login"}
+					Detail: "JDownloader is still checking this login", Code: codeChecking}
 			}
 		}
 	}
@@ -368,7 +380,7 @@ func updateFirstFail(firstFail map[string]time.Time, p Plan, now time.Time) {
 	for host, st := range p.States {
 		h := accountKey(host)
 		seen[h] = true
-		if st.Status == StatusQueued && st.Detail == "JDownloader is still checking this login" || st.Status == StatusRejected {
+		if st.Status == StatusQueued && st.Code == codeChecking || st.Status == StatusRejected {
 			if _, ok := firstFail[h]; !ok {
 				firstFail[h] = now
 			}
@@ -396,7 +408,7 @@ func (r *Reconciler) States() []LoginState {
 		cred, _ := r.store.Get(h)
 		if !r.enabled(h) {
 			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
-				Detail: "switched off - JDownloader is not using this login"})
+				Detail: "switched off, so JDownloader is not using this login", Code: codeOff})
 			continue
 		}
 		if st, ok := r.states[h]; ok {
@@ -405,7 +417,7 @@ func (r *Reconciler) States() []LoginState {
 			continue
 		}
 		out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusQueued,
-			Detail: "waiting for the next check", Enabled: true})
+			Detail: "waiting for the next check", Code: codeWaiting, Enabled: true})
 	}
 	return out
 }

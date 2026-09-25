@@ -2,22 +2,14 @@ import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
-import { useT, type TranslationKey } from '../../../lib/i18n';
+import { useT } from '../../../lib/i18n';
+import { COLLISION_LABEL } from '../Archives';
 import { useDraft } from '../context';
 
 // The collision card: what a download does when its name is already taken in
-// the destination folder, and how far "keep both" may count.
-
-/**
- * The labels reuse the extraction page's keys, since both strips answer the
- * same question; the id lists stay apart because the server sends each its
- * own. An id without a label shows as itself.
- */
-const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
-  rename: 'settings.archives.collision.rename',
-  skip: 'settings.archives.collision.skip',
-  overwrite: 'settings.archives.collision.overwrite',
-};
+// the destination folder, and how far "keep both" may count. The labels are
+// the extraction page's, since both strips answer the same question; the id
+// lists stay apart because the server sends each its own.
 
 export function CollisionCard({ hue }: { hue: number }) {
   const { t } = useT();

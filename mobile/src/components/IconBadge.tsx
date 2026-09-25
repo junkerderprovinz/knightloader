@@ -1,6 +1,7 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
+import { usePress } from '../theme/MotionContext';
 import { BTN_H } from '../theme/tokens';
 import { Text } from './Text';
 
@@ -91,6 +92,7 @@ export default function IconBadge({
   accent?: boolean;
 }) {
   const { c, accent: accentColor, accentContrast, accentInk, radii } = useAppearance();
+  const press = usePress();
 
   return (
     <TouchableOpacity
@@ -103,8 +105,11 @@ export default function IconBadge({
         // between the two would be two different badges.
         { borderRadius: radii.control, backgroundColor: c.surface2 },
         accent && { backgroundColor: accentColor },
+        { transform: [{ scale: press.scale }] },
       ]}
       onPress={onPress}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >

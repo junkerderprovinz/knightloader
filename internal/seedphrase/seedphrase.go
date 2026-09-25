@@ -112,7 +112,7 @@ func Encode(secret []byte) (string, error) {
 // ErrChecksum is returned when every word is real but the phrase as a whole
 // does not check out - the signature of a typo that happened to land on
 // another valid word, or of two words swapped.
-var ErrChecksum = errors.New("seedphrase: the phrase is not valid - check for a mistyped or swapped word")
+var ErrChecksum = errors.New("seedphrase: the phrase is not valid; check for a mistyped or swapped word")
 
 // Reason names what is wrong with a phrase in a form something other than a
 // Go program can act on.

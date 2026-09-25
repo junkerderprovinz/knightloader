@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { type Diagnostics as DiagnosticsBundle, fetchDiagnostics } from '../../lib/api';
-import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
+import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
 import { IconDownloads } from '../../lib/icons';
@@ -15,46 +15,11 @@ import { StartupReportCard } from './diagnostics/StartupReport';
 // The diagnostics page shows what this build is and what it runs on, with a
 // button that saves the same bundle to a file for a bug report. The download
 // fetches a fresh bundle, since the log lines and goroutine count keep moving.
-//
-// PENDING holds the English strings until the catalogue has them; the lookup
-// asks the catalogue first.
-const PENDING = {
-  'settings.diagnostics.subtitle':
-    'What this build is, what it is running on, and its own recent log output - for attaching to a bug report.',
-  'settings.diagnostics.systemTitle': 'System information',
-  'settings.diagnostics.version': 'Version',
-  'settings.diagnostics.deployment': 'Build',
-  'settings.diagnostics.deployment.container': 'Container',
-  'settings.diagnostics.deployment.desktop': 'Desktop',
-  'settings.diagnostics.goVersion': 'Go',
-  'settings.diagnostics.platform': 'Platform',
-  'settings.diagnostics.goroutines': 'Goroutines',
-  'settings.diagnostics.download': 'Download diagnostics bundle',
-  'settings.diagnostics.downloading': 'Preparing…',
-  'settings.diagnostics.downloadHint':
-    'A JSON file with the fields above, your settings with every password removed, and the log lines below.',
-  'settings.diagnostics.downloadFailed': 'Could not build the bundle: {error}',
-  'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
-  'settings.diagnostics.toolsMissing': 'not found',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return interpolate(translated ?? PENDING[key], vars);
-    },
-    [t],
-  );
-}
 
 /** deploymentLabel translates buildinfo.Deployment, falling back to the raw value. */
-function deploymentLabel(cx: ReturnType<typeof useCx>, raw: string): string {
-  if (raw === 'container') return cx('settings.diagnostics.deployment.container');
-  if (raw === 'desktop') return cx('settings.diagnostics.deployment.desktop');
+function deploymentLabel(t: ReturnType<typeof useT>['t'], raw: string): string {
+  if (raw === 'container') return t('settings.diagnostics.deployment.container');
+  if (raw === 'desktop') return t('settings.diagnostics.deployment.desktop');
   return raw;
 }
 
@@ -75,7 +40,6 @@ function saveJSON(doc: unknown, filename: string): void {
 
 export function Diagnostics() {
   const { t } = useT();
-  const cx = useCx();
   const { data, failed, loading, reload } = useResource<DiagnosticsBundle>(fetchDiagnostics);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
@@ -87,7 +51,7 @@ export function Diagnostics() {
       const fresh = await fetchDiagnostics();
       saveJSON(fresh, `knightloader-diagnostics-${fileStamp()}.json`);
     } catch (e) {
-      setError(cx('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      setError(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:\s*/, '') }));
     } finally {
       setDownloading(false);
     }
@@ -95,24 +59,24 @@ export function Diagnostics() {
 
   if (loading) return <LoadingCard label={t('common.loading')} />;
   if (failed || !data) {
-    return <ErrorCard message={cx('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
+    return <ErrorCard message={t('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
   }
 
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
-        <SectionTitle hint={cx('settings.diagnostics.subtitle')}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
+        <SectionTitle hint={t('settings.diagnostics.subtitle')}>{t('settings.diagnostics.systemTitle')}</SectionTitle>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Stat label={cx('settings.diagnostics.version')} value={data.version} />
-          <Stat label={cx('settings.diagnostics.deployment')} value={deploymentLabel(cx, data.deployment)} />
-          <Stat label={cx('settings.diagnostics.goVersion')} value={data.goVersion} />
-          <Stat label={cx('settings.diagnostics.platform')} value={`${data.os}/${data.arch}`} />
-          <Stat label={cx('settings.diagnostics.goroutines')} value={String(data.goroutines)} />
+          <Stat label={t('settings.diagnostics.version')} value={data.version} />
+          <Stat label={t('settings.diagnostics.deployment')} value={deploymentLabel(t, data.deployment)} />
+          <Stat label={t('settings.diagnostics.goVersion')} value={data.goVersion} />
+          <Stat label={t('settings.diagnostics.platform')} value={`${data.os}/${data.arch}`} />
+          <Stat label={t('settings.diagnostics.goroutines')} value={String(data.goroutines)} />
           {/* Program names need no translation, and as literals they stay out
               of check-settings-search.mjs's scan of label= props. */}
-          <Stat label="yt-dlp" value={data.mediaTools?.ytdlp?.version || cx('settings.diagnostics.toolsMissing')} />
-          <Stat label="ffmpeg" value={data.mediaTools?.ffmpeg?.version || cx('settings.diagnostics.toolsMissing')} />
+          <Stat label="yt-dlp" value={data.mediaTools?.ytdlp?.version || t('settings.diagnostics.toolsMissing')} />
+          <Stat label="ffmpeg" value={data.mediaTools?.ffmpeg?.version || t('settings.diagnostics.toolsMissing')} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -120,9 +84,9 @@ export function Diagnostics() {
             onClick={onDownload}
             disabled={downloading}
             icon={<IconDownloads width={16} height={16} />}
-            hint={cx('settings.diagnostics.downloadHint')}
+            hint={t('settings.diagnostics.downloadHint')}
           >
-            {downloading ? cx('settings.diagnostics.downloading') : cx('settings.diagnostics.download')}
+            {downloading ? t('settings.diagnostics.downloading') : t('settings.diagnostics.download')}
           </Button>
         </div>
         {error && <span className="text-sm text-statusFail">{error}</span>}

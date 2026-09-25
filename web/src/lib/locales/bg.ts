@@ -1397,7 +1397,6 @@ export const bg: Dict = {
   'settings.browsertools.install': 'Инсталирай',
   'settings.browsertools.installIOS':
     'На iPhone или iPad: отвори тази страница в Safari, докосни Сподели, после „Добавяне към начален екран“.',
-  'settings.access.intakePortsHint': 'Други начини да достигнеш тази инстанция директно, извън обичайния вход. Всеки от тях показва тук дали е достъпен.',
   'settings.nav.browsertools': 'Браузър и приложение',
   'settings.browsertools.bookmarkletStep1': 'Плъзни бутона по-долу в лентата с отметки на браузъра си. Записва се като всяка друга отметка и нищо не се инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На която и да е страница щракни върху него (първо маркирай текст, ако искаш само него). Отваря се малък раздел на KnightLoader, в който връзката на тази страница или маркираният текст вече са попълнени. Прегледай го и го добави оттам като изтегляне.',
@@ -1485,7 +1484,6 @@ export const bg: Dict = {
   'settings.nav.torrents': 'Торенти',
   'settings.module.torrents': 'Торенти',
   'settings.torrents.title': 'Торенти',
-  'settings.torrents.subtitle': 'Цели за сийдване, лимити на трансфер, пренасочване на порт и DHT/PEX за magnet връзки и файлове .torrent.',
   'settings.torrents.seedingTitle': 'Сийдване',
   'settings.torrents.seedRatio': 'Целево съотношение за сийдване',
   'settings.torrents.seedRatioHint': 'Продължава да сийдва завършен торент, докато не бъде върнато на роя това съотношение спрямо собствения му размер. 0 = без цел за съотношение.',

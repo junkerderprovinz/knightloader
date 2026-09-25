@@ -1397,7 +1397,6 @@ export const ro: Dict = {
   'settings.browsertools.install': 'Instalează',
   'settings.browsertools.installIOS':
     'Pe iPhone sau iPad: deschide această pagină în Safari, atinge Distribuie, apoi „Adaugă pe ecranul de Start”.',
-  'settings.access.intakePortsHint': 'Alte moduri de a ajunge direct la această instanță, în afara autentificării normale. Fiecare își arată aici accesibilitatea.',
   'settings.nav.browsertools': 'Browser și aplicație',
   'settings.browsertools.bookmarkletStep1': 'Trage butonul de mai jos în bara de marcaje a browserului. Se salvează ca orice alt marcaj și nu se instalează nimic.',
   'settings.browsertools.bookmarkletStep2': 'Pe orice pagină, dă clic pe el (selectează mai întâi text dacă vrei doar textul). Se deschide o filă mică KnightLoader cu linkul acelei pagini, sau textul selectat, deja completat. Verifică-l și adaugă-l de acolo ca descărcare.',
@@ -1488,7 +1487,6 @@ export const ro: Dict = {
   'settings.nav.torrents': 'Torrenturi',
   'settings.module.torrents': 'Torrenturi',
   'settings.torrents.title': 'Torrenturi',
-  'settings.torrents.subtitle': 'Obiective de seed, limite de transfer, mapare de port și DHT/PEX pentru linkuri magnet și fișiere .torrent.',
   'settings.torrents.seedingTitle': 'Seed',
   'settings.torrents.seedRatio': 'Raport de seed țintă',
   'settings.torrents.seedRatioHint': 'Continuă să facă seed la un torrent terminat până când acest raport, relativ la dimensiunea proprie, a fost redat rețelei. 0 = fără obiectiv de raport.',

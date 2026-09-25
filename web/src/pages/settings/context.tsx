@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import type { Settings } from '../../lib/api';
 import type { FeatureState } from './features';
 
@@ -19,6 +19,10 @@ export interface SettingsDraft {
   patch: (fields: Partial<Settings>) => void;
   /** Replace the whole draft, for the advanced table which edits by key path. */
   replace: (next: Settings) => void;
+  /**
+   * The draft holds something the server does not: an edit still on its way,
+   * or one it refused. A button that acts on the stored settings waits for it.
+   */
   dirty: boolean;
   /**
    * Patches and saves the named fields at once, for pages where every change is
@@ -33,11 +37,13 @@ export interface SettingsDraft {
    */
   reseed: (applied: Settings, keys: string[]) => void;
   /**
-   * Why the server refused what a field holds, for the field to show beside
-   * itself. The draft keeps the refused value and the autosave leaves it out
-   * until it is edited.
+   * Why the server refused what a field holds. The draft keeps the refused
+   * value and the autosave leaves it out until it is edited. Read it through
+   * useFieldError, which also tells the shell the refusal has a place.
    */
-  fieldError: (key: keyof Settings) => string | undefined;
+  fieldError: (field: string, below?: boolean) => string | undefined;
+  /** Marks a place a mounted control shows refusals at; the result unmarks it. */
+  showRefusalsAt: (field: string, below: boolean) => () => void;
 }
 
 export interface FeatureAccess {
@@ -73,6 +79,18 @@ export function useDraft(): SettingsDraft {
   const v = useContext(DraftCtx);
   if (!v) throw new Error('a settings sub-page was rendered outside the settings shell');
   return v;
+}
+
+/**
+ * useFieldError is the refusal a control shows beside itself for field, a
+ * settings key or a dotted path below one such as "reconnect.checkUrl". With
+ * below, a refusal anywhere under field is shown too, for a control that edits
+ * a whole list. A refusal no mounted control shows goes to a toast instead.
+ */
+export function useFieldError(field: string, below = false): string | undefined {
+  const { fieldError, showRefusalsAt } = useDraft();
+  useEffect(() => showRefusalsAt(field, below), [showRefusalsAt, field, below]);
+  return fieldError(field, below);
 }
 
 export function useFeatures(): FeatureAccess {

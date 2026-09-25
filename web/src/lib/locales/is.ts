@@ -1396,7 +1396,6 @@ export const is: Dict = {
   'settings.browsertools.install': 'Setja upp',
   'settings.browsertools.installIOS':
     'Á iPhone eða iPad: opnaðu þessa síðu í Safari, ýttu á Deila, og svo „Bæta á heimaskjá“.',
-  'settings.access.intakePortsHint': 'Aðrar leiðir til að ná beint í þetta tilvik, utan venjulegrar innskráningar. Hver þeirra sýnir hér hvort hún er aðgengileg.',
   'settings.nav.browsertools': 'Vafri og forrit',
   'settings.browsertools.bookmarkletStep1': 'Dragðu hnappinn hér fyrir neðan á bókamerkjastiku vafrans þíns. Hann vistast eins og hvert annað bókamerki og ekkert er sett upp.',
   'settings.browsertools.bookmarkletStep2': 'Smelltu á hann á hvaða síðu sem er (veldu texta fyrst ef þú vilt aðeins hann). Lítill KnightLoader-flipi opnast með tengli þeirrar síðu, eða valda textanum, þegar útfylltum. Farðu yfir það og bættu því við sem niðurhali þaðan.',
@@ -1484,7 +1483,6 @@ export const is: Dict = {
   'settings.nav.torrents': 'Torrent',
   'settings.module.torrents': 'Torrent',
   'settings.torrents.title': 'Torrent',
-  'settings.torrents.subtitle': 'Sáningarmarkmið, flutningsmörk, gáttatilfærsla og DHT/PEX fyrir segulslóðir og .torrent-skrár.',
   'settings.torrents.seedingTitle': 'Sáning',
   'settings.torrents.seedRatio': 'Markhlutfall sáningar',
   'settings.torrents.seedRatioHint': 'Heldur áfram að sá lokinni torrent-skrá þar til þessu hlutfalli, miðað við eigin stærð hennar, hefur verið skilað til sveimsins. 0 = ekkert hlutfallsmarkmið.',

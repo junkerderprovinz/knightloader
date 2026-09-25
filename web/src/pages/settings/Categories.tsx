@@ -24,7 +24,9 @@ import {
 import { fmtSpeed } from '../../lib/format';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { useDraft } from './context';
+import { COLLISION_LABEL } from './Archives';
+import { useDraft, useFieldError } from './context';
+import { RowRefusal } from './controls';
 
 /**
  * CategoriesCard edits the named drawers, each a folder plus defaults, that a
@@ -84,13 +86,6 @@ function categoryID(raw: string): string {
  * "Serien" and "serien" count as one drawer. The server refuses such a pair.
  */
 const keyOf = (c: Category): string => (c.id.trim() !== '' ? categoryID(c.id) : categoryID(c.name ?? ''));
-
-// Labels shared with the archive page; an id without one shows raw.
-const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
-  overwrite: 'settings.archives.collision.overwrite',
-  rename: 'settings.archives.collision.rename',
-  skip: 'settings.archives.collision.skip',
-};
 
 /**
  * The segment id for "no opinion". The leading space keeps it apart from any
@@ -184,6 +179,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
   const options = useCategoryOptions();
   const priorities = usePriorityTabs();
   const hooks = useMediaHooks();
+  const listRefused = useFieldError('categories');
 
   const [openRow, setOpenRow] = useState(-1);
   // A row without a name waits here rather than in the draft (see writePending).
@@ -287,6 +283,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
 
       {/* Shown at the ceiling, where the disabled Add would read as a fault. */}
       {full && <p className="text-xs text-carbon-textMuted">{t('settings.categories.full', { max })}</p>}
+      {listRefused && <p className="text-xs text-statusWarn">{listRefused}</p>}
 
       {cats.length === 0 && !pending ? (
         // Inside the card rather than an EmptyState, which would hide Add.
@@ -483,6 +480,7 @@ function CategoryRow({
       {duplicate && !open && (
         <p className="pb-2.5 ps-8 text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>
       )}
+      <RowRefusal field={`categories.${index}`} explained={duplicate} className="ps-8" />
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">

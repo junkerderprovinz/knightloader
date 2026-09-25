@@ -1397,7 +1397,6 @@ export const uk: Dict = {
   'settings.browsertools.install': 'Встановити',
   'settings.browsertools.installIOS':
     'На iPhone або iPad: відкрийте цю сторінку в Safari, торкніться «Поділитися», потім «На головний екран».',
-  'settings.access.intakePortsHint': 'Інші способи дістатися до цього екземпляра напряму, поза звичайним входом. Для кожного тут видно, чи він доступний.',
   'settings.nav.browsertools': 'Браузер і застосунок',
   'settings.browsertools.bookmarkletStep1': 'Перетягніть кнопку нижче на панель закладок браузера. Вона зберігається як будь-яка інша закладка, нічого не встановлюється.',
   'settings.browsertools.bookmarkletStep2': 'На будь-якій сторінці натисніть її (спершу виділіть текст, якщо потрібен лише він). Відкриється невелика вкладка KnightLoader, де вже заповнено посилання на цю сторінку або виділений текст. Перевірте й додайте звідти як завантаження.',
@@ -1485,7 +1484,6 @@ export const uk: Dict = {
   'settings.nav.torrents': 'Торренти',
   'settings.module.torrents': 'Торренти',
   'settings.torrents.title': 'Торренти',
-  'settings.torrents.subtitle': 'Цільовий рейтинг роздачі, ліміти передавання, проброс порту та DHT/PEX для magnet-посилань і файлів .torrent.',
   'settings.torrents.seedingTitle': 'Роздача',
   'settings.torrents.seedRatio': 'Цільовий рейтинг роздачі',
   'settings.torrents.seedRatioHint': 'Продовжує роздавати завершений торрент, доки в рій не буде повернено стільки ж відносно його власного розміру. 0 = без цілі за рейтингом.',

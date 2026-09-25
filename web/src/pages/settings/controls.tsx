@@ -1,5 +1,38 @@
-import type { CSSProperties } from 'react';
+import type { ComponentProps, CSSProperties } from 'react';
+import { PathInput } from '../../components/FolderPicker';
 import { hueVars } from '../../lib/appearance';
+import { useFieldError } from './context';
+
+/**
+ * SettingPathInput is PathInput for a folder setting, with the server's
+ * refusal of what it holds beneath it.
+ */
+export function SettingPathInput({
+  field,
+  ...props
+}: Omit<ComponentProps<typeof PathInput>, 'error'> & { field: string }) {
+  const error = useFieldError(field);
+  return <PathInput {...props} error={error} />;
+}
+
+/**
+ * RowRefusal is the server's refusal of one row of a settings list, such as
+ * "connections.2". It goes under the row's line, so a folded row shows it too.
+ */
+export function RowRefusal({
+  field,
+  explained = false,
+  className = '',
+}: {
+  field: string;
+  /** The row already says why in its own words, so the refusal is not repeated. */
+  explained?: boolean;
+  className?: string;
+}) {
+  const text = useFieldError(field);
+  if (!text || explained) return null;
+  return <p className={`pb-2.5 text-xs text-statusWarn ${className}`}>{text}</p>;
+}
 
 /**
  * NeutralSwitch is the switch for columns of switches, such as the module list

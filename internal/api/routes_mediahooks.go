@@ -73,9 +73,9 @@ func registerMediaHooks(reg *Registry, a *app.App) {
 			}
 			id := mediahook.HookID(body.ID)
 			if id == "" {
-				http.Error(w, "id: a name holds letters, digits and - _ or . only, at most 64 characters. "+
-					"It is the name a drawer under Categories points at, so it cannot be changed afterwards.",
-					http.StatusBadRequest)
+				writeRefusal(w, http.StatusBadRequest, "nameInvalid",
+					"id: a name holds letters, digits and - _ or . only, at most 64 characters. "+
+						"It is the name a drawer under Categories points at, so it cannot be changed afterwards.", nil)
 				return
 			}
 			hook := mediahook.Hook{

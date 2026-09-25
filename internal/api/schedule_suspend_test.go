@@ -23,6 +23,7 @@ func decodeSuspend(t *testing.T, raw []byte) suspendWire {
 }
 
 func TestScheduleSuspendForMinutesEndsByItselfLater(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -54,6 +55,7 @@ func TestScheduleSuspendForMinutesEndsByItselfLater(t *testing.T) {
 }
 
 func TestScheduleSuspendWithoutAnEndLastsUntilLifted(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -75,6 +77,7 @@ func TestScheduleSuspendWithoutAnEndLastsUntilLifted(t *testing.T) {
 }
 
 func TestScheduleSuspendUntilAnInstant(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -89,6 +92,7 @@ func TestScheduleSuspendUntilAnInstant(t *testing.T) {
 }
 
 func TestScheduleSuspendRefusesWhatCannotBeMeant(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 

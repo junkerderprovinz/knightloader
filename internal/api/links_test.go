@@ -66,6 +66,7 @@ func getJSON(t *testing.T, url string, into any) int {
 // a route that does not exist cannot appear in the self-describing index, and
 // then the holding area is a feature only the interface knows about.
 func TestTheHoldingAreaIsServedWithItsReason(t *testing.T) {
+	t.Parallel()
 	srv, _, held := heldServer(t)
 
 	var got []core.Task
@@ -88,6 +89,7 @@ func TestTheHoldingAreaIsServedWithItsReason(t *testing.T) {
 
 // TestRestoreEmptiesTheHoldingArea covers the button the list exists for.
 func TestRestoreEmptiesTheHoldingArea(t *testing.T) {
+	t.Parallel()
 	srv, a, held := heldServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/collector/filtered/restore",
@@ -112,6 +114,7 @@ func TestRestoreEmptiesTheHoldingArea(t *testing.T) {
 // DELETE, and a clear that reached everything because the ids never arrived
 // would delete links the user did not pick.
 func TestClearingTakesIdsFromTheQuery(t *testing.T) {
+	t.Parallel()
 	srv, a, held := heldServer(t)
 
 	code, raw := postJSON(t, http.MethodDelete, srv.URL+"/api/collector/filtered?ids="+held.ID, nil)
@@ -139,6 +142,7 @@ func TestClearingTakesIdsFromTheQuery(t *testing.T) {
 // while reading an empty parameter as an id turns "clear all" into the same
 // no-op from the other direction.
 func TestIdsFromQuery(t *testing.T) {
+	t.Parallel()
 	cases := map[string][]string{
 		"":         nil,
 		"   ":      nil,
@@ -199,6 +203,7 @@ func linkServer(t *testing.T) (*httptest.Server, *app.App) {
 // read, and the archive passwords, or the extraction asks for a password the
 // user already handed over.
 func TestARelayedSubmissionKeepsItsEntranceAndItsPasswords(t *testing.T) {
+	t.Parallel()
 	srv, _ := linkServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -230,6 +235,7 @@ func TestARelayedSubmissionKeepsItsEntranceAndItsPasswords(t *testing.T) {
 // field, and a route answering something else for it would relabel every link
 // anybody ever pasted.
 func TestAPasteIsStillAPaste(t *testing.T) {
+	t.Parallel()
 	srv, _ := linkServer(t)
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
@@ -252,6 +258,7 @@ func TestAPasteIsStillAPaste(t *testing.T) {
 // real and is not, and a rule keyed on the entrance then reads a value no part
 // of this app writes.
 func TestAnUnknownEntranceIsRefused(t *testing.T) {
+	t.Parallel()
 	srv, a := linkServer(t)
 
 	code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{

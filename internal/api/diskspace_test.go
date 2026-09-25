@@ -27,6 +27,7 @@ func diskSpaceServer(t *testing.T) *httptest.Server {
 // nothing. The download folder is always one of the rows, configured or the
 // built-in default.
 func TestTheDiskReportAlwaysCarriesAListOfVolumes(t *testing.T) {
+	t.Parallel()
 	srv := diskSpaceServer(t)
 	code, raw := getRaw(t, srv.URL+"/api/diskspace")
 	if code != http.StatusOK {
@@ -65,6 +66,7 @@ func TestTheDiskReportAlwaysCarriesAListOfVolumes(t *testing.T) {
 // answers, so a peer's reply drawn under that peer's name would be this box's
 // disks with nothing on screen to say so.
 func TestTheDiskReportIsNotForwardedToAPeer(t *testing.T) {
+	t.Parallel()
 	if relayForwardable(http.MethodGet, "/api/diskspace") {
 		t.Error("GET /api/diskspace is forwardable to a peer; a reading of one machine's disks answered under another machine's name is a wrong number nobody can spot")
 	}
@@ -74,6 +76,7 @@ func TestTheDiskReportIsNotForwardedToAPeer(t *testing.T) {
 // else under /api/ is behind: it carries no credential of its own and answers
 // with folder paths off this host's filesystem.
 func TestTheDiskReportNeedsASession(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerDiskSpace(reg, testApp(t))
 	if reg.open("/api/diskspace") {

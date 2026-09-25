@@ -1396,7 +1396,6 @@ export const et: Dict = {
   'settings.browsertools.install': 'Paigalda',
   'settings.browsertools.installIOS':
     'iPhone’il või iPadil: ava see leht Safaris, puuduta Jaga ja seejärel „Lisa avakuvale“.',
-  'settings.access.intakePortsHint': 'Muud viisid selle eksemplarini otse jõuda, väljaspool tavalist sisselogimist. Igaühe juures näed siin, kas see on kättesaadav.',
   'settings.nav.browsertools': 'Brauser ja rakendus',
   'settings.browsertools.bookmarkletStep1': 'Lohista allolev nupp oma brauseri järjehoidjaribale. See salvestub nagu iga teine järjehoidja ja midagi ei paigaldata.',
   'settings.browsertools.bookmarkletStep2': 'Klõpsa sellel mis tahes lehel (vali enne tekst, kui tahad ainult seda). Avaneb väike KnightLoaderi vahekaart, kus selle lehe link või valitud tekst on juba sisse kirjutatud. Vaata see üle ja lisa see sealt allalaadimisena.',
@@ -1484,7 +1483,6 @@ export const et: Dict = {
   'settings.nav.torrents': 'Torrendid',
   'settings.module.torrents': 'Torrendid',
   'settings.torrents.title': 'Torrendid',
-  'settings.torrents.subtitle': 'Levitamise eesmärgid, ülekandepiirangud, pordi suunamine ja DHT/PEX magnet-linkide ja .torrent-failide jaoks.',
   'settings.torrents.seedingTitle': 'Levitamine',
   'settings.torrents.seedRatio': 'Levitamise sihtsuhe',
   'settings.torrents.seedRatioHint': 'Jätkab valminud torrenti levitamist, kuni parvele on tagastatud see osa võrreldes selle enda suurusega. 0 = suhte eesmärki pole.',

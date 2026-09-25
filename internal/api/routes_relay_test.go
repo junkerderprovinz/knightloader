@@ -56,6 +56,7 @@ func putRelayConfig(t *testing.T, base, body string) (int, relayConfig) {
 }
 
 func TestRelayConfigStartsUnconfigured(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -72,6 +73,7 @@ func TestRelayConfigStartsUnconfigured(t *testing.T) {
 // returns the saved address and the key only as a boolean. The raw body is
 // searched for the key, since a decoded struct would not see an extra field.
 func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -115,6 +117,7 @@ func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 // TestRelayConfigWithoutAKeyLeavesTheStoredOne covers saving an edited address
 // from a form that was never shown the key.
 func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -139,6 +142,7 @@ func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 // TestRelayConfigEmptyKeyClearsIt checks that an explicit empty key removes
 // the stored one, as accounts.Store.Set does.
 func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -160,6 +164,7 @@ func TestRelayConfigEmptyKeyClearsIt(t *testing.T) {
 // TestRelayConfigAddressReachesSettings checks that the address lands in
 // settings.json while the key goes to the sealed credential store.
 func TestRelayConfigAddressReachesSettings(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -176,6 +181,7 @@ func TestRelayConfigAddressReachesSettings(t *testing.T) {
 // /api/relay/config leaves a connected client in a.Federation and that calls
 // cross in both directions.
 func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
+	t.Parallel()
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
 
@@ -255,6 +261,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 // instance reconnects, since the relay only learns the name from the hello
 // frame.
 func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
+	t.Parallel()
 	relaySrv := httptest.NewServer(relay.New())
 	defer relaySrv.Close()
 
@@ -332,6 +339,7 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 // Handler, since what matters is whether the auth guard believes the
 // forwarded credential, not only whether the header is copied.
 func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
+	t.Parallel()
 	_, a := testServer(t)
 	serve := relayProxyHandler(Handler(a))
 
@@ -381,6 +389,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 // TestRelayProxyRefusesEverythingButTasksAndLinks checks that group membership
 // reaches only the allowlisted routes rather than the whole API.
 func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
+	t.Parallel()
 	_, a := testServer(t)
 	serve := relayProxyHandler(Handler(a))
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
@@ -463,6 +472,7 @@ func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
 // the socket, the instance dials its own relay, a second instance joins with
 // the same key, they see each other, and a call crosses.
 func TestServingARelayFromInsideAnInstance(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
@@ -513,6 +523,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 // standalone relay, which groups any key, a relay served from an instance must
 // not become a meeting place for whoever finds its address.
 func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -540,6 +551,7 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 // TestWithTheSwitchOffTheRelaySocketIsNotThere checks that an instance not
 // serving a relay answers 404, like a version without the feature.
 func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -570,6 +582,7 @@ func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
 // TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt checks that saving only
 // the address does not change the serve switch.
 func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 

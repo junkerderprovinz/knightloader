@@ -379,29 +379,13 @@ func normalizeCategoryCollision(raw string) string {
 // filter flavour ignores the field.
 func (s Settings) ValidateCategories() error {
 	if len(s.Categories) > MaxCategories {
-		return fmt.Errorf("there are %d categories; the limit is %d", len(s.Categories), MaxCategories)
+		return &FieldError{Field: "categories",
+			Err: fmt.Errorf("there are %d categories; the limit is %d", len(s.Categories), MaxCategories)}
 	}
 	known := make(map[string]bool, len(s.Categories))
 	for i, c := range s.Categories {
-		id := CategoryID(c.ID)
-		if id == "" {
-			id = CategoryID(c.Name)
-		}
-		if id == "" {
-			return fmt.Errorf("category %d has neither an id nor a name, so nothing could ever be filed in it", i+1)
-		}
-		if known[id] {
-			return fmt.Errorf("category %d repeats the id %q; two drawers with one key cannot be told apart", i+1, id)
-		}
-		known[id] = true
-		if p := c.Priority; p != nil && (*p < rules.PriorityMin || *p > rules.PriorityMax) {
-			return fmt.Errorf("category %q: priority %d is outside %d..%d", id, *p, rules.PriorityMin, rules.PriorityMax)
-		}
-		if c.SpeedLimit < 0 {
-			return fmt.Errorf("category %q: a speed limit of %d bytes per second is not a limit", id, c.SpeedLimit)
-		}
-		if raw := strings.TrimSpace(c.Collision); raw != "" && normalizeCategoryCollision(raw) == "" {
-			return fmt.Errorf("category %q: %q is not a collision rule this build can apply; use rename, skip or overwrite", id, raw)
+		if err := validateCategory(c, i, known); err != nil {
+			return &FieldError{Field: fmt.Sprintf("categories.%d", i), Err: err}
 		}
 	}
 	for i, r := range s.Packagizer.Rules {
@@ -409,8 +393,35 @@ func (s Settings) ValidateCategories() error {
 		if want == "" || known[want] {
 			continue
 		}
-		return fmt.Errorf("packagizer rule %d (%s) files links in the category %q, which does not exist",
-			i+1, ruleLabel(r, i), want)
+		return &FieldError{Field: fmt.Sprintf("packagizer.rules.%d", i),
+			Err: fmt.Errorf("packagizer rule %d (%s) files links in the category %q, which does not exist",
+				i+1, ruleLabel(r, i), want)}
+	}
+	return nil
+}
+
+// validateCategory checks row i of the table and records its id in known,
+// which holds the ids of the rows before it.
+func validateCategory(c Category, i int, known map[string]bool) error {
+	id := CategoryID(c.ID)
+	if id == "" {
+		id = CategoryID(c.Name)
+	}
+	if id == "" {
+		return fmt.Errorf("category %d has neither an id nor a name, so nothing could ever be filed in it", i+1)
+	}
+	if known[id] {
+		return fmt.Errorf("category %d repeats the id %q; two drawers with one key cannot be told apart", i+1, id)
+	}
+	known[id] = true
+	if p := c.Priority; p != nil && (*p < rules.PriorityMin || *p > rules.PriorityMax) {
+		return fmt.Errorf("category %q: priority %d is outside %d..%d", id, *p, rules.PriorityMin, rules.PriorityMax)
+	}
+	if c.SpeedLimit < 0 {
+		return fmt.Errorf("category %q: a speed limit of %d bytes per second is not a limit", id, c.SpeedLimit)
+	}
+	if raw := strings.TrimSpace(c.Collision); raw != "" && normalizeCategoryCollision(raw) == "" {
+		return fmt.Errorf("category %q: %q is not a collision rule this build can apply; use rename, skip or overwrite", id, raw)
 	}
 	return nil
 }

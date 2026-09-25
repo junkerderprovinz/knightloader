@@ -743,12 +743,12 @@ function EntryRow({
 
       {/* Repeated on a collapsed row, so the reason is not hidden behind a click. */}
       {!open && error && (
-        <p className="pb-2 text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>
+        <p dir="auto" className="pb-2 text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>
       )}
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {error && <p className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
+          {error && <p dir="auto" className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('settings.schedule.name')}>

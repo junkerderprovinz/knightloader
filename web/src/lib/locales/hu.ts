@@ -1396,7 +1396,6 @@ export const hu: Dict = {
   'settings.browsertools.install': 'Telepítés',
   'settings.browsertools.installIOS':
     'iPhone-on vagy iPad-en: nyissa meg ezt az oldalt Safariban, koppintson a Megosztásra, majd „Kezdőképernyőhöz adás”.',
-  'settings.access.intakePortsHint': 'További módok, amelyekkel ez a példány közvetlenül elérhető, a szokásos bejelentkezésen kívül. Mindegyiknél itt látod, hogy elérhető-e.',
   'settings.nav.browsertools': 'Böngésző és alkalmazás',
   'settings.browsertools.bookmarkletStep1': 'Húzd az alábbi gombot a böngésződ könyvjelzősávjára. Úgy mentődik, mint bármelyik könyvjelző, és semmi sem települ.',
   'settings.browsertools.bookmarkletStep2': 'Bármelyik oldalon kattints rá (előbb jelölj ki szöveget, ha csak azt szeretnéd). Megnyílik egy kis KnightLoader-lap, amelyben már ki van töltve az oldal linkje vagy a kijelölt szöveg. Nézd át, és onnan add hozzá letöltésként.',
@@ -1484,7 +1483,6 @@ export const hu: Dict = {
   'settings.nav.torrents': 'Torrentek',
   'settings.module.torrents': 'Torrentek',
   'settings.torrents.title': 'Torrentek',
-  'settings.torrents.subtitle': 'Seedelési célok, átviteli korlátok, port-továbbítás és DHT/PEX magnet linkekhez és .torrent fájlokhoz.',
   'settings.torrents.seedingTitle': 'Seedelés',
   'settings.torrents.seedRatio': 'Cél seedelési arány',
   'settings.torrents.seedRatioHint': 'Egy befejezett torrentet addig seedel tovább, amíg a saját méretéhez képest ennyi nem kerül vissza a rajhoz. 0 = nincs arány cél.',

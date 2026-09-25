@@ -44,6 +44,7 @@ func speedServer(t *testing.T) (*app.App, *httptest.Server) {
 // since JSON null and an empty array both decode to a usable Go slice, so the
 // raw bytes are checked as well.
 func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
+	t.Parallel()
 	_, srv := speedServer(t)
 
 	resp, err := http.Get(srv.URL + "/api/stats/speed")
@@ -115,6 +116,7 @@ func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
 // fewer samples than the ring holds would draw a window shorter than its own
 // abscissa claims.
 func TestTheSpeedRouteTakesNoParameters(t *testing.T) {
+	t.Parallel()
 	src, err := os.ReadFile("routes_speedhistory.go")
 	if err != nil {
 		t.Fatal(err)
@@ -135,6 +137,7 @@ func TestTheSpeedRouteTakesNoParameters(t *testing.T) {
 // summary is the one an operator meets first, because the self-describing
 // index at GET /api/ prints these and nothing else.
 func TestTheSpeedRouteSaysItIsMemoryOnly(t *testing.T) {
+	t.Parallel()
 	a := testApp(t)
 	reg := newRegistry()
 	registerSpeedHistory(reg, a)

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  ApiError,
   type DiscoveredInstance,
   type Instance,
   type Settings,
@@ -84,8 +85,11 @@ export function Instances() {
       }
       await load();
       await loadFound();
-    } catch (e: any) {
-      toast(t('list.failed', { error: String(e?.message ?? e) }), 'fail', 'action-failed');
+    } catch (e: unknown) {
+      // Discovery keeps listing while peer instances are switched off, but
+      // adding one is refused.
+      if (e instanceof ApiError && e.code === 'federationOff') toast(t('instances.moduleOff'), 'fail', 'action-failed');
+      else toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
       shake(f.id);
     }
   }

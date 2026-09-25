@@ -20,6 +20,7 @@ import { useT } from '../i18n/I18nContext';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../donate';
 import { GlimButton, NotchCard } from './glim';
 import { Cross, Paste } from './IconBadge';
+import { NoArrival } from './Moving';
 import { Text } from './Text';
 
 /**
@@ -82,129 +83,131 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
 
   return (
     <Modal visible={visible} transparent animationType={motion === 'off' ? 'none' : 'fade'} onRequestClose={onClose}>
-      <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
-        {/* Swallows the press so a tap inside the window closes nothing. */}
-        <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
-          <NotchCard title={t('settings.cryptoTitle')} info={t('settings.cryptoIntro')} style={styles.flush}>
-            {/* Only the body scrolls, so the title and the bottom row stay in
-                place on a short screen (rule 15). */}
-            <ScrollView style={{ maxHeight: height * 0.66 }} contentContainerStyle={styles.body}>
-              <View style={[styles.code, { backgroundColor: c.surface2, borderRadius: radii.card }]}>
-                {/* Black on white in both themes: an inverted code is outside
-                    the standard, and the scanners that refuse it are the wallet
-                    apps a donor holds. The plate takes the card radius, which is
-                    safe because the outer four modules are the quiet zone. */}
-                <View style={[styles.plate, { borderRadius: radii.card }]}>
-                  <QrCode rows={rows} size={168} label={network.address} />
-                </View>
-                {/* The whole address, wrapping rather than shortened, since it
-                    is checked by eye before anybody sends to it. */}
-                <Text selectable style={[styles.address, { color: c.text }]}>
-                  {network.address}
-                </Text>
+      <NoArrival>
+        <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
+          {/* Swallows the press so a tap inside the window closes nothing. */}
+          <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
+            <NotchCard title={t('settings.cryptoTitle')} info={t('settings.cryptoIntro')} style={styles.flush}>
+              {/* Only the body scrolls, so the title and the bottom row stay in
+                  place on a short screen (rule 15). */}
+              <ScrollView style={{ maxHeight: height * 0.66 }} contentContainerStyle={styles.body}>
+                <View style={[styles.code, { backgroundColor: c.surface2, borderRadius: radii.card }]}>
+                  {/* Black on white in both themes: an inverted code is outside
+                      the standard, and the scanners that refuse it are the wallet
+                      apps a donor holds. The plate takes the card radius, which is
+                      safe because the outer four modules are the quiet zone. */}
+                  <View style={[styles.plate, { borderRadius: radii.card }]}>
+                    <QrCode rows={rows} size={168} label={network.address} />
+                  </View>
+                  {/* The whole address, wrapping rather than shortened, since it
+                      is checked by eye before anybody sends to it. */}
+                  <Text selectable style={[styles.address, { color: c.text }]}>
+                    {network.address}
+                  </Text>
 
-                {/* Shown for a coin with one chain as well: it also says which
-                    network the address belongs to. */}
-                <View style={styles.chips} accessibilityLabel={t('settings.cryptoNetworks')}>
-                  {coin.networks.map((n, i) => {
-                    const on = n.id === network.id;
+                  {/* Shown for a coin with one chain as well: it also says which
+                      network the address belongs to. */}
+                  <View style={styles.chips} accessibilityLabel={t('settings.cryptoNetworks')}>
+                    {coin.networks.map((n, i) => {
+                      const on = n.id === network.id;
+                      const { fill, ink } = chosen(i);
+                      return (
+                        <Pressable
+                          key={n.id}
+                          onPress={() => {
+                            setNetwork(n);
+                            setCopied(false);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: on }}
+                          style={({ pressed }) => [
+                            styles.chip,
+                            { borderRadius: radii.pill, backgroundColor: on ? fill : pressed ? c.hoverRaised : c.surface3 },
+                          ]}
+                        >
+                          <Text style={[styles.chipText, { color: on ? ink : c.textSub }]}>{n.name}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {/* What a donor on this chain has to know, where they would
+                      look for it. */}
+                  {network.noteKey && (
+                    <Text style={[styles.note, { color: c.statusWarnText }]}>{t(network.noteKey)}</Text>
+                  )}
+
+                  {/* The coin's own position, so under the rainbow it matches the
+                      tile the address came from. */}
+                  <GlimButton
+                    hue={coinIndex}
+                    label={copied ? t('settings.cryptoCopied') : t('settings.cryptoCopy')}
+                    icon={(ink) => <Paste color={ink} />}
+                    onPress={() => {
+                      void Clipboard.setStringAsync(network.address)
+                        .then(() => setCopied(true))
+                        // The address stays on screen whole, to be selected by hand.
+                        .catch(() => undefined);
+                    }}
+                  />
+                </View>
+
+                {/* Tiles, since a coin's mark is recognised faster than its name
+                    is read. Square whatever they show, with the mark at their
+                    heart. */}
+                <View style={styles.tiles}>
+                  {CRYPTO_COINS.map((k, i) => {
+                    const on = k.id === coin.id;
                     const { fill, ink } = chosen(i);
                     return (
                       <Pressable
-                        key={n.id}
+                        key={k.id}
                         onPress={() => {
-                          setNetwork(n);
+                          // Always the new coin's first chain, never one carried
+                          // over from the last coin without being checked.
+                          setCoin(k);
+                          setNetwork(k.networks[0]!);
                           setCopied(false);
                         }}
                         accessibilityRole="button"
                         accessibilityState={{ selected: on }}
+                        accessibilityLabel={`${k.name} (${k.symbol})`}
                         style={({ pressed }) => [
-                          styles.chip,
-                          { borderRadius: radii.pill, backgroundColor: on ? fill : pressed ? c.hoverRaised : c.surface3 },
+                          styles.tile,
+                          {
+                            borderRadius: radii.control,
+                            // A press stands in for the web's hover.
+                            backgroundColor: on ? fill : pressed ? c.tileHover : c.surface2,
+                          },
                         ]}
                       >
-                        <Text style={[styles.chipText, { color: on ? ink : c.textSub }]}>{n.name}</Text>
+                        {({ pressed }) => {
+                          // A filled tile paints its mark in its fill's ink, never
+                          // in a colour nobody can predict the contrast of. A
+                          // pressed one takes the tile ink, since a rainbow hue
+                          // measures under 3:1 on the dark theme's grey.
+                          const markInk = on ? ink : pressed ? c.tileHoverInk : restingMark(i);
+                          const wordInk = on ? ink : pressed ? markInk : c.textSub;
+                          return (
+                            <>
+                              <Image source={COIN_MARKS[k.id]} style={styles.mark} tintColor={markInk} resizeMode="contain" />
+                              <Text style={[styles.ticker, { color: wordInk }]}>{k.symbol}</Text>
+                            </>
+                          );
+                        }}
                       </Pressable>
                     );
                   })}
                 </View>
+              </ScrollView>
 
-                {/* What a donor on this chain has to know, where they would
-                    look for it. */}
-                {network.noteKey && (
-                  <Text style={[styles.note, { color: c.statusWarnText }]}>{t(network.noteKey)}</Text>
-                )}
-
-                {/* The coin's own position, so under the rainbow it matches the
-                    tile the address came from. */}
-                <GlimButton
-                  hue={coinIndex}
-                  label={copied ? t('settings.cryptoCopied') : t('settings.cryptoCopy')}
-                  icon={(ink) => <Paste color={ink} />}
-                  onPress={() => {
-                    void Clipboard.setStringAsync(network.address)
-                      .then(() => setCopied(true))
-                      // The address stays on screen whole, to be selected by hand.
-                      .catch(() => undefined);
-                  }}
-                />
+              <View style={styles.actions}>
+                <GlimButton tone="quiet" label={t('settings.cryptoClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
               </View>
-
-              {/* Tiles, since a coin's mark is recognised faster than its name
-                  is read. Square whatever they show, with the mark at their
-                  heart. */}
-              <View style={styles.tiles}>
-                {CRYPTO_COINS.map((k, i) => {
-                  const on = k.id === coin.id;
-                  const { fill, ink } = chosen(i);
-                  return (
-                    <Pressable
-                      key={k.id}
-                      onPress={() => {
-                        // Always the new coin's first chain, never one carried
-                        // over from the last coin without being checked.
-                        setCoin(k);
-                        setNetwork(k.networks[0]!);
-                        setCopied(false);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      accessibilityLabel={`${k.name} (${k.symbol})`}
-                      style={({ pressed }) => [
-                        styles.tile,
-                        {
-                          borderRadius: radii.control,
-                          // A press stands in for the web's hover.
-                          backgroundColor: on ? fill : pressed ? c.tileHover : c.surface2,
-                        },
-                      ]}
-                    >
-                      {({ pressed }) => {
-                        // A filled tile paints its mark in its fill's ink, never
-                        // in a colour nobody can predict the contrast of. A
-                        // pressed one takes the tile ink, since a rainbow hue
-                        // measures under 3:1 on the dark theme's grey.
-                        const markInk = on ? ink : pressed ? c.tileHoverInk : restingMark(i);
-                        const wordInk = on ? ink : pressed ? markInk : c.textSub;
-                        return (
-                          <>
-                            <Image source={COIN_MARKS[k.id]} style={styles.mark} tintColor={markInk} resizeMode="contain" />
-                            <Text style={[styles.ticker, { color: wordInk }]}>{k.symbol}</Text>
-                          </>
-                        );
-                      }}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </ScrollView>
-
-            <View style={styles.actions}>
-              <GlimButton tone="quiet" label={t('settings.cryptoClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
-            </View>
-          </NotchCard>
+            </NotchCard>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </NoArrival>
     </Modal>
   );
 }

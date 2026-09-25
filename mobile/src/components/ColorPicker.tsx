@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
+import { useMotion } from '../theme/MotionContext';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
 import { Check } from './IconBadge';
@@ -100,6 +101,7 @@ export default function ColorPicker({
   onClose: () => void;
 }) {
   const { c, radii, accent } = useAppearance();
+  const { motion } = useMotion();
   const { t } = useT();
   const start = hexToHsv(initial) ?? { h: 45, s: 1, v: 1 };
   const [hsv, setHsv] = useState(start);
@@ -185,7 +187,7 @@ export default function ColorPicker({
   );
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType={motion === 'off' ? 'none' : 'fade'} onRequestClose={onClose}>
       {/* Tapping the ground closes it, which is what a popover does. The panel
           itself swallows the press so a drag inside never dismisses.
 

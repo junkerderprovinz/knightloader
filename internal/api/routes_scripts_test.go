@@ -44,6 +44,7 @@ func getScripts(t *testing.T, url string) []script.Script {
 // lib/scripts.ts drive: create, see it listed, edit it, test-run it, delete
 // it, see it gone. That is every route registerScripts adds.
 func TestScriptsLifecycleOverHTTP(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -126,6 +127,7 @@ func TestScriptsLifecycleOverHTTP(t *testing.T) {
 // exists to prevent, one layer up: adding a trigger would fail the test for
 // doing what the route promises.
 func TestScriptTriggersListsKnownTriggers(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -164,6 +166,7 @@ func TestScriptTriggersListsKnownTriggers(t *testing.T) {
 // validate: a script that does not compile must never reach disk, the same
 // way an empty API token name never reaches apitoken's store.
 func TestCreateScriptRefusesBadCode(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -182,6 +185,7 @@ func TestCreateScriptRefusesBadCode(t *testing.T) {
 // from believing a typo'd id ran or removed something, matching
 // routes_tokens_test.go's TestRevokeUnknownTokenIs404.
 func TestRunUnknownScriptIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -196,6 +200,7 @@ func TestRunUnknownScriptIs404(t *testing.T) {
 }
 
 func TestDeleteUnknownScriptIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -214,6 +219,7 @@ func TestDeleteUnknownScriptIs404(t *testing.T) {
 // the app has no task for must not run with task absent from the sandbox,
 // which would look like a toolbar Test Run that never claimed to have one.
 func TestRunScriptWithUnknownTaskIs404(t *testing.T) {
+	t.Parallel()
 	srv, _ := testServer(t)
 	defer srv.Close()
 
@@ -235,6 +241,7 @@ func TestRunScriptWithUnknownTaskIs404(t *testing.T) {
 // TestManagingScriptsNeedsASession mirrors TestManagingTokensNeedsASession:
 // none of the script routes is on the open list the login routes are on.
 func TestManagingScriptsNeedsASession(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {

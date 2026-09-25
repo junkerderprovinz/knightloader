@@ -219,6 +219,7 @@ func TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback(t *testing.T) {
 // TestPreferredAddress checks that loopback entries are skipped and a known
 // domain wins over a LAN IP wherever it sits in the list.
 func TestPreferredAddress(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name  string
 		addrs []ReachableAddress
@@ -289,6 +290,7 @@ func TestRemoteAccessQRMatchesThePrimaryAddress(t *testing.T) {
 }
 
 func TestIsDomainHost(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		hostport string
 		want     bool

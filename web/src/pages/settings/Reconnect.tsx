@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
@@ -26,7 +26,7 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
-import { useDraft } from './context';
+import { useDraft, useFieldError } from './context';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -190,6 +190,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const rc = readReconnect(cfg);
+  const methodRefused = useRefusal('method');
 
   const write = useCallback(
     (fields: Partial<ReconnectConfig>) => {
@@ -243,6 +244,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
               icon: m.icon,
             }))}
           />
+          {methodRefused.line}
         </FieldGroup>
 
         {off && <StateLine tone="muted">{t('settings.reconnect.offState')}</StateLine>}
@@ -275,16 +277,19 @@ function usesRouterFields(m: Method): boolean {
 
 function CommandFields({ rc, write }: FieldProps) {
   const { t } = useT();
+  const refused = useRefusal('command');
   return (
     <>
       <Field label={t('settings.reconnect.command')} hint={t('settings.reconnect.commandHint')}>
         <TextInput
+          {...refused.mark}
           dir="ltr"
           spellCheck={false}
           value={rc.command ?? ''}
           placeholder="/usr/local/bin/reconnect.sh"
           onChange={(e) => write({ command: e.target.value })}
         />
+        {refused.line}
       </Field>
       <Field label={t('settings.reconnect.args')} hint={t('settings.reconnect.argsHint')}>
         <LinesArea rows={3} lines={rc.args} placeholder="--router%%router%%" onLines={(v) => write({ args: v })} />
@@ -315,17 +320,21 @@ function UPnPFields({ rc, write }: FieldProps) {
 
 function ScriptFields({ rc, write }: FieldProps) {
   const { t } = useT();
+  const interpreterRefused = useRefusal('interpreter');
+  const scriptRefused = useRefusal('script');
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t('settings.reconnect.interpreter')} hint={t('settings.reconnect.interpreterHint')}>
           <TextInput
+            {...interpreterRefused.mark}
             dir="ltr"
             spellCheck={false}
             value={rc.interpreter ?? ''}
             placeholder="/bin/sh"
             onChange={(e) => write({ interpreter: e.target.value })}
           />
+          {interpreterRefused.line}
         </Field>
         <Field
           label={t('settings.reconnect.interpreterArgs')}
@@ -340,13 +349,20 @@ function ScriptFields({ rc, write }: FieldProps) {
         </Field>
       </div>
       <Field label={t('settings.reconnect.script')} hint={t('settings.reconnect.scriptHint')}>
-        <TextArea
-          dir="ltr"
-          rows={8}
-          spellCheck={false}
-          value={rc.script ?? ''}
-          onChange={(e) => write({ script: e.target.value })}
-        />
+        {/* The ring sits on a wrapper, since a class given to TextArea replaces
+            its own, and on a span, since a label may not hold a div. */}
+        <span className={scriptRefused.text ? `block rounded-[var(--radius-control)] ${REFUSED_RING}` : 'block'}>
+          <TextArea
+            aria-invalid={scriptRefused.text ? true : undefined}
+            aria-describedby={scriptRefused.text ? scriptRefused.id : undefined}
+            dir="ltr"
+            rows={8}
+            spellCheck={false}
+            value={rc.script ?? ''}
+            onChange={(e) => write({ script: e.target.value })}
+          />
+        </span>
+        {scriptRefused.line}
       </Field>
     </>
   );
@@ -361,6 +377,8 @@ function RouterFields({ rc, write }: FieldProps) {
   const [finding, setFinding] = useState(false);
   const [found, setFound] = useState('');
   const [failed, setFailed] = useState('');
+
+  const routerRefused = useRefusal('router');
 
   // An untouched draft keeps the mask, which tells the save "unchanged".
   const stored = rc.password === REDACTED;
@@ -394,12 +412,14 @@ function RouterFields({ rc, write }: FieldProps) {
           {/* The button sits outside the Field, whose label would pass it clicks. */}
           <Field label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
             <TextInput
+              {...routerRefused.mark}
               dir="ltr"
               spellCheck={false}
               value={rc.router ?? ''}
               placeholder="192.168.1.1"
               onChange={(e) => write({ router: e.target.value })}
             />
+            {routerRefused.line}
           </Field>
         </div>
         <Button
@@ -443,6 +463,7 @@ function RequestFields({ rc, write }: FieldProps) {
   const { t } = useT();
   const [importing, setImporting] = useState(false);
   const rows = rc.requests ?? [];
+  const refused = useRefusal('requests');
 
   const update = (i: number, fields: Partial<ReconnectRequest>) =>
     write({ requests: rows.map((q, n) => (n === i ? { ...q, ...fields } : q)) });
@@ -505,6 +526,7 @@ function RequestFields({ rc, write }: FieldProps) {
           ))}
         </ul>
       )}
+      {refused.line}
     </div>
   );
 }
@@ -528,6 +550,7 @@ function RequestRow({
   onRemove: () => void;
 }) {
   const { t } = useT();
+  const urlRefused = useRefusal(`requests.${index}.url`);
   return (
     <li className="glim-well flex flex-col gap-3 p-4">
       <div className="flex items-center gap-3">
@@ -577,12 +600,14 @@ function RequestRow({
         </Field>
         <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
           <TextInput
+            {...urlRefused.mark}
             dir="ltr"
             spellCheck={false}
             value={row.url}
             placeholder="http://%%router%%/login.cgi"
             onChange={(e) => onChange({ url: e.target.value })}
           />
+          {urlRefused.line}
         </Field>
       </div>
 
@@ -739,17 +764,20 @@ function CheckFields({ rc, write }: FieldProps) {
 
   const interval = rc.intervalSeconds;
   const timeout = rc.timeoutSeconds;
+  const refused = useRefusal('checkUrl');
 
   return (
     <>
       <Field label={t('settings.reconnect.checkUrl')} hint={t('settings.reconnect.checkUrlHint')}>
         <TextInput
+          {...refused.mark}
           dir="ltr"
           spellCheck={false}
           value={rc.checkUrl ?? ''}
           placeholder="https://api.ipify.org"
           onChange={(e) => write({ checkUrl: e.target.value })}
         />
+        {refused.line}
       </Field>
 
       {/* No preset is selected while the URL is somebody's own. */}
@@ -913,6 +941,29 @@ function StateLine({ tone, children }: { tone: Tone; children: ReactNode }) {
 interface FieldProps {
   rc: ReconnectConfig;
   write: (fields: Partial<ReconnectConfig>) => void;
+}
+
+/** The ring PathInput draws round a refused value. */
+const REFUSED_RING = 'shadow-[0_0_0_2px_var(--status-warn-text)]';
+
+/**
+ * useRefusal is the server's refusal of one reconnect field, named by its
+ * path inside reconnect.Config such as "checkUrl", with the props that mark
+ * its input and the line that goes beneath it.
+ */
+function useRefusal(field: string) {
+  const text = useFieldError(`reconnect.${field}`);
+  const id = useId();
+  return {
+    text,
+    id,
+    mark: text ? { 'aria-invalid': true, 'aria-describedby': id, className: REFUSED_RING } : {},
+    line: text ? (
+      <span id={id} className="text-xs text-statusWarn">
+        {text}
+      </span>
+    ) : null,
+  };
 }
 
 /**

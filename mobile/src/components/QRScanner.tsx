@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAppearance } from '../theme/AppearanceContext';
+import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
@@ -14,6 +15,7 @@ import { Text } from './Text';
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
   const { c, accent, radii } = useAppearance();
+  const { motion } = useMotion();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
 
@@ -33,7 +35,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: c.bg }]}>
         {!permission ? (
           <View style={styles.center} />

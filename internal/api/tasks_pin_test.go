@@ -32,6 +32,7 @@ func tasksNow(t *testing.T, base string) []core.Task {
 // and comes back on the list, so the row can say which backend it is pinned
 // to.
 func TestTheOptionsRoutePinsABackend(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	id := stage(t, a, "https://host.example/one.bin")[0].ID
@@ -68,6 +69,7 @@ func TestTheOptionsRoutePinsABackend(t *testing.T) {
 // the pin were checked after the rest had landed, the caller would get a 400
 // and a selection that was edited anyway.
 func TestAnUnknownBackendIsRefusedBeforeAnythingIsApplied(t *testing.T) {
+	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	id := stage(t, a, "https://host.example/two.bin")[0].ID

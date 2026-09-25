@@ -119,6 +119,7 @@ func storeConnection(t *testing.T, a *app.App, e proxycfg.Entry) proxycfg.Entry 
 // saved proxy on credentials that are correct, and the obvious fix for that is
 // a form that makes the user retype the password to change a host filter.
 func TestTestingARowDoesNotAskForThePasswordAgain(t *testing.T) {
+	t.Parallel()
 	a, srv := connectionsServer(t)
 	host, port, seen := recordingProxy(t, "alice:secret")
 	stored := storeConnection(t, a, proxycfg.Entry{
@@ -151,6 +152,7 @@ func TestTestingARowDoesNotAskForThePasswordAgain(t *testing.T) {
 // machine it controls must not arrive there carrying the secret. The page has
 // to say so, since from the user's side the password looks forgotten.
 func TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt(t *testing.T) {
+	t.Parallel()
 	a, srv := connectionsServer(t)
 	host, port, seen := recordingProxy(t, "alice:secret")
 	stored := storeConnection(t, a, proxycfg.Entry{
@@ -179,6 +181,7 @@ func TestAnEditedEndpointDoesNotTakeTheStoredPasswordWithIt(t *testing.T) {
 // an empty password box for a working proxy, and the user retypes a password
 // that was never lost.
 func TestARedactedRowIsTellableFromARowWithNoPassword(t *testing.T) {
+	t.Parallel()
 	a, srv := connectionsServer(t)
 	s := a.Settings.Get()
 	s.Connections = []proxycfg.Entry{
@@ -220,6 +223,7 @@ func TestARedactedRowIsTellableFromARowWithNoPassword(t *testing.T) {
 // reads them before the list is committed, and the page holds an unsaved draft
 // that a write here would disagree with.
 func TestImportStoresNothing(t *testing.T) {
+	t.Parallel()
 	a, srv := connectionsServer(t)
 	got := postConn[proxycfg.Import](t, srv, "/api/connections/import", map[string]any{
 		"text": "http://proxy.lan:8080\nsocks5://alice:secret@proxy.example.org:1080",
@@ -236,6 +240,7 @@ func TestImportStoresNothing(t *testing.T) {
 // and cannot check the stored list, so a duplicate of a saved row is the one
 // nobody sees coming.
 func TestImportRefusesAgainstWhatIsAlreadyConfigured(t *testing.T) {
+	t.Parallel()
 	a, srv := connectionsServer(t)
 	storeConnection(t, a, proxycfg.Entry{Kind: proxycfg.KindHTTP, Host: "proxy.lan", Port: 8080, Enabled: true})
 
@@ -260,6 +265,7 @@ func TestImportRefusesAgainstWhatIsAlreadyConfigured(t *testing.T) {
 // and test dials whatever it is given with the stored credentials, so an open
 // test route is a port scanner with the user's passwords attached.
 func TestConnectionRoutesNeedASession(t *testing.T) {
+	t.Parallel()
 	reg := newRegistry()
 	registerConnections(reg, testApp(t))
 	for _, r := range reg.Routes() {
