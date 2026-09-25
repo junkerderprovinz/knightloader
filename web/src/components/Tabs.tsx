@@ -427,7 +427,7 @@ export function Tabs(props: TabsProps) {
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
-              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-1'}
+              ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3 py-0.5'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 ${stacked ? 'basis-0' : 'basis-auto'}` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${look} ${grip}`
@@ -462,7 +462,7 @@ export function Tabs(props: TabsProps) {
                   isWell
                     ? 'text-pretty break-words'
                     : vertical && !stacked
-                      ? 'line-clamp-2 break-words text-balance leading-4'
+                      ? 'line-clamp-2 break-words text-balance leading-[18px]'
                       : 'truncate'
                 } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >
