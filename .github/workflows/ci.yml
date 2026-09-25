@@ -182,6 +182,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Tests
+        run: npm test
+
       - name: Settings pages parity
         run: node check-settings-pages.mjs
 

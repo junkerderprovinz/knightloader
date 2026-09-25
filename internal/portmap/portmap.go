@@ -43,7 +43,7 @@ type Outcome string
 const (
 	// Failed means either AddPortMapping itself was refused (a SOAP fault,
 	// or no gateway/WAN service could be reached at all), or the read-back
-	// positively disproves the router's own success - there is proof, not
+	// positively disproves the router's own success: there is proof, not
 	// merely an absence of proof, that the mapping did not take.
 	Failed Outcome = "failed"
 	// Confirmed means AddPortMapping succeeded and GetSpecificPortMappingEntry
@@ -52,11 +52,10 @@ const (
 	// Unconfirmed means AddPortMapping succeeded but the read-back could not
 	// prove it either way: the query action is not implemented, the call
 	// failed for a transport reason, or its answer could not be parsed.
-	// This is not Failed - a great many routers apply the mapping and
-	// simply do not support confirming it - and must never be rendered as a
-	// plain success either. This is the state a caller exists to be honest
-	// about; see docs/torrent-support.md's own risk note on this exact
-	// failure mode.
+	// This is not Failed, because a great many routers apply the mapping and
+	// simply do not support confirming it, and it must never be rendered as
+	// a plain success either: a router can accept the call and silently drop
+	// the mapping, so the honest answer is "could not confirm".
 	Unconfirmed Outcome = "unconfirmed"
 )
 

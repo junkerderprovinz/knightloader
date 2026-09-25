@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { InfoBubble } from './ui';
+import { followExternal } from '../lib/external';
 
 /**
  * AppTile is one way to get KnightLoader, GlimStone's reference/react/AppTile
@@ -47,7 +48,14 @@ export function AppTile({
           <span className="px-1 text-center text-xs font-medium leading-tight">{name}</span>
         </div>
       ) : href ? (
-        <a href={href} target="_blank" rel="noreferrer noopener" aria-label={name} className={`${TILE} ${LIVE}`}>
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer noopener"
+          onClick={followExternal}
+          aria-label={name}
+          className={`${TILE} ${LIVE}`}
+        >
           {body}
         </a>
       ) : (

@@ -500,9 +500,9 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
         {/* Peers, seeds and ratio have their own columns, hidden by default
             like the other low-traffic ones, so they are here for the same
             reason connection, added, finished, comment and source are.
-            Uploaded and "still seeding" go no further than this bubble:
-            docs/torrent-support.md asks for full peer and seed detail here,
-            which is more than the three columns give. */}
+            Uploaded and "still seeding" go no further than this bubble,
+            which carries the full peer and seed detail the three columns
+            leave out. */}
         {isTorrent && (
           <TooltipField label={t('task.tooltip.swarm')}>
             {t('task.tooltip.swarmDetail', {

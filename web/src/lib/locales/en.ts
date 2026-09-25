@@ -55,7 +55,7 @@ export const en = {
   'task.reason.cancelled': 'Cancelled',
   // Not one of the server's values. It names the failure chip that collects the
   // rows nothing classified, plus any cause a newer instance sent that this
-  // build has no word for - see ErrorCauses.tsx. The row itself still shows no
+  // build has no word for (see ErrorCauses.tsx). The row itself still shows no
   // label for those (reasonKey in columns.tsx); a chip has to say something,
   // and "unclassified" is the one honest thing to say.
   'task.reason.unknown': 'Unclassified',
@@ -1129,7 +1129,7 @@ export const en = {
 
   // The archive settings page. The three policy strips are labelled by what the
   // extractor does and not by the id the server sends, but an id with no string
-  // here still renders under its own name - see pages/settings/Archives.tsx.
+  // here still renders under its own name (see pages/settings/Archives.tsx).
   'settings.archives.handles': 'Opens',
   'settings.archives.destination': 'Unpack to',
   'settings.archives.destinationHint':
@@ -1259,7 +1259,7 @@ export const en = {
   'accounts.hoster.passwordCustody':
     'The password goes to the JDownloader backend, which stores it and does the actual login. KnightLoader itself does not keep it.',
 
-  // The prompt modal (components/CaptchaModal.tsx) - a hoster asking a human
+  // The prompt modal (components/CaptchaModal.tsx): a hoster asking a human
   // something before a download can continue.
   'captcha.title': 'Captcha needed',
   'captcha.titleMore': 'Captcha needed ({n} more waiting)',
@@ -1566,13 +1566,23 @@ export const en = {
   'settings.about.title': 'About KnightLoader',
   'settings.about.body': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.about.coffeeButton': 'Buy me a coffee',
-  'settings.about.coffeeIntro': 'The payment goes through Buy Me a Coffee, by card or wallet. You do not need an account.',
   'settings.about.crypto': 'Crypto',
   'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donate with crypto',
   'settings.about.cryptoIntro': 'Pick a coin and a network, then scan the code or copy the address.',
   'settings.about.cryptoNetworks': 'Networks',
   'settings.about.cryptoNoTag': 'No destination tag and no memo needed.',
+  'settings.about.coffeeIntro': 'The payment runs through Buy Me a Coffee. You do not need an account.',
+  'settings.about.paypalIntro': 'The payment runs through PayPal, with your PayPal account or by card without one.',
+  'settings.about.paypalFrequency': 'How often',
+  'settings.about.paypalOnce': 'Once',
+  'settings.about.paypalMonthly': 'Monthly',
+  'settings.about.paypalYearly': 'Yearly',
+  'settings.about.paypalAmount': 'Amount',
+  'settings.about.paypalOtherAmount': 'Other amount',
+  'settings.about.paypalLoading': 'Loading PayPal…',
+  'settings.about.paypalThanks': 'Thank you, your donation went through.',
+  'settings.about.paypalFailed': 'PayPal cannot be reached right now. Try again later or pick another way to give.',
   'common.copy': 'Copy',
   'common.copied': 'Copied',
   'settings.about.coffee': "If KnightLoader has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.",
@@ -1756,7 +1766,7 @@ export const en = {
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
 
-  // /quickadd (pages/QuickAdd.tsx) - the one page the bookmarklet, the browser
+  // /quickadd (pages/QuickAdd.tsx): the one page the bookmarklet, the browser
   // extension and the PWA share target all land on.
   'quickadd.title': 'Add to KnightLoader',
   'quickadd.manualLabel': 'Link (or paste several, one per line)',
@@ -1888,7 +1898,7 @@ export const en = {
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
-  // that file's own doc comment) rather than a page of its own - it is an
+  // that file's own doc comment) rather than a page of its own. It is an
   // overlay, mounted once beside CaptchaModal and IdleActionBanner, not a
   // route.
   'onboarding.step': 'Step {n} of {total}',

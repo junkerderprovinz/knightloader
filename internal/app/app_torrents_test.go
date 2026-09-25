@@ -195,7 +195,7 @@ func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 }
 
 // A started torrent task reaches the engine's torrent branch, which is where
-// the selection is passed on (see docs/torrent-support.md). The indices
+// the selection is passed on. The indices
 // themselves are private to the engine; its own tests cover them. A short
 // metadata timeout makes the branch fail fast with resolveTorrent's sentence.
 //
