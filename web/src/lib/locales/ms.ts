@@ -503,7 +503,6 @@ export const ms: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Belum ada token API, jadi setiap panggilan ditolak. Cipta satu pada halaman Akses jauh.',
   'settings.modules.detail.downloadclientNoSubfolders': '“Letak setiap pakej dalam subfolder sendiri” dimatikan, jadi setiap grab mendarat dalam satu folder yang sama dan pengimport tidak dapat membezakannya.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Belum ada token API, jadi setiap panggilan ditolak. Cipta satu pada halaman Akses jauh. “Letak setiap pakej dalam subfolder sendiri” juga dimatikan, jadi setiap grab mendarat dalam satu folder yang sama dan pengimport tidak dapat membezakannya.',
-  'settings.modules.detail.downloadclientReady': 'Boleh dicapai di {path}. Dalam Sonarr atau Radarr, tetapkan URL Base kepada “{urlBase}” dan API key kepada salah satu token API instans ini.',
   'settings.modules.detail.metricsOff': 'Mati. {path} menjawab 404, seperti alamat yang tidak wujud.',
   'settings.modules.detail.metricsNoToken': 'Instans ini mempunyai kata laluan tetapi belum ada token API, jadi sistem pemantauan tiada apa-apa untuk log masuk. Cipta satu pada halaman Akses jauh.',
   'settings.modules.detail.metricsReady': 'Boleh dicapai di {path}. Pada instans yang mempunyai kata laluan, sistem pemantauan menghantar salah satu token API instans itu sebagai header Bearer.',
@@ -2930,4 +2929,5 @@ export const ms: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

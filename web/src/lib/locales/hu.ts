@@ -503,7 +503,6 @@ export const hu: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Még nincs API-token, ezért minden hívást elutasítunk. Hozz létre egyet a Távoli elérés oldalon.',
   'settings.modules.detail.downloadclientNoSubfolders': 'A „Minden csomag saját almappába kerüljön” ki van kapcsolva, ezért minden letöltés ugyanabba a mappába kerül, és az importáló nem tudja megkülönböztetni őket.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Még nincs API-token, ezért minden hívást elutasítunk. Hozz létre egyet a Távoli elérés oldalon. Ráadásul a „Minden csomag saját almappába kerüljön” is ki van kapcsolva, ezért minden letöltés ugyanabba a mappába kerül, és az importáló nem tudja megkülönböztetni őket.',
-  'settings.modules.detail.downloadclientReady': 'Elérhető itt: {path}. A Sonarrban vagy a Radarrban állítsd az URL Base mezőt „{urlBase}” értékre, az API Key mezőt pedig ennek a példánynak az egyik API-tokenjére.',
   'settings.modules.detail.metricsOff': 'Ki. A(z) {path} 404-gyel válaszol, mint egy nem létező cím.',
   'settings.modules.detail.metricsNoToken': 'Ennek a példánynak van jelszava, de még nincs API-tokenje, így egy felügyeleti rendszernek nincs mivel bejelentkeznie. Hozz létre egyet a Távoli elérés oldalon.',
   'settings.modules.detail.metricsReady': 'Elérhető itt: {path}. Jelszavas példányon a felügyeleti rendszer a példány egyik API-tokenjét küldi Bearer fejlécként.',
@@ -2930,4 +2929,5 @@ export const hu: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

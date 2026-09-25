@@ -39,6 +39,22 @@ submission and for a fixed download.
 
 ### Added
 
+- **Sonarr, Radarr and Prowlarr can hand torrents over through qBittorrent's
+  API.** KnightLoader answers the part of qBittorrent's Web API they use at
+  `/api/qbittorrent`, so the client's URL Base is `api/qbittorrent`. The
+  password is one of this instance's API tokens, and Add and read is enough, as
+  for the SABnzbd bridge. The username is not checked, though it cannot be
+  empty; a login lasts an hour and ends with its token, and Sonarr's API Key
+  field works as well. Torrents go through the normal intake
+  like a pasted magnet, and each one is reported under its info hash. Sonarr
+  only sees the torrents it handed over, and a torrent already in the list is
+  refused, as qBittorrent refuses it. Sonarr's category becomes a category of
+  this instance, or finds the one you have by that name. A download reads as
+  finished only once every file is on disk and unpacked, and Sonarr can remove
+  it after the import once nothing seeds it any more and it has reached the
+  seed limit its indexer asked for. The same switch as the SABnzbd bridge opens it,
+  and it is off by default. The manual's Getting links in page has the setup
+  for both.
 - **A manual at [junkerderprovinz.github.io/knightloader](https://junkerderprovinz.github.io/knightloader/).**
   Installing, what it does, configuration, getting links in, Click'n'Load,
   connecting instances and where files land, built from `docs/` with MkDocs

@@ -503,7 +503,6 @@ export const zh: Dict = {
   'settings.modules.detail.downloadclientNoToken': '还没有 API 令牌，所以每次调用都会被拒绝。在“远程访问”页面上创建一个。',
   'settings.modules.detail.downloadclientNoSubfolders': '“每个包放进各自的子文件夹”已关闭，所以每次抓取都落在同一个文件夹里，导入方无法区分它们。',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': '还没有 API 令牌，所以每次调用都会被拒绝。在“远程访问”页面上创建一个。另外，“每个包放进各自的子文件夹”也已关闭，所以每次抓取都落在同一个文件夹里，导入方无法区分它们。',
-  'settings.modules.detail.downloadclientReady': '可通过 {path} 访问。在 Sonarr 或 Radarr 中，把 URL Base 设为“{urlBase}”，把 API Key 设为本实例的某个 API 令牌。',
   'settings.modules.detail.metricsOff': '已关闭。{path} 会回答 404，就像一个不存在的地址。',
   'settings.modules.detail.metricsNoToken': '这个实例设了密码，但还没有 API 令牌，所以监控系统没有东西可以用来登录。在“远程访问”页面上创建一个。',
   'settings.modules.detail.metricsReady': '可通过 {path} 访问。在设了密码的实例上，监控系统要把该实例的一个 API 令牌作为 Bearer 请求头发送。',
@@ -2917,4 +2916,5 @@ export const zh: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

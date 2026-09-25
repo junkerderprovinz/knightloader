@@ -505,7 +505,6 @@ export const ar: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'لا يوجد رمز API بعد، لذلك يُرفض كل استدعاء. أنشئ واحدًا في صفحة الوصول عن بُعد.',
   'settings.modules.detail.downloadclientNoSubfolders': '«ضع كل حزمة في مجلد فرعي خاص بها» مطفأ، لذلك يحطّ كل تنزيل في المجلد نفسه ولا يستطيع الاستيراد التمييز بينها.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'لا يوجد رمز API بعد، لذلك يُرفض كل استدعاء. أنشئ واحدًا في صفحة الوصول عن بُعد. و«ضع كل حزمة في مجلد فرعي خاص بها» مطفأ أيضًا، لذلك يحطّ كل تنزيل في المجلد نفسه ولا يستطيع الاستيراد التمييز بينها.',
-  'settings.modules.detail.downloadclientReady': 'يمكن الوصول إليه على {path}. في Sonarr أو Radarr اضبط URL Base على «{urlBase}» وAPI Key على أحد رموز API الخاصة بهذه النسخة.',
   'settings.modules.detail.metricsOff': 'مطفأ. يجيب {path} بـ404، كعنوان غير موجود.',
   'settings.modules.detail.metricsNoToken': 'لهذه النسخة كلمة مرور لكن لا رمز API لها بعد، فلا يجد نظام المراقبة ما يسجّل الدخول به. أنشئ واحدًا في صفحة الوصول عن بُعد.',
   'settings.modules.detail.metricsReady': 'يمكن الوصول إليه على {path}. وعلى نسخة لها كلمة مرور، يرسل نظام المراقبة أحد رموز API الخاصة بها في ترويسة Bearer.',
@@ -2930,4 +2929,5 @@ export const ar: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

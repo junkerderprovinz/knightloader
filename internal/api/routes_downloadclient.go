@@ -3,9 +3,9 @@ package api
 // A download client Sonarr and Radarr can be pointed at, speaking SABnzbd's
 // API (Sonarr's SabnzbdProxy.cs, which Radarr copies). SABnzbd needs one route
 // with a mode parameter and authenticates with an "apikey" query parameter,
-// which maps onto internal/apitoken. qBittorrent, Transmission and Deluge each
-// need a session login and many more endpoints, and Blackhole reports no
-// state at all.
+// which maps onto internal/apitoken. This is the door for what a Usenet or DDL
+// indexer hands over; torrents come in through qBittorrent's API beside it
+// (routes_qbittorrent.go), which the same switch opens.
 //
 // Sonarr and Radarr only call addfile, uploading an .nzb they fetched
 // themselves. Without a Usenet backend the bytes are scanned for links
@@ -407,9 +407,11 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request, re
 		}
 	}
 
-	live := dc.liveTasks()
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
+	// Under the lock, like views: a grab recorded after the read would have no
+	// tasks yet and pass for a finished one.
+	live := dc.liveTasks()
 	grabs, err := dc.load()
 	if err != nil {
 		sabError(w, err.Error())
@@ -490,9 +492,11 @@ func (v grabView) timeleft() string {
 // the only reader of the document, so the prune needs no timer.
 func (dc *downloadClient) views(r *http.Request, finished bool) []grabView {
 	category := strings.TrimSpace(r.URL.Query().Get("category"))
-	live := dc.liveTasks()
 
 	dc.mu.Lock()
+	// Read under the lock, so a grab recorded after the read cannot be pruned
+	// as one whose tasks are gone.
+	live := dc.liveTasks()
 	grabs, err := dc.load()
 	if err != nil {
 		dc.mu.Unlock()

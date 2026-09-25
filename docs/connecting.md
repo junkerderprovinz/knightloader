@@ -284,18 +284,25 @@ The window that creates a token offers four presets: **Full access** (all
 four), **Add and read**, **Read only**, and **Custom**, which shows one switch
 per right.
 
-**Add and read** is enough for Sonarr and Radarr. They send their key in the
-address (`?apikey=`), where it ends up in the log of any proxy in between, and
-a key that can only add and read is a smaller loss than one that can change the
-password. When Sonarr clears a finished download after importing it, the
+**Add and read** is enough for Sonarr and Radarr, through either of their
+doors. Through SABnzbd's they send their key in the address (`?apikey=`), where
+it ends up in the log of any proxy in between, and a key that can only add and
+read is a smaller loss than one that can change the password. When Sonarr clears a finished download after importing it, the
 bridge stops reporting it. The download itself stays in your list unless the
 token also has Control; then it is removed, with its files if Sonarr asks for
 that. Removing a download that is still running needs Control: without it
 Sonarr shows the refusal, and the download carries on and stays in Sonarr's
 queue.
 
+Through qBittorrent's door Sonarr also resumes every torrent right after adding
+it, which Add covers as long as nothing in the torrent was paused. Resuming a
+paused torrent needs Control, and so do the qBittorrent settings in Sonarr that
+act on a torrent after the add: Priority "First", Initial State "Force Started"
+and a Post-Import Category. With Add and read the torrent stays as it was.
+
 Such a key cannot pick where files land either. A `dir` in `POST /api/links`
-or `POST /api/tasks/options` needs Admin, whatever the route needs otherwise,
+or `POST /api/tasks/options`, or a `savepath` in qBittorrent's `torrents/add`,
+needs Admin, whatever the route needs otherwise,
 because a folder of the caller's choosing could be any folder the instance can
 write to. Without one, links go where the download folder, a category or a
 Packagizer rule puts them.
@@ -312,8 +319,9 @@ right:
 {"error": "this API token does not have the \"control\" right", "code": "tokenScope", "params": {"scope": "control"}}
 ```
 
-The Sonarr bridge puts the same sentence in SABnzbd's own error document,
-because that is what Sonarr shows. `GET /api/help` lists the right each route
+The SABnzbd door puts the same sentence in SABnzbd's own error document,
+because that is what Sonarr shows, and the qBittorrent door sends it as the
+text of its 403. `GET /api/help` lists the right each route
 needs as its `scope`. The table behind it is `internal/api/scopes.go`, and a
 test fails for any route missing from it, so a new route cannot be reached with
 a narrowed token until somebody has decided which right it needs.

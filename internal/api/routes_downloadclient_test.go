@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -725,6 +726,49 @@ func TestDownloadClientRefusesWhatTheTokenMayNotDo(t *testing.T) {
 	}
 	if n := liveTasks(t, a); n != 1 {
 		t.Errorf("the store holds %d tasks after a refused delete, want 1", n)
+	}
+}
+
+// TestDownloadClientPollDuringAnAddKeepsTheNewGrab lets a queue poll wait on
+// the grab document while an addfile stages a link and records it. The poll
+// prunes grabs whose tasks are gone, and must not take the new one for such.
+func TestDownloadClientPollDuringAnAddKeepsTheNewGrab(t *testing.T) {
+	t.Parallel()
+	a, _, _ := downloadClientServer(t, nil)
+	dc := &downloadClient{a: a}
+
+	dc.mu.Lock()
+	polled := make(chan struct{})
+	go func() {
+		dc.views(httptest.NewRequest(http.MethodGet, sabnzbdPath+"?mode=queue", nil), false)
+		close(polled)
+	}()
+	// Long enough for a poll that reads the task list before it takes the lock
+	// to have read it.
+	time.Sleep(100 * time.Millisecond)
+	created := a.AddLinksFrom([]string{testMagnet}, "Show.S01E06", app.OriginPaste)
+	var err error
+	if len(created) == 1 {
+		var grabs map[string]sabGrab
+		if grabs, err = dc.load(); err == nil {
+			grabs["SABnzbd_nzo_new"] = sabGrab{ID: "SABnzbd_nzo_new", Name: "Show.S01E06", TaskIDs: []string{created[0].ID}, AddedAt: time.Now()}
+			err = dc.store(grabs)
+		}
+	}
+	dc.mu.Unlock()
+	<-polled
+	if len(created) != 1 || err != nil {
+		t.Fatalf("staged %d tasks, recorded with %v", len(created), err)
+	}
+
+	dc.mu.Lock()
+	grabs, err := dc.load()
+	dc.mu.Unlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := grabs["SABnzbd_nzo_new"]; !ok {
+		t.Error("the poll pruned the grab the add had just recorded, so Sonarr never sees it again")
 	}
 }
 

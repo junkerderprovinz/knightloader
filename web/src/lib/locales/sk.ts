@@ -503,7 +503,6 @@ export const sk: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Zatiaľ neexistuje žiadny token API, takže sa každé volanie odmietne. Vytvor ho na stránke Vzdialený prístup.',
   'settings.modules.detail.downloadclientNoSubfolders': '„Každý balík do vlastného podpriečinka“ je vypnuté, takže každé stiahnutie skončí v jednom priečinku a import ich od seba nerozlíši.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Zatiaľ neexistuje žiadny token API, takže sa každé volanie odmietne. Vytvor ho na stránke Vzdialený prístup. Navyše je vypnuté „Každý balík do vlastného podpriečinka“, takže každé stiahnutie skončí v jednom priečinku a import ich od seba nerozlíši.',
-  'settings.modules.detail.downloadclientReady': 'Dostupný na {path}. V Sonarre alebo Radarre nastav URL Base na „{urlBase}“ a API key na jeden z tokenov API tejto inštancie.',
   'settings.modules.detail.metricsOff': 'Vypnuté. {path} odpovedá 404, ako adresa, ktorá neexistuje.',
   'settings.modules.detail.metricsNoToken': 'Táto inštancia má heslo, ale zatiaľ žiadny token API, takže monitorovací systém sa nemá čím prihlásiť. Vytvor ho na stránke Vzdialený prístup.',
   'settings.modules.detail.metricsReady': 'Dostupná na {path}. Pri inštancii s heslom posiela monitorovací systém jeden z jej tokenov API ako hlavičku Bearer.',
@@ -2941,4 +2940,5 @@ export const sk: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

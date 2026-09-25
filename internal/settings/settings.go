@@ -289,13 +289,14 @@ type Settings struct {
 	// for off.
 	PreParserEnabled bool `json:"preParserEnabled"`
 
-	// DownloadClientAPI opens the SABnzbd-shaped door Sonarr and Radarr can be
-	// pointed at. See internal/api/routes_downloadclient.go for what it speaks.
+	// DownloadClientAPI opens the SABnzbd- and qBittorrent-shaped doors Sonarr
+	// and Radarr can be pointed at. See internal/api/routes_downloadclient.go
+	// and routes_qbittorrent.go for what they speak.
 	//
 	// Off by default because it lets a program on the network create downloads
 	// and delete finished files, the way Reconnect below is off because it runs
 	// a program on the router. Switching it on is not enough on its own: the
-	// route refuses every request without a valid API token
+	// routes refuse every request without a valid API token
 	// (internal/apitoken), even on an instance with no password set.
 	DownloadClientAPI bool `json:"downloadClientApi"`
 

@@ -503,7 +503,6 @@ export const ja: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'API トークンがまだないので、すべての呼び出しが拒否されます。リモートアクセスのページで作成してください。',
   'settings.modules.detail.downloadclientNoSubfolders': '「パッケージごとにサブフォルダーを作る」がオフなので、取得したものがすべて同じフォルダーに入り、インポート側が区別できません。',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'API トークンがまだないので、すべての呼び出しが拒否されます。リモートアクセスのページで作成してください。さらに「パッケージごとにサブフォルダーを作る」もオフなので、取得したものがすべて同じフォルダーに入り、インポート側が区別できません。',
-  'settings.modules.detail.downloadclientReady': '{path} で到達可能です。Sonarr または Radarr で、URL Base を「{urlBase}」に、API Key をこのインスタンスの API トークンのいずれかに設定してください。',
   'settings.modules.detail.metricsOff': 'オフ。{path} は存在しないアドレスと同じように 404 を返します。',
   'settings.modules.detail.metricsNoToken': 'このインスタンスにはパスワードがありますが、API トークンがまだないため、監視システムがサインインに使えるものがありません。リモートアクセスのページで作成してください。',
   'settings.modules.detail.metricsReady': '{path} で到達可能です。パスワードのあるインスタンスでは、監視システムがそのインスタンスの API トークンの 1 つを Bearer ヘッダーとして送ります。',
@@ -2931,4 +2930,5 @@ export const ja: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

@@ -57,7 +57,7 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
 	members := a.sharingLinksLocked(ids)
-	a.keepFoldersLocked(members, pkg)
+	a.keepFoldersLocked(members, func(t *core.Task) { t.Package = pkg })
 	copies := make([]core.Task, 0, len(members))
 	for _, t := range members {
 		t.Package = pkg
@@ -89,13 +89,13 @@ func (a *App) sharingLinksLocked(ids []string) []*core.Task {
 }
 
 // keepFoldersLocked pins members to the folder each downloads to, by writing
-// it into Dir, where that folder is built from the package name and pkg would
-// change it. It does so for every member of a folder one of them has already
+// it into Dir, where the change about to be made to them would move that
+// folder. It does so for every member of a folder one of them has already
 // written to: a file there would otherwise be looked for where it is not, and
 // the volumes of an archive are only unpacked together while they share one
-// folder. Members of a folder none of them has touched follow pkg. Caller
-// holds a.mu.
-func (a *App) keepFoldersLocked(members []*core.Task, pkg string) {
+// folder. Members of a folder none of them has touched follow the change.
+// change is applied to copies only. Caller holds a.mu.
+func (a *App) keepFoldersLocked(members []*core.Task, change func(*core.Task)) {
 	folder := make(map[string]string, len(members))
 	written := map[string]bool{}
 	for _, t := range members {
@@ -110,7 +110,7 @@ func (a *App) keepFoldersLocked(members []*core.Task, pkg string) {
 			continue
 		}
 		moved := *t
-		moved.Package = pkg
+		change(&moved)
 		if a.dirFor(&moved) != current {
 			t.Dir = current
 		}
@@ -832,7 +832,7 @@ func (a *App) RenamePackage(ids []string, name string) ([]string, error) {
 	}
 	a.mu.Lock()
 	members := a.sharingLinksLocked(ids)
-	a.keepFoldersLocked(members, name)
+	a.keepFoldersLocked(members, func(t *core.Task) { t.Package = name })
 	copies := make([]core.Task, 0, len(members))
 	for _, t := range members {
 		t.Package = name

@@ -503,7 +503,6 @@ export const bg: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Още няма API токен, затова всяко извикване се отхвърля. Създай такъв на страницата „Отдалечен достъп“.',
   'settings.modules.detail.downloadclientNoSubfolders': '„Всеки пакет в собствена подпапка“ е изключено, затова всички изтегляния попадат в една папка и импортирането не може да ги различи.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Още няма API токен, затова всяко извикване се отхвърля. Създай такъв на страницата „Отдалечен достъп“. Освен това „Всеки пакет в собствена подпапка“ е изключено, затова всички изтегляния попадат в една папка и импортирането не може да ги различи.',
-  'settings.modules.detail.downloadclientReady': 'Достъпен на {path}. В Sonarr или Radarr задай URL Base на „{urlBase}“, а API Key на един от API токените на тази инстанция.',
   'settings.modules.detail.metricsOff': 'Изключен. {path} отговаря с 404 като адрес, който не съществува.',
   'settings.modules.detail.metricsNoToken': 'Тази инстанция има парола, но още няма API токен, така че системата за наблюдение няма с какво да влезе. Създай такъв на страницата „Отдалечен достъп“.',
   'settings.modules.detail.metricsReady': 'Достъпен на {path}. При инстанция с парола системата за наблюдение изпраща един от API токените ѝ като заглавка Bearer.',
@@ -2931,4 +2930,5 @@ export const bg: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

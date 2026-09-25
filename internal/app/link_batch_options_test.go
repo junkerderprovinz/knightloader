@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -198,6 +199,65 @@ func TestFormOptionsReachCrawledLinks(t *testing.T) {
 		if task.Priority != 2 {
 			t.Errorf("%s priority = %d, want the batch's own 2", task.Name, task.Priority)
 		}
+	}
+}
+
+// A batch filed under a category starts at the category's priority, as a link
+// a rule files there does, and a rule that names a priority still wins.
+func TestABatchCategorySetsThePriorityItsLinksStartAt(t *testing.T) {
+	low := -2
+	serien := settings.Category{ID: "serien", Name: "Serien", Priority: &low}
+
+	t.Run("no rule involved", func(t *testing.T) {
+		a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
+			s.Categories = []settings.Category{serien}
+		})
+		created, err := a.AddLinksWithOptions([]string{"https://host.example/one.mkv"}, "", OriginPaste, LinkBatchOptions{Category: "serien"})
+		if err != nil || len(created) != 1 {
+			t.Fatalf("staged %d tasks: %v", len(created), err)
+		}
+		if got := created[0]; got.Category != "serien" || got.Priority != low {
+			t.Errorf("category %q at priority %d, want serien at its %d", got.Category, got.Priority, low)
+		}
+	})
+
+	t.Run("a rule naming a priority", func(t *testing.T) {
+		var rulePrio int
+		a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
+			s.Categories = []settings.Category{serien}
+			s.Packagizer, _, rulePrio, _ = filmsRule(base)
+		})
+		created, err := a.AddLinksWithOptions([]string{"https://films.example/one.mkv"}, "", OriginPaste, LinkBatchOptions{Category: "serien"})
+		if err != nil || len(created) != 1 {
+			t.Fatalf("staged %d tasks: %v", len(created), err)
+		}
+		if got := created[0]; got.Category != "serien" || got.Priority != rulePrio {
+			t.Errorf("category %q at priority %d, want serien at the rule's %d", got.Category, got.Priority, rulePrio)
+		}
+	})
+}
+
+// A batch added stopped stays in the collector even when auto-confirm would
+// send it on at once, while the next one goes.
+func TestABatchKeptInTheCollectorIsNotAutoConfirmed(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {
+		s.AutoConfirm, s.AutoConfirmDelay = true, 0
+	})
+	a.SetHalted(true)
+
+	kept, err := a.AddLinksWithOptions([]string{"https://host.example/kept.bin"}, "", OriginPaste, LinkBatchOptions{KeepCollected: true})
+	if err != nil || len(kept) != 1 {
+		t.Fatalf("staged %d tasks: %v", len(kept), err)
+	}
+	sent, err := a.AddLinksWithOptions([]string{"https://host.example/sent.bin"}, "", OriginPaste, LinkBatchOptions{})
+	if err != nil || len(sent) != 1 {
+		t.Fatalf("staged %d tasks: %v", len(sent), err)
+	}
+	if got := liveTask(a, kept[0].ID).Status; got != core.StatusCollected {
+		t.Errorf("the batch added stopped is %s, want it left in the collector", got)
+	}
+	if got := liveTask(a, sent[0].ID).Status; got == core.StatusCollected {
+		t.Error("the ordinary batch is still in the collector, so auto-confirm is not on and the test proves nothing")
 	}
 }
 

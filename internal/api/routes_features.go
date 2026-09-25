@@ -769,11 +769,12 @@ func extractionDetail(s settings.Settings) line {
 	return line{text: "archives are kept after extraction", code: "extractionKeep"}
 }
 
-// downloadClientDetail is the live line of the SABnzbd bridge row. It warns
-// when no API token can add and read, since the route then refuses Sonarr's
-// calls, and when "Put each package in its own subfolder" is off, since the
-// importer then finds several releases in the folder the bridge reports. The
-// line shows on the Modules page, so it names the page the token is made on.
+// downloadClientDetail is the live line of the download-client row, which
+// covers the SABnzbd and the qBittorrent door. It warns when no API token can
+// add and read, since both doors then refuse Sonarr's calls, and when "Put each
+// package in its own subfolder" is off, since the importer then finds several
+// releases in the folder a door reports. The line shows on the Modules page,
+// so it names the page the token is made on.
 func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	if !s.DownloadClientAPI {
 		return line{
@@ -801,12 +802,18 @@ func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	case flat:
 		return line{text: noSubfolder, code: "downloadclientNoSubfolders"}
 	}
-	// Sonarr and Radarr put the /api after the URL Base themselves.
-	mount := base + "/api/sabnzbd"
-	args := map[string]string{"path": mount + "/api", "urlBase": strings.TrimPrefix(mount, "/")}
+	// Sonarr and Radarr put SABnzbd's /api and qBittorrent's /api/v2 after the
+	// URL Base themselves.
+	sab, qbit := base+"/api/sabnzbd", base+"/api/qbittorrent"
+	args := map[string]string{
+		"sabnzbd": sab + "/api", "sabnzbdBase": strings.TrimPrefix(sab, "/"),
+		"qbittorrent": qbit, "qbittorrentBase": strings.TrimPrefix(qbit, "/"),
+	}
 	return line{
-		text: "reachable at " + args["path"] + "; set Sonarr's or Radarr's URL Base to \"" + args["urlBase"] + "\" and its API key to one of this instance's tokens",
-		code: "downloadclientReady", args: args,
+		text: "reachable as SABnzbd at " + args["sabnzbd"] + " and as qBittorrent at " + args["qbittorrent"] +
+			"; in Sonarr or Radarr set URL Base to \"" + args["sabnzbdBase"] + "\" or \"" + args["qbittorrentBase"] +
+			"\", and the API key or the qBittorrent password to one of this instance's tokens",
+		code: "downloadclientReadyBoth", args: args,
 	}
 }
 

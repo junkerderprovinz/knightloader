@@ -373,8 +373,11 @@ func TestTheModuleLinesNameAddressesUnderTheBasePath(t *testing.T) {
 		t.Fatalf("GET /kl/api/features = %d %q: %v", resp.StatusCode, body, err)
 	}
 	want := map[string]map[string]string{
-		"downloadclient": {"path": "/kl/api/sabnzbd/api", "urlBase": "kl/api/sabnzbd"},
-		"metrics":        {"path": "/kl/api/metrics"},
+		"downloadclient": {
+			"sabnzbd": "/kl/api/sabnzbd/api", "sabnzbdBase": "kl/api/sabnzbd",
+			"qbittorrent": "/kl/api/qbittorrent", "qbittorrentBase": "kl/api/qbittorrent",
+		},
+		"metrics": {"path": "/kl/api/metrics"},
 	}
 	for _, f := range state.Modules {
 		if w, ok := want[f.ID]; ok {

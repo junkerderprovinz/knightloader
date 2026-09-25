@@ -503,7 +503,6 @@ export const ko: Dict = {
   'settings.modules.detail.downloadclientNoToken': '아직 API 토큰이 없어서 모든 호출이 거부됩니다. 원격 접속 페이지에서 하나 만드세요.',
   'settings.modules.detail.downloadclientNoSubfolders': '“패키지마다 하위 폴더 만들기”가 꺼져 있어서 받은 것이 모두 한 폴더에 들어가고, 가져오기 쪽에서 구분하지 못합니다.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': '아직 API 토큰이 없어서 모든 호출이 거부됩니다. 원격 접속 페이지에서 하나 만드세요. 게다가 “패키지마다 하위 폴더 만들기”도 꺼져 있어서 받은 것이 모두 한 폴더에 들어가고, 가져오기 쪽에서 구분하지 못합니다.',
-  'settings.modules.detail.downloadclientReady': '{path}에서 접속할 수 있습니다. Sonarr 또는 Radarr에서 URL Base를 “{urlBase}”로, API Key를 이 인스턴스의 API 토큰 중 하나로 설정하세요.',
   'settings.modules.detail.metricsOff': '꺼짐. {path}은(는) 존재하지 않는 주소처럼 404로 응답합니다.',
   'settings.modules.detail.metricsNoToken': '이 인스턴스에는 비밀번호가 있지만 아직 API 토큰이 없어서, 모니터링 시스템이 로그인할 수단이 없습니다. 원격 접속 페이지에서 하나 만드세요.',
   'settings.modules.detail.metricsReady': '{path}에서 접속할 수 있습니다. 비밀번호가 있는 인스턴스에서는 모니터링 시스템이 그 인스턴스의 API 토큰 하나를 Bearer 헤더로 보냅니다.',
@@ -2922,4 +2921,5 @@ export const ko: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };
