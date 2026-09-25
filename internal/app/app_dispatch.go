@@ -830,9 +830,17 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		// The filter is asked once more before bytes move, since rules may
-		// have changed since staging. A link the user restored from the
-		// holding area is exempt.
-		if v := a.filter(candidateOf(t)); v.Rejected && !filterWaived(t) {
+		// have changed since staging, and so is the list of banned trackers.
+		// A link the user restored from the holding area is past the filter,
+		// and past the ban it was held for (see trackerBan).
+		v := a.filter(candidateOf(t))
+		if filterWaived(t) {
+			v = rules.Verdict{}
+		}
+		if !v.Rejected {
+			v = trackerBan(t, cfg.Torrent)
+		}
+		if v.Rejected {
 			t.Status = core.StatusError
 			t.Online = core.AvailOffline
 			t.Error = rejection(v)
@@ -953,6 +961,7 @@ func (a *App) dispatchLocked() {
 			// Without it, files unticked in the collector would be downloaded
 			// anyway, since an empty selection means everything.
 			job.TorrentSelect = core.SelectedTorrentIndices(t.TorrentFiles)
+			a.torrentJobLocked(&job, t, cfg)
 			go func() {
 				own.drop(id)
 				a.Engine.Start(job)

@@ -291,6 +291,19 @@ export interface Category {
   notify?: string;
   /** This drawer's premium only switch; absent follows the instance's. */
   premiumOnly?: boolean;
+  /** This drawer's own torrent file selection, in place of the Torrents page's
+   *  as a whole. Absent is no opinion. */
+  torrentFiles?: TorrentFileRules;
+}
+
+/** settings.TorrentFileRules: the files a torrent fetches when nobody ticked
+ *  them by hand. The server sends null for an empty list. */
+export interface TorrentFileRules {
+  /** Bytes; 0 = no minimum. */
+  minFileSize: number;
+  /** Regular expressions, one per line. */
+  includeFiles: string[] | null;
+  excludeFiles: string[] | null;
 }
 
 export interface Settings {
@@ -1312,7 +1325,8 @@ export async function uploadContainer(file: File, pkg = ''): Promise<ContainerRe
   return json<ContainerResult>(await fetch('/api/containers', { method: 'POST', body: form }));
 }
 
-/** The preview POST /api/torrents/parse returns: the file tree and the `uri`
+/** The preview POST /api/torrents/parse returns: the file tree, with the files
+ *  the file selection on the Torrents page chooses selected, and the `uri`
  *  stageTorrent needs. Nothing is staged yet. */
 export interface TorrentTree {
   uri: string;
@@ -1337,9 +1351,11 @@ export async function parseTorrentUpload(file: File): Promise<TorrentTree> {
 
 /**
  * stageTorrent turns a parsed `uri` into a task. `selectedPaths` names the
- * files to keep; omitted, every file is kept. The server parses `uri` again
+ * files to keep; omitted, the torrent file selection chooses when the torrent
+ * starts, which with none set keeps every file. The server parses `uri` again
  * and only narrows against the list, so an invented path has no effect.
- * Returns null when the mirror set folded it into an existing task.
+ * Returns null when the mirror set folded it into an existing task, and a
+ * task with `skipped` set when it was held back.
  */
 export async function stageTorrent(
   uri: string,

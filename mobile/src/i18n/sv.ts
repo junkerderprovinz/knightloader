@@ -31,7 +31,7 @@ export const sv: Dict = {
   'instance.captchasOne': '1 captcha väntar just nu',
   'downloads.start': 'Starta',
   'downloads.stop': 'Stoppa',
-  'downloads.startSkipped': 'Länkfiltret håller tillbaka {n} länkar.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Ett schema håller kön pausad.',
   'downloads.tabDownloads': 'Nedladdningar',
   'downloads.tabCollector': 'Insamlare',

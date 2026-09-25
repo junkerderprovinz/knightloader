@@ -31,7 +31,7 @@ export const nl: Dict = {
   'instance.captchasOne': '1 captcha wacht nu',
   'downloads.start': 'Starten',
   'downloads.stop': 'Stoppen',
-  'downloads.startSkipped': 'Het linkfilter houdt {n} links tegen.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Een schema houdt de wachtrij gepauzeerd.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Verzamelaar',

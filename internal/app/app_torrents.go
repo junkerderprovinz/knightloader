@@ -24,17 +24,21 @@ import (
 // uri is a magnet or the data: URI an uploaded .torrent was encoded as (see
 // torrent.EncodeBytes).
 //
-// files is trusted: routes_torrents.go builds it from its own parse of uri,
-// never from a client-supplied list.
+// files is the selection ticked in the file tree, and trusted:
+// routes_torrents.go builds it from its own parse of uri, never from a
+// client-supplied list. Nil means nobody changed what the review offered, and
+// the file rules choose when the torrent starts, by the category it is filed
+// in by then, the way a magnet's are.
 //
-// It returns the staged task, or the held task when the filter parked it
-// (Task.Skipped), or nil when the mirror set folded it into one already listed.
+// It returns the staged task, or the held task when the filter or a banned
+// tracker parked it (Task.Skipped), or nil when the mirror set folded it into
+// one already listed.
 // The error is always nil; it matches AddLinksWithOptions.
 func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origin core.Origin) (*core.Task, error) {
 	now := a.stamps.next()
 	cand := rules.Candidate{URL: uri, Package: pkg, Added: now}
 	if v := a.filter(cand); v.Rejected {
-		return a.hold(cand, v, origin, now), nil
+		return a.hold(cand, v, origin, now, files), nil
 	}
 	if m := a.mirror(dedupe.Entry{URL: uri}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(uri, m)
@@ -64,14 +68,25 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		if md.Name != "" {
 			t.Name = md.Name
 		}
-		t.Size = torrentSize(md, files)
+		shown := files
+		if shown == nil {
+			// What the review offered, until the start makes the choice. A
+			// rule that does not compile shows the whole torrent here and
+			// fails the start with its reason.
+			shown, _ = a.PickTorrentFiles(md.Files)
+		}
+		t.Size = torrentSize(md, shown)
 		t.InfoHash = md.InfoHash
 		t.Trackers = md.Trackers
 	}
 
 	cand.Filename, cand.Filesize = filename(t), t.Size
-	if v := a.filter(cand); v.Rejected {
-		return a.hold(cand, v, origin, now), nil
+	v := a.filter(cand)
+	if !v.Rejected {
+		v = trackerBan(t, a.Settings.Get().Torrent)
+	}
+	if v.Rejected {
+		return a.hold(cand, v, origin, now, files), nil
 	}
 
 	staged := a.finishStaging(t, cand)
@@ -89,8 +104,8 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 	return a.detached([]*core.Task{staged})[0], nil
 }
 
-// torrentHost is a torrent task's Host bucket, used here and by stage for a
-// pasted magnet.
+// torrentHost is a torrent task's Host bucket, used here, by stage for a
+// pasted magnet and by hold for a torrent held back.
 //
 // hostOf falls back to the raw URL when there is no hostname, and for a torrent
 // that would put a magnet query string, or the base64 of a whole .torrent, into

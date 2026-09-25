@@ -88,6 +88,7 @@ type Outcome =
   | { file: string; kind: 'container-staged'; links: number; created: number; pkg: string }
   | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
   | { file: string; kind: 'torrent-staged'; task: Task }
+  | { file: string; kind: 'torrent-held'; reason: string }
   | { file: string; kind: 'torrent-duplicate' }
   | { file: string; kind: 'failed'; reason: string };
 
@@ -99,6 +100,9 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
   }
   if (o.kind === 'torrent-duplicate') {
     return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
+  }
+  if (o.kind === 'torrent-held') {
+    return <p className="text-xs text-statusWarn">{t('torrent.held', { file: o.file, reason: o.reason })}</p>;
   }
   if (o.kind === 'torrent-staged') {
     return (
@@ -271,10 +275,17 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
 
   async function commitTorrent(file: string, tree: TorrentTree, selected: boolean[]): Promise<Outcome> {
     try {
-      // undefined keeps every file, stageTorrent's default.
-      const selectedPaths = selected.every(Boolean) ? undefined : tree.files.filter((_, i) => selected[i]).map((f) => f.path);
+      // The tree arrives with the file rules' choice ticked, and undefined lets
+      // the server make that choice again. Anything changed by hand is sent as
+      // it is, a return to every file included, or the rules would win.
+      const untouched = selected.every((v, i) => v === tree.files[i].selected);
+      const selectedPaths = untouched ? undefined : tree.files.filter((_, i) => selected[i]).map((f) => f.path);
       const task = await stageTorrent(tree.uri, pkg, selectedPaths);
-      return task ? { file, kind: 'torrent-staged', task } : { file, kind: 'torrent-duplicate' };
+      if (!task) return { file, kind: 'torrent-duplicate' };
+      // Held back by a filter rule or a banned tracker: in the list, but not in
+      // the collector.
+      if (task.skipped) return { file, kind: 'torrent-held', reason: task.skipReason ?? '' };
+      return { file, kind: 'torrent-staged', task };
     } catch (e) {
       return { file, kind: 'failed', reason: message(e) };
     }

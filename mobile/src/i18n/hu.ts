@@ -31,7 +31,7 @@ export const hu: Dict = {
   'instance.captchasOne': '1 captcha vár éppen',
   'downloads.start': 'Indítás',
   'downloads.stop': 'Leállítás',
-  'downloads.startSkipped': 'A hivatkozásszűrő {n} hivatkozást tart vissza.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Egy ütemezés tartja szünetben a sort.',
   'downloads.tabDownloads': 'Letöltések',
   'downloads.tabCollector': 'Gyűjtő',

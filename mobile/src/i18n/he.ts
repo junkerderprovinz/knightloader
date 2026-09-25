@@ -31,7 +31,7 @@ export const he: Dict = {
   'instance.captchasOne': 'קאפצ׳ה אחת ממתינה כרגע',
   'downloads.start': 'התחל',
   'downloads.stop': 'עצור',
-  'downloads.startSkipped': 'מסנן הקישורים עוצר {n} קישורים.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'תזמון מחזיק את התור בהשהיה.',
   'downloads.tabDownloads': 'הורדות',
   'downloads.tabCollector': 'אספן',

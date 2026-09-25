@@ -1,14 +1,18 @@
 package settings
 
 // What a BitTorrent download does once it starts: how long it keeps giving
-// bytes back after it finishes, how hard it announces itself to the swarm, and
-// the DHT and PEX switches a private tracker's rules need this app to get right
-// without anybody asking per torrent. See internal/resolver/torrent for the
-// intake side and internal/engine for what starts a torrent task; this file is
-// the configuration those two read.
+// bytes back after it finishes, how hard it announces itself to the swarm, the
+// DHT and PEX switches a private tracker's rules need this app to get right
+// without anybody asking per torrent, which of its files it fetches and which
+// trackers it may or may not use. See internal/resolver/torrent for the intake
+// side and internal/engine for what starts a torrent task; this file is the
+// configuration those two read.
 
-// Torrent is the seed, port, DHT and PEX policy for every BitTorrent download
-// this instance starts: one block per instance rather than one per task.
+import "strings"
+
+// Torrent is the seed, port, DHT, PEX, file and tracker policy for every
+// BitTorrent download this instance starts: one block per instance rather than
+// one per task.
 //
 // That matches gopeed's bt fetcher, where DHT and PEX participation and the
 // listen port are properties of the one embedded torrent client every task
@@ -86,6 +90,46 @@ type Torrent struct {
 	DHTEnabled bool `json:"dhtEnabled"`
 	// PEXEnabled is the Peer Exchange half of the pair. See DHTEnabled.
 	PEXEnabled bool `json:"pexEnabled"`
+
+	// TorrentFileRules choose the files of a torrent nobody chose by hand. A
+	// category can carry its own in their place, see Category.TorrentFiles.
+	// Embedded, so its three fields sit directly in this block's JSON.
+	TorrentFileRules
+
+	// ExtraTrackers are announce addresses added to every torrent that is not
+	// private, and TrackerListURL a public list of more, fetched at most once
+	// a day (internal/trackerlist). With both empty, the default, none is
+	// added. See resolver/torrent.ExtraTrackers for how a magnet's privacy is
+	// judged before its metadata says, which a private tracker that does not
+	// put a key in its address gets past.
+	ExtraTrackers  []string `json:"extraTrackers"`
+	TrackerListURL string   `json:"trackerListUrl"`
+	// BannedTrackers are host names, or addresses whose host counts. A torrent
+	// that announces to one is held back at intake with the reason, like a
+	// link the link filter refuses, and none is ever added as an extra.
+	BannedTrackers []string `json:"bannedTrackers"`
+}
+
+// TorrentFileRules are the file selection resolver/torrent.FileRules applies
+// to a torrent at its start, when a magnet's file list arrives or a .torrent
+// is started whose file list nobody changed. MinFileSize is in bytes, 0 for
+// no minimum; the two lists are regular expressions, one per line. All empty,
+// the default, fetches every file.
+//
+// No omitempty on the lists, see CrawlInclude.
+type TorrentFileRules struct {
+	MinFileSize  int64    `json:"minFileSize"`
+	IncludeFiles []string `json:"includeFiles"`
+	ExcludeFiles []string `json:"excludeFiles"`
+}
+
+// TorrentFileRulesFor is the file selection for a torrent in this category:
+// the category's own set when it has one, the Torrents page's otherwise.
+func (s Settings) TorrentFileRulesFor(id string) TorrentFileRules {
+	if r := s.CategoryFor(id).TorrentFiles; r != nil {
+		return *r
+	}
+	return s.Torrent.TorrentFileRules
 }
 
 // defaultTorrent is Torrent's starting values for a fresh install. The numbers
@@ -123,7 +167,39 @@ func sanitizeTorrent(n Settings) Settings {
 		// the rest of the page.
 		t.Port = 0
 	}
+	t.TorrentFileRules = t.TorrentFileRules.sanitized()
+	t.ExtraTrackers = trimmedLines(t.ExtraTrackers)
+	t.BannedTrackers = trimmedLines(t.BannedTrackers)
+	t.TrackerListURL = strings.TrimSpace(t.TrackerListURL)
 	return n
+}
+
+// sanitized floors a negative minimum and drops blank lines, as sanitizeIntake
+// does, since a blank exclude pattern matches every file. A pattern that does
+// not compile stays as typed; the API refuses it at save time, and a torrent
+// that meets it fails with the reason rather than fetching what somebody asked
+// to skip.
+func (r TorrentFileRules) sanitized() TorrentFileRules {
+	if r.MinFileSize < 0 {
+		r.MinFileSize = 0
+	}
+	r.IncludeFiles = nonBlank(r.IncludeFiles)
+	r.ExcludeFiles = nonBlank(r.ExcludeFiles)
+	return r
+}
+
+// trimmedLines is nonBlank for lines whose surrounding spaces mean nothing,
+// such as addresses.
+func trimmedLines(in []string) []string {
+	out := nonBlank(in)
+	if len(out) == 0 {
+		return out
+	}
+	trimmed := make([]string, len(out))
+	for i, s := range out {
+		trimmed[i] = strings.TrimSpace(s)
+	}
+	return trimmed
 }
 
 // EffectiveDHT is the per-torrent answer: this instance's default, unless the

@@ -37,7 +37,7 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
       <Fact label={t('detail.message')} hint={t('detail.messageHint')} value={task.error} ltr copy />
       <Fact label={t('detail.heldBack')} value={held} />
       <Fact label={t('detail.doing')} value={task.note} />
-      <Fact label={t('detail.filtered')} value={filtered} />
+      <Fact label={t('detail.heldBecause')} value={filtered} />
 
       {/* A badge, not a switch: the dispatcher sets this, not the user. It
           covers a captcha, a full disk or a never rule rather than exhausted

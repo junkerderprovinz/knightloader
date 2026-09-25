@@ -38,10 +38,36 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 func (e *Engine) startTorrent(j Job) {
 	go func() {
 		defer e.wg.Done()
-		rr, err := e.resolveTorrent(j)
+		// Compiled before the swarm is asked, so a broken rule costs no
+		// metadata fetch.
+		pick, err := j.FileRules.Compile()
 		if err != nil {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
+		}
+		sel := j.TorrentSelect
+		magnet := torrent.IsMagnet(j.URL)
+		if sel == nil && !magnet {
+			sel = uploadSelect(pick, j.URL)
+		}
+		// Resolve keeps this pointer and Create takes no options (see place),
+		// so a selection made once the file list is known still reaches the
+		// download.
+		opts := &base.Options{Path: j.writeDir(), SelectFiles: sel}
+		rr, err := e.resolveTorrent(j, opts)
+		if err != nil {
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			return
+		}
+		if sel == nil && magnet {
+			// A magnet's file list exists from here on, and the library has
+			// already started the seeding loop that reads SelectFiles, without
+			// a lock, from its first tick a second after Resolve. Its own
+			// updateRes writes the field in the same gap, so this is written
+			// straight away, before the containment check below.
+			if sel = autoSelect(pick, rr.Res); sel != nil {
+				opts.SelectFiles = sel
+			}
 		}
 		// A magnet's file list comes from a stranger over the network and is
 		// seen here for the first time; an uploaded .torrent was already
@@ -50,7 +76,7 @@ func (e *Engine) startTorrent(j Job) {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
-		name, size := torrentMeta(rr.Res, j.TorrentSelect)
+		name, size := torrentMeta(rr.Res, sel)
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
@@ -70,14 +96,13 @@ func (e *Engine) startTorrent(j Job) {
 // runs on its own goroutine and this one gives up on the deadline or on
 // Close. Downloader.Close releases the abandoned goroutine, and its channel
 // is buffered so it never blocks on a result nobody reads.
-func (e *Engine) resolveTorrent(j Job) (*download.ResolveResult, error) {
+func (e *Engine) resolveTorrent(j Job, opts *base.Options) (*download.ResolveResult, error) {
 	req := &base.Request{URL: j.URL, Proxy: requestProxy(j.Route)}
 	if len(j.Trackers) > 0 {
 		// The bt fetcher type-asserts its own extra type; an http one would
 		// convert into an empty value.
 		req.Extra = &gbt.ReqExtra{Trackers: j.Trackers}
 	}
-	opts := &base.Options{Path: j.writeDir(), SelectFiles: j.TorrentSelect}
 
 	type answer struct {
 		rr  *download.ResolveResult
@@ -142,6 +167,36 @@ func landingPaths(res *base.Resource) []string {
 		out = append(out, res.Name)
 	}
 	return out
+}
+
+// autoSelect is the selection pick makes from a resolved torrent's files, by
+// index, or nil when it keeps every file. The paths are the ones a .torrent's
+// own file tree shows, so a rule reads a magnet's files and an upload's alike.
+func autoSelect(pick torrent.Picker, res *base.Resource) []int {
+	if res == nil {
+		return nil
+	}
+	files := make([]core.TorrentFile, len(res.Files))
+	for i, f := range res.Files {
+		if f != nil {
+			files[i] = core.TorrentFile{Path: path.Join(f.Path, f.Name), Size: f.Size}
+		}
+	}
+	return core.SelectedTorrentIndices(pick.Pick(files))
+}
+
+// uploadSelect is the selection pick makes from an uploaded .torrent, by
+// index, or nil when it keeps every file. The upload carries its own file
+// list, in the order the library indexes it, so the choice goes in with the
+// options rather than into them after Resolve, when the library's goroutines
+// are already reading them.
+func uploadSelect(pick torrent.Picker, uri string) []int {
+	md, err := (torrent.Resolver{}).Describe(uri)
+	if err != nil {
+		// Resolve reads the same bytes and fails with the reason.
+		return nil
+	}
+	return core.SelectedTorrentIndices(pick.Pick(md.Files))
 }
 
 // torrentMeta is the name and size to show for a resolved torrent. The size

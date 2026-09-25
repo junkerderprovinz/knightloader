@@ -207,7 +207,7 @@ export async function startTasks(conn: ServerConnection, ids: string[], base = '
  * What a start actually did.
  *
  * "Nothing happened" has three causes a bare 204 cannot tell apart: a halted
- * queue, a link filter holding the named tasks, or ids matching nothing. The
+ * queue, the named tasks held back, or ids matching nothing. The
  * shape is the server's (App.StartTasks in internal/app/app_queue.go), named
  * the same on both sides.
  */

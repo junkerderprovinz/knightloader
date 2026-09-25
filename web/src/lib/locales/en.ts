@@ -106,7 +106,7 @@ export const en = {
   'collector.toastSkipped': 'Staged {n} link(s), {skipped} already known',
   'collector.toastNone': 'No valid links found',
   'collector.toastStarted': 'Started {n} download(s)',
-  'collector.toastStartSkipped': 'A link filter is holding {n} links back.',
+  'collector.toastStartHeld': '{n} link(s) are held back and were not started.',
   'collector.toastStartDisabled': '{n} links are switched off and were not started.',
   'collector.toastStartedSomeDisabled': '{n} started, {disabled} switched off.',
   'collector.toastStartBlocked': 'A schedule is holding the queue.',
@@ -477,6 +477,7 @@ export const en = {
   'torrent.staged': 'Added {file} to the collector.',
   'torrent.stagedIn': 'Added {file} to the collector in “{pkg}”.',
   'torrent.duplicate': '{file} is already in the list.',
+  'torrent.held': '{file} was held back: {reason}',
   'torrent.onlyOne': 'only one .torrent can be reviewed at a time',
   'torrent.tree.summary': '{n} of {total} file(s) selected ({size})',
   'torrent.tree.private': 'Private tracker',
@@ -722,12 +723,11 @@ export const en = {
   'settings.connections.importFailed': 'The list could not be read: {error}',
   'settings.connections.cancel': 'Cancel',
 
-  'collector.filtered.summary': '{n} link(s) held by the link filter',
-  'collector.filtered.info': 'Links a filter rule refused. They are kept here instead of in the list above, so a working filter does not leave the collector looking full of junk. Nothing was lost. Restore puts a link back and lets it past the rule that caught it; use it when the rule turned out to be too broad. Clear deletes it. Either way, no file has been downloaded.',
+  'collector.filtered.heldSummary': '{n} link(s) held back',
+  'collector.filtered.heldInfo': 'Links a link filter rule refused, and torrents that announce a banned tracker. They are kept here instead of in the list above, so a working filter does not leave the collector looking full of junk. Nothing was lost. Restore puts a link back and lets it past the rule or ban that caught it, for when that turned out to be too broad. Clear deletes it. Either way, no file has been downloaded.',
   'collector.filtered.restore': 'Restore',
   'collector.filtered.restoreAll': 'Restore all',
   'collector.filtered.clear': 'Clear',
-  'collector.filtered.noRule': 'the link filter',
   'collector.filtered.originTitle': 'Where this link came from',
   'collector.filtered.origin.paste': 'pasted',
   'collector.filtered.origin.crawl': 'crawled',
@@ -736,8 +736,8 @@ export const en = {
   'collector.filtered.origin.container': 'container',
   'collector.filtered.restoreFailed': 'Could not restore those links. Is the server reachable?',
   'collector.filtered.clearFailed': 'Could not clear those links. Is the server reachable?',
-  'collector.filtered.toastHeld': 'Staged {n} link(s); {held} held by the link filter',
-  'collector.filtered.toastAllHeld': 'Nothing was staged: the link filter is holding {held} link(s)',
+  'collector.filtered.toastHeldBack': 'Staged {n} link(s); {held} held back',
+  'collector.filtered.toastAllHeldBack': 'Nothing was staged: {held} link(s) held back',
 
   'settings.rules.flavourLabel': 'Which rule list',
   'settings.rules.setupTitle': 'Rule set',
@@ -1933,7 +1933,8 @@ export const en = {
     "yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s.",
 
   // The Torrents page (pages/settings/Torrents.tsx): seed targets, the
-  // transfer limit, the port and its UPnP mapping, DHT and PEX.
+  // transfer limit, the port and its UPnP mapping, DHT and PEX, the file
+  // selection and the trackers.
   'settings.nav.torrents': 'Torrents',
   'settings.module.torrents': 'Torrents',
   'settings.torrents.title': 'Torrents',
@@ -1975,6 +1976,31 @@ export const en = {
     'A private torrent switches both off automatically once its metadata is known, regardless of what is set here: immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
   'settings.torrents.notApplied':
     'This build does not apply two of the settings below yet. The upload limit is saved and checked, but the engine cannot apply it to a running download. DHT and PEX do not reach an ordinary torrent either: it seeds with both on, whatever is set here. A private torrent works differently, as the (i) of Peer discovery explains.',
+  'settings.torrents.filesTitle': 'File selection',
+  'settings.torrents.filesHint':
+    'Chooses which files of a torrent are fetched when nobody chose them by hand. For a magnet link that happens once its file list has arrived. A .torrent opens its file list with this choice ticked, and it applies if you add the torrent without changing it. Whatever you tick or untick yourself always wins. If nothing would be left, every file is fetched. A category can have its own file selection instead.',
+  'settings.torrents.minFileSize': 'Minimum file size',
+  'settings.torrents.minFileSizeHint': 'Smaller files are skipped, such as .nfo files and short samples. 0 = no minimum.',
+  'settings.torrents.includeFiles': 'Only these files',
+  'settings.torrents.includeFilesHint':
+    "One regular expression per line, matched against the file's path inside the torrent, as “matches pattern” does in a Packagizer rule. A file must match one of them to be fetched. Case counts; start a pattern with (?i) to ignore it.",
+  'settings.torrents.excludeFiles': 'Never these files',
+  'settings.torrents.excludeFilesHint':
+    'One regular expression per line, matched like the box beside it. A matching file is skipped, for example (?i)sample or \\.(nfo|exe)$.',
+  'settings.torrents.trackersTitle': 'Trackers',
+  'settings.torrents.extraTrackers': 'Extra trackers',
+  'settings.torrents.extraTrackersHint':
+    'One tracker address per line, added to torrents so they find more peers. A .torrent marked private never gets them. A magnet link only says whether it is private once its file list has arrived, and by then the trackers are already added, so a magnet whose own tracker address carries a passkey gets none either. A private tracker that knows you by your IP address rather than a passkey cannot be spotted this way: leave this empty if you get magnet links from one.',
+  'settings.torrents.trackerList': 'Tracker list',
+  'settings.torrents.trackerListHint':
+    "The address of a public list with one tracker per line, such as ngosang's trackers_best.txt. It is fetched at most once a day and its trackers are added like the ones above. If a fetch fails, the list from the last good fetch stays in use.",
+  'settings.torrents.trackerListFetched': '{n} tracker(s), fetched {when}',
+  'settings.torrents.trackerListFetching': 'Fetching the list…',
+  'settings.torrents.trackerListPending': 'Not fetched yet.',
+  'settings.torrents.trackerListFailed': 'The last fetch failed: {error}',
+  'settings.torrents.bannedTrackers': 'Banned trackers',
+  'settings.torrents.bannedTrackersHint':
+    'One host name or tracker address per line; its subdomains count too. A torrent that announces to one of them is not added: the collector holds it back with the reason, like a link the link filter refuses. Restoring it there lets it past the line that caught it, not past one you add later. A banned tracker is never added as an extra tracker either.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
@@ -2340,7 +2366,7 @@ export const en = {
   'detail.messageHint': 'The sentence from whatever tried to fetch this, word for word and untranslated. It is the current failure and nothing else: a restart clears it, and no record is kept of the ones before.',
   'detail.heldBack': 'Held back by',
   'detail.doing': 'Doing right now',
-  'detail.filtered': 'Held by the link filter',
+  'detail.heldBecause': 'Held back because',
   'detail.gaveUp': 'Not trying again',
   'detail.gaveUpHint': 'This one has stopped on purpose, not because the attempts ran out: a captcha, a full disk, or a rule that says never for this hoster. Raising the retry count changes nothing here. The mark itself is not written to the database, so it is gone after a restart even though the reason for it is not.',
   'detail.rules': 'Rules that shaped this',
@@ -2754,6 +2780,10 @@ export const en = {
   'settings.categories.notifyNone': 'Call nothing',
   'settings.categories.notifyEmpty': 'No address is stored yet. Add one on the Automation page.',
   'settings.categories.notifyMissing': '{id} (deleted)',
+  'settings.categories.torrentFiles': 'Torrent file selection',
+  'settings.categories.torrentFilesHint':
+    'Which files of a torrent filed here are fetched when nobody ticked them by hand. Inherit uses the file selection on the Torrents page. Own replaces it for this category, for example a music category where the small files are the album. It applies when the torrent starts, so it also covers a torrent a Packagizer rule files here. Files you tick yourself always win.',
+  'settings.categories.torrentFilesOwn': 'Own',
   'settings.module.eventtargets': 'Event targets',
   'settings.eventTargets.titleHint': 'Where this instance reports to when something happens: an address of yours, with the method, headers and body you decide. Nothing is filled in and nothing is switched on until you do it, and a message only ever goes to the address in the row. The events on offer are the same ones the script editor fires on.',
   'settings.eventTargets.add': 'Add target',

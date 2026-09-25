@@ -31,7 +31,7 @@ export const uk: Dict = {
   'instance.captchasOne': '1 капча в очікуванні',
   'downloads.start': 'Запустити',
   'downloads.stop': 'Зупинити',
-  'downloads.startSkipped': 'Фільтр посилань утримує {n} посилань.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Розклад утримує чергу зупиненою.',
   'downloads.tabDownloads': 'Завантаження',
   'downloads.tabCollector': 'Збирач',

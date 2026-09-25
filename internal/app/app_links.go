@@ -128,7 +128,7 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 		seen[u] = true
 		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, origin, cand.Added); t != nil {
+			if t := a.hold(cand, v, origin, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -181,7 +181,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, origin, cand.Added); t != nil {
+			if t := a.hold(cand, v, origin, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -642,7 +642,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// save the network round trip.
 	if in.waived == "" {
 		if v := a.filter(cand); v.Rejected {
-			return a.hold(cand, v, in.origin, now)
+			return a.hold(cand, v, in.origin, now, nil)
 		}
 	}
 	// An advisory duplicate check; the binding one is in put. A mirror the user
@@ -732,11 +732,16 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 
-	// Second pass, with name and size known, still before staging.
+	// Second pass, with name, size and a torrent's trackers known, still
+	// before staging.
 	cand.Filename, cand.Filesize = filename(t), t.Size
 	if in.waived == "" {
-		if v := a.filter(cand); v.Rejected {
-			return a.hold(cand, v, in.origin, now)
+		v := a.filter(cand)
+		if !v.Rejected {
+			v = trackerBan(t, a.Settings.Get().Torrent)
+		}
+		if v.Rejected {
+			return a.hold(cand, v, in.origin, now, nil)
 		}
 	}
 	staged := a.finishStaging(t, cand)
@@ -863,11 +868,17 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 // so it survives a restart and can be restored, but Skipped keeps it out of the
 // collector, the queue and the counters. Nothing is resolved, so a refused host
 // is never contacted.
-func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, now time.Time) *core.Task {
+//
+// A torrent is read from its own link, which asks nobody. It keeps its
+// trackers, so a tracker banned after a restore still stops it, and files, the
+// selection ticked in its file tree, which a restore must not hand back to the
+// file rules. files is nil for anything else.
+func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, now time.Time, files []core.TorrentFile) *core.Task {
 	t := &core.Task{
 		URL:     cand.URL,
 		Name:    cand.URL,
 		Package: cand.Package,
+		Size:    cand.Filesize,
 		Status:  core.StatusCollected,
 		Skipped: true,
 		// rejection() has already added the rule's name where needed.
@@ -876,12 +887,18 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, no
 		Enabled:   true,
 		Source:    cand.Source,
 		Origin:    origin,
-		Host:      hostOf(cand.URL),
+		Host:      torrentHost(cand.URL),
 		CreatedAt: now,
 		// Online stays unset; nobody checked whether the link is alive.
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
+	}
+	if torrent.IsURI(cand.URL) {
+		if md, err := (torrent.Resolver{}).Describe(cand.URL); err == nil {
+			t.InfoHash, t.Trackers = md.InfoHash, md.Trackers
+		}
+		t.TorrentFiles = files
 	}
 	if v.Rule != "" {
 		// The rule as data, so clients need not parse it out of a sentence.

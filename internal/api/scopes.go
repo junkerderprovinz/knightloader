@@ -261,6 +261,9 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/torrents":         apitoken.ScopeAdd,
 	"POST /api/torrents/parse":   apitoken.ScopeAdd,
 	"POST /api/torrents/portmap": apitoken.ScopeAdmin,
+	// How the tracker list named in the settings was fetched, which is part
+	// of the Torrents settings page.
+	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
 
 	// The interface state also holds the SABnzbd bridge's grabs.
 	"GET /api/uistate": apitoken.ScopeRead,

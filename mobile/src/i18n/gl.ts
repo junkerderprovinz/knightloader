@@ -31,7 +31,7 @@ export const gl: Dict = {
   'instance.captchasOne': '1 captcha agardando agora mesmo',
   'downloads.start': 'Iniciar',
   'downloads.stop': 'Deter',
-  'downloads.startSkipped': 'O filtro de ligazóns retivo {n} ligazóns.',
+  'downloads.startHeld': '{n} link(s) are held back and were not started.',
   'downloads.startBlocked': 'Unha programación mantén a cola en pausa.',
   'downloads.tabDownloads': 'Descargas',
   'downloads.tabCollector': 'Colector',

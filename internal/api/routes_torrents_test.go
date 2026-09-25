@@ -339,3 +339,118 @@ func mustRead(t *testing.T, resp *http.Response) []byte {
 	}
 	return buf.Bytes()
 }
+
+// parseAndStage uploads a release with a sample and an .nfo beside the film,
+// then stages it with selected as the body's selectedPaths, nil leaving the
+// key out.
+func parseAndStage(t *testing.T, a *app.App, srv string, selected []string) (torrentTree, core.Task) {
+	t.Helper()
+	s := a.Settings.Get()
+	s.Torrent.MinFileSize = 1 << 10
+	s.Torrent.ExcludeFiles = []string{`(?i)sample`}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	data := testMultiFileTorrent(t, "Movie", []metainfo.FileInfo{
+		{Length: 900 << 10, Path: []string{"movie.mkv"}},
+		{Length: 90 << 10, Path: []string{"Sample", "movie.mkv"}},
+		{Length: 200, Path: []string{"movie.nfo"}},
+	})
+	code, body := postMultipartFile(t, srv+"/api/torrents/parse", "file", "movie.torrent", data)
+	if code != http.StatusOK {
+		t.Fatalf("POST parse = %d: %s", code, body)
+	}
+	var tree torrentTree
+	if err := json.Unmarshal(body, &tree); err != nil {
+		t.Fatal(err)
+	}
+	fields := map[string]any{"uri": tree.URI, "package": "Movie"}
+	if selected != nil {
+		fields["selectedPaths"] = selected
+	}
+	stageBody, _ := json.Marshal(fields)
+	resp, err := http.Post(srv+"/api/torrents", "application/json", bytes.NewReader(stageBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	respBody := mustRead(t, resp)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("POST stage = %d: %s", resp.StatusCode, respBody)
+	}
+	var task core.Task
+	if err := json.Unmarshal(respBody, &task); err != nil {
+		t.Fatal(err)
+	}
+	return tree, task
+}
+
+func chosen(files []core.TorrentFile) []string {
+	var out []string
+	for _, f := range files {
+		if f.Selected {
+			out = append(out, f.Path)
+		}
+	}
+	return out
+}
+
+// The review opens on what staging the torrent untouched would fetch.
+func TestTheParsedTreeComesWithTheFileRulesChoice(t *testing.T) {
+	t.Parallel()
+	a, srv := torrentsServer(t)
+	tree, _ := parseAndStage(t, a, srv.URL, nil)
+	if got := chosen(tree.Files); len(got) != 1 || got[0] != "movie.mkv" {
+		t.Fatalf("the parsed tree selects %q, want only the film", got)
+	}
+}
+
+// Staged untouched, the choice stays with the file rules until the torrent
+// starts, when a Packagizer rule may have filed it in a category with its own.
+// The size shown until then is what the Torrents page's rules would fetch.
+func TestATorrentStagedWithoutASelectionLeavesTheChoiceToTheFileRules(t *testing.T) {
+	t.Parallel()
+	a, srv := torrentsServer(t)
+	_, task := parseAndStage(t, a, srv.URL, nil)
+	if task.TorrentFiles != nil {
+		t.Fatalf("the staged task carries the selection %+v, want none made yet", task.TorrentFiles)
+	}
+	if task.Size != 900<<10 {
+		t.Errorf("size = %d, want the film's alone", task.Size)
+	}
+}
+
+func TestASelectionMadeByHandBeatsTheFileRules(t *testing.T) {
+	t.Parallel()
+	a, srv := torrentsServer(t)
+	_, task := parseAndStage(t, a, srv.URL, []string{"movie.mkv", "Sample/movie.mkv", "movie.nfo"})
+	if got := chosen(task.TorrentFiles); len(got) != 3 {
+		t.Fatalf("the staged task selects %q, want all three files ticked by hand", got)
+	}
+}
+
+func TestTheTrackerListRouteReportsTheListTheSettingsName(t *testing.T) {
+	t.Parallel()
+	a, srv := torrentsServer(t)
+	s := a.Settings.Get()
+	// Nothing listens on port 1, so the fetch this save starts fails at once.
+	s.Torrent.TrackerListURL = "http://127.0.0.1:1/best.txt"
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.Get(srv.URL + "/api/torrents/trackers")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var st struct {
+		URL      string `json:"url"`
+		Trackers int    `json:"trackers"`
+	}
+	if err := json.Unmarshal(mustRead(t, resp), &st); err != nil {
+		t.Fatal(err)
+	}
+	if st.URL != "http://127.0.0.1:1/best.txt" || st.Trackers != 0 {
+		t.Fatalf("status = %+v, want the saved address and no trackers", st)
+	}
+}

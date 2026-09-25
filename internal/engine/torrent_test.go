@@ -2,9 +2,12 @@ package engine
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
+	"github.com/anacrolix/torrent/bencode"
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -80,6 +83,68 @@ func TestTheSizeShownIsTheSelectionsAndNotTheWholeTorrents(t *testing.T) {
 	}
 	if name, _ := torrentMeta(&base.Resource{Files: []*base.FileInfo{{Name: "movie.mkv"}}}, nil); name != "movie.mkv" {
 		t.Fatal("a single-file torrent lost its name")
+	}
+}
+
+// A magnet's files are only known once the swarm has sent them, so that is
+// where its file rules are applied, against the paths an upload shows.
+func TestFileRulesChooseFromAResolvedTorrentsFiles(t *testing.T) {
+	res := &base.Resource{Name: "Movie.2024", Files: []*base.FileInfo{
+		{Name: "Movie.2024.mkv", Size: 4 << 30},
+		{Name: "Movie.Sample.mkv", Path: "Sample", Size: 40 << 20},
+		{Name: "Movie.2024.nfo", Size: 3 << 10},
+		{Name: "English.srt", Path: "Subs", Size: 80 << 10},
+	}}
+	pick, err := torrent.FileRules{MinSize: 50 << 10, Exclude: []string{`^Sample/`}}.Compile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := autoSelect(pick, res); !slices.Equal(got, []int{0, 3}) {
+		t.Fatalf("autoSelect = %v, want the film and the subtitles", got)
+	}
+	if got := autoSelect(torrent.Picker{}, res); got != nil {
+		t.Fatalf("no rules selected %v, want nil, which fetches everything", got)
+	}
+	if _, size := torrentMeta(res, autoSelect(pick, res)); size != 4<<30+80<<10 {
+		t.Fatalf("the size shown is %d, want the chosen files'", size)
+	}
+}
+
+// An upload's rules choose from the file list it carries, the one its review
+// showed, before the library is asked about it.
+func TestAnUploadsFileRulesChooseFromItsOwnFileList(t *testing.T) {
+	files := []metainfo.FileInfo{
+		{Length: 4 << 20, Path: []string{"Movie.2024.mkv"}},
+		{Length: 40 << 10, Path: []string{"Sample", "Movie.Sample.mkv"}},
+		{Length: 3 << 10, Path: []string{"Movie.2024.nfo"}},
+		{Length: 80 << 10, Path: []string{"Subs", "English.srt"}},
+	}
+	var total int64
+	for _, f := range files {
+		total += f.Length
+	}
+	const pieceLength = 256 << 10
+	info := metainfo.Info{Name: "Movie.2024", Files: files, PieceLength: pieceLength,
+		Pieces: make([]byte, 20*((total+pieceLength-1)/pieceLength))}
+	ib, err := bencode.Marshal(info)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := bencode.Marshal(metainfo.MetaInfo{InfoBytes: ib})
+	if err != nil {
+		t.Fatal(err)
+	}
+	uri := torrent.EncodeBytes(raw)
+
+	pick, err := torrent.FileRules{Exclude: []string{`^Sample/`, `\.nfo$`}}.Compile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := uploadSelect(pick, uri); !slices.Equal(got, []int{0, 3}) {
+		t.Fatalf("uploadSelect = %v, want the film and the subtitles", got)
+	}
+	if got := uploadSelect(torrent.Picker{}, uri); got != nil {
+		t.Fatalf("no rules selected %v, want nil, which fetches everything", got)
 	}
 }
 
