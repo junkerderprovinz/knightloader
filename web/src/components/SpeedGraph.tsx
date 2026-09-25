@@ -446,8 +446,11 @@ export function SpeedMeter({
     // labels have to stay at the ends of the plot they name. basis-60 is where
     // the bar wraps the meter under the squares instead of squeezing it.
     // self-stretch and no h-full: a percentage height would take the meter out
-    // of the stretch against the card's indefinite height.
-    <span dir="ltr" className="flex min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
+    // of the stretch against the card's indefinite height. The negative margin
+    // lays the figures into the card's padding, so the plot reaches nearer the
+    // card's edges than the squares do; min-h-20 is what makes the card taller
+    // than the squares.
+    <span dir="ltr" className="-my-2 flex min-h-20 min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
       <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
         <span className="glim-num text-[11px] text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
         <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtRate(value)}</span>
@@ -460,7 +463,7 @@ export function SpeedMeter({
         ref={svg}
         viewBox={`0 0 ${w} ${h}`}
         preserveAspectRatio="none"
-        className="h-0 min-h-[26px] w-full flex-auto"
+        className="h-0 w-full flex-auto"
         aria-hidden
         focusable="false"
       >

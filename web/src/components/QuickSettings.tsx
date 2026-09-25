@@ -66,16 +66,26 @@ interface QuickRow {
 // switches, and the one action last.
 const ROWS: QuickRow[] = [
   {
-    id: 'counts',
+    id: 'speedLimit',
     render: ({ cfg, patch }) => (
-      // Two columns once the panel has room for two captions side by side.
-      <div className="grid grid-cols-1 items-end gap-x-3 gap-y-4 @[21rem]:grid-cols-2">
-        <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
-        <MaxConcurrentField value={cfg.maxConcurrent} onValue={(maxConcurrent) => patch({ maxConcurrent })} />
-        <MaxPerHostField value={cfg.maxPerHost} onValue={(maxPerHost) => patch({ maxPerHost })} />
-        <ChunksField value={cfg.chunks} onValue={(chunks) => patch({ chunks })} />
-      </div>
+      <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
     ),
+  },
+  {
+    id: 'maxConcurrent',
+    render: ({ cfg, patch }) => (
+      <MaxConcurrentField value={cfg.maxConcurrent} onValue={(maxConcurrent) => patch({ maxConcurrent })} />
+    ),
+  },
+  {
+    id: 'maxPerHost',
+    render: ({ cfg, patch }) => (
+      <MaxPerHostField value={cfg.maxPerHost} onValue={(maxPerHost) => patch({ maxPerHost })} />
+    ),
+  },
+  {
+    id: 'chunks',
+    render: ({ cfg, patch }) => <ChunksField value={cfg.chunks} onValue={(chunks) => patch({ chunks })} />,
   },
   {
     id: 'suspendSchedule',
@@ -504,8 +514,10 @@ export function QuickSettings() {
 
   return (
     <span ref={wrap} className="inline-flex">
+      {/* The transport squares' size, since controls in one row share one box. */}
       <Button
         kind={open ? 'primary' : 'secondary'}
+        keyControl
         icon={<IconMenu />}
         // No tooltip while the panel is open, where it would cover the title.
         title={open ? undefined : title}
@@ -531,7 +543,7 @@ export function QuickSettings() {
               maxHeight: at?.maxHeight,
               visibility: placed ? undefined : 'hidden',
             }}
-            className="glim-card glim-fade @container fixed z-40 flex w-[24rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
+            className="glim-card glim-fade fixed z-40 flex w-[24rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
           >
             <SectionTitle>{title}</SectionTitle>
             {cfg && extras && (

@@ -61,10 +61,11 @@ export function useQueueControl(base: string, instance: string) {
 }
 
 /**
- * QueueBar holds the hard Stop, Pause and Play in the shell bar, Play at the
- * end because it goes ahead (GlimStone's button order). Halting only stops
- * new dispatch and lets running downloads finish. It takes no `base`: the
- * scope comes from lib/instance.tsx, the same value the page reads.
+ * QueueBar holds Play, Pause and the hard Stop in the shell bar. Play opens the
+ * row, as on a player's transport, where GlimStone's button order would put the
+ * control that goes ahead last. Halting only stops new dispatch and lets
+ * running downloads finish. It takes no `base`: the scope comes from
+ * lib/instance.tsx, the same value the page reads.
  */
 export function QueueBar() {
   const { t } = useT();
@@ -87,15 +88,32 @@ export function QueueBar() {
 
   if (!queue) return null;
 
-  // Squares at the button height in every label mode, so the shell bar stays
-  // one row high; the name is in the tooltip. The bar lays them out.
+  // Key-control squares in every label mode, so the shell bar stays one row
+  // high; the name is in the tooltip. The bar lays them out.
   return (
     <>
       {/* `secondary` rather than `ghost` for the inactive buttons, since a
           disabled ghost button has no fill and reads as gone. Stop asks first
           through the cost dialog. */}
       <Button
+        kind={queue.halted ? 'primary' : 'secondary'}
+        keyControl
+        icon={<IconPlay />}
+        onClick={() => void setHalted(false)}
+        disabled={!queue.halted}
+        title={t('queue.play')}
+      />
+      <Button
+        kind={!queue.halted ? 'primary' : 'secondary'}
+        keyControl
+        icon={<IconPause />}
+        onClick={() => void setHalted(true)}
+        disabled={queue.halted}
+        title={t('queue.pause')}
+      />
+      <Button
         kind="secondary"
+        keyControl
         icon={<IconStop />}
         // With the dialog muted, the stop happens on the press.
         onClick={() => {
@@ -107,20 +125,6 @@ export function QueueBar() {
         }}
         disabled={queue.running === 0}
         title={t('queue.hardStop')}
-      />
-      <Button
-        kind={!queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPause />}
-        onClick={() => void setHalted(true)}
-        disabled={queue.halted}
-        title={t('queue.pause')}
-      />
-      <Button
-        kind={queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPlay />}
-        onClick={() => void setHalted(false)}
-        disabled={!queue.halted}
-        title={t('queue.play')}
       />
 
       {stopCost && (
