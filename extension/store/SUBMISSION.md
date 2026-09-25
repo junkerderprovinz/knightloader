@@ -272,7 +272,8 @@ single purpose, no use for creditworthiness or lending).
   upload a new version "On this site". AMO takes each version number once across
   both channels, so the listed version needs a number the workflow has not signed.
   Once the listing is live, point the `firefox` entry in
-  `scripts/download_buttons.py` at it.
+  `scripts/download_buttons.py` at it; until the first signed build exists that
+  entry is empty and the button shows "soon".
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
   `extension/PRIVACY.md`, or link to it.
 

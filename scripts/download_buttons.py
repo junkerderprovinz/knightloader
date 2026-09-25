@@ -24,8 +24,10 @@ BUTTONS = {
     # that lists it.
     "source": "https://github.com/junkerderprovinz/knightloader/releases/latest",
     "apk": NEWEST % "mobile" + "knightloader-android.apk",
-    # One zip for every Chromium browser; Firefox takes only a signed add-on,
-    # which release-extension.yml has Mozilla sign.
+    # One zip for every Chromium browser.
     "chrome": NEWEST % "extension" + "knightloader-extension.zip",
-    "firefox": NEWEST % "extension" + "knightloader-extension.xpi",
+    # Firefox takes only a signed add-on, which release-extension.yml has
+    # Mozilla sign. Until a signed build is published the button has no link;
+    # then it becomes NEWEST % "extension" + "knightloader-extension.xpi".
+    "firefox": None,
 }
