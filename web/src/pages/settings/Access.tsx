@@ -377,7 +377,7 @@ function RemoteAccessCard({
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {/* What to do first, then how it works. Button names are interpolated
             from the buttons' own keys, so the steps cannot drift from the
             labels. */}
