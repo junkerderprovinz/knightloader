@@ -495,7 +495,6 @@ export const it: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Non esiste ancora nessun token API, quindi ogni chiamata viene rifiutata. Creane uno nella pagina Accesso remoto.',
   'settings.modules.detail.downloadclientNoSubfolders': '«Metti ogni pacchetto in una sottocartella dedicata» è disattivato, quindi ogni download finisce nella stessa cartella e l’importazione non riesce a distinguerli.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Non esiste ancora nessun token API, quindi ogni chiamata viene rifiutata. Creane uno nella pagina Accesso remoto. Anche «Metti ogni pacchetto in una sottocartella dedicata» è disattivato, quindi ogni download finisce nella stessa cartella e l’importazione non riesce a distinguerli.',
-  'settings.modules.detail.downloadclientReady': 'Raggiungibile su {path}. In Sonarr o Radarr imposta URL Base su «{urlBase}» e API Key su uno dei token API di questa istanza.',
   'settings.modules.detail.metricsOff': 'Spento. {path} risponde 404, come un indirizzo che non esiste.',
   'settings.modules.detail.metricsNoToken': 'Questa istanza ha una password ma ancora nessun token API, quindi un sistema di monitoraggio non ha niente con cui accedere. Creane uno nella pagina Accesso remoto.',
   'settings.modules.detail.metricsReady': 'Raggiungibile su {path}. Su un’istanza con password, il sistema di monitoraggio invia uno dei token API dell’istanza come intestazione Bearer.',
@@ -2915,4 +2914,5 @@ export const it: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

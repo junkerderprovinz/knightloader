@@ -106,6 +106,13 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 			"module is switched off - so an open route is not an open door",
 		"POST /api/sabnzbd/api": "the same door for mode=addfile, which is the one call the two apps " +
 			"make as a POST; same credential, same switch, same reasoning as the GET above",
+		"GET /api/qbittorrent/api/v2/{call...}": "qBittorrent's clients log in for a session cookie of " +
+			"qBittorrent's own and send it back, which the session guard knows nothing about. The route " +
+			"checks that cookie, or a Bearer token, and the right the call needs itself on every call but " +
+			"the login, whose password has to be one of this instance's API tokens, on every instance " +
+			"including one with no password, and answers 404 while the downloadclient module is switched off",
+		"POST /api/qbittorrent/api/v2/{call...}": "the same door for the login and the calls that change " +
+			"something, which qBittorrent only takes as a POST; same credential, same switch",
 		"GET /relay/connect": "the relay socket, when this instance is serving one; every instance " +
 			"dialling in is a different machine with no session here, and the relay key in the first " +
 			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +
@@ -131,8 +138,9 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 }
 
 // TestSessionGuardCoversWildcardRoutes checks the matching the open list is
-// looked up with. The relay route is the only open route with a wildcard in it,
-// and a prefix test that was too generous would open everything below it.
+// looked up with. The relay route and the qBittorrent door are the open routes
+// with a wildcard in them, and a prefix test that was too generous would open
+// everything below them.
 func TestSessionGuardCoversWildcardRoutes(t *testing.T) {
 	t.Parallel()
 	reg := buildRegistry(t)
@@ -142,6 +150,9 @@ func TestSessionGuardCoversWildcardRoutes(t *testing.T) {
 	}{
 		{"/api/containers/relay/abc123", true},
 		{"/api/containers", false},
+		{"/api/qbittorrent/api/v2/torrents/info", true},
+		{"/api/qbittorrent/api/v2", false},
+		{"/api/qbittorrent", false},
 		{"/api/tasks", false},
 		{"/api/settings", false},
 		{"/", true},

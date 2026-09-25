@@ -73,6 +73,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerHelp(reg, a)
 	registerTorrents(reg, a)
 	registerDownloadClient(reg, a)
+	registerQBittorrent(reg, a)
 	registerActivity(reg, a)
 	registerHostHeaders(reg, a)
 	registerYtdlpCookies(reg, a)

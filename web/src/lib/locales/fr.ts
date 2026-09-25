@@ -495,7 +495,6 @@ export const fr: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Il n’existe encore aucun jeton API : chaque appel est donc refusé. Créez-en un sur la page Accès à distance.',
   'settings.modules.detail.downloadclientNoSubfolders': '« Placer chaque paquet dans son propre sous-dossier » est désactivé : chaque récupération atterrit donc dans le même dossier, et l’import ne peut pas les distinguer.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Il n’existe encore aucun jeton API : chaque appel est donc refusé. Créez-en un sur la page Accès à distance. « Placer chaque paquet dans son propre sous-dossier » est également désactivé : chaque récupération atterrit donc dans le même dossier, et l’import ne peut pas les distinguer.',
-  'settings.modules.detail.downloadclientReady': 'Joignable à l’adresse {path}. Dans Sonarr ou Radarr, réglez URL Base sur « {urlBase} » et API Key sur l’un des jetons API de cette instance.',
   'settings.modules.detail.metricsOff': 'Désactivé. {path} répond 404, comme une adresse qui n’existe pas.',
   'settings.modules.detail.metricsNoToken': 'Cette instance a un mot de passe mais pas encore de jeton API : un système de supervision n’a donc rien pour s’authentifier. Créez-en un sur la page Accès à distance.',
   'settings.modules.detail.metricsReady': 'Joignable à l’adresse {path}. Sur une instance protégée par un mot de passe, le système de supervision envoie l’un des jetons API de l’instance dans un en-tête Bearer.',
@@ -2919,4 +2918,5 @@ export const fr: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

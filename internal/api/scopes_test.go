@@ -60,6 +60,16 @@ func TestEveryGuardedRouteNamesTheRightATokenNeeds(t *testing.T) {
 			t.Errorf("the SABnzbd operation %s needs %q, which is not a scope", op, s)
 		}
 	}
+	for call, s := range qbittorrentScopes {
+		if !slices.Contains(apitoken.AllScopes(), s) {
+			t.Errorf("the qBittorrent call %s needs %q, which is not a scope", call, s)
+		}
+	}
+	for call := range qbittorrentAddMay {
+		if qbittorrentScopes[call] != apitoken.ScopeControl {
+			t.Errorf("qbittorrentAddMay names %s, which is not a control call in qbittorrentScopes", call)
+		}
+	}
 }
 
 // A route the table does not name is refused to every token without admin.
@@ -501,7 +511,7 @@ func TestModuleRowsNoticeTokensWithoutTheRightsTheModuleNeeds(t *testing.T) {
 	if _, _, err := a.APITokens.CreateScoped("sonarr", []apitoken.Scope{apitoken.ScopeRead, apitoken.ScopeAdd}); err != nil {
 		t.Fatal(err)
 	}
-	rows("downloadclientReady", "metricsReady")
+	rows("downloadclientReadyBoth", "metricsReady")
 }
 
 func hasKey(m map[string]any, k string) bool {

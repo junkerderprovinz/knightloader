@@ -503,7 +503,6 @@ export const sl: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'Žetona API še ni, zato je vsak klic zavrnjen. Ustvari ga na strani Oddaljeni dostop.',
   'settings.modules.detail.downloadclientNoSubfolders': '»Vsak paket v svojo podmapo« je izklopljeno, zato vsak prenos pristane v isti mapi in uvoz jih ne more razlikovati.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'Žetona API še ni, zato je vsak klic zavrnjen. Ustvari ga na strani Oddaljeni dostop. Poleg tega je izklopljeno »Vsak paket v svojo podmapo«, zato vsak prenos pristane v isti mapi in uvoz jih ne more razlikovati.',
-  'settings.modules.detail.downloadclientReady': 'Dosegljiv na {path}. V Sonarru ali Radarru nastavi URL Base na »{urlBase}« in API key na enega od žetonov API te instance.',
   'settings.modules.detail.metricsOff': 'Izklopljeno. {path} odgovarja z 404, kot naslov, ki ne obstaja.',
   'settings.modules.detail.metricsNoToken': 'Ta instanca ima geslo, a še nima žetona API, zato se nadzorni sistem nima s čim prijaviti. Ustvari ga na strani Oddaljeni dostop.',
   'settings.modules.detail.metricsReady': 'Dosegljiv na {path}. Pri instanci z geslom nadzorni sistem pošlje enega od njenih žetonov API kot glavo Bearer.',
@@ -2930,4 +2929,5 @@ export const sl: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

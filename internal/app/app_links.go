@@ -69,13 +69,14 @@ type intake struct {
 	// not asked again here or at the queue (see filterWaived).
 	waived string
 
-	// priority, autoExtract and comment are the add-links form's batch
-	// options, carried onto every task the batch creates, crawled ones
+	// priority, autoExtract, comment and category are the add-links form's
+	// batch options, carried onto every task the batch creates, crawled ones
 	// included. stage sets them before the Packagizer runs, so a matching rule
 	// wins by default (see LinkBatchOptions.Overrule).
 	priority    *int
 	autoExtract *bool
 	comment     string
+	category    string
 
 	// playlistEntry marks a link from a --flat-playlist listing. Such links do
 	// not start their own title probe, since one playlist can yield hundreds;
@@ -206,7 +207,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				// hint; a remote directory listing supplies a real one.
 				if t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
-					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
+					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 				}); t != nil {
 					b.tasks = append(b.tasks, t)
 					created = append(created, t)
@@ -217,7 +218,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		}
 		if t := a.stage(u, "", 0, intake{
 			pkg: pkg, origin: origin,
-			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
+			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
@@ -688,6 +689,13 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	if in.comment != "" {
 		t.Comment = in.comment
+	}
+	if in.category != "" {
+		t.Category = settings.CategoryID(in.category)
+		// Given once, at creation, as packagize gives it to a link a rule files.
+		if p, ok := a.Settings.Get().PriorityFor(t.Category); ok {
+			t.Priority = p
+		}
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename

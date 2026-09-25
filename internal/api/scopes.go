@@ -286,6 +286,51 @@ var sabnzbdScopes = map[string]apitoken.Scope{
 	"delete":     apitoken.ScopeControl,
 }
 
+// qbittorrentScopes is sabnzbdScopes for the qBittorrent bridge, keyed by the
+// call below /api/v2/. The login and the logout concern only the caller's own
+// session and need no right. A call missing here is answered as one
+// qBittorrent does not have.
+var qbittorrentScopes = map[string]apitoken.Scope{
+	"app/version":         apitoken.ScopeRead,
+	"app/webapiVersion":   apitoken.ScopeRead,
+	"app/buildInfo":       apitoken.ScopeRead,
+	"app/preferences":     apitoken.ScopeRead,
+	"torrents/info":       apitoken.ScopeRead,
+	"torrents/properties": apitoken.ScopeRead,
+	"torrents/files":      apitoken.ScopeRead,
+	"torrents/categories": apitoken.ScopeRead,
+	"sync/maindata":       apitoken.ScopeRead,
+	"transfer/info":       apitoken.ScopeRead,
+
+	// Sonarr makes its category when it tests the connection, and sets the
+	// share limits right after an add when the indexer asks for them. A
+	// category made here has a name and no folder, and the limits are only
+	// reported back, both as torrents/add takes them.
+	"torrents/add":            apitoken.ScopeAdd,
+	"torrents/createCategory": apitoken.ScopeAdd,
+	"torrents/setShareLimits": apitoken.ScopeAdd,
+
+	"torrents/delete":        apitoken.ScopeControl,
+	"torrents/pause":         apitoken.ScopeControl,
+	"torrents/stop":          apitoken.ScopeControl,
+	"torrents/resume":        apitoken.ScopeControl,
+	"torrents/start":         apitoken.ScopeControl,
+	"torrents/topPrio":       apitoken.ScopeControl,
+	"torrents/setForceStart": apitoken.ScopeControl,
+	"torrents/setCategory":   apitoken.ScopeControl,
+}
+
+// qbittorrentAddMay are the control calls a token with add may still make, in
+// the part Sonarr's own round needs. After every add it resumes the torrent,
+// which takes a stopped add out of the collector and leaves the rest alone,
+// and after an import it deletes the torrent, which is then only forgotten.
+// Resuming a paused download and deleting an unfinished one stay refused.
+var qbittorrentAddMay = map[string]bool{
+	"torrents/resume": true,
+	"torrents/start":  true,
+	"torrents/delete": true,
+}
+
 // scopeFor is the scope the table gives a route pattern, or admin for one the
 // table does not name.
 func scopeFor(pattern string) apitoken.Scope {

@@ -21,7 +21,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "bg": [
       "settings.access.tokens.rights",
@@ -43,7 +44,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ca": [
       "settings.access.tokens.rights",
@@ -65,7 +67,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "cs": [
       "settings.access.tokens.rights",
@@ -87,7 +90,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "da": [
       "settings.access.tokens.rights",
@@ -109,7 +113,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "el": [
       "settings.access.tokens.rights",
@@ -131,7 +136,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "es": [
       "settings.access.tokens.rights",
@@ -153,7 +159,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "et": [
       "settings.access.tokens.rights",
@@ -175,7 +182,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "eu": [
       "settings.access.tokens.rights",
@@ -197,7 +205,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "fa": [
       "settings.access.tokens.rights",
@@ -219,7 +228,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "fi": [
       "settings.access.tokens.rights",
@@ -241,7 +251,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "fr": [
       "settings.access.tokens.rights",
@@ -263,7 +274,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "gl": [
       "settings.access.tokens.rights",
@@ -285,7 +297,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "he": [
       "settings.access.tokens.rights",
@@ -307,7 +320,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "hi": [
       "settings.access.tokens.rights",
@@ -329,7 +343,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "hr": [
       "settings.access.tokens.rights",
@@ -351,7 +366,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "hu": [
       "settings.access.tokens.rights",
@@ -373,7 +389,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "id": [
       "settings.access.tokens.rights",
@@ -395,7 +412,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "is": [
       "settings.access.tokens.rights",
@@ -417,7 +435,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "it": [
       "settings.access.tokens.rights",
@@ -439,7 +458,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ja": [
       "settings.access.tokens.rights",
@@ -461,7 +481,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ko": [
       "settings.access.tokens.rights",
@@ -483,7 +504,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "lt": [
       "settings.access.tokens.rights",
@@ -505,7 +527,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "lv": [
       "settings.access.tokens.rights",
@@ -527,7 +550,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ms": [
       "settings.access.tokens.rights",
@@ -549,7 +573,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "nl": [
       "settings.access.tokens.rights",
@@ -571,7 +596,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "no": [
       "settings.access.tokens.rights",
@@ -593,7 +619,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "pl": [
       "settings.access.tokens.rights",
@@ -615,7 +642,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "pt": [
       "settings.access.tokens.rights",
@@ -637,7 +665,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ro": [
       "settings.access.tokens.rights",
@@ -659,7 +688,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "ru": [
       "settings.access.tokens.rights",
@@ -681,7 +711,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "sk": [
       "settings.access.tokens.rights",
@@ -703,7 +734,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "sl": [
       "settings.access.tokens.rights",
@@ -725,7 +757,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "sr": [
       "settings.access.tokens.rights",
@@ -747,7 +780,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "sv": [
       "settings.access.tokens.rights",
@@ -769,7 +803,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "th": [
       "settings.access.tokens.rights",
@@ -791,7 +826,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "tr": [
       "settings.access.tokens.rights",
@@ -813,7 +849,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "uk": [
       "settings.access.tokens.rights",
@@ -835,7 +872,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "vi": [
       "settings.access.tokens.rights",
@@ -857,7 +895,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ],
     "zh": [
       "settings.access.tokens.rights",
@@ -879,7 +918,8 @@
       "settings.modules.detail.metricsNoReadToken",
       "settings.selftest.proxy.prefix.root",
       "settings.selftest.proxy.prefix.mismatch",
-      "settings.selftest.proxy.prefix.mismatchAdvice"
+      "settings.selftest.proxy.prefix.mismatchAdvice",
+      "settings.modules.detail.downloadclientReadyBoth"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

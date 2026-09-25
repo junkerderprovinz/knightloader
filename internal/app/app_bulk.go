@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // SetEnabled switches links on or off. A disabled link keeps its place,
@@ -32,6 +33,24 @@ func (a *App) SetHold(ids []string, hold bool) []string {
 // SetForced marks links to be started ahead of the limits.
 func (a *App) SetForced(ids []string, forced bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Forced = forced })
+}
+
+// SetCategory files links under the category an id names, or under none for
+// an empty one. As with a package move, a folder that already has a file in it
+// is kept by every link going there, and only the others follow the category.
+func (a *App) SetCategory(ids []string, category string) []string {
+	id := settings.CategoryID(category)
+	a.mu.Lock()
+	members := a.sharingLinksLocked(ids)
+	a.keepFoldersLocked(members, func(t *core.Task) { t.Category = id })
+	copies := make([]core.Task, 0, len(members))
+	for _, t := range members {
+		t.Category = id
+		copies = append(copies, *t)
+	}
+	a.mu.Unlock()
+	a.saveAndBroadcast(copies)
+	return idsOf(members)
 }
 
 // PauseTasks pauses the running and waiting links among ids and leaves every

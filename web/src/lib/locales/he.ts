@@ -505,7 +505,6 @@ export const he: Dict = {
   'settings.modules.detail.downloadclientNoToken': 'עדיין אין טוקן API, ולכן כל קריאה נדחית. צור אחד בעמוד גישה מרחוק.',
   'settings.modules.detail.downloadclientNoSubfolders': '„שים כל חבילה בתת-תיקייה משלה” כבוי, ולכן כל הורדה נוחתת באותה תיקייה והייבוא לא יכול להבדיל ביניהן.',
   'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'עדיין אין טוקן API, ולכן כל קריאה נדחית. צור אחד בעמוד גישה מרחוק. גם „שים כל חבילה בתת-תיקייה משלה” כבוי, ולכן כל הורדה נוחתת באותה תיקייה והייבוא לא יכול להבדיל ביניהן.',
-  'settings.modules.detail.downloadclientReady': 'נגיש בכתובת {path}. ב-Sonarr או ב-Radarr, הגדר את URL Base כ„{urlBase}” ואת API Key כאחד מטוקני ה-API של המופע הזה.',
   'settings.modules.detail.metricsOff': 'כבוי. {path} עונה 404, כמו כתובת שלא קיימת.',
   'settings.modules.detail.metricsNoToken': 'למופע הזה יש סיסמה אבל עדיין אין לו טוקן API, כך שלמערכת ניטור אין עם מה להתחבר. צור אחד בעמוד גישה מרחוק.',
   'settings.modules.detail.metricsReady': 'נגיש בכתובת {path}. במופע עם סיסמה, מערכת הניטור שולחת אחד מטוקני ה-API שלו ככותרת Bearer.',
@@ -2949,4 +2948,5 @@ export const he: Dict = {
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.mismatch': 'Your proxy serves this instance under {path}, but it is set up for {base}.',
   'settings.selftest.proxy.prefix.mismatchAdvice': 'This instance puts its path in front of every file and call the page asks for, so it has to be the path your proxy uses. Set KL_BASE_PATH to that path, or leave KL_BASE_PATH unset and let the proxy\'s X-Forwarded-Prefix header decide. Only a plain path counts, such as /kl, and it cannot begin with /api or /relay.',
+  'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
 };

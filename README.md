@@ -162,7 +162,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | Unpacking | ✅ no outside tools | ✅ | ⚠️ calls unrar and 7z | ✅ |
 | Rules for links and packages | ✅ with a test box | ✅ Packagizer, link filter | ⚠️ words in the link | ⚠️ patterns and a minimum size |
 | Scripts on events | ✅ JavaScript in a sandbox | ✅ Event Scripter | ✅ outside scripts | ⚠️ when a torrent finishes |
-| Sonarr and Radarr | ⚠️ SABnzbd's API, for link lists | ❌ | ❌ | ✅ qBittorrent's and SABnzbd's API |
+| Sonarr and Radarr | ✅ qBittorrent's API for torrents, SABnzbd's for link lists | ❌ | ❌ | ✅ qBittorrent's and SABnzbd's API |
 
 ✅ yes · ⚠️ with a catch, named in the cell · ❌ no · ➖ does not apply: the debrid service fetches everything, so there is nothing to solve
 
@@ -170,7 +170,7 @@ The others are ahead in places. JDownloader and pyLoad bring hoster plugins of
 their own, where KnightLoader leaves file hosters to a debrid service or to
 JDownloader. JDownloader downloads from Usenet by itself, and JDownloader and
 rdt-client ship stable releases. rdt-client is made for Sonarr and Radarr and
-speaks qBittorrent's API for torrents as well as SABnzbd's for NZB files.
+takes NZB files from them as well as torrents.
 
 KnightLoader puts debrid services, JDownloader's hosters, torrents and yt-dlp
 behind one web interface. Its phone app, its browser extension and your other
