@@ -84,7 +84,7 @@ func (d *DebridLink) send(req *http.Request, path string, out any) error {
 		return fmt.Errorf("debrid-link %s: %s", path, resp.Status)
 	}
 	if !env.Success {
-		return fmt.Errorf("debrid-link %s: %s", path, errorText(env.Error))
+		return &dlError{path: path, code: env.Error}
 	}
 	if out != nil && len(env.Value) > 0 {
 		return json.Unmarshal(env.Value, out)

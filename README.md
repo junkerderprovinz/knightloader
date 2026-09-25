@@ -120,8 +120,9 @@ Hoster coverage comes from swappable **resolvers** rather than from a plugin
 ecosystem nobody can maintain: plain file links go straight to the embedded
 engine, supported hosters are unlocked through a debrid service you already pay
 for, magnets and `.torrent` files go to the BitTorrent client in the same
-engine, media pages go to yt-dlp, and anything left over is delegated to a
-headless JDownloader kept at arm's length. Your accounts stay yours, stored
+engine or through a debrid service that takes them, media pages go to yt-dlp,
+and anything left over is delegated to a headless JDownloader kept at arm's
+length. Your accounts stay yours, stored
 encrypted on your own box.
 
 The Packagizer, extraction, reconnect, the twelve words and everything else are
@@ -147,11 +148,11 @@ repository, which is not ready to install yet (see the notice at the top).
 | Desktop app for Windows, macOS and Linux | ✅ | ✅ | ❌ | ❌ |
 | Own Docker image | ✅ amd64, arm64 | ⚠️ from the community | ⚠️ LinuxServer.io's | ✅ amd64, arm64, armhf |
 | Reachable from other networks without an account | ✅ twelve words and a relay | ❌ MyJDownloader needs an account | ⚠️ expose it yourself | ⚠️ expose it yourself |
-| Debrid services | ✅ several, in your order, also per hoster | ✅ as multihoster accounts | ✅ one plugin each | ✅ one of five, required |
+| Debrid services | ✅ several, in your order, also per hoster and for torrents, and importing what you add there | ✅ as multihoster accounts | ✅ one plugin each | ✅ one of five, required |
 | File hoster links | ⚠️ through debrid or its own JDownloader | ✅ over a thousand plugins | ✅ hundreds of plugins | ❌ |
 | Premium hoster logins | ⚠️ used by that JDownloader | ✅ | ✅ | ❌ |
 | Video sites | ✅ every site yt-dlp reads | ✅ plugins for many | ⚠️ a few, such as YouTube | ❌ |
-| Torrents | ✅ built-in client | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
+| Torrents | ✅ built-in client or through debrid, with file rules either way | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
 | Usenet | ⚠️ through TorBox or Premiumize.me | ⚠️ basic, no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize.me |
 | Click'n'Load | ✅ also to another machine | ✅ also through MyJDownloader | ⚠️ an addon, off by default | ❌ |
 | Browser extension | ✅ Chromium browsers and Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |

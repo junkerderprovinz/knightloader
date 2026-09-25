@@ -697,6 +697,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.torrents.bannedTrackers', hint: 'settings.torrents.bannedTrackersHint' },
       ],
     },
+    {
+      title: 'settings.torrents.debridTitle',
+      hint: 'settings.torrents.debridHint',
+      rows: [{ key: 'settings.torrents.keepOnService', hint: 'settings.torrents.keepOnServiceHint' }],
+    },
   ],
 
   captcha: [

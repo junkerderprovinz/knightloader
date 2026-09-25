@@ -18,6 +18,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -137,6 +138,25 @@ func TestTheWatchRowSaysWhetherTheFolderIsThere(t *testing.T) {
 		if got := featureRow(t, a, "watch").DetailCode; got != want {
 			t.Errorf("watching %s, the row says %q, want %q", dir, got, want)
 		}
+	}
+}
+
+// The switch holds back only the built-in client, so with a debrid service
+// that takes torrents the row cannot say that new ones wait.
+func TestTheTorrentsRowSaysWhereNewTorrentsGoWhileItIsOff(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	s := a.Settings.Get()
+	s.ModulesOff = []string{"torrents"}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if got := featureRow(t, a, "torrents").DetailCode; got != "torrentsOff" {
+		t.Errorf("with only the built-in client the row says %q, want torrentsOff", got)
+	}
+	a.Registry.Register(debrid.Resolver{ServiceID: "realdebrid", Prio: 48, Torrents: true})
+	if got := featureRow(t, a, "torrents").DetailCode; got != "torrentsOffDebrid" {
+		t.Errorf("with Real-Debrid taking torrents the row says %q, want torrentsOffDebrid", got)
 	}
 }
 

@@ -129,6 +129,7 @@ export const sl: Dict = {
   'settings.githubLink': 'Ogled na GitHubu',
   'task.mode.free': 'Brezplačno',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'O KnightLoaderju',
   'settings.aboutBody': 'En vitez, en pohod: urejena odprtokodna orodja, ki jih v obliki, kakršno sem si želel, ni bilo, grajena, dokler nič ne manjka. Vse brezplačno, brez računov, brez telemetrije, brez oglasov in brez plačljivih ravni. Nikjer nobene zvezdice. Nič berljivega nikoli ne zapusti tvojih zidov. Kovano zvečer in ob koncih tedna, s srcem in trmo.',
   'settings.accentReset': 'Privzeto',

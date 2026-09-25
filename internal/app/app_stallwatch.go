@@ -107,7 +107,7 @@ func (a *App) stallPass(now time.Time) {
 	// Off the lock: both talk to the backend. Not App.Pause and App.Resume,
 	// which would give the slot away and send the task through the queue.
 	for _, id := range reconnect {
-		if a.Engine.Reconnect(id) {
+		if a.Engine.Reconnect(a.torrentFiles.engineIDFor(id)) {
 			log.Printf("task %s moved no bytes, so its connections were opened again", id)
 		}
 	}
@@ -154,8 +154,10 @@ func (a *App) markStallsLocked(now time.Time) (changed []taskCopy, reconnect, re
 			continue
 		}
 		// A task waiting on a captcha has its clock reset, so the wait does not
-		// count once the challenge is answered.
-		if a.captchaWaitingLocked(id) {
+		// count once the challenge is answered. So does a torrent a debrid
+		// service is still fetching: nothing comes here until it is done, which
+		// for a torrent it has not cached can take hours.
+		if a.captchaWaitingLocked(id) || t.Remote != nil {
 			st.seen[id] = stallSample{loaded: t.Loaded, since: now}
 			if !t.StalledSince.IsZero() {
 				t.StalledSince = time.Time{}
@@ -193,7 +195,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []taskCopy, reconnect, re
 		// not end is restarted when the restart is switched on.
 		restartDue := a.stallRestartDueLocked(t, cfg)
 		switch {
-		case cfg.StallReconnect && a.Engine.Reconnectable(id) && (prev.reconnected.IsZero() || !restartDue):
+		case cfg.StallReconnect && a.Engine.Reconnectable(a.torrentFiles.engineIDFor(id)) && (prev.reconnected.IsZero() || !restartDue):
 			reconnect = append(reconnect, id)
 			prev.reconnected = now
 			st.seen[id] = prev
@@ -211,9 +213,11 @@ func (a *App) stallRestartDueLocked(t *core.Task, cfg settings.Settings) bool {
 		return false
 	}
 	// Never a torrent: a stalled torrent has no peers, and the restart deletes
-	// the partial data before handing the same magnet to the same swarm. The
-	// mark is still written.
-	if t.Resolver == "torrent" || t.InfoHash != "" {
+	// the partial data before handing the same magnet to the same swarm. Nor a
+	// download imported from a debrid account, whose files come one after
+	// another like a torrent's and would all be deleted. The mark is still
+	// written.
+	if t.Resolver == "torrent" || t.InfoHash != "" || importedTask(t) {
 		return false
 	}
 	limit := cfg.StallMaxRestarts

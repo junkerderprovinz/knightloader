@@ -22,8 +22,9 @@ Hoster coverage comes from **resolvers**, not from a plugin collection that
 somebody has to keep alive. Plain file links go to the embedded engine.
 Supported hosters are unlocked through a debrid service you already pay for.
 Magnets and `.torrent` files go to the BitTorrent client in the same engine,
-media pages go to yt-dlp, and whatever is left goes to a headless JDownloader
-that KnightLoader sets up itself and keeps at arm's length. Your accounts stay
+or through a debrid service that fetches them for you. Media pages go to
+yt-dlp, and whatever is left goes to a headless JDownloader that KnightLoader
+sets up itself and keeps at arm's length. Your accounts stay
 yours, stored encrypted on your own machine.
 
 It reaches you **from other networks with twelve words**. Read a phrase off one

@@ -27,7 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// The six entrances a link can arrive by. They live here, beside the funnels
+// The seven entrances a link can arrive by. They live here, beside the funnels
 // that set them, rather than in core, which only owns the type.
 const (
 	// OriginPaste is the collector's paste box, which is also what a bare
@@ -45,6 +45,10 @@ const (
 	// OriginContainer is a .dlc/.ccf/.rsdf/.txt container, whether it was read
 	// here or opened by the JD backend on our behalf.
 	OriginContainer core.Origin = "container"
+	// OriginAccount is a download imported from a debrid account, where it
+	// was added outside this instance (app_debridimport.go). No caller can
+	// name it.
+	OriginAccount core.Origin = "account"
 )
 
 // KnownOrigin parses an entrance a caller names and refuses anything else. A
@@ -731,9 +735,10 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if result.Size > 0 {
 		t.Size = result.Size
 	}
-	if t.Resolver == "torrent" {
+	if torrent.IsURI(u) {
 		// resolver.Result has no room for the info hash and trackers. For a
-		// magnet, Describe only parses the URI locally.
+		// magnet, Describe only parses the URI locally. A debrid service may
+		// have been picked, and it is still a torrent.
 		if md, err := (torrent.Resolver{}).Describe(u); err == nil {
 			t.InfoHash = md.InfoHash
 			t.Trackers = md.Trackers

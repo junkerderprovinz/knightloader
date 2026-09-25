@@ -212,6 +212,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	type reset struct {
 		id string
 		be backend
+		// carry leaves the backend what it holds of the task (see
+		// carriesOnLocked).
+		carry bool
 	}
 	var targets []reset
 	for id, t := range a.tasks {
@@ -220,7 +223,8 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			continue
 		}
 		if restartable && (all || want[id]) {
-			targets = append(targets, reset{id, a.backendFor(t.Resolver)})
+			carry := t.Status == core.StatusError && a.carriesOnLocked(t)
+			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry})
 			t.Status = core.StatusQueued
 			t.Error = ""
 			t.Reason = core.ReasonUnknown
@@ -235,9 +239,13 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			// failure (a key entered, an account added, a debrid service back
 			// from its cool-down) is a routing change, and keeping the failed
 			// backend would fail the same way. An empty resolver goes through
-			// resolverForTaskLocked's search; a pin still decides.
-			t.Resolver = ""
-			t.Mode = core.ModeUnknown
+			// resolverForTaskLocked's search; a pin still decides. A debrid
+			// torrent that carries on has been routed already.
+			if !carry {
+				t.Resolver = ""
+				t.Mode = core.ModeUnknown
+				t.ServiceJob = nil
+			}
 			delete(a.active, id)
 			delete(a.started, id) // dispatch will hand it to the backend fresh
 			delete(a.fellBack, id)
@@ -247,7 +255,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 
 	// Clear any leftover backend state before re-queuing.
 	for _, r := range targets {
-		r.be.Remove(r.id, true)
+		if !r.carry {
+			r.be.Remove(r.id, true)
+		}
 	}
 
 	a.mu.Lock()
@@ -386,6 +396,12 @@ func (a *App) UndoRemove(token string) []string {
 		// that kept the files left the partial on disk. Speed described a
 		// transfer, and there is none.
 		t.Speed = 0
+		// The removal deleted the job this instance had added on a debrid
+		// service, so the torrent is added again. An imported one is still
+		// there, waiting out the same window.
+		if t.ServiceJob != nil && t.ServiceJob.Owned {
+			t.ServiceJob = nil
+		}
 		a.tasks[t.ID] = &t
 		// Filed again, but never over a link pasted since the removal, or the
 		// mirror set would let a third copy past.

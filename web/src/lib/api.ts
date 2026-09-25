@@ -174,6 +174,9 @@ export interface Task {
 
   /** The file selection of a multi-file torrent; absent for everything else. */
   torrentFiles?: TorrentFile[];
+  /** A debrid service's progress on a torrent it is still fetching for this
+   *  task, before any of it comes here. Absent at every other time. */
+  remote?: RemoteFetch;
 
   // The swarm fields are absent for non-torrent tasks and never persisted,
   // because a peer count is only true for the second it was read.
@@ -192,6 +195,13 @@ export interface Task {
   /** Set once at stage time and persisted, unlike the swarm fields. */
   infoHash?: string;
   trackers?: string[];
+}
+
+/** core.RemoteFetch: progress runs from 0 to 1. */
+export interface RemoteFetch {
+  progress: number;
+  speed?: number;
+  seeds?: number;
 }
 
 /** One file inside a multi-file torrent. path is inside the torrent and
@@ -624,6 +634,10 @@ export interface Account {
   /** RFC3339; empty until the health refresher has fetched it. */
   expiry?: string;
   trafficLeft?: string;
+  /** Whether the service can list the account's downloads for the import. */
+  canImport: boolean;
+  /** Whether what the user adds on the service's website is imported. */
+  import: boolean;
 }
 
 /** One account's traffic allowance, mirroring app.TrafficState. */
@@ -1786,6 +1800,12 @@ export async function setAccountLabel(service: string, account: string, label: s
 // setAccountEnabled switches an account off as if its credential were missing.
 export async function setAccountEnabled(service: string, account: string, enabled: boolean): Promise<void> {
   await ok(await post('/api/accounts/enabled', { service, account, enabled }));
+}
+
+// setAccountImport switches whether what the user adds on the account's own
+// website is picked up.
+export async function setAccountImport(service: string, account: string, on: boolean): Promise<void> {
+  await ok(await post('/api/accounts/import', { service, account, import: on }));
 }
 
 // testAccount re-checks a stored account, the per-row "Refresh".

@@ -371,9 +371,7 @@ func featureList(a *app.App, base string) []Feature {
 		withDetail(Feature{
 			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("torrents"),
-		}, offDetail(s.ModuleOff("torrents"),
-			line{text: "off; running torrents carry on and keep seeding, new ones wait until it is switched back on", code: "torrentsOff"},
-			torrentsDetail(a))),
+		}, offDetail(s.ModuleOff("torrents"), torrentsOffDetail(a), torrentsDetail(a))),
 		captchaFeature(a, s),
 		withDetail(Feature{
 			// On the Remote access page: it decides who may reach in and
@@ -1004,6 +1002,21 @@ func torrentsDetail(a *app.App) line {
 		code: "torrentsRouted",
 	}
 }
+
+// torrentsOffDetail says where a new torrent goes while the built-in client is
+// switched off. The switch holds back only the client, so a debrid service
+// that takes torrents fetches them meanwhile.
+func torrentsOffDetail(a *app.App) line {
+	for _, res := range a.Registry.All(sampleMagnet) {
+		if res.Info().ID != "torrent" {
+			return line{text: "off; running torrents carry on and keep seeding, new ones go to a debrid service that takes torrents", code: "torrentsOffDebrid"}
+		}
+	}
+	return line{text: "off; running torrents carry on and keep seeding, new ones wait until it is switched back on", code: "torrentsOff"}
+}
+
+// sampleMagnet is a magnet link any backend that takes torrents claims.
+const sampleMagnet = "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
 
 // captchaDetail counts the open challenges. CaptchaChallenges is a cache
 // read, not a JD call.

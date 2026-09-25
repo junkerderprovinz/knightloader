@@ -124,10 +124,15 @@ func (a *App) rewireBackends() {
 			hostsByService[serviceID] = hosts
 		}
 		slot := resolver.SlotID(serviceID, d.account)
-		newDebrid[slot] = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		var be backend = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		ts, torrents := d.svc.(debrid.TorrentService)
+		if torrents {
+			be = a.torrentsVia(slot, ts, be, eng)
+		}
+		newDebrid[slot] = be
 		wired[slot] = true
 		// Svc lets the resolver also check whether a link is still available.
-		a.Registry.Register(debrid.Resolver{ServiceID: serviceID, Account: d.account, Prio: d.prio, Hosts: hosts, Svc: d.svc})
+		a.Registry.Register(debrid.Resolver{ServiceID: serviceID, Account: d.account, Prio: d.prio, Hosts: hosts, Svc: d.svc, Torrents: torrents})
 		for h := range hosts {
 			if hosterSet == nil {
 				hosterSet = map[string]bool{}
@@ -203,14 +208,17 @@ func (a *App) rewireBackends() {
 			claimed[h] = true
 		}
 		for _, acct := range torboxAccounts {
-			be := torbox.NewBackend(torbox.NewClient(acct.cred.APIKey), eng, a.onUpdate)
+			c := torbox.NewClient(acct.cred.APIKey)
 			slot := resolver.SlotID("torbox", acct.account)
+			links := torbox.NewBackend(c, eng, a.onUpdate)
+			links.Created = func(job string) { a.claimImported(slot, job) }
+			be := a.torrentsVia(slot, torbox.NewTorrents(c), links, eng)
 			newDebrid[slot] = be
 			wired[slot] = true
 			if acct.account == "" {
 				newTorbox = be
 			}
-			a.Registry.Register(torbox.Resolver{Account: acct.account, Hosts: torboxHosts})
+			a.Registry.Register(torbox.Resolver{Account: acct.account, Hosts: torboxHosts, Torrents: true})
 			log.Printf("TorBox%s debrid backend enabled (%d supported hosts)", accountSuffix(acct.account), len(torboxHosts))
 		}
 	}
@@ -279,6 +287,8 @@ func (a *App) rewireBackends() {
 	// A new account may be the way down a link held for premium only was
 	// waiting for.
 	a.refreshPremiumHolds()
+	// An account switched off or removed stops being followed.
+	a.applyAccountImports()
 }
 
 // debridServices are the one-shot debrid services, in routing order. Every one
@@ -699,6 +709,9 @@ type acctMeta struct {
 	// accountEnabled), so accounts that never had metadata keep routing.
 	Enabled bool   `json:"enabled"`
 	Label   string `json:"label,omitempty"`
+	// Import follows the account for what is added to it outside this
+	// instance (app_debridimport.go).
+	Import bool `json:"import,omitempty"`
 }
 
 // acctMetaMu serialises read-modify-writes of account_meta.json.
@@ -1110,6 +1123,11 @@ type AccountState struct {
 	// TrafficLeft is preformatted for a plain-text column (see fmtTrafficLeft).
 	Expiry      string `json:"expiry,omitempty"`
 	TrafficLeft string `json:"trafficLeft,omitempty"`
+
+	// CanImport says whether the downloads on the account can be imported,
+	// and Import whether they are (see fillImport).
+	CanImport bool `json:"canImport"`
+	Import    bool `json:"import"`
 }
 
 // AccountStates lists every configured account, stored or from the
@@ -1153,6 +1171,7 @@ func (a *App) accountRow(svc accounts.Service, account string) (AccountState, bo
 		st.Configured = true
 	}
 	a.fillHealth(&st)
+	a.fillImport(&st, a.credentialFor(svc, account))
 	st.HostsFetchedAt = a.hostsFetchedAtField(svc.ID)
 	return st, true
 }
@@ -1177,8 +1196,10 @@ func (a *App) SetAccountCredential(service, account string, cred accounts.Creden
 	if cred.IsZero() {
 		a.deleteAccountMeta(service, account)
 	}
-	// A new credential starts without the old one's health verdict.
+	// A new credential starts without the old one's health verdict, and
+	// without what the import saw on what may be another account.
 	a.acctHealthTracker().Reset(service, account)
+	a.forgetAccountImport(service, account)
 	a.rewireBackends()
 	return nil
 }
@@ -1263,6 +1284,7 @@ func (a *App) TestAccount(service, account string) AccountState {
 		return st
 	}
 	st.Configured = true
+	a.fillImport(&st, cred)
 	if account == "" && svc.Env != "" && os.Getenv(svc.Env) != "" {
 		st.FromEnv, st.EnvVar = true, svc.Env
 	}

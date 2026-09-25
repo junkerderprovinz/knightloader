@@ -18,7 +18,9 @@
       "unlimited": true
     },
     "expiry": "2027-02-11T09:00:00Z",
-    "trafficLeft": "∞"
+    "trafficLeft": "∞",
+    "canImport": true,
+    "import": true
   },
   {
     "id": "alldebrid",
@@ -42,7 +44,9 @@
       "resetsAt": "2026-09-25T00:00:00Z"
     },
     "expiry": "2026-12-03T17:45:00Z",
-    "trafficLeft": "62 %"
+    "trafficLeft": "62 %",
+    "canImport": true,
+    "import": false
   },
   {
     "id": "premiumize",
@@ -63,6 +67,8 @@
       "unlimited": true
     },
     "expiry": "2026-11-14T08:00:00Z",
-    "trafficLeft": "∞"
+    "trafficLeft": "∞",
+    "canImport": true,
+    "import": false
   }
 ]

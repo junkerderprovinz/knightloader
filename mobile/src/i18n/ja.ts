@@ -129,6 +129,7 @@ export const ja: Dict = {
   'settings.githubLink': 'GitHubで見る',
   'task.mode.free': '無料',
   'task.mode.premium': 'プレミアム',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'KnightLoader について',
   'settings.aboutBody': '騎士はひとり、遠征もひとつ。欲しかった形では存在しなかった、見栄えのするオープンソースの道具を、足りないものがなくなるまで作り続けています。すべて無料で、アカウントも、テレメトリも、広告も、有料プランもありません。どこにも注釈の星印はありません。読めるものがあなたの城壁の外へ出ることは決してありません。夜と週末に、心と意地で鍛えました。',
   'settings.accentReset': '既定',

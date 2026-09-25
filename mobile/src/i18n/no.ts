@@ -129,6 +129,7 @@ export const no: Dict = {
   'settings.githubLink': 'Vis på GitHub',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'Om KnightLoader',
   'settings.aboutBody': 'Én ridder, ett korstog: pene åpen kildekode-verktøy som ikke fantes i den formen jeg ville ha, bygget til ingenting mangler. Alt gratis, uten kontoer, uten telemetri, uten reklame og uten betalte nivåer. Ingen stjerne noe sted. Ingenting lesbart forlater noen gang dine egne murer. Smidd på kvelder og helger, med hjerte og stahet.',
   'settings.accentReset': 'Standard',

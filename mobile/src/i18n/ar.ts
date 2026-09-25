@@ -129,6 +129,7 @@ export const ar: Dict = {
   'settings.githubLink': 'عرض على GitHub',
   'task.mode.free': 'مجاني',
   'task.mode.premium': 'مدفوع',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'حول KnightLoader',
   'settings.aboutBody': 'فارس واحد وحملة واحدة: أدوات مفتوحة المصدر أنيقة لم تكن موجودة بالشكل الذي أردته، تُبنى حتى لا ينقصها شيء. كل شيء مجاني، بلا حسابات، بلا قياس عن بُعد، بلا إعلانات وبلا باقات مدفوعة. لا نجمة في أي مكان. لا شيء مقروء يغادر أسوارك أبدًا. طُرق على المسامير في الأمسيات وعطل نهاية الأسبوع، بقلب وعناد.',
   'settings.accentReset': 'الافتراضي',

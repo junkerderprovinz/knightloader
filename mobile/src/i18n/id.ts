@@ -129,6 +129,7 @@ export const id: Dict = {
   'settings.githubLink': 'Lihat di GitHub',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
+  'task.remote': 'Fetching on {service}',
   'settings.aboutTitle': 'Tentang KnightLoader',
   'settings.aboutBody': 'Satu ksatria, satu perjalanan: perkakas sumber terbuka yang rapi, yang tidak ada dalam bentuk yang saya inginkan, dibangun sampai tidak ada yang kurang. Semuanya gratis, tanpa akun, tanpa telemetri, tanpa iklan dan tanpa tingkatan berbayar. Tidak ada tanda bintang di mana pun. Tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.',
   'settings.accentReset': 'Bawaan',

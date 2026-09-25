@@ -77,10 +77,14 @@ func SiteDisabled(err error) bool {
 }
 
 func (c *Client) do(ctx context.Context, method, path string, form url.Values, out any) error {
-	var body io.Reader
 	if method == http.MethodPost && form != nil {
-		body = strings.NewReader(form.Encode())
+		return c.send(ctx, method, path, strings.NewReader(form.Encode()), "application/x-www-form-urlencoded", out)
 	}
+	return c.send(ctx, method, path, nil, "", out)
+}
+
+// send performs one call with a body of any kind and unwraps the envelope.
+func (c *Client) send(ctx context.Context, method, path string, body io.Reader, ctype string, out any) error {
 	req, err := http.NewRequestWithContext(ctx, method, c.base+path, body)
 	if err != nil {
 		return err
@@ -88,8 +92,8 @@ func (c *Client) do(ctx context.Context, method, path string, form url.Values, o
 	if c.key != "" {
 		req.Header.Set("Authorization", "Bearer "+c.key)
 	}
-	if body != nil {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if ctype != "" {
+		req.Header.Set("Content-Type", ctype)
 	}
 	// Errors name the call without its query, which for requestdl carries
 	// the API key, and they end up on the task row and in the log.
@@ -239,10 +243,15 @@ func (c *Client) CreateWebDownload(ctx context.Context, link string) (int64, err
 
 // Get returns the current state of one web download by id.
 func (c *Client) Get(ctx context.Context, id int64) (*WebDownload, error) {
+	return c.listItem(ctx, "/api/webdl/mylist", id)
+}
+
+// listItem reads one entry of a mylist call by id.
+func (c *Client) listItem(ctx context.Context, path string, id int64) (*WebDownload, error) {
 	q := url.Values{"bypass_cache": {"true"}, "id": {fmt.Sprint(id)}}
 	// With an id, TorBox returns a single object; without, a list. Decode either.
 	var raw json.RawMessage
-	if err := c.do(ctx, http.MethodGet, "/api/webdl/mylist?"+q.Encode(), nil, &raw); err != nil {
+	if err := c.do(ctx, http.MethodGet, path+"?"+q.Encode(), nil, &raw); err != nil {
 		return nil, err
 	}
 	var one WebDownload
@@ -258,7 +267,7 @@ func (c *Client) Get(ctx context.Context, id int64) (*WebDownload, error) {
 			return &list[i], nil
 		}
 	}
-	return nil, fmt.Errorf("torbox: web download %d not found", id)
+	return nil, &APIError{Path: path, Code: "ITEM_NOT_FOUND", Detail: fmt.Sprintf("download %d is not on the account", id)}
 }
 
 // RequestDL resolves the direct, downloadable CDN URL for one file.

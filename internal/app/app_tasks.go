@@ -1019,6 +1019,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// The engine only deletes files of transfers it still knows, and it
 		// forgets them all on a restart.
 		own.drop(id)
+		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).
 	a.saveMu.Lock()

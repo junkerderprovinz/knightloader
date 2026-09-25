@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
 // Resolver matches links whose host is a TorBox-supported file host; the
@@ -16,6 +18,9 @@ type Resolver struct {
 	// the default one. It does not change what is claimed; it gives each key
 	// its own routing slot (see resolver.SlotID).
 	Account string
+	// Torrents also claims magnet links and uploaded .torrent files, which
+	// TorBox fetches through its torrent API (see Torrents).
+	Torrents bool
 }
 
 // Info places TorBox at 50, above resolver.Direct (40) like the other debrid
@@ -25,7 +30,15 @@ func (r Resolver) Info() resolver.Info {
 	return resolver.Info{ID: resolver.SlotID("torbox", r.Account), Prio: 50}
 }
 
+// Match claims a hoster link TorBox supports, a torrent when asked to, and a
+// download imported from this very account.
 func (r Resolver) Match(raw string) bool {
+	if slot, _, ok := debrid.ParseJobLink(raw); ok {
+		return slot == r.Info().ID
+	}
+	if r.Torrents && (torrent.Resolver{}).Match(raw) {
+		return true
+	}
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
 		return false
@@ -33,7 +46,16 @@ func (r Resolver) Match(raw string) bool {
 	return hostInSet(u.Hostname(), r.Hosts)
 }
 
-func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
+// Resolve checks a torrent the way the built-in client does and passes a
+// hoster link on as it is. An imported download keeps the name it was staged
+// with.
+func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
+	if _, _, ok := debrid.ParseJobLink(req.URL); ok {
+		return resolver.Result{DirectURL: req.URL}, nil
+	}
+	if r.Torrents && torrent.IsURI(req.URL) {
+		return (torrent.Resolver{}).Resolve(ctx, req)
+	}
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 

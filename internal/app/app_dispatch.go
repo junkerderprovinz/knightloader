@@ -28,6 +28,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -44,7 +45,7 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 		return core.ModeUnknown
 	}
 	host := hostOf(t.URL)
-	if host == "" {
+	if host == "" || torrent.IsURI(t.URL) {
 		return core.ModeUnknown
 	}
 	// A debrid service is itself the account.
@@ -321,7 +322,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	}
 	// A fallback may have recorded JD, yt-dlp or the HTTP fallback while a
 	// backend above it was switched off; that backend decides, not the fallback.
-	if t.Resolver != "" && a.routableForLocked(t.Resolver, t.URL) && !a.resolverOff(t.Resolver) &&
+	if t.Resolver != "" && !a.torrentOpenLocked(t) && a.routableForLocked(t.Resolver, t.URL) && !a.resolverOff(t.Resolver) &&
 		!a.freeRefusedLocked(t, t.Resolver) &&
 		!(barredPastOff(t.Resolver) && a.switchedOffAboveLocked(chain, t.Resolver)) {
 		// Looked up in the chain, which a backend the host rule excludes is
@@ -372,8 +373,9 @@ func (a *App) chainFromLocked(t *core.Task, chain []resolver.Resolver) []resolve
 // rerankLocked reports whether a task's recorded backend is only a pick from
 // staging or an earlier run, which a usable debrid service ranked above it
 // overrules: JD or a debrid slot, with nothing fetched yet, and not where the
-// chain led in this process. A yt-dlp row and a torrent keep their backend,
-// since it is part of what they are. Caller holds a.mu.
+// chain led in this process. A yt-dlp row keeps its backend, since it is part
+// of what it is, and a torrent is placed by torrentOpenLocked. Caller holds
+// a.mu.
 func (a *App) rerankLocked(t *core.Task) bool {
 	service, _ := resolver.SplitSlot(t.Resolver)
 	if t.Resolver != "jd" && !isDebridService(service) {
@@ -382,6 +384,17 @@ func (a *App) rerankLocked(t *core.Task) bool {
 	_, fell := a.fellBack[t.ID]
 	return t.Loaded == 0 && !fell &&
 		t.Variant == "" && t.InfoHash == "" && len(t.TorrentFiles) == 0
+}
+
+// torrentOpenLocked reports whether a torrent goes wherever the ranked chain
+// puts it rather than to the backend it was collected for: nothing of it has
+// come in, no debrid service holds a job for it, and it was not handed down
+// the chain. The built-in client and every debrid service that takes torrents
+// compete for it on the priority card, and the order may have changed since it
+// was collected. Caller holds a.mu.
+func (a *App) torrentOpenLocked(t *core.Task) bool {
+	_, fell := a.fellBack[t.ID]
+	return torrent.IsURI(t.URL) && t.Loaded == 0 && t.ServiceJob == nil && !fell
 }
 
 // debridAboveLocked returns the first usable debrid slot chain ranks above the
@@ -946,6 +959,7 @@ func (a *App) dispatchLocked() {
 		if prev != "" && prev != t.Resolver {
 			if old := a.backendFor(prev); old != be {
 				t.Loaded = 0
+				t.ServiceJob = nil
 				go old.Remove(id, true)
 			}
 		}
@@ -1123,7 +1137,7 @@ func (a *App) Resume(id string) {
 // uses this to avoid offering controls that would be ignored.
 func (a *App) HonoursCollisionPolicy(resolverID string) bool {
 	switch a.backendFor(resolverID).(type) {
-	case *engine.Engine, *debrid.Backend, *torbox.Backend, *usenet.Files:
+	case *engine.Engine, *debrid.Backend, *debrid.TorrentBackend, *torbox.Backend, *usenet.Files:
 		return true
 	}
 	return false
@@ -1238,12 +1252,16 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	if stale {
 		t.Note = ""
+		t.Remote = nil
 	} else {
 		t.Note = u.Note
+		t.Remote = u.Remote
 	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
 	}
+	// A fact about the service, so a stale update still counts.
+	applyServiceJobLocked(t, u.Job)
 	if u.Err != "" {
 		t.Error = u.Err
 		// Classified here so every backend's failures get the same labels. A
@@ -1464,8 +1482,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
-	// on every poll.
-	if u.Status != "" {
+	// on every poll. A debrid job is saved with or without one.
+	if u.Status != "" || u.Job != nil {
 		a.publish(&c)
 	} else {
 		a.show(&c)
@@ -1507,6 +1525,8 @@ func (a *App) handOnLocked(t *core.Task) {
 	t.Reason = core.ReasonUnknown
 	t.Loaded = 0
 	t.Speed = 0
+	// The backend it leaves lets go of its job on the service too.
+	t.ServiceJob = nil
 	delete(a.started, t.ID)
 	passed := a.fellBack[t.ID]
 	if passed == nil {

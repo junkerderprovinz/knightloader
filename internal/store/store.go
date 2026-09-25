@@ -181,6 +181,10 @@ var migrations = []string{
 	// category, and without it a restart hands the download back to the
 	// ranking.
 	`ALTER TABLE tasks ADD COLUMN resolver_pin TEXT NOT NULL DEFAULT ''`,
+	// The job a debrid service holds for a task, as JSON. Without it a restart
+	// adds the torrent to the account a second time, fetches the files already
+	// here again, and leaves the first job there for good.
+	`ALTER TABLE tasks ADD COLUMN service_job TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -282,7 +286,8 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
-	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin`
+	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
+	service_job`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -344,6 +349,14 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		trackers = string(b)
 	}
+	serviceJob := ""
+	if t.ServiceJob != nil {
+		b, err := json.Marshal(t.ServiceJob)
+		if err != nil {
+			return err
+		}
+		serviceJob = string(b)
+	}
 	_, err := s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
 		 VALUES (`+placeholders+`)`,
@@ -357,7 +370,8 @@ func (s *Store) Save(t *core.Task) error {
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
-		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin)
+		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
+		serviceJob)
 	if err != nil {
 		return err
 	}
@@ -383,7 +397,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack string
+		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -396,7 +410,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
-			&createdNs, &t.File, &unpack, &t.ResolverPin); err != nil {
+			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -436,6 +450,12 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if trackers != "" {
 			_ = json.Unmarshal([]byte(trackers), &t.Trackers)
+		}
+		if serviceJob != "" {
+			var j core.ServiceJob
+			if json.Unmarshal([]byte(serviceJob), &j) == nil && j.ID != "" {
+				t.ServiceJob = &j
+			}
 		}
 		out = append(out, t)
 	}

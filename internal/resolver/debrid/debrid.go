@@ -15,6 +15,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
 // Direct is a resolved, downloadable target.
@@ -263,13 +264,24 @@ type Resolver struct {
 	// Svc is the provider behind this entry, used by Check and HostCap. Nil
 	// behaves like a provider without a free check.
 	Svc Service
+	// Torrents also claims magnet links and uploaded .torrent files, for a
+	// service that takes them (see TorrentService).
+	Torrents bool
 }
 
 func (r Resolver) Info() resolver.Info {
 	return resolver.Info{ID: resolver.SlotID(r.ServiceID, r.Account), Prio: r.Prio}
 }
 
+// Match claims a hoster link the service supports, a torrent when it takes
+// torrents, and a download imported from this very account.
 func (r Resolver) Match(raw string) bool {
+	if slot, _, ok := ParseJobLink(raw); ok {
+		return slot == r.Info().ID
+	}
+	if r.Torrents && (torrent.Resolver{}).Match(raw) {
+		return true
+	}
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
 		return false
@@ -277,7 +289,16 @@ func (r Resolver) Match(raw string) bool {
 	return HostInSet(u.Hostname(), r.Hosts)
 }
 
-func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
+// Resolve checks a torrent the way the built-in client does, so a malformed
+// one is refused before it reaches the service, and passes a hoster link on
+// as it is. An imported download keeps the name it was staged with.
+func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
+	if _, _, ok := ParseJobLink(req.URL); ok {
+		return resolver.Result{DirectURL: req.URL}, nil
+	}
+	if r.Torrents && torrent.IsURI(req.URL) {
+		return (torrent.Resolver{}).Resolve(ctx, req)
+	}
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
@@ -289,11 +310,29 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 	if !ok {
 		return resolver.Answers(nil, len(urls)), nil
 	}
-	got, err := lc.CheckLinks(ctx, urls)
+	// A torrent or an imported download is no hoster link, and one in the
+	// batch can make a service refuse all of it, so it stays uncheckable as a
+	// torrent is with the built-in client.
+	var links []string
+	var at []int
+	for i, u := range urls {
+		if _, _, imported := ParseJobLink(u); !imported && !torrent.IsURI(u) {
+			links = append(links, u)
+			at = append(at, i)
+		}
+	}
+	out := resolver.Answers(nil, len(urls))
+	if len(links) == 0 {
+		return out, nil
+	}
+	got, err := lc.CheckLinks(ctx, links)
 	if err != nil {
 		return nil, err
 	}
-	return resolver.Answers(got, len(urls)), nil
+	for j, v := range resolver.Answers(got, len(links)) {
+		out[at[j]] = v
+	}
+	return out, nil
 }
 
 // HostCap satisfies resolver.HostCapper. It answers 0 (no opinion) both for a

@@ -356,6 +356,9 @@ export const en = {
   'task.waiting.captcha': 'Waiting for a captcha',
   'task.waiting.account': 'Account unavailable',
   'task.waiting.halted': 'Queue stopped',
+  'task.remote': 'Fetching on {service}',
+  'task.remoteHint': '{service} is downloading this to its own servers and has {percent} so far. The files come here once it has all of them.',
+  'task.remoteSeeds': 'Seeds: {n}',
   'list.dropChangedPriority': 'Moved: {n} download(s) took the priority of the row they were dropped on.',
   'list.optionsFailed': 'Could not load the clean-up entries from the server.',
 
@@ -585,6 +588,7 @@ export const en = {
   'settings.modules.detail.ytdlpQuality': 'Quality: {quality}',
   'settings.modules.detail.ytdlpVersion': 'yt-dlp {version} ({source}), quality: {quality}',
   'settings.modules.detail.torrentsOff': 'Off. Running torrents carry on and keep seeding. New ones wait until it is back on.',
+  'settings.modules.detail.torrentsOffDebrid': 'Off. Running torrents carry on and keep seeding. New ones go to a debrid service that takes torrents.',
   'settings.modules.detail.torrentsUnregistered': 'The torrent engine is not on the routing table, so magnet links and .torrent uploads are refused as unsupported.',
   'settings.modules.detail.torrentsRouted': 'Magnet links and uploaded .torrent files go to the built-in torrent engine.',
   'settings.modules.detail.captchaOff': 'Off. No prompt opens, and JDownloader gives up on a link once its captcha expires.',
@@ -738,6 +742,7 @@ export const en = {
   'collector.filtered.origin.cnl': "Click'n'Load",
   'collector.filtered.origin.watch': 'watch folder',
   'collector.filtered.origin.container': 'container',
+  'collector.filtered.origin.account': 'debrid account',
   'collector.filtered.restoreFailed': 'Could not restore those links. Is the server reachable?',
   'collector.filtered.clearFailed': 'Could not clear those links. Is the server reachable?',
   'collector.filtered.toastHeldBack': 'Staged {n} link(s); {held} held back',
@@ -1215,6 +1220,7 @@ export const en = {
   'accounts.changeAccount': 'Choose a different account',
   'accounts.col.enabled': 'Enabled',
   'accounts.col.expiry': 'Expiry',
+  'accounts.col.import': 'Import',
   'accounts.col.label': 'Label',
   'accounts.col.service': 'Service',
   'accounts.col.status': 'Status',
@@ -1237,6 +1243,9 @@ export const en = {
   'accounts.edit': 'Edit credential',
   'accounts.editCredentialTitle': 'Edit the credential for {service}',
   'accounts.enableAccount': 'Enable {account}',
+  'accounts.importAccount': 'Import from {account}',
+  'accounts.importHint':
+    'KnightLoader reads the service\'s list once a minute and brings in whatever was added there since you switched this on: torrents, and from TorBox and Premiumize.me also web and usenet downloads. They land in the link collector like any other link and are fetched from this account. Nothing KnightLoader added itself comes in. The service does not say who added a download, so whatever another app adds with the same account comes in as well. Leave this off for an account that rdt-client or a second KnightLoader also uses. Once its files are here, or when you remove it here, a download is deleted on the service unless Settings, Torrents keeps downloads there. A dash means the service has no list KnightLoader can read.',
   'accounts.hoster.empty': 'No hoster accounts yet',
   'accounts.hoster.title': 'Hoster accounts',
   'accounts.hoster.hint':
@@ -1268,6 +1277,7 @@ export const en = {
   'accounts.hostsRefreshed': 'Host list refreshed {when}',
   'accounts.routing.priorityTitle': 'Priority order',
   'accounts.routing.orderHint': 'Which service is asked first when more than one can fetch the same link. Drag a row to move it.\n\nThe order only decides between services that can take the link at all. A filehoster link never goes to Direct download or the plain HTTP fallback, wherever they stand, since either would only save the hoster’s page.',
+  'accounts.routing.orderHintTorrents': 'Magnet links and .torrent files go either to Torrent and magnet, the built-in client, or to a debrid service that takes torrents, whichever is higher in the list.',
   'accounts.routing.priorityEmpty': 'No resolvers are registered yet.',
   'accounts.routing.moveUp': 'Move up',
   'accounts.routing.moveDown': 'Move down',
@@ -1285,6 +1295,7 @@ export const en = {
   'accounts.routing.tip.ytdlp': 'Fetches video and audio from sites such as YouTube, in the quality you pick.',
   'accounts.routing.tip.direct': 'Downloads a link that points straight at a file. Filehoster links never go here, and neither do video sites while yt-dlp runs, wherever you put this row.',
   'accounts.routing.tip.login': 'Your own account at this hoster. JDownloader signs in with it.',
+  'accounts.routing.tip.torrent': 'The built-in torrent client. A debrid service that takes torrents and sits above this row fetches magnet links and .torrent files instead.',
   'accounts.hoster.col.host': 'Host',
   'accounts.hoster.col.username': 'Username',
   'accounts.hoster.status.active': 'Active',
@@ -2009,6 +2020,12 @@ export const en = {
   'settings.torrents.bannedTrackers': 'Banned trackers',
   'settings.torrents.bannedTrackersHint':
     'One host name or tracker address per line; its subdomains count too. A torrent that announces to one of them is not added: the collector holds it back with the reason, like a link the link filter refuses. Restoring it there lets it past the line that caught it, not past one you add later. A banned tracker is never added as an extra tracker either.',
+  'settings.torrents.debridTitle': 'Through a debrid service',
+  'settings.torrents.debridHint':
+    'TorBox, Real-Debrid, AllDebrid, Premiumize.me and Debrid-Link can fetch magnet links and .torrent files instead of the built-in client. The service downloads the torrent to its own servers, and KnightLoader then fetches the files from there like any other link. Nothing seeds from this machine and your address never appears in a swarm, so no port needs to be open. A torrent the service already has is ready at once. The priority order on the Accounts page decides whether a debrid service or the built-in client goes first. A torrent from a private tracker always stays with the built-in client. The file selection on this page chooses the files here too: Real-Debrid and Debrid-Link fetch only those, and from the other services only those come here.',
+  'settings.torrents.keepOnService': 'Keep downloads on the debrid service',
+  'settings.torrents.keepOnServiceHint':
+    'When this is off, KnightLoader deletes a torrent from the debrid service once all its files are here, and does the same with a download imported from the account, so neither piles up against the account\'s limits. An imported download you remove here before it has finished is deleted there too. When this is on, both stay on the service, for example so you can stream them from there later. A torrent KnightLoader added is deleted either way if you remove it before it has finished, and one the account already had is never deleted.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see

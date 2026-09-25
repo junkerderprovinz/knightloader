@@ -137,4 +137,22 @@ func registerAccounts(reg *Registry, a *app.App) {
 			a.SetAccountEnabled(body.Service, body.Account, body.Enabled)
 			w.WriteHeader(http.StatusNoContent)
 		})
+
+	reg.Add(http.MethodPost, "/api/accounts/import", "switch whether what is added to one debrid account elsewhere is imported",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Service string `json:"service"`
+				Account string `json:"account"`
+				Import  bool   `json:"import"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			if body.Service == "" {
+				http.Error(w, "which account is this for?", http.StatusBadRequest)
+				return
+			}
+			a.SetAccountImport(body.Service, body.Account, body.Import)
+			w.WriteHeader(http.StatusNoContent)
+		})
 }
