@@ -336,9 +336,10 @@ submission and for a fixed download.
   labelled buttons, a row's buttons move to a line of their own instead of
   squeezing the name to nothing, and they wrap in a narrow window.
 - **The figures on an instance card no longer overlap.** "Tasks" and "Speed"
-  ran into each other on a narrow card. A figure that does not fit moves to the
-  next line, the state badge sits in the name's row, and the Instances page
-  puts fewer cards side by side in a narrow window.
+  ran into each other on a narrow card. Every card has one width, on the
+  Instances page and on the Instances settings tab alike, with the state badge
+  in the name's row and the three figures on one line. A narrow window puts
+  fewer cards side by side.
 - **Links you add together start in the order you added them.** On Windows,
   several links from one paste could get the same timestamp. The queue starts
   the oldest link first, so it then took those links in any order.
