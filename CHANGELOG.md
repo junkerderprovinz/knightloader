@@ -638,6 +638,18 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The selection bar fits on one line.** Clearing the selection is the ×
+  beside the count, the search is a glyph, and moving into a package, the
+  order actions and removing with the files sit in a More menu at the end of
+  the row. Plain removal still acts at once with its undo toast. The link
+  collector has the same bar.
+- **The right-click menu is as tall as its entries.** It scrolls only when
+  the window is shorter than the menu, and near the bottom edge it opens
+  upwards.
+- **Marks on the rows.** The stop mark, Start now, hold and switched off show
+  as small glyphs in the name cell, each the glyph of its menu entry, and on
+  a package row when every link in it carries the mark. The stop mark
+  follows the queue live.
 - **AAC is one audio format, called AAC (M4A).** The audio format menus
   offered aac and m4a, two names for AAC, and aac wrote a bare AAC stream
   under an .m4a name rather than an MP4 file. The menus name it after the
