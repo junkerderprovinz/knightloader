@@ -27,6 +27,9 @@ export interface CryptoCoin {
   name: string;
   /** Never empty, and every entry carries an address. */
   networks: CryptoNetwork[];
+  /** The coin's own colour and the ink that holds on it, white wherever white
+   *  reaches 2:1, which its tile lights up in under a finger. */
+  tile: { color: string; ink: string };
 }
 
 // The five wallets, each written once and shared by the networks below.
@@ -44,18 +47,19 @@ const BSC: CryptoNetwork = { id: 'bsc', name: 'BNB Smart Chain', address: EVM };
 const SOLANA: CryptoNetwork = { id: 'solana', name: 'Solana', address: SOL };
 
 export const CRYPTO_COINS: CryptoCoin[] = [
-  { id: 'btc', symbol: 'BTC', name: 'Bitcoin', networks: [{ id: 'bitcoin', name: 'Bitcoin', address: BTC }] },
+  { id: 'btc', symbol: 'BTC', name: 'Bitcoin', tile: { color: '#f7931a', ink: '#ffffff' }, networks: [{ id: 'bitcoin', name: 'Bitcoin', address: BTC }] },
   // Native ETH only. On BNB Smart Chain, ETH is a bridged token.
-  { id: 'eth', symbol: 'ETH', name: 'Ethereum', networks: [ETHEREUM, BASE, OPTIMISM] },
-  { id: 'usdt', symbol: 'USDT', name: 'Tether', networks: [ETHEREUM, BSC, SOLANA] },
-  { id: 'usdc', symbol: 'USDC', name: 'USD Coin', networks: [ETHEREUM, BASE, SOLANA] },
-  { id: 'bnb', symbol: 'BNB', name: 'BNB', networks: [BSC] },
-  { id: 'sol', symbol: 'SOL', name: 'Solana', networks: [SOLANA] },
-  { id: 'sui', symbol: 'SUI', name: 'Sui', networks: [{ id: 'sui', name: 'Sui', address: SUI }] },
+  { id: 'eth', symbol: 'ETH', name: 'Ethereum', tile: { color: '#627eea', ink: '#ffffff' }, networks: [ETHEREUM, BASE, OPTIMISM] },
+  { id: 'usdt', symbol: 'USDT', name: 'Tether', tile: { color: '#26a17b', ink: '#ffffff' }, networks: [ETHEREUM, BSC, SOLANA] },
+  { id: 'usdc', symbol: 'USDC', name: 'USD Coin', tile: { color: '#2775ca', ink: '#ffffff' }, networks: [ETHEREUM, BASE, SOLANA] },
+  { id: 'bnb', symbol: 'BNB', name: 'BNB', tile: { color: '#f0b90b', ink: '#161616' }, networks: [BSC] },
+  { id: 'sol', symbol: 'SOL', name: 'Solana', tile: { color: '#9945ff', ink: '#ffffff' }, networks: [SOLANA] },
+  { id: 'sui', symbol: 'SUI', name: 'Sui', tile: { color: '#4da2ff', ink: '#ffffff' }, networks: [{ id: 'sui', name: 'Sui', address: SUI }] },
   {
     id: 'xrp',
     symbol: 'XRP',
     name: 'XRP',
+    tile: { color: '#23292f', ink: '#ffffff' },
     networks: [
       // Exchanges often require a destination tag; this self-custody account
       // does not (RequireDest is off), and the window says so beside it.

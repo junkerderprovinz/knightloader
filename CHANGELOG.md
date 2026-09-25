@@ -805,8 +805,8 @@ submission and for a fixed download.
   2.9.0.** Every window has its way out as a button in its bottom row, tooltips
   open on focus only after keyboard input and close when their control changes,
   the default motion level is "subtle", and the About card of the extension and
-  the app offers PayPal and crypto beside the coffee. There a coin tile under
-  the pointer or a finger turns light grey with dark text, as in the web UI,
+  the app offers PayPal and crypto beside the coffee. There a coin tile lights
+  up in the coin's own colour under the pointer or a finger, as in the web UI,
   and the name beside the logo is bold at 20 pixels. In the app's download
   list a dragged row lands in its place instead of jumping, the rows it passes
   slide aside, and it keeps its new place until the server confirms the order.
@@ -844,16 +844,18 @@ submission and for a fixed download.
   have. In the download and collector lists they sit in a column of their own
   at the row's end rather than floating over the size, speed and status cells,
   and in a narrow window the name column gives way before the list scrolls.
-- **Coin and browser tiles hover to a light grey on the dark theme**, with dark
-  text, as in the sibling apps. The coin tiles turned white, the browser tiles
-  one step lighter, which was hard to see. A coin's mark turns dark while
-  hovered so it does not fade on the grey.
+- **Coin, browser and app tiles light up in their brand's colour under the
+  pointer**, the same colour on both themes. The name and logo on the tile turn
+  white, or near-black where white would not read. Bitcoin turns orange and
+  Linux yellow, and a coin's symbol and Tux's beak and feet stay cut out in the
+  tile's colour. The coin you picked keeps the accent colour. On the light
+  theme the Android, Docker and Unraid logos keep their own colours.
 - **The logo at the top of the sidebar is 104 pixels tall**, 44 in the narrow
   rail, the size the sibling apps use, and the mark on an instance card
   matches it.
 - **The APK tile shows Android's logo and the word "APK"**, where it showed
-  KnightLoader's shield and "Download the APK". On the light theme and on the
-  hovered tile the green is a darker shade, so the logo stays visible there.
+  KnightLoader's shield and "Download the APK". The logo keeps Android's green
+  on both themes.
 - **The project relay card shows its address in the bubble behind "What can it
   see?"** instead of in a field of its own. The button sits at the bottom right
   of the card, where it no longer pushes the switch down.

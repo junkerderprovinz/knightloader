@@ -65,17 +65,18 @@ const phrasePaste = document.getElementById('phrasePaste');
  *
  * Brand logos override fill="currentColor" from the stylesheet
  * (`.glim-brand-btn svg path` in glimstone.css), since an author rule beats a
- * presentation attribute.
+ * presentation attribute. A coin paints its disc with var(--mark-ink,
+ * currentColor), which a lit brand tile sets to its ink.
  */
 const NS = 'http://www.w3.org/2000/svg';
-function glyph(d, size, box = '0 0 16 16') {
+function glyph(d, size, box = '0 0 16 16', fill = 'currentColor') {
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', box);
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
   const path = document.createElementNS(NS, 'path');
-  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('fill', fill);
   path.setAttribute('d', d);
   svg.appendChild(path);
   return svg;
@@ -1375,8 +1376,10 @@ function renderCrypto() {
       const mark = COIN_MARKS[c.id];
       const ticker = document.createElement('span');
       ticker.textContent = c.symbol;
-      b.append(glyph(mark.d, 24, mark.box), ticker);
+      b.append(glyph(mark.d, 24, mark.box, 'var(--mark-ink, currentColor)'), ticker);
       setHue(b, i);
+      b.style.setProperty('--tile', c.tile.color);
+      b.style.setProperty('--tile-ink', c.tile.ink);
       b.addEventListener('click', () => {
         // Always the new coin's first chain, never one carried over from the
         // last coin without being checked against this one.

@@ -31,6 +31,8 @@ const src = join(here, 'src');
 const cssPath = join(src, 'index.css');
 
 const BRAND = /^glim-brand-[a-z0-9-]+$/;
+// The control itself, and the brand tile, which check-tile-hover.mjs checks.
+const NOT_A_BRAND = new Set(['glim-brand-btn', 'glim-brand-tile']);
 const NEEDED = ['--brand', '--brand-fill', '--brand-ink'];
 const show = (path) => path.slice(src.length + 1).split('\\').join('/');
 const lineOf = (text, at) => text.slice(0, at).split('\n').length;
@@ -298,7 +300,7 @@ for (const [path, body] of text) {
     else continue;
 
     const classes = classesOf(expr, consts);
-    const named = [...new Set(classes.filter((c) => BRAND.test(c) && c !== 'glim-brand-btn'))];
+    const named = [...new Set(classes.filter((c) => BRAND.test(c) && !NOT_A_BRAND.has(c)))];
     const wearsBtn = classes.includes('glim-brand-btn');
     if (!wearsBtn && named.length === 0) continue;
 

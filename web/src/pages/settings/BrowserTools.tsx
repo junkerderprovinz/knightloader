@@ -118,12 +118,12 @@ export function BrowserTools() {
             system. The Chromium browsers share one .zip and one instruction
             bubble; Firefox gets the .xpi and its own. */}
         <div className="flex flex-wrap gap-3">
-          <AppTile soonLabel={soon} logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <AppTile soonLabel={soon} logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <AppTile soonLabel={soon} logo={<LogoBrave />} name="Brave" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <AppTile soonLabel={soon} logo={<LogoOpera />} name="Opera" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <AppTile soonLabel={soon} logo={<LogoVivaldi />} name="Vivaldi" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
-          <AppTile soonLabel={soon} logo={<LogoFirefox />} name="Firefox" onClick={badgeAction('Firefox', downloadXpi)} hint={firefoxHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="chrome" logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="edge" logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="brave" logo={<LogoBrave />} name="Brave" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="opera" logo={<LogoOpera />} name="Opera" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="vivaldi" logo={<LogoVivaldi />} name="Vivaldi" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <AppTile soonLabel={soon} brand="firefox" logo={<LogoFirefox />} name="Firefox" onClick={badgeAction('Firefox', downloadXpi)} hint={firefoxHint} hintLabel={installLabel} />
         </div>
       </Card>
     </div>
@@ -156,6 +156,7 @@ function PhoneCard() {
         <AppTile
           soonLabel={soon}
           name={t('settings.browsertools.storeAndroid')}
+          brand="play"
           logo={<BrandMark svg={PLAY_SVG} />}
           href={APP_URLS.play}
         />
@@ -164,6 +165,7 @@ function PhoneCard() {
         <AppTile
           soonLabel={soon}
           name="APK"
+          brand="android"
           logo={<BrandMark svg={ANDROID_SVG} className="glim-android-mark" />}
           href={APP_URLS.apk}
           face={
@@ -243,13 +245,15 @@ function DesktopCard() {
         <AppTile
           soonLabel={soon}
           name="Windows"
+          brand="windows"
           logo={<BrandMark svg={WINDOWS_SVG} className="glim-windows-mark" />}
           href={desktopZip(desktopSlug('windows', arch))}
         />
-        <AppTile soonLabel={soon} name="macOS" logo={<BrandMark svg={APPLE_SVG} />} href={desktopZip('macos-universal')} />
+        <AppTile soonLabel={soon} name="macOS" brand="apple" logo={<BrandMark svg={APPLE_SVG} />} href={desktopZip('macos-universal')} />
         <AppTile
           soonLabel={soon}
           name="Linux"
+          brand="linux"
           logo={<BrandMark svg={LINUX_SVG} />}
           href={desktopZip(desktopSlug('linux', arch))}
         />
@@ -310,12 +314,14 @@ function ServerCard() {
         <AppTile
           soonLabel={soon}
           name="Unraid"
+          brand="unraid"
           logo={<BrandMark svg={UNRAID_SVG} className="glim-unraid-mark" />}
           href={UNRAID_CA_URL}
         />
         <AppTile
           soonLabel={soon}
           name={copied ? t('common.copied') : 'Docker'}
+          brand="docker"
           logo={<BrandMark svg={DOCKER_SVG} className="glim-docker-mark" />}
           hint={
             <>
@@ -331,6 +337,7 @@ function ServerCard() {
         <AppTile
           soonLabel={soon}
           name={t('settings.browsertools.sourceZip')}
+          brand="zip"
           logo={<BrandMark svg={ZIP_SVG} />}
           href={zip}
         />
@@ -441,26 +448,47 @@ const VIVALDI_SVG =
 const FIREFOX_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="8.06 -0.07 495.87 512.11"><g transform="translate(.697 .72)scale(.98198)"><linearGradient id="kl-firefox-a" x1="470.559" x2="50.986" y1="438.589" y2="33.772" gradientTransform="matrix(.982 0 0 -.982 -1.496 510.756)" gradientUnits="userSpaceOnUse"><stop offset=".048" style="stop-color:#fff44f"/><stop offset=".111" style="stop-color:#ffe847"/><stop offset=".225" style="stop-color:#ffc830"/><stop offset=".368" style="stop-color:#ff980e"/><stop offset=".401" style="stop-color:#ff8b16"/><stop offset=".462" style="stop-color:#ff672a"/><stop offset=".534" style="stop-color:#ff3647"/><stop offset=".705" style="stop-color:#e31587"/></linearGradient><path d="M494.1 174.3c-11-26.4-33.3-55-50.7-64 12.4 24.1 21.1 50 25.6 76.7v.4c-28.6-71.2-77-100-116.6-162.5-2-3.2-4-6.3-6-9.7-1.1-1.9-2-3.6-2.8-5.2-1.6-3.2-2.9-6.5-3.8-10 0-.3-.2-.6-.6-.7h-.5l-.1.1s-.1.1-.2.1l.1-.2c-63.5 37.2-85 106-87 140.4-25.4 1.7-49.6 11.1-69.6 26.8-2.1-1.8-4.3-3.4-6.5-4.9-5.8-20.2-6-41.5-.7-61.8-23.3 11.3-44 27.3-60.8 47h-.1c-10-12.7-9.3-54.6-8.7-63.3q-4.5 1.8-8.4 4.5c-8.8 6.3-17.1 13.4-24.7 21.2-8.7 8.8-16.6 18.3-23.6 28.3-16.2 23-27.8 49-33.9 76.6l-.3 1.7c-.5 2.2-2.2 13.4-2.5 15.8 0 .2 0 .4-.1.6C9.4 243.7 8 255.3 7.5 267v1.3c.2 139.6 113.6 252.5 253.2 252.3 122.8-.2 227.7-88.6 248.6-209.6.4-3.3.8-6.5 1.1-9.8 5.3-43-.3-86.6-16.3-126.9M202.8 372.2c1.2.6 2.3 1.2 3.5 1.7l.2.1c-1.2-.6-2.4-1.2-3.7-1.8m266.3-184.6v-.2z" style="fill:url(#kl-firefox-a)"/><radialGradient id="kl-firefox-b" cx="-7667.514" cy="9141.38" r="526.888" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".129" style="stop-color:#ffbd4f"/><stop offset=".186" style="stop-color:#ffac31"/><stop offset=".247" style="stop-color:#ff9d17"/><stop offset=".283" style="stop-color:#ff980e"/><stop offset=".403" style="stop-color:#ff563b"/><stop offset=".467" style="stop-color:#ff3750"/><stop offset=".71" style="stop-color:#f5156c"/><stop offset=".782" style="stop-color:#eb0878"/><stop offset=".86" style="stop-color:#e50080"/></radialGradient><path d="M494.1 174.3c-11-26.4-33.3-55-50.7-64 12.4 24.1 21.1 50 25.6 76.7v.5c19.5 55.7 16.7 116.9-7.9 170.6-29 62.2-99.1 125.9-208.8 122.7-118.5-3.4-223-91.4-242.5-206.6-3.6-18.2 0-27.4 1.8-42.2-2.4 11.5-3.8 23.1-4.1 34.9v1.3c.2 139.6 113.6 252.5 253.2 252.3 122.9-.1 227.7-88.5 248.7-209.5.4-3.3.8-6.5 1.1-9.8 5.2-43-.4-86.6-16.4-126.9" style="fill:url(#kl-firefox-b)"/><radialGradient id="kl-firefox-c" cx="-7866.73" cy="8922.242" r="526.888" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".3" style="stop-color:#960e18"/><stop offset=".351" style="stop-color:#b11927;stop-opacity:.74"/><stop offset=".435" style="stop-color:#db293d;stop-opacity:.343"/><stop offset=".497" style="stop-color:#f5334b;stop-opacity:9.400000e-02"/><stop offset=".53" style="stop-color:#ff3750;stop-opacity:0"/></radialGradient><path d="M494.1 174.3c-11-26.4-33.3-55-50.7-64 12.4 24.1 21.1 50 25.6 76.7v.5c19.5 55.7 16.7 116.9-7.9 170.6-29 62.2-99.1 125.9-208.8 122.7-118.5-3.4-223-91.4-242.5-206.6-3.6-18.2 0-27.4 1.8-42.2-2.4 11.5-3.8 23.1-4.1 34.9v1.3c.2 139.6 113.6 252.5 253.2 252.3 122.9-.1 227.7-88.5 248.7-209.5.4-3.3.8-6.5 1.1-9.8 5.2-43-.4-86.6-16.4-126.9" style="fill:url(#kl-firefox-c)"/><radialGradient id="kl-firefox-d" cx="-7800.325" cy="9260.909" r="381.667" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".132" style="stop-color:#fff44f"/><stop offset=".252" style="stop-color:#ffdc3e"/><stop offset=".506" style="stop-color:#ff9d12"/><stop offset=".526" style="stop-color:#ff980e"/></radialGradient><path d="M371.3 204c.5.4 1.1.8 1.6 1.2-6.3-11.3-14.3-21.6-23.5-30.6C270.8 96 328.8 4.2 338.5-.5l.1-.1c-63.5 37.2-85 106-87 140.4 2.9-.2 5.9-.4 8.9-.4 45.9 0 88.2 24.7 110.8 64.6" style="fill:url(#kl-firefox-d)"/><radialGradient id="kl-firefox-e" cx="-7926.495" cy="8782.792" r="250.858" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".353" style="stop-color:#3a8ee6"/><stop offset=".472" style="stop-color:#5c79f0"/><stop offset=".669" style="stop-color:#9059ff"/><stop offset="1" style="stop-color:#c139e6"/></radialGradient><path d="M260.7 219.7c-.4 6.3-22.6 28-30.4 28-71.9 0-83.5 43.5-83.5 43.5 3.2 36.6 28.7 66.8 59.5 82.7 1.4.7 2.8 1.4 4.3 2 2.5 1.1 4.9 2.1 7.4 3 10.6 3.7 21.7 5.9 32.9 6.3 126 5.9 150.4-150.6 59.5-196.1 21.4-2.8 43.2 2.5 60.9 14.8-22.6-39.9-64.9-64.6-110.7-64.7-3 0-5.9.2-8.9.4-25.4 1.7-49.6 11.1-69.6 26.8 3.9 3.3 8.2 7.6 17.4 16.6 17.1 17.1 61.1 34.6 61.2 36.7" style="fill:url(#kl-firefox-e)"/><radialGradient id="kl-firefox-f" cx="-7931.817" cy="8971.409" r="133.026" gradientTransform="matrix(.9545 -.2308 -.27 -1.1175 10267.805 8423.169)" gradientUnits="userSpaceOnUse"><stop offset=".206" style="stop-color:#9059ff;stop-opacity:0"/><stop offset=".278" style="stop-color:#8c4ff3;stop-opacity:6.400000e-02"/><stop offset=".747" style="stop-color:#7716a8;stop-opacity:.45"/><stop offset=".975" style="stop-color:#6e008b;stop-opacity:.6"/></radialGradient><path d="M260.7 219.7c-.4 6.3-22.6 28-30.4 28-71.9 0-83.5 43.5-83.5 43.5 3.2 36.6 28.7 66.8 59.5 82.7 1.4.7 2.8 1.4 4.3 2 2.5 1.1 4.9 2.1 7.4 3 10.6 3.7 21.7 5.9 32.9 6.3 126 5.9 150.4-150.6 59.5-196.1 21.4-2.8 43.2 2.5 60.9 14.8-22.6-39.9-64.9-64.6-110.7-64.7-3 0-5.9.2-8.9.4-25.4 1.7-49.6 11.1-69.6 26.8 3.9 3.3 8.2 7.6 17.4 16.6 17.1 17.1 61.1 34.6 61.2 36.7" style="fill:url(#kl-firefox-f)"/><radialGradient id="kl-firefox-g" cx="-7873.37" cy="9161.301" r="180.498" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#ffe226"/><stop offset=".121" style="stop-color:#ffdb27"/><stop offset=".295" style="stop-color:#ffc82a"/><stop offset=".502" style="stop-color:#ffa930"/><stop offset=".732" style="stop-color:#ff7e37"/><stop offset=".792" style="stop-color:#ff7139"/></radialGradient><path d="M170.3 158.2c2 1.3 3.7 2.4 5.2 3.5-5.8-20.2-6-41.5-.7-61.8-23.3 11.3-44 27.3-60.8 47 1.2 0 37.9-.7 56.3 11.3" style="fill:url(#kl-firefox-g)"/><radialGradient id="kl-firefox-h" cx="-7727.279" cy="9280.831" r="770.116" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".113" style="stop-color:#fff44f"/><stop offset=".456" style="stop-color:#ff980e"/><stop offset=".622" style="stop-color:#ff5634"/><stop offset=".716" style="stop-color:#ff3647"/><stop offset=".904" style="stop-color:#e31587"/></radialGradient><path d="M9.8 274.3c19.5 115.2 124 203.3 242.5 206.6C362 484 432.1 420.3 461.1 358.2c24.5-53.7 27.3-114.8 7.9-170.6v-.4.4c9 58.5-20.8 115.2-67.4 153.6l-.1.3c-90.7 73.9-177.5 44.6-195 32.6-1.2-.6-2.5-1.2-3.7-1.8-52.9-25.3-74.7-73.4-70-114.8-25.6.4-49.1-14.4-59.9-37.7 28.2-17.3 63.4-18.7 92.9-3.7 29.9 13.6 64 14.9 94.9 3.7-.1-2.1-44.1-19.6-61.2-36.5-9.2-9-13.5-13.4-17.4-16.6-2.1-1.8-4.3-3.4-6.5-4.9-1.5-1-3.2-2.1-5.2-3.5-18.4-12-55.1-11.3-56.3-11.3h-.1c-10-12.7-9.3-54.6-8.7-63.3q-4.5 1.8-8.4 4.5c-8.8 6.3-17.1 13.4-24.7 21.2-8.7 8.7-16.6 18.2-23.7 28.3-16.2 23-27.8 49-33.9 76.6-.3.4-9.2 39.7-4.8 60" style="fill:url(#kl-firefox-h)"/><radialGradient id="kl-firefox-i" cx="-7976.017" cy="9823.985" r="564.057" gradientTransform="matrix(.1031 .9771 .6412 -.06776 -5155.366 8422.637)" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:#fff44f"/><stop offset=".06" style="stop-color:#ffe847"/><stop offset=".168" style="stop-color:#ffc830"/><stop offset=".304" style="stop-color:#ff980e"/><stop offset=".356" style="stop-color:#ff8b16"/><stop offset=".455" style="stop-color:#ff672a"/><stop offset=".57" style="stop-color:#ff3647"/><stop offset=".737" style="stop-color:#e31587"/></radialGradient><path d="M349.4 174.5c9.2 9.1 17.1 19.4 23.5 30.6 1.4 1 2.7 2.1 3.8 3.1C434 261 404 335.7 401.7 341c46.5-38.3 76.3-95 67.3-153.6-28.6-71.3-77.1-100-116.6-162.6-2-3.2-4-6.3-6-9.7-1.1-1.9-2-3.6-2.8-5.2-1.6-3.2-2.9-6.5-3.8-10 0-.3-.2-.6-.6-.7h-.5l-.1.1s-.1.1-.2.1c-9.8 4.6-67.8 96.4 10.8 175z" style="fill:url(#kl-firefox-i)"/><radialGradient id="kl-firefox-j" cx="-7873.37" cy="9094.897" r="480.72" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".137" style="stop-color:#fff44f"/><stop offset=".48" style="stop-color:#ff980e"/><stop offset=".592" style="stop-color:#ff5634"/><stop offset=".655" style="stop-color:#ff3647"/><stop offset=".904" style="stop-color:#e31587"/></radialGradient><path d="M376.6 208.3c-1.1-1-2.4-2.1-3.8-3.1-.5-.4-1-.8-1.6-1.2-17.8-12.3-39.5-17.6-60.9-14.8 90.9 45.5 66.5 202-59.5 196.1-11.2-.5-22.3-2.6-32.9-6.3-2.5-.9-4.9-1.9-7.4-3-1.4-.7-2.9-1.3-4.3-2l.2.1c17.6 12 104.3 41.3 195-32.6l.1-.3c2.4-5.4 32.4-80-24.9-132.9" style="fill:url(#kl-firefox-j)"/><radialGradient id="kl-firefox-k" cx="-7747.201" cy="9068.334" r="526.17" gradientTransform="matrix(.982 0 0 -.982 7973.807 9034.763)" gradientUnits="userSpaceOnUse"><stop offset=".094" style="stop-color:#fff44f"/><stop offset=".231" style="stop-color:#ffe141"/><stop offset=".509" style="stop-color:#ffaf1e"/><stop offset=".626" style="stop-color:#ff980e"/></radialGradient><path d="M146.7 291.1s11.7-43.5 83.5-43.5c7.8 0 30-21.7 30.4-28-30.9 11.2-65 9.9-94.9-3.7-29.5-15-64.7-13.6-92.9 3.7 10.8 23.3 34.2 38 59.9 37.7-4.7 41.3 17.2 89.5 70 114.8 1.2.6 2.3 1.2 3.5 1.7-30.8-15.9-56.3-46.1-59.5-82.7" style="fill:url(#kl-firefox-k)"/><linearGradient id="kl-firefox-l" x1="465.416" x2="108.463" y1="440.741" y2="83.722" gradientTransform="matrix(.982 0 0 -.982 -1.496 510.756)" gradientUnits="userSpaceOnUse"><stop offset=".167" style="stop-color:#fff44f;stop-opacity:.8"/><stop offset=".266" style="stop-color:#fff44f;stop-opacity:.634"/><stop offset=".489" style="stop-color:#fff44f;stop-opacity:.217"/><stop offset=".6" style="stop-color:#fff44f;stop-opacity:0"/></linearGradient><path d="M494.1 174.3c-11-26.4-33.3-55-50.7-64 12.4 24.1 21.1 50 25.6 76.7v.4c-28.6-71.2-77-100-116.6-162.5-2-3.2-4-6.3-6-9.7-1.1-1.9-2-3.6-2.8-5.2-1.6-3.2-2.9-6.5-3.8-10 0-.3-.2-.6-.6-.7h-.5l-.1.1s-.1.1-.2.1l.1-.2c-63.5 37.2-85 106-87 140.4 2.9-.2 5.9-.4 8.9-.4 45.8.1 88.1 24.8 110.7 64.7-17.8-12.3-39.5-17.6-60.9-14.8 90.9 45.5 66.5 202-59.5 196.1-11.2-.5-22.3-2.6-32.9-6.3-2.5-.9-4.9-1.9-7.4-3-1.4-.7-2.9-1.3-4.3-2l.2.1c-1.2-.6-2.5-1.2-3.7-1.8 1.2.6 2.3 1.2 3.5 1.7-30.9-16-56.3-46.1-59.5-82.7 0 0 11.7-43.5 83.5-43.5 7.8 0 30-21.7 30.4-28-.1-2.1-44.1-19.6-61.2-36.5-9.2-9-13.5-13.4-17.4-16.6-2.1-1.8-4.3-3.4-6.5-4.9-5.8-20.2-6-41.5-.7-61.8-23.3 11.3-44 27.3-60.8 47h.1c-10-12.7-9.3-54.6-8.7-63.3q-4.5 1.8-8.4 4.5c-8.8 6.3-17.1 13.4-24.7 21.2-8.7 8.8-16.6 18.3-23.6 28.3-16.2 23-27.8 49-33.9 76.6l-.3 1.7c-.5 2.2-2.6 13.5-2.9 15.9-2 11.7-3.2 23.4-3.7 35.2v1.3C8 408 121.4 520.9 261 520.7c122.8-.2 227.6-88.6 248.6-209.6.4-3.3.8-6.5 1.1-9.8 5-43-.6-86.7-16.6-127m-25.1 13v.3z" style="fill:url(#kl-firefox-l)"/></g></svg>';
 
+// The browsers' single-colour marks for the lit tile, from Simple Icons: CC0 1.0,
+// Vivaldi's CC BY 4.0. Their colour marks overlap in gradients and shading
+// that flatten to a blot in one ink.
+const CHROME_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-5.344 9.257c.206.01.413.016.621.016 6.627 0 12-5.373 12-12 0-1.54-.29-3.011-.818-4.364zM12 16.364a4.364 4.364 0 1 1 0-8.728 4.364 4.364 0 0 1 0 8.728Z"/></svg>';
+
+const EDGE_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M21.86 17.86q.14 0 .25.12.1.13.1.25t-.11.33l-.32.46-.43.53-.44.5q-.21.25-.38.42l-.22.23q-.58.53-1.34 1.04-.76.51-1.6.91-.86.4-1.74.64t-1.67.24q-.9 0-1.69-.28-.8-.28-1.48-.78-.68-.5-1.22-1.17-.53-.66-.92-1.44-.38-.77-.58-1.6-.2-.83-.2-1.67 0-1 .32-1.96.33-.97.87-1.8.14.95.55 1.77.41.82 1.02 1.5.6.68 1.38 1.21.78.54 1.64.9.86.36 1.77.56.92.2 1.8.2 1.12 0 2.18-.24 1.06-.23 2.06-.72l.2-.1.2-.05zm-15.5-1.27q0 1.1.27 2.15.27 1.06.78 2.03.51.96 1.24 1.77.74.82 1.66 1.4-1.47-.2-2.8-.74-1.33-.55-2.48-1.37-1.15-.83-2.08-1.9-.92-1.07-1.58-2.33T.36 14.94Q0 13.54 0 12.06q0-.81.32-1.49.31-.68.83-1.23.53-.55 1.2-.96.66-.4 1.35-.66.74-.27 1.5-.39.78-.12 1.55-.12.7 0 1.42.1.72.12 1.4.35.68.23 1.32.57.63.35 1.16.83-.35 0-.7.07-.33.07-.65.23v-.02q-.63.28-1.2.74-.57.46-1.05 1.04-.48.58-.87 1.26-.38.67-.65 1.39-.27.71-.42 1.44-.15.72-.15 1.38zM11.96.06q1.7 0 3.33.39 1.63.38 3.07 1.15 1.43.77 2.62 1.93 1.18 1.16 1.98 2.7.49.94.76 1.96.28 1 .28 2.08 0 .89-.23 1.7-.24.8-.69 1.48-.45.68-1.1 1.22-.64.53-1.45.88-.54.24-1.11.36-.58.13-1.16.13-.42 0-.97-.03-.54-.03-1.1-.12-.55-.1-1.05-.28-.5-.19-.84-.5-.12-.09-.23-.24-.1-.16-.1-.33 0-.15.16-.35.16-.2.35-.5.2-.28.36-.68.16-.4.16-.95 0-1.06-.4-1.96-.4-.91-1.06-1.64-.66-.74-1.52-1.28-.86-.55-1.79-.89-.84-.3-1.72-.44-.87-.14-1.76-.14-1.55 0-3.06.45T.94 7.55q.71-1.74 1.81-3.13 1.1-1.38 2.52-2.35Q6.68 1.1 8.37.58q1.7-.52 3.58-.52Z"/></svg>';
+
+const BRAVE_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M15.68 0l2.096 2.38s1.84-.512 2.709.358c.868.87 1.584 1.638 1.584 1.638l-.562 1.381.715 2.047s-2.104 7.98-2.35 8.955c-.486 1.919-.818 2.66-2.198 3.633-1.38.972-3.884 2.66-4.293 2.916-.409.256-.92.692-1.38.692-.46 0-.97-.436-1.38-.692a185.796 185.796 0 01-4.293-2.916c-1.38-.973-1.712-1.714-2.197-3.633-.247-.975-2.351-8.955-2.351-8.955l.715-2.047-.562-1.381s.716-.768 1.585-1.638c.868-.87 2.708-.358 2.708-.358L8.321 0h7.36zm-3.679 14.936c-.14 0-1.038.317-1.758.69-.72.373-1.242.637-1.409.742-.167.104-.065.301.087.409.152.107 2.194 1.69 2.393 1.866.198.175.489.464.687.464.198 0 .49-.29.688-.464.198-.175 2.24-1.759 2.392-1.866.152-.108.254-.305.087-.41-.167-.104-.689-.368-1.41-.741-.72-.373-1.617-.69-1.757-.69zm0-11.278s-.409.001-1.022.206-1.278.46-1.584.46c-.307 0-2.581-.434-2.581-.434S4.119 7.152 4.119 7.849c0 .697.339.881.68 1.243l2.02 2.149c.192.203.59.511.356 1.066-.235.555-.58 1.26-.196 1.977.384.716 1.042 1.194 1.464 1.115.421-.08 1.412-.598 1.776-.834.364-.237 1.518-1.19 1.518-1.554 0-.365-1.193-1.02-1.413-1.168-.22-.15-1.226-.725-1.247-.95-.02-.227-.012-.293.284-.851.297-.559.831-1.304.742-1.8-.089-.495-.95-.753-1.565-.986-.615-.232-1.799-.671-1.947-.74-.148-.068-.11-.133.339-.175.448-.043 1.719-.212 2.292-.052.573.16 1.552.403 1.632.532.079.13.149.134.067.579-.081.445-.5 2.581-.541 2.96-.04.38-.12.63.288.724.409.094 1.097.256 1.333.256s.924-.162 1.333-.256c.408-.093.329-.344.288-.723-.04-.38-.46-2.516-.541-2.961-.082-.445-.012-.45.067-.579.08-.129 1.059-.372 1.632-.532.573-.16 1.845.009 2.292.052.449.042.487.107.339.175-.148.069-1.332.508-1.947.74-.615.233-1.476.49-1.565.986-.09.496.445 1.241.742 1.8.297.558.304.624.284.85-.02.226-1.026.802-1.247.95-.22.15-1.413.804-1.413 1.169 0 .364 1.154 1.317 1.518 1.554.364.236 1.355.755 1.776.834.422.079 1.08-.4 1.464-1.115.384-.716.039-1.422-.195-1.977-.235-.555.163-.863.355-1.066l2.02-2.149c.341-.362.68-.546.68-1.243 0-.697-2.695-3.96-2.695-3.96s-2.274.436-2.58.436c-.307 0-.972-.256-1.585-.461-.613-.205-1.022-.206-1.022-.206z"/></svg>';
+
+const OPERA_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M8.051 5.238c-1.328 1.566-2.186 3.883-2.246 6.48v.564c.061 2.598.918 4.912 2.246 6.479 1.721 2.236 4.279 3.654 7.139 3.654 1.756 0 3.4-.537 4.807-1.471C17.879 22.846 15.074 24 12 24c-.192 0-.383-.004-.57-.014C5.064 23.689 0 18.436 0 12 0 5.371 5.373 0 12 0h.045c3.055.012 5.84 1.166 7.953 3.055-1.408-.93-3.051-1.471-4.81-1.471-2.858 0-5.417 1.42-7.14 3.654h.003zM24 12c0 3.556-1.545 6.748-4.002 8.945-3.078 1.5-5.946.451-6.896-.205 3.023-.664 5.307-4.32 5.307-8.74 0-4.422-2.283-8.075-5.307-8.74.949-.654 3.818-1.703 6.896-.205C22.455 5.25 24 8.445 24 12z"/></svg>';
+
+const VIVALDI_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M12 0C6.75 0 3.817 0 1.912 1.904.007 3.81 0 6.75 0 12s0 8.175 1.912 10.08C3.825 23.985 6.75 24 12 24c5.25 0 8.183 0 10.088-1.904C23.993 20.19 24 17.25 24 12s0-8.175-1.912-10.08C20.175.015 17.25 0 12 0zm-.168 3a9 9 0 016.49 2.648 9 9 0 010 12.704A9 9 0 1111.832 3zM7.568 7.496a1.433 1.433 0 00-.142.004A1.5 1.5 0 006.21 9.75l1.701 3c.93 1.582 1.839 3.202 2.791 4.822a1.417 1.417 0 001.41.75 1.5 1.5 0 001.223-.81l4.447-7.762A1.56 1.56 0 0018 8.768a1.5 1.5 0 10-2.828.914 2.513 2.513 0 01.256 1.119v.246a2.393 2.393 0 01-2.52 2.13 2.348 2.348 0 01-1.965-1.214c-.307-.51-.6-1.035-.9-1.553-.42-.72-.826-1.41-1.246-2.16a1.433 1.433 0 00-1.229-.754Z"/></svg>';
+
+const FIREFOX_LIT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="var(--mark-ink, currentColor)" d="M8.824 7.287c.008 0 .004 0 0 0zm-2.8-1.4c.006 0 .003 0 0 0zm16.754 2.161c-.505-1.215-1.53-2.528-2.333-2.943.654 1.283 1.033 2.57 1.177 3.53l.002.02c-1.314-3.278-3.544-4.6-5.366-7.477-.091-.147-.184-.292-.273-.446a3.545 3.545 0 01-.13-.24 2.118 2.118 0 01-.172-.46.03.03 0 00-.027-.03.038.038 0 00-.021 0l-.006.001a.037.037 0 00-.01.005L15.624 0c-2.585 1.515-3.657 4.168-3.932 5.856a6.197 6.197 0 00-2.305.587.297.297 0 00-.147.37c.057.162.24.24.396.17a5.622 5.622 0 012.008-.523l.067-.005a5.847 5.847 0 011.957.222l.095.03a5.816 5.816 0 01.616.228c.08.036.16.073.238.112l.107.055a5.835 5.835 0 01.368.211 5.953 5.953 0 012.034 2.104c-.62-.437-1.733-.868-2.803-.681 4.183 2.09 3.06 9.292-2.737 9.02a5.164 5.164 0 01-1.513-.292 4.42 4.42 0 01-.538-.232c-1.42-.735-2.593-2.121-2.74-3.806 0 0 .537-2 3.845-2 .357 0 1.38-.998 1.398-1.287-.005-.095-2.029-.9-2.817-1.677-.422-.416-.622-.616-.8-.767a3.47 3.47 0 00-.301-.227 5.388 5.388 0 01-.032-2.842c-1.195.544-2.124 1.403-2.8 2.163h-.006c-.46-.584-.428-2.51-.402-2.913-.006-.025-.343.176-.389.206-.406.29-.787.616-1.136.974-.397.403-.76.839-1.085 1.303a9.816 9.816 0 00-1.562 3.52c-.003.013-.11.487-.19 1.073-.013.09-.026.181-.037.272a7.8 7.8 0 00-.069.667l-.002.034-.023.387-.001.06C.386 18.795 5.593 24 12.016 24c5.752 0 10.527-4.176 11.463-9.661.02-.149.035-.298.052-.448.232-1.994-.025-4.09-.753-5.844z"/></svg>';
+
 function LogoChrome() {
-  return <BrandMark svg={CHROME_SVG} />;
+  return <BrandMark svg={CHROME_SVG} lit={CHROME_LIT_SVG} />;
 }
 
 function LogoEdge() {
-  return <BrandMark svg={EDGE_SVG} />;
+  return <BrandMark svg={EDGE_SVG} lit={EDGE_LIT_SVG} />;
 }
 
 function LogoBrave() {
-  return <BrandMark svg={BRAVE_SVG} />;
+  return <BrandMark svg={BRAVE_SVG} lit={BRAVE_LIT_SVG} />;
 }
 
 function LogoOpera() {
-  return <BrandMark svg={OPERA_SVG} />;
+  return <BrandMark svg={OPERA_SVG} lit={OPERA_LIT_SVG} />;
 }
 
 function LogoVivaldi() {
-  return <BrandMark svg={VIVALDI_SVG} />;
+  return <BrandMark svg={VIVALDI_SVG} lit={VIVALDI_LIT_SVG} />;
 }
 
 function LogoFirefox() {
-  return <BrandMark svg={FIREFOX_SVG} />;
+  return <BrandMark svg={FIREFOX_SVG} lit={FIREFOX_LIT_SVG} />;
 }

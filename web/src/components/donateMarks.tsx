@@ -9,17 +9,18 @@
 //   MIT: USD Coin and XRP. Copyright (c) 2018 Christopher Downer.
 //
 // Marks paint in currentColor. The brand colours come from `--brand-*` tokens
-// through `.glim-brand-<name>` classes at the call site, and a coin tile gives
-// the mark its fill's contrast ink.
+// through `.glim-brand-<name>` classes at the call site. A coin's disc paints
+// with --mark-ink, so a lit coin tile turns it the tile's ink, and its symbol
+// is a hole in the disc, which shows the tile's colour as a cut-out.
 import type { ReactNode } from "react";
 
-function Mark({ box, d, size = 16 }: { box: string; d: string; size?: number }) {
+function Mark({ box, d, size = 16, fill = "currentColor" }: { box: string; d: string; size?: number; fill?: string }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox={box}
-      fill="currentColor"
+      fill={fill}
       className="shrink-0"
       aria-hidden="true"
     >
@@ -86,7 +87,7 @@ export function hasCoinMark(coin: string): boolean {
 export function CoinMark({ coin, size = 16 }: { coin: string; size?: number }): ReactNode {
   const mark = PATHS[coin];
   if (!mark) return null;
-  return <Mark box={mark.box} d={mark.d} size={size} />;
+  return <Mark box={mark.box} d={mark.d} size={size} fill="var(--mark-ink, currentColor)" />;
 }
 
 /** IconBuyMeACoffee is Buy Me a Coffee's mark, for the button to their page. */

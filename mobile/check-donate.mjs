@@ -27,10 +27,11 @@ const shape = (coins) =>
     id: c.id,
     symbol: c.symbol,
     name: c.name,
+    tile: c.tile,
     networks: c.networks.map((n) => ({ id: n.id, name: n.name, address: n.address, note: Boolean(n.noteKey) })),
   }));
 if (JSON.stringify(shape(app.CRYPTO_COINS)) !== JSON.stringify(shape(web.CRYPTO_COINS))) {
-  fail('src/donate.ts: CRYPTO_COINS differs from web/src/lib/donate.ts - coins, chains, names or addresses no longer agree');
+  fail('src/donate.ts: CRYPTO_COINS differs from web/src/lib/donate.ts in its coins, chains, names, addresses or tile colours');
 }
 if (JSON.stringify(app.ADDRESS_BY_CHAIN) !== JSON.stringify(web.ADDRESS_BY_CHAIN)) {
   fail('src/donate.ts: ADDRESS_BY_CHAIN differs from web/src/lib/donate.ts');

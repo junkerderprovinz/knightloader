@@ -177,17 +177,18 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
                           styles.tile,
                           {
                             ...corners.control,
-                            // A press stands in for the web's hover.
-                            backgroundColor: on ? fill : pressed ? c.tileHover : c.surface2,
+                            // A press stands in for the web's hover, and lights the
+                            // tile in the coin's own colour as a hover does there.
+                            backgroundColor: on ? fill : pressed ? k.tile.color : c.surface2,
                           },
                         ]}
                       >
                         {({ pressed }) => {
                           // A filled tile paints its mark in its fill's ink, never
-                          // in a colour nobody can predict the contrast of. A
-                          // pressed one takes the tile ink, since a rainbow hue
-                          // measures under 3:1 on the dark theme's grey.
-                          const markInk = on ? ink : pressed ? c.tileHoverInk : restingMark(i);
+                          // in a colour nobody can predict the contrast of. The
+                          // coin's symbol is a hole in the bitmap, so on a pressed
+                          // tile it shows the coin's colour as a cut-out.
+                          const markInk = on ? ink : pressed ? k.tile.ink : restingMark(i);
                           const wordInk = on ? ink : pressed ? markInk : c.textSub;
                           return (
                             <>
