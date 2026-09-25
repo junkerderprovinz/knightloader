@@ -58,13 +58,13 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	a.mu.Lock()
 	members := a.sharingLinksLocked(ids)
 	a.keepFoldersLocked(members, func(t *core.Task) { t.Package = pkg })
-	copies := make([]core.Task, 0, len(members))
+	copies := make([]taskCopy, 0, len(members))
 	for _, t := range members {
 		t.Package = pkg
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 }
 
 // sharingLinksLocked returns the tasks named by ids and every task that shares
@@ -135,10 +135,9 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 		t.Error = msg
 		t.Reason = reason
 	}
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 }
 
 // setTaskName records a name a probe found for a task still showing its URL as
@@ -165,11 +164,11 @@ func (a *App) setTaskName(id, name string) {
 		newPackage = t.Package
 	}
 	t.Name = name
-	c := *t
+	c := a.copyLocked(t)
 
 	// Variant siblings share this task's exact URL, and nothing else does. They
 	// take the same name and package so the family stays in one folder.
-	var siblings []core.Task
+	var siblings []taskCopy
 	for _, other := range a.tasks {
 		if other == t || other.URL != t.URL {
 			continue
@@ -178,15 +177,11 @@ func (a *App) setTaskName(id, name string) {
 			other.Name = name
 		}
 		other.Package = newPackage
-		siblings = append(siblings, *other)
+		siblings = append(siblings, a.copyLocked(other))
 	}
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
-	for i := range siblings {
-		_ = a.Store.Save(&siblings[i])
-		a.Hub.Broadcast("task", &siblings[i])
-	}
+	a.publish(&c)
+	a.publishTasks(siblings)
 }
 
 // reguessPackageLocked replaces a package that is still the URL path's guess
@@ -197,7 +192,7 @@ func (a *App) setTaskName(id, name string) {
 // package to replace, and the write then files the named link under the guess.
 //
 // Caller holds a.mu.
-func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) []core.Task {
+func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) []*core.Task {
 	if !packageIsStillAGuess(t) || !noSiblingHasARealNameYet(tasks, t) {
 		return nil
 	}
@@ -231,13 +226,13 @@ func packageIsStillAGuess(t *core.Task) bool {
 // The siblings are created after a bucket is assembled, so they are in nobody's
 // id list. A package picked by hand keeps the same rule through
 // sharingLinksLocked. Caller holds a.mu.
-func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string) []core.Task {
+func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string) []*core.Task {
 	t.Package = pkg
-	out := []core.Task{*t}
+	out := []*core.Task{t}
 	for _, other := range tasks {
 		if other != t && other.URL == t.URL {
 			other.Package = pkg
-			out = append(out, *other)
+			out = append(out, other)
 		}
 	}
 	return out
@@ -505,7 +500,7 @@ func (a *App) fileUnprobedMedia(id string) {
 	if guess == "" {
 		guess = catchAllPackage
 	}
-	changed := setPackageLocked(a.tasks, t, sanitizeSegment(guess))
+	changed := a.copiesLocked(setPackageLocked(a.tasks, t, sanitizeSegment(guess)))
 	a.mu.Unlock()
 	a.publishTasks(changed)
 }
@@ -523,14 +518,80 @@ func availabilityFor(status int) core.Availability {
 	return core.AvailOnline
 }
 
-// publishTasks writes tasks that are already settled to the store and out to
-// every connected browser. It is what a caller holding mu cannot do itself.
-func (a *App) publishTasks(tasks []core.Task) {
-	for i := range tasks {
-		c := tasks[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
+// taskCopy is a copy of a task taken under a.mu, to be published once the lock
+// is let go. rev tells two copies of one task apart by the order they were
+// taken in, which need not be the order their publishers get to run in.
+type taskCopy struct {
+	core.Task
+	rev uint64
+}
+
+// copyLocked copies t for publish. Caller holds a.mu.
+func (a *App) copyLocked(t *core.Task) taskCopy {
+	a.revision++
+	return taskCopy{Task: *t, rev: a.revision}
+}
+
+// copiesLocked is copyLocked for a list. Caller holds a.mu.
+func (a *App) copiesLocked(tasks []*core.Task) []taskCopy {
+	out := make([]taskCopy, 0, len(tasks))
+	for _, t := range tasks {
+		out = append(out, a.copyLocked(t))
 	}
+	return out
+}
+
+// publish writes a copy of a task to the store and out to every connected
+// browser. It is what a caller holding a.mu cannot do itself.
+//
+// By the time it runs, the task may have been removed, and a newer copy of it
+// may already have been published. Writing this one then would bring a removed
+// download back on the next start, or put an older state back on the row and
+// in the store. saveMu keeps removeTask's delete and every other publish from
+// landing between the checks and the write.
+func (a *App) publish(c *taskCopy) {
+	a.saveMu.Lock()
+	defer a.saveMu.Unlock()
+	if !a.listed(c.ID) || c.rev < a.saved[c.ID] {
+		return
+	}
+	a.saved[c.ID] = c.rev
+	_ = a.Store.Save(&c.Task)
+	a.showLocked(c)
+}
+
+func (a *App) publishTasks(copies []taskCopy) {
+	for i := range copies {
+		a.publish(&copies[i])
+	}
+}
+
+// show broadcasts a copy that is not worth a write, such as a torrent's live
+// peer counts, in order with the published ones.
+func (a *App) show(c *taskCopy) {
+	a.saveMu.Lock()
+	defer a.saveMu.Unlock()
+	if a.listed(c.ID) {
+		a.showLocked(c)
+	}
+}
+
+// showLocked broadcasts c unless a newer copy of the task has gone out already.
+// Caller holds saveMu.
+func (a *App) showLocked(c *taskCopy) {
+	if c.rev < a.shown[c.ID] {
+		return
+	}
+	a.shown[c.ID] = c.rev
+	a.Hub.Broadcast("task", &c.Task)
+}
+
+// listed reports whether a task is still in the list. Caller holds saveMu.
+func (a *App) listed(id string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	_, ok := a.tasks[id]
+	return ok
 }
 
 // TriBool is a bool a request may also send as null. A *bool decodes absent
@@ -718,12 +779,12 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 			}
 		}
 	}
-	copies := make([]core.Task, 0, len(touched))
+	copies := make([]taskCopy, 0, len(touched))
 	for _, t := range touched {
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	for _, u := range reprobe {
 		a.spawn(func() { a.reprobeYtdlp(u) })
 	}
@@ -833,15 +894,15 @@ func (a *App) RenamePackage(ids []string, name string) ([]string, error) {
 	a.mu.Lock()
 	members := a.sharingLinksLocked(ids)
 	a.keepFoldersLocked(members, func(t *core.Task) { t.Package = name })
-	copies := make([]core.Task, 0, len(members))
+	copies := make([]taskCopy, 0, len(members))
 	for _, t := range members {
 		t.Package = name
 		// A probe that names the link later must not put the package back.
 		t.ManualPackage = true
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(members), nil
 }
 
@@ -924,15 +985,6 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	return nil
 }
 
-// saveAndBroadcast persists task snapshots and pushes them to connected UIs.
-func (a *App) saveAndBroadcast(copies []core.Task) {
-	for i := range copies {
-		c := copies[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
-	}
-}
-
 // Remove drops a task from the list. deleteFiles also erases what was
 // downloaded; it is never the default, as in JDownloader.
 func (a *App) Remove(id string, deleteFiles bool) {
@@ -968,8 +1020,13 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart.
 		own.drop(id)
 	}
+	// A copy published after this point finds the task gone (see publish).
+	a.saveMu.Lock()
 	_ = a.Store.Delete(id)
+	delete(a.saved, id)
+	delete(a.shown, id)
 	a.Hub.Broadcast("removed", map[string]string{"id": id})
+	a.saveMu.Unlock()
 	return collected
 }
 
@@ -991,13 +1048,12 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	a.tasks[t.ID] = t
 	a.dupes.Add(linkEntry(t))
 	a.markPremiumLocked(t)
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 	// Fired here, where every link enters, so new staging paths get the event
 	// too; outside the lock and after the broadcast.
-	a.fireLinkAdded(c)
+	a.fireLinkAdded(c.Task)
 	return dedupe.Match{}, true
 }
 
@@ -1055,14 +1111,13 @@ func (a *App) verifyTask(id, path string) {
 		return
 	}
 	t.Checksum = verdict
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 	// Only a mismatch fires; an unreadable hash is unverified, not wrong (see
 	// script.TriggerChecksumFailed).
 	if !ok {
-		a.fireChecksumFailed(c)
+		a.fireChecksumFailed(c.Task)
 	}
 }
 

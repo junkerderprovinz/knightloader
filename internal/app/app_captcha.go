@@ -156,7 +156,7 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 // nothing to mark.
 func (a *App) markCaptchaTasks(added []captcha.Challenge) {
 	a.mu.Lock()
-	var copies []core.Task
+	var copies []taskCopy
 	for _, c := range added {
 		if c.TaskID == "" {
 			continue
@@ -166,7 +166,7 @@ func (a *App) markCaptchaTasks(added []captcha.Challenge) {
 			continue
 		}
 		t.Reason = core.ReasonCaptcha
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	a.mu.Unlock()
 	if len(copies) > 0 {
@@ -182,18 +182,18 @@ func (a *App) settleCaptcha(c captcha.Challenge, reason string) {
 	a.captchaStateFor().store.Remove(c.ID)
 
 	a.mu.Lock()
-	var pub *core.Task
+	var pub *taskCopy
 	if c.TaskID != "" {
 		// Any other reason set meanwhile is the newer fact and is kept.
 		if t := a.tasks[c.TaskID]; t != nil && t.Reason == core.ReasonCaptcha {
 			t.Reason = core.ReasonUnknown
-			cp := *t
+			cp := a.copyLocked(t)
 			pub = &cp
 		}
 	}
 	a.mu.Unlock()
 	if pub != nil {
-		a.publishTasks([]core.Task{*pub})
+		a.publish(pub)
 	}
 	a.Hub.Broadcast("captchaResolved", CaptchaResolution{ID: c.ID, TaskID: c.TaskID, Host: c.Host, Reason: reason})
 }

@@ -90,17 +90,17 @@ func (a *App) startAutoConfirmCountdown(ids []string, begun time.Time, s setting
 // runs out, or with the zero time clears it from every row among ids.
 func (a *App) markConfirmDue(ids []string, due time.Time) {
 	a.mu.Lock()
-	var touched []core.Task
+	var touched []taskCopy
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil || t.ConfirmDue.Equal(due) || (!due.IsZero() && t.Status != core.StatusCollected) {
 			continue
 		}
 		t.ConfirmDue = due
-		touched = append(touched, *t)
+		touched = append(touched, a.copyLocked(t))
 	}
 	a.mu.Unlock()
-	a.saveAndBroadcast(touched)
+	a.publishTasks(touched)
 }
 
 // rearmAutoConfirm counts down again for the batches a shutdown cut short, one

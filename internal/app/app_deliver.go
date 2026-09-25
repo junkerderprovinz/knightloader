@@ -146,9 +146,9 @@ func (a *App) recordDelivery(id, src, moved string, err error) {
 		a.mu.Unlock()
 		return
 	}
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
-	a.saveAndBroadcast([]core.Task{c})
+	a.publish(&c)
 }
 
 // unpackPlan is where an extraction writes and where its result goes

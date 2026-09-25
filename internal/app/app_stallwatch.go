@@ -119,7 +119,7 @@ func (a *App) stallPass(now time.Time) {
 // markStallsLocked writes the mark onto what has stopped moving and takes it
 // off what has started again, and reports which tasks the settings want
 // reconnected and which restarted. Caller holds a.mu.
-func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, restart []string) {
+func (a *App) markStallsLocked(now time.Time) (changed []taskCopy, reconnect, restart []string) {
 	st := a.stallStateFor()
 	cfg := a.Settings.Get()
 	timeout := time.Duration(cfg.StallTimeout) * time.Second
@@ -134,7 +134,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, r
 		delete(st.marked, id)
 		if t := a.tasks[id]; t != nil && !t.StalledSince.IsZero() {
 			t.StalledSince = time.Time{}
-			changed = append(changed, *t)
+			changed = append(changed, a.copyLocked(t))
 		}
 	}
 	if timeout <= 0 {
@@ -160,7 +160,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, r
 			if !t.StalledSince.IsZero() {
 				t.StalledSince = time.Time{}
 				delete(st.marked, id)
-				changed = append(changed, *t)
+				changed = append(changed, a.copyLocked(t))
 			}
 			continue
 		}
@@ -171,7 +171,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, r
 				// Bytes again, so the mark clears itself.
 				t.StalledSince = time.Time{}
 				delete(st.marked, id)
-				changed = append(changed, *t)
+				changed = append(changed, a.copyLocked(t))
 			}
 			continue
 		}
@@ -186,7 +186,7 @@ func (a *App) markStallsLocked(now time.Time) (changed []core.Task, reconnect, r
 			// When the bytes stopped, so the row counts from the real moment.
 			t.StalledSince = prev.since
 			st.marked[id] = true
-			changed = append(changed, *t)
+			changed = append(changed, a.copyLocked(t))
 			log.Printf("task %s has moved no bytes for %s", id, now.Sub(prev.since).Truncate(time.Second))
 		}
 		// A reconnect keeps the bytes, so it comes first. A standstill it did
@@ -263,9 +263,9 @@ func (a *App) restartStalled(id string) {
 	}
 	a.dispatchLocked()
 	// Copied after the dispatch, which may already have started or refused it.
-	var c core.Task
+	var c taskCopy
 	if live := a.tasks[id]; live != nil {
-		c = *live
+		c = a.copyLocked(live)
 	}
 	a.mu.Unlock()
 
@@ -273,5 +273,5 @@ func (a *App) restartStalled(id string) {
 		return
 	}
 	log.Printf("task %s stood still for %s and was started again (restart %d)", id, stalledFor, restarts)
-	a.publishTasks([]core.Task{c})
+	a.publish(&c)
 }

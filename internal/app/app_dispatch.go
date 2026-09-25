@@ -250,7 +250,7 @@ func (a *App) SaveResolverOrder(order []string) ([]resolver.Info, error) {
 // else only. It broadcasts only tasks that changed, since dispatch runs on
 // nearly every event. Caller holds a.mu.
 func (a *App) setWaitingLocked(ids []string, only core.Waiting, per ...map[string]core.Waiting) {
-	var changed []core.Task
+	var changed []taskCopy
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil {
@@ -266,7 +266,7 @@ func (a *App) setWaitingLocked(ids []string, only core.Waiting, per ...map[strin
 			continue
 		}
 		t.Waiting = want
-		changed = append(changed, *t)
+		changed = append(changed, a.copyLocked(t))
 	}
 	if len(changed) > 0 {
 		// Published off this goroutine, since the caller holds a.mu.
@@ -562,17 +562,14 @@ func (a *App) PinResolver(ids []string, resolverID string) error {
 		a.dispatchLocked()
 	}
 	// Copied after the dispatch, which may have failed one of these tasks.
-	changed := make([]core.Task, 0, len(touched))
+	changed := make([]taskCopy, 0, len(touched))
 	for _, taskID := range touched {
 		if t := a.tasks[taskID]; t != nil {
-			changed = append(changed, *t)
+			changed = append(changed, a.copyLocked(t))
 		}
 	}
 	a.mu.Unlock()
-	for i := range changed {
-		_ = a.Store.Save(&changed[i])
-		a.Hub.Broadcast("task", &changed[i])
-	}
+	a.publishTasks(changed)
 	return nil
 }
 
@@ -600,8 +597,7 @@ func (a *App) leaveBackendLocked(t *core.Task) {
 	a.spawn(func() {
 		old.Remove(id, true)
 		if c := a.handedOn(id); c != nil {
-			_ = a.Store.Save(c)
-			a.Hub.Broadcast("task", c)
+			a.publish(c)
 		}
 	})
 }
@@ -712,7 +708,7 @@ func (a *App) dispatchLocked() {
 	// settled collects tasks turned down here. The caller's copy was taken
 	// earlier, so without a copy of its own the refusal would never reach the
 	// store or the browsers.
-	var settled []core.Task
+	var settled []taskCopy
 	// Why each task does not start, applied at the end (see setWaitingLocked).
 	waiting := map[string]core.Waiting{}
 	perHost := map[string]int{}
@@ -843,7 +839,7 @@ func (a *App) dispatchLocked() {
 			// Cleared so an earlier attempt's reason does not label a rule
 			// rejection.
 			t.Reason = core.ReasonUnknown
-			settled = append(settled, *t)
+			settled = append(settled, a.copyLocked(t))
 			continue
 		}
 		// The recorded resolver is honoured, since after a fallback it is not
@@ -870,7 +866,7 @@ func (a *App) dispatchLocked() {
 				// pinFailureLocked.
 				t.Status = core.StatusError
 				t.Error, t.Reason = a.pinFailureLocked(t)
-				settled = append(settled, *t)
+				settled = append(settled, a.copyLocked(t))
 				continue
 			}
 			if a.hasUnroutableMatchLocked(t) {
@@ -883,7 +879,7 @@ func (a *App) dispatchLocked() {
 			t.Status = core.StatusError
 			t.Error = a.unhandledError(t.URL, "no resolver matches")
 			t.Reason = core.ReasonUnsupported
-			settled = append(settled, *t)
+			settled = append(settled, a.copyLocked(t))
 			continue
 		}
 		prev := t.Resolver
@@ -897,7 +893,7 @@ func (a *App) dispatchLocked() {
 			t.Error = err.Error()
 			// Classified from the error value, which is still available here.
 			t.Reason = classify(failure{err: err})
-			settled = append(settled, *t)
+			settled = append(settled, a.copyLocked(t))
 			continue
 		}
 		be := a.backendFor(t.Resolver)
@@ -924,7 +920,7 @@ func (a *App) dispatchLocked() {
 				t.Status = core.StatusError
 				t.Error = "not downloaded: " + target + " already exists"
 				t.Reason = core.ReasonUnknown
-				settled = append(settled, *t)
+				settled = append(settled, a.copyLocked(t))
 				continue
 			}
 		}
@@ -1080,17 +1076,15 @@ func (a *App) stop(id string, requeue bool) {
 	// The stall mark describes a running transfer; clear it here rather than
 	// on the watcher's next tick.
 	t.StalledSince = time.Time{}
-	c := *t
+	c := a.copyLocked(t)
 	if !wasActive {
 		a.mu.Unlock()
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
+		a.publish(&c)
 		return
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 	a.backendFor(t.Resolver).Pause(id)
 }
 
@@ -1103,13 +1097,12 @@ func (a *App) Resume(id string) {
 	}
 	t.Status = core.StatusQueued
 	t.Speed = 0
-	c := *t
+	c := a.copyLocked(t)
 	a.dequeueLocked(id)
 	a.queue = append(a.queue, id)
 	a.dispatchLocked()
 	a.mu.Unlock()
-	_ = a.Store.Save(&c)
-	a.Hub.Broadcast("task", &c)
+	a.publish(&c)
 }
 
 // HonoursCollisionPolicy reports whether the collision policy reaches the file
@@ -1411,7 +1404,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// A kept mirror takes over when the source has nothing left to try. It
 	// reads retryIn and may cancel the retry just armed (see
 	// handOverToMirrorLocked).
-	var mirrorCopy *core.Task
+	var mirrorCopy *taskCopy
 	if u.Status == core.StatusError && fallbackTo == nil {
 		mirrorCopy, retryIn = a.handOverToMirrorLocked(t, retryIn)
 	}
@@ -1432,14 +1425,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// A finished download that completes an archive continues as an
 	// extraction (see extractionDueLocked).
-	var extractCopy *core.Task
+	var extractCopy *taskCopy
 	if u.Status == core.StatusDone {
 		if target := a.extractNowLocked(t, a.Settings.Get()); target != nil && target != t {
-			c := *target
+			c := a.copyLocked(target)
 			extractCopy = &c
 		}
 	}
-	c := *t
+	c := a.copyLocked(t)
 	a.mu.Unlock()
 	if fallbackTo != nil {
 		// The old backend lets go of the task, its partial file included, before
@@ -1458,24 +1451,23 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// for the live peer counts but not saved, and must not fire task scripts
 	// on every poll.
 	if u.Status != "" {
-		_ = a.Store.Save(&c)
+		a.publish(&c)
+	} else {
+		a.show(&c)
 	}
-	a.Hub.Broadcast("task", &c)
 	if u.Status != "" {
 		// NextTry is already set when a retry is pending, so task.failed fires
 		// only on the final failure.
-		tv := scriptTaskView(c)
+		tv := scriptTaskView(c.Task)
 		if trig, ok := script.ClassifyTaskUpdate(tv); ok {
 			a.publishEvent(script.Firing{Trigger: trig, Task: &tv})
 		}
 	}
 	if extractCopy != nil {
-		_ = a.Store.Save(extractCopy)
-		a.Hub.Broadcast("task", extractCopy)
+		a.publish(extractCopy)
 	}
 	if mirrorCopy != nil {
-		_ = a.Store.Save(mirrorCopy)
-		a.Hub.Broadcast("task", mirrorCopy)
+		a.publish(mirrorCopy)
 	}
 	if retryIn > 0 {
 		// The deadline ties the timer to this failure (see retryAfter).
@@ -1520,7 +1512,7 @@ func (a *App) handOnLocked(t *core.Task) {
 
 // handedOn lets the dispatcher start a task handOnLocked held back and returns
 // the task as the dispatch left it, or nil when it was removed meanwhile.
-func (a *App) handedOn(id string) *core.Task {
+func (a *App) handedOn(id string) *taskCopy {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	delete(a.moving, id)
@@ -1529,7 +1521,7 @@ func (a *App) handedOn(id string) *core.Task {
 	if t == nil {
 		return nil
 	}
-	c := *t
+	c := a.copyLocked(t)
 	return &c
 }
 

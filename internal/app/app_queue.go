@@ -131,7 +131,7 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	// renumbering as a manual "move to top". Only the tasks that just changed
 	// status are moved, never the raw ids, so an unknown id cannot renumber a
 	// band.
-	var moved []core.Task
+	var moved []*core.Task
 	if addAtTop && len(toStart) > 0 {
 		atTop := make(map[string]bool, len(toStart))
 		for _, t := range toStart {
@@ -144,15 +144,15 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	// filtered link, a taken destination), and an earlier copy would write
 	// "queued" over the refusal.
 	named := make(map[string]bool, len(toStart))
-	copies := make([]core.Task, 0, len(toStart)+len(moved))
+	copies := make([]taskCopy, 0, len(toStart)+len(moved))
 	for _, t := range toStart {
 		named[t.ID] = true
-		copies = append(copies, *t)
+		copies = append(copies, a.copyLocked(t))
 	}
 	// The tasks AddAtTop pushed down changed position too.
-	for _, c := range moved {
-		if !named[c.ID] {
-			copies = append(copies, c)
+	for _, t := range moved {
+		if !named[t.ID] {
+			copies = append(copies, a.copyLocked(t))
 		}
 	}
 	// A link whose last shown row just left the collector takes its set-aside
@@ -168,11 +168,7 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		stranded = a.strandedVariantRowsLocked(started, nil)
 	}
 	a.mu.Unlock()
-	for i := range copies {
-		c := copies[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
-	}
+	a.publishTasks(copies)
 	for _, id := range stranded {
 		a.removeTask(id, false)
 	}
@@ -267,16 +263,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	}
 	a.dispatchLocked()
 	// Copied after dispatching, as in startTasks.
-	copies := make([]core.Task, 0, len(live))
-	for _, t := range live {
-		copies = append(copies, *t)
-	}
+	copies := a.copiesLocked(live)
 	a.mu.Unlock()
-	for i := range copies {
-		c := copies[i]
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
-	}
+	a.publishTasks(copies)
 }
 
 // UndoWindow is how long a removed selection can still be brought back. It is
@@ -413,21 +402,17 @@ func (a *App) UndoRemove(token string) []string {
 	a.sortQueueLocked()
 	a.dispatchLocked()
 	// Copied after dispatching, as in startTasks.
-	copies := make([]core.Task, 0, len(live))
-	for _, t := range live {
-		copies = append(copies, *t)
-	}
+	copies := a.copiesLocked(live)
 	a.mu.Unlock()
 	back := make([]string, 0, len(copies))
 	for i := range copies {
-		c := copies[i]
+		c := &copies[i]
 		// A set-aside row came back with its link but is not a row anybody
 		// sees, so it is not counted as one.
 		if !c.VariantOff {
 			back = append(back, c.ID)
 		}
-		_ = a.Store.Save(&c)
-		a.Hub.Broadcast("task", &c)
+		a.publish(c)
 	}
 	return back
 }
@@ -588,21 +573,21 @@ func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 	// They join the end of the new band in their existing order, leaving a
 	// hand-ordered band intact.
 	moved := a.renumberLocked(arrived, MoveBottom)
-	copies := make([]core.Task, 0, len(chosen)+len(moved))
+	copies := make([]taskCopy, 0, len(chosen)+len(moved))
 	named := make(map[string]bool, len(chosen))
 	for _, t := range chosen {
 		named[t.ID] = true
-		copies = append(copies, *t) // after the renumbering, so the position is current
+		copies = append(copies, a.copyLocked(t)) // after the renumbering, so the position is current
 	}
 	// The tasks the arrivals pushed down changed position too.
-	for _, c := range moved {
-		if !named[c.ID] {
-			copies = append(copies, c)
+	for _, t := range moved {
+		if !named[t.ID] {
+			copies = append(copies, a.copyLocked(t))
 		}
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(chosen)
 }
 
@@ -648,45 +633,45 @@ func (a *App) MoveIn(sel Selection, where string) []string {
 	for _, t := range chosen {
 		want[t.ID] = true
 	}
-	copies := a.renumberLocked(want, where)
+	copies := a.copiesLocked(a.renumberLocked(want, where))
 	a.dispatchLocked()
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(chosen)
 }
 
 // renumberLocked applies one rearrangement to every band that holds a wanted
-// task and returns the tasks whose place changed, ready to publish. Manual
-// moves and priority changes share it. Caller holds a.mu.
-func (a *App) renumberLocked(want map[string]bool, where string) []core.Task {
+// task and returns the tasks whose place changed. Manual moves and priority
+// changes share it. Caller holds a.mu.
+func (a *App) renumberLocked(want map[string]bool, where string) []*core.Task {
 	if len(want) == 0 {
 		return nil
 	}
-	var copies []core.Task
+	var changed []*core.Task
 	for _, band := range a.bandsLocked() {
 		if !reorder(band, want, where) {
 			continue
 		}
-		copies = append(copies, renumberBand(band)...)
+		changed = append(changed, renumberBand(band)...)
 	}
-	return copies
+	return changed
 }
 
 // renumberBand writes dense positions for one band in the slice's current
 // order and returns the tasks whose position changed. renumberLocked and
 // ReorderBand share it. The run ends at -1 for the reason given at MoveIn.
 // Caller holds a.mu.
-func renumberBand(band []*core.Task) []core.Task {
-	var copies []core.Task
+func renumberBand(band []*core.Task) []*core.Task {
+	var changed []*core.Task
 	for i, t := range band {
 		pos := i - len(band)
 		if t.Position == pos {
 			continue
 		}
 		t.Position = pos
-		copies = append(copies, *t)
+		changed = append(changed, t)
 	}
-	return copies
+	return changed
 }
 
 // bandsLocked groups the movable tasks into the runs the manual position
@@ -841,10 +826,10 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 		return nil, fmt.Errorf("only %d of %d ids belong to this band", next, len(tasks))
 	}
 
-	copies := renumberBand(ordered)
+	copies := a.copiesLocked(renumberBand(ordered))
 	a.dispatchLocked()
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return idsOf(tasks), nil
 }
 
@@ -1035,12 +1020,9 @@ func (a *App) ForceDownload(sel Selection) []string {
 	}
 	a.dispatchLocked()
 	// Copied after dispatching, as in startTasks.
-	copies := make([]core.Task, 0, len(forced))
-	for _, t := range forced {
-		copies = append(copies, *t)
-	}
+	copies := a.copiesLocked(forced)
 	a.mu.Unlock()
-	a.saveAndBroadcast(copies)
+	a.publishTasks(copies)
 	return ids
 }
 

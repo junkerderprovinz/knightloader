@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -206,4 +207,129 @@ func TestRemovedTaskIsNotResurrected(t *testing.T) {
 			t.Fatal("the removed task was written back to the database")
 		}
 	}
+}
+
+// A copy of a task is taken under a.mu and written once the lock is let go,
+// sometimes from a goroutine of its own, like the waiting reason a stopped queue
+// gives a link it has just queued. A removal landing in between must win. The
+// interleaving is written out by hand rather than raced for.
+func TestACopyTakenBeforeARemovalDoesNotWriteTheTaskBack(t *testing.T) {
+	a := newCrawlApp(t, false)
+	// A magnet, which is resolved locally and starts no probe of its own.
+	created := a.AddLinks([]string{"magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"}, "Race")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	id := created[0].ID
+
+	a.mu.Lock()
+	stale := a.copyLocked(a.tasks[id])
+	a.mu.Unlock()
+	a.Remove(id, false)
+	a.publish(&stale)
+
+	stored, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range stored {
+		if s.ID == id {
+			t.Fatal("the removed task was written back to the database and would reappear on the next start")
+		}
+	}
+}
+
+// Two copies of one task are each published after a.mu is let go, so they can
+// land in either order. The newer one must win in the store and on screen, or
+// the row shows an older state and keeps it after a restart. The interleaving
+// is written out by hand rather than raced for.
+func TestAnOlderCopyPublishedLateDoesNotReplaceANewerOne(t *testing.T) {
+	a, fc, id := orderingApp(t)
+
+	a.mu.Lock()
+	older := a.copyLocked(a.tasks[id])
+	a.tasks[id].Comment = "newer"
+	newer := a.copyLocked(a.tasks[id])
+	a.mu.Unlock()
+	a.publish(&newer)
+	a.publish(&older)
+
+	if got := storedTask(t, a, id).Comment; got != "newer" {
+		t.Errorf("the store holds comment %q, the older copy's", got)
+	}
+	if got := lastShown(t, a, fc, id).Comment; got != "newer" {
+		t.Errorf("the last broadcast carries comment %q, the older copy's", got)
+	}
+}
+
+// A torrent's live counts are only broadcast. A copy published after them was
+// taken before them: it still has to be written, but it must not take the newer
+// counts off the screen.
+func TestAnOlderCopySavedAfterALiveUpdateLeavesTheScreenAlone(t *testing.T) {
+	a, fc, id := orderingApp(t)
+
+	a.mu.Lock()
+	a.tasks[id].Comment = "saved"
+	saved := a.copyLocked(a.tasks[id])
+	a.tasks[id].Speed = 4096
+	live := a.copyLocked(a.tasks[id])
+	a.mu.Unlock()
+	a.show(&live)
+	a.publish(&saved)
+
+	if got := storedTask(t, a, id).Comment; got != "saved" {
+		t.Errorf("the store holds comment %q; the older copy was not written", got)
+	}
+	if got := lastShown(t, a, fc, id).Speed; got != 4096 {
+		t.Errorf("the last broadcast shows speed %d, the older copy's", got)
+	}
+}
+
+// orderingApp is an App with one magnet staged, whose broadcasts fc records.
+func orderingApp(t *testing.T) (*App, *activityFakeConn, string) {
+	t.Helper()
+	a := newCrawlApp(t, false)
+	fc := &activityFakeConn{}
+	a.Hub.Add(fc)
+	t.Cleanup(func() { a.Hub.Remove(fc) })
+	created := a.AddLinks([]string{"magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"}, "Race")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	return a, fc, created[0].ID
+}
+
+// storedTask is the task as the next start would read it.
+func storedTask(t *testing.T, a *App, id string) core.Task {
+	t.Helper()
+	stored, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range stored {
+		if s.ID == id {
+			return *s
+		}
+	}
+	t.Fatalf("task %s is not in the store", id)
+	return core.Task{}
+}
+
+// lastShown is the last broadcast of a task, read once everything broadcast so
+// far has arrived.
+func lastShown(t *testing.T, a *App, fc *activityFakeConn, id string) core.Task {
+	t.Helper()
+	a.Hub.Broadcast("test-sentinel", nil)
+	waitForType(t, fc, "test-sentinel")
+	var last core.Task
+	for _, raw := range fc.snapshot() {
+		var env struct {
+			Type string    `json:"type"`
+			Data core.Task `json:"data"`
+		}
+		if json.Unmarshal(raw, &env) == nil && env.Type == "task" && env.Data.ID == id {
+			last = env.Data
+		}
+	}
+	return last
 }

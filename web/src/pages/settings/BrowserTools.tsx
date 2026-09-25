@@ -82,9 +82,11 @@ export function BrowserTools() {
         </SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
           {/* A real javascript: link, since only that can be dragged into a
-              bookmarks bar. */}
+              bookmarks bar. React 19 swaps a javascript: href for one that
+              throws, so the href is set on the node, which React leaves
+              alone. */}
           <a
-            href={bookmarklet}
+            ref={(a) => a?.setAttribute('href', bookmarklet)}
             onClick={(e) => e.preventDefault()}
             className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-carbon-surface2
               px-3.5 py-2 text-sm font-medium text-carbon-text hover:bg-carbon-surface3"

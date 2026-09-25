@@ -336,7 +336,7 @@ func isTorrentTask(t *core.Task) bool { return t.Resolver == "torrent" || t.Info
 //
 // Checksum is set only when a checksum was actually computed. Note carries the
 // explanation to open browsers and is not stored.
-func (a *App) applyReclaim(findings []reclaim.Finding) (changed []core.Task, settled int) {
+func (a *App) applyReclaim(findings []reclaim.Finding) (changed []taskCopy, settled int) {
 	now := time.Now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -391,7 +391,7 @@ func (a *App) applyReclaim(findings []reclaim.Finding) (changed []core.Task, set
 		default:
 			continue
 		}
-		changed = append(changed, *t)
+		changed = append(changed, a.copyLocked(t))
 	}
 	return changed, settled
 }
