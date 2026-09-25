@@ -198,19 +198,20 @@ type Plan struct {
 // and mutates nothing, so the decision can be tested against fixed inputs.
 //
 // A desired host is matched to a JD account on hostname alone, case- and
-// www.-insensitively. addAccount's premiumHoster argument is resolved through
-// JD's own PluginFinder.assignHost before being stored (see jdclient.go), so
-// for an alias JD folds together the Hostname coming back can differ from what
-// was sent.
+// www.-insensitively and with alias domains folded (accountKey).
+// addAccount's premiumHoster argument is resolved through JD's own
+// PluginFinder.assignHost before being stored (see jdclient.go), so a login
+// saved as rg.to comes back as rapidgator.net; compared as typed, it would
+// look missing on every pass and be added again each time.
 func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.Time, now time.Time) Plan {
 	byHost := map[string]jdAccount{}
 	for _, a := range actual {
-		byHost[normalizeHost(a.Hostname)] = a
+		byHost[accountKey(a.Hostname)] = a
 	}
 	wanted := map[string]bool{}
 	p := Plan{States: map[string]LoginState{}}
 	for _, d := range desired {
-		h := normalizeHost(d.Host)
+		h := accountKey(d.Host)
 		wanted[h] = true
 		acc, present := byHost[h]
 		switch {
@@ -236,7 +237,7 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 		}
 	}
 	for _, a := range actual {
-		h := normalizeHost(a.Hostname)
+		h := accountKey(a.Hostname)
 		if !wanted[h] {
 			p.Remove = append(p.Remove, a.UUID)
 		}
@@ -365,7 +366,7 @@ func describeAccount(st *LoginState, info *jdAccountInfo) {
 func updateFirstFail(firstFail map[string]time.Time, p Plan, now time.Time) {
 	seen := map[string]bool{}
 	for host, st := range p.States {
-		h := normalizeHost(host)
+		h := accountKey(host)
 		seen[h] = true
 		if st.Status == StatusQueued && st.Detail == "JDownloader is still checking this login" || st.Status == StatusRejected {
 			if _, ok := firstFail[h]; !ok {
@@ -456,7 +457,7 @@ func (r *Reconciler) RemoveLogin(host string) error {
 	}
 	r.mu.Lock()
 	delete(r.states, host)
-	delete(r.firstFail, host)
+	delete(r.firstFail, accountKey(host))
 	r.mu.Unlock()
 	jdresolver.SetHostActive(host, false)
 	return nil

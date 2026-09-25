@@ -21,7 +21,7 @@ import (
 // test below exercises the same path a settings save takes.
 func newRuleApp(t *testing.T, mutate func(s *settings.Settings, base string)) (*App, string) {
 	t.Helper()
-	a, err := New(t.TempDir())
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

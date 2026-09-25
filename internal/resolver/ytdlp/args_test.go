@@ -55,10 +55,12 @@ func TestBuildArgsPlaylistTrueDropsNoPlaylist(t *testing.T) {
 	}
 }
 
-func TestBuildArgsHeightCappedQuality(t *testing.T) {
+// A portrait track taller than the cap but no wider comes first, since the
+// height filter alone would take a far smaller portrait track over it.
+func TestBuildArgsResolutionCappedQuality(t *testing.T) {
 	args := buildArgs("d", Options{Quality: Quality1080p})
 	got, ok := valueAfter(args, "-f")
-	want := "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]"
+	want := "bv[width<=1080][height>1080]+ba/bv[height<=?1080]+ba/b[width<=1080][height>1080]/b[height<=?1080]"
 	if !ok || got != want {
 		t.Errorf("-f = %q (found=%v), want %q", got, ok, want)
 	}

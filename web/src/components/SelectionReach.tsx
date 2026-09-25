@@ -48,11 +48,11 @@ export function SelectionReach({
           type="button"
           {...tipHoverProps}
           aria-label={aria}
-          className="rounded-[var(--radius-control)] underline decoration-dotted underline-offset-2
-            transition-colors hover:text-carbon-text focus-visible:text-carbon-text"
+          className="rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5 transition-colors
+            hover:bg-carbon-surface3 hover:text-carbon-text focus-visible:text-carbon-text"
           onClick={onReduce}
         >
-          {t('select.hidden').replace('{n}', String(hidden))}
+          {t('select.hidden', { n: hidden })}
         </button>
         {tip.node}
       </span>

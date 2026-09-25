@@ -457,7 +457,6 @@
       "settings.diagnostics.check.ytdlp",
       "settings.eventTargets.headers",
       "settings.eventTargets.status",
-      "settings.health.scrape",
       "settings.owner.umask",
       "settings.resolvers.toolsFrom.env",
       "settings.selftest.proxy.title",

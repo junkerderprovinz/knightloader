@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import { fmtBytes, fmtSpeed } from '../api/stats';
 import type { Task } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
@@ -13,13 +14,6 @@ const STATUS_KEYS: Record<string, TranslationKey> = {
   failed: 'status.failed',
   extracting: 'status.extracting',
 };
-
-function formatBytes(n: number): string {
-  if (n <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
-  return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
 
 /**
  * blend lays `over` on `base` at `alpha`, returning an opaque colour.
@@ -125,11 +119,11 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
 
       <View style={styles.footer}>
         <Text style={[styles.meta, { color: c.textMuted }]}>
-          {formatBytes(task.loaded)}
-          {task.size > 0 ? ` / ${formatBytes(task.size)}` : ''}
+          {fmtBytes(task.loaded)}
+          {task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
           {pct !== null ? ` · ${pct}%` : ''}
         </Text>
-        {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{formatBytes(task.speed)}/s</Text>}
+        {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}
         {/* The backend's own word for what is happening, when "running" is not
             the whole truth. The web list carries the same note column. */}
         {task.note ? (

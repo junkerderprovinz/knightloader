@@ -300,7 +300,7 @@ func TestTheWriteProbeRunsInAFolderThatExistsAndLeavesNothingBehind(t *testing.T
 	}
 }
 
-// settings.Validate would create the folder; the self-test must not.
+// A folder that is not there yet is reported, and the self-test never makes it.
 func TestAFolderThatIsNotThereYetIsReportedAndNeverCreated(t *testing.T) {
 	a := newSelfTestApp(t)
 	dir := filepath.Join(t.TempDir(), "not-created-yet")

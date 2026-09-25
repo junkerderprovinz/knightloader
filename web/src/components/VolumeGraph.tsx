@@ -1,4 +1,4 @@
-import { rainbowColor } from '../lib/appearance';
+import { RAINBOW } from '../lib/appearance';
 import { fmtGB } from '../lib/format';
 import { useRainbow } from '../lib/useRainbow';
 
@@ -46,7 +46,7 @@ export function VolumeGraph({
   series: VolumeSeries[];
   label: string;
 }) {
-  // Subscribed, so band colours follow a palette edit in the same paint.
+  // Subscribed, so the bands take the palette the moment the mode goes on.
   const rainbow = useRainbow();
 
   const n = labels.length;
@@ -63,16 +63,16 @@ export function VolumeGraph({
   const multi = series.length > 1;
 
   // The palette is read directly rather than through .glim-hue, which reactive
-  // rainbow mode greys out until hover; here the colour is the legend. A lone
-  // band keeps the single accent.
-  const bandColour = (i: number) => (multi ? (rainbowColor(i) ?? 'var(--accent)') : 'var(--accent)');
+  // rainbow mode greys out until hover; here the colour is the legend. The
+  // root's property rather than the hex, so disco's walk reaches the bands. A
+  // lone band keeps the single accent.
+  const bandColour = (i: number) => (multi && rainbow.on ? `var(--rb-${i % RAINBOW.length})` : 'var(--accent)');
   const bandOpacity = (i: number) => (!multi || rainbow.on ? 1 : (LADDER[i] ?? 0.2));
 
   return (
     <div className="flex flex-col gap-3">
-      {/* The top of the scale; the foot is zero. Printed in every state, and
-          left to right so a right-to-left page does not put the unit first. */}
-      <span dir="ltr" className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
+      {/* The top of the scale; the foot is zero. Printed in every state. */}
+      <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
         {fmtGB(peak)}
       </span>
       <svg

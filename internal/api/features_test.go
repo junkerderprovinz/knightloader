@@ -153,6 +153,34 @@ func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 	}
 }
 
+// The refusal reaches the Modules page as a toast, so it carries a code and the
+// page's id for the interface to word it, and the page is the one the row
+// names.
+func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
+	a := testApp(t)
+	reg := newRegistry()
+	registerFeatures(reg, a)
+	h := http.NewServeMux()
+	reg.attach(h, http.NotFoundHandler())
+
+	for _, id := range []string{"watch", "feeds", "eventtargets", "scheduler", "reconnect"} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodPut, "/api/features/"+id, strings.NewReader(`{"enabled":true}`)))
+		var body struct {
+			Error, Code string
+			Params      map[string]string
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+			t.Errorf("%s: answered %d with %q, want a JSON refusal", id, rec.Code, rec.Body.String())
+			continue
+		}
+		want := featureRow(t, a, id).Page
+		if rec.Code != http.StatusBadRequest || body.Code != "configureFirst" || body.Params["page"] != want || body.Error == "" {
+			t.Errorf("%s: answered %d %+v, want 400 configureFirst on the page %q", id, rec.Code, body, want)
+		}
+	}
+}
+
 // TestUnswitchableModulesAreRefused checks that a request to switch a row
 // without a switch is an error rather than a silent success.
 func TestUnswitchableModulesAreRefused(t *testing.T) {

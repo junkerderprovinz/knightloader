@@ -161,7 +161,8 @@ func TestScriptPackageTalliesIgnoresUnpackagedTasks(t *testing.T) {
 // loop starts and must never fire, or every past package would announce itself
 // after each restart.
 func TestPackageDoneFiresWhenTheLastFileSettles(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,7 +217,8 @@ func TestPackageDoneFiresWhenTheLastFileSettles(t *testing.T) {
 // TestLinkAddedFiresOnlyForLinksThatEnteredTheList: a link the filter holds is
 // not in the collector and will not download unless restored.
 func TestLinkAddedFiresOnlyForLinksThatEnteredTheList(t *testing.T) {
-	a, err := New(t.TempDir())
+	t.Parallel()
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

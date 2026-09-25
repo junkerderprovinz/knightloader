@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ACCENTS,
   DEFAULT_ACCENT,
+  DISCO_FRAME_MS,
   DISCO_TICK_MS,
   asShape,
   contrastOn,
@@ -11,10 +12,13 @@ import {
   rainbowFromSettings,
   softOn,
   valid,
+  walkedColour,
   type InstanceAppearance,
   type RainbowState,
   type Shape,
 } from './appearance';
+import { buildLoop } from './discoLoop';
+import { useMotion } from './MotionContext';
 import { DARK, LIGHT, RADII, TYPE, inkFor, type Palette, type Radii } from './tokens';
 
 // Where the app's look comes from, and in which order.
@@ -56,8 +60,9 @@ export interface Appearance {
   radii: Radii;
   type: typeof TYPE;
   /** The colour for one list position, or undefined when the mode is off and
-   *  the single accent applies. While disco walks, a new function every step,
-   *  so a list that keeps it in its extraData redraws with the palette. */
+   *  the single accent applies. While disco walks, a new function every frame
+   *  of the walk, so a list that keeps it in its extraData redraws with the
+   *  palette. */
   hueAt: (i: number) => string | undefined;
   /** The rainbow as set, never the step disco has walked it to. */
   rainbow: RainbowState;
@@ -203,10 +208,15 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [shelf, setShelf] = useState<Override | null>(null);
   const [instance, setInstance] = useState<InstanceAppearance | undefined>(undefined);
   const [disco, setDiscoState] = useState(false);
-  /** How many steps disco has walked since it started. Never stored: a step a
-   *  second written to storage would grind the seed forward behind the user's
-   *  back, and stopping has to hand back the palette as it was set. */
+  /** How much of a full turn disco has walked, from 0 up to 1, and only ever
+   *  a whole colour's worth while it steps. Never stored and never written
+   *  into the rainbow state, so stopping hands back the palette as it was set. */
   const [walk, setWalk] = useState(0);
+  const travelled = useRef(0);
+  // The glide is motion, so the level and the system setting decide it: at
+  // "off", or with reduced motion, disco steps one colour at a time.
+  const { chosen: motionChosen, reduced } = useMotion();
+  const steps = motionChosen === 'off' || reduced;
 
   // Read once at start. Not awaited before the first paint: the defaults are
   // GlimStone's own, so the worst case is one frame in Sunflower before a
@@ -282,17 +292,30 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
   // The walk runs here, above every screen, because a hue reaches a view as a
   // value computed at render: only a provider every screen reads can make them
-  // all step together. With the rainbow off nothing hued is on screen, so it
-  // waits, and it starts by itself when the rainbow comes back.
+  // all move together. With the rainbow off nothing hued is on screen, so it
+  // waits, and it starts by itself when the rainbow comes back. The distance
+  // comes from the clock rather than from counting ticks, so a late timer
+  // never slows the walk; while stepping, only a whole colour reaches state,
+  // and the ticks in between render nothing.
   const walking = disco && rainbow.on;
+  const loop = useMemo(() => buildLoop(rainbow.palette), [rainbow.palette]);
   useEffect(() => {
     if (!walking) {
+      travelled.current = 0;
       setWalk(0);
       return;
     }
-    const timer = setInterval(() => setWalk((w) => w + 1), DISCO_TICK_MS);
+    const n = loop.palette.length;
+    const turnMs = DISCO_TICK_MS * n;
+    let last = Date.now();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      travelled.current = (travelled.current + (now - last) / turnMs) % 1;
+      last = now;
+      setWalk(steps ? Math.floor(travelled.current * n) / n : travelled.current);
+    }, DISCO_FRAME_MS);
     return () => clearInterval(timer);
-  }, [walking]);
+  }, [walking, steps, loop]);
 
   const value = useMemo<Appearance>(() => {
     // No instance carries a theme, on the web either: light and dark follow the
@@ -309,10 +332,13 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
     const shape = override.shape ?? asShape(instance?.shape) ?? 'round';
 
-    // What disco draws: the palette turned by the steps walked so far. The seed
-    // is an offset that rainbowAt reads only while rotation is on, so the walk
-    // holds rotation on for as long as it runs and leaves the setting alone.
-    const drawn = walking ? { ...rainbow, rotate: true, seed: rainbow.seed + walk } : rainbow;
+    // What disco draws: each position walked along the loop from the colour it
+    // has at rest, rotation included, so switching it on moves nothing until
+    // the walk does.
+    const start = rainbow.rotate ? rainbow.seed : 0;
+    const hueAt = walking
+      ? (i: number) => walkedColour(loop, start, walk, i, steps)
+      : (i: number) => rainbowColor(rainbow, i);
 
     return {
       dark,
@@ -323,7 +349,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       accentSoft: softOn(accent),
       radii: RADII[shape] ?? RADII.round,
       type: TYPE,
-      hueAt: (i: number) => rainbowColor(drawn, i),
+      hueAt,
       rainbow,
       disco,
       setDisco,
@@ -380,7 +406,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       },
       setInstanceAppearance: setInstance,
     };
-  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, disco, setDisco]);
+  }, [override, shelf, instance, system, persist, shelve, rainbow, walking, walk, steps, loop, disco, setDisco]);
 
   return <AppearanceCtx.Provider value={value}>{children}</AppearanceCtx.Provider>;
 }

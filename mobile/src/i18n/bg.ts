@@ -76,7 +76,6 @@ export const bg: Dict = {
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Дъга',
   'settings.disco': 'Диско',
-  'settings.discoHint': 'Докато дъговият режим е включен, всеки цветен елемент преминава към следващия цвят от палитрата веднъж в секунда.',
   'settings.problems': 'Проблеми?',
   'settings.problemsHint': 'Изпрати това, когато съобщаваш за нещо. Така се спестява един кръг въпроси, а в него няма нито адрес, нито токен.',
   'settings.problemsCopy': 'Копирай отчета',

@@ -76,7 +76,6 @@ export const sr: Dict = {
   'settings.accent': 'Нагласак',
   'settings.rainbow': 'Дуга',
   'settings.disco': 'Диско',
-  'settings.discoHint': 'Док је дугин режим укључен, сваки обојени елемент једном у секунди прелази на следећу боју палете.',
   'settings.problems': 'Проблеми?',
   'settings.problemsHint': 'Пошаљи ово када нешто пријављујеш. То штеди један круг питања, а у њему нема ни адресе ни токена.',
   'settings.problemsCopy': 'Копирај извештај',

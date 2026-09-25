@@ -76,7 +76,6 @@ export const is: Dict = {
   'settings.accent': 'Áherslulitur',
   'settings.rainbow': 'Regnbogi',
   'settings.disco': 'Diskó',
-  'settings.discoHint': 'Á meðan regnbogahamur er virkur færist hver litaður þáttur yfir í næsta lit litaspjaldsins einu sinni á sekúndu.',
   'settings.problems': 'Vandamál?',
   'settings.problemsHint': 'Sendu þetta með þegar þú tilkynnir eitthvað. Það sparar eina umferð af spurningum og hvorki vistfang né teikn eru í því.',
   'settings.problemsCopy': 'Afrita skýrslu',

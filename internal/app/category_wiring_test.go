@@ -68,6 +68,7 @@ func TestADrawerDecidesWhetherAnArchiveIsUnpacked(t *testing.T) {
 // decided before the handover, so it is observable without a backend that
 // honours a name.
 func TestADrawersCollisionRuleSettlesTheDownload(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	a := newQueueApp(t)
 	s := a.Settings.Get()

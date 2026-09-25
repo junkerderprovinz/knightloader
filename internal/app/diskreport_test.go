@@ -314,8 +314,8 @@ func TestAConfiguredTemplateIsMeasuredAtItsFixedHead(t *testing.T) {
 	}
 }
 
-// Measuring creates and writes nothing; settings.Validate would create each
-// folder and leave a probe file in it.
+// Measuring creates and writes nothing, not even the probe settings.Validate
+// drops into a folder.
 func TestMeasuringCreatesNothingAndWritesNothing(t *testing.T) {
 	installUsage(t, aVolume(), true)
 	base := t.TempDir()

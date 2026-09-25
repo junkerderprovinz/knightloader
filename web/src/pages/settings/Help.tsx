@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
-import { Card, SectionTitle } from '../../components/ui';
+import { Button, Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconGithub, IconMail } from '../../lib/icons';
@@ -27,20 +27,17 @@ function Topic({
   links?: { to: string; label: string }[];
   hue?: number;
 }) {
+  const navigate = useNavigate();
   return (
       <Card hue={hue} className="flex flex-col gap-3">
         <SectionTitle>{title}</SectionTitle>
         <div className="flex flex-col gap-2 text-sm text-carbon-textSub">{children}</div>
         {links && links.length > 0 && (
-          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             {links.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="text-xs text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
-              >
-                {l.label} →
-              </Link>
+              <Button key={l.to} kind="secondary" onClick={() => navigate(l.to)}>
+                {l.label}
+              </Button>
             ))}
           </div>
         )}
@@ -267,7 +264,9 @@ export function About({ hue }: { hue: number }) {
           rel="noreferrer noopener"
           className={`${ABOUT_BTN} glim-brand-coffee`}
         >
-          <IconBuyMeACoffee size={15} />
+          <span className="glim-btn-glyph">
+            <IconBuyMeACoffee />
+          </span>
           {t('settings.about.coffeeButton')}
         </a>
         {PAYPAL !== '' && (
@@ -277,7 +276,9 @@ export function About({ hue }: { hue: number }) {
             rel="noreferrer noopener"
             className={`${ABOUT_BTN} glim-brand-paypal`}
           >
-            <IconPayPal size={15} />
+            <span className="glim-btn-glyph">
+              <IconPayPal />
+            </span>
             {t('settings.about.paypal')}
           </a>
         )}
@@ -289,7 +290,9 @@ export function About({ hue }: { hue: number }) {
           className={`${ABOUT_BTN} glim-brand-bitcoin`}
           onClick={() => setCryptoOpen(true)}
         >
-          <IconBitcoin size={15} />
+          <span className="glim-btn-glyph">
+            <IconBitcoin />
+          </span>
           {t('settings.about.crypto')}
         </button>
       </div>
@@ -304,7 +307,9 @@ export function About({ hue }: { hue: number }) {
           rel="noreferrer noopener"
           className={`${ABOUT_BTN} glim-brand-github`}
         >
-          <IconGithub width={15} height={15} />
+          <span className="glim-btn-glyph">
+            <IconGithub />
+          </span>
           {t('settings.about.github')}
         </a>
         {/* The one control without a vendor's mark: `glim-brand-house` follows
@@ -313,7 +318,9 @@ export function About({ hue }: { hue: number }) {
           href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
           className={`${ABOUT_BTN} glim-brand-house`}
         >
-          <IconMail width={15} height={15} />
+          <span className="glim-btn-glyph">
+            <IconMail />
+          </span>
           {t('settings.about.mail')}
         </a>
       </div>

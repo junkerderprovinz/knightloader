@@ -76,7 +76,6 @@ export const eu: Dict = {
   'settings.accent': 'Azentua',
   'settings.rainbow': 'Ostadarra',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Ostadar modua aktibatuta dagoen bitartean, koloredun elementu bakoitza segundoro igarotzen da paletako hurrengo kolorera.',
   'settings.problems': 'Arazoak?',
   'settings.problemsHint': 'Bidali hau zerbait jakinarazten duzunean. Galdera-txanda bat aurrezten du, eta ez du helbiderik ez tokenik.',
   'settings.problemsCopy': 'Kopiatu txostena',

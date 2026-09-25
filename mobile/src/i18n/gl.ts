@@ -76,7 +76,6 @@ export const gl: Dict = {
   'settings.accent': 'Acento',
   'settings.rainbow': 'Arco da vella',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Mentres o modo arco da vella estea activado, cada elemento de cor pasa á seguinte cor da paleta unha vez por segundo.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envía isto cando informes de algo. Aforra unha rolda de preguntas e non leva nin enderezo nin token.',
   'settings.problemsCopy': 'Copiar o informe',

@@ -1,10 +1,11 @@
 package app
 
-// These tests run against a real App and the real two-second poll; the state
-// machine's own timing is covered by internal/idleaction's fake-clock tests.
-// DelaySeconds stays at the floor of 5 to keep them short.
+// These tests run against a real App with a short poll and a countdown clock
+// that only moves when the test moves it; the state machine's own timing is
+// covered by internal/idleaction's fake-clock tests.
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -14,11 +15,18 @@ import (
 )
 
 // armWindow is how long a test waits for the controller to notice an idle
-// queue. Arming takes under a second on a healthy machine, but this package
+// queue. Arming takes a poll or two on a healthy machine, but this package
 // runs under -race on shared CI runners.
 const armWindow = 60 * time.Second
 
-// pollUntil checks cond every 100ms until it holds or timeout passes.
+// idleTestPoll is the controller's poll in these tests. idleTestDelay is the
+// countdown they configure, the shortest Config accepts.
+const (
+	idleTestPoll  = 10 * time.Millisecond
+	idleTestDelay = 5 * time.Second
+)
+
+// pollUntil checks cond every 10ms until it holds or timeout passes.
 func pollUntil(t *testing.T, timeout time.Duration, cond func() bool) bool {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
@@ -26,13 +34,47 @@ func pollUntil(t *testing.T, timeout time.Duration, cond func() bool) bool {
 		if cond() {
 			return true
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 	return cond()
 }
 
+// idleClock stands still until the test moves it, so a countdown runs out
+// when the test says and never early on a slow machine.
+type idleClock struct {
+	mu  sync.Mutex
+	now time.Time
+}
+
+func (c *idleClock) Now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.now
+}
+
+func (c *idleClock) advance(d time.Duration) {
+	c.mu.Lock()
+	c.now = c.now.Add(d)
+	c.mu.Unlock()
+}
+
+// newIdleApp is newQueueApp with the idle action polling every idleTestPoll
+// on a clock the test moves.
+func newIdleApp(t *testing.T) (*App, *idleClock) {
+	t.Helper()
+	clock := &idleClock{now: time.Now()}
+	origClock, origPoll := idleActionClock, idleActionPoll
+	idleActionClock, idleActionPoll = clock, idleTestPoll
+	t.Cleanup(func() { idleActionClock, idleActionPoll = origClock, origPoll })
+	return newQueueApp(t), clock
+}
+
+// letItPoll gives the controller many polls, for a check that something did
+// not happen.
+func letItPoll() { time.Sleep(20 * idleTestPoll) }
+
 func TestIdleActionPausesTheQueueAfterItsCountdown(t *testing.T) {
-	a := newQueueApp(t)
+	a, clock := newIdleApp(t)
 	if _, err := a.ApplySettings(settings.Settings{
 		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
 		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
@@ -43,13 +85,18 @@ func TestIdleActionPausesTheQueueAfterItsCountdown(t *testing.T) {
 	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("did not arm within the expected window")
 	}
-	if !pollUntil(t, 10*time.Second, func() bool { return a.Queue().Halted }) {
+	letItPoll()
+	if a.Queue().Halted {
+		t.Fatal("the queue was halted before the countdown ran out")
+	}
+	clock.advance(idleTestDelay)
+	if !pollUntil(t, armWindow, func() bool { return a.Queue().Halted }) {
 		t.Fatal("the queue was never halted by the idle action")
 	}
 }
 
 func TestIdleActionCanBeCancelled(t *testing.T) {
-	a := newQueueApp(t)
+	a, clock := newIdleApp(t)
 	if _, err := a.ApplySettings(settings.Settings{
 		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
 		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
@@ -66,7 +113,8 @@ func TestIdleActionCanBeCancelled(t *testing.T) {
 	}
 
 	// Past the point where the cancelled countdown would have fired.
-	time.Sleep(6 * time.Second)
+	clock.advance(idleTestDelay + time.Second)
+	letItPoll()
 	if a.Queue().Halted {
 		t.Error("the queue was halted despite the countdown having been cancelled")
 	}
@@ -76,13 +124,16 @@ func TestIdleActionCanBeCancelled(t *testing.T) {
 }
 
 func TestDisabledLinkDoesNotBlockTheIdleAction(t *testing.T) {
-	a := newQueueApp(t)
+	a, clock := newIdleApp(t)
 
-	created := a.AddLinks([]string{"https://host.example/parked.bin"}, "Batch")
-	if len(created) != 1 {
-		t.Fatalf("staged %d links, want 1", len(created))
-	}
-	a.SetEnabled([]string{created[0].ID}, false)
+	// Queued rather than staged: Counters leaves collected links out
+	// altogether, so a disabled one in the collector would pass this test even
+	// if disabled links were counted as work.
+	parked := &core.Task{ID: "parked", URL: "https://host.example/parked.bin", Status: core.StatusQueued, Enabled: true}
+	a.mu.Lock()
+	a.tasks[parked.ID] = parked
+	a.mu.Unlock()
+	a.SetEnabled([]string{parked.ID}, false)
 
 	if _, err := a.ApplySettings(settings.Settings{
 		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
@@ -94,13 +145,17 @@ func TestDisabledLinkDoesNotBlockTheIdleAction(t *testing.T) {
 	if !pollUntil(t, 15*time.Second, func() bool { return a.IdleActionState().Idle }) {
 		t.Fatal("queueIdleForAction reported busy while the only task in the list is disabled")
 	}
-	if !pollUntil(t, 10*time.Second, func() bool { return a.Queue().Halted }) {
+	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
+		t.Fatal("the idle action never armed despite nothing enabled being left to do")
+	}
+	clock.advance(idleTestDelay)
+	if !pollUntil(t, armWindow, func() bool { return a.Queue().Halted }) {
 		t.Fatal("the idle action never fired despite nothing enabled being left to do")
 	}
 }
 
 func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
-	a := newQueueApp(t)
+	a, clock := newIdleApp(t)
 
 	running := &core.Task{ID: "r1", URL: "https://host.example/big.bin", Status: core.StatusRunning, Enabled: true}
 	a.mu.Lock()
@@ -115,8 +170,10 @@ func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Long enough for a poll and a countdown.
-	time.Sleep(9 * time.Second)
+	// Polls on either side of a whole countdown.
+	letItPoll()
+	clock.advance(idleTestDelay + time.Second)
+	letItPoll()
 	if a.IdleActionState().Idle {
 		t.Error("queueIdleForAction reported idle while a task is actively running")
 	}
@@ -129,7 +186,7 @@ func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 // is not owed work, or one perpetually seeding torrent would disable the
 // feature.
 func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
-	a := newQueueApp(t)
+	a, clock := newIdleApp(t)
 
 	seeding := &core.Task{
 		ID: "torrent1", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
@@ -150,7 +207,11 @@ func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
 	if !pollUntil(t, 15*time.Second, func() bool { return a.IdleActionState().Idle }) {
 		t.Fatal("queueIdleForAction reported busy while the only task left is seeding, not downloading")
 	}
-	if !pollUntil(t, 10*time.Second, func() bool { return a.Queue().Halted }) {
+	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
+		t.Fatal("the idle action never armed despite nothing but a seeding torrent remaining")
+	}
+	clock.advance(idleTestDelay)
+	if !pollUntil(t, armWindow, func() bool { return a.Queue().Halted }) {
 		t.Fatal("the idle action never fired despite nothing but a seeding torrent remaining")
 	}
 }

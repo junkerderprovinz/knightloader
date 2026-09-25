@@ -32,6 +32,13 @@ const (
 	NavLabelsHover = "hover"
 )
 
+// BottomBarFollowsNav is the bottom bar's default: it draws its entries the
+// way NavLabels draws the sidebar's, so nothing moves for somebody who never
+// opens the setting. The bar gets a setting of its own because it is always on
+// screen and puts all its words side by side at phone width (GlimStone, "The
+// bottom bar").
+const BottomBarFollowsNav = "follow"
+
 // accentPattern is a plain six-digit hex colour. Accepting anything else would
 // put attacker-chosen text straight into a CSS custom property.
 var accentPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
@@ -73,6 +80,13 @@ func sanitizeAppearance(n Settings) Settings {
 		// written before this field existed carries. Both is the behaviour
 		// those files already had, so an upgrade changes nothing on screen.
 		n.NavLabels = NavLabelsBoth
+	}
+	switch n.BottomBarLabels {
+	case BottomBarFollowsNav, NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover:
+	default:
+		// Including the empty string of an older settings.json, since
+		// following the sidebar is what the bar did before the field existed.
+		n.BottomBarLabels = BottomBarFollowsNav
 	}
 	n.Accent = strings.TrimSpace(n.Accent)
 	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {

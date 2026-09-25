@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button, InfoBubble, Modal } from '../../../components/ui';
 import { NeutralSwitch } from '../controls';
+import { fmtDate } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
 import { IconClose } from '../../../lib/icons';
 import type { SettingsExportDoc } from '../../../lib/api';
@@ -61,7 +62,7 @@ export function SettingsImportPreview({
   }, [rows]);
 
   const created = new Date(doc.createdAt);
-  const when = Number.isNaN(created.getTime()) ? doc.createdAt : created.toLocaleString();
+  const when = Number.isNaN(created.getTime()) ? doc.createdAt : fmtDate(doc.createdAt);
 
   return (
     <Modal

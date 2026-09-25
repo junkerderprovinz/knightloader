@@ -156,6 +156,7 @@ func TestAFileThisAppWillNotMoveIsNotWaitedFor(t *testing.T) {
 // trigger that does not match, a nil payload and a runner that never started all
 // leave a subscription in place and no call made.
 func TestAFinishedPackageReachesTheAddress(t *testing.T) {
+	t.Parallel()
 	var hits atomic.Int32
 	var token atomic.Value
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +197,7 @@ func TestAFinishedPackageReachesTheAddress(t *testing.T) {
 // Every trigger on the bus reaches every subscriber, so the one acting on
 // package.done ignores the rest: firing on task.done would call once per file.
 func TestAnEventThatIsNotAFinishedPackageCallsNothing(t *testing.T) {
+	t.Parallel()
 	var hits atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hits.Add(1)

@@ -453,14 +453,14 @@ export function Resolvers() {
 
       <Card hue={10} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.presetsHint')}>
-          {t('settings.resolvers.presetsTitle')}
+          {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
 
         <div className="glim-well overflow-x-auto p-0">
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
           ) : (
-            <table className="w-full border-collapse text-sm" aria-label={t('settings.resolvers.presetsTitle')}>
+            <table className="w-full border-collapse text-sm" aria-label={t('settings.resolvers.variantDefaults')}>
               <thead>
                 <tr className="text-start text-xs text-carbon-textMuted">
                   <th className="px-4 py-3 text-start font-medium">{t('settings.resolvers.presetHost')}</th>

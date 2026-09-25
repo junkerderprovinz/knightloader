@@ -76,7 +76,6 @@ export const fi: Dict = {
   'settings.accent': 'Korostusväri',
   'settings.rainbow': 'Sateenkaari',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Kun sateenkaaritila on päällä, jokainen värillinen elementti siirtyy paletin seuraavaan väriin kerran sekunnissa.',
   'settings.problems': 'Ongelmia?',
   'settings.problemsHint': 'Lähetä tämä mukana, kun ilmoitat jostakin. Se säästää yhden kysymyskierroksen, eikä siinä ole osoitetta eikä tokenia.',
   'settings.problemsCopy': 'Kopioi raportti',

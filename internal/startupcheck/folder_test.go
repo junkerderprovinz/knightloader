@@ -97,9 +97,9 @@ func TestProbeNameHidesFromTheWatchFolderAndIsUniquePerPass(t *testing.T) {
 // TestFolderMissingAnswersWithTheNearestExistingParentAndCreatesNothing is trap
 // number one.
 //
-// settings.Validate is the obvious thing to reuse and it MkdirAll's first: on a
-// box whose share did not mount that creates the path inside the container's own
-// writable layer, the write test passes, the report says "fine", and every
+// settings.Validate is the obvious thing to reuse, and it passes a missing folder
+// whose parent is writable: on a box whose share did not mount, that parent is
+// the container's own writable layer, the report says "fine", and every
 // download lands inside the container to be destroyed by the next image pull.
 // The report would have laundered the exact failure it exists to catch.
 func TestFolderMissingAnswersWithTheNearestExistingParentAndCreatesNothing(t *testing.T) {

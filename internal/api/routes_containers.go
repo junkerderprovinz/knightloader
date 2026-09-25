@@ -233,13 +233,16 @@ func registerContainers(reg *Registry, a *app.App) {
 // handToJD publishes the container at a fetchable address and points JD at it.
 func handToJD(w http.ResponseWriter, r *http.Request, a *app.App, relay *containerRelay, name string, data []byte, pkg string) {
 	// Asked before anything is stored, so an instance with no JD says so
-	// instead of leaving a handover nobody will collect.
+	// instead of leaving a handover nobody will collect. The code lets the
+	// upload's toast say it in the reader's language.
 	if !a.ContainerBackendConfigured() {
-		http.Error(w, app.ErrNoContainerBackend.Error(), http.StatusServiceUnavailable)
+		writeJSONStatus(w, http.StatusServiceUnavailable,
+			map[string]string{"error": app.ErrNoContainerBackend.Error(), "code": "noJD"})
 		return
 	}
 	if a.ModuleOff("jd") {
-		http.Error(w, app.ErrJDOff.Error(), http.StatusServiceUnavailable)
+		writeJSONStatus(w, http.StatusServiceUnavailable,
+			map[string]string{"error": app.ErrJDOff.Error(), "code": "jdOff"})
 		return
 	}
 	token, err := relay.put(name, data)

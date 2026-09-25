@@ -402,15 +402,9 @@ export function HosterLoginDialog({
           <Field label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>
-          <Field label={t('accounts.passwordField')}>
+          <Field label={t('accounts.passwordField')} hint={t('accounts.hoster.custodyNotice')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
-
-          {/* In the body rather than an (i): the password is about to be handed
-              to the JD sidecar, and that must be seen before saving. */}
-          <p className="rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-textSub">
-            {t('accounts.hoster.custodyNotice')}
-          </p>
         </div>
       )}
     </Modal>

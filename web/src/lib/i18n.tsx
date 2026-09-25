@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { en, type Dict, type TranslationKey } from './locales/en';
 import { AVAILABLE, load, loaded } from './locales';
+import { isolate } from './bidi';
 
 export type { TranslationKey, Dict };
 
@@ -85,6 +86,21 @@ export function applyStoredLanguage(): void {
   applyDocumentLanguage(detect());
 }
 
+/**
+ * interpolate fills a sentence's {placeholders}. A text value is isolated, so
+ * in a right-to-left language a size or a Latin name keeps its own order
+ * instead of trading places with the words around it. A number is not: the
+ * Bidi algorithm already keeps digits together, and an isolate would turn
+ * "{n}/{max}" into a neutral pair that reads "5/1".
+ */
+export function interpolate(s: string, vars?: Record<string, string | number>): string {
+  if (!vars) return s;
+  for (const [k, v] of Object.entries(vars)) {
+    s = s.replaceAll(`{${k}}`, typeof v === 'number' ? String(v) : isolate(v));
+  }
+  return s;
+}
+
 interface I18nAPI {
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   lang: Lang;
@@ -124,11 +140,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey, vars?: Record<string, string | number>) => {
-      let s: string = dict[key] ?? en[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
+    (key: TranslationKey, vars?: Record<string, string | number>) => interpolate(dict[key] ?? en[key], vars),
     [dict],
   );
 

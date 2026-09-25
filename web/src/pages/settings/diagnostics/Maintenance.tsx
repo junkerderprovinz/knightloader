@@ -94,13 +94,13 @@ export function MaintenanceCard({ hue }: { hue: number }) {
             label={t('settings.dbmaint.storeSize')}
             hint={`${t('settings.dbmaint.storeSizeHint')} ${t('settings.dbmaint.inBundle')}`}
           >
-            <span className="glim-num text-sm text-carbon-text" dir="ltr">
+            <span className="glim-num text-sm text-carbon-text">
               {fmtBytes(storage.storeBytes)}
             </span>
           </FieldGroup>
 
           <FieldGroup label={t('settings.dbmaint.reclaimable')} hint={t('settings.dbmaint.reclaimableHint')}>
-            <span className="glim-num text-sm text-carbon-text" dir="ltr">
+            <span className="glim-num text-sm text-carbon-text">
               {fmtBytes(storage.storeReclaimableBytes)}
             </span>
           </FieldGroup>
@@ -111,7 +111,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
             label={t('settings.dbmaint.settingsSize')}
             hint={storage.settingsPresent ? undefined : t('settings.dbmaint.settingsMissingHint')}
           >
-            <span className="glim-num text-sm text-carbon-text" dir="ltr">
+            <span className="glim-num text-sm text-carbon-text">
               {storage.settingsPresent ? fmtBytes(storage.settingsBytes) : t('settings.dbmaint.settingsMissing')}
             </span>
           </FieldGroup>

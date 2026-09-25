@@ -6,10 +6,11 @@ package api
 //
 // The boundary is the filesystem this process can see, which in the container
 // is the image plus the operator's mounts, exactly where downloads can land.
-// KL_BROWSE_ROOTS narrows it, and symlinks are resolved so a link to / cannot
-// widen it again. Listing answers with directory names only, never files,
-// sizes or contents, and creating makes one empty folder inside a folder that
-// listing would have shown.
+// KL_BROWSE_ROOTS narrows it, and links are resolved, Windows junctions and
+// mounted folders included, so a link to / cannot widen it again. Listing
+// answers with directory names only, never files, sizes or contents, and
+// creating makes one empty folder inside a folder that listing would have
+// shown.
 
 import (
 	"errors"
@@ -21,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/realpath"
 )
 
 // envBrowseRoots narrows the chooser to a list of folders, separated like a
@@ -146,7 +148,7 @@ func listFolders(raw string) (folderListing, error) {
 	}
 	fixed = filepath.Clean(fixed)
 
-	roots, err := browseRoots(fixed)
+	b, err := browseRoots(fixed)
 	if err != nil {
 		return folderListing{}, err
 	}
@@ -156,13 +158,13 @@ func listFolders(raw string) (folderListing, error) {
 		return folderListing{}, folderRefusal{http.StatusNotFound,
 			"there is no folder at or above " + fixed + " that this instance can read"}
 	}
-	real, ok := resolveWithin(listed, roots)
+	real, ok := b.resolve(listed)
 	if !ok {
 		return folderListing{}, folderRefusal{http.StatusForbidden,
-			"this instance may not list " + listed + "; it is outside " + strings.Join(roots, ", ")}
+			"this instance may not list " + listed + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
 
-	entries, truncated, err := readFolders(real, listed, roots)
+	entries, truncated, err := readFolders(real, listed, b)
 	if err != nil {
 		return folderListing{}, err
 	}
@@ -172,13 +174,13 @@ func listFolders(raw string) (folderListing, error) {
 		Tail:      tail,
 		Exists:    listed == fixed,
 		Listed:    listed,
-		Roots:     roots,
+		Roots:     b.roots,
 		Entries:   entries,
 		Truncated: truncated,
 	}
 	// A parent outside the boundary is not offered at all.
 	if parent := filepath.Dir(listed); parent != listed {
-		if _, ok := resolveWithin(parent, roots); ok {
+		if _, ok := b.resolve(parent); ok {
 			out.Parent = parent
 		}
 	}
@@ -214,11 +216,21 @@ func splitTemplate(dir string) (fixed, tail string) {
 	return dir, ""
 }
 
+// boundary is the part of the filesystem one request may see.
+type boundary struct {
+	// roots are the tops the interface offers a way back to.
+	roots []string
+	// open is set when KL_BROWSE_ROOTS is unset. roots then only names the
+	// volume the request started on, and a folder on another volume that a
+	// link or junction leads to is still inside.
+	open bool
+}
+
 // browseRoots is the boundary for one request.
-func browseRoots(p string) ([]string, error) {
+func browseRoots(p string) (boundary, error) {
 	set := strings.TrimSpace(os.Getenv(envBrowseRoots))
 	if set == "" {
-		return []string{volumeRoot(p)}, nil
+		return boundary{roots: []string{volumeRoot(p)}, open: true}, nil
 	}
 	var out []string
 	for _, part := range filepath.SplitList(set) {
@@ -226,10 +238,10 @@ func browseRoots(p string) ([]string, error) {
 		if part == "" || !filepath.IsAbs(part) {
 			continue
 		}
-		// Resolved, so a symlinked root still contains its resolved children.
-		// A root that does not exist yet is kept as written, which gives an
-		// empty chooser rather than a wider one.
-		if real, err := filepath.EvalSymlinks(part); err == nil {
+		// Resolved, so a linked root still contains its resolved children. A
+		// root that does not exist yet is kept as written, which gives an empty
+		// chooser rather than a wider one.
+		if real, err := realpath.Resolve(part); err == nil {
 			out = append(out, filepath.Clean(real))
 			continue
 		}
@@ -238,10 +250,28 @@ func browseRoots(p string) ([]string, error) {
 	if len(out) == 0 {
 		// A typo in the variable must not widen the chooser back to
 		// everything.
-		return nil, folderRefusal{http.StatusInternalServerError,
+		return boundary{}, folderRefusal{http.StatusInternalServerError,
 			envBrowseRoots + " is set but names no absolute folder, so nothing may be listed"}
 	}
-	return out, nil
+	return boundary{roots: out}, nil
+}
+
+// resolve resolves p and reports whether what it really points at is inside
+// the boundary. Everything that reads or creates a directory goes through here.
+func (b boundary) resolve(p string) (string, bool) {
+	real, err := realpath.Resolve(p)
+	if err != nil {
+		return "", false
+	}
+	if b.open {
+		return real, true
+	}
+	for _, root := range b.roots {
+		if within(root, real) {
+			return real, true
+		}
+	}
+	return "", false
 }
 
 // volumeRoot is the top of the filesystem p lives on: "/", or the drive on
@@ -278,21 +308,6 @@ func deepestExisting(p string) string {
 	}
 }
 
-// resolveWithin resolves p and reports whether what it really points at is
-// inside the boundary. Everything that reads a directory goes through here.
-func resolveWithin(p string, roots []string) (string, bool) {
-	real, err := filepath.EvalSymlinks(p)
-	if err != nil {
-		return "", false
-	}
-	for _, root := range roots {
-		if within(root, real) {
-			return real, true
-		}
-	}
-	return "", false
-}
-
 // within reports whether p is root or sits below it. filepath.Rel knows the
 // platform's rules, such as case-insensitive comparison on Windows.
 func within(root, p string) bool {
@@ -307,7 +322,7 @@ func within(root, p string) bool {
 // readFolders lists the sub-directories of an already-resolved directory.
 // real is what is read and display the path the caller asked for; entries are
 // named after display, so a symlink does not rewrite the user's setting.
-func readFolders(real, display string, roots []string) ([]folderEntry, bool, error) {
+func readFolders(real, display string, b boundary) ([]folderEntry, bool, error) {
 	items, err := os.ReadDir(real)
 	if err != nil {
 		return nil, false, err
@@ -317,15 +332,15 @@ func readFolders(real, display string, roots []string) ([]folderEntry, bool, err
 		name := it.Name()
 		switch {
 		case it.IsDir():
-		case it.Type()&fs.ModeSymlink != 0:
-			// ReadDir reports a link as a link, so a symlinked folder is
-			// offered only once it resolves to a directory inside the
-			// boundary.
+		case it.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0:
+			// ReadDir reports a link as a link, and a Windows junction as
+			// irregular, so either is offered only once it resolves to a
+			// directory inside the boundary.
 			target := filepath.Join(real, name)
 			if fi, err := os.Stat(target); err != nil || !fi.IsDir() {
 				continue
 			}
-			if _, ok := resolveWithin(target, roots); !ok {
+			if _, ok := b.resolve(target); !ok {
 				continue
 			}
 		default:
@@ -359,17 +374,17 @@ func createFolder(parent, name string) (string, error) {
 	if err := checkFolderName(name); err != nil {
 		return "", err
 	}
-	roots, err := browseRoots(parent)
+	b, err := browseRoots(parent)
 	if err != nil {
 		return "", err
 	}
 	if fi, err := os.Stat(parent); err != nil || !fi.IsDir() {
 		return "", createRefusal{http.StatusNotFound, "missing", "there is no folder at " + parent + " that this instance can see"}
 	}
-	real, ok := resolveWithin(parent, roots)
+	real, ok := b.resolve(parent)
 	if !ok {
 		return "", createRefusal{http.StatusForbidden, "outside",
-			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(roots, ", ")}
+			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
 	err = os.Mkdir(filepath.Join(real, name), 0o755)
 	switch {

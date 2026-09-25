@@ -297,6 +297,9 @@ type App struct {
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	// stamps hands out the CreatedAt of every link that enters the list. It
+	// has its own lock.
+	stamps stagedAt
 	// unpack is the extraction worker: the jobs, their order and the goroutine
 	// that runs them. It is built on first use (see unpackLocked).
 	unpack *unpackState
@@ -401,9 +404,10 @@ func New(dataDir string) (*App, error) {
 		Idle:     a.queueIdleForAction,
 		Fire:     a.fireIdleAction,
 		OnChange: func() { a.Hub.Broadcast("idleAction", a.IdleActionState()) },
-		// Zero outside tests, which keeps idleaction's default (see
+		// Zero and nil outside tests, which keeps idleaction's defaults (see
 		// idleActionPoll).
-		Poll: idleActionPoll,
+		Poll:  idleActionPoll,
+		Clock: idleActionClock,
 	})
 	if err != nil {
 		st.Close()

@@ -40,7 +40,7 @@ import {
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
 import {
   IconCheck,
   IconClipboard,
@@ -102,11 +102,8 @@ type PendingKey = keyof typeof PENDING;
 
 function useCx() {
   const { t } = useT();
-  return (key: PendingKey, vars?: Record<string, string | number>) => {
-    let s = (t(key as unknown as TranslationKey) as string | undefined) ?? PENDING[key];
-    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-    return s;
-  };
+  return (key: PendingKey, vars?: Record<string, string | number>) =>
+    interpolate((t(key as unknown as TranslationKey) as string | undefined) ?? PENDING[key], vars);
 }
 
 export function Access() {
@@ -424,65 +421,60 @@ function RemoteAccessCard({
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
-      {/* A numbered how-to before any button, still shown after setup for the
-          next instance. */}
-      <div className="flex flex-col gap-2">
-        {/* The how-it-works bubble and the connection state share the lead's
-            line and wrap under it when the words run long, which a length
-            given in advance cannot promise in every language. */}
-        <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
-          <p className="min-w-0 flex-1 basis-64 text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <LabelBadge
-              label={t('settings.access.phrase.howButton')}
-              tip={paragraphs(t('settings.access.phrase.howWhat'))}
-              hue={2}
-            />
-            {/* Four sentences, since "disconnected" can mean no relay configured
-                or a configured relay out of reach. */}
-            <LabelBadge
-              label={
-                conn.connected
-                  ? t('settings.access.phrase.statusConnected')
-                  : t('settings.access.phrase.statusDisconnected')
-              }
-              tip={
-                conn.connected
-                  ? conn.relayMode === 'own'
-                    ? t('settings.access.phrase.statusHintOwn')
-                    : t('settings.access.phrase.statusHintProject')
-                  : conn.relayMode === 'off'
-                    ? t('settings.access.phrase.statusHintOff')
-                    : t('settings.access.phrase.statusHintLost')
-              }
-              tone={conn.connected ? 'ok' : 'fail'}
-            />
-            {/* Which relay carries the words, as a reading; the switches live in the
-                relay cards below. The address is in the tip. */}
-            <LabelBadge
-              label={
-                conn.relayMode === 'off'
-                  ? t('settings.access.relay.none')
-                  : conn.relayMode === 'own'
-                    ? t('settings.access.relay.own')
-                    : t('settings.access.relay.project')
-              }
-              tip={
-                conn.relayMode === 'off'
-                  ? t('settings.access.relay.noneHint')
-                  : t('settings.access.relay.whichHint', { address: conn.relayUrl })
-              }
-              tone={conn.relayMode === 'own' ? 'ok' : undefined}
-            />
-          </div>
-        </div>
-        <ol className="list-decimal space-y-1.5 ps-4 text-sm text-carbon-textSub">
-          {/* Button names are interpolated from the buttons' own keys, so the
-              steps cannot drift from the labels. */}
-          <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
-          <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
-          <li>{t('settings.access.phrase.howStep3')}</li>
-        </ol>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* What to do first, then how it works. Button names are interpolated
+            from the buttons' own keys, so the steps cannot drift from the
+            labels. */}
+        <LabelBadge
+          label={t('settings.access.phrase.howButton')}
+          tip={
+            <span className="flex flex-col gap-2">
+              <ol className="list-decimal space-y-1 ps-4">
+                <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
+                <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
+                <li>{t('settings.access.phrase.howStep3')}</li>
+              </ol>
+              {paragraphs(t('settings.access.phrase.howWhat'))}
+            </span>
+          }
+          hue={2}
+        />
+        {/* Four sentences, since "disconnected" can mean no relay configured
+            or a configured relay out of reach. */}
+        <LabelBadge
+          label={
+            conn.connected
+              ? t('settings.access.phrase.statusConnected')
+              : t('settings.access.phrase.statusDisconnected')
+          }
+          tip={
+            conn.connected
+              ? conn.relayMode === 'own'
+                ? t('settings.access.phrase.statusHintOwn')
+                : t('settings.access.phrase.statusHintProject')
+              : conn.relayMode === 'off'
+                ? t('settings.access.phrase.statusHintOff')
+                : t('settings.access.phrase.statusHintLost')
+          }
+          tone={conn.connected ? 'ok' : 'fail'}
+        />
+        {/* Which relay carries the words, as a reading; the switches live in the
+            relay cards below. The address is in the tip. */}
+        <LabelBadge
+          label={
+            conn.relayMode === 'off'
+              ? t('settings.access.relay.none')
+              : conn.relayMode === 'own'
+                ? t('settings.access.relay.own')
+                : t('settings.access.relay.project')
+          }
+          tip={
+            conn.relayMode === 'off'
+              ? t('settings.access.relay.noneHint')
+              : t('settings.access.relay.whichHint', { address: conn.relayUrl })
+          }
+          tone={conn.relayMode === 'own' ? 'ok' : undefined}
+        />
       </div>
 
       {/* Not set up: start a group or join one. */}
@@ -541,9 +533,8 @@ function RemoteAccessCard({
                   code the row is just the words. */}
               <div className="flex flex-col items-start gap-3 sm:flex-row">
                 {phraseQr && (
-                  <div className="flex shrink-0 flex-col items-start gap-1.5">
+                  <div className="shrink-0">
                     <QRCode matrix={phraseQr} label={phrase} size={144} />
-                    <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
                   </div>
                 )}
                 <div className="flex min-w-0 flex-1 items-start gap-1.5">
@@ -556,7 +547,14 @@ function RemoteAccessCard({
                   >
                     {phrase}
                   </code>
-                  <InfoBubble tip={t('settings.access.phrase.pasteHint')} />
+                  <InfoBubble
+                    tip={paragraphs(
+                      phraseQr
+                        ? `${t('settings.access.phrase.pasteHint')}\n\n${t('settings.access.phrase.qrHint')}`
+                        : t('settings.access.phrase.pasteHint'),
+                    )}
+                    label={t('settings.access.phrase.pasteHint')}
+                  />
                 </div>
               </div>
               {/* Hide puts the key to the group away again; Copy sits beside it. */}
@@ -744,14 +742,12 @@ function ProjectRelayCard({
         <ToggleRow
           hue={2}
           label={t('settings.access.relay.use')}
+          hint={t('settings.access.relay.leadProject')}
           checked={active}
           disabled={busy}
           onChange={(on) => void onPick(on).then((ok) => !ok && setShake((n) => n + 1))}
         />
       </div>
-
-      {/* The extra space ties the sentence to the block below it. */}
-      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
 
       {/* mt-auto keeps the footer row at the bottom when the own relay card
           beside this one is taller. */}
@@ -806,14 +802,12 @@ function OwnRelayCard({
         <ToggleRow
           hue={3}
           label={t('settings.access.ownRelay.use')}
+          hint={t('settings.access.ownRelay.lead')}
           checked={active}
           disabled={busy}
           onChange={(on) => void onPick(on).then((ok) => !ok && setUseShake((n) => n + 1))}
         />
       </div>
-
-      {/* The extra space ties the sentence to the block below it. */}
-      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
 
       {/* The configuration appears only once this relay is chosen. */}
       {active && (
@@ -837,8 +831,9 @@ function OwnRelayCard({
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-carbon-textSub">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
               {t('settings.access.ownRelay.addressLabel')}
+              <InfoBubble tip={t('settings.access.ownRelay.everyInstance')} />
             </span>
             <div className="flex flex-col gap-2 sm:flex-row">
               <TextInput
@@ -859,7 +854,6 @@ function OwnRelayCard({
                 {t('settings.access.ownRelay.save')}
               </Button>
             </div>
-            <p className="text-[11px] leading-relaxed text-statusWarn">{t('settings.access.ownRelay.everyInstance')}</p>
           </div>
 
           {/* A command to copy rather than an install button, since the machine
@@ -921,7 +915,7 @@ function paragraphs(text: string): ReactNode {
   );
 }
 
-function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
+function TokensSection({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
   const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -947,7 +941,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
       await load();
     } catch (e) {
       // The window stays open with the typed name; the reason goes to the toast.
-      toast(cx('settings.access.tokens.createFailed').replace('{error}', String(e).replace(/^Error:\s*/, '')), 'fail');
+      toast(cx('settings.access.tokens.createFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setCreateShake((n) => n + 1);
     } finally {
       setCreating(false);
@@ -1066,6 +1060,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
       {created && (
         <Modal
           title={cx('settings.access.tokens.secretTitle')}
+          hint={cx('settings.access.tokens.howToUse')}
           onClose={closeCreate}
           footer={
             <>
@@ -1105,9 +1100,6 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                 }}
               />
             </div>
-            <p className="text-[11px] text-carbon-textMuted" dir="ltr">
-              {cx('settings.access.tokens.howToUse')}
-            </p>
           </div>
         </Modal>
       )}

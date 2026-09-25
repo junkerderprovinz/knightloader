@@ -76,7 +76,6 @@ export const th: Dict = {
   'settings.accent': 'สีเน้น',
   'settings.rainbow': 'สายรุ้ง',
   'settings.disco': 'ดิสโก้',
-  'settings.discoHint': 'ขณะที่เปิดโหมดสายรุ้ง องค์ประกอบที่มีสีทุกชิ้นจะเปลี่ยนไปเป็นสีถัดไปในจานสีทุก ๆ หนึ่งวินาที',
   'settings.problems': 'มีปัญหาไหม',
   'settings.problemsHint': 'ส่งข้อมูลนี้ไปด้วยเมื่อแจ้งปัญหา ช่วยลดการถามตอบไปหนึ่งรอบ และไม่มีทั้งที่อยู่และโทเคนอยู่ในนั้น',
   'settings.problemsCopy': 'คัดลอกรายงาน',

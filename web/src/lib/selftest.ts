@@ -1,4 +1,5 @@
 import type { SelfTestRequestView, SelfTestResult, SelfTestStatus } from './api';
+import { ltr } from './bidi';
 
 // The part of the self-test only a browser can answer. The reverse-proxy
 // checks compare what the browser sent with what the server received; a probe
@@ -83,10 +84,10 @@ export function skewStatus(ms: number): SelfTestStatus {
 /** fmtSkew prints a clock difference in the untranslated units fmtEta uses. */
 export function fmtSkew(ms: number): string {
   const secs = Math.round(Math.abs(ms) / 1000);
-  if (secs < 60) return `${secs}s`;
-  if (secs < 3600) return `${Math.round(secs / 60)}m`;
+  if (secs < 60) return ltr(`${secs}s`);
+  if (secs < 3600) return ltr(`${Math.round(secs / 60)}m`);
   const h = Math.floor(secs / 3600);
-  return `${h}h ${Math.round((secs % 3600) / 60)}m`;
+  return ltr(`${h}h ${Math.round((secs % 3600) / 60)}m`);
 }
 
 /** The four proxy check ids, in the order the card draws them. */

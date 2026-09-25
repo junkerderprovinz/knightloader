@@ -29,7 +29,9 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
 import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
+import { useFeatures } from './context';
 import { NeutralSwitch } from './controls';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * ScheduleCards edits the timetable: windows that pause, resume or cap the
@@ -439,6 +441,21 @@ export function ScheduleCards({ hue }: { hue: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, saving]);
 
+  // The module switch parks the timetable on the server or brings it back,
+  // outside this card's own save, so the card reads it again. An edit not
+  // saved yet stays, and the switch waits for it.
+  const { features } = useFeatures();
+  const scheduler = features.modules.find((m) => m.id === 'scheduler');
+  const parked = !!scheduler && !scheduler.enabled && scheduler.parked;
+  const moduleState = scheduler ? `${scheduler.enabled}/${scheduler.parked}` : '';
+  const seenState = useRef(moduleState);
+  useEffect(() => {
+    if (seenState.current === moduleState) return;
+    seenState.current = moduleState;
+    if (!dirty && !saving) reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moduleState]);
+
   if (loading) return <LoadingState label={t('common.loading')} />;
   if (failed || rows === null) {
     return <ErrorState message={t('common.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
@@ -466,19 +483,28 @@ export function ScheduleCards({ hue }: { hue: number }) {
         <SectionTitle
           hint={t('settings.schedule.orderHint')}
           right={
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-              {t('settings.schedule.add')}
-            </Button>
+            // A window added while the module is off would take the place of
+            // the parked ones, so Add waits for the switch.
+            !parked && (
+              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+                {t('settings.schedule.add')}
+              </Button>
+            )
           }
         >
-          {t('settings.schedule.listTitle')}
+          {t('settings.module.scheduler')}
         </SectionTitle>
+        <ModuleToggle id="scheduler" blocked={dirty || saving} />
 
+        {/* "No schedules yet" would not be true while they wait for the
+            switch, so the switch stands alone. */}
         {rows.length === 0 ? (
-          <p className="py-6 text-center text-sm text-carbon-textSub">
-            {t('settings.schedule.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
-          </p>
+          !parked && (
+            <p className="py-6 text-center text-sm text-carbon-textSub">
+              {t('settings.schedule.empty')}
+              <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
+            </p>
+          )
         ) : (
           <ul className="flex flex-col">
             {rows.map((row, i) => (

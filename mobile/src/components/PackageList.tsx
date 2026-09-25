@@ -8,7 +8,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import { fmtBytes } from '../api/stats';
+import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 
 /**
@@ -222,7 +222,7 @@ export default function PackageList({
                 {[
                   `${pkg.tasks.length} ${t('instance.files')}`,
                   pkg.size > 0 ? fmtBytes(pkg.size) : null,
-                  pkg.speed > 0 ? `${fmtBytes(pkg.speed)}/s` : null,
+                  pkg.speed > 0 ? fmtSpeed(pkg.speed) : null,
                 ]
                   .filter(Boolean)
                   .join(' · ')}

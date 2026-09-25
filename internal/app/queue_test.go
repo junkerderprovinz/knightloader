@@ -126,7 +126,7 @@ func TestResumingClearsTheStopMark(t *testing.T) {
 
 func newQueueApp(t *testing.T) *App {
 	t.Helper()
-	a, err := New(t.TempDir())
+	a, err := newApp(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

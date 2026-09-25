@@ -76,7 +76,6 @@ export const zh: Dict = {
   'settings.accent': '强调色',
   'settings.rainbow': '彩虹',
   'settings.disco': '迪斯科',
-  'settings.discoHint': '彩虹模式开启时，每个带颜色的元素每秒换成调色板中的下一种颜色。',
   'settings.problems': '遇到问题？',
   'settings.problemsHint': '报告问题时把这段一起发来。这样可以省去一轮追问，而且其中不含地址或令牌。',
   'settings.problemsCopy': '复制报告',

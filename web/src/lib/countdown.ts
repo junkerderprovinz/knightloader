@@ -2,6 +2,7 @@
 // rounds the same way.
 
 import { useEffect, useState } from 'react';
+import { ltr } from './bidi';
 
 // omitempty does not drop a zero time.Time, so an unset deadline arrives as
 // year one. Comparing the year survives a change in the server's precision.
@@ -37,8 +38,7 @@ export function fmtCountdown(totalSeconds: number): string {
   const s = Math.max(0, totalSeconds);
   const m = Math.floor(s / 60);
   const rem = s % 60;
-  if (m === 0) return `${rem}s`;
-  return `${m}:${String(rem).padStart(2, '0')}`;
+  return ltr(m === 0 ? `${rem}s` : `${m}:${String(rem).padStart(2, '0')}`);
 }
 
 /**

@@ -76,7 +76,6 @@ export const pl: Dict = {
   'settings.accent': 'Akcent',
   'settings.rainbow': 'Tęcza',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Dopóki tryb tęczowy jest włączony, każdy kolorowy element raz na sekundę przechodzi do następnego koloru palety.',
   'settings.problems': 'Problemy?',
   'settings.problemsHint': 'Dołącz to, gdy coś zgłaszasz. Oszczędza to jedną rundę pytań i nie ma w tym ani adresu, ani tokenu.',
   'settings.problemsCopy': 'Kopiuj raport',

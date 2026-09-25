@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { LOGO_SCOPE_ID, logoInline } from '../lib/logoInline';
-import { hueVars, rainbowAt } from '../lib/appearance';
-import { useRainbow } from '../lib/useRainbow';
+import { hueVars } from '../lib/appearance';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
-import { asNavLabelMode, setNavLabels, useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabels, useNavLabels, type NavLabelMode } from '../lib/navLabels';
 import { useTooltip } from './ui';
 import { usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
@@ -156,7 +155,7 @@ function Item({
       <NavLink
         to={to}
         end={end}
-        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        style={hueVars(hue) as CSSProperties}
         // Glyph mode has no visible text to name the link.
         aria-label={mode === 'glyph' ? label : undefined}
         {...(mode === 'glyph' ? tipHoverProps : {})}
@@ -188,8 +187,6 @@ function Item({
 export function Sidebar() {
   const { t } = useT();
   const tasks = useTasks('');
-  // Subscribed so palette edits show in the rail at once.
-  useRainbow();
 
   const [locked, setLocked] = useState(false);
 
@@ -205,6 +202,7 @@ export function Sidebar() {
   const hideAccounts = useHidden('accounts');
   const hideInstances = useHidden('instances');
   const mode = useNavLabels();
+  const barMode = useBarLabels();
   const egg = useDrawAndStrike();
   useEffect(() => {
     fetchSettings()
@@ -212,6 +210,7 @@ export function Sidebar() {
         setHidden('accounts', s.hideAccountsFromSidebar);
         setHidden('instances', s.hideInstancesFromSidebar);
         setNavLabels(asNavLabelMode(s.navLabels));
+        setBarLabels(asBarLabelMode(s.bottomBarLabels));
       })
       .catch(() => {});
   }, []);
@@ -248,7 +247,7 @@ export function Sidebar() {
   if (phone) {
     return (
       <PhoneBar
-        mode={mode}
+        mode={barMode}
         locked={locked}
         showInstances={!hideInstances}
         showAccounts={!hideAccounts}
@@ -312,7 +311,7 @@ export function Sidebar() {
               // Not an Item, since it navigates nowhere, but styled as a rail
               // row. text-start because a <button> centres its text.
               className={`${navHued} ${navBase} ${navInactive} group w-full text-start ${mode === 'glyph' || mode === 'hover' ? 'justify-center' : 'gap-3'}`}
-              style={hueVars(rainbowAt(nextHue())) as CSSProperties}
+              style={hueVars(nextHue()) as CSSProperties}
             >
               {mode !== 'text' && <IconSignOut />}
               <NavLabel label={t('auth.signOut')} mode={mode} />
@@ -416,7 +415,7 @@ function BarItem({
       <NavLink
         to={to}
         end={end}
-        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        style={hueVars(hue) as CSSProperties}
         aria-label={named ? label : undefined}
         {...(named ? tipHoverProps : {})}
         className={({ isActive }) => `${navHued} ${barSegment} ${isActive ? navActive : barIdle}`}
@@ -442,7 +441,7 @@ function BarSignOut({ hue, mode }: { hue: number; mode: NavLabelMode }) {
         {...(named ? tipHoverProps : {})}
         onClick={() => void signOut()}
         className={`${navHued} ${barSegment} ${barIdle}`}
-        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        style={hueVars(hue) as CSSProperties}
       >
         <BarBody icon={<IconSignOut />} label={label} mode={mode} />
       </button>

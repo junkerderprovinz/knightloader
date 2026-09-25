@@ -4,8 +4,8 @@
 // stay at body size, below the paste box that heads the page.
 import { useCallback, useMemo, useState } from 'react';
 import type { Task } from '../lib/api';
-import { useT, type TranslationKey } from '../lib/i18n';
-import { fmtBytes } from '../lib/format';
+import { interpolate, useT, type TranslationKey } from '../lib/i18n';
+import { fmtTotal } from '../lib/format';
 import { hostOf } from './columns';
 import { Tabs } from './Tabs';
 import { Card, SectionTitle } from './ui';
@@ -26,9 +26,7 @@ function useCx() {
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );
@@ -115,7 +113,7 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
         <div className="flex flex-col gap-2">
           <Item label={cx('collector.stats.packages')} value={f.packages} />
           <Item label={cx('collector.stats.links')} value={f.links} />
-          <Item label={cx('collector.stats.totalSize')} value={f.bytes > 0 ? fmtBytes(f.bytes) : '0 B'} />
+          <Item label={cx('collector.stats.totalSize')} value={fmtTotal(f.bytes)} />
           <Item label={cx('collector.stats.hosts')} value={f.hosts} />
           <Item label={t('filter.online')} value={f.online} />
           <Item label={t('filter.offline')} value={f.offline} tone={f.offline > 0 ? 'text-statusFail' : 'text-carbon-textMuted'} />

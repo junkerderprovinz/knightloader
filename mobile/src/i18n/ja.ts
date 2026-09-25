@@ -76,7 +76,6 @@ export const ja: Dict = {
   'settings.accent': 'アクセントカラー',
   'settings.rainbow': 'レインボー',
   'settings.disco': 'ディスコ',
-  'settings.discoHint': 'レインボーがオンの間、色の付いた要素はすべて1秒ごとにパレットの次の色へ移ります。',
   'settings.problems': '問題がありますか?',
   'settings.problemsHint': '何か報告するときはこれを添えてください。やり取りが1往復減り、アドレスもトークンも含まれていません。',
   'settings.problemsCopy': 'レポートをコピー',

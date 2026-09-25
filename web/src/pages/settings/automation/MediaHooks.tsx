@@ -13,6 +13,7 @@ import {
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
+import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   deleteMediaHook,
@@ -175,11 +176,11 @@ export function MediaHooksCard({ hue }: { hue: number }) {
   // The last call is kept in memory, so null means none since the restart.
   const lastLine = (last: MediaHookResult | null): string => {
     if (!last) return t('settings.mediahook.lastCallNever');
-    const ms = last.durationMs;
-    if (last.ok) return t('settings.mediahook.lastCallOk', { status: last.status ?? 0, ms });
+    const duration = fmtUnit(last.durationMs, 'ms');
+    if (last.ok) return t('settings.mediahook.answeredAfter', { status: last.status ?? 0, duration });
     const key = PROBLEM_KEYS[last.code ?? ''] ?? PROBLEM_KEYS.unknown;
     const params = { ...(last.params ?? {}), error: last.error ?? '' };
-    return `${t('settings.mediahook.lastCallFailed', { ms })} ${t(key, params)}`;
+    return `${t('settings.mediahook.failedAfter', { duration })} ${t(key, params)}`;
   };
 
   // The parsed host on its own shows a missing port or a misplaced path.

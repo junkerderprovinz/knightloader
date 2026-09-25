@@ -49,26 +49,20 @@ func getFolders(t *testing.T, srv *httptest.Server, path string) folderListing {
 	return got
 }
 
-// TestTheSplitMatchesTheFolderThatGetsCreated checks splitTemplate against the
-// directory settings.Validate actually creates for the same template, so it
-// fails when the two splits come apart.
+// TestTheSplitMatchesTheFolderThatGetsCreated checks splitTemplate against
+// settings.FixedPrefix, the folder a save checks and a download creates for the
+// same template, so it fails when the two splits come apart.
 func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 	base := t.TempDir()
 	tpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:hoster>")
-	if err := settings.Validate("the download folder", tpl); err != nil {
-		t.Fatal(err)
-	}
 
 	fixed, tail := splitTemplate(tpl)
 	want := filepath.Join(base, "downloads")
 	if fixed != want {
 		t.Errorf("splitTemplate kept %q as the real path, want %q", fixed, want)
 	}
-	if fi, err := os.Stat(fixed); err != nil || !fi.IsDir() {
-		t.Errorf("the folder %q the chooser would browse is not the one that was created", fixed)
-	}
-	if _, err := os.Stat(filepath.Join(want, "<jd:date>")); err == nil {
-		t.Error("a folder literally named <jd:date> exists, so the two splits no longer agree")
+	if created := settings.FixedPrefix(tpl); fixed != created {
+		t.Errorf("the chooser would browse %q, but %q is the folder that gets created", fixed, created)
 	}
 	// The interface re-assembles the value by concatenation.
 	if fixed+tail != tpl {
@@ -308,10 +302,11 @@ func TestEntriesAreNeverNull(t *testing.T) {
 // TestTheDefaultBoundaryIsTheWholeFilesystem pins the default boundary, so
 // narrowing it takes an edit here.
 func TestTheDefaultBoundaryIsTheWholeFilesystem(t *testing.T) {
-	roots, err := browseRoots(t.TempDir())
+	b, err := browseRoots(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
+	roots := b.roots
 	want := string(filepath.Separator)
 	if runtime.GOOS == "windows" {
 		want = filepath.VolumeName(t.TempDir()) + want

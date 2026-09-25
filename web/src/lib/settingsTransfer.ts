@@ -270,6 +270,7 @@ const GROUPS: Record<string, TransferGroup> = {
   rainbowSeed: 'look',
   rainbowPalette: 'look',
   navLabels: 'look',
+  bottomBarLabels: 'look',
   hideAccountsFromSidebar: 'look',
   hideInstancesFromSidebar: 'look',
   autoUpdateCheck: 'look',

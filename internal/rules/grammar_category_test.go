@@ -142,3 +142,29 @@ func rendersKind(text, kind string) bool {
 	}
 	return false
 }
+
+// The engine moves unpacked files to Action.ExtractDir, so the editor has to be
+// able to write it: an action the grammar leaves out exists only for imported
+// rule sets.
+func TestTheGrammarOffersTheFolderUnpackedFilesMoveTo(t *testing.T) {
+	var got ActionGrammar
+	for _, a := range Describe().Actions {
+		if a.ID == "extractDir" {
+			got = a
+		}
+	}
+	if got.Kind != "template" || got.Flavour != "packagizer" {
+		t.Fatalf("the extractDir action is %+v, want a packagizer template", got)
+	}
+	body, err := json.Marshal(map[string]string{got.ID: "/serien/<jd:packagename>"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var a Action
+	if err := json.Unmarshal(body, &a); err != nil {
+		t.Fatal(err)
+	}
+	if a.ExtractDir != "/serien/<jd:packagename>" {
+		t.Errorf("a folder posted under %q lands as %+v, not on Action.ExtractDir", got.ID, a)
+	}
+}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useT, type TranslationKey } from '../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../lib/i18n';
 // A Categories-page drawer, aliased because this file's own Category is the
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
@@ -32,6 +32,8 @@ export interface Condition {
 export interface RuleAction {
   packageName?: string;
   downloadDir?: string;
+  /** Where the unpacked files move once unpacking has finished, for these links only. */
+  extractDir?: string;
   filename?: string;
   comment?: string;
   priority?: number;
@@ -130,6 +132,7 @@ export interface LinkReport {
   effect: {
     package?: string;
     dir?: string;
+    extractDir?: string;
     filename?: string;
     comment?: string;
     priority?: number;
@@ -153,14 +156,11 @@ export interface Report {
 export const RULE_STRINGS = {
   // The page around the editor.
   'settings.rules.setupTitle': 'Rule set',
-  'settings.rules.flavour.packagizer': 'Packagizer',
-  'settings.rules.flavour.filter': 'Link filter',
   'settings.rules.flavourLabel': 'Which rule list',
   'settings.rules.packagizerHint':
     'Runs on every link as it is staged and rewrites what it can: package, folder, comment, priority, chunks, auto-extract. Every matching rule contributes and a later rule wins per field.',
   'settings.rules.filterHint':
     'Decides whether a link is taken into the collector at all. A rejected link is not deleted: it is held aside with the rule and the reason that stopped it, so nothing ever disappears without saying why.',
-  'settings.rules.setOn': 'This list is being applied',
   'settings.rules.setOff': 'This list is switched off',
   'settings.rules.setSwitchHint':
     'The master switch for the whole list. Off, no rule below runs - but they are all still edited and dry-run normally, because a list cannot be repaired while it is off if being off also hides what is wrong with it.',
@@ -262,6 +262,7 @@ export const RULE_STRINGS = {
   // Actions.
   'settings.rules.action.packageName': 'Package name',
   'settings.rules.action.downloadDir': 'Download folder',
+  'settings.rules.action.extractDir': 'Move the unpacked files to',
   'settings.rules.action.comment': 'Comment',
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
@@ -279,8 +280,10 @@ export const RULE_STRINGS = {
   'settings.rules.action.reason': 'Reason',
   'settings.rules.action.reasonHint':
     'Shown next to the held-aside link. Left empty one is written for you, because a rejection nobody can explain is exactly what this list exists to avoid.',
-  'settings.rules.action.folderHint':
-    'The only box allowed to spell out path levels. Everything else is cut back to a single name, because a file name containing a slash is not a name, it is a way out of the folder you picked.',
+  'settings.rules.action.downloadDirHint':
+    'Where a matching link is downloaded to. This box and "Move the unpacked files to" are the only ones that may spell out path levels. Every other box is cut back to a single name, because a file name with a slash in it is a way out of the folder you picked.',
+  'settings.rules.action.extractDirHint':
+    'Where the unpacked files of a matching link go once unpacking has finished. For these links it replaces "Move the unpacked files to" on the Archives page. Variables work here.',
 
   // File-type categories.
   'settings.rules.category.video': 'Video',
@@ -306,7 +309,7 @@ export const RULE_STRINGS = {
   'settings.rules.var.day': 'The day, as DD',
   'settings.rules.var.simpledate': 'The date in a pattern you write, in Java’s date syntax',
   'settings.rules.var.source':
-    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. NOT what JDownloader means by this tag - see the note below.',
+    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. This is not what JDownloader means by this tag; the (i) beside “Insert a variable” says how they differ.',
   'settings.rules.var.match':
     'Capture group N of this rule’s "matches" pattern on FIELD. This is JDownloader’s <jd:source:N>, under a name that says which pattern it reads. A rule with no matching pattern on that field is refused when you save it, rather than quietly producing a folder called <jd:match:url:1>.',
   'settings.rules.var.append': 'Nothing the first time this value comes up, then _2, _3 and so on',
@@ -354,9 +357,7 @@ export function useRx() {
     (key: RuleKey, vars?: Record<string, string | number>) => {
       // Only RULE_STRINGS keys get through this cast.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? RULE_STRINGS[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? RULE_STRINGS[key], vars);
     },
     [t],
   );
@@ -480,7 +481,16 @@ function VariablesMenu({
     >
       <div className="flex items-center px-2 py-1.5 text-[11px] font-semibold text-carbon-textSub">
         {rx('settings.rules.variablesTitle')}
-        <InfoBubble tip={rx('settings.rules.variablesHint')} />
+        {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
+        <InfoBubble
+          tip={
+            <span className="flex flex-col gap-1.5">
+              <span>{rx('settings.rules.variablesHint')}</span>
+              <span>{rx('settings.rules.sourceDivergence')}</span>
+            </span>
+          }
+          label={rx('settings.rules.variablesHint')}
+        />
       </div>
       {variables.map((v) => (
         <button
@@ -495,14 +505,10 @@ function VariablesMenu({
           </span>
           <span className="text-[11px] leading-snug text-carbon-textMuted">
             {variableLabel(rx, v.id)}
-            {v.params?.length ? ` - ${rx('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
+            {v.params?.length ? ` · ${rx('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
           </span>
         </button>
       ))}
-      {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
-      <div className="mt-1 border-t border-carbon-border/60 px-2 pb-1 pt-2 text-[11px] leading-snug text-carbon-textSub">
-        {rx('settings.rules.sourceDivergence')}
-      </div>
     </div>,
     document.body,
   );
@@ -863,12 +869,24 @@ function ConditionRow({
               value={Number(condition.value) || 0}
               onChange={(n) => onChange({ ...condition, value: String(n) })}
             />
+          ) : op?.regex ? (
+            <div className="flex items-center">
+              <TextInput
+                aria-label={rx('settings.rules.pattern')}
+                dir="ltr"
+                className="min-w-0 flex-1"
+                value={condition.value ?? ''}
+                placeholder={rx('settings.rules.pattern')}
+                onChange={(e) => onChange({ ...condition, value: e.target.value })}
+              />
+              <InfoBubble tip={rx('settings.rules.patternHint')} />
+            </div>
           ) : (
             <TextInput
-              aria-label={op?.regex ? rx('settings.rules.pattern') : rx('settings.rules.value')}
+              aria-label={rx('settings.rules.value')}
               dir="ltr"
               value={condition.value ?? ''}
-              placeholder={op?.regex ? rx('settings.rules.pattern') : rx('settings.rules.value')}
+              placeholder={rx('settings.rules.value')}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
             />
           )}
@@ -918,14 +936,21 @@ function ConditionRow({
         </p>
       ))}
 
-      {op?.regex && !broken && (
-        <p className="text-[11px] text-carbon-textMuted">
-          {rx('settings.rules.patternHint')}
-        </p>
-      )}
     </div>
   );
 }
+
+const ACTION_HINTS: Partial<Record<keyof RuleAction, RuleKey>> = {
+  downloadDir: 'settings.rules.action.downloadDirHint',
+  extractDir: 'settings.rules.action.extractDirHint',
+  reason: 'settings.rules.action.reasonHint',
+  priority: 'settings.rules.priorityHint',
+  chunks: 'settings.rules.chunksHint',
+  category: 'settings.rules.action.categoryHint',
+};
+
+// The actions that name a folder, which get the folder chooser and a whole row.
+const FOLDER_ACTIONS: ReadonlySet<keyof RuleAction> = new Set(['downloadDir', 'extractDir']);
 
 /** ActionField renders one action in the control its grammar kind calls for. */
 function ActionField({
@@ -944,18 +969,8 @@ function ActionField({
   onChange: (fields: Partial<RuleAction>) => void;
 }) {
   const label = actionLabel(rx, action.id);
-  const hint =
-    action.id === 'downloadDir'
-      ? rx('settings.rules.action.folderHint')
-      : action.id === 'reason'
-        ? rx('settings.rules.action.reasonHint')
-        : action.id === 'priority'
-          ? rx('settings.rules.priorityHint')
-          : action.id === 'chunks'
-            ? rx('settings.rules.chunksHint')
-            : action.id === 'category'
-              ? rx('settings.rules.action.categoryHint')
-              : undefined;
+  const hintKey = ACTION_HINTS[action.id];
+  const hint = hintKey ? rx(hintKey) : undefined;
 
   const head = (
     <span className="flex items-center text-xs text-carbon-textSub">
@@ -966,12 +981,12 @@ function ActionField({
 
   if (action.kind === 'template') {
     return (
-      <div className={`flex flex-col gap-1.5 ${action.id === 'downloadDir' ? 'sm:col-span-2' : ''}`}>
+      <div className={`flex flex-col gap-1.5 ${FOLDER_ACTIONS.has(action.id) ? 'sm:col-span-2' : ''}`}>
         {head}
         <TemplateInput
           rx={rx}
           label={label}
-          folder={action.id === 'downloadDir'}
+          folder={FOLDER_ACTIONS.has(action.id)}
           variables={grammar.variables}
           value={(value[action.id] as string) ?? ''}
           onChange={(next) => onChange({ [action.id]: next } as Partial<RuleAction>)}
@@ -1117,6 +1132,7 @@ export function ruleSummary(rx: Rx, rule: Rule, flavour: Flavour): string {
     for (const [key, label] of [
       ['packageName', actionLabel(rx, 'packageName')],
       ['downloadDir', actionLabel(rx, 'downloadDir')],
+      ['extractDir', actionLabel(rx, 'extractDir')],
       ['comment', actionLabel(rx, 'comment')],
     ] as const) {
       const v = rule.action[key];

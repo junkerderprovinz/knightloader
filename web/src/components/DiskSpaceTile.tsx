@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { DiskVolume, Settings } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { fits, fmtSpace, folderName, roleLabel, spaceHint, useDiskSpace } from '../lib/useDiskSpace';
+import { fmtTotal } from '../lib/format';
+import { fits, folderName, roleLabel, spaceHint, useDiskSpace } from '../lib/useDiskSpace';
 import { ProgressBar } from './ProgressBar';
-import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
+import { Button, Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 
 // Disk space is reported per folder, not per disk: the platform calls give no
 // volume identity, so two folders on one disk show the same space twice and
@@ -126,22 +127,22 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[11px] text-carbon-textMuted">
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.free')}</span>
-              <span className="glim-num text-carbon-text">{fmtSpace(v.free)}</span>
+              <span className="glim-num text-carbon-text">{fmtTotal(v.free)}</span>
               <span>{t('strip.of')}</span>
               <span {...sizeTip.triggerProps} className="glim-num text-carbon-textSub">
-                {fmtSpace(v.total)}
+                {fmtTotal(v.total)}
               </span>
               {sizeTip.node}
             </span>
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.used')}</span>
-              <span className="glim-num text-carbon-textSub">{fmtSpace(v.used)}</span>
+              <span className="glim-num text-carbon-textSub">{fmtTotal(v.used)}</span>
             </span>
             {/* Not subtracted from free: a running download already claimed its
                 room. Shown at zero too, so the row does not reflow. */}
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.queued')}</span>
-              <span className="glim-num text-carbon-text">{fmtSpace(v.queued)}</span>
+              <span className="glim-num text-carbon-text">{fmtTotal(v.queued)}</span>
               <span>{t('disk.tasks', { n: v.tasks })}</span>
               <InfoBubble tip={t('disk.queuedHint')} />
             </span>
@@ -164,6 +165,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
  */
 export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hue?: number }) {
   const { t } = useT();
+  const navigate = useNavigate();
   const report = useDiskSpace();
   const volumes = report?.volumes ?? [];
   if (volumes.length === 0) return null;
@@ -187,12 +189,9 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
         </span>
       )}
 
-      <Link
-        to="/settings/downloads"
-        className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
-      >
+      <Button kind="secondary" className="self-start" onClick={() => navigate('/settings/downloads')}>
         {t('disk.limits')}
-      </Link>
+      </Button>
     </Card>
   );
 }

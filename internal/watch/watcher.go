@@ -7,6 +7,7 @@ package watch
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,8 +26,8 @@ const defaultInterval = 5 * time.Second
 // set is held under, so it has to stay comparable: an unchanged row is
 // recognised by its value, which costs no filesystem call at all.
 type Folder struct {
-	// Dir is the directory to watch. It is created if it is not there yet, so a
-	// fresh install has somewhere to drop files.
+	// Dir is the directory to watch. It is never created here: one that is not
+	// there yet is polled until it appears.
 	Dir string
 	// Delete removes a consumed file instead of the default, which is to rename
 	// it with a ".done" suffix so the same links are never added twice.
@@ -64,8 +65,7 @@ type Watcher struct {
 	closed  bool
 }
 
-// New builds a Watcher over the configured folders and creates any that are not
-// there yet. Nothing polls until Start.
+// New builds a Watcher over the configured folders. Nothing polls until Start.
 //
 // It fails only when not one of the folders can be watched. One share being
 // unreachable must not turn the whole intake off, so a folder that fails
@@ -191,7 +191,9 @@ func (w *Watcher) Apply(folders []Folder) []error {
 		// A folder the process cannot write is useless: consuming a file means
 		// retiring it, and a file that cannot be retired is never taken at all.
 		// Saying so now beats a folder that appears to be watched and does nothing.
-		if err := writable(dir); err != nil {
+		// A folder that is not there yet is taken up anyway; once it appears, a
+		// file that cannot be retired is reported by the poll that finds it.
+		if err := writable(dir); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			errs = append(errs, fmt.Errorf("watch: %s is not writable: %w", dir, err))
 			continue
 		}
@@ -246,21 +248,21 @@ func (w *Watcher) Close() error {
 	return nil
 }
 
-// resolveDir turns a configured folder into the path everything else keys on. It
-// creates the directory first, because a fresh install has to have somewhere to
-// drop files and because a path cannot be resolved before it exists.
+// resolveDir turns a configured folder into the path everything else keys on.
+//
+// It does not create the folder. Every settings save reaches the watcher, and
+// the settings page saves while a path is still being typed, so creating here
+// would leave a folder behind for every prefix of the one meant. A folder that
+// is not there yet is polled until it appears.
 func resolveDir(dir string) (string, error) {
 	abs, err := filepath.Abs(strings.TrimSpace(dir))
 	if err != nil {
 		return "", fmt.Errorf("watch: %s: %w", dir, err)
 	}
-	if err := os.MkdirAll(abs, 0o755); err != nil {
-		return "", fmt.Errorf("watch: %s: %w", abs, err)
-	}
 	// Resolving is what makes a symlink and its target one folder, which matters
 	// because a container is usually handed the same share under two names. A
-	// path that will not resolve is still a path we can poll, so the failure only
-	// costs the comparison, not the folder.
+	// path that will not resolve, including one that does not exist yet, is still
+	// a path we can poll, so the failure only costs the comparison.
 	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
 		return resolved, nil
 	}

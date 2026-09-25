@@ -76,7 +76,6 @@ export const sl: Dict = {
   'settings.accent': 'Poudarek',
   'settings.rainbow': 'Mavrica',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Dokler je mavrični način vklopljen, vsak obarvani element enkrat na sekundo preide na naslednjo barvo palete.',
   'settings.problems': 'Težave?',
   'settings.problemsHint': 'Pošlji to zraven, ko kaj prijaviš. Prihrani en krog vprašanj, v njem pa ni ne naslova ne žetona.',
   'settings.problemsCopy': 'Kopiraj poročilo',

@@ -663,6 +663,35 @@ func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
 	}
 }
 
+// yt-dlp names a portrait track by its smaller side, so an upright 1080x1920
+// source offers qualities up to 1080p, and a row that keyed its track by the
+// height moves to the key the track has.
+func TestAPortraitSourceOffersQualitiesUpToItsWidth(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=portrait01"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantVideo: "1920p mp4 avc1"})
+
+	a.applyProbeFormats(url, []ytdlp.FormatEntry{
+		{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Width: 1080, Height: 1920, Filesize: 50000},
+		{FormatID: "136", Ext: "mp4", Vcodec: "avc1.4d401f", Acodec: "none", Width: 720, Height: 1280, Filesize: 20000},
+		{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Abr: 129, Filesize: 3000},
+	})
+
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if want := []string{"best", "1080p", "720p", "480p", "360p", "240p", "144p", "custom"}; !slices.Equal(live.AvailableQualities, want) {
+		t.Errorf("AvailableQualities = %v, want %v", live.AvailableQualities, want)
+	}
+	if want := []string{"1080p mp4 avc1", "720p mp4 avc1"}; !slices.Equal(live.AvailableVideoTracks, want) {
+		t.Errorf("AvailableVideoTracks = %v, want %v", live.AvailableVideoTracks, want)
+	}
+	if want := "video:1080p mp4 avc1"; live.Variant != want {
+		t.Errorf("Variant = %q, want %q", live.Variant, want)
+	}
+	if live.Size != 50000+3000 {
+		t.Errorf("Size = %d, want the 1080x1920 track and its audio", live.Size)
+	}
+}
+
 // The size estimate follows the row's picked quality, not the tallest track.
 // yt-dlp's bestvideo takes video-only tracks alone, so under a 360p cap it
 // merges the 144p one with the audio rather than taking the pre-muxed 360p.

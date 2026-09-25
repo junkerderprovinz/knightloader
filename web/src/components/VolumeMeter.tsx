@@ -57,9 +57,7 @@ export function VolumeUsageRow() {
         <span className="text-[11px] text-carbon-textMuted">{t('settings.volume.used')}</span>
         <InfoBubble tip={t('volume.meterHint')} />
         <span className="flex-1" />
-        {/* Figure and unit are one token; an RTL locale must not reorder them. */}
         <span
-          dir="ltr"
           className={`glim-num text-[12px] font-semibold leading-none ${
             usage.reached ? 'text-statusFail' : 'text-carbon-text'
           }`}
@@ -119,7 +117,6 @@ export function VolumeMeter() {
     <span className="flex w-full flex-col gap-1">
       <span className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
         <span
-          dir="ltr"
           className={`glim-num min-w-0 flex-1 truncate ${usage.reached ? 'text-statusFail' : 'text-carbon-text'}`}
         >
           {t('settings.volume.usedOf', { used: fmtGB(usage.used), cap: fmtGB(usage.cap) })}

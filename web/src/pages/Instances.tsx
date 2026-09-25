@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   type DiscoveredInstance,
   type Instance,
@@ -12,8 +12,8 @@ import {
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconChevronEnd } from '../lib/icons';
-import { fetchFeatures } from './settings/features';
+import { fetchFeatures, type Feature } from './settings/features';
+import { ModulesPageBadge } from './settings/ModuleToggle';
 import { useToast } from '../lib/toast';
 import { PageHeader, Card, Button, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
@@ -32,15 +32,15 @@ export function Instances() {
   const [found, setFound] = useState<DiscoveredInstance[]>([]);
   const navigate = useNavigate();
 
-  // Switched off on the Modules page, the server lists no peers; the page says
-  // why instead of looking as if they were gone.
-  const [off, setOff] = useState(false);
+  // The module's row while it is switched off. The server then lists no peers,
+  // and the page says why instead of looking as if they were gone.
+  const [off, setOff] = useState<Feature | null>(null);
 
   const load = () => fetchInstances().then(setPeers);
   const loadFound = () => fetchDiscovered().then(setFound).catch(() => {});
   const loadOff = () =>
     fetchFeatures()
-      .then((f) => setOff(f.modules.some((m) => m.id === 'federation' && m.verdict === 'shipped' && !m.enabled)))
+      .then((f) => setOff(f.modules.find((m) => m.id === 'federation' && m.verdict === 'shipped' && !m.enabled) ?? null))
       .catch(() => {});
   useEffect(() => {
     load();
@@ -102,13 +102,7 @@ export function Instances() {
       {off && (
         <p className="flex flex-wrap items-center gap-x-2 text-sm text-carbon-textSub">
           {t('instances.moduleOff')}
-          <Link
-            to="/settings/modules"
-            className="flex items-center gap-1 underline-offset-2 hover:text-carbon-text hover:underline focus-visible:underline"
-          >
-            {t('settings.nav.modules')}
-            <IconChevronEnd className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
-          </Link>
+          <ModulesPageBadge m={off} title={t('settings.nav.modules')} />
         </p>
       )}
 

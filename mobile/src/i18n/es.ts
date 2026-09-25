@@ -76,7 +76,6 @@ export const es: Dict = {
   'settings.accent': 'Acento',
   'settings.rainbow': 'Arcoíris',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Mientras el modo arcoíris esté activado, cada elemento de color pasa al siguiente color de la paleta una vez por segundo.',
   'settings.problems': '¿Problemas?',
   'settings.problemsHint': 'Envía esto cuando informes de algo. Ahorra una ronda de preguntas y no lleva ni dirección ni token.',
   'settings.problemsCopy': 'Copiar informe',

@@ -1,6 +1,6 @@
 // Type-only imports: these types belong to the modules that own their data, so
 // they are named here rather than restated.
-import type { NavLabelMode } from './navLabels';
+import type { BarLabelMode, NavLabelMode } from './navLabels';
 import type { EventTargetRow } from './eventtargets';
 
 export type TaskStatus =
@@ -496,6 +496,8 @@ export interface Settings {
   hideInstancesFromSidebar: boolean;
   /** How much of a navigation entry is drawn, in the sidebar and the settings rail. */
   navLabels: NavLabelMode;
+  /** How much of an entry the phone layout's bottom bar draws, or 'follow' for navLabels'. */
+  bottomBarLabels: BarLabelMode;
   autoUpdateCheck: boolean;
   /** Needs autoUpdateCheck, and only the desktop build acts on it. */
   autoUpdateInstall: boolean;
@@ -841,9 +843,12 @@ export class ApiError extends Error {
   }
 }
 
-// json decodes a response and throws the server's refusal instead of feeding
-// an error body to the JSON parser.
-async function json<T>(r: Response): Promise<T> {
+/**
+ * json decodes a response and throws the server's refusal, as an ApiError with
+ * its code where it sent one, instead of feeding an error body to the JSON
+ * parser.
+ */
+export async function json<T>(r: Response): Promise<T> {
   if (!r.ok) {
     const body = (await r.text()).trim();
     // Validation failures send a JSON envelope so the message can be
@@ -1206,14 +1211,15 @@ export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DEL
  * uploadContainer sends a .txt/.dlc/.ccf/.rsdf file. A plain link list comes
  * back staged in `created`; an encrypted container is handed to the JD backend
  * and its links arrive later over the websocket, which the caller has to say
- * rather than report "0 links added". A failure throws the server's sentence.
+ * rather than report "0 links added". A failure throws the server's sentence,
+ * with a code when the container is encrypted and no JDownloader can open it.
  */
 export async function uploadContainer(file: File, pkg = ''): Promise<ContainerResult> {
   const form = new FormData();
   form.append('file', file);
   if (pkg) form.append('package', pkg);
   // No Content-Type header: the browser has to set the multipart boundary.
-  return json<ContainerResult>(await ok(await fetch('/api/containers', { method: 'POST', body: form })));
+  return json<ContainerResult>(await fetch('/api/containers', { method: 'POST', body: form }));
 }
 
 /** The preview POST /api/torrents/parse returns: the file tree and the `uri`

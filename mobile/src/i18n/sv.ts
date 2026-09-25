@@ -76,7 +76,6 @@ export const sv: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbåge',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Så länge regnbågsläget är på går varje färgat element vidare till nästa färg i paletten en gång i sekunden.',
   'settings.problems': 'Problem?',
   'settings.problemsHint': 'Skicka med det här när du rapporterar något. Det sparar en runda frågor, och varken adress eller token finns med.',
   'settings.problemsCopy': 'Kopiera rapport',

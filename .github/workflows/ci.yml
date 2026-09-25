@@ -105,10 +105,10 @@ jobs:
     needs: changes
     if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
-    # The suite takes about 12 minutes, and a slow runner cancelled good runs
-    # at 20. -timeout below names the hanging package, a job cancellation does
-    # not.
-    timeout-minutes: 40
+    # -timeout below names the hanging package, a job cancellation does not, so
+    # the job is long enough for either test pass to run into its own after
+    # everything before it.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -122,19 +122,20 @@ jobs:
         run: go vet ./...
 
       # CGO_ENABLED=0 as in the shipped binary, so a cgo-only dependency fails
-      # here rather than in the image build. The explicit -timeout replaces Go's
-      # 10m per package, which internal/app runs close to. KNIGHTLOADER_NET_TESTS
-      # enables the tests that listen beyond loopback (discovery multicast, live
-      # torrents); they are off locally because Windows asks about the firewall
-      # for every new test binary. See internal/testenv.
+      # here rather than in the image build. No package takes more than a few
+      # minutes, so ten per package only ever ends a hang.
+      # KNIGHTLOADER_NET_TESTS enables the tests that listen beyond loopback
+      # (discovery multicast, live torrents); they are off locally because
+      # Windows asks about the firewall for every new test binary. See
+      # internal/testenv.
       - name: Test
         env:
           CGO_ENABLED: "0"
           KNIGHTLOADER_NET_TESTS: "1"
-        run: go test ./... -count=1 -timeout 25m
+        run: go test ./... -count=1 -timeout 10m
 
       # The race detector needs cgo, so it gets its own pass. Its timeout has to
-      # fit in what is left of the 40 minute job after the pass above, or
+      # fit in what is left of the 30 minute job after the pass above, or
       # Actions cancels the run with no goroutine dump.
       - name: Test (race)
         env:

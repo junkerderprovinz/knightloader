@@ -76,7 +76,6 @@ export const uk: Dict = {
   'settings.accent': 'Акцент',
   'settings.rainbow': 'Веселка',
   'settings.disco': 'Диско',
-  'settings.discoHint': 'Поки увімкнено райдужний режим, кожен кольоровий елемент раз на секунду переходить до наступного кольору палітри.',
   'settings.problems': 'Проблеми?',
   'settings.problemsHint': 'Додайте це, коли про щось повідомляєте. Це заощаджує одне коло запитань, і в ньому немає ні адреси, ні токена.',
   'settings.problemsCopy': 'Копіювати звіт',

@@ -13,7 +13,8 @@ import {
 import { Dropdown } from '../../components/Dropdown';
 import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { fmtUnit } from '../../lib/format';
+import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
@@ -72,7 +73,6 @@ interface ImportResult {
 const PENDING = {
   'settings.connections.add': 'Add connection',
   'settings.connections.import': 'Import list',
-  'settings.connections.listTitle': 'Outbound connections',
   'settings.connections.empty': 'Everything goes out over this machine',
   'settings.connections.emptyHint':
     'No outbound connections are configured, so every download uses this machine’s own connection. Add a proxy to route downloads through, or a direct row to keep certain hosts off one.',
@@ -86,8 +86,6 @@ const PENDING = {
     'None and direct are not the same row. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice - go out over this machine’s own connection and deliberately bypass every proxy for the hosts named below, which is how a NAS is excluded from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
   'settings.connections.kind.none': 'None',
   'settings.connections.kind.direct': 'Direct',
-  'settings.connections.stateNone': 'Inert. Nothing is ever sent through this row.',
-  'settings.connections.stateDirect': 'Bypasses every proxy for the hosts below.',
   'settings.connections.warnDirectCatchAll':
     'This direct row has no host filter, so it takes its turn in the rotation and sends downloads out unproxied at random. Name the hosts it should claim.',
   'settings.connections.stateSocks4':
@@ -140,9 +138,7 @@ function useCx() {
     (key: PendingKey, vars?: Record<string, string | number>) => {
       // These keys are not in the union yet; only PENDING keys can be passed.
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );
@@ -159,6 +155,7 @@ let newRowCounter = 0;
 const freshID = () => `n${Date.now().toString(36)}${newRowCounter++}`;
 
 export function ConnectionsCard({ hue }: { hue: number }) {
+  const { t } = useT();
   const cx = useCx();
   const { cfg, patch } = useDraft();
   const rows = readConnections(cfg);
@@ -207,7 +204,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
             </div>
           }
         >
-          {cx('settings.connections.listTitle')}
+          {t('settings.module.connections')}
         </SectionTitle>
         <ModuleToggle id="connections" />
 
@@ -386,16 +383,20 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
         )}
       </div>
 
-      {/* A state line only for the two kinds defined by what they do not do. */}
-      {row.type === 'none' && <StateLine tone="muted">{cx('settings.connections.stateNone')}</StateLine>}
-      {row.type === 'direct' && <StateLine tone="muted">{cx('settings.connections.stateDirect')}</StateLine>}
       {row.type === 'direct' && (row.filter ?? []).length === 0 && (
-        <StateLine tone="warn">{cx('settings.connections.warnDirectCatchAll')}</StateLine>
+        <StateLine>{cx('settings.connections.warnDirectCatchAll')}</StateLine>
       )}
 
       {!inert && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={cx('settings.connections.username')} hint={cx('settings.connections.usernameHint')}>
+          <Field
+            label={cx('settings.connections.username')}
+            hint={
+              socks4
+                ? [cx('settings.connections.stateSocks4'), cx('settings.connections.usernameHint')]
+                : cx('settings.connections.usernameHint')
+            }
+          >
             <TextInput
               dir="ltr"
               autoComplete="off"
@@ -419,7 +420,6 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
           )}
         </div>
       )}
-      {socks4 && <StateLine tone="muted">{cx('settings.connections.stateSocks4')}</StateLine>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_10rem]">
         <Field label={cx('settings.connections.filter')} hint={cx('settings.connections.filterHint')}>
@@ -503,7 +503,7 @@ function TestPanel({ row }: { row: Connection }) {
       {report && (
         <p className={`text-xs ${report.ok ? 'text-statusOk' : 'text-statusFail'}`}>
           {report.detail}
-          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {report.millis} ms</span>}
+          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {fmtUnit(report.millis, 'ms')}</span>}
         </p>
       )}
     </div>
@@ -622,11 +622,9 @@ function ImportDialog({ onClose, onAdd }: { onClose: () => void; onAdd: (entries
   );
 }
 
-/** StateLine is a fact about the row in a state hue; explanations sit behind the (i). */
-function StateLine({ tone, children }: { tone: 'muted' | 'warn'; children: ReactNode }) {
-  return (
-    <p className={`text-xs ${tone === 'warn' ? 'text-statusWarn' : 'text-carbon-textMuted'}`}>{children}</p>
-  );
+/** StateLine is a warning about the row; explanations sit behind the (i). */
+function StateLine({ children }: { children: ReactNode }) {
+  return <p className="text-xs text-statusWarn">{children}</p>;
 }
 
 function kindLabel(cx: (k: PendingKey) => string, kind: Kind): string {

@@ -294,8 +294,8 @@ func (p HosterPreset) VideoPick() string {
 	if !IsVideoContainer(p.VideoFormat) {
 		return string(p.Quality)
 	}
-	if h, ok := HeightCap(p.Quality); ok {
-		return fmt.Sprintf("%s %dp", p.VideoFormat, h)
+	if r, ok := ResCap(p.Quality); ok {
+		return fmt.Sprintf("%s %dp", p.VideoFormat, r)
 	}
 	return p.VideoFormat
 }
@@ -316,7 +316,7 @@ type Quality string
 const (
 	// QualityBest passes no -f, leaving yt-dlp's own selection.
 	QualityBest Quality = "best"
-	// The ladder covers every height the supported sites publish;
+	// The ladder covers every resolution the supported sites publish;
 	// AvailableQualities trims what a source lacks.
 	Quality4320p Quality = "4320p"
 	Quality2160p Quality = "2160p"
@@ -353,34 +353,27 @@ func validQuality(q Quality) bool {
 	return false
 }
 
-// heightCaps maps a resolution preset onto the height capSelector filters by.
-var heightCaps = map[Quality]string{
-	Quality4320p: "4320", Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
-	Quality720p: "720", Quality480p: "480", Quality360p: "360", Quality240p: "240", Quality144p: "144",
+var resCaps = map[Quality]int{
+	Quality4320p: 4320, Quality2160p: 2160, Quality1440p: 1440, Quality1080p: 1080,
+	Quality720p: 720, Quality480p: 480, Quality360p: 360, Quality240p: 240, Quality144p: 144,
 }
 
-// HeightCap returns the pixel height a preset caps at, or false for presets
-// without one (QualityBest, QualityCustom).
-func HeightCap(q Quality) (int, bool) {
-	h, ok := heightCaps[q]
-	if !ok {
-		return 0, false
-	}
-	n, err := strconv.Atoi(h)
-	if err != nil {
-		return 0, false
-	}
-	return n, true
+// ResCap returns the resolution a preset caps at, in the sense of
+// FormatEntry.Res, or false for presets without one (QualityBest,
+// QualityCustom).
+func ResCap(q Quality) (int, bool) {
+	r, ok := resCaps[q]
+	return r, ok
 }
 
-// AvailableQualities drops the presets above the tallest video stream a
-// source offers. Those would still work, since "<=?" falls back to the best
-// available height, but they only duplicate the top entry. maxHeight <= 0
-// (nothing probed) returns every quality. QualityBest and QualityCustom are
-// always kept.
-func AvailableQualities(maxHeight int) []Quality {
+// AvailableQualities drops the presets above the highest resolution a source
+// offers (FormatEntry.Res). Those would still work, since the cap falls back
+// to the best track there is, but they only duplicate the top entry. maxRes
+// <= 0 (nothing probed) returns every quality. QualityBest and QualityCustom
+// are always kept.
+func AvailableQualities(maxRes int) []Quality {
 	all := Qualities()
-	if maxHeight <= 0 {
+	if maxRes <= 0 {
 		return all
 	}
 	out := make([]Quality, 0, len(all))
@@ -389,7 +382,7 @@ func AvailableQualities(maxHeight int) []Quality {
 			out = append(out, q)
 			continue
 		}
-		if capH, ok := HeightCap(q); ok && capH <= maxHeight {
+		if r, ok := ResCap(q); ok && r <= maxRes {
 			out = append(out, q)
 		}
 	}

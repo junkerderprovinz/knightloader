@@ -1,26 +1,4 @@
-import type { ComponentType, ReactNode, SVGProps } from 'react';
-import {
-  IconAccounts,
-  IconArchive,
-  IconBolt,
-  IconBrowser,
-  IconCaptcha,
-  IconClipboard,
-  IconClock,
-  IconCollector,
-  IconDiagnostics,
-  IconDownloads,
-  IconFilter,
-  IconGlobe,
-  IconHelp,
-  IconInstances,
-  IconKeyboard,
-  IconLock,
-  IconLook,
-  IconModules,
-  IconSliders,
-  IconUpload,
-} from '../../lib/icons';
+import type { ReactNode } from 'react';
 import { Access } from './Access';
 import { AccountsTab } from './Accounts';
 import { Advanced } from './Advanced';
@@ -76,52 +54,12 @@ const PAGES: Record<string, () => ReactNode> = {
   shortcuts: () => <Shortcuts />,
 };
 
-/**
- * ICONS holds the glyph beside a page's name in the rail. A page missing here
- * gets no icon rather than another page's glyph, and a glyph the app already
- * uses for the same idea elsewhere is reused.
- */
-const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
-  modules: IconModules,
-  collector: IconCollector,
-  downloads: IconDownloads,
-  archives: IconArchive,
-  rules: IconFilter,
-  network: IconGlobe,
-  accounts: IconAccounts,
-  instances: IconInstances,
-  // A template with fields, like IconClipboard elsewhere.
-  resolvers: IconClipboard,
-  // Uploading is what torrents do that no other backend here does.
-  torrents: IconUpload,
-  captcha: IconCaptcha,
-  automation: IconClock,
-  look: IconSliders,
-  appearance: IconLook,
-  access: IconLock,
-  advanced: IconSliders,
-  // A pulse, apart from the diagnostics bundle next to it.
-  health: IconBolt,
-  diagnostics: IconDiagnostics,
-  help: IconHelp,
-  shortcuts: IconKeyboard,
-  browsertools: IconBrowser,
-};
-
+export { pageIcon } from './pageIcons';
 export { pageId } from './folded';
 
 export function renderSettingsPage(id: string): ReactNode {
   const page = PAGES[id];
   return page ? page() : <EmptyPage id={id} />;
-}
-
-/**
- * pageIcon returns the page's glyph at 22px, the size of the main sidebar's
- * glyphs beside it, or undefined for a page without one.
- */
-export function pageIcon(id: string): ReactNode {
-  const Icon = ICONS[id];
-  return Icon ? <Icon width={22} height={22} /> : undefined;
 }
 
 /** hasContent tells whether a page has a component; the rail dims the others. */

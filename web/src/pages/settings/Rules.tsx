@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { SVGProps } from 'react';
-import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput, Toggle } from '../../components/ui';
+import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import {
   RuleEditor,
   Segments,
@@ -23,6 +23,8 @@ import { useT } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
+import { usePendingJump } from './jump';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Rules edits the Packagizer and the link filter, one engine used twice. The
@@ -73,6 +75,7 @@ export function Rules() {
 
 /** RuleCards draws the setup, the list and the test box, on hues 0 to 2. */
 function RuleCards() {
+  const { t } = useT();
   const rx = useRx();
   const { cfg, patch } = useDraft();
 
@@ -92,6 +95,24 @@ function RuleCards() {
   const write = (next: RuleSet) =>
     patch({ [FIELD[flavour]]: next } as unknown as Parameters<typeof patch>[0]);
   const writeRules = (next: Rule[]) => write({ ...set, rules: next });
+
+  const pick = (f: Flavour) => {
+    setFlavour(f);
+    setOpenRule(-1);
+    // The old list's report would mark the new list's rules.
+    setReport(null);
+  };
+
+  // Each list's switch is drawn only while that list is shown, so a jump to
+  // one, from its row on the Modules page or from the search, shows it first.
+  const jump = usePendingJump();
+  useEffect(() => {
+    if (jump?.page !== 'rules') return;
+    if (jump.label === 'settings.module.packagizer') pick('packagizer');
+    else if (jump.label === 'settings.module.linkfilter') pick('filter');
+    // Keyed on the nonce: an equal object is the same request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump?.nonce]);
 
   // The grammar comes from the engine, so the form offers only what it accepts.
   useEffect(() => {
@@ -240,42 +261,30 @@ function RuleCards() {
     }
   }
 
-  const on = !set.disabled;
-
   return (
     <>
       <Card hue={0} className="flex flex-col gap-4">
         <SectionTitle>{rx('settings.rules.setupTitle')}</SectionTitle>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex">
           <Segments
             label={rx('settings.rules.flavourLabel')}
             value={flavour}
-            onChange={(f) => {
-              setFlavour(f);
-              setOpenRule(-1);
-              // The old list's report would mark the new list's rules.
-              setReport(null);
-            }}
+            onChange={pick}
             options={[
-              { value: 'packagizer', label: rx('settings.rules.flavour.packagizer') },
-              { value: 'filter', label: rx('settings.rules.flavour.filter') },
+              { value: 'packagizer', label: t('settings.module.packagizer') },
+              { value: 'filter', label: t('settings.module.linkfilter') },
             ]}
           />
-          <span className="flex-1" />
-          {/* The one accent switch on the page, since it says whether the
-              engine does anything at all. */}
-          <Toggle
-            checked={on}
-            onChange={(v) => write({ ...set, disabled: !v })}
-            label={on ? rx('settings.rules.setOn') : rx('settings.rules.setOff')}
-          />
-          <InfoBubble tip={rx('settings.rules.setSwitchHint')} />
+          {/* What the chosen list does, beside the choice. */}
+          <InfoBubble tip={flavour === 'packagizer' ? rx('settings.rules.packagizerHint') : rx('settings.rules.filterHint')} />
         </div>
-
-        {/* The extra space above ties the sentence to the switch below. */}
-        <p className="mt-2 text-[11px] leading-snug text-carbon-textSub">
-          {flavour === 'packagizer' ? rx('settings.rules.packagizerHint') : rx('settings.rules.filterHint')}
-        </p>
+        {/* Each list is a module, switched through the registry like its row
+            on the Modules page. */}
+        {flavour === 'packagizer' ? (
+          <ModuleToggle id="packagizer" hint={rx('settings.rules.setSwitchHint')} />
+        ) : (
+          <ModuleToggle id="linkfilter" hint={rx('settings.rules.setSwitchHint')} />
+        )}
 
         <div className="flex items-center gap-2.5">
           <NeutralSwitch
@@ -670,6 +679,7 @@ function Outcomes({
         const rejected = flavour === 'filter' && l.verdict.rejected;
         // The editor's own labels, so the preview names settings the same way.
         const extras: string[] = [];
+        if (l.effect.extractDir) extras.push(`${actionLabel(rx, 'extractDir')}: ${l.effect.extractDir}`);
         if (l.effect.comment) extras.push(`${actionLabel(rx, 'comment')}: ${l.effect.comment}`);
         if (l.effect.priority !== undefined) {
           extras.push(`${actionLabel(rx, 'priority')} ${l.effect.priority}`);

@@ -10,6 +10,8 @@ export interface LanguageDef {
    * language.
    */
   flag: string;
+  /** Written right to left, as the web UI's catalogue marks it. */
+  rtl?: boolean;
 }
 
 // Mirrors the web UI's lib/i18n.tsx CATALOGUE: same languages, native labels,
@@ -39,8 +41,8 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'ja', label: '日本語', flag: 'jp' },
   { code: 'ko', label: '한국어', flag: 'kr' },
   { code: 'zh', label: '中文', flag: 'cn' },
-  { code: 'ar', label: 'العربية', flag: 'sa' },
-  { code: 'he', label: 'עברית', flag: 'il' },
+  { code: 'ar', label: 'العربية', flag: 'sa', rtl: true },
+  { code: 'he', label: 'עברית', flag: 'il', rtl: true },
   { code: 'th', label: 'ไทย', flag: 'th' },
   { code: 'vi', label: 'Tiếng Việt', flag: 'vn' },
   { code: 'bg', label: 'Български', flag: 'bg' },
@@ -62,7 +64,7 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'id', label: 'Bahasa Indonesia', flag: 'id' },
   { code: 'ms', label: 'Bahasa Melayu', flag: 'my' },
   { code: 'hi', label: 'हिन्दी', flag: 'in' },
-  { code: 'fa', label: 'فارسی', flag: 'ir' },
+  { code: 'fa', label: 'فارسی', flag: 'ir', rtl: true },
 ];
 
 export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => AVAILABLE.includes(l.code));

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
+import { Button, Card, ErrorCard, InfoBubble, LinkBadge, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
 import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -17,7 +17,7 @@ import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
-import { asNavLabelMode, setNavLabels, useNavLabels } from '../../lib/navLabels';
+import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabelSetting, useNavLabels } from '../../lib/navLabels';
 import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import {
@@ -29,23 +29,21 @@ import {
   type Motion,
   type Shape,
   applyAccent,
-  applyDisco,
   applyMotion,
   applyRainbow,
   applyShape,
   cacheAppearance,
   cacheDisco,
   cacheMotionIntensity,
-  discoTap,
   hueVars,
-  rainbowAt,
   rainbowFromSettings,
   readCachedDisco,
   readCachedMotionIntensity,
   stormTap,
 } from '../../lib/appearance';
-import { useRainbow } from '../../lib/useRainbow';
-import { useDraft } from './context';
+import { applyDisco, discoTap } from '../../lib/disco';
+import { useDraft, useFeatures } from './context';
+import { ModulesPageBadge } from './ModuleToggle';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
 import { SettingsTransfer } from './look/SettingsTransfer';
@@ -245,6 +243,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   // From the store, so the selector shows what the rails draw.
   const navLabels = useNavLabels();
+  const barLabels = useBarLabelSetting();
 
   // Motion intensity is per-browser too.
   const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
@@ -257,16 +256,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   // Counting, not rendering; any tap off the top level resets it.
   const stormTaps = useRef({ taps: 0 });
 
-  // Disco, the colour engine's egg (lib/appearance.ts's discoTap), found by
+  // Disco, the colour engine's egg (lib/disco.ts's discoTap), found by
   // turning rainbow mode on five times in quick succession. The switch is
   // stored per browser; having found it is state of this screen, like the
   // storm, and it starts found while disco is on.
   const [disco, setDisco] = useState(readCachedDisco);
   const [discoFound, setDiscoFound] = useState(disco);
   const discoTaps = useRef({ taps: 0, last: 0 });
-
-  // The rainbow rows below paint their positions here, and disco moves them.
-  useRainbow();
 
   // The saved palette when complete, else the built-in hues, so "reset" and
   // "never customised" look alike.
@@ -275,13 +271,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   // Every pick is applied to the document root at once as a live preview;
   // Layout.tsx applies the saved look at boot. Disco comes after the rainbow,
-  // because applying a stored state resets whatever step the walk had reached.
+  // since it starts from the rainbow state and walks the new palette on.
   useEffect(() => {
     const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
     applyRainbow(rainbow);
-    applyDisco(disco, rainbow);
+    applyDisco(disco);
     applyMotion(motion);
     cacheAppearance(cfg.shape, cfg.accent, rainbow);
   }, [
@@ -439,6 +435,34 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
+      {/* The phone layout's bottom bar has a setting of its own, which follows
+          the one above until somebody sets it apart. Written through the
+          store as well, for the same reason. */}
+      {appearance && (
+      <Card hue={2} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.bottomBarLabels.titleHint')}>
+          {t('settings.bottomBarLabels.title')}
+        </SectionTitle>
+        <Tabs
+          label={t('settings.bottomBarLabels.title')}
+          variant="well"
+          active={barLabels}
+          onSelect={(id) => {
+            const next = asBarLabelMode(id);
+            setBarLabels(next);
+            patch({ bottomBarLabels: next });
+          }}
+          items={[
+            { id: 'follow', label: t('settings.bottomBarLabels.follow') },
+            { id: 'both', label: t('settings.navLabels.both') },
+            { id: 'glyph', label: t('settings.navLabels.glyph') },
+            { id: 'text', label: t('settings.navLabels.text') },
+            { id: 'hover', label: t('settings.navLabels.hover') },
+          ]}
+        />
+      </Card>
+      )}
+
       {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
           level joins the list only while it has just been found or is in
           force. */}
@@ -529,7 +553,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         <div className="flex flex-col gap-3">
           {/* The master switch and its two sub-switches form their own hue
               sequence. */}
-          <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(0)) as CSSProperties}>
+          <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(0) as CSSProperties}>
             <span className="flex items-center gap-1.5 text-sm text-carbon-text">
               {t('settings.rainbow')}
               <InfoBubble tip={t('settings.rainbowHint')} />
@@ -555,7 +579,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               then. */}
           {cfg.rainbow && (
           <div className="flex flex-col gap-3">
-            <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(1)) as CSSProperties}>
+            <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(1) as CSSProperties}>
               <span className="flex items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowReactive')}
                 <InfoBubble tip={t('settings.rainbowReactiveHint')} />
@@ -567,7 +591,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
                 onChange={(v) => patch({ rainbowReactive: v })}
               />
             </div>
-            <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(2)) as CSSProperties}>
+            <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(2) as CSSProperties}>
               <span className="flex items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowRotate')}
                 <InfoBubble tip={t('settings.rainbowRotateHint')} />
@@ -588,10 +612,10 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             {/* Offered while it is on or has just been found, and gone once
                 this screen closes with it off. */}
             {(discoFound || disco) && (
-              <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(rainbowAt(3)) as CSSProperties}>
+              <div className="glim-hue flex items-start justify-between gap-4" style={hueVars(3) as CSSProperties}>
                 <span className="flex items-center gap-1.5 text-sm text-carbon-text">
                   {t('settings.rainbowDisco')}
-                  <InfoBubble tip={t('settings.rainbowDiscoHint')} />
+                  <InfoBubble tip={t('settings.rainbowDiscoGlideHint')} />
                 </span>
                 <Toggle
                   hideLabel
@@ -842,6 +866,9 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
 function UpdateCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  // Installing from inside the app is the In-app updates module; its row says
+  // why neither build switches it.
+  const updater = useFeatures().features.modules.find((m) => m.id === 'updater');
   const { toast } = useToast();
   const [deployment, setDeployment] = useState<string | null>(null);
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
@@ -923,6 +950,9 @@ function UpdateCard({ hue }: { hue: number }) {
         checked={isDesktop && cfg.autoUpdateInstall}
         disabled={!isDesktop}
         onChange={(v) => patch({ autoUpdateInstall: v })}
+        // The module's row has no switch of its own, so the badge names the
+        // page rather than claiming this switch is there as well.
+        aside={updater && <ModulesPageBadge m={updater} title={t('settings.nav.modules')} />}
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button kind="secondary" onClick={() => void onCheck()} disabled={checking || installing}>
@@ -943,10 +973,14 @@ function UpdateCard({ hue }: { hue: number }) {
         {check && check.checked && !check.available && (
           <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
         )}
+        {check && check.checked && check.available && (
+          <span className="inline-flex items-center text-sm font-medium text-carbon-text">
+            {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
+            {!isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
+          </span>
+        )}
         {check && check.checked && check.available && check.url && (
-          <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accentInk hover:underline">
-            {t(isDesktop ? 'settings.look.updatesAvailable' : 'settings.look.updatesAvailableContainer', { version: check.latest ?? '' })}
-          </a>
+          <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />
         )}
       </div>
       {installed && <p className="text-sm text-statusOk">{t('settings.look.updatesInstalled')}</p>}

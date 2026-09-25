@@ -99,6 +99,7 @@ func TestADelegatedBackendIsNeverHandedAReservedName(t *testing.T) {
 // Skip still applies to a delegated task: it refuses to start before the
 // handover and needs nothing from the backend.
 func TestSkipStillSettlesADelegatedTask(t *testing.T) {
+	t.Parallel()
 	a, stub, dir := delegated(t, collide.Skip)
 
 	task := dispatchOne(a, "d2", "https://elsewhere.example/clash.bin")

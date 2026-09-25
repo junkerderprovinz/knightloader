@@ -76,7 +76,6 @@ export const nl: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regenboog',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Zolang de regenboogmodus aan staat, schuift elk gekleurd element één keer per seconde door naar de volgende kleur van het palet.',
   'settings.problems': 'Problemen?',
   'settings.problemsHint': 'Stuur dit mee als je iets meldt. Dat scheelt een ronde vragen, en er staat geen adres of token in.',
   'settings.problemsCopy': 'Rapport kopiëren',

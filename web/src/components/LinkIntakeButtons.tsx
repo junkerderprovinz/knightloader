@@ -55,7 +55,7 @@ export function LinkIntakeButtons() {
         kind={watch ? 'primary' : 'secondary'}
         className="px-2.5 text-xs"
         icon={<IconClipboard width={14} height={14} />}
-        title={WATCH_SUPPORTED ? t('intake.clipboardWatchHint') : t('intake.clipboardWatchUnavailable')}
+        hint={WATCH_SUPPORTED ? t('intake.clipboardWatchHint') : t('intake.clipboardWatchUnavailable')}
         onClick={() => setWatch(!watch)}
         disabled={!WATCH_SUPPORTED}
       >

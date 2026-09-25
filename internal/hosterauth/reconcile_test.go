@@ -366,3 +366,41 @@ func TestEnabledNilMeansEverythingOn(t *testing.T) {
 		t.Fatalf("added = %+v, want the one login pushed to JD with no Enabled set", fake.added)
 	}
 }
+
+// JD stores an account under the hoster's main domain whatever it was added
+// as, so a login saved under an alias must match it rather than be added again
+// on every pass.
+func TestPlanMatchesALoginSavedUnderAnAlias(t *testing.T) {
+	desired := []DesiredLogin{{Host: "rg.to", Username: "u", Password: "p"}}
+	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}
+	p := plan(desired, actual, map[string]time.Time{}, time.Now())
+	if len(p.Add) != 0 || len(p.Remove) != 0 {
+		t.Fatalf("Add=%v Remove=%v, want neither for rg.to against JD's rapidgator.net", p.Add, p.Remove)
+	}
+	if got := p.States["rg.to"].Status; got != StatusActive {
+		t.Errorf("status = %q, want %q under the host the login was saved as", got, StatusActive)
+	}
+
+	// The other way round as well: JD could report the alias.
+	desired[0].Host = "rapidgator.net"
+	actual[0].Hostname = "www.RG.to"
+	if p := plan(desired, actual, map[string]time.Time{}, time.Now()); len(p.Add) != 0 || len(p.Remove) != 0 {
+		t.Errorf("Add=%v Remove=%v, want neither for rapidgator.net against JD's rg.to", p.Add, p.Remove)
+	}
+}
+
+// The grace clock is kept under the same key the match uses, or an alias login
+// that JD is still checking would start a fresh clock on every pass and never
+// read as rejected.
+func TestAnAliasLoginIsRejectedOnceTheGraceWindowHasPassed(t *testing.T) {
+	now := time.Now()
+	desired := []DesiredLogin{{Host: "rg.to", Username: "u", Password: "wrong"}}
+	actual := []jdAccount{{UUID: 1, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: false}}}
+	firstFail := map[string]time.Time{}
+
+	updateFirstFail(firstFail, plan(desired, actual, firstFail, now), now)
+	later := now.Add(rejectGrace + time.Minute)
+	if got := plan(desired, actual, firstFail, later).States["rg.to"].Status; got != StatusRejected {
+		t.Errorf("status = %q after the grace window, want %q", got, StatusRejected)
+	}
+}

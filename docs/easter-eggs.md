@@ -89,33 +89,37 @@ easy to get wrong, and each of them matters:
 ### Disco
 
 **Gesture:** turn rainbow mode on five times, each within three seconds of the
-last. The palette then steps one position a second, so every coloured element
-moves to the next colour together.
+last. Every coloured element then glides through the palette together, round
+the colour wheel, one colour every 2.4 seconds and a full turn in 19.2.
 
-**Where:** `discoTap()` and `applyDisco()` in `web/src/lib/appearance.ts`; the
-switch sits under the rainbow's own switches in
+**Where:** `discoTap()` and `applyDisco()` in `web/src/lib/disco.ts`, with the
+loop it walks in `web/src/lib/discoLoop.ts`, both GlimStone's reference files
+as they are; the switch sits under the rainbow's own switches in
 `web/src/pages/settings/Look.tsx`.
 
 **Off:** its own switch.
 
-GlimStone's second egg, adopted like the storm. It animates nothing: each step
-re-renders the colour engine's readers, which is why the rainbow state is handed
-down from above the routes (`web/src/lib/useRainbow.ts`) and every component
-that paints a palette position reads it. Without that, parts of the screen stand
-still while the rest walks.
+GlimStone's second egg, adopted like the storm. It animates no element: one
+`requestAnimationFrame` loop writes the eight `--rb-N` colours on the root, and
+every coloured element follows, because `hueVars()` points it there. Nothing
+renders while it runs. A colour computed during render, an SVG fill or a chart
+series, would stand still, so those paint from `var(--rb-N)` as well.
 
 - Only turn-ons count, so the gesture ends with the rainbow on, the one state in
   which the reward can be seen. The time window keeps somebody who compares the
   page with and without the rainbow from unlocking it by accident.
-- The switch is stored per browser, like the motion level. The walk never is:
-  each step applies and writes nothing, and stopping puts the stored palette
-  back.
+- The switch is stored per browser, like the motion level. The walk never is and
+  never touches the rainbow state: stopping writes the resting palette back.
 - The switch is offered while disco is on, and otherwise only while the settings
   screen that found it stays open.
 - With the rainbow off nothing coloured is on screen, so the walk waits and
-  starts by itself when the rainbow comes back. One step a second stays well
-  under the 3 Hz flicker threshold, and there is no reduced-motion gate: it
-  changes colour and moves nothing.
+  starts by itself when the rainbow comes back.
+- The mode has no reduced-motion gate, since somebody found it on purpose, but
+  the glide is motion: at the Off level, or with reduced motion on the system,
+  it steps one colour every 2.4 seconds instead, well under the 3 Hz flicker
+  threshold.
+- The browser extension walks the same loop on its own pages, and the phone app
+  imports the loop and redraws its theme ten times a second.
 
 ### 1337
 

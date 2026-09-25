@@ -76,7 +76,6 @@ export const vi: Dict = {
   'settings.accent': 'Màu nhấn',
   'settings.rainbow': 'Cầu vồng',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Khi chế độ cầu vồng đang bật, mỗi phần tử có màu chuyển sang màu tiếp theo của bảng màu mỗi giây một lần.',
   'settings.problems': 'Gặp vấn đề?',
   'settings.problemsHint': 'Hãy gửi kèm phần này khi bạn báo lỗi. Nó tiết kiệm một vòng hỏi đáp, và trong đó không có địa chỉ hay token.',
   'settings.problemsCopy': 'Sao chép báo cáo',

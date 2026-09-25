@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { type Diagnostics as DiagnosticsBundle, fetchDiagnostics } from '../../lib/api';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
 import { IconDownloads } from '../../lib/icons';
@@ -45,9 +45,7 @@ function useCx() {
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );
@@ -118,10 +116,14 @@ export function Diagnostics() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={onDownload} disabled={downloading} icon={<IconDownloads width={16} height={16} />}>
+          <Button
+            onClick={onDownload}
+            disabled={downloading}
+            icon={<IconDownloads width={16} height={16} />}
+            hint={cx('settings.diagnostics.downloadHint')}
+          >
             {downloading ? cx('settings.diagnostics.downloading') : cx('settings.diagnostics.download')}
           </Button>
-          <span className="text-[11px] text-carbon-textMuted">{cx('settings.diagnostics.downloadHint')}</span>
         </div>
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>

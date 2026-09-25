@@ -16,13 +16,13 @@ import { InfoBubble } from '../components/ui';
 import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
 import {
   applyAccent,
-  applyDisco,
   applyRainbow,
   applyShape,
   cacheAppearance,
   rainbowFromSettings,
   readCachedDisco,
 } from '../lib/appearance';
+import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
@@ -76,8 +76,8 @@ function useAppearance() {
         applyShape(s.shape);
         applyAccent(s.accent);
         applyRainbow(rainbow);
-        // The walk starts from the server's palette, and stopping puts it back.
-        applyDisco(readCachedDisco(), rainbow);
+        // A running walk takes up the server's palette where it is.
+        applyDisco(readCachedDisco());
         // Cached so the next load paints the chosen look immediately instead of
         // flashing the default while this request is in flight.
         cacheAppearance(s.shape, s.accent, rainbow);

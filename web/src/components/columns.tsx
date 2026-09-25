@@ -13,7 +13,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { fetchOptions, priorityChoices, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
-import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -401,24 +401,6 @@ const availDot: Record<Exclude<Availability, ''>, string> = {
 };
 
 /**
- * The row tooltip's own date formatting, spelled out in full rather than in
- * fmtDate's short column form (lib/format.ts): the column is short because it
- * has to fit a cell, and repeating that short form in its tooltip would say
- * nothing the column had not. No formatter cache like fmtDate keeps, since that
- * cache exists for a column building one per row on every repaint, where this
- * runs once, when a hover opens a tooltip.
- */
-function fmtDateFull(iso: string | undefined): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() <= 1) return '';
-  return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
-    dateStyle: 'full',
-    timeStyle: 'medium',
-  }).format(d);
-}
-
-/**
  * Which connection is carrying this download. It answers what a task is on and
  * not what it was asked for: the server writes the id when it hands the
  * download to a backend, so a task pointed at a proxy that was busy shows the
@@ -522,7 +504,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
             docs/torrent-support.md asks for full peer and seed detail here,
             which is more than the three columns give. */}
         {isTorrent && (
-          <TooltipField label={t('task.tooltip.swarm')} ltr>
+          <TooltipField label={t('task.tooltip.swarm')}>
             {t('task.tooltip.swarmDetail', {
               peers: task.peers ?? 0,
               seeds: task.seeds ?? 0,
@@ -548,23 +530,23 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
           </TooltipField>
         )}
         {added && (
-          <TooltipField label={t('columns.added')} ltr>
+          <TooltipField label={t('columns.added')}>
             {added}
           </TooltipField>
         )}
         {finished && (
-          <TooltipField label={t('columns.finished')} ltr>
+          <TooltipField label={t('columns.finished')}>
             {finished}
           </TooltipField>
         )}
         {retryAt && (
-          <TooltipField label={t('task.retryPending')} ltr>
+          <TooltipField label={t('task.retryPending')}>
             <RetryNote task={task} form="full" />
             {retryAt}
           </TooltipField>
         )}
         {changed && (
-          <TooltipField label={t('task.tooltip.changed')} ltr>
+          <TooltipField label={t('task.tooltip.changed')}>
             {changed}
           </TooltipField>
         )}
@@ -713,7 +695,8 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
                 <button
                   type="button"
                   {...openHover}
-                  className="glim-eyebrow max-w-[45%] shrink-0 truncate underline-offset-2 hover:text-carbon-textSub hover:underline"
+                  className="glim-eyebrow max-w-[45%] shrink-0 truncate rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-0.5
+                    transition-colors hover:bg-carbon-surface3 hover:text-carbon-textSub"
                   onClick={() => setWhyOpen(true)}
                 >
                   {t(reason)}
@@ -785,7 +768,7 @@ function ProgressCell({
           tone={done ? 'ok' : 'accent'}
         />
       </div>
-      <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{p}%</span>
+      <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{fmtPct(p)}</span>
     </div>
   );
 }

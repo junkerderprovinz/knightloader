@@ -199,7 +199,10 @@ export function locateAndMark(opts: {
         // Focus only, never activate: the first control is often a switch and
         // settings autosave. The caption's own (i) is skipped, and
         // preventScroll keeps the smooth scroll above running.
-        const control = [...marked.querySelectorAll<HTMLElement>(FOCUSABLE)].find((n) => !row.contains(n));
+        const inRow = [...marked.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((n) => !row.contains(n));
+        // A link beside the control leads to another page, such as a module
+        // switch's way to the same switch on the Modules page.
+        const control = inRow.find((n) => !n.matches('a[href]')) ?? inRow[0];
         control?.focus({ preventScroll: true });
       }
     }

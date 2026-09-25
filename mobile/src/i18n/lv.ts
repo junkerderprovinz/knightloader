@@ -76,7 +76,6 @@ export const lv: Dict = {
   'settings.accent': 'Akcents',
   'settings.rainbow': 'Varavīksne',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Kamēr ir ieslēgts varavīksnes režīms, katrs krāsainais elements reizi sekundē pāriet uz nākamo paletes krāsu.',
   'settings.problems': 'Problēmas?',
   'settings.problemsHint': 'Nosūti to līdzi, kad par kaut ko ziņo. Tas ietaupa vienu jautājumu kārtu, un tajā nav ne adreses, ne piekļuves marķiera.',
   'settings.problemsCopy': 'Kopēt pārskatu',

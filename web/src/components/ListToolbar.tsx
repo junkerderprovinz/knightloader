@@ -475,7 +475,7 @@ export function useRemoval({
         const token = r.undo;
         toast(
           unseen > 0
-            ? t('remove.doneHidden', { n: r.count }).replace('{hidden}', String(unseen))
+            ? t('remove.doneHidden', { n: r.count, hidden: unseen })
             : t('remove.done', { n: r.count }),
           'ok',
           'action-done',

@@ -354,10 +354,15 @@ body {
 .glim-section-badge .glim-info-icon svg { width: 14px; height: 14px; display: block; }
 
 /* The "well" variant of the web UI's Tabs, as its Corners picker: one padded
- * track with equal segments.
+ * track with equal segments. A long translation in a narrow window wraps it
+ * rather than pushing it out of the card, and the segments then grow to fill
+ * every row, so the track shows no empty end. On one row the track hugs them
+ * and leaves nothing to grow into.
  */
 .glim-seg {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 2px;
   padding: 3px;
   background: var(--carbon-surface2);
@@ -368,6 +373,7 @@ body {
    3px padding keeps a square corner inside the track's arc for every shape
    setting, since a corner at (p,p) stays inside radius R while p >= 0.293R. */
 .glim-seg button {
+  flex: 1 0 auto;
   padding: 6px 14px;
   border: 0;
   background: transparent;
@@ -1033,7 +1039,6 @@ body {
   flex-direction: column;
   gap: 16px;
 }
-.glim-crypto-intro { margin: 0; font-size: var(--text-body); color: var(--carbon-text-sub); }
 .glim-crypto-code {
   display: flex;
   flex-direction: column;

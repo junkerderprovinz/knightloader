@@ -5,7 +5,6 @@ import {
   Field,
   FieldGroup,
   IconBadge,
-  LabelBadge,
   NumberInput,
   SectionTitle,
   TextInput,
@@ -14,6 +13,7 @@ import {
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
 import { IconFilter, IconFolder, IconPlus, IconPriority, IconTrash } from '../../../lib/icons';
+import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   fetchFeeds,
@@ -26,6 +26,7 @@ import {
 } from '../../../lib/api';
 import { happened } from '../../../lib/countdown';
 import { useDraft, useFeatures } from '../context';
+import { ModuleToggle } from '../ModuleToggle';
 
 // Feeds lists the RSS and Atom subscriptions this instance follows, each
 // fetched on its own timer, with new entries handed to the collector like a
@@ -155,8 +156,8 @@ export function FeedsCard({ hue }: { hue: number }) {
   const rows = cfg.feeds ?? [];
   const priorities = usePriorityTabs();
 
-  // The Modules page parks the rows and clears the list. Checked with `parked`,
-  // because an empty list on a fresh install also reads as off.
+  // Switching the module off parks the rows and clears the list. Checked with
+  // `parked`, because an empty list on a fresh install also reads as off.
   const feedsModule = features.modules.find((m) => m.id === 'feeds');
   const parked = feedsModule !== undefined && !feedsModule.enabled && feedsModule.parked;
 
@@ -215,28 +216,29 @@ export function FeedsCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.feeds.titleHint')}
         right={
-          <div className="flex items-center gap-2">
-            {/* While the module is off the badge replaces the Add button. */}
-            {parked && <LabelBadge label={t('settings.modules.off')} />}
-            {!parked && (
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
-                {t('settings.feeds.add')}
-              </Button>
-            )}
-          </div>
+          // A row added while the module is off would take the place of the
+          // parked ones, so Add waits for the switch.
+          !parked && (
+            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              {t('settings.feeds.add')}
+            </Button>
+          )
         }
       >
-        {t('settings.feeds.title')}
+        {t('settings.module.feeds')}
       </SectionTitle>
+      <ModuleToggle id="feeds" />
 
-      {/* Parking clears the list on the server, so while the module is off
-          only the empty-state sentence remains. */}
+      {/* Parking clears the list on the server. "No subscriptions yet" would
+          not be true while they wait for the switch, so the switch stands alone. */}
       {rowCount === 0 ? (
-        // Inside the card rather than an EmptyState, which would hide Add.
-        <p className="py-6 text-center text-sm text-carbon-textSub">
-          {t('settings.feeds.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
-        </p>
+        !parked && (
+          // Inside the card rather than an EmptyState, which would hide Add.
+          <p className="py-6 text-center text-sm text-carbon-textSub">
+            {t('settings.feeds.empty')}
+            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
+          </p>
+        )
       ) : (
         <ul className="flex flex-col">
           {rows.map((row, i) => (
@@ -579,7 +581,7 @@ function FeedHealth({ status }: { status?: FeedStatus }) {
 function fmtWhen(iso?: string): string {
   if (!iso) return '';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? iso : fmtDate(iso);
 }
 
 /**
@@ -665,8 +667,6 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                 )}
               </>
             )}
-            {/* Said at the result too: nothing was taken from the feed. */}
-            <p className="text-carbon-textMuted">{t('settings.feeds.testSafe')}</p>
           </div>
         )}
       </div>

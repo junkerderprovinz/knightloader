@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -124,7 +125,7 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 			continue
 		}
 		seen[u] = true
-		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
+		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
 			if t := a.hold(cand, v, origin, cand.Added); t != nil {
 				created = append(created, t)
@@ -177,7 +178,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		seen[u] = true
 		// Filtered here as well as in stage, because the crawl below would
 		// otherwise contact a host a rule told us to avoid.
-		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
+		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
 			if t := a.hold(cand, v, origin, cand.Added); t != nil {
 				created = append(created, t)
@@ -603,6 +604,27 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 	return chain[0]
 }
 
+// stagedAt hands out the moments links enter the list, each one later than
+// the last. Dispatch starts links in CreatedAt order, and on Windows time.Now
+// moves in steps of about half a millisecond, so a batch staged within one
+// step would otherwise start in any order. When the clock has not moved on
+// since the last link, the next one goes a nanosecond after it.
+type stagedAt struct {
+	mu   sync.Mutex
+	last time.Time
+}
+
+func (s *stagedAt) next() time.Time {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	if !now.After(s.last) {
+		now = s.last.Add(time.Nanosecond)
+	}
+	s.last = now
+	return now
+}
+
 // stage creates one collected task for a URL. It is the only way a link enters
 // the list, so crawled and pasted links pass the same filter, and everything
 // that can refuse a link runs before put. It returns nil when no task was
@@ -613,7 +635,7 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// One local clock reading for CreatedAt and <jd:date>; UTC would shift
 	// dated folders by a day east of Greenwich.
-	now := time.Now()
+	now := a.stamps.next()
 	cand := rules.Candidate{URL: u, Source: in.source, Package: in.pkg, Added: now}
 	if n := strings.TrimSpace(name); n != "" {
 		cand.Filename = n

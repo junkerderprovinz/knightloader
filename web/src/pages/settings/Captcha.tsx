@@ -7,10 +7,10 @@ import {
   removeAccountCredential,
   saveAccountCredential,
 } from '../../lib/api';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
-import { Button, Card, ErrorCard, IconBadge, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
-import { IconArrowDown, IconArrowUp, IconExternalLink } from '../../lib/icons';
+import { Button, Card, ErrorCard, IconBadge, LinkBadge, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { ModuleToggle } from './ModuleToggle';
@@ -21,53 +21,7 @@ import { ModuleToggle } from './ModuleToggle';
 // and are write-only, because a credential cannot ride the settings document.
 // They are saved without a live check.
 
-/**
- * PENDING holds the English strings until the catalogue has them; the lookup
- * asks the catalogue first.
- */
-const PENDING = {
-  'settings.captcha.title': 'Captcha',
-  'settings.captcha.subtitle': 'Automatic solvers are tried in this order before a captcha is ever shown to you.',
-  'settings.captcha.orderTitle': 'Solver order',
-  'settings.captcha.orderHint':
-    'Every enabled solver below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
-  'settings.captcha.orderEmpty': 'No solver is enabled - every captcha comes straight to you.',
-  'settings.captcha.use': 'Try this solver',
-  'settings.captcha.enableSolver': 'Try {service} automatically',
-  'settings.captcha.moveUp': 'Move up',
-  'settings.captcha.moveDown': 'Move down',
-  'settings.captcha.set': 'Key set',
-  'settings.captcha.notSet': 'No key set',
-  'settings.captcha.setKey': 'Set key',
-  'settings.captcha.change': 'Change',
-  'settings.captcha.remove': 'Remove',
-  'settings.captcha.cancel': 'Cancel',
-  'settings.captcha.save': 'Save',
-  'settings.captcha.saving': 'Saving…',
-  'settings.captcha.placeholder': 'Paste the API key',
-  'settings.captcha.whereToFind': 'Get a key',
-  'settings.captcha.saved': 'API key saved.',
-  'settings.captcha.removed': 'API key removed.',
-  'settings.captcha.saveFailed': 'Could not save the key: {error}',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
-}
-
 export function Captcha() {
-  const cx = useCx();
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -131,12 +85,12 @@ export function Captcha() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.captcha.title')} />
+      <PageHeader title={t('settings.captcha.title')} />
 
       <Card hue={0} className="flex flex-col gap-1">
-        <SectionTitle hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>
+        <SectionTitle hint={t('settings.captcha.orderHint')}>{t('settings.captcha.orderTitle')}</SectionTitle>
         <ModuleToggle id="captcha" />
-        {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{cx('settings.captcha.orderEmpty')}</p>}
+        {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{t('settings.captcha.orderEmpty')}</p>}
 
         <ul className="flex flex-col">
           {rows.map((svc, i) => (
@@ -194,34 +148,24 @@ function SolverRow({
   onStopEdit: () => void;
   onSaved: () => Promise<void>;
 }) {
-  const cx = useCx();
+  const { t } = useT();
   const configured = account?.configured ?? false;
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-2.5">
-        <NeutralSwitch on={enabled} onChange={onToggle} name={cx('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
+        <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-sm text-carbon-text">{svc.label}</span>
-          {svc.whereUrl && (
-            <a
-              href={svc.whereUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-carbon-textMuted hover:text-carbon-text hover:underline"
-            >
-              {cx('settings.captcha.whereToFind')}
-              <IconExternalLink width={11} height={11} />
-            </a>
-          )}
+          {svc.whereUrl && <LinkBadge href={svc.whereUrl} title={t('accounts.whereToFind')} />}
         </div>
 
         <span
           className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${configured ? 'text-statusOk' : 'text-carbon-textMuted'}`}
         >
           <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${configured ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
-          {configured ? cx('settings.captcha.set') : cx('settings.captcha.notSet')}
+          {configured ? t('settings.captcha.set') : t('settings.captcha.notSet')}
         </span>
 
         {/* `labelled` on every badge, so the actions follow the Beschriftung
@@ -233,8 +177,8 @@ function SolverRow({
                 labelled
                 icon={<IconArrowUp width={16} height={16} />}
                 hue={hue}
-                title={cx('settings.captcha.moveUp')}
-                aria-label={cx('settings.captcha.moveUp')}
+                title={t('settings.captcha.moveUp')}
+                aria-label={t('settings.captcha.moveUp')}
                 disabled={position <= 0}
                 onClick={() => onMove(-1)}
               />
@@ -242,15 +186,15 @@ function SolverRow({
                 labelled
                 icon={<IconArrowDown width={16} height={16} />}
                 hue={hue}
-                title={cx('settings.captcha.moveDown')}
-                aria-label={cx('settings.captcha.moveDown')}
+                title={t('settings.captcha.moveDown')}
+                aria-label={t('settings.captcha.moveDown')}
                 disabled={position < 0 || position >= count - 1}
                 onClick={() => onMove(1)}
               />
             </>
           )}
           <Button kind="ghost" onClick={editing ? onStopEdit : onStartEdit}>
-            {configured ? cx('settings.captcha.change') : cx('settings.captcha.setKey')}
+            {configured ? t('settings.captcha.change') : t('settings.captcha.setKey')}
           </Button>
         </div>
       </div>
@@ -283,7 +227,7 @@ function CredentialEditor({
   onCancel: () => void;
   onSaved: () => Promise<void>;
 }) {
-  const cx = useCx();
+  const { t } = useT();
   const { toast } = useToast();
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
@@ -292,10 +236,10 @@ function CredentialEditor({
     setBusy(true);
     try {
       await saveAccountCredential(svc.id, '', { apiKey: key });
-      toast(cx('settings.captcha.saved'), 'ok');
+      toast(t('settings.captcha.saved'), 'ok');
       await onSaved();
     } catch (e) {
-      toast(cx('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+      toast(t('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
       setBusy(false);
     }
   }
@@ -304,10 +248,10 @@ function CredentialEditor({
     setBusy(true);
     try {
       await removeAccountCredential(svc.id, '');
-      toast(cx('settings.captcha.removed'), 'info');
+      toast(t('settings.captcha.removed'), 'info');
       await onSaved();
     } catch (e) {
-      toast(cx('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+      toast(t('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
       setBusy(false);
     }
   }
@@ -321,19 +265,19 @@ function CredentialEditor({
           autoFocus
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          placeholder={cx('settings.captcha.placeholder')}
+          placeholder={t('settings.captcha.placeholder')}
         />
       </div>
       <Button kind="ghost" onClick={onCancel} disabled={busy}>
-        {cx('settings.captcha.cancel')}
+        {t('settings.captcha.cancel')}
       </Button>
       {configured && (
         <Button kind="ghost" onClick={() => void remove()} disabled={busy}>
-          {cx('settings.captcha.remove')}
+          {t('settings.captcha.remove')}
         </Button>
       )}
       <Button onClick={() => void save()} disabled={busy || key.trim() === ''}>
-        {busy ? cx('settings.captcha.saving') : cx('settings.captcha.save')}
+        {busy ? t('settings.captcha.saving') : t('settings.captcha.save')}
       </Button>
     </div>
   );

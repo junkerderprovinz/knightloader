@@ -71,9 +71,9 @@ func (p *PathProblem) Error() string {
 func (p *PathProblem) Unwrap() error { return p.Err }
 
 // folderFields are the top-level folders a save can name, with the words a
-// refusal uses for each. The download and working folders are created and
-// probed at once, since every download writes there. The others only have to
-// be absolute, the rule sanitize holds them to, and are created on first use.
+// refusal uses for each. The download and working folders are probed at once,
+// since every download writes there. The others only have to be absolute, the
+// rule sanitize holds them to. All of them are created on first use.
 var folderFields = []struct {
 	key, what       string
 	get             func(Settings) string
@@ -157,7 +157,9 @@ func fixedPrefix(dir string) string {
 func FixedPrefix(dir string) string { return fixedPrefix(dir) }
 
 // WriteProbeName is the throwaway file this package drops into a folder to find
-// out whether it can be written to, and removes again immediately.
+// out whether it can be written to, and removes again immediately. With a
+// suffix it also names the throwaway folder that asks whether a missing folder
+// could be created.
 //
 // Exported so that the second place needing one reuses the name.
 // internal/app's self-test asks the same question about the download and
@@ -170,6 +172,12 @@ const WriteProbeName = ".knightloader-write-test"
 
 // Validate reports why a directory cannot be used, so the API can refuse a bad
 // path instead of downloading somewhere else.
+//
+// It creates nothing. The settings page saves while a path is still being
+// typed, so a folder made here would leave "D:\Down" behind on the way to
+// "D:\Downloads". A folder that is not there yet passes when the nearest folder
+// above it that does exist would let this process create it; the first download
+// into it, or the folder chooser's New folder, makes it for real.
 //
 // what names the field being checked in the words the person typing into it
 // sees ("the download folder", "the working folder"). It is a parameter because
@@ -186,16 +194,56 @@ func Validate(what, dir string) error {
 		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
 	}
 	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
-	// Only the part before the first placeholder is a real path: creating the
-	// rest would put folders literally named "<jd:date>" on disk, and checking
-	// it would test a path that never exists at download time.
+	// Only the part before the first placeholder is a real path: checking the
+	// rest would test a path that never exists at download time.
 	dir = fixedPrefix(dir)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if fi, err := os.Stat(dir); err == nil {
+		if !fi.IsDir() {
+			return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: errNotAFolder}
+		}
+		probe := filepath.Join(dir, WriteProbeName)
+		if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
+			return &PathProblem{What: what, Code: "cannotWrite", Dir: dir, Err: err}
+		}
+		return os.Remove(probe)
+	}
+	if err := canCreateBelow(nearestExisting(dir)); err != nil {
 		return &PathProblem{What: what, Code: "cannotCreate", Dir: dir, Err: err}
 	}
-	probe := filepath.Join(dir, WriteProbeName)
-	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
-		return &PathProblem{What: what, Code: "cannotWrite", Dir: dir, Err: err}
+	return nil
+}
+
+var errNotAFolder = errors.New("a file is in the way")
+
+// nearestExisting walks up from dir to the first path that exists, or returns
+// the volume root when nothing on the way does.
+func nearestExisting(dir string) string {
+	for {
+		if _, err := os.Stat(dir); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return dir
+		}
+		dir = parent
+	}
+}
+
+// canCreateBelow finds out whether a folder can be made inside parent by making
+// one and removing it again. A file probe would give the wrong answer on a
+// Windows drive root, which lets users create folders but not files.
+func canCreateBelow(parent string) error {
+	fi, err := os.Stat(parent)
+	if err != nil {
+		return err
+	}
+	if !fi.IsDir() {
+		return errNotAFolder
+	}
+	probe, err := os.MkdirTemp(parent, WriteProbeName+"-")
+	if err != nil {
+		return err
 	}
 	return os.Remove(probe)
 }

@@ -76,7 +76,6 @@ export const ca: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Arc de Sant Martí',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'Mentre el mode arc de Sant Martí estigui activat, cada element de color passa al color següent de la paleta un cop per segon.',
   'settings.problems': 'Problemes?',
   'settings.problemsHint': "Envia això quan informis d'alguna cosa. Estalvia una ronda de preguntes i no conté ni adreça ni token.",
   'settings.problemsCopy': "Copia l'informe",

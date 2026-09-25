@@ -159,7 +159,6 @@ export const en = {
   'settings.maxPerHostHint': 'The ceiling for one single hoster, on top of the total above. Most hosters allow very few at once.',
   'settings.speedLimit': 'Speed limit (KiB/s, 0 = ∞)',
   'settings.speedHint': 'The limit for all downloads combined, applied while they run.',
-  'settings.extract': 'Extract archives after download',
   'settings.autoStart': 'Start added links immediately',
   'settings.autoStartHint': 'Links you add start downloading without waiting for you to confirm them in the collector. The countdown under Collector below sets how long they wait first.',
   'settings.save': 'Save',
@@ -180,7 +179,6 @@ export const en = {
   'settings.historyMaxHint': '0 keeps every entry.',
   'settings.maxRetriesHint': 'A failed download is tried again with a growing delay.',
   'settings.archivePasswords': 'Archive passwords',
-  'settings.archives.extractionTitle': 'Extraction',
   'settings.archivePasswordsHint': 'One per line. Tried in order when an archive is encrypted.',
   'settings.lockOn': 'A password is set.',
   'settings.lockOff': 'No password is set.',
@@ -191,7 +189,6 @@ export const en = {
   'settings.setPassword': 'Set password',
   'settings.passwordSaved': 'Password updated.',
   'auth.title': 'This instance is locked',
-  'auth.subtitle': 'Enter the password to continue.',
   'auth.password': 'Password',
   'auth.signIn': 'Sign in',
   'auth.signOut': 'Sign out',
@@ -238,7 +235,6 @@ export const en = {
   'settings.pathProblem.cannotWrite': 'Could not write to {dir}.',
   'settings.watchDirHint': 'Links dropped here as .txt or .crawljob files are picked up automatically.',
   'settings.crawl': 'Follow pages and collect the files they link to',
-  'settings.crawl.title': 'Page crawl',
   'settings.crawl.depth': 'Crawl depth',
   'settings.crawl.depthHint': 'How deep to go. 1 is the pasted page alone, 2 also opens the pages it links to, 3 opens theirs. A page is never opened twice, so links pointing back at each other end the run instead of looping.',
   'settings.crawl.maxPages': 'Page limit',
@@ -288,7 +284,7 @@ export const en = {
   'settings.rainbowRotate': 'Colour rotation',
   'settings.rainbowRotateHint': 'Shuffle where the palette starts',
   'settings.rainbowDisco': 'Disco mode',
-  'settings.rainbowDiscoHint': 'While rainbow mode is on, every coloured element moves to the next colour of the palette once a second.',
+  'settings.rainbowDiscoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Motion set to Off, or reduced motion turned on in your system, it steps from one colour to the next instead.',
   'settings.rainbowPalette': 'Palette colour',
   'settings.rainbowPaletteLabel': 'Colour palette',
   'settings.rainbowPaletteHint': 'The eight colours handed out by position. Edit any of them individually.',
@@ -306,6 +302,9 @@ export const en = {
   'settings.navLabels.glyph': 'Icon only',
   'settings.navLabels.text': 'Text only',
   'settings.navLabels.hover': 'On hover',
+  'settings.bottomBarLabels.title': 'Bottom bar labels',
+  'settings.bottomBarLabels.titleHint': 'How much of each entry the bar at the bottom of the window shows. The bar replaces the sidebar only in the phone layout, in a window narrower than 768 pixels, so on a wider screen this setting changes nothing. "Like the sidebar" uses the navigation labels setting.',
+  'settings.bottomBarLabels.follow': 'Like the sidebar',
   'queue.limitUnit': 'Unit',
 
   'common.show': 'Show',
@@ -462,6 +461,8 @@ export const en = {
   'container.allKnown': 'All {n} link(s) in {file} were already in the list.',
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
+  'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
+  'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Modules page.',
 
   // Wave 11.5D: uploading a .torrent file, and the file-tree step a
   // multi-file torrent shows before it is added. A magnet link needs none of
@@ -541,6 +542,7 @@ export const en = {
   'settings.modules.detail.extractionDelete': 'Archives are deleted after a successful extraction.',
   'settings.modules.detail.extractionTrash': 'Archives are moved to {folder} after a successful extraction.',
   'settings.modules.detail.watchFolder': 'Watching {folder}',
+  'settings.modules.detail.watchFolderMissing': 'The folder does not exist yet. Files dropped into it are taken once it does: {folder}',
   'settings.modules.detail.watchNone': 'No folder set',
   'settings.modules.detail.subscriptions': '{n} subscriptions',
   'settings.modules.detail.subscriptionsOne': '1 subscription',
@@ -573,9 +575,9 @@ export const en = {
   'settings.modules.detail.challenges': '{n} captchas waiting right now',
   'settings.modules.detail.challengesOne': '1 captcha waiting right now',
   'settings.modules.detail.downloadclientOff': 'Off. Sonarr and Radarr get a 404 from it, as from an address that does not exist.',
-  'settings.modules.detail.downloadclientNoToken': 'No API token exists yet, so every call is refused. Create one on this page.',
+  'settings.modules.detail.downloadclientNoToken': 'No API token exists yet, so every call is refused. Create one on the Remote access page.',
   'settings.modules.detail.downloadclientNoSubfolders': '"Put each package in its own subfolder" is off, so every grab lands in one folder and the importer cannot tell them apart.',
-  'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'No API token exists yet, so every call is refused. Create one on this page. "Put each package in its own subfolder" is off as well, so every grab lands in one folder and the importer cannot tell them apart.',
+  'settings.modules.detail.downloadclientNoTokenNoSubfolders': 'No API token exists yet, so every call is refused. Create one on the Remote access page. "Put each package in its own subfolder" is off as well, so every grab lands in one folder and the importer cannot tell them apart.',
   'settings.modules.detail.downloadclientReady': "Reachable at /api/sabnzbd/api. In Sonarr or Radarr, set URL Base to \"api/sabnzbd\" and the API key to one of this instance's API tokens.",
   'settings.modules.detail.metricsOff': 'Off. {path} answers 404, as an address that does not exist.',
   'settings.modules.detail.metricsNoToken': 'This instance has a password but no API token yet, so a monitoring system has nothing to sign in with. Create one on the Remote access page.',
@@ -591,17 +593,18 @@ export const en = {
   'settings.modules.reason.captchaJDOff': 'Captchas come only from JDownloader, which is switched off. Switch it back on first.',
   'settings.modules.reason.tray': "A tray icon needs a desktop session, which the container build does not have. There, the browser tab's title and icon show the same.",
   'settings.modules.reason.windowpolicy': 'What closing or minimising the window does belongs to one installation on one machine, so this instance does not serve it.',
-  'settings.modules.reason.updaterDesktop': 'Checks GitHub for a newer release when you ask on the General page, or by itself there if its switch is on. Downloading and installing stay a step you take there. Nothing is applied silently.',
+  'settings.modules.reason.updaterDesktop': 'Checks GitHub for a newer release when you ask on the General page, and on startup if "Check automatically on startup" is on. It installs what it finds only if "Install automatically when found" is on. Otherwise installing is a step you take there.',
   'settings.modules.reason.updaterContainer': 'A container cannot replace itself from the inside. The update check on the General page only tells you that a newer release exists and links to it. To update, pull the new image the way you deployed this one (docker pull, Unraid Community Applications, Watchtower and so on).',
-  'settings.modules.pageSwitchHint': 'The same switch as on the Modules page.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
+  'settings.modules.setUpBelow': 'There is nothing to switch on yet. Set it up below and the switch turns on by itself.',
+  'settings.modules.parkedBelow': 'Switching it on again brings back what was set up here.',
 
   'settings.module.extraction': 'Archive extraction',
   'settings.module.watch': 'Watch folder',
   'settings.module.crawler': 'Page crawler',
   'settings.module.checksums': 'Checksum verification',
-  'settings.module.scheduler': 'Scheduler',
+  'settings.module.scheduler': 'Schedules',
   'settings.module.reconnect': 'Reconnect',
   'settings.module.packagizer': 'Packagizer',
   'settings.module.linkfilter': 'Link filter',
@@ -627,6 +630,9 @@ export const en = {
   'settings.look.updatesCurrent': '{version} is the latest version.',
   'settings.look.updatesAvailable': '{version} is available',
   'settings.look.updatesAvailableContainer': '{version} is available: update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
+  'settings.look.updatesReleaseNotes': 'Release notes',
+  'settings.look.updatesContainerHint':
+    'Update your container image the way you deployed it, for example with docker pull or through Unraid Community Applications.',
   'settings.look.updatesAutoInstall': 'Install automatically when found',
   'settings.look.updatesAutoInstallHint': 'Downloads, verifies and applies a newer release the moment an automatic check finds one, then restarts. Requires "Check automatically on startup" above.',
   'settings.look.updatesAutoInstallContainerHint': 'Only possible on the desktop build: a container cannot replace itself from the inside. Update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',
@@ -656,7 +662,6 @@ export const en = {
 
   'settings.connections.add': 'Add connection',
   'settings.connections.import': 'Import list',
-  'settings.connections.listTitle': 'Outbound connections',
   'settings.connections.empty': 'Everything goes out over this machine',
   'settings.connections.emptyHint': 'No outbound connections are configured, so every download uses this machine’s own connection. Add a proxy to route downloads through, or a direct row to keep certain hosts off one.',
   'settings.connections.use': 'Use this connection',
@@ -668,8 +673,6 @@ export const en = {
   'settings.connections.typeHint': 'None and direct mean different things. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice: it goes out over this machine’s own connection and bypasses every proxy for the hosts named below. That is how you exclude a NAS from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
   'settings.connections.kind.none': 'None',
   'settings.connections.kind.direct': 'Direct',
-  'settings.connections.stateNone': 'Inert. Nothing is ever sent through this row.',
-  'settings.connections.stateDirect': 'Bypasses every proxy for the hosts below.',
   'settings.connections.warnDirectCatchAll': 'This direct row has no host filter, so it takes its turn in the rotation and sends downloads out unproxied at random. Name the hosts it should claim.',
   'settings.connections.stateSocks4': 'SOCKS4 carries a user id and has no password field at all, so no password is stored for this row.',
   'settings.connections.host': 'Host',
@@ -722,13 +725,10 @@ export const en = {
   'collector.filtered.toastHeld': 'Staged {n} link(s); {held} held by the link filter',
   'collector.filtered.toastAllHeld': 'Nothing was staged: the link filter is holding {held} link(s)',
 
-  'settings.rules.flavour.packagizer': 'Packagizer',
-  'settings.rules.flavour.filter': 'Link filter',
   'settings.rules.flavourLabel': 'Which rule list',
   'settings.rules.setupTitle': 'Rule set',
   'settings.rules.packagizerHint': 'Runs on every link as it is staged and rewrites what it can: package, folder, comment, priority, connections, auto-extract. Every matching rule contributes and a later rule wins per field.',
   'settings.rules.filterHint': 'Decides whether a link is taken into the collector at all. A rejected link is not deleted: it is held aside with the rule and the reason that stopped it, so nothing ever disappears without saying why.',
-  'settings.rules.setOn': 'This list is being applied',
   'settings.rules.setOff': 'This list is switched off',
   'settings.rules.setSwitchHint': 'The master switch for the whole list. When it is off, no rule below runs, but every rule can still be edited and dry-run as usual, so you can find and fix what is wrong while the list is off.',
   'settings.rules.stopAfterMatch': 'Stop at the first matching rule',
@@ -812,6 +812,7 @@ export const en = {
 
   'settings.rules.action.packageName': 'Package name',
   'settings.rules.action.downloadDir': 'Download folder',
+  'settings.rules.action.extractDir': 'Move the unpacked files to',
   'settings.rules.action.comment': 'Comment',
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
@@ -819,7 +820,8 @@ export const en = {
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Reason',
   'settings.rules.action.reasonHint': 'Shown next to the held-aside link. If you leave it empty, one is written for you, because a rejection nobody can explain is exactly what this list exists to avoid.',
-  'settings.rules.action.folderHint': 'The only box allowed to spell out path levels. Everything else is cut back to a single name, because a slash in a file name would be a way out of the folder you picked.',
+  'settings.rules.action.downloadDirHint': 'Where a matching link is downloaded to. This box and "Move the unpacked files to" are the only ones that may spell out path levels. Every other box is cut back to a single name, because a file name with a slash in it is a way out of the folder you picked.',
+  'settings.rules.action.extractDirHint': 'Where the unpacked files of a matching link go once unpacking has finished. For these links it replaces "Move the unpacked files to" on the Archives page. Variables work here.',
 
   'settings.rules.category.video': 'Video',
   'settings.rules.category.audio': 'Audio',
@@ -841,7 +843,7 @@ export const en = {
   'settings.rules.var.month': 'The month, as MM',
   'settings.rules.var.day': 'The day, as DD',
   'settings.rules.var.simpledate': 'The date in a pattern you write, in Java’s date syntax',
-  'settings.rules.var.source': 'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. This is not what JDownloader means by this tag; see the note below.',
+  'settings.rules.var.source': 'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. This is not what JDownloader means by this tag; the (i) beside “Insert a variable” says how they differ.',
   'settings.rules.var.match': 'Capture group N of this rule’s "matches" pattern on FIELD. This is JDownloader’s <jd:source:N>, under a name that says which pattern it reads. A rule with no matching pattern on that field is refused when you save it, rather than quietly producing a folder called <jd:match:url:1>.',
   'settings.rules.var.append': 'Nothing the first time this value comes up, then _2, _3 and so on',
   'settings.rules.sourceDivergence': 'Copying a template out of a JDownloader config? <jd:source:N> means something different here: a path segment of the source URL, not a capture group. JD’s meaning is spelled <jd:match:FIELD:N>. The two agree often enough to be dangerous, so a copied template is worth dry-running below before you save it.',
@@ -873,10 +875,8 @@ export const en = {
   'settings.rules.alsoSets': 'Also sets',
 
   'settings.reconnect.method': 'Method',
-  'settings.reconnect.setupTitle': 'Reconnect',
   'settings.reconnect.methodHint':
     'How the router is told to drop the line and come back with a new address. Command runs a program, Requests replays a recorded HTTP conversation, UPnP asks the gateway over the network without any login at all, and Script hands a file to an interpreter. Only the fields the chosen method needs are shown; the others keep what you typed and come back when you switch to them.',
-  'settings.reconnect.method.none': 'Off',
   'settings.reconnect.method.command': 'Command',
   'settings.reconnect.method.http': 'Requests',
   'settings.reconnect.method.upnp': 'UPnP',
@@ -1262,12 +1262,16 @@ export const en = {
   'captcha.clickCount': '{n} point(s) marked',
   'captcha.clickClear': 'Clear points',
   'captcha.widgetHint': 'Solve the challenge below. It continues on its own once you do.',
+  'captcha.widgetScoreHint': 'You do not need to click anything. The captcha service checks this browser and hands over its answer by itself.',
   'captcha.widgetUnavailable': 'This challenge could not be loaded.',
   'captcha.widgetUnreachable':
     'Your browser could not reach the captcha service. An ad blocker or a network filter may be blocking it. Refresh tries again.',
   'captcha.widgetRefused':
     'The captcha service refused to run here and reported {code}. Many hosters tie their captcha to their own website, so it may not load in KnightLoader at all. Refresh tries again, and Cancel skips this captcha.',
   'captcha.unsupported': 'KnightLoader cannot show this kind of challenge (reported as {vendor}).',
+  'captcha.unsolvable': 'KnightLoader cannot solve this captcha.',
+  'captcha.unsolvableVendor': 'JDownloader did not say which captcha service this is, and KnightLoader does not guess. Cancel skips this captcha.',
+  'captcha.unsolvableAction': 'This is a reCAPTCHA v3 check, and JDownloader did not pass on the action the hoster asks for. An answer without it would be refused. Cancel skips this captcha.',
   'captcha.unsupportedHint': 'Use Cancel below, or block this hoster’s captchas for this session.',
   'captcha.continue': 'Continue',
   'captcha.cancel': 'Cancel',
@@ -1280,18 +1284,13 @@ export const en = {
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
 
-  // The captcha settings page (pages/settings/Captcha.tsx) - solver order and
-  // each solver's own API key. Landed here verbatim from that file's own
-  // PENDING table (see its doc comment) now that this wave's locale pass has
-  // reached it; PENDING itself is left in place, unread once every key here
-  // resolves through the real catalogue.
+  // The captcha settings page (pages/settings/Captcha.tsx): the solver order
+  // and each solver's own API key.
   'settings.captcha.title': 'Captcha',
-  'settings.captcha.subtitle': 'Automatic solvers are tried in this order before a captcha is ever shown to you.',
   'settings.captcha.orderTitle': 'Solver order',
   'settings.captcha.orderHint':
     'Every enabled solver below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
   'settings.captcha.orderEmpty': 'No solver is enabled, so every captcha comes straight to you.',
-  'settings.captcha.use': 'Try this solver',
   'settings.captcha.enableSolver': 'Try {service} automatically',
   'settings.captcha.moveUp': 'Move up',
   'settings.captcha.moveDown': 'Move down',
@@ -1304,7 +1303,6 @@ export const en = {
   'settings.captcha.save': 'Save',
   'settings.captcha.saving': 'Saving…',
   'settings.captcha.placeholder': 'Paste the API key',
-  'settings.captcha.whereToFind': 'Get a key',
   'settings.captcha.saved': 'API key saved.',
   'settings.captcha.removed': 'API key removed.',
   'settings.captcha.saveFailed': 'Could not save the key: {error}',
@@ -1349,7 +1347,6 @@ export const en = {
   'collector.stats.links': 'Links',
   'collector.stats.totalSize': 'Total size',
   'collector.stats.hosts': 'Hosts',
-  'collector.hosterPreset': 'Variant settings',
   'collector.hosterPresetHint': 'Which variants of the links from {host} the collector shows, and the format and quality new links start with. Once a link is checked, it switches to the track of its own that comes closest. A link without this video format gets its best video up to this quality, and one without this audio format has its audio converted.',
 
   // The ambient-activity status strip (components/StatusStrip.tsx, Wave 9's
@@ -1424,7 +1421,6 @@ export const en = {
   // arrangement as Connections.tsx and Captcha.tsx before it.
   'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
   'settings.schedule.statusTitle': 'Schedule status',
-  'settings.schedule.listTitle': 'Schedules',
   'settings.schedule.orderHint':
     'Schedules apply in order, top to bottom, and where two overlap, the lower one wins. So a broad "pause every night" above a narrow exception leaves the exception in force, while the same two the other way round do not.',
   'settings.schedule.add': 'Create schedule',
@@ -1623,10 +1619,7 @@ export const en = {
   'settings.about.mailSubject': 'Feedback',
 
   // The script editor (pages/settings/Scripts.tsx) and its manual-invocation
-  // menu entry (components/ScriptActions.tsx) - Wave 11B, JD's "Event
-  // Scripter" (census family E).
-  'settings.scripts.subtitle': 'Automate KnightLoader with your own JavaScript, run on an event or on demand.',
-  'settings.scripts.listTitle': 'Your scripts',
+  // menu entry (components/ScriptActions.tsx), JDownloader's Event Scripter.
   'settings.scripts.add': 'Add script',
   'settings.scripts.empty': 'No scripts yet',
   'settings.scripts.emptyHint':
@@ -1660,8 +1653,7 @@ export const en = {
   'settings.scripts.running': 'Running…',
   'settings.scripts.runNeedsSaveHint': 'Give it a name or some code to create it, then test it here.',
   'settings.scripts.runDirtyHint': 'Your changes are still saving. The test run will use them in a moment.',
-  'settings.scripts.runOk': 'Ran successfully',
-  'settings.scripts.runOkDuration': 'Ran successfully in {ms} ms',
+  'settings.scripts.ranIn': 'Ran successfully in {duration}',
   'settings.scripts.runTimedOut': 'Stopped: ran longer than its time limit',
   'settings.scripts.runFailed': 'Failed: {error}',
   'settings.scripts.output': 'Output',
@@ -1738,7 +1730,6 @@ export const en = {
   'settings.access.phrase.body': 'One phrase links every KnightLoader you run. Create it here, then paste it into your other instances. You need no account or login, and there is nothing to configure.',
   'settings.access.phrase.noPasswordWarning': 'This instance has no password. The phrase reaches every instance you connect with it, so anyone who can read it here reaches all of them, not just this one. Better to set a password above first.',
   'settings.access.phrase.activate': 'Create a phrase',
-  'settings.access.phrase.howLead': 'Twelve words are all it takes. Here is what to do, and what happens when you do it:',
   'settings.access.phrase.howStep1': 'On this instance, press "{button}". Twelve words appear.',
   'settings.access.phrase.howStep2': 'Open KnightLoader on the other machine, come to this same page, press "{button}" and type the twelve words in.',
   'settings.access.phrase.howStep3': 'Done! Each instance now appears on the other under “Instances”, and you can drive either one from either one. With the relay switched on, your instances are reachable from outside your network.',
@@ -1803,11 +1794,11 @@ export const en = {
   // extension and the PWA share target all land on.
   'quickadd.title': 'Add to KnightLoader',
   'quickadd.manualLabel': 'Link (or paste several, one per line)',
+  'quickadd.manualHint':
+    'Paste a link by hand here, or open this page from the bookmarklet or your device’s Share menu.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Add',
   'quickadd.adding': 'Adding…',
-  'quickadd.emptyHint':
-    'Nothing was shared. Paste a link by hand, or use this page from the bookmarklet or your device’s Share menu.',
   'quickadd.staged': 'Added to the collector.',
   'quickadd.stagedNamed': 'Added “{name}” to the collector.',
   'quickadd.stagedCount': 'Added {n} links to the collector.',
@@ -1938,8 +1929,8 @@ export const en = {
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
     'A private torrent switches both off automatically once its metadata is known, regardless of what is set here: immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
-  'settings.torrents.engineNote':
-    'Seed ratio and seed duration reach every torrent this engine starts. The port reaches only the first torrent started since this instance’s last restart, because the engine builds its own torrent client once and never rebuilds it. A later port change is still saved correctly and takes effect after the next restart. The upload limit is only saved and validated so far; the engine has no way yet to apply it to a running download. For an ordinary torrent, DHT and PEX below do not take effect yet either: this instance’s own default does not reach a running download, so a torrent seeds with both on regardless of what is set here. A private torrent is a different case, covered in the note further down. The mapping button further down works regardless: it asks the router to forward the port number typed above, whether or not a torrent is listening on it yet.',
+  'settings.torrents.engineLimits':
+    'Seed ratio and seed duration reach every torrent this engine starts. The port reaches only the first torrent started since this instance’s last restart, because the engine builds its own torrent client once and never rebuilds it. A later port change is still saved correctly and takes effect after the next restart. The upload limit is only saved and validated so far; the engine has no way yet to apply it to a running download. For an ordinary torrent, DHT and PEX below do not take effect yet either: this instance’s own default does not reach a running download, so a torrent seeds with both on regardless of what is set here. A private torrent is a different case, explained in the (i) of Peer discovery further down. The mapping button further down works regardless: it asks the router to forward the port number typed above, whether or not a torrent is listening on it yet.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
@@ -2054,7 +2045,6 @@ export const en = {
   'settings.downloads.diskLowSpaceHint': 'Free space under which nothing new starts, whatever its size and even when the size is unknown. 0 is off, which is how it ships: the right number depends entirely on the volume, and a gigabyte is nothing on a sixteen-terabyte array and a third of a memory card. Queued downloads simply wait and start again on their own once space comes back. Set the stop value below higher than this one and this one is raised to match when it saves, because "stop everything under X" already means "start nothing under X".',
   'settings.downloads.diskCriticalSpace': 'Stop everything below (GiB)',
   'settings.downloads.diskCriticalSpaceHint': 'Free space under which downloads that are already running are stopped and put back in the queue, checked every fifteen seconds. 0 is off, which is how it ships. This costs more than the start value above: a transfer that cannot resume loses whatever it had already fetched, so keep it for a volume that is genuinely about to run out. Set it higher than the start value and the start value is raised to match on save; the number you type here is never quietly lowered.',
-  'settings.feeds.title': 'Feed subscriptions',
   'settings.feeds.titleHint': 'RSS and Atom feeds this instance follows. Each one is fetched on its own timer, and a new entry goes into the collector exactly like a pasted link, so the link filter, the crawler and the Packagizer all apply to it. The first fetch of a new subscription adds nothing at all: everything the feed is carrying at that moment is written down as already known, so you do not get a publisher\'s whole back catalogue in one go. Only what appears after that is added. An empty list means no feed is followed.',
   'settings.feeds.url': 'Feed address',
   'settings.feeds.urlHint': 'The address of the RSS or Atom document, http or https only. It is also what identifies the subscription: change it and you have a different subscription, one that no longer knows which entries it already added, so even fixing a typo makes it read the feed as if it were new. An address that cannot be read, or that names no host, makes the whole settings save fail with the row number instead of quietly disappearing. Two rows with the same address are merged into the first one when you save.',
@@ -2117,7 +2107,7 @@ export const en = {
   'settings.stall.maxRestarts': 'Restarts per download',
   'settings.stall.maxRestartsHint': 'How often one download may be started over automatically before it is left alone. 0 is not unlimited, it means 3, the built-in number. Once the cap is reached the download keeps its mark and stays where it is, so you can look at it yourself instead of it working the same server all night for nothing. 20 is the most the server accepts, anything higher is stored as 20. The count belongs to the download and is only cleared when it finishes.',
   'settings.resolvers.audioFormat': 'Audio format',
-  'settings.resolvers.audioFormatHint': 'A source with a track in this format is copied, and one without is converted with ffmpeg. Auto takes the best track as it is. This is only the fallback: new links take their audio format from the per-host defaults further down, and the choice on the row beats both.',
+  'settings.resolvers.audioFormatHint': 'A source with a track in this format is copied, and one without is converted with ffmpeg. Auto takes the best track as it is. This is only the fallback: new links take their audio format from the variant defaults further down, and the choice on the row beats both.',
   'settings.resolvers.audioBitrate': 'Audio bitrate',
   'settings.resolvers.audioBitrateHint': 'What ffmpeg encodes to when it converts, in kbit/s. Auto sets no target and leaves yt-dlp\'s default of about 128 kbit/s, variable. A copied track keeps its own bitrate. This is an upper limit: 320 from a source with 128 does not sound any better.',
   'settings.resolvers.audioLang': 'Spoken language',
@@ -2154,10 +2144,10 @@ export const en = {
   'settings.resolvers.liveMaxMBHint': 'Stops a recording once this much has arrived, in MiB. 0 means no limit. Counted from what yt-dlp reports as downloaded, not from the size on disk: a live download is written as temporary fragments whose combined size is not the number anybody sets a limit against. Whichever of the two limits is reached first ends the recording, gently, and the row settles as done with the reason on it.',
   'settings.resolvers.cookies': 'Use stored sign-in cookies',
   'settings.resolvers.cookiesHint': 'Hands the cookies.txt stored for a site to yt-dlp, which is what gets past "sign in to confirm you are not a bot" and age gates. The jar is never part of the settings document: it lives in the encrypted credential store, is written to a temporary file only this server can read, and that file is deleted the moment the process exits. A switch rather than automatic, because sending a logged-in session has consequences: a rate limit or a ban lands on the account, not on the address. With no jar stored for a site, this changes nothing there.',
-  'settings.resolvers.presetsTitle': 'Per-host defaults',
+  'settings.resolvers.variantDefaults': 'Variant defaults',
   'settings.resolvers.presetsHint': 'Every yt-dlp link becomes five rows: video, audio, thumbnail, subtitles and description. This table decides per site which of them the collector shows, and the format and quality the video and audio rows start with. Switching a variant off removes its rows at once, also from links already in the collector, and switching it on brings them back. Once a link is checked, its video and audio rows switch to the link\'s own track that comes closest. A site without a row here gets all five in the best quality. The quality and audio format further up this page only apply to rows without a choice of their own. The gear on a package in the collector opens the same settings for that package\'s hoster.',
   'settings.module.categories': 'Categories',
-  'settings.module.feeds': 'RSS and Atom subscriptions',
+  'settings.module.feeds': 'Feed subscriptions',
   'settings.module.downloadclient': 'Download client for Sonarr and Radarr',
   'settings.downloads.collisionTitle': 'Name conflicts',
   'settings.downloads.collectorTitle': 'Collector',
@@ -2246,7 +2236,6 @@ export const en = {
   'settings.feeds.testNoneMatch': 'Nothing in this feed matches your title filter. Check the spelling against the titles above.',
   'settings.feeds.testEmpty': 'The address answered, but the document carries no entries at all. Check that it really is a feed and not the page the feed sits on.',
   'settings.feeds.testFailed': 'This feed could not be read',
-  'settings.feeds.testSafe': 'Testing only reads. Nothing was added and nothing was remembered.',
   'settings.headerProfiles.title': 'Header profiles',
   'settings.headerProfiles.hint': 'Some sites only hand a file over to a browser that is signed in, or that arrives from one of their own pages. A profile stores the headers for exactly one site, sealed the same way your account keys are, and KnightLoader sends them with every download from that site.',
   'settings.headerProfiles.empty': 'No header profiles yet.',
@@ -2699,8 +2688,8 @@ export const en = {
   'settings.mediahook.lastCall': 'Last call',
   'settings.mediahook.lastCallHint': 'What happened the last time this address was called, test calls counted. It is held in memory only, so a restart clears it without changing anything about the address itself.',
   'settings.mediahook.lastCallNever': 'Not called since this server started',
-  'settings.mediahook.lastCallOk': 'Answered {status} after {ms} ms',
-  'settings.mediahook.lastCallFailed': 'Failed after {ms} ms',
+  'settings.mediahook.answeredAfter': 'Answered {status} after {duration}',
+  'settings.mediahook.failedAfter': 'Failed after {duration}',
   'settings.mediahook.lastCallFor': 'For the package {name}',
   'settings.mediahook.lastCallTest': 'Test call',
   'settings.mediahook.lastCallCoalesced': 'For {n} packages that finished together',
@@ -2721,7 +2710,6 @@ export const en = {
   'settings.categories.notifyEmpty': 'No address is stored yet. Add one on the Automation page.',
   'settings.categories.notifyMissing': '{id} (deleted)',
   'settings.module.eventtargets': 'Event targets',
-  'settings.eventTargets.title': 'Event targets',
   'settings.eventTargets.titleHint': 'Where this instance reports to when something happens: an address of yours, with the method, headers and body you decide. Nothing is filled in and nothing is switched on until you do it, and a message only ever goes to the address in the row. The events on offer are the same ones the script editor fires on.',
   'settings.eventTargets.add': 'Add target',
   'settings.eventTargets.empty': 'No targets yet.',
@@ -2743,7 +2731,8 @@ export const en = {
   'settings.eventTargets.eventsHint': 'Which events go to this target. Nothing is ticked to start with. Three of them speak up again after a restart, because what they remember lives in memory and not on disk: the queue reports itself idle, every captcha still waiting reports itself again, and every account that already lapsed reports itself again. A finished package does not, because the first pass after a start only takes note and says nothing.',
   'settings.eventTargets.eventsNone': 'Nothing is ticked, so this target never sends.',
   'settings.eventTargets.eventsBurst': 'A link being added fires once per link, so pasting two hundred links is two hundred messages. Whatever the queue cannot hold is dropped and counted below rather than piling up.',
-  'settings.eventTargets.eventsReplay': 'At least one of the events you ticked reports itself again after every restart, because what it remembers lives in memory and not on disk.',
+  'settings.eventTargets.replaysHint':
+    'This event reports itself again after every restart, because what it remembers lives in memory and not on disk.',
   'settings.eventTargets.attempts': 'Delivery attempts',
   'settings.eventTargets.attemptsHint': 'How often one message is tried before it is given up on. 0 means you have no opinion and the usual three apply; the number in force is shown beside the box. Between 1 and 5. A refusal from the far end, a wrong token or a path that does not exist, is not repeated at all, because a second try cannot change it, and the reason is in the status below. Nothing is written to disk while a message waits, so a target that was down all night has nothing to catch up on when it comes back.',
   'settings.eventTargets.attemptsDefault': '0 means three',
@@ -2758,7 +2747,7 @@ export const en = {
   'settings.eventTargets.testHint': 'This really sends one message to the address above, right now, with the values from this row and a made-up event. It is not a dry run: your phone will buzz and your chat room will see it. The answer is shown as it came back, so a refusal can be read instead of guessed at. A stored header value is filled in for the request and shown as eight stars afterwards, because this browser was never shown it.',
   'settings.eventTargets.testResult': 'The answer that came back',
   'settings.eventTargets.testSent': 'What was sent',
-  'settings.eventTargets.testDuration': 'Took {ms} ms',
+  'settings.eventTargets.took': 'Took {duration}',
   'settings.eventTargets.testTruncated': 'The answer is longer than this. Only the first {n} characters are shown.',
   'settings.eventTargets.testEmptyBody': 'The answer carried no body, which is normal for a push server.',
   'settings.eventTargets.testNoAnswer': 'Nothing answered.',
@@ -2831,6 +2820,7 @@ export const en = {
   'health.remedy.captcha.waiting': 'A backend has stopped to ask a human. Nothing behind it moves until somebody answers.',
   'settings.health.tasks': 'Downloads right now',
   'settings.health.tasksHint': 'A snapshot of the list as it stands, not a tally over time, so none of these numbers says how often anything has failed. "Failed" counts the rows sitting in the list with an error on them: it falls when you clear them and when the list is tidied up after the days you set, and it climbs again when something new goes wrong.',
+  'settings.health.diskWhere': 'The Downloads page shows how much room the target folders have.',
   'settings.health.running': 'Running',
   'settings.health.waiting': 'Waiting',
   'settings.health.failed': 'Failed',
@@ -2838,9 +2828,6 @@ export const en = {
   'settings.health.failedWhy': 'What went wrong',
   'settings.health.nothingWaiting': 'Nothing is being held back.',
   'settings.health.nothingFailed': 'Nothing in the list has failed.',
-  'settings.health.diskLink': 'Room on the target folders is on the Downloads page',
-  'settings.health.scrape': 'Monitoring',
-  'settings.health.scrapeSwitch': 'Answer at the metrics address',
   'settings.health.scrapeHint': 'Opens a second address that gives the same figures as plain text, in the format Prometheus and the tools built like it read. It is fetched, never sent: nothing leaves this machine unless your own monitoring comes here and asks for it. While this is off the address does not exist at all and answers 404, the same as any address this app does not have. On an instance with a password the fetch needs one of your API tokens, and every collector can be told to send one. A collector sends no origin header and therefore gets through; a browser tab on another address does send one and is refused when it does not match this instance\'s own address. The text carries your target folders\' paths, so put it where you would put the folder names themselves.',
   'settings.health.scrapeUrl': 'Metrics address',
   'settings.health.scrapeCopy': 'Copy address',

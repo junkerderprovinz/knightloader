@@ -76,7 +76,6 @@ export const ko: Dict = {
   'settings.accent': '강조 색',
   'settings.rainbow': '레인보우',
   'settings.disco': '디스코',
-  'settings.discoHint': '레인보우가 켜져 있는 동안 색이 있는 모든 요소가 1초마다 팔레트의 다음 색으로 넘어갑니다.',
   'settings.problems': '문제가 있나요?',
   'settings.problemsHint': '무언가 보고할 때 이것을 함께 보내세요. 질문을 한 번 주고받는 수고를 덜어 주고, 주소나 토큰은 들어 있지 않습니다.',
   'settings.problemsCopy': '보고서 복사',

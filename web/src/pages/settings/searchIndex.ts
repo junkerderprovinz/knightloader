@@ -38,6 +38,10 @@ export interface SettingsCard {
 /**
  * SETTINGS_INDEX is keyed by the page id from featurePages, with the cards in
  * the order the page draws them. Only pages the server sends are offered.
+ *
+ * A module switch is a row keyed settings.module.<id>, except on a card titled
+ * by that module: there the switch's caption is the title, so it has no row of
+ * its own and its (i) goes in `body`. Modules.tsx finds the switch either way.
  */
 export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   modules: [
@@ -72,15 +76,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.downloads.autoConfirmOff'],
     },
     {
-      title: 'settings.crawl.title',
+      title: 'settings.module.crawler',
       rows: [
-        { key: 'settings.crawl' },
         { key: 'settings.crawl.depth', hint: 'settings.crawl.depthHint' },
         { key: 'settings.crawl.maxPages', hint: 'settings.crawl.maxPagesHint' },
         { key: 'settings.crawl.sameHost', hint: 'settings.crawl.sameHostHint' },
         { key: 'settings.crawl.include', hint: 'settings.crawl.includeHint' },
         { key: 'settings.crawl.exclude', hint: 'settings.crawl.excludeHint' },
       ],
+      body: ['settings.crawl'],
     },
     {
       title: 'settings.advanced.mirrorsTitle',
@@ -129,7 +133,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resumeOnStart', hint: 'settings.resumeOnStartHint' },
         { key: 'settings.keepFinishedDays', hint: 'settings.keepFinishedDaysHint' },
         { key: 'settings.historyMax', hint: 'settings.historyMaxHint' },
-        { key: 'settings.verifyChecksums' },
+        { key: 'settings.module.checksums', hint: 'settings.verifyChecksums' },
         { key: 'settings.preParser', hint: 'settings.preParserHint' },
       ],
     },
@@ -162,7 +166,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.feeds.title',
+      title: 'settings.module.feeds',
       hint: 'settings.feeds.titleHint',
       rows: [
         { key: 'settings.feeds.url', hint: 'settings.feeds.urlHint' },
@@ -209,9 +213,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   archives: [
     {
-      title: 'settings.archives.extractionTitle',
+      title: 'settings.module.extraction',
       rows: [
-        { key: 'settings.extract' },
         { key: 'settings.archives.destination', hint: 'settings.archives.destinationHint' },
         { key: 'settings.archives.subfolder', hint: 'settings.archives.subfolderHint' },
         { key: 'settings.archives.moveTo', hint: 'settings.archives.moveToHint' },
@@ -280,6 +283,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   appearance: [
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
     { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
+    { title: 'settings.bottomBarLabels.title', hint: 'settings.bottomBarLabels.titleHint', rows: [] },
     { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
     {
       title: 'settings.colours',
@@ -318,7 +322,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   instances: [
     {
       title: 'settings.instances.setupTitle',
-      rows: [{ key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' }],
+      rows: [
+        { key: 'settings.module.federation' },
+        { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
+      ],
     },
   ],
 
@@ -347,6 +354,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'auth.twoFactor.disablePrompt' },
       ],
       also: ['auth.twoFactor.enable', 'auth.twoFactor.disable', 'auth.twoFactor.codesTitle'],
+      // The (i) inside the Set up button.
+      body: ['auth.twoFactor.beforeYouStart'],
     },
     {
       title: 'auth.passkey.title',
@@ -367,22 +376,30 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.access.relay.own',
         'settings.access.relay.project',
       ],
+      // The phrase's own (i), shown once the phrase is on screen.
+      body: ['settings.access.phrase.pasteHint'],
     },
     {
       title: 'settings.access.relay.title',
       hint: 'settings.access.relay.body',
-      rows: [{ key: 'settings.access.relay.use' }],
+      rows: [{ key: 'settings.access.relay.use', hint: 'settings.access.relay.leadProject' }],
       also: ['settings.access.relay.seesButton'],
     },
     {
       title: 'settings.access.ownRelay.title',
       hint: 'settings.access.ownRelay.body',
       rows: [
-        { key: 'settings.access.ownRelay.use' },
+        { key: 'settings.access.ownRelay.use', hint: 'settings.access.ownRelay.lead' },
         { key: 'settings.access.ownRelay.serveLabel', hint: 'settings.access.ownRelay.serveHint' },
       ],
     },
-    { title: 'settings.access.tokens.title', hint: 'settings.access.tokens.intro', rows: [] },
+    {
+      title: 'settings.access.tokens.title',
+      hint: 'settings.access.tokens.intro',
+      rows: [{ key: 'settings.module.downloadclient' }],
+      // The (i) of the window that shows a new token.
+      body: ['settings.access.tokens.howToUse'],
+    },
   ],
 
   advanced: [
@@ -397,16 +414,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   rules: [
     {
       title: 'settings.rules.setupTitle',
-      rows: [],
-      also: [
-        'settings.rules.flavourLabel',
-        'settings.rules.flavour.packagizer',
-        'settings.rules.flavour.filter',
-        'settings.rules.setOn',
-        'settings.rules.setOff',
-        'settings.rules.stopAfterMatch',
+      // One switch at a time, for the list the selector shows; Rules.tsx
+      // shows the list a jump asks for.
+      rows: [
+        { key: 'settings.module.packagizer', hint: 'settings.rules.setSwitchHint' },
+        { key: 'settings.module.linkfilter', hint: 'settings.rules.setSwitchHint' },
       ],
-      body: ['settings.rules.setSwitchHint', 'settings.rules.stopHint'],
+      also: ['settings.rules.flavourLabel', 'settings.rules.stopAfterMatch'],
+      body: ['settings.rules.stopHint'],
     },
     {
       title: 'settings.rules.listTitle',
@@ -423,8 +438,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rules.import',
         'settings.rules.export',
       ],
-      // The (i) inside the Import and Export buttons.
-      body: ['settings.rules.importTitle', 'settings.rules.exportTitle'],
+      // The (i) inside the Import and Export buttons, and the variables menu's.
+      body: ['settings.rules.importTitle', 'settings.rules.exportTitle', 'settings.rules.variablesHint'],
     },
     { title: 'settings.rules.testTitle', rows: [], body: ['settings.rules.testHint'] },
     {
@@ -447,7 +462,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   network: [
     {
-      title: 'settings.connections.listTitle',
+      title: 'settings.module.connections',
       rows: [
         { key: 'settings.connections.type', hint: 'settings.connections.typeHint' },
         { key: 'settings.connections.host' },
@@ -459,9 +474,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.connections.testTarget', hint: 'settings.connections.testTargetHint' },
         { key: 'settings.connections.importLabel', hint: 'settings.connections.importHint' },
       ],
+      // The user name's (i) on a SOCKS4 row.
+      body: ['settings.connections.stateSocks4'],
     },
     {
-      title: 'settings.reconnect.setupTitle',
+      title: 'settings.module.reconnect',
       rows: [
         { key: 'settings.reconnect.method', hint: 'settings.reconnect.methodHint' },
         { key: 'settings.reconnect.command', hint: 'settings.reconnect.commandHint' },
@@ -481,7 +498,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       // The method's sub-heading belongs to this card.
       also: ['settings.reconnect.requests'],
-      body: ['settings.reconnect.requestsHint'],
+      body: ['settings.reconnect.requestsHint', 'settings.reconnect.upnpState'],
     },
     {
       title: 'settings.reconnect.checkTitle',
@@ -534,6 +551,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.resolvers.toolsTitle',
       hint: 'settings.resolvers.toolsHint',
       rows: [
+        { key: 'settings.module.ytdlp' },
         { key: 'settings.resolvers.toolsAutoCheck', hint: 'settings.resolvers.toolsAutoCheckHint' },
         { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
       ],
@@ -615,7 +633,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.resolvers.presetsTitle',
+      title: 'settings.resolvers.variantDefaults',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
       // The per-host overrides are bare selects named by aria-label.
@@ -628,6 +646,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.seedingTitle',
       rows: [
+        { key: 'settings.module.torrents' },
         { key: 'settings.torrents.seedRatio', hint: 'settings.torrents.seedRatioHint' },
         { key: 'settings.torrents.seedDuration', hint: 'settings.torrents.seedDurationHint' },
       ],
@@ -639,9 +658,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.portTitle',
       rows: [{ key: 'settings.torrents.port', hint: 'settings.torrents.portHint' }],
+      // The (i) inside the mapping button.
+      body: ['settings.torrents.portMapHint'],
     },
     {
       title: 'settings.torrents.networkTitle',
+      hint: 'settings.torrents.privateNote',
       rows: [
         { key: 'settings.torrents.dht', hint: 'settings.torrents.dhtHint' },
         { key: 'settings.torrents.pex', hint: 'settings.torrents.pexHint' },
@@ -651,7 +673,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   captcha: [
     // The solver rows are named by the server.
-    { title: 'settings.captcha.orderTitle', hint: 'settings.captcha.orderHint', rows: [], body: ['settings.captcha.orderEmpty'] },
+    {
+      title: 'settings.captcha.orderTitle',
+      hint: 'settings.captcha.orderHint',
+      rows: [{ key: 'settings.module.captcha' }],
+      body: ['settings.captcha.orderEmpty'],
+    },
   ],
 
   automation: [
@@ -667,7 +694,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.schedule.stateNow.suspendedOpen'],
     },
     {
-      title: 'settings.schedule.listTitle',
+      title: 'settings.module.scheduler',
       hint: 'settings.schedule.orderHint',
       rows: [
         { key: 'settings.schedule.name' },
@@ -740,7 +767,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
-      title: 'settings.eventTargets.title',
+      title: 'settings.module.eventtargets',
       hint: 'settings.eventTargets.titleHint',
       rows: [
         { key: 'settings.eventTargets.enabled', hint: 'settings.eventTargets.enabledHint' },
@@ -773,21 +800,21 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.emptyHint',
         'settings.eventTargets.eventsNone',
         'settings.eventTargets.eventsBurst',
-        'settings.eventTargets.eventsReplay',
+        'settings.eventTargets.replaysHint',
         'settings.eventTargets.placeholderUnused',
         'settings.eventTargets.leavesTheBox',
         'settings.eventTargets.statusUnknown',
         'settings.eventTargets.lastOkNever',
         'settings.eventTargets.sentCount',
         'settings.eventTargets.dropped',
-        'settings.eventTargets.testDuration',
+        'settings.eventTargets.took',
         'settings.eventTargets.testTruncated',
         'settings.eventTargets.testEmptyBody',
         'settings.eventTargets.testNoAnswer',
       ],
     },
     {
-      title: 'settings.scripts.listTitle',
+      title: 'settings.module.scripting',
       rows: [
         { key: 'settings.scripts.name' },
         { key: 'settings.scripts.trigger', hint: 'settings.scripts.triggerHint' },
@@ -830,16 +857,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.health.failed' },
       ],
       also: ['settings.health.waitingWhy', 'settings.health.failedWhy'],
-      body: ['settings.health.nothingWaiting', 'settings.health.nothingFailed', 'settings.health.diskLink'],
+      body: ['settings.health.nothingWaiting', 'settings.health.nothingFailed', 'settings.health.diskWhere'],
     },
     {
-      title: 'settings.health.scrape',
-      rows: [
-        { key: 'settings.health.scrapeSwitch', hint: 'settings.health.scrapeHint' },
-        { key: 'settings.health.scrapeUrl' },
-      ],
+      title: 'settings.module.metrics',
+      rows: [{ key: 'settings.health.scrapeUrl' }],
       also: ['settings.health.scrapeCopy', 'settings.health.scrapeCopied'],
-      body: ['settings.health.scrapeOffHint'],
+      body: ['settings.health.scrapeHint', 'settings.health.scrapeOffHint'],
     },
   ],
 
@@ -854,6 +878,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.diagnostics.platform' },
         { key: 'settings.diagnostics.goroutines' },
       ],
+      // The (i) inside the download button.
+      body: ['settings.diagnostics.downloadHint'],
     },
     // Every line of the start report is a check the server named.
     {
@@ -1017,7 +1043,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   browsertools: [
-    { title: 'settings.browsertools.bookmarkletTitle', rows: [], body: ['settings.browsertools.bookmarkletStep1'] },
+    {
+      title: 'settings.browsertools.bookmarkletTitle',
+      rows: [],
+      body: ['settings.browsertools.bookmarkletStep1', 'settings.browsertools.bookmarkletStep2'],
+    },
     { title: 'settings.browsertools.extensionTitle', rows: [], also: ['settings.browsertools.installLabel'] },
     { title: 'settings.browsertools.appTitle', hint: 'settings.browsertools.appBody', rows: [] },
   ],

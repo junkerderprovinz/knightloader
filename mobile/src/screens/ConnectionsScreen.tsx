@@ -10,7 +10,7 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { GlimButton, StatusBadge } from '../components/glim';
-import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../api/stats';
+import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
 import { Text } from '../components/Text';
 
 /**
@@ -37,7 +37,7 @@ function statusLine(
   else if (s.running > 0) parts.push(t('downloads.queueRunning'));
   parts.push(`${s.files} ${t('instance.files')}`);
   if (s.remaining > 0) parts.push(`${fmtBytes(s.remaining)} ${t('instance.left')}`);
-  if (s.speed > 0) parts.push(`${fmtBytes(s.speed)}/s`);
+  if (s.speed > 0) parts.push(fmtSpeed(s.speed));
   return parts.join(' · ');
 }
 
@@ -205,8 +205,8 @@ export default function ConnectionsScreen({
            paint while the five-second poll updates state nobody redraws. A cell
            that reads state outside `data` has to say so, and the colour it
            takes from hueAt and the rainbow is such state: without them a
-           palette change, or disco's step every second, leaves the rows in
-           their old colours. */
+           palette change, or disco's walk, leaves the rows in their old
+           colours. */
         extraData={[status, stats, why, hueAt, rainbow.reactive]}
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
@@ -232,7 +232,7 @@ export default function ConnectionsScreen({
                         t('overview.online', { n: gesamt.online, total: gesamt.total }),
                         `${gesamt.files} ${t('instance.files')}`,
                         gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
-                        gesamt.speed > 0 ? `${fmtBytes(gesamt.speed)}/s` : null,
+                        gesamt.speed > 0 ? fmtSpeed(gesamt.speed) : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}

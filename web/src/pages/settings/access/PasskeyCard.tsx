@@ -130,7 +130,7 @@ export function PasskeyCard({
           />
           <span className="text-sm text-carbon-text">
             {keys.length > 0
-              ? t('auth.passkey.registered').replace('{n}', String(keys.length))
+              ? t('auth.passkey.registered', { n: keys.length })
               : t('auth.passkey.none')}
           </span>
         </div>
@@ -165,7 +165,7 @@ export function PasskeyCard({
                   <div className="text-[11px] text-carbon-textMuted">
                     {p.usableHere
                       ? t('auth.passkey.usableHere')
-                      : t('auth.passkey.otherAddress').replace('{host}', p.rpId)}
+                      : t('auth.passkey.otherAddress', { host: p.rpId })}
                     {!p.backedUp && <> · {t('auth.passkey.notSynced')}</>}
                     {/* The store keeps whole seconds. */}
                     {p.lastUsedAt > 0 && (
@@ -325,7 +325,7 @@ export function PasskeyCard({
         >
           {/* Names the password as the way in that remains. */}
           <p className="text-sm text-carbon-textSub">
-            {t('auth.passkey.removeBody').replace('{name}', pendingRemove.name)}
+            {t('auth.passkey.removeBody', { name: pendingRemove.name })}
           </p>
         </Modal>
       )}

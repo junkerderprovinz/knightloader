@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Task } from '../lib/api';
 import { fetchScripts, runScript, type Script } from '../lib/scripts';
-import { useT, type TranslationKey } from '../lib/i18n';
+import { interpolate, useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import type { MenuGroup } from './ContextMenu';
 import { IconCode } from '../lib/icons';
@@ -24,9 +24,7 @@ function useCx(): Cx {
   return useCallback(
     (key: PendingKey, vars?: Record<string, string | number>) => {
       const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
+      return interpolate(translated ?? PENDING[key], vars);
     },
     [t],
   );

@@ -5,6 +5,7 @@ import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
+import { ModuleToggle } from './ModuleToggle';
 
 /**
  * Archives settles everything about an archive: whether it is unpacked, where
@@ -35,14 +36,14 @@ function useArchiveOptions(): { options: ApiOptions | null; failed: boolean } {
   return { options, failed };
 }
 
-// An id without a label shows as itself.
-const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
+// An id without a label shows as itself. Advanced names these rows alike.
+export const COLLISION_LABEL: Partial<Record<string, TranslationKey>> = {
   overwrite: 'settings.archives.collision.overwrite',
   rename: 'settings.archives.collision.rename',
   skip: 'settings.archives.collision.skip',
 };
 
-const DISPOSAL_LABEL: Partial<Record<string, TranslationKey>> = {
+export const DISPOSAL_LABEL: Partial<Record<string, TranslationKey>> = {
   keep: 'settings.archives.disposal.keep',
   trash: 'settings.archives.disposal.trash',
   delete: 'settings.archives.disposal.delete',
@@ -71,8 +72,8 @@ export function Archives() {
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.archives.extractionTitle')}</SectionTitle>
-        <ToggleRow hue={0} checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
+        <SectionTitle>{t('settings.module.extraction')}</SectionTitle>
+        <ModuleToggle id="extraction" hue={0} />
 
         {/* Flush left under the switch, and absent while it is off. */}
         {unpacking && (

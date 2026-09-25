@@ -24,8 +24,7 @@ import {
   fetchOptions,
   saveHosterPreset,
 } from '../lib/api';
-import { hueVars, rainbowAt } from '../lib/appearance';
-import { useRainbow } from '../lib/useRainbow';
+import { hueVars } from '../lib/appearance';
 import {
   pause,
   resume,
@@ -345,7 +344,7 @@ function TaskRow({
       // row sits where the document flow puts it.
       style={
         {
-          ...hueVars(rainbowAt(index)),
+          ...hueVars(index),
           ...ROW_GRID,
           ...dnd.slide(unit),
         } as CSSProperties
@@ -615,7 +614,7 @@ function PackageName({
 function HosterPresetButton({ host, base, focusable }: { host: string; base: string; focusable: boolean }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const label = `${t('collector.hosterPreset')} · ${host}`;
+  const label = `${t('settings.resolvers.variantDefaults')} · ${host}`;
   return (
     <>
       <IconBadge
@@ -703,7 +702,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
 
   return (
     <Modal
-      title={`${t('collector.hosterPreset')} · ${host}`}
+      title={`${t('settings.resolvers.variantDefaults')} · ${host}`}
       onClose={onClose}
       footer={
         <>
@@ -1519,9 +1518,6 @@ export function TaskListCard({
   // beginGesture): the queue refuses a reorder with a sentence, and a move that
   // is refused in silence reads as a move the app never received.
   const { toast } = useToast();
-  // One subscription for the whole table rather than one per row: the palette
-  // changes for every row at once anyway.
-  useRainbow();
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
@@ -2890,7 +2886,7 @@ export function TaskListCard({
           --item-hue resolves --accent to nothing and the badge disappears. */}
       <div
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
-        style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+        style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
         <div className="flex items-center gap-2 px-4 pt-4">
           {/* The bubble on this badge holds the one explanation the table needs

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { fetchTaskLog, isLocalBase, type LogLine, type Task } from '../../lib/api';
 import { useT } from '../../lib/i18n';
-import { Card, EmptyState, SectionTitle } from '../ui';
+import { Button, Card, EmptyState, SectionTitle } from '../ui';
 
 /**
  * LogCard shows the instance's log lines about one download. It is usually
@@ -14,6 +14,7 @@ import { Card, EmptyState, SectionTitle } from '../ui';
  */
 export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: number }) {
   const { t } = useT();
+  const navigate = useNavigate();
   const local = isLocalBase(base);
   const [lines, setLines] = useState<LogLine[] | null>(null);
 
@@ -60,13 +61,9 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
       )}
 
       {local && (
-        <Link
-          to="/settings/diagnostics"
-          className="self-start rounded-[var(--radius-control)] px-2 py-1 text-[11px] text-carbon-textMuted
-            transition-colors hover:bg-carbon-hover hover:text-carbon-text"
-        >
+        <Button kind="secondary" className="self-start" onClick={() => navigate('/settings/diagnostics')}>
           {t('detail.log.openDiagnostics')}
-        </Link>
+        </Button>
       )}
     </Card>
   );

@@ -38,16 +38,17 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // one. Appearance is what an instance may lead on, colour, corners and the
 // palette, while motion belongs to this phone and the person holding it, never
 // travels over the wire, and is half an operating-system setting no server has
-// business overriding.
+// business overriding. It sits outside appearance, because disco's glide is
+// motion and reads the level.
 export default function App() {
   return (
-    <AppearanceProvider>
-      <MotionProvider>
+    <MotionProvider>
+      <AppearanceProvider>
         <I18nProvider>
           <Shell />
         </I18nProvider>
-      </MotionProvider>
-    </AppearanceProvider>
+      </AppearanceProvider>
+    </MotionProvider>
   );
 }
 

@@ -93,7 +93,7 @@ export const en = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Rainbow',
   'settings.disco': 'Disco',
-  'settings.discoHint': 'While rainbow mode is on, every coloured element moves on to the next colour of the palette once a second.',
+  'settings.discoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Motion set to Off, or reduced motion switched on in your phone’s settings, it steps from one colour to the next instead.',
   'settings.problems': 'Problems?',
   'settings.problemsHint': 'Send this along when you report something. It saves a round of questions, and it contains no address or token.',
   'settings.problemsCopy': 'Copy report',

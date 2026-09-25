@@ -10,8 +10,8 @@ package app
 // is normal for a fresh download folder but also what a mount that did not come
 // up looks like, so both paths are reported.
 //
-// Nothing here writes. settings.Validate would create each folder and drop a
-// probe file into it, so only os.Stat is used.
+// Nothing here writes. settings.Validate drops a probe into each folder, so
+// only os.Stat is used.
 
 import (
 	"os"

@@ -7,18 +7,18 @@ import (
 	"testing"
 )
 
-// The download folder may be a template, so validating it by creating it would
-// put directories literally named "<jd:date>" on the disk.
+// The download folder may be a template, and only its fixed part is a real
+// folder: checking the rest would put directories literally named "<jd:date>"
+// on the disk.
 func TestValidateDoesNotCreatePlaceholderFolders(t *testing.T) {
 	base := t.TempDir()
+	if err := os.Mkdir(filepath.Join(base, "downloads"), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	tmpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:packagename>")
 
 	if err := Validate("the download folder", tmpl); err != nil {
 		t.Fatalf("a folder template was refused: %v", err)
-	}
-	// The fixed part is created, because that is what has to be writable.
-	if _, err := os.Stat(filepath.Join(base, "downloads")); err != nil {
-		t.Errorf("the fixed part of the template was not created: %v", err)
 	}
 	entries, err := os.ReadDir(filepath.Join(base, "downloads"))
 	if err != nil {
@@ -96,6 +96,26 @@ func TestSanitizeKeepsLimitsUsable(t *testing.T) {
 	// A relative watch folder is as unlocatable as a relative download folder.
 	if w := sanitize(Settings{WatchDir: "watch"}).WatchDir; w != "" {
 		t.Errorf("a relative watch folder survived as %q", w)
+	}
+}
+
+// The bottom bar follows the sidebar's labels until somebody sets it apart,
+// and a value the bar cannot draw falls back to following.
+func TestBottomBarLabelsFollowTheSidebarUnlessSetApart(t *testing.T) {
+	if got := Defaults().BottomBarLabels; got != BottomBarFollowsNav {
+		t.Errorf("a fresh install's bar draws %q, want it to follow the sidebar", got)
+	}
+	// A settings.json from before the field existed carries the empty string.
+	if got := sanitize(Settings{}).BottomBarLabels; got != BottomBarFollowsNav {
+		t.Errorf("a settings file without the field gave the bar %q, want it to follow the sidebar", got)
+	}
+	for _, mode := range []string{NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover} {
+		if got := sanitize(Settings{NavLabels: NavLabelsBoth, BottomBarLabels: mode}).BottomBarLabels; got != mode {
+			t.Errorf("the bar set to %q came back as %q", mode, got)
+		}
+	}
+	if got := sanitize(Settings{BottomBarLabels: "sideways"}).BottomBarLabels; got != BottomBarFollowsNav {
+		t.Errorf("an unknown mode survived as %q, which would draw a bar with neither glyph nor word", got)
 	}
 }
 

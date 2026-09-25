@@ -19,10 +19,10 @@
 // rather than guessing what it meant.
 //
 // It creates nothing, neither a folder nor a settings file. settings.Validate
-// looks like the way to find out whether a folder is usable, but it MkdirAlls
-// the path first: called at boot on a box whose /mnt/user/media did not mount,
-// it creates that path inside the container's own writable layer, the write
-// test passes, the report says "fine", and every download lands inside the
+// looks like the way to find out whether a folder is usable, but it passes a
+// missing folder whose parent is writable: called at boot on a box whose
+// /mnt/user/media did not mount, it finds /mnt/user inside the container's own
+// writable layer, the report says "fine", and every download lands inside the
 // container and is destroyed by the next image pull. That is the failure this
 // package exists to make visible.
 //

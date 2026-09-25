@@ -76,7 +76,6 @@ export const da: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbue',
   'settings.disco': 'Disko',
-  'settings.discoHint': 'Så længe regnbuetilstand er slået til, skifter hvert farvet element til paletens næste farve én gang i sekundet.',
   'settings.problems': 'Problemer?',
   'settings.problemsHint': 'Send det her med, når du melder noget. Det sparer en runde spørgsmål, og der er hverken adresse eller token i.',
   'settings.problemsCopy': 'Kopiér rapport',

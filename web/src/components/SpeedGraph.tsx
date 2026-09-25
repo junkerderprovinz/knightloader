@@ -9,7 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { fmtSpeed } from '../lib/format';
+import { fmtRate, fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { isLeet } from '../lib/leet';
 import { useUIState } from '../lib/uistate';
@@ -374,8 +374,7 @@ export function SpeedGraph({
         />
         <span className="flex items-center gap-1.5">
           <InfoBubble tip={t('overview.speedGraphHint')} />
-          {/* Figure and unit are one token; an RTL locale must not reorder them. */}
-          <span dir="ltr" className="glim-num text-[11px] leading-none text-carbon-textMuted">
+          <span className="glim-num text-[11px] leading-none text-carbon-textMuted">
             {fmtSpeed(ceiling)}
           </span>
         </span>
@@ -451,7 +450,7 @@ export function SpeedMeter({
     <span dir="ltr" className="flex min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
       <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
         <span className="glim-num text-[11px] text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
-        <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtSpeed(value) || '0 B/s'}</span>
+        <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtRate(value)}</span>
       </span>
       {/* h-0 with flex-auto: without a height the svg's aspect ratio would set
           the card's height from its width. flex-1 does not work here, because

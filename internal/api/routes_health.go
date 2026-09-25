@@ -35,7 +35,7 @@ func registerHealth(reg *Registry, a *app.App) {
 
 	reg.Add(http.MethodGet, metricsPath,
 		"the same reading as /api/health/detail in Prometheus exposition format, for a monitoring system to fetch; "+
-			"answers 404 unless the metrics switch on the Health settings page is on",
+			"answers 404 unless \"Metrics address for a monitoring system\" is switched on (Health page or Modules page)",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The /api/ catch-all's wording, so a closed door does not reveal
 			// whether a key would have worked.
@@ -62,7 +62,7 @@ func metricsDetail(a *app.App, s settings.Settings) line {
 	}
 	if a.Auth != nil && a.Auth.Enabled() && len(a.APITokens.List()) == 0 {
 		return line{
-			text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Access page",
+			text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Remote access page",
 			code: "metricsNoToken",
 		}
 	}

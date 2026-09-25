@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, FieldGroup } from '../../../components/ui';
+import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   MAX_RESPONSE_BODY,
@@ -83,7 +84,9 @@ export function TargetProbe({ row }: { row: EventTargetRow }) {
                 )}
               </>
             )}
-            <p className="text-carbon-textMuted">{t('settings.eventTargets.testDuration', { ms: result.durationMs })}</p>
+            <p className="text-carbon-textMuted">
+              {t('settings.eventTargets.took', { duration: fmtUnit(result.durationMs, 'ms') })}
+            </p>
           </div>
         )}
       </div>

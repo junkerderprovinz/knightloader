@@ -470,16 +470,11 @@ func TestNewRejectsUnusableOptions(t *testing.T) {
 	if _, err := New(Options{Dir: t.TempDir()}); err == nil {
 		t.Fatal("New without OnJob succeeded, want an error")
 	}
-	// The drop folder is created rather than demanded, so a fresh install works.
-	dir := filepath.Join(t.TempDir(), "watch")
-	w, err := New(Options{Dir: dir, OnJob: func(Job) {}})
+	w, err := New(Options{Dir: t.TempDir(), OnJob: func(Job) {}})
 	if err != nil {
 		t.Fatalf("new: %v", err)
 	}
 	defer w.Close()
-	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
-		t.Fatalf("stat %s: fi = %v, err = %v, want a created directory", dir, fi, err)
-	}
 	if w.interval != defaultInterval {
 		t.Fatalf("interval = %v, want the default %v", w.interval, defaultInterval)
 	}
@@ -780,5 +775,37 @@ func settles(ok func() bool) bool {
 			return false
 		}
 		time.Sleep(2 * time.Millisecond)
+	}
+}
+
+// Every settings save reaches the watcher, and the settings page saves while a
+// path is still being typed. A folder created for each of those values would
+// leave "Wat" and "Watc" behind on the way to "Watch".
+func TestAFolderThatIsNotThereIsWatchedWithoutBeingCreated(t *testing.T) {
+	base := t.TempDir()
+	rec := &sink{}
+	w, err := New(Options{Dir: filepath.Join(base, "Wat"), Interval: time.Hour, OnJob: rec.add})
+	if err != nil {
+		t.Fatalf("new: %v", err)
+	}
+	defer w.Close()
+	dir := filepath.Join(base, "Watch")
+	if errs := w.Apply([]Folder{{Dir: dir}}); len(errs) != 0 {
+		t.Fatalf("apply: %v", errs)
+	}
+	pollAll(w)
+	if left, err := os.ReadDir(base); err != nil || len(left) != 0 {
+		t.Fatalf("watching two folders that are not there left %v behind (%v)", left, err)
+	}
+
+	// Once somebody makes the folder, files dropped into it are taken.
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(dir, "links.txt"), "https://example.com/a\n")
+	pollAll(w)
+	pollAll(w)
+	if n := rec.count(); n != 1 {
+		t.Fatalf("consumed %d jobs from the folder once it appeared, want 1", n)
 	}
 }

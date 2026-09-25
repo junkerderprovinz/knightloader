@@ -211,6 +211,7 @@ func TestRunningWithNoProgramConfiguredSaysSoRatherThanFailingObscurely(t *testi
 }
 
 func TestATimedOutCommandIsNotReportedAsAFailure(t *testing.T) {
+	t.Parallel()
 	// A command that suspends the machine is often killed on the way down, so
 	// hitting the limit gets its own answer.
 	a := newQueueApp(t)

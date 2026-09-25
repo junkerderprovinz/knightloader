@@ -7,11 +7,11 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
 import { BarBody, barIdle, barSegment, navBase, navHued, navInactive, NavLabel } from './Sidebar';
-import { hueVars, rainbowAt } from '../lib/appearance';
+import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { useNavLabels } from '../lib/navLabels';
+import { useBarLabels, useNavLabels } from '../lib/navLabels';
 import { IconBell } from '../lib/icons';
 import { fmtClock } from '../lib/format';
 import { TONE_DOT, useToast } from '../lib/toast';
@@ -130,7 +130,10 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
   const { t } = useT();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const mode = useNavLabels();
+  // The bar's segment follows the bar's own setting, the rail's row the rail's.
+  const railMode = useNavLabels();
+  const barMode = useBarLabels();
+  const mode = bar ? barMode : railMode;
   const events = useEventLog();
   const unread = useUnreadEvents();
   const open = useEventsPanelOpen();
@@ -270,7 +273,7 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
             ? `${navHued} ${barSegment} ${barIdle}`
             : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
         }
-        style={hueVars(rainbowAt(hue)) as CSSProperties}
+        style={hueVars(hue) as CSSProperties}
       >
         {bar ? (
           <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />

@@ -14,7 +14,7 @@ import { useDraft } from '../context';
  * 'exclude-and-remove' is '.excludeAndRemove' in the catalogue; an id without a
  * label shows as itself.
  */
-const CONFIRM_LABEL: Partial<Record<string, TranslationKey>> = {
+export const CONFIRM_LABEL: Partial<Record<string, TranslationKey>> = {
   include: 'settings.downloads.confirm.include',
   exclude: 'settings.downloads.confirm.exclude',
   'exclude-and-remove': 'settings.downloads.confirm.excludeAndRemove',

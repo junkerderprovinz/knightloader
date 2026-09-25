@@ -149,10 +149,10 @@ func Of(path string) Owner {
 // Check measures one folder by writing into it, so nothing answering a GET
 // calls it.
 //
-// A missing folder is not created: settings.Validate already creates every
-// configured folder, so a missing one means a mount did not come up, and
-// creating it would hide that. The probes are removed in a defer; a failed
-// removal is not reported, since the measurement already succeeded.
+// A missing folder is not created: it is either one nothing has written into
+// yet or a mount that did not come up, and creating it would hide the second.
+// The probes are removed in a defer; a failed removal is not reported, since
+// the measurement already succeeded.
 func Check(dir string) Probe {
 	p := Probe{Dir: dir}
 	folder := Of(dir)

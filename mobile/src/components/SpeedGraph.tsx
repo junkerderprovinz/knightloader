@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
-import { fmtBytes } from '../api/stats';
+import { fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 
 /**
@@ -60,7 +60,7 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
           baseline of a bar chart, which is zero by definition. */}
       <View style={styles.yAxis}>
         <Text style={[styles.tick, { color: c.textMuted }]} numberOfLines={1}>
-          {`${fmtBytes(peak)}/s`}
+          {fmtSpeed(peak)}
         </Text>
       </View>
       <View style={[styles.frame, { height, backgroundColor: c.surface2, borderRadius: radii.control }]}>

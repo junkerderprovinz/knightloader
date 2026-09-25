@@ -100,14 +100,9 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
           <LanguagePicker />
         </div>
         <Card className="flex flex-col gap-5">
-          <div>
-            <h1 className="text-sm font-semibold text-carbon-text">
-              {step === 'code' ? t('auth.twoFactor.title') : t('auth.title')}
-            </h1>
-            <p className="text-carbon-textMuted mt-1 text-xs">
-              {step === 'code' ? t('auth.twoFactor.signInHint') : t('auth.subtitle')}
-            </p>
-          </div>
+          <h1 className="text-sm font-semibold text-carbon-text">
+            {step === 'code' ? t('auth.twoFactor.title') : t('auth.title')}
+          </h1>
           <form className="flex flex-col gap-5" onSubmit={submit}>
             {step === 'password' ? (
               <Field label={t('auth.password')}>
@@ -121,7 +116,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                 />
               </Field>
             ) : (
-              <Field label={t('auth.twoFactor.confirmLabel')}>
+              <Field label={t('auth.twoFactor.confirmLabel')} hint={t('auth.twoFactor.signInHint')}>
                 <TextInput
                   autoFocus
                   value={code}

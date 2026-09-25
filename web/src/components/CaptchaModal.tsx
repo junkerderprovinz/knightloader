@@ -11,10 +11,11 @@ import {
   type CaptchaImagePayload,
   type CaptchaResolution,
   type CaptchaUnsupportedPayload,
+  type CaptchaWidgetPayload,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconClock, IconClose } from '../lib/icons';
-import { useT } from '../lib/i18n';
+import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
 
@@ -63,6 +64,12 @@ function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChall
 // opposed to a code the vendor sent back.
 const UNREACHABLE = ['script', 'timeout', 'network'];
 
+// Why the widget page gave up on a challenge before loading anything.
+const UNSOLVABLE_WHY: Partial<Record<string, TranslationKey>> = {
+  vendor: 'captcha.unsolvableVendor',
+  action: 'captcha.unsolvableAction',
+};
+
 interface ClickPoint {
   // Fractions of the rendered image, converted to natural pixels on submit.
   xFrac: number;
@@ -81,7 +88,9 @@ export function CaptchaModal() {
   const [frozenRemaining, setFrozenRemaining] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [widgetStatus, setWidgetStatus] = useState<'loading' | 'ready' | 'expired' | 'error'>('loading');
+  const [widgetStatus, setWidgetStatus] = useState<'loading' | 'ready' | 'expired' | 'error' | 'unsolvable'>(
+    'loading',
+  );
   const [widgetError, setWidgetError] = useState<string | null>(null);
   const [widgetKey, setWidgetKey] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -169,8 +178,8 @@ export function CaptchaModal() {
       if (!d || d.source !== 'knightloader-captcha-widget' || d.id !== id) return;
       if (d.kind === 'ready') setWidgetStatus('ready');
       else if (d.kind === 'expired') setWidgetStatus('expired');
-      else if (d.kind === 'error') {
-        setWidgetStatus('error');
+      else if (d.kind === 'error' || d.kind === 'unsolvable') {
+        setWidgetStatus(d.kind);
         setWidgetError(d.detail ?? null);
       } else if (d.kind === 'solved' && d.detail) {
         answerCaptcha(id, d.detail).then(
@@ -251,9 +260,23 @@ export function CaptchaModal() {
   const showContinue = current.kind === 'image' || current.kind === 'click';
   const continueDisabled = busy || (current.kind === 'image' ? answer.trim() === '' : points.length === 0);
   const title = moreWaiting > 0 ? t('captcha.titleMore', { n: moreWaiting }) : t('captcha.title');
+  const why = widgetStatus === 'unsolvable' && widgetError ? UNSOLVABLE_WHY[widgetError] : undefined;
+  // A score-based reCAPTCHA has nothing to click: the page asks for the token
+  // itself.
+  const widgetHint = (current.payload as CaptchaWidgetPayload | undefined)?.v3Action
+    ? t('captcha.widgetScoreHint')
+    : t('captcha.widgetHint');
+  const hint =
+    current.kind === 'click'
+      ? t('captcha.clickHint')
+      : current.kind === 'widget'
+        ? widgetHint
+        : current.kind === 'unsupported'
+          ? t('captcha.unsupportedHint')
+          : undefined;
 
   return (
-    <Modal title={title} onClose={() => handleSkip('skip-once')}
+    <Modal title={title} hint={hint} onClose={() => handleSkip('skip-once')}
       footer={
         <>
           {/* The forward button ends the row, so the clock goes first. */}
@@ -324,7 +347,6 @@ export function CaptchaModal() {
 
       {current.kind === 'click' && (
         <div className="flex flex-col gap-2">
-          <p className="text-[11px] text-carbon-textMuted">{t('captcha.clickHint')}</p>
           <div className="flex justify-center overflow-hidden rounded-[var(--radius-control)] bg-white p-2">
             <div className="relative inline-block">
               <img
@@ -350,24 +372,19 @@ export function CaptchaModal() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-carbon-textMuted">
-            <span>{t('captcha.clickCount', { n: points.length })}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
             {points.length > 0 && (
-              <button
-                type="button"
-                className="underline-offset-2 hover:text-carbon-textSub hover:underline"
-                onClick={() => setPoints([])}
-              >
+              <Button kind="ghost" onClick={() => setPoints([])}>
                 {t('captcha.clickClear')}
-              </button>
+              </Button>
             )}
           </div>
         </div>
       )}
 
-      {current.kind === 'widget' && widgetStatus !== 'error' && (
+      {current.kind === 'widget' && widgetStatus !== 'error' && widgetStatus !== 'unsolvable' && (
         <div className="flex flex-col gap-2">
-          <p className="text-[11px] text-carbon-textMuted">{t('captcha.widgetHint')}</p>
           <div className="overflow-hidden rounded-[var(--radius-control)] bg-white">
             <iframe
               key={widgetKey}
@@ -394,41 +411,36 @@ export function CaptchaModal() {
         </p>
       )}
 
-      {current.kind === 'unsupported' && (
-        <div className="flex flex-col gap-1.5">
-          <p className="text-sm text-carbon-text">
-            {t('captcha.unsupported', { vendor: (current.payload as CaptchaUnsupportedPayload | undefined)?.vendor || '?' })}
-          </p>
-          <p className="text-xs text-carbon-textSub">{t('captcha.unsupportedHint')}</p>
-        </div>
+      {current.kind === 'widget' && widgetStatus === 'unsolvable' && (
+        <p className="flex items-center gap-1.5 text-sm text-carbon-text">
+          {t('captcha.unsolvable')}
+          {why && <InfoBubble tip={t(why)} />}
+        </p>
       )}
 
-      <div className="flex flex-col items-start gap-1">
-        <button
-          type="button"
-          className="text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-textSub hover:underline"
+      {current.kind === 'unsupported' && (
+        <p className="text-sm text-carbon-text">
+          {t('captcha.unsupported', { vendor: (current.payload as CaptchaUnsupportedPayload | undefined)?.vendor || '?' })}
+        </p>
+      )}
+
+      <div className="flex flex-col items-start gap-2">
+        <Button
+          kind="ghost"
+          icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
+          aria-expanded={moreOpen}
           onClick={() => setMoreOpen((v) => !v)}
         >
           {t('captcha.moreOptions')}
-        </button>
+        </Button>
         {moreOpen && (
-          <div className="flex flex-col items-start gap-1 ps-0.5">
-            <button
-              type="button"
-              className="text-[11px] text-carbon-textMuted hover:text-carbon-textSub"
-              disabled={busy}
-              onClick={() => handleSkip('blacklist-hoster')}
-            >
+          <div className="flex flex-col items-start gap-2">
+            <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
               {t('captcha.blockHoster', { host: current.host || '?' })}
-            </button>
-            <button
-              type="button"
-              className="text-[11px] text-carbon-textMuted hover:text-carbon-textSub"
-              disabled={busy}
-              onClick={() => handleSkip('blacklist-everywhere')}
-            >
+            </Button>
+            <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
               {t('captcha.blockEverywhere')}
-            </button>
+            </Button>
           </div>
         )}
       </div>

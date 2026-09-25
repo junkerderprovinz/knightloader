@@ -61,26 +61,32 @@ func TestCaptchaWidgetRequiresSiteKey(t *testing.T) {
 }
 
 var (
-	renderedGlobal = regexp.MustCompile(`var api = window\[("[^"]*")\];`)
-	renderedParams = regexp.MustCompile(`var params = (\{[^\n]*\});`)
-	renderedScript = regexp.MustCompile(`script\.src = ("[^"]*");`)
+	renderedGlobal    = regexp.MustCompile(`var api = window\[("[^"]*")\];`)
+	renderedNamespace = regexp.MustCompile(`api = api\[("[^"]*")\];`)
+	renderedParams    = regexp.MustCompile(`var params = (\{[^\n]*\});`)
+	renderedAction    = regexp.MustCompile(`api\.execute\(params\.sitekey, \{action: ("[^"]*")\}\)`)
+	renderedScript    = regexp.MustCompile(`script\.src = ("[^"]*");`)
 )
 
 // renderedWidget is what a widget page asks the browser to load and render,
-// read back out of the page's script.
+// read back out of the page's script. namespace and action stay empty on a
+// page that has none.
 type renderedWidget struct {
-	global string
-	script *url.URL
-	params map[string]string
+	global, namespace, action string
+	script                    *url.URL
+	params                    map[string]string
 }
 
 func parseRenderedWidget(t *testing.T, html string) renderedWidget {
 	t.Helper()
-	jsValue := func(re *regexp.Regexp, into any) {
+	jsValue := func(re *regexp.Regexp, into any, required bool) {
 		t.Helper()
 		m := re.FindStringSubmatch(html)
 		if m == nil {
-			t.Fatalf("the page has no match for %s:\n%s", re, html)
+			if required {
+				t.Fatalf("the page has no match for %s:\n%s", re, html)
+			}
+			return
 		}
 		if err := json.Unmarshal([]byte(m[1]), into); err != nil {
 			t.Fatalf("%s: %v", m[1], err)
@@ -88,9 +94,11 @@ func parseRenderedWidget(t *testing.T, html string) renderedWidget {
 	}
 	var w renderedWidget
 	var src string
-	jsValue(renderedGlobal, &w.global)
-	jsValue(renderedParams, &w.params)
-	jsValue(renderedScript, &src)
+	jsValue(renderedGlobal, &w.global, true)
+	jsValue(renderedNamespace, &w.namespace, false)
+	jsValue(renderedParams, &w.params, true)
+	jsValue(renderedAction, &w.action, false)
+	jsValue(renderedScript, &src, true)
 	u, err := url.Parse(src)
 	if err != nil {
 		t.Fatal(err)
@@ -112,16 +120,26 @@ func cspDirectives(csp string) map[string][]string {
 }
 
 // Every way a request names reCAPTCHA renders Google's script, with a CSP
-// scoped to Google's origins.
+// scoped to Google's origins. An Enterprise key goes through enterprise.js and
+// grecaptcha.enterprise, and a score-based key is not rendered but asked for a
+// token under the hoster's action, which JD writes as a JSON object.
 func TestCaptchaWidgetRendersRecaptchaFromGoogle(t *testing.T) {
+	const (
+		classic    = "https://www.google.com/recaptcha/api.js"
+		enterprise = "https://www.google.com/recaptcha/enterprise.js"
+	)
 	cases := []struct {
-		name   string
-		params url.Values
+		name                      string
+		params                    url.Values
+		script, namespace, action string
 	}{
-		{"vendor", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "type": {"NORMAL"}}},
-		{"enterprise", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"1"}}},
-		{"enterprise-true-spelling", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"true"}}},
-		{"v3Action", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {"download"}}},
+		{"vendor", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "type": {"NORMAL"}}, classic, "", ""},
+		{"enterprise", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"1"}}, enterprise, "enterprise", ""},
+		{"enterprise-true-spelling", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"true"}}, enterprise, "enterprise", ""},
+		{"v3Action as JD sends it", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {`{"action":"download"}`}}, classic, "", "download"},
+		{"v3Action as a bare name", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {"download"}}, classic, "", "download"},
+		{"enterprise v3", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "enterprise": {"1"}, "v3Action": {`{"action":"login/free_download"}`}},
+			enterprise, "enterprise", "login/free_download"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -133,14 +151,30 @@ func TestCaptchaWidgetRendersRecaptchaFromGoogle(t *testing.T) {
 			html := string(body)
 
 			w := parseRenderedWidget(t, html)
-			if w.global != "grecaptcha" {
-				t.Errorf("renders through window[%q], want grecaptcha", w.global)
+			if w.global != "grecaptcha" || w.namespace != c.namespace {
+				t.Errorf("calls window[%q][%q], want grecaptcha and %q", w.global, w.namespace, c.namespace)
 			}
 			if w.params["sitekey"] != "6Lc-key" {
 				t.Errorf("render params = %v, want the sitekey carried through", w.params)
 			}
-			if got := w.script.Scheme + "://" + w.script.Host + w.script.Path; got != "https://www.google.com/recaptcha/api.js" {
-				t.Errorf("loads %s, want the reCAPTCHA script", got)
+			if got := w.script.Scheme + "://" + w.script.Host + w.script.Path; got != c.script {
+				t.Errorf("loads %s, want %s", got, c.script)
+			}
+			q := w.script.Query()
+			if c.action == "" {
+				if q.Get("render") != "explicit" || w.action != "" {
+					t.Errorf("a widget key loads with %v and asks for a token under %q; want explicit rendering and no execute", q, w.action)
+				}
+			} else {
+				if q.Get("render") != "6Lc-key" || q.Get("onload") != "klWidgetLoaded" {
+					t.Errorf("a score-based key loads with %v, want render set to the key and klWidgetLoaded", q)
+				}
+				if w.action != c.action {
+					t.Errorf("asks for a token under the action %q, want %q", w.action, c.action)
+				}
+				if strings.Contains(html, `api.render("kl-widget"`) {
+					t.Error("a score-based key has no widget, but the page renders one")
+				}
 			}
 			if strings.Contains(html, "hcaptcha") {
 				t.Error("a reCAPTCHA render must never mention hCaptcha")
@@ -287,18 +321,24 @@ func TestCaptchaWidgetHandsTheInterfaceLanguageToTheVendor(t *testing.T) {
 	}
 }
 
-// TestCaptchaWidgetAmbiguousSignalsDegradeHonestly checks that a request that
-// names no known vendor and could be either gets the page without scripts.
-func TestCaptchaWidgetAmbiguousSignalsDegradeHonestly(t *testing.T) {
+// A request that names no known vendor and could be either, and a score-based
+// reCAPTCHA check without an action it could ask for a token under, get the
+// page that loads no vendor script and tells the captcha window why, so the
+// window can say it in the reader's language.
+func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 	cases := []struct {
 		name   string
 		params url.Values
+		why    string
 	}{
-		{"no-signal-at-all", url.Values{"siteKey": {"anykey"}}},
-		{"explicit-normal", url.Values{"siteKey": {"anykey"}, "type": {"normal"}}},
-		{"explicit-false-enterprise", url.Values{"siteKey": {"anykey"}, "enterprise": {"false"}}},
-		{"invisible, which both vendors have", url.Values{"siteKey": {"anykey"}, "type": {"INVISIBLE"}}},
-		{"a vendor this page does not know", url.Values{"vendor": {"turnstile"}, "siteKey": {"anykey"}}},
+		{"no-signal-at-all", url.Values{"siteKey": {"anykey"}}, "vendor"},
+		{"explicit-normal", url.Values{"siteKey": {"anykey"}, "type": {"normal"}}, "vendor"},
+		{"explicit-false-enterprise", url.Values{"siteKey": {"anykey"}, "enterprise": {"false"}}, "vendor"},
+		{"invisible, which both vendors have", url.Values{"siteKey": {"anykey"}, "type": {"INVISIBLE"}}, "vendor"},
+		{"a vendor this page does not know", url.Values{"vendor": {"turnstile"}, "siteKey": {"anykey"}}, "vendor"},
+		{"a v3 object without an action", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "v3Action": {`{"score":0.5}`}}, "action"},
+		{"a v3 action reCAPTCHA would refuse", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {`{"action":"free download"}`}}, "action"},
+		{"a v3 object that is not JSON", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"1"}, "v3Action": {`{action:`}}, "action"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -309,14 +349,18 @@ func TestCaptchaWidgetAmbiguousSignalsDegradeHonestly(t *testing.T) {
 			}
 			html := string(body)
 
-			if strings.Contains(html, "<script") {
-				t.Errorf("an unidentified-vendor page must load no script at all, got: %s", html)
+			if strings.Contains(html, "script.src") || strings.Contains(html, "<script src") {
+				t.Errorf("the unsolvable page must load no script, got: %s", html)
 			}
 			if strings.Contains(html, "g-recaptcha") || strings.Contains(html, "h-captcha") {
-				t.Error("an unidentified-vendor page must not embed either vendor's widget div")
+				t.Error("the unsolvable page must not embed either vendor's widget div")
 			}
-			if !strings.Contains(html, "cannot be shown") {
-				t.Error("an unidentified-vendor page must say plainly that it cannot render this challenge")
+			if !strings.Contains(html, "cannot be solved in KnightLoader") {
+				t.Error("the unsolvable page must say plainly that this challenge cannot be solved here")
+			}
+			want := `kind:"unsolvable",detail:"` + c.why + `"`
+			if !strings.Contains(html, want) || !strings.Contains(html, `id:"7"`) {
+				t.Errorf("the page does not tell the captcha window %s for id 7:\n%s", want, html)
 			}
 
 			csp := resp.Header.Get("Content-Security-Policy")

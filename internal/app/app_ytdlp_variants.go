@@ -33,7 +33,7 @@ func variantDecode(v string) (kind ytdlp.Variant, sub string) {
 
 // ytdlpOptionsForTask is the per-task options closure wired in rewireBackends:
 // the instance-wide defaults with the variant and its pick taken from the
-// task's own Variant. A pick is a height cap, a probed track or a preset's
+// task's own Variant. A pick is a resolution cap, a probed track or a preset's
 // format on a video row, and a format or a probed track on an audio row.
 func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	base := a.Settings.Get().Ytdlp
@@ -294,11 +294,11 @@ type probeFacts struct {
 }
 
 func readProbe(formats []ytdlp.FormatEntry) probeFacts {
-	var maxHeight int
+	var maxRes int
 	var maxAbr float64
 	for _, f := range formats {
-		if f.Vcodec != "none" && f.Height > maxHeight {
-			maxHeight = f.Height
+		if f.Vcodec != "none" && f.Res() > maxRes {
+			maxRes = f.Res()
 		}
 		if (f.Vcodec == "" || f.Vcodec == "none") && f.Abr > maxAbr {
 			maxAbr = f.Abr
@@ -312,7 +312,7 @@ func readProbe(formats []ytdlp.FormatEntry) probeFacts {
 		audioTracks:   ytdlp.AudioTracks(formats),
 		audioBitrates: ytdlp.AvailableAudioBitrates(maxAbr),
 	}
-	for _, q := range ytdlp.AvailableQualities(maxHeight) {
+	for _, q := range ytdlp.AvailableQualities(maxRes) {
 		p.qualities = append(p.qualities, string(q))
 	}
 	return p
@@ -329,7 +329,7 @@ func readProbe(formats []ytdlp.FormatEntry) probeFacts {
 //     track in them. A track, a format the source has or "best" is copied, so
 //     Ext and Size are that track's; a format it lacks is converted to, which
 //     gives Ext and an unknown Size.
-//   - video: the menus are the height caps up to the tallest track, the
+//   - video: the menus are the resolution caps up to the source's own, the
 //     formats, and every track. A track gives its own Ext, following
 //     embedThumbnail for a webm one, and the Size of it and the audio merged
 //     with it; a cap or best gives the Size of what yt-dlp would take.
