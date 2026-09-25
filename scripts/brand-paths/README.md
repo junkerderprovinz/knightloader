@@ -8,8 +8,8 @@ scale marks of different widths to one optical size.
 ## Source and licence
 
 **Font Awesome Free 6.7.2**, from <https://fontawesome.com>: Windows, Apple,
-Linux, Docker, Android, Chrome and Firefox (`firefox-browser`) from the `brands`
-set, the ZIP (`file-zipper`) and the book (`book`) from the `solid` set. The icons are **CC BY 4.0**,
+Linux, Docker, Android, Google Play, Chrome and Firefox (`firefox-browser`) from
+the `brands` set, the ZIP (`file-zipper`) and the book (`book`) from the `solid` set. The icons are **CC BY 4.0**,
 which asks for attribution and nothing else. Copyright 2024 Fonticons, Inc.
 
 ## Trademarks

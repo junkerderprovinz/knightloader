@@ -26,6 +26,9 @@ BUTTONS = {
     # that lists it.
     "source": "https://github.com/junkerderprovinz/knightloader/releases/latest",
     "docs": "https://junkerderprovinz.github.io/knightloader/",
+    # No listing yet, so the button is drawn without a link. The listing's
+    # address goes here once it exists.
+    "google-play": None,
     "apk": NEWEST % "mobile" + "knightloader-android.apk",
     # One zip for every Chromium browser.
     "chrome": NEWEST % "extension" + "knightloader-extension.zip",
