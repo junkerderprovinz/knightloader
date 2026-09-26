@@ -165,8 +165,9 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 
 ## The browser extension
 
-A running instance offers it under Settings, App, on your browser's tile. The
-same ZIP is on the
+A running instance offers it under Settings, App: the Chrome button gives the
+ZIP for every Chromium browser, the Firefox button the add-on. The same ZIP is
+on the
 [latest extension release](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip),
 one file for Chrome, Edge, Brave and Opera:
 
