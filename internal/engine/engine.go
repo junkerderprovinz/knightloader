@@ -47,6 +47,8 @@ type Engine struct {
 	jobs    map[string]Job
 	mends   map[string]*mend
 	layouts *layoutStore
+	// seeds is every torrent started only to seed (Job.Seed), by KL task id.
+	seeds map[string]*seedRun
 	// roots is where each torrent lands (see torrent_root.go). rootMu is held
 	// across the look at the disk and the note, so two torrents of one name
 	// cannot both find it free.
@@ -149,6 +151,7 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		mends:        map[string]*mend{},
 		layouts:      layouts,
 		roots:        map[string]torrentRoot{},
+		seeds:        map[string]*seedRun{},
 		onUpdate:     onUpdate,
 		done:         make(chan struct{}),
 	}
@@ -301,6 +304,12 @@ type Job struct {
 	// lands in the same folder. TorrentName is the torrent's name as far as the
 	// caller knows it, which a magnet's link may not carry.
 	TorrentRoot, TorrentName string
+	// Seed takes a finished torrent up again where its files are, only to seed
+	// it: neither its start nor its finish is reported, which are the
+	// download's and already happened, only the swarm readings, which count on
+	// from SeedFrom's upload and ratio (see seed.go).
+	Seed     bool
+	SeedFrom core.TorrentStats
 
 	// Collision is what to do when the resolved name is taken. Empty means no
 	// policy at all, unlike collide, where empty means Rename; the older entry
@@ -607,6 +616,7 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	delete(e.torrents, taskID)
 	delete(e.files, gid)
 	delete(e.jobs, taskID)
+	delete(e.seeds, taskID)
 	e.mu.Unlock()
 	root, isTorrent := e.takeRoot(taskID)
 	switch {
@@ -659,8 +669,13 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	file := e.files[ev.Task.ID]
 	job := e.jobs[taskID]
+	_, seed := e.seeds[taskID]
 	e.mu.Unlock()
 	if !ok || own {
+		return
+	}
+	if seed {
+		e.seedEvent(taskID, ev)
 		return
 	}
 	switch ev.Key {

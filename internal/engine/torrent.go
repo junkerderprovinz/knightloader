@@ -37,13 +37,18 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 // swarm), check where every file would land, then create the task. Start has
 // already called wg.Add for it.
 func (e *Engine) startTorrent(j Job) {
+	if j.Seed {
+		e.mu.Lock()
+		e.seeds[j.TaskID] = &seedRun{from: j.SeedFrom}
+		e.mu.Unlock()
+	}
 	go func() {
 		defer e.wg.Done()
 		// Compiled before the swarm is asked, so a broken rule costs no
 		// metadata fetch.
 		pick, err := j.FileRules.Compile()
 		if err != nil {
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			e.failStart(j, err)
 			return
 		}
 		sel := j.TorrentSelect
@@ -57,7 +62,7 @@ func (e *Engine) startTorrent(j Job) {
 		opts := &base.Options{Path: j.writeDir(), SelectFiles: sel}
 		fail := func(err error) {
 			e.unplace(j.TaskID)
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			e.failStart(j, err)
 		}
 		if err := e.placeTorrent(j, opts); err != nil {
 			fail(err)
@@ -90,12 +95,14 @@ func (e *Engine) startTorrent(j Job) {
 			fail(err)
 			return
 		}
-		name, size := torrentMeta(rr.Res, sel)
-		u := core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root}
-		if magnet {
-			u.MagnetFiles = torrentPaths(rr.Res)
+		if !j.Seed {
+			name, size := torrentMeta(rr.Res, sel)
+			u := core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root}
+			if magnet {
+				u.MagnetFiles = torrentPaths(rr.Res)
+			}
+			e.emit(j.TaskID, u)
 		}
-		e.emit(j.TaskID, u)
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
 			fail(err)
@@ -336,7 +343,12 @@ func (e *Engine) pollOne(taskID, gid string) {
 		}
 		return
 	}
-	u := core.Update{Torrent: &s}
+	sd, seed := e.seedOf(taskID)
+	if seed && !sd.seeding {
+		// Still checking the files it was started on (see seed.go).
+		return
+	}
+	u := core.Update{Torrent: e.seedStats(taskID, s)}
 	if t.Progress != nil {
 		u.Loaded = t.Progress.Downloaded
 		if t.Status != base.DownloadStatusDone {
