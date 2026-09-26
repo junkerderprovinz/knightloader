@@ -339,11 +339,15 @@ type App struct {
 	// Dispatch leaves them where they are until that backend has let go, so
 	// the next one cannot start beside it.
 	moving map[string]bool
-	// relocating holds the tasks whose folder a package rename is moving, and
+	// relocating holds the tasks whose folder a package rename is moving,
 	// placing counts per task the deliveries out of the working folder under
-	// way (see app_packagefolder.go). Both are built on first use.
+	// way, and handing the starts on their way to a backend, which handed
+	// signals the end of (see app_packagefolder.go). All are built on first
+	// use.
 	relocating map[string]bool
 	placing    map[string]int
+	handing    map[string]int
+	handed     *sync.Cond
 	// startNow holds the links "Start now" was pressed for, until their
 	// download ends or somebody pauses, resumes or removes them. They alone
 	// leave a stopped queue, as a forced start does in JDownloader. Forced
