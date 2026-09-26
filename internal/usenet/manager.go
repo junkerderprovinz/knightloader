@@ -57,6 +57,9 @@ type Job struct {
 	// next one may go out.
 	Attempts int       `json:"attempts,omitempty"`
 	RetryAt  time.Time `json:"retryAt,omitzero"`
+	// missing is when the service's answers began to leave the job out, zero
+	// while they list it.
+	missing time.Time
 
 	// Size starts as the size the NZB lists and follows the service's own
 	// reading once there is one.
@@ -91,9 +94,10 @@ const (
 	// over. It is tried again after that, so an upgraded plan is noticed
 	// without a restart.
 	noUsenetFor = time.Hour
-	// goneGrace is how long after it was sent a job may be missing from the
-	// service's answer before it counts as gone. A download TorBox queued can
-	// be in neither its queue nor its list for a moment while it starts.
+	// goneGrace is how long a job may be left out of the service's answers,
+	// round after round, before it counts as gone. Right after the submit, and
+	// while a download TorBox queued starts, it can be in neither its queue
+	// nor its list for a moment.
 	goneGrace = 2 * time.Minute
 )
 
@@ -607,15 +611,20 @@ func (m *Manager) observe(id string, st Status, found bool) {
 		m.mu.Unlock()
 		return
 	}
-	switch {
-	case !found:
-		if m.o.Now().Sub(j.Taken) >= goneGrace {
+	now := m.o.Now()
+	if !found {
+		if j.missing.IsZero() {
+			j.missing = now
+		}
+		if now.Sub(j.missing) >= goneGrace {
 			m.failLocked(j, j.Label+" no longer has this download")
 			m.saveLocked()
 		}
 		m.mu.Unlock()
 		return
-	case st.ID != "" && st.ID != j.Remote:
+	}
+	j.missing = time.Time{}
+	if st.ID != "" && st.ID != j.Remote {
 		j.Remote = st.ID
 		slot, renamed = j.Service, st.ID
 		m.saveLocked()
