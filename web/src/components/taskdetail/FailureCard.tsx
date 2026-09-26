@@ -31,9 +31,7 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
     : task.rejectCode
       ? rejectionReason(t, task.rejectCode, task.rejectParams, task.error)
       : '';
-  // A rejection is worded by its own code above, so the failure's general
-  // sentence would only repeat it less precisely.
-  const failure = task.rejectCode ? null : explainFailure(t, task, failureFallback(task, t));
+  const failure = explainFailure(t, task, failureFallback(task, t));
 
   if (!cause && !task.error && !held && !task.note && !filtered && !task.gaveUp) return null;
 
@@ -44,7 +42,8 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
       {/* Neutral, because the row's status pill already carries the colour. */}
       <Fact label={t('detail.cause')}>{cause ? <LabelBadge label={cause} /> : null}</Fact>
 
-      <Fact label={t('detail.problem')} value={failure?.line} />
+      {/* A rejection says what happened under "Rejected because" below. */}
+      <Fact label={t('detail.problem')} value={task.rejectCode ? undefined : failure?.line} />
       <Fact label={t('failure.next')} value={failure?.next} />
       <Fact label={t('detail.message')} hint={t('detail.messageHint')} value={task.error} ltr copy />
       <Fact label={t('detail.heldBack')} value={held} />

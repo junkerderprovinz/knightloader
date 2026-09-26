@@ -905,7 +905,7 @@ func (a *App) dispatchLocked() {
 			}
 			t.Status = core.StatusError
 			t.Reason = core.ReasonUnsupported
-			t.SetError(a.unhandledError(t.URL, "no resolver matches"), core.CodeUnsupported, nil)
+			t.SetError(a.unhandledError(t.URL, "no resolver matches"))
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
@@ -1299,8 +1299,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		} else {
 			t.Reason = classify(f)
 		}
-		var params map[string]string
-		code := codeFor(f, t.Reason)
+		code, params := codeFor(f, t.Reason)
 		if code == "" {
 			code, params = u.Code, u.Params
 		}

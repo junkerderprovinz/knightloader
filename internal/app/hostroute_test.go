@@ -138,6 +138,29 @@ func TestAPausedDownloadMovesOffAServiceExcludedMeanwhile(t *testing.T) {
 	}
 }
 
+// excludeEveryBackend gives pinHost a rule that switches off every backend
+// that claims url.
+func excludeEveryBackend(t *testing.T, a *App, url string) {
+	t.Helper()
+	var every []string
+	for _, res := range a.Registry.All(url) {
+		every = append(every, res.Info().ID)
+	}
+	ruleForPinHost(t, a, settings.HostRule{Exclude: every})
+}
+
+// wantHostExcluded checks that a failure names the host rule as its cause, in
+// the sentence and in the code the interface words it by.
+func wantHostExcluded(t *testing.T, got core.Task) {
+	t.Helper()
+	if !strings.Contains(got.Error, "excluded for "+pinHost) {
+		t.Errorf("error %q; want the exclusion named", got.Error)
+	}
+	if got.ErrorCode != core.CodeHostExcluded || got.ErrorParams["host"] != pinHost {
+		t.Errorf("reads as %q %v, want %q for %s", got.ErrorCode, got.ErrorParams, core.CodeHostExcluded, pinHost)
+	}
+}
+
 // A rule that leaves nothing able to take a link has to be named as the cause,
 // or the failure reads like a link nobody supports.
 func TestALinkEveryBackendIsExcludedForSaysSo(t *testing.T) {
@@ -147,18 +170,29 @@ func TestALinkEveryBackendIsExcludedForSaysSo(t *testing.T) {
 	a.mu.Lock()
 	url := a.tasks["h1"].URL
 	a.mu.Unlock()
-	var every []string
-	for _, res := range a.Registry.All(url) {
-		every = append(every, res.Info().ID)
-	}
-	ruleForPinHost(t, a, settings.HostRule{Exclude: every})
+	excludeEveryBackend(t, a, url)
 
 	dispatchOnce(a)
 
 	got := taskState(a, "h1")
-	if got.Status != core.StatusError || !strings.Contains(got.Error, "excluded for "+pinHost) {
-		t.Errorf("status %q, error %q; want it failed with the exclusion named", got.Status, got.Error)
+	if got.Status != core.StatusError {
+		t.Errorf("status %q, want it failed", got.Status)
 	}
+	wantHostExcluded(t, got)
+}
+
+func TestALinkStagedUnderARuleThatExcludesEveryBackendSaysSo(t *testing.T) {
+	t.Parallel()
+	a, _ := pinApp(t)
+	url := "https://" + pinHost + "/staged.bin"
+	excludeEveryBackend(t, a, url)
+
+	created := a.AddLinks([]string{url}, "")
+
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks, want 1", len(created))
+	}
+	wantHostExcluded(t, *created[0])
 }
 
 // The priority card narrowed to one host shows the order that host's links are

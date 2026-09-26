@@ -3,7 +3,7 @@
 // sentence (core.ErrorCode in internal/core/errorcode.go). The web interface
 // words the same codes in web/src/lib/taskError.ts.
 //
-// It imports nothing at run time, so check-task-errors.mjs can load it in node.
+// It imports nothing at run time, so check-failures.mjs can load it in node.
 
 import type { TranslationKey } from '../i18n/en';
 
@@ -28,7 +28,9 @@ const WORDS: Record<string, Words> = {
   timeout: { line: 'failure.timeout.line', next: 'failure.timeout.next' },
   diskFull: { line: 'failure.diskFull.line', next: 'failure.diskFull.next' },
   noPermission: { line: 'failure.noPermission.line', next: 'failure.noPermission.next' },
+  localFile: { line: 'failure.localFile.line', next: 'failure.localFile.next' },
   unsupported: { line: 'failure.unsupported.line', next: 'failure.unsupported.next' },
+  hostExcluded: { line: 'failure.hostExcluded.line', next: 'failure.hostExcluded.next' },
   debridRefused: { line: 'failure.debridRefused.line', next: 'failure.debridRefused.next' },
   pinned: { line: 'failure.pinned.line', next: 'failure.pinned.next' },
   fileExists: { line: 'failure.fileExists.line', next: 'failure.fileExists.next' },
@@ -43,9 +45,21 @@ const WORDS: Record<string, Words> = {
   archivePassword: { line: 'failure.archivePassword.line', next: 'failure.archivePassword.next' },
   archivePartMissing: { line: 'failure.archivePartMissing.line', next: 'failure.archivePartMissing.next' },
   archiveUnsupported: { line: 'failure.archiveUnsupported.line', next: 'failure.archiveUnsupported.next' },
+  archiveFolderExists: { line: 'failure.archiveFolderExists.line', next: 'failure.archiveFolderExists.next' },
 };
 
 const GENERAL: Words = { line: 'failure.unknown.line', next: 'failure.unknown.next' };
+
+// The reasons whose code has another name, as core.Reason.Code maps them. A
+// task stored before codes existed has only its reason.
+const REASON_CODE: Record<string, string> = { auth: 'accessDenied', network: 'unreachable' };
+
+// A link the queue rejected, by its reject code, in the words the web gives it.
+const REJECTED: Record<string, Words> = {
+  filterRule: { line: 'collector.filtered.reason.filterRule', next: 'failure.filterRule.next' },
+  filterRuleReason: { line: 'collector.filtered.reason.filterRuleReason', next: 'failure.filterRule.next' },
+  bannedTracker: { line: 'collector.filtered.reason.bannedTracker', next: 'failure.bannedTracker.next' },
+};
 
 /** A failure as the app shows it; `raw` is the instance's own sentence. */
 export interface Explained {
@@ -60,6 +74,8 @@ export interface FailureSource {
   errorParams?: Record<string, string>;
   /** Read when there is no code, as on a task stored before codes existed. */
   reason?: string;
+  rejectCode?: string;
+  rejectParams?: Record<string, string>;
 }
 
 /**
@@ -72,8 +88,14 @@ export function explainFailure(
   fallback: Record<string, string> = {},
 ): Explained | null {
   const raw = f.error ?? '';
+  if (f.rejectCode) {
+    // A rejection from a newer instance keeps its English sentence.
+    const words = REJECTED[f.rejectCode];
+    return { line: words ? t(words.line, f.rejectParams) : raw, next: t(words?.next ?? GENERAL.next), raw };
+  }
   if (!raw && !f.errorCode) return null;
-  const words = (f.errorCode && WORDS[f.errorCode]) || (!f.errorCode && f.reason && WORDS[f.reason]) || GENERAL;
+  const code = f.errorCode || (f.reason && (REASON_CODE[f.reason] ?? f.reason));
+  const words = (code && WORDS[code]) || GENERAL;
   const vars = { ...fallback, ...f.errorParams };
   return { line: t(words.line, vars), next: t(words.next, vars), raw };
 }

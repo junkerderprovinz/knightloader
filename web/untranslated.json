@@ -51,7 +51,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "bg": [
       "task.reason.unsupportedPlayer",
@@ -103,7 +111,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ca": [
       "task.reason.unsupportedPlayer",
@@ -155,7 +171,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "cs": [
       "task.reason.unsupportedPlayer",
@@ -207,7 +231,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "da": [
       "task.reason.unsupportedPlayer",
@@ -259,7 +291,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "el": [
       "task.reason.unsupportedPlayer",
@@ -311,7 +351,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "es": [
       "task.reason.unsupportedPlayer",
@@ -363,7 +411,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "et": [
       "task.reason.unsupportedPlayer",
@@ -415,7 +471,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "eu": [
       "task.reason.unsupportedPlayer",
@@ -467,7 +531,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "fa": [
       "task.reason.unsupportedPlayer",
@@ -519,7 +591,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "fi": [
       "task.reason.unsupportedPlayer",
@@ -571,7 +651,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "fr": [
       "task.reason.unsupportedPlayer",
@@ -623,7 +711,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "gl": [
       "task.reason.unsupportedPlayer",
@@ -675,7 +771,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "he": [
       "task.reason.unsupportedPlayer",
@@ -727,7 +831,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "hi": [
       "task.reason.unsupportedPlayer",
@@ -779,7 +891,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "hr": [
       "task.reason.unsupportedPlayer",
@@ -831,7 +951,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "hu": [
       "task.reason.unsupportedPlayer",
@@ -883,7 +1011,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "id": [
       "task.reason.unsupportedPlayer",
@@ -935,7 +1071,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "is": [
       "task.reason.unsupportedPlayer",
@@ -987,7 +1131,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "it": [
       "task.reason.unsupportedPlayer",
@@ -1039,7 +1191,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ja": [
       "task.reason.unsupportedPlayer",
@@ -1091,7 +1251,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ko": [
       "task.reason.unsupportedPlayer",
@@ -1143,7 +1311,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "lt": [
       "task.reason.unsupportedPlayer",
@@ -1195,7 +1371,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "lv": [
       "task.reason.unsupportedPlayer",
@@ -1247,7 +1431,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ms": [
       "task.reason.unsupportedPlayer",
@@ -1299,7 +1491,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "nl": [
       "task.reason.unsupportedPlayer",
@@ -1351,7 +1551,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "no": [
       "task.reason.unsupportedPlayer",
@@ -1403,7 +1611,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "pl": [
       "task.reason.unsupportedPlayer",
@@ -1455,7 +1671,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "pt": [
       "task.reason.unsupportedPlayer",
@@ -1507,7 +1731,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ro": [
       "task.reason.unsupportedPlayer",
@@ -1559,7 +1791,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "ru": [
       "task.reason.unsupportedPlayer",
@@ -1611,7 +1851,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "sk": [
       "task.reason.unsupportedPlayer",
@@ -1663,7 +1911,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "sl": [
       "task.reason.unsupportedPlayer",
@@ -1715,7 +1971,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "sr": [
       "task.reason.unsupportedPlayer",
@@ -1767,7 +2031,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "sv": [
       "task.reason.unsupportedPlayer",
@@ -1819,7 +2091,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "th": [
       "task.reason.unsupportedPlayer",
@@ -1871,7 +2151,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "tr": [
       "task.reason.unsupportedPlayer",
@@ -1923,7 +2211,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "uk": [
       "task.reason.unsupportedPlayer",
@@ -1975,7 +2271,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "vi": [
       "task.reason.unsupportedPlayer",
@@ -2027,7 +2331,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ],
     "zh": [
       "task.reason.unsupportedPlayer",
@@ -2079,7 +2391,15 @@
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
       "failure.unknown.next",
-      "task.packageFailed"
+      "task.packageFailed",
+      "failure.localFile.line",
+      "failure.localFile.next",
+      "failure.hostExcluded.line",
+      "failure.hostExcluded.next",
+      "failure.filterRule.next",
+      "failure.bannedTracker.next",
+      "failure.archiveFolderExists.line",
+      "failure.archiveFolderExists.next"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

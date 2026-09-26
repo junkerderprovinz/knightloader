@@ -42,13 +42,38 @@ func TestCodeFor(t *testing.T) {
 		{"an allowance spent", failure{status: 429}, core.CodeLimit},
 		{"a host down for now", failure{status: 503}, core.CodeUnavailable},
 		{"a sentence nothing recognises", failure{text: "rapidgator: error code 7731"}, ""},
+		{"a file the system will not open", failure{err: &fs.PathError{Op: "open", Path: "/config/cookies.txt", Err: syscall.EACCES}},
+			core.CodeNoPermission},
+		{"a program the system will not run", failure{err: &fs.PathError{Op: "fork/exec", Path: "/usr/bin/yt-dlp", Err: syscall.EACCES}},
+			core.CodeNoPermission},
+		{"a read-only mount", failure{err: &fs.PathError{Op: "open", Path: "/downloads/x.part", Err: syscall.EROFS}},
+			core.CodeNoPermission},
+		{"a folder that is not there", failure{err: &fs.PathError{Op: "open", Path: "/mnt/share/x", Err: syscall.ENOENT}},
+			core.CodeLocalFile},
+		{"a file named like a network failure", failure{err: &fs.PathError{Op: "open", Path: "/downloads/Timeout.mkv", Err: syscall.EACCES}},
+			core.CodeNoPermission},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := codeFor(tc.in, classify(tc.in)); got != tc.want {
+			if got, _ := codeFor(tc.in, classify(tc.in)); got != tc.want {
 				t.Errorf("codeFor(%+v) = %q, want %q", tc.in, got, tc.want)
 			}
 		})
+	}
+}
+
+// An errno satisfies net.Error, and a file the system refused is not a server
+// that could not be reached. The row names the file instead.
+func TestAFileSystemErrorIsNotANetworkOne(t *testing.T) {
+	task := &core.Task{}
+	recordFailure(task, failure{err: &fs.PathError{Op: "open", Path: "/downloads/film.mkv", Err: syscall.EACCES}})
+
+	if task.Reason == core.ReasonNetwork {
+		t.Fatalf("a refused file reads as the network: %q", task.Reason)
+	}
+	want := map[string]string{"path": "/downloads/film.mkv"}
+	if task.ErrorCode != core.CodeNoPermission || !maps.Equal(task.ErrorParams, want) {
+		t.Errorf("reads as %q %v, want %q naming the file", task.ErrorCode, task.ErrorParams, core.CodeNoPermission)
 	}
 }
 
@@ -63,7 +88,9 @@ var codeReasons = map[core.ErrorCode][]core.Reason{
 	core.CodeTimeout:         {core.ReasonNetwork},
 	core.CodeDiskFull:        {core.ReasonDiskFull},
 	core.CodeNoPermission:    {core.ReasonUnknown},
+	core.CodeLocalFile:       {core.ReasonUnknown},
 	core.CodeUnsupported:     {core.ReasonUnsupported},
+	core.CodeHostExcluded:    {core.ReasonUnsupported},
 	core.CodeCaptcha:         {core.ReasonCaptcha},
 	core.CodeCancelled:       {core.ReasonCancelled},
 	core.CodeBotCheck:        {core.ReasonBotCheck},
@@ -94,7 +121,7 @@ func TestEveryRecognisedFailureIsWordedByItsOwnGroup(t *testing.T) {
 		if r == core.ReasonUnknown {
 			continue
 		}
-		code := codeFor(in, r)
+		code, _ := codeFor(in, r)
 		if code == "" {
 			t.Errorf("%+v is %q but has no code, so the row shows the general sentence", in, r)
 			continue
@@ -197,28 +224,32 @@ func TestAnArchiveThatIsNotOneReadsAsADamagedPart(t *testing.T) {
 }
 
 func TestUnpackCode(t *testing.T) {
+	missing := &fs.PathError{Op: "open", Path: "/out/Vier.part2.rar", Err: syscall.ENOENT}
 	cases := []struct {
 		name string
 		err  error
 		want core.ErrorCode
-		part string
+		// params is what the wording is given, part included.
+		params map[string]string
 	}{
-		{"no password fits", extract.ErrPasswordRequired, core.CodeArchivePassword, ""},
+		{"no password fits", extract.ErrPasswordRequired, core.CodeArchivePassword, nil},
 		{"a damaged volume", &extract.PartError{Part: "Vier.part1.rar", Problem: extract.ErrDamaged, Err: fmt.Errorf("rardecode: bad block header")},
-			core.CodeArchiveDamaged, "Vier.part1.rar"},
-		{"a missing volume", &extract.PartError{Part: "Vier.part2.rar", Problem: extract.ErrPartMissing, Err: fs.ErrNotExist},
-			core.CodeArchivePartMissing, "Vier.part2.rar"},
+			core.CodeArchiveDamaged, map[string]string{"part": "Vier.part1.rar"}},
+		{"a missing volume", &extract.PartError{Part: "Vier.part2.rar", Problem: extract.ErrPartMissing, Err: missing},
+			core.CodeArchivePartMissing, map[string]string{"part": "Vier.part2.rar"}},
 		{"an unknown format", &extract.PartError{Part: "x.bin", Problem: extract.ErrUnsupported, Err: extract.ErrUnsupported},
-			core.CodeArchiveUnsupported, "x.bin"},
-		{"a full disk", &fs.PathError{Op: "write", Path: "/out/x", Err: syscall.ENOSPC}, core.CodeDiskFull, ""},
-		{"a folder that may not be written", &fs.PathError{Op: "open", Path: "/out/x", Err: syscall.EACCES}, core.CodeNoPermission, ""},
-		{"the collision policy said skip", extract.ErrDestinationTaken, "", ""},
+			core.CodeArchiveUnsupported, map[string]string{"part": "x.bin"}},
+		{"a full disk", &fs.PathError{Op: "write", Path: "/out/x", Err: syscall.ENOSPC}, core.CodeDiskFull, nil},
+		{"a folder that may not be written", &fs.PathError{Op: "open", Path: "/out/x", Err: syscall.EACCES},
+			core.CodeNoPermission, map[string]string{"path": "/out/x"}},
+		{"the collision policy said skip", &extract.DestinationTakenError{Dir: "/out/Film"},
+			core.CodeArchiveFolderExists, map[string]string{"folder": "Film"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			code, params := unpackCode(tc.err)
-			if code != tc.want || params["part"] != tc.part {
-				t.Errorf("unpackCode(%v) = %q %v, want %q with part %q", tc.err, code, params, tc.want, tc.part)
+			if code != tc.want || !maps.Equal(params, tc.params) {
+				t.Errorf("unpackCode(%v) = %q %v, want %q %v", tc.err, code, params, tc.want, tc.params)
 			}
 		})
 	}

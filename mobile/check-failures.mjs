@@ -56,12 +56,45 @@ expect(
 );
 expect('a row that has not failed says nothing', explainFailure(t, {}), null);
 
+const rejected = explainFailure(t, {
+  error: 'rejected by link filter rule "no samples"',
+  rejectCode: 'filterRule',
+  rejectParams: { rule: 'no samples' },
+});
+expect('a link the filter rejected names the rule', rejected?.line, 'rejected by link filter rule "no samples"');
+expect('and says how to let it through', rejected?.next, en['failure.filterRule.next']);
+expect(
+  'a torrent the tracker ban rejected names the tracker',
+  explainFailure(t, { error: 'x', rejectCode: 'bannedTracker', rejectParams: { host: 'tracker.example' } })?.line,
+  'announces tracker.example, which is on the banned trackers list',
+);
+expect(
+  'a file the system refused is named',
+  explainFailure(t, { error: 'x', errorCode: 'noPermission', errorParams: { path: '/config/cookies.txt' } })?.line,
+  'KnightLoader is not allowed to access /config/cookies.txt.',
+);
+
 const go = readFileSync(join(here, '..', 'internal', 'core', 'errorcode.go'), 'utf8');
 const codes = [...go.matchAll(/ErrorCode = "(\w+)"/g)].map((m) => m[1]);
 if (codes.length < 20) problems.push(`found only ${codes.length} codes in internal/core/errorcode.go`);
 for (const code of codes) {
   const got = explainFailure(t, { error: 'x', errorCode: code });
   if (!got || got.line === en['failure.unknown.line']) problems.push(`the instance's code ${code} has no words in the app`);
+}
+
+// A row stored before codes existed reads by its reason, as the code the
+// instance gives that reason (core.Reason.Code), so both are read from Go.
+const task = readFileSync(join(here, '..', 'internal', 'core', 'task.go'), 'utf8');
+const reasonValues = new Map([...task.matchAll(/(Reason\w+) +Reason = "(\w+)"/g)].map((m) => [m[1], m[2]]));
+const codeValues = new Map([...go.matchAll(/(Code\w+) +ErrorCode = "(\w+)"/g)].map((m) => [m[1], m[2]]));
+const pairs = [...go.matchAll(/case (Reason\w+):\s+return (Code\w+)/g)];
+if (pairs.length < 10) problems.push(`found only ${pairs.length} reasons with a code in internal/core/errorcode.go`);
+for (const [, reason, code] of pairs) {
+  expect(
+    `${reason} reads as ${code}`,
+    explainFailure(t, { error: 'x', reason: reasonValues.get(reason) })?.line,
+    explainFailure(t, { error: 'x', errorCode: codeValues.get(code) })?.line,
+  );
 }
 
 if (problems.length > 0) {

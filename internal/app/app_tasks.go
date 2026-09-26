@@ -122,6 +122,17 @@ func (a *App) keepFoldersLocked(members []*core.Task, change func(*core.Task)) {
 // dead before anything starts. The caller passes the typed reason it already
 // has rather than it being parsed back out of msg.
 func (a *App) setAvailability(id string, avail core.Availability, msg string, reason core.Reason) {
+	code := reason.Code()
+	if msg == "" {
+		code = ""
+	}
+	a.recordAvailability(id, avail, reason, msg, code, nil)
+}
+
+// recordAvailability is setAvailability for a caller that knows the code its
+// failure is worded by better than the reason does.
+func (a *App) recordAvailability(id string, avail core.Availability, reason core.Reason,
+	msg string, code core.ErrorCode, params map[string]string) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	if t == nil {
@@ -133,11 +144,7 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 	// filter rule or a taken destination.
 	if t.Status != core.StatusError {
 		t.Reason = reason
-		code := reason.Code()
-		if msg == "" {
-			code = ""
-		}
-		t.SetError(msg, code, nil)
+		t.SetError(msg, code, params)
 	}
 	c := a.copyLocked(t)
 	a.mu.Unlock()
@@ -326,15 +333,19 @@ func (a *App) RecheckTasks(ids []string) {
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
 		if res == nil {
-			a.setAvailability(t.ID, core.AvailOffline, a.unhandledError(t.URL, "no backend handles this link"), core.ReasonUnsupported)
+			msg, code, params := a.unhandledError(t.URL, "no backend handles this link")
+			a.recordAvailability(t.ID, core.AvailOffline, core.ReasonUnsupported, msg, code, params)
 			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
 		if err != nil {
 			// Uncheckable, not offline: resolving happens on this side, so the host
-			// was never asked.
-			a.setAvailability(t.ID, core.AvailUncheckable, err.Error(), classify(failure{err: err}))
+			// was never asked. Worded as staging words the same error.
+			f := failure{err: err}
+			reason := classify(f)
+			code, params := codeFor(f, reason)
+			a.recordAvailability(t.ID, core.AvailUncheckable, reason, err.Error(), code, params)
 			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
@@ -951,7 +962,8 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		return nil
 	}
 	refuse := func(err error) error {
-		t.SetError(err.Error(), diskCode(err), nil)
+		code, params := diskCode(err)
+		t.SetError(err.Error(), code, params)
 		return err
 	}
 	if !usableFilename(want) {

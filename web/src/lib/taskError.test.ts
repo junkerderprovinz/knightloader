@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import serverCodes from '../../../internal/core/errorcode.go?raw';
+import serverTask from '../../../internal/core/task.go?raw';
 import { en } from './locales/en';
 import { explainFailure } from './taskError';
 import type { TranslationKey } from './i18n';
@@ -50,6 +51,50 @@ describe('explainFailure', () => {
   it('says nothing about a row that has not failed', () => {
     expect(explainFailure(t, {})).toBeNull();
   });
+
+  it('words a link the link filter rejected by its rule, and says how to let it through', () => {
+    const got = explainFailure(t, {
+      error: 'rejected by link filter rule "no samples"',
+      rejectCode: 'filterRule',
+      rejectParams: { rule: 'no samples' },
+    });
+    expect(got?.line).toBe('rejected by link filter rule "no samples"');
+    expect(got?.next).toBe(en['failure.filterRule.next']);
+  });
+
+  it('words a torrent the tracker ban rejected', () => {
+    const got = explainFailure(t, {
+      error: 'x',
+      rejectCode: 'bannedTracker',
+      rejectParams: { host: 'tracker.example' },
+    });
+    expect(got?.line).toBe('announces tracker.example, which is on the banned trackers list');
+    expect(got?.next).toBe(en['failure.bannedTracker.next']);
+  });
+
+  it('names the file the system refused, or the row folder where the server did not', () => {
+    expect(explainFailure(t, { error: 'x', errorCode: 'noPermission', errorParams: { path: '/config/cookies.txt' } })?.line).toBe(
+      'KnightLoader is not allowed to access /config/cookies.txt.',
+    );
+    expect(explainFailure(t, { error: 'x', errorCode: 'noPermission' }, { path: '/downloads' })?.line).toBe(
+      'KnightLoader is not allowed to access /downloads.',
+    );
+  });
+});
+
+// A row stored before codes existed reads by its reason, as the code the
+// server gives that reason (core.Reason.Code), so the row's badge and its line
+// agree. Both lists are read from the server's own source.
+it('reads every reason as the code the server gives it', () => {
+  const reasons = new Map([...serverTask.matchAll(/(Reason\w+) +Reason = "(\w+)"/g)].map((m) => [m[1], m[2]]));
+  const codes = new Map([...serverCodes.matchAll(/(Code\w+) +ErrorCode = "(\w+)"/g)].map((m) => [m[1], m[2]]));
+  const pairs = [...serverCodes.matchAll(/case (Reason\w+):\s+return (Code\w+)/g)];
+  expect(pairs.length).toBeGreaterThan(10);
+  for (const [, reason, code] of pairs) {
+    const byReason = explainFailure(t, { error: 'x', reason: reasons.get(reason) })?.line;
+    const byCode = explainFailure(t, { error: 'x', errorCode: codes.get(code) })?.line;
+    expect(byReason, reason).toBe(byCode);
+  }
 });
 
 // Every code the server sends has words here, so none of them falls back to

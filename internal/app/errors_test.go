@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"net"
+	"os"
 	"runtime"
 	"syscall"
 	"testing"
@@ -50,6 +52,15 @@ func TestClassify(t *testing.T) {
 		{"a human is being asked", failure{text: "jd: waiting for captcha input"}, core.ReasonCaptcha},
 
 		{"called off from this side", failure{err: context.Canceled}, core.ReasonCancelled},
+
+		// An errno satisfies net.Error too, and a file name can hold any word
+		// the table looks for.
+		{"a file the system refused", failure{err: &fs.PathError{Op: "open", Path: "/downloads/x", Err: syscall.EACCES}},
+			core.ReasonUnknown},
+		{"a file whose name reads like a timeout", failure{err: &fs.PathError{Op: "open", Path: "/downloads/Timeout.mkv", Err: syscall.ENOENT}},
+			core.ReasonUnknown},
+		{"a rename the system refused", failure{err: &os.LinkError{Op: "rename", Old: "/a", New: "/b", Err: syscall.EPERM}},
+			core.ReasonUnknown},
 
 		// A sentence nothing matches stays unknown; a guess would send somebody
 		// to fix the wrong problem.
