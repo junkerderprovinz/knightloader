@@ -848,6 +848,43 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The web UI, the browser extension and the phone app follow GlimStone
+  2.13.0.**
+- **The App page offers the download buttons from the README.** Every way to
+  get KnightLoader is a button of the README's shape: grey at rest with its
+  brand's logo, filled with the brand's colour under the pointer, where the
+  name moves up for a second line and a sheen crosses it once. The other
+  architecture of Windows and Linux is a narrow part of the same button, and so
+  is the APK's QR code, which opens the code in a small window. The Docker
+  button copies its command and says "Copied" for a moment, and the source
+  archive reads "Source code" over "ZIP archive". The browser extension has two
+  buttons, as in the README: Chrome, whose second line names Edge and Brave,
+  for every Chromium browser, and the Firefox add-on.
+- **The About card gives and reports through the same buttons**, one line
+  each. Buy Me a Coffee's shows the vendor's own cup and lettering, the
+  envelope on the Email button opens under the pointer, and a blank line
+  separates the give buttons from the sentences above and below them. The same
+  holds for the About card of the browser extension and of the phone app, where
+  a button fills with its brand's colour while it is pressed.
+- **Every selector spans the width of its card**, in the web UI, the extension
+  and the phone app. The PayPal window's own amount stands at the end of the
+  row under the presets; leaving the field hands a preset's amount back to its
+  preset and shakes text that is not an amount.
+- **The language picker comes first on the Look tab**, as tall as a field.
+  General shows a row of sliders, Look a colour palette, App a computer with a
+  device beside it and Remote access a padlock, and the Settings cog is the one
+  every app in the family draws, in the web UI, the extension's popup and the
+  phone app.
+- **More moments move, at every motion level.** A settings tab slides in from
+  the side its tile is on and its cards come in one after another, as do the
+  rows of the event list. A copy, an import or a restore that went through
+  gives its control a short pulse, a copy button's check draws itself, Settings
+  fades in over its loading card, and the other items of a list wiggle while
+  one is dragged. In the extension the options page's cards and new instances
+  arrive the same way, a downloading instance's status pulses, and the popup's
+  tabs slide. In the phone app a copy or a save the instance took swells its
+  control. Every level sets its own number for every animation, so the hidden
+  fourth level keeps its own pace for hovers too.
 - **One name for each thing.** Links the link filter or a banned tracker stops
   are "rejected" everywhere, and "held" belongs to the Hold action in the
   right-click menu alone. The torrent engine inside KnightLoader is the
