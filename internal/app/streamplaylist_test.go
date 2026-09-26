@@ -6,16 +6,17 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// The direct download and the HTTP fallback take a link for a file by its
-// look, so a stream playlist behind one goes on to yt-dlp. Every other backend
-// that uses the engine chose its link on purpose, and keeps what it fetched.
-func TestOnlyALinkTakenByItsLookHandsOnAPlaylist(t *testing.T) {
+// The direct download, the HTTP fallback and a header profile take a link by
+// its look or its origin, so a stream playlist behind one goes on to yt-dlp.
+// Every other backend that uses the engine chose its link on purpose, and
+// keeps what it fetched.
+func TestALinkTakenByItsLookOrOriginHandsOnAPlaylist(t *testing.T) {
 	a := newQueueApp(t)
 	for resolverID, want := range map[string]bool{
 		"direct":      true,
 		"http":        true,
+		"hostheaders": true,
 		"alldebrid":   false,
-		"hostheaders": false,
 		"torrent":     false,
 	} {
 		task := &core.Task{ID: "t-" + resolverID, URL: "https://cdn.example/hls/master.txt", Resolver: resolverID}
