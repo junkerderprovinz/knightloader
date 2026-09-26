@@ -20,12 +20,20 @@ locale and every other one is typed against it, which makes `tsc` the gate that
 catches a missing or stray translation key.
 
 A value that is still English passes that gate, so the web UI and the app each
-keep a ledger of them in `web/untranslated.json` and `mobile/untranslated.json`:
-what still waits for a translation, and what was checked and stays English. The
-`check-untranslated.mjs` next to each ledger holds it against the catalogues.
-`seed-untranslated.mjs` adds a new key to every catalogue in English and lists
-it as owed, and `prune-untranslated.mjs` takes out what has been translated
-since.
+keep a ledger in the same format, `web/untranslated.json` and
+`mobile/untranslated.json`: `locales` lists what still waits for a translation,
+and `identical` what was checked and stays English. German is written by hand
+and never appears in either. The `check-untranslated.mjs` next to each ledger
+holds it against the catalogues, but the two checks catch different things. The
+app's fails on any value that equals the English one and is in neither list, so
+the app's ledger names every English value outside German. The web's fails only
+on a whole English sentence that neither list names. Many short web values equal
+the English one by right and were never listed, so the web ledger is not a full
+count. `seed-untranslated.mjs` fills a key missing from a catalogue other than
+German with the English text and lists it as owed; the app's seed also lists
+English values already in a catalogue that neither list names.
+`prune-untranslated.mjs` drops the owed entries that have since been
+translated, and the `identical` entries that got a word of their own.
 
 The desktop app and the container image are built as described under
 [Installing](installing.md).
