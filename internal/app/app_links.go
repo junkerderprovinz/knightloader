@@ -21,10 +21,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
 // The seven entrances a link can arrive by. They live here, beside the funnels
@@ -87,6 +89,11 @@ type intake struct {
 	// not start their own title probe, since one playlist can yield hundreds;
 	// probePlaylistEntries probes them one at a time instead.
 	playlistEntry bool
+
+	// jobLinks marks the two entrances that make links to a job on one of the
+	// user's accounts, the import from an account and the Usenet queue. Every
+	// other entrance is refused such a link (see jobLink).
+	jobLinks bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -141,7 +148,7 @@ func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Tas
 		seen[u] = true
 		cand := rules.Candidate{URL: u, Package: in.pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, in.origin, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, in, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -193,7 +200,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, origin, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -643,6 +650,9 @@ func (s *stagedAt) next() time.Time {
 // sizeHint is a byte count the caller already knows, or 0. Like a known name,
 // it is not overwritten by a resolver's placeholder answer.
 func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
+	if a.refusesJobLink(u, in) {
+		return nil
+	}
 	// One local clock reading for CreatedAt and <jd:date>; UTC would shift
 	// dated folders by a day east of Greenwich.
 	now := a.stamps.next()
@@ -654,7 +664,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// save the network round trip.
 	if in.waived == "" {
 		if v := a.filter(cand); v.Rejected {
-			return a.hold(cand, v, in.origin, now, nil)
+			return a.hold(cand, v, in, now, nil)
 		}
 	}
 	// An advisory duplicate check; the binding one is in put. A mirror the user
@@ -754,7 +764,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 			v = trackerBan(t, a.Settings.Get().Torrent)
 		}
 		if v.Rejected {
-			return a.hold(cand, v, in.origin, now, nil)
+			return a.hold(cand, v, in, now, nil)
 		}
 	}
 	staged := a.finishStaging(t, cand)
@@ -773,6 +783,26 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 	return staged
+}
+
+// jobLink reports whether u names a job on one of the user's accounts: a
+// download the import took over from it, or a file of an .nzb the Usenet queue
+// sent there. Such a link fetches from the account, and removing or finishing
+// an imported one deletes the job on it.
+func jobLink(u string) bool {
+	_, _, imported := debrid.ParseJobLink(u)
+	return imported || (usenet.Resolver{}).Match(u)
+}
+
+// refusesJobLink reports, and logs, a link to a job on an account that arrives
+// by an entrance which did not make it. A feed entry or a script would
+// otherwise fetch any job on the account, or delete it there.
+func (a *App) refusesJobLink(u string, in intake) bool {
+	if in.jobLinks || !jobLink(u) {
+		return false
+	}
+	log.Printf("%s not added from %s: only the account import and the Usenet queue add links to a job on an account", u, in.origin)
+	return true
 }
 
 // finishStaging applies the Packagizer and stages the task, or records the
@@ -886,7 +916,13 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 // trackers, so a tracker banned after a restore still stops it, and files, the
 // selection ticked in its file tree, which a restore must not hand back to the
 // file rules. files is nil for anything else.
-func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, now time.Time, files []core.TorrentFile) *core.Task {
+//
+// A held link is a task too, which a restore sets free, so a link to a job on
+// an account is refused here as in stage.
+func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Time, files []core.TorrentFile) *core.Task {
+	if a.refusesJobLink(cand.URL, in) {
+		return nil
+	}
 	t := &core.Task{
 		URL:     cand.URL,
 		Name:    cand.URL,
@@ -899,7 +935,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, no
 		// Still enabled: once the rule is fixed, the link can be started.
 		Enabled:   true,
 		Source:    cand.Source,
-		Origin:    origin,
+		Origin:    in.origin,
 		Host:      torrentHost(cand.URL),
 		CreatedAt: now,
 		// Online stays unset; nobody checked whether the link is alive.

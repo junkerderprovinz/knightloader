@@ -121,7 +121,11 @@ service's rate limit. Anything new goes into the link collector like a pasted
 link, so the link filter, the Packagizer and "Start added links immediately"
 treat it as they treat any other. The task keeps the service's own id for the
 download, in a link such as `debrid://realdebrid/ABC123`, so the files are
-fetched from that account and the torrent is never added a second time. From
+fetched from that account and the torrent is never added a second time. Only
+the import writes such a link, and only the Usenet queue writes the links to the
+files of an `.nzb`. KnightLoader refuses one that is pasted, sent through the
+API or published in a feed, so nobody else can fetch or delete a download on
+your account. From
 TorBox and Premiumize.me, web downloads and usenet downloads come in as well as
 torrents. When a file fails or KnightLoader restarts, the task carries on with
 the files already here.

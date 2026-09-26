@@ -253,6 +253,35 @@ func TestAPasteIsStillAPaste(t *testing.T) {
 	}
 }
 
+// A link naming a job on one of the user's debrid accounts, or a file of an
+// .nzb sent there, is made by the import and the Usenet queue. Taken from any
+// caller with the add right, it would fetch whatever job the caller guessed,
+// and removing the task would delete the job on the account.
+func TestAnAddCannotNameAJobOnAnAccount(t *testing.T) {
+	t.Parallel()
+	srv, a := linkServer(t)
+	s := a.Settings.Get()
+	// Off, so every line reaches the collector as it was sent.
+	s.PreParserEnabled = false
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
+		"links": "debrid://realdebrid/USERS-OWN\nusenet://torbox/7/1/film.mkv\nhttps://host.example/one.bin",
+	})
+	if code != http.StatusOK {
+		t.Fatalf("answered %d: %s", code, raw)
+	}
+	tasks := a.Tasks()
+	if len(tasks) != 1 || tasks[0].URL != "https://host.example/one.bin" {
+		for _, task := range tasks {
+			t.Errorf("staged %s", task.URL)
+		}
+		t.Fatalf("staged %d links, want only the hoster link", len(tasks))
+	}
+}
+
 // TestAnUnknownEntranceIsRefused keeps the column answerable. Filing a link
 // under an unrecognised entrance gives "why is this here" an answer that looks
 // real and is not, and a rule keyed on the entrance then reads a value no part
