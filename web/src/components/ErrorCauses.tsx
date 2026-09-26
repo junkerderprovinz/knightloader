@@ -61,9 +61,20 @@ export function useErrorCauses(tasks: Task[]): Cause[] {
 
 /**
  * ErrorCauses draws a retry chip per cause in the list's action row, or, when
- * the row has no room for them, one chip that opens them as a menu.
+ * the row has no room for them, one chip that opens them as a menu. `glyph`
+ * leaves that chip its glyphs, for a row shorter still.
  */
-export function ErrorCauses({ causes, base, folded }: { causes: Cause[]; base: string; folded: boolean }) {
+export function ErrorCauses({
+  causes,
+  base,
+  folded,
+  glyph = false,
+}: {
+  causes: Cause[];
+  base: string;
+  folded: boolean;
+  glyph?: boolean;
+}) {
   const { t } = useT();
   const menu = useContextMenu();
   if (causes.length === 0) return null;
@@ -77,11 +88,12 @@ export function ErrorCauses({ causes, base, folded }: { causes: Cause[]; base: s
           className="shrink-0 gap-1.5 px-2.5 text-xs"
           icon={<IconRetry width={14} height={14} />}
           title={t('downloads.retryByCause')}
+          aria-label={glyph ? t('downloads.retryByCause') : undefined}
           aria-haspopup="menu"
           aria-expanded={!!menu.anchor}
           onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
         >
-          {t('downloads.byCause')}
+          {!glyph && t('downloads.byCause')}
           <IconChevronDown width={12} height={12} />
         </Button>
         {menu.anchor && (

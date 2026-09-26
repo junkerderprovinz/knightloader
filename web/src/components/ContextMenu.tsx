@@ -49,6 +49,8 @@ export interface MenuGroup {
   id: string;
   /** Quiet text above the run, for one that means something different from the runs above it. */
   heading?: string;
+  /** Its checked items switch on and off independently, as filter chips do, instead of being one choice. */
+  many?: boolean;
   items: MenuItem[];
 }
 
@@ -365,7 +367,7 @@ function Panel({
                     ref={(el) => {
                       itemRefs.current[i] = el;
                     }}
-                    role={item.checked === undefined ? 'menuitem' : 'menuitemradio'}
+                    role={item.checked === undefined ? 'menuitem' : g.many ? 'menuitemcheckbox' : 'menuitemradio'}
                     aria-checked={item.checked}
                     type="button"
                     tabIndex={-1}

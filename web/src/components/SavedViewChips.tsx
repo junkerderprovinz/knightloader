@@ -5,7 +5,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useT } from '../lib/i18n';
 import { IconBadge } from './ui';
-import { Tabs } from './Tabs';
+import { FoldChip, Tabs } from './Tabs';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { ViewDeleteDialog, ViewNameDialog } from './SavedViewDialog';
 import { MAX_VIEWS, useSavedViews } from '../lib/savedViews';
@@ -26,6 +26,8 @@ export function SavedViewChips({
   allowed,
   narrowing,
   onApply,
+  glyphs = false,
+  folded = false,
 }: {
   profile: ListProfileKey;
   /** The profile's quick-filter ids, passed to useSavedViews. */
@@ -33,6 +35,10 @@ export function SavedViewChips({
   /** The list's current narrowing, which a save captures. */
   narrowing: Narrowing;
   onApply: (next: Narrowing) => void;
+  /** Save and manage as glyphs, for a row short of room for their words. */
+  glyphs?: boolean;
+  /** Everything in one FoldChip, for a row shorter still. */
+  folded?: boolean;
 }) {
   const { t } = useT();
   const { views, save, rename, remove, matching } = useSavedViews(profile, allowed);
@@ -104,54 +110,94 @@ export function SavedViewChips({
     setRefusal(r.reason === 'full' ? t('views.full', { n: MAX_VIEWS }) : t('views.tooBig'));
   }
 
+  // select="many" with at most one lit id: clicking the lit chip clears it, and
+  // no "none" chip is needed.
+  function select(id: string): void {
+    const view = views.find((v) => v.id === id);
+    if (!view) return;
+    apply(lit.has(id) ? NO_NARROWING : view.state);
+  }
+
+  function startSave(): void {
+    setRefusal('');
+    setOpen({ kind: 'save' });
+  }
+
   // An empty element would still cost the parent row a flex gap.
   if (views.length === 0 && !narrowed) return null;
 
+  const full = views.length >= MAX_VIEWS;
   return (
-    <div ref={row} className="flex flex-wrap items-center gap-2">
-      {views.length > 0 && (
-        // select="many" with at most one lit id: clicking the lit chip clears
-        // it, and no "none" chip is needed.
-        <Tabs
-          inline
-          select="many"
-          size="sm"
+    <div ref={row} className="flex items-center gap-2">
+      {folded ? (
+        <FoldChip
           label={t('views.label')}
-          active={lit}
-          items={views.map((v) => ({ id: v.id, label: v.name, title: v.name }))}
-          onSelect={(id) => {
-            const view = views.find((v) => v.id === id);
-            if (!view) return;
-            apply(lit.has(id) ? NO_NARROWING : view.state);
-          }}
+          icon={<IconPin />}
+          glyph
+          lit={lit.size > 0}
+          groups={[
+            {
+              id: 'views',
+              items: views.map((v) => ({
+                id: v.id,
+                label: v.name,
+                checked: lit.has(v.id),
+                onSelect: () => select(v.id),
+              })),
+            },
+            {
+              id: 'edit',
+              items: [
+                ...(narrowed
+                  ? [{ id: 'save', label: t('views.save'), icon: <IconPin />, disabled: full, onSelect: startSave }]
+                  : []),
+                ...(views.length > 0
+                  ? [{ id: 'manage', label: t('views.manage'), icon: <IconEdit />, submenu: [{ id: 'views', items }] }]
+                  : []),
+              ],
+            },
+          ]}
         />
-      )}
+      ) : (
+        <>
+          {views.length > 0 && (
+            // A long name is cut short on its chip and read in full in its bubble.
+            <Tabs
+              inline
+              select="many"
+              size="sm"
+              className="[&>button]:max-w-56"
+              label={t('views.label')}
+              active={lit}
+              items={views.map((v) => ({ id: v.id, label: v.name, title: v.name }))}
+              onSelect={select}
+            />
+          )}
 
-      {narrowed && (
-        <IconBadge
-          labelled
-          hue={3}
-          icon={<IconPin width={16} height={16} />}
-          title={t('views.save')}
-          aria-label={t('views.save')}
-          disabled={views.length >= MAX_VIEWS}
-          hint={views.length >= MAX_VIEWS ? t('views.full', { n: MAX_VIEWS }) : undefined}
-          onClick={() => {
-            setRefusal('');
-            setOpen({ kind: 'save' });
-          }}
-        />
-      )}
+          {narrowed && (
+            <IconBadge
+              labelled={!glyphs}
+              hue={3}
+              icon={<IconPin width={16} height={16} />}
+              title={t('views.save')}
+              aria-label={t('views.save')}
+              disabled={full}
+              hint={full ? t('views.full', { n: MAX_VIEWS }) : undefined}
+              onClick={startSave}
+            />
+          )}
 
-      {views.length > 0 && (
-        <IconBadge
-          labelled
-          hue={4}
-          icon={<IconEdit width={16} height={16} />}
-          title={t('views.manage')}
-          aria-label={t('views.manage')}
-          onClick={(e) => openMenu(e.currentTarget)}
-        />
+          {views.length > 0 && (
+            <IconBadge
+              labelled={!glyphs}
+              hue={4}
+              icon={<IconEdit width={16} height={16} />}
+              title={t('views.manage')}
+              aria-label={t('views.manage')}
+              onClick={(e) => openMenu(e.currentTarget)}
+            />
+          )}
+        </>
       )}
 
       {menu.anchor && (
