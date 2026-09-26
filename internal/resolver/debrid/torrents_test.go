@@ -202,7 +202,7 @@ func (u *updates) all() []core.Update {
 func newTestBackend(t *testing.T, svc TorrentService, parts PartDownloader) (*TorrentBackend, *updates) {
 	up := newUpdates()
 	b := NewTorrentBackend(svc, noLinks{t}, parts, NewRuns("fake"), up.record)
-	b.poll = time.Millisecond
+	b.poll, b.gap = time.Millisecond, 0
 	return b, up
 }
 
@@ -869,6 +869,104 @@ func TestAFailedAddThatLeftNoJobIsAnOrdinaryFailure(t *testing.T) {
 	u := up.until(t, core.StatusError)
 	if u.Unsupported || b.Holds("t1") {
 		t.Errorf("settled as %+v, holding a job %v; want a failure worth another try", u, b.Holds("t1"))
+	}
+}
+
+// The service in virtual time: a torrent it has not cached and holds complete
+// once took has passed since the add. It reports how far it has got, or says
+// nothing until it is done.
+func TestALongFetchIsReadRarelyAndNoticedSoonAfterItEnds(t *testing.T) {
+	for _, c := range []struct {
+		name     string
+		took     time.Duration
+		reports  bool
+		maxReads int
+		maxLate  time.Duration
+	}{
+		{"an hour with progress", time.Hour, true, 100, torrentPoll},
+		{"an hour without progress", time.Hour, false, 100, torrentPollMax},
+		{"half a minute without progress", 30 * time.Second, false, 7, torrentPoll},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			p := pacer{shortest: torrentPoll, longest: torrentPollMax}
+			added := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+			var at time.Duration
+			reads := 1
+			for at < c.took {
+				progress := 0.0
+				if c.reports {
+					progress = float64(at) / float64(c.took)
+				}
+				at += p.next(added.Add(at), progress)
+				reads++
+			}
+			if reads > c.maxReads {
+				t.Errorf("the job was read %d times, want at most %d", reads, c.maxReads)
+			}
+			if late := at - c.took; late > c.maxLate {
+				t.Errorf("the finished job was noticed %v late, want at most %v", late, c.maxLate)
+			}
+		})
+	}
+}
+
+// readLog is a service whose jobs stay fetching and which notes when each
+// status read came.
+type readLog struct {
+	scriptedService
+	at []time.Time
+}
+
+func (s *readLog) TorrentStatus(context.Context, string) (TorrentJob, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.at = append(s.at, time.Now())
+	return TorrentJob{Name: "Show", Progress: 0.1}, nil
+}
+
+func (s *readLog) reads() []time.Time {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.at)
+}
+
+func TestAFetchThatDragsOnIsReadLessAndLessOften(t *testing.T) {
+	svc := &readLog{}
+	b, _ := newTestBackend(t, svc, &partRecorder{})
+	b.poll, b.pollMax = 5*time.Millisecond, 40*time.Millisecond
+
+	b.Download("t1", testMagnet, nil, 1)
+	time.Sleep(600 * time.Millisecond)
+	b.Remove("t1", false)
+
+	at := svc.reads()
+	if len(at) < 3 {
+		t.Fatalf("the job was read %d times", len(at))
+	}
+	if last := at[len(at)-1].Sub(at[len(at)-2]); last < 25*time.Millisecond {
+		t.Errorf("the job was still read %v apart after 600ms; the wait grows toward 40ms", last)
+	}
+}
+
+func TestTheReadsOnOneAccountKeepTheirDistanceWhateverTheNumberOfTorrents(t *testing.T) {
+	svc := &readLog{}
+	b, _ := newTestBackend(t, svc, &partRecorder{})
+	b.gap = 30 * time.Millisecond
+
+	b.Download("t1", testMagnet, nil, 1)
+	b.Download("t2", testMagnet, nil, 1)
+	time.Sleep(300 * time.Millisecond)
+	b.Remove("t1", false)
+	b.Remove("t2", false)
+
+	at := svc.reads()
+	if len(at) < 3 {
+		t.Fatalf("the jobs were read %d times", len(at))
+	}
+	for i := 1; i < len(at); i++ {
+		if d := at[i].Sub(at[i-1]); d < 25*time.Millisecond {
+			t.Errorf("two reads on the account came %v apart, want the 30ms gap", d)
+		}
 	}
 }
 
