@@ -163,9 +163,11 @@ command, and a save puts the stored one back onto the incoming row with the
 same id. The id alone decides which program a row runs, so it is random rather
 than the lowest free number. With numbers, a row deleted in one tab and saved
 again from another, or a row imported from another instance's export, would
-carry an id that some other row holds by then and would run that row's program. An
-imported row whose id this instance does not know arrives with no program, and
-the import names it as incomplete.
+carry an id that some other row holds by then and would run that row's program.
+An id a client sends is kept only when it has the shape this instance gives
+out, sixteen hex digits; an API client that numbers its rows gets random ids
+instead. An imported row whose id this instance does not know arrives with no
+program, and the import names it as incomplete.
 
 ## The start report only looks
 

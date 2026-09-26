@@ -152,6 +152,44 @@ func TestARemovedRowsIDIsNeverHandedToANewOne(t *testing.T) {
 	}
 }
 
+func TestOnlyAnIDInTheShapeTheServerGivesOutIsKept(t *testing.T) {
+	given := Sanitize([]Program{{Name: "given"}})[0].ID
+	got := Sanitize([]Program{
+		{ID: "1", Name: "numbered"},
+		{ID: "a\nevent program forged a log line", Name: "two lines"},
+		{ID: strings.ToUpper(given), Name: "upper case"},
+		{ID: given, Name: "given"},
+	})
+	for _, p := range got[:3] {
+		if !wellFormed(p.ID) || p.ID == given {
+			t.Errorf("row %q kept or got the ID %q, want a new one", p.Name, p.ID)
+		}
+	}
+	if got[3].ID != given {
+		t.Errorf("the row the server had named came back as %q, want %q", got[3].ID, given)
+	}
+}
+
+// An API client that numbers its rows, here and on another instance, must not
+// have one row's stars filled in from another row that got the same number.
+func TestANumberedRowDoesNotRunAnotherNumberedRowsProgram(t *testing.T) {
+	here := Sanitize([]Program{{
+		ID: "1", Name: "delete sources", Enabled: true,
+		Command:  idleaction.CommandSpec{Program: "/home/me/bin/delete-rars.sh", Args: []string{"%%folder%%"}},
+		Triggers: []script.Trigger{script.TriggerExtractDone},
+	}})
+	imported := Redacted(Program{
+		ID: "1", Name: "notify NAS on failure", Enabled: true,
+		Command:  idleaction.CommandSpec{Program: "/usr/local/bin/notify-nas"},
+		Triggers: []script.Trigger{script.TriggerTaskFailed},
+	})
+
+	got := Sanitize(Merge([]Program{imported}, here))[0]
+	if got.Command.Program != "" {
+		t.Errorf("the imported row runs %q", got.Command.Program)
+	}
+}
+
 // Importing another instance's export without secrets brings rows with stars
 // for a command line. Their IDs were handed out over there, so they must not
 // fetch the command line of whichever row holds the same ID here.

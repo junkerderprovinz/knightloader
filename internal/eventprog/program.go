@@ -151,12 +151,14 @@ func sanitizeTriggers(in []script.Trigger) []script.Trigger {
 // command line to whichever incoming row carries its ID. With numbers, a row
 // still shown in a second tab after it was deleted in the first, or a row from
 // another instance's export, would carry "1" and pick up the program of
-// whatever row holds "1" by then.
+// whatever row holds "1" by then. For the same reason an ID a client made up
+// in any other shape is replaced: an API client that numbers its rows would
+// bring the numbers back.
 func identify(out []Program) {
 	taken := make(map[string]bool, len(out))
 	for i := range out {
-		id := strings.TrimSpace(out[i].ID)
-		if id == "" || taken[id] {
+		id := out[i].ID
+		if !wellFormed(id) || taken[id] {
 			id = newID()
 		}
 		out[i].ID = id
@@ -164,10 +166,17 @@ func identify(out []Program) {
 	}
 }
 
+const idBytes = 8
+
 func newID() string {
-	b := make([]byte, 8)
+	b := make([]byte, idBytes)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+// wellFormed reports whether id has the shape newID gives it.
+func wellFormed(id string) bool {
+	return len(id) == 2*idBytes && strings.Trim(id, "0123456789abcdef") == ""
 }
 
 // Redacted returns a copy safe to hand to a browser or to put into the
