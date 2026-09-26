@@ -227,6 +227,87 @@ func TestAMagnetNoPeerAnswersAfterARestartIsStillRemovedWithItsFiles(t *testing.
 	}
 }
 
+// A magnet whose link names it otherwise is only named by the swarm. When
+// somebody else's folder has the torrent's own name, the magnet is not
+// downloaded, and removing it with its files after a restart leaves that
+// folder and what is in it.
+func TestAMagnetOfAnotherNameLeavesAFolderThatIsNotItsOwnAlone(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if testing.Short() {
+		t.Skip("this starts a torrent client")
+	}
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race once a torrent runs")
+	}
+	_, magnet := testenv.SeedTorrent(t, "Show.S01", map[string]int{
+		"Show.S01E01.mkv": 48 << 10, "Show.S01E02.mkv": 24 << 10, "Show.S01.nfo": 0,
+	})
+	proper := strings.Replace(magnet, "&dn=Show.S01&", "&dn=Show.S01.PROPER&", 1)
+	if proper == magnet {
+		t.Fatalf("%s carries no name to change", magnet)
+	}
+	dir, downloads := t.TempDir(), t.TempDir()
+	foreign := filepath.Join(downloads, "Show.S01", "Show.S01E02.mkv")
+	if err := os.MkdirAll(filepath.Dir(foreign), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(foreign, []byte("mine"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := settings.Defaults()
+	s.DownloadDir = downloads
+	s.Crawl = false
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	created := a.AddLinksFrom([]string{proper}, "Show.S01", OriginPaste)
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks, want 1", len(created))
+	}
+	id := created[0].ID
+	a.StartTasks([]string{id})
+
+	var last *core.Task
+	deadline := time.Now().Add(time.Minute)
+	for last == nil || (last.Status != core.StatusError && last.Status != core.StatusDone) {
+		if time.Now().After(deadline) {
+			t.Fatalf("the start did not settle: %+v", last)
+		}
+		time.Sleep(50 * time.Millisecond)
+		for _, tsk := range a.Tasks() {
+			if tsk.ID == id {
+				last = tsk
+			}
+		}
+	}
+	if last.Status != core.StatusError || !strings.Contains(last.Error, "already exists") {
+		t.Errorf("the magnet ended %s with %q, want it refused for the taken name", last.Status, last.Error)
+	}
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	again, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	again.RemoveTasks([]string{id}, true)
+	// The library renames a file at one of the torrent's paths to .part as
+	// the file list arrives, when its size is not the torrent's.
+	got, err := os.ReadFile(foreign)
+	if err != nil {
+		got, err = os.ReadFile(foreign + ".part")
+	}
+	if err != nil || string(got) != "mine" {
+		t.Errorf("the file in the folder that is not the magnet's reads %q (%v)", got, err)
+	}
+}
+
 // With the collision policy on skip, a torrent that starts again is not
 // refused for its own files, which it carries on with.
 func TestATorrentStartingAgainIsNoCollisionWithItself(t *testing.T) {

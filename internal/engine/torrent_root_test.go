@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -74,6 +75,75 @@ func TestATorrentNeverLandsWhereAnotherDownloadIs(t *testing.T) {
 	// Unless the task's folder has changed since.
 	if got := place(again, "Show.S01", Job{TorrentRoot: filepath.Join(t.TempDir(), "Show.S01")}); got != in("Show.S01.4") {
 		t.Errorf("a torrent whose folder changed resolved in %s, want a place of its own in the new one", got)
+	}
+}
+
+// A magnet can carry another name than the torrent it turns out to be, and
+// the library creates the torrent's empty files, with its folder, while it
+// resolves. A folder of the torrent's name that was there before, or that
+// another torrent lands in, is not the magnet's own: it would write into it,
+// and removing it with its files would take what is in there.
+func TestAMagnetOfAnotherNameStaysOutOfAFolderThatIsNotItsOwn(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	var foreign []string
+	for _, season := range []string{"Show.S01", "Show.S02", "Show.S03"} {
+		p := filepath.Join(dir, season, season+"E02.mkv")
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte("mine"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		foreign = append(foreign, p)
+	}
+	cases := []struct {
+		what, dn, name string
+		refused        bool
+	}{
+		{"another name in its link", "Show.S01.PROPER", "Show.S01", true},
+		{"no name in its link", "", "Show.S02", true},
+		{"a name that differs from the folder's in case only", "Show", "SHOW.S03", true},
+		{"a free name", "Other.PROPER", "Other", false},
+		{"the name another torrent has just taken, in other case", "Other.REPACK", "OTHER", true},
+	}
+	// Every magnet is placed before any has resolved, as when several are
+	// added at once.
+	e := &Engine{roots: map[string]torrentRoot{}}
+	for i, c := range cases {
+		link := fmt.Sprintf("magnet:?xt=urn:btih:%040x", i+1)
+		if c.dn != "" {
+			link += "&dn=" + c.dn
+		}
+		if err := e.placeTorrent(Job{TaskID: fmt.Sprint(i), URL: link}, &base.Options{Path: dir}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for i, c := range cases {
+		id := fmt.Sprint(i)
+		nfo := filepath.Join(e.roots[id].dir, c.name, c.name+".nfo")
+		if err := os.MkdirAll(filepath.Dir(nfo), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(nfo, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		root, err := e.settleTorrent(id, &base.Resource{Name: c.name, Files: []*base.FileInfo{
+			{Name: c.name + "E01.mkv", Size: 10}, {Name: c.name + "E02.mkv", Size: 10}, {Name: c.name + ".nfo"},
+		}})
+		switch {
+		case c.refused && err == nil:
+			t.Errorf("%s: the magnet lands at %s", c.what, root)
+		case !c.refused && err != nil:
+			t.Errorf("%s: the magnet was refused: %v", c.what, err)
+		case !c.refused && root != filepath.Join(dir, c.name):
+			t.Errorf("%s: the magnet lands at %s, want %s", c.what, root, filepath.Join(dir, c.name))
+		}
+	}
+	for _, p := range foreign {
+		if b, err := os.ReadFile(p); err != nil || string(b) != "mine" {
+			t.Errorf("%s, in a folder that is not a magnet's, reads %q (%v)", p, b, err)
+		}
 	}
 }
 
@@ -207,6 +277,92 @@ func TestAMagnetReportsTheFileListItIsDeletedByAfterARestart(t *testing.T) {
 	DeleteTorrentFiles(dir, root, listed)
 	if _, err := os.Stat(root); !os.IsNotExist(err) {
 		t.Errorf("the magnet's folder is still there after its listed files were deleted (%v)", err)
+	}
+}
+
+// A magnet whose link names it otherwise, or not at all, is only named by the
+// swarm, after the library has created its empty files in the folder of its
+// real name. When somebody else's folder has that name, the magnet is not
+// downloaded, and removing it with its files leaves that folder as it was. A
+// free name is the magnet's own, and removing it takes its folder.
+func TestAMagnetOfAnotherNameIsNotDownloadedIntoAFolderThatIsNotItsOwn(t *testing.T) {
+	requireTorrentClient(t)
+	dir, err := os.MkdirTemp("", "kl-bt-dn-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	foreign := filepath.Join(dir, "Show.S01", "Show.S01E02.mkv")
+	if err := os.MkdirAll(filepath.Dir(foreign), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(foreign, []byte("mine"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Episodes of different sizes, so each magnet is a torrent of its own.
+	season := func(e01 int) map[string]int {
+		return map[string]int{"Show.S01E01.mkv": e01, "Show.S01E02.mkv": 20 << 10, "Show.S01.nfo": 0}
+	}
+	link := func(magnet, from, to string) string {
+		t.Helper()
+		out := strings.Replace(magnet, from, to, 1)
+		if out == magnet {
+			t.Fatalf("%s carries no %s", magnet, from)
+		}
+		return out
+	}
+	_, proper := testenv.SeedTorrent(t, "Show.S01", season(40<<10))
+	_, nameless := testenv.SeedTorrent(t, "Show.S01", season(41<<10))
+	_, film := testenv.SeedTorrent(t, "Film", map[string]int{"Film.mkv": 40 << 10, "Film.nfo": 0})
+
+	b := &byTask{}
+	e, err := New(dir, b.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { e.Close() })
+	e.SetMetadataTimeout(30 * time.Second)
+
+	for id, uri := range map[string]string{
+		"proper":   link(proper, "&dn=Show.S01&", "&dn=Show.S01.PROPER&"),
+		"nameless": link(nameless, "&dn=Show.S01&", "&"),
+	} {
+		e.Start(Job{TaskID: id, URL: uri, Dir: dir})
+		deadline := time.Now().Add(45 * time.Second)
+		for {
+			status, _, errText := b.last(id)
+			if status == core.StatusError {
+				if !strings.Contains(errText, "already exists") {
+					t.Errorf("%s failed with %q, want the folder of its name named as taken", id, errText)
+				}
+				break
+			}
+			if status == core.StatusDone || time.Now().After(deadline) {
+				t.Fatalf("%s is %q, want it refused", id, status)
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		e.Remove(id, true)
+	}
+	// As the file list arrives, before its name can be checked, the library
+	// renames a file at one of the torrent's paths to .part when its size is
+	// not the torrent's.
+	got, err := os.ReadFile(foreign)
+	if err != nil {
+		got, err = os.ReadFile(foreign + ".part")
+	}
+	if err != nil || string(got) != "mine" {
+		t.Errorf("the file in the folder that is not the magnets' reads %q (%v)", got, err)
+	}
+
+	e.Start(Job{TaskID: "film", URL: link(film, "&dn=Film&", "&dn=Film.PROPER&"), Dir: dir})
+	root := waitDone(t, b, "film")
+	if want := filepath.Join(dir, "Film"); root != want {
+		t.Fatalf("the film landed at %s, want %s", root, want)
+	}
+	e.Remove("film", true)
+	if _, err := os.Stat(root); !os.IsNotExist(err) {
+		t.Errorf("the film's folder is still there after it was removed with its files (%v)", err)
 	}
 }
 

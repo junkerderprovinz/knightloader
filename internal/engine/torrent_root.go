@@ -27,10 +27,12 @@ import (
 // torrentRoot is where one torrent lands: dir is the folder it was resolved
 // in, path its own folder or, for a single file, that file, and files every
 // file it has, relative to dir with "/". nest is the folder made for it when
-// its own name was taken, and empty otherwise.
+// its own name was taken, and empty otherwise. before is what dir held when
+// the torrent was placed in it, by folded name (see settleTorrent).
 type torrentRoot struct {
 	dir, path, nest string
 	files           []string
+	before          map[string]bool
 }
 
 // placeTorrent sets the folder a torrent is resolved in and notes where it is
@@ -48,13 +50,15 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 	}
 	name := expectedName(j)
 	if name == "" {
-		// Checked once the resolve has named it (see settleTorrent).
-		e.roots[j.TaskID] = torrentRoot{dir: dir}
+		// Checked once the resolve has named it, against what the folder
+		// holds now (see settleTorrent).
+		e.roots[j.TaskID] = torrentRoot{dir: dir, before: namesIn(dir)}
 		return nil
 	}
 	target := filepath.Join(dir, name)
 	if !e.takenLocked(j.TaskID, target) {
-		e.roots[j.TaskID] = torrentRoot{dir: dir, path: target}
+		// The torrent can still turn out to have another name.
+		e.roots[j.TaskID] = torrentRoot{dir: dir, path: target, before: namesIn(dir)}
 		return nil
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -138,19 +142,61 @@ func (e *Engine) takenLocked(taskID, p string) bool {
 			return true
 		}
 	}
+	return e.claimedLocked(taskID, p)
+}
+
+// claimedLocked reports whether another torrent of this engine lands at p.
+// Names are compared as a case-insensitive disk would. Caller holds rootMu.
+func (e *Engine) claimedLocked(taskID, p string) bool {
 	for id, r := range e.roots {
-		if id != taskID && (r.path == p || r.nest == p) {
+		if id != taskID && (strings.EqualFold(r.path, p) || strings.EqualFold(r.nest, p)) {
 			return true
 		}
 	}
 	return false
 }
 
+// namesIn is what dir holds, by folded name, or nil when it cannot be read.
+// A folder not made yet holds nothing.
+func namesIn(dir string) map[string]bool {
+	f, err := os.Open(dir)
+	if errors.Is(err, fs.ErrNotExist) {
+		return map[string]bool{}
+	}
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	names, err := f.Readdirnames(-1)
+	if err != nil {
+		return nil
+	}
+	out := make(map[string]bool, len(names))
+	for _, n := range names {
+		out[strings.ToLower(n)] = true
+	}
+	return out
+}
+
+// landsOnAnotherLocked reports whether a torrent resolved in r.dir as rel
+// lands on something not its own: what dir held before the resolve, or the
+// place of another torrent. The disk as it is now cannot tell, since the
+// library creates the torrent's empty files while it resolves. Without a
+// record of before, anything on disk counts. Caller holds rootMu.
+func (e *Engine) landsOnAnotherLocked(taskID string, r torrentRoot, rel string) bool {
+	root := filepath.Join(r.dir, filepath.FromSlash(rel))
+	if r.before == nil {
+		return e.takenLocked(taskID, root)
+	}
+	top, _, _ := strings.Cut(strings.ToLower(rel), "/")
+	return r.before[top] || r.before[top+".part"] || e.claimedLocked(taskID, root)
+}
+
 // settleTorrent records where a resolved torrent lands and which files are
 // its own, and returns its folder or file. A torrent that turned out to have
-// another name than its link said is refused when that name is taken, since
+// another name than its link said is refused when that name was taken, since
 // the library has already fixed the folder and would write into another
-// download's files.
+// download's files, which removing the torrent with its files would then take.
 func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error) {
 	files := landingPaths(res)
 	if len(files) == 0 {
@@ -167,11 +213,13 @@ func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error
 		return "", errors.New("the torrent was removed while it was being resolved")
 	}
 	root := filepath.Join(r.dir, filepath.FromSlash(rel))
-	if r.path != root && r.nest == "" && e.takenLocked(taskID, root) && !writesEmptyFiles(res) {
+	if r.path != root && r.nest == "" && e.landsOnAnotherLocked(taskID, r, rel) {
 		delete(e.roots, taskID)
 		return "", fmt.Errorf("not downloaded: %s already exists", root)
 	}
-	r.path, r.files = root, files
+	// A large folder's listing would otherwise stay in memory while the
+	// torrent runs.
+	r.path, r.files, r.before = root, files, nil
 	e.roots[taskID] = r
 	if res.Name != "" {
 		// On disk at once, so a torrent of the same name started later finds
@@ -181,12 +229,6 @@ func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error
 		}
 	}
 	return root, nil
-}
-
-// writesEmptyFiles reports whether the library creates some of the torrent's
-// files while it resolves, which would make its folder look taken.
-func writesEmptyFiles(res *base.Resource) bool {
-	return slices.ContainsFunc(res.Files, func(f *base.FileInfo) bool { return f != nil && f.Size == 0 })
 }
 
 // unplace forgets where a torrent that did not start would have landed, and
