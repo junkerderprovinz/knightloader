@@ -15,8 +15,8 @@ import (
 )
 
 // After a restart the engine knows no torrent, and a torrent removed with its
-// files then goes by the file list the task keeps: an uploaded .torrent's own.
-// A magnet keeps none, so its folder is left as it is.
+// files then goes by the file list the task has: an uploaded .torrent's own.
+// A magnet the swarm never listed has none, so its folder is left as it is.
 func TestATorrentRemovedAfterARestartTakesTheFilesItNames(t *testing.T) {
 	t.Parallel()
 	dir, downloads := t.TempDir(), t.TempDir()
@@ -84,6 +84,146 @@ func TestATorrentRemovedAfterARestartTakesTheFilesItNames(t *testing.T) {
 		if got := err == nil; got != want {
 			t.Errorf("%s is there after the removal: %v, want %v", rel, got, want)
 		}
+	}
+}
+
+// The swarm lists a magnet's files once. The task keeps that list, so after a
+// restart a magnet removed with its files takes exactly those, empty ones as
+// well, and the folders they leave empty. The name in its link is not the
+// torrent's own: the folder of that name belongs to somebody else, which is
+// why the torrent landed beside it, and it stays.
+func TestAMagnetRemovedAfterARestartTakesTheFilesTheSwarmListed(t *testing.T) {
+	t.Parallel()
+	dir, downloads := t.TempDir(), t.TempDir()
+	for rel, content := range map[string]string{
+		"Show.S01/mine.mkv":                             "mine",
+		"Show.S01.1/Show.Season.1/Show.S01E01.mkv":      "e01",
+		"Show.S01.1/Show.Season.1/Subs/Show.S01E01.srt": "srt",
+		"Show.S01.1/Show.Season.1/Show.S01E02.mkv.part": "e02",
+		"Show.S01.1/Show.Season.1/Show.Season.1.nfo":    "",
+		"Film/Film.mkv":  "film",
+		"Film/notes.txt": "mine",
+	} {
+		p := filepath.Join(downloads, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	a, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := a.Settings.Get()
+	s.DownloadDir = downloads
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	magnet := func(hash, dn string) *core.Task {
+		return &core.Task{
+			ID: hash, URL: "magnet:?xt=urn:btih:" + hash + "&dn=" + dn, Name: dn, Resolver: "torrent",
+			InfoHash: hash, Status: core.StatusDone, Enabled: true, CreatedAt: time.Now(),
+		}
+	}
+	show, film := magnet(strings.Repeat("ab", 20), "Show.S01"), magnet(strings.Repeat("cd", 20), "Film")
+	a.mu.Lock()
+	a.tasks[show.ID], a.tasks[film.ID] = show, film
+	a.mu.Unlock()
+	for _, task := range []core.Task{*show, *film} {
+		if err := a.Store.Save(&task); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// What the engine reported once the swarm had sent each file list.
+	a.onUpdate(show.ID, core.Update{
+		Status: core.StatusRunning, Name: "Show.Season.1", File: filepath.Join(downloads, "Show.S01.1", "Show.Season.1"),
+		MagnetFiles: []string{"Show.S01E01.mkv", "Show.S01E02.mkv", "Subs/Show.S01E01.srt", "Show.Season.1.nfo"},
+	})
+	a.onUpdate(film.ID, core.Update{
+		Status: core.StatusRunning, Name: "Film", File: filepath.Join(downloads, "Film"),
+		MagnetFiles: []string{"Film.mkv", "Film.nfo"},
+	})
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	again, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	again.RemoveTasks([]string{show.ID, film.ID}, true)
+	for rel, want := range map[string]bool{
+		"Show.S01.1":        false,
+		"Show.S01/mine.mkv": true,
+		"Film/Film.mkv":     false,
+		"Film/notes.txt":    true,
+	} {
+		_, err := os.Stat(filepath.Join(downloads, filepath.FromSlash(rel)))
+		if got := err == nil; got != want {
+			t.Errorf("%s is there after the removal: %v, want %v", rel, got, want)
+		}
+	}
+}
+
+// A magnet that starts again after a restart takes up its place and waits on
+// the swarm for its file list. When no peer answers, the place and the list it
+// kept still say where its files are, and removing it takes them.
+func TestAMagnetNoPeerAnswersAfterARestartIsStillRemovedWithItsFiles(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if testing.Short() {
+		t.Skip("this starts a torrent client")
+	}
+	a := newTorrentTestApp(t)
+	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
+	downloads := t.TempDir()
+	s := settings.Defaults()
+	s.DownloadDir = downloads
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	place := filepath.Join(downloads, "Show.S01")
+	for _, rel := range []string{"Show.S01E01.mkv", "Subs/Show.S01E01.srt"} {
+		p := filepath.Join(place, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(rel), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	created := a.AddLinksFrom([]string{"magnet:?xt=urn:btih:" + strings.Repeat("ef", 20) + "&dn=Show.S01"}, "Show.S01", OriginPaste)
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks, want 1", len(created))
+	}
+	id := created[0].ID
+	a.mu.Lock()
+	a.tasks[id].Name, a.tasks[id].File = "Show.S01", place
+	a.tasks[id].MagnetFiles = []string{"Show.S01E01.mkv", "Subs/Show.S01E01.srt"}
+	a.mu.Unlock()
+	a.StartTasks([]string{id})
+
+	var last *core.Task
+	deadline := time.Now().Add(10 * time.Second)
+	for last == nil || last.Status != core.StatusError {
+		if time.Now().After(deadline) {
+			t.Fatalf("the start did not settle: %+v", last)
+		}
+		time.Sleep(20 * time.Millisecond)
+		for _, tsk := range a.Tasks() {
+			if tsk.ID == id {
+				last = tsk
+			}
+		}
+	}
+	if last.File != place {
+		t.Errorf("after an attempt that heard nothing the task says it is at %q, want %s", last.File, place)
+	}
+	a.RemoveTasks([]string{id}, true)
+	if _, err := os.Stat(place); !os.IsNotExist(err) {
+		t.Errorf("the magnet's folder is still there after it was removed with its files (%v)", err)
 	}
 }
 

@@ -222,6 +222,9 @@ type Update struct {
 	// backend that writes on this machine, and it can differ from Name when
 	// the backend had to step around a file that was already there.
 	File string
+	// MagnetFiles is a magnet's file list, which comes with File once the
+	// swarm has sent it (see Task.MagnetFiles).
+	MagnetFiles []string
 }
 
 // TorrentStats is one reading of a torrent's swarm, taken from gopeed's
@@ -557,6 +560,12 @@ type Task struct {
 	// TorrentFiles is the multi-file selection. It is persisted, since it is
 	// the user's decision and forgetting it would fetch excluded files.
 	TorrentFiles []TorrentFile `json:"torrentFiles,omitempty"`
+	// MagnetFiles is every file of a magnet's torrent, by its path inside the
+	// torrent, as the swarm listed it. A .torrent keeps its list in its link,
+	// but after a restart nothing else knows a magnet's, and removing it with
+	// its files takes exactly these. It is not sent to the interface, which
+	// has no use for a list that can run to thousands of paths.
+	MagnetFiles []string `json:"-"`
 	// Remote is set while a debrid service fetches this torrent for the task.
 	// A service can take hours over a torrent it has not cached, and nothing
 	// arrives here meanwhile. Not persisted.

@@ -90,7 +90,11 @@ func (e *Engine) startTorrent(j Job) {
 			return
 		}
 		name, size := torrentMeta(rr.Res, sel)
-		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root})
+		u := core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root}
+		if magnet {
+			u.MagnetFiles = torrentPaths(rr.Res)
+		}
+		e.emit(j.TaskID, u)
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
 			fail(err)
@@ -178,6 +182,21 @@ func landingPaths(res *base.Resource) []string {
 	}
 	if len(out) == 0 && res.Name != "" {
 		out = append(out, res.Name)
+	}
+	return out
+}
+
+// torrentPaths is every file of a resolved torrent by its path inside the
+// torrent, as a .torrent's own file tree shows it. Empty files and files left
+// out of the selection count as well: the library creates an empty file as it
+// resolves, and writes the part of a left-out file that shares a piece with a
+// chosen one.
+func torrentPaths(res *base.Resource) []string {
+	out := make([]string, 0, len(res.Files))
+	for _, f := range res.Files {
+		if f != nil {
+			out = append(out, path.Join(f.Path, f.Name))
+		}
 	}
 	return out
 }

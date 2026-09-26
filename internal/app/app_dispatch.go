@@ -972,9 +972,14 @@ func (a *App) dispatchLocked() {
 		if chosen != t.Connection {
 			t.Connection = chosen
 		}
-		// The new attempt reports the file it writes itself.
+		// The new attempt reports the file it writes itself. A torrent the
+		// built-in client takes up again lands where it was, and a magnet's
+		// attempt may never hear from the swarm, so that place stays on the
+		// task for removing it with its files.
 		landed := t.File
-		t.File = ""
+		if !ownPlace || be != a.Engine {
+			t.File = ""
+		}
 		if be == a.Engine {
 			job := a.engineJobLocked(t, cfg, result.DirectURL, result.Headers, conns)
 			job.Route = route
@@ -1246,6 +1251,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// A fact about the disk, so a stale update still counts.
 	a.recordFileLocked(t, u.File)
+	if u.MagnetFiles != nil {
+		t.MagnetFiles = u.MagnetFiles
+	}
 	if u.Status != "" && !stale {
 		t.Status = u.Status
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -164,6 +165,48 @@ func waitDone(t *testing.T, b *byTask, id string) string {
 			t.Fatalf("%s is still %q after a minute", id, status)
 		}
 		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// A magnet reports its file list with the place it lands. Once the engine is
+// gone, as after a restart, that list deletes the magnet's files, the empty
+// one too, and then its folder.
+func TestAMagnetReportsTheFileListItIsDeletedByAfterARestart(t *testing.T) {
+	requireTorrentClient(t)
+	files := []seedFile{{"Show.S01E01.mkv", 40 << 10}, {"Subs/Show.S01E01.srt", 2 << 10}, {"Show.S01.nfo", 0}}
+	_, magnet := seedTorrent(t, "Show.S01", files)
+	dir, err := os.MkdirTemp("", "kl-bt-list-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	b := &byTask{}
+	e, err := New(dir, b.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { e.Close() })
+	e.SetMetadataTimeout(30 * time.Second)
+
+	e.Start(Job{TaskID: "magnet", URL: magnet, Dir: dir})
+	root := waitDone(t, b, "magnet")
+	var listed []string
+	b.mu.Lock()
+	for _, u := range b.m["magnet"] {
+		if u.MagnetFiles != nil {
+			listed = slices.Clone(u.MagnetFiles)
+		}
+	}
+	b.mu.Unlock()
+	want := []string{"Show.S01.nfo", "Show.S01E01.mkv", "Subs/Show.S01E01.srt"}
+	if got := slices.Sorted(slices.Values(listed)); !slices.Equal(got, want) {
+		t.Errorf("the magnet reported the file list %v, want %v", got, want)
+	}
+
+	e.Close()
+	DeleteTorrentFiles(dir, root, listed)
+	if _, err := os.Stat(root); !os.IsNotExist(err) {
+		t.Errorf("the magnet's folder is still there after its listed files were deleted (%v)", err)
 	}
 }
 
