@@ -7,7 +7,6 @@ import {
   Modal,
   NumberInput,
   SectionTitle,
-  TextArea,
   TextInput,
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
@@ -25,6 +24,7 @@ import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
+import { ListArea } from '../controls';
 import { KeepAwakeRow } from './KeepAwake';
 
 // The idle action: what happens once the wait queue has nothing left, and how
@@ -250,14 +250,12 @@ export function IdleActionCard({ hue }: { hue: number }) {
           </Field>
 
           <Field label={t('settings.downloads.idleCommandArgs')} hint={t('settings.downloads.idleCommandArgsHint')}>
-            <TextArea
+            <ListArea
               rows={3}
-              spellCheck={false}
               dir="ltr"
-              value={storedArgs ? '' : (command.args ?? []).join('\n')}
+              lines={storedArgs ? [] : command.args}
               placeholder={storedArgs ? t('settings.downloads.idleCommandStored') : 'suspend'}
-              // Blank lines are dropped, as CommandSpec.Sanitize does.
-              onChange={(e) => setCommand({ args: e.target.value.split('\n').filter((a) => a.trim() !== '') })}
+              onLines={(args) => setCommand({ args })}
             />
           </Field>
 

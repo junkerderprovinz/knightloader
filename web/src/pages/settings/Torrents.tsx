@@ -6,7 +6,6 @@ import {
   NumberInput,
   PageHeader,
   SectionTitle,
-  TextArea,
   TextInput,
   ToggleRow,
   UnitNumberInput,
@@ -16,7 +15,7 @@ import { happened } from '../../lib/countdown';
 import { fmtDate, RATE_UNITS } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
-import { RowRefusal } from './controls';
+import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -281,9 +280,7 @@ export function FileSelectionFields({
 
 /**
  * LinesField edits a list as a box with one entry per line, with the server's
- * refusal of the list beneath it when refusal names where that is filed. Blank
- * lines go out as they are and the server drops them: taken out here, the new
- * line an Enter starts would vanish before anything could be typed on it.
+ * refusal of the list beneath it when refusal names where that is filed.
  */
 function LinesField({
   lines,
@@ -301,13 +298,7 @@ function LinesField({
   return (
     <div className="flex flex-col gap-1.5">
       <Field label={label} hint={hint}>
-        <TextArea
-          rows={3}
-          spellCheck={false}
-          dir="ltr"
-          value={(lines ?? []).join('\n')}
-          onChange={(e) => onLines(e.target.value.split('\n'))}
-        />
+        <ListArea rows={3} dir="ltr" lines={lines} onLines={onLines} />
       </Field>
       {refusal && <RowRefusal field={refusal} className="pb-0" />}
     </div>

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
-import { SettingPathInput } from './controls';
+import { ListArea, SettingPathInput } from './controls';
 
 /**
  * Archives settles everything about an archive: whether it is unpacked, where
@@ -198,14 +198,7 @@ export function Archives() {
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archivePasswords')}</SectionTitle>
         <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
-          <TextArea
-            rows={4}
-            spellCheck={false}
-            value={(cfg.archivePasswords ?? []).join('\n')}
-            onChange={(e) =>
-              patch({ archivePasswords: e.target.value.split('\n').filter((p) => p.trim() !== '') })
-            }
-          />
+          <ListArea rows={4} lines={cfg.archivePasswords} onLines={(archivePasswords) => patch({ archivePasswords })} />
         </Field>
       </Card>
 

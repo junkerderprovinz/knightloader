@@ -1,6 +1,7 @@
-import { Card, Field, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../../components/ui';
+import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { useDraft } from '../context';
+import { ListArea } from '../controls';
 import { ModuleToggle } from '../ModuleToggle';
 
 // The page crawler: a pasted page is opened and the files it links to are
@@ -43,20 +44,10 @@ export function CrawlCard({ hue }: { hue: number }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('settings.crawl.include')} hint={t('settings.crawl.includeHint')}>
-            <TextArea
-              rows={3}
-              spellCheck={false}
-              value={(cfg.crawlInclude ?? []).join('\n')}
-              onChange={(e) => patch({ crawlInclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
-            />
+            <ListArea rows={3} lines={cfg.crawlInclude} onLines={(crawlInclude) => patch({ crawlInclude })} />
           </Field>
           <Field label={t('settings.crawl.exclude')} hint={t('settings.crawl.excludeHint')}>
-            <TextArea
-              rows={3}
-              spellCheck={false}
-              value={(cfg.crawlExclude ?? []).join('\n')}
-              onChange={(e) => patch({ crawlExclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
-            />
+            <ListArea rows={3} lines={cfg.crawlExclude} onLines={(crawlExclude) => patch({ crawlExclude })} />
           </Field>
         </div>
       </div>
