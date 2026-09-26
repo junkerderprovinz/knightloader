@@ -7,6 +7,7 @@ import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
 import { rowWord, type StateWord } from '../api/taskState';
 import { InfoTip } from './InfoTip';
+import IconBadge, { Power } from './IconBadge';
 import { Text } from './Text';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
@@ -86,7 +87,17 @@ export function statusColor(word: StateWord | null, c: Palette, accentInk: strin
   }
 }
 
-export default function TaskRow({ task, index }: { task: Task; index: number }) {
+export default function TaskRow({
+  task,
+  index,
+  onSwitch,
+}: {
+  task: Task;
+  index: number;
+  /** Disables this link, or enables it again; the package header's badge
+   *  does the same for all of its links. */
+  onSwitch?: () => void;
+}) {
   const { t } = useT();
   const { c, accent, dark, corners, hueAt, rainbow } = useAppearance();
   // The rainbow hands colours out by position, so this row's colour comes from
@@ -141,66 +152,78 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
           : null,
       ]}
     >
-      <View style={styles.header}>
-        <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
-          {task.name || task.url}
-        </Text>
-        <Text style={[styles.status, { color: statusColor(word, c, rowInk) }]}>
-          {word ? t(STATE_KEYS[word]) : task.status}
-        </Text>
-      </View>
-
-      {task.status === 'running' && (
-        <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
-          <View style={[styles.progressFill, { width: `${pct ?? 0}%`, backgroundColor: rowAccent }]} />
+      <View style={styles.body}>
+        <View style={styles.header}>
+          <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+            {task.name || task.url}
+          </Text>
+          <Text style={[styles.status, { color: statusColor(word, c, rowInk) }]}>
+            {word ? t(STATE_KEYS[word]) : task.status}
+          </Text>
         </View>
-      )}
 
-      <View style={styles.footer}>
-        <Text style={[styles.meta, { color: c.textMuted }]}>
-          {remote ? `${pct}%` : fmtBytes(task.loaded)}
-          {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
-          {!remote && pct !== null ? ` · ${pct}%` : ''}
-        </Text>
-        {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}
-        {remote ? (
-          <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
-            {t('task.remote', { service: serviceName(task.resolver) })}
-          </Text>
-        ) : null}
-        {/* The backend's own word for what is happening, when "running" is not
-            the whole truth. The web list carries the same note column. */}
-        {task.note ? (
-          <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
-            {task.note}
-          </Text>
-        ) : null}
-        {/* Whether this goes out on an account, in the same muted metadata ink
-            as the byte count beside it. A word rather than a badge or a colour,
-            because "free" is an answer and not a warning, and nothing at all
-            for an ordinary file, which is neither. */}
-        {task.mode ? (
-          <Text style={[styles.meta, { color: c.textMuted }]}>
-            {t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}
-          </Text>
-        ) : null}
-      </View>
-
-      {failure ? (
-        <View style={styles.failure}>
-          <View style={styles.failureText}>
-            <Text style={[styles.failureLine, { color: c.statusFailSolid }]} numberOfLines={2}>
-              {failure.line}
-            </Text>
-            <Text style={[styles.failureLine, { color: c.textMuted }]} numberOfLines={3}>
-              {failure.next}
-            </Text>
+        {task.status === 'running' && (
+          <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
+            <View style={[styles.progressFill, { width: `${pct ?? 0}%`, backgroundColor: rowAccent }]} />
           </View>
-          {/* The instance's own sentence stays one tap away for a report,
-              the way the web keeps it in the row's bubble. */}
-          {failure.raw ? <InfoTip text={`${t('failure.raw')}: ${failure.raw}`} /> : null}
+        )}
+
+        <View style={styles.footer}>
+          <Text style={[styles.meta, { color: c.textMuted }]}>
+            {remote ? `${pct}%` : fmtBytes(task.loaded)}
+            {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
+            {!remote && pct !== null ? ` · ${pct}%` : ''}
+          </Text>
+          {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}
+          {remote ? (
+            <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
+              {t('task.remote', { service: serviceName(task.resolver) })}
+            </Text>
+          ) : null}
+          {/* The backend's own word for what is happening, when "running" is not
+              the whole truth. The web list carries the same note column. */}
+          {task.note ? (
+            <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
+              {task.note}
+            </Text>
+          ) : null}
+          {/* Whether this goes out on an account, in the same muted metadata ink
+              as the byte count beside it. A word rather than a badge or a colour,
+              because "free" is an answer and not a warning, and nothing at all
+              for an ordinary file, which is neither. */}
+          {task.mode ? (
+            <Text style={[styles.meta, { color: c.textMuted }]}>
+              {t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}
+            </Text>
+          ) : null}
         </View>
-      ) : null}
+
+        {failure ? (
+          <View style={styles.failure}>
+            <View style={styles.failureText}>
+              <Text style={[styles.failureLine, { color: c.statusFailSolid }]} numberOfLines={2}>
+                {failure.line}
+              </Text>
+              <Text style={[styles.failureLine, { color: c.textMuted }]} numberOfLines={3}>
+                {failure.next}
+              </Text>
+            </View>
+            {/* The instance's own sentence stays one tap away for a report,
+                the way the web keeps it in the row's bubble. */}
+            {failure.raw ? <InfoTip text={`${t('failure.raw')}: ${failure.raw}`} /> : null}
+          </View>
+        ) : null}
+      </View>
+
+      {/* The package header's switch, per link, so one mirror or one part can
+          be parked on its own. */}
+      {onSwitch && (
+        <IconBadge
+          icon={<Power color={c.textSub} hole={c.surface2} />}
+          onPress={onSwitch}
+          accessibilityLabel={t(task.enabled ? 'task.disable' : 'task.enable')}
+        />
+      )}
     </View>
   );
 }
@@ -211,7 +234,11 @@ const styles = StyleSheet.create({
   row: {
     padding: 12,
     marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
+  body: { flex: 1, minWidth: 0 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   // marginEnd rather than marginRight: the app ships Arabic, Hebrew and
   // Persian, and a physical edge keeps its gap on the same side of the screen

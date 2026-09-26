@@ -317,10 +317,10 @@ export default function DownloadsScreen({
               }
             : undefined
         }
-        onSetEnabled={async (pkg, enabled) => {
+        onSetEnabled={async (links, enabled) => {
           setStartError('');
           try {
-            await setTasksEnabled(conn, pkg.tasks.map((x) => x.id), enabled, base);
+            await setTasksEnabled(conn, links.map((x) => x.id), enabled, base);
           } catch (e) {
             setStartError(errorText(t, e));
             return;

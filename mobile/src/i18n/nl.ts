@@ -145,6 +145,8 @@ export const nl: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ophalen bij {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Over KnightLoader',
   'settings.aboutBody': 'Eén ridder, één kruistocht: verzorgde opensourcetools die niet bestonden in de vorm die ik wilde, gebouwd tot er niets meer ontbreekt. Alles gratis, zonder accounts, zonder telemetrie, zonder advertenties en zonder betaalde versie. Nergens een sterretje. Niets leesbaars verlaat ooit je eigen muren. Gesmeed op avonden en weekenden, met hart en koppigheid.',
   'settings.accentReset': 'Standaard',

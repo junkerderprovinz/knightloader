@@ -78,9 +78,10 @@ export default function PackageList({
    *  badge is what promotes it. Undefined in the download tab, where the
    *  queue's own controls decide what runs. */
   onStartPackage?: (pkg: Pkg) => void;
-  /** Disables every link of the package, or enables them all once none is
-   *  left enabled, as the web interface's package menu does. */
-  onSetEnabled?: (pkg: Pkg, enabled: boolean) => void;
+  /** Enables or disables the links given. A package header's badge disables
+   *  every link of it, or enables them all once none is left enabled, as the
+   *  web interface's package menu does; a link's own badge switches that link. */
+  onSetEnabled?: (tasks: Task[], enabled: boolean) => void;
   /** Both tabs pass this. Confirmed here rather than at the call site, so every
    *  caller gets the same dialog and none of them can forget it. */
   onDeletePackage?: (pkg: Pkg) => void;
@@ -133,7 +134,13 @@ export default function PackageList({
           key: r.task.id,
           band: `pkg:${r.task.package || ''}`,
           parent: `p:${r.task.package || ''}`,
-          render: () => <TaskRow task={r.task} index={r.index} />,
+          render: (_ziehend, scharf) => (
+            <TaskRow
+              task={r.task}
+              index={r.index}
+              onSwitch={onSetEnabled && (() => scharf || onSetEnabled([r.task], !r.task.enabled))}
+            />
+          ),
         },
   );
 
@@ -252,7 +259,7 @@ export default function PackageList({
             {onSetEnabled && (
               <IconBadge
                 icon={<Power color={c.textSub} hole={c.surface2} />}
-                onPress={() => scharf || onSetEnabled(pkg, allOff)}
+                onPress={() => scharf || onSetEnabled(pkg.tasks, allOff)}
                 accessibilityLabel={t(allOff ? 'packages.enable' : 'packages.disable')}
               />
             )}

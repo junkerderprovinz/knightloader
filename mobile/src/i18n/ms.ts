@@ -145,6 +145,8 @@ export const ms: Dict = {
   'task.mode.free': 'Percuma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Mengambil di {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Perihal KnightLoader',
   'settings.aboutBody': 'Satu kesateria, satu ekspedisi: alat sumber terbuka yang kemas, yang tidak wujud dalam bentuk yang saya mahukan, dibina sehingga tiada apa yang kurang. Semuanya percuma, tanpa akaun, tanpa telemetri, tanpa iklan dan tanpa peringkat berbayar. Tiada tanda bintang di mana-mana. Tiada apa yang boleh dibaca pernah meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu, dengan hati dan sifat degil.',
   'settings.accentReset': 'Lalai',

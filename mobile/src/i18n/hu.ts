@@ -145,6 +145,8 @@ export const hu: Dict = {
   'task.mode.free': 'Ingyenes',
   'task.mode.premium': 'Prémium',
   'task.remote': '{service} tölti le',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'A KnightLoaderről',
   'settings.aboutBody': 'Egy lovag, egy hadjárat: igényes nyílt forráskódú eszközök, amelyek abban a formában, ahogy én akartam, nem léteztek, addig építve, amíg semmi nem hiányzik. Minden ingyenes, fiókok, telemetria, hirdetések és fizetős szintek nélkül. Sehol egyetlen csillag sem. Semmi olvasható nem hagyja el a saját falaidat. Esténként és hétvégenként kovácsolva, szívvel és makacssággal.',
   'settings.accentReset': 'Alapérték',

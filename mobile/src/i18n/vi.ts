@@ -145,6 +145,8 @@ export const vi: Dict = {
   'task.mode.free': 'Miễn phí',
   'task.mode.premium': 'Premium',
   'task.remote': 'Đang lấy trên {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',
   'settings.aboutBody': 'Một hiệp sĩ, một cuộc viễn chinh: những công cụ mã nguồn mở gọn đẹp vốn không tồn tại theo hình dạng tôi muốn, được xây cho đến khi không còn thiếu gì. Tất cả miễn phí, không tài khoản, không đo từ xa, không quảng cáo và không gói trả phí. Không có dấu sao ở đâu cả. Không có gì đọc được rời khỏi bức tường của bạn. Được rèn vào buổi tối và cuối tuần, bằng trái tim và sự cứng đầu.',
   'settings.accentReset': 'Mặc định',

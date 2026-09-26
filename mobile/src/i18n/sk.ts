@@ -145,6 +145,8 @@ export const sk: Dict = {
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Sťahuje sa v službe {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'O KnightLoaderi',
   'settings.aboutBody': 'Jeden rytier, jedna výprava: pekné open source nástroje, ktoré v podobe, akú som chcel, neexistovali, stavané, kým nič nechýba. Všetko zadarmo, bez účtov, bez telemetrie, bez reklám a bez platených verzií. Nikde žiadna hviezdička. Nič čitateľné nikdy neopustí tvoje vlastné múry. Kované po večeroch a cez víkendy, so srdcom a tvrdohlavosťou.',
   'settings.accentReset': 'Predvolené',

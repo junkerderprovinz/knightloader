@@ -145,6 +145,8 @@ export const eu: Dict = {
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
   'task.remote': '{service} zerbitzuan deskargatzen',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'KnightLoader-i buruz',
   'settings.aboutBody': 'Zaldun bakarra, gurutzada bakarra: nahi nuen moduan existitzen ez ziren kode irekiko tresna dotoreak, ezer falta ez den arte eraikiak. Dena doan, konturik gabe, telemetriarik gabe, iragarkirik gabe eta ordainpeko mailarik gabe. Inon ez dago izartxorik. Irakurgai denik ez da inoiz zure harresietatik ateratzen. Arratsaldeetan eta asteburuetan forjatua, bihotzez eta setaz.',
   'settings.accentReset': 'Lehenetsia',

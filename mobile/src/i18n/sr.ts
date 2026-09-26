@@ -145,6 +145,8 @@ export const sr: Dict = {
   'task.mode.free': 'Бесплатно',
   'task.mode.premium': 'Премијум',
   'task.remote': 'Преузима се код услуге {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'О KnightLoader-у',
   'settings.aboutBody': 'Један витез, један поход: уредни алати отвореног кода којих у облику какав сам желео није било, грађени док ништа не недостаје. Све бесплатно, без налога, без телеметрије, без реклама и без плаћених нивоа. Нигде ниједне звездице. Ништа читљиво никада не напушта твоје зидове. Ковано увече и викендом, са срцем и тврдоглавошћу.',
   'settings.accentReset': 'Подразумевано',
