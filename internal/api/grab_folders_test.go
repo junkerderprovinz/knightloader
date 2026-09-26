@@ -201,6 +201,8 @@ func seedTorrent(t *testing.T, name string, files map[string]int) (hash, magnet 
 	cfg.DisableIPv6 = true
 	cfg.DisableUTP = true
 	cfg.ListenHost = func(string) string { return "127.0.0.1" }
+	// Two seeders run at once, and the library's default port is fixed.
+	cfg.ListenPort = 0
 	cl, err := anacrolix.NewClient(cfg)
 	if err != nil {
 		t.Fatal(err)
