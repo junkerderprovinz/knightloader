@@ -3049,4 +3049,7 @@ export const lt: Dict = {
   'settings.torrents.keepOnServiceHint': 'Kai tai išjungta, KnightLoader ištrina torrentą iš debrid paslaugos, kai tik visi jo failai yra čia, ir taip pat elgiasi su atsisiuntimu, importuotu iš paskyros, kad ten niekas nesikauptų ir neviršytų paskyros ribų. Importuotas atsisiuntimas, kurį čia pašalini dar nebaigtą, ištrinamas ir ten. Kai tai įjungta, abu lieka paslaugoje, pavyzdžiui, kad vėliau galėtum juos iš ten transliuoti. Torrentas, kurį pridėjo KnightLoader, bet kuriuo atveju ištrinamas, jei jį pašalini dar nebaigtą, o tas, kurį paskyra jau turėjo, niekada neištrinamas.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -7,6 +7,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
 import { ltr } from '../lib/bidi';
 import { fmtBytes } from '../lib/format';
+import { heldReason } from '../lib/heldReason';
 import { containerRefusal, message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { Button, Toggle } from './ui';
@@ -93,7 +94,7 @@ type Outcome =
   | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
   | { file: string; kind: 'nzb-sent'; service: string }
   | { file: string; kind: 'torrent-staged'; task: Task }
-  | { file: string; kind: 'torrent-held'; reason: string }
+  | { file: string; kind: 'torrent-held'; task: Task }
   | { file: string; kind: 'torrent-duplicate' }
   | { file: string; kind: 'failed'; reason: string };
 
@@ -110,7 +111,8 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
     return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
   }
   if (o.kind === 'torrent-held') {
-    return <p className="text-xs text-statusWarn">{t('torrent.held', { file: o.file, reason: o.reason })}</p>;
+    const reason = heldReason(t, o.task.skipCode, o.task.skipParams, o.task.skipReason);
+    return <p className="text-xs text-statusWarn">{t('torrent.held', { file: o.file, reason })}</p>;
   }
   if (o.kind === 'torrent-staged') {
     return (
@@ -292,7 +294,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
       if (!task) return { file, kind: 'torrent-duplicate' };
       // Held back by a filter rule or a banned tracker: in the list, but not in
       // the collector.
-      if (task.skipped) return { file, kind: 'torrent-held', reason: task.skipReason ?? '' };
+      if (task.skipped) return { file, kind: 'torrent-held', task };
       return { file, kind: 'torrent-staged', task };
     } catch (e) {
       return { file, kind: 'failed', reason: message(e) };

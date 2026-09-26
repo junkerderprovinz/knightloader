@@ -3049,4 +3049,7 @@ export const ja: Dict = {
   'settings.torrents.keepOnServiceHint': 'オフのときは、トレントのファイルがすべてここに届いた時点で、KnightLoader がそのトレントを Debrid サービスから削除します。アカウントから取り込んだダウンロードも同じなので、どちらもサービスにたまってアカウントの上限を圧迫することはありません。取り込んだダウンロードを完了前にここで削除すると、向こうでも削除されます。オンのときは、どちらもサービスに残ります。たとえば、あとでそこからストリーミングできるようにするためです。KnightLoader が追加したトレントは、完了前に削除すればどちらの設定でも削除され、アカウントにもともとあったトレントが削除されることはありません。',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -923,15 +923,17 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	if a.refusesJobLink(cand.URL, in) {
 		return nil
 	}
+	shown := rejection(v)
 	t := &core.Task{
-		URL:     cand.URL,
-		Name:    cand.URL,
-		Package: cand.Package,
-		Size:    cand.Filesize,
-		Status:  core.StatusCollected,
-		Skipped: true,
-		// rejection() has already added the rule's name where needed.
-		SkipReason: rejection(v),
+		URL:        cand.URL,
+		Name:       cand.URL,
+		Package:    cand.Package,
+		Size:       cand.Filesize,
+		Status:     core.StatusCollected,
+		Skipped:    true,
+		SkipReason: shown.Reason,
+		SkipCode:   shown.Code,
+		SkipParams: shown.Params,
 		// Still enabled: once the rule is fixed, the link can be started.
 		Enabled:   true,
 		Source:    cand.Source,
@@ -960,14 +962,19 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	return t
 }
 
-// rejection returns the reason shown on a refused link, adding the rule's name
-// unless the reason already quotes it.
-func rejection(v rules.Verdict) string {
+// rejection is the verdict as a refused link shows it, with the rule's name
+// added to the reason unless the reason already quotes it.
+func rejection(v rules.Verdict) rules.Verdict {
 	if v.Rule == "" || strings.Contains(v.Reason, strconv.Quote(v.Rule)) {
-		return v.Reason
+		return v
 	}
-	return fmt.Sprintf("%s (link filter rule %q)", v.Reason, v.Rule)
+	v.Code, v.Params = skipFilterRuleReason, map[string]string{"reason": v.Reason, "rule": v.Rule}
+	v.Reason = fmt.Sprintf("%s (link filter rule %q)", v.Reason, v.Rule)
+	return v
 }
+
+// skipFilterRuleReason is the code of a rule's own reason with its name added.
+const skipFilterRuleReason = "filterRuleReason"
 
 // FilteredLinks returns the holding area, oldest first. It is derived from the
 // task list, for clients that do not follow the task stream.

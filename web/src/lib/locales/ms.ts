@@ -3048,4 +3048,7 @@ export const ms: Dict = {
   'settings.torrents.keepOnServiceHint': 'Apabila ini dimatikan, KnightLoader memadam torrent daripada perkhidmatan debrid sebaik sahaja semua failnya berada di sini, dan melakukan perkara yang sama pada muat turun yang diimport daripada akaun, supaya kedua-duanya tidak bertimbun sehingga mencecah had akaun. Muat turun yang diimport dan anda buang di sini sebelum ia selesai turut dipadam di sana. Apabila ini dihidupkan, kedua-duanya kekal pada perkhidmatan itu, contohnya supaya anda boleh menstrimnya dari sana kemudian. Torrent yang ditambah oleh KnightLoader sentiasa dipadam jika anda membuangnya sebelum ia selesai, tanpa mengira tetapan ini, dan torrent yang sudah sedia ada dalam akaun tidak pernah dipadam.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

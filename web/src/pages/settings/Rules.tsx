@@ -18,6 +18,7 @@ import {
 } from '../../components/RuleEditor';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
+import { heldReason } from '../../lib/heldReason';
 import { useT } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
@@ -709,7 +710,7 @@ function Outcomes({
 
             {rejected && (
               <p className="text-[11px] text-statusFail">
-                {l.verdict.reason}
+                {heldReason(t, l.verdict.code, l.verdict.params, l.verdict.reason)}
                 {/* The engine's own reason already names the rule. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
                   ? ` - ${t('settings.rules.resultBy', { rule: l.verdict.rule })}`

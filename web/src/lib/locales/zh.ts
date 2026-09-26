@@ -3035,4 +3035,7 @@ export const zh: Dict = {
   'settings.torrents.keepOnServiceHint': '关闭时，种子的全部文件到达这里后，KnightLoader 会把它从 Debrid 服务上删除；从账户导入的下载也一样。这样两者都不会在服务上越积越多，占满账户的限额。你在这里移除一个尚未完成的导入下载时，那边也会把它删除。打开时，两者都会留在服务上，例如方便你以后从那里在线播放。由 KnightLoader 添加的种子，只要你在它完成前移除，无论如何都会被删除；而账户原本就有的种子永远不会被删除。',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

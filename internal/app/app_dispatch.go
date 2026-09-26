@@ -858,7 +858,7 @@ func (a *App) dispatchLocked() {
 		if v.Rejected {
 			t.Status = core.StatusError
 			t.Online = core.AvailOffline
-			t.Error = rejection(v)
+			t.Error = rejection(v).Reason
 			// Cleared so an earlier attempt's reason does not label a rule
 			// rejection.
 			t.Reason = core.ReasonUnknown

@@ -68,6 +68,18 @@ it('says an upload that announces a banned tracker was rejected, with the reason
   expect(text).not.toContain('Added movie.torrent');
 });
 
+it('words the reason from its code rather than repeating the server', async () => {
+  staging({
+    skipped: true,
+    skipReason: 'the server’s own sentence',
+    skipCode: 'bannedTracker',
+    skipParams: { host: 'tracker.example.org' },
+  });
+  const text = await drop();
+  expect(text).toContain('announces tracker.example.org, which is on the banned trackers list');
+  expect(text).not.toContain('the server’s own sentence');
+});
+
 it('says an upload that was staged was added', async () => {
   staging({ package: '' });
   expect(await drop()).toContain('Added movie.torrent to the collector.');

@@ -129,10 +129,16 @@ func trackerBan(t *core.Task, cfg settings.Torrent) rules.Verdict {
 		})
 	}
 	if host, hit := torrent.Banned(t.Trackers, banned); hit {
-		return rules.Verdict{Rejected: true, Reason: bannedBecause(host)}
+		return rules.Verdict{
+			Rejected: true, Reason: bannedBecause(host),
+			Code: skipBannedTracker, Params: map[string]string{"host": host},
+		}
 	}
 	return rules.Verdict{}
 }
+
+// skipBannedTracker is the code of bannedBecause's reason.
+const skipBannedTracker = "bannedTracker"
 
 // bannedBecause is the reason a torrent announcing host is held back with.
 func bannedBecause(host string) string {

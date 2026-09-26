@@ -140,7 +140,7 @@ export interface LinkReport {
     chunks?: number;
     matched?: string[];
   };
-  verdict: { rejected: boolean; rule?: string; reason?: string };
+  verdict: { rejected: boolean; rule?: string; reason?: string; code?: string; params?: Record<string, string> };
   result: { package: string; filename: string };
 }
 

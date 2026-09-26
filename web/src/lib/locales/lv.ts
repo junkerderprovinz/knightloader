@@ -3039,4 +3039,7 @@ export const lv: Dict = {
   'settings.torrents.keepOnServiceHint': 'Kad šis ir izslēgts, KnightLoader izdzēš torrentu no debrid pakalpojuma, tiklīdz visi tā faili ir šeit, un tāpat rīkojas ar lejupielādi, kas importēta no konta, lai ne viens, ne otrs tur neuzkrātos un netērētu konta ierobežojumus. Importētu lejupielādi, ko tu noņem šeit, pirms tā ir pabeigta, izdzēš arī tur. Kad šis ir ieslēgts, abi paliek pakalpojumā, piemēram, lai tu tos vēlāk varētu straumēt no turienes. Torrentu, ko pievienoja KnightLoader, izdzēš jebkurā gadījumā, ja tu to noņem, pirms tas ir pabeigts, bet torrentu, kas kontā jau bija, neizdzēš nekad.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

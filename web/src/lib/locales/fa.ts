@@ -3038,4 +3038,7 @@ export const fa: Dict = {
   'settings.torrents.keepOnServiceHint': 'وقتی این خاموش است، KnightLoader همین که همهٔ فایل‌های یک تورنت اینجا باشند آن را از سرویس debrid پاک می‌کند، و با دانلودی که از حساب درون‌ریزی شده هم همین کار را می‌کند، تا هیچ‌کدام آنجا روی هم جمع نشوند و به محدودیت‌های حساب نرسند. دانلود درون‌ریزی‌شده‌ای که پیش از تمام شدنش اینجا حذفش کنی، آنجا هم پاک می‌شود. وقتی این روشن است، هر دو روی سرویس می‌مانند، مثلاً تا بعداً از همان‌جا استریمشان کنی. تورنتی که KnightLoader اضافه کرده، اگر پیش از تمام شدنش حذفش کنی در هر حال پاک می‌شود، و تورنتی که از قبل در حساب بوده هرگز پاک نمی‌شود.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

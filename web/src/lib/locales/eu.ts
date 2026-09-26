@@ -3043,4 +3043,7 @@ export const eu: Dict = {
   'settings.torrents.keepOnServiceHint': 'Hau itzalita dagoenean, KnightLoaderrek torrent bat debrid zerbitzutik ezabatzen du bere fitxategi guztiak hemen daudenean, eta gauza bera egiten du kontutik inportatutako deskarga batekin, bietako bat ere han pilatu ez dadin eta kontuaren mugak bete ez ditzan. Hemen amaitu aurretik kentzen duzun inportatutako deskarga bat han ere ezabatzen da. Hau piztuta dagoenean, biak zerbitzuan geratzen dira, adibidez geroago handik streaming bidez ikusi ahal izateko. KnightLoaderrek gehitutako torrent bat ezabatu egiten da edonola ere amaitu aurretik kentzen baduzu, eta kontuak lehendik zuena ez da inoiz ezabatzen.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

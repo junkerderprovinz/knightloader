@@ -3067,4 +3067,7 @@ export const he: Dict = {
   'settings.torrents.keepOnServiceHint': 'כשזה כבוי, KnightLoader מוחק טורנט משירות ה-debrid ברגע שכל הקבצים שלו כאן, ועושה אותו דבר עם הורדה שיובאה מהחשבון, כדי ששום דבר לא יצטבר שם על חשבון המגבלות של החשבון. הורדה מיובאת שתסיר כאן לפני שהסתיימה נמחקת גם שם. כשזה מופעל, שניהם נשארים בשירות, למשל כדי שתוכל לצפות בהם משם בסטרימינג מאוחר יותר. טורנט ש-KnightLoader הוסיף נמחק בכל מקרה אם תסיר אותו לפני שהסתיים, וטורנט שכבר היה בחשבון לא נמחק לעולם.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -3033,4 +3033,7 @@ export const it: Dict = {
   'settings.torrents.keepOnServiceHint': 'Quando è disattivato, KnightLoader elimina un torrent dal servizio debrid appena tutti i suoi file sono qui, e fa lo stesso con un download importato dall’account, così nessuno dei due si accumula lì pesando sui limiti dell’account. Anche un download importato che rimuovi qui prima che sia finito viene eliminato lì. Quando è attivo, entrambi restano sul servizio, per esempio per poterli guardare in streaming da lì più tardi. Un torrent aggiunto da KnightLoader viene eliminato in ogni caso se lo rimuovi prima che sia finito, e uno che l’account aveva già non viene mai eliminato.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

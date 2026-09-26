@@ -3056,4 +3056,7 @@ export const ro: Dict = {
   'settings.torrents.keepOnServiceHint': 'Când asta e oprit, KnightLoader șterge un torrent de pe serviciul debrid imediat ce toate fișierele lui sunt aici și face la fel cu o descărcare importată din cont, ca nimic să nu se adune acolo și să consume limitele contului. O descărcare importată pe care o elimini aici înainte să se termine este ștearsă și acolo. Când asta e pornit, amândouă rămân pe serviciu, de exemplu ca să le poți urmări în streaming de acolo mai târziu. Un torrent adăugat de KnightLoader este șters oricum dacă îl elimini înainte să se termine, iar unul pe care contul îl avea deja nu este șters niciodată.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Task } from '../lib/api';
 import { fmtDate } from '../lib/format';
+import { heldReason } from '../lib/heldReason';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
@@ -78,33 +79,36 @@ export function FilteredLinks({ held }: { held: Task[] }) {
       </div>
 
       <div className="max-h-56 overflow-y-auto pb-1.5">
-        {shown.map((h) => (
-          <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
-            {/* The rule first, since it is what gets edited. */}
-            <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
-              {ruleOf(h) || t('settings.torrents.bannedTrackers')}
-            </Tip>
-            <Tip tip={h.skipReason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
-              {h.skipReason}
-            </Tip>
-            <Tip dir="ltr" tip={h.url} className="min-w-0 flex-1 truncate text-carbon-textMuted">
-              {h.url}
-            </Tip>
-            <span className="flex shrink-0 items-center text-carbon-textMuted">
-              {originLabel(t, h.origin)}
-              <InfoBubble tip={t('collector.filtered.originTitle')} />
-            </span>
-            <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
-            <Button
-              kind="ghost"
-              className="shrink-0 px-2 text-xs"
-              disabled={busy}
-              onClick={() => restore([h.id])}
-            >
-              {t('collector.filtered.restore')}
-            </Button>
-          </div>
-        ))}
+        {shown.map((h) => {
+          const reason = heldReason(t, h.skipCode, h.skipParams, h.skipReason);
+          return (
+            <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
+              {/* The rule first, since it is what gets edited. */}
+              <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
+                {ruleOf(h) || t('settings.torrents.bannedTrackers')}
+              </Tip>
+              <Tip tip={reason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
+                {reason}
+              </Tip>
+              <Tip dir="ltr" tip={h.url} className="min-w-0 flex-1 truncate text-carbon-textMuted">
+                {h.url}
+              </Tip>
+              <span className="flex shrink-0 items-center text-carbon-textMuted">
+                {originLabel(t, h.origin)}
+                <InfoBubble tip={t('collector.filtered.originTitle')} />
+              </span>
+              <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
+              <Button
+                kind="ghost"
+                className="shrink-0 px-2 text-xs"
+                disabled={busy}
+                onClick={() => restore([h.id])}
+              >
+                {t('collector.filtered.restore')}
+              </Button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

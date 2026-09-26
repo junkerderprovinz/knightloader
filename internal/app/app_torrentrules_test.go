@@ -67,6 +67,10 @@ func TestAMagnetAnnouncingABannedTrackerIsHeldWithTheReason(t *testing.T) {
 	if !strings.Contains(held.SkipReason, "tracker.example.org") || !strings.Contains(held.SkipReason, "banned") {
 		t.Errorf("reason = %q, want the banned tracker named", held.SkipReason)
 	}
+	// The interface words the reason from these in the reader's language.
+	if held.SkipCode != skipBannedTracker || held.SkipParams["host"] != "tracker.example.org" {
+		t.Errorf("code = %q %v, want %q with the tracker's host", held.SkipCode, held.SkipParams, skipBannedTracker)
+	}
 	if held.Host != "torrent-magnet" {
 		t.Errorf("host = %q, want the magnet bucket rather than the link", held.Host)
 	}

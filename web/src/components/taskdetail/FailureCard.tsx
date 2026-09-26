@@ -1,3 +1,4 @@
+import { heldReason } from '../../lib/heldReason';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { reasonKey } from '../columns';
 import { Card, LabelBadge, SectionTitle } from '../ui';
@@ -23,7 +24,7 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
   const held = task.waiting ? t(waitingKey(task.waiting)) : '';
   // skipReason without `skipped` is a stale sentence from a park that has
   // since been lifted; the flag is what makes it true right now.
-  const filtered = task.skipped ? (task.skipReason ?? '') : '';
+  const filtered = task.skipped ? heldReason(t, task.skipCode, task.skipParams, task.skipReason) : '';
 
   if (!cause && !task.error && !held && !task.note && !filtered && !task.gaveUp) return null;
 

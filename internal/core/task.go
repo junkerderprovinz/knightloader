@@ -390,6 +390,11 @@ type Task struct {
 	Skipped bool `json:"skipped,omitempty"`
 	// SkipReason is why, in the app's own words.
 	SkipReason string `json:"skipReason,omitempty"`
+	// SkipCode is SkipReason as a value, for an interface that words it in the
+	// reader's language, and SkipParams holds the values that wording needs.
+	// Empty for a reason somebody wrote. Neither is changed after it is set.
+	SkipCode   string            `json:"skipCode,omitempty"`
+	SkipParams map[string]string `json:"skipParams,omitempty"`
 	// Hold is a link the user parked. Unlike paused, "resume everything" does
 	// not start it.
 	Hold bool `json:"hold,omitempty"`

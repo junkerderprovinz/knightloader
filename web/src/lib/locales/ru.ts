@@ -3028,4 +3028,7 @@ export const ru: Dict = {
   'settings.torrents.keepOnServiceHint': 'Если это выключено, KnightLoader удаляет торрент с debrid-сервиса, как только все его файлы здесь, и так же поступает с загрузкой, импортированной из аккаунта, чтобы там ничего не копилось и не упиралось в лимиты аккаунта. Импортированная загрузка, которую вы уберёте здесь до завершения, удаляется и там. Если это включено, и то и другое остаётся на сервисе, например чтобы позже смотреть их оттуда онлайн. Торрент, добавленный KnightLoader, удаляется в любом случае, если вы уберёте его до завершения, а торрент, который уже был в аккаунте, не удаляется никогда.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };
