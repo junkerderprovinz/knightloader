@@ -84,8 +84,11 @@ export function sanitiseNarrowing(
 
   // An unknown filter id would empty the list with no chip and no reset shown
   // to undo it. Walking `allowed` drops unknown ids and duplicates and keeps
-  // the chip order stable, which sameNarrowing relies on.
-  const storedFilters = Array.isArray(doc.filters) ? (doc.filters as unknown[]) : [];
+  // the chip order stable, which sameNarrowing relies on. An older build's
+  // "held" filter showed the links it parked, which are the disabled ones.
+  const storedFilters = (Array.isArray(doc.filters) ? (doc.filters as unknown[]) : []).map((id) =>
+    id === 'held' ? 'disabled' : id,
+  );
   const filters = allowed.filter((id) => storedFilters.includes(id));
 
   const facets = doc.facets as { host?: unknown; fileType?: unknown; package?: unknown } | null | undefined;
