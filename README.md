@@ -120,9 +120,9 @@ Hoster coverage comes from swappable **resolvers** rather than from a plugin
 ecosystem nobody can maintain: plain file links go straight to the embedded
 engine, supported hosters are unlocked through a debrid service you already pay
 for, magnets and `.torrent` files go to the BitTorrent client in the same
-engine or through a debrid service that takes them, media pages go to yt-dlp,
-and anything left over is delegated to a headless JDownloader kept at arm's
-length. Your accounts stay yours, stored
+engine or through a debrid service that takes them, media pages and stream
+playlists go to yt-dlp, and anything left over is delegated to a headless
+JDownloader kept at arm's length. Your accounts stay yours, stored
 encrypted on your own box.
 
 The Packagizer, extraction, reconnect, the twelve words and everything else are
