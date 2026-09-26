@@ -57,6 +57,7 @@ type dlTorrent struct {
 	TotalSize       int64   `json:"totalSize"`
 	DownloadPercent float64 `json:"downloadPercent"`
 	DownloadSpeed   int64   `json:"downloadSpeed"`
+	IsZip           bool    `json:"isZip"`
 	Files           []struct {
 		ID              string  `json:"id"`
 		Name            string  `json:"name"`
@@ -106,9 +107,28 @@ func (d *DebridLink) AddTorrent(ctx context.Context, src TorrentSource) (string,
 	return t.ID, false, nil
 }
 
+// torrent reads one torrent with every file it has. For a torrent of many
+// files the list shows a single ZIP in place of them, and the docs name ?id=
+// as the form that lists them all. A torrent that stays one ZIP there too is
+// refused, since its files cannot be fetched one by one.
 func (d *DebridLink) torrent(ctx context.Context, id string) (dlTorrent, error) {
+	t, err := d.listed(ctx, "ids", id)
+	if err != nil || !t.IsZip {
+		return t, err
+	}
+	if t, err = d.listed(ctx, "id", id); err != nil {
+		return dlTorrent{}, err
+	}
+	if t.IsZip {
+		return dlTorrent{}, &Refusal{Reason: "Debrid-Link offers this torrent only as one ZIP of all its files"}
+	}
+	return t, nil
+}
+
+// listed reads the torrent id from /seedbox/list, asking by the query key.
+func (d *DebridLink) listed(ctx context.Context, key, id string) (dlTorrent, error) {
 	var list []dlTorrent
-	if err := d.get(ctx, "/seedbox/list?ids="+url.QueryEscape(id), &list); err != nil {
+	if err := d.get(ctx, "/seedbox/list?"+key+"="+url.QueryEscape(id), &list); err != nil {
 		return dlTorrent{}, seedboxErr(err)
 	}
 	for _, t := range list {
