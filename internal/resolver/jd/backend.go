@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -790,22 +793,96 @@ func aggregate(links []DownloadLink) core.Update {
 // stallLimit. The paused task keeps its grabber name held so the sweep cannot
 // take a crawl that is still in progress; Resume gives the hold back.
 func (b *Backend) Pause(taskID string) {
+	b.unwatch(taskID)
+	b.setEnabled(taskID, false)
+}
+
+// unwatch stops the task's poller, holding its grabber name as Pause
+// describes, and reports whether one was running.
+func (b *Backend) unwatch(taskID string) bool {
 	b.mu.Lock()
-	if s, ok := b.stop[taskID]; ok {
+	defer b.mu.Unlock()
+	s, ok := b.stop[taskID]
+	if ok {
 		// Taken before the poller stops, so the name is never unheld.
 		b.held[b.pkgName(taskID)]++
 		close(s)
 		delete(b.stop, taskID)
 	}
-	b.mu.Unlock()
-	b.setEnabled(taskID, false)
+	return ok
 }
 
-// Resume re-enables the links in JD and starts a poller again. The dispatcher
-// resumes an already started task through Resume rather than Download, so
-// without a new poller the task would sit at "running" for ever.
+// haltWait bounds each of Halt's waits. JD stops a disabled link within a
+// second; a JD that does not answer is not writing either.
+const haltWait = 30 * time.Second
+
+// haltPoll paces Halt's questions to JD and looks at the disk.
+const haltPoll = 100 * time.Millisecond
+
+// Halt stops the task's download like Pause and returns once JD has let go of
+// its files, so their folder can be moved; the app hears of no pause. It
+// reports whether the task was being followed, which Resume carries on.
+//
+// JD reports a link stopped a moment before it has put the file where the
+// package says: a package pinned to its folder while it was already writing
+// (see poll) keeps the file in a folder named after the package until then.
+// Where JD shares this machine's disk, that folder going away is the sign.
+func (b *Backend) Halt(taskID string) bool {
+	if !b.unwatch(taskID) {
+		return false
+	}
+	b.setEnabled(taskID, false)
+	deadline := time.Now().Add(haltWait)
+	for time.Now().Before(deadline) && b.transferring(taskID) {
+		time.Sleep(haltPoll)
+	}
+	if dir := b.dirFor(taskID); dir != "" {
+		own := filepath.Join(dir, b.pkgName(taskID))
+		deadline = time.Now().Add(haltWait)
+		for time.Now().Before(deadline) {
+			if _, err := os.Lstat(own); err != nil {
+				break
+			}
+			time.Sleep(haltPoll)
+		}
+	}
+	return true
+}
+
+// transferring reports whether JD is fetching any link of the task. A JD that
+// cannot be asked counts as not.
+func (b *Backend) transferring(taskID string) bool {
+	puuid, err := b.c.PackageUUID(b.pkgName(taskID))
+	if err != nil || puuid == 0 {
+		return false
+	}
+	links, err := b.c.QueryDownloads(puuid)
+	if err != nil {
+		return false
+	}
+	return slices.ContainsFunc(links, func(l DownloadLink) bool { return l.Running })
+}
+
+// MoveTo points the task's JD package at dir, where JD then looks for the
+// files it has written and moves them itself when they are still elsewhere
+// (see Client.SetPackageDirectory). A task JD has no package for yet is pinned
+// by its poller when the package appears, from Dir.
+func (b *Backend) MoveTo(taskID, dir string) error {
+	puuid, err := b.c.PackageUUID(b.pkgName(taskID))
+	if err != nil || puuid == 0 {
+		return err
+	}
+	return b.c.SetPackageDirectory(dir, []int64{puuid})
+}
+
+// Resume re-enables the links in JD, starts JD's download controller and a
+// poller again. The dispatcher resumes an already started task through Resume
+// rather than Download, so without a new poller the task would sit at
+// "running" for ever; and JD stops its controller once no enabled link is
+// left, so the links would otherwise sit there enabled and still.
 func (b *Backend) Resume(taskID string) {
 	b.setEnabled(taskID, true)
+	_ = b.c.StartDownloads()
 	b.mu.Lock()
 	_, watched := b.stop[taskID]
 	b.mu.Unlock()

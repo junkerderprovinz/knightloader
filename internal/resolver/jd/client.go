@@ -130,6 +130,10 @@ func (c *Client) SetDownloadFolder(path string) error {
 // SetPackageDirectory moves one or more download-list packages to dir. Unlike
 // addLinks' destinationFolder, to which JD appends the package name, this sets
 // the folder verbatim, so JD's files land where every other backend puts them.
+// JD moves what the packages have already written as well, as long as its
+// MoveFilesIfDownloadDestinationChangesEnabled is on, which it is by default: a
+// stopped link's file at once, a running one's once it ends. The call returns
+// before JD has moved anything.
 func (c *Client) SetPackageDirectory(dir string, pkgUUIDs []int64) error {
 	if dir == "" || len(pkgUUIDs) == 0 {
 		return nil
@@ -173,6 +177,9 @@ type DownloadLink struct {
 	Speed       int64  `json:"speed"`
 	Finished    bool   `json:"finished"`
 	Status      string `json:"status"`
+	// Running is whether JD is transferring the link right now. JD leaves
+	// the field out when it is false.
+	Running bool `json:"running"`
 }
 
 // done reports whether JD has finished the link.
@@ -189,6 +196,7 @@ func (c *Client) QueryDownloads(packageUUID int64) ([]DownloadLink, error) {
 		"status":       true,
 		"finished":     true,
 		"name":         true,
+		"running":      true,
 		"packageUUIDs": []int64{packageUUID},
 	})
 	if err != nil {
