@@ -69,7 +69,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "bg": [
       "packages.failed",
@@ -139,7 +144,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ca": [
       "packages.failed",
@@ -209,7 +219,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "cs": [
       "packages.failed",
@@ -279,7 +294,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "da": [
       "packages.failed",
@@ -349,7 +369,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "el": [
       "packages.failed",
@@ -419,7 +444,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "es": [
       "packages.failed",
@@ -489,7 +519,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "et": [
       "packages.failed",
@@ -559,7 +594,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "eu": [
       "packages.failed",
@@ -629,7 +669,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "fa": [
       "packages.failed",
@@ -699,7 +744,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "fi": [
       "packages.failed",
@@ -769,7 +819,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "fr": [
       "packages.failed",
@@ -839,7 +894,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "gl": [
       "packages.failed",
@@ -909,7 +969,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "he": [
       "packages.failed",
@@ -979,7 +1044,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "hi": [
       "packages.failed",
@@ -1049,7 +1119,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "hr": [
       "packages.failed",
@@ -1119,7 +1194,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "hu": [
       "overview.online",
@@ -1191,7 +1271,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "id": [
       "packages.failed",
@@ -1261,7 +1346,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "is": [
       "packages.failed",
@@ -1331,7 +1421,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "it": [
       "packages.failed",
@@ -1401,7 +1496,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ja": [
       "packages.failed",
@@ -1471,7 +1571,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ko": [
       "packages.failed",
@@ -1541,7 +1646,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "lt": [
       "packages.failed",
@@ -1611,7 +1721,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "lv": [
       "packages.failed",
@@ -1681,7 +1796,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ms": [
       "packages.failed",
@@ -1751,7 +1871,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "nl": [
       "packages.failed",
@@ -1821,7 +1946,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "no": [
       "packages.failed",
@@ -1891,7 +2021,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "pl": [
       "packages.failed",
@@ -1961,7 +2096,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "pt": [
       "packages.failed",
@@ -2031,7 +2171,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ro": [
       "packages.failed",
@@ -2101,7 +2246,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "ru": [
       "packages.failed",
@@ -2171,7 +2321,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "sk": [
       "packages.failed",
@@ -2241,7 +2396,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "sl": [
       "packages.failed",
@@ -2311,7 +2471,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "sr": [
       "packages.failed",
@@ -2381,7 +2546,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "sv": [
       "overview.online",
@@ -2453,7 +2623,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "th": [
       "packages.failed",
@@ -2523,7 +2698,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "tr": [
       "packages.failed",
@@ -2593,7 +2773,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "uk": [
       "packages.failed",
@@ -2663,7 +2848,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "vi": [
       "packages.failed",
@@ -2733,7 +2923,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ],
     "zh": [
       "packages.failed",
@@ -2803,7 +2998,12 @@
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "packages.enable",
+      "packages.disable",
+      "status.disabled",
+      "task.enable",
+      "task.disable"
     ]
   },
   "identicalNote": "Keys whose value in a catalogue is the English one because English is right in that language, checked one language at a time: brand names (PayPal, GitHub), values without words (https://…), and words the language shares with English or took over unchanged (Premium, Server, Online, Version, Storm, Accent). They are kept apart from \"locales\" because the two lists mean opposite things. A key listed there is waiting for a translation; a key listed here has had one, and the answer was to keep the English. check-untranslated.mjs holds both lists against the catalogues. If an entry here stops being identical, somebody chose a word of their own, and the entry has to go.",
