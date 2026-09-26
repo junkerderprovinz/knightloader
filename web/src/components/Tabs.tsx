@@ -107,7 +107,8 @@ interface Common {
    * Draws the strip as one FoldChip named by `label`, for a row that has run
    * out of room for its chips (lib/rowFit.ts). Its menu holds the tabs, each
    * with its badge, and picking one selects it as a click on the tab would.
-   * `more` follows them, in place of what `after` shows beside the strip.
+   * `more` follows them, in place of what `after` shows beside the strip. The
+   * chip follows Beschriftung as a strip of glyphs does, `labelled` included.
    */
   folded?: { icon: ReactNode; glyph?: boolean; more?: MenuItem[] };
 }
@@ -396,11 +397,12 @@ export function Tabs(props: TabsProps) {
 
   if (folded) {
     const lit = items.filter((i) => isOn(i.id)).length;
+    const glyph = folded.glyph || display === 'glyph';
     return (
       <FoldChip
         label={label}
-        icon={folded.icon}
-        glyph={folded.glyph}
+        icon={glyph || showIcon ? folded.icon : null}
+        glyph={glyph}
         lit={lit > 0}
         count={many && lit > 0 ? lit : undefined}
         groups={[

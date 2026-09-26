@@ -3,6 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { setNavLabels } from '../lib/navLabels';
 import { Tabs } from './Tabs';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -41,6 +42,7 @@ function draw(onSelect: (id: string) => void, onClear: () => void) {
         select="many"
         size="sm"
         label="Quick filters"
+        labelled
         active={new Set(['finished'])}
         onSelect={onSelect}
         items={items}
@@ -65,6 +67,39 @@ describe('a folded chip strip', () => {
       ['Downloading3', 'false'],
       ['Finished5', 'true'],
     ]);
+  });
+
+  it('follows Beschriftung like the badges beside it', () => {
+    const chip = () => host.querySelector('button')!;
+    const drawWith = () =>
+      act(() =>
+        root.render(
+          <Tabs
+            select="many"
+            size="sm"
+            label="Quick filters"
+            labelled
+            active={new Set()}
+            onSelect={() => {}}
+            items={items}
+            folded={{ icon: <svg data-glyph /> }}
+          />,
+        ),
+      );
+    try {
+      setNavLabels('glyph');
+      drawWith();
+      expect(chip().textContent).toBe('');
+      expect(chip().getAttribute('aria-label')).toBe('Quick filters');
+      expect(chip().querySelector('[data-glyph]')).not.toBeNull();
+
+      setNavLabels('text');
+      drawWith();
+      expect(chip().textContent).toBe('Quick filters');
+      expect(chip().querySelector('[data-glyph]')).toBeNull();
+    } finally {
+      setNavLabels('both');
+    }
   });
 
   it('switches a chip from its menu and offers what stood beside the strip', () => {

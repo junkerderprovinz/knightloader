@@ -482,6 +482,7 @@ export function Collector() {
                   select="many"
                   size="sm"
                   label={t('filter.label')}
+                  labelled
                   folded={foldStates ? { icon: <IconFilter />, glyph: compact, more: clearFiltersEntry } : undefined}
                   active={filters}
                   onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
