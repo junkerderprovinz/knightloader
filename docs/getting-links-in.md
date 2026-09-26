@@ -54,12 +54,15 @@ torrent filed there, whether you picked the category or a Packagizer rule did.
 it, and a single file goes straight into the download's folder. If that name
 is already taken there, by a folder, a file or another torrent that is just
 starting, the torrent goes into a new folder with `.1`, `.2` and so on after
-the name, so two torrents never write into each other's files. A torrent that
-starts again, after a restart or by hand, carries on where it was. Removing a
-torrent with its files deletes the files it downloaded and any folders that
-end up empty. Anything else in its folder stays, such as what an archive was
-unpacked to. Removing works the same after a restart, since the download keeps
-a magnet's file list once the swarm has sent it.
+the name, so two torrents never write into each other's files. A magnet link
+can name the torrent differently, or not at all, and the torrent's real name
+only comes with its file list. If that name is taken, the magnet is not
+downloaded. A torrent that starts again, after a restart or by hand, carries
+on where it was. Removing a torrent with its files deletes the files it
+downloaded and any folders that end up empty. Anything else in its folder
+stays, such as what an archive was unpacked to. Removing works the same after
+a restart, since the download keeps a magnet's file list once the swarm has
+sent it.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me or Debrid-Link ranks above "Built-in torrent client" on the Accounts
