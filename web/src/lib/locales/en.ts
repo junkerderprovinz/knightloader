@@ -1928,7 +1928,7 @@ export const en = {
   'settings.resolvers.moduleUnavailableHint':
     'Everything below is still saved and takes effect the moment yt-dlp becomes available. Nothing you edit now is lost.',
   'settings.resolvers.about':
-    'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which service handles a given link at all (yt-dlp, a debrid account or the JDownloader backend) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
+    'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which backend handles a given link at all (yt-dlp, a debrid account or the JDownloader backend) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
   'settings.resolvers.quality': 'Quality',
   'settings.resolvers.videoFormat': 'Video format',
   'settings.resolvers.qualityHint':
