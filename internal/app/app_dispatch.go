@@ -1031,6 +1031,7 @@ func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, h
 		// These take a link by its look or its origin alone, without knowing
 		// it is a file, and a playlist behind it goes on to yt-dlp.
 		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http" || t.Resolver == hostheaders.ResolverID,
+		RefusePages:     t.Resolver == "http",
 	}
 }
 

@@ -2607,7 +2607,7 @@ export const en = {
   'failure.extractorBroken.line': 'The site changed, and this build\'s yt-dlp no longer gets the video out.',
   'failure.extractorBroken.hint': 'yt-dlp said so itself: it could not read the page and asked for a bug report. Almost always the site moved something, and a newer yt-dlp has it working again within days. yt-dlp ships inside the KnightLoader image, so the way to a newer one is a newer image and not a button in here: this server is not allowed to replace it and, in a container, has nowhere to put a new copy.',
   'failure.unsupportedPlayer.line': 'The page plays its video in a player no backend here can read.',
-  'failure.unsupportedPlayer.hint': 'Neither yt-dlp nor JDownloader knows this site\'s player. JDownloader found nothing on the page but its own scripts, styles and images, and KnightLoader stopped there instead of saving those as the video. If you can find the video\'s own address, for example a .m3u8 or .mp4 request in the browser\'s developer tools, paste that instead. A stream playlist goes straight to yt-dlp.',
+  'failure.unsupportedPlayer.hint': 'No backend here knows this site\'s player. All that was left to fetch was the page itself or its own scripts, styles and images, and KnightLoader stopped there rather than save those as the video. If you can find the video\'s own address, for example a .m3u8 or .mp4 request in the browser\'s developer tools, paste that instead. A stream playlist goes straight to yt-dlp.',
   'cookies.title': 'Cookies for {host}',
   'cookies.addTitle': 'Store cookies for a site',
   'cookies.add': 'Add a site',

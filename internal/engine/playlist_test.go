@@ -39,12 +39,44 @@ func TestAPlaylistIsRecognisedByItsFirstBytes(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, e := range entries {
-		if got := streamPlaylist(filepath.Join(dir, e.Name())); got != playlists[e.Name()] {
+		if got := streamPlaylist(fileHead(filepath.Join(dir, e.Name()))); got != playlists[e.Name()] {
 			t.Errorf("streamPlaylist(%s) = %v, want %v", e.Name(), got, playlists[e.Name()])
 		}
 	}
-	if streamPlaylist(filepath.Join(dir, "missing.txt")) {
+	if streamPlaylist(fileHead(filepath.Join(dir, "missing.txt"))) {
 		t.Error("a file that is not there was taken for a playlist")
+	}
+}
+
+func TestAWebPageIsRecognisedByItsFirstBytes(t *testing.T) {
+	pages := []string{
+		"<!DOCTYPE html><html><head><title>1000267652</title>",
+		"\xef\xbb\xbf\n<!doctype HTML>\n<meta charset=utf-8>",
+		"<html lang=\"en\"><body></body></html>",
+		"<!-- served by nginx -->\n<HTML>",
+		"<?xml version=\"1.0\"?>\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"x.dtd\">\n<html>",
+	}
+	others := []string{
+		"<?xml version=\"1.0\"?><!DOCTYPE svg><svg></svg>",
+		"<MPD type=\"static\"></MPD>",
+		"#EXTM3U\n",
+		"PK\x03\x04 a zip",
+		"a text file that mentions <html> further in",
+		"",
+	}
+	for _, c := range []struct {
+		bodies []string
+		want   bool
+	}{{pages, true}, {others, false}} {
+		for _, body := range c.bodies {
+			p := filepath.Join(t.TempDir(), "download")
+			if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			if got := webPage(fileHead(p)); got != c.want {
+				t.Errorf("webPage(%q) = %v, want %v", body, got, c.want)
+			}
+		}
 	}
 }
 
@@ -89,6 +121,50 @@ func TestAnOrdinaryFileTakenByItsLookFinishes(t *testing.T) {
 	got := doneWith(t, Job{PassOnPlaylists: true}, "notes.txt", "shopping list\n")
 	if len(got) != 1 || got[0].Status != core.StatusDone {
 		t.Fatalf("reported %+v, want the download done", got)
+	}
+}
+
+// embedPage is what the HTTP fallback fetches for a playmate.to embed link.
+const embedPage = "<!DOCTYPE html><html><head><meta charset=\"utf-8\">\n<title>1000267652</title>\n" +
+	"<script src='/assets/jw8/jwplayer.js'></script></head><body></body></html>"
+
+func TestAPageTheFallbackFetchedFailsAsAnUnsupportedPlayer(t *testing.T) {
+	got := doneWith(t, Job{PassOnPlaylists: true, RefusePages: true}, "FrBxuaYCIKvsh", embedPage)
+	if len(got) != 1 {
+		t.Fatalf("reported %+v, want one update", got)
+	}
+	u := got[0]
+	if u.Status != core.StatusError || u.Reason != core.ReasonUnsupportedPlayer {
+		t.Fatalf("reported %+v, want a failure naming the unsupported player", u)
+	}
+	if u.Unsupported {
+		t.Error("the page was handed on, and nothing after the fallback takes it")
+	}
+}
+
+// The direct download claims a link by a file extension, so what it fetches
+// is the file, whatever it holds.
+func TestAPageIsKeptByAJobThatDoesNotRefuseIt(t *testing.T) {
+	got := doneWith(t, Job{PassOnPlaylists: true}, "notes.html", embedPage)
+	if len(got) != 1 || got[0].Status != core.StatusDone {
+		t.Fatalf("reported %+v, want the download done", got)
+	}
+}
+
+// End to end against a local server: the page is deleted with its task.
+func TestAPageTheFallbackFetchedIsNotLeftBehind(t *testing.T) {
+	dir := t.TempDir()
+	got := settle(t, dir, "FrBxuaYCIKvsh", []byte(embedPage), Job{PassOnPlaylists: true, RefusePages: true})
+	last := got[len(got)-1]
+	if last.Status != core.StatusError || last.Reason != core.ReasonUnsupportedPlayer {
+		t.Fatalf("the download ended as %+v, want a failure naming the unsupported player", last)
+	}
+	left, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range left {
+		t.Errorf("%s was left in the download folder", e.Name())
 	}
 }
 
