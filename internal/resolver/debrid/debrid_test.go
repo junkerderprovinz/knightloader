@@ -42,8 +42,10 @@ func TestAllDebrid(t *testing.T) {
 			"rapidgator":{"name":"Rapidgator","domains":["rapidgator.net","RG.TO"]}}}}`))
 	})
 	mux.HandleFunc("/v4/link/unlock", func(w http.ResponseWriter, r *http.Request) {
-		q := r.URL.Query()
-		if q.Get("apikey") != "AD-KEY" || q.Get("link") != "https://rapidgator.net/file/x" {
+		if got := r.Header.Get("Authorization"); got != "Bearer AD-KEY" {
+			t.Errorf("auth = %q", got)
+		}
+		if q := r.URL.Query(); q.Get("link") != "https://rapidgator.net/file/x" {
 			t.Errorf("unlock params = %v", q)
 		}
 		_, _ = w.Write([]byte(`{"status":"success","data":{"link":"https://cdn.alldebrid.com/dl/movie.mkv",
@@ -84,6 +86,32 @@ func TestAllDebrid(t *testing.T) {
 	adErr.base = errSrv.URL
 	if _, err := adErr.Unlock(context.Background(), "https://x.example/f"); err == nil {
 		t.Fatal("bad apikey did not produce an error")
+	}
+}
+
+// A failed call's error ends up in the task's error, which a token that may
+// only read the list sees, and so does Sonarr.
+func TestAllDebridTransportErrorsNeverCarryTheKey(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err == nil {
+			conn.Close()
+		}
+	}))
+	defer srv.Close()
+	ad := NewAllDebrid("SECRET-AD-KEY")
+	ad.base = srv.URL + "/v4"
+
+	_, unlockErr := ad.Unlock(context.Background(), "https://rapidgator.net/file/x")
+	_, fileErr := ad.FileURL(context.Background(), "55", TorrentFile{ID: "https://alldebrid.com/f/A"})
+	_, accountErr := ad.Account(context.Background())
+	for _, err := range []error{unlockErr, fileErr, accountErr} {
+		if err == nil {
+			t.Fatal("a call succeeded against a dropped connection")
+		}
+		if strings.Contains(err.Error(), "SECRET-AD-KEY") {
+			t.Errorf("error = %q carries the key", err)
+		}
 	}
 }
 

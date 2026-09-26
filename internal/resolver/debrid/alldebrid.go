@@ -44,9 +44,6 @@ func (a *AllDebrid) get(ctx context.Context, path string, q url.Values, out any)
 		q = url.Values{}
 	}
 	q.Set("agent", "knightloader")
-	if a.key != "" {
-		q.Set("apikey", a.key)
-	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.base+path+"?"+q.Encode(), nil)
 	if err != nil {
 		return err
@@ -54,8 +51,7 @@ func (a *AllDebrid) get(ctx context.Context, path string, q url.Values, out any)
 	return a.send(req, path, out)
 }
 
-// post sends a form-encoded call with the key as a Bearer token, the only
-// authentication AllDebrid documents. It is a POST because /link/infos takes
+// post sends a form-encoded call. It is a POST because /link/infos takes
 // link[] once per link, and a batch of those belongs in a body.
 func (a *AllDebrid) post(ctx context.Context, path string, form url.Values, out any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, a.base+path, strings.NewReader(form.Encode()))
@@ -63,15 +59,18 @@ func (a *AllDebrid) post(ctx context.Context, path string, form url.Values, out 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	if a.key != "" {
-		req.Header.Set("Authorization", "Bearer "+a.key)
-	}
 	return a.send(req, path, out)
 }
 
 // send performs the call and unwraps AllDebrid's envelope, which reports
-// failures as a code in a 200 response.
+// failures as a code in a 200 response. The key goes as a Bearer token, the
+// only authentication AllDebrid documents, and never in the address: a failed
+// call's error quotes the address, and the task's error shows it to anyone who
+// may read the list.
 func (a *AllDebrid) send(req *http.Request, path string, out any) error {
+	if a.key != "" {
+		req.Header.Set("Authorization", "Bearer "+a.key)
+	}
 	resp, err := a.hc.Do(req)
 	if err != nil {
 		return err
