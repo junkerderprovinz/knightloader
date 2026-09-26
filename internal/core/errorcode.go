@@ -62,11 +62,12 @@ const (
 	CodeCancelled  ErrorCode = "cancelled" // ReasonCancelled
 
 	// The causes a backend names itself, one code each, as their Reasons.
-	CodeBotCheck        ErrorCode = "botCheck"
-	CodeMembersOnly     ErrorCode = "membersOnly"
-	CodeGeoBlocked      ErrorCode = "geoBlocked"
-	CodeDRM             ErrorCode = "drm"
-	CodeExtractorBroken ErrorCode = "extractorBroken"
+	CodeBotCheck          ErrorCode = "botCheck"
+	CodeMembersOnly       ErrorCode = "membersOnly"
+	CodeGeoBlocked        ErrorCode = "geoBlocked"
+	CodeDRM               ErrorCode = "drm"
+	CodeExtractorBroken   ErrorCode = "extractorBroken"
+	CodeUnsupportedPlayer ErrorCode = "unsupportedPlayer"
 
 	// The unpacking codes carry "part", the file of the archive the failure
 	// happened in, where it is known. None has a Reason: the download itself
@@ -122,6 +123,8 @@ func (r Reason) Code() ErrorCode {
 		return CodeDRM
 	case ReasonExtractorBroken:
 		return CodeExtractorBroken
+	case ReasonUnsupportedPlayer:
+		return CodeUnsupportedPlayer
 	}
 	return ""
 }

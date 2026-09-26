@@ -3100,4 +3100,5 @@ export const is: Dict = {
   'failure.bannedTracker.next': 'Take the tracker off the banned trackers list in the torrent settings, then choose Restart.',
   'failure.archiveFolderExists.line': 'A folder named {folder} is already there.',
   'failure.archiveFolderExists.next': 'Move or rename that folder, or change "If a file is already there" in the archive settings, then choose Unpack now.',
+  'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
 };

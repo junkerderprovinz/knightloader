@@ -214,6 +214,8 @@ export const en = {
   'failure.drm.next': 'There is nothing to set up for this, so remove the link.',
   'failure.extractorBroken.line': 'The site changed, and this build\'s yt-dlp no longer gets the video out.',
   'failure.extractorBroken.next': 'Update KnightLoader: a newer image brings a newer yt-dlp.',
+  'failure.unsupportedPlayer.line': 'The page plays its video in a player no backend here can read.',
+  'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
   'failure.archiveDamaged.line': '{part} is damaged.',
   'failure.archiveDamaged.next': 'Download {part} again, or get it from another mirror.',
   'failure.archivePassword.line': 'The archive needs a password, and none of the saved ones fits.',
