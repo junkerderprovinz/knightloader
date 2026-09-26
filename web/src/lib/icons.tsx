@@ -5,6 +5,10 @@
 // glyphs"). A thin line is drawn as a thin filled shape. A gap inside a fill
 // is carved with fillRule="evenodd" rather than painted over in a background
 // colour, which would only look right on one background.
+//
+// The Settings cog and the settings tab glyphs GlimStone fixes (glyphs.md,
+// "Settings tabs") come from Streamline's free Core Solid set
+// (https://streamlinehq.com, CC BY 4.0) and Material Design Icons (Apache 2.0).
 import type { SVGProps } from 'react';
 
 const base = (p: SVGProps<SVGSVGElement>) => ({
@@ -16,6 +20,11 @@ const base = (p: SVGProps<SVGSVGElement>) => ({
   'aria-hidden': true,
   ...p,
 });
+
+// Streamline draws on a 14-unit grid edge to edge, where the glyphs here fill
+// about three quarters of theirs; this box gives it the same share, so the
+// cog stands as tall as the rail glyphs around it.
+const STREAMLINE_BOX = '-2.33 -2.33 18.67 18.67';
 
 export const IconDownloads = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
@@ -30,12 +39,13 @@ export const IconUpload = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** IconSettings is Streamline's cog, which stands for Settings and for nothing inside it. */
 export const IconSettings = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
+  <svg {...base({ viewBox: STREAMLINE_BOX, ...p })}>
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 0 1-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 0 1 .947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 0 1 2.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 0 1 2.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 0 1 .947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 0 1-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 0 1-2.287-.947zM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+      d="m5.557 0.69 -0.463 1.195 -1.594 0.904 -1.27 -0.194a1.077 1.077 0 0 0 -1.078 0.528l-0.43 0.754a1.077 1.077 0 0 0 0.086 1.217l0.807 1.001v1.81L0.83 8.906a1.077 1.077 0 0 0 -0.086 1.217l0.43 0.754a1.077 1.077 0 0 0 1.078 0.528l1.27 -0.194 1.573 0.904 0.463 1.196a1.076 1.076 0 0 0 1 0.689h0.905a1.076 1.076 0 0 0 1.002 -0.69l0.463 -1.195 1.572 -0.904 1.27 0.194a1.077 1.077 0 0 0 1.078 -0.528l0.43 -0.754a1.077 1.077 0 0 0 -0.086 -1.217l-0.807 -1.001v-1.81l0.786 -1.001a1.077 1.077 0 0 0 0.086 -1.217l-0.43 -0.754a1.076 1.076 0 0 0 -1.078 -0.528l-1.27 0.194 -1.573 -0.904L8.443 0.689A1.077 1.077 0 0 0 7.442 0h-0.884a1.077 1.077 0 0 0 -1.001 0.69ZM7 9.25a2.25 2.25 0 1 0 0 -4.5 2.25 2.25 0 0 0 0 4.5Z"
     />
   </svg>
 );
@@ -165,6 +175,25 @@ export const IconCheck = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/**
+ * IconCheckDrawn is IconCheck as one stroke of its weight, for a copy button's
+ * "Copied": a stroke is what glim-check-draw can trace, so the check draws
+ * itself when the copy lands. pathLength="1" lets the dash offset run from 1 to
+ * 0 whatever the path's real length.
+ */
+export const IconCheckDrawn = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ fill: 'none', ...p })}>
+    <path
+      className="glim-check-draw"
+      pathLength="1"
+      d="M3.55 9.35 7.4 13.2l8.1-8.9"
+      stroke="currentColor"
+      strokeWidth="2.7"
+      strokeLinejoin="miter"
+    />
+  </svg>
+);
+
 export const IconSwords = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ viewBox: '0 0 24 24', ...p })}>
     <path d="M3 3h4l11.5 11.5-2.5 2.5L4.5 5.5V3H3Z" />
@@ -278,8 +307,27 @@ export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
 );
 
 // The settings tabs. Every tab has a glyph (GlimStone's rule), each drawn to
-// read at 16px. Downloads, Accounts, Connections, Reconnect and General reuse
-// the sidebar, connection, retry and gear glyphs: one idea, one drawing.
+// read at 16px. Downloads, Accounts, Connections and Reconnect reuse the
+// sidebar, connection and retry glyphs: one idea, one drawing. General, Look,
+// App and Remote access wear the glyphs every GlimStone app gives those tabs.
+
+/** General: Material's tune, a row of sliders set by hand. */
+export const IconTabGeneral = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ viewBox: '0 0 24 24', ...p })}>
+    <path d="M3,17V19H9V17H3M3,5V7H13V5H3M13,21V19H21V17H13V15H11V21H13M7,9V11H3V13H7V15H9V9H7M21,13V11H11V13H21M15,9H17V7H21V5H17V3H15V9Z" />
+  </svg>
+);
+
+/** The App page: Streamline's computer with a device beside it. */
+export const IconTabApp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ viewBox: '-2.33 -1.33 18.67 18.67', ...p })}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M8 2c-0.55229 0 -1 0.44772 -1 1v0.46875h0.5c1.51878 0 2.75 1.23122 2.75 2.75V6.375l3.75 0V3c0 -0.55228 -0.4477 -1 -1 -1H8Zm-0.10887 11.8713C7.96169 13.6668 8 13.4472 8 13.2188c0 -0.0991 -0.0072 -0.1964 -0.0211 -0.2916 1.29049 -0.2266 2.2711 -1.353 2.2711 -2.7084V7.625l3.75 0V13c0 0.5523 -0.4477 1 -1 1H8.5c-0.21677 0 -0.4228 -0.046 -0.60887 -0.1287Zm4.78077 -9.6838c0 0.42284 -0.3428 0.76562 -0.7657 0.76562 -0.4228 0 -0.7656 -0.34278 -0.7656 -0.76562s0.3428 -0.76562 0.7656 -0.76562c0.4229 0 0.7657 0.34278 0.7657 0.76562ZM0 6.21875c0 -0.82843 0.671573 -1.5 1.5 -1.5h6c0.82843 0 1.5 0.67157 1.5 1.5v4.00005c0 0.8284 -0.67157 1.5 -1.5 1.5H5.25v0.75H6c0.41421 0 0.75 0.3357 0.75 0.75 0 0.4142 -0.33579 0.75 -0.75 0.75H3c-0.41421 0 -0.75 -0.3358 -0.75 -0.75 0 -0.4143 0.33579 -0.75 0.75 -0.75h0.75v-0.75H1.5c-0.828427 0 -1.5 -0.6716 -1.5 -1.5V6.21875Z"
+    />
+  </svg>
+);
 
 /** Modules: a switch, because the page is a column of them. */
 export const IconModules = (p: SVGProps<SVGSVGElement>) => (
@@ -332,21 +380,24 @@ export const IconBell = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Look: a drop of colour. */
+/** Look: Streamline's colour palette, three overlapping discs. */
 export const IconLook = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
-    <path d="M10 2.75c2.9 3.1 5 5.8 5 8.05a5 5 0 0 1-10 0c0-2.25 2.1-4.95 5-8.05Z" />
-  </svg>
-);
-
-/** Access: a padlock. */
-export const IconLock = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
-    <rect x="3.75" y="8.5" width="12.5" height="8.25" rx="1.75" />
+  <svg {...base({ viewBox: STREAMLINE_BOX, ...p })}>
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M10 3.9a3.1 3.1 0 0 0-3.1 3.1v1.5h1.8V7a1.3 1.3 0 1 1 2.6 0v1.5h1.8V7A3.1 3.1 0 0 0 10 3.9Z"
+      d="M3.97352 4.06315C4.44759 2.85522 5.62392 2 7 2c1.37608 0 2.55241 0.85522 3.0265 2.06315C9.77381 4.02161 9.51443 4 9.25 4c-0.81407 0 -1.5803 0.20479 -2.25 0.56565C6.3303 4.20479 5.56407 4 4.75 4c-0.26443 0 -0.52381 0.02161 -0.77648 0.06315Zm-1.69089 0.62715C2.5596 2.33072 4.566 0.5 7 0.5c2.43399 0 4.4404 1.83072 4.7174 4.1903C13.0861 5.52393 14 7.03024 14 8.75c0 2.6234 -2.1266 4.75 -4.75 4.75 -0.81407 0 -1.5803 -0.2048 -2.25 -0.5657 -0.6697 0.3609 -1.43593 0.5657 -2.25 0.5657C2.12665 13.5 0 11.3734 0 8.75c0 -1.71976 0.913945 -3.22607 2.28263 -4.0597Zm7.94307 0.95872C9.91774 5.5522 9.58997 5.5 9.25 5.5c-0.31851 0 -0.62633 0.04582 -0.9172 0.13123 0.46551 0.53432 0.81345 1.17377 1.00351 1.87801 0.4786 -0.49482 0.80139 -1.14123 0.88939 -1.86022ZM9.46737 9.3097c1.02703 -0.62555 1.79803 -1.62987 2.11893 -2.81893 0.5656 0.58481 0.9137 1.38137 0.9137 2.25923 0 1.7949 -1.4551 3.25 -3.25 3.25 -0.31851 0 -0.62633 -0.0458 -0.9172 -0.1312 0.61163 -0.7021 1.0203 -1.5856 1.13457 -2.5591Zm-1.49162 -0.95872C7.88253 7.58958 7.526 6.90956 7 6.40479c-0.526 0.50477 -0.88253 1.18479 -0.97575 1.94619C6.33226 8.4478 6.66003 8.5 7 8.5s0.66774 -0.0522 0.97575 -0.14902ZM6.22353 9.93685C6.47619 9.97839 6.73557 10 7 10c0.26443 0 0.52381 -0.02161 0.77648 -0.06315 -0.17323 0.44135 -0.44023 0.83565 -0.77648 1.15835 -0.33625 -0.3227 -0.60325 -0.717 -0.77647 -1.15835Zm-1.6909 -0.62715c0.11427 0.9735 0.52294 1.857 1.13458 2.5591 -0.29088 0.0854 -0.5987 0.1312 -0.91721 0.1312 -1.79493 0 -3.25 -1.4551 -3.25 -3.25 0 -0.87786 0.34805 -1.67443 0.91369 -2.25924 0.3209 1.18906 1.09189 2.19339 2.11894 2.81894Zm0.13106 -1.80046c-0.4786 -0.49482 -0.80142 -1.14123 -0.88944 -1.86022C4.08226 5.5522 4.41003 5.5 4.75 5.5c0.31851 0 0.62633 0.04582 0.91721 0.13123 -0.46552 0.53432 -0.81346 1.17376 -1.00352 1.87801Z"
+    />
+  </svg>
+);
+
+/** Remote access: Streamline's padlock, the Security tab's glyph. */
+export const IconLock = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ viewBox: STREAMLINE_BOX, ...p })}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M7 2a2 2 0 0 0 -2 2v1h4V4a2 2 0 0 0 -2 -2ZM3 4v1a1.5 1.5 0 0 0 -1.5 1.5v6A1.5 1.5 0 0 0 3 14h8a1.5 1.5 0 0 0 1.5 -1.5v-6A1.5 1.5 0 0 0 11 5V4a4 4 0 1 0 -8 0Zm4 6.75a1.25 1.25 0 1 0 0 -2.5 1.25 1.25 0 0 0 0 2.5Z"
     />
   </svg>
 );

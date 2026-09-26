@@ -282,6 +282,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   // The `{appearance && …}` half of the same component.
   appearance: [
+    { title: 'lang.label', rows: [] },
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
     { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
     { title: 'settings.bottomBarLabels.title', hint: 'settings.bottomBarLabels.titleHint', rows: [] },
@@ -310,7 +311,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     { title: 'settings.theme', rows: [] },
-    { title: 'lang.label', rows: [] },
   ],
 
   accounts: [

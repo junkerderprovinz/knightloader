@@ -411,7 +411,23 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Each card title is a notch badge with its own rainbow position. */}
+      {/* Each card title is a notch badge with its own rainbow position. The
+          language comes first on this tab, with the other things that decide
+          how the app looks to the person using it; its trigger is a field, as
+          tall as one. */}
+      {appearance && (
+      <Card hue={3} className="flex flex-col gap-3">
+        <SectionTitle>{t('lang.label')}</SectionTitle>
+        {/* standalone: OnboardingWizard mounts a second instance at the same
+            time (see LanguagePicker.tsx). */}
+        <LanguagePicker
+          direction="down"
+          standalone
+          className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
+        />
+      </Card>
+      )}
+
       {appearance && (
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.shapeHint')}>
@@ -705,19 +721,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
             { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
           ]}
-        />
-      </Card>
-      )}
-
-      {appearance && (
-      <Card hue={3} className="flex flex-col gap-3">
-        <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: OnboardingWizard mounts a second instance at the same
-            time (see LanguagePicker.tsx). */}
-        <LanguagePicker
-          direction="down"
-          standalone
-          className="glim-well flex w-fit min-w-[12rem] items-center gap-2.5 px-3 py-2 text-sm text-carbon-text"
         />
       </Card>
       )}

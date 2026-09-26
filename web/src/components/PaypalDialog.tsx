@@ -6,6 +6,7 @@ import { IconClose } from '../lib/icons';
 import { PAYPAL, PAYPAL_AMOUNTS } from '../lib/donate';
 import { parseAmount, type GiveFrequency } from '../lib/paypal';
 import { usePaypalButtons } from '../lib/usePaypalButtons';
+import { useShake } from '../lib/useShake';
 import { useT } from '../lib/i18n';
 
 const DEFAULT_AMOUNT = '25';
@@ -24,6 +25,8 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
   const [preset, setPreset] = useState<string | null>(DEFAULT_AMOUNT);
   const [typed, setTyped] = useState('');
   const [status, setStatus] = useState<'idle' | 'done' | 'failed'>('idle');
+  const [refused, setRefused] = useState(0);
+  const field = useShake<HTMLDivElement>(refused);
   const typedAmount = parseAmount(typed);
 
   const buttons = usePaypalButtons({
@@ -43,6 +46,20 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
     setTyped(text);
     if (parseAmount(text)) setPreset(null);
     else if (text === '') setPreset((p) => p ?? DEFAULT_AMOUNT);
+  }
+
+  // Leaving the field shows the amount as it will be charged, hands a preset's
+  // amount back to its preset, and shakes text that is no amount.
+  function leave() {
+    if (typed === '') return;
+    if (!typedAmount) {
+      setRefused((n) => n + 1);
+      return;
+    }
+    if (PAYPAL_AMOUNTS.includes(typedAmount)) {
+      setPreset(typedAmount);
+      setTyped('');
+    } else setTyped(typedAmount);
   }
 
   const frequencyLabel = t('settings.about.paypalFrequency');
@@ -69,7 +86,6 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
         <Tabs
           variant="well"
           size="sm"
-          className="w-fit"
           label={frequencyLabel}
           active={frequency}
           onSelect={(id) => {
@@ -85,11 +101,12 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
       </FieldGroup>
 
       <FieldGroup label={amountLabel}>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* The presets keep the window's width, and the free amount stands at
+            the end of the row under them. */}
+        <div className="flex flex-col items-end gap-2">
           <Tabs
             variant="well"
             size="sm"
-            className="w-fit"
             label={amountLabel}
             active={preset}
             onSelect={(id) => {
@@ -98,7 +115,7 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
             }}
             items={PAYPAL_AMOUNTS.map((a) => ({ id: a, label: `${a} €` }))}
           />
-          <div className="w-36">
+          <div ref={field} className="w-36">
             <TextInput
               inputMode="decimal"
               value={typed}
@@ -106,6 +123,7 @@ export function PaypalDialog({ onClose }: { onClose: () => void }) {
               aria-label={t('settings.about.paypalOtherAmount')}
               aria-invalid={typed !== '' && !typedAmount}
               onChange={(e) => type(e.target.value)}
+              onBlur={leave}
               // The height pinned, or the border would add to a field that
               // otherwise measures --btn-h like every other.
               className={`h-[var(--btn-h)] border ${typedAmount ? 'border-accent' : 'border-transparent'}`}
