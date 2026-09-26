@@ -10,7 +10,7 @@ import {
   type Motion,
   type MotionNumbers,
 } from './motion';
-import { springOf } from './motionNative';
+import { confirmPeak, springOf } from './motionNative';
 
 // The accessibility gate, and the only place in this app that reads it.
 //
@@ -169,9 +169,9 @@ export function useShake(): { style: { transform: { translateX: Animated.Animate
 
 /**
  * The success gesture, the shake's opposite, for a copy or a save that landed:
- * the control swells a little and settles, on the web's `glim-confirm` timing.
- * Only its scale half is drawn, since the glow ring the web puts around the
- * control has no counterpart on a phone.
+ * the control swells to GlimStone's confirmPeak over the first 40 per cent of
+ * the level's `confirm` and settles over the rest. Only the web's scale half is
+ * drawn, since the ring it puts around the control has no room on a phone.
  *
  * Put `style` on an Animated.View around the control, or spread its transform
  * into one the view already has. At `off` nothing moves.
@@ -184,18 +184,18 @@ export function useConfirm(): { style: { transform: { scale: Animated.Value }[] 
 
   const confirm = useCallback(() => {
     const cur = live.current;
-    if (cur.confirmDur === 0 || cur.confirmScale === 0) return;
+    if (cur.confirm === 0 || cur.confirmScale === 0) return;
     scale.setValue(1);
     Animated.sequence([
       Animated.timing(scale, {
-        toValue: 1 + cur.confirmScale * 0.05,
-        duration: cur.confirmDur * 0.4,
+        toValue: confirmPeak(cur),
+        duration: cur.confirm * 0.4,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.timing(scale, {
         toValue: 1,
-        duration: cur.confirmDur * 0.6,
+        duration: cur.confirm * 0.6,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
