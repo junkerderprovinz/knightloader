@@ -96,6 +96,11 @@ func TestMain(m *testing.M) {
 		// Echoes the arguments as the playlist title.
 		fmt.Printf("{\"_type\":\"playlist\",\"title\":%q,\"entries\":[]}\n", strings.Join(os.Args[1:], " "))
 		os.Exit(0)
+	case "stream":
+		// A bare HLS stream, named after its playlist file. The format id
+		// echoes the address yt-dlp was given.
+		fmt.Printf("{\"title\":\"master\",\"formats\":[{\"format_id\":%q,\"ext\":\"mp4\",\"protocol\":\"m3u8_native\",\"height\":1080}]}\n", os.Args[len(os.Args)-1])
+		os.Exit(0)
 	case "badjson":
 		fmt.Println("not json at all")
 		os.Exit(0)
