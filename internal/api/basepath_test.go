@@ -359,7 +359,7 @@ func TestTheModuleLinesNameAddressesUnderTheBasePath(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 	s := a.Settings.Get()
-	s.DownloadClientAPI, s.SubfolderByPackage, s.Metrics = true, true, true
+	s.DownloadClientAPI, s.Metrics = true, true
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}

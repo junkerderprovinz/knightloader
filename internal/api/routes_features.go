@@ -778,10 +778,8 @@ func extractionDetail(s settings.Settings) line {
 
 // downloadClientDetail is the live line of the download-client row, which
 // covers the SABnzbd and the qBittorrent door. It warns when no API token can
-// add and read, since both doors then refuse Sonarr's calls, and when "Put each
-// package in its own subfolder" is off, since the importer then finds several
-// releases in the folder a door reports. The line shows on the Modules page,
-// so it names the page the token is made on.
+// add and read, since both doors then refuse Sonarr's calls. The line shows on
+// the Modules page, so it names the page the token is made on.
 func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	if !s.DownloadClientAPI {
 		return line{
@@ -789,25 +787,18 @@ func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 			code: "downloadclientOff",
 		}
 	}
-	const (
-		noToken     = "no API token exists yet, so every call is refused; create one on the Remote access page"
-		noAddRead   = "no API token can add and read, so Sonarr and Radarr are refused; create one with \"Add and read\" on the Remote access page"
-		noSubfolder = "\"Put each package in its own subfolder\" is off, so every grab lands in one folder and the importer cannot tell them apart"
-	)
 	tokens := a.APITokens.List()
-	tokenless, flat := len(tokens) == 0, !s.SubfolderByPackage
-	unfit := !tokenless && !someTokenHolds(tokens, apitoken.ScopeRead, apitoken.ScopeAdd)
 	switch {
-	case tokenless && flat:
-		return line{text: noToken + "; " + noSubfolder, code: "downloadclientNoTokenNoSubfolders"}
-	case tokenless:
-		return line{text: noToken, code: "downloadclientNoToken"}
-	case unfit && flat:
-		return line{text: noAddRead + "; " + noSubfolder, code: "downloadclientNoAddReadTokenNoSubfolders"}
-	case unfit:
-		return line{text: noAddRead, code: "downloadclientNoAddReadToken"}
-	case flat:
-		return line{text: noSubfolder, code: "downloadclientNoSubfolders"}
+	case len(tokens) == 0:
+		return line{
+			text: "no API token exists yet, so every call is refused; create one on the Remote access page",
+			code: "downloadclientNoToken",
+		}
+	case !someTokenHolds(tokens, apitoken.ScopeRead, apitoken.ScopeAdd):
+		return line{
+			text: "no API token can add and read, so Sonarr and Radarr are refused; create one with \"Add and read\" on the Remote access page",
+			code: "downloadclientNoAddReadToken",
+		}
 	}
 	// Sonarr and Radarr put SABnzbd's /api and qBittorrent's /api/v2 after the
 	// URL Base themselves.

@@ -188,18 +188,25 @@ on a fresh install.
 Both need an API token of this instance that can add and read, which you
 create with the **Add and read** preset on the Remote access page (see
 [API tokens and their rights](connecting.md#api-tokens-and-their-rights)). With
-a token for each app you can revoke one without cutting off the others. Also
-switch on **Put each package in its own subfolder** under Settings >
-Downloads. Without it every grab lands in the same folder, and the importer
-cannot tell one release from the next.
+a token for each app you can revoke one without cutting off the others.
 
 The category Sonarr or Radarr sends is a KnightLoader category, through either
 door. A grab is filed in the category of the same name, whatever the case.
 When there is none, one is created with its own folder inside the download
 folder, so `tv` lands in `/downloads/tv`, and the log says it was created.
-You can change its folder and priority under Settings > Rules & categories. A
-Packagizer rule that files the links in another category wins, and the door
-reports the folder they land in, so the import still finds them.
+You can change its folder and priority under Settings > Rules & categories.
+
+Inside the category's folder every grab gets a folder of its own, named after
+the release, so an episode sent under `tv` lands in
+`/downloads/tv/Show.S01E01.1080p.WEB`. If that name is taken, `.1`, `.2` and so
+on are added, as SABnzbd does. It works this way whether **Put each package in
+its own subfolder** is on or off, and a Packagizer rule cannot move the files
+out of that folder. A rule that files them in another category still changes
+their category. Sonarr and Radarr need this, because once they have imported a
+download they delete the folder its client named, with everything in it. When
+they remove a download and ask for its files to go, KnightLoader deletes that
+download's files and then the folder, as long as nothing else is left in it,
+for example the files an archive was unpacked to.
 
 ### Torrents through qBittorrent's API
 
@@ -258,9 +265,7 @@ DDL indexer whose "NZB" is really a list of links works.
 Sonarr accepts only a category it finds under exactly the name it has, so
 this door offers each of this instance's categories under its name and its id,
 plus the defaults Sonarr and Radarr come with: `tv` and `movies`, and
-`tv-sonarr` and `radarr` from their qBittorrent settings. With "Put each
-package in its own subfolder" on, every release gets a folder of its own inside
-the category's, which is what the importer needs to tell two grabs apart.
+`tv-sonarr` and `radarr` from their qBittorrent settings.
 
 ## Sites that want their own headers
 

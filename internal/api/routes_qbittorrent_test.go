@@ -606,30 +606,35 @@ func TestTaskStatesMapOntoQbittorrentStates(t *testing.T) {
 
 // TestATorrentOfSeveralTasksIsAsFarAsItsSlowestPart checks that a torrent is
 // only completed once every task behind it is, and that a finished one whose
-// files have gone reads as missing rather than completed.
+// folder has gone reads as missing rather than completed.
 func TestATorrentOfSeveralTasksIsAsFarAsItsSlowestPart(t *testing.T) {
 	t.Parallel()
 	_, _, _, qb := qbitServer(t, nil)
-	file := filepath.Join(t.TempDir(), "Show.S01E03.mkv")
+	folder := filepath.Join(t.TempDir(), "Show")
+	file := filepath.Join(folder, "Show.S01E03.mkv")
 	live := map[string]*core.Task{
 		"done":    {ID: "done", Status: core.StatusDone, Package: "Show", Size: 10, Loaded: 10, File: file},
 		"running": {ID: "running", Status: core.StatusRunning, Package: "Show", Size: 10, Loaded: 5, Speed: 1},
 	}
-	both := qbitTorrent{Hash: syntheticHash("done"), TaskIDs: []string{"done", "running"}}
-	if v := qb.view(both, live, false); v.state != "downloading" || v.complete() {
+	both := qbitTorrent{Hash: syntheticHash("done"), TaskIDs: []string{"done", "running"}, Folder: folder}
+	if v := qb.view(both, live); v.state != "downloading" || v.complete() {
 		t.Errorf("a torrent with a part still downloading reads %q", v.state)
 	}
 
-	finished := qbitTorrent{Hash: syntheticHash("done"), TaskIDs: []string{"done"}}
-	if v := qb.view(finished, live, false); v.state != "missingFiles" {
-		t.Errorf("a finished torrent whose file %q is gone reads %q, want missingFiles", v.contentPath, v.state)
+	finished := qbitTorrent{Hash: syntheticHash("done"), TaskIDs: []string{"done"}, Folder: folder}
+	if v := qb.view(finished, live); v.state != "missingFiles" {
+		t.Errorf("a finished torrent whose folder %q is gone reads %q, want missingFiles", v.contentPath, v.state)
+	}
+	if err := os.MkdirAll(folder, 0o755); err != nil {
+		t.Fatal(err)
 	}
 	if err := os.WriteFile(file, []byte("0123456789"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	v := qb.view(finished, live, false)
-	if v.state != "pausedUP" || v.contentPath != file {
-		t.Errorf("a finished torrent reads %q with content_path %q, want pausedUP at %q", v.state, v.contentPath, file)
+	v := qb.view(finished, live)
+	if v.state != "pausedUP" || v.contentPath != folder || v.savePath != filepath.Dir(folder) {
+		t.Errorf("a finished torrent reads %q with content_path %q and save_path %q, want pausedUP at %q",
+			v.state, v.contentPath, v.savePath, folder)
 	}
 	// Sonarr removes a finished torrent after the import only once its ratio
 	// limit is reached.
@@ -910,8 +915,8 @@ func TestAFinishedTorrentReadsTheWaySonarrImportsAndRemovesIt(t *testing.T) {
 	_, srv, secret, qb := qbitServerOn(t, a, nil)
 	one := 1.0
 	for _, rec := range []qbitTorrent{
-		{Hash: qbitTestHash, Category: "tv-sonarr", TaskIDs: []string{"open"}, AddedAt: now},
-		{Hash: qbitOtherHash, Category: "tv-sonarr", TaskIDs: []string{"held"}, AddedAt: now, RatioLimit: &one},
+		{Hash: qbitTestHash, Category: "tv-sonarr", TaskIDs: []string{"open"}, Folder: content, AddedAt: now},
+		{Hash: qbitOtherHash, Category: "tv-sonarr", TaskIDs: []string{"held"}, Folder: content, AddedAt: now, RatioLimit: &one},
 	} {
 		if err := qb.record(rec); err != nil {
 			t.Fatal(err)
@@ -1039,7 +1044,7 @@ func TestSonarrsRoundWorksWithAnAddAndReadToken(t *testing.T) {
 		Status: core.StatusDone, Enabled: true, CreatedAt: now, FinishedAt: now,
 	})
 	_, srv, _, qb := qbitServerOn(t, a, nil)
-	if err := qb.record(qbitTorrent{Hash: qbitOtherHash, Category: "tv-sonarr", TaskIDs: []string{"done"}, AddedAt: now}); err != nil {
+	if err := qb.record(qbitTorrent{Hash: qbitOtherHash, Category: "tv-sonarr", TaskIDs: []string{"done"}, Folder: content, AddedAt: now}); err != nil {
 		t.Fatal(err)
 	}
 	_, secret, err := a.APITokens.CreateScoped("sonarr-add-read", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeRead})
