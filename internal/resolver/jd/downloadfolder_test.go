@@ -164,6 +164,44 @@ func TestAPassingPackageStatusIsNotTreatedAsFatal(t *testing.T) {
 	}
 }
 
+// The row shows the task's own status beside the note, so JD's plain "Running"
+// would read as "Downloading Running", while a status that says why nothing
+// moves is what the note is for.
+func TestAPackageStatusThatOnlyNamesTheStateLeavesNoNote(t *testing.T) {
+	for status, want := range map[string]string{
+		"Running":                              "",
+		"Captcha recognition (rapidgator.net)": "Captcha recognition (rapidgator.net)",
+	} {
+		t.Run(status, func(t *testing.T) {
+			fake := &fakeFolderJD{status: status}
+			srv := httptest.NewServer(fake.handler())
+			defer srv.Close()
+
+			updates := make(chan core.Update, 8)
+			b := NewBackend(srv.URL, func(_ string, u core.Update) {
+				select {
+				case updates <- u:
+				default:
+				}
+			})
+			b.Download("t1", "http://example.invalid/a.bin", nil, 1)
+			defer b.Remove("t1", false)
+
+			select {
+			case u := <-updates:
+				if u.Status != core.StatusRunning {
+					t.Fatalf("status = %q, want running", u.Status)
+				}
+				if u.Note != want {
+					t.Errorf("note = %q, want %q", u.Note, want)
+				}
+			case <-time.After(4 * time.Second):
+				t.Fatal("the running package produced no update")
+			}
+		})
+	}
+}
+
 // The status strings are the ones JD reported during a free-mode rapidgator
 // download.
 func TestCaptchaSkippedIsToldApartFromCaptchaInProgress(t *testing.T) {

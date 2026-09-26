@@ -577,6 +577,18 @@ func captchaSkipped(status string) bool {
 	return strings.Contains(s, "skipped") && strings.Contains(s, "captcha")
 }
 
+// packageNote is JD's package status as the task's note. JD puts the plain
+// state there too, "Running" while bytes move, and the task's own status
+// already says that, so the row would name its state twice.
+func packageNote(status string) string {
+	s := strings.TrimSpace(status)
+	switch strings.ToLower(s) {
+	case "running", "downloading", "finished":
+		return ""
+	}
+	return s
+}
+
 func (b *Backend) poll(taskID string) {
 	stop := make(chan struct{})
 	b.mu.Lock()
@@ -689,12 +701,10 @@ func (b *Backend) poll(taskID string) {
 				}
 			}
 			seen = true
+			u := aggregate(links)
 			// JD reports states like "Captcha recognition" on the package, not
 			// on its links.
-			note := strings.TrimSpace(p.Status)
-
-			u := aggregate(links)
-			u.Note = note
+			u.Note = packageNote(p.Status)
 			if u.Loaded != lastBytes {
 				lastBytes = u.Loaded
 				lastMoved = time.Now()
