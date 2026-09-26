@@ -228,7 +228,8 @@ func TestSonarrsDeleteOfATorrentLeavesTheOneBesideIt(t *testing.T) {
 	if raceEnabled {
 		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race once a torrent runs")
 	}
-	t.Parallel()
+	// Not parallel: gopeed keeps one torrent client for the whole process,
+	// and every other app that closes in the meantime shuts it down.
 	a, srv, secret, _ := qbitServer(t, func(s *settings.Settings) { s.SubfolderByPackage = false })
 	a.SetHalted(false)
 	c := sonarrClient(t)
@@ -251,14 +252,19 @@ func TestSonarrsDeleteOfATorrentLeavesTheOneBesideIt(t *testing.T) {
 		}
 	}
 	infos := map[string]qbitInfo{}
-	waitUntil(t, "both torrents to finish", func() bool {
-		for _, i := range qbitInfos(t, c, srv, url.Values{"category": {"tv-sonarr"}}) {
+	var last []qbitInfo
+	for deadline := time.Now().Add(time.Minute); len(infos) < 2; time.Sleep(50 * time.Millisecond) {
+		if time.Now().After(deadline) {
+			raw, _ := json.Marshal(last)
+			t.Fatalf("the torrents did not both finish: %s", raw)
+		}
+		last = qbitInfos(t, c, srv, url.Values{"category": {"tv-sonarr"}})
+		for _, i := range last {
 			if sonarrStatus(i.State) == "Completed" {
 				infos[i.Hash] = i
 			}
 		}
-		return len(infos) == 2
-	})
+	}
 	for hash, want := range map[string]string{first: "Show.S01/Show.S01E01.mkv", other: "Show.S01/Show.S01E02.mkv"} {
 		i := infos[hash]
 		if i.ContentPath == i.SavePath {
