@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -50,6 +51,10 @@ type Backend struct {
 	// FFprobe is the binary Options.Measure reads a finished file with. Empty
 	// means "ffprobe" on PATH, which the container's ffmpeg package provides.
 	FFprobe string
+
+	// Client is what the sites in players are asked through (see embed.go).
+	// Nil uses a client of the package's own.
+	Client *http.Client
 
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
@@ -119,7 +124,27 @@ func (b *Backend) run(taskID, url string) {
 		opts = b.Options(taskID)
 	}
 	opts = opts.Sanitize()
+	target := url
+	stream, unwrapped, err := unwrap(ctx, b.client(), url)
+	if err != nil {
+		if ctx.Err() != nil {
+			return // cancelled by Pause/Remove
+		}
+		u := core.Update{Status: core.StatusError, Err: err.Error()}
+		if errors.Is(err, errEmbedGone) {
+			u.Reason = core.ReasonGone
+		}
+		b.onUpdate(taskID, u)
+		return
+	}
+	if unwrapped {
+		target = stream.url
+		opts.OutputTemplate = stream.template()
+	}
 	args := buildArgs(dir, opts)
+	if unwrapped {
+		args = append(args, stream.args()...)
+	}
 	// The cookie file lives exactly as long as yt-dlp: written before the
 	// spawn, removed by the deferred cleanup on every exit path.
 	if opts.Cookies && b.Cookies != nil {
@@ -147,7 +172,7 @@ func (b *Backend) run(taskID, url string) {
 			args = append(args, "--limit-rate", fmt.Sprint(per))
 		}
 	}
-	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
+	cmd := exec.CommandContext(ctx, b.bin, append(args, target)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	if opts.Live.Enabled {
 		// A killed yt-dlp leaves a live recording as an unplayable .part; on
@@ -441,7 +466,16 @@ type ProbeResult struct {
 // single videos. A playlist URL therefore probes slowly and prints one object
 // per entry, of which firstLine takes the first.
 func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, error) {
-	cmd := exec.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "-j", url)
+	args := []string{"--skip-download", "--no-warnings", "-j"}
+	stream, unwrapped, err := unwrap(ctx, b.client(), url)
+	if err != nil {
+		return ProbeResult{}, err
+	}
+	if unwrapped {
+		args = append(args, stream.args()...)
+		url = stream.url
+	}
+	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
@@ -484,6 +518,10 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
 	}
 	title := strings.TrimSpace(raw.Title)
+	if unwrapped {
+		// yt-dlp names a bare stream after its playlist file.
+		title = stream.title
+	}
 	if title == "" {
 		return ProbeResult{}, errors.New("ytdlp: probe returned no title")
 	}
