@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -21,13 +22,21 @@ type Premiumize struct {
 	key  string
 	base string
 	hc   *http.Client
+
+	// listMu guards the last /transfer/list answer (see transfers) and is
+	// held while one is read.
+	listMu    sync.Mutex
+	listed    []pmTransfer
+	listAt    time.Time
+	listFresh time.Duration
 }
 
 func NewPremiumize(key string) *Premiumize {
 	return &Premiumize{
-		key:  key,
-		base: "https://www.premiumize.me/api",
-		hc:   httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		key:       key,
+		base:      "https://www.premiumize.me/api",
+		hc:        httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		listFresh: pmListFresh,
 	}
 }
 

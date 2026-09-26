@@ -322,7 +322,7 @@ func TestPremiumizeFetchesAMagnetFromAddToCleanup(t *testing.T) {
 	}))
 	defer srv.Close()
 	pm := NewPremiumize("key")
-	pm.base = srv.URL + "/api"
+	pm.base, pm.listFresh = srv.URL+"/api", 0
 
 	parts, _ := fetchTorrent(t, pm, testMagnet, nil, core.StatusDone)
 
@@ -358,6 +358,57 @@ func TestPremiumizeLeavesAFolderThatIsNotTheTransfersOwn(t *testing.T) {
 	}
 	if seen.saw("POST /api/folder/delete") {
 		t.Error("deleted a folder that is not named after the transfer, and everything in it")
+	}
+}
+
+func TestPremiumizeTasksShareOneReadOfTheTransferList(t *testing.T) {
+	var (
+		mu        sync.Mutex
+		lists     int
+		transfers = []string{"T1", "T2", "T3"}
+	)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		if r.URL.Path != "/api/transfer/list" {
+			t.Errorf("unexpected %s", r.URL.Path)
+			return
+		}
+		lists++
+		var entries []string
+		for _, id := range transfers {
+			entries = append(entries, fmt.Sprintf(`{"id":%q,"name":"Show","status":"running","progress":0.5}`, id))
+		}
+		fmt.Fprintf(w, `{"status":"success","transfers":[%s]}`, strings.Join(entries, ","))
+	}))
+	defer srv.Close()
+	pm := NewPremiumize("key")
+	pm.base = srv.URL + "/api"
+	status := func(id string) {
+		t.Helper()
+		if job, err := pm.TorrentStatus(t.Context(), id); err != nil || job.Progress != 0.5 {
+			t.Errorf("TorrentStatus(%s) = %+v, %v", id, job, err)
+		}
+	}
+	listed := func() int {
+		mu.Lock()
+		defer mu.Unlock()
+		return lists
+	}
+
+	for _, id := range []string{"T1", "T2", "T3"} {
+		status(id)
+	}
+	if n := listed(); n != 1 {
+		t.Errorf("three tasks read the transfer list %d times, want once", n)
+	}
+
+	mu.Lock()
+	transfers = append(transfers, "T4")
+	mu.Unlock()
+	status("T4")
+	if n := listed(); n != 2 {
+		t.Errorf("the list was read %d times, want once more for the transfer added since", n)
 	}
 }
 

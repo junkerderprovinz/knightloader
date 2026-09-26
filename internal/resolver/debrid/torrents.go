@@ -154,9 +154,18 @@ type Transfers interface {
 	Remove(taskID string, deleteFiles bool)
 }
 
-// torrentPoll is how often a job the service is still fetching is read again.
-// Real-Debrid allows 250 calls a minute per key, shared with every other task.
-const torrentPoll = 5 * time.Second
+// torrentPoll and torrentPollMax are the shortest and the longest wait before
+// a job the service is still fetching is read again (see pacer).
+const (
+	torrentPoll    = 5 * time.Second
+	torrentPollMax = time.Minute
+)
+
+// readGap is the least time between two status reads on one account, however
+// many torrents it fetches. Sixty reads a minute stay well inside the limits
+// the services document, of which Real-Debrid's 250 calls a minute per key is
+// the tightest, and leave room for the unlocks beside them.
+const readGap = time.Second
 
 // statusMisses is how many reads of a job in a row may fail before the task
 // does. A torrent the service has not cached can take hours, and one dropped
@@ -171,6 +180,8 @@ type Runs struct {
 	slot   string
 	mu     sync.Mutex
 	byTask map[string]*torrentRun
+	// nextRead is when the account's jobs may next be read (see readTurn).
+	nextRead time.Time
 }
 
 // NewRuns starts the runs of the account in slot (resolver.SlotID).
@@ -191,6 +202,30 @@ func (rs *Runs) Restore(taskID, link string, j core.ServiceJob) {
 	rs.mu.Lock()
 	defer rs.mu.Unlock()
 	rs.byTask[taskID] = r
+}
+
+// readTurn books the account's next status read, gap after the one before,
+// and waits for it. It reports false when ctx ends first.
+func (rs *Runs) readTurn(ctx context.Context, gap time.Duration) bool {
+	rs.mu.Lock()
+	now := time.Now()
+	at := now
+	if rs.nextRead.After(now) {
+		at = rs.nextRead
+	}
+	rs.nextRead = at.Add(gap)
+	rs.mu.Unlock()
+	if !at.After(now) {
+		return true
+	}
+	t := time.NewTimer(at.Sub(now))
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-t.C:
+		return true
+	}
 }
 
 // TorrentBackend fetches magnet links and uploaded .torrent files through a
@@ -216,7 +251,7 @@ type TorrentBackend struct {
 	// the import from the account knows the job for one of its own.
 	Added func(job string)
 
-	poll time.Duration
+	poll, pollMax, gap time.Duration
 }
 
 // torrentRun is one task's torrent. Every field is guarded by the mu of the
@@ -255,7 +290,7 @@ type torrentRun struct {
 func NewTorrentBackend(svc TorrentService, links Transfers, parts PartDownloader, runs *Runs, onUpdate func(taskID string, u core.Update)) *TorrentBackend {
 	return &TorrentBackend{
 		svc: svc, links: links, parts: parts, runs: runs, onUpdate: onUpdate,
-		poll: torrentPoll,
+		poll: torrentPoll, pollMax: torrentPollMax, gap: readGap,
 	}
 }
 
@@ -593,11 +628,16 @@ func (b *TorrentBackend) finder() func(context.Context, string) (string, error) 
 // on the task. It reports false when the task has been dealt with.
 func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun, job string) (TorrentJob, bool) {
 	misses := 0
+	pace := pacer{shortest: b.poll, longest: b.pollMax}
 	for {
+		if !b.runs.readTurn(ctx, b.gap) {
+			return TorrentJob{}, false
+		}
 		tj, err := b.svc.TorrentStatus(ctx, job)
 		if ctx.Err() != nil {
 			return TorrentJob{}, false
 		}
+		progress := clamp01(tj.Progress)
 		var no *Refusal
 		switch {
 		case errors.As(err, &no):
@@ -609,6 +649,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 				b.fail(ctx, taskID, err)
 				return TorrentJob{}, false
 			}
+			progress = pace.progress
 		case tj.State == TorrentReady:
 			return tj, true
 		case tj.State == TorrentFailed:
@@ -625,15 +666,46 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 				Status: core.StatusRunning,
 				Name:   tj.Name,
 				Size:   b.remoteSize(taskID, tj),
-				Remote: &core.RemoteFetch{Progress: clamp01(tj.Progress), Speed: tj.Speed, Seeds: tj.Seeds},
+				Remote: &core.RemoteFetch{Progress: progress, Speed: tj.Speed, Seeds: tj.Seeds},
 			})
 		}
 		select {
 		case <-ctx.Done():
 			return TorrentJob{}, false
-		case <-time.After(b.poll):
+		case <-time.After(pace.next(time.Now(), progress)):
 		}
 	}
+}
+
+// pacer spaces the reads of a job the service is still fetching. The wait
+// starts at shortest and grows to a tenth of the time since the first read,
+// up to longest: a fetch that takes an hour costs under a hundred reads rather
+// than seven hundred, and a job that becomes ready is seen no later than a
+// tenth of its wait, or shortest for a short one. Once the service's progress
+// puts the end before the next read, or has reached it, the next read comes
+// then, never sooner than shortest.
+type pacer struct {
+	shortest, longest time.Duration
+	start, last       time.Time
+	progress          float64
+}
+
+// next is the wait after a read at now that found the job at progress, from 0
+// to 1.
+func (p *pacer) next(now time.Time, progress float64) time.Duration {
+	if p.start.IsZero() {
+		p.start = now
+	}
+	d := min(max(now.Sub(p.start)/10, p.shortest), p.longest)
+	switch {
+	case progress >= 1:
+		d = p.shortest
+	case progress > p.progress && !p.last.IsZero():
+		left := time.Duration(float64(now.Sub(p.last)) * (1 - progress) / (progress - p.progress))
+		d = min(d, max(left, p.shortest))
+	}
+	p.last, p.progress = now, progress
+	return d
 }
 
 // choose tells a service that waits for it which files to fetch. It reports

@@ -7,7 +7,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
+	"time"
 )
 
 // Premiumize.me's transfer API: https://www.premiumize.me/api. A finished
@@ -85,23 +87,48 @@ type pmTransfer struct {
 	FileID   string  `json:"file_id"`
 }
 
-// transfer finds one transfer in /transfer/list, the only call that reads
-// transfers. One that is gone was deleted on the service.
-func (p *Premiumize) transfer(ctx context.Context, id string) (pmTransfer, error) {
+// pmListFresh is how long one /transfer/list answer serves every caller on the
+// account. Premiumize reads transfers only as the whole list, which every
+// task's poll would otherwise fetch again for itself.
+const pmListFresh = 5 * time.Second
+
+// transfers returns the account's transfers, from an answer at most
+// listFresh old unless fresh is set, and whether it was read for this call.
+// Callers wait for a read in flight rather than send their own.
+func (p *Premiumize) transfers(ctx context.Context, fresh bool) ([]pmTransfer, bool, error) {
+	p.listMu.Lock()
+	defer p.listMu.Unlock()
+	if !fresh && time.Since(p.listAt) < p.listFresh {
+		return p.listed, false, nil
+	}
 	var data struct {
 		pmStatus
 		Transfers []pmTransfer `json:"transfers"`
 	}
 	if err := p.get(ctx, "/transfer/list", &data); err != nil {
-		return pmTransfer{}, err
+		return nil, false, err
 	}
 	if err := data.err("/transfer/list"); err != nil {
+		return nil, false, err
+	}
+	p.listed, p.listAt = data.Transfers, time.Now()
+	return data.Transfers, true, nil
+}
+
+// transfer finds one transfer in /transfer/list, the only call that reads
+// transfers. One that is gone was deleted on the service.
+func (p *Premiumize) transfer(ctx context.Context, id string) (pmTransfer, error) {
+	is := func(t pmTransfer) bool { return t.ID == id }
+	list, read, err := p.transfers(ctx, false)
+	if err == nil && !read && !slices.ContainsFunc(list, is) {
+		// Added since the shared answer was read.
+		list, _, err = p.transfers(ctx, true)
+	}
+	if err != nil {
 		return pmTransfer{}, err
 	}
-	for _, t := range data.Transfers {
-		if t.ID == id {
-			return t, nil
-		}
+	if i := slices.IndexFunc(list, is); i >= 0 {
+		return list[i], nil
 	}
 	return pmTransfer{}, &Refusal{Reason: "the transfer is gone from Premiumize"}
 }
@@ -245,21 +272,12 @@ func (p *Premiumize) DeleteTorrent(ctx context.Context, id string) error {
 // its source only through a proxy link, so none carries an info hash, and the
 // import waits for a second look before it takes one.
 func (p *Premiumize) List(ctx context.Context) ([]Listed, bool, error) {
-	var data struct {
-		pmStatus
-		Transfers []struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"transfers"`
-	}
-	if err := p.get(ctx, "/transfer/list", &data); err != nil {
+	list, _, err := p.transfers(ctx, false)
+	if err != nil {
 		return nil, false, err
 	}
-	if err := data.err("/transfer/list"); err != nil {
-		return nil, false, err
-	}
-	out := make([]Listed, 0, len(data.Transfers))
-	for _, t := range data.Transfers {
+	out := make([]Listed, 0, len(list))
+	for _, t := range list {
 		out = append(out, Listed{ID: t.ID, Name: t.Name})
 	}
 	return out, true, nil
