@@ -113,14 +113,13 @@ type entry struct {
 }
 
 // taskTriggers is every trigger that can carry a task, which is not the same as
-// every trigger that does. task.done, task.failed, link.added, checksum.failed
-// and manual always carry one; extract.done and captcha.pending carry one when
-// the app could name the download. The picker says "can carry it" rather than
-// picking one of the two half-truths.
+// every trigger that does. task.done, task.failed, link.added and
+// checksum.failed always carry one; extract.done and captcha.pending carry one
+// when the app could name the download. The picker says "can carry it" rather
+// than picking one of the two half-truths.
 var taskTriggers = []script.Trigger{
 	script.TriggerTaskDone, script.TriggerTaskFailed, script.TriggerLinkAdded,
-	script.TriggerChecksumFailed, script.TriggerOnDemand,
-	script.TriggerExtractDone, script.TriggerCaptchaPending,
+	script.TriggerChecksumFailed, script.TriggerExtractDone, script.TriggerCaptchaPending,
 }
 
 // table is every placeholder this build knows, in the order the picker shows

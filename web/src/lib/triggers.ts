@@ -47,3 +47,7 @@ export const REPLAYS_AFTER_RESTART = new Set(['queue.idle', 'captcha.pending', '
 /** link.added fires once per link, so pasting two hundred links sends two
  *  hundred messages; the picker warns about it by name. */
 export const FIRES_PER_LINK = 'link.added';
+
+/** manual only runs a script by hand and never reaches an event target or an
+ *  event program, so their picker leaves it out. */
+export const ON_DEMAND = 'manual';

@@ -55,6 +55,18 @@ func TestAFreshRowGetsTheCommandDefaultsAndNoUnknownEvents(t *testing.T) {
 	}
 }
 
+// manual runs one script by hand and never reaches the bus, so a program
+// ticked for it alone would look set up and never start.
+func TestAProgramKeepsNoEventThatNeverArrives(t *testing.T) {
+	got := Sanitize([]Program{{
+		Name:     "x",
+		Triggers: []script.Trigger{script.TriggerOnDemand, script.TriggerQueueIdle},
+	}})[0]
+	if len(got.Triggers) != 1 || got.Triggers[0] != script.TriggerQueueIdle {
+		t.Errorf("Triggers = %v, want queue.idle alone", got.Triggers)
+	}
+}
+
 func TestZeroParallelMeansOneRunAtATime(t *testing.T) {
 	if n := (Program{}).ResolvedParallel(); n != 1 {
 		t.Errorf("ResolvedParallel() = %d for an unset row, want 1", n)

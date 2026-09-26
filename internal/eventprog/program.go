@@ -121,8 +121,9 @@ func Sanitize(in []Program) []Program {
 	return out
 }
 
-// sanitizeTriggers drops duplicates and anything this build does not fire,
-// keeping the operator's order, as notify does for its targets.
+// sanitizeTriggers drops duplicates and anything that never arrives on the
+// bus, keeping the operator's order, as notify does for its targets. manual is
+// one of those: it only runs a script by hand.
 func sanitizeTriggers(in []script.Trigger) []script.Trigger {
 	if len(in) == 0 {
 		return nil
@@ -130,7 +131,7 @@ func sanitizeTriggers(in []script.Trigger) []script.Trigger {
 	seen := make(map[script.Trigger]bool, len(in))
 	out := make([]script.Trigger, 0, len(in))
 	for _, tr := range in {
-		if !tr.Valid() || seen[tr] {
+		if !tr.Published() || seen[tr] {
 			continue
 		}
 		seen[tr] = true
