@@ -1725,7 +1725,7 @@ export const de: Dict = {
   'settings.module.ytdlp': 'yt-dlp',
   'settings.resolvers.moduleUnavailable': 'Modul nicht verfügbar',
   'settings.resolvers.moduleUnavailableHint': 'Alles unten wird trotzdem gespeichert und wirkt, sobald yt-dlp verfügbar ist. Was du jetzt änderst, geht nicht verloren.',
-  'settings.resolvers.about': 'Konfiguration für das yt-dlp-Backend, das die Medien- und Streaming-Seiten abruft, die yt-dlp selbst unterstützt. Welcher Dienst einen Link überhaupt verarbeitet (yt-dlp, ein Debrid-Konto oder das JDownloader-Backend), entscheidet die Routing-Reihenfolge auf der Seite Konten. Hier stellst du ein, was yt-dlp tut, sobald ein Link dorthin geleitet wurde.',
+  'settings.resolvers.about': 'Konfiguration für das yt-dlp-Backend, das die Medien- und Streaming-Seiten abruft, die yt-dlp selbst unterstützt. Welches Backend einen Link überhaupt verarbeitet (yt-dlp, ein Debrid-Konto oder das JDownloader-Backend), entscheidet die Routing-Reihenfolge auf der Seite Konten. Hier stellst du ein, was yt-dlp tut, sobald ein Link dorthin geleitet wurde.',
   'settings.resolvers.quality': 'Qualität',
   'settings.resolvers.videoFormat': 'Videoformat',
   'settings.resolvers.qualityHint': 'Welcher -f-Selektor beim Start von yt-dlp verwendet wird. Beste verfügbare ist der eigene Standard von yt-dlp und das, was jeder Download vor dieser Einstellung genutzt hat.',
