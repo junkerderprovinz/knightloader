@@ -400,6 +400,37 @@ func TestAJobTheServiceLostFails(t *testing.T) {
 	}
 }
 
+func TestAJobLongAtTheServiceSurvivesOneAnswerWithoutIt(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}}
+	h := newHarness(t, svc)
+	j := h.add(t, "Queued")
+	h.m.round(context.Background())
+
+	h.clock.advance(20 * time.Minute)
+	h.m.round(context.Background())
+	svc.set(func(f *fakeService) { f.gone = true })
+	h.m.round(context.Background())
+	if got := h.job(t, j.ID); got.State != StateFetching {
+		t.Fatalf("job is %s after one answer left it out, want it still fetching", got.State)
+	}
+
+	svc.set(func(f *fakeService) { f.gone = false })
+	h.m.round(context.Background())
+	svc.set(func(f *fakeService) { f.gone = true })
+	h.clock.advance(goneGrace / 2)
+	h.m.round(context.Background())
+	h.clock.advance(goneGrace / 2)
+	h.m.round(context.Background())
+	if got := h.job(t, j.ID); got.State != StateFetching {
+		t.Fatalf("job is %s, want the grace counted from the first answer that left it out", got.State)
+	}
+	h.clock.advance(goneGrace)
+	h.m.round(context.Background())
+	if got := h.job(t, j.ID); got.State != StateFailed {
+		t.Fatalf("job is %s after the grace passed without it, want failed", got.State)
+	}
+}
+
 func TestCancelDeletesATakenJobAtTheService(t *testing.T) {
 	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}}
 	h := newHarness(t, svc)
