@@ -9,8 +9,8 @@ per row, and the decision is recorded in the Verdict column as we go.
 | Status | Count | Meaning |
 |---|---|---|
 | have | 84 | present and working here |
-| partial | 226 | some of it exists, the table says which part is missing |
-| missing | 618 | not built |
+| partial | 227 | some of it exists, the table says which part is missing |
+| missing | 617 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
 L several days, XL a project. The Blocker column is empty unless something
@@ -27,7 +27,7 @@ survey nobody re-added.
 
 1. [Extensions and add-ons](#1-extensions-and-add-ons) - 69 features: 8 have, 26 partial, 35 missing
 2. [Downloads tab](#2-downloads-tab) - 104 features: 21 have, 31 partial, 52 missing
-3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 22 partial, 43 missing
+3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 23 partial, 42 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) - 102 features: 3 have, 5 partial, 94 missing
 5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 24 partial, 99 missing
 6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 11 have, 37 partial, 58 missing
@@ -236,14 +236,14 @@ Everything below is verified against the JD2 source (a shallow clone of github.c
 
 Grounded in JD2 source: MenuManagerMainToolbar.java and MenuManagerMainmenu.java literally encode the shipped default layouts, StatusBarImpl.java the status bar, MenuManagerTrayIcon.java the tray menu, and GuiTranslation.java the English/German labels. Structurally, every bar in JD is the same thing: a ContextMenuManager whose default tree is a list of Action classes, so toolbar, main menu, tray menu, both bottom bars and both table context menus are all user-rebuildable through one Menu Customizer dialog and all serialize to .jdToolbar/.jdmenu/.jdtray files. Items marked hidden-by-default live in an invisible "More Actions..." (OptionalContainer) branch: they exist and are wired up, but only appear once a user drags them in.
 
-79 features - 14 have, 22 partial, 43 missing.
+79 features - 14 have, 23 partial, 42 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
 | **Analyse Text with Links (dialog title: Add New Links)** | Opens the add-links dialog where pasted text is parsed for URLs and pre-configured before crawling. | File menu, 1st entry (AddLinksMenuAction wrapping AddLinksAction); accelerator Ctrl+L | core | have | S |  |  |
 | **Clipboard Monitoring / Zwischenablageüberwachung** | Toggles the clipboard observer that auto-grabs copied URLs into the Linkgrabber. | Main toolbar, after 2nd separator (ClipBoardToggleAction); backed by GraphicalUserInterfaceSettings.isClipboardMonitored (default on) | core | missing | M | browser capability: a web page can only read the clipboard on an explicit user gesture with permission, there is no background observer; would have to live in the Wails desktop build (desktop/main.go) or in the CnL bridge process (internal/bridge/bridge.go) |  |
 | **Download / Downloads (tooltip: Downloadlist and Progress)** | The running download list with progress, added first and always present. | Main tab bar, tab 1 (DownloadsView) | core | have | S |  |  |
-| **Exit / Beenden** | Quits the application (hidden on macOS, where it lives in the app menu). | File menu, last entry (ExitAction, HIDE_ON_MAC); accelerator Ctrl+Q | core | missing | S | none: a browser tab cannot quit the server; would be a shutdown endpoint, and for the container the supervisor restarts it anyway |  |
+| **Exit / Beenden** | Quits the application (hidden on macOS, where it lives in the app menu). | File menu, last entry (ExitAction, HIDE_ON_MAC); accelerator Ctrl+Q | core | partial | S | none. The server build quits from Settings > General > Quit & restart, after a confirmation and once in-flight work is drained (POST /api/system/quit). In a container the restart policy then decides whether it comes back, so under `unless-stopped` Quit acts as a restart. The desktop app greys that button out and quits from the tray's Quit KnightLoader item, or by closing the window unless that is set to close to the tray. Missing part: a keyboard shortcut, since neither the web interface nor the desktop window binds Ctrl+Q. |  |
 | **File / Datei** | First menu-bar entry holding the add-links, backup, restart and exit actions. | Menu bar (FileMenuContainer) | core | missing | S | none: the app has no menu bar; the sidebar rail (web/src/components/Sidebar.tsx:97) is the only global navigation |  |
 | **Linkgrabber / Linksammler (tooltip: Collect, add and select links and URLs)** | Staging list where crawled links land before being confirmed into the download list. | Main tab bar, tab 2 (LinkGrabberView) | core | have | S |  |  |
 | **Main tab bar** | Single top-level JTabbedPane holding all views; Ctrl+Tab / Ctrl+Shift+Tab cycle tabs and skip promo tabs. | MainTabbedPane, below the toolbar, above the status bar | core | have | S | none: a sidebar rail rather than a tab strip; no Ctrl+Tab cycling and no closable views |  |
