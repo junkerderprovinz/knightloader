@@ -776,6 +776,51 @@ func TestAnAppHoldsTheSolversOnlyForWhatItCanAnswer(t *testing.T) {
 	}
 }
 
+// A reCAPTCHA whose key refuses this instance cannot be answered in the window
+// watching it, so once the window says so, the solvers stop waiting for it.
+func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	addViewer(t, a)
+	s := &fakeSolver{text: "token"}
+	c := pending(a, captcha.Challenge{ID: "w1", Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+		Vendor: captcha.VendorRecaptcha, SiteKey: "6Lc-key",
+	}})
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		a.solveCaptchaWith(paid(s), c)
+	}()
+	waitFor(t, "the waiting report", func() bool {
+		got, _ := a.captchaStateFor().store.Get("w1")
+		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
+	})
+	if !a.CaptchaUnanswerable("w1") {
+		t.Fatal("a pending captcha was not taken as unanswerable")
+	}
+	if !pollUntil(t, time.Second, func() bool { return s.calls.Load() == 1 }) {
+		t.Fatal("the solver still waits for a window that cannot load the captcha")
+	}
+	<-done
+}
+
+// Only a pending captcha can be marked, and the mark leaves with it, so a
+// caller cannot fill the table with ids.
+func TestAnUnanswerableMarkLastsAsLongAsItsCaptcha(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	c := pending(a, imageChallenge("c1"))
+
+	if a.CaptchaUnanswerable("gone") || a.captchaUnanswerable("gone") {
+		t.Error("a captcha that is not pending was marked")
+	}
+	a.CaptchaUnanswerable("c1")
+	a.settleCaptcha(c, "solved")
+	if a.captchaUnanswerable("c1") {
+		t.Error("the mark outlived its captcha")
+	}
+}
+
 func TestSolversStartAtOnceWhenNobodyWatches(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	onlyUnwatched(t, a)

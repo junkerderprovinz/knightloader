@@ -366,6 +366,20 @@ func TestThePhoneAppsRightsReachEveryCallItMakes(t *testing.T) {
 	}
 }
 
+// Saying a window cannot load a captcha takes the right that reads the list,
+// not the one that answers it.
+func TestAReaderMaySayItCannotLoadACaptcha(t *testing.T) {
+	t.Parallel()
+	srv, a := lockedServer(t)
+	_, reader, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/captcha/c1/unanswerable", "", reader); code != http.StatusNoContent {
+		t.Errorf("a read token saying it cannot load a captcha answered %d: %+v", code, doc)
+	}
+}
+
 // GET /api/auth is open for the sign-in screen. What it adds for a caller
 // that is signed in, the second factor and the recovery codes left, is
 // security configuration.

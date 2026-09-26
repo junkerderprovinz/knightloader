@@ -5,6 +5,7 @@ import {
   connectWS,
   fetchCaptchas,
   refreshCaptchas,
+  reportCaptchaUnanswerable,
   skipCaptcha,
   type CaptchaAbortScope,
   type CaptchaChallenge,
@@ -257,6 +258,15 @@ export function CaptchaModal() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [current?.id, current?.expiresAt, solverWaiting]);
+
+  // A widget that will not load here cannot be answered here, so the paid
+  // solvers need not wait for this window. The window already says so, which
+  // is all a failed report could add.
+  useEffect(() => {
+    if (current?.kind === 'widget' && widgetStatus === 'error') {
+      reportCaptchaUnanswerable(current.id).catch(() => {});
+    }
+  }, [current?.id, current?.kind, widgetStatus]);
 
   // The widget answers by postMessage, trusted only from this origin: the
   // page's frame-ancestors CSP does not protect what this side receives.

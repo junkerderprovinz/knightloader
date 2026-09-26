@@ -47,6 +47,12 @@ type captchaState struct {
 	pollMu sync.Mutex
 
 	paid paidLedger
+
+	// unanswerable holds the pending challenges a web window could not load,
+	// see CaptchaUnanswerable. settleCaptcha drops a challenge from it under
+	// unanswerableMu once it has left the store.
+	unanswerableMu sync.Mutex
+	unanswerable   map[string]bool
 }
 
 var (
@@ -179,7 +185,11 @@ func (a *App) markCaptchaTasks(added []captcha.Challenge) {
 // how the challenge ended. It is called both right after an answer or abort
 // and when the poll finds the challenge gone.
 func (a *App) settleCaptcha(c captcha.Challenge, reason string) {
-	a.captchaStateFor().store.Remove(c.ID)
+	st := a.captchaStateFor()
+	st.store.Remove(c.ID)
+	st.unanswerableMu.Lock()
+	delete(st.unanswerable, c.ID)
+	st.unanswerableMu.Unlock()
 
 	a.mu.Lock()
 	var pub *taskCopy
@@ -237,6 +247,39 @@ func (a *App) CaptchaSeen(kinds []string) {
 // captchaWatchKey is the hub kind a reader that answers only some kinds of
 // challenge is seen under.
 func captchaWatchKey(k captcha.Kind) string { return "captcha:" + string(k) }
+
+// CaptchaUnanswerable records that a web window could not load challenge id,
+// such as a widget whose site key refuses this instance's address, so the
+// windows watching the prompt stop holding the paid solvers back for it. It
+// reports false for a challenge that is no longer pending.
+//
+// The report names no viewer: the desktop app's window watches through the
+// shell's own hub connection, not the page's socket. So one window that
+// cannot load it releases the solvers for every window, and a second one
+// that could still races them to the answer.
+func (a *App) CaptchaUnanswerable(id string) bool {
+	st := a.captchaStateFor()
+	st.unanswerableMu.Lock()
+	defer st.unanswerableMu.Unlock()
+	// Checked under the lock settleCaptcha deletes under, so a challenge
+	// that settles meanwhile does not leave its id behind.
+	if !a.captchaPending(id) {
+		return false
+	}
+	if st.unanswerable == nil {
+		st.unanswerable = map[string]bool{}
+	}
+	st.unanswerable[id] = true
+	return true
+}
+
+// captchaUnanswerable reports whether a web window said it cannot load id.
+func (a *App) captchaUnanswerable(id string) bool {
+	st := a.captchaStateFor()
+	st.unanswerableMu.Lock()
+	defer st.unanswerableMu.Unlock()
+	return st.unanswerable[id]
+}
 
 // RefreshCaptchas polls right away instead of waiting for the next tick. A
 // failed poll returns the last good snapshot.

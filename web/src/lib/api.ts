@@ -2526,6 +2526,14 @@ export async function skipCaptcha(id: string, scope: CaptchaAbortScope): Promise
 }
 
 /**
+ * reportCaptchaUnanswerable tells the instance this window could not load id's
+ * widget, so the windows watching stop holding the paid solvers back for it.
+ */
+export async function reportCaptchaUnanswerable(id: string): Promise<void> {
+  await ok(await post(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, {}));
+}
+
+/**
  * captchaWidgetUrl builds the widget page address. The rendering data goes in
  * the query string because the caller already holds it, which spares the
  * server a second lookup at JD. lang is the interface language, which the
