@@ -318,16 +318,19 @@ func (b *Backend) transfer(ctx context.Context, taskID string, fs FS, remotePath
 	if err != nil {
 		return err
 	}
-	defer rc.Close()
-
 	// Neither the FTP nor the SFTP library takes a context per read, so a
-	// cancellation closes the stream under a blocked Read.
+	// cancellation closes the stream under a blocked Read. It is closed once:
+	// an FTP close reads the server's answer on the control connection, and a
+	// second close at the same time would wait there for one that never comes.
+	var closing sync.Once
+	closeStream := func() { closing.Do(func() { _ = rc.Close() }) }
+	defer closeStream()
 	done := make(chan struct{})
 	defer close(done)
 	go func() {
 		select {
 		case <-ctx.Done():
-			_ = rc.Close()
+			closeStream()
 		case <-done:
 		}
 	}()
