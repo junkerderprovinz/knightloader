@@ -176,6 +176,12 @@ func (h *harness) open() *Manager {
 	})
 }
 
+// round runs each of Run's loops once, the sends first.
+func (m *Manager) round(ctx context.Context) {
+	m.sendRound(ctx)
+	m.followRound(ctx)
+}
+
 func (h *harness) add(t *testing.T, name string) Job {
 	t.Helper()
 	j, err := h.m.Add(Job{Name: name, Package: name}, []byte(sampleNZB))
@@ -589,6 +595,106 @@ func TestThePendingCountFollowsTheJobs(t *testing.T) {
 	h.m.round(context.Background())
 	if !slices.Equal(h.pending, []int{1, 2, 1, 0}) {
 		t.Errorf("heard %v, want it to drop with the cancel and the staging", h.pending)
+	}
+}
+
+// slowUpload is a fakeService whose uploads hang until release is closed. An
+// upload whose context has ended by then fails, as a real one cut short does.
+type slowUpload struct {
+	*fakeService
+	uploading chan struct{}
+	release   chan struct{}
+}
+
+func (s *slowUpload) Submit(ctx context.Context, name string, nzb []byte) (string, error) {
+	select {
+	case s.uploading <- struct{}{}:
+	default:
+	}
+	<-s.release
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	return s.fakeService.Submit(ctx, name, nzb)
+}
+
+func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
+	svc := &slowUpload{
+		fakeService: &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching, ID: "88"}},
+		uploading:   make(chan struct{}, 1),
+		release:     make(chan struct{}),
+	}
+	heard := make(chan string, 1)
+	m := New(Options{
+		Dir:      t.TempDir(),
+		Stage:    func(Job, []File) ([]string, error) { return nil, nil },
+		Finished: func([]string) bool { return false },
+		Taken: func(_, remote string) {
+			select {
+			case heard <- remote:
+			default:
+			}
+		},
+		Interval: 10 * time.Millisecond,
+	})
+	m.SetServices([]Service{svc})
+	queued, err := m.Add(Job{Name: "queued"}, []byte(sampleNZB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.update(queued.ID, func(j *Job) {
+		j.State, j.Service, j.Label, j.Remote, j.Taken = StateFetching, "torbox", "TorBox", queuedID("5", "abc"), time.Now()
+	})
+	if _, err := m.Add(Job{Name: "next"}, []byte(sampleNZB)); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		m.Run(ctx)
+		close(done)
+	}()
+	defer func() {
+		cancel()
+		close(svc.release)
+		<-done
+	}()
+	<-svc.uploading
+	select {
+	case remote := <-heard:
+		if remote != "88" {
+			t.Errorf("heard %q, want the id the queued download started under", remote)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the queued download's new id was not heard while another NZB was uploading")
+	}
+}
+
+func TestAnUploadUnderWayAtShutdownIsKept(t *testing.T) {
+	svc := &slowUpload{
+		fakeService: &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}},
+		uploading:   make(chan struct{}, 1),
+		release:     make(chan struct{}),
+	}
+	h := newHarness(t, svc)
+	j := h.add(t, "Film")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		h.m.Run(ctx)
+		close(done)
+	}()
+	<-svc.uploading
+	cancel()
+	close(svc.release)
+	<-done
+
+	h.m = h.open()
+	h.m.SetServices([]Service{svc})
+	if got := h.job(t, j.ID); got.State != StateFetching || got.Remote != "torbox-1" {
+		t.Errorf("after a restart the job is %+v, want it at the service as the upload left it", got)
 	}
 }
 
