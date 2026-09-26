@@ -3,8 +3,8 @@ package ytdlp
 // Some sites play their videos in a player of their own that yt-dlp has no
 // extractor for, although the stream behind it is plain HLS that yt-dlp
 // fetches well. For those sites the backend asks the site for the stream's
-// address first and hands yt-dlp that address with a file name, since yt-dlp
-// would name the bare stream after its playlist file ("master").
+// address first and hands yt-dlp that address with the video's title and id,
+// since yt-dlp would name the bare stream after its playlist file ("master").
 
 import (
 	"bytes"
@@ -42,8 +42,9 @@ var players = map[string]player{
 // embedded is the stream behind an embed link.
 type embedded struct {
 	url string
-	// title is the name the file is saved under, without its extension.
-	title string
+	// title and id are what yt-dlp is told the video is called, for the
+	// output template and the metadata alike. id is the site's code.
+	title, id string
 	// referer goes with every request yt-dlp makes for the stream, as the
 	// site's own player sends it.
 	referer string
@@ -151,7 +152,7 @@ func playmateStream(ctx context.Context, c *http.Client, page *url.URL, code str
 	case !readable || !webAddress(ans.Stream):
 		return embedded{}, errEmbedChanged
 	}
-	return embedded{url: ans.Stream, title: fileTitle(title, code, page.Hostname()), referer: origin + "/"}, nil
+	return embedded{url: ans.Stream, title: videoTitle(title, code, page.Hostname()), id: code, referer: origin + "/"}, nil
 }
 
 var titleTag = regexp.MustCompile(`(?is)<title[^>]*>(.*?)</title>`)
@@ -191,15 +192,15 @@ func webAddress(s string) bool {
 	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
-// maxTitleRunes keeps the name well inside a file name's limit and the
-// template inside Options.OutputTemplate's.
+// maxTitleRunes keeps a file named after the title well inside a file name's
+// limit.
 const maxTitleRunes = 100
 
-// fileTitle is the name the stream is saved under: the page's title when it
-// names the video, else the code. A title that is only the site's name or the
-// code again names nothing.
-func fileTitle(title, code, host string) string {
-	t := safeName(title)
+// videoTitle is what the stream is called: the page's title when it names the
+// video, else the code. A title that is only the site's name or the code
+// again names nothing.
+func videoTitle(title, code, host string) string {
+	t := plainTitle(title)
 	site := bareHost(host)
 	name, _, _ := strings.Cut(site, ".")
 	if t == "" || strings.EqualFold(t, code) || strings.EqualFold(t, site) || strings.EqualFold(t, name) {
@@ -208,11 +209,12 @@ func fileTitle(title, code, host string) string {
 	return t
 }
 
-// safeName makes a title usable as a file name on every system the file can
-// end up on, by dropping the characters one of them reserves.
-func safeName(s string) string {
+// plainTitle puts a page title on one line of bounded length. The characters
+// a file name cannot hold are left to yt-dlp, which replaces them in every
+// title it saves a file under.
+func plainTitle(s string) string {
 	s = strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) || strings.ContainsRune(`/\:*?"<>|`, r) {
+		if unicode.IsControl(r) {
 			return ' '
 		}
 		return r
@@ -225,13 +227,20 @@ func safeName(s string) string {
 	return strings.TrimRight(s, ". ")
 }
 
-// template is the -o template that saves the stream under its title. yt-dlp
-// reads a % in it as the start of a field.
-func (s embedded) template() string {
-	return strings.ReplaceAll(s.title, "%", "%%") + ".%(ext)s"
+// args are the flags that belong to the stream, for yt-dlp's command line.
+// The title and id replace the ones yt-dlp reads off the playlist's address
+// before anything is named or tagged, so the user's output template, the NFO
+// and the embedded metadata all carry them.
+func (s embedded) args() []string {
+	return []string{
+		"--add-header", "Referer:" + s.referer,
+		"--replace-in-metadata", "title", ".+", replacement(s.title),
+		"--replace-in-metadata", "id", ".+", replacement(s.id),
+	}
 }
 
-// args are the flags that belong to the stream, for yt-dlp's command line.
-func (s embedded) args() []string {
-	return []string{"--add-header", "Referer:" + s.referer}
+// replacement escapes s for a regular expression's replacement, where yt-dlp
+// reads a backslash as an escape.
+func replacement(s string) string {
+	return strings.ReplaceAll(s, `\`, `\\`)
 }

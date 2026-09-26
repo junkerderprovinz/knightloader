@@ -137,12 +137,9 @@ func (b *Backend) run(taskID, url string) {
 		b.onUpdate(taskID, u)
 		return
 	}
-	if unwrapped {
-		target = stream.url
-		opts.OutputTemplate = stream.template()
-	}
 	args := buildArgs(dir, opts)
 	if unwrapped {
+		target = stream.url
 		args = append(args, stream.args()...)
 	}
 	// The cookie file lives exactly as long as yt-dlp: written before the
@@ -518,10 +515,6 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
 	}
 	title := strings.TrimSpace(raw.Title)
-	if unwrapped {
-		// yt-dlp names a bare stream after its playlist file.
-		title = stream.title
-	}
 	if title == "" {
 		return ProbeResult{}, errors.New("ytdlp: probe returned no title")
 	}
