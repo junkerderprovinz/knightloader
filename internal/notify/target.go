@@ -264,12 +264,13 @@ func sanitizeHeaders(h map[string]string) map[string]string {
 	return out
 }
 
-// sanitizeTriggers drops duplicates and anything this build does not fire,
-// keeping the operator's order.
+// sanitizeTriggers drops duplicates and anything that never arrives on the
+// bus, keeping the operator's order.
 //
-// A trigger the registry never fires cannot produce a message, so keeping it
-// would only make the row claim something it will not do. internal/script's own
-// store makes the same call for a script bound to such a trigger. A row that
+// Such a trigger cannot produce a message, so keeping it would only make the
+// row claim something it will not do: a word this build does not know, or
+// manual, which only runs a script by hand. internal/script's own store makes
+// the same call for a script bound to an unknown trigger. An unknown word that
 // came through the API has already been refused by Validate, with the word
 // named.
 func sanitizeTriggers(in []script.Trigger) []script.Trigger {
@@ -279,7 +280,7 @@ func sanitizeTriggers(in []script.Trigger) []script.Trigger {
 	seen := make(map[script.Trigger]bool, len(in))
 	out := make([]script.Trigger, 0, len(in))
 	for _, tr := range in {
-		if !tr.Valid() || seen[tr] {
+		if !tr.Published() || seen[tr] {
 			continue
 		}
 		seen[tr] = true

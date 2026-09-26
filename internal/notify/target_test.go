@@ -89,6 +89,16 @@ func TestSanitizeDropsATriggerThisBuildNeverFires(t *testing.T) {
 	}
 }
 
+func TestSanitizeDropsTheManualTrigger(t *testing.T) {
+	out := Sanitize([]Target{{
+		Name: "n", URL: "https://x.example/",
+		Triggers: []script.Trigger{script.TriggerOnDemand},
+	}})
+	if len(out[0].Triggers) != 0 {
+		t.Errorf("triggers came back as %v, want none: manual never reaches a target", out[0].Triggers)
+	}
+}
+
 func TestValidateNamesWhatIsWrong(t *testing.T) {
 	for _, tc := range []struct {
 		name string

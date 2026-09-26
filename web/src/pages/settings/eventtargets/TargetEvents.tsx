@@ -1,14 +1,14 @@
 import { FieldGroup, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
-import { FIRES_PER_LINK, REPLAYS_AFTER_RESTART, useTriggerLabel } from '../../../lib/triggers';
+import { FIRES_PER_LINK, ON_DEMAND, REPLAYS_AFTER_RESTART, useTriggerLabel } from '../../../lib/triggers';
 
 /**
  * TargetEvents picks the events that reach this target, one switch per trigger.
- * The list comes from the server and the labels from lib/triggers.ts, and an
- * empty list means the target never sends. The events that fire again after
- * every restart, and link.added, which fires once per link, say so in their
- * own (i). The event programs use it too, with their own wording for the (i)
- * and for nothing ticked.
+ * The list comes from the server, less the script editor's manual run, and the
+ * labels from lib/triggers.ts. An empty list means the target never sends. The
+ * events that fire again after every restart, and link.added, which fires once
+ * per link, say so in their own (i). The event programs use it too, with their
+ * own wording for the (i) and for nothing ticked.
  */
 export function TargetEvents({
   triggers,
@@ -30,10 +30,11 @@ export function TargetEvents({
 }) {
   const { t } = useT();
   const triggerLabel = useTriggerLabel();
+  const offered = triggers.filter((tr) => tr !== ON_DEMAND);
 
   const toggle = (id: string, on: boolean) =>
     // Kept in the registry's order, so switching back and forth stores the same list.
-    onChange(on ? triggers.filter((tr) => picked.includes(tr) || tr === id) : picked.filter((tr) => tr !== id));
+    onChange(on ? offered.filter((tr) => picked.includes(tr) || tr === id) : picked.filter((tr) => tr !== id));
 
   const rowHint = (tr: string) =>
     tr === FIRES_PER_LINK
@@ -45,7 +46,7 @@ export function TargetEvents({
   return (
     <FieldGroup label={t('settings.eventTargets.events')} hint={hint ?? t('settings.eventTargets.eventsHint')}>
       <div className="flex flex-col gap-2">
-        {triggers.map((tr) => (
+        {offered.map((tr) => (
           <ToggleRow
             key={tr}
             label={triggerLabel(tr)}

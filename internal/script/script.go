@@ -137,6 +137,13 @@ func (t Trigger) Valid() bool {
 	}
 }
 
+// Published reports whether t arrives on the Bus. TriggerOnDemand does not:
+// RunNow runs its one script directly, so an event target or program bound to
+// it would never be called.
+func (t Trigger) Published() bool {
+	return t.Valid() && t != TriggerOnDemand
+}
+
 // AllTriggers lists every trigger this build fires, for the script editor's
 // trigger picker, which renders them in this order. It returns a fresh slice.
 func AllTriggers() []Trigger {
