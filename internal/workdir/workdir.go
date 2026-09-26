@@ -159,6 +159,12 @@ type Options struct {
 	// whether that folder was ours: emptying a working folder is tidying up,
 	// and removing a folder of the user's that happened to hold one file is not.
 	PruneSourceDir bool
+	// OnlyAcrossDisks copies only when the rename failed because the target
+	// is on another filesystem, and returns any other refusal as it is. A
+	// caller that moves a whole folder of files somebody may have open wants
+	// that: Windows will not rename a folder holding an open file, and the copy
+	// would take as long as the folder is large and leave the held file behind.
+	OnlyAcrossDisks bool
 	// Rename replaces os.Rename. A test uses it to force the cross-filesystem
 	// path, which cannot be produced on demand on a single-disk build agent;
 	// nil means the real one.
@@ -277,9 +283,13 @@ func MoveAs(ctx context.Context, src, target string, o Options) (Result, error) 
 
 // place moves src to target by a rename, or by a copy where no rename reaches.
 func (o Options) place(ctx context.Context, src, target string, info fs.FileInfo) (Result, error) {
-	if err := o.rename(src, target); err == nil {
+	err := o.rename(src, target)
+	if err == nil {
 		o.prune(filepath.Dir(src))
 		return Result{Path: target}, nil
+	}
+	if o.OnlyAcrossDisks && !errors.Is(err, crossDevice) {
+		return Result{Path: src}, err
 	}
 	// The rename is the test, rather than a device number worked out in
 	// advance: os.Rename is the operation that has to succeed, and Windows has
