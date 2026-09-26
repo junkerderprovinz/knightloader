@@ -899,7 +899,7 @@ export const de: Dict = {
   'settings.reconnect.interval': 'Sekunden zwischen den Prüfungen (1 bis 60)',
   'settings.reconnect.intervalHint': 'Wie lange zwischen zwei Blicken auf die Prüf-URL gewartet wird, nachdem die Methode gelaufen ist. Es gibt eine Untergrenze, weil eine Schleife ohne sie den Prüfdienst zur Zielscheibe macht.',
   'settings.reconnect.timeout': 'Sekunden lang weiterprüfen (5 bis 900)',
-  'settings.reconnect.timeoutHint': 'Wie lange geschaut wird, bevor der Lauf als Fehlschlag gilt. Ein Reconnect, der eine Viertelstunde später noch wartet, ist gescheitert, egal was hier steht. Ein Timeout unter dem Intervall wird darauf angehoben, sonst wäre der Lauf vorbei, bevor auch nur eine Prüfung stattgefunden hat.',
+  'settings.reconnect.timeoutHint': 'Wie lange geschaut wird, bevor der Lauf als Fehlschlag gilt. Ein Reconnect, der eine Viertelstunde später noch wartet, ist gescheitert, egal was hier steht. Ein Timeout unter dem Intervall wird darauf angehoben, sonst wäre der Lauf vorbei, bevor auch nur eine Prüfung stattgefunden hat. Bei den Methoden Befehl und Skript hat das Programm ebenso viele Sekunden, um fertig zu werden, bevor geprüft wird. Läuft es dann noch, wird es beendet, und der Lauf schlägt fehl.',
   'settings.reconnect.clamped': 'Als {n} gespeichert.',
 
   'settings.reconnect.runTitle': 'Jetzt einen laufen lassen',

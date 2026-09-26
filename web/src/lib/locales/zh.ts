@@ -864,7 +864,7 @@ export const zh: Dict = {
   'settings.reconnect.interval': '两次检查之间的秒数（1 到 60）',
   'settings.reconnect.intervalHint': '方式运行之后，两次查看检查 URL 之间等多久。之所以有下限，是因为没有下限的循环会把检查服务变成靶子。',
   'settings.reconnect.timeout': '持续检查的秒数（5 到 900）',
-  'settings.reconnect.timeoutHint': '在把这次运行判为失败之前还要看多久。一个一刻钟后还在等的重连，不管这里写多少都已经失败了。小于间隔的超时会被抬到间隔那么大，否则一次检查都还没做，运行就结束了。',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '已按 {n} 保存。',
 
   'settings.reconnect.runTitle': '现在跑一次',

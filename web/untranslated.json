@@ -3,163 +3,203 @@
   "locales": {
     "ar": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "bg": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ca": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "cs": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "da": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "el": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "es": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "et": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "eu": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "fa": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "fi": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "fr": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "gl": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "he": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "hi": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "hr": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "hu": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "id": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "is": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "it": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ja": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ko": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "lt": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "lv": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ms": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "nl": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "no": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "pl": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "pt": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ro": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "ru": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "sk": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "sl": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "sr": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "sv": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "th": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "tr": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "uk": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "vi": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ],
     "zh": [
       "skipped.info",
-      "settings.help.intake.nzb"
+      "settings.help.intake.nzb",
+      "settings.reconnect.timeoutHint"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

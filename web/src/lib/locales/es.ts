@@ -856,7 +856,7 @@ export const es: Dict = {
   'settings.reconnect.interval': 'Segundos entre comprobaciones (1 a 60)',
   'settings.reconnect.intervalHint': 'Cuánto esperar entre dos miradas a la URL de comprobación una vez ejecutado el método. Hay un mínimo porque un bucle sin él convierte el servicio de comprobación en un blanco.',
   'settings.reconnect.timeout': 'Segundos comprobando (5 a 900)',
-  'settings.reconnect.timeoutHint': 'Cuánto seguir mirando antes de dar la ejecución por fallida. Una reconexión que un cuarto de hora después sigue esperando ha fallado, diga lo que diga este ajuste. Un tiempo límite por debajo del intervalo se sube hasta él, o la ejecución acabaría antes de haber hecho una sola comprobación.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Guardado como {n}.',
 
   'settings.reconnect.runTitle': 'Ejecutar una ahora',

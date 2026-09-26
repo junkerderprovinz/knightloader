@@ -864,7 +864,7 @@ export const lv: Dict = {
   'settings.reconnect.interval': 'Sekundes starp pārbaudēm (no 1 līdz 60)',
   'settings.reconnect.intervalHint': 'Cik ilgi gaidīt starp diviem skatieniem uz pārbaudes URL pēc tam, kad veids ir nostrādājis. Apakšējā robeža pastāv tāpēc, ka cilpa bez tās padara pārbaudes pakalpojumu par mērķi.',
   'settings.reconnect.timeout': 'Sekundes, cik ilgi pārbaudīt (no 5 līdz 900)',
-  'settings.reconnect.timeoutHint': 'Cik ilgi vēl skatīties, pirms izpildi sauc par neveiksmi. Atkārtota savienošanās, kas pēc ceturtdaļstundas joprojām gaida, ir izgāzusies, lai kas te būtu rakstīts. Noildze, kas mazāka par intervālu, tiek pacelta līdz tam, citādi izpilde beigtos, pirms notikusi kaut viena pārbaude.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Saglabāts kā {n}.',
 
   'settings.reconnect.runTitle': 'Palaist vienu tagad',

@@ -866,7 +866,7 @@ export const ar: Dict = {
   'settings.reconnect.interval': 'ثوانٍ بين عمليات التحقّق (من 1 إلى 60)',
   'settings.reconnect.intervalHint': 'كم يُنتظر بين نظرتين إلى عنوان التحقّق بعد تنفيذ الطريقة. وهناك حدّ أدنى لأن حلقة بلا حدّ أدنى تحوّل خدمة التحقّق إلى هدف.',
   'settings.reconnect.timeout': 'ثوانٍ يستمر فيها التحقّق (من 5 إلى 900)',
-  'settings.reconnect.timeoutHint': 'كم يستمر النظر قبل اعتبار التنفيذ فاشلًا. فإعادة اتصال ما زالت تنتظر بعد ربع ساعة قد فشلت مهما كُتب هنا. والمهلة الأقل من الفاصل تُرفع إليه، وإلا لانتهى التنفيذ قبل أن تحدث ولو عملية تحقّق واحدة.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'حُفظت بالقيمة {n}.',
 
   'settings.reconnect.runTitle': 'تنفيذ واحدة الآن',

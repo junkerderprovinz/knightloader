@@ -864,7 +864,7 @@ export const sv: Dict = {
   'settings.reconnect.interval': 'Sekunder mellan kontrollerna (1 till 60)',
   'settings.reconnect.intervalHint': 'Hur länge det väntas mellan två titter på kontroll-URL:en efter att metoden körts. Det finns ett golv, för en slinga utan golv gör kontrolltjänsten till en måltavla.',
   'settings.reconnect.timeout': 'Sekunder att fortsätta kontrollera (5 till 900)',
-  'settings.reconnect.timeoutHint': 'Hur länge det tittas innan körningen kallas ett misslyckande. En återanslutning som fortfarande väntar en kvart senare har misslyckats, vad som än står här. En tidsgräns under intervallet höjs till intervallet, annars vore körningen över innan en enda kontroll hann ske.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Sparat som {n}.',
 
   'settings.reconnect.runTitle': 'Kör en nu',

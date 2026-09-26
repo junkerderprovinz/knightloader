@@ -864,7 +864,7 @@ export const lt: Dict = {
   'settings.reconnect.interval': 'Sekundės tarp patikrų (nuo 1 iki 60)',
   'settings.reconnect.intervalHint': 'Kiek laukti tarp dviejų žvilgsnių į tikrinimo URL po to, kai būdas suveikė. Apatinė riba yra todėl, kad ciklas be jos paverčia tikrinimo paslaugą taikiniu.',
   'settings.reconnect.timeout': 'Sekundės tikrinimui (nuo 5 iki 900)',
-  'settings.reconnect.timeoutHint': 'Kiek dar žiūrėti, kol vykdymas bus paskelbtas nepavykusiu. Persijungimas, kuris po ketvirčio valandos vis dar laukia, žlugo, kad ir kas čia būtų parašyta. Laukimo riba, mažesnė už intervalą, pakeliama iki jo, antraip vykdymas baigtųsi dar neįvykus nė vienai patikrai.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Įrašyta kaip {n}.',
 
   'settings.reconnect.runTitle': 'Paleisti vieną dabar',

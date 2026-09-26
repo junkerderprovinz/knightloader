@@ -865,7 +865,7 @@ export const ro: Dict = {
   'settings.reconnect.interval': 'Secunde între verificări (1 până la 60)',
   'settings.reconnect.intervalHint': 'Cât se așteaptă între două priviri la URL-ul de verificare, după ce metoda a rulat. Există un prag minim, fiindcă o buclă fără el transformă serviciul de verificare într-o țintă.',
   'settings.reconnect.timeout': 'Secunde de verificat (5 până la 900)',
-  'settings.reconnect.timeoutHint': 'Cât se mai caută înainte ca rularea să fie declarată eșuată. O reconectare care după un sfert de oră tot așteaptă a eșuat, orice ar scrie aici. Un timp limită sub interval este ridicat la interval, altfel rularea s-ar termina înainte să aibă loc măcar o verificare.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Salvat ca {n}.',
 
   'settings.reconnect.runTitle': 'Rulează una acum',

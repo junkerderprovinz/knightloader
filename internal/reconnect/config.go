@@ -130,7 +130,8 @@ func (c Config) Interval() time.Duration {
 	return time.Duration(c.IntervalSeconds) * time.Second
 }
 
-// Timeout is how long to keep checking before giving up on the address.
+// Timeout is how long to keep checking before giving up on the address, and
+// how long the command or the script's interpreter may run before that.
 func (c Config) Timeout() time.Duration {
 	return time.Duration(c.TimeoutSeconds) * time.Second
 }

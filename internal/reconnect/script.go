@@ -42,7 +42,7 @@ func (r *Reconnector) script(ctx context.Context, cfg Config, vars map[string]st
 	// expects it.
 	args = append(args, file)
 
-	if err := r.run(ctx, cfg.Interpreter, args...); err != nil {
+	if err := r.runFor(ctx, cfg, cfg.Interpreter, args); err != nil {
 		// Never the script's text, which may hold a hard-coded password.
 		return fmt.Errorf("reconnect: %s: %w", cfg.Interpreter, err)
 	}

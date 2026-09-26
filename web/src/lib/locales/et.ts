@@ -864,7 +864,7 @@ export const et: Dict = {
   'settings.reconnect.interval': 'Sekundeid kontrollide vahel (1 kuni 60)',
   'settings.reconnect.intervalHint': 'Kui kaua oodata kahe pilgu vahel kontrolli-URL-ile pärast seda, kui viis on käivitunud. Alampiir on olemas seepärast, et ilma selleta muudaks tsükkel kontrollteenuse märklauaks.',
   'settings.reconnect.timeout': 'Sekundeid kontrollimist (5 kuni 900)',
-  'settings.reconnect.timeoutHint': 'Kui kaua veel vaadata, enne kui käik loetakse ebaõnnestunuks. Taasühendus, mis veerand tundi hiljem ikka ootab, on läbi kukkunud, ükskõik mis siin kirjas on. Ajapiirang, mis jääb intervallist alla, tõstetakse selleni, muidu oleks käik läbi enne, kui üksainuski kontroll jõuab toimuda.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Salvestatud kui {n}.',
 
   'settings.reconnect.runTitle': 'Käivita üks kohe',

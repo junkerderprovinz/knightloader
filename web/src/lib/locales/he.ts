@@ -866,7 +866,7 @@ export const he: Dict = {
   'settings.reconnect.interval': 'שניות בין בדיקות (1 עד 60)',
   'settings.reconnect.intervalHint': 'כמה להמתין בין שתי הצצות לכתובת הבדיקה אחרי שהשיטה רצה. יש רצפה, כי לולאה בלי רצפה הופכת את שירות הבדיקה למטרה.',
   'settings.reconnect.timeout': 'שניות להמשך הבדיקה (5 עד 900)',
-  'settings.reconnect.timeoutHint': 'כמה זמן להמשיך להסתכל לפני שההרצה נחשבת לכישלון. התחברות מחדש שרבע שעה אחר כך עדיין ממתינה נכשלה, מה שלא ייכתב כאן. פסק זמן שקטן מהמרווח מועלה אליו, אחרת ההרצה הייתה נגמרת לפני שהתבצעה ולו בדיקה אחת.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'נשמר כ-{n}.',
 
   'settings.reconnect.runTitle': 'הרצה אחת עכשיו',

@@ -864,7 +864,7 @@ export const vi: Dict = {
   'settings.reconnect.interval': 'Số giây giữa hai lần kiểm tra (1 đến 60)',
   'settings.reconnect.intervalHint': 'Chờ bao lâu giữa hai lần ngó vào URL kiểm tra, sau khi cách đã chọn chạy xong. Có mức sàn, vì một vòng lặp không có mức sàn sẽ biến dịch vụ kiểm tra thành cái bia.',
   'settings.reconnect.timeout': 'Số giây tiếp tục kiểm tra (5 đến 900)',
-  'settings.reconnect.timeoutHint': 'Còn ngó bao lâu nữa trước khi coi lượt chạy là thất bại. Một lần kết nối lại mà mười lăm phút sau vẫn còn chờ thì đã hỏng rồi, bất kể ở đây ghi bao nhiêu. Thời gian chờ nhỏ hơn khoảng cách giữa hai lần kiểm tra sẽ được nâng lên bằng nó, nếu không lượt chạy đã kết thúc trước cả lần kiểm tra đầu tiên.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Đã lưu thành {n}.',
 
   'settings.reconnect.runTitle': 'Chạy một lần ngay bây giờ',

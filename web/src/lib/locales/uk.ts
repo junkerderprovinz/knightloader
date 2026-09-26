@@ -864,7 +864,7 @@ export const uk: Dict = {
   'settings.reconnect.interval': 'Секунд між перевірками (від 1 до 60)',
   'settings.reconnect.intervalHint': 'Скільки чекати між двома зверненнями до адреси перевірки після того, як спосіб відпрацював. Нижня межа є тому, що цикл без неї перетворює службу перевірки на мішень.',
   'settings.reconnect.timeout': 'Скільки секунд перевіряти далі (від 5 до 900)',
-  'settings.reconnect.timeoutHint': 'Скільки ще дивитися, перш ніж уважати прогін невдалим. Перепідключення, яке за чверть години ще чекає, провалилося, хоч би що тут стояло. Тайм-аут, менший за інтервал, піднімається до нього, інакше прогін скінчився б до першої ж перевірки.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Збережено як {n}.',
 
   'settings.reconnect.runTitle': 'Запустити просто зараз',

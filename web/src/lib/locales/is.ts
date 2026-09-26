@@ -864,7 +864,7 @@ export const is: Dict = {
   'settings.reconnect.interval': 'Sekúndur milli athugana (1 til 60)',
   'settings.reconnect.intervalHint': 'Hversu lengi er beðið milli tveggja augnagota á athugunarslóðina eftir að aðferðin hefur keyrt. Það er lágmark, því lykkja án lágmarks gerir athugunarþjónustuna að skotmarki.',
   'settings.reconnect.timeout': 'Sekúndur sem áfram er athugað (5 til 900)',
-  'settings.reconnect.timeoutHint': 'Hversu lengi er horft áður en keyrslan telst misheppnuð. Endurtenging sem er enn að bíða korteri síðar hefur mistekist, sama hvað hér stendur. Tímamörk undir bilinu eru hækkuð upp í það, annars væri keyrslan búin áður en ein einasta athugun næði að eiga sér stað.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Vistað sem {n}.',
 
   'settings.reconnect.runTitle': 'Keyra eina núna',

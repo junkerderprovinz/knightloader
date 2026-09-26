@@ -856,7 +856,7 @@ export const it: Dict = {
   'settings.reconnect.interval': 'Secondi fra un controllo e l’altro (da 1 a 60)',
   'settings.reconnect.intervalHint': 'Quanto attendere fra due occhiate all’URL di controllo dopo che il metodo è stato eseguito. C’è un minimo perché un ciclo senza minimo trasforma il servizio di controllo in un bersaglio.',
   'settings.reconnect.timeout': 'Secondi di controllo (da 5 a 900)',
-  'settings.reconnect.timeoutHint': 'Per quanto continuare a guardare prima di dichiarare fallita l’esecuzione. Una riconnessione che un quarto d’ora dopo sta ancora aspettando è fallita, qualunque cosa dica questo valore. Un tempo massimo inferiore all’intervallo viene alzato a quest’ultimo, altrimenti l’esecuzione finirebbe prima ancora di un singolo controllo.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Salvato come {n}.',
 
   'settings.reconnect.runTitle': 'Eseguirne una adesso',

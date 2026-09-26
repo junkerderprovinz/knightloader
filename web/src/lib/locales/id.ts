@@ -864,7 +864,7 @@ export const id: Dict = {
   'settings.reconnect.interval': 'Detik antar pemeriksaan (1 sampai 60)',
   'settings.reconnect.intervalHint': 'Berapa lama menunggu di antara dua kali melihat URL pemeriksaan setelah cara itu dijalankan. Ada batas bawah, karena perulangan tanpa batas bawah menjadikan layanan pemeriksa sebagai sasaran.',
   'settings.reconnect.timeout': 'Detik untuk terus memeriksa (5 sampai 900)',
-  'settings.reconnect.timeoutHint': 'Berapa lama terus melihat sebelum jalannya disebut gagal. Sambung ulang yang seperempat jam kemudian masih menunggu sudah gagal, apa pun yang tertulis di sini. Batas waktu yang lebih kecil dari jeda akan dinaikkan ke jeda itu, kalau tidak jalannya sudah berakhir sebelum satu pemeriksaan pun sempat terjadi.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Disimpan sebagai {n}.',
 
   'settings.reconnect.runTitle': 'Menjalankan satu sekarang',

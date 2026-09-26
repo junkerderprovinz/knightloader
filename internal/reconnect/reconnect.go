@@ -288,7 +288,7 @@ func (r *Reconnector) invoke(ctx context.Context, cfg Config, ip netip.Addr) err
 		for i, a := range cfg.Args {
 			args[i] = expandVars(a, vars)
 		}
-		if err := r.run(ctx, expandVars(cfg.Command, vars), args...); err != nil {
+		if err := r.runFor(ctx, cfg, expandVars(cfg.Command, vars), args); err != nil {
 			return fmt.Errorf("reconnect: %s: %w", cfg.Command, err)
 		}
 		return nil
@@ -307,6 +307,20 @@ func (r *Reconnector) invoke(ctx context.Context, cfg Config, ip netip.Addr) err
 		return r.script(ctx, cfg, vars)
 	}
 	return fmt.Errorf("%w: reconnect is switched off", ErrNotConfigured)
+}
+
+// runFor runs a program for at most the run's timeout, the budget the address
+// wait gets afterwards. A program that hangs, an ssh session to a router that
+// rebooted under it, would otherwise hold the reconnector and every caller
+// waiting on it until shutdown.
+func (r *Reconnector) runFor(ctx context.Context, cfg Config, name string, args []string) error {
+	ctx, cancel := context.WithTimeout(ctx, cfg.Timeout())
+	defer cancel()
+	err := r.run(ctx, name, args...)
+	if err != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return fmt.Errorf("still running after %s, so it was stopped: %w", cfg.Timeout(), err)
+	}
+	return err
 }
 
 // request performs one step of an HTTP script.
