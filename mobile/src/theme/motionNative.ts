@@ -29,26 +29,39 @@ export type NativeMotion = {
   bounce: number;
   /** How far a page runs on past its top or bottom before it swings back. */
   edge: number;
+  /** How long a control that just succeeded swells and settles, in ms. */
+  confirm: number;
+  /** How far it swells, as a share of the web's 5 per cent. */
+  confirmScale: number;
 };
 
 export const NATIVE_MOTION: Record<MotionLevel, NativeMotion> = {
   storm: {
     layout: 760, fade: 200, toast: 420, spring: true, damping: 0.34,
     travel: 72, sway: 48, stagger: 85, press: 0.84, bounce: 0.3, edge: 64,
+    confirm: 700, confirmScale: 1.9,
   },
   wild: {
     layout: 420, fade: 140, toast: 300, spring: true, damping: 0.68,
     travel: 44, sway: 28, stagger: 65, press: 0.9, bounce: 0.42, edge: 36,
+    confirm: 420, confirmScale: 1,
   },
   subtle: {
     layout: 140, fade: 70, toast: 120, spring: false, damping: 1,
     travel: 10, sway: 0, stagger: 25, press: 0.97, bounce: 1, edge: 0,
+    confirm: 260, confirmScale: 0.5,
   },
   off: {
     layout: 0, fade: 0, toast: 0, spring: false, damping: 1,
     travel: 0, sway: 0, stagger: 0, press: 1, bounce: 1, edge: 0,
+    confirm: 0, confirmScale: 0,
   },
 };
+
+/** The scale a succeeding control swells to before it settles back to 1. */
+export function confirmPeak(m: NativeMotion): number {
+  return 1 + m.confirmScale * 0.05;
+}
 
 /** Past this many cards a long page would still be arriving a second later. */
 export const ARRIVAL_CAP = 8;

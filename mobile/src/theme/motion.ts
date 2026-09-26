@@ -65,18 +65,14 @@ interface Gestures {
    *  the substitution the language prescribes under system reduced motion. 1
    *  leaves the signal to the travel. */
   shakeFadeTo: number;
-  /** The "this list is editable now" wiggle: half its swing, in degrees. */
+  /** The wiggle that says the list can be rearranged: half its swing, in degrees,
+   *  GlimStone's --motion-wiggle-angle. */
   wiggleDeg: number;
-  /** One full wiggle cycle, in ms. Zero means the loop never starts. */
+  /** One swing from one side to the other, in ms, GlimStone's
+   *  --motion-wiggle-dur; a full sway there and back takes twice this. */
   wiggleDur: number;
   /** The scale a row takes while it is in the hand. */
   liftScale: number;
-  /** A control that just did what it was asked, the opposite of the shake:
-   *  how long its swell and settle take, in ms. */
-  confirmDur: number;
-  /** How far it swells, as a share of the web's 5 per cent. Zero at `off`,
-   *  where the words or the value that changed carry the success alone. */
-  confirmScale: number;
 }
 
 /** Everything a component draws with: GlimStone's numbers and this app's own. */
@@ -90,58 +86,43 @@ const GESTURES: Record<Motion, Gestures> = {
     shakeTravel: 0,
     shakeFadeTo: 0.45,
     wiggleDeg: 0,
-    wiggleDur: 0,
+    wiggleDur: 400,
     liftScale: 1,
-    confirmDur: 0,
-    confirmScale: 0,
   },
   // Smaller numbers, the same gestures. Somebody who asked for less movement
-  // asked for less movement, not for a faster one, so the swing halves.
+  // asked for less movement, not for a faster one, so the wiggle swings half
+  // as far and slower.
   subtle: {
     shakeDur: 220,
     shakeTravel: 2,
     shakeFadeTo: 1,
-    wiggleDeg: 0.35,
-    // The period stays where the top level has it. An ambient loop is not
-    // calmed by running it faster, only by moving less, which is the same
-    // arrangement the web's subtle block makes for this figure.
-    wiggleDur: 320,
+    wiggleDeg: 0.3,
+    wiggleDur: 360,
     liftScale: 1.015,
-    confirmDur: 260,
-    confirmScale: 0.5,
   },
-  // The top level a picker offers, and the app's shipped numbers: the 360ms/4pt
-  // shake the whole family draws, the 0.7 degree wiggle the web's token names,
-  // the 1.03 lift, and the confirmation's 420ms from GlimStone's
-  // --motion-confirm-dur, which the phone's reference table has no dial for.
+  // The top level a picker offers: the 360ms/4pt shake the whole family draws,
+  // GlimStone's wiggle and the 1.03 lift, the numbers the web's tokens carry,
+  // since one gesture with two shapes across one product is what this table is
+  // written down to prevent.
   wild: {
     shakeDur: 360,
     shakeTravel: 4,
     shakeFadeTo: 1,
-    wiggleDeg: 0.7,
-    // The web's --motion-wiggle-dur is .32s, and one gesture having two shapes
-    // across one product is what these numbers are written down to prevent.
-    wiggleDur: 320,
+    wiggleDeg: 0.6,
+    wiggleDur: 280,
     liftScale: 1.03,
-    confirmDur: 420,
-    confirmScale: 1,
   },
   // The hidden fourth (GlimStone 1.17.0). Same gestures, same table, bigger
-  // figures. The multipliers are the web's own storm ladder rather than
-  // invented here: shake 1.8x the travel and 520ms, wiggle 1.8x the swing.
+  // figures, from the web's own storm ladder rather than invented here: shake
+  // 1.8x the travel and 520ms, and GlimStone's storm wiggle, which swings
+  // further and faster.
   storm: {
     shakeDur: 520,
     shakeTravel: 7.2,
     shakeFadeTo: 1,
-    wiggleDeg: 1.3,
-    // The one period that goes down. An ambient loop gets livelier by running
-    // faster, the same reasoning that leaves it alone at subtle, where moving
-    // less is the only way to calm it. 320 against the web's pulse ratio of
-    // 1.4s to 2s.
-    wiggleDur: 224,
+    wiggleDeg: 1,
+    wiggleDur: 220,
     liftScale: 1.054,
-    confirmDur: 700,
-    confirmScale: 1.9,
   },
 };
 
@@ -188,8 +169,10 @@ export function resolveMotion(chosen: Motion, reduced: boolean): Motion {
  * the wiggle stays still at every level while the system asks for less.
  */
 export function motionNumbers(chosen: Motion, reduced: boolean): MotionNumbers {
-  const n = MOTION[resolveMotion(chosen, reduced)];
-  return reduced ? { ...n, wiggleDeg: 0, wiggleDur: 0 } : n;
+  const level = resolveMotion(chosen, reduced);
+  const n = MOTION[level];
+  // The offered levels are already `off` here, whose wiggle has no angle.
+  return reduced && level === 'storm' ? { ...n, wiggleDeg: 0, wiggleDur: 0 } : n;
 }
 
 /**

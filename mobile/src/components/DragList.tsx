@@ -254,17 +254,12 @@ export default function DragList({
     const b = bewegung.current;
     if (b.wiggleDeg === 0 || b.wiggleDur === 0) return;
     wiggleLoop.current?.stop();
-    wiggle.setValue(0);
-    // A quarter out, a half back across, a quarter home, with the total taken
-    // off the level's table.
-    const viertel = b.wiggleDur / 4;
-    wiggleLoop.current = Animated.loop(
-      Animated.sequence([
-        Animated.timing(wiggle, { toValue: 1, duration: viertel, easing: Easing.linear, useNativeDriver: true }),
-        Animated.timing(wiggle, { toValue: -1, duration: viertel * 2, easing: Easing.linear, useNativeDriver: true }),
-        Animated.timing(wiggle, { toValue: 0, duration: viertel, easing: Easing.linear, useNativeDriver: true }),
-      ]),
-    );
+    // GlimStone's glim-wiggle: from one side to the other in wiggleDur and back,
+    // eased at both ends, as the web plays it alternating.
+    wiggle.setValue(-1);
+    const swing = (toValue: number) =>
+      Animated.timing(wiggle, { toValue, duration: b.wiggleDur, easing: Easing.inOut(Easing.ease), useNativeDriver: true });
+    wiggleLoop.current = Animated.loop(Animated.sequence([swing(1), swing(-1)]));
     wiggleLoop.current.start();
   }, [wiggle]);
 
