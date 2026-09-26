@@ -1028,9 +1028,9 @@ func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, h
 		TaskID: t.ID, URL: url, Headers: headers, Conns: conns,
 		Dir: a.dirFor(t), WorkDir: a.stagedDirFor(t),
 		Collision: collide.ParsePolicy(cfg.CollisionFor(t.Category)), MaxCollisionAttempts: cfg.CollisionMaxAttempts,
-		// These two take a link for a file by its look alone, and a playlist
-		// behind it goes on to yt-dlp.
-		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http",
+		// These take a link by its look or its origin alone, without knowing
+		// it is a file, and a playlist behind it goes on to yt-dlp.
+		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http" || t.Resolver == hostheaders.ResolverID,
 	}
 }
 
