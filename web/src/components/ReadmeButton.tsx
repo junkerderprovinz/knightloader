@@ -1,5 +1,6 @@
-import { useLayoutEffect, useRef, type MouseEvent, type ReactNode } from 'react';
+import { useLayoutEffect, type MouseEvent, type ReactNode } from 'react';
 import { followExternal } from '../lib/external';
+import { useConfirm } from '../lib/useShake';
 import { InfoBubble } from './ui';
 
 // A button in the shape of the README's download buttons, on the App page and
@@ -48,6 +49,7 @@ export function ReadmeButton({
   hint,
   hintLabel,
   note,
+  confirm = 0,
   soonLabel,
   onLinkClick = followExternal,
 }: {
@@ -67,12 +69,14 @@ export function ReadmeButton({
   hintLabel?: string;
   /** Holds the second lines in view while one reports what it did, such as "Copied". */
   note?: boolean;
+  /** The caller's success counter; each bump pulses the unit once. */
+  confirm?: number;
   /** The second line of a unit whose first part has neither `href` nor `onClick`. */
   soonLabel?: string;
   /** Runs on a click on a part's link; the desktop build opens it in the system browser. */
   onLinkClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useConfirm<HTMLDivElement>(confirm);
   const soon = !parts[0].href && !parts[0].onClick;
   const words = parts.map((p) => `${p.name}\n${p.sub ?? ''}`).join('\n') + (soon ? soonLabel : '');
   useLayoutEffect(() => {

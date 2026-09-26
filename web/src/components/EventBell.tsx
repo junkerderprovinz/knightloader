@@ -14,6 +14,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useBarLabels, useNavLabels } from '../lib/navLabels';
 import { IconBell } from '../lib/icons';
 import { fmtClock } from '../lib/format';
+import { useStagger } from '../lib/motion';
 import { TONE_DOT, useToast } from '../lib/toast';
 import { requestReveal } from '../lib/reveal';
 import {
@@ -143,6 +144,10 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // The rows arrive one after another when the list opens, and an event that
+  // comes in while it is open arrives on its own.
+  const rowsRef = useRef<HTMLDivElement>(null);
+  useStagger(() => rowsRef.current);
   const [pos, setPos] = useState<{ left: number; bottom: number; maxHeight: number } | null>(null);
 
   // Only an open panel marks the log read (see markEventsSeen), including events
@@ -330,7 +335,7 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
               ) : shown.length === 0 ? (
                 <EmptyState nested title={t('events.noMatch')} />
               ) : (
-                <div className="flex flex-col">
+                <div ref={rowsRef} className="flex flex-col">
                   {shown.map((e) => (
                     <EventRow key={e.id} event={e} onJump={jump} />
                   ))}

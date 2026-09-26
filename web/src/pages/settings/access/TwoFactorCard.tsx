@@ -12,7 +12,7 @@ import { QRCode } from '../../../components/QRCode';
 import { ApiError, confirmTOTP, disableTOTP, setupTOTP, type TOTPEnrolment } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { IconCheck, IconClipboard, IconShieldCheck } from '../../../lib/icons';
+import { IconCheckDrawn, IconClipboard, IconShieldCheck } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 
 /**
@@ -46,6 +46,7 @@ export function TwoFactorCard({
   const [busy, setBusy] = useState(false);
   const [disarming, setDisarming] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
   // The failure counter of the failing button, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
@@ -102,6 +103,7 @@ export function TwoFactorCard({
   async function copy(text: string) {
     if (await copyToClipboard(text)) {
       setCopied(true);
+      setCopies((n) => n + 1);
       setTimeout(() => setCopied(false), 1800);
     }
   }
@@ -164,9 +166,10 @@ export function TwoFactorCard({
               <IconBadge
                 labelled
                 hue={hue}
-                icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                 title={copied ? t('common.copied') : t('common.copy')}
                 aria-label={copied ? t('common.copied') : t('common.copy')}
+                confirm={copies}
                 onClick={() => void copy(step.secret)}
               />
             </div>
@@ -229,7 +232,8 @@ export function TwoFactorCard({
           <div className="flex items-center gap-3">
             <Button
               kind="ghost"
-              icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+              icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+              confirm={copies}
               onClick={() => void copy(step.codes.join('\n'))}
             >
               {copied ? t('common.copied') : t('common.copy')}

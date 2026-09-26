@@ -771,10 +771,12 @@ body {
  * column clips there. The room goes to the first card that has a badge rather
  * than to the column, so pages without one still start on the sidebar's line.
  * "First" means no painted sibling before it: PageHeader renders an sr-only
- * header first, which `:first-child` would count. Two depths, because a page
- * either wraps its cards or is a card itself. */
+ * header first, which `:first-child` would count. Up to three depths, because
+ * a page either wraps its cards or is a card itself, and a settings page sits
+ * in the box its tab slides in with (pages/Settings.tsx). */
 .glim-column-top > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
-.glim-column-top > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
+.glim-column-top > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
+.glim-column-top > * > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
   margin-top: 0.75rem;
 }
 
@@ -1289,9 +1291,10 @@ body {
   }
 
   /* Freshly loaded content fades in over its placeholder's place, once per
-     mount. */
+     mount. Backwards only, like the page entrance: an opacity held past the
+     end would make the element the backdrop root of every window inside it. */
   .glim-content-fade {
-    animation: glim-content-fade-in var(--motion-content-dur) ease both;
+    animation: glim-content-fade-in var(--motion-content-dur) ease backwards;
   }
 
   /* A settings tab change slides the new tab in from its side. */
@@ -1642,10 +1645,8 @@ body {
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
 .glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
 .glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 13.4:1 */
-/* White reaches 2:1 on Bitcoin's orange, as on the coin tile in lib/donate.ts. */
-.glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #ffffff; } /* 2.3:1 */
-/* Buy Me a Coffee's own near-black, the ink of their button, where the rule
-   asks for a dark one. 13.8:1. */
+.glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #161616; } /* 7.9:1 */
+/* Buy Me a Coffee's own near-black, the ink of their button. 13.8:1. */
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }

@@ -3,6 +3,7 @@ import { InfoBubble } from '../ui';
 import { copyToClipboard } from '../../lib/clipboard';
 import { useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
+import { useConfirm } from '../../lib/useShake';
 
 /**
  * Fact is the labelled-value row every card in the detail panel draws, shaped
@@ -31,6 +32,8 @@ export function Fact({
   const { t } = useT();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
+  const copyButton = useConfirm<HTMLButtonElement>(copies);
 
   // Cleared through the effect so a row unmounted mid-flash, which is common
   // because the panel closes on the next outside click, leaves no timer behind.
@@ -55,6 +58,7 @@ export function Fact({
         </div>
         {copy && text && (
           <button
+            ref={copyButton}
             type="button"
             className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-0.5 text-[11px]
               font-medium text-carbon-textSub transition duration-150 hover:brightness-110
@@ -63,8 +67,12 @@ export function Fact({
               // navigator.clipboard does not exist on a plain-http LAN address,
               // where only lib/clipboard.ts's execCommand fallback copies.
               void copyToClipboard(text).then((ok) => {
-                if (ok) setCopied(true);
-                else toast(t('detail.copyFailed'), 'fail');
+                if (!ok) {
+                  toast(t('detail.copyFailed'), 'fail');
+                  return;
+                }
+                setCopied(true);
+                setCopies((n) => n + 1);
               });
             }}
           >
