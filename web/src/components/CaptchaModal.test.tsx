@@ -99,13 +99,18 @@ describe('SolverStatus', () => {
   });
 });
 
-/** A socket that never connects: the window's own stream plays no part here. */
+/** A socket that never connects. The last one opened is kept, so a test can
+ *  hand the window a message from the instance. */
 class QuietSocket {
   static OPEN = 1;
+  static last: QuietSocket | null = null;
   readyState = 0;
   onopen = null;
-  onmessage = null;
+  onmessage: ((e: { data: string }) => void) | null = null;
   onclose = null;
+  constructor() {
+    QuietSocket.last = this;
+  }
   send() {}
   close() {}
 }
@@ -121,9 +126,12 @@ describe('CaptchaModal', () => {
   };
   /** Every call that is not a read, as "METHOD path". */
   let calls: string[];
+  /** What the instance lists as pending. */
+  let pending: CaptchaChallenge[];
 
   beforeEach(() => {
     calls = [];
+    pending = [widget];
     vi.stubGlobal('WebSocket', QuietSocket);
     vi.stubGlobal(
       'fetch',
@@ -132,7 +140,7 @@ describe('CaptchaModal', () => {
         const method = init?.method ?? 'GET';
         if (method !== 'GET') calls.push(`${method} ${path}`);
         if (method !== 'GET' && path !== '/api/captcha/refresh') return new Response(null, { status: 204 });
-        return new Response(JSON.stringify([widget]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(pending), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }),
     );
   });
@@ -189,5 +197,18 @@ describe('CaptchaModal', () => {
       'POST /api/captcha/refresh',
       'DELETE /api/captcha/w1/unanswerable',
     ]);
+  });
+
+  it('does not report the next widget for the one before it that would not load', async () => {
+    pending = [widget, { ...widget, id: 'w2' }];
+    await open();
+    await pageSays('error');
+    await act(async () =>
+      QuietSocket.last!.onmessage!({
+        data: JSON.stringify({ type: 'captchaResolved', data: { id: 'w1', host: 'example.net', reason: 'solved' } }),
+      }),
+    );
+    expect(document.querySelector('iframe')).not.toBeNull();
+    expect(calls).toEqual(['POST /api/captcha/w1/unanswerable']);
   });
 });
