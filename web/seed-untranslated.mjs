@@ -12,6 +12,11 @@
 // loudly. So the debt is written down per locale and per key, and
 // check-untranslated.mjs holds the two together.
 //
+// de.ts is never seeded. It is written by hand and is the catalogue the check
+// is calibrated on, so English put there would pass every check and reach
+// German users. Its missing keys are named instead, and the run fails until
+// somebody writes them.
+//
 // Run: node web/seed-untranslated.mjs          (writes)
 //      node web/seed-untranslated.mjs --dry    (says what it would write)
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
@@ -64,7 +69,9 @@ function entries(file) {
 
 const en = entries('en.ts');
 const enKeys = keysOf('en.ts');
-const files = readdirSync(dir).filter((f) => f.endsWith('.ts') && f !== 'en.ts' && f !== 'index.ts');
+const files = readdirSync(dir).filter(
+  (f) => f.endsWith('.ts') && f !== 'en.ts' && f !== 'index.ts' && f !== 'de.ts',
+);
 
 // The whole previous ledger is read and merged, not just its debt list and not
 // overwritten. A run that wrote the list from what was missing this time would
@@ -155,3 +162,10 @@ console.log(
   `${dry ? 'would seed' : 'seeded'} ${seededNow} new value(s) across ${touched} catalogue(s); ` +
     `${carriedTotal} already owed, ${owedTotal} owed in total`,
 );
+
+const inGerman = new Set(keysOf('de.ts'));
+const german = enKeys.filter((k) => !inGerman.has(k));
+if (german.length) {
+  console.error(`de.ts is written by hand and was not seeded. Write the German for: ${german.join(', ')}`);
+  process.exit(1);
+}

@@ -138,6 +138,17 @@ function verify(list, label, landing) {
 verify(ledger.locales, 'locales', translated);
 verify(ledger.identical, 'identical', overruled);
 
+// de.ts is the calibration of the sentence rule below, and an entry for it would
+// switch that rule off for the one catalogue a person writes, letting seeded
+// English through to German users.
+for (const label of ['locales', 'identical']) {
+  if (ledger[label]?.de) {
+    problems.push(
+      `untranslated.json lists de under ${label}; de.ts is written by hand, so write the German instead`,
+    );
+  }
+}
+
 // A key cannot be both owed and settled. The two lists are edited by different
 // scripts, so the contradiction would otherwise sit in both counts for ever.
 for (const [loc, keys] of Object.entries(ledger.identical ?? {})) {
