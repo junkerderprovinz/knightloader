@@ -21,6 +21,7 @@ const REFUSALS: Partial<Record<string, TranslationKey>> = {
   exists: 'rename.exists',
   busy: 'rename.busy',
   folderExists: 'rename.folderExists',
+  notMoved: 'rename.notMoved',
 };
 
 /**
@@ -48,16 +49,6 @@ export function linkRenameNote(task: Task): { key: TranslationKey; blocked: bool
   if ((task.archivePart ?? 0) > 0) return { key: 'rename.volume', blocked: true };
   if (task.status === 'running') return { key: 'rename.whenDone', blocked: false };
   return null;
-}
-
-/**
- * jdWriting is a link JDownloader is still downloading, as far as a row can
- * tell. One such link keeps a renamed package in its folder
- * (app.packageFoldersLocked), since nothing here can move those files.
- */
-export function jdWriting(task: Task): boolean {
-  if (task.resolver !== 'jd' || task.status === 'done') return false;
-  return task.status === 'running' || task.status === 'extracting' || task.loaded > 0;
 }
 
 function RenameWindow({
@@ -201,7 +192,6 @@ export function RenamePackageDialog({
       label={t('pkg.name')}
       hint={t('rename.packageHint')}
       current={name}
-      note={tasks.some(jdWriting) ? t('rename.keepsFolder') : undefined}
       onClose={onClose}
       onRename={async (next) => {
         await renamePackage(
