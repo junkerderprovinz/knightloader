@@ -993,7 +993,21 @@ export const apiBase = (instance: string): string =>
   instance ? `/api/instances/${encodeURIComponent(instance)}` : '/api';
 
 export async function fetchTasks(base = '/api'): Promise<Task[]> {
-  return (await json<Task[]>(await fetch(`${base}/tasks`))) ?? [];
+  return ((await json<OlderTask[]>(await fetch(`${base}/tasks`))) ?? []).map(parkedAsDisabled);
+}
+
+/** A task as a peer on an older build sends it, with Hold beside the enabled switch. */
+type OlderTask = Task & { hold?: boolean };
+
+/**
+ * parkedAsDisabled reads a link such a peer holds as a disabled one, the one
+ * way this build parks a link, so it shows that mark and offers Enable.
+ */
+function parkedAsDisabled(t: OlderTask): Task {
+  if (!t.hold) return t;
+  const { hold: _hold, ...task } = t;
+  const waiting = (task.waiting as string | undefined) === 'hold' ? 'disabled' : task.waiting;
+  return { ...task, enabled: false, waiting };
 }
 
 /**
@@ -1292,9 +1306,16 @@ export async function fetchPinChoices(ids: string[], base = '/api'): Promise<Pin
 // answer with the ids touched. Everything under /api/tasks/ is forwarded to a
 // peer, so these take a base.
 
-/** setEnabled enables or disables a selection of links. */
-export const setEnabled = async (ids: string[], enabled: boolean, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/enabled`, { ids, enabled })));
+/**
+ * setEnabled enables or disables a selection of links. On a peer, enabling
+ * also releases Hold, which an older build keeps apart from the switch; this
+ * build takes that call as one more enable.
+ */
+export async function setEnabled(ids: string[], enabled: boolean, base = '/api'): Promise<BulkResult> {
+  const done = await json<BulkResult>(await ok(await post(`${base}/tasks/enabled`, { ids, enabled })));
+  if (enabled && base !== '/api') await post(`${base}/tasks/hold`, { ids, hold: false }).catch(() => undefined);
+  return done;
+}
 
 /** setForced marks a selection to run ahead of the concurrency limits. */
 export const setForced = async (ids: string[], forced: boolean, base = '/api') =>
