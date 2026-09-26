@@ -113,7 +113,7 @@ export function leafTap(state: { taps: number }, tapped: string, current: string
 
 let shapeTransitionArmed = false;
 
-// armShapeTransition turns on the shape-morph transition (.glim-shape-armed)
+// armShapeTransition turns on the shape morph (.glim-shape-transitions)
 // two frames after the first call, so the first paint never animates and every
 // later shape change does.
 function armShapeTransition(): void {
@@ -121,7 +121,7 @@ function armShapeTransition(): void {
   shapeTransitionArmed = true;
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      document.documentElement.classList.add('glim-shape-armed');
+      document.documentElement.classList.add('glim-shape-transitions');
     });
   });
 }
@@ -196,17 +196,17 @@ export function applyRainbow(next: Partial<RainbowState> | undefined): void {
   for (const fn of listeners) fn();
 }
 
-// triggerColourWipe puts .glim-wipe on the root for the length of
+// triggerColourWipe puts .glim-colour-wipe on the root for the length of
 // --motion-wipe-dur, so every hued colour fades over one window instead of
 // snapping. The duration is read from the live DOM, so it follows data-motion.
 function triggerColourWipe(): void {
   const root = document.documentElement;
-  root.classList.add('glim-wipe');
+  root.classList.add('glim-colour-wipe');
   if (wipeTimeout !== undefined) clearTimeout(wipeTimeout);
   const raw = getComputedStyle(root).getPropertyValue('--motion-wipe-dur').trim();
   const ms = parseFloat(raw);
   wipeTimeout = setTimeout(() => {
-    root.classList.remove('glim-wipe');
+    root.classList.remove('glim-colour-wipe');
     wipeTimeout = undefined;
   }, Number.isFinite(ms) ? ms : 0);
 }

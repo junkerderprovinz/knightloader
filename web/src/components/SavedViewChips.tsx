@@ -113,6 +113,7 @@ export function SavedViewChips({
         // select="many" with at most one lit id: clicking the lit chip clears
         // it, and no "none" chip is needed.
         <Tabs
+          inline
           select="many"
           size="sm"
           label={t('views.label')}

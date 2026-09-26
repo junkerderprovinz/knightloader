@@ -912,12 +912,12 @@ function PriorityLadder({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* The list is the rows' offsetParent, the layout a drag measures in. */}
-      <ol ref={list} className="relative flex flex-col gap-1.5">
+      {/* The list is the rows' offsetParent, the layout a drag measures in.
+          While a row is held the others wiggle (glim-drag-armed). */}
+      <ol ref={list} className={`relative flex flex-col gap-1.5 ${drag.held !== null ? 'glim-drag-armed' : ''}`}>
         {shown.map((r, i) => {
           const look = drag.look(r.id);
           const carried = look === LIFT || look === SETTLE;
-          const wiggling = drag.held !== null && drag.held !== r.id;
           return (
             <li
               key={r.id}
@@ -925,7 +925,7 @@ function PriorityLadder({
               // A carried row floats over the others, so it takes a ground of
               // its own. select-none keeps a drag from selecting the names.
               className={`flex select-none items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm
-                text-carbon-textSub ${carried ? 'bg-carbon-surface2' : ''} ${wiggling ? 'glim-tab-wiggle' : ''} ${look}`}
+                text-carbon-textSub ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
             >
               {/* A real button, so the arrow keys move the row. */}
               <LadderGrip

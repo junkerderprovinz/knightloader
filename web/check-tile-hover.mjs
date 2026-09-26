@@ -13,14 +13,16 @@
 //   colours  every .glim-tile-* and .kl-tile-* class and every coin in
 //            lib/donate.ts names a colour and the ink the rule gives it: white
 //            where white reaches 2:1 on it, #161616 below that.
-//   tiles    AppTile names only tile classes index.css defines, every AppTile
-//            in BrowserTools.tsx names its brand, and neither an app tile nor
-//            an unpicked coin tile moves its colours through a transition.
-//   marks    on the lit tile every mark paints in the ink alone: each part of
-//            an app tile's mark in currentColor, a --brand-* token the rule
+//   tiles    ReadmeButton names only tile classes index.css defines, every
+//            README button on the App page and the About card names its
+//            brand, and neither a README button nor an unpicked coin tile
+//            moves its colours through a transition.
+//   marks    on the lit button every mark on the App page paints in the ink
+//            alone: each part in currentColor, a --brand-* token the rule
 //            turns to the ink, var(--mark-ink, …) or var(--mark-cut, …), or
-//            the mark brings a `lit` version that does; a coin's disc paints
-//            through var(--mark-ink, …).
+//            the mark brings a `lit` version that does; the class a button
+//            paints its mark with at rest reads a token the lit button turns
+//            to the ink; a coin's disc paints through var(--mark-ink, …).
 //   rest     the marks the stylesheet colours per theme keep 3:1 on the dark
 //            tile and 1.35:1 on the light one, where the brand's own colour
 //            stands.
@@ -78,7 +80,10 @@ function checkInk(label, color, ink) {
   }
   const white = contrast(rgb(WHITE), fill);
   const want = white >= INK_FLOOR ? WHITE : DARK;
-  if (ink.toLowerCase() !== want) {
+  // Where the rule asks for the dark ink, a brand's own darker near-black
+  // holds too: Buy Me a Coffee's button wears #0d0c22.
+  const darker = want === DARK && luminance(rgb(ink)) <= luminance(rgb(DARK));
+  if (ink.toLowerCase() !== want && !darker) {
     problems.push(`${label}: ink ${ink} on ${color}, where the rule gives ${want} (white measures ${white.toFixed(2)}:1)`);
   }
   if (contrast(rgb(ink), fill) < INK_FLOOR) {
@@ -112,12 +117,12 @@ for (const [prop, value] of [
   if (!sets(prop, value)) problems.push(`index.css: a lit brand tile does not set ${prop}: ${value}`);
 }
 if (/\btransition\b/.test(lit)) problems.push('index.css: a lit brand tile carries a transition');
-// The shape-morph rule hands every element a colour transition, so a brand
+// The transition rule hands every element a colour transition, so a brand
 // tile needs a rule of its own that outranks it and leaves the colours out.
-const armed = /\.glim-shape-armed\s+\.glim-brand-tile\s*,\s*\.glim-shape-armed\s+\.glim-brand-tile\s+\*\s*\{([^}]*)\}/.exec(css)?.[1];
-if (!armed) problems.push('index.css: no .glim-shape-armed .glim-brand-tile rule keeps the shape-morph fade off a brand tile');
+const armed = /\.glim-shape-transitions\s+\.glim-brand-tile\s*,\s*\.glim-shape-transitions\s+\.glim-brand-tile\s+\*\s*\{([^}]*)\}/.exec(css)?.[1];
+if (!armed) problems.push('index.css: no .glim-shape-transitions .glim-brand-tile rule keeps the colour fade off a brand tile');
 else if (/\b(background-color|color|fill|stroke|border-color|all)\s+var/.test(armed)) {
-  problems.push('index.css: the .glim-shape-armed .glim-brand-tile rule still fades a colour');
+  problems.push('index.css: the .glim-shape-transitions .glim-brand-tile rule still fades a colour');
 }
 // The brand tokens a lit tile turns to its ink, which the marks may paint from.
 const inked = new Set([...lit.matchAll(/(--brand-[a-z-]+)\s*:\s*var\(--tile-ink\)/g)].map((m) => m[1]));
@@ -159,6 +164,9 @@ for (const m of css.matchAll(/\.((?:glim|kl)-tile-[a-z]+)\s*\{([^}]*)\}/g)) {
   const color = /--tile\s*:\s*(#[0-9a-fA-F]{3,6})\s*;/.exec(m[2])?.[1];
   const ink = /--tile-ink\s*:\s*(#[0-9a-fA-F]{3,6})\s*;?/.exec(m[2])?.[1];
   tileClasses.set(m[1], true);
+  // The house tile takes the accent and its computed ink from the colour
+  // engine, so there is no pair to measure here.
+  if (/--tile\s*:\s*var\(--accent\)/.test(m[2])) continue;
   checkInk(`index.css: .${m[1]}`, color, ink);
 }
 if (tileClasses.size < 9) fail(`only ${tileClasses.size} tile classes read from index.css - the reader went blind.`);
@@ -171,24 +179,43 @@ for (const coin of coins) {
 }
 
 // The tiles.
-const appTile = read('components', 'AppTile.tsx');
+const readmeButton = read('components', 'ReadmeButton.tsx');
 const brands = new Map(
-  [...(/const TILES = \{([\s\S]*?)\}/.exec(appTile)?.[1] ?? '').matchAll(/(\w+): '([\w-]+)'/g)].map((m) => [m[1], m[2]]),
+  [...(/const TILES = \{([\s\S]*?)\}/.exec(readmeButton)?.[1] ?? '').matchAll(/(\w+): '([\w-]+)'/g)].map((m) => [m[1], m[2]]),
 );
-if (brands.size < 9) fail(`only ${brands.size} brands read from AppTile.tsx's TILES - the reader went blind.`);
+if (brands.size < 9) fail(`only ${brands.size} brands read from ReadmeButton.tsx's TILES - the reader went blind.`);
 for (const [brand, cls] of brands) {
-  if (!tileClasses.has(cls)) problems.push(`AppTile.tsx: ${brand} names .${cls}, which index.css does not define`);
+  if (!tileClasses.has(cls)) problems.push(`ReadmeButton.tsx: ${brand} names .${cls}, which index.css does not define`);
 }
-if (/\btransition/.test(appTile)) problems.push('AppTile.tsx: an app tile moves its colours through a transition');
+if (/\btransition/.test(readmeButton)) problems.push('ReadmeButton.tsx: a README button moves its colours through a transition');
+
+/** Every `<Tag ... />` in a file, whole: attribute braces are skipped, so a mark passed as JSX does not end it. */
+function elements(text, tag) {
+  const out = [];
+  for (const m of text.matchAll(new RegExp(`<${tag}\\b`, 'g'))) {
+    let depth = 0;
+    for (let i = m.index + 1; i < text.length; i++) {
+      if (text[i] === '{') depth++;
+      else if (text[i] === '}') depth--;
+      else if (depth === 0 && text[i] === '>') {
+        out.push(text.slice(m.index, i + 1));
+        break;
+      }
+    }
+  }
+  return out;
+}
 
 const browserTools = read('pages', 'settings', 'BrowserTools.tsx');
-const tags = [...browserTools.matchAll(/<AppTile\b[\s\S]*?\/>/g)].map((m) => m[0]);
-if (tags.length < 10) fail(`only ${tags.length} AppTile tags read from BrowserTools.tsx - the reader went blind.`);
+const help = read('pages', 'settings', 'Help.tsx');
+const appButtons = elements(browserTools, 'ReadmeButton');
+const tags = [...appButtons, ...elements(help, 'ReadmeButton')];
+if (appButtons.length < 8 || tags.length < 12) fail(`only ${tags.length} ReadmeButton tags read from BrowserTools.tsx and Help.tsx - the reader went blind.`);
 for (const tag of tags) {
-  const name = /\bname=(?:"([^"]+)"|\{([^}]+)\})/.exec(tag)?.slice(1).find(Boolean) ?? tag.slice(0, 40);
+  const name = /\bname:\s*([^,}]+)/.exec(tag)?.[1].trim() ?? tag.slice(0, 40);
   const brand = /\bbrand="(\w+)"/.exec(tag)?.[1];
-  if (!brand) problems.push(`BrowserTools.tsx: the ${name} tile names no brand`);
-  else if (!brands.has(brand)) problems.push(`BrowserTools.tsx: the ${name} tile names ${brand}, which AppTile does not know`);
+  if (!brand) problems.push(`the ${name} README button names no brand`);
+  else if (!brands.has(brand)) problems.push(`the ${name} README button names ${brand}, which ReadmeButton does not know`);
 }
 
 // The picked coin keeps the accent and may fade into it; everything else on
@@ -211,7 +238,7 @@ const appMarks = read('lib', 'appMarks.ts');
 const markup = new Map(
   [browserTools, appMarks].flatMap((text) => [...text.matchAll(/const (\w+) =\s*'(<svg[^']*)'/g)]).map((m) => [m[1], m[2]]),
 );
-if (markup.size < 20) fail(`only ${markup.size} marks read from BrowserTools.tsx and lib/appMarks.ts - the reader went blind.`);
+if (markup.size < 12) fail(`only ${markup.size} marks read from BrowserTools.tsx and lib/appMarks.ts - the reader went blind.`);
 
 const SHAPES = new Set(['path', 'circle', 'rect', 'ellipse', 'polygon', 'polyline', 'line', 'use']);
 const INK = /^(currentColor|none|var\(--mark-(?:ink|cut)\b.*)$/i;
@@ -266,6 +293,14 @@ for (const m of css.matchAll(/(^|\n)\.(glim-[a-z]+-mark)\s*\{\s*color\s*:\s*var\
   markClasses.set(m[2], m[3]);
 }
 
+// A README button's lit rule gives its mark the ink whatever class it wears at
+// rest, so the class only has to exist.
+const restingMarks = new Set([...css.matchAll(/(^|\n)\.(glim-[a-z]+-mark)\s*\{\s*color\s*:\s*var\(--[a-z-]+\)\s*;?\s*\}/g)].map((m) => m[2]));
+for (const tag of tags) {
+  const cls = /\bmarkClass="([\w-]+)"/.exec(tag)?.[1];
+  if (cls && !restingMarks.has(cls)) problems.push(`a README button paints its mark with .${cls}, which index.css does not define`);
+}
+
 let marks = 0;
 for (const call of browserTools.matchAll(/<BrandMark\b([^>]*?)\/>/g)) {
   marks++;
@@ -275,10 +310,6 @@ for (const call of browserTools.matchAll(/<BrandMark\b([^>]*?)\/>/g)) {
   if (!svg) {
     problems.push(`BrowserTools.tsx: the markup of ${name} was not found`);
     continue;
-  }
-  for (const cls of /\bclassName="([^"]*)"/.exec(attrs)?.[1].split(/\s+/).filter(Boolean) ?? []) {
-    const token = markClasses.get(cls);
-    if (token && !inked.has(token)) problems.push(`index.css: .${cls} paints from ${token}, which a lit tile leaves in its colour`);
   }
   const litName = /\blit=\{(\w+)\}/.exec(attrs)?.[1];
   if (litName) {
@@ -291,7 +322,7 @@ for (const call of browserTools.matchAll(/<BrandMark\b([^>]*?)\/>/g)) {
     problems.push(`${name}: paints ${c} on the lit tile and brings no single-colour version for it`);
   }
 }
-if (marks < 14) fail(`only ${marks} BrandMark calls read from BrowserTools.tsx - the reader went blind.`);
+if (marks < 9) fail(`only ${marks} BrandMark calls read from BrowserTools.tsx - the reader went blind.`);
 
 const donateMarks = read('components', 'donateMarks.tsx');
 const coinMark = /export function CoinMark\b[\s\S]*?\n\}/.exec(donateMarks)?.[0] ?? '';

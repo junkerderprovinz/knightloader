@@ -7,6 +7,14 @@ import { About } from '../pages/settings/Help';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom lays nothing out and has no ResizeObserver, which the README buttons
+// use to fit their words.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 let root: Root;
 let host: HTMLDivElement;
 
@@ -24,8 +32,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** The button by its accessible name: Buy Me a Coffee's shows its artwork, not words. */
 function button(name: string) {
-  return [...host.querySelectorAll('button')].find((b) => b.textContent === name)!;
+  return [...host.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === name)!;
 }
 
 describe('CoffeeDialog', () => {

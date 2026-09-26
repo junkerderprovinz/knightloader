@@ -1,25 +1,26 @@
-// Checks the two classes a branded control wears, and the marks that must not
-// wear them. `.glim-brand-btn` spends three values that only
-// `.glim-brand-<name>` supplies. Split them and nothing fails at build time:
-// `fill: var(--brand)` resolves to nothing, the mark paints black (invisible
-// on the dark theme only) and the hover fill disappears. The pair usually
-// breaks when a neighbouring button is copied.
+// Checks the marks on the README buttons, which paint a single-colour mark at
+// rest through a class on the mark's box (`markClass`, such as
+// `glim-paypal-mark`) and light the whole button in the brand's colour under
+// the pointer (check-tile-hover.mjs). Split the pieces and nothing fails at
+// build time: a class index.css does not define leaves the mark in the
+// button's ink, and one put on a mark that brings its own colours reaches none
+// of them.
 //
 // Checks:
-//   pairing     `.glim-brand-btn` comes with exactly one `.glim-brand-<name>`,
-//               and the other way round.
-//   defined     every named brand exists in src/index.css and sets --brand,
-//               --brand-fill and --brand-ink.
-//   own ground  no multi-coloured mark sits inside `.glim-brand-btn`, whose
-//               fill rule reaches every svg and path and would flatten it.
+//   gone        the brand button classes GlimStone dropped, `.glim-brand-btn`
+//               and its `.glim-brand-<name>` blocks, are in no stylesheet rule
+//               and no source; `.glim-brand-tile` is the tile and stays.
+//   defined     every `markClass` names a class index.css defines as a colour.
+//   own ground  a button with a `markClass` holds a mark that paints in
+//               currentColor, followed through components and the markup
+//               constants passed to BrandMark.
+//   every mark  every button on the About card carries a mark or the vendor's
+//               artwork, passed at its call site.
 //
-// The unit is the element: one className attribute with the file's string
-// constants substituted, since call sites write ``${ABOUT_BTN} glim-brand-x``.
-//
-// Not checked: a vendor mark left unclassed (nothing in the source says a
-// drawing is a logo), brand classes built at runtime or by helpers or
-// imported constants, whether a hex is the vendor's colour and its contrast,
-// and dist/. Two brands chosen by a ternary on one element are reported.
+// Not checked: a mark with its own colours worn without a class, which is
+// allowed; brand classes built at runtime or by helpers; whether a hex is the
+// vendor's colour and its contrast, which check-tile-hover.mjs measures; and
+// dist/.
 //
 // Run: `node web/check-brand-marks.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -30,10 +31,6 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = join(here, 'src');
 const cssPath = join(src, 'index.css');
 
-const BRAND = /^glim-brand-[a-z0-9-]+$/;
-// The control itself, and the brand tile, which check-tile-hover.mjs checks.
-const NOT_A_BRAND = new Set(['glim-brand-btn', 'glim-brand-tile']);
-const NEEDED = ['--brand', '--brand-fill', '--brand-ink'];
 const show = (path) => path.slice(src.length + 1).split('\\').join('/');
 const lineOf = (text, at) => text.slice(0, at).split('\n').length;
 
@@ -110,22 +107,15 @@ function blankComments(text, slashSlash = true) {
   return out.join('');
 }
 
-// The brand blocks in the stylesheet.
+// The mark classes in the stylesheet, and the brand button classes that must be
+// gone from it.
 const css = blankComments(readFileSync(cssPath, 'utf8'), false);
-const defined = new Map();
-for (const block of css.matchAll(/\.glim-brand-([a-z0-9-]+)\s*\{([^}]*)\}/g)) {
-  // The lookahead keeps `--brand-coffee` from counting as `--brand`.
-  const set = new Set(block[2].match(/--brand(?:-fill|-ink)?(?=\s*:)/g) || []);
-  defined.set(block[1], { props: set, line: lineOf(css, block.index) });
-}
-if (!/\.glim-brand-btn\b/.test(css)) {
-  console.error('check-brand-marks: src/index.css defines no .glim-brand-btn at all - wrong file?');
+const defined = new Set([...css.matchAll(/(?:^|\n)\.(glim-[a-z0-9]+-mark)\s*\{\s*color\s*:/g)].map((m) => m[1]));
+if (defined.size < 5) {
+  console.error(`check-brand-marks: only ${defined.size} mark class(es) found in src/index.css: the stylesheet scanner went blind.`);
   process.exit(1);
 }
-if (defined.size < 2) {
-  console.error(`check-brand-marks: only ${defined.size} brand block(s) found in src/index.css: the stylesheet scanner went blind.`);
-  process.exit(1);
-}
+const leftover = [...css.matchAll(/\.glim-brand-(?!tile\b)[a-z0-9-]+/g)];
 
 function sources(dir) {
   const found = [];
@@ -231,118 +221,66 @@ function ownGround(body, path, seen = new Set(), depth = 0) {
   return null;
 }
 
-/** name -> its text, for `const NAME = 'a' + 'b';` and template forms. */
-function constants(body) {
-  const found = new Map();
-  const LITERAL = String.raw`'[^'\n]*'|"[^"\n]*"|\`[^\`]*\``;
-  const re = new RegExp(String.raw`\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*((?:${LITERAL})(?:\s*\+\s*(?:${LITERAL}))*)\s*;`, 'g');
-  for (const m of body.matchAll(re)) {
-    const joined = [...m[2].matchAll(new RegExp(LITERAL, 'g'))].map((p) => p[0].slice(1, -1)).join('');
-    found.set(m[1], joined);
+/** Every `<ReadmeButton ... />` in a file, whole, with where it starts. */
+function readmeButtons(body) {
+  const out = [];
+  for (const m of body.matchAll(/<ReadmeButton\b/g)) {
+    const end = tagEnd(body, m.index);
+    if (end) out.push({ at: m.index, tag: body.slice(m.index, end.end + 1) });
   }
-  return found;
+  return out;
 }
 
-/** Every class named by one className attribute, constants substituted in. */
-function classesOf(expr, consts) {
-  let e = expr;
-  for (let pass = 0; pass < 4; pass += 1) {
-    const next = e.replace(/\$\{\s*([A-Za-z_$][\w$]*)\s*\}/g, (whole, id) => (consts.has(id) ? consts.get(id) : whole));
-    if (next === e) break;
-    e = next;
-  }
-  const bare = e.trim();
-  if (consts.has(bare)) return consts.get(bare).split(/\s+/).filter(Boolean);
-
-  const pieces = [];
-  for (const m of e.matchAll(/'([^'\\\n]*)'|"([^"\\\n]*)"/g)) pieces.push(m[1] ?? m[2]);
-  for (const m of e.matchAll(/`((?:[^`\\]|\\.)*)`/g)) pieces.push(m[1].replace(/\$\{[\s\S]*?\}/g, ' '));
-  return pieces.join(' ').split(/\s+/).filter(Boolean);
+/** The expression inside `attr={...}` on a tag, or null. */
+function attrExpr(tag, attr) {
+  const m = new RegExp(`(?<![\\w-])${attr}=\\{`).exec(tag);
+  if (!m) return null;
+  const open = m.index + m[0].length - 1;
+  return tag.slice(open + 1, endOfBraces(tag, open) - 1);
 }
 
-/** What sits between an element's opening and closing tag, or null if unclear. */
-function childrenOf(body, tagStart) {
-  const name = /^<([A-Za-z][\w.$]*)/.exec(body.slice(tagStart))?.[1];
-  if (!name) return null;
-  const open = tagEnd(body, tagStart);
-  if (!open) return null;
-  if (open.self) return '';
-  const marker = new RegExp(`</?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=[\\s/>])`, 'g');
-  marker.lastIndex = open.end + 1;
-  let depth = 1;
-  let m;
-  while ((m = marker.exec(body))) {
-    if (body[m.index + 1] === '/') {
-      depth -= 1;
-      if (depth === 0) return body.slice(open.end + 1, m.index);
-      marker.lastIndex = m.index + m[0].length;
-      continue;
-    }
-    const nested = tagEnd(body, m.index);
-    if (!nested) return null;
-    if (!nested.self) depth += 1;
-    marker.lastIndex = nested.end + 1;
+/** The first colour of its own a mark expression paints, following components and markup constants. */
+function markPaint(expr, path) {
+  for (const svg of expr.matchAll(/\bsvg=\{\s*([A-Za-z_$][\w$]*)\s*\}/g)) {
+    const found = declarationOf(path, svg[1]);
+    const paint = found && literalPaint(found.body);
+    if (paint) return `${svg[1]} draws ${paint}`;
   }
-  return null; // unbalanced: say nothing rather than guess at an extent
+  return ownGround(expr, path);
 }
 
-const problems = [];
-let controls = 0;
+const problems = leftover.map((m) => `index.css:${lineOf(css, m.index)} -> ${m[0]}: the brand button classes are gone, a README button names its brand instead`);
+let buttons = 0;
+let classed = 0;
 
 for (const [path, body] of text) {
-  const consts = constants(body);
-  for (const attr of body.matchAll(/\bclassName\s*=\s*/g)) {
-    const at = attr.index + attr[0].length;
-    const opener = body[at];
-    let expr;
-    if (opener === '{') expr = body.slice(at + 1, endOfBraces(body, at) - 1);
-    else if (opener === '"' || opener === "'") expr = body.slice(at, endOfString(body, at));
-    else continue;
-
-    const classes = classesOf(expr, consts);
-    const named = [...new Set(classes.filter((c) => BRAND.test(c) && !NOT_A_BRAND.has(c)))];
-    const wearsBtn = classes.includes('glim-brand-btn');
-    if (!wearsBtn && named.length === 0) continue;
-
-    // Back to the `<` this attribute belongs to, which is where the element is.
-    let tagStart = body.lastIndexOf('<', attr.index);
-    while (tagStart > 0 && !/[A-Za-z]/.test(body[tagStart + 1] ?? '')) tagStart = body.lastIndexOf('<', tagStart - 1);
-    const where = `${show(path)}:${lineOf(body, attr.index)}`;
-
-    if (wearsBtn && named.length === 0) {
-      problems.push(`${where} -> .glim-brand-btn with no .glim-brand-<name>: nothing supplies --brand, so the mark paints black`);
-    } else if (!wearsBtn && named.length > 0) {
-      problems.push(`${where} -> ${named[0]} with no .glim-brand-btn: the values are set and nothing spends them`);
-    } else if (named.length > 1) {
-      problems.push(`${where} -> two brands on one element (${named.join(', ')}): the later one wins and the other is a lie`);
-    }
-
-    for (const name of named) {
-      const brand = defined.get(name.replace(/^glim-brand-/, ''));
-      if (!brand) {
-        problems.push(`${where} -> ${name} is named here and defined nowhere in src/index.css`);
-        continue;
-      }
-      const missing = NEEDED.filter((prop) => !brand.props.has(prop));
-      if (missing.length) {
-        problems.push(`index.css:${brand.line} -> .${name} sets no ${missing.join(' and no ')} (named at ${where})`);
+  const where = (at) => `${show(path)}:${lineOf(body, at)}`;
+  for (const m of body.matchAll(/\bglim-brand-(?!tile\b)[a-z0-9-]+/g)) {
+    problems.push(`${where(m.index)} -> ${m[0]}: the brand button classes are gone, a README button names its brand instead`);
+  }
+  for (const { at, tag } of readmeButtons(body)) {
+    buttons += 1;
+    const mark = attrExpr(tag, 'mark');
+    const art = attrExpr(tag, 'art');
+    const cls = /\bmarkClass="([\w-]+)"/.exec(tag)?.[1];
+    if (cls) {
+      classed += 1;
+      if (!defined.has(cls)) problems.push(`${where(at)} -> markClass ${cls}, which src/index.css does not define`);
+      if (!mark) problems.push(`${where(at)} -> markClass ${cls} on a button without a mark`);
+      else {
+        const paint = markPaint(mark, path);
+        if (paint) problems.push(`${where(at)} -> ${cls} on a mark with colours of its own (${paint}): the class reaches none of them`);
       }
     }
-
-    if (!wearsBtn || tagStart < 0) continue;
-    controls += 1;
-    const inside = childrenOf(body, tagStart);
-    if (inside === null) continue;
-    const paint = ownGround(inside, path);
-    if (paint) {
-      problems.push(`${where} -> a mark with its own ground under .glim-brand-btn (${paint}): the button's fill rule would flatten it to one ink`);
+    // The About card: every button carries a mark, passed at its call site.
+    if (show(path) === 'pages/settings/Help.tsx' && !mark && !art) {
+      problems.push(`${where(at)} -> an About card button without a mark: a row where four wear a logo and one does not reads as a missing image`);
     }
   }
 }
 
-// index.css defines brand classes, so zero wearers means the scanner went blind.
-if (controls === 0) {
-  console.error(`check-brand-marks: src/index.css defines ${defined.size} brand classes and no element was found wearing one: the source scanner went blind.`);
+if (buttons < 12 || classed < 5) {
+  console.error(`check-brand-marks: only ${buttons} README buttons and ${classed} mark classes found - the source scanner went blind.`);
   process.exit(1);
 }
 
@@ -354,5 +292,5 @@ if (problems.length) {
 }
 
 console.log(
-  `ok: ${controls} branded control(s) across ${files.length} sources, each paired with one of ${defined.size} brand classes in index.css, none wearing a mark of its own colour.`,
+  `ok: ${buttons} README buttons across ${files.length} sources, ${classed} of them painting a single-colour mark with one of ${defined.size} mark classes in index.css, and no brand button class left.`,
 );

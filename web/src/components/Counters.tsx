@@ -149,6 +149,7 @@ export function OverviewStrip({
       {/* Only while a list is mounted, since there is nothing visible otherwise. */}
       {view && (
         <Tabs
+          inline
           select="one"
           size="sm"
           label={t('strip.scope')}

@@ -83,6 +83,12 @@ interface Common {
    */
   orientation?: 'horizontal' | 'vertical';
   /**
+   * Keeps a horizontal strip as wide as its segments, for one that shares a
+   * toolbar row with other controls. Every other horizontal strip spans its
+   * box.
+   */
+  inline?: boolean;
+  /**
    * Vertical only: the tabs share the strip's full height, each with a floor
    * height so a long list scrolls instead of shrinking to slivers.
    */
@@ -197,6 +203,7 @@ export function Tabs(props: TabsProps) {
     equalWidth = false,
     variant = 'default',
     orientation = 'horizontal',
+    inline = false,
     fill = false,
     display: asked,
     labelled = false,
@@ -240,6 +247,8 @@ export function Tabs(props: TabsProps) {
   });
   const byId = new Map(items.map((i) => [i.id, i] as const));
   const orderedItems = drag.order.map((id) => byId.get(id)).filter((i): i is TabDef => !!i);
+  const armed = drag.held !== null ? 'glim-drag-armed' : '';
+  const span = inline ? 'w-fit max-w-full' : 'w-full';
 
   // The width every segment of a well or an equal-width strip is pinned to,
   // derived from the labels so it is known before first paint: the widest
@@ -299,14 +308,14 @@ export function Tabs(props: TabsProps) {
   }, [pinned, bigWell, pinUnits, glyphRem, labels]);
 
   // A pinned segment keeps the pinned width as its floor and grows into its
-  // share of the row, so a wrapped strip fills every row to its end. The basis
-  // leaves one gap of slack against sub-pixel rounding, and the growth takes
-  // it back. On one row the track hugs its segments and leaves them nothing to
-  // grow into. The floor gives way to the measured room, so a window narrower
-  // than one segment squeezes it instead of pushing it out of the card; it is
-  // a length because a percentage would count as zero while the track sizes
-  // itself to its content. A segment that hugs its label grows too, and so
-  // does a pinned one whose strip is laid out by content.
+  // share of the row, so a spanning strip fills every row to its end. The
+  // basis leaves one gap of slack against sub-pixel rounding, and the growth
+  // takes it back. An inline track on one row hugs its segments and leaves
+  // them nothing to grow into. The floor gives way to the measured room, so a
+  // window narrower than one segment squeezes it instead of pushing it out of
+  // the card; it is a length because a percentage would count as zero while
+  // an inline track sizes itself to its content. A segment that hugs its label
+  // grows too, and so does a pinned one whose strip is laid out by content.
   const contentRow = pinned !== undefined && byContent;
   const segmentFlex: CSSProperties = vertical
     ? {}
@@ -395,28 +404,28 @@ export function Tabs(props: TabsProps) {
       // places a well sits, a card and a glim-well; surface2 would vanish into
       // a glim-well, which is surface2 itself.
       //
-      // A horizontal track is as wide as its content and never wider than its
-      // room: on one row it hugs its segments, which also keeps a flex column
-      // from stretching it, and once it wraps it is as wide as the room and
-      // its segments grow to fill every row (segmentFlex). A track laid out by
-      // content takes the whole room and does not wrap, since its fit allows
-      // for a pixel of rounding that would otherwise push the last segment
-      // onto a row of its own.
+      // A horizontal track spans its box, so a card of stacked selectors ends
+      // in one edge, and its segments share the width, on every row once it
+      // wraps (segmentFlex). An inline track hugs its segments instead and is
+      // never wider than its room. A track laid out by content does not wrap,
+      // since its fit allows for a pixel of rounding that would otherwise push
+      // the last segment onto a row of its own.
+      //
+      // While a tab is held the others wiggle (glim-drag-armed in index.css).
       className={
         vertical
           ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${
               reorderable ? 'relative -mx-1 px-1' : ''
-            } ${className}`
+            } ${armed} ${className}`
           : isWell
-            ? `flex w-fit max-w-full flex-wrap items-center rounded-[var(--radius-pill)] bg-carbon-surface3
+            ? `flex ${span} flex-wrap items-center rounded-[var(--radius-pill)] bg-carbon-surface3
               p-[0.2rem] ${className}`
-            : `flex w-fit max-w-full flex-wrap items-center ${reorderable ? 'relative' : ''} ${className}`
+            : `flex ${span} flex-wrap items-center ${reorderable ? 'relative' : ''} ${armed} ${className}`
       }
       style={vertical ? undefined : contentRow ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
-        const wiggling = drag.held !== null && item.id !== drag.held;
         const look = drag.look(item.id);
         // A long press would otherwise select the label, and on iOS open the
         // link callout, which only CSS can turn off.
@@ -441,7 +450,7 @@ export function Tabs(props: TabsProps) {
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
-              ${wiggling ? 'glim-tab-wiggle' : ''} ${look} ${grip}`
+              ${look} ${grip}`
           : isWell
           ? // An idle segment has no fill of its own and shows the surface3
             // groove, so its hover is the step above that (rule 21).
@@ -451,7 +460,7 @@ export function Tabs(props: TabsProps) {
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex max-w-full items-center justify-center ${!on && item.dim ? 'opacity-60' : ''}
-              ${wiggling ? 'glim-tab-wiggle' : ''} ${look} ${grip}`;
+              ${look} ${grip}`;
 
         // In hover mode the label grows from zero height inside a centred
         // tile, pushing the glyph up without the tile changing size. Focus
