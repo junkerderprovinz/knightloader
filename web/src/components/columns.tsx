@@ -396,6 +396,7 @@ export const reasonKey: Record<string, TranslationKey> = {
   geoBlocked: 'task.reason.geoBlocked',
   drm: 'task.reason.drm',
   extractorBroken: 'task.reason.extractorBroken',
+  unsupportedPlayer: 'task.reason.unsupportedPlayer',
 };
 
 // The availability chip, one entry per verdict the server can send.

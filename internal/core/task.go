@@ -106,6 +106,10 @@ const (
 	// always because the site changed. A newer yt-dlp, which in the container
 	// means a newer image, usually fixes it.
 	ReasonExtractorBroken Reason = "extractorBroken"
+	// ReasonUnsupportedPlayer is a page whose video plays in a player no
+	// backend can read: all JDownloader found on it were the page's own
+	// scripts, styles and images.
+	ReasonUnsupportedPlayer Reason = "unsupportedPlayer"
 )
 
 // Waiting is why a healthy queued task has not started. It is not a Reason,

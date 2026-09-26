@@ -33,6 +33,9 @@ type Backend struct {
 	// poller can hold the same name at once. sweepGrabber treats every other
 	// package in our namespace as abandoned.
 	held map[string]int
+	// page holds the tasks whose link JD can only read as a page (see
+	// readsPage), which its poller watches for a crawl of page parts.
+	page map[string]bool
 	// filterSaid is whether the jobUUIDs verdict has already been logged.
 	filterSaid bool
 }
@@ -43,6 +46,7 @@ func NewBackend(base string, onUpdate func(taskID string, u core.Update)) *Backe
 		onUpdate: onUpdate,
 		stop:     map[string]chan struct{}{},
 		held:     map[string]int{},
+		page:     map[string]bool{},
 	}
 }
 
@@ -499,6 +503,9 @@ func statedAvailability(jd string) core.Availability {
 // file away.
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 	pkg := b.pkgName(taskID)
+	b.mu.Lock()
+	b.page[taskID] = readsPage(url)
+	b.mu.Unlock()
 	b.holdGrabber(pkg)
 	go func() {
 		b.dropGrabberPackage(pkg)
@@ -586,6 +593,10 @@ func (b *Backend) poll(taskID string) {
 	// alone.
 	b.holdGrabber(pkg)
 	defer b.releaseGrabber(pkg)
+	b.mu.Lock()
+	page := b.page[taskID]
+	b.mu.Unlock()
+	var crawl steadyCount
 	ticker := time.NewTicker(750 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -619,14 +630,25 @@ func (b *Backend) poll(taskID string) {
 				})
 				return
 			}
-			if !seen && b.offlineInGrabber(pkg) {
-				b.dropGrabberPackage(pkg)
-				b.onUpdate(taskID, core.Update{
-					Status: core.StatusError,
-					Err:    "jd: the hoster says the file is offline",
-					Reason: core.ReasonGone,
-				})
-				return
+			if !seen {
+				crawled := b.grabberLinks(pkg)
+				if allOffline(crawled) {
+					b.dropGrabberPackage(pkg)
+					b.onUpdate(taskID, core.Update{
+						Status: core.StatusError,
+						Err:    "jd: the hoster says the file is offline",
+						Reason: core.ReasonGone,
+					})
+					return
+				}
+				// Caught here, JD has not fetched any of it yet. Its
+				// autoconfirm waits 15 seconds by default before moving
+				// the links on.
+				if page && crawl.steady(len(crawled)) && onlyPageParts(crawledNames(crawled)) && !b.collecting() {
+					b.dropGrabberPackage(pkg)
+					b.onUpdate(taskID, pagePartsFailure())
+					return
+				}
 			}
 
 			p, err := b.c.Package(pkg)
@@ -656,6 +678,13 @@ func (b *Backend) poll(taskID string) {
 			if err != nil || len(links) == 0 {
 				continue
 			}
+			if !seen && page && onlyPageParts(downloadNames(links)) {
+				// A JD that confirms at once moves the links on before the
+				// grabber check can see them settle.
+				_ = b.c.RemoveLinks(nil, []int64{puuid})
+				b.onUpdate(taskID, pagePartsFailure())
+				return
+			}
 			seen = true
 			// JD reports states like "Captcha recognition" on the package, not
 			// on its links.
@@ -675,15 +704,12 @@ func (b *Backend) poll(taskID string) {
 	}
 }
 
-// offlineInGrabber reports whether JD's link check found every link of the
-// grabber package pkg offline. Such a link never reaches the download list: a
-// JD that KnightLoader provisioned keeps it in the grabber (see
-// provision.confirmAnswers), and any other JD holds it there until somebody
-// answers whether to add it.
-func (b *Backend) offlineInGrabber(pkg string) bool {
+// grabberLinks returns the links of the grabber package pkg, none when the
+// grabber cannot be read.
+func (b *Backend) grabberLinks(pkg string) []CrawledLink {
 	pkgs, err := b.c.CrawledPackages()
 	if err != nil {
-		return false
+		return nil
 	}
 	var ids []int64
 	for _, p := range pkgs {
@@ -692,7 +718,18 @@ func (b *Backend) offlineInGrabber(pkg string) bool {
 		}
 	}
 	links, err := b.c.CrawledLinks(ids...)
-	if err != nil || len(links) == 0 {
+	if err != nil {
+		return nil
+	}
+	return links
+}
+
+// allOffline reports whether JD's link check found every one of links
+// offline. Such a link never reaches the download list: a JD that KnightLoader
+// provisioned keeps it in the grabber (see provision.confirmAnswers), and any
+// other JD holds it there until somebody answers whether to add it.
+func allOffline(links []CrawledLink) bool {
+	if len(links) == 0 {
 		return false
 	}
 	for _, l := range links {
@@ -783,6 +820,7 @@ func (b *Backend) Remove(taskID string, _ bool) {
 	}
 	// Every hold goes, Pause's included.
 	delete(b.held, pkg)
+	delete(b.page, taskID)
 	b.mu.Unlock()
 	if puuid, err := b.c.PackageUUID(pkg); err == nil && puuid != 0 {
 		_ = b.c.RemoveLinks(nil, []int64{puuid})

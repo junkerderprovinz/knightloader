@@ -52,7 +52,7 @@ func TestAnUpdateWithNoVerdictStillGoesThroughTheClassifier(t *testing.T) {
 func TestTheBackendNamedCausesSettleAsGivenUp(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
 	} {
 		t.Run(string(reason), func(t *testing.T) {
 			a := retryApp(t, func(*settings.Settings) {})
@@ -82,7 +82,7 @@ func TestTheBackendNamedCausesSettleAsGivenUp(t *testing.T) {
 func TestTheBackendNamedCausesNeverRebootTheRouter(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
 	} {
 		if addressMayHelp(reason) {
 			t.Errorf("%q would take the whole house off the internet, and a new address does not mend it", reason)
@@ -95,7 +95,7 @@ func TestTheBackendNamedCausesNeverRebootTheRouter(t *testing.T) {
 func TestAMirrorIsStillWorthTryingForTheBackendNamedCauses(t *testing.T) {
 	for _, reason := range []core.Reason{
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken,
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer,
 	} {
 		if !mirrorCanHelp(reason) {
 			t.Errorf("%q blocks the handover to a second source, which may well not have this problem at all", reason)

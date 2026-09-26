@@ -1,6 +1,207 @@
 {
   "note": "Keys carrying the ENGLISH text in a non-English catalogue, because the translation wave for them has not run yet. Identical on screen to the fallback lib/i18n.tsx already makes for a missing key; listed here so a later sweep can find them, since a seeded string is otherwise indistinguishable from a translated one. check-untranslated.mjs holds this file and the catalogues together: translate a key and its entry must go, or the check fails. de.ts is never listed: it is the hand-written reference the English is written FROM, so a German value that equals the English one (Downloads, Captcha, Status, yt-dlp) is the same word in both languages rather than an untranslated one. For the other catalogues that same over-reporting is accepted on purpose: a debt too many shows up at the next sweep, a debt too few never does.",
-  "locales": {},
+  "locales": {
+    "ar": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "bg": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ca": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "cs": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "da": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "el": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "es": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "et": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "eu": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "fa": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "fi": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "fr": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "gl": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "he": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "hi": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "hr": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "hu": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "id": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "is": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "it": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ja": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ko": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "lt": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "lv": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ms": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "nl": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "no": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "pl": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "pt": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ro": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "ru": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "sk": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "sl": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "sr": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "sv": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "th": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "tr": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "uk": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "vi": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ],
+    "zh": [
+      "task.reason.unsupportedPlayer",
+      "failure.unsupportedPlayer.line",
+      "failure.unsupportedPlayer.hint"
+    ]
+  },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",
   "identical": {
     "ar": [
