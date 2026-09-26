@@ -52,6 +52,24 @@ type pmAnswer struct {
 	Code    string `json:"code"`
 }
 
+// pmBusy are the codes Premiumize.me documents as semi-permanent: the account
+// or the service is out of something for now, such as fair-use points or
+// running transfers, and the same call works after a wait. pmTransient are
+// the ones it documents as worth trying again at once.
+var (
+	pmBusy = map[string]bool{
+		"rate_limit_reached":    true,
+		"account_limit_reached": true,
+		"service_limit_reached": true,
+		"service_down":          true,
+		"semi_permanent_error":  true,
+	}
+	pmTransient = map[string]bool{
+		"link_generation_failed": true,
+		"transient_error":        true,
+	}
+)
+
 func (a pmAnswer) err(call string) error {
 	// item/details answers a bare item without a status.
 	if a.Status == "success" || a.Status == "" {
@@ -61,8 +79,12 @@ func (a pmAnswer) err(call string) error {
 	if msg == "" {
 		msg = a.Code
 	}
-	if said := strings.ToLower(a.Code + " " + msg); strings.Contains(said, "rate_limit") || strings.Contains(said, "rate limit") {
+	code := strings.ToLower(a.Code)
+	switch {
+	case pmBusy[code] || strings.Contains(strings.ToLower(msg), "rate limit"):
 		return fmt.Errorf("premiumize %s: %s: %w", call, msg, ErrBusy)
+	case pmTransient[code]:
+		return unreachable{fmt.Errorf("premiumize %s: %s", call, msg)}
 	}
 	if msg == "" {
 		msg = "the call failed and Premiumize.me named no reason"

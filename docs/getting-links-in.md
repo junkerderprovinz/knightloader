@@ -94,12 +94,14 @@ the upload button, the watched folder, or Sonarr and Radarr, and may be up to
 TorBox takes at most 60 NZBs an hour per API key. When it is at that limit or
 says it is busy, the next `.nzb` goes to your Premiumize.me account if you
 have one, and otherwise waits and goes out once TorBox takes files again, so
-nothing fails for being one too many. A download TorBox queues because every
-slot of the account is taken is followed until it starts. An account whose
-plan does not include Usenet is passed over for an hour once it has said so.
-With no account that can take it, a real `.nzb` is refused, with that as the
-reason. A DDL indexer's "nzb" that is really a list of links is read for its
-links either way.
+nothing fails for being one too many. An `.nzb` also waits when Premiumize.me
+says the account has used up its fair-use points or already runs as many
+transfers as it may. A download TorBox queues because every slot of the
+account is taken is followed until it starts. An account whose plan does not
+include Usenet is passed over for an hour once it has said so. With no
+account that can take it, a real `.nzb` is refused, with that as the reason.
+A DDL indexer's "nzb" that is really a list of links is read for its links
+either way.
 
 While an `.nzb` waits for an account or is being fetched, the status strip
 counts it under Usenet. One the service gives up on is listed with the links

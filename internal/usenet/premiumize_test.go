@@ -200,6 +200,37 @@ func TestPremiumizeRateLimitReadsAsBusy(t *testing.T) {
 	}
 }
 
+func TestPremiumizeRetryLaterCodesKeepTheNZBWaiting(t *testing.T) {
+	for _, c := range []struct {
+		code string
+		busy bool
+		soon bool
+	}{
+		{"account_limit_reached", true, false},
+		{"service_limit_reached", true, false},
+		{"service_down", true, false},
+		{"semi_permanent_error", true, false},
+		{"link_generation_failed", false, true},
+		{"transient_error", false, true},
+		{"invalid_request", false, false},
+		{"permanent_error", false, false},
+	} {
+		t.Run(c.code, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.WriteString(w, `{"status":"error","message":"not now","code":"`+c.code+`"}`)
+			}))
+			defer srv.Close()
+			_, err := NewPremiumize(srv.URL, "premiumize", "pm-key").Submit(context.Background(), "x", []byte(sampleNZB))
+			if err == nil {
+				t.Fatal("the error answer was taken for a transfer")
+			}
+			if errors.Is(err, ErrBusy) != c.busy || temporary(err) != c.soon {
+				t.Errorf("err = %v reads busy %v, retry soon %v; want %v, %v", err, errors.Is(err, ErrBusy), temporary(err), c.busy, c.soon)
+			}
+		})
+	}
+}
+
 func TestPremiumizeLeavesOutATransferItNoLongerHas(t *testing.T) {
 	fake := &fakePremiumize{t: t, status: "running"}
 	all, err := NewPremiumize(fake.server().URL, "premiumize", "pm-key").Status(context.Background(), []string{"nope", "tr1"})
