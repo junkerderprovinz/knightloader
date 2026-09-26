@@ -123,6 +123,8 @@ export const en = {
   // the chip is a bulk action on rows a filter may be hiding, and "12" beside a
   // list showing three of them is the number that has to be said out loud.
   'downloads.retryCause': 'Retry the {n} that failed: {reason}',
+  'downloads.retryByCause': 'Retry by cause',
+  'downloads.byCause': 'By cause',
   'downloads.clearFinished': 'Clear finished',
   'downloads.noMatch': 'Nothing matches this filter.',
   'downloads.finished': '{name} finished',

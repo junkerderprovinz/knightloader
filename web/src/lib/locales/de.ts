@@ -103,6 +103,8 @@ export const de: Dict = {
   'downloads.resumeAll': 'Alle fortsetzen',
   'downloads.retryFailed': 'Fehlgeschlagene wiederholen',
   'downloads.retryCause': '{n} mit dieser Ursache erneut versuchen: {reason}',
+  'downloads.retryByCause': 'Nach Ursache wiederholen',
+  'downloads.byCause': 'Nach Ursache',
   'downloads.clearFinished': 'Aufräumen',
   'downloads.noMatch': 'Nichts passt zu diesem Filter.',
   'downloads.finished': '{name} fertig',

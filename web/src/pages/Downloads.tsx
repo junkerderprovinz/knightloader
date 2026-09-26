@@ -4,6 +4,8 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
+import { useNavLabels } from '../lib/navLabels';
+import { useRowFit } from '../lib/rowFit';
 import { PageHeader, EmptyState, IconBadge } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
@@ -37,7 +39,7 @@ import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
-import { ErrorCauses } from '../components/ErrorCauses';
+import { ErrorCauses, useErrorCauses } from '../components/ErrorCauses';
 import { extractionsByTask, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
@@ -69,8 +71,11 @@ export function Downloads() {
   const { search, filters } = narrowing;
   // The search lives behind the badge on the stats line.
   const [searchOpen, setSearchOpen] = useState(false);
-  // The popover's anchor, so an outside click closes it, as in the collector.
+  // The popover's anchor and the popover, so an outside click closes it, as in
+  // the collector. The two are apart while the action row scrolls.
   const searchRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // The row TaskListCard should scroll to, with the request's nonce so a
   // second jump to the same row is a new value.
@@ -157,7 +162,8 @@ export function Downloads() {
   useEffect(() => {
     if (!searchOpen) return;
     const onClick = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+      const at = e.target as Node;
+      if (!searchRef.current?.contains(at) && !panelRef.current?.contains(at)) setSearchOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSearchOpen(false);
     document.addEventListener('mousedown', onClick);
@@ -266,6 +272,34 @@ export function Downloads() {
   const narrowed = narrowing.active;
   // The collector's chips over this list's states, from shared logic.
   const offeredFilters = useMemo(() => offeredQuickFilters(DOWNLOAD_FILTERS, list, filters), [list, filters]);
+  const causes = useErrorCauses(list);
+
+  // What the action row holds, so it measures itself again when that changes.
+  const labels = useNavLabels();
+  const rowContent = [
+    labels,
+    t('downloads.retryFailed'),
+    selected.size,
+    narrowed ? `${filtered.length}/${list.length}` : '',
+    offeredFilters.map(({ f, n }) => `${f.id}${n}${filters.has(f.id) ? '*' : ''}`).join(),
+    causes.map((c) => `${c.key}${c.count}`).join(),
+    counts.running > 0,
+    list.some((x) => x.status === 'paused'),
+    counts.error > 0,
+  ].join('|');
+  const fold = useRowFit(rowRef, 3, rowContent);
+  const foldCauses = fold >= 1;
+  const glyphs = fold >= 2;
+  const scrolls = fold >= 3;
+  const searchPanel = searchOpen && (
+    <div
+      ref={panelRef}
+      className="absolute end-0 top-full z-20 mt-2 w-96 max-w-[90vw] rounded-[var(--radius-control)]
+        bg-carbon-surface p-2 shadow-[var(--elevation)]"
+    >
+      <SearchField value={search} onChange={narrowing.setSearch} className="w-full" />
+    </div>
+  );
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
@@ -330,89 +364,89 @@ export function Downloads() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      {/* One right-aligned row for every action, directly above the list, in
-          the collector's order. A line that wraps stays on the right. */}
+      {/* One row for every action, directly above the list, in the
+          collector's order. It never wraps: short of room it folds the
+          failure chips into one, then shows the verbs as glyphs, and on a
+          phone it scrolls sideways (useRowFit). */}
       {list.length > 0 && (
-        <div
-          className="flex shrink-0 flex-wrap items-center justify-end gap-2"
-          role="group"
-          aria-label={t('list.actions')}
-        >
-          {/* Left of the spacer, which nothing else here uses. */}
-          <SavedViewChips
-            profile="downloads"
-            allowed={DOWNLOAD_FILTERS}
-            narrowing={narrowing.narrowing}
-            onApply={narrowing.apply}
-          />
-          <span className="flex-1" />
-
-          {offeredFilters.length > 0 && (
-            <Tabs
-              inline
-              select="many"
-              size="sm"
-              label={t('filter.label')}
-              active={filters}
-              onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
-              items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
-              after={
-                filters.size > 0 && (
-                  <IconBadge
-                    labelled
-                    hue={0}
-                    icon={<IconClose width={16} height={16} />}
-                    title={t('filter.clear')}
-                    aria-label={t('filter.clear')}
-                    onClick={narrowing.clearFilters}
-                  />
-                )
-              }
-            />
-          )}
-          {narrowed && (
-            <span className="glim-num text-xs text-carbon-textMuted">
-              {t('search.shown', { n: filtered.length, total: list.length })}
-            </span>
-          )}
-
-          <div ref={searchRef} className="relative">
-            {/* A glyph whatever the label setting: the magnifier needs no
-                word, and the row needs the room for the selection's verbs. */}
-            <IconBadge
-              hue={0}
-              active={searchOpen}
-              icon={<IconSearch width={16} height={16} />}
-              // The badge's own name rather than the field's placeholder;
-              // web/check-placeholder-as-label.mjs keeps it so.
-              title={t('search.toggle')}
-              aria-label={t('search.toggle')}
-              aria-expanded={searchOpen}
-              onClick={() => setSearchOpen((v) => !v)}
-            />
-            {/* Shows that a filter is still active once the panel is closed. */}
-            {narrowed && !searchOpen && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -end-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
+        <div className="relative shrink-0">
+          <div
+            ref={rowRef}
+            className={`flex items-center gap-2 ${scrolls ? '-my-1 overflow-x-auto py-1' : ''}`}
+            role="group"
+            aria-label={t('list.actions')}
+          >
+            {/* Left of the spacer, which nothing else here uses. */}
+            <div className="shrink-0">
+              <SavedViewChips
+                profile="downloads"
+                allowed={DOWNLOAD_FILTERS}
+                narrowing={narrowing.narrowing}
+                onApply={narrowing.apply}
               />
-            )}
-            {searchOpen && (
-              <div
-                className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
-                  bg-carbon-surface p-2 shadow-[var(--elevation)]"
-              >
-                <SearchField value={search} onChange={narrowing.setSearch} className="w-full" />
+            </div>
+            <span data-spacer className="flex-1" />
+
+            {offeredFilters.length > 0 && (
+              <div className="shrink-0">
+                <Tabs
+                  inline
+                  select="many"
+                  size="sm"
+                  label={t('filter.label')}
+                  active={filters}
+                  onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
+                  items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+                  after={
+                    filters.size > 0 && (
+                      <IconBadge
+                        labelled
+                        hue={0}
+                        icon={<IconClose width={16} height={16} />}
+                        title={t('filter.clear')}
+                        aria-label={t('filter.clear')}
+                        onClick={narrowing.clearFilters}
+                      />
+                    )
+                  }
+                />
               </div>
             )}
-          </div>
+            {narrowed && (
+              <span className="glim-num shrink-0 whitespace-nowrap text-xs text-carbon-textMuted">
+                {t('search.shown', { n: filtered.length, total: list.length })}
+              </span>
+            )}
 
-          {/* Clears search and filters at once; "Show everything" in the chip
-              strip still clears only the quick filters. */}
-          {narrowed && (
-            <>
+            <div ref={searchRef} className="relative shrink-0">
+              {/* A glyph whatever the label setting: the magnifier needs no
+                  word, and the row needs the room for the selection's verbs. */}
               <IconBadge
-                labelled
+                hue={0}
+                active={searchOpen}
+                icon={<IconSearch width={16} height={16} />}
+                // The badge's own name rather than the field's placeholder;
+                // web/check-placeholder-as-label.mjs keeps it so.
+                title={t('search.toggle')}
+                aria-label={t('search.toggle')}
+                aria-expanded={searchOpen}
+                onClick={() => setSearchOpen((v) => !v)}
+              />
+              {/* Shows that a filter is still active once the panel is closed. */}
+              {narrowed && !searchOpen && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -end-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
+                />
+              )}
+              {!scrolls && searchPanel}
+            </div>
+
+            {/* Clears search and filters at once; "Show everything" in the chip
+                strip still clears only the quick filters. */}
+            {narrowed && (
+              <IconBadge
+                labelled={!glyphs}
                 hue={5}
                 icon={<IconClose width={16} height={16} />}
                 title={t('views.clearAll')}
@@ -420,118 +454,118 @@ export function Downloads() {
                 hint={t('views.clearAllHint')}
                 onClick={narrowing.clearAll}
               />
-            </>
-          )}
-
-          {/* The verbs in one piece, after the count of what they act on, so
-              a row too narrow for everything breaks between the filters and
-              the verbs. */}
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {selected.size > 0 ? (
-              <>
-                {/* The × stays a glyph whatever the label setting, since the
-                    count beside it already says what it clears. */}
-                <span className="flex items-center gap-1.5">
-                  <SelectionReach
-                    mode="select"
-                    total={selected.size}
-                    hidden={reach.hidden.length}
-                    onReduce={reduceToShown}
-                  />
-                  <IconBadge
-                    hue={1}
-                    icon={<IconClose width={16} height={16} />}
-                    title={t('select.none')}
-                    aria-label={t('select.none')}
-                    onClick={clearSelection}
-                  />
-                </span>
-                <IconBadge
-                  labelled
-                  hue={3}
-                  icon={<IconRetry width={16} height={16} />}
-                  title={t('task.restart')}
-                  aria-label={t('task.restart')}
-                  onClick={() => restartTasks(ids(), base)}
-                />
-                <IconBadge
-                  labelled
-                  hue={4}
-                  icon={<IconTrash width={16} height={16} />}
-                  title={t('task.remove')}
-                  aria-label={t('task.remove')}
-                  onClick={() => void removal.removeNow(selectedIds)}
-                />
-                {/* The rarer verbs: the package entries, the right-click menu's
-                    queue group and deleting the files. */}
-                <SelectionMore
-                  hue={5}
-                  chosen={chosen}
-                  removal={removal}
-                  groups={[packageMenu.group, { ...queueGroup, heading: t('queue.order') }]}
-                />
-              </>
-            ) : (
-              <>
-                {/* Each bulk verb appears only when it can do something. */}
-                {counts.running > 0 && (
-                  <IconBadge
-                    labelled
-                    hue={2}
-                    icon={<IconPause width={16} height={16} />}
-                    title={t('downloads.pauseAll')}
-                    aria-label={t('downloads.pauseAll')}
-                    onClick={pauseAll}
-                  />
-                )}
-                {list.some((x) => x.status === 'paused') && (
-                  <IconBadge
-                    labelled
-                    hue={3}
-                    icon={<IconPlay width={16} height={16} />}
-                    title={t('downloads.resumeAll')}
-                    aria-label={t('downloads.resumeAll')}
-                    onClick={resumeAll}
-                  />
-                )}
-                {counts.error > 0 && (
-                  <IconBadge
-                    labelled
-                    hue={4}
-                    icon={<IconRetry width={16} height={16} />}
-                    title={t('downloads.retryFailed')}
-                    aria-label={t('downloads.retryFailed')}
-                    onClick={retryFailed}
-                  />
-                )}
-                <IconBadge
-                  labelled
-                  hue={1}
-                  icon={<IconCheck width={16} height={16} />}
-                  title={allChosen ? t('select.none') : t('select.all')}
-                  aria-label={allChosen ? t('select.none') : t('select.all')}
-                  disabled={filtered.length === 0}
-                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-                />
-                <IconBadge
-                  labelled
-                  hue={2}
-                  icon={<IconTrashFiles width={16} height={16} />}
-                  title={t('cleanup.menu')}
-                  aria-label={t('cleanup.menu')}
-                  disabled={instance !== ''}
-                  hint={instance !== '' ? t('cleanup.localOnly') : undefined}
-                  onClick={(e) => void openCleanup(e.currentTarget)}
-                />
-              </>
             )}
+
+            {/* A retry per failure cause, whatever is selected, as the
+                failures concern the whole list. */}
+            <ErrorCauses causes={causes} base={base} folded={foldCauses} />
+
+            {/* The verbs in one piece, after the count of what they act on. */}
+            <div className="flex shrink-0 items-center gap-2">
+              {selected.size > 0 ? (
+                <>
+                  {/* The × stays a glyph whatever the label setting, since the
+                      count beside it already says what it clears. */}
+                  <span className="flex items-center gap-1.5">
+                    <SelectionReach
+                      mode="select"
+                      total={selected.size}
+                      hidden={reach.hidden.length}
+                      onReduce={reduceToShown}
+                    />
+                    <IconBadge
+                      hue={1}
+                      icon={<IconClose width={16} height={16} />}
+                      title={t('select.none')}
+                      aria-label={t('select.none')}
+                      onClick={clearSelection}
+                    />
+                  </span>
+                  <IconBadge
+                    labelled={!glyphs}
+                    hue={3}
+                    icon={<IconRetry width={16} height={16} />}
+                    title={t('task.restart')}
+                    aria-label={t('task.restart')}
+                    onClick={() => restartTasks(ids(), base)}
+                  />
+                  <IconBadge
+                    labelled={!glyphs}
+                    hue={4}
+                    icon={<IconTrash width={16} height={16} />}
+                    title={t('task.remove')}
+                    aria-label={t('task.remove')}
+                    onClick={() => void removal.removeNow(selectedIds)}
+                  />
+                  {/* The rarer verbs: the package entries, the right-click menu's
+                      queue group and deleting the files. */}
+                  <SelectionMore
+                    hue={5}
+                    labelled={!glyphs}
+                    chosen={chosen}
+                    removal={removal}
+                    groups={[packageMenu.group, { ...queueGroup, heading: t('queue.order') }]}
+                  />
+                </>
+              ) : (
+                <>
+                  {/* Each bulk verb appears only when it can do something. */}
+                  {counts.running > 0 && (
+                    <IconBadge
+                      labelled={!glyphs}
+                      hue={2}
+                      icon={<IconPause width={16} height={16} />}
+                      title={t('downloads.pauseAll')}
+                      aria-label={t('downloads.pauseAll')}
+                      onClick={pauseAll}
+                    />
+                  )}
+                  {list.some((x) => x.status === 'paused') && (
+                    <IconBadge
+                      labelled={!glyphs}
+                      hue={3}
+                      icon={<IconPlay width={16} height={16} />}
+                      title={t('downloads.resumeAll')}
+                      aria-label={t('downloads.resumeAll')}
+                      onClick={resumeAll}
+                    />
+                  )}
+                  {counts.error > 0 && (
+                    <IconBadge
+                      labelled={!glyphs}
+                      hue={4}
+                      icon={<IconRetry width={16} height={16} />}
+                      title={t('downloads.retryFailed')}
+                      aria-label={t('downloads.retryFailed')}
+                      onClick={retryFailed}
+                    />
+                  )}
+                  <IconBadge
+                    labelled={!glyphs}
+                    hue={1}
+                    icon={<IconCheck width={16} height={16} />}
+                    title={allChosen ? t('select.none') : t('select.all')}
+                    aria-label={allChosen ? t('select.none') : t('select.all')}
+                    disabled={filtered.length === 0}
+                    onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+                  />
+                  <IconBadge
+                    labelled={!glyphs}
+                    hue={2}
+                    icon={<IconTrashFiles width={16} height={16} />}
+                    title={t('cleanup.menu')}
+                    aria-label={t('cleanup.menu')}
+                    disabled={instance !== ''}
+                    hint={instance !== '' ? t('cleanup.localOnly') : undefined}
+                    onClick={(e) => void openCleanup(e.currentTarget)}
+                  />
+                </>
+              )}
+            </div>
           </div>
+          {scrolls && searchPanel}
         </div>
       )}
-
-      {/* Above the rows while the failures have several causes; draws nothing
-          below two groups. */}
-      <ErrorCauses tasks={list} base={base} />
 
       {/* The one scrolling region: everything above keeps its height and the
           list takes the rest, never less than a few rows. A window too short

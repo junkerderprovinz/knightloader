@@ -5,10 +5,11 @@ import { useMemo } from 'react';
 import { restartTasks, type Reason, type Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button } from './ui';
+import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { reasonKey } from './columns';
-import { IconRetry } from '../lib/icons';
+import { IconChevronDown, IconRetry } from '../lib/icons';
 
-interface Cause {
+export interface Cause {
   key: string;
   label: string;
   /**
@@ -46,16 +47,67 @@ function causesOf(tasks: Task[], t: (k: TranslationKey) => string): Cause[] {
 }
 
 /**
- * ErrorCauses draws the chip row once there are at least two causes; with one,
- * a chip would duplicate the "retry failed" button. It counts the whole list,
- * like that button, because the retry acts on the whole list too.
+ * useErrorCauses is the list's failure groups once there are at least two;
+ * with one, a chip would duplicate the "retry failed" button. It counts the
+ * whole list, like that button, because the retry acts on the whole list too.
  */
-export function ErrorCauses({ tasks, base }: { tasks: Task[]; base: string }) {
+export function useErrorCauses(tasks: Task[]): Cause[] {
   const { t } = useT();
-  const causes = useMemo(() => causesOf(tasks, t), [tasks, t]);
-  if (causes.length < 2) return null;
+  return useMemo(() => {
+    const causes = causesOf(tasks, t);
+    return causes.length < 2 ? [] : causes;
+  }, [tasks, t]);
+}
+
+/**
+ * ErrorCauses draws a retry chip per cause in the list's action row, or, when
+ * the row has no room for them, one chip that opens them as a menu.
+ */
+export function ErrorCauses({ causes, base, folded }: { causes: Cause[]; base: string; folded: boolean }) {
+  const { t } = useT();
+  const menu = useContextMenu();
+  if (causes.length === 0) return null;
+  const retry = (c: Cause) => void restartTasks([], base, c.reasons);
+
+  if (folded)
+    return (
+      <>
+        <Button
+          kind="secondary"
+          className="shrink-0 gap-1.5 px-2.5 text-xs"
+          icon={<IconRetry width={14} height={14} />}
+          title={t('downloads.retryByCause')}
+          aria-haspopup="menu"
+          aria-expanded={!!menu.anchor}
+          onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
+        >
+          {t('downloads.byCause')}
+          <IconChevronDown width={12} height={12} />
+        </Button>
+        {menu.anchor && (
+          <ContextMenu
+            anchor={menu.anchor}
+            label={t('downloads.retryByCause')}
+            onClose={menu.close}
+            groups={[
+              {
+                id: 'causes',
+                items: causes.map((c) => ({
+                  id: c.key || 'other',
+                  label: c.label,
+                  detail: String(c.count),
+                  icon: <IconRetry width={14} height={14} />,
+                  onSelect: () => retry(c),
+                })),
+              },
+            ]}
+          />
+        )}
+      </>
+    );
+
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('downloads.retryFailed')}>
+    <div className="flex shrink-0 items-center gap-2" role="group" aria-label={t('downloads.retryFailed')}>
       {causes.map((c) => (
         <Button
           key={c.key}
@@ -64,7 +116,7 @@ export function ErrorCauses({ tasks, base }: { tasks: Task[]; base: string }) {
           className="gap-1.5 px-2.5 text-xs"
           icon={<IconRetry width={14} height={14} />}
           title={t('downloads.retryCause', { n: c.count, reason: c.label })}
-          onClick={() => void restartTasks([], base, c.reasons)}
+          onClick={() => retry(c)}
         >
           {c.label}
           <span className="glim-num text-carbon-textMuted">{c.count}</span>
