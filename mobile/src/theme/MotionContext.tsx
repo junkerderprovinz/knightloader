@@ -168,6 +168,45 @@ export function useShake(): { style: { transform: { translateX: Animated.Animate
 }
 
 /**
+ * The success gesture, the shake's opposite, for a copy or a save that landed:
+ * the control swells a little and settles, on the web's `glim-confirm` timing.
+ * Only its scale half is drawn, since the glow ring the web puts around the
+ * control has no counterpart on a phone.
+ *
+ * Put `style` on an Animated.View around the control, or spread its transform
+ * into one the view already has. At `off` nothing moves.
+ */
+export function useConfirm(): { style: { transform: { scale: Animated.Value }[] }; confirm: () => void } {
+  const { n } = useMotion();
+  const scale = useRef(new Animated.Value(1)).current;
+  const live = useRef(n);
+  live.current = n;
+
+  const confirm = useCallback(() => {
+    const cur = live.current;
+    if (cur.confirmDur === 0 || cur.confirmScale === 0) return;
+    scale.setValue(1);
+    Animated.sequence([
+      Animated.timing(scale, {
+        toValue: 1 + cur.confirmScale * 0.05,
+        duration: cur.confirmDur * 0.4,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: cur.confirmDur * 0.6,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scale]);
+
+  const style = useMemo(() => ({ transform: [{ scale }] }), [scale]);
+  return { style, confirm };
+}
+
+/**
  * A button or card giving way under the finger: it scales to the level's
  * `press` while held and springs back on `bounce` when let go, so a tap lands
  * at the top levels and barely registers at `subtle`.

@@ -37,7 +37,7 @@ export function ConfirmDialog({
   cancelLabel: string;
   confirmLabel: string;
   /** The glyph of the act being confirmed, which no fixed key can name. */
-  confirmIcon: (ink: string, ground: string) => ReactNode;
+  confirmIcon: (ink: string) => ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
 }) {

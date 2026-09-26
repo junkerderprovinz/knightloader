@@ -191,7 +191,7 @@ export default function ConnectionsScreen({
         <View style={styles.badgeRow}>
           <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
           <IconBadge
-            icon={<Gear color={c.textSub} hole={c.surface2} />}
+            icon={<Gear color={c.textSub} />}
             onPress={onOpenSettings}
             accessibilityLabel={t('settings.title')}
           />

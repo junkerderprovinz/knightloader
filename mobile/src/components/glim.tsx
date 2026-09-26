@@ -64,7 +64,12 @@ export function NotchCard({
 }
 
 /** The one horizontal selector: a groove one surface deeper, equal segments,
- *  and only the chosen segment is a badge. No per-segment borders. */
+ *  and only the chosen segment is a badge. No per-segment borders.
+ *
+ *  The groove spans the card it sits in and the segments share its width. A
+ *  groove sized to its words stops short of the card's edge and reads as a
+ *  control that ran out of options, and down a card of stacked selectors the
+ *  ragged edge is the first thing the eye finds. */
 export function WellSelector<T extends string>({
   options,
   value,
@@ -75,19 +80,6 @@ export function WellSelector<T extends string>({
   onPick: (v: T) => void;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
-  // Four segments do not fit a narrow phone at the three-segment geometry.
-  //
-  // The groove sizes itself to its content and each segment carries a floor of
-  // 84 points, which keeps two or three of them even rather than each hugging
-  // its own word. Four of those is about 350 points before the card's padding,
-  // and a 360-point phone has under 300 to give, so the last segment would run
-  // past the card's edge. Only the motion picker reaches that state, once the
-  // hidden fourth level has been found.
-  //
-  // The floor is dropped in that case alone, so the rows that already fit are
-  // untouched. Below the floor the segments share what the row has and the
-  // labels stay on one line.
-  const eng = options.length > 3;
   return (
     <View style={[styles.well, { backgroundColor: c.surface2, ...corners.pill }]}>
       {options.map((o, i) => {
@@ -105,14 +97,17 @@ export function WellSelector<T extends string>({
             /* The segment takes the groove's radius, so in round the groove is
                a pill with a pill inside it. Its 3 points of padding are far
                too few to keep a square corner inside a pill's arc. */
-            style={[styles.segment, eng && styles.segmentEng, corners.pill, on && { backgroundColor: fill }]}
+            style={[styles.segment, corners.pill, on && { backgroundColor: fill }]}
           >
             {/* Computed against the fill it landed on rather than the flat
                 accent's contrast: a palette position can be far lighter or
                 darker than the accent, and reusing accentContrast puts white
-                text on a pale mint segment. */}
+                text on a pale mint segment. A label longer than its share
+                shrinks rather than being cut off. */}
             <Text
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
               style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}
             >
               {o.label}
@@ -321,6 +316,11 @@ const styles = StyleSheet.create({
   },
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   buttonOff: { opacity: 0.45 },
+  // The README's proportions: the mark's 32 by 25 box 24 in from the start,
+  // the name from 63 to 10 short of the end.
+  readme: { width: 160, height: 46.6, justifyContent: 'center', overflow: 'hidden' },
+  readmeMark: { position: 'absolute', start: 24, top: 10.8, width: 32, height: 25 },
+  readmeName: { marginStart: 63, marginEnd: 10, fontSize: TYPE.body, fontWeight: '700' },
   /* 40, the house rhythm for stacked cards, and the number the whole family
    * shares. The language calls 24 the cramped value, and it is cramped for the
    * reason these cards qualify: each carries a notch badge hanging over its own
@@ -358,14 +358,8 @@ const styles = StyleSheet.create({
   // half of what makes the badge 22 points tall: 16 of text between 3 and 3 of
   // padding.
   notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
-  // maxWidth so the groove cannot grow past the card it sits in: it sizes
-  // itself to its content, and content that does not fit would run under the
-  // card's edge rather than being made to share.
-  well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'flex-start', maxWidth: '100%' },
-  segment: { minWidth: 84, paddingVertical: 7, paddingHorizontal: 14, alignItems: 'center' },
-  // Four or more: the floor goes and the segments share the row instead. See
-  // WellSelector above.
-  segmentEng: { minWidth: 0, paddingHorizontal: 10, flexShrink: 1 },
+  well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'stretch' },
+  segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: 6, alignItems: 'center' },
   segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
@@ -497,12 +491,8 @@ export function GlimButton({
   style,
 }: {
   label: string;
-  /** Given the resolved ink colour and the ground it stands on, so a glyph
-   *  never has to guess either. A composed glyph needs the ground to draw a
-   *  detail that would otherwise be a hole: React Native cannot cut a shape out
-   *  of another, so a flap, a slot or a gear's centre is painted, and a guessed
-   *  colour there is wrong on the first surface it was not tested against. */
-  icon?: (ink: string, ground: string) => ReactNode;
+  /** Given the resolved ink colour, so a glyph never has to guess it. */
+  icon?: (ink: string) => ReactNode;
   onPress: () => void;
   hue?: number;
   tone?: 'solid' | 'quiet';
@@ -545,7 +535,7 @@ export function GlimButton({
       accessibilityState={{ disabled: !!(disabled || busy) }}
       accessibilityLabel={label}
     >
-      {busy ? <ActivityIndicator color={ink} /> : icon?.(ink, ground)}
+      {busy ? <ActivityIndicator color={ink} /> : icon?.(ink)}
       <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={1}>
         {label}
       </Text>
@@ -582,32 +572,39 @@ export function CardButton({
 }
 
 /**
- * A button that goes to a brand, for the About card: a neutral ground, the
- * words in the page's ink and the brand's mark in its colour (GlimStone's
- * `.glim-brand-btn`).
+ * A button in the shape of the README's, for the About card's give and report
+ * routes (GlimStone's `.glim-readme-btn`): 160 by 46.6, the brand's mark at the
+ * start and the name beside it on a neutral ground, one line each, as the
+ * README's give buttons have it.
  *
  * At rest the mark takes the brand's adjusted colour from the palette, since
  * the published one fails 3:1 on this ground in one of the two themes. The
  * true colour is spent as the fill while the button is pressed, the one ground
  * it was drawn for, with words and mark flipping to that fill's measured ink.
- * The web does this on hover, which a phone does not have.
+ * The web lights it under the pointer, which a phone does not have, and runs
+ * its sheen only there.
  *
  * `house` is the exception that proves the rule: the button that reaches the
  * app's own authors takes the accent, and with it the card's rainbow position,
  * which a vendor's mark may never do. `hue` is that position.
  */
-export function BrandButton({
+export function ReadmeButton({
   brand,
   label,
-  icon,
+  mark,
+  art,
   onPress,
   hue,
 }: {
   brand: Brand | 'house';
+  /** The name, and the accessible name where `art` draws the words. */
   label: string;
-  /** Given the mark's colour and the ground it stands on, as GlimButton's is,
-   *  so a painted detail such as the envelope's flap matches the ground. */
-  icon: (ink: string, ground: string) => ReactNode;
+  /** Given the mark's colour, the words' colour and whether a finger is on
+   *  the button, since a mark may draw words or change shape while lit. */
+  mark: (ink: { mark: string; words: string; lit: boolean }) => ReactNode;
+  /** The mark is the vendor's own artwork across the whole button, words
+   *  included. */
+  art?: boolean;
   onPress: () => void;
   hue?: number;
 }) {
@@ -642,16 +639,28 @@ export function BrandButton({
         onPressOut={press.onPressOut}
         accessibilityRole="button"
         accessibilityLabel={label}
-        style={({ pressed }) => [styles.button, { backgroundColor: pressed ? fill : c.surface2, ...corners.pill }]}
+        style={({ pressed }) => [styles.readme, { backgroundColor: pressed ? fill : c.surface2, ...corners.pill }]}
       >
-        {({ pressed }) => (
-          <>
-            {icon(pressed ? ink : rest, pressed ? fill : c.surface2)}
-            <Text style={[styles.buttonLabel, { color: pressed ? ink : c.text }]} numberOfLines={1}>
-              {label}
-            </Text>
-          </>
-        )}
+        {({ pressed }) => {
+          const words = pressed ? ink : c.text;
+          const drawn = mark({ mark: pressed ? ink : rest, words, lit: pressed });
+          if (art) return drawn;
+          return (
+            <>
+              <View style={styles.readmeMark}>{drawn}</View>
+              {/* A translation longer than the button shrinks rather than
+                  being cut off. */}
+              <Text
+                style={[styles.readmeName, { color: words }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {label}
+              </Text>
+            </>
+          );
+        }}
       </Pressable>
     </Animated.View>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Animated,
   Image,
   Modal,
   PixelRatio,
@@ -13,7 +14,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import qrcode from 'qrcode-generator';
 import { useAppearance } from '../theme/AppearanceContext';
-import { useMotion } from '../theme/MotionContext';
+import { useConfirm, useMotion } from '../theme/MotionContext';
 import { contrastOn } from '../theme/appearance';
 import { TYPE, inkFor } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
@@ -55,6 +56,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
   const { t } = useT();
   const { c, dark, corners, accent, hueAt, rainbow } = useAppearance();
   const { motion } = useMotion();
+  const { style: copiedStyle, confirm: confirmCopied } = useConfirm();
   const { height } = useWindowDimensions();
   const [coin, setCoin] = useState<CryptoCoin>(CRYPTO_COINS[0]!);
   const [network, setNetwork] = useState<CryptoNetwork>(CRYPTO_COINS[0]!.networks[0]!);
@@ -140,17 +142,22 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
 
                   {/* The coin's own position, so under the rainbow it matches the
                       tile the address came from. */}
-                  <GlimButton
-                    hue={coinIndex}
-                    label={copied ? t('settings.cryptoCopied') : t('settings.cryptoCopy')}
-                    icon={(ink) => <Paste color={ink} />}
-                    onPress={() => {
-                      void Clipboard.setStringAsync(network.address)
-                        .then(() => setCopied(true))
-                        // The address stays on screen whole, to be selected by hand.
-                        .catch(() => undefined);
-                    }}
-                  />
+                  <Animated.View style={copiedStyle}>
+                    <GlimButton
+                      hue={coinIndex}
+                      label={copied ? t('settings.cryptoCopied') : t('settings.cryptoCopy')}
+                      icon={(ink) => <Paste color={ink} />}
+                      onPress={() => {
+                        void Clipboard.setStringAsync(network.address)
+                          .then(() => {
+                            setCopied(true);
+                            confirmCopied();
+                          })
+                          // The address stays on screen whole, to be selected by hand.
+                          .catch(() => undefined);
+                      }}
+                    />
+                  </Animated.View>
                 </View>
 
                 {/* Tiles, since a coin's mark is recognised faster than its name
