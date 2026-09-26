@@ -1,7 +1,8 @@
 <!doctype html>
-<!-- The values before the language is known; i18n.js replaces them before any
-     label is written. -->
-<html lang="en" dir="ltr">
+<!-- lang and dir hold until i18n.js knows the language, which it sets before any
+     label is written. The extension has no motion setting, so the popup runs
+     at GlimStone's default level. -->
+<html lang="en" dir="ltr" data-motion="subtle">
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
@@ -132,9 +133,6 @@
       .sendRow { display: flex; gap: 8px; }
       .sendRow > button { flex: 1 1 0; min-width: 0; }
       #tabs { margin-bottom: 12px; }
-      /* The base rule's width: 100% would give each tab the whole strip and
-         stack them. */
-      #tabs button { width: auto; }
       /* Both panes share a minimum height so switching tabs does not resize the
          popup; the collector's field takes the rest. */
       #paneSend,
@@ -177,13 +175,12 @@
            the bubble (GlimStone 1.8.0). The aria-label is the name until
            popup.js runs. -->
       <button id="openOptions" class="iconBadge" type="button" aria-label="Settings">
-        <!-- The web UI's filled gear (IconSettings in web/src/lib/icons.tsx),
-             half the badge's size. -->
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <!-- The cog GlimStone gives Settings, Streamline's
+             interface-essential/cog.svg (CC BY 4.0), half the badge's size. -->
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 0 1-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 0 1 .947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 0 1 2.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 0 1 2.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 0 1 .947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 0 1-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 0 1-2.287-.947zM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+            d="m5.557 0.69 -0.463 1.195 -1.594 0.904 -1.27 -0.194a1.077 1.077 0 0 0 -1.078 0.528l-0.43 0.754a1.077 1.077 0 0 0 0.086 1.217l0.807 1.001v1.81L0.83 8.906a1.077 1.077 0 0 0 -0.086 1.217l0.43 0.754a1.077 1.077 0 0 0 1.078 0.528l1.27 -0.194 1.573 0.904 0.463 1.196a1.076 1.076 0 0 0 1 0.689h0.905a1.076 1.076 0 0 0 1.002 -0.69l0.463 -1.195 1.572 -0.904 1.27 0.194a1.077 1.077 0 0 0 1.078 -0.528l0.43 -0.754a1.077 1.077 0 0 0 -0.086 -1.217l-0.807 -1.001v-1.81l0.786 -1.001a1.077 1.077 0 0 0 0.086 -1.217l-0.43 -0.754a1.076 1.076 0 0 0 -1.078 -0.528l-1.27 0.194 -1.573 -0.904L8.443 0.689A1.077 1.077 0 0 0 7.442 0h-0.884a1.077 1.077 0 0 0 -1.001 0.69ZM7 9.25a2.25 2.25 0 1 0 0 -4.5 2.25 2.25 0 0 0 0 4.5Z"
           />
         </svg>
       </button>

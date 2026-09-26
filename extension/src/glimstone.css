@@ -114,15 +114,20 @@ body {
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
 
-  /* Brand marks at rest (GlimStone 1.10.0). The published colours fail 3:1 on
-     one of the two button grounds, so the warm ones are deepened for light and
-     the dark ones lightened for dark; the true colour is the hover fill (see
-     .glim-brand-btn). On #393939 they measure 8.6, 5.0, 5.1 and 11.6 to 1. All
-     four tokens ship, not only the ones this page draws. */
+  /* The About card's marks at rest. The published colours fail 3:1 on one of
+     the two button grounds, so the warm ones are deepened for light and the
+     dark ones lightened for dark; the true colour is the lit button's fill
+     (.glim-tile-<brand>). On #393939 they measure 8.6, 5.0, 5.1 and 11.6 to 1.
+     The App tab's marks ship too, not only the ones these pages draw. */
   --brand-coffee:  #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
+  --brand-android:     #32de84;
+  --brand-docker:      #2396ed;
+  --brand-unraid-from: #e32929;
+  --brand-unraid-to:   #ff8d30;
+  --brand-windows:     #2b88d8;
 
   /* Text ramp in three steps, the last still legible at 11px. */
   --carbon-text:       #f4f4f4;
@@ -194,6 +199,11 @@ body {
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
+  --brand-android:     #32de84;
+  --brand-docker:      #2396ed;
+  --brand-unraid-from: #e32929;
+  --brand-unraid-to:   #ff8d30;
+  --brand-windows:     #0078d4;
 
   --carbon-text:       #161616;
   --carbon-text-sub:   #525252;
@@ -282,6 +292,11 @@ body {
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
+    --brand-android:     #32de84;
+    --brand-docker:      #2396ed;
+    --brand-unraid-from: #e32929;
+    --brand-unraid-to:   #ff8d30;
+    --brand-windows:     #0078d4;
 
     --carbon-text:       #161616;
     --carbon-text-sub:   #525252;
@@ -368,15 +383,16 @@ body {
 .glim-section-badge .glim-info-icon svg { width: 14px; height: 14px; display: block; }
 
 /* The "well" variant of the web UI's Tabs, as its Corners picker: one padded
- * track with equal segments. A long translation in a narrow window wraps it
- * rather than pushing it out of the card, and the segments then grow to fill
- * every row, so the track shows no empty end. On one row the track hugs them
- * and leaves nothing to grow into.
+ * track across the whole width of its card, since a track that stops short
+ * reads as a control that ran out of options. The segments share that width
+ * equally while every label fits on one line; a label that needs more keeps
+ * its line and the others share the rest. A long translation in a narrow
+ * window wraps the track rather than pushing it out of the card, and each row
+ * fills its width, so the track shows no empty end.
  */
 .glim-seg {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  max-width: 100%;
   gap: 2px;
   padding: 3px;
   background: var(--carbon-surface2);
@@ -387,7 +403,8 @@ body {
    pill inside it. Its 3px padding is far too little to keep a square corner
    inside a pill's arc. */
 .glim-seg button {
-  flex: 1 0 auto;
+  flex: 1 1 0;
+  min-width: max-content;
   padding: 6px 14px;
   border: 0;
   border-radius: var(--radius-pill);
@@ -625,32 +642,12 @@ body {
   font-weight: 400;
   text-align: start;
   white-space: normal;
+  /* The 110ms the tooltip rule names, not a motion dial: the pointer is
+     already waiting for the bubble. */
   animation: glim-fade-in 110ms ease-out;
 }
 @keyframes glim-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* GlimStone's failure shake, swinging 4, 4, 2 and 2 pixels. Named for the
-   gesture so every failable control reuses it; shake() in shared.js restarts
-   it. Reduced motion gets a short opacity pulse instead.
-
-   The extension has no motion setting, so it runs at the language's default
-   level, subtle, whose --motion-shake-dur is 220ms. The bubble keeps the 110ms
-   the tooltip rule names for it. */
-@keyframes glim-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
-}
-@keyframes glim-shake-quiet {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
-.glim-shake { animation: glim-shake 220ms ease-in-out; }
-@media (prefers-reduced-motion: reduce) {
-  .glim-shake { animation: glim-shake-quiet 300ms ease-in-out; }
-}
 /* The arrow's `left` is physical because tooltip.js passes --glim-tip-ax as a
    distance from the left edge in any writing direction. */
 .glim-bubble::before {
@@ -945,14 +942,17 @@ body {
 .glim-menu button:disabled { opacity: .5; cursor: default; background: transparent; }
 
 /* The language listbox, the web UI's pattern of a field-shaped button that
-   opens a list, since a native select cannot show flags. */
+   opens a list, since a native select cannot show flags. The trigger is a
+   field, so it has a field's height; the list may be roomier. */
 .glim-listbox { position: relative; max-width: 320px; }
 .glim-listbox-trigger {
   display: flex;
   align-items: center;
   gap: 10px;
+  box-sizing: border-box;
   width: 100%;
-  padding: 9px 10px;
+  height: var(--btn-h);
+  padding: 0 10px;
   border: 0;
   border-radius: var(--radius-control);
   background: var(--carbon-surface2);
@@ -1175,60 +1175,615 @@ body {
 .glim-crypto-coins .glim-crypto-tile[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
 .glim-crypto-coins .glim-crypto-tile[aria-selected='true'] svg { color: var(--accent-contrast); }
 
-/* Brand buttons (GlimStone 1.10.0) take three values: the adjusted colour at
-   rest (--brand, a theme token), the true colour as the hover fill
-   (--brand-fill), and that fill's measured ink (--brand-ink).
-   `.glim-brand-btn` uses them and `.glim-brand-<name>` supplies them, so no
-   page file holds a colour.
+/* The single-colour marks at rest, painted through `color` on the mark's box
+   and currentColor in its paths. A published brand colour fails on one of the
+   two grounds, so they take the adjusted theme tokens, and the house mark
+   follows the accent. */
+.glim-android-mark { color: var(--brand-android); }
+.glim-docker-mark { color: var(--brand-docker); }
+.glim-windows-mark { color: var(--brand-windows); }
+.glim-paypal-mark { color: var(--brand-paypal); }
+.glim-bitcoin-mark { color: var(--brand-bitcoin); }
+.glim-github-mark { color: var(--brand-github); }
+.glim-house-mark { color: var(--accent-ink); }
 
-   These rules override the fill="currentColor" that options.js writes, since
-   an author rule beats a presentation attribute. The path selector is needed
-   because each path sets its own fill. A mark with its own ground, such as a
-   coin disc, takes none of these classes. */
-.glim-brand-btn svg,
-.glim-brand-btn svg path {
-  fill: var(--brand);
-  /* A literal: the extension has no motion tokens. */
-  transition: fill 120ms ease;
+/* A tile carrying a brand mark ("Brand tiles"): under the pointer it fills with
+   the brand's own colour (--tile), the same on both themes, and its name and
+   mark take that colour's ink (--tile-ink). A mark paints each part with
+   var(--mark-ink, <own colour>), or var(--mark-cut, <own colour>) where the
+   part lies on another part of the mark, so it keeps its own colours at rest
+   and turns ink with its cut-outs in the tile colour under the pointer. No
+   transition: a mark of many parts would trail its tile. Only under a real
+   pointer, or a tap on a touch screen would leave a resting tile lit. */
+@media (hover: hover) {
+  .glim-brand-tile:hover,
+  .group:hover > .glim-brand-tile {
+    background-color: var(--tile);
+    color: var(--tile-ink);
+    --mark-ink: var(--tile-ink);
+    --mark-cut: var(--tile);
+    --brand-android: var(--tile-ink);
+    --brand-docker: var(--tile-ink);
+    --brand-windows: var(--tile-ink);
+    --brand-unraid-from: var(--tile-ink);
+    --brand-unraid-to: var(--tile-ink);
+  }
+  :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-rest { display: none; }
+  :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-hover { display: block; }
 }
-.glim-brand-btn:hover:not(:disabled) {
-  background-color: var(--brand-fill);
-  color: var(--brand-ink);
-}
-.glim-brand-btn:hover:not(:disabled) svg,
-.glim-brand-btn:hover:not(:disabled) svg path {
-  fill: currentColor;
+/* A mark whose layers do not survive one ink brings a second drawing for the
+   hover, as the mail button's open envelope. */
+.glim-mark-hover { display: none; }
+
+/* The brands' tile colours: the true colour and the ink that holds on it, white
+   wherever white reaches 2:1 and near-black below that. The ratios for PayPal
+   and Buy Me a Coffee are measured here; the reference gives 13.4 and 13.8. */
+.glim-tile-windows { --tile: #0078d4; --tile-ink: #ffffff; } /* 4.5:1 */
+.glim-tile-apple   { --tile: #6e6e73; --tile-ink: #ffffff; } /* 5.1:1 */
+.glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
+.glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
+.glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
+.glim-tile-docker  { --tile: #1d63ed; --tile-ink: #ffffff; } /* 5.2:1 */
+.glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
+.glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
+.glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
+.glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 11.8:1 */
+.glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #161616; } /* 7.9:1 */
+/* Buy Me a Coffee's own near-black, the ink of their button. 14.3:1. */
+.glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
+/* The button that reaches the app's own authors follows the colour engine. */
+.glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+
+/* The README button, as the About card's give and report buttons: the
+   proportions of the download buttons in the family's READMEs, 160 by 46.6
+   with a segment of 87 on a 16px rem. At rest the mark keeps its colours and
+   the name stands alone in the middle. Under the pointer the whole unit fills
+   with its brand's colour and a sheen crosses it once; a name with a second
+   line moves up for it. The unit carries `group` and a `.glim-tile-<brand>`;
+   each button or segment in it is a `.glim-brand-tile`. */
+.glim-readme-btn-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8125rem;
 }
 
-/* One block per brand: the resting mark follows the theme, the fill and its
-   ink do not. The ratios are measured here; the reference's 13.4:1 for PayPal
-   is 11.85 in fact. */
-.glim-brand-coffee {
-  --brand: var(--brand-coffee);
-  --brand-fill: #ffdd00;
-  /* Buy Me a Coffee's own near-black, the ink their button uses. 14.3:1. */
-  --brand-ink: #0d0c22;
-}
-.glim-brand-bitcoin {
-  --brand: var(--brand-bitcoin);
-  --brand-fill: #f7931a;
-  --brand-ink: #161616; /* 7.9:1 */
-}
-.glim-brand-paypal {
-  --brand: var(--brand-paypal);
-  --brand-fill: #003087;
-  --brand-ink: #ffffff; /* 11.8:1 */
-}
-.glim-brand-github {
-  --brand: var(--brand-github);
-  --brand-fill: #181717;
-  --brand-ink: #ffffff; /* 17.9:1 */
+.glim-readme-btn-unit {
+  position: relative;
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-/* Our own mail button follows the accent and the rainbow, which a vendor's
-   mark may not. */
-.glim-brand-house {
-  --brand: var(--accent-ink);
-  --brand-fill: var(--accent);
-  --brand-ink: var(--accent-contrast);
+.glim-readme-btn {
+  position: relative;
+  flex: none;
+  width: 10rem;
+  height: 2.9125rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* The unit clips everything at its edge, a ring outside the button too. */
+.glim-readme-btn:focus-visible {
+  outline-offset: -3px;
+}
+
+.glim-readme-btn.glim-readme-btn-seg {
+  width: 5.4375rem;
+}
+
+.glim-readme-btn-seg::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 1.5px;
+  background-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* The height is the README's mark, and the box is wider than tall, so a wide
+   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+.glim-readme-btn-mark {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 1.5rem;
+  width: 2rem;
+  height: 1.5625rem;
+  translate: 0 -50%;
+  display: flex;
+}
+
+.glim-readme-btn-mark svg,
+.glim-readme-btn-art svg {
+  width: 100%;
+  height: 100%;
+}
+
+.glim-readme-btn-mark svg:not(.glim-mark-hover),
+.glim-readme-btn-art svg {
+  display: block;
+}
+
+/* A vendor's own button artwork, drawn on the README's canvas, which is the
+   button's: Buy Me a Coffee's cup and lettering. */
+.glim-readme-btn-art {
+  position: absolute;
+  inset: 0;
+}
+
+@media (hover: hover) {
+  .group:hover > .glim-brand-tile .glim-readme-btn-mark,
+  .group:hover .glim-readme-btn-hint {
+    color: var(--tile-ink);
+  }
+  /* A segment under the pointer is a shade deeper than the unit it lights. */
+  .glim-readme-btn-group > .glim-readme-btn:hover {
+    background-color: color-mix(in srgb, var(--tile) 86%, black);
+  }
+}
+
+.glim-readme-btn-text {
+  position: absolute;
+  inset-block: 0;
+  inset-inline: 3.9375rem 0.625rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.glim-readme-btn-seg .glim-readme-btn-text {
+  inset-inline: 0.375rem;
+  align-items: center;
+  text-align: center;
+}
+
+.glim-readme-btn-unit:has(.glim-readme-btn-hint) .glim-readme-btn-text {
+  inset-inline-end: 1.75rem;
+}
+
+.glim-readme-btn-name,
+.glim-readme-btn-sub {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.glim-readme-btn-name {
+  font-size: var(--text-body);
+  font-weight: 700;
+  transition: translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
+}
+
+/* Half the second line's height down, so the name alone sits in the middle. */
+.glim-readme-btn-name:not(:only-child) {
+  translate: 0 0.4375rem;
+}
+
+.glim-readme-btn-sub {
+  font-size: 0.75rem;
+  opacity: 0;
+  translate: 0 0.25rem;
+  transition:
+    opacity calc(var(--motion-page-dur, 0ms) / 2) ease,
+    translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
+}
+
+/* `--note` holds the second line in view while it reports something, such as
+   a command just copied. A button still to come says so at rest. */
+.glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-name {
+  translate: 0 0;
+}
+
+.glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-sub {
+  opacity: 0.9;
+  translate: 0 0;
+}
+
+.glim-readme-btn-soon .glim-readme-btn {
+  color: var(--carbon-text-muted);
+  cursor: default;
+}
+
+.glim-readme-btn-soon .glim-readme-btn-mark {
+  opacity: 0.45;
+}
+
+/* Without a pointer there is no hover to bring the second line in. */
+@media (hover: none) {
+  .glim-readme-btn-name:not(:only-child) {
+    translate: 0 0;
+  }
+  .glim-readme-btn-sub {
+    opacity: 0.9;
+    translate: 0 0;
+  }
+}
+
+.glim-readme-btn-hint {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0.625rem;
+  z-index: 2;
+  translate: 0 -50%;
+}
+
+/* The README's sheen, here once per visit of the pointer and across the whole
+   unit, a group at nearly twice the time so it crosses at the same speed. */
+.glim-readme-btn-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.glim-readme-btn-sheen::after {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  bottom: -0.75rem;
+  left: -4rem;
+  width: 2.0625rem;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28) 45%, rgb(255 255 255 / 0.28) 55%, transparent);
+  transform: skewX(-16deg);
+}
+
+@keyframes glim-readme-sheen {
+  to {
+    left: calc(100% + 2rem);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion='off']) .glim-readme-btn-unit:not(.glim-readme-btn-soon):hover .glim-readme-btn-sheen::after {
+    animation: glim-readme-sheen var(--motion-button-sheen-dur) linear;
+  }
+  :root:not([data-motion='off']) .glim-readme-btn-group:hover .glim-readme-btn-sheen::after {
+    animation-duration: calc(var(--motion-button-sheen-dur) * 1.9);
+  }
+}
+
+/* The About card's give buttons stand a blank line of the card's text apart
+   from the sentences above and below them ("The About card"). */
+.glim-about-give {
+  margin-block: calc(var(--text-body) * 1.5);
+}
+
+/* The motion engine, with the level blocks of the reference's tokens.css. A
+   level is a set of numbers read by the same keyframes, so every level declares
+   every dial and none borrows the lively one (check-motion.mjs holds that), and
+   a selector names the quiet levels, never the lively one.
+
+   The extension has no motion setting, so options.html and popup.html carry
+   data-motion="subtle", the language's default level. Without it the bare
+   :root, which is the lively level, would apply. */
+@keyframes glim-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .45; }
+}
+/* A control refusing an action, swinging 4, 4, 2 and 2 pixels. The decay reads
+   as "pushed back" rather than a glitch; shake() in shared.js replays it. */
+@keyframes glim-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+/* The reduced-motion stand-in: a brief opacity pulse. */
+@keyframes glim-shake-reduced {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .5; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The offered levels live inside no-preference, so a system that asked for
+     less motion never evaluates their selectors and keeps the reduce block's
+     values. Storm's numbers are the exception, below the gate. */
+  :root {
+    --motion-page-dur: 420ms;
+    --motion-toast-dur: 300ms;
+    --motion-pulse-dur: 2s;
+    --motion-fade-dur: 140ms;
+    --motion-shake-dur: 360ms;
+    /* Distance and curve set the levels apart along with duration: 18px
+       against subtle's 6px, and a spring instead of an ease. */
+    --motion-page-travel: 18px;
+    /* The fourth control point past 1 makes the curve spring. The toast has
+       its own curve: it slides in from the screen edge, and a spring would
+       carry it back past that edge, which reads as a glitch. Storm springs
+       both. */
+    --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
+    --motion-toast-ease: cubic-bezier(.2, .6, .2, 1);
+    /* Every toast distance needs its RTL twin, since the keyframe cannot be
+       mirrored by a class. */
+    --glim-toast-slide: 24px;
+  }
+  :root[dir="rtl"] { --glim-toast-slide: -24px; }
+  :root[data-motion='subtle'] {
+    --motion-page-dur: 140ms;
+    --motion-toast-dur: 120ms;
+    --motion-pulse-dur: 3.2s;
+    --motion-fade-dur: 70ms;
+    --motion-shake-dur: 220ms;
+    /* Less travel and a curve that only eases, not a faster bounce. */
+    --motion-page-travel: 6px;
+    --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
+    --motion-toast-ease: cubic-bezier(.2, .6, .2, 1);
+    --glim-toast-slide: 12px;
+  }
+  :root[data-motion='subtle'][dir="rtl"] { --glim-toast-slide: -12px; }
+  :root[data-motion='off'] {
+    --motion-page-dur: 0s;
+    --motion-toast-dur: 0s;
+    --motion-fade-dur: 0s;
+    --motion-shake-dur: 0s;
+    --motion-page-travel: 0px;
+    --motion-page-ease: linear;
+    --motion-toast-ease: ease;
+    --glim-toast-slide: 0px;
+    /* Declared so this level does not inherit the lively number, but never
+       read: `.glim-live` says something is in progress, so here it stops
+       fully opaque instead (below). */
+    --motion-pulse-dur: 3.2s;
+  }
+
+  .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
+  .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
+
+  :root[data-motion='off'] .glim-live { animation: none; opacity: 1; }
+
+  /* Every transition reads one number, so the setting reaches all of them.
+     The other dials here: a window's entrance, the reactive label's reveal,
+     the sheen that crosses a README button once under the pointer, and the
+     round-two animations described where their keyframes are. */
+  :root {
+    --motion-control-dur: 150ms;
+    --motion-modal-dur: 260ms;
+    --motion-modal-travel: 10px;
+    --motion-label-dur: 320ms;
+    --motion-label-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --motion-label-shift: -0.4rem;
+    --motion-label-squash: 0.82;
+    --motion-button-sheen-dur: 800ms;
+    --motion-shape-dur: 260ms;
+    --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
+    --motion-confirm-dur: 420ms;
+    --motion-confirm-scale: 1;
+    --motion-stagger-step: 30ms;
+    --motion-stagger-cap: 480ms;
+    --motion-stagger-dur: 240ms;
+    --motion-wipe-dur: 320ms;
+    --motion-check-dur: 360ms;
+    --motion-content-dur: 220ms;
+    --motion-tab-dur: 220ms;
+    --motion-tab-travel: 18px;
+    --motion-wiggle-dur: 280ms;
+    --motion-wiggle-angle: .6deg;
+  }
+  :root[data-motion='subtle'] {
+    --motion-control-dur: 80ms;
+    --motion-modal-dur: 150ms;
+    --motion-modal-travel: 0px;
+    --motion-label-dur: 160ms;
+    --motion-label-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --motion-label-shift: 0rem;
+    --motion-label-squash: 1;
+    --motion-button-sheen-dur: 1100ms;
+    --motion-shape-dur: 140ms;
+    --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
+    --motion-confirm-dur: 260ms;
+    --motion-confirm-scale: .5;
+    --motion-stagger-step: 15ms;
+    --motion-stagger-cap: 200ms;
+    --motion-stagger-dur: 140ms;
+    --motion-wipe-dur: 160ms;
+    --motion-check-dur: 200ms;
+    --motion-content-dur: 120ms;
+    --motion-tab-dur: 130ms;
+    --motion-tab-travel: 10px;
+    --motion-wiggle-dur: 360ms;
+    --motion-wiggle-angle: .3deg;
+  }
+  :root[data-motion='off'] {
+    --motion-control-dur: 0s;
+    --motion-modal-dur: 0s;
+    --motion-modal-travel: 0px;
+    --motion-label-dur: 0s;
+    --motion-label-ease: linear;
+    --motion-label-shift: 0rem;
+    --motion-label-squash: 1;
+    --motion-button-sheen-dur: 0s;
+    --motion-shape-dur: 0s;
+    --motion-shape-ease: linear;
+    --motion-confirm-dur: 0s;
+    --motion-confirm-scale: 0;
+    --motion-stagger-step: 0s;
+    --motion-stagger-cap: 0s;
+    --motion-stagger-dur: 0s;
+    --motion-wipe-dur: 0s;
+    --motion-check-dur: 0s;
+    --motion-content-dur: 0s;
+    --motion-tab-dur: 0s;
+    --motion-tab-travel: 0px;
+    /* A long period rather than none, with no angle, so nothing moves. */
+    --motion-wiggle-dur: 400ms;
+    --motion-wiggle-angle: 0deg;
+  }
+  :root[data-motion='off'] * { transition-duration: 0s !important; }
+}
+/* Storm, the hidden fourth level: the same keyframes with a spring that swings
+   further and settles later. Its numbers sit outside the no-preference gate:
+   storm is the one level that still animates under reduced motion, and the
+   reduce block restores its animations from these tokens, which it could not
+   read inside the gate. */
+:root[data-motion='storm'] {
+  --motion-page-dur: 760ms;
+  --motion-toast-dur: 420ms;
+  --motion-pulse-dur: 1.4s;
+  --motion-fade-dur: 200ms;
+  --motion-shake-dur: 520ms;
+  --motion-page-travel: 34px;
+  /* Further past 1 than wild's curve and slower to settle. */
+  --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
+  /* The only level where the toast springs past the screen edge. */
+  --motion-toast-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --glim-toast-slide: 44px;
+  --motion-control-dur: 300ms;
+  --motion-modal-dur: 420ms;
+  --motion-modal-travel: 18px;
+  --motion-label-dur: 480ms;
+  --motion-label-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --motion-label-shift: -0.6rem;
+  --motion-label-squash: 0.7;
+  --motion-button-sheen-dur: 550ms;
+  --motion-shape-dur: 460ms;
+  --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --motion-confirm-dur: 700ms;
+  --motion-confirm-scale: 1.9;
+  --motion-stagger-step: 55ms;
+  /* At 55ms a step a long list would stagger for seconds without the cap. */
+  --motion-stagger-cap: 700ms;
+  --motion-stagger-dur: 420ms;
+  --motion-wipe-dur: 560ms;
+  --motion-check-dur: 620ms;
+  --motion-content-dur: 380ms;
+  --motion-tab-dur: 380ms;
+  --motion-tab-travel: 34px;
+  --motion-wiggle-dur: 220ms;
+  --motion-wiggle-angle: 1deg;
+}
+:root[data-motion='storm'][dir="rtl"] { --glim-toast-slide: -44px; }
+
+/* Storm is exempt from reduced motion: five taps on a chosen option are a
+   deliberate request, which the OS setting did not make. The substitute below
+   excludes storm, and storm's full animation is restored after it, since
+   exempting without restoring would leave it with none. An infinite animation
+   stops outright at every level, fully opaque, so "this is live" reads from
+   colour and position. */
+@media (prefers-reduced-motion: reduce) {
+  .glim-live { animation: none; opacity: 1; }
+  :root:not([data-motion='storm']) .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
+  :root[data-motion='storm'] .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
+}
+
+/* A window's entrance: the backdrop fades and the card rises a short way and
+   settles; at subtle it only fades, since its travel is nothing. No scale: a
+   scaled ancestor makes every animated child inside it resample. */
+@keyframes glim-modal-in {
+  from { opacity: 0; transform: translateY(var(--motion-modal-travel, 10px)); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .glim-modal-backdrop { animation: glim-fade-in var(--motion-modal-dur) ease both; }
+  .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
+}
+
+/* The round-two animations of "The motion engine". Each reads its own dials,
+   declared at every level above, and plays only inside the no-preference gate.
+   A class that has to play again, such as the pulse on a second success, is
+   taken off and put back after forcing a style pass (replay() in shared.js). */
+
+/* The shape morph. Registering the radius tokens as lengths lets them
+   transition on the root, so every corner that reads them follows without a
+   transition of its own; per-element transitions would fight each element's
+   other transitions for the shorthand. options.js arms it two frames after the
+   first paint, so the first radii never animate. */
+@property --radius-card { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --radius-control { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --radius-pill { syntax: '<length>'; inherits: true; initial-value: 0px; }
+
+/* The success pulse, the shake's gentler sibling: a ring in the element's own
+   accent and a small pop. */
+@keyframes glim-confirm {
+  0%   { box-shadow: 0 0 0 0 var(--accent-soft); scale: 1; }
+  40%  { box-shadow: 0 0 0 calc(var(--motion-confirm-scale, 1) * 6px) var(--accent-soft); scale: calc(1 + var(--motion-confirm-scale, 1) * .05); }
+  100% { box-shadow: 0 0 0 0 var(--accent-soft); scale: 1; }
+}
+
+/* A row arriving in a list. The fade stays inside the keyframe on a plain
+   ease-out, since rows come in dozens and opacity never rides a spring. */
+@keyframes glim-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* `pathLength="1"` on the path lets a 1-to-0 dash offset draw the whole glyph. */
+@keyframes glim-check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes glim-content-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* A tab change. The strip sets --tab-dir to 1 toward a later tab and -1 toward
+   an earlier one; --dir-sign, the reference's --tab-dir-sign, flips the side
+   under a right-to-left script. */
+@keyframes glim-tab-slide {
+  from { transform: translateX(calc(var(--tab-dir, 1) * var(--dir-sign, 1) * var(--motion-tab-travel, 18px))); }
+  to   { transform: none; }
+}
+
+/* Drawn at rest outside the gate, so a checkmark is never left invisible. */
+.glim-check-draw { stroke-dasharray: 1; stroke-dashoffset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :root.glim-shape-transitions {
+    transition:
+      --radius-card var(--motion-shape-dur) var(--motion-shape-ease),
+      --radius-control var(--motion-shape-dur) var(--motion-shape-ease),
+      --radius-pill var(--motion-shape-dur) var(--motion-shape-ease);
+  }
+
+  .glim-confirm { animation: glim-confirm var(--motion-confirm-dur) ease-out; }
+
+  .glim-stagger-row {
+    animation: glim-row-in var(--motion-stagger-dur) ease-out both;
+    /* min() caps the whole spread however long the list is. */
+    animation-delay: min(calc(var(--row-i, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
+  }
+
+  /* The colour wipe. options.js puts .glim-colour-wipe on the root for
+     --motion-wipe-dur whenever the rainbow changes, so ordinary hovers never
+     get this transition. The doubled class wins a tie with a component's own
+     transition shorthand. */
+  .glim-colour-wipe,
+  .glim-colour-wipe.glim-colour-wipe * {
+    transition:
+      background-color var(--motion-wipe-dur) ease,
+      color var(--motion-wipe-dur) ease,
+      border-color var(--motion-wipe-dur) ease,
+      box-shadow var(--motion-wipe-dur) ease,
+      fill var(--motion-wipe-dur) ease,
+      stroke var(--motion-wipe-dur) ease;
+  }
+  /* The wipe starts with a click on a rainbow switch, whose knob would
+     otherwise lose its slide to the list above. */
+  .glim-colour-wipe.glim-colour-wipe .glim-switch-knob {
+    transition: translate 150ms ease, background-color var(--motion-wipe-dur) ease;
+  }
+
+  .glim-check-draw {
+    stroke-dashoffset: 1;
+    animation: glim-check-draw var(--motion-check-dur) ease forwards;
+  }
+
+  .glim-content-fade { animation: glim-content-fade-in var(--motion-content-dur) ease both; }
+
+  .glim-tab-slide {
+    animation:
+      glim-tab-slide var(--motion-tab-dur) var(--motion-page-ease) both,
+      glim-fade-in var(--motion-tab-dur) ease-out both;
+  }
 }
