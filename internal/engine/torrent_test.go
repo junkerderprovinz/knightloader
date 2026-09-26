@@ -2,6 +2,8 @@ package engine
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -35,6 +37,29 @@ func TestLandingPathsMirrorWhereTheLibraryWrites(t *testing.T) {
 	}
 	if got := landingPaths(nil); got != nil {
 		t.Fatalf("landingPaths(nil) = %v", got)
+	}
+}
+
+// A magnet's file list, as its update carries it, is what DeleteTorrentFiles
+// goes by after a restart, so it has to name every file the library writes,
+// an empty one included, or the folder is left behind.
+func TestAMagnetsFileListDeletesEveryFileTheLibraryWrote(t *testing.T) {
+	dir := t.TempDir()
+	res := &base.Resource{Name: "Show.S01", Files: []*base.FileInfo{
+		{Name: "ep01.mkv", Size: 10}, {Name: "en.srt", Path: "subs", Size: 3}, {Name: "Show.S01.nfo"}, nil,
+	}}
+	for _, rel := range landingPaths(res) {
+		p := filepath.Join(dir, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	DeleteTorrentFiles(dir, filepath.Join(dir, res.Name), torrentPaths(res))
+	if _, err := os.Stat(filepath.Join(dir, res.Name)); !os.IsNotExist(err) {
+		t.Errorf("the torrent's folder is still there after its listed files were deleted (%v)", err)
 	}
 }
 

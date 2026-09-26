@@ -198,6 +198,10 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN skip_params TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN reject_code TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN reject_params TEXT NOT NULL DEFAULT ''`,
+	// A magnet's file list (JSON), which the swarm sends once. Without it a
+	// restart leaves nothing that says which files in the torrent's folder are
+	// its own, and removing it with its files has to leave the folder.
+	`ALTER TABLE tasks ADD COLUMN magnet_files TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -300,7 +304,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
-	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params`
+	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -365,6 +369,14 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		trackers = string(b)
 	}
+	magnetFiles := ""
+	if len(t.MagnetFiles) > 0 {
+		b, err := json.Marshal(t.MagnetFiles)
+		if err != nil {
+			return err
+		}
+		magnetFiles = string(b)
+	}
 	serviceJob := ""
 	if t.ServiceJob != nil {
 		b, err := json.Marshal(t.ServiceJob)
@@ -387,7 +399,8 @@ func (s *Store) Save(t *core.Task) error {
 		t.InfoHash, trackers, string(t.Mode),
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
-		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams))
+		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams),
+		magnetFiles)
 	if err != nil {
 		return err
 	}
@@ -423,7 +436,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob, skipParams, rejectParams string
+		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob, skipParams, rejectParams, magnetFiles string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue, seedingEnded int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -437,7 +450,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
 			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
-			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams); err != nil {
+			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -480,6 +493,9 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if trackers != "" {
 			_ = json.Unmarshal([]byte(trackers), &t.Trackers)
+		}
+		if magnetFiles != "" {
+			_ = json.Unmarshal([]byte(magnetFiles), &t.MagnetFiles)
 		}
 		if skipParams != "" {
 			_ = json.Unmarshal([]byte(skipParams), &t.SkipParams)

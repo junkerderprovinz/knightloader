@@ -2,6 +2,7 @@ package store
 
 import (
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -308,6 +309,46 @@ func TestTaskWithNoInfoHashRoundTripsAsNilTrackers(t *testing.T) {
 	}
 	if all[0].Trackers != nil {
 		t.Fatalf("trackers = %+v, want nil", all[0].Trackers)
+	}
+}
+
+// The swarm sends a magnet's file list once, and after a restart the stored
+// list is all that says which files in the torrent's folder are its own.
+func TestAMagnetsFileListSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	listed := []string{"Show.S01E01.mkv", "Subs/Show.S01E01.srt", "Show.S01.nfo"}
+	for _, task := range []core.Task{
+		{ID: "m1", URL: "magnet:?xt=urn:btih:2222222222222222222222222222222222222222", CreatedAt: time.Now(), MagnetFiles: listed},
+		{ID: "m2", URL: "magnet:?xt=urn:btih:3333333333333333333333333333333333333333", CreatedAt: time.Now()},
+	} {
+		if err := s.Save(&task); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string][]string{}
+	for _, task := range all {
+		got[task.ID] = task.MagnetFiles
+	}
+	if !slices.Equal(got["m1"], listed) {
+		t.Errorf("the file list came back as %v, want %v", got["m1"], listed)
+	}
+	if list, ok := got["m2"]; !ok || list != nil {
+		t.Errorf("a magnet the swarm never listed came back with %#v, want no list", list)
 	}
 }
 

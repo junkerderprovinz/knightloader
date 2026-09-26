@@ -115,8 +115,11 @@ func (l leftover) drop(taskID string) {
 
 // torrentLeftover is where a torrent of the built-in client landed, for
 // deleting its files when the engine does not know it, as after a restart.
+// paths is a magnet's file list, which the task keeps once the swarm has sent
+// it.
 type torrentLeftover struct {
 	dir, root, uri string
+	paths          []string
 }
 
 // torrentLeftoverLocked is t's torrent as it lies on disk, or the zero value
@@ -125,20 +128,23 @@ func (a *App) torrentLeftoverLocked(t *core.Task) torrentLeftover {
 	if t.Resolver != (torrent.Resolver{}).Info().ID || t.File == "" {
 		return torrentLeftover{}
 	}
-	return torrentLeftover{dir: a.dirFor(t), root: t.File, uri: t.URL}
+	return torrentLeftover{dir: a.dirFor(t), root: t.File, uri: t.URL, paths: t.MagnetFiles}
 }
 
-// drop deletes the files the torrent names. Their list comes from the
-// .torrent the task keeps in its link; a magnet keeps none, so of a magnet
-// only a single file goes, never a folder that could hold anything else.
+// drop deletes the files the torrent names: a magnet's by the list the task
+// kept, a .torrent's by the list in its link. A magnet without a list names
+// none, so of it only a single file goes, never a folder that could hold
+// anything else.
 func (l torrentLeftover) drop() {
 	if l.root == "" {
 		return
 	}
-	var paths []string
-	if md, err := (torrent.Resolver{}).Describe(l.uri); err == nil {
-		for _, f := range md.Files {
-			paths = append(paths, f.Path)
+	paths := l.paths
+	if paths == nil {
+		if md, err := (torrent.Resolver{}).Describe(l.uri); err == nil {
+			for _, f := range md.Files {
+				paths = append(paths, f.Path)
+			}
 		}
 	}
 	engine.DeleteTorrentFiles(l.dir, l.root, paths)

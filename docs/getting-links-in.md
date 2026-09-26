@@ -58,7 +58,8 @@ the name, so two torrents never write into each other's files. A torrent that
 starts again, after a restart or by hand, carries on where it was. Removing a
 torrent with its files deletes the files it downloaded and any folders that
 end up empty. Anything else in its folder stays, such as what an archive was
-unpacked to.
+unpacked to. Removing works the same after a restart, since the download keeps
+a magnet's file list once the swarm has sent it.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me or Debrid-Link ranks above "Built-in torrent client" on the Accounts
