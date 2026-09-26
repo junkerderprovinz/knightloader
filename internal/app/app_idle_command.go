@@ -26,8 +26,8 @@ type IdleRun struct {
 	// Problem is empty exactly when OK is true.
 	Problem  idleaction.Problem `json:"problem,omitempty"`
 	ExitCode int                `json:"exitCode,omitempty"`
-	// Output is the program's combined output, capped, with the stored command
-	// line removed (see CommandSpec.RedactIn).
+	// Output is the program's combined output, or why it did not start,
+	// capped, with the stored command line removed (see CommandSpec.RedactIn).
 	Output string `json:"output,omitempty"`
 	// Program is the configured program, unredacted. It goes to the
 	// authenticated browser API but never into a log line, because the log
@@ -133,12 +133,19 @@ func (a *App) RunIdleCommandNow(spec idleaction.CommandSpec) IdleRun {
 	// A shutdown cancels the context too, and that is not a timeout.
 	timedOut := errors.Is(ctx.Err(), context.DeadlineExceeded)
 	problem, code := idleaction.Classify(err, timedOut)
+	if out == "" && code == -1 {
+		// The program never got as far as saying anything, so the reason it
+		// did not start is the only evidence there is.
+		out = err.Error()
+	}
 	run := IdleRun{
 		Action:   idleaction.ActionCommand,
 		Problem:  problem,
 		ExitCode: code,
-		Output:   spec.RedactIn(idleaction.TrimOutput(out)),
-		Program:  spec.Program,
+		// Redacted before it is cut, or a token straddling the cut would reach
+		// the log as a prefix the redaction cannot match.
+		Output:  idleaction.TrimOutput(spec.RedactIn(out)),
+		Program: spec.Program,
 	}
 	return a.recordIdleRun(run)
 }
