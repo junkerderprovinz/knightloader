@@ -498,6 +498,12 @@ type Task struct {
 	// Reason is the typed cause of the current failure; Error is the sentence
 	// beside it.
 	Reason Reason `json:"reason,omitempty"`
+	// RejectCode is Error as a value when the link filter or the tracker ban
+	// refused to start the task, for an interface that words it in the
+	// reader's language, and RejectParams holds the values that wording needs.
+	// ClearFailure clears them with Error.
+	RejectCode   string            `json:"rejectCode,omitempty"`
+	RejectParams map[string]string `json:"rejectParams,omitempty"`
 	// Waiting is why a queued task has not started. It is recomputed by every
 	// dispatch pass.
 	Waiting Waiting `json:"waiting,omitempty"`
@@ -563,4 +569,11 @@ type Task struct {
 	// time and persisted.
 	InfoHash string   `json:"infoHash,omitempty"`
 	Trackers []string `json:"trackers,omitempty"`
+}
+
+// ClearFailure forgets the current failure: its sentence, its typed cause and
+// a rejection's code, so none of them labels the next attempt.
+func (t *Task) ClearFailure() {
+	t.Error, t.Reason = "", ReasonUnknown
+	t.RejectCode, t.RejectParams = "", nil
 }

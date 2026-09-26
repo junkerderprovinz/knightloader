@@ -1,5 +1,5 @@
-import { heldReason } from '../../lib/heldReason';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { rejectionReason } from '../../lib/rejectionReason';
 import { reasonKey } from '../columns';
 import { Card, LabelBadge, SectionTitle } from '../ui';
 import { Fact } from './Fact';
@@ -23,8 +23,13 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
   const cause = causeKey ? t(causeKey) : '';
   const held = task.waiting ? t(waitingKey(task.waiting)) : '';
   // skipReason without `skipped` is a stale sentence from a park that has
-  // since been lifted; the flag is what makes it true right now.
-  const filtered = task.skipped ? heldReason(t, task.skipCode, task.skipParams, task.skipReason) : '';
+  // since been lifted; the flag is what makes it true right now. A link the
+  // queue's last check rejected carries its code beside the error instead.
+  const filtered = task.skipped
+    ? rejectionReason(t, task.skipCode, task.skipParams, task.skipReason)
+    : task.rejectCode
+      ? rejectionReason(t, task.rejectCode, task.rejectParams, task.error)
+      : '';
 
   if (!cause && !task.error && !held && !task.note && !filtered && !task.gaveUp) return null;
 

@@ -541,7 +541,7 @@ func (m *Matcher) rejection(r compiled, c Candidate, g groups) Verdict {
 			return v
 		}
 	}
-	v.Reason = fmt.Sprintf("blocked by filter rule %q", r.name)
+	v.Reason = fmt.Sprintf("rejected by link filter rule %q", r.name)
 	v.Code, v.Params = CodeFilterRule, map[string]string{"rule": r.name}
 	return v
 }

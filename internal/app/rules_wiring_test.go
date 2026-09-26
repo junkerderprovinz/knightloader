@@ -287,6 +287,10 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 		arm    func(t *testing.T, a *App, base string)
 		link   string
 		wantIn string
+		// The refusal as a code, which the task detail words in the reader's
+		// language. A taken destination has none.
+		wantCode   string
+		wantParams map[string]string
 	}{
 		{
 			name:   "a link filter rule written after the link was staged",
@@ -301,8 +305,10 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 					t.Fatal(err)
 				}
 			},
-			link:   "https://host.example/sample.mkv",
-			wantIn: "sample files are not wanted here",
+			link:       "https://host.example/sample.mkv",
+			wantIn:     "sample files are not wanted here",
+			wantCode:   skipFilterRuleReason,
+			wantParams: map[string]string{"reason": "sample files are not wanted here", "rule": "no samples"},
 		},
 		{
 			name:   "a destination that was already taken",
@@ -335,6 +341,7 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 
 			// The list is rebuilt from the store, so it is the closest a test
 			// can read to what the user is looking at.
+			var refused core.Task
 			waitFor(t, "the refusal reaching the stored task", func() bool {
 				stored, err := a.Store.All()
 				if err != nil {
@@ -342,12 +349,52 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 				}
 				for _, s := range stored {
 					if s.ID == id {
+						refused = *s
 						return s.Status == core.StatusError && strings.Contains(s.Error, tc.wantIn)
 					}
 				}
 				return false
 			})
+			if refused.RejectCode != tc.wantCode || !maps.Equal(refused.RejectParams, tc.wantParams) {
+				t.Errorf("the refusal's code is %q %v, want %q %v", refused.RejectCode, refused.RejectParams, tc.wantCode, tc.wantParams)
+			}
 		})
+	}
+}
+
+// A restart clears the failure, and the rejection's code with it, or the task
+// detail would go on saying the filter rejected a link it now lets through.
+func TestARestartForgetsWhyTheQueueRejectedTheLink(t *testing.T) {
+	a, base := newRuleApp(t, func(*settings.Settings, string) {})
+	created := a.AddLinks([]string{"https://host.example/sample.mkv"}, "")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	id := created[0].ID
+	withFilter := func(set rules.Set) {
+		s := settings.Defaults()
+		s.MaxConcurrent, s.MaxPerHost = 2, 1
+		s.DownloadDir = base
+		s.Crawl = false
+		s.LinkFilter = set
+		if _, err := a.ApplySettings(s); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rejectCode := func() string {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		return a.tasks[id].RejectCode
+	}
+
+	withFilter(rejectRule(""))
+	a.StartTasks(nil)
+	waitFor(t, "the queue to reject the link", func() bool { return rejectCode() == rules.CodeFilterRule })
+
+	withFilter(rules.Set{})
+	a.RestartTasks([]string{id})
+	if code := rejectCode(); code != "" {
+		t.Errorf("the restarted task still carries the rejection's code %q", code)
 	}
 }
 

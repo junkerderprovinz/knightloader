@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Task } from '../lib/api';
 import { fmtDate } from '../lib/format';
-import { heldReason } from '../lib/heldReason';
+import { rejectionReason } from '../lib/rejectionReason';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
@@ -80,7 +80,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
 
       <div className="max-h-56 overflow-y-auto pb-1.5">
         {shown.map((h) => {
-          const reason = heldReason(t, h.skipCode, h.skipParams, h.skipReason);
+          const reason = rejectionReason(t, h.skipCode, h.skipParams, h.skipReason);
           return (
             <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
               {/* The rule first, since it is what gets edited. */}

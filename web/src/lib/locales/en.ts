@@ -742,7 +742,7 @@ export const en = {
   'collector.filtered.origin.container': 'container',
   'collector.filtered.origin.account': 'debrid account',
   'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
-  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRule': 'rejected by link filter rule "{rule}"',
   'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
   'collector.filtered.restoreFailed': 'Could not restore those links. Is the server reachable?',
   'collector.filtered.clearFailed': 'Could not clear those links. Is the server reachable?',

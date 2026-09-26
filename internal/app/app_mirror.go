@@ -156,8 +156,7 @@ func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*t
 	m.Status = core.StatusQueued
 	// A task on its way to a backend must not carry a verdict from before it
 	// ran, as in startTasks.
-	m.Error = ""
-	m.Reason = core.ReasonUnknown
+	m.ClearFailure()
 	m.Speed = 0
 	// A sibling already in the wait queue would otherwise be in it twice and be
 	// started twice.

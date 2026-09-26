@@ -104,10 +104,9 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 		t.Status = core.StatusQueued
 		// A confirmed link has no countdown pending.
 		t.ConfirmDue = time.Time{}
-		t.Error = ""
 		// The reason goes with the error sentence, or the interface would
 		// advise about a dead link while the task runs again.
-		t.Reason = core.ReasonUnknown
+		t.ClearFailure()
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
 	}
@@ -227,8 +226,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			carry := t.Status == core.StatusError && a.carriesOnLocked(t)
 			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry})
 			t.Status = core.StatusQueued
-			t.Error = ""
-			t.Reason = core.ReasonUnknown
+			t.ClearFailure()
 			t.Loaded = 0
 			t.Speed = 0
 			// The file is fetched again, and how its archive was last unpacked
