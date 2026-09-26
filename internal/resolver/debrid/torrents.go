@@ -886,14 +886,15 @@ func sourceOf(link string) (src TorrentSource, name string, private bool, err er
 		return TorrentSource{}, "", false, err
 	}
 	name = cmp.Or(md.Name, md.InfoHash)
+	private = torrent.Private(link, md)
 	if torrent.IsMagnet(link) {
-		return TorrentSource{Magnet: link, InfoHash: md.InfoHash}, name, false, nil
+		return TorrentSource{Magnet: link, InfoHash: md.InfoHash}, name, private, nil
 	}
 	b, err := torrent.DecodeBytes(link)
 	if err != nil {
 		return TorrentSource{}, "", false, err
 	}
-	return TorrentSource{File: b, InfoHash: md.InfoHash}, name, md.Private, nil
+	return TorrentSource{File: b, InfoHash: md.InfoHash}, name, private, nil
 }
 
 func clamp01(f float64) float64 {

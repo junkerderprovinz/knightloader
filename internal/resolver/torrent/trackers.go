@@ -2,6 +2,7 @@ package torrent
 
 import (
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -68,16 +69,22 @@ func trackerHostname(h string) string {
 	return strings.TrimSuffix(strings.ToLower(h), ".")
 }
 
-// ExtraTrackers is extra as the torrent behind uri may be given it: without
-// the trackers it announces to already, without banned ones, without
-// duplicates, and nothing at all for a private torrent.
+// Private reports whether the torrent behind uri, as Describe read it into md,
+// comes from a private tracker.
 //
 // An uploaded .torrent says whether it is private. A magnet does not until its
-// metadata arrives, which is after the engine has been handed its trackers, so
-// a magnet counts as private when one of its own trackers carries a passkey.
-// That key is how a private tracker tells its members apart, and no public
-// tracker asks for one. A private tracker that knows its members by address or
-// cookie instead is not spotted, and its magnet gets the extra trackers.
+// metadata arrives, which is after its trackers are set and it has gone to a
+// debrid service or the engine, so a magnet counts as private when one of its
+// own trackers carries a passkey. That key is how a private tracker tells its
+// members apart, and no public tracker asks for one. A private tracker that
+// knows its members by address or cookie instead is not spotted.
+func Private(uri string, md Metadata) bool {
+	return md.Private || IsMagnet(uri) && slices.ContainsFunc(md.Trackers, carriesPasskey)
+}
+
+// ExtraTrackers is extra as the torrent behind uri may be given it: without
+// the trackers it announces to already, without banned ones, without
+// duplicates, and nothing at all for a private torrent (see Private).
 func ExtraTrackers(uri string, extra, banned []string) []string {
 	if len(extra) == 0 {
 		// Before Describe, which for an uploaded torrent parses the whole file
@@ -85,15 +92,8 @@ func ExtraTrackers(uri string, extra, banned []string) []string {
 		return nil
 	}
 	md, err := (Resolver{}).Describe(uri)
-	if err != nil || md.Private {
+	if err != nil || Private(uri, md) {
 		return nil
-	}
-	if IsMagnet(uri) {
-		for _, t := range md.Trackers {
-			if carriesPasskey(t) {
-				return nil
-			}
-		}
 	}
 	seen := make(map[string]bool, len(md.Trackers)+len(extra))
 	for _, t := range md.Trackers {
