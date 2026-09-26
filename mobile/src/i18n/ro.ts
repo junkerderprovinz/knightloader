@@ -31,7 +31,7 @@ export const ro: Dict = {
   'instance.captchasOne': '1 captcha așteaptă chiar acum',
   'downloads.start': 'Pornește',
   'downloads.stop': 'Oprește',
-  'downloads.startHeld': '{n} link(uri) reținute și nepornite.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'O programare ține coada pe pauză.',
   'downloads.tabDownloads': 'Descărcări',
   'downloads.tabCollector': 'Colector',

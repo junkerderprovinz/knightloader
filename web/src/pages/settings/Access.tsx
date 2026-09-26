@@ -883,7 +883,7 @@ function paragraphs(text: string): ReactNode {
   );
 }
 
-function TokensSection() {
+export function TokensSection() {
   const { t } = useT();
   const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
@@ -1023,7 +1023,7 @@ function TokensSection() {
           }
         >
           <div className="flex flex-col gap-4">
-            <Field label={t('settings.access.tokens.title')}>
+            <Field label={t('settings.access.tokens.name')}>
               <TextInput
                 autoFocus
                 placeholder={t('settings.access.tokens.namePlaceholder')}

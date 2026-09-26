@@ -31,7 +31,7 @@ export const ca: Dict = {
   'instance.captchasOne': '1 captcha esperant ara mateix',
   'downloads.start': 'Inicia',
   'downloads.stop': 'Atura',
-  'downloads.startHeld': '{n} enllaç(os) retingut(s) i no iniciat(s).',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'La cua està aturada per una programació.',
   'downloads.tabDownloads': 'Baixades',
   'downloads.tabCollector': 'Col·lector',

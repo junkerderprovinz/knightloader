@@ -53,10 +53,12 @@ jobs:
             # The build bakes app.json's version into web/dist, and
             # check-version-sources.mjs reads the other three.
             # check-module-lines.mjs reads the module codes from the two
-            # routes files.
+            # routes files, and check-one-name.mjs the app's English and German.
             web:
               - 'web/**'
               - 'mobile/app.json'
+              - 'mobile/src/i18n/en.ts'
+              - 'mobile/src/i18n/de.ts'
               - '.github/workflows/release-mobile.yml'
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
@@ -219,6 +221,9 @@ jobs:
 
       - name: Locale placeholders
         run: node check-locale-placeholders.mjs
+
+      - name: One name per thing
+        run: node check-one-name.mjs
 
       - name: Modal scrim
         run: node check-scrim.mjs

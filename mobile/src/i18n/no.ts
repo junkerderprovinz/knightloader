@@ -31,7 +31,7 @@ export const no: Dict = {
   'instance.captchasOne': '1 captcha venter akkurat nå',
   'downloads.start': 'Start',
   'downloads.stop': 'Stopp',
-  'downloads.startHeld': '{n} lenke(r) holdes tilbake og ble ikke startet.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'En tidsplan holder køen pauset.',
   'downloads.tabDownloads': 'Nedlastinger',
   'downloads.tabCollector': 'Samler',

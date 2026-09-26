@@ -31,7 +31,7 @@ export const lt: Dict = {
   'instance.captchasOne': 'Šiuo metu laukia 1 captcha',
   'downloads.start': 'Pradėti',
   'downloads.stop': 'Stabdyti',
-  'downloads.startHeld': 'Sulaikyta nuorodų: {n}, jos nepaleistos.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Tvarkaraštis laiko eilę sustabdytą.',
   'downloads.tabDownloads': 'Atsisiuntimai',
   'downloads.tabCollector': 'Rinktuvas',

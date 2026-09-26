@@ -152,7 +152,7 @@ repository, which is not ready to install yet (see the notice at the top).
 | File hoster links | ⚠️ through debrid or its own JDownloader | ✅ over a thousand plugins | ✅ hundreds of plugins | ❌ |
 | Premium hoster logins | ⚠️ used by that JDownloader | ✅ | ✅ | ❌ |
 | Video sites | ✅ every site yt-dlp reads | ✅ plugins for many | ⚠️ a few, such as YouTube | ❌ |
-| Torrents | ✅ built-in client or through debrid, with file rules either way | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
+| Torrents | ✅ built-in torrent client or through debrid, with file rules either way | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
 | Usenet | ⚠️ through TorBox or Premiumize.me | ⚠️ basic, no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize.me |
 | Click'n'Load | ✅ also to another machine | ✅ also through MyJDownloader | ⚠️ an addon, off by default | ❌ |
 | Browser extension | ✅ Chromium browsers and Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |

@@ -31,7 +31,7 @@ export const et: Dict = {
   'instance.captchasOne': '1 captcha ootab praegu',
   'downloads.start': 'Alusta',
   'downloads.stop': 'Peata',
-  'downloads.startHeld': '{n} linki on kinni peetud ega käivitunud.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Ajakava hoiab järjekorda peatatuna.',
   'downloads.tabDownloads': 'Allalaadimised',
   'downloads.tabCollector': 'Koguja',

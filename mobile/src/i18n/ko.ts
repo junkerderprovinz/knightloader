@@ -31,7 +31,7 @@ export const ko: Dict = {
   'instance.captchasOne': '지금 기다리는 캡차 1개',
   'downloads.start': '시작',
   'downloads.stop': '중지',
-  'downloads.startHeld': '링크 {n}개는 보류되어 시작하지 않았습니다.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': '일정이 대기열을 멈춰 두고 있습니다.',
   'downloads.tabDownloads': '다운로드',
   'downloads.tabCollector': '수집기',

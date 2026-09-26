@@ -51,11 +51,11 @@ a music category where the small files are the album. It applies to every
 torrent filed there, whether you picked the category or a Packagizer rule did.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
-Premiumize.me or Debrid-Link ranks above "Torrent and magnet" on the Accounts
+Premiumize.me or Debrid-Link ranks above "Built-in torrent client" on the Accounts
 page, that service fetches the torrent and the files come here over HTTP. The
 file selection counts there as well: Real-Debrid and Debrid-Link are told which
 files to fetch, and from the other services only those files come here. A
-torrent from a private tracker stays with the built-in client, because its
+torrent from a private tracker stays with the built-in torrent client, because its
 passkey would go to the service with it. A `.torrent` says whether it is
 private. A magnet link counts as private when its own tracker address carries
 a passkey, the same test the extra trackers below use.
@@ -72,7 +72,7 @@ passkey cannot be told apart this way: leave the extra trackers empty if you
 take magnet links from one.
 
 **Banned trackers** keep a torrent out. One that announces to a banned host is
-held back with the reason, next to the links the link filter holds, and a ban
+rejected with the reason, next to the links the link filter rejects, and a ban
 added later still stops it from starting. Restoring it lets it past the line
 that caught it, not past one added afterwards. It is refused rather than
 stripped of that tracker: the rest of the torrent would still announce the same
