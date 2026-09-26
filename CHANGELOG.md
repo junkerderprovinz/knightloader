@@ -60,7 +60,7 @@ submission and for a fixed download.
   the backend asked first for that hoster and switches off the ones it must
   never go to. A download pinned to a backend still goes there, and a paused
   one on a backend switched off since moves when you resume it. With Premium
-  only on the Accounts settings page, a hoster link that only JDownloader's
+  only on the Accounts page, a hoster link that only JDownloader's
   free mode could fetch waits in the queue as "Waiting for a premium account"
   instead of starting, and the collector shows that before you start it. It
   starts by itself once you add a login for that hoster or a debrid service
@@ -74,7 +74,8 @@ submission and for a fixed download.
   program; the exit code and the output go into the log. The desktop app keeps
   the computer from sleeping while a download runs and while its files are
   checked, unpacked or moved, and lets it sleep once nothing is left to do, a
-  switch that is on by default and has no effect in the container.
+  switch that is on by default, also on the Modules page, and has no effect in
+  the container.
 - **Torrents can skip files by rule and find more trackers.** The Torrents
   page has a file selection: a minimum file size and regular expressions for
   files to fetch and files to skip, so samples, `.nfo` and `.exe` files stay
@@ -85,7 +86,7 @@ submission and for a fixed download.
   public list fetched at most once a day, are added to magnets and to
   `.torrent` files not marked private; a magnet counts as private only when its
   own tracker address carries a passkey. A torrent that announces to a banned
-  tracker is held back in the collector with the reason.
+  tracker is rejected and waits in the collector with the reason.
 - **An `.nzb` is fetched from Usenet through TorBox or Premiumize.me.** One
   from Sonarr or Radarr, the upload button or the watched folder goes to your
   TorBox account, or to Premiumize.me when there is no TorBox account, TorBox
@@ -95,7 +96,8 @@ submission and for a fixed download.
   the service's progress, and its history names the folder to import from.
   TorBox takes 60 NZBs an hour per key; without Premiumize.me the ones over
   that wait until TorBox takes files again, and a download TorBox queues for a
-  free slot is followed until it starts. An `.nzb` may be up to 64 MB. The
+  free slot is followed until it starts. An `.nzb` also waits, instead of
+  failing, while Premiumize.me is out of fair-use points or transfer slots. An `.nzb` may be up to 64 MB. The
   status strip counts the ones still at the service, and one the service gives
   up on is listed with the links that were not added. Without an account that
   can take it, a real `.nzb` is refused with that reason. It is not read for
@@ -144,14 +146,19 @@ submission and for a fixed download.
   Only when nobody is watching, holds the solvers back while KnightLoader is
   open in the foreground in a browser tab, the desktop app or the phone app,
   or another app keeps reading its captcha list, and hands over once you
-  switch away or a wait you set runs out.
+  switch away or a wait you set runs out. They wait only for a captcha the one
+  watching can answer: a Cloudflare Turnstile goes to them at once, the phone
+  app holds them back only for pictures and clicks (and for reCAPTCHA and
+  hCaptcha on a connection saved by address), and a window whose reCAPTCHA or
+  hCaptcha does not load lets them start.
 - **Captchas can be answered in the Android app.** A card on an instance's
   downloads, a count on its overview card and a banner over the open screen
   say when one is waiting, and the Captchas screen answers picture and click
   captchas. reCAPTCHA and hCaptcha open in the instance's own widget page only
   on a connection saved by address in an earlier build; on one made with the
   twelve words their card points to the web UI, and Cancel still skips them.
-  The banner also says when a captcha timed out or was answered elsewhere. The
+  The banner also says when a captcha timed out or was answered elsewhere,
+  and the card says which paid solver is working on one. The
   relay carries the captcha list, answers and skips to the app, and
   `/api/queue/counters` counts what is waiting, so the overview downloads no
   pictures. The app watches the instance it has open while it is in front: a
@@ -159,16 +166,19 @@ submission and for a fixed download.
   returns, unless Android closed it meanwhile. There are no notifications.
 - **Torrents through a debrid service.** TorBox, Real-Debrid, AllDebrid,
   Premiumize.me and Debrid-Link can fetch magnet links and `.torrent` files in
-  place of the built-in client, the way rdt-client does: the service downloads
+  place of the built-in torrent client, the way rdt-client does: the service downloads
   the torrent, and the files come here over HTTP through the engine. A cached
   torrent arrives at full speed, with no seeding and no open port. The
   priority order on the Accounts page decides between a service and the
-  built-in client, a declined torrent moves on to the next of them, and the
+  built-in torrent client, a declined torrent moves on to the next of them, and the
   row shows the service's progress while it fetches. The files ticked by
   hand, or else the Torrents page's file selection, decide what is fetched
   there too. A failed file or a restart carries on with the service's copy
   and the files already here. A finished torrent is deleted on the service
-  unless the Torrents page says to keep it.
+  unless the Torrents page says to keep it. A torrent from a private tracker
+  stays with the built-in torrent client, so its passkey never reaches a
+  service. A torrent the account already holds is fetched from there and
+  never deleted.
 - **Import from the debrid account.** What you add on the website of TorBox,
   Real-Debrid, AllDebrid, Premiumize.me or Debrid-Link can come into
   KnightLoader by itself, like rdt-client's automatic import. Each account on
@@ -179,8 +189,8 @@ submission and for a fixed download.
   Nothing comes in twice, a restart included, and nothing KnightLoader added
   itself comes in at all. The services do not say who added a download, so
   the switch is for an account no other app uses. Removing such a download
-  here deletes it on the service unless the Torrents page keeps downloads
-  there.
+  here deletes it on the service once its undo has run out, unless the
+  Torrents page keeps downloads there.
 - **A download's backend can be chosen in its properties.** The Properties
   panel has a Backend dropdown with the services that can take every selected
   link, and Automatic, which leaves the choice to the priority order on the
@@ -303,6 +313,55 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **Sonarr and Radarr no longer delete other downloads after an import.** The
+  SABnzbd door told them a grab lived in its category's folder, or in the
+  download folder itself, whenever packages had no subfolder of their own or a
+  Packagizer rule chose the folder. After importing, Sonarr and Radarr delete
+  the folder their download client names, so one finished episode could take
+  every other grab in that category with it. Every grab through the SABnzbd or
+  qBittorrent door now gets a folder of its own, named after the release, and
+  that folder is what the door reports. Grabs from before the update report no
+  folder, so Sonarr asks for a manual import instead of deleting anything.
+- **AllDebrid errors no longer show your API key.** A timeout or a DNS failure
+  printed the whole request address, key included, into the download's error,
+  where anyone who could read the list saw it. The key is now sent in a
+  header.
+- **The end-of-queue command and the reconnect program stop when their time is
+  up.** A command that left something running in the background, such as
+  `nohup rclone sync ... &`, kept KnightLoader waiting for it, and a shutdown
+  could hang on it. Both now run like event programs: in a process group of
+  their own that is ended as a whole, with a batch file's arguments quoted for
+  cmd.exe, and without KnightLoader's own `KL_` variables, which hold service
+  keys. A reconnect program gets the run's "Seconds to keep checking" to
+  finish. Passwords are taken out of the command's output before it is
+  shortened for the log, and when the command cannot start, the reason is kept
+  with the run.
+- **A program path ending in a dot or a space is still treated as a batch
+  file.** Windows ignores those trailing characters, so `hook.bat.` ran as a
+  batch file but skipped the quoting that keeps a download's name from being
+  read as a command.
+- **Enter starts a new line in every list box.** The boxes for crawl include and
+  exclude, archive passwords, known domains, the end-of-queue command's
+  arguments and a connection's filter removed empty lines as you typed, so the
+  line Enter had just started vanished at once.
+- **The skipped-links card explains everything it lists.** Its (i) only covered
+  links that were already in the list, although failed `.nzb` files,
+  containers and playlists that gave no links, and watch-folder files that
+  could not be read land there too.
+- **Event targets no longer offer "Manual".** Nothing ever sends that event to a
+  target, so a target set to it never fired.
+- **The reason a link was rejected is shown in your language.** The link
+  filter's reason, in the collector and in a download's details, was an
+  English sentence from the server.
+- **Removing a torrent after it stopped seeding works.** When the last torrent
+  reached its seed target, the torrent library closed its client, and removing
+  a torrent after that crashed halfway: the download left the list, but its
+  files and its database row stayed. Sonarr and Radarr remove torrents exactly
+  this way after an import.
+- **Two torrents with the same name no longer share a folder.** The second one
+  goes into a folder with `.1` after the name, and removing a torrent with its
+  files deletes only the files it downloaded and the folders left empty.
+  Before, removing one of two same-named torrents deleted both.
 - **A removed download stays removed.** A change that was still being saved
   when the download was removed, such as the reason it waits in a stopped queue
   or the result of a link check, wrote the download back to the database. It
@@ -789,6 +848,11 @@ submission and for a fixed download.
 
 ### Changed
 
+- **One name for each thing.** Links the link filter or a banned tracker stops
+  are "rejected" everywhere, and "held" belongs to the Hold action in the
+  right-click menu alone. The torrent engine inside KnightLoader is the
+  built-in torrent client, every row of the priority order is a backend, and
+  "service" means a debrid service.
 - **The selection bar fits on one line.** Clearing the selection is the ×
   beside the count, the search is a glyph, and moving into a package, the
   order actions and removing with the files sit in a More menu at the end of
