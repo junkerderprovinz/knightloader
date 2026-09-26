@@ -67,32 +67,26 @@ func registerCaptcha(reg *Registry, a *app.App) {
 			}{stillValid})
 		})
 
-	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable", "say that a web window, or with by=phone the phone app, could not load this challenge, so those watching that way stop holding the paid solvers back for it",
-		func(w http.ResponseWriter, r *http.Request) {
-			if by, ok := captchaViewer(w, r); ok {
-				a.CaptchaUnanswerable(r.PathValue("id"), by)
-				w.WriteHeader(http.StatusNoContent)
-			}
-		})
-
-	reg.Add(http.MethodDelete, "/api/captcha/{id}/unanswerable", "take that back once the challenge has loaded after all, so they hold the paid solvers back again; one already at work carries on",
-		func(w http.ResponseWriter, r *http.Request) {
-			if by, ok := captchaViewer(w, r); ok {
-				a.WithdrawCaptchaUnanswerable(r.PathValue("id"), by)
-				w.WriteHeader(http.StatusNoContent)
-			}
-		})
-}
-
-// captchaViewer reads who reports on a challenge from the by parameter, a
-// window unless it names the phone app, and refuses any other name.
-func captchaViewer(w http.ResponseWriter, r *http.Request) (app.CaptchaViewer, bool) {
-	switch by := app.CaptchaViewer(r.URL.Query().Get("by")); by {
-	case "", app.CaptchaWindow:
-		return app.CaptchaWindow, true
-	case app.CaptchaPhone:
-		return by, true
+	// The phone app reports on a path of its own, not with a parameter: an
+	// older instance would ignore the parameter and count it as a window.
+	report := func(by app.CaptchaViewer) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			a.ReportCaptchaUnanswerable(r.PathValue("id"), by)
+			w.WriteHeader(http.StatusNoContent)
+		}
 	}
-	http.Error(w, "by is window or phone", http.StatusBadRequest)
-	return "", false
+	withdraw := func(by app.CaptchaViewer) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			a.WithdrawCaptchaUnanswerable(r.PathValue("id"), by)
+			w.WriteHeader(http.StatusNoContent)
+		}
+	}
+	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable", "say that a web window could not load this challenge, so the windows watching stop holding the paid solvers back for it",
+		report(app.CaptchaWindow))
+	reg.Add(http.MethodDelete, "/api/captcha/{id}/unanswerable", "withdraw a web window's report that it could not load this challenge, after a refresh has loaded it, so the windows hold the paid solvers back again; a solver already at work carries on",
+		withdraw(app.CaptchaWindow))
+	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable/phone", "say that the phone app could not load this challenge, so its reads of the captcha list stop holding the paid solvers back for it",
+		report(app.CaptchaPhone))
+	reg.Add(http.MethodDelete, "/api/captcha/{id}/unanswerable/phone", "withdraw the phone app's report that it could not load this challenge, after a refresh has loaded it, so its reads hold the paid solvers back again; a solver already at work carries on",
+		withdraw(app.CaptchaPhone))
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -43,33 +44,50 @@ func TestACaptchaWithoutJDIsRefusedWithACode(t *testing.T) {
 	}
 }
 
-// A report that a captcha will not load comes from a window unless it names
-// the phone app, and is taken back the same way. A viewer this instance does
-// not know is refused rather than taken for a window.
-func TestACaptchaThatWillNotLoadIsReportedByAWindowOrThePhone(t *testing.T) {
-	t.Setenv("KL_JD", "")
+// A window and the phone app each say on a path of their own that they cannot
+// load a captcha, and take it back there, so the phone's report never takes
+// the windows out of the count or the other way round. A viewer without a
+// path of its own records nothing.
+func TestEachViewerSaysItCannotLoadACaptchaOnItsOwnPath(t *testing.T) {
+	jd, _ := fakeJDWithHCaptcha(t)
+	t.Setenv("KL_JD", jd.URL)
 	a := testApp(t)
 	reg := newRegistry()
 	registerCaptcha(reg, a)
 	mux := http.NewServeMux()
 	reg.attach(mux, http.NotFoundHandler())
 
+	pending := a.RefreshCaptchas(context.Background())
+	if len(pending) != 1 {
+		t.Fatalf("pending = %+v, want the one hCaptcha", pending)
+	}
+	id := pending[0].ID
+	marked := func() string {
+		var by []string
+		for _, v := range []app.CaptchaViewer{app.CaptchaWindow, app.CaptchaPhone} {
+			if a.CaptchaUnanswerable(id, v) {
+				by = append(by, string(v))
+			}
+		}
+		return strings.Join(by, " ")
+	}
+
+	path := "/api/captcha/" + id + "/unanswerable"
 	for _, c := range []struct {
 		method, path string
-		want         int
+		code         int
+		marked       string
 	}{
-		{http.MethodPost, "/api/captcha/c1/unanswerable", http.StatusNoContent},
-		{http.MethodPost, "/api/captcha/c1/unanswerable?by=window", http.StatusNoContent},
-		{http.MethodPost, "/api/captcha/c1/unanswerable?by=phone", http.StatusNoContent},
-		{http.MethodDelete, "/api/captcha/c1/unanswerable?by=phone", http.StatusNoContent},
-		{http.MethodDelete, "/api/captcha/c1/unanswerable", http.StatusNoContent},
-		{http.MethodPost, "/api/captcha/c1/unanswerable?by=tablet", http.StatusBadRequest},
-		{http.MethodDelete, "/api/captcha/c1/unanswerable?by=Phone", http.StatusBadRequest},
+		{http.MethodPost, path, http.StatusNoContent, "window"},
+		{http.MethodPost, path + "/phone", http.StatusNoContent, "window phone"},
+		{http.MethodDelete, path, http.StatusNoContent, "phone"},
+		{http.MethodPost, path + "/tablet", http.StatusNotFound, "phone"},
+		{http.MethodDelete, path + "/phone", http.StatusNoContent, ""},
 	} {
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, httptest.NewRequest(c.method, c.path, nil))
-		if rec.Code != c.want {
-			t.Errorf("%s %s answered %d, want %d", c.method, c.path, rec.Code, c.want)
+		if got := marked(); rec.Code != c.code || got != c.marked {
+			t.Errorf("%s %s answered %d and left %q marked, want %d and %q", c.method, c.path, rec.Code, got, c.code, c.marked)
 		}
 	}
 }

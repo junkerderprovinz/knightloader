@@ -49,7 +49,7 @@ type captchaState struct {
 	paid paidLedger
 
 	// unanswerable holds the pending challenges a window or the phone app could
-	// not load, and which of the two said so, see CaptchaUnanswerable.
+	// not load, and which of the two said so, see ReportCaptchaUnanswerable.
 	// settleCaptcha drops a challenge from it under unanswerableMu once it has
 	// left the store.
 	unanswerableMu sync.Mutex
@@ -262,7 +262,7 @@ const (
 	CaptchaPhone CaptchaViewer = "phone"
 )
 
-// CaptchaUnanswerable records that a viewer of the kind by could not load
+// ReportCaptchaUnanswerable records that a viewer of the kind by could not load
 // challenge id, such as a widget whose site key refuses this instance's
 // address, so those viewers stop holding the paid solvers back for it. It
 // reports false for a challenge that is no longer pending.
@@ -272,7 +272,7 @@ const (
 // only seen by its reads. So one window that cannot load it releases the
 // solvers for every window, and a second one that could still races them to
 // the answer.
-func (a *App) CaptchaUnanswerable(id string, by CaptchaViewer) bool {
+func (a *App) ReportCaptchaUnanswerable(id string, by CaptchaViewer) bool {
 	st := a.captchaStateFor()
 	st.unanswerableMu.Lock()
 	defer st.unanswerableMu.Unlock()
@@ -291,10 +291,10 @@ func (a *App) CaptchaUnanswerable(id string, by CaptchaViewer) bool {
 	return true
 }
 
-// WithdrawCaptchaUnanswerable takes back CaptchaUnanswerable once the viewer
-// has loaded the challenge after all, so those viewers hold the solvers back
-// again. A solver already at work on it carries on: the provider may bill the
-// task whatever happens, and JD takes whichever answer reaches it first.
+// WithdrawCaptchaUnanswerable takes back ReportCaptchaUnanswerable once the
+// viewer has loaded the challenge after all, so those viewers hold the solvers
+// back again. A solver already at work on it carries on: the provider may bill
+// the task whatever happens, and JD takes whichever answer reaches it first.
 func (a *App) WithdrawCaptchaUnanswerable(id string, by CaptchaViewer) {
 	st := a.captchaStateFor()
 	st.unanswerableMu.Lock()
@@ -305,9 +305,9 @@ func (a *App) WithdrawCaptchaUnanswerable(id string, by CaptchaViewer) {
 	}
 }
 
-// captchaUnanswerable reports whether a viewer of the kind by said it cannot
-// load id.
-func (a *App) captchaUnanswerable(id string, by CaptchaViewer) bool {
+// CaptchaUnanswerable reports whether a viewer of the kind by said it cannot
+// load id and has not taken that back.
+func (a *App) CaptchaUnanswerable(id string, by CaptchaViewer) bool {
 	st := a.captchaStateFor()
 	st.unanswerableMu.Lock()
 	defer st.unanswerableMu.Unlock()

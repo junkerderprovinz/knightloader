@@ -801,7 +801,7 @@ func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
 		got, _ := a.captchaStateFor().store.Get("w1")
 		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
 	})
-	if !a.CaptchaUnanswerable("w1", CaptchaWindow) {
+	if !a.ReportCaptchaUnanswerable("w1", CaptchaWindow) {
 		t.Fatal("a pending captcha was not taken as unanswerable")
 	}
 	if !pollUntil(t, time.Second, func() bool { return s.calls.Load() == 1 }) {
@@ -816,13 +816,13 @@ func TestAnUnanswerableMarkLastsAsLongAsItsCaptcha(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	c := pending(a, imageChallenge("c1"))
 
-	if a.CaptchaUnanswerable("gone", CaptchaWindow) || a.captchaUnanswerable("gone", CaptchaWindow) {
+	if a.ReportCaptchaUnanswerable("gone", CaptchaWindow) || a.CaptchaUnanswerable("gone", CaptchaWindow) {
 		t.Error("a captcha that is not pending was marked")
 	}
-	a.CaptchaUnanswerable("c1", CaptchaWindow)
-	a.CaptchaUnanswerable("c1", CaptchaPhone)
+	a.ReportCaptchaUnanswerable("c1", CaptchaWindow)
+	a.ReportCaptchaUnanswerable("c1", CaptchaPhone)
 	a.settleCaptcha(c, "solved")
-	if a.captchaUnanswerable("c1", CaptchaWindow) || a.captchaUnanswerable("c1", CaptchaPhone) {
+	if a.CaptchaUnanswerable("c1", CaptchaWindow) || a.CaptchaUnanswerable("c1", CaptchaPhone) {
 		t.Error("a mark outlived its captcha")
 	}
 }
@@ -834,7 +834,7 @@ func TestAWindowThatLoadsACaptchaAfterAllHoldsTheSolversAgain(t *testing.T) {
 	addViewer(t, a)
 	c := pending(a, recaptchaChallenge("w1"))
 
-	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	a.ReportCaptchaUnanswerable("w1", CaptchaWindow)
 	if a.captchaWatched(c) {
 		t.Fatal("a window that cannot load the captcha still holds the solvers")
 	}
@@ -855,7 +855,7 @@ func TestThePhoneStopsHoldingTheSolversForACaptchaItCannotLoad(t *testing.T) {
 	if !a.captchaWatched(c) {
 		t.Fatal("the phone reading the list does not hold the solvers back for a reCAPTCHA")
 	}
-	a.CaptchaUnanswerable("w1", CaptchaPhone)
+	a.ReportCaptchaUnanswerable("w1", CaptchaPhone)
 	if a.captchaWatched(c) {
 		t.Error("a phone that cannot load the captcha still holds the solvers")
 	}
@@ -873,13 +873,13 @@ func TestAViewerThatCannotLoadACaptchaLeavesTheOtherWatching(t *testing.T) {
 	window := addViewer(t, a)
 	a.CaptchaSeen([]string{"image", "click", "widget"})
 
-	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	a.ReportCaptchaUnanswerable("w1", CaptchaWindow)
 	if !a.captchaWatched(c) {
 		t.Error("the window's report let the solvers past the phone that is watching")
 	}
 	a.WithdrawCaptchaUnanswerable("w1", CaptchaWindow)
 
-	a.CaptchaUnanswerable("w1", CaptchaPhone)
+	a.ReportCaptchaUnanswerable("w1", CaptchaPhone)
 	if !a.captchaWatched(c) {
 		t.Error("the phone's report let the solvers past the window that is watching")
 	}
@@ -964,7 +964,7 @@ func TestASolverAtWorkCarriesOnWhenTheWindowLoadsTheCaptchaAfterAll(t *testing.T
 		got, _ := a.captchaStateFor().store.Get("w1")
 		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
 	})
-	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	a.ReportCaptchaUnanswerable("w1", CaptchaWindow)
 	<-done
 
 	if got := jd.got(); len(got) != 1 || got[0] != "token" {
