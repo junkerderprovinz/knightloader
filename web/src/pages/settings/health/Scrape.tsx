@@ -15,6 +15,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { features } = useFeatures();
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
 
   const on = features.modules.find((m) => m.id === 'metrics')?.enabled ?? false;
 
@@ -35,9 +36,11 @@ export function ScrapeCard({ hue }: { hue: number }) {
           <Button
             kind="ghost"
             className="px-2.5 text-xs"
+            confirm={copies}
             onClick={async () => {
               await navigator.clipboard.writeText(address);
               setCopied(true);
+              setCopies((n) => n + 1);
               setTimeout(() => setCopied(false), 1800);
             }}
           >

@@ -38,6 +38,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   const [restoreStatus, setRestoreStatus] = useState('');
   // The failure counter of the confirm button, so a repeated refusal shakes it again.
   const [restoreShake, setRestoreShake] = useState(0);
+  // Restore pulses once a restore is staged; Import pulses once settings are
+  // taken over and shakes on a file it cannot read.
+  const [restored, setRestored] = useState(0);
+  const [imported, setImported] = useState(0);
+  const [importShake, setImportShake] = useState(0);
 
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -58,6 +63,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     try {
       const res = await uploadRestore(pendingFile);
       setRestoreStatus(res.status);
+      setRestored((n) => n + 1);
       if (res.restarting) onShutdown();
       setPendingFile(null);
     } catch (e) {
@@ -82,6 +88,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       setPending({ doc, rows: diffRows(doc, stored, schema) });
     } catch (e) {
       setFailure(t('settings.transfer.parseFailed', { reason: reasonOf(e) }));
+      setImportShake((n) => n + 1);
     }
   }
 
@@ -106,6 +113,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       if (res.ruleProblems > 0) lines.push(t('settings.transfer.rulesUncompiled', { n: res.ruleProblems }));
       setNotice(lines);
       setPending(null);
+      setImported((n) => n + 1);
     } catch (e) {
       // The server's refusal names the failed check. Only the version guard is
       // translated, because it tells the reader what to do.
@@ -162,6 +170,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             icon={<IconUpload width={16} height={16} />}
             onClick={() => archiveInput.current?.click()}
             disabled={restoring}
+            confirm={restored}
           >
             {t('settings.system.restoreButton')}
           </Button>
@@ -214,6 +223,8 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             icon={<IconUpload width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
             disabled={busy}
+            shake={importShake}
+            confirm={imported}
           >
             {t('settings.transfer.import')}
           </Button>

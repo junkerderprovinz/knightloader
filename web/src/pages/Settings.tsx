@@ -7,6 +7,7 @@ import { useNavLabels } from '../lib/navLabels';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
+import { useStagger, useTabSlide } from '../lib/motion';
 import { useToast } from '../lib/toast';
 import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
@@ -360,8 +361,9 @@ export function SettingsPage() {
       <PageHeader title={t('settings.title')} />
       {/* A column of tiles beside the sidebar, running the window's full
           height. Only the content column scrolls; app/Layout.tsx gives this
-          page a definite height for that. */}
-      <div className="flex min-h-0 flex-1">
+          page a definite height for that. It fades in over the loading
+          card it replaces. */}
+      <div className="glim-content-fade flex min-h-0 flex-1">
         <SettingsRail pages={features.pages} />
 
         {/* data-settings-content scopes the search's DOM lookups to this
@@ -495,6 +497,19 @@ function SubPage({ pages }: { pages: FeaturePage[] }) {
   const { search, hash } = useLocation();
   const [, remember] = useUIState<string>('settingsPage', FALLBACK_PAGE);
   const known = pages.some((p) => p.id === page);
+  // A tab change slides the new page in from the side its tile lies on in the
+  // rail, in the rail's own order, and the page's cards arrive one after
+  // another. A page that is one card staggers what is in it.
+  const [order] = useUIState<string[]>('settingsTabOrder', []);
+  const slide = useTabSlide(
+    page,
+    orderPages(pages, order).map((p) => p.id),
+  );
+  const box = useRef<HTMLDivElement>(null);
+  useStagger(() => {
+    const el = box.current;
+    return el?.childElementCount === 1 ? el.firstElementChild : el;
+  });
 
   useEffect(() => {
     if (known) remember(page);
@@ -509,5 +524,9 @@ function SubPage({ pages }: { pages: FeaturePage[] }) {
     }
     return <Navigate to={pagePath(FALLBACK_PAGE)} replace />;
   }
-  return <>{renderSettingsPage(page)}</>;
+  return (
+    <div key={page} ref={box} className={slide.className} style={slide.style}>
+      {renderSettingsPage(page)}
+    </div>
+  );
 }

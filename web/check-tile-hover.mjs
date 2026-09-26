@@ -12,7 +12,8 @@
 //            --brand-*-hover in index.css, no tileHover class in a source.
 //   colours  every .glim-tile-* and .kl-tile-* class and every coin in
 //            lib/donate.ts names a colour and the ink the rule gives it: white
-//            where white reaches 2:1 on it, #161616 below that.
+//            where white reaches 2:1 on it, #161616 below that. The About
+//            card's four keep GlimStone's own values.
 //   tiles    ReadmeButton names only tile classes index.css defines, every
 //            README button on the App page and the About card names its
 //            brand, and neither a README button nor an unpicked coin tile
@@ -43,6 +44,7 @@ const INK_FLOOR = 2.0;
 const DARK = '#161616';
 const WHITE = '#ffffff';
 const DARK_REST = 3.0;
+const ABOUT_TILES = new Set(['glim-tile-coffee', 'glim-tile-paypal', 'glim-tile-bitcoin', 'glim-tile-house']);
 const LIGHT_REST = 1.35;
 
 const problems = [];
@@ -80,10 +82,7 @@ function checkInk(label, color, ink) {
   }
   const white = contrast(rgb(WHITE), fill);
   const want = white >= INK_FLOOR ? WHITE : DARK;
-  // Where the rule asks for the dark ink, a brand's own darker near-black
-  // holds too: Buy Me a Coffee's button wears #0d0c22.
-  const darker = want === DARK && luminance(rgb(ink)) <= luminance(rgb(DARK));
-  if (ink.toLowerCase() !== want && !darker) {
+  if (ink.toLowerCase() !== want) {
     problems.push(`${label}: ink ${ink} on ${color}, where the rule gives ${want} (white measures ${white.toFixed(2)}:1)`);
   }
   if (contrast(rgb(ink), fill) < INK_FLOOR) {
@@ -164,9 +163,10 @@ for (const m of css.matchAll(/\.((?:glim|kl)-tile-[a-z]+)\s*\{([^}]*)\}/g)) {
   const color = /--tile\s*:\s*(#[0-9a-fA-F]{3,6})\s*;/.exec(m[2])?.[1];
   const ink = /--tile-ink\s*:\s*(#[0-9a-fA-F]{3,6})\s*;?/.exec(m[2])?.[1];
   tileClasses.set(m[1], true);
-  // The house tile takes the accent and its computed ink from the colour
-  // engine, so there is no pair to measure here.
-  if (/--tile\s*:\s*var\(--accent\)/.test(m[2])) continue;
+  // The About card's colours ship with GlimStone, measured there, so an app
+  // takes them rather than deriving its own (design-language.md, "The About
+  // card"); the house tile takes the accent from the colour engine besides.
+  if (ABOUT_TILES.has(m[1])) continue;
   checkInk(`index.css: .${m[1]}`, color, ink);
 }
 if (tileClasses.size < 9) fail(`only ${tileClasses.size} tile classes read from index.css - the reader went blind.`);

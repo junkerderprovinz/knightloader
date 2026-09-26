@@ -11,7 +11,7 @@ import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
 import { IconExternalLink, IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
-import { useShake } from '../lib/useShake';
+import { useConfirm, useShake } from '../lib/useShake';
 import { openWindow } from '../lib/windowStack';
 
 /**
@@ -72,6 +72,7 @@ export function Button({
   title,
   hint,
   shake = 0,
+  confirm = 0,
   ...rest
 }: {
   kind?: ButtonKind;
@@ -96,8 +97,11 @@ export function Button({
   hint?: string;
   /** The caller's failure counter; each bump shakes the button once (lib/useShake.ts). */
   shake?: number;
+  /** The caller's success counter; each bump pulses the button once. */
+  confirm?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const shakeRef = useShake<HTMLButtonElement>(shake);
+  const confirmRef = useConfirm<HTMLButtonElement>(confirm);
   const labelMode = useNavLabels();
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
@@ -139,6 +143,7 @@ export function Button({
       {...hover}
       ref={(el) => {
         shakeRef.current = el;
+        confirmRef.current = el;
         if (hover) tip.triggerProps.ref.current = el;
       }}
       {...rest}
@@ -342,6 +347,7 @@ export function IconBadge({
   title,
   hint,
   shake = 0,
+  confirm = 0,
   ...rest
 }: {
   icon: ReactNode;
@@ -377,8 +383,11 @@ export function IconBadge({
   hint?: string;
   /** The caller's failure counter; each bump shakes the badge once (lib/useShake.ts). */
   shake?: number;
+  /** The caller's success counter; each bump pulses the badge once. */
+  confirm?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const shakeRef = useShake<HTMLButtonElement>(shake);
+  const confirmRef = useConfirm<HTMLButtonElement>(confirm);
   const hued = hue !== undefined;
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
@@ -426,6 +435,7 @@ export function IconBadge({
       {...hover}
       ref={(el) => {
         shakeRef.current = el;
+        confirmRef.current = el;
         if (hover) tip.triggerProps.ref.current = el;
       }}
       {...rest}

@@ -9,7 +9,6 @@ import { copyToClipboard } from '../../lib/clipboard';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { followExternal, openExternal } from '../../lib/external';
 import { useT } from '../../lib/i18n';
-import { replay } from '../../lib/motion';
 import { qrMatrix } from '../../lib/qrmatrix';
 import { openWindow } from '../../lib/windowStack';
 import { ANDROID_SVG, APPLE_SVG, DOCKER_SVG, LINUX_SVG, PLAY_SVG, UNRAID_SVG, WINDOWS_SVG, ZIP_SVG } from '../../lib/appMarks';
@@ -32,7 +31,7 @@ export function BrowserTools() {
   const { t } = useT();
   const bookmarklet = buildBookmarklet(appAddress());
   const [copied, setCopied] = useState(false);
-  const copyButton = useRef<HTMLSpanElement>(null);
+  const [copies, setCopies] = useState(0);
   const [extensionVersion, setExtensionVersion] = useState<string | null>(null);
   const [deployment, setDeployment] = useState<string | null>(null);
   useEffect(() => {
@@ -98,21 +97,19 @@ export function BrowserTools() {
             {t('settings.browsertools.bookmarkletLink')}
           </a>
           {'clipboard' in navigator && (
-            // The pulse says the copy went through, as the words beside it do.
-            <span ref={copyButton} className="inline-flex rounded-[var(--radius-pill)]">
-              <Button
-                kind="ghost"
-                className="px-2.5 text-xs"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(bookmarklet);
-                  setCopied(true);
-                  replay(copyButton.current, 'glim-confirm');
-                  setTimeout(() => setCopied(false), 1800);
-                }}
-              >
-                {copied ? t('settings.browsertools.copied') : t('settings.browsertools.copyCode')}
-              </Button>
-            </span>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              confirm={copies}
+              onClick={async () => {
+                await navigator.clipboard.writeText(bookmarklet);
+                setCopied(true);
+                setCopies((n) => n + 1);
+                setTimeout(() => setCopied(false), 1800);
+              }}
+            >
+              {copied ? t('settings.browsertools.copied') : t('settings.browsertools.copyCode')}
+            </Button>
           )}
         </div>
       </Card>
@@ -359,6 +356,7 @@ function ServerCard() {
   const soon = t('settings.browsertools.soon');
   const [version, setVersion] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
   useEffect(() => {
     void fetchHealth()
       .then((h) => setVersion(h.version))
@@ -396,12 +394,18 @@ function ServerCard() {
             {
               name: 'Docker',
               sub: copied ? t('common.copied') : t('settings.browsertools.dockerSub'),
-              onClick: () => void copyToClipboard(command).then((ok) => ok && setCopied(true)),
+              onClick: () =>
+                void copyToClipboard(command).then((ok) => {
+                  if (!ok) return;
+                  setCopied(true);
+                  setCopies((n) => n + 1);
+                }),
             },
           ]}
           mark={<BrandMark svg={DOCKER_SVG} />}
           markClass="glim-docker-mark"
           note={copied}
+          confirm={copies}
           hint={
             <>
               <span className="block">{t('settings.browsertools.dockerHint')}</span>

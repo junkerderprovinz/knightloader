@@ -47,6 +47,7 @@ import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
   IconCheck,
+  IconCheckDrawn,
   IconClipboard,
   IconClose,
   IconKey,
@@ -279,6 +280,7 @@ function RemoteAccessCard({
   const [phraseBusy, setPhraseBusy] = useState(false);
   const [phraseErr, setPhraseErr] = useState('');
   const [phraseCopied, setPhraseCopied] = useState(false);
+  const [phraseCopies, setPhraseCopies] = useState(0);
   const [joinInput, setJoinInput] = useState('');
   const [joinOpen, setJoinOpen] = useState(false);
   const [revealPw, setRevealPw] = useState('');
@@ -528,10 +530,12 @@ function RemoteAccessCard({
                     </Button>
                     <Button
                       kind="secondary"
-                      icon={phraseCopied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                      icon={phraseCopied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                      confirm={phraseCopies}
                       onClick={async () => {
                         if (await copyToClipboard(phrase)) {
                           setPhraseCopied(true);
+                          setPhraseCopies((n) => n + 1);
                           setTimeout(() => setPhraseCopied(false), 1800);
                         }
                       }}
@@ -755,6 +759,7 @@ function OwnRelayCard({
   // Seeded once and then owned by the field, so a poll cannot fight typing.
   const [addr, setAddr] = useState(cfg.relayUrl);
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
   const active = cfg.mode === 'own';
   // One counter per control, so a refusal shakes the one that was touched.
   const [pickShake, setPickShake] = useState(0);
@@ -842,12 +847,14 @@ function OwnRelayCard({
               <IconBadge
                 labelled
                 hue={1}
-                icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                 title={t('settings.access.tokens.copy')}
                 aria-label={t('settings.access.tokens.copy')}
+                confirm={copies}
                 onClick={async () => {
                   if (await copyToClipboard(RELAY_RUN_COMMAND)) {
                     setCopied(true);
+                    setCopies((n) => n + 1);
                     setTimeout(() => setCopied(false), 1800);
                   }
                 }}
@@ -894,6 +901,7 @@ export function TokensSection() {
   const [createShake, setCreateShake] = useState(0);
   const [created, setCreated] = useState<NewApiToken | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
   const [revoking, setRevoking] = useState<string | null>(null);
   // Full access to start with, as for a token created without naming its rights.
   const [scopes, setScopes] = useState<TokenScope[]>([...TOKEN_SCOPES]);
@@ -1071,12 +1079,14 @@ export function TokensSection() {
               <IconBadge
                 labelled
                 hue={5}
-                icon={copied ? <IconCheck width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
                 title={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 aria-label={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
+                confirm={copies}
                 onClick={async () => {
                   if (await copyToClipboard(created.secret)) {
                     setCopied(true);
+                    setCopies((n) => n + 1);
                     setTimeout(() => setCopied(false), 1800);
                   }
                 }}
