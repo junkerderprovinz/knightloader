@@ -62,10 +62,12 @@ type Backend struct {
 }
 
 // runState is one yt-dlp process of a task: cancel stops it, and ended is
-// closed once run has returned.
+// closed once run has returned. live is set, under Backend.mu, once the
+// process reports a live stream it is recording.
 type runState struct {
 	cancel context.CancelFunc
 	ended  chan struct{}
+	live   bool
 }
 
 // concurrentFragments is how many fragments of one video yt-dlp fetches at
@@ -245,6 +247,9 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			}
 			if opts.Live.Enabled && p.Live {
 				guard.begin(time.Now())
+				b.mu.Lock()
+				r.live = true
+				b.mu.Unlock()
 				// A recording has no total, so the note shows running time
 				// and bytes instead.
 				u.Note = guard.note(p.Downloaded)
@@ -850,6 +855,15 @@ func (b *Backend) Resume(taskID string) {
 	if url != "" {
 		b.launch(taskID, url) // yt-dlp continues the .part by default
 	}
+}
+
+// Recording reports whether the task's yt-dlp is recording a live stream,
+// which Halt would end: yt-dlp finishes a recording when it is interrupted.
+func (b *Backend) Recording(taskID string) bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	r := b.runs[taskID]
+	return r != nil && r.live
 }
 
 // Halt stops the task's yt-dlp without reporting a pause and returns once it
