@@ -289,15 +289,15 @@ func (a *App) holdForWatchers(ctx context.Context, c captcha.Challenge, report c
 // answer a Cloudflare Turnstile, which the widget page does not run, so the
 // solvers never wait for one. The windows stop counting for a challenge one of
 // them could not load, and the phone app for one it could not load (see
-// CaptchaUnanswerable).
+// ReportCaptchaUnanswerable).
 func (a *App) captchaWatched(c captcha.Challenge) bool {
 	if w, ok := c.Payload.(*captcha.WidgetPayload); ok && w.Vendor == captcha.VendorTurnstile {
 		return false
 	}
-	if !a.captchaUnanswerable(c.ID, CaptchaWindow) && a.Hub.Watched("captcha", captchaWatchGrace) {
+	if !a.CaptchaUnanswerable(c.ID, CaptchaWindow) && a.Hub.Watched("captcha", captchaWatchGrace) {
 		return true
 	}
-	return !a.captchaUnanswerable(c.ID, CaptchaPhone) && a.Hub.Watched(captchaWatchKey(c.Kind), captchaWatchGrace)
+	return !a.CaptchaUnanswerable(c.ID, CaptchaPhone) && a.Hub.Watched(captchaWatchKey(c.Kind), captchaWatchGrace)
 }
 
 // solverTakeoverAt is when a held-back solver takes over: wait after now, and

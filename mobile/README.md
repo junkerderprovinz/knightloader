@@ -173,10 +173,12 @@ can:
   instance answers the page with an error status, such as the 400 for a
   challenge JD sent without a site key, the window says so with the status
   rather than blaming the network (`widgetFailure`). When a widget will not
-  load, the app tells the instance (`reportCaptchaUnanswerable`, with
-  `by=phone`), and the phone's reads of the list stop holding the paid solvers
-  back for it. Once Refresh loads it after all, the app takes the report back
-  (`widgetReport`, through `reportWidget` in `CaptchaWatch`).
+  load, the app reports it on the phone's own path
+  (`reportCaptchaUnanswerable`, `/api/captcha/{id}/unanswerable/phone`), and
+  the phone's reads of the list stop holding the paid solvers back for it. An
+  older instance has no such path and records nothing. Once Refresh loads the
+  widget after all, the app withdraws the report (`widgetReport`, through
+  `reportWidget` in `CaptchaWatch`).
 - **Over the relay those two are not answered yet**, and since the phrase is
   the only way to add a connection, that is every connection made today. Only
   one saved by address in an earlier build opens the widget. The page has to
