@@ -145,6 +145,8 @@ export const ro: Dict = {
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'task.remote': 'Se descarcă la {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Despre KnightLoader',
   'settings.aboutBody': 'Un singur cavaler, o cruciadă: unelte open source îngrijite, care nu existau în forma pe care o voiam, construite până nu mai lipsește nimic. Totul gratuit, fără conturi, fără telemetrie, fără reclame și fără abonamente. Niciun asterisc nicăieri. Nimic lizibil nu părăsește vreodată zidurile tale. Făurit seara și în weekend, cu inimă și încăpățânare.',
   'settings.accentReset': 'Implicit',

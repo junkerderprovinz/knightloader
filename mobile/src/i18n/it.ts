@@ -145,6 +145,8 @@ export const it: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'In download su {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Informazioni su KnightLoader',
   'settings.aboutBody': 'Un solo cavaliere, una crociata: strumenti open source curati che non esistevano nella forma che volevo, costruiti finché non manca più niente. Tutto gratuito, senza account, senza telemetria, senza pubblicità e senza piani a pagamento. Nessun asterisco da nessuna parte. Niente di leggibile lascia mai le tue mura. Forgiato di sera e nei fine settimana, con cuore e testardaggine.',
   'settings.accentReset': 'Predefinito',

@@ -145,6 +145,8 @@ export const da: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Henter hos {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Om KnightLoader',
   'settings.aboutBody': 'Én ridder, ét korstog: pæne open source-værktøjer, der ikke fandtes i den form, jeg ville have, bygget indtil intet mangler. Alt gratis, uden konti, uden telemetri, uden reklamer og uden betalte niveauer. Ingen stjerne nogen steder. Intet læsbart forlader nogensinde dine egne mure. Smedet om aftenen og i weekenden, med hjerte og stædighed.',
   'settings.accentReset': 'Standard',

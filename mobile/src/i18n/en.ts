@@ -232,6 +232,8 @@ export const en = {
     'Move or rename that folder, or change "If a file is already there" in the archive settings of the web UI, then unpack it again.',
   'failure.unknown.line': 'KnightLoader does not recognise this error.',
   'failure.unknown.next': 'Try again. If it keeps happening, report it together with what the backend said.',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'About KnightLoader',
   'settings.aboutBody': 'A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.',
   'settings.accentReset': 'Default',

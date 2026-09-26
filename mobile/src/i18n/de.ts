@@ -231,6 +231,8 @@ export const de: Dict = {
     'Verschieb diesen Ordner oder benenn ihn um, oder änder „Wenn eine Datei schon da ist“ in den Archiv-Einstellungen der Weboberfläche, dann entpack das Archiv noch einmal.',
   'failure.unknown.line': 'KnightLoader kennt diesen Fehler nicht.',
   'failure.unknown.next': 'Versuch es noch einmal. Passiert es wieder, meld es zusammen mit dem, was das Backend gesagt hat.',
+  'task.enable': 'Diesen Link aktivieren',
+  'task.disable': 'Diesen Link deaktivieren',
   'settings.aboutTitle': 'Über KnightLoader',
   'settings.aboutBody': 'Ein einzelner Ritter, ein Feldzug: ansehnliche quelloffene Werkzeuge, die es in der Form, die ich wollte, nicht gab, gebaut, bis nichts mehr fehlt. Alles kostenlos, ohne Konten, ohne Telemetrie, ohne Werbung, ohne Bezahlstufen. Nirgends ein Sternchen. Nichts Lesbares verlässt je deine eigenen Mauern. An Abenden und Wochenenden geschmiedet, mit Herz und Dickkopf.',
   'settings.accentReset': 'Standard',

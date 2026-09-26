@@ -145,6 +145,8 @@ export const gl: Dict = {
   'task.mode.free': 'Gratuíto',
   'task.mode.premium': 'Premium',
   'task.remote': 'Descargando en {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Sobre KnightLoader',
   'settings.aboutBody': 'Un só cabaleiro, unha cruzada: ferramentas de código aberto ben feitas que non existían na forma que eu quería, construídas ata que non falte nada. Todo de balde, sen contas, sen telemetría, sen anuncios e sen plans de pago. Ningún asterisco en ningures. Nada lexible sae nunca das túas propias murallas. Forxado polas noites e as fins de semana, con corazón e teimosía.',
   'settings.accentReset': 'Por defecto',

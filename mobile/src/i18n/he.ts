@@ -145,6 +145,8 @@ export const he: Dict = {
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
   'task.remote': 'בהורדה ב-{service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'על KnightLoader',
   'settings.aboutBody': 'אביר אחד, מסע צלב אחד: כלים נאים בקוד פתוח שלא היו קיימים בצורה שרציתי, נבנים עד שלא חסר דבר. הכול בחינם, בלי חשבונות, בלי טלמטריה, בלי פרסומות ובלי מסלולים בתשלום. שום כוכבית בשום מקום. שום דבר קריא לא עוזב אף פעם את החומות שלך. מחושל בערבים ובסופי שבוע, עם לב ועקשנות.',
   'settings.accentReset': 'ברירת מחדל',

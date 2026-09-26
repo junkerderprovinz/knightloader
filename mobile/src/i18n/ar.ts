@@ -145,6 +145,8 @@ export const ar: Dict = {
   'task.mode.free': 'مجاني',
   'task.mode.premium': 'مدفوع',
   'task.remote': 'قيد التنزيل لدى {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'حول KnightLoader',
   'settings.aboutBody': 'فارس واحد وحملة واحدة: أدوات مفتوحة المصدر أنيقة لم تكن موجودة بالشكل الذي أردته، تُبنى حتى لا ينقصها شيء. كل شيء مجاني، بلا حسابات، بلا قياس عن بُعد، بلا إعلانات وبلا باقات مدفوعة. لا نجمة في أي مكان. لا شيء مقروء يغادر أسوارك أبدًا. طُرق على المسامير في الأمسيات وعطل نهاية الأسبوع، بقلب وعناد.',
   'settings.accentReset': 'الافتراضي',

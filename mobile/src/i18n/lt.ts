@@ -145,6 +145,8 @@ export const lt: Dict = {
   'task.mode.free': 'Nemokamai',
   'task.mode.premium': 'Premium',
   'task.remote': 'Parsiunčia {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Apie KnightLoader',
   'settings.aboutBody': 'Vienas riteris, vienas žygis: tvarkingi atvirojo kodo įrankiai, kurių tokios formos, kokios norėjau, nebuvo, statomi tol, kol nieko netrūks. Viskas nemokama, be paskyrų, be telemetrijos, be reklamų ir be mokamų lygių. Niekur jokios žvaigždutės. Niekas skaitomo niekada neišeina už tavo paties sienų. Kalta vakarais ir savaitgaliais, su širdimi ir užsispyrimu.',
   'settings.accentReset': 'Numatytoji',

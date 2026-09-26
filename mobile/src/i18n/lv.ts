@@ -145,6 +145,8 @@ export const lv: Dict = {
   'task.mode.free': 'Bez maksas',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ielādē pie {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'Par KnightLoader',
   'settings.aboutBody': 'Viens bruņinieks, viens karagājiens: glīti atvērtā koda rīki, kuru tādā veidā, kādu es gribēju, nebija, un tie tiek būvēti, līdz nekā netrūkst. Viss bez maksas, bez kontiem, bez telemetrijas, bez reklāmām un bez maksas līmeņiem. Nekur nevienas zvaigznītes. Nekas lasāms nekad neatstāj tavus paša mūrus. Kalts vakaros un nedēļas nogalēs, ar sirdi un spītību.',
   'settings.accentReset': 'Noklusējums',

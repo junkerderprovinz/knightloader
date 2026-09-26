@@ -145,6 +145,8 @@ export const hr: Dict = {
   'task.mode.free': 'Besplatno',
   'task.mode.premium': 'Premium',
   'task.remote': 'Preuzima se kod usluge {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'O KnightLoaderu',
   'settings.aboutBody': 'Jedan vitez, jedan pohod: uredni alati otvorenog koda kojih u obliku kakav sam želio nije bilo, građeni dok ništa ne nedostaje. Sve besplatno, bez računa, bez telemetrije, bez reklama i bez plaćenih razina. Nigdje nijedne zvjezdice. Ništa čitljivo nikada ne napušta tvoje zidove. Kovano navečer i vikendima, sa srcem i tvrdoglavošću.',
   'settings.accentReset': 'Zadano',

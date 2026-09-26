@@ -145,6 +145,8 @@ export const bg: Dict = {
   'task.mode.free': 'Безплатно',
   'task.mode.premium': 'Премиум',
   'task.remote': 'Изтегля се при {service}',
+  'task.enable': 'Enable this link',
+  'task.disable': 'Disable this link',
   'settings.aboutTitle': 'За KnightLoader',
   'settings.aboutBody': 'Един рицар, един поход: спретнати инструменти с отворен код, които ги нямаше във вида, който исках, и се градят, докато нищо не липсва. Всичко е безплатно, без акаунти, без телеметрия, без реклами и без платени нива. Никъде нито една звездичка. Нищо четимо никога не напуска твоите стени. Кове се вечер и през почивните дни, със сърце и инат.',
   'settings.accentReset': 'По подразбиране',
