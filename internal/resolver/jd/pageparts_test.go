@@ -1,9 +1,13 @@
 package jd
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -28,6 +32,8 @@ func TestOnlyPagePartsKnowsAPageFromItsDownloads(t *testing.T) {
 		{playerPage, true},
 		{[]string{"index.html", "app.js"}, true},
 		{[]string{"style.css", "banner.png", "next"}, true},
+		{[]string{"index.html", "about.html", "Inter.woff2", "logo.svg"}, true},
+		{[]string{"Inter.woff2", "Inter-Bold.woff2", "hero.jpg"}, true},
 		// A hoster plugin's one file is the download, whatever its type.
 		{[]string{"library.js"}, false},
 		{[]string{"cover.jpg"}, false},
@@ -63,10 +69,13 @@ func TestOnlyALinkJDCanOnlyReadAsAPageIsWatched(t *testing.T) {
 }
 
 // fakeJDPage is a JD that crawled a page into the task's grabber package, or,
-// with confirmed set, straight into its download list.
+// with confirmed set, straight into its download list, where the links named
+// in finished are done at 100 bytes each in the folder saveTo.
 type fakeJDPage struct {
 	names     []string
 	confirmed bool
+	saveTo    string
+	finished  map[string]bool
 
 	mu            sync.Mutex
 	added         bool
@@ -77,13 +86,18 @@ type fakeJDPage struct {
 func (f *fakeJDPage) links() string {
 	var out []string
 	for i, n := range f.names {
-		out = append(out, fmt.Sprintf(`{"uuid":%d,"packageUUID":7,"name":%q,"availability":"ONLINE","bytesTotal":100}`, 100+i, n))
+		loaded := 0
+		if f.finished[n] {
+			loaded = 100
+		}
+		out = append(out, fmt.Sprintf(`{"uuid":%d,"packageUUID":7,"name":%q,"availability":"ONLINE","bytesTotal":100,"bytesLoaded":%d,"finished":%t}`,
+			100+i, n, loaded, f.finished[n]))
 	}
 	return `{"data":[` + strings.Join(out, ",") + `]}`
 }
 
 func (f *fakeJDPage) handler() http.Handler {
-	const ours = `{"data":[{"uuid":7,"name":"KL-t1"}]}`
+	ours := fmt.Sprintf(`{"data":[{"uuid":7,"name":"KL-t1","saveTo":%q}]}`, f.saveTo)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		defer f.mu.Unlock()
@@ -168,6 +182,54 @@ func TestAPageJDHasAlreadyConfirmedIsTakenOffItsList(t *testing.T) {
 	defer f.mu.Unlock()
 	if !f.downloadsGone {
 		t.Error("the page's parts stayed in JD's download list")
+	}
+}
+
+// Only what JD finished of the page goes, and only where it is the file JD
+// wrote: a same-named file of another size, the names of parts still loading
+// and the user's own files stay.
+func TestThePagePartsJDAlreadyFetchedAreDeleted(t *testing.T) {
+	dir := t.TempDir()
+	put := func(name string, size int) string {
+		p := filepath.Join(dir, name)
+		if err := os.WriteFile(p, bytes.Repeat([]byte("x"), size), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	fetched := []string{put("crypto-js.min.js", 100), put("jwplayer.css", 100)}
+	kept := []string{put("logo.svg", 7), put("jwplayer.js", 40), put("on.js", 0), put("holiday.mp4", 100)}
+	f := &fakeJDPage{names: playerPage, confirmed: true, saveTo: dir, finished: map[string]bool{
+		"crypto-js.min.js": true, "jwplayer.css": true, "logo.svg": true,
+	}}
+	u := downloadPage(t, f, "https://playmate.to/embed/FrBxuaYCIKvsh", 5*time.Second)
+	if u == nil || u.Reason != core.ReasonUnsupportedPlayer {
+		t.Fatalf("update %+v, want a failure naming the unsupported player", u)
+	}
+	for _, p := range fetched {
+		if _, err := os.Stat(p); err == nil {
+			t.Errorf("%s, which JD finished, is still there", filepath.Base(p))
+		}
+	}
+	for _, p := range kept {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("%s was deleted: %v", filepath.Base(p), err)
+		}
+	}
+}
+
+// A JD on another machine reports a folder this process does not have, and
+// the log says what was left there.
+func TestPagePartsOutOfReachAreNamedInTheLog(t *testing.T) {
+	var buf bytes.Buffer
+	out := log.Writer()
+	log.SetOutput(&buf)
+	t.Cleanup(func() { log.SetOutput(out) })
+
+	dir := filepath.Join(t.TempDir(), "elsewhere")
+	dropFinished(dir, []DownloadLink{{Name: "crypto-js.min.js", Finished: true, BytesLoaded: 100}})
+	if !strings.Contains(buf.String(), dir) {
+		t.Errorf("the log says %q, want the folder the file stays in", buf.String())
 	}
 }
 

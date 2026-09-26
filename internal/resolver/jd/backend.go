@@ -664,26 +664,29 @@ func (b *Backend) poll(taskID string) {
 				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + p.Status, Note: p.Status})
 				return
 			}
-			// Pinned once, when the package first appears: addLinks'
-			// destinationFolder only names the parent of a folder named after
-			// the package.
-			if !pinned {
-				pinned = true
-				if dir := b.dirFor(taskID); dir != "" {
-					// Best effort: finishing in JD's folder beats failing.
-					_ = b.c.SetPackageDirectory(dir, []int64{puuid})
-				}
-			}
 			links, err := b.c.QueryDownloads(puuid)
 			if err != nil || len(links) == 0 {
 				continue
 			}
 			if !seen && page && onlyPageParts(downloadNames(links)) {
 				// A JD that confirms at once moves the links on before the
-				// grabber check can see them settle.
+				// grabber check can see them settle, and may have fetched
+				// some of them already.
 				_ = b.c.RemoveLinks(nil, []int64{puuid})
+				dropFinished(p.SaveTo, links)
 				b.onUpdate(taskID, pagePartsFailure())
 				return
+			}
+			// Pinned once, when the package first shows its links: addLinks'
+			// destinationFolder only names the parent of a folder named after
+			// the package. It comes after the check above, which looks for a
+			// caught page's files where SaveTo says.
+			if !pinned {
+				pinned = true
+				if dir := b.dirFor(taskID); dir != "" {
+					// Best effort: finishing in JD's folder beats failing.
+					_ = b.c.SetPackageDirectory(dir, []int64{puuid})
+				}
 			}
 			seen = true
 			// JD reports states like "Captcha recognition" on the package, not
@@ -758,7 +761,7 @@ func aggregate(links []DownloadLink) core.Update {
 		u.Size += links[i].BytesTotal
 		u.Loaded += links[i].BytesLoaded
 		u.Speed += links[i].Speed
-		if links[i].Finished || links[i].Status == "Finished" {
+		if links[i].done() {
 			done++
 		}
 	}
