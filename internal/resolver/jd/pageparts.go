@@ -104,7 +104,7 @@ func dropFinished(dir string, links []DownloadLink) {
 		}
 	}
 	if left > 0 {
-		log.Printf("jd: left %d file(s) JDownloader saved from the page in %s, since this process cannot find them there as JDownloader wrote them", left, dir)
+		log.Printf("jd: left %d file(s) JDownloader saved from the page in %s, since this process cannot see them there as JDownloader wrote them", left, dir)
 	}
 }
 
