@@ -369,6 +369,9 @@ jobs:
       - name: Palette edit under disco
         run: node extension/check-palette-edit.mjs
 
+      - name: Every motion level declares every dial
+        run: node extension/check-motion.mjs
+
       # --self-hosted checks the package without AMO listing metadata. Two codes
       # are skipped: a cross-browser manifest always declares both background
       # forms, and the add-on is desktop Firefox only, so the Android minimum

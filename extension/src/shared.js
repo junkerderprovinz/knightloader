@@ -14,19 +14,66 @@ function deploymentLabel(dep) {
 }
 
 /**
- * shake plays GlimStone's failure feedback on the control that was clicked.
- *
- * Removing and re-adding the class in one frame does not restart an animation,
- * and cloning the node would drop its listeners, so a forced reflow sits in
- * between.
+ * replay plays a one-shot animation class again, also on an element that still
+ * has it. Removing and re-adding the class in one frame does not restart an
+ * animation, and cloning the node would drop its listeners, so a forced reflow
+ * sits in between. The class goes once its own animation ends; one that ends
+ * inside the element, such as a checkmark being drawn, does not count.
  */
-function shake(el) {
+function replay(el, cls) {
   if (!el) return;
-  el.classList.remove('glim-shake');
+  el.classList.remove(cls);
   // Reading a layout property flushes the class removal.
   void el.offsetWidth;
-  el.classList.add('glim-shake');
-  el.addEventListener('animationend', () => el.classList.remove('glim-shake'), { once: true });
+  el.classList.add(cls);
+  const done = (event) => {
+    if (event.target !== el) return;
+    el.removeEventListener('animationend', done);
+    el.classList.remove(cls);
+  };
+  el.addEventListener('animationend', done);
+}
+
+/**
+ * shake plays GlimStone's failure feedback on the control that was clicked,
+ * and confirmPulse its success pulse. An action either fails or succeeds, and
+ * each takes the other's class away, since two animation rules on one element
+ * would let only one of them play.
+ */
+function shake(el) {
+  el?.classList.remove('glim-confirm');
+  replay(el, 'glim-shake');
+}
+
+function confirmPulse(el) {
+  el?.classList.remove('glim-shake');
+  replay(el, 'glim-confirm');
+}
+
+/** A motion dial's current duration in milliseconds, 0 where the level sets none. */
+function motionMs(dial) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(dial).trim();
+  if (value.endsWith('ms')) return parseFloat(value) || 0;
+  return parseFloat(value) * 1000 || 0;
+}
+
+/**
+ * staggerRows gives list rows GlimStone's staggered entrance the first time
+ * their key is drawn. `rows` are [key, element] pairs. The lists here are drawn
+ * afresh on every update, the popup's every two seconds, so `starts` keeps the
+ * moment each row's entrance began, and a row drawn again carries on from
+ * there, or stands finished once that is past.
+ */
+function staggerRows(starts, rows) {
+  const now = performance.now();
+  const step = motionMs('--motion-stagger-step');
+  const cap = motionMs('--motion-stagger-cap');
+  let arriving = 0;
+  for (const [key, row] of rows) {
+    if (!starts.has(key)) starts.set(key, now + Math.min(arriving++ * step, cap));
+    row.classList.add('glim-stagger-row');
+    row.style.animationDelay = `${starts.get(key) - now}ms`;
+  }
 }
 
 /**
@@ -92,6 +139,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     line.className = 'glim-instance-stats glim-num';
     line.textContent = status === null ? t('instance.offline') : statusLine(status);
     if (status === null) line.classList.add('glim-instance-stats--off');
+    if (status && downloading(status)) livePulse(line);
     body.appendChild(line);
   }
 
@@ -194,7 +242,7 @@ function statusLine(s) {
   const c = s.counters ?? {};
   const parts = [];
   if (q.halted) parts.push(t('instance.paused'));
-  else if ((c.running ?? q.running ?? 0) > 0) parts.push(t('instance.running'));
+  else if (downloading(s)) parts.push(t('instance.running'));
   else if ((c.files ?? 0) > 0) parts.push(t('instance.queued'));
 
   // The file count is shown even at zero, so the card keeps its height when a
@@ -203,6 +251,22 @@ function statusLine(s) {
   if ((c.remaining ?? 0) > 0) parts.push(`${fmtBytes(c.remaining)} ${t('instance.left')}`);
   if ((c.speed ?? 0) > 0) parts.push(`${fmtBytes(c.speed)}/s`);
   return parts.join(' · ');
+}
+
+/** Whether an instance is downloading, the status line's "running". */
+function downloading(s) {
+  return !s.queue?.halted && (s.counters?.running ?? s.queue?.running ?? 0) > 0;
+}
+
+/**
+ * livePulse marks a line as in progress with GlimStone's `.glim-live` pulse.
+ * The popup draws its cards afresh every two seconds, so the pulse starts at
+ * the phase one clock gives every line rather than at full strength each time.
+ */
+function livePulse(el) {
+  el.classList.add('glim-live');
+  const period = motionMs('--motion-pulse-dur');
+  if (period > 0) el.style.animationDelay = `-${Math.round(performance.now() % period)}ms`;
 }
 
 /** Binary units, as the web UI's fmtBytes. */

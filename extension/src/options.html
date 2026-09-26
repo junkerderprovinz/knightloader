@@ -1,7 +1,8 @@
 <!doctype html>
-<!-- The values before the language is known; i18n.js replaces them before any
-     text is written. -->
-<html lang="en" dir="ltr">
+<!-- lang and dir hold until i18n.js knows the language, which it sets before any
+     text is written. The extension has no motion setting, so the page runs at
+     GlimStone's default level. -->
+<html lang="en" dir="ltr" data-motion="subtle">
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
@@ -185,15 +186,16 @@
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
-      /* Each sentence sits closer to its own buttons than to the next one. */
-      .glim-card .fields + .aboutText { margin-top: 20px; }
       .aboutVersions {
         margin: 0;
         font-size: var(--text-dense);
         color: var(--carbon-text-muted);
         font-variant-numeric: tabular-nums;
       }
-      .glim-card .fields + .aboutVersions { margin-top: 20px; }
+      /* The versions are a footer, a step further from the buttons above
+         them. The give row keeps its own blank line on both sides
+         (.glim-about-give). */
+      .glim-readme-btn-rows + .aboutVersions { margin-top: 20px; }
       /* Underlined only on hover, in the accent ink. */
       .versionLink { color: var(--accent-ink); text-decoration: none; }
       .versionLink:hover { text-decoration: underline; }
@@ -213,7 +215,10 @@
     <!-- Shown when Chromium has hidden the new toolbar button behind the puzzle
          piece, which looks like a failed install (notOnToolbar in
          background.js). -->
-    <section class="glim-card pinHint" id="pinHint" hidden>
+    <!-- The cards come in one after another (.glim-stagger-row), each at its
+         place in the page as --row-i. They carry the class from the start, so
+         the first paint is already their entrance. -->
+    <section class="glim-card glim-stagger-row pinHint" id="pinHint" style="--row-i: 0" hidden>
       <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
       <p id="pinBody" class="aboutText"></p>
       <div class="fields">
@@ -224,7 +229,7 @@
     <!-- Explanations are info bubbles on the heading badges, set by options.js
          in the chosen language. -->
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 1">
       <h2 class="glim-section-badge" id="groupHeading">Group</h2>
       <form id="joinForm">
         <!-- The phrase is a credential, so it is masked. Paste comes first,
@@ -253,7 +258,7 @@
       <button id="refreshGroup" class="secondary" type="button" hidden>Refresh</button>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 2">
       <h2 class="glim-section-badge" id="languageHeading">Language</h2>
       <!-- A listbox built by options.js, since an <option> cannot show a
            flag. -->
@@ -261,7 +266,7 @@
     </section>
 
     <!-- One card per axis, as on the web UI's Look page. -->
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 3">
       <h2 class="glim-section-badge" id="appearanceHeading">Look</h2>
       <!-- Takes the look from the instance through GET /api/appearance over
            the relay. It comes first because it decides whether the cards below
@@ -281,17 +286,17 @@
       </div>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 4">
       <h2 class="glim-section-badge" id="themeHeading">Theme</h2>
       <div class="glim-seg" id="themeSeg" role="group"></div>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 5">
       <h2 class="glim-section-badge" id="shapeHeading">Corners</h2>
       <div class="glim-seg" id="shapeSeg" role="group"></div>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 6">
       <h2 class="glim-section-badge" id="coloursHeading">Colours</h2>
       <div class="axes">
         <!-- Label left, swatches right, with the reset badge always at the end,
@@ -337,7 +342,7 @@
       </div>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="cnlHeading">Click'n'Load</h2>
       <button type="button" role="switch" aria-checked="false" id="cnlEnabled" class="glim-switch">
         <span class="glim-switch-label" id="cnlToggle"></span>
@@ -368,7 +373,7 @@
       </div>
     </section>
 
-    <section class="glim-card">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the About card carries the ways to report. -->
@@ -378,26 +383,41 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0).
-         Each sentence has its button directly beneath it. -->
-    <section class="glim-card">
+         Each sentence has its buttons directly beneath it. -->
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
-      <!-- glim-brand-btn and glim-brand-<name> work only as a pair (GlimStone
-           1.10.0): the second supplies the brand colours the first uses. The
-           hosted payments come first, in the order the family's cards share.
-           Coffee and crypto open a window of our own, so they are buttons. -->
-      <div class="fields">
-        <button id="aboutCoffeeBtn" class="secondary glim-brand-btn glim-brand-coffee" type="button"></button>
-        <a id="aboutPaypalBtn" class="secondary btnlike glim-brand-btn glim-brand-paypal" target="_blank" rel="noreferrer noopener"></a>
-        <button id="aboutCryptoBtn" class="secondary glim-brand-btn glim-brand-bitcoin" type="button"></button>
+      <!-- The README's buttons, which options.js fills with their marks. Each
+           unit lights up in the colour its glim-tile-<brand> names. The hosted
+           payments come first, in the order the family's cards share. Coffee
+           and crypto open a window of our own, so they are buttons. -->
+      <div class="glim-readme-btn-rows glim-about-give" id="aboutGive">
+        <div class="glim-readme-btn-unit group glim-tile-coffee">
+          <button id="aboutCoffeeBtn" class="glim-readme-btn glim-brand-tile" type="button"></button>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
+        <div class="glim-readme-btn-unit group glim-tile-paypal">
+          <a id="aboutPaypalBtn" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
+        <div class="glim-readme-btn-unit group glim-tile-bitcoin">
+          <button id="aboutCryptoBtn" class="glim-readme-btn glim-brand-tile" type="button"></button>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
       </div>
       <p id="aboutReport" class="aboutText"></p>
-      <div class="fields">
-        <a id="aboutGithub" class="secondary btnlike glim-brand-btn glim-brand-github" target="_blank" rel="noreferrer noopener"></a>
-        <!-- Our own button takes the accent tokens; a third party's mark keeps
+      <div class="glim-readme-btn-rows" id="aboutReportRow">
+        <div class="glim-readme-btn-unit group glim-tile-github">
+          <a id="aboutGithub" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
+        <!-- Our own button lights up in the accent; a third party's mark keeps
              its colour. -->
-        <a id="aboutMail" class="secondary btnlike glim-brand-btn glim-brand-house"></a>
+        <div class="glim-readme-btn-unit group glim-tile-house">
+          <a id="aboutMail" class="glim-readme-btn glim-brand-tile"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
       </div>
       <!-- The versions close the card, as in the web interface and the app. -->
       <p id="aboutVersions" class="aboutVersions glim-num"></p>
@@ -486,6 +506,7 @@
     <script src="group.js"></script>
     <script src="tooltip.js"></script>
     <script src="donate.js"></script>
+    <script src="appMarks.js"></script>
     <script src="vendor/qrcode.js"></script>
     <script src="options.js"></script>
   </body>

@@ -63,10 +63,10 @@ const phrasePaste = document.getElementById('phrasePaste');
  * release gate here, fails an innerHTML assignment from a variable
  * (UNSAFE_VAR_ASSIGNMENT).
  *
- * Brand logos override fill="currentColor" from the stylesheet
- * (`.glim-brand-btn svg path` in glimstone.css), since an author rule beats a
- * presentation attribute. A coin paints its disc with var(--mark-ink,
- * currentColor), which a lit brand tile sets to its ink.
+ * A brand mark keeps fill="currentColor" and takes its colour from the class
+ * on its box (`.glim-paypal-mark` and the others in glimstone.css). A coin
+ * paints its disc with var(--mark-ink, currentColor), which a lit brand tile
+ * sets to its ink.
  */
 const NS = 'http://www.w3.org/2000/svg';
 function glyph(d, size, box = '0 0 16 16', fill = 'currentColor') {
@@ -116,33 +116,8 @@ const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 // The same cross popup.js uses for its cancel.
 const D_CROSS =
   'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
-// The give buttons wear their brands' own marks, the ones the web UI's About
-// card draws (web/src/components/donateMarks.tsx): Buy Me a Coffee and PayPal
-// from Simple Icons, CC0 1.0. Both are drawn on a 24-unit grid.
-const BRAND_BOX = '0 0 24 24';
-const D_COFFEE =
-  'M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572' +
-  '-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194' +
-  'c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501' +
-  '-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37' +
-  ' 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473' +
-  '-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036' +
-  '-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048' +
-  'a25.076 25.076 0 013.426-.12c.674.019 1.347.067 2.017.144l.228.031c.267.04.533.088.798.145.392.085.895.113 1.07.542' +
-  '.055.137.08.288.111.431l.319 1.484a.237.237 0 01-.199.284h-.003c-.037.006-.075.01-.112.015a36.704 36.704 0 01-4.743.295' +
-  ' 37.059 37.059 0 01-4.699-.304c-.14-.017-.293-.042-.417-.06-.326-.048-.649-.108-.973-.161-.393-.065-.768-.032-1.123.161' +
-  '-.29.16-.527.404-.675.701-.154.316-.199.66-.267 1-.069.34-.176.707-.135 1.056.087.753.613 1.365 1.37 1.502' +
-  'a39.69 39.69 0 0011.343.376.483.483 0 01.535.53l-.071.697-1.018 9.907c-.041.41-.047.832-.125 1.237-.122.637-.553 1.028' +
-  '-1.182 1.171-.577.131-1.165.2-1.756.205-.656.004-1.31-.025-1.966-.022-.699.004-1.556-.06-2.095-.58-.475-.458-.54-1.174' +
-  '-.605-1.793l-.731-7.013-.322-3.094c-.037-.351-.286-.695-.678-.678-.336.015-.718.3-.678.679l.228 2.185.949 9.112' +
-  'c.147 1.344 1.174 2.068 2.446 2.272.742.12 1.503.144 2.257.156.966.016 1.942.053 2.892-.122 1.408-.258 2.465-1.198' +
-  ' 2.616-2.657.34-3.332.683-6.663 1.024-9.995l.215-2.087a.484.484 0 01.39-.426c.402-.078.787-.212 1.074-.518' +
-  '.455-.488.546-1.124.385-1.766zm-1.478.772c-.145.137-.363.201-.578.233-2.416.359-4.866.54-7.308.46-1.748-.06-3.477-.254' +
-  '-5.207-.498-.17-.024-.353-.055-.47-.18-.22-.236-.111-.71-.054-.995.052-.26.152-.609.463-.646.484-.057 1.046.148 1.526.22' +
-  '.577.088 1.156.159 1.737.212 2.48.226 5.002.19 7.472-.14.45-.06.899-.13 1.345-.21.399-.072.84-.206 1.08.206.166.281.188.657' +
-  '.162.974a.544.544 0 01-.169.364zm-6.159 3.9c-.862.37-1.84.788-3.109.788a5.884 5.884 0 01-1.569-.217l.877 9.004' +
-  'c.065.78.717 1.38 1.5 1.38 0 0 1.243.065 1.658.065.447 0 1.786-.065 1.786-.065.783 0 1.434-.6 1.499-1.38l.94-9.95' +
-  'a3.996 3.996 0 00-1.322-.238c-.826 0-1.491.284-2.26.613z';
+// PayPal from Simple Icons, CC0 1.0, on a 24-unit grid, the mark the web UI's
+// About card draws (web/src/components/donateMarks.tsx).
 const D_PAYPAL =
   'M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86' +
   'm6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949' +
@@ -160,9 +135,6 @@ const D_GITHUB =
 const D_COPY =
   'M4 1.5h6.5a1 1 0 0 1 1 1V4H6a1.5 1.5 0 0 0-1.5 1.5V11H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z' +
   'M6.5 5.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z';
-// An envelope whose flap is cut out, so the ground shows through.
-const D_MAIL =
-  'M1.5 3.5h13v9h-13v-9zm1.6 1.4L8 8.4l4.9-3.5H3.1z';
 // A filled bin in one path.
 const D_TRASH =
   'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
@@ -202,6 +174,105 @@ function eyeGlyph(off, size) {
     svg.appendChild(bar);
   }
   return svg;
+}
+
+/** Buy Me a Coffee's button artwork (appMarks.js), cup and lettering. */
+function coffeeArt() {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', COFFEE_BUTTON_ART.box);
+  svg.setAttribute('aria-hidden', 'true');
+  for (const p of COFFEE_BUTTON_ART.paths) {
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('fill', p.fill);
+    if (p.evenodd) path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('d', p.d);
+    svg.appendChild(path);
+  }
+  return svg;
+}
+
+/**
+ * The mail button's envelope, closed and open in one box. The open one takes
+ * over under the pointer through GlimStone's .glim-mark-rest and
+ * .glim-mark-hover.
+ */
+function mailMarks() {
+  return [
+    ['glim-mark-rest', MAIL_MARK.rest],
+    ['glim-mark-hover', MAIL_MARK.hover],
+  ].map(([cls, d]) => {
+    const svg = glyph(d, 14, MAIL_MARK.box);
+    svg.setAttribute('class', cls);
+    return svg;
+  });
+}
+
+/**
+ * The check a copy button shows once the copy landed, one stroke that
+ * GlimStone's glim-check-draw traces. pathLength="1" lets the dash offset run
+ * from 1 to 0 whatever the path's real length.
+ */
+function checkGlyph(size) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('class', 'glim-check-draw');
+  path.setAttribute('pathLength', '1');
+  // As wide as the copy glyph it replaces, so the label does not shift.
+  path.setAttribute('d', 'M2.5 8.5l3.5 3.5 7.5-8');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(path);
+  return svg;
+}
+
+/**
+ * readmeFace fills one of the About card's README buttons (GlimStone's
+ * .glim-readme-btn): its mark, painted at rest by `markClass`, and its name on
+ * one line, as on the README's give buttons, so nothing moves up under the
+ * pointer. `art` is a vendor's own button artwork in place of both.
+ */
+function readmeFace(el, { name, mark, markClass, art }) {
+  el.setAttribute('aria-label', name);
+  if (art) {
+    const box = document.createElement('span');
+    box.className = 'glim-readme-btn-art';
+    box.setAttribute('aria-hidden', 'true');
+    box.appendChild(art);
+    el.replaceChildren(box);
+    return;
+  }
+  const markBox = document.createElement('span');
+  markBox.className = `glim-readme-btn-mark ${markClass}`;
+  markBox.setAttribute('aria-hidden', 'true');
+  markBox.append(...[mark].flat());
+  const text = document.createElement('span');
+  text.className = 'glim-readme-btn-text';
+  const label = document.createElement('span');
+  label.className = 'glim-readme-btn-name';
+  label.textContent = name;
+  text.appendChild(label);
+  el.replaceChildren(markBox, text);
+}
+
+/**
+ * Shrinks a translation longer than its README button instead of cutting it
+ * off. A line measures nothing before it is laid out, so the rows are fitted
+ * again whenever they resize and once the fonts are in.
+ */
+function fitReadmeText(root) {
+  for (const line of root.querySelectorAll('.glim-readme-btn-name')) {
+    line.style.fontSize = '';
+    if (line.clientWidth === 0) continue;
+    const over = line.scrollWidth / line.clientWidth;
+    if (over > 1) line.style.fontSize = `${parseFloat(getComputedStyle(line).fontSize) / over}px`;
+  }
 }
 
 /**
@@ -495,7 +566,7 @@ async function renderGroup() {
     // The shared empty state, without a card of its own inside the Group card
     // and without an action button, since connect and refresh sit right above.
     const empty = document.createElement('div');
-    empty.className = 'emptyState';
+    empty.className = 'emptyState glim-content-fade';
     empty.appendChild(instancesGlyph(28));
     const title = document.createElement('span');
     title.textContent = t('options.groupEmpty');
@@ -510,22 +581,26 @@ async function renderGroup() {
   // instance. The popup keeps all three. The default is changed by
   // right-clicking another card.
   const preferred = defaultOf(siblings, await readDefaultTarget());
-  siblings.forEach((inst, i) => {
-    list.appendChild(
-      instanceCard(inst, {
-        index: i,
-        isDefault: inst.instanceId === preferred,
-        status: inst.status,
-        onSetDefault: async (picked) => {
-          await writeDefaultTarget(picked.instanceId);
-          await renderGroup();
-          // The report names the default instance.
-          void renderReport();
-        },
-      }),
-    );
-  });
+  const cards = siblings.map((inst, i) => [
+    inst.instanceId,
+    instanceCard(inst, {
+      index: i,
+      isDefault: inst.instanceId === preferred,
+      status: inst.status,
+      onSetDefault: async (picked) => {
+        await writeDefaultTarget(picked.instanceId);
+        await renderGroup();
+        // The report names the default instance.
+        void renderReport();
+      },
+    }),
+  ]);
+  staggerRows(rosterArrivals, cards);
+  list.append(...cards.map(([, card]) => card));
 }
+
+/** When each instance's card first came in, kept across redraws (staggerRows). */
+const rosterArrivals = new Map();
 
 joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -549,6 +624,7 @@ joinForm.addEventListener('submit', async (e) => {
     // The cards show the members; only an empty group needs a sentence.
     say(siblings.length ? '' : t('options.joinedEmpty'), true);
     joinBtn.removeAttribute('data-tip');
+    confirmPulse(joinBtn);
   } catch {
     joinBtn.setAttribute('data-tip', t('options.groupUnreachable'));
     say('', false);
@@ -617,6 +693,8 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   // Focus goes to Connect, since renderGroup() hides the bin.
   closeLeaveConfirm(joinBtn);
   await forgetGroup();
+  // A group joined later arrives afresh, even with the same instances in it.
+  rosterArrivals.clear();
   // Leaving stops following and restores the local look. Without a group the
   // follow switch is removed, so nothing could turn it off later.
   const { followInstance } = await chrome.storage.local.get('followInstance');
@@ -625,6 +703,7 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
     await writeAppearance({ followInstance: false });
     const back = await readAppearance();
     applyShape(back.shape);
+    wipeColours();
     applyAccent(back.accent);
     applyRainbow(back.rainbow);
   }
@@ -796,9 +875,28 @@ function wireRainbowSwitch(el, key) {
     }
     await writeAppearance(patch);
     const next = await readAppearance();
+    // Disco walks the palette on its own clock, and a wipe would only drag
+    // behind it.
+    if (key !== 'rainbowDisco') wipeColours();
     applyRainbow(next.rainbow);
     await renderAppearance();
   });
+}
+
+let wipeTimer = 0;
+
+/**
+ * wipeColours lets the next change of the rainbow, or of the whole look, cross
+ * the page together instead of every hued element snapping on its own
+ * (GlimStone's colour wipe). The class stays only as long as the wipe, so
+ * ordinary hovers keep their own timing. Not for a colour being dragged in the
+ * picker, which has to follow the pointer.
+ */
+function wipeColours() {
+  const root = document.documentElement;
+  root.classList.add('glim-colour-wipe');
+  clearTimeout(wipeTimer);
+  wipeTimer = setTimeout(() => root.classList.remove('glim-colour-wipe'), motionMs('--motion-wipe-dur') + 50);
 }
 wireRainbowSwitch(rainbowOnEl, 'rainbow');
 wireRainbowSwitch(rainbowReactiveEl, 'rainbowReactive');
@@ -824,12 +922,15 @@ followInstanceEl.addEventListener('click', async () => {
       shake(followInstanceEl);
       return;
     }
+    // The instance answered, which is the part that could have failed.
+    confirmPulse(followInstanceEl);
   } else {
     await restoreLocalLook();
   }
   await writeAppearance({ followInstance: on });
   const next = await readAppearance();
   applyShape(next.shape);
+  wipeColours();
   applyAccent(next.accent);
   applyRainbow(next.rainbow);
   await renderAppearance();
@@ -1106,7 +1207,9 @@ async function renderAppearance() {
   paletteSwatches.appendChild(
     resetBadge(async () => {
       await writeAppearance({ rainbowPalette: null });
-      applyRainbow((await readAppearance()).rainbow);
+      const back = await readAppearance();
+      wipeColours();
+      applyRainbow(back.rainbow);
       await renderAppearance();
     }),
   );
@@ -1207,24 +1310,38 @@ function renderAbout() {
   text.textContent = t('options.aboutText');
   const coffeeText = document.getElementById('aboutCoffee');
   if (coffeeText) coffeeText.textContent = t('options.aboutCoffee');
-  coffeeBtn.replaceChildren(glyph(D_COFFEE, 14, BRAND_BOX), document.createTextNode(t('options.aboutCoffeeButton')));
+  // The artwork carries the words, which are the button's name as well.
+  readmeFace(coffeeBtn, { name: t('options.aboutCoffeeButton'), art: coffeeArt() });
   const paypalBtn = document.getElementById('aboutPaypalBtn');
   if (paypalBtn) {
     paypalBtn.href = PAYPAL_URL;
-    paypalBtn.replaceChildren(glyph(D_PAYPAL, 14, BRAND_BOX), document.createTextNode(t('options.aboutPaypal')));
+    readmeFace(paypalBtn, {
+      name: t('options.aboutPaypal'),
+      mark: glyph(D_PAYPAL, 14, '0 0 24 24'),
+      markClass: 'glim-paypal-mark',
+    });
   }
   // Bitcoin's letterform reads as "crypto" to somebody who has never held any;
   // the window then shows every coin on offer, so nobody takes it for the only
   // one.
-  cryptoBtn.replaceChildren(glyph(BTC_LETTER.d, 14, BTC_LETTER.box), document.createTextNode(t('options.aboutCrypto')));
+  readmeFace(cryptoBtn, {
+    name: t('options.aboutCrypto'),
+    mark: glyph(BTC_LETTER.d, 14, BTC_LETTER.box),
+    markClass: 'glim-bitcoin-mark',
+  });
   const reportText = document.getElementById('aboutReport');
   if (reportText) reportText.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
-  gh.replaceChildren(glyph(D_GITHUB, 14), document.createTextNode(t('options.aboutGithub')));
+  readmeFace(gh, { name: t('options.aboutGithub'), mark: glyph(D_GITHUB, 14), markClass: 'glim-github-mark' });
   // The subject names the product; a prefilled body would read like a form.
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
-  mail.replaceChildren(glyph(D_MAIL, 14), document.createTextNode(t('options.aboutMail')));
+  readmeFace(mail, { name: t('options.aboutMail'), mark: mailMarks(), markClass: 'glim-house-mark' });
+  for (const row of aboutRows) fitReadmeText(row);
 }
+
+const aboutRows = [document.getElementById('aboutGive'), document.getElementById('aboutReportRow')];
+for (const row of aboutRows) new ResizeObserver(() => fitReadmeText(row)).observe(row);
+void document.fonts?.ready.then(() => aboutRows.forEach(fitReadmeText));
 
 // The coffee window: Buy Me a Coffee's widget in a window of our own, so a donor
 // pays without leaving the page. The frame exists only while the window is open.
@@ -1394,7 +1511,10 @@ function renderCrypto() {
 }
 
 function paintCryptoCopy(copied) {
-  cryptoCopyEl.replaceChildren(glyph(D_COPY, 14), document.createTextNode(t(copied ? 'common.copied' : 'common.copy')));
+  cryptoCopyEl.replaceChildren(
+    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    document.createTextNode(t(copied ? 'common.copied' : 'common.copy')),
+  );
 }
 
 function openCrypto() {
@@ -1448,6 +1568,7 @@ cryptoCopyEl.addEventListener('click', async () => {
   // The label says it landed: a clipboard write is otherwise invisible, and the
   // page's status line is behind the window.
   paintCryptoCopy(true);
+  confirmPulse(cryptoCopyEl);
   clearTimeout(cryptoCopiedTimer);
   cryptoCopiedTimer = setTimeout(() => paintCryptoCopy(false), 1500);
 });
@@ -1504,6 +1625,9 @@ async function buildReport() {
 
 async function renderReport() {
   const text = await buildReport();
+  // The report waits on the relay, so its first text fades in; the class stays
+  // and later rewrites land without it.
+  if (!reportEl.textContent) reportEl.classList.add('glim-content-fade');
   reportEl.textContent = text;
   copyReportBtn.replaceChildren(glyph(D_COPY, 14), document.createTextNode(t('options.problemsCopy')));
 }
@@ -1513,6 +1637,8 @@ copyReportBtn.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(text);
     say(t('options.problemsCopied'), true);
+    // The status line sits in the group card, often out of view from here.
+    confirmPulse(copyReportBtn);
   } catch {
     // Not every browser allows the clipboard here; the report is on screen to
     // copy by hand.
@@ -1535,4 +1661,9 @@ copyReportBtn.addEventListener('click', async () => {
   void renderReport();
   // Not awaited: the page stays usable while the relay answers.
   void renderGroup();
+  // Two frames after the stored shape is painted, so the first radii never
+  // animate and every later change of shape does.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => document.documentElement.classList.add('glim-shape-transitions')),
+  );
 })();

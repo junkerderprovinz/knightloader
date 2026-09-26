@@ -191,38 +191,53 @@ async function renderTargets(preferredFromPending) {
   if (!chosen) chosen = preferred;
   instanceRow.hidden = false;
   instanceList.innerHTML = '';
-  group.forEach((inst, i) => {
-    instanceList.appendChild(
-      instanceCard(inst, {
-        index: i,
-        isDefault: inst.instanceId === preferred,
-        isChosen: inst.instanceId === chosen,
-        status: inst.status,
-        onPick: (picked) => {
-          // Choosing another instance is what the countdown leaves room for,
-          // so it stops the clock.
-          cancelCountdown();
-          chosen = picked.instanceId;
-          void renderTargets();
-        },
-        onSetDefault: async (picked) => {
-          await writeDefaultTarget(picked.instanceId);
-          await renderTargets();
-        },
-        onQueue: async (picked, halted, el) => {
-          const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
-          statusEl.textContent = ok ? '' : t('options.followFailed');
-          // Shakes the pressed control, as the options page does.
-          if (!ok) shake(el);
-          if (ok) await loadStatus();
-        },
-        onOpen: (picked, url) => {
-          if (url) void chrome.tabs.create({ url });
-        },
-      }),
-    );
+  const cards = group.map((inst, i) => [
+    inst.instanceId,
+    instanceCard(inst, {
+      index: i,
+      isDefault: inst.instanceId === preferred,
+      isChosen: inst.instanceId === chosen,
+      status: inst.status,
+      onPick: (picked) => {
+        // Choosing another instance is what the countdown leaves room for,
+        // so it stops the clock.
+        cancelCountdown();
+        chosen = picked.instanceId;
+        void renderTargets();
+      },
+      onSetDefault: async (picked) => {
+        await writeDefaultTarget(picked.instanceId);
+        await renderTargets();
+      },
+      onQueue: async (picked, halted, el) => {
+        const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
+        statusEl.textContent = ok ? '' : t('options.followFailed');
+        // Shakes the pressed control, as the options page does.
+        if (!ok) shake(el);
+        if (ok) await loadStatus();
+      },
+      onOpen: (picked, url) => {
+        if (url) void chrome.tabs.create({ url });
+      },
+    }),
+  ]);
+  staggerRows(arrivals, cards);
+  // What an instance is doing arrives after its card, and fades in once. A
+  // running line pulses instead, since one element runs one animation.
+  cards.forEach(([id, card], i) => {
+    if (group[i].status === undefined || statusShown.has(id)) return;
+    statusShown.add(id);
+    for (const el of card.querySelectorAll('.glim-instance-top .glim-status, .glim-instance-stats:not(.glim-live)')) {
+      el.classList.add('glim-content-fade');
+    }
   });
+  instanceList.append(...cards.map(([, card]) => card));
 }
+
+/** When each card first came in, kept across the redraws every two seconds. */
+const arrivals = new Map();
+/** The instances whose status has been shown once, so it fades in only then. */
+const statusShown = new Set();
 
 /**
  * The countdown before a caught Click'n'Load batch sends itself, as in
@@ -289,8 +304,14 @@ function renderTabs() {
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {
       cancelCountdown();
+      if (value === pane) return;
+      const incoming = value === 'send' ? paneSendEl : collectorEl;
+      // The pane slides in from the side its tab lies on, the collector's
+      // being the later one.
+      incoming.style.setProperty('--tab-dir', value === 'collector' ? '1' : '-1');
       pane = value;
       showPane();
+      replay(incoming, 'glim-tab-slide');
     });
     tabsEl.appendChild(b);
   }
@@ -393,7 +414,7 @@ dropEl.addEventListener('drop', async (e) => {
   const dropped = e.dataTransfer?.getData('text') ?? '';
   if (dropped) parts.push(dropped);
   for (const file of e.dataTransfer?.files ?? []) parts.push(await file.text().catch(() => ''));
-  appendToBox(parts.join('\n'));
+  appendToBox(parts.join('\n'), dropEl);
 });
 
 pickFilesBtn.addEventListener('click', () => {
@@ -406,14 +427,18 @@ filesEl.addEventListener('change', async () => {
   for (const file of filesEl.files ?? []) parts.push(await file.text().catch(() => ''));
   // Cleared so picking the same file again fires 'change'.
   filesEl.value = '';
-  appendToBox(parts.join('\n'));
+  appendToBox(parts.join('\n'), pickFilesBtn);
 });
 
-/** Appends dropped or picked links to the box; two drops are two batches. */
-function appendToBox(text) {
+/**
+ * Appends dropped or picked links to the box; two drops are two batches. A
+ * drop or a pick without a link shakes `from`, where it came in.
+ */
+function appendToBox(text, from) {
   const found = linksIn(text);
   if (found.length === 0) {
     statusEl.textContent = t('popup.collectorNoLinks');
+    shake(from);
     return;
   }
   statusEl.textContent = '';
@@ -426,6 +451,7 @@ addLinksBtn.addEventListener('click', async () => {
   const found = linksIn(linksEl.value);
   if (found.length === 0) {
     statusEl.textContent = t('popup.collectorNoLinks');
+    shake(addLinksBtn);
     return;
   }
   if (!chosen) return;
