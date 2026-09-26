@@ -1002,8 +1002,10 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	t := a.tasks[id]
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
+	var landed torrentLeftover
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
+		landed = a.torrentLeftoverLocked(t)
 	}
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
@@ -1019,6 +1021,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// The engine only deletes files of transfers it still knows, and it
 		// forgets them all on a restart.
 		own.drop(id)
+		landed.drop()
 		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).

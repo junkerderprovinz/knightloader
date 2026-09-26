@@ -15,6 +15,8 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
 // fileOfLocked is where t's file is: the path it recorded, or where its name
@@ -109,6 +111,37 @@ func (l leftover) drop(taskID string) {
 	if err := os.Remove(l.path); err != nil {
 		log.Printf("could not delete %s: %v%s", l.path, err, taskTag(taskID))
 	}
+}
+
+// torrentLeftover is where a torrent of the built-in client landed, for
+// deleting its files when the engine does not know it, as after a restart.
+type torrentLeftover struct {
+	dir, root, uri string
+}
+
+// torrentLeftoverLocked is t's torrent as it lies on disk, or the zero value
+// for anything else. Caller holds a.mu.
+func (a *App) torrentLeftoverLocked(t *core.Task) torrentLeftover {
+	if t.Resolver != (torrent.Resolver{}).Info().ID || t.File == "" {
+		return torrentLeftover{}
+	}
+	return torrentLeftover{dir: a.dirFor(t), root: t.File, uri: t.URL}
+}
+
+// drop deletes the files the torrent names. Their list comes from the
+// .torrent the task keeps in its link; a magnet keeps none, so of a magnet
+// only a single file goes, never a folder that could hold anything else.
+func (l torrentLeftover) drop() {
+	if l.root == "" {
+		return
+	}
+	var paths []string
+	if md, err := (torrent.Resolver{}).Describe(l.uri); err == nil {
+		for _, f := range md.Files {
+			paths = append(paths, f.Path)
+		}
+	}
+	engine.DeleteTorrentFiles(l.dir, l.root, paths)
 }
 
 // recordFileLocked notes where a backend is writing t's bytes, and says so in
