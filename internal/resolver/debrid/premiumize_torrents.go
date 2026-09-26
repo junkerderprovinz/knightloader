@@ -122,14 +122,22 @@ func (p *Premiumize) TorrentStatus(ctx context.Context, id string) (TorrentJob, 
 	default:
 		return job, nil
 	}
-	if t.FileID != "" {
+	switch {
+	case t.FileID != "":
 		f, err := p.item(ctx, t.FileID)
 		if err != nil {
 			return TorrentJob{}, err
 		}
 		job.Files = []TorrentFile{f}
-	} else if job.Files, err = p.folderFiles(ctx, t.FolderID, ""); err != nil {
-		return TorrentJob{}, err
+	case t.FolderID != "":
+		if job.Files, err = p.folderFiles(ctx, t.FolderID, ""); err != nil {
+			return TorrentJob{}, err
+		}
+	default:
+		// /folder/list without an id would list the whole cloud.
+		job.State = TorrentFailed
+		job.Reason = "Premiumize left no file or folder in your cloud for this transfer, which happens when it is routed to an external cloud"
+		return job, nil
 	}
 	for _, f := range job.Files {
 		job.Size += f.Size
