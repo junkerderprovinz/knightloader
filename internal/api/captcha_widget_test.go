@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/dop251/goja"
 )
 
 // captchaWidgetServer is the widget route alone on a throwaway app.
@@ -303,6 +305,52 @@ func TestCaptchaWidgetReportsAScriptThatNeverLoads(t *testing.T) {
 	}
 }
 
+var pageScript = regexp.MustCompile(`(?s)<script nonce="[^"]*">(.*?)</script>`)
+
+// runWidgetPage runs the page's own script in a stand-in browser. The vendor's
+// script calls back once it has loaded, after the page's watchdog has fired
+// when late is set. It returns the kinds the page posted to its parent and how
+// often it rendered the widget.
+func runWidgetPage(t *testing.T, html string, late bool) (posted []string, renders int64) {
+	t.Helper()
+	m := pageScript.FindStringSubmatch(html)
+	if m == nil {
+		t.Fatalf("the page has no script of its own:\n%s", html)
+	}
+	vm := goja.New()
+	const browser = `
+var posted = [], renders = 0, timers = [];
+var window = {location: {origin: "http://kl.test"}, parent: {postMessage: function(m){ posted.push(m.kind); }}};
+var document = {
+  head: {appendChild: function(){}},
+  createElement: function(){ return {}; },
+  getElementById: function(){ return {}; },
+};
+function setTimeout(f){ timers.push(f); return timers.length; }
+function clearTimeout(id){ timers[id - 1] = null; }
+function fireTimers(){ timers.forEach(function(f){ if (f) f(); }); timers = []; }
+`
+	if _, err := vm.RunString(browser); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := vm.RunString(m[1]); err != nil {
+		t.Fatalf("the page's script: %v", err)
+	}
+	vendor := fmt.Sprintf(`window[%q] = {render: function(){ renders++; return 1; }, execute: function(){}, reset: function(){}};`,
+		parseRenderedWidget(t, html).global)
+	steps := "window.klWidgetLoaded(); fireTimers();"
+	if late {
+		steps = "fireTimers(); window.klWidgetLoaded();"
+	}
+	if _, err := vm.RunString(vendor + steps); err != nil {
+		t.Fatal(err)
+	}
+	if err := vm.ExportTo(vm.Get("posted"), &posted); err != nil {
+		t.Fatal(err)
+	}
+	return posted, vm.Get("renders").ToInteger()
+}
+
 // The page tells the parent once the vendor's widget is on it, so a window that
 // said it could not load the challenge can take that back after a refresh.
 func TestCaptchaWidgetSaysWhenTheWidgetHasLoaded(t *testing.T) {
@@ -310,11 +358,24 @@ func TestCaptchaWidgetSaysWhenTheWidgetHasLoaded(t *testing.T) {
 	srv := captchaWidgetServer(t)
 	for _, vendor := range []string{"hcaptcha", "recaptcha"} {
 		_, body := getCaptchaWidget(t, captchaWidgetURL(srv, "42", url.Values{"vendor": {vendor}, "siteKey": {"k"}}))
-		html := string(body)
-		rendered := strings.Index(html, `widget = api.render("kl-widget", params);`)
-		loaded := strings.Index(html, `post("loaded", null);`)
-		if rendered < 0 || loaded < rendered {
-			t.Errorf("%s: the page does not say loaded once it has rendered the widget", vendor)
+		posted, renders := runWidgetPage(t, string(body), false)
+		if got := strings.Join(posted, " "); got != "ready loaded" || renders != 1 {
+			t.Errorf("%s: the page posted %q and rendered %d times, want ready and loaded after one render", vendor, got, renders)
+		}
+	}
+}
+
+// A vendor script that arrives after the page gave up on it finds the widget
+// hidden and the parent told, so the page neither renders it nor says loaded,
+// which would take back a failure the window still shows.
+func TestCaptchaWidgetThatGaveUpStaysGivenUp(t *testing.T) {
+	t.Parallel()
+	srv := captchaWidgetServer(t)
+	for _, vendor := range []string{"hcaptcha", "recaptcha"} {
+		_, body := getCaptchaWidget(t, captchaWidgetURL(srv, "42", url.Values{"vendor": {vendor}, "siteKey": {"k"}}))
+		posted, renders := runWidgetPage(t, string(body), true)
+		if got := strings.Join(posted, " "); got != "ready error" || renders != 0 {
+			t.Errorf("%s: the page posted %q and rendered %d times after its watchdog, want ready and error and no render", vendor, got, renders)
 		}
 	}
 }

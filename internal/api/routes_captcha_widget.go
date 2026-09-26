@@ -396,6 +396,9 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
   }
   var watchdog = setTimeout(function(){ fail("timeout"); }, {{.LoadTimeoutMS}});
   window.klWidgetLoaded = function(){
+    // A script that arrives after the watchdog would render into the hidden
+    // box and take back the failure the parent is showing.
+    if (failed) return;
     var api = window[{{.Global}}];
     {{- if .Namespace}}
     api = api[{{.Namespace}}];
