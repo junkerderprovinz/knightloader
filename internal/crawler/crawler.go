@@ -295,8 +295,13 @@ func classify(base *url.URL, n *html.Node) (Result, *url.URL, linkKind) {
 }
 
 // fileLink reports whether an anchor names a file rather than a page, using
-// the direct resolver's rule so crawled and pasted links are treated alike.
-func fileLink(u *url.URL) bool { return (resolver.Direct{}).Match(u.String()) }
+// the direct resolver's rule so crawled and pasted links are treated alike. A
+// stream playlist is a download as well, though yt-dlp fetches it rather than
+// the direct resolver.
+func fileLink(u *url.URL) bool {
+	s := u.String()
+	return (resolver.Direct{}).Match(s) || resolver.StreamPlaylist(s)
+}
 
 // absolute resolves a reference against the page URL and rejects anything the
 // engine could not fetch.

@@ -284,8 +284,9 @@ func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
 }
 
 // settle runs one real download from a local server and returns every update
-// it produced, the last one being done or an error.
-func settle(t *testing.T, dir, name string, body []byte) []core.Update {
+// it produced, the last one being done or an error. job supplies whatever the
+// test sets beyond the task, the URL and the connection count.
+func settle(t *testing.T, dir, name string, body []byte, job Job) []core.Update {
 	t.Helper()
 	if raceEnabled {
 		// gopeed v1.9.3 spawns a task's watch goroutine, which reads
@@ -321,7 +322,8 @@ func settle(t *testing.T, dir, name string, body []byte) []core.Update {
 	}
 	defer e.Close()
 
-	e.Download("t1", srv.URL+"/"+name, nil, 1)
+	job.TaskID, job.URL, job.Conns = "t1", srv.URL+"/"+name, 1
+	e.Start(job)
 	select {
 	case <-finished:
 	case <-time.After(30 * time.Second):
@@ -341,7 +343,7 @@ func TestADownloadThatSteppedAroundAFileReportsWhereItWrote(t *testing.T) {
 	writeFile(t, theirs)
 	body := bytes.Repeat([]byte("volume three "), 1000)
 
-	got := settle(t, dir, "set.part3.rar", body)
+	got := settle(t, dir, "set.part3.rar", body, Job{})
 	last := got[len(got)-1]
 	if last.Status != core.StatusDone {
 		t.Fatalf("the download ended as %q: %s", last.Status, last.Err)

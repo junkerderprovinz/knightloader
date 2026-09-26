@@ -72,6 +72,22 @@ func TestCrawlCollectsFileLinksInDocumentOrder(t *testing.T) {
 	})
 }
 
+// A stream playlist is not the direct download's, but it is still a download
+// and not a page to follow.
+func TestCrawlCollectsStreamPlaylists(t *testing.T) {
+	page := `<html><body>
+		<a href="/hls/master.m3u8">Stream</a>
+		<a href="/dash/manifest.mpd">DASH</a>
+	</body></html>`
+	srv := serve(t, "text/html", page)
+
+	got := crawl(t, srv.URL+"/", HTML{})
+	wantResults(t, got, []Result{
+		{URL: srv.URL + "/hls/master.m3u8", Name: "Stream"},
+		{URL: srv.URL + "/dash/manifest.mpd", Name: "DASH"},
+	})
+}
+
 // TestCrawlIndexOfListing checks that an autoindex's parent and subdirectory
 // links are not taken for files.
 func TestCrawlIndexOfListing(t *testing.T) {

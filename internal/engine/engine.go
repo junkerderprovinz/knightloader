@@ -307,6 +307,12 @@ type Job struct {
 	// for the ranges a link that stopped working part way left missing (see
 	// mend.go). Nil asks URL again.
 	Relink func(ctx context.Context) (string, error)
+
+	// PassOnPlaylists is set for a link taken for a file by its look alone. A
+	// stream playlist arriving there fails the job as unsupported, so the app
+	// hands the link to the next backend. Only the first bytes tell, since a
+	// server can send a playlist under any name, such as master.txt.
+	PassOnPlaylists bool
 }
 
 // writeDir is the folder this job's bytes are written into.
@@ -631,6 +637,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		}
 	}
 	file := e.files[ev.Task.ID]
+	passOn := e.jobs[taskID].PassOnPlaylists
 	e.mu.Unlock()
 	if !ok || own {
 		return
@@ -654,6 +661,12 @@ func (e *Engine) onEvent(ev *download.Event) {
 		u := core.Update{Status: core.StatusDone, File: cmp.Or(file, settledFile(ev.Task))}
 		if gaps, short := e.missing(ev.Task); short {
 			e.startMend(taskID, ev.Task, u.File, gaps)
+			return
+		}
+		if passOn && streamPlaylist(u.File) {
+			// The app removes the task with its file before the next backend
+			// starts, so the playlist is not left behind as the download.
+			e.emit(taskID, core.Update{Status: core.StatusError, Err: errPlaylist, Unsupported: true, File: u.File})
 			return
 		}
 		if pr := ev.Task.Progress; pr != nil {
