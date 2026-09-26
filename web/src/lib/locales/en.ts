@@ -273,6 +273,7 @@ export const en = {
   'queue.start': 'Start queue',
   'queue.stopMark': 'Stop after this one',
   'queue.stopMarkOn': 'Stopping after this one',
+  'queue.stopMarkOff': 'Remove stop',
   'queue.order': 'Queue order',
   'queue.play': 'Play',
   'queue.pause': 'Pause',

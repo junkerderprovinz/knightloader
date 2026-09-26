@@ -250,6 +250,7 @@ export const de: Dict = {
   'queue.start': 'Warteschlange starten',
   'queue.stopMark': 'Danach stoppen',
   'queue.stopMarkOn': 'Stoppt danach',
+  'queue.stopMarkOff': 'Stopp entfernen',
   'queue.order': 'Reihenfolge',
   'queue.play': 'Wiedergabe',
   'queue.pause': 'Pause',

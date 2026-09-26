@@ -910,12 +910,14 @@ export function queueMenuGroup({
   }
 
   // There is one stop mark, so it is offered for a single row only and toggles.
+  // On the marked row the entry says what pressing it does, not the state the
+  // row mark already shows.
   if (chosen.length === 1 && STOP_MARK_STATES.includes(chosen[0].status)) {
     const only = chosen[0];
     const armed = queue.stopMark === only.id;
     queueGroup.items.push({
       id: 'stopMark',
-      label: t(armed ? 'queue.stopMarkOn' : 'queue.stopMark'),
+      label: t(armed ? 'queue.stopMarkOff' : 'queue.stopMark'),
       icon: <IconStopMark />,
       onSelect: () => void queue.mark(armed ? '' : only.id).catch(fail),
     });
