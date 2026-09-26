@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -776,6 +777,12 @@ func TestAnAppHoldsTheSolversOnlyForWhatItCanAnswer(t *testing.T) {
 	}
 }
 
+func recaptchaChallenge(id string) captcha.Challenge {
+	return captcha.Challenge{ID: id, Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+		Vendor: captcha.VendorRecaptcha, SiteKey: "6Lc-key",
+	}}
+}
+
 // A reCAPTCHA whose key refuses this instance cannot be answered in the window
 // watching it, so once the window says so, the solvers stop waiting for it.
 func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
@@ -783,9 +790,7 @@ func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
 	onlyUnwatched(t, a)
 	addViewer(t, a)
 	s := &fakeSolver{text: "token"}
-	c := pending(a, captcha.Challenge{ID: "w1", Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
-		Vendor: captcha.VendorRecaptcha, SiteKey: "6Lc-key",
-	}})
+	c := pending(a, recaptchaChallenge("w1"))
 
 	done := make(chan struct{})
 	go func() {
@@ -796,7 +801,7 @@ func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
 		got, _ := a.captchaStateFor().store.Get("w1")
 		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
 	})
-	if !a.CaptchaUnanswerable("w1") {
+	if !a.CaptchaUnanswerable("w1", CaptchaWindow) {
 		t.Fatal("a pending captcha was not taken as unanswerable")
 	}
 	if !pollUntil(t, time.Second, func() bool { return s.calls.Load() == 1 }) {
@@ -805,19 +810,195 @@ func TestAWindowThatCannotLoadACaptchaStopsHoldingTheSolvers(t *testing.T) {
 	<-done
 }
 
-// Only a pending captcha can be marked, and the mark leaves with it, so a
+// Only a pending captcha can be marked, and every mark leaves with it, so a
 // caller cannot fill the table with ids.
 func TestAnUnanswerableMarkLastsAsLongAsItsCaptcha(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	c := pending(a, imageChallenge("c1"))
 
-	if a.CaptchaUnanswerable("gone") || a.captchaUnanswerable("gone") {
+	if a.CaptchaUnanswerable("gone", CaptchaWindow) || a.captchaUnanswerable("gone", CaptchaWindow) {
 		t.Error("a captcha that is not pending was marked")
 	}
-	a.CaptchaUnanswerable("c1")
+	a.CaptchaUnanswerable("c1", CaptchaWindow)
+	a.CaptchaUnanswerable("c1", CaptchaPhone)
 	a.settleCaptcha(c, "solved")
-	if a.captchaUnanswerable("c1") {
-		t.Error("the mark outlived its captcha")
+	if a.captchaUnanswerable("c1", CaptchaWindow) || a.captchaUnanswerable("c1", CaptchaPhone) {
+		t.Error("a mark outlived its captcha")
+	}
+}
+
+// A window that loads the captcha after a refresh can answer it, so it holds
+// the solvers back again.
+func TestAWindowThatLoadsACaptchaAfterAllHoldsTheSolversAgain(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	addViewer(t, a)
+	c := pending(a, recaptchaChallenge("w1"))
+
+	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	if a.captchaWatched(c) {
+		t.Fatal("a window that cannot load the captcha still holds the solvers")
+	}
+	a.WithdrawCaptchaUnanswerable("w1", CaptchaWindow)
+	if !a.captchaWatched(c) {
+		t.Error("the window loaded the captcha after all, but no longer holds the solvers")
+	}
+}
+
+// The phone app on a connection saved by address answers a reCAPTCHA in its
+// own window. When that will not load, the phone stops holding the solvers
+// back, until it loads after all.
+func TestThePhoneStopsHoldingTheSolversForACaptchaItCannotLoad(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	a.CaptchaSeen([]string{"image", "click", "widget"})
+	c := pending(a, recaptchaChallenge("w1"))
+
+	if !a.captchaWatched(c) {
+		t.Fatal("the phone reading the list does not hold the solvers back for a reCAPTCHA")
+	}
+	a.CaptchaUnanswerable("w1", CaptchaPhone)
+	if a.captchaWatched(c) {
+		t.Error("a phone that cannot load the captcha still holds the solvers")
+	}
+	a.WithdrawCaptchaUnanswerable("w1", CaptchaPhone)
+	if !a.captchaWatched(c) {
+		t.Error("the phone loaded the captcha after all, but no longer holds the solvers")
+	}
+}
+
+// A window and the phone load the widget apart, and one of them failing says
+// nothing about the other, which may still answer.
+func TestAViewerThatCannotLoadACaptchaLeavesTheOtherWatching(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	c := pending(a, recaptchaChallenge("w1"))
+	window := addViewer(t, a)
+	a.CaptchaSeen([]string{"image", "click", "widget"})
+
+	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	if !a.captchaWatched(c) {
+		t.Error("the window's report let the solvers past the phone that is watching")
+	}
+	a.WithdrawCaptchaUnanswerable("w1", CaptchaWindow)
+
+	a.CaptchaUnanswerable("w1", CaptchaPhone)
+	if !a.captchaWatched(c) {
+		t.Error("the phone's report let the solvers past the window that is watching")
+	}
+	a.Hub.SetVisible(window, false)
+	if a.captchaWatched(c) {
+		t.Error("the phone that cannot load the captcha still holds the solvers once the window is gone")
+	}
+}
+
+// answerLog is a captcha.Source that takes the first answer to a challenge,
+// as JD does, and reports every later one as too late.
+type answerLog struct {
+	mu       sync.Mutex
+	answers  []string
+	answered map[string]bool
+}
+
+func (l *answerLog) List(context.Context) ([]captcha.Challenge, error) {
+	return nil, captcha.ErrJDNotConfigured
+}
+
+func (l *answerLog) Answer(_ context.Context, id, text string) (bool, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.answers = append(l.answers, text)
+	first := !l.answered[id]
+	l.answered[id] = true
+	return first, nil
+}
+
+func (l *answerLog) Abort(context.Context, string, captcha.AbortScope) error { return nil }
+
+func (l *answerLog) got() []string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return append([]string(nil), l.answers...)
+}
+
+// answeringTo swaps a's source for an answerLog, under the lock the poll reads
+// the source under.
+func answeringTo(a *App) *answerLog {
+	l := &answerLog{answered: map[string]bool{}}
+	st := a.captchaStateFor()
+	st.pollMu.Lock()
+	st.source = l
+	st.pollMu.Unlock()
+	return l
+}
+
+// resolutions lists the reasons every captchaResolved for id reached f with.
+func resolutions(f *activityFakeConn, id string) []string {
+	var out []string
+	for _, raw := range f.snapshot() {
+		var m struct {
+			Type string            `json:"type"`
+			Data CaptchaResolution `json:"data"`
+		}
+		if json.Unmarshal(raw, &m) == nil && m.Type == "captchaResolved" && m.Data.ID == id {
+			out = append(out, m.Data.Reason)
+		}
+	}
+	return out
+}
+
+// A solver handed the captcha while the window could not load it keeps the
+// job once the window loads it after all: the provider may bill it anyway, and
+// its answer still counts when it comes first.
+func TestASolverAtWorkCarriesOnWhenTheWindowLoadsTheCaptchaAfterAll(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	viewer := addViewer(t, a)
+	jd := answeringTo(a)
+	s := &fakeSolver{text: "token", during: func() { a.WithdrawCaptchaUnanswerable("w1", CaptchaWindow) }}
+	c := pending(a, recaptchaChallenge("w1"))
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		a.solveCaptchaWith(paid(s), c)
+	}()
+	waitFor(t, "the waiting report", func() bool {
+		got, _ := a.captchaStateFor().store.Get("w1")
+		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
+	})
+	a.CaptchaUnanswerable("w1", CaptchaWindow)
+	<-done
+
+	if got := jd.got(); len(got) != 1 || got[0] != "token" {
+		t.Errorf("JD was sent %q, want the solver's one answer", got)
+	}
+	if a.captchaPending("w1") {
+		t.Error("the solver's answer did not settle the captcha")
+	}
+	waitFor(t, "the captcha's end", func() bool { return len(resolutions(viewer, "w1")) > 0 })
+	if got := resolutions(viewer, "w1"); len(got) != 1 || got[0] != "solved" {
+		t.Errorf("the captcha ended %q, want solved once", got)
+	}
+}
+
+// Somebody who answers in the window while a solver works on the captcha is
+// first to JD, and the solver's answer after it settles nothing a second time.
+func TestAnAnswerInTheWindowBeatsASolverAtWork(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	viewer := addViewer(t, a)
+	jd := answeringTo(a)
+	s := &fakeSolver{text: "token", during: func() {
+		if ok, err := a.AnswerCaptcha(context.Background(), "w1", "by hand"); !ok || err != nil {
+			t.Errorf("the answer in the window came back %v, %v, want still valid", ok, err)
+		}
+	}}
+
+	a.solveCaptchaWith(paid(s), pending(a, recaptchaChallenge("w1")))
+
+	if got := jd.got(); len(got) != 2 || got[0] != "by hand" {
+		t.Errorf("JD was sent %q, want the answer in the window first", got)
+	}
+	waitFor(t, "the captcha's end", func() bool { return len(resolutions(viewer, "w1")) > 0 })
+	if got := resolutions(viewer, "w1"); len(got) != 1 || got[0] != "solved" {
+		t.Errorf("the captcha ended %q, want solved once", got)
 	}
 }
 

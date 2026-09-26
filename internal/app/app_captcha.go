@@ -48,11 +48,12 @@ type captchaState struct {
 
 	paid paidLedger
 
-	// unanswerable holds the pending challenges a web window could not load,
-	// see CaptchaUnanswerable. settleCaptcha drops a challenge from it under
-	// unanswerableMu once it has left the store.
+	// unanswerable holds the pending challenges a window or the phone app could
+	// not load, and which of the two said so, see CaptchaUnanswerable.
+	// settleCaptcha drops a challenge from it under unanswerableMu once it has
+	// left the store.
 	unanswerableMu sync.Mutex
-	unanswerable   map[string]bool
+	unanswerable   map[string]map[CaptchaViewer]bool
 }
 
 var (
@@ -248,16 +249,30 @@ func (a *App) CaptchaSeen(kinds []string) {
 // challenge is seen under.
 func captchaWatchKey(k captcha.Kind) string { return "captcha:" + string(k) }
 
-// CaptchaUnanswerable records that a web window could not load challenge id,
-// such as a widget whose site key refuses this instance's address, so the
-// windows watching the prompt stop holding the paid solvers back for it. It
+// CaptchaViewer is a way of watching the captcha prompt. A report that a
+// challenge will not load takes one of them out of the count for it.
+type CaptchaViewer string
+
+const (
+	// CaptchaWindow is a web interface tab or the desktop app's window,
+	// watching over a socket.
+	CaptchaWindow CaptchaViewer = "window"
+	// CaptchaPhone is the phone app, watching by reading the list for the
+	// kinds it answers (CaptchaSeen).
+	CaptchaPhone CaptchaViewer = "phone"
+)
+
+// CaptchaUnanswerable records that a viewer of the kind by could not load
+// challenge id, such as a widget whose site key refuses this instance's
+// address, so those viewers stop holding the paid solvers back for it. It
 // reports false for a challenge that is no longer pending.
 //
-// The report names no viewer: the desktop app's window watches through the
-// shell's own hub connection, not the page's socket. So one window that
-// cannot load it releases the solvers for every window, and a second one
-// that could still races them to the answer.
-func (a *App) CaptchaUnanswerable(id string) bool {
+// The report names no single viewer: the desktop app's window watches through
+// the shell's own hub connection, not the page's socket, and the phone app is
+// only seen by its reads. So one window that cannot load it releases the
+// solvers for every window, and a second one that could still races them to
+// the answer.
+func (a *App) CaptchaUnanswerable(id string, by CaptchaViewer) bool {
 	st := a.captchaStateFor()
 	st.unanswerableMu.Lock()
 	defer st.unanswerableMu.Unlock()
@@ -267,18 +282,36 @@ func (a *App) CaptchaUnanswerable(id string) bool {
 		return false
 	}
 	if st.unanswerable == nil {
-		st.unanswerable = map[string]bool{}
+		st.unanswerable = map[string]map[CaptchaViewer]bool{}
 	}
-	st.unanswerable[id] = true
+	if st.unanswerable[id] == nil {
+		st.unanswerable[id] = map[CaptchaViewer]bool{}
+	}
+	st.unanswerable[id][by] = true
 	return true
 }
 
-// captchaUnanswerable reports whether a web window said it cannot load id.
-func (a *App) captchaUnanswerable(id string) bool {
+// WithdrawCaptchaUnanswerable takes back CaptchaUnanswerable once the viewer
+// has loaded the challenge after all, so those viewers hold the solvers back
+// again. A solver already at work on it carries on: the provider may bill the
+// task whatever happens, and JD takes whichever answer reaches it first.
+func (a *App) WithdrawCaptchaUnanswerable(id string, by CaptchaViewer) {
 	st := a.captchaStateFor()
 	st.unanswerableMu.Lock()
 	defer st.unanswerableMu.Unlock()
-	return st.unanswerable[id]
+	delete(st.unanswerable[id], by)
+	if len(st.unanswerable[id]) == 0 {
+		delete(st.unanswerable, id)
+	}
+}
+
+// captchaUnanswerable reports whether a viewer of the kind by said it cannot
+// load id.
+func (a *App) captchaUnanswerable(id string, by CaptchaViewer) bool {
+	st := a.captchaStateFor()
+	st.unanswerableMu.Lock()
+	defer st.unanswerableMu.Unlock()
+	return st.unanswerable[id][by]
 }
 
 // RefreshCaptchas polls right away instead of waiting for the next tick. A

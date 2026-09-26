@@ -119,19 +119,19 @@ describe('CaptchaModal', () => {
     payload: { vendor: 'recaptcha', siteKey: '6Lc-key', siteUrl: 'https://example.net/dl', contextUrl: '' },
     expiresAt: '0001-01-01T00:00:00Z',
   };
-  let posts: string[];
+  /** Every call that is not a read, as "METHOD path". */
+  let calls: string[];
 
   beforeEach(() => {
-    posts = [];
+    calls = [];
     vi.stubGlobal('WebSocket', QuietSocket);
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string, init?: RequestInit) => {
         const path = new URL(url, 'http://kl.test').pathname;
-        if (init?.method === 'POST') {
-          posts.push(path);
-          return new Response(null, { status: 204 });
-        }
+        const method = init?.method ?? 'GET';
+        if (method !== 'GET') calls.push(`${method} ${path}`);
+        if (method !== 'GET' && path !== '/api/captcha/refresh') return new Response(null, { status: 204 });
         return new Response(JSON.stringify([widget]), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }),
     );
@@ -139,8 +139,8 @@ describe('CaptchaModal', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  /** Opens the window on the widget and has the widget page report kind. */
-  async function widgetReports(kind: string) {
+  /** Opens the window on the widget. */
+  async function open() {
     await act(async () =>
       root.render(
         <I18nProvider>
@@ -149,23 +149,45 @@ describe('CaptchaModal', () => {
       ),
     );
     await act(async () => {});
+  }
+
+  /** Has the widget page report kind, as its frame does. */
+  async function pageSays(kind: string) {
     await act(async () =>
       window.dispatchEvent(
         new MessageEvent('message', {
           origin: window.location.origin,
-          data: { source: 'knightloader-captcha-widget', id: 'w1', kind, detail: 'network' },
+          data: { source: 'knightloader-captcha-widget', id: 'w1', kind, detail: kind === 'error' ? 'network' : null },
         }),
       ),
     );
   }
 
   it('tells the instance when a widget will not load in this window', async () => {
-    await widgetReports('error');
-    expect(posts).toEqual(['/api/captcha/w1/unanswerable']);
+    await open();
+    await pageSays('error');
+    expect(calls).toEqual(['POST /api/captcha/w1/unanswerable']);
   });
 
   it('says nothing when the widget loads', async () => {
-    await widgetReports('ready');
-    expect(posts).toEqual([]);
+    await open();
+    await pageSays('ready');
+    await pageSays('loaded');
+    expect(calls).toEqual([]);
+  });
+
+  it('takes its report back once a refresh loads the widget after all', async () => {
+    await open();
+    await pageSays('error');
+    const refresh = [...document.querySelectorAll('button')].find((b) => b.textContent === 'Refresh');
+    await act(async () => refresh!.click());
+    expect(document.querySelector('iframe')).not.toBeNull();
+    await pageSays('ready');
+    await pageSays('loaded');
+    expect(calls).toEqual([
+      'POST /api/captcha/w1/unanswerable',
+      'POST /api/captcha/refresh',
+      'DELETE /api/captcha/w1/unanswerable',
+    ]);
   });
 });

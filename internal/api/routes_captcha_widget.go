@@ -40,13 +40,15 @@ package api
 // Source.Answer decides whether an answer is still valid.
 //
 // The page posts {source:"knightloader-captcha-widget", id, kind, detail} to
-// window.parent at its own origin: kind is "ready" on load, then "solved"
-// (detail is the token), "expired" or "error" (detail is the vendor's error
-// code, "network", "script" when its script did not load, "timeout", or the
-// message the render or execute call threw). The unsolvable page posts only
-// "unsolvable", with "vendor", "turnstile" or "action" as the detail. The receiver still
-// has to check the message origin; frame-ancestors 'self' only keeps other
-// sites from embedding the page.
+// window.parent at its own origin: kind is "ready" on load, "loaded" once the
+// vendor's widget is on the page, then "solved" (detail is the token),
+// "expired" or "error" (detail is the vendor's error code, "network", "script"
+// when its script did not load, "timeout", or the message the render or
+// execute call threw). A score-based key has no widget and says "solved"
+// instead of "loaded". The unsolvable page posts only "unsolvable", with
+// "vendor", "turnstile" or "action" as the detail. The receiver still has to
+// check the message origin; frame-ancestors 'self' only keeps other sites from
+// embedding the page.
 //
 // Both vendors let a site owner lock a key to the hoster's domains
 // (https://developers.google.com/recaptcha/docs/domain_validation), and the
@@ -347,12 +349,13 @@ type widgetPageData struct {
 
 // widgetPageTmpl renders either vendor explicitly, so the page learns when the
 // script has arrived and can tell a widget that never loads from one that is
-// waiting for the user. On failure the widget is hidden and the parent says
-// why in the interface language. reCAPTCHA calls its error callback without a
-// code, for lost connectivity, which is reported as "network".
-// challenge-closed and challenge-expired are hCaptcha's codes for a challenge
-// the user closed or left too long; the widget is reset for another try rather
-// than given up.
+// waiting for the user. The parent hears both, so a viewer that said it cannot
+// load the challenge can take that back after a refresh. On failure the widget
+// is hidden and the parent says why in the interface language. reCAPTCHA calls
+// its error callback without a code, for lost connectivity, which is reported
+// as "network". challenge-closed and challenge-expired are hCaptcha's codes for
+// a challenge the user closed or left too long; the widget is reset for
+// another try rather than given up.
 //
 // A score-based key keeps the watchdog running until execute hands over the
 // token, since a key that refuses this origin may never answer at all.
@@ -424,6 +427,7 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
     try {
       widget = api.render("kl-widget", params);
       if (params.size === "invisible") api.execute(widget);
+      post("loaded", null);
     } catch (e) {
       fail(String((e && e.message) || e));
     }

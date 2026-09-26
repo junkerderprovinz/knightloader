@@ -76,9 +76,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/captcha/{id}/answer": apitoken.ScopeControl,
 	"POST /api/captcha/{id}/skip":   apitoken.ScopeControl,
 	"GET /api/captcha/{id}/widget":  apitoken.ScopeRead,
-	// It answers and skips nothing. Like a read of the list, which counts
-	// as watching, it only says whether this window holds the solvers back.
-	"POST /api/captcha/{id}/unanswerable": apitoken.ScopeRead,
+	// They answer and skip nothing. Like a read of the list, which counts as
+	// watching, they only say whether this viewer holds the solvers back.
+	"POST /api/captcha/{id}/unanswerable":   apitoken.ScopeRead,
+	"DELETE /api/captcha/{id}/unanswerable": apitoken.ScopeRead,
 
 	"GET /api/cleanup/{class}":             apitoken.ScopeRead,
 	"POST /api/cleanup/{class}":            apitoken.ScopeControl,
