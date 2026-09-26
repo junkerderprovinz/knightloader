@@ -42,6 +42,11 @@ type Engine struct {
 	jobs    map[string]Job
 	mends   map[string]*mend
 	layouts *layoutStore
+	// roots is where each torrent lands (see torrent_root.go). rootMu is held
+	// across the look at the disk and the note, so two torrents of one name
+	// cannot both find it free.
+	rootMu sync.Mutex
+	roots  map[string]torrentRoot
 
 	onUpdate func(taskID string, u core.Update)
 
@@ -136,6 +141,7 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		jobs:         map[string]Job{},
 		mends:        map[string]*mend{},
 		layouts:      layouts,
+		roots:        map[string]torrentRoot{},
 		onUpdate:     onUpdate,
 		done:         make(chan struct{}),
 	}
@@ -283,6 +289,11 @@ type Job struct {
 	// out for a private .torrent file, but adds them to a magnet before its
 	// metadata can say it is private, so for a magnet the caller decides.
 	Trackers []string
+	// TorrentRoot is where an earlier start of the same task put the torrent,
+	// its folder or its single file, which this start takes up again when it
+	// lands in the same folder. TorrentName is the torrent's name as far as the
+	// caller knows it, which a magnet's link may not carry.
+	TorrentRoot, TorrentName string
 
 	// Collision is what to do when the resolved name is taken. Empty means no
 	// policy at all, unlike collide, where empty means Rename; the older entry
@@ -573,8 +584,15 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	delete(e.files, gid)
 	delete(e.jobs, taskID)
 	e.mu.Unlock()
-	if gid != "" {
+	root, isTorrent := e.takeRoot(taskID)
+	switch {
+	case isTorrent && gid != "":
+		e.dropTorrent(gid)
+	case gid != "":
 		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, deleteFiles)
+	}
+	if isTorrent && deleteFiles {
+		root.remove()
 	}
 }
 

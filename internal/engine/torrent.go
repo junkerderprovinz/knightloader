@@ -54,9 +54,17 @@ func (e *Engine) startTorrent(j Job) {
 		// so a selection made once the file list is known still reaches the
 		// download.
 		opts := &base.Options{Path: j.writeDir(), SelectFiles: sel}
+		fail := func(err error) {
+			e.unplace(j.TaskID)
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+		}
+		if err := e.placeTorrent(j, opts); err != nil {
+			fail(err)
+			return
+		}
 		rr, err := e.resolveTorrent(j, opts)
 		if err != nil {
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			fail(err)
 			return
 		}
 		if sel == nil && magnet {
@@ -72,15 +80,20 @@ func (e *Engine) startTorrent(j Job) {
 		// A magnet's file list comes from a stranger over the network and is
 		// seen here for the first time; an uploaded .torrent was already
 		// checked by the resolver. This runs before Create starts writing.
-		if err := torrent.Contained(j.writeDir(), landingPaths(rr.Res)); err != nil {
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+		if err := torrent.Contained(opts.Path, landingPaths(rr.Res)); err != nil {
+			fail(err)
+			return
+		}
+		root, err := e.settleTorrent(j.TaskID, rr.Res)
+		if err != nil {
+			fail(err)
 			return
 		}
 		name, size := torrentMeta(rr.Res, sel)
-		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root})
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			fail(err)
 			return
 		}
 		e.mu.Lock()

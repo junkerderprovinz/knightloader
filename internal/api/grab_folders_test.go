@@ -18,9 +18,6 @@ import (
 	"testing"
 	"time"
 
-	anacrolix "github.com/anacrolix/torrent"
-	"github.com/anacrolix/torrent/bencode"
-	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
@@ -162,64 +159,6 @@ func TestSonarrsCleanupOfAGrabFromSABnzbdLeavesEverythingElse(t *testing.T) {
 	}
 }
 
-// seedTorrent writes files into a folder named name, builds the torrent for it
-// and seeds it from a client that listens on loopback only. The magnet it
-// returns names that client as a peer, so a download needs neither a tracker
-// nor the DHT.
-func seedTorrent(t *testing.T, name string, files map[string]int) (hash, magnet string) {
-	t.Helper()
-	root, err := os.MkdirTemp("", "kl-qbit-seeder-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { os.RemoveAll(root) })
-	for p, size := range files {
-		full := filepath.Join(root, name, filepath.FromSlash(p))
-		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(full, bytes.Repeat([]byte(p), size/len(p)+1)[:size], 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	info := metainfo.Info{PieceLength: 16 << 10}
-	if err := info.BuildFromFilePath(filepath.Join(root, name)); err != nil {
-		t.Fatal(err)
-	}
-	ib, err := bencode.Marshal(info)
-	if err != nil {
-		t.Fatal(err)
-	}
-	mi := metainfo.MetaInfo{InfoBytes: ib}
-
-	cfg := anacrolix.NewDefaultClientConfig()
-	cfg.DataDir = root
-	cfg.Seed = true
-	cfg.NoDHT = true
-	cfg.DisableTrackers = true
-	cfg.NoDefaultPortForwarding = true
-	cfg.DisableIPv6 = true
-	cfg.DisableUTP = true
-	cfg.ListenHost = func(string) string { return "127.0.0.1" }
-	// Two seeders run at once, and the library's default port is fixed.
-	cfg.ListenPort = 0
-	cl, err := anacrolix.NewClient(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { cl.Close() })
-	tor, err := cl.AddTorrent(&mi)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := tor.VerifyData(); err != nil {
-		t.Fatal(err)
-	}
-	m := mi.Magnet(nil, &info)
-	m.Params.Set("x.pe", fmt.Sprintf("127.0.0.1:%d", cl.LocalPort()))
-	return mi.HashInfoBytes().HexString(), m.String()
-}
-
 func TestSonarrsDeleteOfATorrentLeavesTheOneBesideIt(t *testing.T) {
 	testenv.RequireWideListener(t)
 	if testing.Short() {
@@ -244,8 +183,8 @@ func TestSonarrsDeleteOfATorrentLeavesTheOneBesideIt(t *testing.T) {
 
 	// Two releases of one name from two trackers: the same folder name, other
 	// files, another info hash.
-	first, firstMagnet := seedTorrent(t, "Show.S01", map[string]int{"Show.S01E01.mkv": 40 << 10})
-	other, otherMagnet := seedTorrent(t, "Show.S01", map[string]int{"Show.S01E02.mkv": 50 << 10})
+	first, firstMagnet := testenv.SeedTorrent(t, "Show.S01", map[string]int{"Show.S01E01.mkv": 40 << 10})
+	other, otherMagnet := testenv.SeedTorrent(t, "Show.S01", map[string]int{"Show.S01E02.mkv": 50 << 10})
 	for _, magnet := range []string{firstMagnet, otherMagnet} {
 		if code, body := qbitPost(t, c, srv, "torrents/add", url.Values{"urls": {magnet}, "category": {"tv-sonarr"}}); string(body) != "Ok." {
 			t.Fatalf("torrents/add answered %d %q", code, body)

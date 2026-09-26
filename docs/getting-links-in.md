@@ -50,6 +50,16 @@ fetched. A category can have a file selection of its own instead, for example
 a music category where the small files are the album. It applies to every
 torrent filed there, whether you picked the category or a Packagizer rule did.
 
+**Where a torrent lands**: one with several files gets a folder named after
+it, and a single file goes straight into the download's folder. If that name
+is already taken there, by a folder, a file or another torrent that is just
+starting, the torrent goes into a new folder with `.1`, `.2` and so on after
+the name, so two torrents never write into each other's files. A torrent that
+starts again, after a restart or by hand, carries on where it was. Removing a
+torrent with its files deletes the files it downloaded and any folders that
+end up empty. Anything else in its folder stays, such as what an archive was
+unpacked to.
+
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
 Premiumize.me or Debrid-Link ranks above "Built-in torrent client" on the Accounts
 page, that service fetches the torrent and the files come here over HTTP. The
