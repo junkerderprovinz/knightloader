@@ -16,7 +16,9 @@ package api
 //
 // The category a grab comes with is also the KnightLoader category it is
 // filed in, created on first use, so each app's downloads land in a folder of
-// their own.
+// their own. Inside it every grab gets a folder of its own as well, whatever
+// the subfolder setting and the Packagizer say, because Sonarr deletes the
+// folder the history names once it has imported from it.
 //
 // The path is /api/sabnzbd/api because /api belongs to this app; setting the
 // client's URL Base to "api/sabnzbd" lands here.
@@ -29,6 +31,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -72,7 +75,12 @@ type sabGrab struct {
 	TaskIDs  []string `json:"taskIds"`
 	// Job is the Usenet job an .nzb became. The grab takes the job's tasks
 	// once its files are staged; until then the job is what is reported.
-	Job     string    `json:"job,omitempty"`
+	Job string `json:"job,omitempty"`
+	// Folder is the grab's own folder (see app.GrabFolder), reported as its
+	// storage. A grab recorded without one reports none, and Sonarr then asks
+	// for a manual import instead of deleting a folder other downloads may
+	// share.
+	Folder  string    `json:"folder,omitempty"`
 	AddedAt time.Time `json:"addedAt"`
 }
 
@@ -312,31 +320,43 @@ func (dc *downloadClient) serveAdd(w http.ResponseWriter, r *http.Request, mode 
 		name = "download-" + time.Now().Format("20060102-150405")
 	}
 
-	if mode == "addfile" && usenet.IsNZB(data) {
+	nzb := mode == "addfile" && usenet.IsNZB(data)
+	var urls []string
+	if nzb {
 		// Never scanned for links: the only address in a real .nzb is its
 		// XML namespace, which would be staged as a download.
 		if _, ok := dc.a.UsenetService(); !ok {
 			sabError(w, app.ErrNZBNeedsUsenet.Error())
 			return
 		}
-		dc.addNZB(w, name, category, data)
-		return
+	} else {
+		// Always scanned, regardless of preParserEnabled: the links are buried
+		// in the indexer's markup, and reading line by line would find nothing.
+		if urls = linkscan.Extract(string(data)); len(urls) == 0 {
+			sabError(w, "nothing in this payload is a link this instance can download")
+			return
+		}
 	}
 
-	// Always scanned, regardless of preParserEnabled: the links are buried in
-	// the indexer's markup, and reading line by line would find nothing.
-	urls := linkscan.Extract(string(data))
-	if len(urls) == 0 {
-		sabError(w, "nothing in this payload is a link this instance can download")
-		return
-	}
-
-	// A package of its own, named after the release, so with
-	// subfolderByPackage on the grab gets its own folder. Filed as a paste,
-	// the closest of the known entrances; a new one would change what every
-	// rule keyed on the entrance sees.
-	created, err := dc.a.AddLinksWithOptions(urls, name, app.OriginPaste, app.LinkBatchOptions{Category: dc.a.CategoryNamed(category)})
+	categoryID := dc.a.CategoryNamed(category)
+	folder, err := dc.a.GrabFolder(categoryID, "", name)
 	if err != nil {
+		sabError(w, err.Error())
+		return
+	}
+	grab := sabGrab{ID: newGrabID(), Name: name, Category: category, Folder: folder, AddedAt: time.Now()}
+	if nzb {
+		dc.addNZB(w, grab, categoryID, data)
+		return
+	}
+
+	// A package of its own, named after the release. Filed as a paste, the
+	// closest of the known entrances; a new one would change what every rule
+	// keyed on the entrance sees.
+	created, err := dc.a.AddLinksWithOptions(urls, name, app.OriginPaste, app.LinkBatchOptions{Category: categoryID, Dir: folder})
+	if err != nil {
+		// Still empty, and nothing will download into it.
+		_ = os.Remove(folder)
 		sabError(w, err.Error())
 		return
 	}
@@ -349,6 +369,7 @@ func (dc *downloadClient) serveAdd(w http.ResponseWriter, r *http.Request, mode 
 	if len(ids) == 0 {
 		// Every link was folded into one already in the list. Sonarr would
 		// read an empty nzo_ids as an unexplained rejection.
+		_ = os.Remove(folder)
 		sabError(w, "every link in this payload is already in the list")
 		return
 	}
@@ -356,7 +377,7 @@ func (dc *downloadClient) serveAdd(w http.ResponseWriter, r *http.Request, mode 
 	// when Sonarr finds an episode.
 	dc.a.StartTasks(ids)
 
-	grab := sabGrab{ID: newGrabID(), Name: name, Category: category, TaskIDs: ids, AddedAt: time.Now()}
+	grab.TaskIDs = ids
 	if err := dc.record(grab); err != nil {
 		// The tasks are running; only the bookkeeping failed.
 		sabError(w, "the download was staged but this instance could not record it: "+err.Error())
@@ -367,19 +388,21 @@ func (dc *downloadClient) serveAdd(w http.ResponseWriter, r *http.Request, mode 
 
 // addNZB hands a real .nzb to the Usenet queue. The grab carries the job until
 // the files are tasks, which are then queued as the links of a grab are.
-func (dc *downloadClient) addNZB(w http.ResponseWriter, name, category string, data []byte) {
+func (dc *downloadClient) addNZB(w http.ResponseWriter, grab sabGrab, categoryID string, data []byte) {
 	job, err := dc.a.AddNZB(app.NZB{
-		Name:     name,
+		Name:     grab.Name,
 		Data:     data,
-		Category: dc.a.CategoryNamed(category),
+		Category: categoryID,
+		Dir:      grab.Folder,
 		Origin:   app.OriginPaste,
 		Start:    true,
 	})
 	if err != nil {
+		_ = os.Remove(grab.Folder)
 		sabError(w, "the .nzb could not be queued: "+err.Error())
 		return
 	}
-	grab := sabGrab{ID: newGrabID(), Name: name, Category: category, Job: job.ID, AddedAt: time.Now()}
+	grab.Job = job.ID
 	if err := dc.record(grab); err != nil {
 		// The job is queued; only the bookkeeping failed.
 		sabError(w, "the .nzb was queued but this instance could not record it: "+err.Error())
@@ -440,7 +463,8 @@ func (dc *downloadClient) serveHistory(w http.ResponseWriter, r *http.Request) {
 			"nzb_name":      v.grab.Name,
 			"name":          v.grab.Name,
 			"download_time": int(time.Since(v.grab.AddedAt).Seconds()),
-			// The folder Sonarr imports from.
+			// The folder Sonarr imports from and then deletes, with
+			// everything in it.
 			"storage": v.storage,
 			"status":  v.status,
 			"nzo_id":  v.grab.ID,
@@ -498,7 +522,7 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request, re
 			}
 		}
 	}
-	var taskIDs []string
+	var taskIDs, folders []string
 	for id := range wanted {
 		g, ok := grabs[id]
 		if !ok {
@@ -510,10 +534,14 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request, re
 			// the job has failed or is gone, and the grab is only forgotten.
 			taskIDs = append(taskIDs, dc.a.CancelUsenetJob(g.Job)...)
 		}
+		folders = append(folders, g.Folder)
 		delete(grabs, id)
 	}
 	if removeTasks {
 		dc.a.RemoveTasks(taskIDs, delFiles)
+	}
+	if removeTasks && delFiles {
+		removeEmptyFolders(folders)
 	}
 	if err := dc.store(grabs); err != nil {
 		sabError(w, err.Error())
@@ -522,6 +550,17 @@ func (dc *downloadClient) serveDelete(w http.ResponseWriter, r *http.Request, re
 	// Success even for an unknown id, as in SABnzbd, or Sonarr would log a
 	// repeating failure for an item that is already gone.
 	writeJSON(w, map[string]any{"status": true})
+}
+
+// removeEmptyFolders removes the folders grabs were given once their files are
+// deleted. A folder that still holds something, such as what an archive was
+// unpacked to, is left where it is.
+func removeEmptyFolders(folders []string) {
+	for _, f := range folders {
+		if f != "" {
+			_ = os.Remove(f)
+		}
+	}
 }
 
 // grabView is one grab rendered against the live task list.
@@ -655,7 +694,7 @@ func (dc *downloadClient) stateLocked(grabs map[string]sabGrab) (live map[string
 // Sonarr would drop a release that is about to download. Extracting stays in
 // the queue, since the job is not finished.
 func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[string]usenet.Job) (grabView, bool) {
-	v := grabView{grab: g}
+	v := grabView{grab: g, storage: g.Folder}
 	if strings.TrimSpace(v.grab.Category) == "" {
 		// SABnzbd's catch-all, which Sonarr looks for when it has no category.
 		v.grab.Category = "*"
@@ -677,11 +716,6 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 		v.size += t.Size
 		v.loaded += t.Loaded
 		v.speed += t.Speed
-		if v.storage == "" {
-			// With subfolderByPackage off this is the shared download folder,
-			// a limitation the module row's detail line points out.
-			v.storage = dc.a.TaskFolder(t.ID)
-		}
 		switch {
 		case t.Skipped:
 			failed++
@@ -741,7 +775,6 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 // is waiting for an account, being fetched there, or failed there.
 func (dc *downloadClient) jobView(v grabView, j usenet.Job) grabView {
 	v.size, v.loaded, v.speed = j.Size, j.Loaded, j.Speed
-	v.storage = dc.a.UsenetJobFolder(j)
 	switch j.State {
 	case usenet.StateWaiting:
 		v.status = "Queued"

@@ -267,10 +267,14 @@ func TestAnNZBTorBoxRefusesLandsInSonarrsHistoryAsFailed(t *testing.T) {
 func TestDeletingAGrabStillAtTorBoxDeletesItThere(t *testing.T) {
 	t.Parallel()
 	fake := &torboxUsenet{}
-	_, srv, key := usenetClientServer(t, fake)
+	a, srv, key := usenetClientServer(t, fake)
+	folder := filepath.Join(a.Settings.Get().DownloadDir, "tv-sonarr", "Unwanted")
 
 	_, add := sabAddFile(t, srv, key, "Unwanted.nzb", "tv-sonarr", []byte(realNZB))
 	nzoID := nzoIDOf(t, add)
+	if _, err := os.Stat(folder); err != nil {
+		t.Fatalf("the grab has no folder of its own at %s: %v", folder, err)
+	}
 	waitUntil(t, "TorBox to take the job", func() bool {
 		_, doc := sabGet(t, srv, key, map[string]string{"mode": "queue", "category": "tv-sonarr"})
 		rows := slots(t, doc, "queue")
@@ -284,6 +288,9 @@ func TestDeletingAGrabStillAtTorBoxDeletesItThere(t *testing.T) {
 	_, doc := sabGet(t, srv, key, map[string]string{"mode": "queue", "category": "tv-sonarr"})
 	if rows := slots(t, doc, "queue"); len(rows) != 0 {
 		t.Errorf("the deleted grab is still queued: %+v", rows)
+	}
+	if _, err := os.Stat(folder); !os.IsNotExist(err) {
+		t.Errorf("the deleted grab's empty folder is still there (%v)", err)
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 	"errors"
 	"log"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 
@@ -133,7 +132,9 @@ type NZB struct {
 	Package string
 	// Category is the id of the category its files are filed in.
 	Category string
-	Origin   core.Origin
+	// Dir is the folder its files download into, the package's when empty.
+	Dir    string
+	Origin core.Origin
 	// Start queues the files as soon as they are staged, as a grab from Sonarr
 	// does. Otherwise auto-confirm decides, as for a paste.
 	Start bool
@@ -151,6 +152,7 @@ func (a *App) AddNZB(n NZB) (usenet.Job, error) {
 		Name:     name,
 		Package:  pkg,
 		Category: n.Category,
+		Dir:      n.Dir,
 		Origin:   string(n.Origin),
 		Start:    n.Start,
 	}, n.Data)
@@ -168,21 +170,11 @@ func (a *App) CancelUsenetJob(id string) []string {
 	return a.usenetStateFor().jobs.Cancel(id)
 }
 
-// UsenetJobFolder is where a job's files land, or would have: the folder its
-// package and category point at.
-func (a *App) UsenetJobFolder(j usenet.Job) string {
-	return a.dirFor(&core.Task{Package: j.Package, Category: j.Category, Name: j.Name, CreatedAt: j.Added})
-}
-
 // stageUsenetFiles stages a finished job's files through the ordinary path, so
 // the filter, the Packagizer and the duplicate check see them like any link. A
-// file in a folder of the download keeps that folder under the package's.
-//
-// The files at the top come first, since the SABnzbd bridge reports the folder
-// of a grab's first task as the one Sonarr imports from.
+// file in a folder of the download keeps that folder under the package's, or
+// under the job's own folder when it has one.
 func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, error) {
-	files = append([]usenet.File(nil), files...)
-	sort.SliceStable(files, func(x, y int) bool { return files[x].Dir == "" && files[y].Dir != "" })
 	links := make([]resolver.Result, 0, len(files))
 	dirOf := map[string]string{}
 	for _, f := range files {
@@ -207,6 +199,14 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	created := a.stageResolvedLinks(fresh, intake{pkg: j.Package, origin: origin, category: j.Category, jobLinks: true})
 	for _, t := range created {
 		have[t.URL] = t.ID
+	}
+	if j.Dir != "" {
+		// Before anything starts them, and before keepUsenetFolders, which
+		// builds on the folder.
+		if err := a.SetTaskOptions(idsOf(created), TaskOptions{Dir: &j.Dir}); err != nil {
+			a.RemoveTasks(idsOf(created), false)
+			return nil, err
+		}
 	}
 	a.keepUsenetFolders(created, dirOf)
 

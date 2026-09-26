@@ -478,7 +478,7 @@ func TestModuleRowsNoticeTokensWithoutTheRightsTheModuleNeeds(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
 	s := a.Settings.Get()
-	s.DownloadClientAPI, s.Metrics, s.SubfolderByPackage = true, true, false
+	s.DownloadClientAPI, s.Metrics = true, true
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)
 	}
@@ -497,12 +497,8 @@ func TestModuleRowsNoticeTokensWithoutTheRightsTheModuleNeeds(t *testing.T) {
 			t.Errorf("the metrics row says %q, want %q", got, metrics)
 		}
 	}
-	rows("downloadclientNoAddReadTokenNoSubfolders", "metricsNoReadToken")
+	rows("downloadclientNoAddReadToken", "metricsNoReadToken")
 
-	s.SubfolderByPackage = true
-	if _, err := a.ApplySettings(s); err != nil {
-		t.Fatal(err)
-	}
 	if _, _, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead}); err != nil {
 		t.Fatal(err)
 	}

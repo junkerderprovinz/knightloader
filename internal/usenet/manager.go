@@ -42,6 +42,9 @@ type Job struct {
 	Origin   string    `json:"origin,omitempty"`
 	Start    bool      `json:"start,omitempty"`
 	Added    time.Time `json:"added"`
+	// Dir is the folder the tasks are staged into, their package's when
+	// empty. Like the fields above, the manager only carries it.
+	Dir string `json:"dir,omitempty"`
 
 	State State `json:"state"`
 	// Service is the slot of the account that took the job, Label its name,

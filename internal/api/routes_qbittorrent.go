@@ -15,7 +15,9 @@ package api
 // What is added goes through the ordinary intake, like a pasted magnet, and
 // each torrent is reported under its info hash, the id Sonarr tracks it by.
 // Only the bridge's own torrents are listed, so Sonarr never imports, moves or
-// deletes the owner's other downloads.
+// deletes the owner's other downloads. Each torrent downloads into a folder of
+// its own, as the SABnzbd bridge's grabs do, so what torrents/delete removes
+// with deleteFiles is that torrent's files and nothing beside them.
 //
 // The calls live under /api/qbittorrent because /api belongs to this app;
 // setting the client's URL Base to "api/qbittorrent" lands them here.
@@ -116,10 +118,13 @@ var qbitStateRank = map[string]int{
 // qbitTorrent is one thing handed over: the hash it is known by, the category
 // it came under, the tasks it became and the share limits it was given.
 type qbitTorrent struct {
-	Hash     string    `json:"hash"`
-	Category string    `json:"category"`
-	TaskIDs  []string  `json:"taskIds"`
-	AddedAt  time.Time `json:"addedAt"`
+	Hash     string   `json:"hash"`
+	Category string   `json:"category"`
+	TaskIDs  []string `json:"taskIds"`
+	// Folder is the torrent's own folder (see app.GrabFolder), reported as its
+	// content_path.
+	Folder  string    `json:"folder,omitempty"`
+	AddedAt time.Time `json:"addedAt"`
 	// RatioLimit and SeedingTimeLimit are in qBittorrent's terms, the time in
 	// minutes and -1 for no limit. Nil leaves the torrent to the instance's
 	// seeding targets.
@@ -425,9 +430,9 @@ type qbitItem struct {
 	name string
 }
 
-// add stages what torrents/add was handed. A save path is where files land on
-// the host, which is configuration, so only a token with admin may send one,
-// as for POST /api/links.
+// add stages what torrents/add was handed. A save path is where the torrent's
+// own folder is made on the host, which is configuration, so only a token with
+// admin may send one, as for POST /api/links.
 func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 	r.Body = http.MaxBytesReader(w, r.Body, qbitMaxAdd)
 	var err error
@@ -482,7 +487,7 @@ func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 
 	category := strings.TrimSpace(r.FormValue("category"))
 	stopped := qbitBool(r.FormValue("paused")) || qbitBool(r.FormValue("stopped"))
-	opts := app.LinkBatchOptions{Dir: dir, KeepCollected: stopped}
+	opts := app.LinkBatchOptions{KeepCollected: stopped}
 	// qBittorrent creates a category it is handed, and so does the SABnzbd
 	// door. When this instance cannot, the torrent still arrives and keeps the
 	// name for Sonarr's filter.
@@ -499,11 +504,18 @@ func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 		if rename != "" && len(items) == 1 {
 			pkg = rename
 		}
+		// A save path that cannot be used is refused here, on the first
+		// item, before anything is staged.
+		folder, err := qb.a.GrabFolder(opts.Category, dir, firstNonEmpty(pkg, item.hash))
+		if err != nil {
+			qbitText(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		opts.Dir = folder
 		// Filed as a paste, as the SABnzbd bridge files its grabs.
 		created, err := qb.a.AddLinksWithOptions([]string{item.uri}, pkg, app.OriginPaste, opts)
 		if err != nil {
-			// Only the save path can be refused, which happens on the first
-			// item, before anything is staged.
+			_ = os.Remove(folder)
 			qbitText(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -511,6 +523,7 @@ func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 		// refuses such a torrent and leaves it as it was; taking it over would
 		// hand Sonarr one of the owner's downloads to move and delete.
 		if len(created) == 0 {
+			_ = os.Remove(folder)
 			continue
 		}
 		ids := make([]string, 0, len(created))
@@ -527,7 +540,7 @@ func (qb *qbitClient) add(w http.ResponseWriter, r *http.Request, admin bool) {
 			hash = syntheticHash(ids[0])
 		}
 		t := qbitTorrent{
-			Hash: hash, Category: category, TaskIDs: ids, AddedAt: time.Now(),
+			Hash: hash, Category: category, TaskIDs: ids, Folder: folder, AddedAt: time.Now(),
 			RatioLimit: ratioLimit, SeedingTimeLimit: seedingTimeLimit,
 		}
 		if err := qb.record(t); err != nil {
@@ -725,10 +738,18 @@ func (qb *qbitClient) remove(w http.ResponseWriter, r *http.Request, removeTasks
 			}
 		}
 	}
-	ids, ok := qb.pick(w, r, func(torrents map[string]qbitTorrent, hash string) { delete(torrents, hash) })
+	var folders []string
+	ids, ok := qb.pick(w, r, func(torrents map[string]qbitTorrent, hash string) {
+		folders = append(folders, torrents[hash].Folder)
+		delete(torrents, hash)
+	})
 	if ok && removeTasks {
 		// Outside the document lock, since deleting files can take a while.
-		qb.a.RemoveTasks(ids, qbitBool(r.Form.Get("deleteFiles")))
+		deleteFiles := qbitBool(r.Form.Get("deleteFiles"))
+		qb.a.RemoveTasks(ids, deleteFiles)
+		if deleteFiles {
+			removeEmptyFolders(folders)
+		}
 	}
 }
 
@@ -1031,9 +1052,9 @@ type qbitView struct {
 	seeds   int
 	peers   int
 	forced  bool
-	// folder says content_path is a folder holding the tasks' files rather
-	// than a file itself.
-	folder      bool
+	// contentPath is the torrent's own folder, savePath the one around it.
+	// Sonarr imports from the first and refuses a torrent whose two paths are
+	// equal.
 	savePath    string
 	contentPath string
 	finishedAt  time.Time
@@ -1078,18 +1099,17 @@ func (qb *qbitClient) views() []qbitView {
 		}
 		return kept[i].Hash < kept[j].Hash
 	})
-	// Rendered outside the lock, since it asks the app for folders and the
-	// disk whether the content is still there.
-	perPackage := qb.a.Settings.Get().SubfolderByPackage
+	// Rendered outside the lock, since it asks the disk whether the content is
+	// still there.
 	out := make([]qbitView, 0, len(kept))
 	for _, t := range kept {
-		out = append(out, qb.view(t, live, perPackage))
+		out = append(out, qb.view(t, live))
 	}
 	return out
 }
 
-func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task, perPackage bool) qbitView {
-	v := qbitView{torrent: t, state: "pausedUP"}
+func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task) qbitView {
+	v := qbitView{torrent: t, state: "pausedUP", savePath: filepath.Dir(t.Folder), contentPath: t.Folder}
 	for _, id := range t.TaskIDs {
 		task := live[id]
 		if task == nil {
@@ -1114,7 +1134,6 @@ func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task, perPackage
 		}
 	}
 	v.name = qbitName(v.tasks, t.Hash)
-	v.savePath, v.contentPath, v.folder = qb.paths(v.tasks, perPackage)
 	if v.complete() {
 		if _, err := os.Stat(v.contentPath); errors.Is(err, fs.ErrNotExist) {
 			v.state = "missingFiles"
@@ -1169,27 +1188,6 @@ func qbitName(tasks []*core.Task, hash string) string {
 		return tasks[0].Package
 	}
 	return hash
-}
-
-// paths answers save_path and content_path, and whether the content is a
-// folder. Sonarr imports from content_path and refuses one equal to
-// save_path, so the content is the package's own folder when every package
-// has one, and otherwise the file itself. Several files loose in the shared
-// folder are the limitation the module row warns about, and Sonarr says so
-// too.
-func (qb *qbitClient) paths(tasks []*core.Task, perPackage bool) (save, content string, folder bool) {
-	dir := qb.a.TaskFolder(tasks[0].ID)
-	if perPackage {
-		return filepath.Dir(dir), dir, true
-	}
-	if len(tasks) == 1 {
-		if t := tasks[0]; t.File != "" {
-			return dir, t.File, false
-		} else if name := qbitFileName(t); name != "" {
-			return dir, filepath.Join(dir, name), false
-		}
-	}
-	return dir, dir, true
 }
 
 // qbitFileName is the name a task's bytes are under on disk, or "" while that
@@ -1317,10 +1315,7 @@ type qbitFile struct {
 }
 
 func (v qbitView) files() []qbitFile {
-	prefix := ""
-	if v.folder && v.contentPath != v.savePath {
-		prefix = filepath.Base(v.contentPath)
-	}
+	prefix := filepath.Base(v.contentPath)
 	out := []qbitFile{}
 	add := func(name string, size int64, progress float64, selected bool) {
 		priority := 0
