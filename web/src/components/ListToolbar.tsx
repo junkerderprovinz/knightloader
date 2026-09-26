@@ -1362,11 +1362,14 @@ export function SelectionMore({
   chosen,
   removal,
   hue,
+  labelled = true,
 }: {
   groups: MenuGroup[];
   chosen: Task[];
   removal: Removal;
   hue?: number;
+  /** False where the row it sits in has run out of room for words. */
+  labelled?: boolean;
 }) {
   const { t } = useT();
   const menu = useContextMenu();
@@ -1380,7 +1383,7 @@ export function SelectionMore({
   return (
     <>
       <IconBadge
-        labelled
+        labelled={labelled}
         hue={hue}
         icon={<IconMore width={16} height={16} />}
         title={t('menu.more')}

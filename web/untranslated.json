@@ -74,7 +74,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "bg": [
       "task.reason.unsupportedPlayer",
@@ -149,7 +151,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ca": [
       "task.reason.unsupportedPlayer",
@@ -224,7 +228,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "cs": [
       "task.reason.unsupportedPlayer",
@@ -299,7 +305,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "da": [
       "task.reason.unsupportedPlayer",
@@ -374,7 +382,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "el": [
       "task.reason.unsupportedPlayer",
@@ -449,7 +459,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "es": [
       "task.reason.unsupportedPlayer",
@@ -524,7 +536,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "et": [
       "task.reason.unsupportedPlayer",
@@ -599,7 +613,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "eu": [
       "task.reason.unsupportedPlayer",
@@ -674,7 +690,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "fa": [
       "task.reason.unsupportedPlayer",
@@ -749,7 +767,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "fi": [
       "task.reason.unsupportedPlayer",
@@ -824,7 +844,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "fr": [
       "task.reason.unsupportedPlayer",
@@ -899,7 +921,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "gl": [
       "task.reason.unsupportedPlayer",
@@ -974,7 +998,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "he": [
       "task.reason.unsupportedPlayer",
@@ -1049,7 +1075,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "hi": [
       "task.reason.unsupportedPlayer",
@@ -1124,7 +1152,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "hr": [
       "task.reason.unsupportedPlayer",
@@ -1199,7 +1229,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "hu": [
       "task.reason.unsupportedPlayer",
@@ -1274,7 +1306,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "id": [
       "task.reason.unsupportedPlayer",
@@ -1349,7 +1383,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "is": [
       "task.reason.unsupportedPlayer",
@@ -1424,7 +1460,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "it": [
       "task.reason.unsupportedPlayer",
@@ -1499,7 +1537,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ja": [
       "task.reason.unsupportedPlayer",
@@ -1574,7 +1614,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ko": [
       "task.reason.unsupportedPlayer",
@@ -1649,7 +1691,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "lt": [
       "task.reason.unsupportedPlayer",
@@ -1724,7 +1768,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "lv": [
       "task.reason.unsupportedPlayer",
@@ -1799,7 +1845,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ms": [
       "task.reason.unsupportedPlayer",
@@ -1874,7 +1922,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "nl": [
       "task.reason.unsupportedPlayer",
@@ -1949,7 +1999,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "no": [
       "task.reason.unsupportedPlayer",
@@ -2024,7 +2076,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "pl": [
       "task.reason.unsupportedPlayer",
@@ -2099,7 +2153,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "pt": [
       "task.reason.unsupportedPlayer",
@@ -2174,7 +2230,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ro": [
       "task.reason.unsupportedPlayer",
@@ -2249,7 +2307,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "ru": [
       "task.reason.unsupportedPlayer",
@@ -2324,7 +2384,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "sk": [
       "task.reason.unsupportedPlayer",
@@ -2399,7 +2461,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "sl": [
       "task.reason.unsupportedPlayer",
@@ -2474,7 +2538,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "sr": [
       "task.reason.unsupportedPlayer",
@@ -2549,7 +2615,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "sv": [
       "task.reason.unsupportedPlayer",
@@ -2624,7 +2692,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "th": [
       "task.reason.unsupportedPlayer",
@@ -2699,7 +2769,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "tr": [
       "task.reason.unsupportedPlayer",
@@ -2774,7 +2846,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "uk": [
       "task.reason.unsupportedPlayer",
@@ -2849,7 +2923,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "vi": [
       "task.reason.unsupportedPlayer",
@@ -2924,7 +3000,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ],
     "zh": [
       "task.reason.unsupportedPlayer",
@@ -2999,7 +3077,9 @@
       "strip.includeDisabledHint",
       "settings.advanced.keepMirrorsHint",
       "settings.advanced.mirrorFailoverHint",
-      "disk.queuedHint"
+      "disk.queuedHint",
+      "downloads.retryByCause",
+      "downloads.byCause"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",
