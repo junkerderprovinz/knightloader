@@ -87,7 +87,12 @@ func TestTorBoxFetchesAMagnetFromAddToCleanup(t *testing.T) {
 			}
 			fmt.Fprint(w, `{"success":true,"data":{"torrent_id":7,"hash":"0123"}}`)
 		case "/api/torrents/mylist":
-			if r.URL.Query().Get("id") != "7" {
+			id := r.URL.Query().Get("id")
+			if id == "" {
+				fmt.Fprint(w, `{"success":true,"data":[]}`)
+				return
+			}
+			if id != "7" {
 				t.Errorf("mylist asked for %q", r.URL.RawQuery)
 			}
 			reads++
@@ -140,6 +145,10 @@ func TestTorBoxFetchesAMagnetFromAddToCleanup(t *testing.T) {
 
 func TestTorBoxDecliningATorrentHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/torrents/mylist" {
+			fmt.Fprint(w, `{"success":true,"data":[]}`)
+			return
+		}
 		fmt.Fprint(w, `{"success":false,"error":"DOWNLOAD_TOO_LARGE","detail":"This download is larger than your plan allows."}`)
 	}))
 	defer srv.Close()

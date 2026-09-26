@@ -157,18 +157,28 @@ func (t Torrents) AddTorrent(ctx context.Context, src debrid.TorrentSource) (str
 		// The account holds this torrent already, the user's own or another
 		// app's. Its files are as good as a new job's, but it is not ours to
 		// delete.
-		held, lerr := t.c.TorrentByHash(ctx, src.InfoHash)
+		held, lerr := t.JobByHash(ctx, src.InfoHash)
 		if lerr != nil {
 			return "", false, lerr
 		}
-		if held != nil {
-			return strconv.FormatInt(held.ID, 10), true, nil
+		if held != "" {
+			return held, true, nil
 		}
 	}
 	if err != nil {
 		return "", false, declined(err)
 	}
 	return strconv.FormatInt(id, 10), false, nil
+}
+
+// JobByHash finds the torrent the account holds for an info hash. It reads
+// only the torrents, where List reads the web and usenet downloads too.
+func (t Torrents) JobByHash(ctx context.Context, hash string) (string, error) {
+	held, err := t.c.TorrentByHash(ctx, hash)
+	if err != nil || held == nil {
+		return "", err
+	}
+	return strconv.FormatInt(held.ID, 10), nil
 }
 
 func (t Torrents) TorrentStatus(ctx context.Context, id string) (debrid.TorrentJob, error) {
