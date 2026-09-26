@@ -56,9 +56,16 @@ type Backend struct {
 	// Nil uses a client of the package's own.
 	Client *http.Client
 
-	mu     sync.Mutex
-	cancel map[string]context.CancelFunc
-	url    map[string]string // for resume
+	mu   sync.Mutex
+	runs map[string]*runState
+	url  map[string]string // for resume
+}
+
+// runState is one yt-dlp process of a task: cancel stops it, and ended is
+// closed once run has returned.
+type runState struct {
+	cancel context.CancelFunc
+	ended  chan struct{}
 }
 
 // concurrentFragments is how many fragments of one video yt-dlp fetches at
@@ -73,8 +80,8 @@ const (
 func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
 		bin: bin, dir: dir, onUpdate: onUpdate,
-		cancel: map[string]context.CancelFunc{},
-		url:    map[string]string{},
+		runs: map[string]*runState{},
+		url:  map[string]string{},
 	}
 }
 
@@ -95,18 +102,41 @@ func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 	b.mu.Lock()
 	b.url[taskID] = url
 	b.mu.Unlock()
-	go b.run(taskID, url)
+	b.launch(taskID, url)
+}
+
+// launch starts run on a goroutine of its own, registered before it goes, so
+// a Halt that comes straight after finds it.
+func (b *Backend) launch(taskID, url string) {
+	ctx, r := b.register(taskID)
+	go b.runAs(ctx, r, taskID, url)
+}
+
+// register records a new run of taskID.
+func (b *Backend) register(taskID string) (context.Context, *runState) {
+	ctx, cancel := context.WithCancel(context.Background())
+	r := &runState{cancel: cancel, ended: make(chan struct{})}
+	b.mu.Lock()
+	b.runs[taskID] = r
+	b.mu.Unlock()
+	return ctx, r
 }
 
 func (b *Backend) run(taskID, url string) {
-	ctx, cancel := context.WithCancel(context.Background())
-	b.mu.Lock()
-	b.cancel[taskID] = cancel
-	b.mu.Unlock()
+	ctx, r := b.register(taskID)
+	b.runAs(ctx, r, taskID, url)
+}
+
+func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
+	cancel := r.cancel
 	defer func() {
+		cancel()
 		b.mu.Lock()
-		delete(b.cancel, taskID)
+		if b.runs[taskID] == r {
+			delete(b.runs, taskID)
+		}
 		b.mu.Unlock()
+		close(r.ended)
 	}()
 
 	dir := b.dir
@@ -187,6 +217,10 @@ func (b *Backend) run(taskID, url string) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
+		if ctx.Err() != nil {
+			// Stopped before the process started, which is no failure.
+			return
+		}
 		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
 		return
 	}
@@ -801,10 +835,10 @@ func formatSelector(o Options) string {
 
 func (b *Backend) Pause(taskID string) {
 	b.mu.Lock()
-	c := b.cancel[taskID]
+	r := b.runs[taskID]
 	b.mu.Unlock()
-	if c != nil {
-		c()
+	if r != nil {
+		r.cancel()
 		b.onUpdate(taskID, core.Update{Status: core.StatusPaused, Speed: 0})
 	}
 }
@@ -814,14 +848,29 @@ func (b *Backend) Resume(taskID string) {
 	url := b.url[taskID]
 	b.mu.Unlock()
 	if url != "" {
-		go b.run(taskID, url) // yt-dlp continues the .part by default
+		b.launch(taskID, url) // yt-dlp continues the .part by default
 	}
+}
+
+// Halt stops the task's yt-dlp without reporting a pause and returns once it
+// has exited, so the files it was writing can be moved. Resume starts it again
+// in the folder Dir names by then. It reports whether one was running.
+func (b *Backend) Halt(taskID string) bool {
+	b.mu.Lock()
+	r := b.runs[taskID]
+	b.mu.Unlock()
+	if r == nil {
+		return false
+	}
+	r.cancel()
+	<-r.ended
+	return true
 }
 
 func (b *Backend) Remove(taskID string, _ bool) {
 	b.mu.Lock()
-	if c, ok := b.cancel[taskID]; ok {
-		c()
+	if r := b.runs[taskID]; r != nil {
+		r.cancel()
 	}
 	delete(b.url, taskID)
 	b.mu.Unlock()

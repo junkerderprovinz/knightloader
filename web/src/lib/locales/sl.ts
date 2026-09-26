@@ -2879,8 +2879,6 @@ export const sl: Dict = {
   'settings.transfer.colArrives': 'Prevzeto kot',
   'settings.transfer.colArrivesHint': 'Različica, ki je zapisala to datoteko, je s to vrednostjo mislila nekaj drugega. KnightLoader jo prevzame tako, kot bi jo prebrala posodobitev.',
   'rename.linkHint': 'Ime, pod katerim se datoteka shrani. Prenos, ki je že končan, se preimenuje tudi na disku, da se seznam in mapa ujemata. Ime ni pot, zato / in \\ nista dovoljena.',
-  'rename.packageHint': 'Če je mapa za prenose poimenovana po paketu, dobi tudi novo ime, dokler se iz paketa še nič ni začelo prenašati. Ime ni pot, zato / in \\ nista dovoljena.',
-  'rename.keepsFolder': 'Del tega paketa je že prenesen ali se prenaša. Če je njegova mapa poimenovana po paketu, mapa obdrži svoje ime in preimenuje se samo paket.',
   'quick.speedWindowHint': 'Kako daleč nazaj seže krivulja hitrosti v vrstici, od 10 sekund do ene ure. Do dveh minut riše eno meritev na sekundo, nad tem eno vsakih deset sekund.',
   'settings.access.tokens.rights': 'Pravice',
   'settings.access.tokens.rightsHint': 'Kaj sme aplikacija s tem žetonom. »Poln dostop« sme vse, tudi nastavitve in geslo. Za Sonarr in Radarr zadošča »Dodajanje in branje«. Ko ta dva pospravita končan prenos, ostane na tvojem seznamu, razen če ima žeton tudi »Upravljanje«. »Samo branje« vidi tvoje prenose in ne spremeni ničesar.',
@@ -3102,4 +3100,8 @@ export const sl: Dict = {
   'disk.queuedHint': 'What the downloads still owed would add to this folder: the size the host announced, minus what has already arrived. A download whose size the host will not say counts as nothing here, so this is a floor and never a promise, and it is why a folder can show no bytes beside a row of downloads. Disabled downloads stay out, the same rule the counters under the list follow. A download that is already running has usually had its room set aside on the disk the moment it started, so its bytes are missing from the free figure beside this one rather than sitting on top of it.',
   'downloads.retryByCause': 'Retry by cause',
   'downloads.byCause': 'By cause',
+  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name too, with the files already in it, and downloads still running carry on there. A name is not a path, so / and \\ are not allowed.',
+  'rename.keepsFolder': 'JDownloader is still downloading part of this package, and KnightLoader cannot move its files. If the folder is named after the package, it keeps its old name and only the package is renamed.',
+  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'rename.busy': 'Part of this package is being unpacked or moved into its folder. Try again once that has finished.',
 };

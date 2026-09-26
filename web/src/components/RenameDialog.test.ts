@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError, type Task } from '../lib/api';
-import { hasFiles, linkRenameNote, renameRefusal } from './RenameDialog';
+import { jdWriting, linkRenameNote, renameRefusal } from './RenameDialog';
 
 function task(over: Partial<Task>): Task {
   return {
@@ -53,18 +53,18 @@ describe('linkRenameNote', () => {
   });
 });
 
-// One such link keeps a renamed package in its folder (app.hasFilesLocked).
-describe('hasFiles', () => {
-  it('counts a link with bytes on disk or on their way', () => {
-    expect(hasFiles(task({ status: 'running' }))).toBe(true);
-    expect(hasFiles(task({ status: 'done' }))).toBe(true);
-    expect(hasFiles(task({ status: 'paused', loaded: 1 }))).toBe(true);
+// A renamed package's folder moves with it, unless JDownloader is still
+// writing into it (app.packageFoldersLocked), which the window says beforehand.
+describe('jdWriting', () => {
+  it('counts a JDownloader link that has started and not finished', () => {
+    expect(jdWriting(task({ resolver: 'jd', status: 'running' }))).toBe(true);
+    expect(jdWriting(task({ resolver: 'jd', status: 'paused', loaded: 1 }))).toBe(true);
   });
 
-  it('does not count a link nothing has been fetched for', () => {
-    expect(hasFiles(task({ status: 'collected' }))).toBe(false);
-    expect(hasFiles(task({ status: 'queued' }))).toBe(false);
-    expect(hasFiles(task({ status: 'error' }))).toBe(false);
+  it('leaves out a finished one, one not started and every other backend', () => {
+    expect(jdWriting(task({ resolver: 'jd', status: 'done' }))).toBe(false);
+    expect(jdWriting(task({ resolver: 'jd', status: 'queued' }))).toBe(false);
+    expect(jdWriting(task({ status: 'running', loaded: 100 }))).toBe(false);
   });
 });
 
@@ -77,6 +77,10 @@ describe('renameRefusal', () => {
     const volume = new ApiError('film.part2.rar is one part of a multi-volume archive', 'volume', { name: 'film.part2.rar' }, 400);
     expect(renameRefusal(volume, t)).toBe('rename.volume film.part2.rar');
     expect(renameRefusal(new ApiError('not renamed', 'exists', { name: 'film.mkv' }, 400), t)).toBe('rename.exists film.mkv');
+    expect(renameRefusal(new ApiError('a folder called New already exists', 'folderExists', { name: 'New' }, 400), t)).toBe(
+      'rename.folderExists New',
+    );
+    expect(renameRefusal(new ApiError('part of Old is being unpacked', 'busy', { name: 'Old' }, 400), t)).toBe('rename.busy Old');
   });
 
   it('leaves a refusal without a code it knows to the server', () => {

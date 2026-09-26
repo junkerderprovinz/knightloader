@@ -2880,8 +2880,6 @@ export const ja: Dict = {
   'settings.transfer.colArrives': '取り込み後の値',
   'settings.transfer.colArrivesHint': 'このファイルを書いたバージョンは、この値で別のことを意味していました。KnightLoader は、アップデートが読むのと同じように取り込みます。',
   'rename.linkHint': 'ファイルを保存するときの名前です。すでに完了したダウンロードはディスク上でも名前が変わるので、一覧とフォルダーが一致します。名前はパスではないので、/ と \\ は使えません。',
-  'rename.packageHint': 'ダウンロードフォルダーがパッケージ名になっている場合は、パッケージ内のものがまだ何もダウンロードを始めていない限り、フォルダーも新しい名前になります。名前はパスではないので、/ と \\ は使えません。',
-  'rename.keepsFolder': 'このパッケージの一部はすでにダウンロード済みか、ダウンロード中です。フォルダーがパッケージ名になっている場合、フォルダーは名前を保ち、パッケージの名前だけが変わります。',
   'quick.speedWindowHint': 'バーの速度曲線がどこまで遡るかです。10 秒から 1 時間まで。2 分までは 1 秒ごとに 1 点、それより長いと 10 秒ごとに 1 点を描きます。',
   'settings.access.tokens.rights': '権限',
   'settings.access.tokens.rightsHint': 'このトークンを使うアプリに許すことです。「フルアクセス」は設定やパスワードの変更も含め、何でもできます。Sonarr と Radarr には「追加と読み取り」で十分です。ただし、完了したダウンロードをそれらが片付けても、トークンに「操作」もない限り、そのダウンロードはあなたのリストに残ります。「読み取りのみ」はダウンロードを見るだけで、何も変えません。',
@@ -3103,4 +3101,8 @@ export const ja: Dict = {
   'disk.queuedHint': 'What the downloads still owed would add to this folder: the size the host announced, minus what has already arrived. A download whose size the host will not say counts as nothing here, so this is a floor and never a promise, and it is why a folder can show no bytes beside a row of downloads. Disabled downloads stay out, the same rule the counters under the list follow. A download that is already running has usually had its room set aside on the disk the moment it started, so its bytes are missing from the free figure beside this one rather than sitting on top of it.',
   'downloads.retryByCause': 'Retry by cause',
   'downloads.byCause': 'By cause',
+  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name too, with the files already in it, and downloads still running carry on there. A name is not a path, so / and \\ are not allowed.',
+  'rename.keepsFolder': 'JDownloader is still downloading part of this package, and KnightLoader cannot move its files. If the folder is named after the package, it keeps its old name and only the package is renamed.',
+  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'rename.busy': 'Part of this package is being unpacked or moved into its folder. Try again once that has finished.',
 };

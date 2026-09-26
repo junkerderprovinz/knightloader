@@ -2871,8 +2871,6 @@ export const ko: Dict = {
   'settings.transfer.colArrives': '가져온 뒤의 값',
   'settings.transfer.colArrivesHint': '이 파일을 쓴 버전은 이 값으로 다른 것을 뜻했습니다. KnightLoader는 업데이트가 읽는 것과 같은 방식으로 가져옵니다.',
   'rename.linkHint': '파일을 저장할 이름입니다. 이미 끝난 다운로드는 디스크에서도 이름이 바뀌어 목록과 폴더가 서로 맞습니다. 이름은 경로가 아니므로 / 와 \\ 는 쓸 수 없습니다.',
-  'rename.packageHint': '다운로드 폴더 이름이 패키지 이름으로 되어 있으면, 패키지에서 아직 아무것도 다운로드를 시작하지 않은 동안에는 폴더도 새 이름을 받습니다. 이름은 경로가 아니므로 / 와 \\ 는 쓸 수 없습니다.',
-  'rename.keepsFolder': '이 패키지의 일부는 이미 다운로드되었거나 다운로드 중입니다. 폴더 이름이 패키지 이름으로 되어 있으면 폴더는 이름을 유지하고 패키지 이름만 바뀝니다.',
   'quick.speedWindowHint': '막대의 속도 곡선이 얼마나 뒤까지 보여 주는지입니다. 10초에서 1시간까지입니다. 2분까지는 1초마다 하나, 그보다 길면 10초마다 하나의 측정값을 그립니다.',
   'settings.access.tokens.rights': '권한',
   'settings.access.tokens.rightsHint': '이 토큰을 쓰는 앱이 할 수 있는 일입니다. “전체 권한”은 설정과 비밀번호 변경까지 모든 것을 할 수 있습니다. Sonarr와 Radarr에는 “추가 및 읽기”면 충분합니다. 다만 이들이 끝난 다운로드를 정리해도, 토큰에 “제어”까지 있지 않으면 그 다운로드는 목록에 남습니다. “읽기 전용”은 다운로드를 보기만 하고 아무것도 바꾸지 않습니다.',
@@ -3094,4 +3092,8 @@ export const ko: Dict = {
   'disk.queuedHint': 'What the downloads still owed would add to this folder: the size the host announced, minus what has already arrived. A download whose size the host will not say counts as nothing here, so this is a floor and never a promise, and it is why a folder can show no bytes beside a row of downloads. Disabled downloads stay out, the same rule the counters under the list follow. A download that is already running has usually had its room set aside on the disk the moment it started, so its bytes are missing from the free figure beside this one rather than sitting on top of it.',
   'downloads.retryByCause': 'Retry by cause',
   'downloads.byCause': 'By cause',
+  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name too, with the files already in it, and downloads still running carry on there. A name is not a path, so / and \\ are not allowed.',
+  'rename.keepsFolder': 'JDownloader is still downloading part of this package, and KnightLoader cannot move its files. If the folder is named after the package, it keeps its old name and only the package is renamed.',
+  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'rename.busy': 'Part of this package is being unpacked or moved into its folder. Try again once that has finished.',
 };

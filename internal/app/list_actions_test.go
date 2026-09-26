@@ -60,41 +60,10 @@ func TestAPackageNothingHasStartedInTakesItsFolderAlong(t *testing.T) {
 	}
 }
 
-// Once one file of a package is on disk, the whole package keeps its folder. A
-// finished file looked for under the new name is a file the list has lost, and
-// the parts still waiting must land beside the ones already there, or an
-// archive split across two folders is never unpacked.
-func TestAPackageWithAFileOnDiskKeepsItsFolder(t *testing.T) {
-	a, base := newPackageApp(t)
-	old := filepath.Join(base, "Old")
-	if err := os.MkdirAll(old, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	finishedTask(t, a, old, "part1", "film.part1.rar")
-	editTask(a, "part1", func(x *core.Task) { x.Package = "Old" })
-	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
-		Package: "Old", Status: core.StatusQueued, Enabled: false})
-
-	if _, err := a.RenamePackage([]string{"part1", "part2"}, "Film"); err != nil {
-		t.Fatal(err)
-	}
-	for _, id := range []string{"part1", "part2"} {
-		if live := liveTask(a, id); live.Package != "Film" {
-			t.Errorf("%s is in package %q, want the new name", id, live.Package)
-		}
-		if got := a.TaskFolder(id); got != old {
-			t.Errorf("%s downloads to %q, want the folder the package already had, %q", id, got, old)
-		}
-	}
-	if _, err := os.Stat(filepath.Join(a.TaskFolder("part1"), "film.part1.rar")); err != nil {
-		t.Errorf("the finished part is not where its row says it is: %v", err)
-	}
-}
-
-// Moving files into another package is the same hazard as renaming theirs:
-// once one is on disk, the set keeps the folder it has, or the list looks for
-// the finished part in the new package's folder and the waiting one lands
-// apart from it.
+// Moving files into another package leaves the folder where it is, since it
+// belongs to the package they leave: once one is on disk, the set keeps it, or
+// the list looks for the finished part in the new package's folder and the
+// waiting one lands apart from it.
 func TestMovingAFinishedFileIntoAPackageKeepsItsFolder(t *testing.T) {
 	a, base := newPackageApp(t)
 	old := filepath.Join(base, "Old")
@@ -166,28 +135,6 @@ func TestMovingTwoPackagesKeepsOnlyTheFolderWithAFileInIt(t *testing.T) {
 	}
 	if got, want := a.TaskFolder("extra"), filepath.Join(base, "Film"); got != want {
 		t.Errorf("the untouched link downloads to %q, want %q", got, want)
-	}
-}
-
-// A link already handed to a backend counts as started before it reports a
-// byte: the backend was told where to write, and resumes there.
-func TestAPackageWithALinkHandedToABackendKeepsItsFolder(t *testing.T) {
-	a, base := newPackageApp(t)
-	putTask(t, a, core.Task{ID: "handed", URL: "https://host.example/h.bin", Name: "h.bin",
-		Package: "Old", Status: core.StatusQueued, Enabled: false})
-	putTask(t, a, core.Task{ID: "waiting", URL: "https://host.example/w.bin", Name: "w.bin",
-		Package: "Old", Status: core.StatusQueued, Enabled: false})
-	a.mu.Lock()
-	a.started["handed"] = true
-	a.mu.Unlock()
-
-	if _, err := a.RenamePackage([]string{"handed", "waiting"}, "New"); err != nil {
-		t.Fatal(err)
-	}
-	for _, id := range []string{"handed", "waiting"} {
-		if got, want := a.TaskFolder(id), filepath.Join(base, "Old"); got != want {
-			t.Errorf("%s downloads to %q, want the folder the backend already writes to, %q", id, got, want)
-		}
 	}
 }
 

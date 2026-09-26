@@ -34,6 +34,11 @@ type Engine struct {
 	// pausing the number of Pause calls under way.
 	reconnecting map[string]*reconnect
 	pausing      map[string]int
+	// holds is every transfer stopped for its folder to be moved, and starting
+	// every HTTP start still resolving its link, both by KL task id (see
+	// hold.go).
+	holds    map[string]*hold
+	starting map[string]chan struct{}
 	// files is where each gopeed task writes, keyed by gopeed id because the
 	// start event that carries it can arrive before Start has mapped the id.
 	files map[string]string
@@ -137,6 +142,8 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		torrents:     map[string]bool{},
 		reconnecting: map[string]*reconnect{},
 		pausing:      map[string]int{},
+		holds:        map[string]*hold{},
+		starting:     map[string]chan struct{}{},
 		files:        map[string]string{},
 		jobs:         map[string]Job{},
 		mends:        map[string]*mend{},
@@ -357,8 +364,13 @@ func (e *Engine) Start(j Job) {
 		e.startTorrent(j)
 		return
 	}
+	ready := make(chan struct{})
+	e.mu.Lock()
+	e.starting[j.TaskID] = ready
+	e.mu.Unlock()
 	go func() {
 		defer e.wg.Done()
+		defer e.startEnded(j.TaskID, ready)
 		req := &base.Request{
 			URL:   j.URL,
 			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -551,7 +563,7 @@ func (e *Engine) Reconnectable(taskID string) bool {
 func (e *Engine) Reconnect(taskID string) bool {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
-	if gid == "" || e.torrents[taskID] || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0 {
+	if gid == "" || e.torrents[taskID] || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0 || e.holds[taskID] != nil {
 		e.mu.Unlock()
 		return false
 	}
@@ -631,8 +643,8 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	e.mu.Lock()
 	taskID, ok := e.toKL[ev.Task.ID]
-	// The pause Reconnect makes is not a pause of the task, so it is not
-	// passed on.
+	// The pauses Reconnect and Hold make are not pauses of the task, so they
+	// are not passed on.
 	var own bool
 	if r := e.reconnecting[ev.Task.ID]; r != nil {
 		switch ev.Key {
@@ -641,6 +653,9 @@ func (e *Engine) onEvent(ev *download.Event) {
 		case download.EventKeyStart:
 			closeOnce(r.started)
 		}
+	}
+	if h := e.holds[taskID]; h != nil && ok && ev.Key == download.EventKeyPause {
+		own = closeOnce(h.paused)
 	}
 	file := e.files[ev.Task.ID]
 	job := e.jobs[taskID]

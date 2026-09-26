@@ -94,6 +94,10 @@ func ytdlpHelper(mode string) {
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"),
 			[]byte(`{"id":"live1","title":"Weekend Stream","uploader":"Some Channel"}`), 0o644)
 		fmt.Println("[download] Destination: " + final)
+	case "hang":
+		// Part way through, and staying there until it is killed.
+		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
+		time.Sleep(time.Minute)
 	case "botcheck":
 		// The real bot-check line (diagnose_test.go), a trailing warning and
 		// a non-zero exit.
@@ -454,5 +458,66 @@ func TestRunAsksForNoCookiesUntilTheSwitchIsOn(t *testing.T) {
 	}
 	if strings.Contains(string(argv), "--cookies") {
 		t.Errorf("--cookies was passed with the switch off: %s", argv)
+	}
+}
+
+// Halt stops yt-dlp without a word to the app and returns once it has exited,
+// so its files can be moved. Resume then starts it in the folder Dir names by
+// that time.
+func TestHaltStopsYtdlpQuietlyAndResumeGoesOnInTheNewFolder(t *testing.T) {
+	t.Setenv(runHelperEnv, "hang:full")
+	first, second := t.TempDir(), t.TempDir()
+	var mu sync.Mutex
+	dir := first
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], first, rec.add)
+	b.FFprobe = os.Args[0]
+	b.Options = func(string) Options { return Options{} }
+	b.Dir = func(string) string {
+		mu.Lock()
+		defer mu.Unlock()
+		return dir
+	}
+	b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+	deadline := time.Now().Add(30 * time.Second)
+	for rec.last().Loaded == 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("yt-dlp never reported progress")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !b.Halt("task-1") {
+		t.Fatal("Halt found no yt-dlp running")
+	}
+	b.mu.Lock()
+	_, running := b.runs["task-1"]
+	b.mu.Unlock()
+	if running {
+		t.Error("Halt returned while the run was still going")
+	}
+	for _, u := range rec.all() {
+		if u.Status == core.StatusPaused || u.Status == core.StatusError {
+			t.Errorf("the app was told %q: %s", u.Status, u.Err)
+		}
+	}
+	if b.Halt("task-1") {
+		t.Error("a second Halt found a yt-dlp to stop")
+	}
+
+	mu.Lock()
+	dir = second
+	mu.Unlock()
+	t.Setenv(runHelperEnv, "video:full")
+	b.Resume("task-1")
+	deadline = time.Now().Add(30 * time.Second)
+	for rec.last().Status != core.StatusDone {
+		if time.Now().After(deadline) {
+			t.Fatalf("the resumed run never finished; last update %+v", rec.last())
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if _, err := os.Stat(filepath.Join(second, "A Video.mkv")); err != nil {
+		t.Errorf("the resumed run did not write into the folder Dir names after the halt: %v", err)
 	}
 }

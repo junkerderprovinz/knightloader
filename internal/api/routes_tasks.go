@@ -46,7 +46,7 @@ func registerTasks(reg *Registry, a *app.App) {
 		})
 	// Separate from the move above, which may ungroup: a rename needs a name,
 	// and it decides what happens to a folder files are already in.
-	reg.Add(http.MethodPost, "/api/tasks/package/rename", "give the package these tasks are in a new name; the folder follows it only while nothing in the package has started",
+	reg.Add(http.MethodPost, "/api/tasks/package/rename", "give the package these tasks are in a new name; a folder named after the package is renamed too, with what is already in it",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Ids  []string `json:"ids"`

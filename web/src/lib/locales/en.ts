@@ -1040,18 +1040,20 @@ export const en = {
   'rename.linkHint':
     'The name the file is saved under. A download that has already finished is renamed on disk as well, so the list and the folder agree. A name is not a path, so / and \\ are not allowed.',
   'rename.packageHint':
-    'Where the download folder is named after the package, it takes the new name too, as long as nothing in the package has started downloading. A name is not a path, so / and \\ are not allowed.',
+    'Where the download folder is named after the package, it takes the new name too, with the files already in it, and downloads still running carry on there. A name is not a path, so / and \\ are not allowed.',
   'rename.whenDone': 'This download is still running. The file takes the new name once it has finished.',
   'rename.unpacking': 'This file is being unpacked. It can be renamed once unpacking has finished.',
   'rename.remote': 'The JDownloader backend downloads this file on its own machine and names it itself, so it cannot be renamed from here.',
   'rename.torrent': 'A torrent names its own files, so it cannot be renamed.',
   'rename.volume': 'This file is one part of a multi-volume archive. The parts keep their names, or the archive could not be unpacked.',
   'rename.keepsFolder':
-    'Part of this package has already been downloaded or is downloading. If its folder is named after the package, the folder keeps its name and only the package is renamed.',
+    'JDownloader is still downloading part of this package, and KnightLoader cannot move its files. If the folder is named after the package, it keeps its old name and only the package is renamed.',
   'rename.separator': 'A name cannot contain / or \\.',
   'rename.empty': 'A name cannot be empty.',
   'rename.dots': 'A name needs more than dots.',
   'rename.exists': 'A file called “{name}” is already in that folder. KnightLoader does not overwrite it.',
+  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'rename.busy': 'Part of this package is being unpacked or moved into its folder. Try again once that has finished.',
   'pkg.queueOrder': 'Move whole package',
 
   // The seven the queue backend reports, which is not the five the properties
