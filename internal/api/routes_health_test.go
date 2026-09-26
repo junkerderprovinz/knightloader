@@ -35,10 +35,11 @@ func healthServer(t *testing.T, metrics bool) (*app.App, *httptest.Server) {
 	return a, srv
 }
 
-// TestTheOldHealthRouteIsUntouched pins /api/health: the phone app's LAN
-// discovery compares the literal "ok", the container's HEALTHCHECK reads the
-// status, and the Click'n'Load bridge refuses anything else. Phones update on
-// their own schedule, so changing this answer could not be taken back.
+// TestTheOldHealthRouteIsUntouched pins /api/health: the LAN search in earlier
+// builds of the phone app compares the literal "ok", the container's
+// HEALTHCHECK reads the status, and the Click'n'Load bridge refuses anything
+// else. Phones update on their own schedule, so changing this answer could not
+// be taken back.
 //
 // commit is only checked to be a string: test binaries carry no
 // vcs.revision, so it is empty here (see buildinfo.Revision).
@@ -53,7 +54,7 @@ func TestTheOldHealthRouteIsUntouched(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got["status"] != "ok" {
-		t.Errorf(`status = %v, want the literal "ok"; mobile/src/api/discover.ts compares this string and gives up on anything else`, got["status"])
+		t.Errorf(`status = %v, want the literal "ok"; earlier app builds compare this string when they search the network and give up on anything else`, got["status"])
 	}
 	if _, ok := got["version"].(string); !ok {
 		t.Errorf("version is missing or not a string: %s", raw)
