@@ -156,9 +156,9 @@ func TestAStartingUnpackingForgetsHowTheLastOneEnded(t *testing.T) {
 // unpacked.
 func TestRestartingADownloadForgetsHowItsArchiveWasUnpacked(t *testing.T) {
 	a := newQueueApp(t)
-	// Held, so the restart leaves it queued instead of reaching for a network.
+	// Disabled, so the restart leaves it queued instead of reaching for a network.
 	putTask(t, a, core.Task{ID: "film", URL: "https://host.example/film.zip", Name: "film.zip",
-		Status: core.StatusDone, Enabled: true, Hold: true, Unpack: core.UnpackDone})
+		Status: core.StatusDone, Enabled: false, Unpack: core.UnpackDone})
 
 	a.RestartTasks([]string{"film"})
 

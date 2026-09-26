@@ -1,6 +1,7 @@
 package app
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -25,14 +26,12 @@ func putTask(t *testing.T, a *App, task core.Task) *core.Task {
 	return &c
 }
 
-// "Start everything" must not dispatch a disabled or held link.
-func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
+// "Start everything" must not dispatch a disabled link.
+func TestADisabledLinkIsNotDispatched(t *testing.T) {
 	a := newQueueApp(t)
 
 	off := putTask(t, a, core.Task{URL: "https://host.example/off.bin", Name: "off.bin",
 		Status: core.StatusCollected, Enabled: false})
-	held := putTask(t, a, core.Task{URL: "https://host.example/held.bin", Name: "held.bin",
-		Status: core.StatusCollected, Enabled: true, Hold: true})
 	// The control, so the test fails if the dispatcher starts nothing at all.
 	on := putTask(t, a, core.Task{URL: "https://host.example/on.bin", Name: "on.bin",
 		Status: core.StatusCollected, Enabled: true})
@@ -45,27 +44,16 @@ func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
 	for _, id := range a.queue {
 		queued[id] = true
 	}
-	for _, c := range []struct {
-		id, why string
-	}{
-		{off.ID, "a link switched off"},
-		{held.ID, "a link on hold"},
-	} {
-		if a.active[c.id] {
-			t.Errorf("%s was dispatched by \"start everything\"", c.why)
-		}
-	}
-	// A held link waits in the queue, so it goes as soon as it is released.
-	if !queued[held.ID] {
-		t.Error("a link on hold lost its place in the queue instead of waiting there")
+	if a.active[off.ID] {
+		t.Error("a disabled link was dispatched by \"start everything\"")
 	}
 	// A disabled link stays in the collector; in the download list it would
 	// look like a stuck queue.
 	if queued[off.ID] {
-		t.Error("a link switched off was moved into the download queue")
+		t.Error("a disabled link was moved into the download queue")
 	}
 	if a.tasks[off.ID].Status != core.StatusCollected {
-		t.Errorf("a link switched off left the collector: status %q", a.tasks[off.ID].Status)
+		t.Errorf("a disabled link left the collector: status %q", a.tasks[off.ID].Status)
 	}
 	// The enabled link left the queue, running or settled with a reason (there
 	// is no network in a test).
@@ -218,25 +206,25 @@ func TestBulkRemoveUnfilesTheLink(t *testing.T) {
 	}
 }
 
-// A hold is not a pause, so "resume everything" does not start held links.
-func TestHoldIsNotPaused(t *testing.T) {
+// Disabling is not pausing: "resume everything" puts a paused link that is
+// disabled back in its place in the queue, and it stays there without starting.
+func TestResumingEverythingLeavesADisabledLinkParked(t *testing.T) {
 	a := newQueueApp(t)
 
-	created := a.AddLinks([]string{"https://host.example/one.bin"}, "Batch")
-	if len(created) != 1 {
-		t.Fatalf("staged %d links", len(created))
-	}
-	a.SetHold([]string{created[0].ID}, true)
+	off := putTask(t, a, core.Task{URL: "https://host.example/off.bin", Name: "off.bin",
+		Status: core.StatusPaused, Enabled: false})
+	a.ResumeTasks([]string{off.ID})
 
 	a.mu.Lock()
-	task := a.tasks[created[0].ID]
-	held, status := task.Hold, task.Status
-	a.mu.Unlock()
-	if !held {
-		t.Error("the hold was not recorded")
+	defer a.mu.Unlock()
+	if a.active[off.ID] {
+		t.Fatal("\"resume everything\" started a disabled link")
 	}
-	if status == core.StatusPaused {
-		t.Error("holding a link paused it; resumeAll would then start exactly the links somebody parked")
+	if w := a.tasks[off.ID].Waiting; w != core.WaitingDisabled {
+		t.Errorf("the disabled link waits with %q, want %q", w, core.WaitingDisabled)
+	}
+	if !slices.Contains(a.queue, off.ID) {
+		t.Error("the disabled link lost its place in the queue")
 	}
 }
 

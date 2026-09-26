@@ -1174,7 +1174,7 @@ func qbitState(t *core.Task) string {
 		return "metaDL"
 	case t.Status == core.StatusRunning:
 		return "downloading"
-	case t.Status == core.StatusQueued && t.Enabled && !t.Hold:
+	case t.Status == core.StatusQueued && t.Enabled:
 		return "queuedDL"
 	case t.Status == core.StatusCollected && !t.ConfirmDue.IsZero():
 		return "queuedDL"

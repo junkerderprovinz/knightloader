@@ -59,19 +59,16 @@ func TestAKeptMirrorNamesWhatItIsACopyOf(t *testing.T) {
 	if sib.URL != "https://two.example/film.rar" {
 		t.Errorf("the sibling carries %q, want the second hoster's link", sib.URL)
 	}
-	if !sib.Hold {
-		t.Error("the sibling is not on hold, so the queue would fetch the same file twice")
-	}
-	if !sib.Enabled {
-		t.Error("the sibling was switched off; Enabled is the user's own switch and nothing here may write it")
+	if sib.Enabled {
+		t.Error("the sibling is enabled, so the queue would fetch the same file twice")
 	}
 	if skipped := a.SkippedLinks(); len(skipped) != 0 {
 		t.Errorf("the kept link was also recorded as skipped: %+v", skipped)
 	}
 }
 
-// Hold is what keeps a sibling a spare copy. A sibling the queue picks up is
-// the same file downloaded twice.
+// Being disabled is what keeps a sibling a spare copy. A sibling the queue
+// picks up is the same file downloaded twice.
 func TestAKeptMirrorIsNotDispatched(t *testing.T) {
 	a := mirrorApp(t, true)
 	_, second := mirrorPair(t, a)
@@ -134,8 +131,8 @@ func TestAKeptMirrorSurvivesARestart(t *testing.T) {
 			if task.MirrorOf != first[0].ID {
 				t.Errorf("the stored sibling says mirrorOf %q, want %q", task.MirrorOf, first[0].ID)
 			}
-			if !task.Hold {
-				t.Error("the stored sibling is not on hold, so a restart would start it")
+			if task.Enabled {
+				t.Error("the stored sibling is enabled, so a restart would start it")
 			}
 			return
 		}
@@ -179,16 +176,16 @@ func killTask(t *testing.T, a *App, id string, spent bool, err string) {
 	a.onUpdate(id, core.Update{Status: core.StatusError, Err: err})
 }
 
-// releasedMirror is the one copy the handover has let go, or nil. It has to be
-// queued and off hold: "start everything" leaves a parked sibling queued with
-// the hold on, so the status alone would report a release that never happened.
+// releasedMirror is the one copy the handover has enabled, or nil. It has to be
+// queued and enabled: a parked sibling can wait in the queue disabled, so the
+// status alone would report a handover that never happened.
 func releasedMirror(t *testing.T, a *App) *core.Task {
 	t.Helper()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	var out *core.Task
 	for _, task := range a.tasks {
-		if task.MirrorOf != "" && task.Status == core.StatusQueued && !task.Hold {
+		if task.MirrorOf != "" && task.Status == core.StatusQueued && task.Enabled {
 			if out != nil {
 				t.Fatalf("two copies were released at once: %s and %s", out.ID, task.ID)
 			}
@@ -198,7 +195,7 @@ func releasedMirror(t *testing.T, a *App) *core.Task {
 	return out
 }
 
-// With the switch at its default an install keeps its spare copy on hold and
+// With the switch at its default an install keeps its spare copy disabled and
 // downloads nothing from a hoster nobody chose.
 func TestTheParkedMirrorStaysParkedByDefault(t *testing.T) {
 	a := failoverApp(t, false)
@@ -208,10 +205,10 @@ func TestTheParkedMirrorStaysParkedByDefault(t *testing.T) {
 	}
 	killTask(t, a, first[0].ID, true, "rapidgator: error code 7731")
 	a.mu.Lock()
-	held, status := a.tasks[second[0].ID].Hold, a.tasks[second[0].ID].Status
+	enabled, status := a.tasks[second[0].ID].Enabled, a.tasks[second[0].ID].Status
 	a.mu.Unlock()
-	if !held || status != core.StatusCollected {
-		t.Errorf("the sibling is hold=%v status=%q after the source died; with the switch off it may not move", held, status)
+	if enabled || status != core.StatusCollected {
+		t.Errorf("the sibling is enabled=%v status=%q after the source died; with the switch off it may not move", enabled, status)
 	}
 }
 
@@ -251,8 +248,8 @@ func TestTheMirrorTakesOverWhenTheBackoffIsSpent(t *testing.T) {
 		}
 	}
 	a.mu.Unlock()
-	if got.Hold {
-		t.Error("the released copy is still on hold, so the dispatcher will walk straight past it")
+	if !got.Enabled {
+		t.Error("the copy that took over is still disabled, so the dispatcher will walk straight past it")
 	}
 	if !queued {
 		t.Error("the released copy is not in the queue, so nothing will ever pick it up")
@@ -277,51 +274,50 @@ func TestTheMirrorTakesOverWhenTheBackoffIsSpent(t *testing.T) {
 		if task.ID != sib.ID {
 			continue
 		}
-		if task.Hold || task.Status != core.StatusQueued {
-			t.Errorf("the stored copy is hold=%v status=%q, so a restart would park it again", task.Hold, task.Status)
+		if !task.Enabled || task.Status != core.StatusQueued {
+			t.Errorf("the stored copy is enabled=%v status=%q, so a restart would park it again", task.Enabled, task.Status)
 		}
 		return
 	}
 	t.Error("the released copy never reached the store")
 }
 
-// "Start everything" reaches a held sibling and moves it to StatusQueued, since
-// startTasks never looks at Hold and the dispatcher does. A handover that only
-// recognised a collected task would find nothing after a start. The copy also
-// has to end up in the queue once, because a second entry is a second Start for
-// the same file the moment a slot frees.
-func TestAStartedQueueStillHasACopyToHandOver(t *testing.T) {
+// A spare copy can wait in the queue disabled, once somebody has enabled it,
+// started it and disabled it again. A handover that only recognised a collected
+// task would find nothing there. The copy also has to end up in the queue once,
+// because a second entry is a second Start for the same file the moment a slot
+// frees.
+func TestAQueuedDisabledCopyIsStillHandedOver(t *testing.T) {
 	a := failoverApp(t, true)
 	first, second := mirrorPair(t, a)
 	if len(second) != 1 {
 		t.Fatalf("the mirror staged %d tasks, want the sibling", len(second))
 	}
+	sib := []string{second[0].ID}
+	a.SetEnabled(sib, true)
 	a.StartTasks(nil)
+	a.SetEnabled(sib, false)
 	a.mu.Lock()
-	status, held := a.tasks[second[0].ID].Status, a.tasks[second[0].ID].Hold
+	status, enabled := a.tasks[second[0].ID].Status, a.tasks[second[0].ID].Enabled
 	a.mu.Unlock()
-	if status != core.StatusQueued || !held {
-		t.Fatalf("the sibling is status=%q hold=%v after a start; this test is not exercising the shape it is about", status, held)
+	if status != core.StatusQueued || enabled {
+		t.Fatalf("the sibling is status=%q enabled=%v; this test is not exercising the shape it is about", status, enabled)
 	}
 
 	killTask(t, a, first[0].ID, true, "rapidgator: error code 7731")
 
-	sib := releasedMirror(t, a)
-	if sib == nil || sib.ID != second[0].ID {
-		t.Fatal("the copy was queued behind a hold and the handover walked past it")
+	took := releasedMirror(t, a)
+	if took == nil || took.ID != second[0].ID {
+		t.Fatal("the copy waited in the queue disabled and the handover walked past it")
 	}
 	a.mu.Lock()
 	entries := 0
 	for _, id := range a.queue {
-		if id == sib.ID {
+		if id == took.ID {
 			entries++
 		}
 	}
-	held = sib.Hold
 	a.mu.Unlock()
-	if held {
-		t.Error("the copy is still on hold, so the dispatcher will keep skipping it")
-	}
 	if entries != 1 {
 		t.Errorf("the copy sits in the queue %d times, want once: each entry is another Start for the same file", entries)
 	}

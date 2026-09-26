@@ -95,7 +95,6 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 		Enabled:          true,
 		Skipped:          true,
 		SkipReason:       "the destination is full",
-		Hold:             true,
 		Forced:           true,
 		DownloadPassword: "hoster-side",
 		ExpectedHash:     "sha256:abc",
@@ -146,7 +145,6 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 		{"enabled", got.Enabled, want.Enabled},
 		{"skipped", got.Skipped, want.Skipped},
 		{"skipReason", got.SkipReason, want.SkipReason},
-		{"hold", got.Hold, want.Hold},
 		{"forced", got.Forced, want.Forced},
 		{"downloadPassword", got.DownloadPassword, want.DownloadPassword},
 		{"expectedHash", got.ExpectedHash, want.ExpectedHash},
@@ -605,5 +603,71 @@ func TestAPendingCountdownsDueTimeSurvivesARestart(t *testing.T) {
 	}
 	if !all[0].ConfirmDue.Equal(due) {
 		t.Errorf("countdown due at %v, want %v", all[0].ConfirmDue, due)
+	}
+}
+
+// beforeTheHoldMerge is how many migrations there were before a held link
+// became a disabled one.
+const beforeTheHoldMerge = 63
+
+// A held link is parked the one way that is left, so it neither starts after
+// the upgrade nor loses its place. A link nobody held keeps its switch.
+func TestAnUpgradeDisablesAHeldLink(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	db := openRaw(t, path)
+	for i := range beforeTheHoldMerge {
+		if _, err := db.Exec(migrations[i]); err != nil {
+			t.Fatalf("old migration %d: %v", i+1, err)
+		}
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, beforeTheHoldMerge)); err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range []struct {
+		id            string
+		enabled, hold bool
+	}{
+		{"held", true, true},
+		{"plain", true, false},
+		{"off", false, false},
+	} {
+		if _, err := db.Exec(
+			`INSERT INTO tasks (id,url,name,package,resolver,size,loaded,speed,status,error,created_at,position,enabled,hold)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			row.id, "https://host.example/"+row.id+".bin", row.id+".bin", "Batch", "direct",
+			100, 40, 0, string(core.StatusQueued), "", time.Now().UnixMilli(), 7, row.enabled, row.hold); err != nil {
+			t.Fatal(err)
+		}
+	}
+	db.Close()
+
+	s, err := Open(path)
+	if err != nil {
+		t.Fatalf("upgrading an existing database failed: %v", err)
+	}
+	defer s.Close()
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]*core.Task{}
+	for _, task := range all {
+		got[task.ID] = task
+	}
+	held, plain, off := got["held"], got["plain"], got["off"]
+	if held == nil || plain == nil || off == nil {
+		t.Fatalf("reloaded %d tasks, want the three that were there", len(all))
+	}
+	if held.Enabled {
+		t.Error("the held link came back enabled, so it would start")
+	}
+	if held.Status != core.StatusQueued || held.Position != 7 || held.Loaded != 40 {
+		t.Errorf("the held link lost its place: status %q, position %d, %d bytes", held.Status, held.Position, held.Loaded)
+	}
+	if !plain.Enabled {
+		t.Error("a link nobody held came back disabled")
+	}
+	if off.Enabled {
+		t.Error("a disabled link came back enabled")
 	}
 }

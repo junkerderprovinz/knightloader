@@ -37,6 +37,8 @@ export const tr: Dict = {
   'downloads.tabCollector': 'Toplayıcı',
   'packages.loose': 'Paketsiz',
   'packages.start': 'Bu paketi başlat',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Bu paketi aç',
   'packages.collapse': 'Bu paketi kapat',
   'packages.delete': 'Bu paketi kaldır',
@@ -112,6 +114,7 @@ export const tr: Dict = {
   'status.finished': 'tamamlandı',
   'status.failed': 'başarısız',
   'status.extracting': 'çıkartılıyor',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Ayarlar',
   'settings.back': 'Geri',

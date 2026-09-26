@@ -54,10 +54,9 @@ function marks(items: Task[], context = ctx()): string[] {
 
 describe('RowMarks', () => {
   it('names every state the right-click menu leaves on a row', () => {
-    expect(marks([task('a', { forced: true, hold: true, enabled: false })], ctx({ stopMark: 'a' }))).toEqual([
+    expect(marks([task('a', { forced: true, enabled: false })], ctx({ stopMark: 'a' }))).toEqual([
       'queue.stopMarkOn',
       'task.forced',
-      'task.held',
       'task.waiting.disabled',
     ]);
   });
@@ -67,8 +66,8 @@ describe('RowMarks', () => {
   });
 
   it('marks a package only when every link in it carries the state', () => {
-    expect(marks([task('a', { hold: true }), task('b')])).toEqual([]);
-    expect(marks([task('a', { hold: true }), task('b', { hold: true })])).toEqual(['task.held']);
+    expect(marks([task('a', { enabled: false }), task('b')])).toEqual([]);
+    expect(marks([task('a', { enabled: false }), task('b', { enabled: false })])).toEqual(['task.waiting.disabled']);
   });
 
   it('shows the stop mark on the package that holds the marked link', () => {
@@ -79,7 +78,7 @@ describe('RowMarks', () => {
     expect(marks([task('a', { status: 'done' })], ctx({ stopMark: 'a' }))).toEqual([]);
   });
 
-  it('leaves a switched-off row to the Enabled column where that column is drawn', () => {
+  it('leaves a disabled row to the Enabled column where that column is drawn', () => {
     const off = [task('a', { enabled: false })];
     expect(marks(off, ctx({ profile: 'collector', switchShown: true }))).toEqual([]);
     expect(marks(off, ctx({ profile: 'collector', switchShown: false }))).toEqual(['task.waiting.disabled']);

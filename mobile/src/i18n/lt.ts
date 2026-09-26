@@ -37,6 +37,8 @@ export const lt: Dict = {
   'downloads.tabCollector': 'Rinktuvas',
   'packages.loose': 'Be paketo',
   'packages.start': 'Paleisti šį paketą',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Atverti šį paketą',
   'packages.collapse': 'Užverti šį paketą',
   'packages.delete': 'Šalinti šį paketą',
@@ -112,6 +114,7 @@ export const lt: Dict = {
   'status.finished': 'baigta',
   'status.failed': 'nepavyko',
   'status.extracting': 'išpakuojama',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Nustatymai',
   'settings.back': 'Atgal',

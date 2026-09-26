@@ -37,6 +37,8 @@ export const id: Dict = {
   'downloads.tabCollector': 'Pengumpul',
   'packages.loose': 'Tanpa paket',
   'packages.start': 'Mulai paket ini',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Buka paket ini',
   'packages.collapse': 'Tutup paket ini',
   'packages.delete': 'Hapus paket ini',
@@ -112,6 +114,7 @@ export const id: Dict = {
   'status.finished': 'selesai',
   'status.failed': 'gagal',
   'status.extracting': 'mengekstrak',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Pengaturan',
   'settings.back': 'Kembali',

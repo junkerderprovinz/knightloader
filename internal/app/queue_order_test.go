@@ -194,17 +194,18 @@ func newOrderApp(t *testing.T) *App {
 }
 
 // stage puts tasks in the wait queue in the order given, a second apart so the
-// created-at tiebreak is unambiguous. They are parked, because the dispatcher
-// passes a held link over and leaves it where it is, so these tests stay about
-// the waiting order and off the network. Halting the queue is not enough: the
-// timetable owns that flag and writes it from its own goroutine.
+// created-at tiebreak is unambiguous. They are disabled, because the
+// dispatcher passes a disabled link over and leaves it where it is, so these
+// tests stay about the waiting order and off the network. Halting the queue is
+// not enough: the timetable owns that flag and writes it from its own
+// goroutine.
 func stage(a *App, ids ...string) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	for _, id := range ids {
 		a.tasks[id] = &core.Task{
 			ID: id, URL: "https://host.example/" + id + ".bin",
-			Status: core.StatusQueued, Enabled: true, Hold: true,
+			Status: core.StatusQueued, Enabled: false,
 			CreatedAt: time.Now().Add(time.Duration(len(a.tasks)) * time.Second),
 		}
 		a.queue = append(a.queue, id)

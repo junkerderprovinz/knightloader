@@ -37,6 +37,8 @@ export const eu: Dict = {
   'downloads.tabCollector': 'Biltzailea',
   'packages.loose': 'Paketerik gabe',
   'packages.start': 'Hasi pakete hau',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Ireki pakete hau',
   'packages.collapse': 'Itxi pakete hau',
   'packages.delete': 'Kendu pakete hau',
@@ -112,6 +114,7 @@ export const eu: Dict = {
   'status.finished': 'amaituta',
   'status.failed': 'huts egin du',
   'status.extracting': 'erauzten',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Ezarpenak',
   'settings.back': 'Atzera',

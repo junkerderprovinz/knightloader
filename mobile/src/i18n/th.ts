@@ -37,6 +37,8 @@ export const th: Dict = {
   'downloads.tabCollector': 'ตัวเก็บ',
   'packages.loose': 'ไม่มีแพ็กเกจ',
   'packages.start': 'เริ่มแพ็กเกจนี้',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'เปิดแพ็กเกจนี้',
   'packages.collapse': 'ปิดแพ็กเกจนี้',
   'packages.delete': 'ลบแพ็กเกจนี้',
@@ -112,6 +114,7 @@ export const th: Dict = {
   'status.finished': 'เสร็จสิ้น',
   'status.failed': 'ล้มเหลว',
   'status.extracting': 'กำลังแตกไฟล์',
+  'status.disabled': 'disabled',
 
   'settings.title': 'การตั้งค่า',
   'settings.back': 'ย้อนกลับ',

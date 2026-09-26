@@ -3,8 +3,8 @@ package app
 // Mirrors: a second copy of a file the list already has, on another hoster.
 //
 // By default a mirror is dropped. With KeepMirrors it is staged as an ordinary
-// task on hold, labelled with the download it copies. With MirrorFailover the
-// parked copy is released when that download dies and takes over its folder,
+// task, disabled, labelled with the download it copies. With MirrorFailover the
+// parked copy is enabled when that download dies and takes over its folder,
 // package and priority. Failover has its own switch, off by default, because it
 // starts a transfer from a hoster the user did not pick.
 
@@ -26,14 +26,14 @@ func (a *App) keepsAsSibling(m dedupe.Match) bool {
 // task it matched, and reports whether it did so the caller can record the link
 // as skipped otherwise.
 //
-// The sibling is put on hold rather than disabled: Hold means "not now", while
-// Enabled is the user's own switch and nothing here writes it.
+// The sibling is disabled, the one way a link is parked, so the queue does not
+// fetch the same file twice. Enabling it by hand starts it like any other link.
 func (a *App) stageSibling(t *core.Task, m dedupe.Match) bool {
 	if !a.keepsAsSibling(m) {
 		return false
 	}
 	t.MirrorOf = m.Of.ID
-	t.Hold = true
+	t.Enabled = false
 	a.putSibling(t)
 	return true
 }
@@ -93,21 +93,18 @@ func (a *App) mirrorRootLocked(t *core.Task) string {
 // parkedMirrorLocked picks the next copy of a dead task's file, or nil when the
 // group has none left. Caller holds a.mu.
 //
-// A candidate is on hold and waiting in the collector or the queue: "start
-// everything" moves a held sibling to StatusQueued, and only the dispatcher
-// honours Hold. Disabled and skipped copies are left alone. Oldest first is
-// paste order; the id breaks ties so the choice does not depend on map order.
+// A candidate is disabled and waiting in the collector or the queue. A copy
+// somebody enabled is on its way already, and a skipped one was rejected.
+// Oldest first is paste order; the id breaks ties so the choice does not depend
+// on map order.
 func (a *App) parkedMirrorLocked(dead *core.Task) *core.Task {
 	root := a.mirrorRootLocked(dead)
 	var best *core.Task
 	for id, c := range a.tasks {
-		if id == dead.ID || c.MirrorOf == "" || !c.Hold {
+		if id == dead.ID || c.MirrorOf == "" || c.Enabled || c.Skipped {
 			continue
 		}
 		if c.Status != core.StatusCollected && c.Status != core.StatusQueued {
-			continue
-		}
-		if !c.Enabled || c.Skipped {
 			continue
 		}
 		if a.mirrorRootLocked(c) != root {
@@ -123,17 +120,18 @@ func (a *App) parkedMirrorLocked(dead *core.Task) *core.Task {
 	return best
 }
 
-// handOverToMirrorLocked releases the parked copy of a task that has just died
-// and gives it that task's job. It returns the released sibling for the caller
+// handOverToMirrorLocked enables the parked copy of a task that has just died
+// and gives it that task's job. It returns the enabled sibling for the caller
 // to save and broadcast, and the retry delay still to arm, which is zero after a
 // handover so two transfers of one file never race. Caller holds a.mu.
 //
 // A handover happens when the retries are spent, or at once when the host says
 // the file is gone (ReasonGone), in which case the retry already armed is taken
-// back. A released sibling never parks again, so N copies allow at most N-1
-// handovers. The original stays in StatusError with its reason and retry count,
-// so the list still shows that the first hoster failed. The sibling starts with
-// a full retry budget, since it is a different host.
+// back. A sibling that took over stays enabled and is never picked again, so N
+// copies allow at most N-1 handovers. The original stays in StatusError with
+// its reason and retry count, so the list still shows that the first hoster
+// failed. The sibling starts with a full retry budget, since it is a different
+// host.
 func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*taskCopy, time.Duration) {
 	if !a.Settings.Get().MirrorFailover || !mirrorCanHelp(dead.Reason) {
 		return nil, retryIn
@@ -152,7 +150,7 @@ func (a *App) handOverToMirrorLocked(dead *core.Task, retryIn time.Duration) (*t
 	// Folder, package and priority belong to the file rather than the link, and
 	// a rule or hand edit on the original row never reached the parked copy.
 	m.Dir, m.Package, m.Priority = dead.Dir, dead.Package, dead.Priority
-	m.Hold = false
+	m.Enabled = true
 	m.Status = core.StatusQueued
 	// A task on its way to a backend must not carry a verdict from before it
 	// ran, as in startTasks.

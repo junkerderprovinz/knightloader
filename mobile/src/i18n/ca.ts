@@ -37,6 +37,8 @@ export const ca: Dict = {
   'downloads.tabCollector': 'Col·lector',
   'packages.loose': 'Sense paquet',
   'packages.start': 'Inicia aquest paquet',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Obre aquest paquet',
   'packages.collapse': 'Tanca aquest paquet',
   'packages.delete': 'Suprimeix aquest paquet',
@@ -112,6 +114,7 @@ export const ca: Dict = {
   'status.finished': 'finalitzat',
   'status.failed': 'fallit',
   'status.extracting': 'extraient',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Configuració',
   'settings.back': 'Enrere',

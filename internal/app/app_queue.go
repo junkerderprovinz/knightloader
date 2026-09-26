@@ -1015,7 +1015,7 @@ func (a *App) StopCost() StopCost {
 }
 
 // ForceDownload starts a selection now: it goes to the front of the wait order,
-// past every priority, and its disabled and hold flags are cleared. Forced is
+// past every priority, and a disabled link in it is enabled. Forced is
 // not an eighth priority; a forced link must never wait behind a high-priority
 // package.
 //
@@ -1031,6 +1031,8 @@ func (a *App) ForceDownload(sel Selection) []string {
 	ids := idsOf(chosen)
 	var staged []string
 	for _, t := range chosen {
+		// Before StartTasks, which leaves a disabled link in the collector.
+		t.Enabled = true
 		if t.Status == core.StatusCollected {
 			staged = append(staged, t.ID)
 		}
@@ -1051,8 +1053,6 @@ func (a *App) ForceDownload(sel Selection) []string {
 			continue // removed while the collector pass ran
 		}
 		t.Forced = true
-		t.Enabled = true
-		t.Hold = false
 		if t.Status == core.StatusPaused {
 			// Requeued rather than resumed: only the dispatcher knows whether the
 			// backend has seen the task, and a Resume to one that has not starts
@@ -1091,7 +1091,7 @@ func (a *App) SetEnabledIn(sel Selection, enabled bool) []string {
 type QueueCounters struct {
 	// Files is every file still owed, disabled links included.
 	Files int `json:"files"`
-	// Disabled is how many of those are switched off, so the interface can
+	// Disabled is how many of those are disabled, so the interface can
 	// explain why the file count and byte total differ.
 	Disabled int `json:"disabled"`
 	Running  int `json:"running"`
@@ -1114,8 +1114,7 @@ type QueueCounters struct {
 //
 // Finished and failed downloads are excluded, as are links still in the
 // collector, which would make the ETA move on every paste. A disabled link
-// counts as a file but not in the bytes or the ETA. Held links count fully,
-// since a hold is a pause the user means to lift.
+// counts as a file but not in the bytes or the ETA.
 func (a *App) Counters() QueueCounters {
 	c := QueueCounters{Captchas: len(a.captchaStateFor().store.List())}
 	a.mu.Lock()

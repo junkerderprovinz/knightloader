@@ -47,6 +47,8 @@ export interface Task {
   retries?: number;
   priority: number;
   position: number;
+  /** False for a disabled link, which keeps its place and is not started. */
+  enabled: boolean;
   checksum?: string;
   /** A collected variant row its host's preset leaves out; the collector does
    *  not show it. */

@@ -37,6 +37,8 @@ export const ar: Dict = {
   'downloads.tabCollector': 'المُجمِّع',
   'packages.loose': 'بدون حزمة',
   'packages.start': 'ابدأ هذه الحزمة',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'فتح هذه الحزمة',
   'packages.collapse': 'إغلاق هذه الحزمة',
   'packages.delete': 'إزالة هذه الحزمة',
@@ -112,6 +114,7 @@ export const ar: Dict = {
   'status.finished': 'مكتمل',
   'status.failed': 'فشل',
   'status.extracting': 'جارٍ الاستخراج',
+  'status.disabled': 'disabled',
 
   'settings.title': 'الإعدادات',
   'settings.back': 'رجوع',

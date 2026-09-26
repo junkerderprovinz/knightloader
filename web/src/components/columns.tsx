@@ -29,7 +29,6 @@ import { useToast } from '../lib/toast';
 import {
   IconBolt,
   IconCheck,
-  IconPin,
   IconPower,
   IconRetry,
   IconStopMark,
@@ -694,8 +693,8 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
 
 /**
  * RowMarks shows what the right-click menu leaves on a row: the stop mark,
- * Start now, Hold and Switch off, each as the glyph of its menu entry with the
- * state's name in the bubble. On a package row `items` is its links, and it
+ * Start now and Disable, each as the glyph of its menu entry with the state's
+ * name in the bubble. On a package row `items` is its links, and it
  * wears a mark when every link carries it, as with PriorityTag. The stop mark
  * is the exception: one link carries it, and a folded package would hide
  * where the queue is going to stop.
@@ -703,7 +702,7 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
 export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   const { t, stopMark, switchShown } = ctx;
   // The two that change what the queue does next take --accent-ink, as a
-  // raised priority does; the two that park a row stay in the quiet ink.
+  // raised priority does; a disabled row stays in the quiet ink.
   const marks: { id: string; label: string; icon: ReactNode; ink: string }[] = [];
   // The server clears the mark as its download finishes, which on a peer's
   // list only the row itself reports.
@@ -711,8 +710,6 @@ export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
     marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentInk' });
   if (items.every((x) => !!x.forced))
     marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentInk' });
-  if (items.every((x) => !!x.hold))
-    marks.push({ id: 'held', label: t('task.held'), icon: <IconPin />, ink: 'text-carbon-textSub' });
   if (!switchShown && items.every((x) => !x.enabled))
     marks.push({ id: 'off', label: t('task.waiting.disabled'), icon: <IconPower />, ink: 'text-carbon-textSub' });
   return marks.map((m) => (
@@ -948,7 +945,6 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   host: 'task.waiting.host',
   forced: 'task.waiting.forced',
   disabled: 'task.waiting.disabled',
-  hold: 'task.waiting.hold',
   captcha: 'task.waiting.captcha',
   account: 'task.waiting.account',
   halted: 'task.waiting.halted',

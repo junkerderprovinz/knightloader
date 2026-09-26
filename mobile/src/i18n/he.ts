@@ -37,6 +37,8 @@ export const he: Dict = {
   'downloads.tabCollector': 'אספן',
   'packages.loose': 'ללא חבילה',
   'packages.start': 'התחל חבילה זו',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'פתיחת החבילה',
   'packages.collapse': 'סגירת החבילה',
   'packages.delete': 'הסרת החבילה',
@@ -112,6 +114,7 @@ export const he: Dict = {
   'status.finished': 'הושלם',
   'status.failed': 'נכשל',
   'status.extracting': 'מחלץ',
+  'status.disabled': 'disabled',
 
   'settings.title': 'הגדרות',
   'settings.back': 'חזרה',

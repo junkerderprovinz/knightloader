@@ -53,6 +53,8 @@ export const de: Dict = {
   'downloads.tabCollector': 'Sammler',
   'packages.loose': 'Ohne Paket',
   'packages.start': 'Dieses Paket starten',
+  'packages.enable': 'Dieses Paket aktivieren',
+  'packages.disable': 'Dieses Paket deaktivieren',
   'packages.expand': 'Dieses Paket öffnen',
   'packages.collapse': 'Dieses Paket schließen',
   'packages.delete': 'Dieses Paket entfernen',
@@ -131,6 +133,7 @@ export const de: Dict = {
   'status.extracting': 'entpackt',
   'status.collected': 'gesammelt',
   'status.notUnpacked': 'nicht entpackt',
+  'status.disabled': 'deaktiviert',
 
   'settings.title': 'Einstellungen',
   'settings.back': 'Zurück',

@@ -639,8 +639,8 @@ export const IconChevronStart = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Hold/release: a pushpin, upright because a rotated one lands between pixels
- *  at this size. */
+/** Saving a view: a pushpin, upright because a rotated one lands between
+ *  pixels at this size. */
 export const IconPin = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M6 2.5h8v2h-1.8v4.5l2.8 2v1.6h-4.3v3.9L10 18l-.7-1.5v-3.9H5V11l2.8-2V4.5H6Z" />

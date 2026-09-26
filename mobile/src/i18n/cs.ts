@@ -37,6 +37,8 @@ export const cs: Dict = {
   'downloads.tabCollector': 'Sběrač',
   'packages.loose': 'Bez balíčku',
   'packages.start': 'Spustit tento balíček',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Otevřít tento balíček',
   'packages.collapse': 'Zavřít tento balíček',
   'packages.delete': 'Odebrat tento balíček',
@@ -112,6 +114,7 @@ export const cs: Dict = {
   'status.finished': 'dokončeno',
   'status.failed': 'selhalo',
   'status.extracting': 'rozbaluje se',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Nastavení',
   'settings.back': 'Zpět',

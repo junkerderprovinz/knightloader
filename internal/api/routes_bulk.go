@@ -35,7 +35,7 @@ func bulkDone(w http.ResponseWriter, ids []string) {
 }
 
 func registerBulk(reg *Registry, a *app.App) {
-	reg.Add(http.MethodPost, "/api/tasks/enabled", "switch a selection of links on or off",
+	reg.Add(http.MethodPost, "/api/tasks/enabled", "enable or disable a selection of links",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Ids     []string `json:"ids"`
@@ -46,7 +46,8 @@ func registerBulk(reg *Registry, a *app.App) {
 			}
 			bulkDone(w, a.SetEnabled(body.Ids, body.Enabled))
 		})
-	reg.Add(http.MethodPost, "/api/tasks/hold", "park a selection, or let it go again",
+	// Kept for clients written against it: a held link is a disabled one.
+	reg.Add(http.MethodPost, "/api/tasks/hold", "the older name of /api/tasks/enabled: hold true disables a selection of links, false enables it",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Ids  []string `json:"ids"`
@@ -55,7 +56,7 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
-			bulkDone(w, a.SetHold(body.Ids, body.Hold))
+			bulkDone(w, a.SetEnabled(body.Ids, !body.Hold))
 		})
 	reg.Add(http.MethodPost, "/api/tasks/pause", "pause the running and waiting links of a selection; the others are left as they are",
 		func(w http.ResponseWriter, r *http.Request) {

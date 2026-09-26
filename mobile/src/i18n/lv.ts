@@ -37,6 +37,8 @@ export const lv: Dict = {
   'downloads.tabCollector': 'Vācējs',
   'packages.loose': 'Bez pakotnes',
   'packages.start': 'Sākt šo pakotni',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Atvērt šo pakotni',
   'packages.collapse': 'Aizvērt šo pakotni',
   'packages.delete': 'Noņemt šo pakotni',
@@ -112,6 +114,7 @@ export const lv: Dict = {
   'status.finished': 'pabeigts',
   'status.failed': 'neizdevās',
   'status.extracting': 'atspiež',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Iestatījumi',
   'settings.back': 'Atpakaļ',

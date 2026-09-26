@@ -36,6 +36,7 @@ export const STATE_KEYS: Record<StateWord, TranslationKey> = {
   finished: 'status.finished',
   failed: 'status.failed',
   notUnpacked: 'status.notUnpacked',
+  disabled: 'status.disabled',
 };
 
 /**

@@ -32,7 +32,7 @@ func TestAPackageNothingHasStartedInTakesItsFolderAlong(t *testing.T) {
 	putTask(t, a, core.Task{ID: "a", URL: "https://host.example/a.bin", Name: "a.bin",
 		Package: "Old", Status: core.StatusCollected, Enabled: true})
 	putTask(t, a, core.Task{ID: "b", URL: "https://host.example/b.bin", Name: "b.bin",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	putTask(t, a, core.Task{ID: "b-audio", URL: "https://host.example/b.bin", Name: "b.bin",
 		Package: "Old", Status: core.StatusCollected, Enabled: true})
 
@@ -73,7 +73,7 @@ func TestAPackageWithAFileOnDiskKeepsItsFolder(t *testing.T) {
 	finishedTask(t, a, old, "part1", "film.part1.rar")
 	editTask(a, "part1", func(x *core.Task) { x.Package = "Old" })
 	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 
 	if _, err := a.RenamePackage([]string{"part1", "part2"}, "Film"); err != nil {
 		t.Fatal(err)
@@ -104,7 +104,7 @@ func TestMovingAFinishedFileIntoAPackageKeepsItsFolder(t *testing.T) {
 	finishedTask(t, a, old, "part1", "film.part1.rar")
 	editTask(a, "part1", func(x *core.Task) { x.Package = "Old" })
 	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 
 	a.SetPackage([]string{"part1", "part2"}, "Film")
 
@@ -150,7 +150,7 @@ func TestMovingTwoPackagesKeepsOnlyTheFolderWithAFileInIt(t *testing.T) {
 	finishedTask(t, a, old, "part1", "film.part1.rar")
 	editTask(a, "part1", func(x *core.Task) { x.Package = "Old" })
 	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	putTask(t, a, core.Task{ID: "extra", URL: "https://host.example/extra.bin", Name: "extra.bin",
 		Package: "Other", Status: core.StatusCollected, Enabled: true})
 
@@ -174,9 +174,9 @@ func TestMovingTwoPackagesKeepsOnlyTheFolderWithAFileInIt(t *testing.T) {
 func TestAPackageWithALinkHandedToABackendKeepsItsFolder(t *testing.T) {
 	a, base := newPackageApp(t)
 	putTask(t, a, core.Task{ID: "handed", URL: "https://host.example/h.bin", Name: "h.bin",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	putTask(t, a, core.Task{ID: "waiting", URL: "https://host.example/w.bin", Name: "w.bin",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	a.mu.Lock()
 	a.started["handed"] = true
 	a.mu.Unlock()
@@ -233,7 +233,7 @@ func TestPausingASelectionLeavesTheOtherStatesAlone(t *testing.T) {
 	running := putTask(t, a, core.Task{ID: "running", URL: "https://host.example/r.bin",
 		Status: core.StatusRunning, Enabled: true})
 	waiting := putTask(t, a, core.Task{ID: "waiting", URL: "https://host.example/w.bin",
-		Status: core.StatusQueued, Enabled: true, Hold: true})
+		Status: core.StatusQueued, Enabled: false})
 	others := map[string]core.Status{
 		"staged":    core.StatusCollected,
 		"done":      core.StatusDone,
@@ -306,10 +306,10 @@ func TestPausingAPackageDoesNotStartItsOwnLinks(t *testing.T) {
 // link must not be queued to download again.
 func TestResumingPutsOnlyPausedLinksBack(t *testing.T) {
 	a := newQueueApp(t)
-	// Held, so the dispatcher leaves them queued instead of reaching for a
+	// Disabled, so the dispatcher leaves them queued instead of reaching for a
 	// network this test does not have.
-	putTask(t, a, core.Task{ID: "paused", URL: "https://host.example/p.bin", Status: core.StatusPaused, Enabled: true, Hold: true})
-	putTask(t, a, core.Task{ID: "done", URL: "https://host.example/d.bin", Status: core.StatusDone, Enabled: true, Hold: true})
+	putTask(t, a, core.Task{ID: "paused", URL: "https://host.example/p.bin", Status: core.StatusPaused, Enabled: false})
+	putTask(t, a, core.Task{ID: "done", URL: "https://host.example/d.bin", Status: core.StatusDone, Enabled: false})
 
 	got := a.ResumeTasks([]string{"paused", "done"})
 

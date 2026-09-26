@@ -6,9 +6,11 @@
 //                                 debrid texts; the switch does not stop a
 //                                 torrent going to a debrid service, so
 //                                 "Torrents" would claim more than it switches
-//   rejected links                "held" belongs to the Hold action and its row
-//                                 mark; the link filter's and the tracker ban's
-//                                 area takes the filter's own verdict
+//   rejected links                the link filter's and the tracker ban's area
+//                                 takes the filter's own verdict, not "held"
+//   the link switch               Disable and Enable (Deaktivieren, Aktivieren)
+//                                 is the one way to park a link; switch off,
+//                                 hold and release are not its names
 //   backends                      a row of the priority order is a backend, and a
 //                                 service is a debrid service
 //   das Token                     German takes the neuter, as "Leg eins an" does
@@ -51,12 +53,34 @@ const REJECTED = [
   /^downloads\.startHeld$/,
 ];
 const PRIORITY_ROW = [/^accounts\.routing\./, /^props\.backend/];
+const LINK_SWITCH = [
+  /^(task|menu|packages)\.(enable|disable)$/,
+  /^(task\.waiting|filter|status)\.disabled$/,
+  /^cleanup\.(what\.)?disabled$/,
+  /^collector\.toastStart(Disabled|edSomeDisabled)$/,
+  /^strip\.includeDisabled(Hint)?$/,
+  /^settings\.downloads\.idleActionHint$/,
+  /^settings\.advanced\.(keepMirrorsHint|mirrorFailoverHint)$/,
+  /^disk\.queuedHint$/,
+];
 
 const rules = [
   { book: /en$/, words: /Torrent and magnet|\bbuilt-in client\b|\btorrent engine\b/i, why: 'the built-in torrent client has one name' },
   { book: /de$/, words: /Torrent & Magnet|\beingebaute[nmrs]? Client|Torrent-Engine/, why: 'der eingebaute Torrent-Client hat einen Namen' },
-  { book: /en$/, keys: REJECTED, words: /\bheld\b|\bhold(s|ing)?\b/i, why: 'held is the Hold action; this area is Rejected' },
-  { book: /de$/, keys: REJECTED, words: /zurück(ge)?halt|zurückhält|zurückzuhalten|\bhält\b[^.]*\bzurück\b/, why: 'zurückgehalten ist Zurückhalten; hier heißt es Abgelehnt' },
+  { book: /en$/, keys: REJECTED, words: /\bheld\b|\bhold(s|ing)?\b/i, why: 'this area is Rejected' },
+  { book: /de$/, keys: REJECTED, words: /zurück(ge)?halt|zurückhält|zurückzuhalten|\bhält\b[^.]*\bzurück\b/, why: 'hier heißt es Abgelehnt' },
+  {
+    book: /en$/,
+    keys: LINK_SWITCH,
+    words: /\bswitch(ed|es)?[ -](on|off)\b|\bheld\b|\bon hold\b|\breleas(e|ed|es)\b|\bparked\b/i,
+    why: 'a link is disabled and enabled',
+  },
+  {
+    book: /de$/,
+    keys: LINK_SWITCH,
+    words: /[Aa]us(ge)?schalte|[Ee]in(ge)?schalte|[Aa]bgeschalte|zurück(ge)?halt|zurückhält|[Ff]reigeb|[Ff]reigegeben|geparkt/,
+    why: 'ein Link wird deaktiviert und aktiviert',
+  },
   { book: /en$/, keys: PRIORITY_ROW, words: /\bresolvers?\b|(?<!debrid )\bservices?\b/i, why: 'a row of the priority order is a backend' },
   { book: /de$/, keys: PRIORITY_ROW, words: /Resolver|(?<!Debrid-)\bDienst(e|en|es)?\b/, why: 'eine Zeile der Prioritätsreihenfolge ist ein Backend' },
   {
@@ -79,6 +103,15 @@ for (const [book, values] of Object.entries(books)) {
       const hit = rule.words.exec(value.replace(/\{\w+\}/g, ''));
       if (hit) problems.push(`${book} ${key}: "${hit[0]}" (${rule.why})`);
     }
+  }
+}
+
+// The menu entries and the switch in the list name the same two verbs.
+for (const book of ['web en', 'web de']) {
+  for (const verb of ['enable', 'disable']) {
+    const menu = books[book].get(`menu.${verb}`);
+    const own = books[book].get(`task.${verb}`);
+    if (menu !== own) problems.push(`${book}: the menu says "${menu}" but the switch says "${own}"`);
   }
 }
 

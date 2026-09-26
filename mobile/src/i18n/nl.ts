@@ -37,6 +37,8 @@ export const nl: Dict = {
   'downloads.tabCollector': 'Verzamelaar',
   'packages.loose': 'Geen pakket',
   'packages.start': 'Dit pakket starten',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Dit pakket openen',
   'packages.collapse': 'Dit pakket sluiten',
   'packages.delete': 'Dit pakket verwijderen',
@@ -112,6 +114,7 @@ export const nl: Dict = {
   'status.finished': 'voltooid',
   'status.failed': 'mislukt',
   'status.extracting': 'uitpakken',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Instellingen',
   'settings.back': 'Terug',

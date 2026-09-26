@@ -37,6 +37,8 @@ export const fi: Dict = {
   'downloads.tabCollector': 'Kerääjä',
   'packages.loose': 'Ei pakettia',
   'packages.start': 'Käynnistä tämä paketti',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Avaa tämä paketti',
   'packages.collapse': 'Sulje tämä paketti',
   'packages.delete': 'Poista tämä paketti',
@@ -112,6 +114,7 @@ export const fi: Dict = {
   'status.finished': 'valmis',
   'status.failed': 'epäonnistui',
   'status.extracting': 'puretaan',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Asetukset',
   'settings.back': 'Takaisin',

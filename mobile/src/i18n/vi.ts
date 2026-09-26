@@ -37,6 +37,8 @@ export const vi: Dict = {
   'downloads.tabCollector': 'Bộ thu thập',
   'packages.loose': 'Không có gói',
   'packages.start': 'Bắt đầu gói này',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Mở gói này',
   'packages.collapse': 'Đóng gói này',
   'packages.delete': 'Xoá gói này',
@@ -112,6 +114,7 @@ export const vi: Dict = {
   'status.finished': 'đã hoàn tất',
   'status.failed': 'thất bại',
   'status.extracting': 'đang giải nén',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Cài đặt',
   'settings.back': 'Quay lại',
