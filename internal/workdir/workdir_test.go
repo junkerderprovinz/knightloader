@@ -251,6 +251,46 @@ func TestMoveAsPutsAFolderUnderTheNameGiven(t *testing.T) {
 	}
 }
 
+// A move that may copy only across disks copies when the rename failed for
+// that reason, and returns any other refusal with the folder left as it was,
+// such as Windows refusing to rename a folder that holds an open file.
+func TestAMoveOnlyAcrossDisksCopiesForNothingElse(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		refuse error
+		copies bool
+	}{
+		{"another disk", &os.LinkError{Op: "rename", Err: crossDevice}, true},
+		{"a file held open", &os.LinkError{Op: "rename", Err: errors.New("the process cannot access the file")}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			base := t.TempDir()
+			src := filepath.Join(base, "Old")
+			write(t, filepath.Join(src, "film.mkv"), "film")
+			target := filepath.Join(base, "New")
+			o := Options{OnlyAcrossDisks: true, Rename: func(string, string) error { return tc.refuse }}
+
+			res, err := MoveAs(context.Background(), src, target, o)
+
+			if tc.copies {
+				if err != nil || res.Path != target || read(t, filepath.Join(target, "film.mkv")) != "film" {
+					t.Fatalf("MoveAs = %+v, %v; want the folder copied to %s", res, err, target)
+				}
+				return
+			}
+			if !errors.Is(err, tc.refuse) || res.Path != src {
+				t.Errorf("MoveAs = %+v, %v; want the refusal and the folder where it was", res, err)
+			}
+			if _, err := os.Stat(target); !errors.Is(err, os.ErrNotExist) {
+				t.Errorf("something was copied to %s: %v", target, err)
+			}
+			if got := read(t, filepath.Join(src, "film.mkv")); got != "film" {
+				t.Errorf("the source reads %q", got)
+			}
+		})
+	}
+}
+
 // TestTheCollisionPolicyDecidesTheDeliveredName. A destination already holding
 // that name is the ordinary case for a second release, and all three answers
 // have to mean here what they mean everywhere else in the app.
