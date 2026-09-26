@@ -361,6 +361,36 @@ func TestPremiumizeLeavesAFolderThatIsNotTheTransfersOwn(t *testing.T) {
 	}
 }
 
+// The docs say a transfer routed to an external cloud has neither a folder
+// nor a file id.
+func TestPremiumizeNeverListsTheWholeCloudForATransferThatLeftNothingThere(t *testing.T) {
+	var seen calls
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen.add(r)
+		switch r.URL.Path {
+		case "/api/transfer/create":
+			fmt.Fprint(w, `{"status":"success","id":"T1","name":"Show","type":"torrent"}`)
+		case "/api/transfer/list":
+			fmt.Fprint(w, `{"status":"success","transfers":[{"id":"T1","name":"Show","status":"finished","progress":1,"folder_id":null,"file_id":null}]}`)
+		case "/api/folder/list":
+			fmt.Fprint(w, `{"status":"success","name":"My Files","content":[{"id":"x","name":"someone else.mkv","type":"file","size":9,"link":"https://pm.example/x"}]}`)
+		default:
+			fmt.Fprint(w, `{"status":"success"}`)
+		}
+	}))
+	defer srv.Close()
+	pm := NewPremiumize("key")
+	pm.base = srv.URL + "/api"
+
+	parts, u := fetchTorrent(t, pm, testMagnet, nil, core.StatusError)
+	if !u.Unsupported || !strings.Contains(u.Err, "external cloud") {
+		t.Errorf("got %+v, want the task handed on with the reason", u)
+	}
+	if seen.saw("GET /api/folder/list") || len(parts) != 0 {
+		t.Errorf("read the cloud's root and fetched %v", partURLs(parts))
+	}
+}
+
 func TestPremiumizeDecliningATransferHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/transfer/list" {
