@@ -268,10 +268,11 @@ type Runner func(ctx context.Context, name string, args ...string) (string, erro
 // whatever the program started too.
 //
 // Both streams are captured, so the program's own complaint is there whichever
-// one it chose: an exit status alone never says which line gave up.
+// one it chose: an exit status alone never says which line gave up. The output
+// is cut only at execx's cap, so the caller can redact it before TrimOutput
+// cuts it for the log.
 func ExecRunner(ctx context.Context, name string, args ...string) (string, error) {
-	out, err := execx.Run(ctx, name, args, nil)
-	return TrimOutput(out), err
+	return execx.Run(ctx, name, args, nil)
 }
 
 // TrimOutput cuts a program's output down to something a log line, a

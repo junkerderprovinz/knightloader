@@ -202,6 +202,41 @@ func TestTheProgramsOwnOutputIsRecordedWithTheCommandLineTakenOut(t *testing.T) 
 	}
 }
 
+// The output is cut to what a log line carries. A token the program echoes
+// right where the cut falls must go before the cut, or its first half is left
+// over where the redaction cannot match it.
+func TestATokenWhereTheOutputIsCutIsStillRedacted(t *testing.T) {
+	a := newQueueApp(t)
+	token := "--token=abcdefghijkl"
+	a.idleRuns.setRunner(func(ctx context.Context, name string, args ...string) (string, error) {
+		return strings.Repeat("x", 497) + " " + token, exitErr(1)
+	})
+
+	run := a.RunIdleCommandNow(idleaction.CommandSpec{Program: "/usr/bin/wget", Args: []string{token}, TimeoutSeconds: 30})
+	if strings.Contains(run.Output, "--token=") {
+		t.Errorf("part of the token reached the output:\n%s", run.Output)
+	}
+}
+
+func TestWhyTheCommandDidNotStartIsRecorded(t *testing.T) {
+	a := newQueueApp(t)
+	spec := idleaction.CommandSpec{Program: "/home/someone/bin/after.sh", TimeoutSeconds: 30}
+	a.idleRuns.setRunner(func(ctx context.Context, name string, args ...string) (string, error) {
+		return "", errors.New("fork/exec " + name + ": resource temporarily unavailable")
+	})
+
+	run := a.RunIdleCommandNow(spec)
+	if run.Problem != idleaction.ProblemExit || run.ExitCode != -1 {
+		t.Errorf("Problem/ExitCode = %q/%d, want %q/-1", run.Problem, run.ExitCode, idleaction.ProblemExit)
+	}
+	if !strings.Contains(run.Output, "resource temporarily unavailable") {
+		t.Errorf("Output = %q, want the reason the command did not start", run.Output)
+	}
+	if strings.Contains(run.Output, spec.Program) {
+		t.Errorf("Output = %q names the program, which the log must not", run.Output)
+	}
+}
+
 func TestRunningWithNoProgramConfiguredSaysSoRatherThanFailingObscurely(t *testing.T) {
 	a := newQueueApp(t)
 	run := a.RunIdleCommandNow(idleaction.CommandSpec{TimeoutSeconds: 30})
