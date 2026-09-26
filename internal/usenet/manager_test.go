@@ -40,6 +40,7 @@ type fakeService struct {
 	asked     int
 	linkErr   []error
 	deleted   []string
+	deleteErr error
 }
 
 func (f *fakeService) Slot() string        { return f.slot }
@@ -97,7 +98,19 @@ func (f *fakeService) Delete(_ context.Context, id string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.deleted = append(f.deleted, id)
-	return nil
+	return f.deleteErr
+}
+
+func (f *fakeService) deletes() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return len(f.deleted)
+}
+
+func (f *fakeService) asks() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.asked
 }
 
 func (f *fakeService) names() []string {
@@ -378,6 +391,68 @@ func TestTheServicesCopyIsDeletedOnceTheTasksAreDone(t *testing.T) {
 	h.m.round(context.Background())
 	if _, ok := h.m.Get(j.ID); ok {
 		t.Error("an ended job is remembered past its keep time")
+	}
+}
+
+func TestAFailingDeleteIsTriedLessOftenAndThenGivenUp(t *testing.T) {
+	svc := &fakeService{
+		slot:      "torbox",
+		status:    Status{Phase: PhaseReady, Files: []File{{ID: "1", Name: "a.mkv", Size: 5}}},
+		deleteErr: errors.New("torbox controlusenetdownload: BAD_TOKEN"),
+	}
+	h := newHarness(t, svc)
+	h.finished = func([]string) bool { return true }
+	j := h.add(t, "Done")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if n := svc.deletes(); n != 1 {
+		t.Fatalf("the delete was tried %d times within a minute of failing, want once", n)
+	}
+
+	for range maxAttempts {
+		h.clock.advance(maxBackoff)
+		h.m.round(context.Background())
+	}
+	if n := svc.deletes(); n != maxAttempts {
+		t.Errorf("the delete was tried %d times, want %d before giving up", n, maxAttempts)
+	}
+	if got := h.job(t, j.ID); !got.Cleared {
+		t.Error("a job whose delete keeps failing is kept for good")
+	}
+}
+
+func TestABusyAnswerHoldsBackTheAccountsReads(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}}
+	h := newHarness(t, svc)
+	h.add(t, "Show")
+	h.m.round(context.Background())
+
+	svc.set(func(f *fakeService) { f.statusErr = fmt.Errorf("torbox usenet/mylist: %w", ErrBusy) })
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if n := svc.asks(); n != 2 {
+		t.Fatalf("the account was asked %d times, want no further call right after it answered busy", n)
+	}
+	h.clock.advance(defaultBackoff)
+	h.m.round(context.Background())
+	if n := svc.asks(); n != 3 {
+		t.Errorf("the account was asked %d times, want it asked again once the wait is over", n)
+	}
+}
+
+func TestAnAccountTakingNoNewJobsIsStillFollowed(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}}
+	h := newHarness(t, svc)
+	h.add(t, "one")
+	h.m.round(context.Background())
+
+	svc.set(func(f *fakeService) { f.submitErr = []error{fmt.Errorf("torbox: ACTIVE_LIMIT: %w", ErrBusy)} })
+	h.add(t, "two")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if n := svc.asks(); n != 3 {
+		t.Errorf("the account was asked %d times in three rounds, want once a round while it declines new jobs", n)
 	}
 }
 

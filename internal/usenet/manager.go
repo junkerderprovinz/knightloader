@@ -53,7 +53,8 @@ type Job struct {
 	// Refused lists the accounts that turned the NZB down, so it is offered
 	// to the others.
 	Refused []string `json:"refused,omitempty"`
-	// Attempts counts submits that got no answer, and RetryAt is when the
+	// Attempts counts the calls for the job that failed in a row, the submit
+	// while it waits and the delete once it is staged, and RetryAt is when the
 	// next one may go out.
 	Attempts int       `json:"attempts,omitempty"`
 	RetryAt  time.Time `json:"retryAt,omitzero"`
@@ -71,7 +72,8 @@ type Job struct {
 	TaskIDs []string `json:"taskIds,omitempty"`
 	// Ended is when the job was staged or failed.
 	Ended time.Time `json:"ended,omitzero"`
-	// Cleared is whether the service's copy has been deleted.
+	// Cleared is whether the service's copy is dealt with: deleted, or left
+	// there after the deletes kept failing.
 	Cleared bool `json:"cleared,omitempty"`
 }
 
@@ -82,8 +84,10 @@ const (
 	defaultInterval = 5 * time.Second
 	defaultBackoff  = time.Minute
 	maxBackoff      = 30 * time.Minute
-	// maxAttempts is how many submits may go unanswered before a job fails.
-	// With the backoff doubling from a minute that is a few hours.
+	// maxAttempts is how many calls for one job may fail in a row before it is
+	// given up: an unanswered submit fails the job, and a delete that keeps
+	// failing leaves the copy on the account. With the backoff doubling from a
+	// minute that is a few hours.
 	maxAttempts = 10
 	// keepEnded is how long a finished job is remembered, so Sonarr's next
 	// look at its history still finds it.
@@ -130,11 +134,36 @@ type Options struct {
 // account is what the manager knows about one service account's limits.
 type account struct {
 	// sent holds the submits of the last hour.
-	sent      []time.Time
-	busyUntil time.Time
-	backoff   time.Duration
+	sent []time.Time
+	// submits holds back NZBs after the account declined one. calls holds
+	// back reading and deleting jobs after the service asked for fewer calls,
+	// which a declined NZB alone does not mean: a full account still reports
+	// on the jobs it has.
+	submits backoff
+	calls   backoff
 	// noUsenetUntil is set while the account's plan is known to lack Usenet.
 	noUsenetUntil time.Time
+}
+
+// backoff keeps calls away from an account that answered busy, for a wait
+// that doubles each time it does so again.
+type backoff struct {
+	until time.Time
+	wait  time.Duration
+}
+
+func (b *backoff) holds(now time.Time) bool { return now.Before(b.until) }
+
+// busy starts the next wait: first after an answer that was not busy, twice
+// the last one otherwise, up to maxBackoff.
+func (b *backoff) busy(now time.Time, first time.Duration) time.Duration {
+	if b.wait == 0 {
+		b.wait = first
+	} else {
+		b.wait = min(b.wait*2, maxBackoff)
+	}
+	b.until = now.Add(b.wait)
+	return b.wait
 }
 
 // Manager keeps the jobs, offers waiting NZBs to the accounts and follows the
@@ -444,7 +473,7 @@ func (m *Manager) pickLocked(j *Job) (svc Service, left bool) {
 			continue
 		}
 		left = true
-		if now.Before(acc.busyUntil) {
+		if acc.submits.holds(now) {
 			continue
 		}
 		if limit := s.SubmitsPerHour(); limit > 0 {
@@ -498,36 +527,40 @@ func (m *Manager) submitted(id string, svc Service, remote string, err error) {
 	acc := m.accountLocked(svc.Slot())
 	switch {
 	case err == nil:
-		acc.backoff = 0
+		acc.submits = backoff{}
 		j.State, j.Service, j.Label, j.Remote, j.Taken = StateFetching, svc.Slot(), svc.Label(), remote, m.o.Now()
 		j.Attempts, j.RetryAt = 0, time.Time{}
 		_ = os.Remove(m.nzbPath(id))
 		log.Printf("usenet: %s went to %s", j.Name, svc.Label())
 	case errors.Is(err, ErrBusy):
 		// The account, not the NZB: every waiting job holds back from it.
-		if acc.backoff == 0 {
-			acc.backoff = m.o.Backoff
-		} else {
-			acc.backoff = min(acc.backoff*2, maxBackoff)
-		}
-		acc.busyUntil = m.o.Now().Add(acc.backoff)
-		log.Printf("usenet: %s is not taking jobs for now (%v); trying again in %s", svc.Label(), err, acc.backoff)
+		wait := acc.submits.busy(m.o.Now(), m.o.Backoff)
+		log.Printf("usenet: %s is not taking jobs for now (%v); trying again in %s", svc.Label(), err, wait)
 	case errors.Is(err, ErrNoUsenet):
 		acc.noUsenetUntil = m.o.Now().Add(noUsenetFor)
 		log.Printf("usenet: %s is passed over for NZBs for now: %v", svc.Label(), err)
 		m.refuseLocked(j, svc, err)
 	case temporary(err):
-		j.Attempts++
-		if j.Attempts >= maxAttempts {
+		if !m.retryLocked(j) {
 			m.failLocked(j, err.Error())
-			break
 		}
-		wait := m.o.Backoff << min(j.Attempts-1, 10)
-		j.RetryAt = m.o.Now().Add(min(wait, maxBackoff))
 	default:
 		m.refuseLocked(j, svc, err)
 	}
 	m.saveLocked()
+}
+
+// retryLocked puts off the next call for j after one more failed, the wait
+// doubling from Backoff with each failure in a row. It reports false once
+// maxAttempts calls have failed.
+func (m *Manager) retryLocked(j *Job) bool {
+	j.Attempts++
+	if j.Attempts >= maxAttempts {
+		return false
+	}
+	wait := m.o.Backoff << min(j.Attempts-1, 10)
+	j.RetryAt = m.o.Now().Add(min(wait, maxBackoff))
+	return true
 }
 
 // refuseLocked notes that svc turned j down, which fails j once no other
@@ -557,6 +590,7 @@ func (m *Manager) follow(ctx context.Context) {
 	services := map[string]Service{}
 
 	m.mu.Lock()
+	now := m.o.Now()
 	changed := false
 	for _, id := range m.idsLocked(StateFetching) {
 		j := m.jobs[id]
@@ -564,6 +598,9 @@ func (m *Manager) follow(ctx context.Context) {
 		if svc == nil {
 			m.failLocked(j, fmt.Sprintf("the %s account this .nzb was sent to is no longer set up", j.Label))
 			changed = true
+			continue
+		}
+		if m.accountLocked(j.Service).calls.holds(now) {
 			continue
 		}
 		if services[j.Service] == nil {
@@ -589,6 +626,7 @@ func (m *Manager) follow(ctx context.Context) {
 		cctx, cancel := context.WithTimeout(ctx, callTimeout)
 		sts, err := services[slot].Status(cctx, remotes)
 		cancel()
+		m.heard(services[slot], err)
 		if err != nil {
 			// Asked again next round.
 			continue
@@ -598,6 +636,29 @@ func (m *Manager) follow(ctx context.Context) {
 			m.observe(w.id, st, found)
 		}
 	}
+}
+
+// heard notes how an account answered a call other than a submit. A busy
+// answer holds back its next reads and deletes.
+func (m *Manager) heard(svc Service, err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	acc := m.accountLocked(svc.Slot())
+	switch {
+	case err == nil:
+		acc.calls = backoff{}
+	case errors.Is(err, ErrBusy):
+		wait := acc.calls.busy(m.o.Now(), m.o.Backoff)
+		log.Printf("usenet: %s asks for fewer calls (%v); asking again in %s", svc.Label(), err, wait)
+	}
+}
+
+// callsHeld reports whether the account in slot is still waiting out a busy
+// answer.
+func (m *Manager) callsHeld(slot string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.accountLocked(slot).calls.holds(m.o.Now())
 }
 
 // observe applies one reading of a fetching job. found is false when the
@@ -683,15 +744,31 @@ func (m *Manager) clear(ctx context.Context) {
 			return
 		}
 		j, ok := m.Get(id)
-		if !ok || j.Cleared || !m.o.Finished(j.TaskIDs) {
+		if !ok || j.Cleared || m.o.Now().Before(j.RetryAt) || !m.o.Finished(j.TaskIDs) {
 			continue
 		}
 		svc := m.Service(j.Service)
 		if svc != nil && j.Remote != "" {
+			if m.callsHeld(svc.Slot()) {
+				continue
+			}
 			cctx, cancel := context.WithTimeout(ctx, callTimeout)
 			err := svc.Delete(cctx, j.Remote)
 			cancel()
-			if err != nil && !errors.Is(err, ErrGone) {
+			if ctx.Err() != nil {
+				return
+			}
+			m.heard(svc, err)
+			switch {
+			case errors.Is(err, ErrBusy):
+				continue
+			case err != nil && !errors.Is(err, ErrGone):
+				m.update(id, func(j *Job) {
+					if !m.retryLocked(j) {
+						j.Cleared = true
+						log.Printf("usenet: %s stays on %s, deleting it there failed %d times: %v", j.Name, j.Label, maxAttempts, err)
+					}
+				})
 				continue
 			}
 		}
@@ -700,7 +777,7 @@ func (m *Manager) clear(ctx context.Context) {
 }
 
 // prune forgets ended jobs after keepEnded. A staged job stays until the
-// service's copy is gone.
+// service's copy is cleared.
 func (m *Manager) prune() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
