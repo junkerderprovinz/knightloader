@@ -1,5 +1,5 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View, type ImageStyle, type StyleProp } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BTN_H } from '../theme/tokens';
@@ -466,35 +466,22 @@ export function Trash({ color, size = GLYPH_BOX }: { color: string; size?: numbe
 }
 
 /**
- * A gear, filled, drawn from plain views.
+ * The cog that opens Settings: Streamline's, the shared assortment's IconGear,
+ * which stands for Settings and for nothing inside it.
  *
- * Not the text glyph "⚙" (U+2699), which every system font draws as a thin
- * outline, and a line-drawn glyph among filled badges and filled switches is
- * what the design language's icon rule forbids. There is no filled path to swap
- * in on this surface, so the shape is composed: a filled disc, six teeth as
- * rotated bars around it, and the hole painted by a disc in the colour behind
- * the glyph.
- *
- * `hole` is passed rather than guessed. React Native cannot cut one shape out
- * of another, so the centre is painted, and the wrong colour there only shows
- * up on the surface it was not tested against. The badge knows what it stands
- * on, so it says.
+ * Its teeth and bevels are more than rotated bars can draw, so it is a white
+ * bitmap tinted like the brand marks below, and the hole in its middle is a
+ * real one rather than a disc painted in whatever colour is behind it.
  */
-export function Gear({ color, hole, size = GLYPH_BOX }: { color: string; hole: string; size?: number }) {
-  // The teeth span the full 17 units of this glyph's own grid.
-  const u = unit(size, 17);
-  const zahn = { position: 'absolute' as const, width: 3.4 * u, height: 17 * u, backgroundColor: color };
+export function Gear({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // A bitmap is sized by shrinking its frame, like the viewfinder's corner
+  // marks, because there are no units inside it to scale. With the ink reaching
+  // the canvas edge, `contain` would draw it to the full box while every
+  // hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
+  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {[0, 60, 120].map((deg) => (
-        <View key={deg} style={[zahn, { borderRadius: 1 * u, transform: [{ rotate: `${deg}deg` }] }]} />
-      ))}
-      <View
-        style={{ position: 'absolute', width: 13 * u, height: 13 * u, borderRadius: 6.5 * u, backgroundColor: color }}
-      />
-      <View
-        style={{ position: 'absolute', width: 5 * u, height: 5 * u, borderRadius: 2.5 * u, backgroundColor: hole }}
-      />
+      <Tinted source={require('../../assets/cog.png')} color={color} style={{ width: frame, height: frame }} />
     </View>
   );
 }
@@ -509,50 +496,34 @@ const styles = StyleSheet.create({
   // No fontSize here: it comes off BADGE_INK at render time, so the square and
   // the thing inside it cannot change independently.
   symbol: { fontWeight: '700' },
+  fill: { width: '100%', height: '100%' },
+  // A size of its own although the insets would give one: a bundled image
+  // brings its pixel size as a default, and that wins over the insets.
+  layer: { position: 'absolute', top: 0, start: 0, width: '100%', height: '100%' },
 });
 
 /**
- * A brand's own mark, for the About card's buttons that go to that brand.
- *
- * The glyphs here that are bitmaps rather than shapes built out of Views. A
- * logo is recognised or it is not, and an approximation drawn out of rounded
- * rectangles would be worse than no logo, so each is a 96px white mark tinted
- * with the colour it is handed, which is what keeps an Image in the theme.
- * Every asset is trimmed to its ink, so its longer side fills the canvas.
+ * A white bitmap tinted with the colour it is handed, which is what keeps an
+ * Image in the theme. It draws what plain Views cannot: a logo, which is
+ * recognised or it is not, so an approximation out of rounded rectangles would
+ * be worse than none, and the cog above. Every mark is trimmed to its ink, so
+ * its longer side fills the canvas.
  */
-function BrandMark({ source, color, size }: { source: number; color: string; size: number }) {
-  // A bitmap is sized by shrinking its frame, like the viewfinder's corner
-  // marks, because there are no units inside it to scale. With the ink reaching
-  // the canvas edge, `contain` would draw it to the full box while every
-  // hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
-  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Image
-        source={source}
-        style={{ width: frame, height: frame }}
-        tintColor={color}
-        resizeMode="contain"
-        accessibilityIgnoresInvertColors
-      />
-    </View>
-  );
+function Tinted({ source, color, style }: { source: number; color: string; style: StyleProp<ImageStyle> }) {
+  return <Image source={source} style={style} tintColor={color} resizeMode="contain" accessibilityIgnoresInvertColors />;
 }
+
+/* The marks on the About card's README buttons. Each fills the mark box the
+ * button gives it, so the button and not the mark decides how big it is. */
 
 /** GitHub's own mark. */
-export function Github({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  return <BrandMark source={require('../../assets/github-mark.png')} color={color} size={size} />;
-}
-
-/** Buy Me a Coffee's cup, from Simple Icons (CC0), the mark the web UI's and the
- *  extension's About cards draw. */
-export function BuyMeACoffee({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  return <BrandMark source={require('../../assets/buymeacoffee-mark.png')} color={color} size={size} />;
+export function Github({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/github-mark.png')} color={color} style={styles.fill} />;
 }
 
 /** PayPal's double P, from Simple Icons (CC0), as on the other two surfaces. */
-export function PayPal({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  return <BrandMark source={require('../../assets/paypal-mark.png')} color={color} size={size} />;
+export function PayPal({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/paypal-mark.png')} color={color} style={styles.fill} />;
 }
 
 /**
@@ -560,8 +531,39 @@ export function PayPal({ color, size = GLYPH_BOX }: { color: string; size?: numb
  * crypto window: it reads as "crypto" to somebody who has never held any, and
  * at this size the disc would read as a dot rather than a letter.
  */
-export function BitcoinLetter({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  return <BrandMark source={require('../../assets/coin-btcletter.png')} color={color} size={size} />;
+export function BitcoinLetter({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/coin-btcletter.png')} color={color} style={styles.fill} />;
+}
+
+/**
+ * Buy Me a Coffee's own README button, which stands for the button's mark and
+ * its words: the cup in `cup` and the lettering in `words`, on the button's own
+ * canvas. The lettering is how the brand is known, and "Buy me a coffee" in the
+ * house font does not fit the button. A bitmap takes one tint, so the cup and
+ * the lettering are two layers.
+ */
+export function CoffeeArt({ cup, words }: { cup: string; words: string }) {
+  return (
+    <>
+      <Tinted source={require('../../assets/coffee-cup.png')} color={cup} style={styles.layer} />
+      <Tinted source={require('../../assets/coffee-lettering.png')} color={words} style={styles.layer} />
+    </>
+  );
+}
+
+/**
+ * The Email button's envelope, Material's `email` and `email-open`, open while
+ * the button is pressed. Both were drawn in one box that leaves room for the
+ * open flap, so the envelope does not jump when it opens.
+ */
+export function MailMark({ open, color }: { open: boolean; color: string }) {
+  return (
+    <Tinted
+      source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
+      color={color}
+      style={styles.fill}
+    />
+  );
 }
 
 /**
@@ -605,44 +607,6 @@ export function Check({ color, size = GLYPH_BOX }: { color: string; size?: numbe
       >
         <View style={{ position: 'absolute', start: 0, top: 0, bottom: 0, width: t, backgroundColor: color, borderRadius: 1.2 * u }} />
         <View style={{ position: 'absolute', start: 0, end: 0, bottom: 0, height: t, backgroundColor: color, borderRadius: 1.2 * u }} />
-      </View>
-    </View>
-  );
-}
-
-/**
- * Mail: an envelope - a filled body with the flap's V laid over its top.
- *
- * `hole` is the colour behind the glyph, and the flap exists only when it is
- * given. React Native cannot cut one shape out of another, so the V is painted
- * rather than punched, and a guessed colour there is invisible on the surface
- * it was tested against and wrong everywhere else. The rotated square needs a
- * fill of its own: `overflow: hidden` on the body crops nothing out of a view
- * that draws nothing, and the envelope comes out a plain rounded rectangle.
- */
-export function Mail({ color, hole, size = GLYPH_BOX }: { color: string; hole?: string; size?: number }) {
-  // The envelope is wider than it is tall, so the width fills the box.
-  const u = unit(size, 13);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 13 * u, height: 9.5 * u, backgroundColor: color, borderRadius: 1.4 * u, overflow: 'hidden' }}>
-        {/* A square rotated 45 degrees and hung above the body's top edge, so
-            the body's own overflow keeps only its lower corner: the two edges
-            of that corner are the flap, and the ground colour between them is
-            what draws them. */}
-        {hole ? (
-          <View
-            style={{
-              position: 'absolute',
-              top: -6.6 * u,
-              left: 1.4 * u,
-              width: 10.2 * u,
-              height: 10.2 * u,
-              backgroundColor: hole,
-              transform: [{ rotate: '45deg' }],
-            }}
-          />
-        ) : null}
       </View>
     </View>
   );

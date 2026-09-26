@@ -71,6 +71,12 @@ interface Gestures {
   wiggleDur: number;
   /** The scale a row takes while it is in the hand. */
   liftScale: number;
+  /** A control that just did what it was asked, the opposite of the shake:
+   *  how long its swell and settle take, in ms. */
+  confirmDur: number;
+  /** How far it swells, as a share of the web's 5 per cent. Zero at `off`,
+   *  where the words or the value that changed carry the success alone. */
+  confirmScale: number;
 }
 
 /** Everything a component draws with: GlimStone's numbers and this app's own. */
@@ -86,6 +92,8 @@ const GESTURES: Record<Motion, Gestures> = {
     wiggleDeg: 0,
     wiggleDur: 0,
     liftScale: 1,
+    confirmDur: 0,
+    confirmScale: 0,
   },
   // Smaller numbers, the same gestures. Somebody who asked for less movement
   // asked for less movement, not for a faster one, so the swing halves.
@@ -99,10 +107,13 @@ const GESTURES: Record<Motion, Gestures> = {
     // arrangement the web's subtle block makes for this figure.
     wiggleDur: 320,
     liftScale: 1.015,
+    confirmDur: 260,
+    confirmScale: 0.5,
   },
   // The top level a picker offers, and the app's shipped numbers: the 360ms/4pt
   // shake the whole family draws, the 0.7 degree wiggle the web's token names,
-  // the 1.03 lift.
+  // the 1.03 lift, and the confirmation's 420ms from GlimStone's
+  // --motion-confirm-dur, which the phone's reference table has no dial for.
   wild: {
     shakeDur: 360,
     shakeTravel: 4,
@@ -112,6 +123,8 @@ const GESTURES: Record<Motion, Gestures> = {
     // across one product is what these numbers are written down to prevent.
     wiggleDur: 320,
     liftScale: 1.03,
+    confirmDur: 420,
+    confirmScale: 1,
   },
   // The hidden fourth (GlimStone 1.17.0). Same gestures, same table, bigger
   // figures. The multipliers are the web's own storm ladder rather than
@@ -127,6 +140,8 @@ const GESTURES: Record<Motion, Gestures> = {
     // 1.4s to 2s.
     wiggleDur: 224,
     liftScale: 1.054,
+    confirmDur: 700,
+    confirmScale: 1.9,
   },
 };
 

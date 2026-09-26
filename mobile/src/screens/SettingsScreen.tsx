@@ -8,23 +8,23 @@ import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
-import { useMotion, useShake } from '../theme/MotionContext';
+import { useConfirm, useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
 import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GLIMSTONE_VERSION } from '../theme/version';
 import {
-  BrandButton,
   GlimButton,
   GlimRow,
   GlimToggle,
   NotchCard,
+  ReadmeButton,
   Swatch,
   SwatchReset,
   UnavailableNotice,
   WellSelector,
 } from '../components/glim';
-import IconBadge, { Back, BitcoinLetter, BuyMeACoffee, Github, Mail, Paste, PayPal, Trash } from '../components/IconBadge';
+import IconBadge, { Back, BitcoinLetter, CoffeeArt, Github, MailMark, Paste, PayPal, Trash } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CryptoDonate } from '../components/CryptoDonate';
@@ -196,6 +196,10 @@ export default function SettingsScreen({
    * one there is no travel and the group dips in opacity instead.
    */
   const { style: paletteZitterStil, shake: paletteZittern } = useShake();
+  /** The same group swells when the instance took the write, and the copy
+   *  button below when the report reached the clipboard. */
+  const { style: paletteBestaetigtStil, confirm: paletteBestaetigen } = useConfirm();
+  const { style: kopiertStil, confirm: kopiertBestaetigen } = useConfirm();
   /** True for a moment after the report reached the clipboard, so the button
    *  can say so in its own label.
    *
@@ -495,7 +499,13 @@ export default function SettingsScreen({
                 refusal shake, which belongs to the group rather than to one
                 swatch, since editing a position and resetting all eight are one
                 write of one object to one instance. */}
-            <Animated.View style={[styles.swatches, paletteZitterStil]}>
+            <Animated.View
+              style={[
+                styles.swatches,
+                paletteZitterStil,
+                { transform: [...paletteZitterStil.transform, ...paletteBestaetigtStil.transform] },
+              ]}
+            >
               {rainbow.palette.map((hex, i) => (
                 <Swatch
                   key={i}
@@ -515,7 +525,7 @@ export default function SettingsScreen({
                 onPress={() => {
                   setPaletteError('');
                   if (onSetPalette) {
-                    void onSetPalette(null).catch((e: unknown) => {
+                    void onSetPalette(null).then(paletteBestaetigen, (e: unknown) => {
                       setPaletteError(e instanceof Error ? e.message : String(e));
                       paletteZittern();
                     });
@@ -600,27 +610,30 @@ export default function SettingsScreen({
             button, and a near-identical mark for the opposite direction would
             be two glyphs for one idea. */}
         <View style={styles.buttonRow}>
-          <GlimButton
-            hue={0}
-            label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
-            icon={(ink) => <Paste color={ink} />}
-            onPress={() => {
-              // Confirm only once the write has landed, so the label never
-              // claims a copy that did not happen.
-              void Clipboard.setStringAsync(report)
-                .then(() => {
-                  setCopied(true);
-                  if (copiedTimer.current) clearTimeout(copiedTimer.current);
-                  copiedTimer.current = setTimeout(() => setCopied(false), 2000);
-                })
-                // Swallowed, and the label stays as it was: the report sits
-                // selectable in the box above this button, so a failed
-                // clipboard write leaves the person where an error message
-                // would have sent them. Left unhandled it would be a red
-                // unhandled-rejection warning over the screen.
-                .catch(() => undefined);
-            }}
-          />
+          <Animated.View style={kopiertStil}>
+            <GlimButton
+              hue={0}
+              label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
+              icon={(ink) => <Paste color={ink} />}
+              onPress={() => {
+                // Confirm only once the write has landed, so the label never
+                // claims a copy that did not happen.
+                void Clipboard.setStringAsync(report)
+                  .then(() => {
+                    setCopied(true);
+                    kopiertBestaetigen();
+                    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                    copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+                  })
+                  // Swallowed, and the label stays as it was: the report sits
+                  // selectable in the box above this button, so a failed
+                  // clipboard write leaves the person where an error message
+                  // would have sent them. Left unhandled it would be a red
+                  // unhandled-rejection warning over the screen.
+                  .catch(() => undefined);
+              }}
+            />
+          </Animated.View>
         </View>
       </NotchCard>
 
@@ -638,60 +651,53 @@ export default function SettingsScreen({
         {/* The give buttons, hosted pages first as on every card in the
             family, all in the one row under the one sentence that asks: a
             second row would read as a second, unrelated offer. The row wraps,
-            because two labels side by side do not fit every language on a
-            narrow phone.
+            because two README buttons side by side need more than a narrow
+            phone has.
 
             Each wears its brand's own mark in the brand's colour on a neutral
             ground rather than a rainbow fill, since a vendor's mark may not
-            follow somebody's accent or palette. */}
-        <View style={[styles.buttonRow, styles.buttonRowWrap]}>
-          <BrandButton
+            follow somebody's accent or palette. Buy Me a Coffee's is the
+            vendor's own artwork, lettering included, as on the README. */}
+        <View style={[styles.readmeRow, styles.give]}>
+          <ReadmeButton
             brand="coffee"
+            art
             label={t('settings.aboutCoffeeButton')}
-            icon={(ink) => <BuyMeACoffee color={ink} />}
+            mark={({ mark, words }) => <CoffeeArt cup={mark} words={words} />}
             onPress={() => Linking.openURL(COFFEE_URL)}
           />
-          <BrandButton
+          <ReadmeButton
             brand="paypal"
             label={t('settings.aboutPaypal')}
-            icon={(ink) => <PayPal color={ink} />}
+            mark={({ mark }) => <PayPal color={mark} />}
             onPress={() => Linking.openURL(PAYPAL_URL)}
           />
           {/* The wallet route last. Bitcoin's letterform reads as "crypto" to
               somebody who has never held any, and the window it opens shows
               every coin on offer, so nobody takes it for the only one. */}
-          <BrandButton
+          <ReadmeButton
             brand="bitcoin"
             label={t('settings.aboutCrypto')}
-            icon={(ink) => <BitcoinLetter color={ink} />}
+            mark={({ mark }) => <BitcoinLetter color={mark} />}
             onPress={() => setDonating(true)}
           />
         </View>
-        {/* A blank line above this sentence, because it follows controls.
-            Without it the coffee button sits as close to this line as to the
-            one it belongs to, so the eye pairs it with the wrong text. The step
-            goes over the sentence and never under the button row, or a card
-            whose last row is a control ends in a gap that reads as a missing
-            row. The first sentence of the card gets none. */}
-        <Text style={[styles.aboutText, styles.afterControls, { color: c.textSub }]}>
-          {t('settings.aboutReport')}
-        </Text>
-        <View style={[styles.buttonRow, styles.buttonRowWrap]}>
-          <BrandButton
+        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
+        <View style={styles.readmeRow}>
+          <ReadmeButton
             brand="github"
             label={t('settings.aboutGithub')}
-            icon={(ink) => <Github color={ink} />}
+            mark={({ mark }) => <Github color={mark} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
           {/* The one button here that reaches the app's own authors, so it
               takes the accent and this card's rainbow position instead of a
-              vendor's colour. The envelope's flap is painted in the ground the
-              button is standing on, which changes while it is pressed. */}
-          <BrandButton
+              vendor's colour. Its envelope opens while it is pressed. */}
+          <ReadmeButton
             brand="house"
             hue={3}
             label={t('settings.aboutMail')}
-            icon={(ink, ground) => <Mail color={ink} hole={ground} />}
+            mark={({ mark, lit }) => <MailMark open={lit} color={mark} />}
             // A plain mailto with the subject prefilled, so a mail arrives
             // saying which product it is about. No body, which would read as a
             // form to fill in rather than a message somebody writes.
@@ -712,8 +718,8 @@ export default function SettingsScreen({
             links are built from the version rather than from a hand-kept list,
             which is wrong the first time somebody forgets it.
 
-            It follows controls, so it takes the same blank line the report
-            sentence above does. */}
+            It follows controls, so it takes the extra step of space a line
+            after a row of buttons gets. */}
         <Text style={[styles.aboutVersions, styles.afterControls, { color: c.textMuted }]}>
           {`${t('settings.aboutVersion')} `}
           <Text
@@ -804,7 +810,7 @@ export default function SettingsScreen({
           const next = rainbow.palette.slice();
           next[open.index] = hex;
           setPaletteError('');
-          void onSetPalette(next).catch((e: unknown) => {
+          void onSetPalette(next).then(paletteBestaetigen, (e: unknown) => {
             setPaletteError(e instanceof Error ? e.message : String(e));
             paletteZittern();
           });
@@ -877,7 +883,15 @@ const styles = StyleSheet.create({
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  buttonRowWrap: { flexWrap: 'wrap' },
+  // The README's own gap between its buttons, 13 on its 16.
+  readmeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 13, marginBottom: 10 },
+  /* The give row stands a blank line apart from the sentences on both sides,
+   * one line of the card's text, 1.5 times its size. Three brand buttons are
+   * the loudest row on the card, and at the ordinary steps they read as one
+   * block with the sentence above and the report sentence below. The line
+   * comes on top of those steps: the 8 a sentence keeps under itself above the
+   * row, and the 10 every button row keeps under itself below it. */
+  give: { marginTop: TYPE.body * 1.5, marginBottom: 10 + TYPE.body * 1.5 },
   // The accent row's label and its conditional (i), side by side.
   axisLabelGroup: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
   // A row, so the glyph and the label sit together rather than stacking.
