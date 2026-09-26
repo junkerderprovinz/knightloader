@@ -207,17 +207,16 @@ and cannot be explained.
   typed in, scanned from the Access tab's QR or found with **Find on this
   network**, plus a token where the instance had a password.
 
-  Find on this network sweeps the phone's own /24 over HTTP and fills in
-  the address of anything that answers as a KnightLoader. React Native has no
-  UDP socket, so the app cannot join the multicast group the servers use; asking
-  every address on the subnet for `/api/health` gets to the same place with the
-  one thing the app already has.
+  Find on this network, in those builds, asks every address on the phone's own
+  /24 for `/api/health` over HTTP and fills in the address of anything that
+  answers as a KnightLoader. React Native has no UDP socket, so the app cannot
+  join the multicast group the servers use.
 
   That route is frozen because of this. It answers `{"status":"ok","version":…}`
   on a 200 for as long as the process is up, whatever is actually wrong with the
-  instance, and the app compares that string literally, so an instance that
-  answered `degraded` would stop being findable by every phone already in
-  somebody's hand, and phones update on their own schedule rather than with the
+  instance, and those builds compare that string literally, so an instance that
+  answered `degraded` would stop being findable by every phone still running
+  one, and phones update on their own schedule rather than with the
   container. The container's own `HEALTHCHECK` and the Click'n'Load bridge read
   it the same way. New fields may be added to it; the two that are there may not
   move, and the status may not stop being `ok`.
@@ -230,19 +229,6 @@ and cannot be explained.
   is turned on. Neither is open, and neither is forwarded to a peer over the
   federation or the relay: both describe *this* machine's disks and sidecar, and
   a row of them drawn under a peer's name would name the wrong box.
-
-  The addresses are probed by a pool of workers, not all at once. Android routes
-  every `fetch` through OkHttp, which allows 64 concurrent requests and queues
-  the rest. Firing all 253 off together meant the queued ones hit their own
-  timeout while still waiting for a slot, and were abandoned without ever being
-  sent. A server anywhere past the first batch, which is to say anywhere in a
-  typical DHCP pool, was never contacted and the screen said it found nothing.
-
-  It also does nothing at all when the phone has no usable address of its own.
-  This is easy to get wrong: on Android the IP comes from the Wi-Fi interface
-  specifically and reads `0.0.0.0` when Wi-Fi is off, which passes a naive check
-  and would sweep `0.0.0.1` through `0.0.0.254` over a metered mobile
-  connection.
 - **Captchas** are answered on the phone. A card on the instance's downloads,
   a count on its overview card and a banner over the open screen lead to a list
   of what is waiting, and picture and click captchas are answered right there.

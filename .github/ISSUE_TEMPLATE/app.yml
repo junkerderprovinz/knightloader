@@ -24,8 +24,8 @@ body:
       label: What happened
       description: What you did, what you expected, and what happened instead.
       placeholder: |
-        I tapped "Find on this network" and it said it found nothing, but the
-        web UI on the same phone reaches the server fine.
+        I entered the phrase and no instance showed up, but the web UI on the
+        same phone reaches the server fine.
     validations:
       required: true
 
