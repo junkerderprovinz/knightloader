@@ -2913,7 +2913,8 @@ export const lv: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Sasniedzams kā SABnzbd adresē {sabnzbd} un kā qBittorrent adresē {qbittorrent}. Sonarr vai Radarr iestati URL Base uz „{sabnzbdBase}“ vai „{qbittorrentBase}“ un izmanto kādu no šīs instances API pilnvarām kā API Key vai kā qBittorrent paroli.',
   'captcha.unsolvableTurnstile': 'KnightLoader pats nevar parādīt Cloudflare Turnstile uzdevumu, tāpēc uz to var atbildēt tikai risinātājs no Captcha iestatījumiem. Atcelt izlaiž šo captcha.',
   'captcha.solverWaiting': 'Risinātājs pārņems pēc {time}.',
-  'captcha.solverWaitingHint': 'Tu skaties, tāpēc risinātāji vispirms gaida tavu atbildi. Ja pārslēdzies prom no šīs cilnes vai laiks beidzas, pārņem pirmais risinātājs tavā secībā.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} risina šo captcha.',
   'captcha.solverSolvingHint': 'Tu joprojām vari uz to atbildēt pats. Tiek izmantota tā atbilde, kas pienāk pirmā.',
   'captcha.solverStopped': 'Neviens risinātājs nevarēja pārņemt šo captcha.',
@@ -2928,7 +2929,8 @@ export const lv: Dict = {
   'captcha.solverNoAnswer': '{solver} to pārņēma, bet atbilde neatnāca.',
   'captcha.solverGaveUp': '{solver} to pārņēma un tad padevās: {reason}',
   'captcha.solverFailed': '{solver} nebija sasniedzams.',
-  'settings.captcha.onlyUnwatchedHint': 'Izslēgts: risinātāji sāk, tiklīdz pienāk captcha, vienlaikus ar captcha logu. Ieslēgts: kamēr kāds skatās, vispirms nāk captcha logs, un risinātāji gaida. Kāds skatās, kamēr pārlūka cilne ar KnightLoader ir priekšplānā vai darbvirsmas lietotnes logs ir uz ekrāna, un kamēr tālruņa lietotnē šī instance ir atvērta priekšplānā vai cita lietotne nepārtraukti nolasa tās captcha sarakstu. Cilne fonā un logs, kas ir minimizēts vai atrodas paplātē, neskaitās, un aizvērta lapa pārstāj skaitīties pēc dažām sekundēm. Kad neviens vairs neskatās vai zemāk norādītais laiks beidzas bez atbildes, pārņem pirmais risinātājs secībā.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Bezmaksas lejupielādes',
   'settings.accounts.premiumOnly': 'Tikai premium',
   'settings.accounts.premiumOnlyHint': 'Hostera saite, ko nevar ielādēt neviens no taviem kontiem, nonāk pie JDownloader, kas to lejupielādē bez maksas: lēni, ar gaidīšanas laikiem un captcha. Ja „Tikai premium“ ir ieslēgts, saite tā vietā gaida rindā un pasaka, kāpēc, un tāpat rīkojas bezmaksas lejupielāde, ko esi pauzējis. Tā sākas pati, tiklīdz pievieno pieteikšanos šim hosterim vai debrid pakalpojumu, kas to sedz. Kategorija savām saitēm to var noteikt citādi.',

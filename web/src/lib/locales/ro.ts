@@ -2930,7 +2930,8 @@ export const ro: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Accesibil ca SABnzbd la {sabnzbd} și ca qBittorrent la {qbittorrent}. În Sonarr sau Radarr, setează URL Base la „{sabnzbdBase}” sau „{qbittorrentBase}” și folosește unul dintre tokenurile API ale acestei instanțe drept cheie API sau drept parolă qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader nu poate afișa singur o provocare Cloudflare Turnstile, deci îi poate răspunde doar un rezolvator din setările Captcha. Apasă Anulează ca să sari peste această captcha.',
   'captcha.solverWaiting': 'Un rezolvator preia în {time}.',
-  'captcha.solverWaitingHint': 'Te uiți, deci rezolvatoarele așteaptă mai întâi răspunsul tău. Dacă pleci de pe această filă sau timpul expiră, preia primul rezolvator din ordinea ta.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} rezolvă această captcha.',
   'captcha.solverSolvingHint': 'Poți totuși să îi răspunzi tu. Contează răspunsul care ajunge primul.',
   'captcha.solverStopped': 'Niciun rezolvator nu a putut prelua această captcha.',
@@ -2945,7 +2946,8 @@ export const ro: Dict = {
   'captcha.solverNoAnswer': '{solver} a preluat-o, dar nu a venit niciun răspuns.',
   'captcha.solverGaveUp': '{solver} a preluat-o, apoi a renunțat: {reason}',
   'captcha.solverFailed': '{solver} nu a putut fi contactat.',
-  'settings.captcha.onlyUnwatchedHint': 'Oprit: rezolvatoarele pornesc imediat ce sosește o captcha, odată cu fereastra captcha. Pornit: cât timp se uită cineva, fereastra captcha vine prima și rezolvatoarele așteaptă. Cineva se uită cât timp o filă de browser cu KnightLoader este în prim-plan sau fereastra aplicației desktop este pe ecran, și cât timp aplicația de telefon are această instanță deschisă în prim-plan sau o altă aplicație îi citește încontinuu lista de captcha. O filă din fundal și o fereastră minimizată sau în bara de sistem nu contează, iar o pagină închisă nu mai contează după câteva secunde. Imediat ce nu se mai uită nimeni sau timpul de mai jos expiră fără răspuns, preia primul rezolvator din ordine.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Descărcări gratuite',
   'settings.accounts.premiumOnly': 'Doar Premium',
   'settings.accounts.premiumOnlyHint': 'Un link de hoster pe care niciunul dintre conturile tale nu îl poate descărca ajunge la JDownloader, care îl descarcă gratuit: încet, cu timpi de așteptare și captcha. Cu „Doar Premium” pornit, linkul așteaptă în schimb în coadă și spune de ce, la fel ca o descărcare gratuită pe care ai pus-o pe pauză. Pornește singur imediat ce adaugi o autentificare pentru acel hoster sau un serviciu debrid care îl acoperă. O categorie poate decide altfel pentru propriile linkuri.',

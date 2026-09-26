@@ -2923,7 +2923,8 @@ export const hi: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'SABnzbd के रूप में {sabnzbd} पर और qBittorrent के रूप में {qbittorrent} पर पहुँच योग्य। Sonarr या Radarr में URL Base को “{sabnzbdBase}” या “{qbittorrentBase}” पर सेट करें, और इस इंस्टेंस के किसी एक API टोकन को API कुंजी या qBittorrent पासवर्ड के रूप में इस्तेमाल करें।',
   'captcha.unsolvableTurnstile': 'KnightLoader Cloudflare Turnstile चुनौती ख़ुद नहीं दिखा सकता, इसलिए सिर्फ़ कैप्चा सेटिंग्स का कोई सॉल्वर ही इसका जवाब दे सकता है। “रद्द करें” इस कैप्चा को छोड़ देता है।',
   'captcha.solverWaiting': '{time} में एक सॉल्वर काम सँभाल लेगा।',
-  'captcha.solverWaitingHint': 'आप देख रहे हैं, इसलिए सॉल्वर पहले आपके जवाब का इंतज़ार करते हैं। अगर आप इस टैब से हट जाएँ या समय ख़त्म हो जाए, तो आपके क्रम का पहला सॉल्वर काम सँभाल लेगा।',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} यह कैप्चा हल कर रहा है।',
   'captcha.solverSolvingHint': 'आप अब भी ख़ुद जवाब दे सकते हैं। जो जवाब पहले पहुँचेगा, वही इस्तेमाल होगा।',
   'captcha.solverStopped': 'कोई भी सॉल्वर यह कैप्चा नहीं ले सका।',
@@ -2938,7 +2939,8 @@ export const hi: Dict = {
   'captcha.solverNoAnswer': '{solver} ने इसे लिया, लेकिन कोई जवाब वापस नहीं आया।',
   'captcha.solverGaveUp': '{solver} ने इसे लिया, फिर हार मान ली: {reason}',
   'captcha.solverFailed': '{solver} तक पहुँचा नहीं जा सका।',
-  'settings.captcha.onlyUnwatchedHint': 'बंद: कैप्चा आते ही सॉल्वर शुरू हो जाते हैं, कैप्चा विंडो के साथ ही। चालू: जब तक कोई देख रहा है, पहले कैप्चा विंडो आती है और सॉल्वर इंतज़ार करते हैं। कोई देख रहा है, जब तक KnightLoader वाला ब्राउज़र टैब सामने है या डेस्कटॉप ऐप की विंडो स्क्रीन पर है, और जब तक फ़ोन ऐप ने यह इंस्टेंस सामने खोल रखा है या कोई दूसरा ऐप इसकी कैप्चा सूची लगातार पढ़ रहा है। पीछे पड़ा टैब और छोटी की गई या ट्रे में पड़ी विंडो नहीं गिनी जाती, और बंद किया गया पेज कुछ सेकंड बाद गिनती से बाहर हो जाता है। जैसे ही कोई नहीं देख रहा होता, या नीचे दिया समय बिना जवाब के ख़त्म हो जाता है, क्रम का पहला सॉल्वर काम सँभाल लेता है।',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'मुफ़्त डाउनलोड',
   'settings.accounts.premiumOnly': 'सिर्फ़ प्रीमियम',
   'settings.accounts.premiumOnlyHint': 'जिस होस्टर लिंक को आपका कोई भी खाता नहीं ला सकता, वह JDownloader के पास जाता है, जो उसे मुफ़्त में डाउनलोड करता है: धीरे, इंतज़ार के समय और कैप्चा के साथ। “सिर्फ़ प्रीमियम” चालू होने पर वह लिंक इसके बजाय कतार में इंतज़ार करता है और कारण बताता है, और आपका रोका हुआ मुफ़्त डाउनलोड भी यही करता है। जैसे ही आप उस होस्टर के लिए लॉगिन जोड़ते हैं, या कोई debrid सेवा जो उसे कवर करती है, वह अपने आप शुरू हो जाता है। कोई श्रेणी अपने लिंक के लिए यह अलग तय कर सकती है।',

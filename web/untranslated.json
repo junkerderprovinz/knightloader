@@ -36,7 +36,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "bg": [
       "skipped.info",
@@ -73,7 +75,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ca": [
       "skipped.info",
@@ -110,7 +114,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "cs": [
       "skipped.info",
@@ -147,7 +153,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "da": [
       "skipped.info",
@@ -184,7 +192,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "el": [
       "skipped.info",
@@ -221,7 +231,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "es": [
       "skipped.info",
@@ -258,7 +270,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "et": [
       "skipped.info",
@@ -295,7 +309,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "eu": [
       "skipped.info",
@@ -332,7 +348,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "fa": [
       "skipped.info",
@@ -369,7 +387,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "fi": [
       "skipped.info",
@@ -406,7 +426,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "fr": [
       "skipped.info",
@@ -443,7 +465,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "gl": [
       "skipped.info",
@@ -480,7 +504,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "he": [
       "skipped.info",
@@ -517,7 +543,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "hi": [
       "skipped.info",
@@ -554,7 +582,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "hr": [
       "skipped.info",
@@ -591,7 +621,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "hu": [
       "skipped.info",
@@ -628,7 +660,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "id": [
       "skipped.info",
@@ -665,7 +699,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "is": [
       "skipped.info",
@@ -702,7 +738,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "it": [
       "skipped.info",
@@ -739,7 +777,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ja": [
       "skipped.info",
@@ -776,7 +816,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ko": [
       "skipped.info",
@@ -813,7 +855,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "lt": [
       "skipped.info",
@@ -850,7 +894,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "lv": [
       "skipped.info",
@@ -887,7 +933,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ms": [
       "skipped.info",
@@ -924,7 +972,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "nl": [
       "skipped.info",
@@ -961,7 +1011,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "no": [
       "skipped.info",
@@ -998,7 +1050,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "pl": [
       "skipped.info",
@@ -1035,7 +1089,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "pt": [
       "skipped.info",
@@ -1072,7 +1128,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ro": [
       "skipped.info",
@@ -1109,7 +1167,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "ru": [
       "skipped.info",
@@ -1146,7 +1206,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "sk": [
       "skipped.info",
@@ -1183,7 +1245,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "sl": [
       "skipped.info",
@@ -1220,7 +1284,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "sr": [
       "skipped.info",
@@ -1257,7 +1323,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "sv": [
       "skipped.info",
@@ -1294,7 +1362,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "th": [
       "skipped.info",
@@ -1331,7 +1401,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "tr": [
       "skipped.info",
@@ -1368,7 +1440,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "uk": [
       "skipped.info",
@@ -1405,7 +1479,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "vi": [
       "skipped.info",
@@ -1442,7 +1518,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ],
     "zh": [
       "skipped.info",
@@ -1479,7 +1557,9 @@
       "accounts.routing.tip.jd",
       "settings.access.tokens.intro",
       "settings.access.tokens.howToUse",
-      "settings.access.tokens.namePlaceholder"
+      "settings.access.tokens.namePlaceholder",
+      "captcha.solverWaitingHint",
+      "settings.captcha.onlyUnwatchedHint"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

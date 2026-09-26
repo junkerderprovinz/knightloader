@@ -2923,7 +2923,8 @@ export const uk: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Доступний як SABnzbd за адресою {sabnzbd} і як qBittorrent за адресою {qbittorrent}. У Sonarr чи Radarr задайте URL Base як «{sabnzbdBase}» або «{qbittorrentBase}» і використайте один із токенів API цього екземпляра як ключ API або пароль qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader не може сам показати завдання Cloudflare Turnstile, тож відповісти на нього може лише розв’язувач із налаштувань капчі. «Скасувати» пропускає цю капчу.',
   'captcha.solverWaiting': 'Розв’язувач перейме через {time}.',
-  'captcha.solverWaitingHint': 'Ви дивитеся, тож розв’язувачі спершу чекають на вашу відповідь. Якщо ви перейдете з цієї вкладки або час вийде, перейме перший розв’язувач у вашому порядку.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} розв’язує цю капчу.',
   'captcha.solverSolvingHint': 'Ви все ще можете відповісти самі. Діє та відповідь, яка надійде першою.',
   'captcha.solverStopped': 'Жоден розв’язувач не зміг перейняти цю капчу.',
@@ -2938,7 +2939,8 @@ export const uk: Dict = {
   'captcha.solverNoAnswer': '{solver} перейняв її, але відповідь не надійшла.',
   'captcha.solverGaveUp': '{solver} перейняв її, а потім здався: {reason}',
   'captcha.solverFailed': 'Не вдалося зв’язатися з {solver}.',
-  'settings.captcha.onlyUnwatchedHint': 'Вимкнено: розв’язувачі починають, щойно надходить капча, одночасно з вікном капчі. Увімкнено: поки хтось дивиться, першим іде вікно капчі, а розв’язувачі чекають. Хтось дивиться, поки вкладка браузера з KnightLoader на передньому плані або вікно десктопного застосунку на екрані, а також поки застосунок для телефона тримає цей екземпляр відкритим на передньому плані або інший застосунок постійно читає його список капч. Фонова вкладка й вікно, згорнуте чи сховане в лоток, не рахуються, а закрита сторінка перестає рахуватися через кілька секунд. Щойно ніхто вже не дивиться або час нижче вийде без відповіді, переймає перший розв’язувач у порядку.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Безкоштовні завантаження',
   'settings.accounts.premiumOnly': 'Лише преміум',
   'settings.accounts.premiumOnlyHint': 'Посилання на хостер, яке не може завантажити жоден ваш обліковий запис, отримує JDownloader, і він завантажує його безкоштовно: повільно, з очікуванням і капчами. Коли «Лише преміум» увімкнено, посилання натомість чекає в черзі й пояснює чому, так само як безкоштовне завантаження, яке ви призупинили. Воно запуститься саме, щойно ви додасте вхід для цього хостера або debrid-сервіс, що його охоплює. Категорія може вирішувати це інакше для своїх посилань.',

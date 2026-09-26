@@ -1,4 +1,11 @@
-import type { CaptchaChallenge, CaptchaWidgetPayload } from './types';
+import type { TranslationKey } from '../i18n/en';
+import type {
+  CaptchaChallenge,
+  CaptchaKind,
+  CaptchaSolverRefusal,
+  CaptchaSolverReport,
+  CaptchaWidgetPayload,
+} from './types';
 
 // The rules the captcha screen follows, apart from React so that
 // check-captcha.mjs can run them as they are. They are the web UI's
@@ -140,6 +147,66 @@ export function clickAnswer(points: ClickPoint[], width: number, height: number)
 export function widgetRuns(ch: CaptchaChallenge): boolean {
   const vendor = ((ch.payload as Partial<CaptchaWidgetPayload> | undefined)?.vendor ?? '').trim().toLowerCase();
   return vendor === '' || vendor === 'recaptcha' || vendor === 'hcaptcha';
+}
+
+/**
+ * The kinds this phone answers, which it names when it reads the list so the
+ * instance holds the paid solvers back for those alone: pictures and clicks
+ * everywhere, a widget only on a connection saved by address, the one its page
+ * loads from.
+ */
+export function answeredKinds(relay: boolean): CaptchaKind[] {
+  return relay ? ['image', 'click'] : ['image', 'click', 'widget'];
+}
+
+/** Whether `ch` can be answered on this phone. */
+export function answerableHere(ch: CaptchaChallenge, relay: boolean): boolean {
+  return ch.kind === 'widget' ? !relay && widgetRuns(ch) : answeredKinds(relay).includes(ch.kind);
+}
+
+/** A catalogue line and what fills it in. */
+export interface Phrase {
+  key: TranslationKey;
+  vars?: Record<string, string>;
+}
+
+/**
+ * What a card says about the paid solvers, as the web UI's SolverStatus does:
+ * the state on the line, and in the bubble why, then every solver that did not
+ * deliver. The why speaks to somebody who can answer the challenge, so it is
+ * left out where nobody can.
+ */
+export function solverStatus(
+  report: CaptchaSolverReport,
+  now: number,
+  answerable: boolean,
+): { line: Phrase; hint?: Phrase; refusals: Phrase[] } {
+  // The solvers stop at one that may hold the task, so there is one at most.
+  const taken = report.refusals?.find((r) => r.taken);
+  let line: Phrase;
+  let hint: Phrase | undefined;
+  if (report.state === 'waiting') {
+    const left = secondsLeft({ expiresAt: report.until ?? '' }, now) ?? 0;
+    line = { key: 'captcha.solverWaiting', vars: { time: fmtCountdown(left) } };
+    hint = { key: 'captcha.solverWaitingHint' };
+  } else if (report.state === 'solving') {
+    line = { key: 'captcha.solverSolving', vars: { solver: report.solver ?? '?' } };
+    hint = { key: 'captcha.solverSolvingHint' };
+  } else if (taken) {
+    line = { key: 'captcha.solverStoppedTaken', vars: { solver: taken.solver } };
+    hint = { key: 'captcha.solverNotPassedOn', vars: { solver: taken.solver } };
+  } else {
+    line = { key: 'captcha.solverStopped' };
+  }
+  return { line, hint: answerable ? hint : undefined, refusals: (report.refusals ?? []).map(refusal) };
+}
+
+function refusal(r: CaptchaSolverRefusal): Phrase {
+  if (r.code === 'unsupported') return { key: 'captcha.solverUnsupported', vars: { solver: r.solver } };
+  if (r.code === 'noAnswer') return { key: 'captcha.solverNoAnswer', vars: { solver: r.solver } };
+  if (r.code === 'failed') return { key: 'captcha.solverFailed', vars: { solver: r.solver } };
+  const reason = r.detail ? `${r.detail} (${r.code})` : r.code;
+  return { key: r.taken ? 'captcha.solverGaveUp' : 'captcha.solverRefused', vars: { solver: r.solver, reason } };
 }
 
 /**

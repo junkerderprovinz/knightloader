@@ -2923,7 +2923,8 @@ export const vi: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Có thể truy cập như SABnzbd tại {sabnzbd} và như qBittorrent tại {qbittorrent}. Trong Sonarr hoặc Radarr, đặt URL Base là “{sabnzbdBase}” hoặc “{qbittorrentBase}” và dùng một trong các token API của thực thể này làm khóa API hoặc mật khẩu qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader không tự hiển thị được thử thách Cloudflare Turnstile, nên chỉ một trình giải trong phần cài đặt Captcha mới trả lời được nó. Hủy sẽ bỏ qua captcha này.',
   'captcha.solverWaiting': 'Một trình giải sẽ tiếp quản sau {time}.',
-  'captcha.solverWaitingHint': 'Bạn đang xem, nên các trình giải chờ câu trả lời của bạn trước. Nếu bạn rời khỏi thẻ này hoặc hết thời gian, trình giải đầu tiên trong thứ tự của bạn sẽ tiếp quản.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} đang giải captcha này.',
   'captcha.solverSolvingHint': 'Bạn vẫn có thể tự trả lời. Câu trả lời nào đến trước sẽ được dùng.',
   'captcha.solverStopped': 'Không trình giải nào nhận được captcha này.',
@@ -2938,7 +2939,8 @@ export const vi: Dict = {
   'captcha.solverNoAnswer': '{solver} đã nhận nhưng không có câu trả lời nào quay về.',
   'captcha.solverGaveUp': '{solver} đã nhận rồi bỏ cuộc: {reason}',
   'captcha.solverFailed': 'Không kết nối được tới {solver}.',
-  'settings.captcha.onlyUnwatchedHint': 'Tắt: các trình giải bắt đầu ngay khi captcha đến, cùng lúc với cửa sổ captcha. Bật: khi có người đang xem, cửa sổ captcha đến trước và các trình giải chờ. Được coi là có người đang xem khi một thẻ trình duyệt mở KnightLoader đang ở phía trước hoặc cửa sổ của ứng dụng máy tính đang hiện trên màn hình, và khi ứng dụng điện thoại đang mở thực thể này ở phía trước hoặc một ứng dụng khác liên tục đọc danh sách captcha của nó. Một thẻ ở phía sau và một cửa sổ đã thu nhỏ hoặc nằm trong khay hệ thống thì không tính, còn một trang đã đóng sẽ thôi được tính sau vài giây. Khi không còn ai xem, hoặc thời gian bên dưới hết mà không có câu trả lời, trình giải đầu tiên trong thứ tự sẽ tiếp quản.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Tải miễn phí',
   'settings.accounts.premiumOnly': 'Chỉ Premium',
   'settings.accounts.premiumOnlyHint': 'Một liên kết hoster mà không tài khoản nào của bạn tải được sẽ đi tới JDownloader, nơi tải nó miễn phí: chậm, có thời gian chờ và captcha. Khi bật “Chỉ Premium”, liên kết đó sẽ chờ trong hàng đợi và cho biết lý do, và một lượt tải miễn phí bạn đã tạm dừng cũng vậy. Nó tự bắt đầu ngay khi bạn thêm thông tin đăng nhập cho hoster đó, hoặc một dịch vụ debrid hỗ trợ hoster đó. Một danh mục có thể quyết định khác đi cho các liên kết của riêng nó.',

@@ -217,6 +217,27 @@ func (a *App) CaptchaChallenges() []captcha.Challenge {
 	return a.captchaStateFor().store.List()
 }
 
+// CaptchaSeen records a reader of the captcha list that holds no socket, such
+// as the phone app, as watching for the kinds it can answer, so the paid
+// solvers wait only for those; nil stands for every kind. A name that is no
+// kind a person answers is dropped, so a reader cannot grow the hub's table.
+func (a *App) CaptchaSeen(kinds []string) {
+	if kinds == nil {
+		a.Hub.Seen("captcha")
+		return
+	}
+	for _, k := range kinds {
+		switch kind := captcha.Kind(k); kind {
+		case captcha.KindImage, captcha.KindClick, captcha.KindWidget:
+			a.Hub.Seen(captchaWatchKey(kind))
+		}
+	}
+}
+
+// captchaWatchKey is the hub kind a reader that answers only some kinds of
+// challenge is seen under.
+func captchaWatchKey(k captcha.Kind) string { return "captcha:" + string(k) }
+
 // RefreshCaptchas polls right away instead of waiting for the next tick. A
 // failed poll returns the last good snapshot.
 func (a *App) RefreshCaptchas(_ context.Context) []captcha.Challenge {

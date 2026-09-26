@@ -245,8 +245,12 @@ and cannot be explained.
   Android has kept the app in memory. After Android has closed it, the card on
   the downloads still shows what is waiting, but no banner comes up. The app
   sends no notification while it is closed. While it watches, the instance
-  counts you as watching, so with **Only when nobody is watching** switched on
-  on the Captcha settings page the paid solvers wait for your answer first.
+  counts you as watching for the captchas the app can answer: pictures and
+  clicks, and on a connection saved by address reCAPTCHA and hCaptcha as well.
+  With **Only when nobody is watching** switched on on the Captcha settings
+  page, the paid solvers wait for your answer on those first, and a captcha
+  the app cannot answer does not wait for it. The card says what the solvers
+  are doing, as the web UI's captcha window does.
 
 ## The browser extension
 

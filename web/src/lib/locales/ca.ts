@@ -2909,7 +2909,8 @@ export const ca: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Accessible com a SABnzbd a {sabnzbd} i com a qBittorrent a {qbittorrent}. A Sonarr o Radarr, posa URL Base a «{sabnzbdBase}» o «{qbittorrentBase}» i fes servir un dels tokens d’API d’aquesta instància com a clau API o com a contrasenya de qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader no pot mostrar per si mateix un repte de Cloudflare Turnstile, així que només el pot respondre un solucionador de la configuració de Captcha. «Cancel·la» se salta aquest captcha.',
   'captcha.solverWaiting': 'Un solucionador pren el relleu d’aquí a {time}.',
-  'captcha.solverWaitingHint': 'Estàs mirant, així que els solucionadors esperen primer la teva resposta. Si canvies de pestanya o s’acaba el temps, pren el relleu el primer solucionador del teu ordre.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} està resolent aquest captcha.',
   'captcha.solverSolvingHint': 'Tot i així, el pots respondre tu. Val la resposta que arribi primer.',
   'captcha.solverStopped': 'Cap solucionador no s’ha pogut fer càrrec d’aquest captcha.',
@@ -2924,7 +2925,8 @@ export const ca: Dict = {
   'captcha.solverNoAnswer': '{solver} se n’ha fet càrrec, però no ha arribat cap resposta.',
   'captcha.solverGaveUp': '{solver} se n’ha fet càrrec i després ha plegat: {reason}',
   'captcha.solverFailed': 'No s’ha pogut contactar amb {solver}.',
-  'settings.captcha.onlyUnwatchedHint': 'Desactivat: els solucionadors comencen tan bon punt arriba un captcha, alhora que la finestra del captcha. Activat: mentre algú mira, primer va la finestra del captcha i els solucionadors esperen. Algú mira mentre hi ha una pestanya del navegador amb KnightLoader en primer pla o la finestra de l’aplicació d’escriptori és a la pantalla, i mentre l’aplicació del mòbil té aquesta instància oberta en primer pla o una altra aplicació va llegint la seva llista de captchas. Una pestanya en segon pla i una finestra minimitzada o a la safata no compten, i una pàgina tancada deixa de comptar al cap d’uns segons. Quan ja no mira ningú, o s’acaba el temps de sota sense resposta, pren el relleu el primer solucionador de l’ordre.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Baixades gratuïtes',
   'settings.accounts.premiumOnly': 'Només Premium',
   'settings.accounts.premiumOnlyHint': 'Un enllaç d’allotjador que cap dels teus comptes no pot baixar va a JDownloader, que el baixa de franc: a poc a poc, amb temps d’espera i captchas. Amb «Només Premium» activat, l’enllaç espera a la cua i diu per què, igual que una baixada gratuïta que hagis posat en pausa. Comença tot sol quan afegeixes un inici de sessió per a aquest allotjador, o un servei debrid que el cobreixi. Una categoria ho pot decidir d’una altra manera per als seus propis enllaços.',

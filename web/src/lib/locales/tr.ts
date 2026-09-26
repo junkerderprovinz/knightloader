@@ -2922,7 +2922,8 @@ export const tr: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'SABnzbd olarak {sabnzbd} adresinden, qBittorrent olarak {qbittorrent} adresinden erişilebilir. Sonarr ya da Radarr içinde URL Base alanını “{sabnzbdBase}” ya da “{qbittorrentBase}” olarak ayarla ve bu örneğin API tokenlerinden birini API key ya da qBittorrent parolası olarak kullan.',
   'captcha.unsolvableTurnstile': 'KnightLoader bir Cloudflare Turnstile doğrulamasını kendisi gösteremez, bu yüzden onu yalnızca Captcha ayarlarındaki bir çözücü yanıtlayabilir. Vazgeç bu captchayı atlar.',
   'captcha.solverWaiting': '{time} sonra bir çözücü devralır.',
-  'captcha.solverWaitingHint': 'Sen izliyorsun, bu yüzden çözücüler önce senin yanıtını bekler. Bu sekmeden ayrılırsan ya da süre dolarsa, senin sıralamandaki ilk çözücü devralır.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} bu captchayı çözüyor.',
   'captcha.solverSolvingHint': 'Yine de kendin yanıtlayabilirsin. Hangi yanıt önce ulaşırsa o kullanılır.',
   'captcha.solverStopped': 'Hiçbir çözücü bu captchayı devralamadı.',
@@ -2937,7 +2938,8 @@ export const tr: Dict = {
   'captcha.solverNoAnswer': '{solver} devraldı ama yanıt gelmedi.',
   'captcha.solverGaveUp': '{solver} devraldı, sonra vazgeçti: {reason}',
   'captcha.solverFailed': '{solver} hizmetine ulaşılamadı.',
-  'settings.captcha.onlyUnwatchedHint': 'Kapalı: çözücüler bir captcha gelir gelmez, captcha penceresiyle aynı anda başlar. Açık: biri izlediği sürece önce captcha penceresi gelir, çözücüler bekler. KnightLoader’ın açık olduğu bir tarayıcı sekmesi öndeyken ya da masaüstü uygulamasının penceresi ekrandayken, ayrıca telefon uygulaması bu örneği önde açık tutarken ya da başka bir uygulama onun captcha listesini sürekli okurken biri izliyor sayılır. Arka plandaki bir sekme ve simge durumuna küçültülmüş ya da tepsideki bir pencere sayılmaz, kapatılmış bir sayfa da birkaç saniye sonra sayılmaz olur. Kimse izlemediği anda ya da aşağıdaki süre yanıt gelmeden dolduğunda sıradaki ilk çözücü devralır.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Ücretsiz indirmeler',
   'settings.accounts.premiumOnly': 'Yalnızca premium',
   'settings.accounts.premiumOnlyHint': 'Hiçbir hesabının indiremediği bir hoster bağlantısı JDownloader’a gider ve o da onu ücretsiz indirir: yavaşça, bekleme süreleri ve captchalarla. “Yalnızca premium” açıkken bağlantı bunun yerine kuyrukta bekler ve nedenini söyler; duraklattığın ücretsiz bir indirme de öyle. O hoster için bir giriş ya da onu destekleyen bir debrid hizmeti eklediğin anda kendiliğinden başlar. Bir kategori bunu kendi bağlantıları için farklı belirleyebilir.',

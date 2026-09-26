@@ -147,6 +147,57 @@ expect(
 );
 expect('a Turnstile would only be refused by the page', cap.widgetRuns(vendorOf('turnstile')), false);
 
+// What the phone tells the instance it watches for, so the paid solvers wait
+// only for a captcha somebody here can answer.
+expect('over the relay the phone answers pictures and clicks', cap.answeredKinds(true), ['image', 'click']);
+expect('by address it answers the widget as well', cap.answeredKinds(false), ['image', 'click', 'widget']);
+const picture = ch('1', ZERO);
+expect(
+  'what can be answered here, over the relay and by address',
+  [picture, vendorOf('recaptcha'), vendorOf('turnstile')].map((c) => [cap.answerableHere(c, true), cap.answerableHere(c, false)]),
+  [
+    [true, true],
+    [false, true],
+    [false, false],
+  ],
+);
+
+// The solver line, and the why behind it only for somebody who can answer.
+const say = (s) => s && { key: s.key, ...(s.vars ?? {}) };
+const waiting = { state: 'waiting', until: '2026-01-01T00:00:42Z' };
+expect('a waiting solver counts down', say(cap.solverStatus(waiting, now, true).line), {
+  key: 'captcha.solverWaiting',
+  time: '0:42',
+});
+expect('the wait is explained to somebody watching', say(cap.solverStatus(waiting, now, true).hint), {
+  key: 'captcha.solverWaitingHint',
+});
+expect('not to a phone that cannot answer it', cap.solverStatus(waiting, now, false).hint, undefined);
+expect(
+  'nor the solver at work',
+  cap.solverStatus({ state: 'solving', solver: '2Captcha' }, now, false).hint,
+  undefined,
+);
+const stopped = cap.solverStatus(
+  {
+    state: 'stopped',
+    refusals: [
+      { solver: 'Anti-Captcha', code: 'unsupported' },
+      { solver: '2Captcha', code: 'ERROR_CAPTCHA_UNSOLVABLE', detail: 'workers gave up', taken: true },
+    ],
+  },
+  now,
+  true,
+);
+expect('a solver that took it is named on the line', say(stopped.line), {
+  key: 'captcha.solverStoppedTaken',
+  solver: '2Captcha',
+});
+expect('and every solver that did not deliver in the bubble', stopped.refusals.map(say), [
+  { key: 'captcha.solverUnsupported', solver: 'Anti-Captcha' },
+  { key: 'captcha.solverGaveUp', solver: '2Captcha', reason: 'workers gave up (ERROR_CAPTCHA_UNSOLVABLE)' },
+]);
+
 const msg = (m) => JSON.stringify({ source: 'knightloader-captcha-widget', id: 'c1', ...m });
 expect('a solved token is taken', cap.widgetMessage(msg({ kind: 'solved', detail: 'tok' }), 'c1'), { kind: 'solved', detail: 'tok' });
 expect('ready has no detail', cap.widgetMessage(msg({ kind: 'ready', detail: null }), 'c1'), { kind: 'ready', detail: null });
@@ -189,4 +240,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page gets every field and opens only for a vendor it runs, only its own messages reach the app, and the banner says what came and went');
+console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page gets every field and opens only for a vendor it runs, only its own messages reach the app, the phone watches only for what it can answer, the solver line explains itself only there, and the banner says what came and went');

@@ -8,6 +8,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -702,6 +703,76 @@ func TestAnAnswerWhileTheSolversWaitCostsNothing(t *testing.T) {
 
 	if s.calls.Load() != 0 {
 		t.Errorf("solver called %d times for a captcha somebody answered", s.calls.Load())
+	}
+}
+
+// solverStates waits until challenge id's report reaches f in state last, and
+// returns every state broadcast for it up to then. A viewer's messages arrive
+// in order, so nothing broadcast before that one is still on its way.
+func solverStates(t *testing.T, f *activityFakeConn, id, last string) []string {
+	t.Helper()
+	var states []string
+	waitFor(t, "the "+last+" report", func() bool {
+		states = states[:0]
+		for _, raw := range f.snapshot() {
+			var m struct {
+				Type string `json:"type"`
+				Data struct {
+					ID     string                `json:"id"`
+					Solver *captcha.SolverReport `json:"solver"`
+				} `json:"data"`
+			}
+			if json.Unmarshal(raw, &m) == nil && m.Type == "captcha" && m.Data.ID == id && m.Data.Solver != nil {
+				states = append(states, m.Data.Solver.State)
+			}
+		}
+		return len(states) > 0 && states[len(states)-1] == last
+	})
+	return states
+}
+
+// Nobody can answer a Cloudflare Turnstile at the prompt, so a viewer on
+// screen does not hold the solvers back for one.
+func TestTheSolversDoNotWaitForATurnstile(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	viewer := addViewer(t, a)
+	s := &fakeSolver{text: "token"}
+	c := captcha.Challenge{ID: "t1", Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+		Vendor: captcha.VendorTurnstile, SiteKey: "0x4AAAAAAA",
+	}}
+	c.ExpiresAt = time.Now().Add(time.Second)
+
+	a.solveCaptchaWith(paid(s), pending(a, c))
+
+	if got := solverStates(t, viewer, "t1", captcha.SolverSolving); len(got) != 1 {
+		t.Errorf("reports %v, want the solver at work straight away", got)
+	}
+}
+
+// The phone on a phrase connection answers pictures but no widget, so it holds
+// the solvers back for a picture only.
+func TestAnAppHoldsTheSolversOnlyForWhatItCanAnswer(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	viewer := addViewer(t, a)
+	a.Hub.SetVisible(viewer, false)
+	a.CaptchaSeen([]string{"image", "click"})
+
+	widget := captcha.Challenge{ID: "w1", Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+		Vendor: captcha.VendorRecaptcha, SiteKey: "6Lc-key",
+	}}
+	widget.ExpiresAt = time.Now().Add(time.Second)
+	a.solveCaptchaWith(paid(&fakeSolver{text: "token"}), pending(a, widget))
+	if got := solverStates(t, viewer, "w1", captcha.SolverSolving); len(got) != 1 {
+		t.Errorf("reCAPTCHA reports %v, want the solver at work straight away", got)
+	}
+
+	picture := imageChallenge("i1")
+	picture.ExpiresAt = time.Now().Add(time.Second)
+	a.solveCaptchaWith(paid(&fakeSolver{text: "ABCD"}), pending(a, picture))
+	if got := solverStates(t, viewer, "i1", captcha.SolverSolving); len(got) != 2 || got[0] != captcha.SolverWaiting {
+		t.Errorf("picture reports %v, want the solvers waiting for the app first", got)
 	}
 }
 

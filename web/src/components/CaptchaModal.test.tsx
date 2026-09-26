@@ -24,11 +24,11 @@ afterEach(() => {
 });
 
 /** Renders the status line and opens its bubble, the way a keyboard user does. */
-async function show(report: CaptchaSolverReport) {
+async function show(report: CaptchaSolverReport, answerable = true) {
   await act(async () =>
     root.render(
       <I18nProvider>
-        <SolverStatus report={report} now={Date.now()} />
+        <SolverStatus report={report} now={Date.now()} answerable={answerable} />
       </I18nProvider>,
     ),
   );
@@ -81,7 +81,20 @@ describe('SolverStatus', () => {
   });
 
   it('says which solver is at work', async () => {
-    const { line } = await show({ state: 'solving', solver: '2Captcha' });
+    const { line, bubble } = await show({ state: 'solving', solver: '2Captcha' });
     expect(line).toBe('2Captcha is solving this captcha.');
+    expect(bubble).toContain('You can still answer it yourself.');
+  });
+
+  it('does not tell somebody to answer a captcha nobody can answer here', async () => {
+    const { line, bubble } = await show({ state: 'solving', solver: '2Captcha' }, false);
+    expect(line).toBe('2Captcha is solving this captcha.');
+    expect(bubble).toBe('');
+  });
+
+  it('names the window as well as the tab while the solvers wait', async () => {
+    const until = new Date(Date.now() + 42_000).toISOString();
+    const { bubble } = await show({ state: 'waiting', until });
+    expect(bubble).toContain('this tab is in the background, this window is minimised or in the tray');
   });
 });

@@ -2923,7 +2923,8 @@ export const id: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Dapat dijangkau sebagai SABnzbd di {sabnzbd} dan sebagai qBittorrent di {qbittorrent}. Di Sonarr atau Radarr, setel URL Base ke “{sabnzbdBase}” atau “{qbittorrentBase}” dan pakai salah satu token API instans ini sebagai kunci API atau kata sandi qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader tidak bisa menampilkan tantangan Cloudflare Turnstile sendiri, jadi hanya pemecah dari pengaturan Captcha yang bisa menjawabnya. Tekan Batal untuk melewati captcha ini.',
   'captcha.solverWaiting': 'Pemecah mengambil alih dalam {time}.',
-  'captcha.solverWaitingHint': 'Kamu sedang melihat, jadi para pemecah menunggu jawabanmu dulu. Kalau kamu pindah dari tab ini atau waktunya habis, pemecah pertama dalam urutanmu mengambil alih.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} sedang memecahkan captcha ini.',
   'captcha.solverSolvingHint': 'Kamu tetap bisa menjawabnya sendiri. Jawaban yang tiba lebih dulu yang dipakai.',
   'captcha.solverStopped': 'Tidak ada pemecah yang bisa mengambil captcha ini.',
@@ -2938,7 +2939,8 @@ export const id: Dict = {
   'captcha.solverNoAnswer': '{solver} mengambilnya, tetapi tidak ada jawaban yang kembali.',
   'captcha.solverGaveUp': '{solver} mengambilnya, lalu menyerah: {reason}',
   'captcha.solverFailed': '{solver} tidak dapat dijangkau.',
-  'settings.captcha.onlyUnwatchedHint': 'Mati: para pemecah mulai begitu captcha tiba, bersamaan dengan jendela captcha. Nyala: selama ada yang melihat, jendela captcha muncul dulu dan para pemecah menunggu. Dianggap ada yang melihat selama tab peramban dengan KnightLoader berada di depan atau jendela aplikasi desktop tampil di layar, dan selama aplikasi ponsel membuka instans ini di depan atau aplikasi lain terus membaca daftar captcha-nya. Tab di latar belakang dan jendela yang diminimalkan atau berada di baki tidak dihitung, dan halaman yang sudah ditutup berhenti dihitung setelah beberapa detik. Begitu tidak ada yang melihat, atau waktu di bawah habis tanpa jawaban, pemecah pertama dalam urutan mengambil alih.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Unduhan gratis',
   'settings.accounts.premiumOnly': 'Hanya Premium',
   'settings.accounts.premiumOnlyHint': 'Tautan hoster yang tidak bisa diambil oleh akun mana pun milikmu diserahkan ke JDownloader, yang mengunduhnya secara gratis: lambat, dengan waktu tunggu dan captcha. Dengan “Hanya Premium” menyala, tautan itu malah menunggu di antrean dan menyebutkan alasannya, begitu juga unduhan gratis yang kamu jeda. Tautan itu mulai sendiri begitu kamu menambahkan login untuk hoster itu, atau layanan debrid yang mencakupnya. Sebuah kategori bisa memutuskan ini secara berbeda untuk tautannya sendiri.',

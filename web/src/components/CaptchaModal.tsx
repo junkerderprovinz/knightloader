@@ -33,9 +33,10 @@ import { isOnTop } from '../lib/windowStack';
 // JD expects, so the number of clicked points decides.
 //
 // The socket reports whether this tab is in the foreground: with "only when
-// nobody is watching" on, the paid solvers wait while it is. In the desktop app
-// the shell reports its window instead, since a webview's visibilityState is
-// not reliable.
+// nobody is watching" on, the paid solvers wait while it is, for every captcha
+// but a Turnstile, which nobody can answer here. In the desktop app the shell
+// reports its window instead, since a webview's visibilityState is not
+// reliable.
 
 // Go's encoding/json writes a zero time.Time as year 1 rather than omitting it.
 const GO_ZERO_YEAR = 1;
@@ -89,9 +90,18 @@ interface ClickPoint {
 /**
  * SolverStatus says what the paid solvers are doing with the challenge on
  * screen: waiting for the person watching, solving it, or done without an
- * answer, with each solver's reason in the bubble.
+ * answer, with each solver's reason in the bubble. The why speaks to somebody
+ * who can answer the challenge, so it is left out where nobody can.
  */
-export function SolverStatus({ report, now }: { report: CaptchaSolverReport; now: number }) {
+export function SolverStatus({
+  report,
+  now,
+  answerable,
+}: {
+  report: CaptchaSolverReport;
+  now: number;
+  answerable: boolean;
+}) {
   const { t } = useT();
 
   function line(r: CaptchaSolverRefusal): string {
@@ -120,6 +130,7 @@ export function SolverStatus({ report, now }: { report: CaptchaSolverReport; now
   } else {
     text = t('captcha.solverStopped');
   }
+  if (!answerable) hint = undefined;
   const lines = (report.refusals ?? []).map(line);
 
   return (
@@ -403,7 +414,7 @@ export function CaptchaModal() {
             {current.prompt}
           </p>
         )}
-        {current.solver && <SolverStatus report={current.solver} now={now} />}
+        {current.solver && <SolverStatus report={current.solver} now={now} answerable={!unsolvable} />}
       </div>
 
       {current.kind === 'image' && (

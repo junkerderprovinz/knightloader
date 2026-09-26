@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { answerCaptcha, captchaErrorText, skipCaptcha } from '../api/client';
-import { clickAnswer, fmtCountdown, secondsLeft, widgetRuns, type ClickPoint } from '../api/captcha';
+import {
+  answerableHere,
+  clickAnswer,
+  fmtCountdown,
+  secondsLeft,
+  solverStatus,
+  widgetRuns,
+  type ClickPoint,
+  type Phrase,
+} from '../api/captcha';
 import {
   isRelayConnection,
   type CaptchaAbortScope,
@@ -18,6 +27,7 @@ import { useCaptchas } from './CaptchaWatch';
 import { CaptchaWidget } from './CaptchaWidget';
 import { GlimButton, NotchCard, UnavailableNotice } from './glim';
 import { Check, Cross, Play } from './IconBadge';
+import { InfoTip } from './InfoTip';
 import { Text, TextInput } from './Text';
 
 // The vendors' own spelling of their names.
@@ -72,6 +82,9 @@ export function CaptchaCard({
   const unshown = kind === 'unsupported' || (kind === 'widget' && !runs);
   const unshownName =
     kind === 'unsupported' ? (challenge.payload as CaptchaUnsupportedPayload | undefined)?.vendor : vendorName;
+  const solver = challenge.solver
+    ? solverStatus(challenge.solver, now, answerableHere(challenge, isRelayConnection(conn)))
+    : null;
 
   // The answer is in the picture's own pixels, so its real size is needed
   // before a click can be sent.
@@ -136,6 +149,7 @@ export function CaptchaCard({
           {left !== null && <Text style={[styles.clock, { color: c.textMuted }]}>{fmtCountdown(left)}</Text>}
         </View>
       )}
+      {solver && <SolverLine status={solver} />}
 
       {kind === 'image' && picture && (
         <>
@@ -255,6 +269,24 @@ export function CaptchaCard({
   );
 }
 
+/** The paid solvers' state, with the why and every solver that did not deliver
+ *  behind the (i), as the web UI's SolverStatus shows it. */
+function SolverLine({ status }: { status: ReturnType<typeof solverStatus> }) {
+  const { t } = useT();
+  const { c } = useAppearance();
+  const say = (p: Phrase) => t(p.key, p.vars);
+  const tip = [status.hint, ...status.refusals]
+    .filter((p): p is Phrase => p !== undefined)
+    .map(say)
+    .join('\n\n');
+  return (
+    <View style={styles.solver}>
+      <Text style={[styles.solverText, { color: c.textMuted }]}>{say(status.line)}</Text>
+      {tip !== '' && <InfoTip text={tip} />}
+    </View>
+  );
+}
+
 /**
  * The captcha's picture on white, the ground it was drawn for. Given `onTap`,
  * it takes taps and marks each one where it landed.
@@ -317,6 +349,8 @@ const styles = StyleSheet.create({
   prompt: { flex: 1, fontSize: TYPE.dense, lineHeight: 17 },
   // Rewritten every second, so the digits keep their width.
   clock: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
+  solver: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  solverText: { flexShrink: 1, fontSize: TYPE.dense, lineHeight: 17 },
   pictureGround: { backgroundColor: '#fff', padding: 8, alignItems: 'center', marginVertical: 6 },
   fill: { width: '100%', height: '100%' },
   // A dot centred on the tap, ringed in white so it shows on any picture. The

@@ -9,7 +9,7 @@ import {
   type ServerConnection,
   type Task,
 } from './types';
-import { widgetPath } from './captcha';
+import { answeredKinds, widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
@@ -430,9 +430,12 @@ function poll<T>(
 // forwards them (relayCaptchaRoute); an older one refuses them with a 403, see
 // captchaErrorText.
 
-/** Every captcha waiting on the connected instance, read from its cache. */
+/** Every captcha waiting on the connected instance, read from its cache. The
+ *  read counts as watching the kinds this phone can answer on conn, so with
+ *  "only when nobody is watching" on, the paid solvers wait for it on those. */
 export async function fetchCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
-  return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha')) ?? [];
+  const watch = answeredKinds(isRelayConnection(conn)).join(',');
+  return (await request<CaptchaChallenge[] | null>(conn, '/api', `/captcha?watch=${watch}`)) ?? [];
 }
 
 /** Has the instance ask JD now instead of at its next check. */

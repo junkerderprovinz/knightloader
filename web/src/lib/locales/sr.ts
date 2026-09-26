@@ -2937,7 +2937,8 @@ export const sr: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Доступно као SABnzbd на {sabnzbd} и као qBittorrent на {qbittorrent}. У Sonarr-у или Radarr-у постави URL Base на „{sabnzbdBase}“ или „{qbittorrentBase}“ и као API кључ или qBittorrent лозинку употреби један од API токена ове инстанце.',
   'captcha.unsolvableTurnstile': 'KnightLoader не може сам да прикаже Cloudflare Turnstile изазов, па на њега може да одговори само решавач из подешавања за Captcha. „Откажи“ прескаче ову captcha.',
   'captcha.solverWaiting': 'Решавач преузима за {time}.',
-  'captcha.solverWaitingHint': 'Гледаш, па решавачи прво чекају твој одговор. Ако пређеш са ове картице или време истекне, преузима први решавач у твом редоследу.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} решава ову captcha.',
   'captcha.solverSolvingHint': 'И даље можеш сам да одговориш. Важи одговор који први стигне.',
   'captcha.solverStopped': 'Ниједан решавач није могао да преузме ову captcha.',
@@ -2952,7 +2953,8 @@ export const sr: Dict = {
   'captcha.solverNoAnswer': '{solver} ју је преузео, али одговор није стигао.',
   'captcha.solverGaveUp': '{solver} ју је преузео, а затим одустао: {reason}',
   'captcha.solverFailed': '{solver} није био доступан.',
-  'settings.captcha.onlyUnwatchedHint': 'Искључено: решавачи почињу чим стигне captcha, истовремено са captcha прозором. Укључено: док неко гледа, прво долази captcha прозор, а решавачи чекају. Неко гледа док је картица прегледача са KnightLoader-ом у првом плану или је прозор десктоп апликације на екрану, и док мобилна апликација држи ову инстанцу отворену у првом плану или нека друга апликација стално чита њен списак captcha. Картица у позадини и прозор који је минимизован или у системској траци не рачунају се, а затворена страница престаје да се рачуна после неколико секунди. Када више нико не гледа или време испод истекне без одговора, преузима први решавач у редоследу.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Бесплатна преузимања',
   'settings.accounts.premiumOnly': 'Само премијум',
   'settings.accounts.premiumOnlyHint': 'Везу хостера коју ниједан твој налог не може да преузме добија JDownloader, који је преузима бесплатно: споро, уз чекања и captcha. Са укљученим „Само премијум“ веза уместо тога чека у реду и каже зашто, као и бесплатно преузимање које си паузирао. Креће сама чим додаш пријаву за тог хостера или debrid услугу која га покрива. Категорија то за своје везе може да одреди другачије.',

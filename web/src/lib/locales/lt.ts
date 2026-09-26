@@ -2923,7 +2923,8 @@ export const lt: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Pasiekiama kaip SABnzbd adresu {sabnzbd} ir kaip qBittorrent adresu {qbittorrent}. Sonarr arba Radarr nustatyk URL Base į „{sabnzbdBase}“ arba „{qbittorrentBase}“ ir naudok vieną iš šio egzemplioriaus API prieigos raktų kaip API key arba kaip qBittorrent slaptažodį.',
   'captcha.unsolvableTurnstile': 'KnightLoader pats negali parodyti Cloudflare Turnstile užduoties, todėl į ją atsakyti gali tik sprendėjas iš Captcha nustatymų. Atsisakyti praleidžia šią captcha.',
   'captcha.solverWaiting': 'Sprendėjas perims po {time}.',
-  'captcha.solverWaitingHint': 'Tu žiūri, todėl sprendėjai pirmiausia laukia tavo atsakymo. Jei išeisi iš šios kortelės arba baigsis laikas, perims pirmasis sprendėjas pagal tavo tvarką.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} sprendžia šią captcha.',
   'captcha.solverSolvingHint': 'Vis tiek gali atsakyti pats. Galioja tas atsakymas, kuris ateina pirmas.',
   'captcha.solverStopped': 'Nė vienas sprendėjas negalėjo perimti šios captcha.',
@@ -2938,7 +2939,8 @@ export const lt: Dict = {
   'captcha.solverNoAnswer': '{solver} ją perėmė, bet atsakymas negrįžo.',
   'captcha.solverGaveUp': '{solver} ją perėmė, bet paskui pasidavė: {reason}',
   'captcha.solverFailed': '{solver} nepavyko pasiekti.',
-  'settings.captcha.onlyUnwatchedHint': 'Išjungta: sprendėjai pradeda, kai tik ateina captcha, kartu su captcha langu. Įjungta: kol kas nors žiūri, pirmiausia rodomas captcha langas, o sprendėjai laukia. Kas nors žiūri, kol naršyklės kortelė su KnightLoader yra priekiniame plane arba darbalaukio programos langas matomas ekrane, taip pat kol telefono programėlė turi šį egzempliorių atvertą priekiniame plane arba kita programa nuolat skaito jo captcha sąrašą. Kortelė fone ir langas, kuris sumažintas arba dėkle, neskaičiuojami, o uždarytas puslapis nustoja būti skaičiuojamas po kelių sekundžių. Kai niekas nebežiūri arba laikas žemiau baigiasi be atsakymo, perima pirmas sprendėjas pagal tvarką.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Nemokami atsisiuntimai',
   'settings.accounts.premiumOnly': 'Tik Premium',
   'settings.accounts.premiumOnlyHint': 'Hosterio nuorodą, kurios negali parsiųsti nė viena tavo paskyra, gauna JDownloader ir ją parsiunčia nemokamai: lėtai, su laukimu ir captcha. Kai įjungta „Tik Premium“, nuoroda vietoj to laukia eilėje ir pasako kodėl; taip pat elgiasi ir nemokamas atsisiuntimas, kurį pristabdei. Jis pasileidžia pats, kai tik pridedi prisijungimą tam hosteriui arba debrid paslaugą, kuri jį palaiko. Kategorija savo nuorodoms gali tai nuspręsti kitaip.',
