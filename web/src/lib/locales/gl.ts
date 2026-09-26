@@ -2947,7 +2947,7 @@ export const gl: Dict = {
   'settings.hostRules.backends': 'Servizos para este aloxador',
   'settings.hostRules.backendsHint': 'As ligazóns deste aloxador nunca van a un servizo que desactives aquí, estea onde estea na orde de prioridade. Unha descarga en pausa que comezou alí pasa ao seguinte servizo cando a retomas, e comeza desde o principio. Se non queda ningún servizo que poida aceptar unha ligazón, a ligazón falla e indica que foi excluída aquí. Unha descarga que fixases a un servizo nas súas propiedades segue indo alí. O servizo escollido arriba non aparece na lista: é o primeiro ao que se pregunta.',
   'task.waiting.premium': 'Agarda unha conta premium',
-  'settings.downloads.keepAwake': 'Manter o ordenador esperto durante as descargas',
+  'settings.module.keepawake': 'Manter o ordenador esperto durante as descargas',
   'settings.downloads.keepAwakeContainerHint': 'Non está nesta compilación. Só a aplicación de escritorio pode manter esperto un ordenador; a máquina na que corre un contedor decide por si mesma cando se pon a durmir.',
   'settings.modules.detail.eventprogramsOff': 'Apagado. Ningún evento inicia un programa, e un programa que xa estea en marcha remata.',
   'settings.modules.detail.programsEnabled': '{n} programas activados',
@@ -3045,4 +3045,5 @@ export const gl: Dict = {
   'settings.torrents.keepOnService': 'Conservar as descargas no servizo debrid',
   'settings.torrents.keepOnServiceHint': 'Cando isto está desactivado, KnightLoader borra un torrent do servizo debrid en canto todos os seus ficheiros están aquí, e fai o mesmo cunha descarga importada da conta, para que nada se acumule alí e consuma os límites da conta. Unha descarga importada que elimines aquí antes de que remate tamén se borra alí. Cando está activado, ambos quedan no servizo, por exemplo para que os poidas ver en streaming desde alí máis tarde. Un torrent que engadiu KnightLoader bórrase en calquera caso se o eliminas antes de que remate, e un que a conta xa tiña non se borra nunca.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

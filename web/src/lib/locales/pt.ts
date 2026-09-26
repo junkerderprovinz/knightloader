@@ -2939,7 +2939,7 @@ export const pt: Dict = {
   'settings.hostRules.backends': 'Serviços para este hoster',
   'settings.hostRules.backendsHint': 'Os links deste hoster nunca vão para um serviço que desligues aqui, seja qual for o seu lugar na ordem de prioridade. Uma transferência em pausa que começou lá passa para o serviço seguinte quando a retomas, e começa do início. Se não sobrar nenhum serviço que consiga aceitar um link, o link falha e diz que foi excluído aqui. Uma transferência que tenhas fixado num serviço nas suas propriedades continua a ir para lá. O serviço escolhido acima não aparece na lista: é o primeiro a quem se pergunta.',
   'task.waiting.premium': 'Aguarda uma conta premium',
-  'settings.downloads.keepAwake': 'Manter o computador acordado durante as transferências',
+  'settings.module.keepawake': 'Manter o computador acordado durante as transferências',
   'settings.downloads.keepAwakeContainerHint': 'Não está nesta compilação. Só a aplicação de desktop consegue manter um computador acordado; a máquina onde corre um contentor decide sozinha quando adormece.',
   'settings.modules.detail.eventprogramsOff': 'Desligado. Nenhum evento inicia um programa, e um programa que já esteja a correr chega ao fim.',
   'settings.modules.detail.programsEnabled': '{n} programas ligados',
@@ -3037,4 +3037,5 @@ export const pt: Dict = {
   'settings.torrents.keepOnService': 'Manter as transferências no serviço debrid',
   'settings.torrents.keepOnServiceHint': 'Quando isto está desligado, o KnightLoader apaga um torrent do serviço debrid assim que todos os seus ficheiros estão aqui, e faz o mesmo com uma transferência importada da conta, para que nada se acumule lá e pese nos limites da conta. Uma transferência importada que removas aqui antes de terminar também é apagada lá. Quando está ligado, ambos ficam no serviço, por exemplo para os poderes ver em streaming a partir de lá mais tarde. Um torrent que o KnightLoader adicionou é apagado de qualquer forma se o removeres antes de terminar, e um que a conta já tinha nunca é apagado.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

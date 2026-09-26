@@ -2933,7 +2933,7 @@ export const nl: Dict = {
   'settings.hostRules.backends': 'Backends voor deze hoster',
   'settings.hostRules.backendsHint': 'Links van deze hoster gaan nooit naar een backend die je hier uitzet, waar die ook in de prioriteitsvolgorde staat. Een gepauzeerde download die daar is begonnen, gaat bij het hervatten naar de volgende backend en begint opnieuw. Blijft er geen backend over die een link kan aannemen, dan mislukt de link en zegt hij dat hij hier is uitgesloten. Een download die je in zijn eigenschappen aan een backend hebt vastgezet, gaat er toch heen. De hierboven gekozen backend staat niet in de lijst: die wordt als eerste gevraagd.',
   'task.waiting.premium': 'Wacht op een premiumaccount',
-  'settings.downloads.keepAwake': 'De computer wakker houden tijdens het downloaden',
+  'settings.module.keepawake': 'De computer wakker houden tijdens het downloaden',
   'settings.downloads.keepAwakeContainerHint': 'Niet in deze build. Alleen de desktop-app kan een computer wakker houden; de machine waarop een container draait, beslist zelf wanneer hij slaapt.',
   'settings.modules.detail.eventprogramsOff': 'Uit. Geen enkele gebeurtenis start een programma, en een programma dat al loopt, wordt afgemaakt.',
   'settings.modules.detail.programsEnabled': '{n} programma’s ingeschakeld',
@@ -3031,4 +3031,5 @@ export const nl: Dict = {
   'settings.torrents.keepOnService': 'Downloads op de debrid-dienst bewaren',
   'settings.torrents.keepOnServiceHint': 'Staat dit uit, dan verwijdert KnightLoader een torrent van de debrid-dienst zodra al zijn bestanden hier zijn, en doet hetzelfde met een download die uit het account is geïmporteerd, zodat zich daar niets opstapelt dat meetelt voor de limieten van het account. Een geïmporteerde download die je hier verwijdert voordat hij klaar is, wordt daar ook verwijderd. Staat dit aan, dan blijven beide op de dienst staan, bijvoorbeeld om ze later daarvandaan te streamen. Een torrent die KnightLoader heeft toegevoegd, wordt hoe dan ook verwijderd als je hem weghaalt voordat hij klaar is, en een torrent die het account al had, wordt nooit verwijderd.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

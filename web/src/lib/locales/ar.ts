@@ -2949,7 +2949,7 @@ export const ar: Dict = {
   'settings.hostRules.backends': 'الخلفيات لهذا المستضيف',
   'settings.hostRules.backendsHint': 'روابط هذا المستضيف لا تذهب أبدًا إلى خلفية تطفئها هنا، أينما كان موضعها في ترتيب الأولوية. والتنزيل الموقوف مؤقتًا الذي بدأ هناك ينتقل إلى الخلفية التالية حين تستأنفه، ويبدأ من أوله. وإن لم تبقَ خلفية تستطيع قبول رابط، يفشل الرابط ويقول إنه استُبعد هنا. والتنزيل الذي ثبّته على خلفية في خصائصه يذهب إليها رغم ذلك. والخلفية المختارة أعلاه ليست في القائمة: فهي التي تُسأل أولًا.',
   'task.waiting.premium': 'بانتظار حساب بريميوم',
-  'settings.downloads.keepAwake': 'إبقاء الحاسوب مستيقظًا أثناء التنزيل',
+  'settings.module.keepawake': 'إبقاء الحاسوب مستيقظًا أثناء التنزيل',
   'settings.downloads.keepAwakeContainerHint': 'ليست في هذه البنية. لا يستطيع إبقاء الحاسوب مستيقظًا إلا تطبيق سطح المكتب؛ والجهاز الذي تعمل عليه حاوية يقرر بنفسه متى ينام.',
   'settings.modules.detail.eventprogramsOff': 'مطفأ. لا يبدأ أي حدث برنامجًا، والبرنامج الجاري بالفعل يكتمل.',
   'settings.modules.detail.programsEnabled': 'برامج مفعّلة: {n}',
@@ -3047,4 +3047,5 @@ export const ar: Dict = {
   'settings.torrents.keepOnService': 'إبقاء التنزيلات على خدمة debrid',
   'settings.torrents.keepOnServiceHint': 'حين يكون هذا مطفأً، يحذف KnightLoader التورنت من خدمة debrid بمجرد أن تصبح كل ملفاته هنا، ويفعل الشيء نفسه مع التنزيل المستورد من الحساب، كي لا يتراكم أي منهما هناك على حساب حدود الحساب. والتنزيل المستورد الذي تزيله هنا قبل اكتماله يُحذف هناك أيضًا. وحين يكون مشغّلًا، يبقى كلاهما على الخدمة، مثلًا كي تشغّلهما بثًّا من هناك لاحقًا. أما التورنت الذي أضافه KnightLoader فيُحذف في كل الأحوال إن أزلته قبل اكتماله، والتورنت الذي كان في الحساب من قبل لا يُحذف أبدًا.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

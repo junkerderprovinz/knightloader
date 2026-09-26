@@ -2941,7 +2941,7 @@ export const ko: Dict = {
   'settings.hostRules.backends': '이 호스터에 쓸 백엔드',
   'settings.hostRules.backendsHint': '이 호스터의 링크는 여기서 끈 백엔드로는 우선순위에서 어디에 있든 절대 가지 않습니다. 그곳에서 시작했다가 일시 중지된 다운로드는 재개하면 다음 백엔드로 옮겨 가고 처음부터 시작합니다. 링크를 받을 수 있는 백엔드가 하나도 남지 않으면 링크는 실패하고, 여기서 제외되었다고 알립니다. 속성에서 백엔드에 고정한 다운로드는 그래도 그곳으로 갑니다. 위에서 고른 백엔드는 목록에 없습니다. 가장 먼저 묻는 곳이기 때문입니다.',
   'task.waiting.premium': '프리미엄 계정 대기 중',
-  'settings.downloads.keepAwake': '다운로드하는 동안 컴퓨터 깨워 두기',
+  'settings.module.keepawake': '다운로드하는 동안 컴퓨터 깨워 두기',
   'settings.downloads.keepAwakeContainerHint': '이 빌드에 없음. 컴퓨터를 깨워 둘 수 있는 것은 데스크톱 앱뿐입니다. 컨테이너가 돌아가는 기기는 언제 절전 모드로 들어갈지 스스로 정합니다.',
   'settings.modules.detail.eventprogramsOff': '꺼짐. 어떤 이벤트도 프로그램을 시작하지 않으며, 이미 실행 중인 프로그램은 끝까지 진행됩니다.',
   'settings.modules.detail.programsEnabled': '켜진 프로그램 {n}개',
@@ -3039,4 +3039,5 @@ export const ko: Dict = {
   'settings.torrents.keepOnService': '다운로드를 Debrid 서비스에 유지',
   'settings.torrents.keepOnServiceHint': '꺼져 있으면 KnightLoader는 토렌트의 모든 파일이 여기 도착하는 즉시 그 토렌트를 Debrid 서비스에서 삭제하고, 계정에서 가져온 다운로드도 똑같이 처리합니다. 그래서 어느 쪽도 계정 한도를 채우며 쌓이지 않습니다. 가져온 다운로드를 끝나기 전에 여기서 제거하면 그쪽에서도 삭제됩니다. 켜져 있으면 둘 다 서비스에 남으므로, 예를 들어 나중에 거기서 스트리밍할 수 있습니다. KnightLoader가 추가한 토렌트는 끝나기 전에 제거하면 어느 쪽이든 삭제되고, 계정에 원래 있던 토렌트는 절대 삭제되지 않습니다.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

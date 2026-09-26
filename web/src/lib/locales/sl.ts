@@ -2949,7 +2949,7 @@ export const sl: Dict = {
   'settings.hostRules.backends': 'Zaledja za tega gostitelja',
   'settings.hostRules.backendsHint': 'Povezave tega gostitelja nikoli ne gredo k zaledju, ki ga tukaj izklopiš, ne glede na to, kje stoji v vrstnem redu prednosti. Začasno ustavljen prenos, ki se je začel tam, se ob nadaljevanju preseli k naslednjemu zaledju in začne od začetka. Če ne ostane nobeno zaledje, ki bi povezavo lahko sprejelo, povezava ne uspe in sporočilo pove, da je bila izključena tukaj. Prenos, ki si ga v lastnostih pripel na zaledje, gre vseeno tja. Zaledja, izbranega zgoraj, ni na seznamu: to je tisto, ki je vprašano prvo.',
   'task.waiting.premium': 'Čaka na premium račun',
-  'settings.downloads.keepAwake': 'Med prenašanjem ne pusti računalnika spati',
+  'settings.module.keepawake': 'Med prenašanjem ne pusti računalnika spati',
   'settings.downloads.keepAwakeContainerHint': 'Ni v tej izgradnji. Računalnik lahko budnega drži samo namizna aplikacija; računalnik, na katerem teče vsebnik, sam odloča, kdaj zaspi.',
   'settings.modules.detail.eventprogramsOff': 'Izklopljeno. Noben dogodek ne zažene programa, program, ki že teče, pa se dokonča.',
   'settings.modules.detail.programsEnabled': 'Vklopljeni programi: {n}',
@@ -3047,4 +3047,5 @@ export const sl: Dict = {
   'settings.torrents.keepOnService': 'Obdrži prenose v storitvi debrid',
   'settings.torrents.keepOnServiceHint': 'Ko je izklopljeno, KnightLoader izbriše torrent iz storitve debrid, ko so vse njegove datoteke tukaj, in enako naredi s prenosom, uvoženim iz računa, da se tam nič ne nabira in ne izčrpava omejitev računa. Uvožen prenos, ki ga tukaj odstraniš, preden je dokončan, se izbriše tudi tam. Ko je vklopljeno, oboje ostane v storitvi, na primer da ju lahko pozneje pretakaš neposredno od tam. Torrent, ki ga je dodal KnightLoader, se v vsakem primeru izbriše, če ga odstraniš, preden je dokončan, torrent, ki ga je račun že imel, pa se nikoli ne izbriše.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

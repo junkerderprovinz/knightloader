@@ -2936,7 +2936,7 @@ export const da: Dict = {
   'settings.hostRules.backends': 'Backends til denne hoster',
   'settings.hostRules.backendsHint': 'Links fra denne hoster går aldrig til en backend, du slår fra her, uanset hvor den står i prioritetsrækkefølgen. En download på pause, der startede dér, flytter til den næste backend, når du genoptager den, og starter forfra. Er der ingen backend tilbage, der kan tage et link, fejler linket og siger, at det blev udelukket her. En download, du har låst til en backend i dens egenskaber, går stadig dertil. Den backend, der er valgt ovenfor, står ikke på listen: det er den, der bliver spurgt først.',
   'task.waiting.premium': 'Venter på en premiumkonto',
-  'settings.downloads.keepAwake': 'Hold computeren vågen under download',
+  'settings.module.keepawake': 'Hold computeren vågen under download',
   'settings.downloads.keepAwakeContainerHint': 'Ikke i denne build. Kun skrivebordsappen kan holde en computer vågen; den maskine, en container kører på, afgør selv, hvornår den sover.',
   'settings.modules.detail.eventprogramsOff': 'Fra. Ingen hændelse starter et program, og et program, der allerede kører, bliver gjort færdigt.',
   'settings.modules.detail.programsEnabled': '{n} programmer slået til',
@@ -3034,4 +3034,5 @@ export const da: Dict = {
   'settings.torrents.keepOnService': 'Behold downloads på debrid-tjenesten',
   'settings.torrents.keepOnServiceHint': 'Når dette er slået fra, sletter KnightLoader en torrent fra debrid-tjenesten, så snart alle dens filer er her, og gør det samme med en download, der er importeret fra kontoen, så ingen af dem bliver liggende dér og tæller med i kontoens grænser. En importeret download, som du fjerner her, før den er færdig, slettes også dér. Når dette er slået til, bliver begge liggende på tjenesten, for eksempel så du kan streame dem derfra senere. En torrent, som KnightLoader har tilføjet, slettes under alle omstændigheder, hvis du fjerner den, før den er færdig, og en, som kontoen allerede havde, slettes aldrig.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

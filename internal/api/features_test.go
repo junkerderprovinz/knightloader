@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -367,6 +368,37 @@ func TestUnswitchableModulesAreRefused(t *testing.T) {
 		if err := setFeature(a, id, false); err == nil {
 			t.Errorf("%s has no switch but setFeature accepted it", id)
 		}
+	}
+}
+
+// Keep awake is switched from the Modules page and the Idle card alike, but
+// only the desktop build has anything to switch. Not parallel, since it sets
+// the build's deployment.
+func TestKeepAwakeHasASwitchOnlyOnTheDesktop(t *testing.T) {
+	prev := buildinfo.Deployment
+	t.Cleanup(func() { buildinfo.Deployment = prev })
+	a := testApp(t)
+
+	buildinfo.Deployment = "container"
+	if row := featureRow(t, a, "keepawake"); row.Verdict != VerdictDesktop || row.Switch != SwitchNone {
+		t.Errorf("in the container the row is %q with switch %q, want %q with none", row.Verdict, row.Switch, VerdictDesktop)
+	}
+	if err := setFeature(a, "keepawake", false); !errors.Is(err, errNoSwitch) {
+		t.Errorf("switching it in the container answered %v, want errNoSwitch", err)
+	}
+
+	buildinfo.Deployment = "desktop"
+	if row := featureRow(t, a, "keepawake"); row.Verdict != VerdictShipped || row.Switch != SwitchSetting || !row.Enabled {
+		t.Fatalf("on the desktop the row is %+v, want a shipped setting switch that is on", row)
+	}
+	if err := setFeature(a, "keepawake", false); err != nil {
+		t.Fatal(err)
+	}
+	if a.Settings.Get().KeepAwake {
+		t.Error("keep awake switched off, but the flag desktop/main.go reads is still set")
+	}
+	if featureRow(t, a, "keepawake").Enabled {
+		t.Error("keep awake is switched off but its row says on")
 	}
 }
 

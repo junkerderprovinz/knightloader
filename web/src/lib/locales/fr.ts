@@ -2938,7 +2938,7 @@ export const fr: Dict = {
   'settings.hostRules.backends': 'Services pour cet hébergeur',
   'settings.hostRules.backendsHint': 'Les liens de cet hébergeur ne vont jamais à un service que vous désactivez ici, quelle que soit sa place dans l’ordre de priorité. Un téléchargement en pause qui a commencé là-bas passe au service suivant quand vous le reprenez, et recommence depuis le début. S’il ne reste aucun service capable de prendre un lien, le lien échoue et indique qu’il a été exclu ici. Un téléchargement que vous avez fixé sur un service dans ses propriétés y va quand même. Le service choisi plus haut n’est pas dans la liste : c’est lui qu’on interroge en premier.',
   'task.waiting.premium': 'Attend un compte premium',
-  'settings.downloads.keepAwake': 'Garder l’ordinateur éveillé pendant les téléchargements',
+  'settings.module.keepawake': 'Garder l’ordinateur éveillé pendant les téléchargements',
   'settings.downloads.keepAwakeContainerHint': 'Pas dans cette version. Seule l’application de bureau peut garder un ordinateur éveillé ; la machine sur laquelle tourne un conteneur décide elle-même quand elle se met en veille.',
   'settings.modules.detail.eventprogramsOff': 'Désactivé. Aucun événement ne lance de programme, et un programme déjà en cours va jusqu’au bout.',
   'settings.modules.detail.programsEnabled': '{n} programmes activés',
@@ -3036,4 +3036,5 @@ export const fr: Dict = {
   'settings.torrents.keepOnService': 'Garder les téléchargements sur le service debrid',
   'settings.torrents.keepOnServiceHint': 'Quand cette option est désactivée, KnightLoader supprime un torrent du service debrid dès que tous ses fichiers sont ici, et fait de même avec un téléchargement importé depuis le compte, pour qu’aucun des deux ne s’y accumule et ne pèse sur les limites du compte. Un téléchargement importé que vous retirez ici avant qu’il soit terminé est aussi supprimé là-bas. Quand elle est activée, les deux restent sur le service, par exemple pour que vous puissiez les regarder en streaming depuis là-bas plus tard. Un torrent ajouté par KnightLoader est supprimé dans tous les cas si vous le retirez avant qu’il soit terminé, et un torrent que le compte avait déjà n’est jamais supprimé.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

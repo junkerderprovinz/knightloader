@@ -2951,7 +2951,7 @@ export const fi: Dict = {
   'settings.hostRules.backends': 'Taustaosat tälle hosterille',
   'settings.hostRules.backendsHint': 'Tämän hosterin linkit eivät koskaan mene taustaosalle, jonka kytket tässä pois, missä kohtaa prioriteettijärjestystä se onkin. Keskeytetty lataus, joka alkoi siellä, siirtyy jatkettaessa seuraavalle taustaosalle ja alkaa alusta. Jos jäljellä ei ole taustaosaa, joka voi ottaa linkin, linkki epäonnistuu ja kertoo, että se suljettiin pois tässä. Lataus, jonka olet ominaisuuksissa kiinnittänyt taustaosaan, menee silti sinne. Yllä valittu taustaosa ei ole listassa: sitä kysytään ensimmäisenä.',
   'task.waiting.premium': 'Odottaa premium-tiliä',
-  'settings.downloads.keepAwake': 'Pidä tietokone hereillä latauksen aikana',
+  'settings.module.keepawake': 'Pidä tietokone hereillä latauksen aikana',
   'settings.downloads.keepAwakeContainerHint': 'Ei tässä käännöksessä. Vain työpöytäsovellus voi pitää tietokoneen hereillä; kone, jolla kontti toimii, päättää itse, milloin se siirtyy lepotilaan.',
   'settings.modules.detail.eventprogramsOff': 'Pois. Mikään tapahtuma ei käynnistä ohjelmaa, ja jo käynnissä oleva ohjelma suoritetaan loppuun.',
   'settings.modules.detail.programsEnabled': '{n} ohjelmaa päällä',
@@ -3049,4 +3049,5 @@ export const fi: Dict = {
   'settings.torrents.keepOnService': 'Säilytä lataukset debrid-palvelussa',
   'settings.torrents.keepOnServiceHint': 'Kun tämä on pois päältä, KnightLoader poistaa torrentin debrid-palvelusta heti, kun kaikki sen tiedostot ovat täällä, ja tekee samoin tililtä tuodulle lataukselle, jottei kumpikaan kasaannu sinne tilin rajoja kuluttamaan. Tuotu lataus, jonka poistat täältä ennen kuin se on valmis, poistetaan myös sieltä. Kun tämä on päällä, molemmat jäävät palveluun, esimerkiksi jotta voit suoratoistaa ne sieltä myöhemmin. KnightLoaderin lisäämä torrent poistetaan joka tapauksessa, jos poistat sen ennen kuin se on valmis, ja torrenttia, joka tilillä oli jo ennestään, ei poisteta koskaan.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

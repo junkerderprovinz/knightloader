@@ -2936,7 +2936,7 @@ export const zh: Dict = {
   'settings.hostRules.backends': '这个网盘可用的后端',
   'settings.hostRules.backendsHint': '这个网盘的链接永远不会交给你在这里关掉的后端，不管它在优先级顺序中排第几。在那里开始后又暂停的下载，继续时会换到下一个后端，并从头开始。如果已经没有能接这个链接的后端，链接就会失败，并说明它在这里被排除了。你在属性里固定到某个后端的下载仍然会去那里。上面选中的后端不在列表里：它是第一个被问到的。',
   'task.waiting.premium': '等待高级账户',
-  'settings.downloads.keepAwake': '下载时让电脑保持唤醒',
+  'settings.module.keepawake': '下载时让电脑保持唤醒',
   'settings.downloads.keepAwakeContainerHint': '本构建未包含。只有桌面应用能让电脑保持唤醒；运行容器的那台机器自己决定何时睡眠。',
   'settings.modules.detail.eventprogramsOff': '已关闭。任何事件都不会启动程序，已经在运行的程序会跑完。',
   'settings.modules.detail.programsEnabled': '已开启 {n} 个程序',
@@ -3034,4 +3034,5 @@ export const zh: Dict = {
   'settings.torrents.keepOnService': '在 Debrid 服务上保留下载',
   'settings.torrents.keepOnServiceHint': '关闭时，种子的全部文件到达这里后，KnightLoader 会把它从 Debrid 服务上删除；从账户导入的下载也一样。这样两者都不会在服务上越积越多，占满账户的限额。你在这里移除一个尚未完成的导入下载时，那边也会把它删除。打开时，两者都会留在服务上，例如方便你以后从那里在线播放。由 KnightLoader 添加的种子，只要你在它完成前移除，无论如何都会被删除；而账户原本就有的种子永远不会被删除。',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

@@ -2944,7 +2944,7 @@ export const eu: Dict = {
   'settings.hostRules.backends': 'Ostalari honetarako zerbitzuak',
   'settings.hostRules.backendsHint': 'Ostalari honen estekak ez dira inoiz joaten hemen itzaltzen duzun zerbitzu batera, lehentasun-ordenan non dagoen ere. Han hasitako deskarga pausatu bat hurrengo zerbitzura pasatzen da berriz abiarazten duzunean, eta hasieratik hasten da. Esteka bat onar dezakeen zerbitzurik geratzen ez bada, estekak huts egiten du eta hemen baztertu zela esaten du. Bere propietateetan zerbitzu batean finkatu duzun deskarga bat hara joaten da hala ere. Goian aukeratutako zerbitzua ez dago zerrendan: hari galdetzen zaio lehenik.',
   'task.waiting.premium': 'Premium kontu baten zain',
-  'settings.downloads.keepAwake': 'Mantendu ordenagailua esna deskargatzen duen bitartean',
+  'settings.module.keepawake': 'Mantendu ordenagailua esna deskargatzen duen bitartean',
   'settings.downloads.keepAwakeContainerHint': 'Ez dago eraikuntza honetan. Mahaigaineko aplikazioak bakarrik mantendu dezake ordenagailu bat esna; edukiontzi bat exekutatzen den makinak berak erabakitzen du noiz lokartu.',
   'settings.modules.detail.eventprogramsOff': 'Itzalita. Gertaerek ez dute programarik abiarazten, eta jada martxan dagoen programa bat amaitu egiten da.',
   'settings.modules.detail.programsEnabled': '{n} programa piztuta',
@@ -3042,4 +3042,5 @@ export const eu: Dict = {
   'settings.torrents.keepOnService': 'Gorde deskargak debrid zerbitzuan',
   'settings.torrents.keepOnServiceHint': 'Hau itzalita dagoenean, KnightLoaderrek torrent bat debrid zerbitzutik ezabatzen du bere fitxategi guztiak hemen daudenean, eta gauza bera egiten du kontutik inportatutako deskarga batekin, bietako bat ere han pilatu ez dadin eta kontuaren mugak bete ez ditzan. Hemen amaitu aurretik kentzen duzun inportatutako deskarga bat han ere ezabatzen da. Hau piztuta dagoenean, biak zerbitzuan geratzen dira, adibidez geroago handik streaming bidez ikusi ahal izateko. KnightLoaderrek gehitutako torrent bat ezabatu egiten da edonola ere amaitu aurretik kentzen baduzu, eta kontuak lehendik zuena ez da inoiz ezabatzen.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

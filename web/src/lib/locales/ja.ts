@@ -2950,7 +2950,7 @@ export const ja: Dict = {
   'settings.hostRules.backends': 'このホスターのバックエンド',
   'settings.hostRules.backendsHint': 'このホスターのリンクは、ここでオフにしたバックエンドには、優先順位のどこにあっても渡りません。そこで始まって一時停止したダウンロードは、再開すると次のバックエンドに移り、最初からやり直します。リンクを受け付けられるバックエンドが残っていなければ、リンクは失敗し、ここで除外されたことを表示します。プロパティでバックエンドに固定したダウンロードは、それでもそこへ行きます。上で選んだバックエンドは一覧に載りません。最初に問い合わせる相手だからです。',
   'task.waiting.premium': 'プレミアムアカウント待ち',
-  'settings.downloads.keepAwake': 'ダウンロード中はコンピューターをスリープさせない',
+  'settings.module.keepawake': 'ダウンロード中はコンピューターをスリープさせない',
   'settings.downloads.keepAwakeContainerHint': 'このビルドには含まれません。コンピューターをスリープさせずにおけるのはデスクトップアプリだけです。コンテナを動かしているマシンは、いつスリープするかを自分で決めます。',
   'settings.modules.detail.eventprogramsOff': 'オフ。どのイベントでもプログラムは起動せず、すでに実行中のプログラムは最後まで進みます。',
   'settings.modules.detail.programsEnabled': 'オンのプログラム {n} 件',
@@ -3048,4 +3048,5 @@ export const ja: Dict = {
   'settings.torrents.keepOnService': 'ダウンロードを Debrid サービスに残す',
   'settings.torrents.keepOnServiceHint': 'オフのときは、トレントのファイルがすべてここに届いた時点で、KnightLoader がそのトレントを Debrid サービスから削除します。アカウントから取り込んだダウンロードも同じなので、どちらもサービスにたまってアカウントの上限を圧迫することはありません。取り込んだダウンロードを完了前にここで削除すると、向こうでも削除されます。オンのときは、どちらもサービスに残ります。たとえば、あとでそこからストリーミングできるようにするためです。KnightLoader が追加したトレントは、完了前に削除すればどちらの設定でも削除され、アカウントにもともとあったトレントが削除されることはありません。',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

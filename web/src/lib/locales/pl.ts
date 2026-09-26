@@ -2934,7 +2934,7 @@ export const pl: Dict = {
   'settings.hostRules.backends': 'Backendy dla tego hostera',
   'settings.hostRules.backendsHint': 'Linki z tego hostera nigdy nie trafiają do backendu, który tu wyłączysz, bez względu na jego miejsce w kolejności priorytetów. Wstrzymane pobranie, które tam się zaczęło, po wznowieniu przechodzi do następnego backendu i zaczyna od początku. Jeśli nie zostanie żaden backend, który może przyjąć link, link kończy się błędem z informacją, że został tu wykluczony. Pobranie, które we właściwościach przypiąłeś do backendu, nadal tam trafia. Backendu wybranego powyżej nie ma na liście: to on jest pytany jako pierwszy.',
   'task.waiting.premium': 'Czeka na konto premium',
-  'settings.downloads.keepAwake': 'Nie usypiaj komputera podczas pobierania',
+  'settings.module.keepawake': 'Nie usypiaj komputera podczas pobierania',
   'settings.downloads.keepAwakeContainerHint': 'Nie ma tego w tej kompilacji. Tylko aplikacja na komputer potrafi powstrzymać komputer przed uśpieniem; maszyna, na której działa kontener, sama decyduje, kiedy zasypia.',
   'settings.modules.detail.eventprogramsOff': 'Wyłączone. Żadne zdarzenie nie uruchamia programu, a program, który już działa, dobiegnie końca.',
   'settings.modules.detail.programsEnabled': 'Włączone programy: {n}',
@@ -3032,4 +3032,5 @@ export const pl: Dict = {
   'settings.torrents.keepOnService': 'Zostawiaj pobrania w usłudze debrid',
   'settings.torrents.keepOnServiceHint': 'Gdy przełącznik jest wyłączony, KnightLoader usuwa torrent z usługi debrid, gdy tylko wszystkie jego pliki są tutaj, i tak samo postępuje z pobraniem zaimportowanym z konta, żeby nic się tam nie gromadziło i nie obciążało limitów konta. Zaimportowane pobranie, które usuniesz tutaj przed ukończeniem, zostaje usunięte także tam. Gdy przełącznik jest włączony, jedno i drugie zostaje w usłudze, na przykład żeby można je było później stamtąd streamować. Torrent dodany przez KnightLoader zostaje usunięty w każdym przypadku, jeśli usuniesz go przed ukończeniem, a torrent, który konto już miało, nie jest usuwany nigdy.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

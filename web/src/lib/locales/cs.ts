@@ -2960,7 +2960,7 @@ export const cs: Dict = {
   'settings.hostRules.backends': 'Backendy pro tenhle hoster',
   'settings.hostRules.backendsHint': 'Odkazy z tohohle hosteru nikdy nejdou na backend, který tady vypneš, ať stojí v pořadí priorit kdekoli. Pozastavené stahování, které tam začalo, se při pokračování přesune na další backend a začne od začátku. Když nezbude žádný backend, který by odkaz přijal, odkaz selže a hlášení uvede, že byl vyloučen tady. Stahování, které jsi ve vlastnostech připnul k backendu, tam jde i tak. Backend zvolený výše v seznamu není: ten je na řadě jako první.',
   'task.waiting.premium': 'Čeká na prémiový účet',
-  'settings.downloads.keepAwake': 'Nenechat počítač usnout během stahování',
+  'settings.module.keepawake': 'Nenechat počítač usnout během stahování',
   'settings.downloads.keepAwakeContainerHint': 'Není v tomto buildu. Udržet počítač vzhůru umí jen desktopová aplikace; stroj, na kterém běží kontejner, si sám rozhoduje, kdy usne.',
   'settings.modules.detail.eventprogramsOff': 'Vypnuto. Žádná událost nespustí program a program, který už běží, se dokončí.',
   'settings.modules.detail.programsEnabled': 'Zapnuté programy: {n}',
@@ -3058,4 +3058,5 @@ export const cs: Dict = {
   'settings.torrents.keepOnService': 'Ponechat stahování v debrid službě',
   'settings.torrents.keepOnServiceHint': 'Když je vypnuto, KnightLoader smaže torrent z debrid služby, jakmile jsou tady všechny jeho soubory, a stejně naloží se stahováním importovaným z účtu, takže se tam nic nehromadí na úkor limitů účtu. Importované stahování, které tady odebereš dřív, než se dokončí, se smaže i tam. Když je zapnuto, obojí ve službě zůstane, třeba aby se dalo později streamovat přímo odtamtud. Torrent, který přidal KnightLoader, se smaže v každém případě, když ho odebereš před dokončením, a torrent, který už účet měl, se nesmaže nikdy.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

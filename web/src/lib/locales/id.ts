@@ -2950,7 +2950,7 @@ export const id: Dict = {
   'settings.hostRules.backends': 'Backend untuk hoster ini',
   'settings.hostRules.backendsHint': 'Tautan dari hoster ini tidak pernah pergi ke backend yang kamu matikan di sini, di mana pun posisinya dalam urutan prioritas. Unduhan yang dijeda dan dimulai di sana pindah ke backend berikutnya saat kamu melanjutkannya, dan mulai dari awal. Kalau tidak ada lagi backend yang bisa menerima sebuah tautan, tautan itu gagal dan menyebutkan bahwa ia dikecualikan di sini. Unduhan yang kamu sematkan ke sebuah backend di propertinya tetap pergi ke sana. Backend yang dipilih di atas tidak tercantum: backend itulah yang ditanya pertama.',
   'task.waiting.premium': 'Menunggu akun premium',
-  'settings.downloads.keepAwake': 'Jaga komputer tetap terjaga selama mengunduh',
+  'settings.module.keepawake': 'Jaga komputer tetap terjaga selama mengunduh',
   'settings.downloads.keepAwakeContainerHint': 'Tidak ada di build ini. Hanya aplikasi desktop yang bisa menjaga komputer tetap terjaga; mesin tempat kontainer berjalan menentukan sendiri kapan ia tidur.',
   'settings.modules.detail.eventprogramsOff': 'Mati. Tidak ada peristiwa yang memulai program, dan program yang sudah berjalan tetap diselesaikan.',
   'settings.modules.detail.programsEnabled': '{n} program dinyalakan',
@@ -3048,4 +3048,5 @@ export const id: Dict = {
   'settings.torrents.keepOnService': 'Simpan unduhan di layanan debrid',
   'settings.torrents.keepOnServiceHint': 'Kalau ini mati, KnightLoader menghapus torrent dari layanan debrid begitu semua berkasnya sudah di sini, dan melakukan hal yang sama pada unduhan yang diimpor dari akun, jadi keduanya tidak menumpuk dan menghabiskan batas akun. Unduhan hasil impor yang kamu hapus di sini sebelum selesai juga dihapus di sana. Kalau ini menyala, keduanya tetap di layanan, misalnya supaya kamu bisa streaming dari sana nanti. Torrent yang ditambahkan KnightLoader selalu dihapus kalau kamu menghapusnya sebelum selesai, apa pun pengaturan ini, dan torrent yang sudah ada di akun sebelumnya tidak pernah dihapus.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };
