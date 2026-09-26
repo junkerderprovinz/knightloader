@@ -1,9 +1,9 @@
 # KnightLoader mobile
 
 A companion app for Android and iOS (React Native / Expo, TypeScript). It
-does not run a download engine itself. It talks to an already-running
-KnightLoader server over the same REST + WebSocket API the web UI and the
-browser extension use, the way My.JDownloader's mobile app is a client of a
+does not run a download engine itself. It talks to running KnightLoader
+instances over the same REST API the web UI uses, carried through the relay
+(see "How it connects"), the way My.JDownloader's mobile app is a client of a
 JDownloader instance rather than a second JDownloader.
 
 ## Versions
@@ -37,97 +37,81 @@ that was never going to run the engine anyway.
 
 ## How it connects
 
-There is no relay and no account, the same as the rest of KnightLoader (see
-`internal/api/routes_remote.go`'s own doc comment on why). The app can hold
-several saved connections, one per KnightLoader server, each with its own
-token, and switch between them; onboarding a new one is still manual:
+The connection phrase is the one way in, as it is in the browser extension.
+The **+** on the overview, or the button on its empty screen, opens a single
+field: type the twelve words, paste them, or scan the QR the web UI shows
+beside them. Every instance in the group then appears at once and is saved as
+a connection of its own, with no address and no token to look up. The overview
+is the list of those connections, and the app switches between them.
 
-1. On the server's web UI, open the Access tab and create a named API token
-   (`POST /api/tokens`, see `internal/api/routes_tokens.go`). The secret is
-   shown once. Full access works; the app itself only uses Read, Add and
-   Control, so a Custom token with those three is enough.
-2. In the app's "add connection" screen, enter the server's address and
-   paste the token in, or scan the Access tab's remote-access QR, which
-   encodes the address, and paste only the token.
+A connection saved by address in an earlier build keeps working, but the app
+no longer makes one. Those builds took the server's address and an API token
+from the web UI's Access tab (`POST /api/tokens`, see
+`internal/api/routes_tokens.go`). The app only uses Read, Add and Control, so a
+Custom token with those three was enough. Such a connection sends its token as
+`Authorization: Bearer <token>` on every request, the same header a script
+would use.
 
-   Or skip all of that: **enter the connection phrase instead**. Twelve
-   words, and every instance in the group appears at once, with no address
-   and no token to look up. See "Joining a group" below. This numbered path
-   is the direct one, for a server this phone can reach on its own.
-3. The app stores every saved connection, tokens included, in the OS
-   keychain (`expo-secure-store`), never in plain storage, and sends the
-   active one's token as `Authorization: Bearer <token>` on every request,
-   the same header a script or the browser extension would use.
+Every saved connection sits in the OS keychain (`expo-secure-store`), never in
+plain storage: one made with the phrase holds the group key, one saved by
+address holds its token.
 
 ### Joining a group (the phrase)
 
-The flow above needs a network path from the phone to the instance. When there
-is none (every instance behind a NAT with no port forwarding and no reverse
-proxy), the phone joins the group instead. Twelve words, and every instance in
-it appears at once.
-
-The connect screen's link leads to one field. The words are decoded on the
+The phone joins the group as a member rather than as a client of one instance,
+so it needs no network path to any of them. The words are decoded on the
 phone (`src/api/seedphrase.ts`), which derives the same group key the
 instances derive, and the app dials the same relay they dial. The relay's
 address is compiled in, which is what keeps a phrase to twelve words instead
 of a URL plus a key; a group on a self-hosted relay is the one case that still
 wants the address typed, and is not wired up here yet.
 
-From there a relay connection behaves like any other: the same screens, the same
-calls. `src/api/client.ts`'s `request()` is the only place that knows the
-difference, and it swaps `fetch` for a relay frame, so the federation proxy
-prefix keeps working through it too, and a relay-reached instance's own peers
-stay browsable.
+From there a relay connection behaves like one saved by address: the same
+screens, the same calls. `src/api/client.ts`'s `request()` is the only place
+that knows the difference, and it swaps `fetch` for a relay frame.
 
-Three things are genuinely different, all of them consequences of the transport
-rather than choices:
+Three things are different, all of them consequences of the transport rather
+than choices:
 
 - **It polls, it does not stream.** The relay carries request/response frames,
   not a tunnelled WebSocket, so there is no `/api/ws` to attach to. `liveTasks()`
   picks streaming or polling per connection; a federation peer already had the
   same limitation for the same reason.
 - **No token, even for an instance with a password.** Being on the relay under
-  the group key is the credential now: a request arriving that way came off a
+  the group key is the credential: a request arriving that way came off a
   socket the relay only joins to connections presenting the same key, so the
   instance accepts it. This is what the phrase bought. What it admits is an
-  allowlist, not the whole API: tasks, links, the queue and the captchas
-  holding it up, plus reading the auth state, the peer list and the instance's
-  own accent. Not the settings, not the accounts, not the phrase itself.
+  allowlist, not the whole API (`relayForwardable` in
+  `internal/api/routes_relay.go`): tasks, links, the queue and the captchas
+  holding it up, the instance's look to read and to set, plus reading the auth
+  state, the peer list and the addresses the instance answers on. Not the
+  settings, not the accounts, not the phrase itself.
 - **The phrase is the whole federation's admission ticket.** Every instance in
   the group is reachable by anything holding it, which is worth knowing before
   putting one on a device that gets lost. Leaving the group on that phone does
   not revoke it for anybody else. The phrase is a group, not a per-device
   credential.
 
-Worth being explicit about: **the relay operator carries your frames**, so they
-see who is talking and when. What they never see is the phrase: the instances
-and the phone all send a hash of it, never the words. Frames themselves are
-forwarded as they are, so paths and bodies are visible to whoever runs the
-relay. Ours is at `relay.halleluja.design`; run your own if that matters.
+**The relay operator carries your frames**, so they see who is talking and
+when. They cannot read the frames: each proxy frame is sealed with AES-256-GCM
+under a second key derived from the same phrase (`src/api/relayFrame.ts`), so
+the relay sees which instance a frame is for and which request it answers, and
+nothing of its path or body. It never sees the phrase either: the instances
+and the phone send only a hash of it. Ours is at `relay.halleluja.design`; run
+your own if the metadata matters.
 
 The app announces itself to the relay with `client: true` (`relay.Announce`), so
 it never appears as a browsable instance on anyone else's Instances page. It
 consumes the relay without being something on it. It answers any call made to it
 anyway with 501 rather than letting the caller time out.
 
-### Instances (federation peers)
+### Instances
 
-Once connected, the app also shows the peer instances that server itself
-knows about (`GET /api/instances`, `internal/api/routes_federation.go`),
-the mobile equivalent of the web UI's own Instances tab. Opening a peer
-shows its queue and lets you add links and flip its queue's master switch,
-proxied through the connected server (`/api/instances/{name}/...`); the
-proxy only forwards task/link/queue routes, and only plain REST, so a peer's
-own queue is polled every few seconds there rather than streamed over the
-WebSocket the connected server's own queue uses.
-
-Adding a peer here means typing its name and address by hand, which
-registers an address and nothing else, so a peer with a password will refuse
-it. There used to be a second way, a pairing-code QR that carried name,
-address and a one-time token, and it was removed along with pairing itself.
-What replaced it is the connection phrase: put both instances in the same
-group and they authenticate each other by holding the same key, with nothing
-to copy per peer.
+There is no Instances screen. Every member of the group is a connection of its
+own on the overview, so the overview is the list of instances. The Downloads
+and Add Download screens keep a branch for a federation peer reached through
+the connected instance's proxy (`/api/instances/{name}/...`), but nothing in
+the app opens it.
 
 ## Language
 
@@ -151,7 +135,8 @@ different ones.
 
 ## Live updates
 
-`GET /api/ws` is the same task/queue stream the web UI subscribes to. React
+A connection saved by address follows `GET /api/ws`, the same task/queue
+stream the web UI subscribes to; one made with the phrase polls, as above. React
 Native's `WebSocket` supports a non-standard third constructor argument for
 headers (browsers' does not), so the token rides as a real `Authorization`
 header on the socket too, not a query parameter. See `src/api/client.ts`'s
@@ -237,9 +222,9 @@ registers its push token.
   `internal/app.QueueState`). Keep these in sync with the Go structs, not
   the other way round.
 - `src/api/client.ts`: REST calls (each taking a `base`, `/api` for the
-  connected server or `/api/instances/{name}` for a proxied peer), the
-  WebSocket task subscription for the connected server, and `pollTasks` as
-  its polling equivalent for a peer.
+  connected instance or `/api/instances/{name}` for a proxied peer), the
+  WebSocket task subscription for a connection saved by address, and
+  `pollTasks` as its polling equivalent for the relay.
 - `src/api/captcha.ts`: the rules the captcha screen follows (the order, the
   countdown, a click answer, the widget page's address and the vendors it runs,
   which of the page's messages count, who to blame when it does not load, the
@@ -258,27 +243,26 @@ registers its push token.
   `english.txt` so the two cannot disagree, and `src/api/sha256.ts` is
   SHA-256 written out rather than a native module.
 - `src/api/relayClient.ts`: this app's own client for
-  `internal/relay`'s wire protocol; see "When nothing here can reach it at
-  all" above. One shared socket per (relay, key), because the relay treats a
-  second connection under the same identity as the first one reconnecting.
+  `internal/relay`'s wire protocol; see "Joining a group" above. One shared
+  socket per (relay, key), because the relay treats a second connection
+  under the same identity as the first one reconnecting.
 - `src/api/base64.ts`: base64 and UTF-8 in both directions, by hand rather
   than from the engine (`atob`/`TextEncoder` are not guaranteed present on
   every Hermes build). Used for the relay's frame bodies, which Go marshals
   as base64 `[]byte`.
 - `src/storage/relayIdentity.ts`: this device's stable id on a relay.
 - `src/components/QRScanner.tsx`: a full-screen camera modal
-  (`expo-camera`) that hands back one decoded QR string; both scan buttons
-  in the screens below use it.
+  (`expo-camera`) that hands back one decoded QR string; the phrase screen's
+  scan button uses it.
 - `src/i18n/`: the translation system; see "Language" above.
 - `src/components/IconBadge.tsx`: the small round glyph buttons in a
   screen's top bar (add, settings) - text glyphs, not an icon font/SVG set,
   matching `QRScanner`'s own "QR" label and the back chevron already used
   elsewhere.
-- `src/screens/`: Connections (the saved-server list and the app's own
-  landing screen), Connect (add one), RelayConnect (add one that is only
-  reachable through a relay), Downloads (the live queue, a connected
-  server's own or a peer's), Instances (that server's federation peers),
-  Add Download, Captchas, Settings, Language (the picker Settings opens).
+- `src/screens/`: Connections (the overview of saved connections and the
+  app's landing screen), RelayConnect (the phrase, the one way to add
+  connections), Downloads (one instance's live queue), Add Download, Captchas,
+  Settings, Language (the picker Settings opens).
 - `src/theme/`: GlimStone, the same design language the web UI carries:
   `tokens.ts` (palette, radii, type scale), `appearance.ts` (the
   framework-free helpers, a straight copy of the shared reference so the two
@@ -431,9 +415,6 @@ project to point it at.
 
 ## Not done yet
 
-- Scanning the phrase QR. The web UI shows one next to the twelve words,
-  and the phone still wants them typed. The scanner and the decoder are both
-  already here, so this is wiring, not design.
 - No keepalive on the relay socket. The Go client pings every 30s to hold the
   connection open through a reverse proxy that drops idle upstreams; the
   WebSocket API React Native exposes cannot send a ping frame at all, so this
