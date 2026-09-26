@@ -394,7 +394,7 @@ export const fr: Dict = {
   'search.toggle': 'Rechercher',
 
   'skipped.summary': '{n} lien(s) n’ont pas été ajoutés',
-  'skipped.info': 'Des liens que le collecteur a reconnus comme déjà en attente. Rien n’a été perdu : c’est la copie déjà présente dans la liste qui sera téléchargée. Effacer oublie seulement cette note ; cela ne rajoute rien.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Effacer',
   'skipped.clearFailed': 'Impossible d’effacer la liste. Le serveur est-il joignable ?',
 
@@ -3015,7 +3015,8 @@ export const fr: Dict = {
   'container.nzbTooBig': 'il dépasse {max}, la taille maximale d’un .nzb',
   'container.noUsenet': 'c’est un .nzb, et ceux-ci sont récupérés depuis Usenet via un compte TorBox ou Premiumize.me. Aucun de vos comptes ne peut le faire : ajoutez-en un sous Comptes.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, envoyé ici ou transmis par Sonarr ou Radarr, va à votre compte TorBox ou Premiumize.me, qui le récupère depuis Usenet. Ses fichiers se téléchargent ensuite comme n’importe quel autre lien.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Récupération chez {service}',
   'task.remoteSeeds': 'Seeds : {n}',
   'accounts.routing.orderHintTorrents': 'Les liens magnet et les fichiers .torrent vont soit à Torrent et magnet, le client intégré, soit à un service debrid qui accepte les torrents, selon celui qui est placé le plus haut dans la liste.',

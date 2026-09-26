@@ -402,7 +402,7 @@ export const eu: Dict = {
   'search.toggle': 'Bilatu',
 
   'skipped.summary': '{n} esteka ez dira gehitu',
-  'skipped.info': 'Biltzaileak jada prestatuta zeudela ezagutu dituen estekak. Ez da ezer galdu: zerrendan dagoeneko dagoen kopia da deskargatuko dena. Garbitzeak ohar hau ahazten du soilik; ez du ezer itzultzen.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Garbitu',
   'skipped.clearFailed': 'Ezin izan da zerrenda garbitu. Zerbitzaria eskuragarri dago?',
 
@@ -3021,7 +3021,8 @@ export const eu: Dict = {
   'container.nzbTooBig': '{max} baino handiagoa da, eta .nzb bat ezin da hori baino handiagoa izan',
   'container.noUsenet': '.nzb bat da, eta horiek Usenetetik ekartzen dira TorBox edo Premiumize.me kontu baten bidez. Zure kontuetako batek ere ezin du hori egin: gehitu bat Kontuak atalean.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Hemen igotako edo Sonarr-ek edo Radarr-ek bidalitako .nzb bat zure TorBox edo Premiumize.me kontura doa, eta hark Usenetetik ekartzen du. Gero bere fitxategiak beste edozein esteka bezala deskargatzen dira.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service} zerbitzuan deskargatzen',
   'task.remoteSeeds': 'Seedak: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet estekak eta .torrent fitxategiak Torrent eta magnetera doaz, barneko bezerora alegia, edo torrentak onartzen dituen debrid zerbitzu batera, zerrendan gorago dagoenaren arabera.',

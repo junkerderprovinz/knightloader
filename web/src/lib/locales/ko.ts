@@ -402,7 +402,7 @@ export const ko: Dict = {
   'search.toggle': '검색',
 
   'skipped.summary': '링크 {n}개가 추가되지 않았습니다',
-  'skipped.info': '수집함이 이미 담겨 있다고 알아본 링크입니다. 잃은 것은 없습니다. 목록에 이미 있는 사본이 다운로드됩니다. 지우면 이 알림만 사라질 뿐 아무것도 다시 추가되지 않습니다.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': '지우기',
   'skipped.clearFailed': '목록을 지우지 못했습니다. 서버에 닿나요?',
 
@@ -3018,7 +3018,8 @@ export const ko: Dict = {
   'container.nzbTooBig': '{max}보다 커서, .nzb가 가질 수 있는 최대 크기를 넘습니다',
   'container.noUsenet': '.nzb 파일이며, 이는 TorBox나 Premiumize.me 계정을 통해 Usenet에서 가져옵니다. 계정 중 그것을 할 수 있는 것이 없습니다. 계정에서 하나 추가하세요.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb는 여기서 올렸든 Sonarr나 Radarr가 보냈든 TorBox나 Premiumize.me 계정으로 가고, 그 계정이 Usenet에서 가져옵니다. 그 뒤 파일들은 다른 링크처럼 다운로드됩니다.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service}에서 가져오는 중',
   'task.remoteSeeds': '시드: {n}',
   'accounts.routing.orderHintTorrents': '마그넷 링크와 .torrent 파일은 내장 클라이언트인 “토렌트 및 마그넷”이나 토렌트를 지원하는 Debrid 서비스로 가며, 목록에서 더 위에 있는 쪽이 맡습니다.',

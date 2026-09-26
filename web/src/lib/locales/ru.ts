@@ -394,7 +394,7 @@ export const ru: Dict = {
   'search.toggle': 'Поиск',
 
   'skipped.summary': '{n} ссылок не добавлено',
-  'skipped.info': 'Ссылки, которые сборщик узнал как уже подготовленные. Ничего не потеряно: скачается та копия, которая уже есть в списке. Очистка забывает только эту заметку и ничего не добавляет обратно.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Очистить',
   'skipped.clearFailed': 'Не удалось очистить список. Сервер доступен?',
 
@@ -3006,7 +3006,8 @@ export const ru: Dict = {
   'container.nzbTooBig': 'он больше {max}, а больше этого файл .nzb быть не может',
   'container.noUsenet': 'это .nzb, а такие файлы забираются из Usenet через аккаунт TorBox или Premiumize.me. Ни один из ваших аккаунтов этого не умеет: добавьте такой в разделе «Аккаунты».',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Файл .nzb, загруженный здесь или присланный Sonarr или Radarr, уходит в ваш аккаунт TorBox или Premiumize.me, который забирает его из Usenet. Потом его файлы загружаются, как любая другая ссылка.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Загружает {service}',
   'task.remoteSeeds': 'Сиды: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-ссылки и файлы .torrent идут либо в «Торрент и магнет», встроенный клиент, либо к debrid-сервису, который принимает торренты, в зависимости от того, что стоит выше в списке.',

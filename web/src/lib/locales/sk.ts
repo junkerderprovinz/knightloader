@@ -402,7 +402,7 @@ export const sk: Dict = {
   'search.toggle': 'Hľadať',
 
   'skipped.summary': '{n} odkazov nebolo pridaných',
-  'skipped.info': 'Odkazy, ktoré zberač spoznal ako už pripravené. Nič sa nestratilo: stiahne sa kópia, ktorá už v zozname je. Vymazanie zabudne len túto poznámku; nič späť nepridá.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Vymazať',
   'skipped.clearFailed': 'Zoznam sa nepodarilo vymazať. Je server dostupný?',
 
@@ -3037,7 +3037,8 @@ export const sk: Dict = {
   'container.nzbTooBig': 'je väčší než {max}, a väčší súbor .nzb byť nesmie',
   'container.noUsenet': 'je to .nzb a tie sa sťahujú z Usenetu cez účet TorBox alebo Premiumize.me. Žiadny z tvojich účtov to nevie: pridaj si ho v Účtoch.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Súbor .nzb nahratý sem alebo poslaný zo Sonarru či Radarru ide na tvoj účet TorBox alebo Premiumize.me, ktorý ho stiahne z Usenetu. Jeho súbory sa potom sťahujú ako každý iný odkaz.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Sťahuje sa v službe {service}',
   'task.remoteSeeds': 'Seedy: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet odkazy a súbory .torrent idú buď do „Torrent a magnet“, teda vstavaného klienta, alebo do debrid služby, ktorá berie torrenty, podľa toho, čo je v zozname vyššie.',

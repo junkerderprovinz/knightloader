@@ -402,7 +402,7 @@ export const da: Dict = {
   'search.toggle': 'Søg',
 
   'skipped.summary': '{n} link(s) blev ikke tilføjet',
-  'skipped.info': 'Links, som samleren genkendte som allerede lagt klar. Intet gik tabt: kopien, der allerede står på listen, er den, der bliver hentet. Ryd glemmer denne note; den lægger ikke noget tilbage.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Ryd',
   'skipped.clearFailed': 'Kunne ikke rydde listen. Kan serveren nås?',
 
@@ -3013,7 +3013,8 @@ export const da: Dict = {
   'container.nzbTooBig': 'den er større end {max}, det største en .nzb må være',
   'container.noUsenet': 'den er en .nzb, og den slags hentes fra Usenet gennem en TorBox- eller Premiumize.me-konto. Ingen af dine konti kan det: tilføj en under Konti.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'En .nzb, der uploades her eller sendes af Sonarr eller Radarr, går til din TorBox- eller Premiumize.me-konto, som henter den fra Usenet. Dens filer hentes derefter som ethvert andet link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Henter hos {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlinks og .torrent-filer går enten til Torrent og magnet, den indbyggede klient, eller til en debrid-tjeneste, der tager torrents, alt efter hvilken der står højest på listen.',

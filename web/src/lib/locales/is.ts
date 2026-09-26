@@ -402,7 +402,7 @@ export const is: Dict = {
   'search.toggle': 'Leita',
 
   'skipped.summary': '{n} hlekkjum var ekki bætt við',
-  'skipped.info': 'Tenglar sem safnarinn þekkti sem þegar undirbúna. Ekkert glataðist: eintakið sem er þegar á listanum er það sem verður sótt. Að hreinsa gleymir aðeins þessari athugasemd; það bætir engu við aftur.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Hreinsa',
   'skipped.clearFailed': 'Ekki tókst að hreinsa listann. Næst í þjóninn?',
 
@@ -3023,7 +3023,8 @@ export const is: Dict = {
   'container.nzbTooBig': 'hún er stærri en {max}, sem er hámarksstærð .nzb-skrár',
   'container.noUsenet': 'hún er .nzb-skrá, og þær eru sóttar frá Usenet í gegnum TorBox- eða Premiumize.me-reikning. Enginn af reikningunum þínum getur það: bættu einum við undir Reikningar.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb-skrá sem þú hleður upp hér eða sem Sonarr eða Radarr senda fer á TorBox- eða Premiumize.me-reikninginn þinn, sem sækir hana frá Usenet. Skrár hennar eru síðan sóttar eins og hver annar tengill.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Sækir hjá {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Segultenglar og .torrent-skrár fara annaðhvort til Torrent og magnet, innbyggða biðlarans, eða til debrid-þjónustu sem tekur við torrentum, eftir því hvort er ofar á listanum.',

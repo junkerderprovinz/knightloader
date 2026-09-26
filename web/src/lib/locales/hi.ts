@@ -402,7 +402,7 @@ export const hi: Dict = {
   'search.toggle': 'खोजें',
 
   'skipped.summary': '{n} लिंक जोड़े नहीं गए',
-  'skipped.info': 'वे लिंक जिन्हें कलेक्टर ने पहले से तैयार पहचाना। कुछ नहीं खोया: सूची में पहले से मौजूद प्रति ही डाउनलोड होगी। साफ़ करने से यह सूचना भूल जाती है; कुछ वापस नहीं जुड़ता।',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'मिटाएँ',
   'skipped.clearFailed': 'सूची मिटाई नहीं जा सकी। क्या सर्वर तक पहुँच है?',
 
@@ -3027,7 +3027,8 @@ export const hi: Dict = {
   'container.nzbTooBig': 'यह {max} से बड़ी है, जो किसी .nzb का अधिकतम आकार है',
   'container.noUsenet': 'यह एक .nzb है, और ऐसी फ़ाइलें TorBox या Premiumize.me खाते के ज़रिए Usenet से लाई जाती हैं। आपका कोई भी खाता ऐसा नहीं कर सकता: खाते में जाकर एक जोड़ें।',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'कोई .nzb, चाहे यहाँ अपलोड की गई हो या Sonarr या Radarr ने भेजी हो, आपके TorBox या Premiumize.me खाते के पास जाती है, जो उसे Usenet से लाता है। इसके बाद उसकी फ़ाइलें किसी भी दूसरे लिंक की तरह डाउनलोड होती हैं।',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service} पर लाया जा रहा है',
   'task.remoteSeeds': 'सीड: {n}',
   'accounts.routing.orderHintTorrents': 'मैग्नेट लिंक और .torrent फ़ाइलें या तो अंतर्निहित क्लाइंट “टोरेंट और मैग्नेट” को जाती हैं, या टॉरेंट सपोर्ट करने वाली किसी debrid सेवा को, जो भी सूची में ऊपर हो।',

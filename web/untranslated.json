@@ -1,6 +1,167 @@
 {
   "note": "Keys carrying the ENGLISH text in a non-English catalogue, because the translation wave for them has not run yet. Identical on screen to the fallback lib/i18n.tsx already makes for a missing key; listed here so a later sweep can find them, since a seeded string is otherwise indistinguishable from a translated one. check-untranslated.mjs holds this file and the catalogues together: translate a key and its entry must go, or the check fails. de.ts is never listed: it is the hand-written reference the English is written FROM, so a German value that equals the English one (Downloads, Captcha, Status, yt-dlp) is the same word in both languages rather than an untranslated one. For the other catalogues that same over-reporting is accepted on purpose: a debt too many shows up at the next sweep, a debt too few never does.",
-  "locales": {},
+  "locales": {
+    "ar": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "bg": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ca": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "cs": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "da": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "el": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "es": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "et": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "eu": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "fa": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "fi": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "fr": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "gl": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "he": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "hi": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "hr": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "hu": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "id": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "is": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "it": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ja": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ko": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "lt": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "lv": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ms": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "nl": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "no": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "pl": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "pt": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ro": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "ru": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "sk": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "sl": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "sr": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "sv": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "th": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "tr": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "uk": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "vi": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ],
+    "zh": [
+      "skipped.info",
+      "settings.help.intake.nzb"
+    ]
+  },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",
   "identical": {
     "ar": [

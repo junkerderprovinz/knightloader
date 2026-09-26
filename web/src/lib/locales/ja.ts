@@ -402,7 +402,7 @@ export const ja: Dict = {
   'search.toggle': '検索',
 
   'skipped.summary': '{n} 件のリンクは追加されませんでした',
-  'skipped.info': 'コレクターがすでに登録済みと判断したリンクです。失われたものはありません。ダウンロードされるのは、すでにリストにある方です。クリアしてもこの通知が消えるだけで、何かが戻されることはありません。',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'クリア',
   'skipped.clearFailed': 'リストをクリアできませんでした。サーバーに届いていますか？',
 
@@ -3027,7 +3027,8 @@ export const ja: Dict = {
   'container.nzbTooBig': '{max} より大きく、.nzb はそれ以上の大きさにできません',
   'container.noUsenet': '.nzb であり、これは TorBox か Premiumize.me のアカウントを通して Usenet から取得します。あなたのアカウントにはそれができるものがありません。アカウントのページで追加してください。',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb は、ここでアップロードしたものも Sonarr や Radarr が送ってきたものも、あなたの TorBox か Premiumize.me のアカウントに渡り、そこが Usenet から取得します。そのあと、そのファイルはほかのリンクと同じようにダウンロードされます。',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service} で取得中',
   'task.remoteSeeds': 'シード: {n}',
   'accounts.routing.orderHintTorrents': 'マグネットリンクと .torrent ファイルは、内蔵クライアントの「トレントとマグネット」か、トレントを扱える Debrid サービスのどちらかに渡されます。リストで上にあるほうが使われます。',

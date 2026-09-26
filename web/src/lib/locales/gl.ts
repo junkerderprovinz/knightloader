@@ -402,7 +402,7 @@ export const gl: Dict = {
   'search.toggle': 'Buscar',
 
   'skipped.summary': 'Non se engadiron {n} ligazóns',
-  'skipped.info': 'Ligazóns que o colector recoñeceu como xa preparadas. Non se perdeu nada: a copia que xa está na lista é a que se descargará. Limpar esquece esta nota; non engade nada de volta.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Limpar',
   'skipped.clearFailed': 'Non se puido limpar a lista. Está accesible o servidor?',
 
@@ -3024,7 +3024,8 @@ export const gl: Dict = {
   'container.nzbTooBig': 'supera os {max}, o máximo que pode ocupar un .nzb',
   'container.noUsenet': 'é un .nzb, e estes descárganse de Usenet a través dunha conta de TorBox ou de Premiumize.me. Ningunha das túas contas pode facelo: engade unha en Contas.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, subido aquí ou enviado por Sonarr ou Radarr, vai á túa conta de TorBox ou de Premiumize.me, que o descarga de Usenet. Despois os seus ficheiros descárganse coma calquera outra ligazón.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Descargando en {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'As ligazóns magnet e os ficheiros .torrent van ou ben a Torrent e magnet, o cliente integrado, ou ben a un servizo debrid que acepte torrents, segundo cal estea máis arriba na lista.',

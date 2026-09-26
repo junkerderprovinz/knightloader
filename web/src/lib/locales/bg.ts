@@ -402,7 +402,7 @@ export const bg: Dict = {
   'search.toggle': 'Търсене',
 
   'skipped.summary': '{n} връзки не бяха добавени',
-  'skipped.info': 'Връзки, които колекторът е разпознал като вече подготвени. Нищо не е загубено: копието, което вече е в списъка, е това, което ще се изтегли. Изчистването забравя тази бележка; не добавя нищо обратно.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Изчисти',
   'skipped.clearFailed': 'Списъкът не можа да се изчисти. Сървърът достъпен ли е?',
 
@@ -3027,7 +3027,8 @@ export const bg: Dict = {
   'container.nzbTooBig': 'по-голям е от {max}, а .nzb файл не може да бъде по-голям',
   'container.noUsenet': 'това е .nzb, а те се изтеглят от Usenet чрез акаунт в TorBox или Premiumize.me. Никой от акаунтите ти не може да го направи: добави такъв в „Акаунти“.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Файл .nzb, качен тук или изпратен от Sonarr или Radarr, отива към акаунта ти в TorBox или Premiumize.me, който го изтегля от Usenet. След това файловете му се изтеглят като всяка друга връзка.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Изтегля се при {service}',
   'task.remoteSeeds': 'Сийдове: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet връзките и .torrent файловете отиват или към „Торент и магнит“, вградения клиент, или към debrid услуга, която приема торенти, в зависимост от това кое е по-нагоре в списъка.',
