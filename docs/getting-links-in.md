@@ -54,7 +54,11 @@ torrent filed there, whether you picked the category or a Packagizer rule did.
 Premiumize.me or Debrid-Link ranks above "Torrent and magnet" on the Accounts
 page, that service fetches the torrent and the files come here over HTTP. The
 file selection counts there as well: Real-Debrid and Debrid-Link are told which
-files to fetch, and from the other services only those files come here.
+files to fetch, and from the other services only those files come here. A
+torrent from a private tracker stays with the built-in client, because its
+passkey would go to the service with it. A `.torrent` says whether it is
+private. A magnet link counts as private when its own tracker address carries
+a passkey, the same test the extra trackers below use.
 
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as

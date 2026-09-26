@@ -463,17 +463,36 @@ func TestASingleFileTorrentLandsAsTheFileItself(t *testing.T) {
 }
 
 func TestAPrivateTorrentIsNeverSentToTheService(t *testing.T) {
-	svc := &scriptedService{}
+	upload, _ := builtTorrent(t, true)
+	for name, link := range map[string]string{
+		"an uploaded .torrent marked private": upload,
+		"a magnet whose tracker carries a passkey": testMagnet +
+			"&tr=https%3A%2F%2Ftracker.private.example%2Fannounce.php%3Fpasskey%3D0123456789abcdef0123456789abcdef",
+	} {
+		t.Run(name, func(t *testing.T) {
+			svc := &scriptedService{jobs: []TorrentJob{{State: TorrentFailed}}}
+			b, up := newTestBackend(t, svc, &partRecorder{})
+
+			b.Download("t1", link, nil, 1)
+			u := up.until(t, core.StatusError)
+			if !u.Unsupported {
+				t.Errorf("a private torrent was not handed on: %+v", u)
+			}
+			if svc.addCount() != 0 {
+				t.Error("a private torrent's passkey went to the service")
+			}
+		})
+	}
+}
+
+func TestAMagnetWithAPublicTrackerGoesToTheService(t *testing.T) {
+	svc := &scriptedService{jobs: []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}}
 	b, up := newTestBackend(t, svc, &partRecorder{})
 
-	private, _ := builtTorrent(t, true)
-	b.Download("t1", private, nil, 1)
-	u := up.until(t, core.StatusError)
-	if !u.Unsupported {
-		t.Errorf("a private torrent was not handed on: %+v", u)
-	}
-	if len(svc.added) != 0 {
-		t.Error("a private torrent's passkey went to the service")
+	b.Download("t1", testMagnet+"&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce", nil, 1)
+	up.until(t, core.StatusDone)
+	if svc.addCount() != 1 {
+		t.Error("a public magnet was kept from the service")
 	}
 }
 
