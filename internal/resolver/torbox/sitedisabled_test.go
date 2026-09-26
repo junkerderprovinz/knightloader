@@ -56,6 +56,9 @@ func TestASiteTorBoxSwitchedOffIsReportedAsThatSiteBeingDown(t *testing.T) {
 				if !strings.HasPrefix(u.Err, "torbox: ") {
 					t.Errorf("Err = %q, want TorBox's own words", u.Err)
 				}
+				if u.Code != core.CodeDebridRefused || u.Params["service"] != "TorBox" {
+					t.Errorf("Code = %q with %v, want an answer from TorBox worded as its refusal", u.Code, u.Params)
+				}
 			case <-time.After(5 * time.Second):
 				t.Fatal("the refusal was never reported")
 			}

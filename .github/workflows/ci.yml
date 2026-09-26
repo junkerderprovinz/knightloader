@@ -53,7 +53,8 @@ jobs:
             # The build bakes app.json's version into web/dist, and
             # check-version-sources.mjs reads the other three.
             # check-module-lines.mjs reads the module codes from the two
-            # routes files, and check-one-name.mjs the app's English and German.
+            # routes files, check-one-name.mjs the app's English and German,
+            # and lib/taskError.test.ts the failure codes.
             web:
               - 'web/**'
               - 'mobile/app.json'
@@ -63,17 +64,20 @@ jobs:
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
               - 'internal/api/routes_health.go'
+              - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list is held to the web UI's.
             extension:
               - 'extension/**'
               - 'web/src/lib/donate.ts'
               - '.github/workflows/ci.yml'
-            # check-relay-url.mjs reads its cases from internal/relay's tests.
+            # check-relay-url.mjs reads its cases from internal/relay's tests,
+            # and check-failures.mjs the failure codes.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
               - 'internal/relay/client_test.go'
+              - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either
             # can break it.
@@ -477,6 +481,9 @@ jobs:
 
       - name: Captcha answers
         run: node check-captcha.mjs
+
+      - name: Failure wording
+        run: node check-failures.mjs
 
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed

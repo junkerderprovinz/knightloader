@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"sync"
@@ -162,7 +163,11 @@ func (b *Backend) start(taskID, link string) {
 			if errors.Is(ctx.Err(), context.Canceled) {
 				return
 			}
-			b.onUpdate(taskID, core.Update{Status: core.StatusError, Speed: 0, Err: b.svc.ID() + ": " + err.Error()})
+			u := core.Update{Status: core.StatusError, Speed: 0, Err: b.svc.ID() + ": " + err.Error()}
+			if refused(err) {
+				u.Code, u.Params = core.CodeDebridRefused, map[string]string{"service": b.svc.Label()}
+			}
+			b.onUpdate(taskID, u)
 			return
 		}
 		// Pause and Remove cancel under b.mu, so one that came after the unlock
@@ -177,6 +182,14 @@ func (b *Backend) start(taskID, link string) {
 		b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: d.Name, Size: d.Size})
 		b.eng.Handover(taskID, d.URL, conns, b.relinker(link))
 	}()
+}
+
+// refused reports whether a failed call was the service's answer, rather than
+// the call never reaching it or running out of time. Only an answer is the
+// service turning the link down.
+func refused(err error) bool {
+	var ne net.Error
+	return !errors.As(err, &ne) && !errors.Is(err, context.DeadlineExceeded)
 }
 
 // relinker unlocks link again, within the unlock's own time limit.

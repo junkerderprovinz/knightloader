@@ -382,7 +382,11 @@ func (s *sink) join(first string) (string, []string, error) {
 		parts = append(parts, p)
 	}
 	if len(parts) < 2 {
-		return "", nil, fmt.Errorf("extract: %s is one part of a split file and the rest are not here", filepath.Base(first))
+		return "", nil, &PartError{
+			Part:    fmt.Sprintf("%s.%0*d", stem, len(digits), n+1),
+			Problem: ErrPartMissing,
+			Err:     fmt.Errorf("%s is one part of a split file and the rest are not here", filepath.Base(first)),
+		}
 	}
 	var size int64
 	for _, p := range parts {

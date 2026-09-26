@@ -234,9 +234,44 @@ func TestBackendReportsAnUnlockThatRanOutOfTime(t *testing.T) {
 			if !strings.Contains(u.Err, "deadline exceeded") {
 				t.Errorf("Err = %q, want it to say the unlock ran out of time", u.Err)
 			}
+			if u.Code != "" {
+				t.Errorf("Code = %q, want none: the service never answered, so it refused nothing", u.Code)
+			}
 			return
 		case <-giveUp:
 			t.Fatal("the task was never told that its unlock ran out of time and stays unlocking")
+		}
+	}
+}
+
+// refusingService answers every unlock with a refusal of its own.
+type refusingService struct{}
+
+func (refusingService) ID() string                                     { return "refusing" }
+func (refusingService) Label() string                                  { return "Refusing" }
+func (refusingService) Hosts(context.Context) (map[string]bool, error) { return nil, nil }
+func (refusingService) Unlock(context.Context, string) (Direct, error) {
+	return Direct{}, errors.New("This host is not supported (LINK_HOST_NOT_SUPPORTED)")
+}
+
+func TestBackendReportsARefusalWithTheServicesName(t *testing.T) {
+	updates := make(chan core.Update, 8)
+	b := NewBackend(refusingService{}, &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+
+	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
+	giveUp := time.After(10 * time.Second)
+	for {
+		select {
+		case u := <-updates:
+			if u.Status != core.StatusError {
+				continue
+			}
+			if u.Code != core.CodeDebridRefused || u.Params["service"] != "Refusing" {
+				t.Errorf("Code = %q with %v, want the refusal and the service's name", u.Code, u.Params)
+			}
+			return
+		case <-giveUp:
+			t.Fatal("the refusal never reached the task")
 		}
 	}
 }

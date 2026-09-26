@@ -207,6 +207,12 @@ type Update struct {
 	// shared classifier in internal/app. Only the backend has seen its tool's
 	// full output; Err is cut short. Empty means no opinion.
 	Reason Reason
+	// Code is how the backend words a failure the shared classifier cannot
+	// place, such as a debrid service's refusal, and Params holds the values
+	// that wording needs. A failure the classifier does place keeps the code
+	// of its Reason, so the badge and the sentence agree.
+	Code   ErrorCode
+	Params map[string]string
 	// Note is what the backend is doing now for a running task that is not
 	// moving bytes, such as "Captcha recognition (rapidgator.net)". It is not
 	// an error, so it is kept out of Err.
@@ -511,6 +517,11 @@ type Task struct {
 	// ClearFailure clears them with Error.
 	RejectCode   string            `json:"rejectCode,omitempty"`
 	RejectParams map[string]string `json:"rejectParams,omitempty"`
+	// ErrorCode is Error as a value (see ErrorCode), and ErrorParams holds the
+	// values its wording needs. SetError writes all three together, so a code
+	// never outlives the sentence it was set for.
+	ErrorCode   ErrorCode         `json:"errorCode,omitempty"`
+	ErrorParams map[string]string `json:"errorParams,omitempty"`
 	// Waiting is why a queued task has not started. It is recomputed by every
 	// dispatch pass.
 	Waiting Waiting `json:"waiting,omitempty"`
@@ -585,8 +596,14 @@ type Task struct {
 }
 
 // ClearFailure forgets the current failure: its sentence, its typed cause and
-// a rejection's code, so none of them labels the next attempt.
+// every code, so none of them labels the next attempt.
 func (t *Task) ClearFailure() {
-	t.Error, t.Reason = "", ReasonUnknown
+	t.SetError("", "", nil)
+	t.Reason = ReasonUnknown
 	t.RejectCode, t.RejectParams = "", nil
+}
+
+// SetError replaces the failure's sentence and the code it is worded by.
+func (t *Task) SetError(text string, code ErrorCode, params map[string]string) {
+	t.Error, t.ErrorCode, t.ErrorParams = text, code, params
 }

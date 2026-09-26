@@ -72,6 +72,10 @@ type ExtractJob struct {
 	// when the contents were moved.
 	Moved int    `json:"moved,omitempty"`
 	Error string `json:"error,omitempty"`
+	// ErrorCode and ErrorParams are Error as the interface words it, as on
+	// core.Task.
+	ErrorCode   core.ErrorCode    `json:"errorCode,omitempty"`
+	ErrorParams map[string]string `json:"errorParams,omitempty"`
 	// Password marks a failure caused by a missing password, so the interface
 	// can offer to enter one and retry.
 	Password  bool      `json:"password,omitempty"`
@@ -398,7 +402,7 @@ func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 	// The last attempt's failure is stale while the archive is unpacked again,
 	// and the row would show it beside the progress. A new failure writes its own.
 	if strings.HasPrefix(target.Error, extractErrorPrefix) {
-		target.Error = ""
+		target.SetError("", "", nil)
 	}
 	st.jobs[job.ID] = job
 	st.order = append(st.order, job.ID)
@@ -584,12 +588,15 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	j.cancel = nil
 	j.EndedAt = time.Now()
 	result := core.UnpackNone
+	// What goes on the job and on the task: the unpacking's failure, or the
+	// move's after an unpacking that worked.
+	var failed error
 	switch {
 	case cancelled:
 		j.Status = ExtractCancelled
 	case err != nil:
 		j.Status = ExtractFailed
-		j.Error = err.Error()
+		failed = err
 		j.Password = errors.Is(err, extract.ErrPasswordRequired)
 		result = core.UnpackFailed
 		if j.Password {
@@ -598,7 +605,6 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 	default:
 		j.Status = ExtractDone
 		result = core.UnpackDone
-		j.Error = ""
 		if out != nil {
 			j.Files, j.Bytes, j.Nested = out.Files, out.Bytes, out.Nested
 			if out.Dir != "" {
@@ -607,11 +613,14 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		}
 		// Done with an error means the archive unpacked but the move failed;
 		// both are true, so both are recorded.
-		if moved.Err != nil {
-			j.Error = moved.Err.Error()
-		}
+		failed = moved.Err
 		j.MovedTo, j.Moved = moved.Dir, moved.Entries
 		j.Archive = ""
+	}
+	j.Error, j.ErrorCode, j.ErrorParams = "", "", nil
+	if failed != nil {
+		j.Error = failed.Error()
+		j.ErrorCode, j.ErrorParams = unpackCode(failed)
 	}
 	snap := j.ExtractJob
 
@@ -621,16 +630,14 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		if t.Status == core.StatusExtracting {
 			t.Status = core.StatusDone
 		}
-		// Only this package's own error is cleared.
+		// Only this package's own error is cleared. A failure goes under the
+		// extraction's prefix, once, so the next extraction of the same
+		// archive clears it.
 		if strings.HasPrefix(t.Error, extractErrorPrefix) {
-			t.Error = ""
+			t.SetError("", "", nil)
 		}
-		if err != nil && !cancelled {
-			t.Error = extractErrorPrefix + err.Error()
-		} else if moved.Err != nil {
-			// Under the extraction's prefix, so the next extraction of the same
-			// archive clears it.
-			t.Error = extractErrorPrefix + moved.Err.Error()
+		if failed != nil {
+			t.SetError(extractErrorPrefix+strings.TrimPrefix(j.Error, extractErrorPrefix), j.ErrorCode, j.ErrorParams)
 		}
 		touched[t.ID] = true
 	}

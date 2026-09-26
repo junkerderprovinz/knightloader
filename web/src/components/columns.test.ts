@@ -121,7 +121,7 @@ describe('packageUnpacking', () => {
 
   it('takes the failure from the error the unpacking left on the file', () => {
     const got = packageUnpacking([kept('b1', 'error', 0, 'extract: rardecode: bad block header')], ctx());
-    expect(got?.error).toBe('rardecode: bad block header');
+    expect(got?.failure?.error).toBe('rardecode: bad block header');
   });
 
   it('prefers a job to what the file kept from the one before', () => {

@@ -51,3 +51,31 @@ it('words the reason the queue rejected a link for, beside the untranslated mess
   // The message row stays word for word, as its (i) promises.
   expect(text).toContain('the server’s own sentence');
 });
+
+const damagedArchive = {
+  id: 't2',
+  url: 'https://host.example/Vier.minus.drei.part1.rar',
+  name: 'Vier.minus.drei.part1.rar',
+  resolver: 'direct',
+  status: 'done',
+  enabled: true,
+  error: 'extract: Vier.minus.drei.part1.rar: rardecode: bad block header',
+  errorCode: 'archiveDamaged',
+  errorParams: { part: 'Vier.minus.drei.part1.rar' },
+} as unknown as Task;
+
+it('says what went wrong and what to do, and keeps the tool’s own words', () => {
+  act(() =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <FailureCard task={damagedArchive} />
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  const text = host.textContent ?? '';
+  expect(text).toContain('Vier.minus.drei.part1.rar is damaged.');
+  expect(text).toContain('Restart Vier.minus.drei.part1.rar to download it again, or get it from another mirror.');
+  expect(text).toContain('rardecode: bad block header');
+});

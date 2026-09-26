@@ -4,6 +4,8 @@ import type { Task } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
+import { explainFailure } from '../api/taskError';
+import { InfoTip } from './InfoTip';
 import { Text } from './Text';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
@@ -103,6 +105,8 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
       ? Math.min(100, Math.round((task.loaded / task.size) * 100))
       : null;
   const statusKey = STATUS_KEYS[task.status];
+  const name = task.name || task.url;
+  const failure = explainFailure(t, task, { part: name, file: name, service: serviceName(task.resolver) });
 
   return (
     <View
@@ -171,10 +175,20 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
         ) : null}
       </View>
 
-      {task.error ? (
-        <Text style={[styles.errorText, { color: c.statusFailSolid }]} numberOfLines={2}>
-          {task.error}
-        </Text>
+      {failure ? (
+        <View style={styles.failure}>
+          <View style={styles.failureText}>
+            <Text style={[styles.failureLine, { color: c.statusFailSolid }]} numberOfLines={2}>
+              {failure.line}
+            </Text>
+            <Text style={[styles.failureLine, { color: c.textMuted }]} numberOfLines={3}>
+              {failure.next}
+            </Text>
+          </View>
+          {/* The instance's own sentence stays one tap away for a report,
+              the way the web keeps it in the row's bubble. */}
+          {failure.raw ? <InfoTip text={`${t('failure.raw')}: ${failure.raw}`} /> : null}
+        </View>
       ) : null}
     </View>
   );
@@ -204,5 +218,7 @@ const styles = StyleSheet.create({
   // refresh, in a row that stacks down the whole screen. With proportional
   // digits the footer shuffles sideways on every tick.
   meta: { fontSize: TYPE.dense, ...NUM },
-  errorText: { fontSize: TYPE.dense, marginTop: 6 },
+  failure: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 6 },
+  failureText: { flex: 1, minWidth: 0, gap: 2 },
+  failureLine: { fontSize: TYPE.dense },
 });

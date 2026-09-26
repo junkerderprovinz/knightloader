@@ -119,6 +119,14 @@ func ExtractWith(path string, passwords []string) (*Result, error) {
 }
 
 func extractOnce(path, dest, password string) (*Result, error) {
+	res, err := unpackOnce(path, dest, password)
+	if err != nil {
+		return nil, inPart(err, filepath.Base(path))
+	}
+	return res, nil
+}
+
+func unpackOnce(path, dest, password string) (*Result, error) {
 	// Unknown until a reader below learns it from its headers; a single
 	// compressed stream never does.
 	expectWatched(0)
@@ -159,7 +167,7 @@ func extractOnce(path, dest, password string) (*Result, error) {
 	if open := compressionFor(format); open != nil {
 		return extractCompressed(path, dest, namingSuffix(strings.ToLower(path), format), open)
 	}
-	return nil, fmt.Errorf("extract: unsupported archive %q", filepath.Base(path))
+	return nil, ErrUnsupported
 }
 
 // sevenZipVolume matches the first part of a split 7z archive.
@@ -349,14 +357,14 @@ func rarSize(path string, opts []rardecode.Option) int64 {
 // encrypted, reaching an entry, and reading an entry whose contents are. Every
 // one of them becomes ErrPasswordRequired, so the next password in the list is
 // tried and the list says the archive wants one. Anything else is named after
-// the volume that was open: "bad block header" on its own does not say which of
-// forty parts is broken.
+// the volume that was open, even when nothing recognises the error: the reader's
+// sentence does not say which of forty parts it came from.
 func rarError(err error, volume string) error {
 	if errors.Is(err, rardecode.ErrArchiveEncrypted) || errors.Is(err, rardecode.ErrArchivedFileEncrypted) ||
 		errors.Is(err, rardecode.ErrBadPassword) {
 		return ErrPasswordRequired
 	}
-	return fmt.Errorf("extract: %s: %w", volume, err)
+	return partError(err, volume)
 }
 
 // currentVolume is the name of the volume the reader has open, which is the last

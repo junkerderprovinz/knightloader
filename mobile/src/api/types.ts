@@ -29,7 +29,13 @@ export interface Task {
   loaded: number;
   speed: number;
   status: TaskStatus;
+  /** The instance's own sentence, in English; api/taskError.ts words it from
+   *  errorCode where it can. */
   error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string>;
+  /** The typed cause of a failure, core.Reason. */
+  reason?: string;
   createdAt: string;
   dir?: string;
   online?: string;
