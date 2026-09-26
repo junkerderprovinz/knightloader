@@ -858,10 +858,11 @@ func (a *App) dispatchLocked() {
 		if v.Rejected {
 			t.Status = core.StatusError
 			t.Online = core.AvailOffline
-			t.Error = rejection(v).Reason
 			// Cleared so an earlier attempt's reason does not label a rule
 			// rejection.
-			t.Reason = core.ReasonUnknown
+			t.ClearFailure()
+			shown := rejection(v)
+			t.Error, t.RejectCode, t.RejectParams = shown.Reason, shown.Code, shown.Params
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
@@ -1530,8 +1531,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 // leaves has let go. Caller holds a.mu.
 func (a *App) handOnLocked(t *core.Task) {
 	t.Status = core.StatusQueued
-	t.Error = ""
-	t.Reason = core.ReasonUnknown
+	t.ClearFailure()
 	t.Loaded = 0
 	t.Speed = 0
 	// The backend it leaves lets go of its job on the service too.

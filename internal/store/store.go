@@ -191,10 +191,13 @@ var migrations = []string{
 	// removes one.
 	`ALTER TABLE tasks ADD COLUMN seeding_ended INTEGER NOT NULL DEFAULT 0`,
 	// Why a link was rejected, as a code with its values (JSON), so the
-	// interface words it in the reader's language after a restart as well.
-	// skip_reason keeps the English.
+	// interface words it in the reader's language after a restart as well:
+	// at intake beside skip_reason, when it was about to start beside error.
+	// Those two keep the English.
 	`ALTER TABLE tasks ADD COLUMN skip_code TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN skip_params TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE tasks ADD COLUMN reject_code TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE tasks ADD COLUMN reject_params TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -297,7 +300,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
-	service_job,seeding_ended,skip_code,skip_params`
+	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -370,14 +373,6 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		serviceJob = string(b)
 	}
-	skipParams := ""
-	if len(t.SkipParams) > 0 {
-		b, err := json.Marshal(t.SkipParams)
-		if err != nil {
-			return err
-		}
-		skipParams = string(b)
-	}
 	_, err := s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
 		 VALUES (`+placeholders+`)`,
@@ -392,13 +387,23 @@ func (s *Store) Save(t *core.Task) error {
 		t.InfoHash, trackers, string(t.Mode),
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
-		serviceJob, seedingEnded, t.SkipCode, skipParams)
+		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams))
 	if err != nil {
 		return err
 	}
 	// The history is written in the same save, so a finished download is
 	// recorded before anything can trim it from the list. A no-op otherwise.
 	return s.recordFinished(t)
+}
+
+// codeParams is the values of a code as their column holds them, empty for
+// none. A map of strings always encodes.
+func codeParams(p map[string]string) string {
+	if len(p) == 0 {
+		return ""
+	}
+	b, _ := json.Marshal(p)
+	return string(b)
 }
 
 // Delete takes a task out of the list. The history keeps its row: clearing the
@@ -418,7 +423,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob, skipParams string
+		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob, skipParams, rejectParams string
 		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue, seedingEnded int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -431,7 +436,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
-			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded, &t.SkipCode, &skipParams); err != nil {
+			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
+			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -477,6 +483,9 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if skipParams != "" {
 			_ = json.Unmarshal([]byte(skipParams), &t.SkipParams)
+		}
+		if rejectParams != "" {
+			_ = json.Unmarshal([]byte(rejectParams), &t.RejectParams)
 		}
 		if serviceJob != "" {
 			var j core.ServiceJob

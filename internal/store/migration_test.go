@@ -172,23 +172,35 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	}
 }
 
-// A held link is worded from its code in the reader's language, so the code
-// and its values have to come back from a restart as they were written.
-func TestAHeldLinksReasonCodeSurvivesARestart(t *testing.T) {
+// A rejected link is worded from its code in the reader's language, at intake
+// and when it was about to start alike, so both codes and their values have to
+// come back from a restart as they were written.
+func TestARejectionsCodeSurvivesARestart(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(filepath.Join(dir, "tasks.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	params := map[string]string{"host": "tracker.example.org"}
-	task := core.Task{
-		ID: "held", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", CreatedAt: time.Now(),
-		Status: core.StatusCollected, Skipped: true,
-		SkipReason: "announces tracker.example.org, which is on the banned trackers list",
-		SkipCode:   "bannedTracker", SkipParams: params,
+	tracker := map[string]string{"host": "tracker.example.org"}
+	rule := map[string]string{"rule": "no samples"}
+	tasks := []core.Task{
+		{
+			ID: "at-intake", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", CreatedAt: time.Now(),
+			Status: core.StatusCollected, Skipped: true,
+			SkipReason: "announces tracker.example.org, which is on the banned trackers list",
+			SkipCode:   "bannedTracker", SkipParams: tracker,
+		},
+		{
+			ID: "at-start", URL: "https://host.example/sample.mkv", CreatedAt: time.Now(),
+			Status:     core.StatusError,
+			Error:      `rejected by link filter rule "no samples"`,
+			RejectCode: "filterRule", RejectParams: rule,
+		},
 	}
-	if err := s.Save(&task); err != nil {
-		t.Fatal(err)
+	for i := range tasks {
+		if err := s.Save(&tasks[i]); err != nil {
+			t.Fatal(err)
+		}
 	}
 	s.Close()
 
@@ -201,11 +213,15 @@ func TestAHeldLinksReasonCodeSurvivesARestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(all) != 1 {
-		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	got := map[string]*core.Task{}
+	for _, task := range all {
+		got[task.ID] = task
 	}
-	if got := all[0]; got.SkipCode != "bannedTracker" || !maps.Equal(got.SkipParams, params) {
-		t.Errorf("came back with code %q %v, want %q %v", got.SkipCode, got.SkipParams, "bannedTracker", params)
+	if in := got["at-intake"]; in == nil || in.SkipCode != "bannedTracker" || !maps.Equal(in.SkipParams, tracker) {
+		t.Errorf("the link rejected at intake came back as %+v, want its code and host", in)
+	}
+	if st := got["at-start"]; st == nil || st.RejectCode != "filterRule" || !maps.Equal(st.RejectParams, rule) {
+		t.Errorf("the link rejected at the start came back as %+v, want its code and rule", st)
 	}
 }
 

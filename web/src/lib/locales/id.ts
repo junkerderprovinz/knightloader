@@ -3050,6 +3050,6 @@ export const id: Dict = {
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
-  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRule': 'rejected by link filter rule "{rule}"',
   'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

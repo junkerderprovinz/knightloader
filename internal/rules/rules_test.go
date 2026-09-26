@@ -379,7 +379,7 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			name:       "no reason given",
 			rule:       Rule{Name: "no samples", Action: Action{Reject: true}},
 			wantRule:   "no samples",
-			wantReason: `blocked by filter rule "no samples"`,
+			wantReason: `rejected by link filter rule "no samples"`,
 			wantCode:   CodeFilterRule,
 		},
 		{
@@ -387,14 +387,14 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			name:       "no name given",
 			rule:       Rule{Action: Action{Reject: true}},
 			wantRule:   "rule 1",
-			wantReason: `blocked by filter rule "rule 1"`,
+			wantReason: `rejected by link filter rule "rule 1"`,
 			wantCode:   CodeFilterRule,
 		},
 		{
 			name:       "reason is whitespace",
 			rule:       Rule{Name: "x", Action: Action{Reject: true, Reason: "   "}},
 			wantRule:   "x",
-			wantReason: `blocked by filter rule "x"`,
+			wantReason: `rejected by link filter rule "x"`,
 			wantCode:   CodeFilterRule,
 		},
 	}

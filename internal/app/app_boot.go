@@ -357,8 +357,7 @@ func (a *App) applyReclaim(findings []reclaim.Finding) (changed []taskCopy, sett
 				t.Size = f.Bytes
 			}
 			t.Speed = 0
-			t.Error = ""
-			t.Reason = core.ReasonUnknown
+			t.ClearFailure()
 			t.Waiting = core.WaitingNone
 			t.Retries = 0
 			t.NextTry = time.Time{}

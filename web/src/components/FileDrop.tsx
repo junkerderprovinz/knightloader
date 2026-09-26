@@ -7,7 +7,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
 import { ltr } from '../lib/bidi';
 import { fmtBytes } from '../lib/format';
-import { heldReason } from '../lib/heldReason';
+import { rejectionReason } from '../lib/rejectionReason';
 import { containerRefusal, message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { Button, Toggle } from './ui';
@@ -111,7 +111,7 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
     return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
   }
   if (o.kind === 'torrent-held') {
-    const reason = heldReason(t, o.task.skipCode, o.task.skipParams, o.task.skipReason);
+    const reason = rejectionReason(t, o.task.skipCode, o.task.skipParams, o.task.skipReason);
     return <p className="text-xs text-statusWarn">{t('torrent.held', { file: o.file, reason })}</p>;
   }
   if (o.kind === 'torrent-staged') {
