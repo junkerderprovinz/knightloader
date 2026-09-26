@@ -35,6 +35,33 @@ func TestDirectMatch(t *testing.T) {
 	}
 }
 
+// A stream playlist lists segments rather than holding the video, so the direct
+// download leaves it to yt-dlp, whatever the case of its extension.
+func TestDirectLeavesStreamPlaylistsToTheMediaExtractor(t *testing.T) {
+	for _, u := range []string{
+		"https://cdn.example/hls/master.m3u8",
+		"https://cdn.example/hls/index.M3U8?token=abc",
+		"https://radio.example/live.m3u",
+		"https://cdn.example/dash/manifest.mpd",
+	} {
+		if (Direct{}).Match(u) {
+			t.Errorf("Match(%q) = true, want the playlist left to yt-dlp", u)
+		}
+		if !StreamPlaylist(u) {
+			t.Errorf("StreamPlaylist(%q) = false, want true", u)
+		}
+	}
+	for _, u := range []string{
+		"https://cdn.example/hls/master.txt",
+		"https://example.com/movie.mkv",
+		"https://example.com/watch?v=abc.m3u8",
+	} {
+		if StreamPlaylist(u) {
+			t.Errorf("StreamPlaylist(%q) = true, want false", u)
+		}
+	}
+}
+
 // A host Leave names is not claimed even when the path is a file, and the
 // fallback leaves it too; every other host is claimed as before.
 func TestLeaveKeepsDirectAndTheFallbackOffAHost(t *testing.T) {

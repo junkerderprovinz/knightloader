@@ -20,6 +20,23 @@ var pageExt = map[string]bool{
 	".jsp": true, ".cgi": true, ".xhtml": true, ".shtml": true,
 }
 
+// playlistExt lists the suffixes of a stream playlist: HLS (.m3u8, .m3u) and
+// DASH (.mpd). The file behind one is a list of segments, and saving it as it
+// is keeps a few hundred bytes of text instead of the video, so these go to
+// the media extractor, which fetches and joins the segments.
+var playlistExt = map[string]bool{".m3u8": true, ".m3u": true, ".mpd": true}
+
+// StreamPlaylist reports whether raw names a stream playlist by its
+// extension. A playlist served under any other name is only recognised once
+// its first bytes are in (see engine.Job.PassOnPlaylists).
+func StreamPlaylist(raw string) bool {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	return playlistExt[path.Ext(strings.ToLower(u.Path))]
+}
+
 // Direct handles plain http(s) links whose path names a file; the URL is already
 // the download target and is fetched by the embedded engine.
 type Direct struct {
@@ -47,7 +64,7 @@ func (d Direct) Match(raw string) bool {
 		return false
 	}
 	ext := fileLike.FindString(base)
-	return ext != "" && !pageExt[ext]
+	return ext != "" && !pageExt[ext] && !playlistExt[ext]
 }
 
 func (Direct) Resolve(_ context.Context, req Request) (Result, error) {
