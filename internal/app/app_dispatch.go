@@ -841,7 +841,12 @@ func (a *App) dispatchLocked() {
 			space.commit(dir, t)
 			// A retry date belongs to the failure, not to the run it led to.
 			t.NextTry = time.Time{}
-			go a.backendFor(t.Resolver).Resume(id)
+			be := a.backendFor(t.Resolver)
+			a.beginHandoverLocked(id)
+			go func() {
+				defer a.endHandover(id)
+				be.Resume(id)
+			}()
 			continue
 		}
 		// The filter is asked once more before bytes move, since rules may
@@ -991,7 +996,9 @@ func (a *App) dispatchLocked() {
 				// A torrent carries on with the files its earlier attempt left.
 				own = leftover{}
 			}
+			a.beginHandoverLocked(id)
 			go func() {
+				defer a.endHandover(id)
 				own.drop(id)
 				a.Engine.Start(job)
 			}()
@@ -999,7 +1006,9 @@ func (a *App) dispatchLocked() {
 			// Delegated backends reach the internet their own way, so they get
 			// no route. Those that pass their link on to the engine go through
 			// engineHandoff, which gives the engine the same job as above.
+			a.beginHandoverLocked(id)
 			go func() {
+				defer a.endHandover(id)
 				own.drop(id)
 				be.Download(id, result.DirectURL, result.Headers, conns)
 			}()

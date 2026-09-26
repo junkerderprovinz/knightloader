@@ -30,18 +30,20 @@ func (h engineHandoff) Handover(taskID, url string, conns int, relink func(conte
 }
 
 // start starts the transfer, unless the task was removed while its link was
-// being unlocked.
+// being unlocked. A folder a package rename is moving is waited for, so the
+// transfer starts in the new one.
 func (h engineHandoff) start(taskID, url string, headers map[string]string, conns int, relink func(context.Context) (string, error)) {
 	h.a.mu.Lock()
+	h.a.awaitRelocationLocked(taskID)
 	t := h.a.tasks[taskID]
-	var job engine.Job
-	if t != nil {
-		job = h.a.engineJobLocked(t, h.a.Settings.Get(), url, headers, conns)
-	}
-	h.a.mu.Unlock()
 	if t == nil {
+		h.a.mu.Unlock()
 		return
 	}
+	job := h.a.engineJobLocked(t, h.a.Settings.Get(), url, headers, conns)
+	h.a.beginHandoverLocked(taskID)
+	h.a.mu.Unlock()
+	defer h.a.endHandover(taskID)
 	job.Relink = relink
 	h.Engine.Start(job)
 }

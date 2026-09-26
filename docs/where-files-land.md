@@ -21,6 +21,32 @@ which reads a group from any field the rule matched on, not only the source. A
 rule naming a group on a field it has no `matches` condition for is refused when
 you save it, rather than quietly producing the wrong folder.
 
+## Renaming a package
+
+When the download folder is named after the package through
+`<jd:packagename>`, renaming the package renames the folder on disk too, with
+everything already in it: finished files, partial ones and their share of the
+working folder. Downloads still running stop while the folder moves, then carry
+on in the new one from the bytes they already have, whichever backend fetches
+them. JDownloader is told the package's new folder and picks up where it
+stopped. A torrent that is seeding goes on seeding from the new place, but its
+seeding goal, a ratio or a time, starts counting again. A folder of unpacked
+files named after the package, from "A folder per package" or a template under
+"Unpack to", moves along with it.
+
+A link with a folder of its own, set by hand or by a Packagizer rule, stays
+where it is. So does a folder whose name does not come from the package.
+
+If a folder of the new name already holds something, the Name conflicts
+setting decides (or the category's own, where it has one). "Keep both" gives
+the folder a numbered name such as `New name (2)`. "Skip" leaves the files in
+the old folder and renames only the package. "Overwrite" turns the rename down,
+because a folder is never overwritten. The rename is also turned down while
+part of the package is being unpacked, moved into its folder or recorded from a
+live stream, and when the folder cannot be renamed, for example because a
+program on Windows has a file in it open. Nothing changes in either case. A
+folder that moves to another disk is copied there.
+
 ## Telling a media library to rescan
 
 Once the last file of a package has arrived **and been moved into its folder**,

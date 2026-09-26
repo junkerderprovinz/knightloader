@@ -9,8 +9,8 @@ per row, and the decision is recorded in the Verdict column as we go.
 | Status | Count | Meaning |
 |---|---|---|
 | have | 86 | present and working here |
-| partial | 237 | some of it exists, the table says which part is missing |
-| missing | 605 | not built |
+| partial | 238 | some of it exists, the table says which part is missing |
+| missing | 604 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
 L several days, XL a project. The Blocker column is empty unless something
@@ -29,7 +29,7 @@ survey nobody re-added.
 2. [Downloads tab](#2-downloads-tab) - 104 features: 22 have, 32 partial, 50 missing
 3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 23 partial, 42 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) - 102 features: 3 have, 5 partial, 94 missing
-5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 29 partial, 94 missing
+5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 30 partial, 93 missing
 6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 12 have, 37 partial, 57 missing
 7. [Accounts, hosters, premium handling](#7-accounts-hosters-premium-handling) - 87 features: 7 have, 27 partial, 53 missing
 8. [Automation, rules and scripting](#8-automation-rules-and-scripting) - 130 features: 4 have, 34 partial, 92 missing
@@ -439,7 +439,7 @@ Grounded in the mirror/jdownloader source: reconnect is a plugin registry (Recon
 
 JD2's settings sidebar is a flat list, not a tree, and its exact order is hardcoded in SettingsSidebarModel.fill(): General, Reconnect, Connection Manager, Account Manager, Basic Authentication, Plugins, Captchas, User Interface, Bubble Notify, My.JDownloader, Linkgrabber Filter, Packagizer, Archive Extractor, Tray, Advanced Settings, Extension Modules, then every enabled extension alphabetically. There is no "Downloads" or "Passwords" node: download options sit under General, and passwords are split across Account Manager, Basic Authentication, Extraction's password list, the tray/GUI password and My.JDownloader. Advanced Settings is not a panel of its own options but a generic raw editor over every @AboutConfig-annotated key in every ConfigInterface (core + plugins + extensions), which is why hundreds of real features have no GUI panel at all.
 
-134 features - 11 have, 29 partial, 94 missing.
+134 features - 11 have, 30 partial, 93 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -549,7 +549,7 @@ JD2's settings sidebar is a flat list, not a tree, and its exact order is hardco
 | **GeneralSettings.maxbuffersize / flushbuffertimeout / flushbufferlevel** | Write-buffer size and flush policy, the main knobs for disk I/O behaviour on slow or network storage. | Advanced Settings > GeneralSettings | niche | missing | M | Write buffering happens inside the embedded Gopeed engine, which exposes no buffer-size or flush-policy knob (internal/engine/engine.go:93 passes only path and connections). |  |
 | **GeneralSettings.maxpluginretries / waittimeonconnectionloss / downloadhostunavailableretrywaittime** | Retry count and back-off timings for plugin errors, connection loss and unavailable hosts. | Advanced Settings > GeneralSettings | niche | partial | S | The retry count is configurable, but the back-off curve (15 s doubling, capped at 10 min) is hardcoded and there are no separate connection-loss or host-unavailable wait times. |  |
 | **GeneralSettings.mirrordetectiondecision** | Decides when two links count as the same file (by name, size, hash) so mirrors can be used as fallbacks. | Advanced Settings > GeneralSettings | niche | missing | M | Duplicate detection is exact-URL only (internal/app/app.go:337-343); nothing compares name, size or hash across hosters, so mirrors cannot serve as fallbacks. |  |
-| **GeneralSettings.movefilesifdownloaddestinationchangesenabled / renamefilesifdownloadlinknamechangesenabled** | Makes already-downloaded files follow the entry when its destination or name is changed in the UI. | Advanced Settings > GeneralSettings | niche | missing | M | Documented as not happening: changing a task's folder only affects a later restart, bytes on disk stay put (internal/app/app.go:1035-1037). |  |
+| **GeneralSettings.movefilesifdownloaddestinationchangesenabled / renamefilesifdownloadlinknamechangesenabled** | Makes already-downloaded files follow the entry when its destination or name is changed in the UI. | Advanced Settings > GeneralSettings | niche | partial | M | Renaming a package takes a folder named after it along, with every file already in it, whichever backend wrote them (internal/app/app_packagefolder.go). For JDownloader's own links KnightLoader points the package at the new folder and relies on this setting being on, as it is by default. A finished download renamed in the list is renamed on disk as well. Missing part: changing a download's folder by hand moves nothing already on disk and only affects a later restart, and neither behaviour can be switched off. |  |
 | **GlobalIPCheckUrl / GlobalIPCheckPattern** | Custom URL plus regex used to read back the public IP after a reconnect, instead of JD's own balanced ipcheck servers. | Advanced Settings > ReconnectConfig | niche | missing | S |  |  |
 | **Hide Tray if Window is visible** | Removes the tray icon whenever the main window is on screen. | Settings > Tray | niche | missing | S | Requires a tray icon, which no build has. |  |
 | **Import / Export** | Bulk import and export of proxy lists as plain text, plus saving and loading named proxy profiles. | Settings > Connection Manager > toolbar below the table (split buttons) | niche | missing | S |  |  |

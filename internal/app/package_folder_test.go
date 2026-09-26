@@ -255,51 +255,19 @@ func TestAPackageBeingUnpackedIsNotRenamed(t *testing.T) {
 	}
 }
 
-// JDownloader writes where it was told when the link was handed over, and
-// nothing here can stop it or point it elsewhere, so a folder it is still
-// writing into keeps its name, and the package keeps the folder.
-func TestAFolderJDownloaderIsStillWritingIntoKeepsItsName(t *testing.T) {
-	a, base := newPackageApp(t)
-	old := oldPackage(t, a, base)
-	putTask(t, a, core.Task{ID: "jd", URL: "https://hoster.example/film.part3.rar", Name: "film.part3.rar",
-		Package: "Old", Resolver: "jd", Status: core.StatusRunning, Loaded: 100, Enabled: true})
-
-	if _, err := a.RenamePackage([]string{"part1", "part2", "jd"}, "Film"); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, id := range []string{"part1", "part2", "jd"} {
-		if live := liveTask(a, id); live.Package != "Film" {
-			t.Errorf("%s is in package %q, want the new name", id, live.Package)
-		}
-		if got := a.TaskFolder(id); got != old {
-			t.Errorf("%s downloads to %q, want the folder JDownloader writes to, %q", id, got, old)
-		}
-	}
-	if _, err := os.Stat(filepath.Join(old, "film.part1.rar")); err != nil {
-		t.Errorf("the finished part left the folder: %v", err)
-	}
-}
-
 // A torrent is taken out of the engine for the move, since the library opens
 // its files in the folder it was added in. One that was downloading waits in
-// the queue to start again and take up its files in the new place; one that
-// was seeding has stopped.
-func TestRenamingAPackageTakesItsTorrentsAlong(t *testing.T) {
+// the queue to start again and take up its files in the new place.
+func TestRenamingAPackageTakesADownloadingTorrentAlong(t *testing.T) {
 	a, base := newPackageApp(t)
 	a.SetHalted(true)
 	old := filepath.Join(base, "Old")
-	for _, name := range []string{"Show", "Film"} {
-		if err := os.MkdirAll(filepath.Join(old, name), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(old, name, "part.mkv"), []byte(name), 0o644); err != nil {
-			t.Fatal(err)
-		}
+	if err := os.MkdirAll(filepath.Join(old, "Film"), 0o755); err != nil {
+		t.Fatal(err)
 	}
-	putTask(t, a, core.Task{ID: "seeding", URL: "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a",
-		Name: "Show", Package: "Old", Resolver: "torrent", InfoHash: "c12fe1c06bba254a9dc9f519b335aa7c1367a88a",
-		Status: core.StatusDone, Seeding: true, File: filepath.Join(old, "Show"), Enabled: true})
+	if err := os.WriteFile(filepath.Join(old, "Film", "part.mkv"), []byte("Film"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	putTask(t, a, core.Task{ID: "fetching", URL: "magnet:?xt=urn:btih:d12fe1c06bba254a9dc9f519b335aa7c1367a88a",
 		Name: "Film", Package: "Old", Resolver: "torrent", InfoHash: "d12fe1c06bba254a9dc9f519b335aa7c1367a88a",
 		Status: core.StatusRunning, Loaded: 1, File: filepath.Join(old, "Film"), Enabled: true})
@@ -307,14 +275,11 @@ func TestRenamingAPackageTakesItsTorrentsAlong(t *testing.T) {
 	a.active["fetching"], a.started["fetching"] = true, true
 	a.mu.Unlock()
 
-	if _, err := a.RenamePackage([]string{"seeding", "fetching"}, "New"); err != nil {
+	if _, err := a.RenamePackage([]string{"fetching"}, "New"); err != nil {
 		t.Fatal(err)
 	}
 
-	seeding, fetching := liveTask(a, "seeding"), liveTask(a, "fetching")
-	if seeding.Seeding || seeding.SeedingEnded.IsZero() {
-		t.Errorf("the seeding torrent reads Seeding %v, ended %v; it stopped for the move", seeding.Seeding, seeding.SeedingEnded)
-	}
+	fetching := liveTask(a, "fetching")
 	if fetching.Status != core.StatusQueued {
 		t.Errorf("the downloading torrent is %q, want it queued to start again", fetching.Status)
 	}
@@ -324,14 +289,12 @@ func TestRenamingAPackageTakesItsTorrentsAlong(t *testing.T) {
 	if active || started || !queued {
 		t.Errorf("active %v, started %v, queued %v; want it waiting for a fresh start", active, started, queued)
 	}
-	for id, name := range map[string]string{"seeding": "Show", "fetching": "Film"} {
-		want := filepath.Join(base, "New", name)
-		if got := liveTask(a, id).File; got != want {
-			t.Errorf("%s records %q, want %q", id, got, want)
-		}
-		if _, err := os.Stat(filepath.Join(want, "part.mkv")); err != nil {
-			t.Errorf("%s's files did not move: %v", id, err)
-		}
+	want := filepath.Join(base, "New", "Film")
+	if fetching.File != want {
+		t.Errorf("the torrent records %q, want %q", fetching.File, want)
+	}
+	if _, err := os.Stat(filepath.Join(want, "part.mkv")); err != nil {
+		t.Errorf("the torrent's files did not move: %v", err)
 	}
 }
 

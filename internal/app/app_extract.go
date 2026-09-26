@@ -244,11 +244,13 @@ func (a *App) extractionDueLocked(done *core.Task, cfg settings.Settings) (*core
 
 // extractNowLocked starts a due extraction and returns the task it moved into
 // StatusExtracting, which the caller must publish too since it may be the
-// first volume rather than done. It runs when a download finishes and when the
-// switch is turned on later; a second call finds the target already
-// extracting. Caller holds a.mu.
+// first volume rather than done. It runs when a download finishes, when the
+// switch is turned on later and when a package rename has moved the volumes;
+// a second call finds the target already extracting. While the rename moves
+// them it starts nothing, since the job would open the old paths. Caller holds
+// a.mu.
 func (a *App) extractNowLocked(done *core.Task, cfg settings.Settings) *core.Task {
-	if done.Status != core.StatusDone || !filesAreLocal(done) {
+	if done.Status != core.StatusDone || !filesAreLocal(done) || a.relocating[done.ID] {
 		return nil
 	}
 	target, path := a.extractionDueLocked(done, cfg)
@@ -709,6 +711,10 @@ func (a *App) StartExtraction(ids []string) error {
 		}
 		if t.Status != core.StatusDone {
 			refused = append(refused, fmt.Sprintf("%s has not finished downloading", t.Name))
+			continue
+		}
+		if a.relocating[t.ID] {
+			refused = append(refused, fmt.Sprintf("%s is being moved to its package's new folder; try again once that is done", t.Name))
 			continue
 		}
 		target, path := a.extractCandidateLocked(t)
