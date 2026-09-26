@@ -144,9 +144,11 @@ app uses.
 
 Once its files are here, the download is deleted on the service, as a torrent
 KnightLoader added itself is. Removing an imported task before it has finished
-deletes it there too, thirty seconds later, so an undo still finds it. A
-restart within those thirty seconds does not stop it. "Keep downloads on the
-debrid service" under Settings, Torrents keeps both on the account.
+deletes it there too, once the removal can no longer be undone, thirty seconds
+after it went through. A restart within those thirty seconds does not stop it.
+If the service refuses the delete, KnightLoader tries again, waiting longer
+each time, for about two hours. "Keep downloads on the debrid service" under
+Settings, Torrents keeps both on the account.
 
 ## Own servers (FTP, SFTP, WebDAV)
 

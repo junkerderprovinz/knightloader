@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"sync"
@@ -291,10 +292,14 @@ type binned struct {
 }
 
 // bin is one removal, kept whole: after a partial undo the missing rows would
-// look as if they had been removed on purpose.
+// look as if they had been removed on purpose. tasks and until are guarded by
+// the app's mu.
 type bin struct {
 	app   *App
 	tasks []binned
+	// until is when the undo window closes. It is zero while the removal is
+	// still going through the rows, before the window opens.
+	until time.Time
 }
 
 // bins holds the removals that can still be taken back, keyed by the token the
@@ -311,6 +316,9 @@ var bins sync.Map // token -> *bin
 // The bin lives in memory only. A restart is not an undo, and a deletion coming
 // back after an update would be a nasty surprise.
 func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []string, token string) {
+	if deleteFiles {
+		return a.RemoveTasks(ids, true), ""
+	}
 	// The set-aside rows RemoveTasks takes along go into the bin too, so an
 	// undo brings back the whole link.
 	aside := a.strandedBy(ids)
@@ -326,27 +334,29 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 			kept[id] = binned{task: *t, queued: inQueue[id]}
 		}
 	}
+	b := &bin{app: a, tasks: slices.Collect(maps.Values(kept))}
 	a.mu.Unlock()
+	// Filed before the removal, so an imported row's download is not deleted
+	// on the service while a long removal has yet to open the window.
+	token = newID()
+	bins.Store(token, b)
 
-	removed = a.RemoveTasks(ids, deleteFiles)
-	if deleteFiles || len(removed) == 0 {
-		return removed, ""
-	}
+	removed = a.RemoveTasks(ids, false)
 	// Only what the removal really took, in case another caller removed a row
 	// in between.
-	b := &bin{app: a, tasks: make([]binned, 0, len(removed)+len(aside))}
 	a.mu.Lock()
+	b.tasks = make([]binned, 0, len(removed)+len(aside))
 	for _, id := range slices.Concat(removed, aside) {
 		if e, ok := kept[id]; ok && a.tasks[id] == nil {
 			b.tasks = append(b.tasks, e)
 		}
 	}
+	b.until = time.Now().Add(UndoWindow)
 	a.mu.Unlock()
-	if len(b.tasks) == 0 {
+	if len(removed) == 0 || len(b.tasks) == 0 {
+		bins.Delete(token)
 		return removed, ""
 	}
-	token = newID()
-	bins.Store(token, b)
 	// Not a.spawn: this goroutine writes nothing Close waits for, and a spawn
 	// refused during shutdown would leave the bin to never expire. Waiting on
 	// a.ctx drops the bin at shutdown too.
@@ -366,16 +376,19 @@ func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []str
 // An unknown or expired token restores nothing and is not an error; expiring is
 // a token's normal end.
 func (a *App) UndoRemove(token string) []string {
+	a.mu.Lock()
 	v, ok := bins.Load(token)
 	b, _ := v.(*bin)
 	// A browser may sit in front of several instances (routes_federation.go),
-	// so a token issued by another instance is not found here.
-	if !ok || b == nil || b.app != a {
+	// so a token issued by another instance is not found here. The window is
+	// judged under a.mu, as the deletion of an imported download judges it
+	// (see undoableUntilLocked), so the two never both go ahead.
+	if !ok || b == nil || b.app != a || !time.Now().Before(b.until) {
+		a.mu.Unlock()
 		return nil
 	}
 	bins.Delete(token)
 
-	a.mu.Lock()
 	var live []*core.Task
 	for i := range b.tasks {
 		e := b.tasks[i]
@@ -431,6 +444,28 @@ func (a *App) UndoRemove(token string) []string {
 		a.publish(c)
 	}
 	return back
+}
+
+// undoableUntilLocked is when the last removal that could still bring the
+// task back stops being undoable, zero when none can. A removal still going
+// through its rows counts as opening its window now. Caller holds a.mu.
+func (a *App) undoableUntilLocked(id string) time.Time {
+	var until time.Time
+	bins.Range(func(_, v any) bool {
+		b, _ := v.(*bin)
+		if b == nil || b.app != a {
+			return true
+		}
+		end := b.until
+		if end.IsZero() {
+			end = time.Now().Add(UndoWindow)
+		}
+		if end.After(until) && slices.ContainsFunc(b.tasks, func(e binned) bool { return e.task.ID == id }) {
+			until = end
+		}
+		return true
+	})
+	return until
 }
 
 // Selection names the tasks one queue action is about, so a verb over many
