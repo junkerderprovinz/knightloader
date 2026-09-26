@@ -2,7 +2,8 @@
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
 // accounts and the multihosters reached through JD come first, hoster logins
 // below; the section follows the catalogue's Group field, and both cards draw
-// an AccountTable.
+// an AccountTable. The Premium only switch comes under them, since whether a
+// link may be fetched for free is a question of which accounts there are.
 import {
   useCallback,
   useEffect,
@@ -55,6 +56,7 @@ import {
   Toggle,
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
+import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import {
   ConfirmRemoveLogin,
@@ -257,6 +259,8 @@ export function Accounts() {
         </SectionTitle>
         <HosterLoginSection data={hoster} />
       </Card>
+
+      <FreeDownloadsCard hue={2} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -766,7 +770,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={2} className="flex flex-col gap-3">
+      <Card hue={3} className="flex flex-col gap-3">
         <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
@@ -779,7 +783,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={3} className="flex flex-col gap-3">
+      <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.jdHint')}>
           {t('settings.module.jd')}
         </SectionTitle>
