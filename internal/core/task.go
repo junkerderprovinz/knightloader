@@ -375,6 +375,11 @@ type Task struct {
 	// restarted download does not keep its first finish time. See
 	// store.stampFinish.
 	FinishedAt time.Time `json:"finishedAt,omitempty"`
+	// SeedingEnded is when a finished torrent last stopped seeding, at its
+	// targets or at a shutdown, zero while it seeds and for anything that never
+	// did. The qBittorrent door reports the time from FinishedAt to it as the
+	// torrent's seeding time.
+	SeedingEnded time.Time `json:"seedingEnded,omitzero"`
 	// Enabled is the user's switch for one link; a disabled link keeps its
 	// place and progress but is not started. It defaults to true in the column
 	// too, because a false default would disable the whole queue on upgrade,

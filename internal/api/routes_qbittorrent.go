@@ -1055,10 +1055,11 @@ type qbitView struct {
 	// contentPath is the torrent's own folder, savePath the one around it.
 	// Sonarr imports from the first and refuses a torrent whose two paths are
 	// equal.
-	savePath    string
-	contentPath string
-	finishedAt  time.Time
-	changedAt   time.Time
+	savePath     string
+	contentPath  string
+	finishedAt   time.Time
+	seedingEnded time.Time
+	changedAt    time.Time
 }
 
 // views renders every torrent this bridge staged, oldest first. It prunes
@@ -1125,6 +1126,9 @@ func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task) qbitView {
 		v.forced = v.forced || task.Forced
 		if task.FinishedAt.After(v.finishedAt) {
 			v.finishedAt = task.FinishedAt
+		}
+		if task.SeedingEnded.After(v.seedingEnded) {
+			v.seedingEnded = task.SeedingEnded
 		}
 		if task.ChangedAt.After(v.changedAt) {
 			v.changedAt = task.ChangedAt
@@ -1295,9 +1299,16 @@ func (v qbitView) info() qbitInfo {
 		// Nothing seeds it any more, so a limit left to the instance reads as
 		// reached, which is when Sonarr removes a finished torrent. A limit of
 		// its own is reported as it is, since the engine seeds to the
-		// instance's targets and can stop short of it.
+		// instance's targets and can stop short of it, and so is the time it
+		// seeded, which Sonarr holds against a seed time its indexer asked for.
 		if v.torrent.RatioLimit == nil && v.torrent.SeedingTimeLimit == nil {
 			i.RatioLimit = 0
+		}
+		// Unknown until the finish time is on the live task (see
+		// app.reconcileFinishTimes), and an end before the finish is left from
+		// an earlier download of the same task.
+		if !v.finishedAt.IsZero() && v.seedingEnded.After(v.finishedAt) {
+			i.SeedingTime = int64(v.seedingEnded.Sub(v.finishedAt).Seconds())
 		}
 	}
 	return i

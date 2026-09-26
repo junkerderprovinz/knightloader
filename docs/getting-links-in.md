@@ -238,7 +238,8 @@ KnightLoader has stopped seeding it. When an indexer in Sonarr has a seed ratio
 or a seed time, Sonarr sends it along and waits until the torrent has reached
 it. KnightLoader itself seeds every torrent to the targets under Settings >
 Torrents, so set those at least as high as your trackers ask. A torrent that
-stops short of its indexer's ratio stays in the list until you remove it.
+stops short of its indexer's ratio or seed time stays in the list until you
+remove it.
 
 When a link to a `.torrent` file arrives instead of a magnet, as it can from
 Prowlarr, KnightLoader fetches the file first. A link that leads to no torrent,
