@@ -842,10 +842,27 @@ func (a *App) Close() error {
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
+	// The engine keeps its transfers in memory only, so seeding ends here.
+	a.endSeeding()
 	if a.Engine != nil {
 		a.Engine.Close()
 	}
 	return a.Store.Close()
+}
+
+// endSeeding records the end of seeding on every torrent still seeding.
+func (a *App) endSeeding() {
+	ended := time.UnixMilli(time.Now().UnixMilli())
+	var copies []taskCopy
+	a.mu.Lock()
+	for _, t := range a.tasks {
+		if t.Seeding {
+			t.Seeding, t.SeedingEnded = false, ended
+			copies = append(copies, a.copyLocked(t))
+		}
+	}
+	a.mu.Unlock()
+	a.publishTasks(copies)
 }
 
 // dirFor decides where a task's file goes: the task's own folder if set, else

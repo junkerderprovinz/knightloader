@@ -185,6 +185,11 @@ var migrations = []string{
 	// adds the torrent to the account a second time, fetches the files already
 	// here again, and leaves the first job there for good.
 	`ALTER TABLE tasks ADD COLUMN service_job TEXT NOT NULL DEFAULT ''`,
+	// When a finished torrent stopped seeding, in Unix milliseconds, 0 for
+	// never. The seeding flag is a live reading, so without it a restart
+	// forgets how long a torrent seeded, which Sonarr waits on before it
+	// removes one.
+	`ALTER TABLE tasks ADD COLUMN seeding_ended INTEGER NOT NULL DEFAULT 0`,
 }
 
 func Open(path string) (*Store, error) {
@@ -287,7 +292,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
-	service_job`
+	service_job,seeding_ended`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -303,9 +308,12 @@ func (s *Store) Save(t *core.Task) error {
 	// stampFinish).
 	s.stampFinish(t)
 	// Zero rather than the epoch, so "never finished" stays distinct.
-	var finishedAt, changedAt, confirmDue int64
+	var finishedAt, changedAt, confirmDue, seedingEnded int64
 	if !t.FinishedAt.IsZero() {
 		finishedAt = t.FinishedAt.UnixMilli()
+	}
+	if !t.SeedingEnded.IsZero() {
+		seedingEnded = t.SeedingEnded.UnixMilli()
 	}
 	if !t.ChangedAt.IsZero() {
 		changedAt = t.ChangedAt.UnixMilli()
@@ -371,7 +379,7 @@ func (s *Store) Save(t *core.Task) error {
 		t.InfoHash, trackers, string(t.Mode),
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
-		serviceJob)
+		serviceJob, seedingEnded)
 	if err != nil {
 		return err
 	}
@@ -398,7 +406,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	for rows.Next() {
 		t := &core.Task{}
 		var status, online, matched, reason, origin, torrentFiles, trackers, mode, unpack, serviceJob string
-		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue int64
+		var created, createdNs, nextTry, finishedAt, changedAt, confirmDue, seedingEnded int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
@@ -410,7 +418,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
-			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob); err != nil {
+			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -425,6 +433,9 @@ func (s *Store) All() ([]*core.Task, error) {
 		}
 		if finishedAt > 0 {
 			t.FinishedAt = time.UnixMilli(finishedAt)
+		}
+		if seedingEnded > 0 {
+			t.SeedingEnded = time.UnixMilli(seedingEnded)
 		}
 		if changedAt > 0 {
 			t.ChangedAt = time.UnixMilli(changedAt)

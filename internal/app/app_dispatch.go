@@ -1257,6 +1257,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Note = u.Note
 		t.Remote = u.Remote
 	}
+	seedingEnded := u.Torrent != nil && t.Seeding && !u.Torrent.Seeding
+	if seedingEnded {
+		t.SeedingEnded = time.UnixMilli(time.Now().UnixMilli())
+	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
 	}
@@ -1482,8 +1486,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
-	// on every poll. A debrid job is saved with or without one.
-	if u.Status != "" || u.Job != nil {
+	// on every poll. A debrid job is saved with or without one, and so is the
+	// end of seeding.
+	if u.Status != "" || u.Job != nil || seedingEnded {
 		a.publish(&c)
 	} else {
 		a.show(&c)
