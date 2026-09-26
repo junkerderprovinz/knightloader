@@ -417,6 +417,14 @@ body {
   transition: background-color .12s ease, color .12s ease;
 }
 
+/* A segment with a glyph keeps it centred beside its words. */
+.glim-seg button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 .glim-seg button:hover { color: var(--carbon-text); }
 
 .glim-seg button[aria-pressed="true"] {
