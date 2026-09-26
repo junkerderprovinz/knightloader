@@ -97,7 +97,9 @@ func (l leftover) drop(taskID string) {
 	if l.path == "" {
 		return
 	}
-	if _, err := os.Lstat(l.path); err != nil {
+	// A multi-file torrent records its folder, whose own files the engine
+	// deletes.
+	if fi, err := os.Lstat(l.path); err != nil || fi.IsDir() {
 		return
 	}
 	if !l.intact() {

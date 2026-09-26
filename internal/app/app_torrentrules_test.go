@@ -120,7 +120,7 @@ func TestATrackerBannedAfterStagingStopsTheStart(t *testing.T) {
 func torrentJob(a *App, t *core.Task) engine.Job {
 	job := engine.Job{TaskID: t.ID, URL: t.URL}
 	a.mu.Lock()
-	a.torrentJobLocked(&job, t, a.Settings.Get())
+	a.torrentJobLocked(&job, t, a.Settings.Get(), t.File)
 	a.mu.Unlock()
 	return job
 }

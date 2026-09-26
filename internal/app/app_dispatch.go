@@ -969,6 +969,7 @@ func (a *App) dispatchLocked() {
 			t.Connection = chosen
 		}
 		// The new attempt reports the file it writes itself.
+		landed := t.File
 		t.File = ""
 		if be == a.Engine {
 			job := a.engineJobLocked(t, cfg, result.DirectURL, result.Headers, conns)
@@ -977,7 +978,10 @@ func (a *App) dispatchLocked() {
 			// Without it, files unticked in the collector would be downloaded
 			// anyway, since an empty selection means everything.
 			job.TorrentSelect = core.SelectedTorrentIndices(t.TorrentFiles)
-			a.torrentJobLocked(&job, t, cfg)
+			if a.torrentJobLocked(&job, t, cfg, landed) {
+				// A torrent carries on with the files its earlier attempt left.
+				own = leftover{}
+			}
 			go func() {
 				own.drop(id)
 				a.Engine.Start(job)

@@ -55,12 +55,14 @@ func (a *App) PickTorrentFiles(files []core.TorrentFile) ([]core.TorrentFile, er
 // torrentJobLocked adds the Torrents page to an engine job that starts a
 // torrent: the file rules of the task's category when nobody chose the files,
 // and the extra trackers. A task with a file list had its files ticked by
-// hand, and the engine must not choose over that. Any other job is left alone.
-// Caller holds a.mu.
-func (a *App) torrentJobLocked(job *engine.Job, t *core.Task, cfg settings.Settings) {
+// hand, and the engine must not choose over that. landed is where the task's
+// earlier attempt put the torrent. It reports whether the job is a torrent's;
+// any other job is left alone. Caller holds a.mu.
+func (a *App) torrentJobLocked(job *engine.Job, t *core.Task, cfg settings.Settings, landed string) bool {
 	if !torrent.IsURI(job.URL) {
-		return
+		return false
 	}
+	job.TorrentRoot, job.TorrentName = landed, filename(t)
 	if len(t.TorrentFiles) == 0 {
 		job.FileRules = fileRules(cfg.TorrentFileRulesFor(t.Category))
 	}
@@ -71,6 +73,7 @@ func (a *App) torrentJobLocked(job *engine.Job, t *core.Task, cfg settings.Setti
 		extra = append(extra, a.publicTrackers().Trackers(tc.TrackerListURL)...)
 	}
 	job.Trackers = torrent.ExtraTrackers(job.URL, extra, tc.BannedTrackers)
+	return true
 }
 
 // refreshTrackerList fetches the public tracker list in the background when it
