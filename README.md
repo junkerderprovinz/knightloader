@@ -170,8 +170,7 @@ repository, which is not ready to install yet (see the notice at the top).
 The others are ahead in places. JDownloader and pyLoad bring hoster plugins of
 their own, where KnightLoader leaves file hosters to a debrid service or to
 JDownloader. JDownloader downloads from Usenet by itself, and JDownloader and
-rdt-client ship stable releases. rdt-client is made for Sonarr and Radarr and
-takes NZB files from them as well as torrents.
+rdt-client ship stable releases.
 
 KnightLoader puts debrid services, JDownloader's hosters, torrents and yt-dlp
 behind one web interface. Its phone app, its browser extension and your other
