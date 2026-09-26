@@ -16,7 +16,7 @@ import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
-import { NeutralSwitch, RowRefusal } from './controls';
+import { ListArea, NeutralSwitch, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -348,16 +348,12 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_10rem]">
         <Field label={t('settings.connections.filter')} hint={t('settings.connections.filterHint')}>
-          <TextArea
+          <ListArea
             dir="ltr"
             rows={2}
-            spellCheck={false}
-            value={(row.filter ?? []).join('\n')}
+            lines={row.filter}
             placeholder="example.org"
-            // Split per keystroke, so the field and the value stay the same text.
-            onChange={(e) =>
-              onChange({ filter: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
-            }
+            onLines={(filter) => onChange({ filter })}
           />
         </Field>
         <Field label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>

@@ -1,5 +1,6 @@
-import type { ComponentProps, CSSProperties } from 'react';
+import type { ComponentProps, CSSProperties, TextareaHTMLAttributes } from 'react';
 import { PathInput } from '../../components/FolderPicker';
+import { TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
 import { useFieldError } from './context';
 
@@ -13,6 +14,29 @@ export function SettingPathInput({
 }: Omit<ComponentProps<typeof PathInput>, 'error'> & { field: string }) {
   const error = useFieldError(field);
   return <PathInput {...props} error={error} />;
+}
+
+/**
+ * ListArea edits a list setting as a box with one entry per line. Blank lines
+ * go out as they are and the server drops them: taken out here, the new line
+ * an Enter starts would vanish before anything could be typed on it.
+ */
+export function ListArea({
+  lines,
+  onLines,
+  ...props
+}: Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> & {
+  lines?: string[] | null;
+  onLines: (lines: string[]) => void;
+}) {
+  return (
+    <TextArea
+      spellCheck={false}
+      {...props}
+      value={(lines ?? []).join('\n')}
+      onChange={(e) => onLines(e.target.value === '' ? [] : e.target.value.split('\n'))}
+    />
+  );
 }
 
 /**

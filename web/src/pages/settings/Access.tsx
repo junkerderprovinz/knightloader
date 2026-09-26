@@ -11,7 +11,6 @@ import {
   Modal,
   PasswordInput,
   SectionTitle,
-  TextArea,
   TextInput,
   ToggleRow,
 } from '../../components/ui';
@@ -57,6 +56,7 @@ import {
 import { useToast } from '../../lib/toast';
 import { useShake } from '../../lib/useShake';
 import { useDraft } from './context';
+import { ListArea } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
@@ -248,13 +248,7 @@ function IdentityCard() {
         />
       </Field>
       <Field label={t('settings.access.identity.domainsLabel')} hint={t('settings.access.identity.domainsHint')}>
-        <TextArea
-          rows={3}
-          spellCheck={false}
-          dir="ltr"
-          value={(cfg.knownDomains ?? []).join('\n')}
-          onChange={(e) => patch({ knownDomains: e.target.value.split('\n').filter((d) => d.trim() !== '') })}
-        />
+        <ListArea rows={3} dir="ltr" lines={cfg.knownDomains} onLines={(knownDomains) => patch({ knownDomains })} />
       </Field>
     </Card>
   );
