@@ -26,7 +26,16 @@ import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '.
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconBolt, IconCheck, IconPin, IconPower, IconRetry, IconStopMark, PriorityGlyph } from '../lib/icons';
+import {
+  IconBolt,
+  IconCheck,
+  IconPin,
+  IconPower,
+  IconRetry,
+  IconStopMark,
+  IconWarning,
+  PriorityGlyph,
+} from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
 import { resolverLabel } from '../lib/resolverLabels';
 import { adviceFor } from '../lib/failureAdvice';
@@ -1172,19 +1181,19 @@ const STATUS_RANK: Record<Task['status'], number> = {
 };
 
 /**
- * packageStatus is the one word a package header can truthfully show.
- *
- * A failure anywhere wins, whatever else the package is doing: nine finished
+ * packageStatus is the one word a package header can truthfully show: the
+ * least settled state in the package, so a package with one running link reads
+ * as running rather than as the queue its other nine links are still sitting
+ * in. A failure beside work still going on is flagged next to that word (see
+ * packageFailures). Once nothing is going on a failure wins: nine finished
  * files and one dead link is not a finished package, and a header that says
- * "Done" hides the one row somebody has to act on. Otherwise it is the least
- * settled state in the package, so a package with one running link reads as
- * running rather than as the queue its other nine links are still sitting in.
+ * "Done" hides the one row somebody has to act on.
  */
 export function packageStatus(items: Task[]): Task['status'] {
   if (items.length === 0) return 'queued';
-  if (items.some((x) => x.status === 'error')) return 'error';
   let best = items[0].status;
   for (const x of items) if (STATUS_RANK[x.status] < STATUS_RANK[best]) best = x.status;
+  if (STATUS_RANK[best] >= STATUS_RANK.collected && items.some((x) => x.status === 'error')) return 'error';
   return best;
 }
 
@@ -1192,6 +1201,20 @@ export function packageStatus(items: Task[]): Task['status'] {
 // the reason packageStatus puts one first, then the archive being worked on,
 // then the ones waiting, and "Unpacked" only once nothing else is left.
 const UNPACK_RANK: UnpackState[] = ['error', 'password', 'running', 'queued', 'done'];
+
+const unpackFailed = (u: Unpacking): boolean => u.state === 'error' || u.state === 'password';
+
+/** Every archive of a package once, however many parts it has. */
+function archivesOf(items: Task[], ctx: CellContext): Unpacking[] {
+  const byArchive = new Map<string, Unpacking>();
+  for (const x of items) {
+    const u = unpackingOf(x, ctx);
+    // Without a job a set is counted once, by its first part.
+    if (u?.job) byArchive.set(`job ${u.job.id}`, u);
+    else if (u && (x.archivePart ?? 0) <= 1) byArchive.set(`task ${x.id}`, u);
+  }
+  return [...byArchive.values()];
+}
 
 /**
  * packageUnpacking is the package header's summary of its archives, and null
@@ -1205,17 +1228,54 @@ export function packageUnpacking(
 ): (Unpacking & { done: number; total: number }) | null {
   const status = packageStatus(items);
   if (status !== 'done' && status !== 'extracting') return null;
-  const byArchive = new Map<string, Unpacking>();
-  for (const x of items) {
-    const u = unpackingOf(x, ctx);
-    // Without a job a set is counted once, by its first part.
-    if (u?.job) byArchive.set(`job ${u.job.id}`, u);
-    else if (u && (x.archivePart ?? 0) <= 1) byArchive.set(`task ${x.id}`, u);
-  }
-  const all = [...byArchive.values()];
+  const all = archivesOf(items, ctx);
   if (all.length === 0) return null;
   const lead = all.reduce((a, b) => (UNPACK_RANK.indexOf(b.state) < UNPACK_RANK.indexOf(a.state) ? b : a));
   return { ...lead, done: all.filter((u) => u.state === 'done').length, total: all.length };
+}
+
+/**
+ * packageFailures counts what in a package failed: each link that did not
+ * download, and each archive that did not unpack, once however many parts it
+ * has.
+ */
+export function packageFailures(items: Task[], ctx: CellContext): number {
+  return items.filter((x) => x.status === 'error').length + archivesOf(items, ctx).filter(unpackFailed).length;
+}
+
+/**
+ * PackageStatusCell is the status column's word for a package, with the
+ * failures flagged beside it while that word is about work still going on.
+ */
+function PackageStatusCell({ items, ctx }: { items: Task[]; ctx: CellContext }) {
+  const status = packageStatus(items);
+  const unpack = packageUnpacking(items, ctx);
+  const failed = packageFailures(items, ctx);
+  const word = unpack ? (
+    <UnpackStatus
+      unpack={unpack}
+      t={ctx.t}
+      tally={unpack.total > 1 ? { done: unpack.done, total: unpack.total } : undefined}
+    />
+  ) : (
+    <StatusPill status={status} />
+  );
+  const saysFailure = unpack ? unpackFailed(unpack) : status === 'error';
+  if (failed === 0 || saysFailure) return word;
+  const label = ctx.t('task.packageFailed', { n: failed });
+  return (
+    <span className={STATUS_LINE}>
+      {word}
+      <Tip
+        tip={label}
+        label={label}
+        className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-statusFail"
+      >
+        <IconWarning width={13} height={13} className="shrink-0" />
+        <span className="glim-num">{failed}</span>
+      </Tip>
+    </span>
+  );
 }
 
 // Unknown sorts last ascending rather than first: a row that cannot say how long
@@ -1533,20 +1593,12 @@ export const COLUMNS: ColumnDef[] = [
     // gets the same pill as a link, over the whole package, or in the collector
     // the same availability dot its rows show, with mixed as its own colour.
     // Once its downloads are in, its archives speak for it.
-    aggregate: (items, ctx) => {
-      if (ctx.profile === 'collector' || packageStatus(items) === 'collected') {
-        return <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />;
-      }
-      const unpack = packageUnpacking(items, ctx);
-      if (!unpack) return <StatusPill status={packageStatus(items)} />;
-      return (
-        <UnpackStatus
-          unpack={unpack}
-          t={ctx.t}
-          tally={unpack.total > 1 ? { done: unpack.done, total: unpack.total } : undefined}
-        />
-      );
-    },
+    aggregate: (items, ctx) =>
+      ctx.profile === 'collector' || packageStatus(items) === 'collected' ? (
+        <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />
+      ) : (
+        <PackageStatusCell items={items} ctx={ctx} />
+      ),
   },
   {
     id: 'host',

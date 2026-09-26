@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
-import TaskRow from './TaskRow';
+import { packageState } from '../api/taskState';
+import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Trash } from './IconBadge';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -89,7 +90,7 @@ export default function PackageList({
   lineKey?: string;
 }) {
   const { t } = useT();
-  const { c, corners } = useAppearance();
+  const { c, corners, accentInk } = useAppearance();
   const packages = groupByPackage(tasks);
 
   /** Which packages are open. Closed is the default, so the state records the
@@ -199,6 +200,7 @@ export default function PackageList({
    */
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
+        const state = packageState(pkg.tasks);
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
@@ -218,10 +220,17 @@ export default function PackageList({
                 <Text style={[styles.headerName, { color: c.text }]} numberOfLines={1}>
                   {pkg.name || t('packages.loose')}
                 </Text>
+                {state.word && (
+                  <Text style={[styles.headerState, { color: statusColor(state.word, c, accentInk) }]}>
+                    {t(STATE_KEYS[state.word])}
+                  </Text>
+                )}
               </View>
               {/* The speed goes on the header as well as on the rows inside,
                   or closed by default hides the one thing a running folder has
-                  to say. */}
+                  to say. The failures too, in the failure ink, since a
+                  package still running says so in its word and nothing else
+                  would tell a closed folder holds a dead link. */}
               <Text style={[styles.headerLine, { color: c.textMuted }]} numberOfLines={1}>
                 {[
                   `${pkg.tasks.length} ${t('instance.files')}`,
@@ -230,6 +239,9 @@ export default function PackageList({
                 ]
                   .filter(Boolean)
                   .join(' · ')}
+                {state.failed > 0 && (
+                  <Text style={{ color: c.statusFailSolid }}>{` · ${t('packages.failed', { n: state.failed })}`}</Text>
+                )}
               </Text>
             </TouchableOpacity>
             {onStartPackage && (
@@ -324,6 +336,8 @@ const styles = StyleSheet.create({
   // Body, off the table. 15 is not a step of the scale, and one 15 beside the
   // 14s around it is how a four-step scale grows a fifth step nobody chose.
   headerName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  // The row's status word, as TaskRow sets it, after the name.
+  headerState: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', marginStart: 'auto' },
   // Tabular figures: a file count, a size and a live speed, in a line repeated
   // once per folder down the screen.
   headerLine: { fontSize: TYPE.caption, marginStart: 20, ...NUM },

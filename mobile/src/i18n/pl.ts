@@ -252,4 +252,9 @@ export const pl: Dict = {
   'failure.archiveUnsupported.next': 'Unpack it with another program, such as 7-Zip.',
   'failure.unknown.line': 'KnightLoader does not recognise this error.',
   'failure.unknown.next': 'Try again. If it keeps happening, report it together with what the backend said.',
+
+  'status.collected': 'collected',
+  'status.notUnpacked': 'not unpacked',
+
+  'packages.failed': '{n} failed',
 };

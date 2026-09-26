@@ -59,6 +59,7 @@ export const de: Dict = {
   'packages.deleteConfirmTitle': 'Paket entfernen?',
   'packages.deleteConfirmMessage': '{n} Links verschwinden aus der Liste. Bereits geladene Dateien bleiben.',
   'packages.deleteConfirmButton': 'Entfernen',
+  'packages.failed': '{n} fehlgeschlagen',
 
   'captcha.screenTitle': 'Captchas',
   'captcha.title': 'Captcha erforderlich',
@@ -128,6 +129,8 @@ export const de: Dict = {
   'status.finished': 'fertig',
   'status.failed': 'fehlgeschlagen',
   'status.extracting': 'entpackt',
+  'status.collected': 'gesammelt',
+  'status.notUnpacked': 'nicht entpackt',
 
   'settings.title': 'Einstellungen',
   'settings.back': 'Zurück',

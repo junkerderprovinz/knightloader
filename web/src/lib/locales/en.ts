@@ -1176,6 +1176,7 @@ export const en = {
   'archive.volumes': '{volumes} volumes',
   'archive.needsPassword': 'Needs a password',
   'archive.tally': '{done} of {total} archives unpacked',
+  'task.packageFailed': '{n} failed to download or unpack',
 
   // The archive settings page. The three policy strips are labelled by what the
   // extractor does and not by the id the server sends, but an id with no string
