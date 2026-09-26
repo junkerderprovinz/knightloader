@@ -309,12 +309,23 @@ export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
 // The settings tabs. Every tab has a glyph (GlimStone's rule), each drawn to
 // read at 16px. Downloads, Accounts, Connections and Reconnect reuse the
 // sidebar, connection and retry glyphs: one idea, one drawing. General, Look,
-// App and Remote access wear the glyphs every GlimStone app gives those tabs.
+// App, Remote access and Advanced wear the glyphs every GlimStone app gives
+// those tabs.
 
 /** General: Material's tune, a row of sliders set by hand. */
 export const IconTabGeneral = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ viewBox: '0 0 24 24', ...p })}>
     <path d="M3,17V19H9V17H3M3,5V7H13V5H3M13,21V19H21V17H13V15H11V21H13M7,9V11H3V13H7V15H9V9H7M21,13V11H11V13H21M15,9H17V7H21V5H17V3H15V9Z" />
+  </svg>
+);
+
+/**
+ * Advanced: Material's hammer-wrench. Its ink is cropped to the share of the
+ * box tune's takes, so the two read as a pair of equal weight.
+ */
+export const IconTabAdvanced = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ viewBox: '-1.19 -1.19 26.37 26.37', ...p })}>
+    <path d="M13.78 15.3L19.78 21.3L21.89 19.14L15.89 13.14L13.78 15.3M17.5 10.1C17.11 10.1 16.69 10.05 16.36 9.91L4.97 21.25L2.86 19.14L10.27 11.74L8.5 9.96L7.78 10.66L6.33 9.25V12.11L5.63 12.81L2.11 9.25L2.81 8.55H5.62L4.22 7.14L7.78 3.58C8.95 2.41 10.83 2.41 12 3.58L9.89 5.74L11.3 7.14L10.59 7.85L12.38 9.63L14.2 7.75C14.06 7.42 14 7 14 6.63C14 4.66 15.56 3.11 17.5 3.11C18.09 3.11 18.61 3.25 19.08 3.53L16.41 6.2L17.91 7.7L20.58 5.03C20.86 5.5 21 6 21 6.63C21 8.55 19.45 10.1 17.5 10.1Z" />
   </svg>
 );
 
@@ -418,7 +429,7 @@ export const IconShieldCheck = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Advanced: faders, for the page where every value can be set by hand. */
+/** Faders: a schedule's speed limit, a value set by hand. */
 export const IconSliders = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="3" y="6.25" width="4.25" height="1" rx=".5" />
