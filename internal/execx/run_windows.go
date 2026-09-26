@@ -12,7 +12,8 @@ package execx
 // not for cmd.exe (https://flatt.tech/research/posts/batbadbut-you-cant-securely-execute-commands-on-windows/).
 // A download called "x&del *&.mkv" handed to a .bat as %%name%% would be run.
 // So a batch file is given to cmd.exe directly, with a command line quoted for
-// cmd.exe, following what Rust's standard library does since CVE-2024-24576.
+// cmd.exe, following what Rust's standard library does since CVE-2024-24576
+// and CVE-2024-43402.
 
 import (
 	"errors"
@@ -27,9 +28,18 @@ import (
 // run runs cmd to the end inside a job object that the end of cmd's context
 // terminates, with a batch file handed to cmd.exe.
 func run(cmd *exec.Cmd) error {
-	if cmd.Err == nil && isBatchFile(cmd.Path) {
-		if err := throughCmd(cmd); err != nil {
+	if cmd.Err == nil {
+		// Windows drops dots and spaces from the end of a file name, so
+		// "hook.bat. ." opens hook.bat and CreateProcess hands it to cmd.exe.
+		// The extension is read off the name Windows resolves the path to.
+		script, err := windows.FullPath(cmd.Path)
+		if err != nil {
 			return err
+		}
+		if isBatchFile(script) {
+			if err := throughCmd(cmd, script); err != nil {
+				return err
+			}
 		}
 	}
 	job, err := windows.CreateJobObject(nil, nil)
@@ -56,11 +66,11 @@ func isBatchFile(path string) bool {
 	return ext == ".bat" || ext == ".cmd"
 }
 
-// throughCmd makes cmd start cmd.exe with the batch file and its arguments as
-// one command line of its own making. The arguments cmd already holds are
-// ignored once SysProcAttr.CmdLine is set.
-func throughCmd(cmd *exec.Cmd) error {
-	line, err := batchCommandLine(cmd.Path, cmd.Args[1:])
+// throughCmd makes cmd start cmd.exe with script and the arguments cmd holds
+// as one command line of its own making. The arguments in cmd.Args are ignored
+// once SysProcAttr.CmdLine is set.
+func throughCmd(cmd *exec.Cmd, script string) error {
+	line, err := batchCommandLine(script, cmd.Args[1:])
 	if err != nil {
 		return err
 	}
