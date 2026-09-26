@@ -176,46 +176,77 @@ func TestTorBoxRejectingTheKeyIsNoRefusal(t *testing.T) {
 }
 
 // The torrent the account holds is the user's, or another app's, and stays
-// there when its files are here.
+// there when its files are here. The lookup before the add finds it, or, when
+// the user added it on the website a moment after that lookup, the add's
+// DUPLICATE_ITEM answer does.
 func TestTorBoxReusesATorrentTheAccountAlreadyHoldsAndLeavesItThere(t *testing.T) {
-	deleted := make(chan string, 4)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.URL.Path == "/api/torrents/controltorrent":
-			var body map[string]any
-			_ = json.NewDecoder(r.Body).Decode(&body)
-			deleted <- fmt.Sprint(body["torrent_id"])
-			fmt.Fprint(w, `{"success":true,"data":null}`)
-		case r.URL.Path == "/api/torrents/createtorrent":
-			fmt.Fprint(w, `{"success":false,"error":"DUPLICATE_ITEM","detail":"You already have this torrent."}`)
-		case r.URL.Path == "/api/torrents/mylist" && r.URL.Query().Get("id") == "":
-			fmt.Fprint(w, `{"success":true,"data":[{"id":3,"hash":"ffff"},{"id":12,"hash":"0123456789ABCDEF0123456789ABCDEF01234567"}]}`)
-		case r.URL.Path == "/api/torrents/mylist":
-			if r.URL.Query().Get("id") != "12" {
-				t.Errorf("polled torrent %s, want the one the account holds", r.URL.Query().Get("id"))
-			}
-			fmt.Fprint(w, `{"success":true,"data":{"id":12,"name":"Show","download_present":true,"files":[{"id":0,"name":"Show.mkv","size":5}]}}`)
-		case r.URL.Path == "/api/torrents/requestdl":
-			fmt.Fprint(w, `{"success":true,"data":"https://cdn.torbox.example/x"}`)
-		default:
-			fmt.Fprint(w, `{"success":true,"data":null}`)
-		}
-	}))
-	defer srv.Close()
-	c := NewClient("k")
-	c.base = srv.URL
+	for _, c := range []struct {
+		name      string
+		afterLook bool
+	}{
+		{"found before the add", false},
+		{"added on the website after the lookup", true},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				mu      sync.Mutex
+				created bool
+			)
+			deleted := make(chan string, 4)
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				defer mu.Unlock()
+				switch {
+				case r.URL.Path == "/api/torrents/controltorrent":
+					var body map[string]any
+					_ = json.NewDecoder(r.Body).Decode(&body)
+					deleted <- fmt.Sprint(body["torrent_id"])
+					fmt.Fprint(w, `{"success":true,"data":null}`)
+				case r.URL.Path == "/api/torrents/createtorrent":
+					created = true
+					fmt.Fprint(w, `{"success":false,"error":"DUPLICATE_ITEM","detail":"You already have this torrent."}`)
+				case r.URL.Path == "/api/torrents/mylist" && r.URL.Query().Get("id") == "":
+					if c.afterLook && !created {
+						fmt.Fprint(w, `{"success":true,"data":[{"id":3,"hash":"ffff"}]}`)
+						return
+					}
+					fmt.Fprint(w, `{"success":true,"data":[{"id":3,"hash":"ffff"},{"id":12,"hash":"0123456789ABCDEF0123456789ABCDEF01234567"}]}`)
+				case r.URL.Path == "/api/torrents/mylist":
+					if r.URL.Query().Get("id") != "12" {
+						t.Errorf("polled torrent %s, want the one the account holds", r.URL.Query().Get("id"))
+					}
+					fmt.Fprint(w, `{"success":true,"data":{"id":12,"name":"Show","download_present":true,"files":[{"id":0,"name":"Show.mkv","size":5}]}}`)
+				case r.URL.Path == "/api/torrents/requestdl":
+					fmt.Fprint(w, `{"success":true,"data":"https://cdn.torbox.example/x"}`)
+				default:
+					fmt.Fprint(w, `{"success":true,"data":null}`)
+				}
+			}))
+			defer srv.Close()
+			cl := NewClient("k")
+			cl.base = srv.URL
 
-	eng, u, _ := runTorBox(t, c)
-	if u.Status != core.StatusDone {
-		t.Fatalf("settled as %+v", u)
-	}
-	if got := eng.parts(); !slices.Equal(got, []string{"https://cdn.torbox.example/x -> Show.mkv"}) {
-		t.Errorf("the engine got %v", got)
-	}
-	select {
-	case id := <-deleted:
-		t.Errorf("deleted torrent %s, which was on the account before this task asked for it", id)
-	case <-time.After(200 * time.Millisecond):
+			eng, u, all := runTorBox(t, cl)
+			if u.Status != core.StatusDone {
+				t.Fatalf("settled as %+v", u)
+			}
+			if got := eng.parts(); !slices.Equal(got, []string{"https://cdn.torbox.example/x -> Show.mkv"}) {
+				t.Errorf("the engine got %v", got)
+			}
+			if !slices.ContainsFunc(all, func(u core.Update) bool { return u.Job != nil && u.Job.ID == "12" && !u.Job.Owned }) {
+				t.Error("the task did not take torrent 12 as the account's own")
+			}
+			mu.Lock()
+			if created != c.afterLook {
+				t.Errorf("createtorrent called: %v, want %v", created, c.afterLook)
+			}
+			mu.Unlock()
+			select {
+			case id := <-deleted:
+				t.Errorf("deleted torrent %s, which was on the account before this task asked for it", id)
+			case <-time.After(200 * time.Millisecond):
+			}
+		})
 	}
 }
 
