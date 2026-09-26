@@ -19,6 +19,14 @@ binary, so a plain `go build` produces a working server. English is the source
 locale and every other one is typed against it, which makes `tsc` the gate that
 catches a missing or stray translation key.
 
+A value that is still English passes that gate, so the web UI and the app each
+keep a ledger of them in `web/untranslated.json` and `mobile/untranslated.json`:
+what still waits for a translation, and what was checked and stays English. The
+`check-untranslated.mjs` next to each ledger holds it against the catalogues.
+`seed-untranslated.mjs` adds a new key to every catalogue in English and lists
+it as owed, and `prune-untranslated.mjs` takes out what has been translated
+since.
+
 The desktop app and the container image are built as described under
 [Installing](installing.md).
 

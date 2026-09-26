@@ -451,6 +451,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Untranslated ledger
+        run: node check-untranslated.mjs
+
       - name: FlatList extraData
         run: node check-extradata.mjs
 

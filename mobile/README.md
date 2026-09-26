@@ -125,6 +125,15 @@ the device. `src/i18n/en.ts` is the source of truth (every UI string as a
 flat `key: string` dictionary); every other locale is typed against it, so a
 translation missing a key, or carrying a stray one, is a compile error,
 not a silent English string sneaking through or a blank one.
+A value that is still English passes that check, so `untranslated.json`
+names every one: `locales` lists what still waits for a translation,
+`identical` what was checked and stays English (PayPal, Premium, Server).
+`node check-untranslated.mjs` fails on an English value that neither list
+names. A new key therefore goes into every catalogue in English, and
+`node seed-untranslated.mjs` lists it as owed; `node prune-untranslated.mjs`
+takes out what has been translated since. The file has the same format as
+the web UI's `web/untranslated.json`. German is never listed, because it is
+written by hand.
 `src/i18n/index.ts` lazily loads a language's dictionary the first time it
 is actually selected, the same interface the web UI's own
 `lib/locales/index.ts` uses, though on a native bundle every language still
