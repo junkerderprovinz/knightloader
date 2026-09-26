@@ -192,7 +192,7 @@ func (a *App) stageImported(slot string, j debrid.Listed) {
 		name = j.ID
 	}
 	link := resolver.Result{DirectURL: debrid.JobLink(slot, j.ID), Name: name, Size: j.Size}
-	if len(a.AddResolvedLinksFrom([]resolver.Result{link}, "", OriginAccount)) > 0 {
+	if len(a.addResolvedLinksFrom([]resolver.Result{link}, intake{origin: OriginAccount, jobLinks: true})) > 0 {
 		log.Printf("%s: imported %s from the account", slotLabel(slot), name)
 	}
 }

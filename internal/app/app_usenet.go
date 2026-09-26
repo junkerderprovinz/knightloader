@@ -204,7 +204,7 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	if !ok {
 		origin = OriginPaste
 	}
-	created := a.stageResolvedLinks(fresh, intake{pkg: j.Package, origin: origin, category: j.Category})
+	created := a.stageResolvedLinks(fresh, intake{pkg: j.Package, origin: origin, category: j.Category, jobLinks: true})
 	for _, t := range created {
 		have[t.URL] = t.ID
 	}

@@ -16,7 +16,9 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
@@ -286,6 +288,49 @@ func TestTheJobOfAFailedAddIsNotImported(t *testing.T) {
 	waitFor(t, "the new download in the collector", func() bool { return len(imported(a, "NEW")) > 0 })
 	if got := imported(a, "LOST"); len(got) != 0 {
 		t.Error("imported the job of a torrent whose add failed, which is already in the list")
+	}
+}
+
+// A feed entry is written by whoever runs the feed. One naming a job on the
+// account would fetch it, and removing its task would delete the job there,
+// so it becomes no task at all: not in the collector, and not in the holding
+// area, from which a restore would set it free.
+func TestAFeedEntryCannotNameAJobOnTheAccount(t *testing.T) {
+	fastImports(t, time.Millisecond)
+	site := &websiteAccount{}
+	site.addOnWebsite("USERS-OWN", "Own show")
+	site.addOnWebsite("HELD", "Held show")
+	a := openImportApp(t, t.TempDir(), site, false)
+	t.Cleanup(func() { a.Close() })
+	s := a.Settings.Get()
+	s.LinkFilter = rules.Set{Rules: []rules.Rule{{
+		Name:       "held",
+		Conditions: []rules.Condition{{Field: rules.FieldURL, Op: rules.OpContains, Value: "HELD"}},
+		Action:     rules.Action{Reject: true, Reason: "held for a look"},
+	}}}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, link := range []string{
+		debrid.JobLink("fakedebrid", "USERS-OWN"),
+		debrid.JobLink("fakedebrid", "HELD"),
+		usenet.FileLink("fakedebrid", "USERS-NZB", usenet.File{ID: "1", Name: "film.mkv"}),
+	} {
+		a.stageFeedJob(feed.Job{URL: link, Package: "Feed", Source: "https://feed.example/rss"})
+	}
+	tasks := a.Tasks()
+	for _, task := range tasks {
+		t.Errorf("the feed staged %s (held %v)", task.URL, task.Skipped)
+	}
+	ids := make([]string, 0, len(tasks))
+	for _, task := range tasks {
+		ids = append(ids, task.ID)
+	}
+	a.RemoveTasks(ids, false)
+	time.Sleep(50 * time.Millisecond)
+	if d := site.deletedJobs(); len(d) != 0 {
+		t.Errorf("deleted %v on the account", d)
 	}
 }
 

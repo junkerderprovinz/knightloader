@@ -38,7 +38,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 	now := a.stamps.next()
 	cand := rules.Candidate{URL: uri, Package: pkg, Added: now}
 	if v := a.filter(cand); v.Rejected {
-		return a.hold(cand, v, origin, now, files), nil
+		return a.hold(cand, v, intake{origin: origin}, now, files), nil
 	}
 	if m := a.mirror(dedupe.Entry{URL: uri}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(uri, m)
@@ -89,7 +89,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		v = trackerBan(t, a.Settings.Get().Torrent)
 	}
 	if v.Rejected {
-		return a.hold(cand, v, origin, now, files), nil
+		return a.hold(cand, v, intake{origin: origin}, now, files), nil
 	}
 
 	staged := a.finishStaging(t, cand)
