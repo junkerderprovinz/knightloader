@@ -2,21 +2,24 @@ package eventprog
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/execx/execxtest"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
+
+func TestMain(m *testing.M) {
+	execxtest.Main()
+	os.Exit(m.Run())
+}
 
 // helperEnv marks the test binary as started by a test here, to play the
 // configured program. The name has no KL_ prefix, so Environ passes it on.
@@ -28,8 +31,6 @@ const helperEnv = "EVENTPROG_TEST_HELPER"
 //	echo ARGS...   print every argument and every KL_ variable, one per line
 //	exit N TEXT    print TEXT and exit with status N
 //	sleep          wait far longer than any test allows
-//	spawn          start a sleeping child, print "child:PID" and sleep too,
-//	               like a shell that put a command in the background
 func TestHelperProcess(t *testing.T) {
 	if os.Getenv(helperEnv) != "1" {
 		return
@@ -57,15 +58,6 @@ func TestHelperProcess(t *testing.T) {
 		fmt.Println(strings.Join(args[2:], " "))
 		os.Exit(code)
 	case "sleep":
-		time.Sleep(time.Minute)
-		os.Exit(0)
-	case "spawn":
-		child := exec.Command(os.Args[0], "-test.run=^TestHelperProcess$", "--", "sleep")
-		if err := child.Start(); err != nil {
-			fmt.Println(err)
-			os.Exit(3)
-		}
-		fmt.Printf("child:%d\n", child.Process.Pid)
 		time.Sleep(time.Minute)
 		os.Exit(0)
 	}
@@ -200,26 +192,13 @@ func TestAProgramPastItsLimitIsKilledAndReportedAsATimeout(t *testing.T) {
 }
 
 func TestTheTimeLimitEndsWhatTheProgramStarted(t *testing.T) {
-	t.Setenv(helperEnv, "1")
-	self, err := os.Executable()
-	if err != nil {
-		t.Fatal(err)
+	p := Program{
+		ID: "1", Name: "spawner", Enabled: true,
+		Command:  idleaction.CommandSpec{Program: execxtest.Program(t, execxtest.Spawn), TimeoutSeconds: 3},
+		Triggers: []script.Trigger{script.TriggerTaskDone},
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	out, _ := ExecRunner(ctx, self, []string{"-test.run=^TestHelperProcess$", "--", "spawn"}, os.Environ())
-
-	m := regexp.MustCompile(`child:(\d+)`).FindStringSubmatch(out)
-	if m == nil {
-		t.Fatalf("the program did not say which child it started:\n%s", out)
-	}
-	pid, _ := strconv.Atoi(m[1])
-	t.Cleanup(func() {
-		if p, err := os.FindProcess(pid); err == nil {
-			_ = p.Kill()
-		}
-	})
-	waitFor(t, "the child to end with its parent", func() bool { return processGone(pid) })
+	h := runOnce(t, p, doneFiring("a.mkv"), Where{})
+	execxtest.AwaitGone(t, execxtest.Child(t, h.LastOutput))
 }
 
 func TestANonZeroExitIsLoggedWithItsCodeAndOutput(t *testing.T) {
@@ -258,19 +237,6 @@ func TestAMissingProgramIsReportedAsNotFound(t *testing.T) {
 	h := runOnce(t, p, doneFiring("a.mkv"), Where{})
 	if h.LastProblem != idleaction.ProblemNotFound {
 		t.Errorf("LastProblem = %q, want %q", h.LastProblem, idleaction.ProblemNotFound)
-	}
-}
-
-func TestOutputBeyondTheCapIsReadAndDropped(t *testing.T) {
-	var c cappedBuffer
-	chunk := bytes.Repeat([]byte("x"), keptOutput-10)
-	for range 3 {
-		if n, err := c.Write(chunk); n != len(chunk) || err != nil {
-			t.Fatalf("Write = %d, %v; a short write would stop the program's output", n, err)
-		}
-	}
-	if c.buf.Len() != keptOutput {
-		t.Errorf("kept %d bytes, want %d", c.buf.Len(), keptOutput)
 	}
 }
 

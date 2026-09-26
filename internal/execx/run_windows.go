@@ -1,10 +1,10 @@
-package eventprog
+package execx
 
 // Two things work differently on Windows.
 //
 // There is no process group to kill, so a run goes into a job object, and the
-// time limit ends the job: everything the program started, not only the
-// program.
+// end of the context ends the job: everything the program started, not only
+// the program.
 //
 // A batch file is run by cmd.exe, which reads the command line it is given the
 // way a shell would. "a&b" is two commands to it and %PATH% is expanded, and
@@ -24,9 +24,9 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// runProgram runs cmd to the end inside a job object that the end of cmd's
-// context terminates, with a batch file handed to cmd.exe.
-func runProgram(cmd *exec.Cmd) error {
+// run runs cmd to the end inside a job object that the end of cmd's context
+// terminates, with a batch file handed to cmd.exe.
+func run(cmd *exec.Cmd) error {
 	if cmd.Err == nil && isBatchFile(cmd.Path) {
 		if err := throughCmd(cmd); err != nil {
 			return err
@@ -87,7 +87,7 @@ func batchCommandLine(script string, args []string) (string, error) {
 	b.WriteByte('"')
 	for _, a := range args {
 		if strings.ContainsAny(a, "\r\n") {
-			return "", errors.New("a batch file cannot be given an argument with a line break in it; read the value from the KL_ variables instead")
+			return "", errors.New("a batch file cannot be given an argument with a line break in it")
 		}
 		b.WriteByte(' ')
 		writeBatchArg(&b, a)

@@ -1,4 +1,4 @@
-package eventprog
+package execx
 
 import (
 	"context"
@@ -6,18 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"golang.org/x/sys/windows"
 )
 
-func processGone(pid int) bool {
-	proc, err := windows.OpenProcess(windows.SYNCHRONIZE, false, uint32(pid))
-	if err != nil {
-		return true
+// hasLine reports whether out has a line that reads want, give or take the
+// spaces cmd.exe leaves around it.
+func hasLine(out, want string) bool {
+	for _, l := range strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n") {
+		if strings.TrimSpace(l) == want {
+			return true
+		}
 	}
-	defer windows.CloseHandle(proc)
-	event, _ := windows.WaitForSingleObject(proc, 0)
-	return event == windows.WAIT_OBJECT_0
+	return false
 }
 
 // cmd.exe reads a batch file's command line the way a shell does, so every
@@ -31,40 +30,31 @@ func TestABatchFileGetsEachArgumentAsText(t *testing.T) {
 	}
 	args := []string{
 		"Show.S01E01&echo.INJECTED&.mkv",
-		"%EVENTPROG_MARK%.mkv",
+		"%EXECX_MARK%.mkv",
 		`a b" & echo INJECTED & "`,
 		"100%",
 		"plain",
 	}
-	env := append(os.Environ(), "EVENTPROG_MARK=expanded")
+	env := append(os.Environ(), "EXECX_MARK=expanded")
 
-	out, err := ExecRunner(context.Background(), bat, args, env)
+	out, err := Run(context.Background(), bat, args, env)
 	if err != nil {
 		t.Fatalf("the batch file did not run: %v\n%s", err, out)
 	}
-	lines := strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n")
-	for _, l := range lines {
-		if strings.TrimSpace(l) == "INJECTED" {
-			t.Errorf("cmd.exe ran a command out of an argument:\n%s", out)
-		}
+	if hasLine(out, "INJECTED") {
+		t.Errorf("cmd.exe ran a command out of an argument:\n%s", out)
 	}
 	if strings.Contains(out, "expanded") {
 		t.Errorf("cmd.exe expanded a variable in an argument:\n%s", out)
 	}
 	for _, want := range []string{
 		`one=["Show.S01E01&echo.INJECTED&.mkv"]`,
-		`two=["%EVENTPROG_MARK%.mkv"]`,
+		`two=["%EXECX_MARK%.mkv"]`,
 		`three=["a b"" & echo INJECTED & """]`,
 		`four=["100%"]`,
 		`five=[plain]`,
 	} {
-		found := false
-		for _, l := range lines {
-			if strings.TrimSpace(l) == want {
-				found = true
-			}
-		}
-		if !found {
+		if !hasLine(out, want) {
 			t.Errorf("the batch file did not see %s; it printed:\n%s", want, out)
 		}
 	}
@@ -75,7 +65,7 @@ func TestABatchFileIsNotHandedALineBreak(t *testing.T) {
 	if err := os.WriteFile(bat, []byte("@echo off\r\necho ran\r\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	out, err := ExecRunner(context.Background(), bat, []string{"first line\r\necho INJECTED"}, os.Environ())
+	out, err := Run(context.Background(), bat, []string{"first line\r\necho INJECTED"}, os.Environ())
 	if err == nil {
 		t.Fatalf("an argument with a line break was passed to cmd.exe; it printed:\n%s", out)
 	}

@@ -30,12 +30,13 @@ import (
 	"io"
 	"net/http"
 	"net/netip"
-	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/execx"
 )
 
 // Doer is the part of an HTTP client this package uses. *http.Client satisfies
@@ -440,14 +441,16 @@ func drain(resp *http.Response) {
 	_ = resp.Body.Close()
 }
 
-// execRunner is the default Runner. It quotes the program's output in the
+// execRunner is the default Runner. It starts the program the way every
+// configured program is started (see execx.Run), so a cancelled run ends
+// whatever the program started too. It quotes the program's output in the
 // error, since the exit status alone never says which line of a script gave up.
 func execRunner(ctx context.Context, name string, args ...string) error {
-	out, err := exec.CommandContext(ctx, name, args...).CombinedOutput()
+	out, err := execx.Run(ctx, name, args, nil)
 	if err == nil {
 		return nil
 	}
-	if text := strings.TrimSpace(string(out)); text != "" {
+	if text := strings.TrimSpace(out); text != "" {
 		if len(text) > maxCommandOutput {
 			text = text[:maxCommandOutput] + "..."
 		}
