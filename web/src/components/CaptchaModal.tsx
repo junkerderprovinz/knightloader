@@ -265,16 +265,6 @@ export function CaptchaModal() {
     return () => clearInterval(id);
   }, [current?.id, current?.expiresAt, solverWaiting]);
 
-  // A widget that will not load here cannot be answered here, so the paid
-  // solvers need not wait for this window, until a refresh loads it after all.
-  // The window already says so, which is all a failed report could add.
-  useEffect(() => {
-    if (current?.kind === 'widget' && widgetStatus === 'error') {
-      reported.current.add(current.id);
-      reportCaptchaUnanswerable(current.id).catch(() => {});
-    }
-  }, [current?.id, current?.kind, widgetStatus]);
-
   // The widget answers by postMessage, trusted only from this origin: the
   // page's frame-ancestors CSP does not protect what this side receives.
   useEffect(() => {
@@ -291,6 +281,15 @@ export function CaptchaModal() {
       else if (d.kind === 'error' || d.kind === 'unsolvable') {
         setWidgetStatus(d.kind);
         setWidgetError(d.detail ?? null);
+        // A widget that will not load here cannot be answered here, so the
+        // paid solvers need not wait for this window, until a refresh loads it
+        // after all. Reported here rather than from widgetStatus, which still
+        // says error for a render once the next captcha is up. The window
+        // already says so, which is all a failed report could add.
+        if (d.kind === 'error') {
+          reported.current.add(id);
+          reportCaptchaUnanswerable(id).catch(() => {});
+        }
       } else if (d.kind === 'solved' && d.detail) {
         answerCaptcha(id, d.detail).then(
           ({ stillValid }) => {
