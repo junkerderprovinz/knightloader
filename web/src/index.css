@@ -1039,10 +1039,10 @@ body {
        prefix keeps check-motion-tokens.mjs from asking for a value per level. */
     --egg-storm-pulse-dur: 1.4s;
     --egg-storm-pulse-min: .25;
-    /* The reorder wiggle at the phone's angle and pace: the duration is one
-       swing, played back and forth, so a full sway takes .32s. */
-    --motion-wiggle-dur: .16s;
-    --motion-wiggle-angle: .7deg;
+    /* The reorder wiggle, GlimStone's numbers, which the phone's table
+       follows: the duration is one swing, played back and forth. */
+    --motion-wiggle-dur: 280ms;
+    --motion-wiggle-angle: .6deg;
     --motion-shape-dur: 260ms;
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 420ms;
@@ -1082,12 +1082,13 @@ body {
     --motion-fade-dur: 70ms;
     --motion-shake-dur: 220ms;
     --motion-shake-scale: .5;
-    /* An ambient loop is calmed by moving less, not by running faster, so the
-       pulse and the wiggle keep the top level's period and lose amplitude. */
+    /* An ambient loop is calmed by moving less, not by running faster: the
+       pulse keeps the top level's period, and the wiggle swings half as far
+       and slower. */
     --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: .7;
-    --motion-wiggle-dur: .16s;
-    --motion-wiggle-angle: .35deg;
+    --motion-wiggle-dur: 360ms;
+    --motion-wiggle-angle: .3deg;
     --motion-shape-dur: 140ms;
     --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 260ms;
@@ -1133,7 +1134,7 @@ body {
     --motion-shake-scale: 0;
     --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: 1;
-    --motion-wiggle-dur: .16s;
+    --motion-wiggle-dur: 400ms;
     --motion-wiggle-angle: 0deg;
     --motion-shape-dur: 0ms;
     --motion-shape-ease: linear;
@@ -1400,8 +1401,8 @@ body {
   /* The one period that shortens: a livelier ambient loop runs faster. */
   --motion-pulse-dur: var(--egg-storm-pulse-dur);
   --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
-  --motion-wiggle-dur: .11s;
-  --motion-wiggle-angle: 1.3deg;
+  --motion-wiggle-dur: 220ms;
+  --motion-wiggle-angle: 1deg;
   --motion-shape-dur: 470ms;
   --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
   --motion-confirm-dur: 760ms;
@@ -1650,9 +1651,9 @@ body {
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
-/* The browsers the extension buttons offer, in the colour Simple Icons
-   publishes for each. */
-.kl-tile-chrome    { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
+/* The browsers the extension buttons offer: Chrome in the README button's
+   blue, Firefox in the colour Simple Icons publishes. */
+.kl-tile-chrome    { --tile: #1a73e8; --tile-ink: #ffffff; } /* 4.5:1 */
 .kl-tile-firefox   { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
 
 /* The README button (GlimStone's "The App tab"): the proportions of the
