@@ -6,9 +6,11 @@ package app
 // straight into the store instead of faking a Source.
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -407,6 +409,54 @@ func TestAHeldCaptchaThatComesBackIsStillSolved(t *testing.T) {
 	if s.calls.Load() != 1 {
 		t.Errorf("solver called %d times for the captcha JD listed again, want 1", s.calls.Load())
 	}
+}
+
+// A poll that lists a held captcha again just as its wait ends starts a solve
+// that finds the claim still taken and gives up, so the wait that ended takes
+// the captcha up again.
+func TestACaptchaListedAgainAsItsWaitEndsIsStillSolved(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	onlyUnwatched(t, a)
+	viewer := addViewer(t, a)
+	s := &fakeSolver{text: "ABCD"}
+	c := pending(a, imageChallenge("c1"))
+	ledger := &a.captchaStateFor().paid
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		a.solveCaptchaWith(paid(s), c)
+	}()
+	waitFor(t, "the waiting report", func() bool {
+		got, _ := a.captchaStateFor().store.Get("c1")
+		return got.Solver != nil && got.Solver.State == captcha.SolverWaiting
+	})
+	// The solve the second listing starts, turned away by the held claim.
+	a.solveCaptchaWith(paid(s), c)
+
+	// Holding the ledger stops the wait between seeing the captcha gone and
+	// giving up its claim, which is where JD lists it again.
+	ledger.mu.Lock()
+	a.captchaStateFor().store.Sync(nil)
+	waitForGoroutineIn(t, "(*paidLedger).release")
+	pending(a, c)
+	ledger.mu.Unlock()
+
+	a.Hub.SetVisible(viewer, false)
+	<-done
+	if s.calls.Load() != 1 {
+		t.Errorf("solver called %d times for the captcha JD listed again, want 1", s.calls.Load())
+	}
+}
+
+// waitForGoroutineIn waits until a goroutine is inside fn, spelled the way a
+// stack trace names it.
+func waitForGoroutineIn(t *testing.T, fn string) {
+	t.Helper()
+	buf := make([]byte, 1<<20)
+	waitFor(t, "a goroutine in "+fn, func() bool {
+		return bytes.Contains(buf[:runtime.Stack(buf, true)], []byte(fn))
+	})
 }
 
 // Challenges with nothing a solver could work from never reach one.
