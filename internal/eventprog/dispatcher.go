@@ -23,6 +23,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/execx"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 )
@@ -88,7 +89,7 @@ type Options struct {
 	// be handed a file about to disappear. A run waits until Ready says yes,
 	// for at most deliveryGrace. Nil means always ready.
 	Ready func(script.Firing) bool
-	// Run starts the program. Nil means ExecRunner.
+	// Run starts the program. Nil means execx.Run.
 	Run Runner
 }
 
@@ -131,7 +132,7 @@ func New(o Options) *Dispatcher {
 	ctx, cancel := context.WithCancel(context.Background())
 	run := o.Run
 	if run == nil {
-		run = ExecRunner
+		run = execx.Run
 	}
 	return &Dispatcher{
 		instanceName: o.InstanceName,

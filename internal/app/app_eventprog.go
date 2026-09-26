@@ -17,7 +17,7 @@ import (
 )
 
 // newEventPrograms builds the dispatcher New subscribes to the bus. run is
-// eventprog.ExecRunner when nil; a test hands in one that records instead.
+// execx.Run when nil; a test hands in one that records instead.
 func (a *App) newEventPrograms(run eventprog.Runner) *eventprog.Dispatcher {
 	return eventprog.New(eventprog.Options{
 		InstanceName: func() string { return a.Settings.Get().InstanceName },

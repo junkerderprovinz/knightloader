@@ -1,6 +1,6 @@
 //go:build unix
 
-package eventprog
+package execxtest
 
 import (
 	"bytes"
@@ -10,9 +10,9 @@ import (
 	"syscall"
 )
 
-// processGone reports whether pid has ended. A killed process that nobody has
-// reaped yet is a zombie and counts as ended: it runs nothing any more.
-func processGone(pid int) bool {
+// Gone reports whether pid has ended. A killed process that nobody has reaped
+// yet is a zombie and counts as ended: it runs nothing any more.
+func Gone(pid int) bool {
 	if err := syscall.Kill(pid, 0); errors.Is(err, syscall.ESRCH) {
 		return true
 	}

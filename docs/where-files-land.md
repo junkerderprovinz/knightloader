@@ -43,8 +43,10 @@ arguments are filled in first, and each line reaches the program as exactly one
 argument, so a file name with a space, a quote, `$(...)` or `;` in it arrives as
 those characters and is never run. On Windows a `.bat` or `.cmd` file is run
 by cmd.exe, which would read those characters, so each argument reaches the
-script in quotes and stays text; read it there as `"%~1"`. Every run also gets
-the event in its environment:
+script in quotes and stays text; read it there as `"%~1"`. An argument with a
+line break cannot be passed to a batch file at all, and that run fails; read
+such a value from the `KL_` variables below instead. Every run also gets the
+event in its environment:
 
 | Variable | Placeholder | Holds |
 |---|---|---|

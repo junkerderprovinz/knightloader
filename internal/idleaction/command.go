@@ -15,6 +15,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/execx"
 )
 
 // CommandSpec is the program ActionCommand runs, as the operator wrote it.
@@ -261,15 +263,15 @@ type Check struct {
 // which program would have run without spawning a process.
 type Runner func(ctx context.Context, name string, args ...string) (string, error)
 
-// ExecRunner is the default Runner.
+// ExecRunner is the default Runner. It starts the program the way every
+// configured program is started (see execx.Run), so the time limit ends
+// whatever the program started too.
 //
-// CombinedOutput, so the program's own complaint is captured whichever stream
-// it chose: an exit status alone never says which line gave up. The output is
-// capped here rather than at the far end, so nothing downstream holds the
-// megabyte.
+// Both streams are captured, so the program's own complaint is there whichever
+// one it chose: an exit status alone never says which line gave up.
 func ExecRunner(ctx context.Context, name string, args ...string) (string, error) {
-	out, err := exec.CommandContext(ctx, name, args...).CombinedOutput()
-	return TrimOutput(string(out)), err
+	out, err := execx.Run(ctx, name, args, nil)
+	return TrimOutput(out), err
 }
 
 // TrimOutput cuts a program's output down to something a log line, a
