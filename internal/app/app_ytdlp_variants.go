@@ -251,7 +251,7 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		if t.Online != core.AvailOnline {
 			t.Online = core.AvailOnline
 			if t.Status != core.StatusError {
-				t.Error = ""
+				t.SetError("", "", nil)
 				t.Reason = ""
 			}
 			changed = true

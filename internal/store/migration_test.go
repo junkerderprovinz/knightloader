@@ -225,6 +225,56 @@ func TestARejectionsCodeSurvivesARestart(t *testing.T) {
 	}
 }
 
+// A failure is worded from its code after a restart as well, and a row saved
+// before codes existed comes back without one, which the interface reads as a
+// failure nothing recognised.
+func TestAFailuresCodeSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	part := map[string]string{"part": "Vier.minus.drei.part1.rar"}
+	tasks := []core.Task{
+		{
+			ID: "coded", URL: "https://host.example/Vier.minus.drei.part1.rar", CreatedAt: time.Now(),
+			Status:    core.StatusDone,
+			Error:     "extract: Vier.minus.drei.part1.rar: rardecode: bad block header",
+			ErrorCode: core.CodeArchiveDamaged, ErrorParams: part,
+		},
+		{
+			ID: "older", URL: "https://host.example/f.bin", CreatedAt: time.Now(),
+			Status: core.StatusError, Error: "rapidgator: error code 7731",
+		},
+	}
+	for i := range tasks {
+		if err := s.Save(&tasks[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]*core.Task{}
+	for _, task := range all {
+		got[task.ID] = task
+	}
+	if c := got["coded"]; c == nil || c.ErrorCode != core.CodeArchiveDamaged || !maps.Equal(c.ErrorParams, part) {
+		t.Errorf("the coded failure came back as %+v, want its code and part", c)
+	}
+	if o := got["older"]; o == nil || o.ErrorCode != "" || o.ErrorParams != nil || o.Error == "" {
+		t.Errorf("the uncoded failure came back as %+v, want its sentence and no code", o)
+	}
+}
+
 // Resumable is tri-state like auto_extract: "nobody has asked whether this
 // resumes" must not come back as "it does not", or the interface warns about
 // losing bytes that would be picked up where they stopped.

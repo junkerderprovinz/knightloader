@@ -132,8 +132,12 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 	// A late probe must not overwrite why a settled task failed, such as a
 	// filter rule or a taken destination.
 	if t.Status != core.StatusError {
-		t.Error = msg
 		t.Reason = reason
+		code := reason.Code()
+		if msg == "" {
+			code = ""
+		}
+		t.SetError(msg, code, nil)
 	}
 	c := a.copyLocked(t)
 	a.mu.Unlock()
@@ -947,7 +951,7 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		return nil
 	}
 	refuse := func(err error) error {
-		t.Error = err.Error()
+		t.SetError(err.Error(), diskCode(err), nil)
 		return err
 	}
 	if !usableFilename(want) {

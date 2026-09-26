@@ -139,10 +139,10 @@ func (a *App) recordDelivery(id, src, moved string, err error) {
 	}
 	switch {
 	case err != nil:
-		t.Error = deliverErrorPrefix + err.Error()
+		t.SetError(deliverErrorPrefix+err.Error(), diskCode(err), nil)
 	case strings.HasPrefix(t.Error, deliverErrorPrefix):
 		// Only this file's own error; an extraction failure stays.
-		t.Error = ""
+		t.SetError("", "", nil)
 	case !followed:
 		a.mu.Unlock()
 		return

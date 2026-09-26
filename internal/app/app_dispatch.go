@@ -429,18 +429,21 @@ func (a *App) pinnedResolverLocked(t *core.Task) resolver.Resolver {
 	return nil
 }
 
-// pinFailureLocked explains why a pinned task has nowhere to go. A pinned
+// pinFailureLocked records on t why a pinned task has nowhere to go. A pinned
 // backend that does not handle the link is ReasonUnsupported and needs the
 // user. One that handles it but has no usable account is ReasonAuth: unlike an
 // unpinned task, which is held quietly, a pinned task fails visibly, and the
 // ordinary retry picks it up if the account recovers. Caller holds a.mu.
-func (a *App) pinFailureLocked(t *core.Task) (string, core.Reason) {
+func (a *App) pinFailureLocked(t *core.Task) {
 	for _, res := range a.Registry.All(t.URL) {
 		if pinMatches(t.ResolverPin, res.Info().ID) {
-			return "pinned to " + t.ResolverPin + ", and that backend's account is not usable right now", core.ReasonAuth
+			t.Reason = core.ReasonAuth
+			t.SetError("pinned to "+t.ResolverPin+", and that backend's account is not usable right now", core.CodePinned, nil)
+			return
 		}
 	}
-	return "pinned to " + t.ResolverPin + ", which does not handle this link", core.ReasonUnsupported
+	t.Reason = core.ReasonUnsupported
+	t.SetError("pinned to "+t.ResolverPin+", which does not handle this link", core.CodePinned, nil)
 }
 
 // pinMatches reports whether a resolver id satisfies a pin. A pin may name a
@@ -889,7 +892,7 @@ func (a *App) dispatchLocked() {
 				// A pinned task fails visibly instead of waiting; see
 				// pinFailureLocked.
 				t.Status = core.StatusError
-				t.Error, t.Reason = a.pinFailureLocked(t)
+				a.pinFailureLocked(t)
 				settled = append(settled, a.copyLocked(t))
 				continue
 			}
@@ -901,8 +904,8 @@ func (a *App) dispatchLocked() {
 				continue
 			}
 			t.Status = core.StatusError
-			t.Error = a.unhandledError(t.URL, "no resolver matches")
 			t.Reason = core.ReasonUnsupported
+			t.SetError(a.unhandledError(t.URL, "no resolver matches"), core.CodeUnsupported, nil)
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
@@ -914,9 +917,8 @@ func (a *App) dispatchLocked() {
 		result, err := res.Resolve(a.ctx, resolver.Request{URL: t.URL})
 		if err != nil {
 			t.Status = core.StatusError
-			t.Error = err.Error()
 			// Classified from the error value, which is still available here.
-			t.Reason = classify(failure{err: err})
+			recordFailure(t, failure{err: err})
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
@@ -945,8 +947,9 @@ func (a *App) dispatchLocked() {
 				// Availability is untouched: this is about the folder, not the
 				// link.
 				t.Status = core.StatusError
-				t.Error = "not downloaded: " + target + " already exists"
 				t.Reason = core.ReasonUnknown
+				t.SetError("not downloaded: "+target+" already exists", core.CodeFileExists,
+					map[string]string{"file": filepath.Base(target)})
 				settled = append(settled, a.copyLocked(t))
 				continue
 			}
@@ -1287,15 +1290,21 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// A fact about the service, so a stale update still counts.
 	applyServiceJobLocked(t, u.Job)
 	if u.Err != "" {
-		t.Error = u.Err
 		// Classified here so every backend's failures get the same labels. A
 		// backend that knows the cause better sets u.Reason, which wins: this
 		// only sees a truncated sentence.
+		f := failure{text: u.Err}
 		if u.Reason != "" {
 			t.Reason = u.Reason
 		} else {
-			t.Reason = classify(failure{text: u.Err})
+			t.Reason = classify(f)
 		}
+		var params map[string]string
+		code := codeFor(f, t.Reason)
+		if code == "" {
+			code, params = u.Code, u.Params
+		}
+		t.SetError(u.Err, code, params)
 	}
 	// Account health learns of the outcome before the freed slot is
 	// redispatched, so queued tasks on the same account see the new verdict.
@@ -1373,11 +1382,12 @@ func (a *App) onUpdate(id string, u core.Update) {
 		} else {
 			// Every matching backend has declined the link.
 			t.Reason = core.ReasonUnsupported
+			t.SetError(t.Error, core.CodeUnsupported, nil)
 		}
 	} else if u.Status == core.StatusError && accountUnroutable && t.ResolverPin != "" {
 		// Pinned, so no move to another backend: the failure stands, named
 		// after the pin, and the ordinary retry below applies.
-		t.Error, t.Reason = a.pinFailureLocked(t)
+		a.pinFailureLocked(t)
 	} else if u.Status == core.StatusError && (accountUnroutable || (siteDown && t.ResolverPin == "")) {
 		// The account failed, or the service has switched off this site, not
 		// the link, so the task is requeued for the next backend like

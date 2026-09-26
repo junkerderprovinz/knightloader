@@ -1,6 +1,7 @@
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { rejectionReason } from '../../lib/rejectionReason';
-import { reasonKey } from '../columns';
+import { explainFailure } from '../../lib/taskError';
+import { failureFallback, reasonKey } from '../columns';
 import { Card, LabelBadge, SectionTitle } from '../ui';
 import { Fact } from './Fact';
 import type { Task } from '../../lib/api';
@@ -30,6 +31,9 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
     : task.rejectCode
       ? rejectionReason(t, task.rejectCode, task.rejectParams, task.error)
       : '';
+  // A rejection is worded by its own code above, so the failure's general
+  // sentence would only repeat it less precisely.
+  const failure = task.rejectCode ? null : explainFailure(t, task, failureFallback(task, t));
 
   if (!cause && !task.error && !held && !task.note && !filtered && !task.gaveUp) return null;
 
@@ -40,6 +44,8 @@ export function FailureCard({ task, hue }: { task: Task; hue?: number }) {
       {/* Neutral, because the row's status pill already carries the colour. */}
       <Fact label={t('detail.cause')}>{cause ? <LabelBadge label={cause} /> : null}</Fact>
 
+      <Fact label={t('detail.problem')} value={failure?.line} />
+      <Fact label={t('failure.next')} value={failure?.next} />
       <Fact label={t('detail.message')} hint={t('detail.messageHint')} value={task.error} ltr copy />
       <Fact label={t('detail.heldBack')} value={held} />
       <Fact label={t('detail.doing')} value={task.note} />

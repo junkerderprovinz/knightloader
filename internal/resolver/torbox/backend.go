@@ -2,6 +2,7 @@ package torbox
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -158,7 +159,13 @@ func (b *Backend) fail(ctx context.Context, taskID string, err error) {
 	if ctx.Err() != nil {
 		return
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusError, Speed: 0, Err: "torbox: " + err.Error(), HostDown: SiteDisabled(err)})
+	u := core.Update{Status: core.StatusError, Speed: 0, Err: "torbox: " + err.Error(), HostDown: SiteDisabled(err)}
+	// Only an answer from TorBox is TorBox turning the link down.
+	var apiErr *APIError
+	if errors.As(err, &apiErr) {
+		u.Code, u.Params = core.CodeDebridRefused, map[string]string{"service": Torrents{}.Label()}
+	}
+	b.onUpdate(taskID, u)
 }
 
 func (b *Backend) Pause(taskID string) {

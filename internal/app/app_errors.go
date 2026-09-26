@@ -2,13 +2,14 @@ package app
 
 // Every task that settles in StatusError is classified here, so the interface
 // can act on a typed reason instead of matching on backend- and locale-specific
-// wording. Anything not recognised is core.ReasonUnknown: a missing label costs
-// the user nothing, while a wrong one ("the file is gone") gets a working link
-// deleted.
+// wording, and gets the code it words the failure by (core.ErrorCode). Anything
+// not recognised is core.ReasonUnknown: a missing label costs the user nothing,
+// while a wrong one ("the file is gone") gets a working link deleted.
 
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"net"
 	"regexp"
 	"runtime"
@@ -17,6 +18,7 @@ import (
 	"syscall"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 )
 
 // failure is what is known about one task when it settles. Every field is
@@ -196,4 +198,119 @@ func classifyText(text string) core.Reason {
 		}
 	}
 	return core.ReasonUnknown
+}
+
+// recordFailure settles a classified failure on t: its sentence, its typed
+// cause and the code the interface words it by.
+func recordFailure(t *core.Task, f failure) {
+	t.Reason = classify(f)
+	t.SetError(f.sentence(), codeFor(f, t.Reason), nil)
+}
+
+func (f failure) sentence() string {
+	if f.text == "" && f.err != nil {
+		return f.err.Error()
+	}
+	return f.text
+}
+
+// codeFor is the code a failure of reason r reads as. Within a reason it can
+// be finer, a timeout rather than just the network, but never a code of
+// another reason, so the badge and the sentence agree. A failure with no
+// reason gets a code only where its sentence is unmistakable, and "" else.
+func codeFor(f failure, r core.Reason) core.ErrorCode {
+	low := strings.ToLower(f.sentence())
+	switch r {
+	case core.ReasonNetwork:
+		if f.status == 408 || timedOut(f.err, low) {
+			return core.CodeTimeout
+		}
+	case core.ReasonAuth:
+		if containsAny(low, premiumPhrases) {
+			return core.CodePremiumNeeded
+		}
+	case core.ReasonUnknown:
+		switch {
+		case containsAny(low, premiumPhrases):
+			return core.CodePremiumNeeded
+		case writeRefused(f.err, low):
+			return core.CodeNoPermission
+		}
+	}
+	return r.Code()
+}
+
+// premiumPhrases are how hosters, JDownloader and the debrid services say a
+// file needs a paid account. Not the bare word: "premiumize" is a service, and
+// its every error starts with its name.
+var premiumPhrases = []string{
+	"premium account", "premium plan", "premium membership", "premium user",
+	"premium only", "only for premium", "not premium", "premium add-on", "premium required",
+	"requires premium",
+}
+
+func timedOut(err error, low string) bool {
+	var ne net.Error
+	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &ne) && ne.Timeout()) {
+		return true
+	}
+	return containsAny(low, []string{"timeout", "timed out", "deadline exceeded"})
+}
+
+// writeRefused recognises the file system turning a write down. The sentence
+// is checked too because a backend reports over the update channel as text;
+// "access is denied" is Windows' wording, and only read when no HTTP status
+// already made the failure an auth one.
+func writeRefused(err error, low string) bool {
+	return errors.Is(err, fs.ErrPermission) ||
+		containsAny(low, []string{"permission denied", "access is denied", "read-only file system"})
+}
+
+func containsAny(low string, phrases []string) bool {
+	for _, p := range phrases {
+		if strings.Contains(low, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// diskCode is the code of a file the disk would not take, or "" for any other
+// failure. It is for the steps after a download, renaming, moving and
+// unpacking, whose failures carry no Reason: the download itself finished.
+func diskCode(err error) core.ErrorCode {
+	switch {
+	case isDiskFull(err):
+		return core.CodeDiskFull
+	case errors.Is(err, fs.ErrPermission):
+		return core.CodeNoPermission
+	}
+	return ""
+}
+
+// unpackCode is the code an unpacking failure reads as, and the values its
+// wording needs.
+func unpackCode(err error) (core.ErrorCode, map[string]string) {
+	code := diskCode(err)
+	if code == "" {
+		code = archiveCode(err)
+	}
+	if part := extract.PartOf(err); code != "" && part != "" {
+		return code, map[string]string{"part": part}
+	}
+	return code, nil
+}
+
+func archiveCode(err error) core.ErrorCode {
+	switch {
+	case errors.Is(err, extract.ErrPasswordRequired):
+		return core.CodeArchivePassword
+	case errors.Is(err, extract.ErrDamaged):
+		return core.CodeArchiveDamaged
+	case errors.Is(err, extract.ErrPartMissing):
+		return core.CodeArchivePartMissing
+	case errors.Is(err, extract.ErrUnsupported):
+		return core.CodeArchiveUnsupported
+	}
+	return ""
 }

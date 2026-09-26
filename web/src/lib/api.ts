@@ -50,7 +50,12 @@ export interface Task {
   loaded: number;
   speed: number;
   status: TaskStatus;
+  /** The server's own sentence, in English. lib/taskError.ts words it from
+   *  errorCode where it can. */
   error?: string;
+  /** `error` as a code, core.ErrorCode; absent when nothing recognised it. */
+  errorCode?: string;
+  errorParams?: Record<string, string>;
   createdAt: string;
   dir?: string;
   password?: string;
@@ -1191,6 +1196,9 @@ export interface ExtractJob {
   parts?: string[];
   nested?: number;
   error?: string;
+  /** `error` as a code, as on Task. */
+  errorCode?: string;
+  errorParams?: Record<string, string>;
   /** The failure was a missing password, which is the one with an obvious remedy. */
   password?: boolean;
   queuedAt: string;

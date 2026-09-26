@@ -724,8 +724,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	res := a.stagingResolverFor(u)
 	if res == nil {
 		// Staged anyway, with the reason, so links never silently vanish.
-		t.Error = a.unhandledError(u, "no backend handles this link")
 		t.Reason = core.ReasonUnsupported
+		t.SetError(a.unhandledError(u, "no backend handles this link"), core.CodeUnsupported, nil)
 		t.Online = core.AvailOffline
 		return a.finishStaging(t, cand)
 	}
@@ -733,8 +733,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	t.Mode = a.modeForLocked(t, t.Resolver)
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
-		t.Error = err.Error()
-		t.Reason = classify(failure{err: err})
+		recordFailure(t, failure{err: err})
 		return a.finishStaging(t, cand)
 	}
 	// Resolvers that do not know the name yet answer with the URL itself; that

@@ -16,6 +16,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -179,9 +180,9 @@ func (a *App) setPathLocked(first *core.Task, parts int) string {
 // download recorded. The readers find each part by name beside the first one,
 // so a part that had to be written under another name or into another folder
 // would be read from the wrong file, and that failure reads as a damaged
-// archive. The error names both files. A part whose recorded file is gone was
-// moved by hand, most likely to where the error said, and no longer stands in
-// the way. Caller holds a.mu.
+// archive. The error is a missing part and names both files. A part whose
+// recorded file is gone was moved by hand, most likely to where the error said,
+// and no longer stands in the way. Caller holds a.mu.
 func (a *App) volumeMismatchLocked(first *core.Task) error {
 	set := a.volumeSetLocked(first)
 	if len(set) < 2 {
@@ -196,13 +197,16 @@ func (a *App) volumeMismatchLocked(first *core.Task) error {
 		if _, err := os.Lstat(part.File); err != nil {
 			continue
 		}
+		missing := &extract.PartError{Part: part.Name, Problem: extract.ErrPartMissing}
 		if filepath.Base(part.File) == part.Name {
-			return fmt.Errorf("%s was downloaded to %s, and the archive looks for it beside its first part in %s. "+
+			missing.Err = fmt.Errorf("%s was downloaded to %s, and the archive looks for it beside its first part in %s. "+
 				"Move it there and start the extraction again", part.Name, filepath.Dir(part.File), dir)
+			return missing
 		}
-		return fmt.Errorf("%s was saved as %s, and the archive reads each part under its own name. "+
+		missing.Err = fmt.Errorf("%s was saved as %s, and the archive reads each part under its own name. "+
 			"Move anything already at %s out of the way, move the download there, and start the extraction again",
 			part.Name, part.File, byName)
+		return missing
 	}
 	return nil
 }

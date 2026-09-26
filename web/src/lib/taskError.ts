@@ -1,0 +1,83 @@
+// What went wrong with a download or an unpacking and what to do about it, in
+// the reader's language, from the code the server sends beside its own
+// sentence (core.ErrorCode in internal/core/errorcode.go). The sentence stays
+// available as the technical detail; it is never the message.
+
+import type { TranslationKey } from './i18n';
+
+type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+interface Words {
+  /** What went wrong, short enough for a row. */
+  line: TranslationKey;
+  /** The next step. */
+  next: TranslationKey;
+}
+
+/**
+ * Every code the server sends, one entry each. A code this build does not know
+ * yet, from a newer server, reads as the general sentence, so adding one on the
+ * server without words here costs a vague row and nothing worse.
+ */
+const WORDS: Record<string, Words> = {
+  gone: { line: 'failure.gone.line', next: 'failure.gone.next' },
+  accessDenied: { line: 'failure.accessDenied.line', next: 'failure.accessDenied.next' },
+  premiumNeeded: { line: 'failure.premiumNeeded.line', next: 'failure.premiumNeeded.next' },
+  limit: { line: 'failure.limit.line', next: 'failure.limit.next' },
+  unavailable: { line: 'failure.unavailable.line', next: 'failure.unavailable.next' },
+  unreachable: { line: 'failure.unreachable.line', next: 'failure.unreachable.next' },
+  timeout: { line: 'failure.timeout.line', next: 'failure.timeout.next' },
+  diskFull: { line: 'failure.diskFull.line', next: 'failure.diskFull.next' },
+  noPermission: { line: 'failure.noPermission.line', next: 'failure.noPermission.next' },
+  unsupported: { line: 'failure.unsupported.line', next: 'failure.unsupported.next' },
+  debridRefused: { line: 'failure.debridRefused.line', next: 'failure.debridRefused.next' },
+  pinned: { line: 'failure.pinned.line', next: 'failure.pinned.next' },
+  fileExists: { line: 'failure.fileExists.line', next: 'failure.fileExists.next' },
+  captcha: { line: 'failure.captcha.line', next: 'failure.captcha.next' },
+  cancelled: { line: 'failure.cancelled.line', next: 'failure.cancelled.next' },
+  botCheck: { line: 'failure.botCheck.line', next: 'failure.botCheck.next' },
+  membersOnly: { line: 'failure.membersOnly.line', next: 'failure.membersOnly.next' },
+  geoBlocked: { line: 'failure.geoBlocked.line', next: 'failure.geoBlocked.next' },
+  drm: { line: 'failure.drm.line', next: 'failure.drm.next' },
+  extractorBroken: { line: 'failure.extractorBroken.line', next: 'failure.extractorBroken.next' },
+  archiveDamaged: { line: 'failure.archiveDamaged.line', next: 'failure.archiveDamaged.next' },
+  archivePassword: { line: 'failure.archivePassword.line', next: 'failure.archivePassword.next' },
+  archivePartMissing: { line: 'failure.archivePartMissing.line', next: 'failure.archivePartMissing.next' },
+  archiveUnsupported: { line: 'failure.archiveUnsupported.line', next: 'failure.archiveUnsupported.next' },
+};
+
+const GENERAL: Words = { line: 'failure.unknown.line', next: 'failure.unknown.next' };
+
+/** A failure as the interface shows it. */
+export interface Explained {
+  line: string;
+  next: string;
+  /** The server's own sentence, for support. May be empty. */
+  raw: string;
+}
+
+/** What a failure carries: its sentence, its code, and the task's own reason. */
+export interface FailureSource {
+  error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string>;
+  /** Read when there is no code, as on a task stored before codes existed. */
+  reason?: string;
+}
+
+/**
+ * explainFailure words a failure, or answers null when there is none.
+ * `fallback` fills a value the wording needs and the server left out, such as
+ * the archive's own name for a part it did not name.
+ */
+export function explainFailure(
+  t: Translate,
+  f: FailureSource,
+  fallback: Record<string, string> = {},
+): Explained | null {
+  const raw = f.error ?? '';
+  if (!raw && !f.errorCode) return null;
+  const words = (f.errorCode && WORDS[f.errorCode]) || (!f.errorCode && f.reason && WORDS[f.reason]) || GENERAL;
+  const vars = { ...fallback, ...f.errorParams };
+  return { line: t(words.line, vars), next: t(words.next, vars), raw };
+}

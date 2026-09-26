@@ -30,6 +30,7 @@ import { IconBolt, IconCheck, IconPin, IconPower, IconRetry, IconStopMark, Prior
 import { hostOf } from '../lib/searchQuery';
 import { resolverLabel } from '../lib/resolverLabels';
 import { adviceFor } from '../lib/failureAdvice';
+import { explainFailure, type Explained, type FailureSource } from '../lib/taskError';
 import { FailureAdvice } from './FailureAdvice';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
@@ -475,6 +476,31 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
 }
 
 /**
+ * failureFallback is what a failure's wording falls back on where the server
+ * left a value out: the row's own name for the archive part or the file, and
+ * its backend for the debrid service.
+ */
+export function failureFallback(task: Task, t: Translate): Record<string, string> {
+  const name = task.name || task.url;
+  return { part: name, file: name, service: resolverLabel(task.resolver.split('#')[0], t) };
+}
+
+/** A failure's bubble: what went wrong, what to do, and the tool's own words. */
+function FailureDetail({ failure, t }: { failure: Explained; t: Translate }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="break-words font-medium text-carbon-text">{failure.line}</div>
+      <TooltipField label={t('failure.next')}>{failure.next}</TooltipField>
+      {failure.raw && (
+        <TooltipField label={t('failure.raw')} ltr>
+          {failure.raw}
+        </TooltipField>
+      )}
+    </div>
+  );
+}
+
+/**
  * RowTooltipContent is everything about one row in a single hover rather than
  * several cell tooltips. Six of this table's columns ship hidden by default
  * (see DEFAULT_HIDDEN) purely for width, so this is the one place to read them
@@ -704,6 +730,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const retrying = retryPending(task);
   const reason = task.reason ? reasonKey[task.reason] : undefined;
   const advice = adviceFor(task.reason);
+  const failure = explainFailure(t, task, failureFallback(task, t));
   const [whyOpen, setWhyOpen] = useState(false);
   // The row's rich tooltip lives on this cell: it is the one that truncates
   // first (see TREE_INDENT) and the one hover that can afford to say more than
@@ -736,7 +763,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
       {whyOpen && reason && (
         <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
       )}
-      {task.error && (
+      {failure && (
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
           {/* The typed cause leads the line as a tag rather than a second
               sentence: a column reading "disk full" four times is one fact
@@ -778,10 +805,10 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
               shrink beside text that can is a race the text loses, and a row
               that then says nothing about why it failed is the one row on the
               page somebody has to act on. The tool's own line stays in the
-              bubble: the plain-language sentence translates the failure, it
-              does not replace the evidence. */}
-          <Tip tip={task.error} className="min-w-0 truncate text-statusFail">
-            {advice ? t(advice.line) : task.error}
+              bubble with the next step: the plain-language sentence translates
+              the failure, it does not replace the evidence. */}
+          <Tip tip={<FailureDetail failure={failure} t={t} />} className="min-w-0 truncate text-statusFail">
+            {failure.line}
           </Tip>
           {/* The retry note is a glyph: fixed width, never competing, and still
               carrying the whole sentence for the pointer and the screen reader.
@@ -1024,7 +1051,9 @@ interface Unpacking {
   /** The job, while the server still holds it. After a restart the row has only the state. */
   job?: ExtractJob;
   /** Why it failed, or why moving the files afterwards did. */
-  error?: string;
+  failure?: FailureSource;
+  /** The archive's own name, for a failure that does not name its part. */
+  name?: string;
 }
 
 // app.extractErrorPrefix, which marks the unpacking's own error on a task.
@@ -1037,23 +1066,20 @@ function unpackingOf(task: Task, ctx: CellContext): Unpacking | null {
   if (task.status !== 'done' && task.status !== 'extracting') return null;
   const job = ctx.extractions?.get(task.id);
   const state = job && unpackState(job);
-  if (job && state) return { state, job, error: job.error };
+  if (job && state) return { state, job, failure: job, name: job.name };
   if (!task.unpack) return null;
-  const error = task.error?.startsWith(EXTRACT_ERROR) ? task.error.slice(EXTRACT_ERROR.length) : undefined;
-  return { state: task.unpack, error };
+  const failure = task.error?.startsWith(EXTRACT_ERROR)
+    ? { error: task.error.slice(EXTRACT_ERROR.length), errorCode: task.errorCode, errorParams: task.errorParams }
+    : undefined;
+  return { state: task.unpack, failure, name: task.name };
 }
-
-// Go wraps an error with ": " at every level it climbs, so the innermost cause
-// is the last piece: "Film.part1.rar: rardecode: bad block header" in short is
-// "bad block header".
-const shortCause = (error: string): string => error.slice(error.lastIndexOf(': ') + 1).trim();
 
 /**
  * UnpackStatus stands in a finished row's status slot while its archive is
- * being unpacked and afterwards. A failure carries its innermost cause beside
- * the word, and the bubble holds the rest: the archive open now, what has come
- * out of it, how many parts the set has and the whole error. The package
- * header adds how many of its archives are unpacked.
+ * being unpacked and afterwards. A failure carries what went wrong beside the
+ * word, and the bubble holds the rest: the archive open now, what has come out
+ * of it, how many parts the set has, what to do and the whole error. The
+ * package header adds how many of its archives are unpacked.
  */
 function UnpackStatus({
   unpack,
@@ -1068,8 +1094,8 @@ function UnpackStatus({
   const percent = state === 'running' && job?.size ? pct(job.unpacked ?? 0, job.size, false) : undefined;
   // "Needs a password" says what the library's sentence says, and says it in
   // the reader's language.
-  const error = state === 'password' ? '' : (unpack.error ?? '');
-  const cause = error && shortCause(error);
+  const failure =
+    state === 'password' || !unpack.failure ? null : explainFailure(t, unpack.failure, { part: unpack.name ?? '' });
   const facts = job
     ? [
         job.files > 0 ? `${job.files} ${t(job.files === 1 ? 'task.file' : 'task.files')}` : '',
@@ -1085,7 +1111,7 @@ function UnpackStatus({
       {job?.archive && job.archive !== job.name && <span dir="ltr">{job.archive}</span>}
       {facts.length > 0 && <span className="glim-num">{facts.join(' · ')}</span>}
       {tally && <span>{t('archive.tally', { done: tally.done, total: tally.total })}</span>}
-      {error && <span>{error}</span>}
+      {failure && <FailureDetail failure={failure} t={t} />}
     </span>
   );
   return (
@@ -1096,7 +1122,7 @@ function UnpackStatus({
       )}
       {/* flex-1 from a zero basis: the cause takes what the word leaves and
           never squeezes the word itself. */}
-      {cause && <span className="min-w-0 flex-1 truncate text-[11px] text-carbon-textMuted">{cause}</span>}
+      {failure && <span className="min-w-0 flex-1 truncate text-[11px] text-carbon-textMuted">{failure.line}</span>}
     </Tip>
   );
 }

@@ -65,8 +65,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		t.Resolver = pick.Info().ID
 	}
 	if md, err := res.Describe(uri); err != nil {
-		t.Error = err.Error()
-		t.Reason = classify(failure{err: err})
+		recordFailure(t, failure{err: err})
 	} else {
 		if md.Name != "" {
 			t.Name = md.Name
