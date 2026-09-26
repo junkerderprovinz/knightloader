@@ -515,6 +515,52 @@ func TestDebridLinkGetsTheFilesToLeaveOut(t *testing.T) {
 	}
 }
 
+// debridLinkZipped is a Debrid-Link account holding one finished torrent D1
+// of many files, which ?ids= shows as a single ZIP. ?id= lists the files,
+// unless stillZipped says it shows the ZIP too.
+func debridLinkZipped(t *testing.T, stillZipped bool) *DebridLink {
+	t.Helper()
+	const zipped = `{"id":"D1","name":"Show","status":100,"downloadPercent":100,"isZip":true,"files":[` +
+		`{"id":"D1-z","name":"Show.zip","size":730,"downloadUrl":"https://seed.example/zip","downloadPercent":100}]}`
+	const unzipped = `{"id":"D1","name":"Show","status":100,"downloadPercent":100,"isZip":false,"files":[` +
+		`{"id":"D1-1","name":"e01.mkv","size":700,"downloadUrl":"https://seed.example/1","downloadPercent":100},` +
+		`{"id":"D1-2","name":"e02.mkv","size":30,"downloadUrl":"https://seed.example/2","downloadPercent":100}]}`
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		switch {
+		case r.URL.Path == "/seedbox/add":
+			fmt.Fprint(w, `{"success":true,"value":{"id":"D1","name":"Show"}}`)
+		case r.URL.Path == "/seedbox/list" && q.Get("id") == "D1" && !stillZipped:
+			fmt.Fprint(w, `{"success":true,"value":[`+unzipped+`]}`)
+		case r.URL.Path == "/seedbox/list" && (q.Get("ids") == "D1" || q.Get("id") == "D1"):
+			fmt.Fprint(w, `{"success":true,"value":[`+zipped+`]}`)
+		default:
+			fmt.Fprint(w, `{"success":true,"value":[]}`)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	dl := NewDebridLink("key")
+	dl.base = srv.URL
+	return dl
+}
+
+func TestDebridLinkFetchesTheFilesOfATorrentItListsAsOneZip(t *testing.T) {
+	parts, _ := fetchTorrent(t, debridLinkZipped(t, false), testMagnet, nil, core.StatusDone)
+
+	want := []string{"https://seed.example/1 -> Show/e01.mkv", "https://seed.example/2 -> Show/e02.mkv"}
+	if got := partURLs(parts); !slices.Equal(got, want) {
+		t.Errorf("the engine got %v, want %v", got, want)
+	}
+}
+
+func TestDebridLinkHandsOnATorrentItOffersOnlyAsOneZip(t *testing.T) {
+	parts, u := fetchTorrent(t, debridLinkZipped(t, true), testMagnet, nil, core.StatusError)
+
+	if !u.Unsupported || len(parts) != 0 {
+		t.Errorf("settled as %+v after fetching %v; want the task handed on and no ZIP fetched", u, partURLs(parts))
+	}
+}
+
 func TestDebridLinkDecliningATorrentHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/seedbox/list" {
