@@ -82,6 +82,8 @@ func TestRealDebridFetchesAMagnetFromAddToCleanup(t *testing.T) {
 			}
 			w.WriteHeader(http.StatusCreated)
 			fmt.Fprint(w, `{"id":"RD1","uri":"https://api.real-debrid.com/rest/1.0/torrents/info/RD1"}`)
+		case "GET /torrents":
+			fmt.Fprint(w, `[]`)
 		case "GET /torrents/info/RD1":
 			reads++
 			files := `[{"id":1,"path":"/e01.mkv","bytes":700,"selected":%d},{"id":2,"path":"/extras/sample.mkv","bytes":30,"selected":%d}]`
@@ -180,6 +182,10 @@ func TestRealDebridGetsTheSelectionOfAnUploadedTorrent(t *testing.T) {
 
 func TestRealDebridDecliningATorrentHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/torrents" {
+			fmt.Fprint(w, `[]`)
+			return
+		}
 		w.WriteHeader(http.StatusServiceUnavailable)
 		fmt.Fprint(w, `{"error":"too_many_active_downloads","error_code":21}`)
 	}))
@@ -226,6 +232,10 @@ func TestAllDebridFetchesAMagnetFromAddToCleanup(t *testing.T) {
 			}
 			ok(`{"magnets":[{"magnet":"x","id":55,"ready":false}]}`)
 		case "/v4.1/magnet/status":
+			if r.FormValue("id") == "" {
+				ok(`{"magnets":[]}`)
+				return
+			}
 			reads++
 			code := 1
 			if reads > 2 {
@@ -353,6 +363,10 @@ func TestPremiumizeLeavesAFolderThatIsNotTheTransfersOwn(t *testing.T) {
 
 func TestPremiumizeDecliningATransferHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/transfer/list" {
+			fmt.Fprint(w, `{"status":"success","transfers":[]}`)
+			return
+		}
 		fmt.Fprint(w, `{"status":"error","message":"You already added this job."}`)
 	}))
 	defer srv.Close()
@@ -384,7 +398,12 @@ func TestDebridLinkFetchesAMagnetFromAddToCleanup(t *testing.T) {
 			}
 			fmt.Fprint(w, `{"success":true,"value":{"id":"D1","name":"Show","status":1,"files":[]}}`)
 		case "GET /seedbox/list":
-			if r.URL.Query().Get("ids") != "D1" {
+			q := r.URL.Query()
+			if q.Has("perPage") {
+				fmt.Fprint(w, `{"success":true,"value":[]}`)
+				return
+			}
+			if q.Get("ids") != "D1" {
 				t.Errorf("listed %q", r.URL.RawQuery)
 			}
 			reads++
@@ -468,6 +487,10 @@ func TestDebridLinkGetsTheFilesToLeaveOut(t *testing.T) {
 
 func TestDebridLinkDecliningATorrentHandsItOn(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/seedbox/list" {
+			fmt.Fprint(w, `{"success":true,"value":[]}`)
+			return
+		}
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, `{"success":false,"error":"maxTorrent"}`)
 	}))

@@ -769,6 +769,109 @@ func TestAJobTheAccountAlreadyHeldIsNeverDeleted(t *testing.T) {
 	}
 }
 
+const testHash = "0123456789abcdef0123456789abcdef01234567"
+
+// listedAccount is a service whose list names each job's info hash, as
+// Real-Debrid's, AllDebrid's and Debrid-Link's do. With lostAnswer set it
+// takes the torrent but its answer never arrives.
+type listedAccount struct {
+	scriptedService
+	listed     []Listed
+	lostAnswer bool
+}
+
+func (s *listedAccount) AddTorrent(ctx context.Context, src TorrentSource) (string, bool, error) {
+	id, held, err := s.scriptedService.AddTorrent(ctx, src)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err != nil {
+		return id, held, err
+	}
+	s.listed = append(s.listed, Listed{ID: id, Hash: src.InfoHash})
+	if s.lostAnswer {
+		return "", false, context.DeadlineExceeded
+	}
+	return id, held, nil
+}
+
+func (s *listedAccount) List(context.Context) ([]Listed, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.listed), true, nil
+}
+
+func TestATorrentTheAccountListsIsFetchedFromThereAndNeverDeleted(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		jobs []TorrentJob
+		end  func(t *testing.T, b *TorrentBackend, up *updates)
+	}{
+		{"finished", []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}, func(t *testing.T, _ *TorrentBackend, up *updates) {
+			up.until(t, core.StatusDone)
+		}},
+		{"removed", []TorrentJob{{Name: "Show", Progress: 0.1}}, func(_ *testing.T, b *TorrentBackend, up *updates) {
+			for u := range up.ch {
+				if u.Remote != nil && u.Remote.Progress > 0 {
+					break
+				}
+			}
+			b.Remove("t1", true)
+		}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			svc := &listedAccount{scriptedService: scriptedService{jobs: c.jobs}, listed: []Listed{{ID: "theirs", Hash: testHash}}}
+			b, up := newTestBackend(t, svc, &partRecorder{})
+			b.Download("t1", testMagnet, nil, 1)
+			c.end(t, b, up)
+			time.Sleep(50 * time.Millisecond)
+
+			if n := svc.addCount(); n != 0 {
+				t.Errorf("the torrent went to the service %d times although the account holds it", n)
+			}
+			if d := svc.deletedJobs(); len(d) != 0 {
+				t.Errorf("deleted %v, which was on the account before the task asked for it", d)
+			}
+			if !slices.ContainsFunc(up.all(), func(u core.Update) bool { return u.Job != nil && u.Job.ID == "theirs" && !u.Job.Owned }) {
+				t.Error("the task was never told it fetches the account's own job")
+			}
+		})
+	}
+}
+
+func TestAnAddWhoseAnswerWentMissingCarriesOnWithTheJobItMade(t *testing.T) {
+	svc := &listedAccount{scriptedService: scriptedService{jobs: []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}}, lostAnswer: true}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+	claimed := make(chan string, 4)
+	b.Added = func(job string) { claimed <- job }
+
+	b.Download("t1", testMagnet, nil, 1)
+	up.until(t, core.StatusDone)
+
+	if n := svc.addCount(); n != 1 {
+		t.Errorf("the torrent was added %d times", n)
+	}
+	select {
+	case job := <-claimed:
+		if job != "job1" {
+			t.Errorf("claimed %q", job)
+		}
+	default:
+		t.Error("the job the service made was never claimed, so the import would take it for the user's")
+	}
+	waitFor(t, func() bool { return slices.Equal(svc.deletedJobs(), []string{"job1"}) }, "the finished job deleted on the service")
+}
+
+func TestAFailedAddThatLeftNoJobIsAnOrdinaryFailure(t *testing.T) {
+	svc := &listedAccount{scriptedService: scriptedService{addErr: errors.New("connection reset")}}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+
+	b.Download("t1", testMagnet, nil, 1)
+	u := up.until(t, core.StatusError)
+	if u.Unsupported || b.Holds("t1") {
+		t.Errorf("settled as %+v, holding a job %v; want a failure worth another try", u, b.Holds("t1"))
+	}
+}
+
 func TestASelectedFileIsNotTakenForOneOfTheSameNameInAFolder(t *testing.T) {
 	sel := []core.TorrentFile{{Path: "e01.mkv", Selected: true}, {Path: "Extras/e01.mkv"}}
 	for _, c := range []struct {

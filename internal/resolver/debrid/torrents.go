@@ -44,6 +44,14 @@ type FileSelector interface {
 	SelectFiles(ctx context.Context, id string, files []TorrentFile) error
 }
 
+// HashFinder is a service that can find the job it holds for a torrent
+// without listing everything on the account. A service without one is asked
+// through its Lister.
+type HashFinder interface {
+	// JobByHash returns the job's id, or "" when the account holds none.
+	JobByHash(ctx context.Context, hash string) (string, error)
+}
+
 // TorrentSource is a torrent as a service takes it: a magnet link, or the
 // bytes of an uploaded .torrent.
 type TorrentSource struct {
@@ -489,10 +497,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	keep, err := b.rules(taskID)
 	src.Choose = selectsSome(sel) || len(sel) == 0 && (keep != nil || err != nil)
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Remote: &core.RemoteFetch{}})
-	// A pause or a removal does not cut the add short: the service may have
-	// made the job already, and only its id lets this instance claim the job
-	// and then keep it or delete it. The client's own timeout still applies.
-	job, held, err := b.svc.AddTorrent(context.WithoutCancel(ctx), src)
+	job, held, err := b.addOrReuse(ctx, src)
 	if err != nil {
 		var no *Refusal
 		if errors.As(err, &no) {
@@ -527,6 +532,61 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	u.Status, u.Remote = core.StatusRunning, &core.RemoteFetch{}
 	b.onUpdate(taskID, u)
 	return job, true
+}
+
+// addOrReuse hands the torrent to the service, or reports the job the account
+// already holds for it as held. Services do not document what they answer to
+// a torrent added twice, and one that answers with the job it has would get
+// the user's own job deleted along with the task.
+func (b *TorrentBackend) addOrReuse(ctx context.Context, src TorrentSource) (string, bool, error) {
+	find := b.finder()
+	if find != nil {
+		job, err := find(ctx, src.InfoHash)
+		if err != nil {
+			return "", false, err
+		}
+		if job != "" {
+			return job, true, nil
+		}
+	}
+	// A pause or a removal does not cut the add short: the service may have
+	// made the job already, and only its id lets this instance claim the job
+	// and then keep it or delete it. The client's own timeout still applies.
+	ctx = context.WithoutCancel(ctx)
+	job, held, err := b.svc.AddTorrent(ctx, src)
+	var no *Refusal
+	if err == nil || errors.As(err, &no) || find == nil {
+		return job, held, err
+	}
+	// The service may have made the job and only its answer went missing.
+	// Nothing had this hash a moment ago, so a job with it now is this add's.
+	if made, ferr := find(ctx, src.InfoHash); ferr == nil && made != "" {
+		return made, false, nil
+	}
+	return "", false, err
+}
+
+// finder is how the service's job for an info hash is found, nil for a
+// service that cannot say.
+func (b *TorrentBackend) finder() func(context.Context, string) (string, error) {
+	switch svc := b.svc.(type) {
+	case HashFinder:
+		return svc.JobByHash
+	case Lister:
+		return func(ctx context.Context, hash string) (string, error) {
+			list, _, err := svc.List(ctx)
+			if err != nil {
+				return "", err
+			}
+			for _, j := range list {
+				if strings.EqualFold(j.Hash, hash) {
+					return j.ID, nil
+				}
+			}
+			return "", nil
+		}
+	}
+	return nil
 }
 
 // await polls the job until the service has every file, showing its progress
