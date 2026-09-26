@@ -326,14 +326,16 @@ func TestAPinOnARequeuedTaskMovesItBeforeItStartsAgain(t *testing.T) {
 	rerankTask(a, core.Task{ID: "r1", Resolver: "jd"})
 	a.mu.Lock()
 	a.started["r1"] = true
-	a.halted = true
+	// A halt by hand, as SetHalted makes it: a schedule pass recomputes halted
+	// from manualHalt and would otherwise lift it while the pin has a.mu let go.
+	a.halted, a.manualHalt = true, true
 	a.mu.Unlock()
 
 	if err := a.PinResolver([]string{"r1"}, "torbox"); err != nil {
 		t.Fatal(err)
 	}
 	a.mu.Lock()
-	a.halted = false
+	a.halted, a.manualHalt = false, false
 	queued := slices.Contains(a.queue, "r1")
 	a.mu.Unlock()
 	if !queued {
