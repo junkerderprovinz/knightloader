@@ -60,6 +60,24 @@ func TestABatchFileGetsEachArgumentAsText(t *testing.T) {
 	}
 }
 
+// Windows drops dots and spaces from the end of a file name, so each of these
+// names opens after.bat, and cmd.exe runs it.
+func TestABatchFileNamedWithTrailingDotsOrSpacesGetsItsArgumentsAsText(t *testing.T) {
+	bat := filepath.Join(t.TempDir(), "after.bat")
+	if err := os.WriteFile(bat, []byte("@echo off\r\necho one=[%1]\r\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{bat + ".", bat + " ", bat + ". .", bat + " . . "} {
+		out, err := Run(context.Background(), name, []string{"x&echo.INJECTED"}, os.Environ())
+		if hasLine(out, "INJECTED") {
+			t.Errorf("started as %q, cmd.exe ran a command out of an argument:\n%s", name, out)
+		}
+		if err != nil || !hasLine(out, `one=["x&echo.INJECTED"]`) {
+			t.Errorf("started as %q, the batch file did not get its argument (%v):\n%s", name, err, out)
+		}
+	}
+}
+
 func TestABatchFileIsNotHandedALineBreak(t *testing.T) {
 	bat := filepath.Join(t.TempDir(), "after.cmd")
 	if err := os.WriteFile(bat, []byte("@echo off\r\necho ran\r\n"), 0o644); err != nil {
