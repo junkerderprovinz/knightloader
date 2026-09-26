@@ -36,10 +36,10 @@ type Service interface {
 	SubmitsPerHour() int
 	// Submit hands the service an NZB and returns its id for the job.
 	Submit(ctx context.Context, name string, nzb []byte) (string, error)
-	// Status reports how far the service has got with each of the jobs ids,
-	// in as few calls as it allows: one call per job and round would use up
-	// the account's request limit. A job missing from the answer is one the
-	// service no longer has.
+	// Status reports how far the service has got with each of the jobs ids.
+	// It is asked every few seconds, so it spends few calls on many jobs: one
+	// per job and round would use up the account's request limit. A job
+	// missing from the answer is one the service no longer has.
 	Status(ctx context.Context, ids []string) (map[string]Status, error)
 	// Link returns a download address for one file of a finished job. It may
 	// expire, so it is asked for when the download starts and again when the

@@ -264,6 +264,34 @@ func (t *TorBox) list(ctx context.Context) ([]torboxJob, error) {
 	return jobs, err
 }
 
+// job reads one Usenet download. TorBox documents the answer for an id as the
+// download itself rather than a list; a list is taken as well.
+func (t *TorBox) job(ctx context.Context, id string) (torboxJob, bool, error) {
+	var raw json.RawMessage
+	q := url.Values{"bypass_cache": {"true"}, "id": {id}}
+	err := t.get(ctx, "/api/usenet/mylist", q, "usenet/mylist", &raw)
+	if errors.Is(err, ErrGone) || err == nil && len(raw) == 0 {
+		return torboxJob{}, false, nil
+	}
+	if err != nil {
+		return torboxJob{}, false, err
+	}
+	var one torboxJob
+	if json.Unmarshal(raw, &one) == nil {
+		return one, one.ID != 0, nil
+	}
+	var list []torboxJob
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return torboxJob{}, false, fmt.Errorf("torbox usenet/mylist: %w", err)
+	}
+	for _, j := range list {
+		if strconv.FormatInt(j.ID, 10) == id {
+			return j, true, nil
+		}
+	}
+	return torboxJob{}, false, nil
+}
+
 // queue reads the Usenet downloads waiting in the account's queue. An empty
 // queue may come as ITEM_NOT_FOUND too, as in list.
 func (t *TorBox) queue(ctx context.Context) (map[string]bool, error) {
@@ -282,20 +310,50 @@ func (t *TorBox) queue(ctx context.Context) (map[string]bool, error) {
 	return out, nil
 }
 
-// Status reads the account's job list once for all of ids. A queued download
-// is looked for in the queue first and in the list second, so one that
-// starts in between is found in the list rather than lost.
+// singleReads is how many started downloads Status reads one by one. The
+// whole list of an account that keeps its finished downloads runs to
+// megabytes, but past a handful of downloads a call for each every few
+// seconds would take too much of TorBox's 300 calls a minute.
+const singleReads = 5
+
+// Status finds a queued download in the queue, and one that has left it by its
+// hash in the whole list, under the id it started under. The queue is read
+// first, so a download that starts in between is found in the list rather
+// than lost. The other downloads are read one by one while they are few.
 func (t *TorBox) Status(ctx context.Context, ids []string) (map[string]Status, error) {
+	out := make(map[string]Status, len(ids))
+	var started, left []string
 	var queue map[string]bool
+	var queueErr error
 	for _, id := range ids {
-		if _, _, ok := parseQueued(id); ok {
-			var err error
-			if queue, err = t.queue(ctx); err != nil {
-				return nil, err
-			}
-			break
+		entry, _, queued := parseQueued(id)
+		if !queued {
+			started = append(started, id)
+			continue
+		}
+		if queue == nil && queueErr == nil {
+			queue, queueErr = t.queue(ctx)
+		}
+		if queue[entry] {
+			out[id] = Status{Phase: PhaseFetching}
+		} else {
+			left = append(left, id)
 		}
 	}
+
+	if len(left) == 0 && len(started) <= singleReads {
+		for _, id := range started {
+			j, ok, err := t.job(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				out[id] = j.status()
+			}
+		}
+		return out, nil
+	}
+
 	jobs, err := t.list(ctx)
 	if err != nil {
 		return nil, err
@@ -309,20 +367,20 @@ func (t *TorBox) Status(ctx context.Context, ids []string) (map[string]Status, e
 			byHash[h] = j
 		}
 	}
-	out := make(map[string]Status, len(ids))
-	for _, id := range ids {
-		entry, hash, queued := parseQueued(id)
-		switch {
-		case !queued:
-			if j, ok := byID[id]; ok {
-				out[id] = j.status()
-			}
-		case hash != "" && byHash[hash].ID != 0:
-			j := byHash[hash]
+	for _, id := range started {
+		if j, ok := byID[id]; ok {
+			out[id] = j.status()
+		}
+	}
+	for _, id := range left {
+		_, hash, _ := parseQueued(id)
+		switch j := byHash[hash]; {
+		case hash != "" && j.ID != 0:
 			st := j.status()
 			st.ID = strconv.FormatInt(j.ID, 10)
 			out[id] = st
-		case queue[entry]:
+		case queueErr != nil:
+			// The queue could not be read, so it may still be waiting there.
 			out[id] = Status{Phase: PhaseFetching}
 		}
 	}
