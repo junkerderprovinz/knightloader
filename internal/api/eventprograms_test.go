@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	storedID    = "5e0c9a27d1b84f36"
 	storedPath  = "/home/someone/bin/no-such-program-7c1d"
 	storedToken = "--token=real-token-value"
 )
@@ -42,7 +43,7 @@ func TestNeitherTheSettingsNorTheStatusServeAProgramsCommandLine(t *testing.T) {
 
 	s := a.Settings.Get()
 	s.EventPrograms = []eventprog.Program{{
-		ID: "1", Name: "after", Enabled: true,
+		ID: storedID, Name: "after", Enabled: true,
 		Command:  idleaction.CommandSpec{Program: storedPath, Args: []string{storedToken}},
 		Triggers: []script.Trigger{script.TriggerTaskDone},
 	}}
@@ -63,7 +64,7 @@ func TestNeitherTheSettingsNorTheStatusServeAProgramsCommandLine(t *testing.T) {
 	if err := json.Unmarshal([]byte(getBody(t, srv.URL+"/api/eventprograms")), &rows); err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != 1 || rows[0].ID != "1" || rows[0].Name != "after" {
+	if len(rows) != 1 || rows[0].ID != storedID || rows[0].Name != "after" {
 		t.Fatalf("rows = %+v, want the one configured program", rows)
 	}
 	if rows[0].Check != idleaction.ProblemNotFound {
