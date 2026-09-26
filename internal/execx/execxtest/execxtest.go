@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -24,6 +25,10 @@ const (
 	// Detach starts a child that writes to the same output, prints
 	// "child:PID" and exits at once, like a script ending in `nohup job &`.
 	Detach Mode = "detach"
+	// ListKL prints "KL variables:" and every KL_ variable it was given, one
+	// per line, and exits with status 1, so a runner that quotes the output
+	// only when the program fails quotes it too.
+	ListKL Mode = "list-kl"
 )
 
 const (
@@ -42,6 +47,14 @@ func Main() {
 	case Detach:
 		fmt.Printf("child:%d\n", startChild(true))
 		os.Exit(0)
+	case ListKL:
+		fmt.Println("KL variables:")
+		for _, kv := range os.Environ() {
+			if strings.HasPrefix(strings.ToUpper(kv), "KL_") {
+				fmt.Println(kv)
+			}
+		}
+		os.Exit(1)
 	case sleep:
 		time.Sleep(time.Minute)
 		os.Exit(0)

@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -396,7 +395,7 @@ func (d *Dispatcher) execute(w *worker, p Program, f script.Firing) {
 	}
 	v := ValuesOf(f, where)
 	args := Args(p.Command, f, v, d.name())
-	env := Environ(os.Environ(), v)
+	env := Environ(v)
 
 	ctx, cancel := context.WithTimeout(d.ctx, p.Command.Timeout())
 	defer cancel()

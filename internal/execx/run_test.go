@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,6 +40,34 @@ func TestACleanExitIsNotHeldUpByWhatItLeftInTheBackground(t *testing.T) {
 	}
 	if execxtest.Gone(pid) {
 		t.Error("the child the program left running in the background was killed")
+	}
+}
+
+func TestTheInstancesOwnKLVariablesAreNotHandedDown(t *testing.T) {
+	base := []string{"PATH=/usr/bin", "KL_TORBOX=secret-key", "kl_alldebrid=other-secret", "KL_NAME=stale", "HOME=/home/x"}
+	env := environ(base, []string{"KL_NAME=a.mkv"})
+	joined := strings.Join(env, "\n")
+	for _, leak := range []string{"secret-key", "other-secret", "stale"} {
+		if strings.Contains(joined, leak) {
+			t.Errorf("the program's environment carries %q:\n%s", leak, joined)
+		}
+	}
+	for _, want := range []string{"PATH=/usr/bin", "HOME=/home/x", "KL_NAME=a.mkv"} {
+		if !slices.Contains(env, want) {
+			t.Errorf("the environment lacks %s:\n%s", want, joined)
+		}
+	}
+}
+
+func TestAProgramIsNotGivenTheServiceKeys(t *testing.T) {
+	t.Setenv("KL_TORBOX", "service-key-e41b")
+	program := execxtest.Program(t, execxtest.ListKL)
+	out, _ := Run(context.Background(), program, nil, []string{"KL_EVENT=task.done"})
+	if !strings.Contains(out, "KL variables:") || !strings.Contains(out, "KL_EVENT=task.done") {
+		t.Fatalf("the program did not list what it was given:\n%s", out)
+	}
+	if strings.Contains(out, "service-key-e41b") {
+		t.Errorf("the program was given KL_TORBOX:\n%s", out)
 	}
 }
 

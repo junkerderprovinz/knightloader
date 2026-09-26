@@ -9,7 +9,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -23,8 +25,9 @@ const keptOutput = 4096
 // background can hold the pipe open for as long as it lives.
 const waitDelay = 2 * time.Second
 
-// Run starts program with args and waits for it to end. A nil env passes on
-// this process's environment, as os/exec does.
+// Run starts program with args and waits for it to end. The program gets this
+// process's environment without the instance's own KL_* variables, and env on
+// top of it.
 //
 // The end of ctx kills the program and everything it started. A program that
 // exits on its own is left to it: what it put in the background keeps running,
@@ -36,7 +39,7 @@ const waitDelay = 2 * time.Second
 // trims it further.
 func Run(ctx context.Context, program string, args, env []string) (string, error) {
 	cmd := exec.CommandContext(ctx, program, args...)
-	cmd.Env = env
+	cmd.Env = environ(os.Environ(), env)
 	var out cappedBuffer
 	// One writer for both streams, so os/exec calls it from one goroutine at
 	// a time and the lines keep the order the program wrote them in.
@@ -50,6 +53,27 @@ func Run(ctx context.Context, program string, args, env []string) (string, error
 		err = nil
 	}
 	return out.buf.String(), err
+}
+
+// ownPrefix is what this instance's own configuration variables start with.
+// KL_TORBOX and its neighbours are service keys, so none of them is handed to
+// a program, and none can shadow a variable a caller hands over.
+const ownPrefix = "KL_"
+
+// environ is base without this instance's own variables, followed by extra.
+//
+// The prefix is compared without regard to case, because Windows looks up
+// environment names that way and a leftover "kl_torbox" would reach the
+// program there.
+func environ(base, extra []string) []string {
+	out := make([]string, 0, len(base)+len(extra))
+	for _, kv := range base {
+		if len(kv) >= len(ownPrefix) && strings.EqualFold(kv[:len(ownPrefix)], ownPrefix) {
+			continue
+		}
+		out = append(out, kv)
+	}
+	return append(out, extra...)
 }
 
 // cappedBuffer keeps the first keptOutput bytes and reports every write as

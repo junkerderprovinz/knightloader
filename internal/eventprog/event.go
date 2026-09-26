@@ -6,7 +6,6 @@ package eventprog
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
@@ -28,11 +27,6 @@ const (
 	// unpacking failed as well, and empty for every other event.
 	EnvExtractOK = "KL_EXTRACT_OK"
 )
-
-// envPrefix is what this instance's own configuration variables start with.
-// KL_TORBOX and its neighbours are service keys, so none of them is handed down
-// to a program, and none can shadow a variable of the event's.
-const envPrefix = "KL_"
 
 // Where is what only the app can say about an event: where its file is on disk
 // and which category it was filed under. The firing carries neither, and adding
@@ -84,30 +78,19 @@ func ValuesOf(f script.Firing, w Where) Values {
 	return v
 }
 
-// Environ is base without this instance's own KL_* variables, followed by the
-// event's.
-//
-// The prefix is compared without regard to case, because Windows looks up
-// environment names that way and a leftover "kl_torbox" would reach the program
-// there.
-func Environ(base []string, v Values) []string {
-	out := make([]string, 0, len(base)+8)
-	for _, kv := range base {
-		if len(kv) >= len(envPrefix) && strings.EqualFold(kv[:len(envPrefix)], envPrefix) {
-			continue
-		}
-		out = append(out, kv)
+// Environ is the event's variables. execx.Run puts them on top of an
+// environment it has taken the instance's own KL_* variables out of.
+func Environ(v Values) []string {
+	return []string{
+		EnvEvent + "=" + v.Event,
+		EnvTaskID + "=" + v.TaskID,
+		EnvName + "=" + v.Name,
+		EnvFile + "=" + v.File,
+		EnvFolder + "=" + v.Folder,
+		EnvPackage + "=" + v.Package,
+		EnvCategory + "=" + v.Category,
+		EnvExtractOK + "=" + v.ExtractOK,
 	}
-	return append(out,
-		EnvEvent+"="+v.Event,
-		EnvTaskID+"="+v.TaskID,
-		EnvName+"="+v.Name,
-		EnvFile+"="+v.File,
-		EnvFolder+"="+v.Folder,
-		EnvPackage+"="+v.Package,
-		EnvCategory+"="+v.Category,
-		EnvExtractOK+"="+v.ExtractOK,
-	)
 }
 
 // ownNames is the placeholders a program has that an event target does not,
