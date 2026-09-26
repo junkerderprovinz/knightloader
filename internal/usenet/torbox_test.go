@@ -32,11 +32,13 @@ type fakeTorBox struct {
 	t           *testing.T
 	fetchRounds int
 
-	mu       sync.Mutex
-	nzb      []byte
-	name     string
-	creates  int
+	mu      sync.Mutex
+	nzb     []byte
+	name    string
+	creates int
+	// lists counts the reads of mylist, and whole those of the whole list.
 	lists    int
+	whole    int
 	deleted  []int64
 	busyNext int
 }
@@ -71,24 +73,36 @@ func (f *fakeTorBox) server() *httptest.Server {
 		writeTorBox(w, `{"usenetdownload_id":77,"hash":"abc","auth_id":"u"}`)
 	})
 	mux.HandleFunc("/api/usenet/mylist", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Has("id") {
-			f.t.Errorf("mylist asked about one job, want the whole list")
-		}
+		id := r.URL.Query().Get("id")
 		f.mu.Lock()
 		f.lists++
+		if id == "" {
+			f.whole++
+		}
 		ready := f.lists > f.fetchRounds
 		f.mu.Unlock()
 		// Another download on the account, which is nobody's business here.
 		other := `{"id":12,"name":"Other","size":5,"progress":0.5,"download_state":"downloading","files":[]}`
-		if !ready {
-			writeTorBox(w, `[`+other+`,{"id":77,"name":"Show.S01E01","size":1000,"progress":0.25,"download_speed":500,`+
-				`"download_state":"downloading","download_present":false,"files":[]}]`)
-			return
+		ours := `{"id":77,"name":"Show.S01E01","size":1000,"progress":0.25,"download_speed":500,` +
+			`"download_state":"downloading","download_present":false,"files":[]}`
+		if ready {
+			ours = `{"id":77,"name":"Show.S01E01","size":1000,"progress":1,"download_state":"completed",` +
+				`"download_present":true,"files":[` +
+				`{"id":1,"name":"Show.S01E01/show.s01e01.mkv","short_name":"show.s01e01.mkv","size":900},` +
+				`{"id":2,"name":"Show.S01E01/show.s01e01.nfo","short_name":"show.s01e01.nfo","size":100}]}`
 		}
-		writeTorBox(w, `[`+other+`,{"id":77,"name":"Show.S01E01","size":1000,"progress":1,"download_state":"completed",`+
-			`"download_present":true,"files":[`+
-			`{"id":1,"name":"Show.S01E01/show.s01e01.mkv","short_name":"show.s01e01.mkv","size":900},`+
-			`{"id":2,"name":"Show.S01E01/show.s01e01.nfo","short_name":"show.s01e01.nfo","size":100}]}]`)
+		switch id {
+		case "":
+			writeTorBox(w, `[`+other+`,`+ours+`]`)
+		case "77":
+			writeTorBox(w, ours)
+		case "12":
+			writeTorBox(w, other)
+		default:
+			// As TorBox's documentation shows it.
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = io.WriteString(w, `{"success":true,"error":"ITEM_NOT_FOUND","detail":"No Usenet downloads found.","data":null}`)
+		}
 	})
 	mux.HandleFunc("/api/usenet/requestdl", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
@@ -170,7 +184,7 @@ func statusOf(t *testing.T, s Service, id string) Status {
 	return st
 }
 
-func TestTorBoxReadsEveryJobInOneCall(t *testing.T) {
+func TestTorBoxReadsAFewJobsOneByOneRatherThanTheWholeList(t *testing.T) {
 	fake := &fakeTorBox{t: t, fetchRounds: 5}
 	tb := NewTorBox(fake.server().URL, "torbox", testKey)
 	all, err := tb.Status(context.Background(), []string{"77", "12", "99"})
@@ -178,13 +192,13 @@ func TestTorBoxReadsEveryJobInOneCall(t *testing.T) {
 		t.Fatal(err)
 	}
 	fake.mu.Lock()
-	lists := fake.lists
+	lists, whole := fake.lists, fake.whole
 	fake.mu.Unlock()
-	if lists != 1 {
-		t.Errorf("mylist was called %d times for three jobs, want once", lists)
+	if whole != 0 || lists != 3 {
+		t.Errorf("mylist was read %d times, %d of them whole, for three jobs; want each job on its own", lists, whole)
 	}
-	if _, ok := all["77"]; !ok {
-		t.Error("job 77 is missing from the answer")
+	if st, ok := all["77"]; !ok || st.Progress != 0.25 {
+		t.Errorf("job 77 reads %+v (listed %v), want its own progress", st, ok)
 	}
 	if _, ok := all["12"]; !ok {
 		t.Error("job 12 is missing from the answer")
@@ -194,10 +208,33 @@ func TestTorBoxReadsEveryJobInOneCall(t *testing.T) {
 	}
 }
 
+func TestTorBoxReadsManyJobsInOneCall(t *testing.T) {
+	fake := &fakeTorBox{t: t, fetchRounds: 5}
+	tb := NewTorBox(fake.server().URL, "torbox", testKey)
+	ids := []string{"77", "12"}
+	for n := range singleReads {
+		ids = append(ids, fmt.Sprint(900+n))
+	}
+	all, err := tb.Status(context.Background(), ids)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	lists, whole := fake.lists, fake.whole
+	fake.mu.Unlock()
+	if whole != 1 || lists != 1 {
+		t.Errorf("mylist was read %d times, %d of them whole, for %d jobs; want the whole list once", lists, whole, len(ids))
+	}
+	if len(all) != 2 {
+		t.Errorf("reported %d jobs, want the two the account holds", len(all))
+	}
+}
+
 func TestTorBoxFollowsADownloadItQueuedUntilItStarts(t *testing.T) {
 	var (
 		mu      sync.Mutex
 		started bool
+		lists   int
 		deletes []string
 	)
 	mux := http.NewServeMux()
@@ -219,6 +256,7 @@ func TestTorBoxFollowsADownloadItQueuedUntilItStarts(t *testing.T) {
 	mux.HandleFunc("/api/usenet/mylist", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
+		lists++
 		if !started {
 			writeTorBox(w, `[]`)
 			return
@@ -255,6 +293,9 @@ func TestTorBoxFollowsADownloadItQueuedUntilItStarts(t *testing.T) {
 	}
 
 	mu.Lock()
+	if lists != 0 {
+		t.Errorf("the whole list was read %d times while the download sat in the queue", lists)
+	}
 	started = true
 	mu.Unlock()
 	st := statusOf(t, tb, id)
@@ -269,6 +310,29 @@ func TestTorBoxFollowsADownloadItQueuedUntilItStarts(t *testing.T) {
 	defer mu.Unlock()
 	if !slices.Equal(deletes, []string{"queued 5 delete", "usenet 88"}) {
 		t.Errorf("deletes = %v, want the queue entry tried, then the download it became", deletes)
+	}
+}
+
+func TestTorBoxFindsAStartedDownloadWhileItsQueueCannotBeRead(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/queued/getqueued", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+	mux.HandleFunc("/api/usenet/mylist", func(w http.ResponseWriter, r *http.Request) {
+		writeTorBox(w, `[{"id":88,"hash":"abc123","name":"Show","size":50,"progress":0.5,"download_state":"downloading","files":[]}]`)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	started, waiting := queuedID("5", "abc123"), queuedID("6", "def456")
+	all, err := NewTorBox(srv.URL, "torbox", testKey).Status(context.Background(), []string{started, waiting})
+	if err != nil {
+		t.Fatalf("a queue that could not be read failed the whole answer: %v", err)
+	}
+	if st := all[started]; st.ID != "88" {
+		t.Errorf("the started download reads %+v, want it found under job 88", st)
+	}
+	if st, ok := all[waiting]; !ok || st.Phase != PhaseFetching {
+		t.Errorf("a download the unread queue may hold reads %+v (listed %v), want it taken as still waiting", st, ok)
 	}
 }
 
