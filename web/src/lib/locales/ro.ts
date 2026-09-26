@@ -2957,7 +2957,7 @@ export const ro: Dict = {
   'settings.hostRules.backends': 'Servicii pentru acest hoster',
   'settings.hostRules.backendsHint': 'Linkurile de la acest hoster nu ajung niciodată la un serviciu pe care îl oprești aici, oriunde s-ar afla în ordinea de prioritate. O descărcare pusă pe pauză care a început acolo trece la următorul serviciu când o reiei și o ia de la capăt. Dacă nu mai rămâne niciun serviciu care să poată prelua un link, linkul eșuează și spune că a fost exclus aici. O descărcare pe care ai fixat-o pe un serviciu în proprietățile ei merge totuși acolo. Serviciul ales mai sus nu apare în listă: el este întrebat primul.',
   'task.waiting.premium': 'Așteaptă un cont premium',
-  'settings.downloads.keepAwake': 'Ține calculatorul treaz în timpul descărcărilor',
+  'settings.module.keepawake': 'Ține calculatorul treaz în timpul descărcărilor',
   'settings.downloads.keepAwakeContainerHint': 'Nu este în această compilare. Doar aplicația desktop poate ține un calculator treaz; mașina pe care rulează un container decide singură când intră în repaus.',
   'settings.modules.detail.eventprogramsOff': 'Oprit. Niciun eveniment nu pornește un program, iar un program care rulează deja se termină.',
   'settings.modules.detail.programsEnabled': '{n} programe pornite',
@@ -3055,4 +3055,5 @@ export const ro: Dict = {
   'settings.torrents.keepOnService': 'Păstrează descărcările pe serviciul debrid',
   'settings.torrents.keepOnServiceHint': 'Când asta e oprit, KnightLoader șterge un torrent de pe serviciul debrid imediat ce toate fișierele lui sunt aici și face la fel cu o descărcare importată din cont, ca nimic să nu se adune acolo și să consume limitele contului. O descărcare importată pe care o elimini aici înainte să se termine este ștearsă și acolo. Când asta e pornit, amândouă rămân pe serviciu, de exemplu ca să le poți urmări în streaming de acolo mai târziu. Un torrent adăugat de KnightLoader este șters oricum dacă îl elimini înainte să se termine, iar unul pe care contul îl avea deja nu este șters niciodată.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

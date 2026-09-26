@@ -212,7 +212,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={deploymentHint}>{t('settings.downloads.idleTitle')}</SectionTitle>
 
-      <KeepAwakeRow deployment={deployment} />
+      <KeepAwakeRow />
 
       <IdleActionPicker
         actions={actions}

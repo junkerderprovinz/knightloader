@@ -2950,7 +2950,7 @@ export const sv: Dict = {
   'settings.hostRules.backends': 'Backends för den här värden',
   'settings.hostRules.backendsHint': 'Länkar från den här värden går aldrig till en backend som du stänger av här, var den än står i prioritetsordningen. En pausad nedladdning som började där flyttar till nästa backend när du återupptar den, och börjar om från början. Finns ingen backend kvar som kan ta en länk misslyckas länken och säger att den uteslöts här. En nedladdning som du har låst till en backend i dess egenskaper går ändå dit. Den backend som valts ovan finns inte i listan: det är den som tillfrågas först.',
   'task.waiting.premium': 'Väntar på ett premiumkonto',
-  'settings.downloads.keepAwake': 'Håll datorn vaken under nedladdning',
+  'settings.module.keepawake': 'Håll datorn vaken under nedladdning',
   'settings.downloads.keepAwakeContainerHint': 'Inte i det här bygget. Bara skrivbordsappen kan hålla en dator vaken; maskinen som en container körs på avgör själv när den går i viloläge.',
   'settings.modules.detail.eventprogramsOff': 'Av. Ingen händelse startar ett program, och ett program som redan körs blir klart.',
   'settings.modules.detail.programsEnabled': '{n} program påslagna',
@@ -3048,4 +3048,5 @@ export const sv: Dict = {
   'settings.torrents.keepOnService': 'Behåll nedladdningar på debrid-tjänsten',
   'settings.torrents.keepOnServiceHint': 'När det här är av raderar KnightLoader en torrent från debrid-tjänsten så snart alla dess filer är här, och gör likadant med en nedladdning som har importerats från kontot, så att inget av dem blir liggande där och räknas mot kontots gränser. En importerad nedladdning som du tar bort här innan den är klar raderas där också. När det här är på stannar båda på tjänsten, till exempel så att du kan streama dem därifrån senare. En torrent som KnightLoader har lagt till raderas i vilket fall som helst om du tar bort den innan den är klar, och en som kontot redan hade raderas aldrig.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

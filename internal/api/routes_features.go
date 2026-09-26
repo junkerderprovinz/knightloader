@@ -391,6 +391,7 @@ func featureList(a *app.App, base string) []Feature {
 		}, offDetail(s.ModuleOff("scripting"),
 			line{text: "off; no event starts a script, and a script already running finishes", code: "scriptingOff"},
 			countDetail(enabledScripts(a), "scriptsEnabled", "script enabled", "scripts enabled"))),
+		keepAwakeFeature(s),
 		withReason(Feature{
 			ID: "tray", Verdict: VerdictDesktop, Page: "",
 			Switch: SwitchNone,
@@ -412,6 +413,21 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchNone,
 		}, updaterReason()),
 	}
+}
+
+// keepAwakeFeature has a switch only in the desktop build, the one that asks
+// the operating system to hold off sleep (desktop/awake_*.go).
+func keepAwakeFeature(s settings.Settings) Feature {
+	f := Feature{ID: "keepawake", Page: "automation"}
+	if buildinfo.Deployment == "desktop" {
+		f.Verdict, f.Switch, f.Enabled = VerdictShipped, SwitchSetting, s.KeepAwake
+		return f
+	}
+	f.Verdict, f.Switch = VerdictDesktop, SwitchNone
+	return withReason(f, line{
+		text: "only the desktop app can keep a computer awake; the machine a container runs on decides for itself when it sleeps",
+		code: "keepawake",
+	})
 }
 
 // updaterVerdict depends on the deployment: both builds can check for a newer
@@ -469,7 +485,7 @@ func featurePages() []FeaturePage {
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
-		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "eventprograms", "scripting"}},
+		{ID: "automation", Modules: []string{"scheduler", "keepawake", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "advanced"},
@@ -534,6 +550,8 @@ func setFeature(a *app.App, id string, on bool) error {
 		next.DownloadClientAPI = on
 	case "metrics":
 		next.Metrics = on
+	case "keepawake":
+		next.KeepAwake = on
 	case "packagizer":
 		next.Packagizer.Disabled = !on
 	case "linkfilter":

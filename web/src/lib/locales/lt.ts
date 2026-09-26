@@ -2950,7 +2950,7 @@ export const lt: Dict = {
   'settings.hostRules.backends': 'Posistemės šiai talpyklai',
   'settings.hostRules.backendsHint': 'Nuorodos iš šios talpyklos niekada nepatenka į posistemę, kurią čia išjungi, kad ir kur ji stovėtų prioriteto tvarkoje. Pristabdytas atsisiuntimas, pradėtas ten, tęsiant pereina į kitą posistemę ir pradedamas iš naujo. Jei nelieka nė vienos posistemės, galinčios priimti nuorodą, nuoroda nepavyksta, o pranešime nurodoma, kad ji čia išskirta. Atsisiuntimas, kurį jo savybėse prisegei prie posistemės, vis tiek keliauja ten. Aukščiau pasirinktos posistemės sąraše nėra: jos klausiama pirmiausia.',
   'task.waiting.premium': 'Laukia Premium paskyros',
-  'settings.downloads.keepAwake': 'Neleisti kompiuteriui užmigti siunčiantis',
+  'settings.module.keepawake': 'Neleisti kompiuteriui užmigti siunčiantis',
   'settings.downloads.keepAwakeContainerHint': 'Šioje laidoje nėra. Neleisti kompiuteriui užmigti gali tik darbalaukio programa; mašina, kurioje veikia konteineris, pati sprendžia, kada užmigti.',
   'settings.modules.detail.eventprogramsOff': 'Išjungta. Joks įvykis nepaleidžia programos, o jau veikianti programa baigiama.',
   'settings.modules.detail.programsEnabled': 'Įjungtų programų: {n}',
@@ -3048,4 +3048,5 @@ export const lt: Dict = {
   'settings.torrents.keepOnService': 'Palikti atsisiuntimus debrid paslaugoje',
   'settings.torrents.keepOnServiceHint': 'Kai tai išjungta, KnightLoader ištrina torrentą iš debrid paslaugos, kai tik visi jo failai yra čia, ir taip pat elgiasi su atsisiuntimu, importuotu iš paskyros, kad ten niekas nesikauptų ir neviršytų paskyros ribų. Importuotas atsisiuntimas, kurį čia pašalini dar nebaigtą, ištrinamas ir ten. Kai tai įjungta, abu lieka paslaugoje, pavyzdžiui, kad vėliau galėtum juos iš ten transliuoti. Torrentas, kurį pridėjo KnightLoader, bet kuriuo atveju ištrinamas, jei jį pašalini dar nebaigtą, o tas, kurį paskyra jau turėjo, niekada neištrinamas.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

@@ -2941,7 +2941,7 @@ export const es: Dict = {
   'settings.hostRules.backends': 'Servicios para este hoster',
   'settings.hostRules.backendsHint': 'Los enlaces de este hoster nunca van a un servicio que desactives aquí, esté donde esté en el orden de prioridad. Una descarga en pausa que empezó allí pasa al siguiente servicio cuando la reanudas, y empieza desde el principio. Si no queda ningún servicio que pueda aceptar un enlace, el enlace falla e indica que se excluyó aquí. Una descarga que hayas fijado a un servicio en sus propiedades sigue yendo allí. El servicio elegido arriba no aparece en la lista: es al primero que se pregunta.',
   'task.waiting.premium': 'Espera una cuenta premium',
-  'settings.downloads.keepAwake': 'Mantener el equipo despierto durante las descargas',
+  'settings.module.keepawake': 'Mantener el equipo despierto durante las descargas',
   'settings.downloads.keepAwakeContainerHint': 'No está en esta compilación. Solo la aplicación de escritorio puede mantener despierto un equipo; la máquina en la que corre un contenedor decide por sí misma cuándo se suspende.',
   'settings.modules.detail.eventprogramsOff': 'Apagado. Ningún evento inicia un programa, y un programa que ya esté en marcha termina.',
   'settings.modules.detail.programsEnabled': '{n} programas activados',
@@ -3039,4 +3039,5 @@ export const es: Dict = {
   'settings.torrents.keepOnService': 'Conservar las descargas en el servicio debrid',
   'settings.torrents.keepOnServiceHint': 'Si está desactivado, KnightLoader borra un torrent del servicio debrid en cuanto todos sus archivos están aquí, y hace lo mismo con una descarga importada de la cuenta, para que nada se acumule allí y consuma los límites de la cuenta. Una descarga importada que quites aquí antes de que termine también se borra allí. Si está activado, ambos se quedan en el servicio, por ejemplo para que puedas verlos en streaming desde allí más tarde. Un torrent que añadió KnightLoader se borra en cualquier caso si lo quitas antes de que termine, y uno que la cuenta ya tenía no se borra nunca.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

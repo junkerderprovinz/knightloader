@@ -2949,7 +2949,7 @@ export const tr: Dict = {
   'settings.hostRules.backends': 'Bu hoster için arka uçlar',
   'settings.hostRules.backendsHint': 'Bu hosterdan gelen bağlantılar, öncelik sırasında nerede durursa dursun, burada kapattığın bir arka uca asla gitmez. Orada başlamış, duraklatılmış bir indirme, sürdürdüğünde bir sonraki arka uca geçer ve baştan başlar. Bir bağlantıyı alabilecek hiçbir arka uç kalmazsa bağlantı başarısız olur ve burada hariç tutulduğunu söyler. Özelliklerinde bir arka uca sabitlediğin bir indirme yine oraya gider. Yukarıda seçilen arka uç listede yok: ilk ona sorulur.',
   'task.waiting.premium': 'Premium hesap bekliyor',
-  'settings.downloads.keepAwake': 'İndirirken bilgisayarı uyanık tut',
+  'settings.module.keepawake': 'İndirirken bilgisayarı uyanık tut',
   'settings.downloads.keepAwakeContainerHint': 'Bu yapıda yok. Bir bilgisayarı yalnızca masaüstü uygulaması uyanık tutabilir; bir konteynerin çalıştığı makine ne zaman uyuyacağına kendisi karar verir.',
   'settings.modules.detail.eventprogramsOff': 'Kapalı. Hiçbir olay bir program başlatmaz ve zaten çalışan bir program biter.',
   'settings.modules.detail.programsEnabled': '{n} program açık',
@@ -3047,4 +3047,5 @@ export const tr: Dict = {
   'settings.torrents.keepOnService': 'İndirmeleri debrid hizmetinde tut',
   'settings.torrents.keepOnServiceHint': 'Bu kapalıyken KnightLoader, bir torrentin tüm dosyaları buraya gelir gelmez onu debrid hizmetinden siler ve hesaptan içe aktarılan bir indirmeye de aynısını yapar; böylece hiçbiri orada birikip hesabın sınırlarını doldurmaz. İçe aktarılmış bir indirmeyi bitmeden burada kaldırırsan orada da silinir. Bu açıkken ikisi de hizmette kalır, örneğin onları sonra oradan akışla izleyebilmen için. KnightLoader’ın eklediği bir torrent, bitmeden kaldırırsan her durumda silinir; hesapta zaten olan bir torrent ise asla silinmez.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

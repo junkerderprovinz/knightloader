@@ -2949,7 +2949,7 @@ export const hu: Dict = {
   'settings.hostRules.backends': 'Backendek ehhez a tárhelyhez',
   'settings.hostRules.backendsHint': 'Az erről a tárhelyről érkező linkek soha nem kerülnek olyan backendhez, amelyet itt kikapcsolsz, akárhol áll is a prioritási sorrendben. Az ott elkezdett, szüneteltetett letöltés folytatáskor a következő backendhez kerül, és elölről kezdődik. Ha nem marad olyan backend, amely át tudja venni a linket, a link meghiúsul, és jelzi, hogy itt zártad ki. Az a letöltés, amelyet a tulajdonságaiban egy backendhez rögzítettél, továbbra is oda megy. A fent kiválasztott backend nem szerepel a listában: azt kérdezzük meg először.',
   'task.waiting.premium': 'Prémiumfiókra vár',
-  'settings.downloads.keepAwake': 'A számítógép ébren tartása letöltés közben',
+  'settings.module.keepawake': 'A számítógép ébren tartása letöltés közben',
   'settings.downloads.keepAwakeContainerHint': 'Nincs ebben a buildben. Csak az asztali alkalmazás tudja ébren tartani a számítógépet; az a gép, amelyen a konténer fut, maga dönti el, mikor alszik el.',
   'settings.modules.detail.eventprogramsOff': 'Ki. Egyetlen esemény sem indít programot, a már futó program pedig befejeződik.',
   'settings.modules.detail.programsEnabled': '{n} program bekapcsolva',
@@ -3047,4 +3047,5 @@ export const hu: Dict = {
   'settings.torrents.keepOnService': 'Letöltések megtartása a debrid szolgáltatásnál',
   'settings.torrents.keepOnServiceHint': 'Ha ez ki van kapcsolva, a KnightLoader törli a torrentet a debrid szolgáltatásról, amint minden fájlja itt van, és ugyanígy tesz a fiókból importált letöltéssel is, hogy egyik se gyűljön fel ott a fiók korlátait terhelve. Ha egy importált letöltést a befejezése előtt itt eltávolítasz, ott is törlődik. Ha be van kapcsolva, mindkettő a szolgáltatásnál marad, például hogy később onnan streamelhesd őket. A KnightLoader által hozzáadott torrent mindenképp törlődik, ha a befejezése előtt eltávolítod, a fiókban már korábban is meglévő torrent pedig soha nem törlődik.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

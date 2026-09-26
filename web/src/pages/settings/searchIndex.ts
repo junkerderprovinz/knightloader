@@ -749,7 +749,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.downloads.idleTitle',
       rows: [
-        { key: 'settings.downloads.keepAwake', hint: 'settings.downloads.keepAwakeHint' },
+        { key: 'settings.module.keepawake', hint: 'settings.downloads.keepAwakeHint' },
         { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
         { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
         { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },

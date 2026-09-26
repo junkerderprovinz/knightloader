@@ -2934,7 +2934,7 @@ export const it: Dict = {
   'settings.hostRules.backends': 'Servizi per questo hoster',
   'settings.hostRules.backendsHint': 'I link di questo hoster non vanno mai a un servizio che disattivi qui, ovunque si trovi nell’ordine di priorità. Un download in pausa che era partito lì passa al servizio successivo quando lo riprendi, e ricomincia dall’inizio. Se non resta nessun servizio che possa accettare un link, il link fallisce e dice che è stato escluso qui. Un download che hai fissato su un servizio nelle sue proprietà va comunque lì. Il servizio scelto qui sopra non compare nell’elenco: è il primo a cui si chiede.',
   'task.waiting.premium': 'Attende un account premium',
-  'settings.downloads.keepAwake': 'Tieni sveglio il computer durante i download',
+  'settings.module.keepawake': 'Tieni sveglio il computer durante i download',
   'settings.downloads.keepAwakeContainerHint': 'Non in questa build. Solo l’app desktop può tenere sveglio un computer; la macchina su cui gira un container decide da sola quando andare in sospensione.',
   'settings.modules.detail.eventprogramsOff': 'Spento. Nessun evento avvia un programma, e un programma già in esecuzione viene completato.',
   'settings.modules.detail.programsEnabled': '{n} programmi attivati',
@@ -3032,4 +3032,5 @@ export const it: Dict = {
   'settings.torrents.keepOnService': 'Tieni i download sul servizio debrid',
   'settings.torrents.keepOnServiceHint': 'Quando è disattivato, KnightLoader elimina un torrent dal servizio debrid appena tutti i suoi file sono qui, e fa lo stesso con un download importato dall’account, così nessuno dei due si accumula lì pesando sui limiti dell’account. Anche un download importato che rimuovi qui prima che sia finito viene eliminato lì. Quando è attivo, entrambi restano sul servizio, per esempio per poterli guardare in streaming da lì più tardi. Un torrent aggiunto da KnightLoader viene eliminato in ogni caso se lo rimuovi prima che sia finito, e uno che l’account aveva già non viene mai eliminato.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

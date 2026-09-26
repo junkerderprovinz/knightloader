@@ -2968,7 +2968,7 @@ export const he: Dict = {
   'settings.hostRules.backends': 'מנועים למארח הזה',
   'settings.hostRules.backendsHint': 'קישורים מהמארח הזה לעולם לא הולכים למנוע שאתה מכבה כאן, לא משנה איפה הוא עומד בסדר העדיפויות. הורדה מושהית שהתחילה שם עוברת למנוע הבא כשממשיכים אותה, ומתחילה מההתחלה. אם לא נשאר אף מנוע שיכול לקבל קישור, הקישור נכשל ואומר שהוא הוחרג כאן. הורדה שהצמדת למנוע במאפיינים שלה הולכת לשם בכל זאת. המנוע שנבחר למעלה אינו ברשימה: אותו שואלים ראשון.',
   'task.waiting.premium': 'ממתין לחשבון פרימיום',
-  'settings.downloads.keepAwake': 'להשאיר את המחשב ער בזמן הורדה',
+  'settings.module.keepawake': 'להשאיר את המחשב ער בזמן הורדה',
   'settings.downloads.keepAwakeContainerHint': 'לא בבנייה הזאת. רק אפליקציית שולחן העבודה יכולה להשאיר מחשב ער; המכונה שעליה רץ קונטיינר מחליטה בעצמה מתי היא ישנה.',
   'settings.modules.detail.eventprogramsOff': 'כבוי. שום אירוע לא מפעיל תוכנית, ותוכנית שכבר רצה מסתיימת.',
   'settings.modules.detail.programsEnabled': '{n} תוכניות מופעלות',
@@ -3066,4 +3066,5 @@ export const he: Dict = {
   'settings.torrents.keepOnService': 'השאר הורדות בשירות ה-debrid',
   'settings.torrents.keepOnServiceHint': 'כשזה כבוי, KnightLoader מוחק טורנט משירות ה-debrid ברגע שכל הקבצים שלו כאן, ועושה אותו דבר עם הורדה שיובאה מהחשבון, כדי ששום דבר לא יצטבר שם על חשבון המגבלות של החשבון. הורדה מיובאת שתסיר כאן לפני שהסתיימה נמחקת גם שם. כשזה מופעל, שניהם נשארים בשירות, למשל כדי שתוכל לצפות בהם משם בסטרימינג מאוחר יותר. טורנט ש-KnightLoader הוסיף נמחק בכל מקרה אם תסיר אותו לפני שהסתיים, וטורנט שכבר היה בחשבון לא נמחק לעולם.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

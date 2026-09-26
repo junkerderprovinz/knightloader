@@ -2950,7 +2950,7 @@ export const vi: Dict = {
   'settings.hostRules.backends': 'Backend cho hoster này',
   'settings.hostRules.backendsHint': 'Liên kết từ hoster này không bao giờ đi tới một backend bạn tắt ở đây, bất kể nó đứng ở đâu trong thứ tự ưu tiên. Một lượt tải đang tạm dừng đã bắt đầu ở đó sẽ chuyển sang backend kế tiếp khi bạn tiếp tục, và bắt đầu lại từ đầu. Nếu không còn backend nào nhận được liên kết, liên kết sẽ thất bại và cho biết nó đã bị loại trừ ở đây. Một lượt tải bạn đã ghim vào một backend trong thuộc tính của nó vẫn đi tới đó. Backend được chọn ở trên không có trong danh sách: đó là backend được hỏi đầu tiên.',
   'task.waiting.premium': 'Đang chờ tài khoản premium',
-  'settings.downloads.keepAwake': 'Giữ máy tính thức khi đang tải',
+  'settings.module.keepawake': 'Giữ máy tính thức khi đang tải',
   'settings.downloads.keepAwakeContainerHint': 'Không có trong bản dựng này. Chỉ ứng dụng máy tính mới giữ được máy tính thức; máy chạy container tự quyết định khi nào nó ngủ.',
   'settings.modules.detail.eventprogramsOff': 'Tắt. Không sự kiện nào khởi chạy chương trình, và chương trình đang chạy vẫn chạy cho xong.',
   'settings.modules.detail.programsEnabled': '{n} chương trình đang bật',
@@ -3048,4 +3048,5 @@ export const vi: Dict = {
   'settings.torrents.keepOnService': 'Giữ lượt tải trên dịch vụ debrid',
   'settings.torrents.keepOnServiceHint': 'Khi tắt, KnightLoader xóa một torrent khỏi dịch vụ debrid ngay khi mọi tệp của nó đã về đây, và làm tương tự với một lượt tải được nhập từ tài khoản, để không thứ nào dồn lại chiếm giới hạn của tài khoản. Một lượt tải đã nhập mà bạn gỡ bỏ ở đây trước khi nó hoàn tất cũng bị xóa ở bên đó. Khi bật, cả hai đều ở lại trên dịch vụ, chẳng hạn để sau này bạn có thể phát trực tuyến từ đó. Một torrent do KnightLoader thêm vào sẽ bị xóa trong mọi trường hợp nếu bạn gỡ bỏ nó trước khi hoàn tất, còn một torrent mà tài khoản đã có sẵn thì không bao giờ bị xóa.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

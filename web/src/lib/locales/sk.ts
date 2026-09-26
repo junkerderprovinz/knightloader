@@ -2960,7 +2960,7 @@ export const sk: Dict = {
   'settings.hostRules.backends': 'Backendy pre tohto hostera',
   'settings.hostRules.backendsHint': 'Odkazy z tohto hostera nikdy nejdú na backend, ktorý tu vypneš, nech stojí v poradí priorít kdekoľvek. Pozastavené sťahovanie, ktoré tam začalo, sa pri pokračovaní presunie na ďalší backend a začne od začiatku. Keď nezostane žiadny backend, ktorý by odkaz prijal, odkaz zlyhá a hlásenie uvedie, že bol vylúčený tu. Sťahovanie, ktoré si vo vlastnostiach pripol k backendu, tam ide aj tak. Backend zvolený vyššie v zozname nie je: ten je na rade ako prvý.',
   'task.waiting.premium': 'Čaká na prémiový účet',
-  'settings.downloads.keepAwake': 'Nenechať počítač zaspať počas sťahovania',
+  'settings.module.keepawake': 'Nenechať počítač zaspať počas sťahovania',
   'settings.downloads.keepAwakeContainerHint': 'Nie je v tomto builde. Zabrániť tomu, aby počítač zaspal, vie len desktopová aplikácia; stroj, na ktorom beží kontajner, si sám rozhoduje, kedy zaspí.',
   'settings.modules.detail.eventprogramsOff': 'Vypnuté. Žiadna udalosť nespustí program a program, ktorý už beží, sa dokončí.',
   'settings.modules.detail.programsEnabled': 'Zapnuté programy: {n}',
@@ -3058,4 +3058,5 @@ export const sk: Dict = {
   'settings.torrents.keepOnService': 'Ponechať sťahovania v debrid službe',
   'settings.torrents.keepOnServiceHint': 'Keď je vypnuté, KnightLoader zmaže torrent z debrid služby, hneď ako sú tu všetky jeho súbory, a rovnako naloží so sťahovaním importovaným z účtu, takže sa tam nič nehromadí na úkor limitov účtu. Importované sťahovanie, ktoré tu odstrániš skôr, než sa dokončí, sa zmaže aj tam. Keď je zapnuté, oboje zostane v službe, napríklad aby sa dalo neskôr streamovať priamo odtiaľ. Torrent, ktorý pridal KnightLoader, sa zmaže v každom prípade, ak ho odstrániš pred dokončením, a torrent, ktorý už účet mal, sa nezmaže nikdy.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

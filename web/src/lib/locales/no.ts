@@ -2952,7 +2952,7 @@ export const no: Dict = {
   'settings.hostRules.backends': 'Backender for denne hosteren',
   'settings.hostRules.backendsHint': 'Lenker fra denne hosteren går aldri til en backend du slår av her, uansett hvor den står i prioritetsrekkefølgen. En nedlasting på pause som startet der, flytter til neste backend når du fortsetter den, og starter fra begynnelsen. Er det ingen backend igjen som kan ta en lenke, feiler lenken og sier at den ble utelukket her. En nedlasting du har låst til en backend i egenskapene dens, går likevel dit. Backenden som er valgt ovenfor, står ikke i lista: det er den som blir spurt først.',
   'task.waiting.premium': 'Venter på en premiumkonto',
-  'settings.downloads.keepAwake': 'Hold datamaskinen våken under nedlasting',
+  'settings.module.keepawake': 'Hold datamaskinen våken under nedlasting',
   'settings.downloads.keepAwakeContainerHint': 'Ikke i dette bygget. Bare skrivebordsappen kan holde en datamaskin våken; maskinen en container kjører på, avgjør selv når den går i hvilemodus.',
   'settings.modules.detail.eventprogramsOff': 'Av. Ingen hendelse starter et program, og et program som allerede kjører, blir fullført.',
   'settings.modules.detail.programsEnabled': '{n} programmer slått på',
@@ -3050,4 +3050,5 @@ export const no: Dict = {
   'settings.torrents.keepOnService': 'Behold nedlastinger på debrid-tjenesten',
   'settings.torrents.keepOnServiceHint': 'Når dette er av, sletter KnightLoader en torrent fra debrid-tjenesten så snart alle filene dens er her, og gjør det samme med en nedlasting som er importert fra kontoen, så ingen av dem blir liggende der og teller mot grensene til kontoen. En importert nedlasting du fjerner her før den er ferdig, slettes der også. Når dette er på, blir begge liggende på tjenesten, for eksempel så du kan strømme dem derfra senere. En torrent KnightLoader la til, slettes uansett hvis du fjerner den før den er ferdig, og en som kontoen allerede hadde, slettes aldri.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

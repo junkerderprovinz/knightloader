@@ -2949,7 +2949,7 @@ export const ms: Dict = {
   'settings.hostRules.backends': 'Backend untuk hoster ini',
   'settings.hostRules.backendsHint': 'Pautan daripada hoster ini tidak pernah pergi ke backend yang anda matikan di sini, walau di mana pun kedudukannya dalam susunan keutamaan. Muat turun yang dijeda dan bermula di sana berpindah ke backend seterusnya apabila anda menyambungnya, dan bermula dari awal. Jika tiada lagi backend yang boleh menerima sesuatu pautan, pautan itu gagal dan menyatakan bahawa ia dikecualikan di sini. Muat turun yang anda semat pada sesuatu backend dalam sifatnya tetap pergi ke sana. Backend yang dipilih di atas tidak disenaraikan: backend itulah yang ditanya dahulu.',
   'task.waiting.premium': 'Menunggu akaun premium',
-  'settings.downloads.keepAwake': 'Pastikan komputer terjaga semasa memuat turun',
+  'settings.module.keepawake': 'Pastikan komputer terjaga semasa memuat turun',
   'settings.downloads.keepAwakeContainerHint': 'Tiada dalam binaan ini. Hanya aplikasi desktop yang boleh memastikan komputer terjaga; mesin tempat bekas berjalan menentukan sendiri bila ia tidur.',
   'settings.modules.detail.eventprogramsOff': 'Mati. Tiada peristiwa memulakan program, dan program yang sudah berjalan tetap diselesaikan.',
   'settings.modules.detail.programsEnabled': '{n} program dihidupkan',
@@ -3047,4 +3047,5 @@ export const ms: Dict = {
   'settings.torrents.keepOnService': 'Simpan muat turun pada perkhidmatan debrid',
   'settings.torrents.keepOnServiceHint': 'Apabila ini dimatikan, KnightLoader memadam torrent daripada perkhidmatan debrid sebaik sahaja semua failnya berada di sini, dan melakukan perkara yang sama pada muat turun yang diimport daripada akaun, supaya kedua-duanya tidak bertimbun sehingga mencecah had akaun. Muat turun yang diimport dan anda buang di sini sebelum ia selesai turut dipadam di sana. Apabila ini dihidupkan, kedua-duanya kekal pada perkhidmatan itu, contohnya supaya anda boleh menstrimnya dari sana kemudian. Torrent yang ditambah oleh KnightLoader sentiasa dipadam jika anda membuangnya sebelum ia selesai, tanpa mengira tetapan ini, dan torrent yang sudah sedia ada dalam akaun tidak pernah dipadam.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

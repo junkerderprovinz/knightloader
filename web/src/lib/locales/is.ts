@@ -2946,7 +2946,7 @@ export const is: Dict = {
   'settings.hostRules.backends': 'Bakendar fyrir þennan hýsil',
   'settings.hostRules.backendsHint': 'Tenglar frá þessum hýsli fara aldrei til bakenda sem þú slekkur á hér, sama hvar hann er í forgangsröðinni. Niðurhal í bið sem byrjaði þar færist til næsta bakenda þegar þú heldur því áfram og byrjar frá upphafi. Ef enginn bakendi er eftir sem getur tekið tengil mistekst tengillinn og segir að hann hafi verið útilokaður hér. Niðurhal sem þú festir við bakenda í eiginleikum þess fer samt þangað. Bakendinn sem valinn er hér fyrir ofan er ekki á listanum: hann er spurður fyrstur.',
   'task.waiting.premium': 'Bíður eftir premium-reikningi',
-  'settings.downloads.keepAwake': 'Halda tölvunni vakandi á meðan niðurhal er í gangi',
+  'settings.module.keepawake': 'Halda tölvunni vakandi á meðan niðurhal er í gangi',
   'settings.downloads.keepAwakeContainerHint': 'Ekki í þessari smíð. Aðeins skjáborðsforritið getur haldið tölvu vakandi; vélin sem gámur keyrir á ræður sjálf hvenær hún sefur.',
   'settings.modules.detail.eventprogramsOff': 'Slökkt. Enginn atburður ræsir forrit, og forrit sem er þegar í gangi klárast.',
   'settings.modules.detail.programsEnabled': 'Kveikt á {n} forritum',
@@ -3044,4 +3044,5 @@ export const is: Dict = {
   'settings.torrents.keepOnService': 'Geyma niðurhal á debrid-þjónustunni',
   'settings.torrents.keepOnServiceHint': 'Þegar slökkt er á þessu eyðir KnightLoader torrenti af debrid-þjónustunni um leið og allar skrár þess eru komnar hingað, og gerir það sama við niðurhal sem var flutt inn af reikningnum, svo hvorugt safnist upp og gangi á takmörk reikningsins. Innfluttu niðurhali sem þú fjarlægir hér áður en því er lokið er líka eytt þar. Þegar kveikt er á þessu verður hvort tveggja áfram á þjónustunni, til dæmis svo þú getir streymt því þaðan síðar. Torrenti sem KnightLoader bætti við er eytt hvort sem er ef þú fjarlægir það áður en því er lokið, og torrenti sem reikningurinn átti þegar er aldrei eytt.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

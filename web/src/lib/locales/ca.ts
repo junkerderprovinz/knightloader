@@ -2936,7 +2936,7 @@ export const ca: Dict = {
   'settings.hostRules.backends': 'Serveis per a aquest allotjador',
   'settings.hostRules.backendsHint': 'Els enllaços d’aquest allotjador no van mai a un servei que desactivis aquí, sigui on sigui dins l’ordre de prioritat. Una baixada en pausa que va començar allà passa al servei següent quan la reprens, i comença des del principi. Si no queda cap servei que pugui acceptar un enllaç, l’enllaç falla i diu que s’ha exclòs aquí. Una baixada que hagis fixat a un servei a les seves propietats hi continua anant. El servei triat més amunt no surt a la llista: és el primer a qui es pregunta.',
   'task.waiting.premium': 'Espera un compte premium',
-  'settings.downloads.keepAwake': 'Mantén l’ordinador despert durant les baixades',
+  'settings.module.keepawake': 'Mantén l’ordinador despert durant les baixades',
   'settings.downloads.keepAwakeContainerHint': 'No és en aquesta compilació. Només l’aplicació d’escriptori pot mantenir un ordinador despert; la màquina on s’executa un contenidor decideix ella mateixa quan se’n va a dormir.',
   'settings.modules.detail.eventprogramsOff': 'Apagat. Cap esdeveniment no inicia cap programa, i un programa que ja s’estigui executant s’acaba.',
   'settings.modules.detail.programsEnabled': '{n} programes activats',
@@ -3034,4 +3034,5 @@ export const ca: Dict = {
   'settings.torrents.keepOnService': 'Conserva les baixades al servei debrid',
   'settings.torrents.keepOnServiceHint': 'Quan això està desactivat, KnightLoader esborra un torrent del servei debrid quan tots els seus fitxers són aquí, i fa el mateix amb una baixada importada del compte, perquè res no s’hi acumuli i consumeixi els límits del compte. Una baixada importada que eliminis aquí abans que acabi també s’esborra allà. Quan està activat, totes dues coses es queden al servei, per exemple perquè les puguis veure en streaming des d’allà més endavant. Un torrent que ha afegit KnightLoader s’esborra en tot cas si l’elimines abans que acabi, i un que el compte ja tenia no s’esborra mai.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

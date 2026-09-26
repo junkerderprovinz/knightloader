@@ -2940,7 +2940,7 @@ export const lv: Dict = {
   'settings.hostRules.backends': 'Aizmugures šim glabātājam',
   'settings.hostRules.backendsHint': 'Šī glabātāja saites nekad nenonāk aizmugurē, ko šeit izslēdz, lai kur tā atrastos prioritātes secībā. Pauzēta lejupielāde, kas sākās tur, atsākot pāriet uz nākamo aizmuguri un sāk no sākuma. Ja nepaliek neviena aizmugure, kas var pieņemt saiti, saite neizdodas un pasaka, ka tā šeit tika izslēgta. Lejupielāde, ko tās īpašībās esi piespraudis kādai aizmugurei, tik un tā nonāk tur. Augšā izvēlētā aizmugure sarakstā nav: tai jautā pirmajai.',
   'task.waiting.premium': 'Gaida premium kontu',
-  'settings.downloads.keepAwake': 'Neļaut datoram iemigt lejupielādes laikā',
+  'settings.module.keepawake': 'Neļaut datoram iemigt lejupielādes laikā',
   'settings.downloads.keepAwakeContainerHint': 'Nav šajā būvējumā. Tikai darbvirsmas lietotne var neļaut datoram iemigt; mašīna, kurā darbojas konteiners, pati izlemj, kad tai iemigt.',
   'settings.modules.detail.eventprogramsOff': 'Izslēgts. Neviens notikums nepalaiž programmu, un jau strādājoša programma tiek pabeigta.',
   'settings.modules.detail.programsEnabled': 'Ieslēgtas programmas: {n}',
@@ -3038,4 +3038,5 @@ export const lv: Dict = {
   'settings.torrents.keepOnService': 'Paturēt lejupielādes debrid pakalpojumā',
   'settings.torrents.keepOnServiceHint': 'Kad šis ir izslēgts, KnightLoader izdzēš torrentu no debrid pakalpojuma, tiklīdz visi tā faili ir šeit, un tāpat rīkojas ar lejupielādi, kas importēta no konta, lai ne viens, ne otrs tur neuzkrātos un netērētu konta ierobežojumus. Importētu lejupielādi, ko tu noņem šeit, pirms tā ir pabeigta, izdzēš arī tur. Kad šis ir ieslēgts, abi paliek pakalpojumā, piemēram, lai tu tos vēlāk varētu straumēt no turienes. Torrentu, ko pievienoja KnightLoader, izdzēš jebkurā gadījumā, ja tu to noņem, pirms tas ir pabeigts, bet torrentu, kas kontā jau bija, neizdzēš nekad.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };

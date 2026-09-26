@@ -2941,7 +2941,7 @@ export const et: Dict = {
   'settings.hostRules.backends': 'Selle hosteri taustsüsteemid',
   'settings.hostRules.backendsHint': 'Selle hosteri lingid ei lähe kunagi taustsüsteemile, mille siin välja lülitad, ükskõik kus see prioriteedijärjekorras asub. Peatatud allalaadimine, mis seal alustas, liigub jätkamisel järgmisele taustsüsteemile ja alustab otsast peale. Kui ühtegi taustsüsteemi, mis lingi vastu võtaks, ei jää, link nurjub ja ütleb, et see siin välistati. Allalaadimine, mille oled selle omadustes taustsüsteemile kinnitanud, läheb ikka sinna. Ülal valitud taustsüsteemi loendis pole: seda küsitakse esimesena.',
   'task.waiting.premium': 'Ootab premium-kontot',
-  'settings.downloads.keepAwake': 'Hoia arvuti allalaadimise ajal ärkvel',
+  'settings.module.keepawake': 'Hoia arvuti allalaadimise ajal ärkvel',
   'settings.downloads.keepAwakeContainerHint': 'Selles järgus puudub. Ainult töölauarakendus suudab arvutit ärkvel hoida; masin, millel konteiner töötab, otsustab ise, millal see magama jääb.',
   'settings.modules.detail.eventprogramsOff': 'Väljas. Ükski sündmus ei käivita programmi ja juba töötav programm lõpetatakse.',
   'settings.modules.detail.programsEnabled': '{n} programmi sisse lülitatud',
@@ -3039,4 +3039,5 @@ export const et: Dict = {
   'settings.torrents.keepOnService': 'Hoia allalaadimised debrid-teenuses',
   'settings.torrents.keepOnServiceHint': 'Kui see on väljas, kustutab KnightLoader torrenti debrid-teenusest kohe, kui kõik selle failid on siin, ja teeb sama kontolt imporditud allalaadimisega, et kumbki ei kuhjuks sinna konto piiranguid täitma. Imporditud allalaadimine, mille eemaldad siin enne selle lõppu, kustutatakse ka seal. Kui see on sees, jäävad mõlemad teenusesse, näiteks et saaksid neid hiljem sealt voogedastada. KnightLoaderi lisatud torrent kustutatakse igal juhul, kui eemaldad selle enne lõppu, ja torrentit, mis kontol juba oli, ei kustutata kunagi.',
   'settings.access.tokens.name': 'Name',
+  'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
 };
