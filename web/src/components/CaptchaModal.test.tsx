@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CaptchaSolverReport } from '../lib/api';
+import type { CaptchaChallenge, CaptchaSolverReport } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
-import { SolverStatus } from './CaptchaModal';
+import { CaptchaModal, SolverStatus } from './CaptchaModal';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -96,5 +96,76 @@ describe('SolverStatus', () => {
     const until = new Date(Date.now() + 42_000).toISOString();
     const { bubble } = await show({ state: 'waiting', until });
     expect(bubble).toContain('this tab is in the background, this window is minimised or in the tray');
+  });
+});
+
+/** A socket that never connects: the window's own stream plays no part here. */
+class QuietSocket {
+  static OPEN = 1;
+  readyState = 0;
+  onopen = null;
+  onmessage = null;
+  onclose = null;
+  send() {}
+  close() {}
+}
+
+describe('CaptchaModal', () => {
+  const widget: CaptchaChallenge = {
+    id: 'w1',
+    source: 'jd',
+    host: 'example.net',
+    kind: 'widget',
+    payload: { vendor: 'recaptcha', siteKey: '6Lc-key', siteUrl: 'https://example.net/dl', contextUrl: '' },
+    expiresAt: '0001-01-01T00:00:00Z',
+  };
+  let posts: string[];
+
+  beforeEach(() => {
+    posts = [];
+    vi.stubGlobal('WebSocket', QuietSocket);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url, 'http://kl.test').pathname;
+        if (init?.method === 'POST') {
+          posts.push(path);
+          return new Response(null, { status: 204 });
+        }
+        return new Response(JSON.stringify([widget]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  /** Opens the window on the widget and has the widget page report kind. */
+  async function widgetReports(kind: string) {
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <CaptchaModal />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => {});
+    await act(async () =>
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'knightloader-captcha-widget', id: 'w1', kind, detail: 'network' },
+        }),
+      ),
+    );
+  }
+
+  it('tells the instance when a widget will not load in this window', async () => {
+    await widgetReports('error');
+    expect(posts).toEqual(['/api/captcha/w1/unanswerable']);
+  });
+
+  it('says nothing when the widget loads', async () => {
+    await widgetReports('ready');
+    expect(posts).toEqual([]);
   });
 });

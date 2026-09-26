@@ -66,4 +66,10 @@ func registerCaptcha(reg *Registry, a *app.App) {
 				StillValid bool `json:"stillValid"`
 			}{stillValid})
 		})
+
+	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable", "say that a web window could not load this challenge, so the windows watching stop holding the paid solvers back for it",
+		func(w http.ResponseWriter, r *http.Request) {
+			a.CaptchaUnanswerable(r.PathValue("id"))
+			w.WriteHeader(http.StatusNoContent)
+		})
 }
