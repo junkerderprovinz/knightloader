@@ -60,7 +60,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "bg": [
       "task.reason.unsupportedPlayer",
@@ -121,7 +122,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ca": [
       "task.reason.unsupportedPlayer",
@@ -182,7 +184,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "cs": [
       "task.reason.unsupportedPlayer",
@@ -243,7 +246,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "da": [
       "task.reason.unsupportedPlayer",
@@ -304,7 +308,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "el": [
       "task.reason.unsupportedPlayer",
@@ -365,7 +370,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "es": [
       "task.reason.unsupportedPlayer",
@@ -426,7 +432,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "et": [
       "task.reason.unsupportedPlayer",
@@ -487,7 +494,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "eu": [
       "task.reason.unsupportedPlayer",
@@ -548,7 +556,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "fa": [
       "task.reason.unsupportedPlayer",
@@ -609,7 +618,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "fi": [
       "task.reason.unsupportedPlayer",
@@ -670,7 +680,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "fr": [
       "task.reason.unsupportedPlayer",
@@ -731,7 +742,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "gl": [
       "task.reason.unsupportedPlayer",
@@ -792,7 +804,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "he": [
       "task.reason.unsupportedPlayer",
@@ -853,7 +866,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "hi": [
       "task.reason.unsupportedPlayer",
@@ -914,7 +928,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "hr": [
       "task.reason.unsupportedPlayer",
@@ -975,7 +990,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "hu": [
       "task.reason.unsupportedPlayer",
@@ -1036,7 +1052,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "id": [
       "task.reason.unsupportedPlayer",
@@ -1097,7 +1114,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "is": [
       "task.reason.unsupportedPlayer",
@@ -1158,7 +1176,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "it": [
       "task.reason.unsupportedPlayer",
@@ -1219,7 +1238,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ja": [
       "task.reason.unsupportedPlayer",
@@ -1280,7 +1300,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ko": [
       "task.reason.unsupportedPlayer",
@@ -1341,7 +1362,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "lt": [
       "task.reason.unsupportedPlayer",
@@ -1402,7 +1424,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "lv": [
       "task.reason.unsupportedPlayer",
@@ -1463,7 +1486,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ms": [
       "task.reason.unsupportedPlayer",
@@ -1524,7 +1548,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "nl": [
       "task.reason.unsupportedPlayer",
@@ -1585,7 +1610,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "no": [
       "task.reason.unsupportedPlayer",
@@ -1646,7 +1672,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "pl": [
       "task.reason.unsupportedPlayer",
@@ -1707,7 +1734,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "pt": [
       "task.reason.unsupportedPlayer",
@@ -1768,7 +1796,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ro": [
       "task.reason.unsupportedPlayer",
@@ -1829,7 +1858,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "ru": [
       "task.reason.unsupportedPlayer",
@@ -1890,7 +1920,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "sk": [
       "task.reason.unsupportedPlayer",
@@ -1951,7 +1982,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "sl": [
       "task.reason.unsupportedPlayer",
@@ -2012,7 +2044,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "sr": [
       "task.reason.unsupportedPlayer",
@@ -2073,7 +2106,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "sv": [
       "task.reason.unsupportedPlayer",
@@ -2134,7 +2168,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "th": [
       "task.reason.unsupportedPlayer",
@@ -2195,7 +2230,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "tr": [
       "task.reason.unsupportedPlayer",
@@ -2256,7 +2292,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "uk": [
       "task.reason.unsupportedPlayer",
@@ -2317,7 +2354,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "vi": [
       "task.reason.unsupportedPlayer",
@@ -2378,7 +2416,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ],
     "zh": [
       "task.reason.unsupportedPlayer",
@@ -2439,7 +2478,8 @@
       "failure.bannedTracker.next",
       "failure.archiveFolderExists.line",
       "failure.archiveFolderExists.next",
-      "failure.unsupportedPlayer.next"
+      "failure.unsupportedPlayer.next",
+      "queue.stopMarkOff"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

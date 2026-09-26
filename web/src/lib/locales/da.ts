@@ -3091,4 +3091,5 @@ export const da: Dict = {
   'failure.archiveFolderExists.line': 'A folder named {folder} is already there.',
   'failure.archiveFolderExists.next': 'Move or rename that folder, or change "If a file is already there" in the archive settings, then choose Unpack now.',
   'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
+  'queue.stopMarkOff': 'Remove stop',
 };
