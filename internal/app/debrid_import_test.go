@@ -32,6 +32,8 @@ type websiteAccount struct {
 	polls   int
 	added   int
 	deleted []string
+	// refusals is how many deletes the service still turns down.
+	refusals int
 }
 
 func (w *websiteAccount) ID() string    { return "fakedebrid" }
@@ -65,6 +67,10 @@ func (w *websiteAccount) FileURL(context.Context, string, debrid.TorrentFile) (d
 func (w *websiteAccount) DeleteTorrent(_ context.Context, id string) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.refusals > 0 {
+		w.refusals--
+		return errors.New("503 Service Unavailable")
+	}
 	w.deleted = append(w.deleted, id)
 	w.list = slices.DeleteFunc(w.list, func(l debrid.Listed) bool { return l.ID == id })
 	return nil
@@ -96,13 +102,14 @@ func (w *websiteAccount) deletedJobs() []string {
 	return slices.Clone(w.deleted)
 }
 
-// fastImports polls every few milliseconds and deletes a removed download
-// after delay rather than the undo window.
+// fastImports polls every few milliseconds, deletes a removed download after
+// delay rather than the undo window, and tries a refused delete again after a
+// few milliseconds.
 func fastImports(t *testing.T, delay time.Duration) {
 	t.Helper()
-	poll, drop := importPoll, importDropDelay
-	importPoll, importDropDelay = 5*time.Millisecond, delay
-	t.Cleanup(func() { importPoll, importDropDelay = poll, drop })
+	poll, drop, retry := importPoll, importDropDelay, importDropRetry
+	importPoll, importDropDelay, importDropRetry = 5*time.Millisecond, delay, 5*time.Millisecond
+	t.Cleanup(func() { importPoll, importDropDelay, importDropRetry = poll, drop, retry })
 }
 
 // openImportApp builds an App in dir that keeps new links in the collector
@@ -363,6 +370,84 @@ func TestAnUndoneRemovalLeavesTheImportedDownloadOnTheService(t *testing.T) {
 	if d := site.deletedJobs(); len(d) != 0 {
 		t.Errorf("deleted %v; the task came back and fetches from that download", d)
 	}
+}
+
+// The first removal's wait ends while the second removal can still be undone,
+// and the undo the list still offers must find the download on the account.
+func TestARemovalUndoneAndMadeAgainCanBeUndoneAgain(t *testing.T) {
+	fastImports(t, 200*time.Millisecond)
+	site := &websiteAccount{}
+	a := importApp(t, site, false)
+	site.addOnWebsite("NEW", "New show")
+	waitFor(t, "the new download in the collector", func() bool { return len(imported(a, "NEW")) > 0 })
+	id := imported(a, "NEW")[0].ID
+
+	_, first := a.RemoveTasksUndoable([]string{id}, false)
+	time.Sleep(50 * time.Millisecond)
+	if back := a.UndoRemove(first); len(back) != 1 {
+		t.Fatalf("the first undo brought back %v", back)
+	}
+	time.Sleep(50 * time.Millisecond)
+	_, second := a.RemoveTasksUndoable([]string{id}, false)
+	// Past the end of the first removal's wait.
+	time.Sleep(250 * time.Millisecond)
+	if back := a.UndoRemove(second); len(back) != 1 {
+		t.Fatalf("the second undo brought back %v", back)
+	}
+	time.Sleep(300 * time.Millisecond)
+	if d := site.deletedJobs(); len(d) != 0 {
+		t.Errorf("deleted %v; the task came back and fetches from that download", d)
+	}
+}
+
+// A removal of many rows can take longer than the wait before a delete, and
+// its undo window opens only once it is through. The download waits for that
+// window, not for the moment its own row went.
+func TestAnImportedDownloadWaitsForTheUndoOfItsRemoval(t *testing.T) {
+	fastImports(t, 0)
+	site := &websiteAccount{}
+	a := importApp(t, site, false)
+	site.addOnWebsite("NEW", "New show")
+	waitFor(t, "the new download in the collector", func() bool { return len(imported(a, "NEW")) > 0 })
+	slow := &slowSpy{routeSpy: routeSpy{name: "slow", events: make(chan string, 4)}, release: make(chan struct{})}
+	a.bmu.Lock()
+	a.debrid["slow"] = slow
+	a.bmu.Unlock()
+	other := putTask(t, a, core.Task{URL: "https://host.example/other.bin", Resolver: "slow", Status: core.StatusCollected, Enabled: true})
+
+	tokens := make(chan string, 1)
+	go func() {
+		_, token := a.RemoveTasksUndoable([]string{imported(a, "NEW")[0].ID, other.ID}, false)
+		tokens <- token
+	}()
+	<-slow.events
+	// The imported row is gone and its wait is over, while the removal is
+	// still busy with the next row.
+	time.Sleep(50 * time.Millisecond)
+	close(slow.release)
+	if back := a.UndoRemove(<-tokens); len(back) != 2 {
+		t.Fatalf("the undo brought back %v", back)
+	}
+	time.Sleep(50 * time.Millisecond)
+	if d := site.deletedJobs(); len(d) != 0 {
+		t.Errorf("deleted %v while the removal could still be undone", d)
+	}
+}
+
+func TestADeleteTheServiceRefusesIsTriedAgain(t *testing.T) {
+	fastImports(t, time.Millisecond)
+	site := &websiteAccount{refusals: 2}
+	a := importApp(t, site, false)
+	site.addOnWebsite("NEW", "New show")
+	waitFor(t, "the new download in the collector", func() bool { return len(imported(a, "NEW")) > 0 })
+
+	a.Remove(imported(a, "NEW")[0].ID, false)
+	waitFor(t, "the download deleted on the service", func() bool { return slices.Equal(site.deletedJobs(), []string{"NEW"}) })
+	waitFor(t, "the note of the delete dropped", func() bool {
+		a.imports.fileMu.Lock()
+		defer a.imports.fileMu.Unlock()
+		return len(a.loadImportDropsLocked()) == 0
+	})
 }
 
 func TestWhatIsAddedWhileTheImportIsOffStaysOnTheAccount(t *testing.T) {

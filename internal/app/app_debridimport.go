@@ -34,11 +34,18 @@ import (
 // on the service. It is the undo window, since an undone removal brings the
 // task back to fetch from the same download.
 //
-// Both are variables so tests need not wait them out.
+// importDropRetry is the wait after a delete the service refused. It doubles
+// with every further refusal, and after importDropTries of them, about two
+// hours in, the download is left on the account.
+//
+// They are variables so tests need not wait them out.
 var (
 	importPoll      = time.Minute
 	importDropDelay = UndoWindow
+	importDropRetry = time.Minute
 )
+
+const importDropTries = 8
 
 // accountImports is one App's import from its accounts. Its zero value is
 // ready to use.
@@ -52,7 +59,7 @@ type accountImports struct {
 	// polling stops the loop following each account, by slot.
 	polling map[string]context.CancelFunc
 	// dropping is every removed task whose download is waiting to be deleted
-	// on the service, so a wait taken up again is never run twice.
+	// on the service, so one task never has two goroutines following its note.
 	dropping map[string]bool
 	// fileMu serialises read-modify-writes of debrid_imports.json and
 	// debrid_drops.json.
@@ -244,6 +251,8 @@ type importDrop struct {
 	Slot string    `json:"slot"`
 	Job  string    `json:"job"`
 	Due  time.Time `json:"due"`
+	// Tries counts the deletes the service has refused so far.
+	Tries int `json:"tries,omitempty"`
 }
 
 // dropImported deletes an imported download on the service once its task is
@@ -258,7 +267,7 @@ func (a *App) dropImported(t *core.Task) {
 	}
 	d := importDrop{Task: t.ID, Slot: slot, Job: job, Due: time.Now().Add(importDropDelay)}
 	a.editImportDrops(func(m map[string]importDrop) { m[d.Task] = d })
-	a.awaitImportDrop(d)
+	a.awaitImportDrop(d.Task)
 }
 
 // resumeImportDrops takes up the waits a restart cut short.
@@ -266,56 +275,122 @@ func (a *App) resumeImportDrops() {
 	a.imports.fileMu.Lock()
 	m := a.loadImportDropsLocked()
 	a.imports.fileMu.Unlock()
-	for _, d := range m {
-		a.awaitImportDrop(d)
+	for task := range m {
+		a.awaitImportDrop(task)
 	}
 }
 
-// awaitImportDrop deletes one imported download once its wait is over, unless
-// its task has come back. A wait that shutdown cuts short stays noted for the
-// next start, and so does one whose account is not wired when it ends.
-func (a *App) awaitImportDrop(d importDrop) {
+// awaitImportDrop follows the noted drop of one removed task, unless a
+// goroutine already does, which then reads the newer note itself.
+func (a *App) awaitImportDrop(task string) {
 	a.imports.mu.Lock()
-	if a.imports.dropping[d.Task] {
+	if a.imports.dropping[task] {
 		a.imports.mu.Unlock()
 		return
 	}
 	if a.imports.dropping == nil {
 		a.imports.dropping = map[string]bool{}
 	}
-	a.imports.dropping[d.Task] = true
+	a.imports.dropping[task] = true
 	a.imports.mu.Unlock()
-	a.spawn(func() {
-		defer func() {
-			a.imports.mu.Lock()
-			delete(a.imports.dropping, d.Task)
-			a.imports.mu.Unlock()
-		}()
-		select {
-		case <-a.ctx.Done():
+	a.spawn(func() { a.followImportDrop(task) })
+}
+
+// followImportDrop deletes a removed task's download once its note is due and
+// no undo can bring the task back, or drops the note when the task is back. It
+// reads the note again after every wait, since a removal undone and made
+// again, or a refused delete, notes a later time. A wait that shutdown cuts
+// short stays noted for the next start, and so does one whose account is not
+// wired when it ends.
+func (a *App) followImportDrop(task string) {
+	for {
+		d, ok := a.pendingImportDrop(task)
+		if !ok {
 			return
-		case <-time.After(time.Until(d.Due)):
 		}
+		// Judged under a.mu, where UndoRemove judges its window, so an undo
+		// cannot bring the task back once the delete has been decided on.
 		a.mu.Lock()
-		back := a.tasks[d.Task] != nil
+		back := a.tasks[task] != nil
+		wait := max(time.Until(d.Due), time.Until(a.undoableUntilLocked(task)))
 		a.mu.Unlock()
-		if back {
-			a.editImportDrops(func(m map[string]importDrop) { delete(m, d.Task) })
-			return
-		}
-		svc := a.importService(d.Slot)
-		if svc == nil {
-			return
-		}
-		ctx, cancel := context.WithTimeout(a.ctx, 30*time.Second)
-		defer cancel()
-		if err := svc.DeleteTorrent(ctx, d.Job); err != nil {
-			if a.ctx.Err() != nil {
+		var next *importDrop
+		if !back {
+			if wait > 0 {
+				select {
+				case <-a.ctx.Done():
+					return
+				case <-time.After(wait):
+				}
+				continue
+			}
+			svc := a.importService(d.Slot)
+			if svc == nil {
+				a.releaseImportDrop(task)
 				return
 			}
-			log.Printf("%s: could not delete %s from the account: %v", slotLabel(d.Slot), d.Job, err)
+			ctx, cancel := context.WithTimeout(a.ctx, 30*time.Second)
+			err := svc.DeleteTorrent(ctx, d.Job)
+			cancel()
+			switch {
+			case err == nil:
+			case a.ctx.Err() != nil:
+				return
+			case d.Tries+1 >= importDropTries:
+				log.Printf("%s: left %s on the account after %d failed deletes: %v", slotLabel(d.Slot), d.Job, d.Tries+1, err)
+			default:
+				retry := d
+				retry.Tries++
+				retry.Due = time.Now().Add(importDropRetry << d.Tries)
+				log.Printf("%s: could not delete %s from the account, trying again at %s: %v",
+					slotLabel(d.Slot), d.Job, retry.Due.Format(time.TimeOnly), err)
+				next = &retry
+			}
 		}
-		a.editImportDrops(func(m map[string]importDrop) { delete(m, d.Task) })
+		// An unwritten change would be read back as the old note and acted on
+		// again at once, so the note is left for the next start.
+		if !a.settleImportDrop(d, next) {
+			a.releaseImportDrop(task)
+			return
+		}
+	}
+}
+
+// releaseImportDrop ends a task's follower while its note stays.
+func (a *App) releaseImportDrop(task string) {
+	a.imports.mu.Lock()
+	delete(a.imports.dropping, task)
+	a.imports.mu.Unlock()
+}
+
+// pendingImportDrop reads the note of a removed task. Without one the task's
+// follower ends, under the lock awaitImportDrop takes, so a removal noted
+// meanwhile gets a follower of its own.
+func (a *App) pendingImportDrop(task string) (importDrop, bool) {
+	a.imports.mu.Lock()
+	defer a.imports.mu.Unlock()
+	a.imports.fileMu.Lock()
+	d, ok := a.loadImportDropsLocked()[task]
+	a.imports.fileMu.Unlock()
+	if !ok {
+		delete(a.imports.dropping, task)
+	}
+	return d, ok
+}
+
+// settleImportDrop replaces the note d was read from with next, or drops it
+// when next is nil, and reports whether the notes were written. A note a later
+// removal of the task has written is left alone.
+func (a *App) settleImportDrop(d importDrop, next *importDrop) bool {
+	return a.editImportDrops(func(m map[string]importDrop) {
+		if !m[d.Task].Due.Equal(d.Due) {
+			return
+		}
+		if next == nil {
+			delete(m, d.Task)
+		} else {
+			m[d.Task] = *next
+		}
 	})
 }
 
@@ -338,19 +413,22 @@ func (a *App) loadImportDropsLocked() map[string]importDrop {
 	return m
 }
 
-// editImportDrops changes the noted waits and writes them back.
-func (a *App) editImportDrops(edit func(map[string]importDrop)) {
+// editImportDrops changes the noted waits and writes them back, and reports
+// whether that worked.
+func (a *App) editImportDrops(edit func(map[string]importDrop)) bool {
 	a.imports.fileMu.Lock()
 	defer a.imports.fileMu.Unlock()
 	m := a.loadImportDropsLocked()
 	edit(m)
 	b, err := json.MarshalIndent(m, "", "  ")
 	if err != nil {
-		return
+		return false
 	}
 	if err := os.WriteFile(a.importDropsPath(), b, 0o600); err != nil {
 		log.Printf("could not note which imported downloads are to be deleted: %v", err)
+		return false
 	}
+	return true
 }
 
 // SetAccountImport switches the import from one account on or off. Either
