@@ -60,11 +60,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('says an upload held back for a banned tracker was held, with the reason', async () => {
+it('says an upload that announces a banned tracker was rejected, with the reason', async () => {
   const reason = 'announces tracker.example.org, which is on the banned trackers list';
   staging({ skipped: true, skipReason: reason });
   const text = await drop();
-  expect(text).toContain(`movie.torrent was held back: ${reason}`);
+  expect(text).toContain(`movie.torrent was rejected: ${reason}`);
   expect(text).not.toContain('Added movie.torrent');
 });
 

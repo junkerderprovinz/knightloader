@@ -85,7 +85,7 @@ func registerLinks(reg *Registry, a *app.App) {
 		})
 
 	// A browser sees held links on the task stream; this is for other clients.
-	reg.Add(http.MethodGet, "/api/collector/filtered", "links the link filter is holding, with the rule and the reason",
+	reg.Add(http.MethodGet, "/api/collector/filtered", "links the link filter rejected, with the rule and the reason",
 		func(w http.ResponseWriter, r *http.Request) {
 			held := a.FilteredLinks()
 			if held == nil {
@@ -97,7 +97,7 @@ func registerLinks(reg *Registry, a *app.App) {
 	// One request for the whole set, so the restored links enter the queue
 	// together and in order.
 	reg.Add(http.MethodPost, "/api/collector/filtered/restore",
-		"put links the filter is holding back in the collector, with the filter waived for those links (no ids = all of them)",
+		"put links the filter rejected back in the collector, with the filter waived for those links (no ids = all of them)",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				IDs []string `json:"ids"`
@@ -114,7 +114,7 @@ func registerLinks(reg *Registry, a *app.App) {
 
 	// Ids come from the query because not every client and proxy handles a
 	// DELETE body. Nothing on disk is touched; a held link never downloaded.
-	reg.Add(http.MethodDelete, "/api/collector/filtered", "delete links the filter is holding (?ids=a,b, or no ids for all of them)",
+	reg.Add(http.MethodDelete, "/api/collector/filtered", "delete links the filter rejected (?ids=a,b, or no ids for all of them)",
 		func(w http.ResponseWriter, r *http.Request) {
 			removed := a.ClearFiltered(idsFromQuery(r))
 			writeJSON(w, map[string]any{"removed": len(removed), "ids": removed})

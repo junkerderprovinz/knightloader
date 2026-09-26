@@ -116,7 +116,7 @@ export function Collector() {
         .sort((a, b) => a.position - b.position),
     [all],
   );
-  // Links the filter held stay recorded and restorable, apart from the list.
+  // Links the filter rejected stay recorded and restorable, apart from the list.
   const held = useMemo(
     () => all.filter((x) => x.skipped).sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
     [all],

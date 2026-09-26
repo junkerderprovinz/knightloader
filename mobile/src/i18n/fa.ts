@@ -31,7 +31,7 @@ export const fa: Dict = {
   'instance.captchasOne': 'یک کپچا همین حالا منتظر است',
   'downloads.start': 'شروع',
   'downloads.stop': 'توقف',
-  'downloads.startHeld': '{n} پیوند نگه داشته شده و شروع نشده است.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'یک زمان‌بندی صف را متوقف نگه داشته است.',
   'downloads.tabDownloads': 'دانلودها',
   'downloads.tabCollector': 'گردآورنده',

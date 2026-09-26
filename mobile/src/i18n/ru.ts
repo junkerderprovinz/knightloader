@@ -31,7 +31,7 @@ export const ru: Dict = {
   'instance.captchasOne': '1 капча в ожидании',
   'downloads.start': 'Запустить',
   'downloads.stop': 'Остановить',
-  'downloads.startHeld': 'Задержано ссылок: {n}. Они не запущены.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Расписание удерживает очередь остановленной.',
   'downloads.tabDownloads': 'Загрузки',
   'downloads.tabCollector': 'Сборщик',

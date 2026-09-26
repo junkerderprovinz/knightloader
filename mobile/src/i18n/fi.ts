@@ -31,7 +31,7 @@ export const fi: Dict = {
   'instance.captchasOne': '1 captcha odottaa juuri nyt',
   'downloads.start': 'Aloita',
   'downloads.stop': 'Pysäytä',
-  'downloads.startHeld': '{n} linkkiä on pidätetty eikä niitä käynnistetty.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Aikataulu pitää jonon pysäytettynä.',
   'downloads.tabDownloads': 'Lataukset',
   'downloads.tabCollector': 'Kerääjä',

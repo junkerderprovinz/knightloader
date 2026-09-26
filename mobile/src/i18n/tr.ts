@@ -31,7 +31,7 @@ export const tr: Dict = {
   'instance.captchasOne': 'Şu anda 1 captcha bekliyor',
   'downloads.start': 'Başlat',
   'downloads.stop': 'Durdur',
-  'downloads.startHeld': '{n} bağlantı bekletiliyor ve başlatılmadı.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Bir zamanlama kuyruğu duraklatıyor.',
   'downloads.tabDownloads': 'İndirmeler',
   'downloads.tabCollector': 'Toplayıcı',

@@ -1122,9 +1122,10 @@ func (a *App) pushSkipped(s SkippedLink) {
 // match rests on.
 func (a *App) skipReason(m dedupe.Match) string {
 	if m.Verdict == dedupe.Duplicate {
-		// The holding area is not the collector, so say where the copy is.
+		// Rejected links sit apart from the collector's list, so say where the
+		// copy is.
 		if a.heldLink(m.Of.ID) {
-			return "the link filter is already holding this link"
+			return "the link filter has already rejected this link"
 		}
 		return "the same link is already in the list"
 	}

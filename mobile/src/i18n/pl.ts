@@ -31,7 +31,7 @@ export const pl: Dict = {
   'instance.captchasOne': '1 captcha czeka w tej chwili',
   'downloads.start': 'Uruchom',
   'downloads.stop': 'Zatrzymaj',
-  'downloads.startHeld': '{n} link(ów) zatrzymano i nie uruchomiono.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Harmonogram wstrzymuje kolejkę.',
   'downloads.tabDownloads': 'Pobierania',
   'downloads.tabCollector': 'Kolektor',

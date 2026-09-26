@@ -31,7 +31,7 @@ export const hr: Dict = {
   'instance.captchasOne': '1 captcha upravo čeka',
   'downloads.start': 'Pokreni',
   'downloads.stop': 'Zaustavi',
-  'downloads.startHeld': '{n} poveznica je zadržano i nije pokrenuto.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Raspored zadržava red zaustavljenim.',
   'downloads.tabDownloads': 'Preuzimanja',
   'downloads.tabCollector': 'Sakupljač',

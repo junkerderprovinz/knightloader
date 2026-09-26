@@ -48,7 +48,7 @@ export const en = {
   'instance.captchasOne': '1 captcha waiting right now',
   'downloads.start': 'Start',
   'downloads.stop': 'Stop',
-  'downloads.startHeld': '{n} link(s) are held back and were not started.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'A schedule is holding the queue.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Collector',

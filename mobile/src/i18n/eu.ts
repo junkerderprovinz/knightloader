@@ -31,7 +31,7 @@ export const eu: Dict = {
   'instance.captchasOne': 'captcha 1 zain dago orain',
   'downloads.start': 'Hasi',
   'downloads.stop': 'Gelditu',
-  'downloads.startHeld': '{n} esteka atxikita daude eta ez dira abiatu.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Ordutegi batek ilara geldirik dauka.',
   'downloads.tabDownloads': 'Deskargak',
   'downloads.tabCollector': 'Biltzailea',

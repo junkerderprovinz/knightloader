@@ -31,7 +31,7 @@ export const lv: Dict = {
   'instance.captchasOne': 'Pašlaik gaida 1 captcha',
   'downloads.start': 'Sākt',
   'downloads.stop': 'Apturēt',
-  'downloads.startHeld': '{n} saites ir aizturētas un netika sāktas.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Grafiks tur rindu apturētu.',
   'downloads.tabDownloads': 'Lejupielādes',
   'downloads.tabCollector': 'Vācējs',

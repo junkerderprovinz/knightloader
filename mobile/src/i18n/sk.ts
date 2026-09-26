@@ -31,7 +31,7 @@ export const sk: Dict = {
   'instance.captchasOne': '1 captcha práve čaká',
   'downloads.start': 'Spustiť',
   'downloads.stop': 'Zastaviť',
-  'downloads.startHeld': '{n} odkazov je zadržaných a nebolo spustených.',
+  'downloads.startHeld': '{n} link(s) were rejected and not started.',
   'downloads.startBlocked': 'Plán pozastavuje front.',
   'downloads.tabDownloads': 'Sťahovania',
   'downloads.tabCollector': 'Zberač',
