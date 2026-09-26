@@ -16,6 +16,8 @@ import {
   type RefObject,
 } from 'react';
 import { useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { IconChevronDown } from '../lib/icons';
+import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
 import { useReorder } from './dragLift';
 import { segmentLayout, type SegmentWidths } from './segmentLayout';
 import { hueStyle, segBase, segOff, segOn, useTooltip } from './ui';
@@ -101,6 +103,13 @@ interface Common {
    * glyph alone with its name in the bubble. `display` wins where both are set.
    */
   labelled?: boolean;
+  /**
+   * Draws the strip as one FoldChip named by `label`, for a row that has run
+   * out of room for its chips (lib/rowFit.ts). Its menu holds the tabs, each
+   * with its badge, and picking one selects it as a click on the tab would.
+   * `more` follows them, in place of what `after` shows beside the strip.
+   */
+  folded?: { icon: ReactNode; glyph?: boolean; more?: MenuItem[] };
 }
 
 export type TabsProps =
@@ -207,6 +216,7 @@ export function Tabs(props: TabsProps) {
     fill = false,
     display: asked,
     labelled = false,
+    folded,
   } = props;
   const labelMode = useNavLabels();
   const display: NavLabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
@@ -384,6 +394,34 @@ export function Tabs(props: TabsProps) {
     onSelect(item.id);
   }
 
+  if (folded) {
+    const lit = items.filter((i) => isOn(i.id)).length;
+    return (
+      <FoldChip
+        label={label}
+        icon={folded.icon}
+        glyph={folded.glyph}
+        lit={lit > 0}
+        count={many && lit > 0 ? lit : undefined}
+        groups={[
+          {
+            id: 'tabs',
+            many,
+            items: items.map((i) => ({
+              id: i.id,
+              label: i.label,
+              icon: i.icon,
+              detail: typeof i.badge === 'number' || typeof i.badge === 'string' ? String(i.badge) : undefined,
+              checked: isOn(i.id),
+              onSelect: () => onSelect(i.id),
+            })),
+          },
+          { id: 'more', items: folded.more ?? [] },
+        ]}
+      />
+    );
+  }
+
   return (
     <div
       ref={strip}
@@ -536,6 +574,61 @@ export function Tabs(props: TabsProps) {
       })}
       {after}
     </div>
+  );
+}
+
+/**
+ * FoldChip stands in for a strip of chips the row has no room for: one chip in
+ * their look that opens them as a menu, lit while any of them is. `glyph`
+ * leaves it the glyph and the chevron, with the name in its bubble.
+ */
+export function FoldChip({
+  label,
+  icon,
+  glyph = false,
+  lit = false,
+  count,
+  groups,
+}: {
+  label: string;
+  icon: ReactNode;
+  glyph?: boolean;
+  lit?: boolean;
+  /** How many of its chips are lit, where more than one can be. */
+  count?: number;
+  groups: MenuGroup[];
+}) {
+  const menu = useContextMenu();
+  const bubble = useTooltip<HTMLButtonElement>(glyph ? label : undefined);
+  const { role: _tipRole, tabIndex: _tipTabIndex, ref, ...tipProps } = bubble.triggerProps;
+  return (
+    <>
+      <button
+        ref={ref as RefObject<HTMLButtonElement | null>}
+        type="button"
+        aria-label={glyph ? label : undefined}
+        aria-haspopup="menu"
+        aria-expanded={!!menu.anchor}
+        {...(glyph ? tipProps : undefined)}
+        onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
+        className={`${segBase} ${lit ? `glim-active ${segOn}` : segOff} ${SIZE.sm} flex shrink-0 items-center
+          [&_svg]:h-3.5 [&_svg]:w-3.5`}
+      >
+        {icon}
+        {!glyph && <span className="whitespace-nowrap">{label}</span>}
+        {count !== undefined && (
+          <span
+            className="glim-num rounded-[var(--radius-pill)] px-1 text-[11px] font-semibold leading-none
+              text-carbon-textMuted [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current"
+          >
+            {count}
+          </span>
+        )}
+        <IconChevronDown />
+      </button>
+      {bubble.node}
+      {menu.anchor && <ContextMenu anchor={menu.anchor} label={label} onClose={menu.close} groups={groups} />}
+    </>
   );
 }
 

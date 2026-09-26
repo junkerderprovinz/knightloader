@@ -39,6 +39,7 @@ import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
+import { useSavedViews } from '../lib/savedViews';
 import { ErrorCauses, useErrorCauses } from '../components/ErrorCauses';
 import { extractionsByTask, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
@@ -51,6 +52,7 @@ import {
   IconDownloads,
   IconCheck,
   IconClose,
+  IconFilter,
   IconPause,
   IconPlay,
   IconRetry,
@@ -276,21 +278,33 @@ export function Downloads() {
 
   // What the action row holds, so it measures itself again when that changes.
   const labels = useNavLabels();
+  const { views } = useSavedViews('downloads', DOWNLOAD_FILTERS);
   const rowContent = [
     labels,
     t('downloads.retryFailed'),
     selected.size,
     narrowed ? `${filtered.length}/${list.length}` : '',
+    views.map((v) => v.name).join('\n'),
     offeredFilters.map(({ f, n }) => `${f.id}${n}${filters.has(f.id) ? '*' : ''}`).join(),
     causes.map((c) => `${c.key}${c.count}`).join(),
     counts.running > 0,
     list.some((x) => x.status === 'paused'),
     counts.error > 0,
   ].join('|');
-  const fold = useRowFit(rowRef, 3, rowContent);
+  // Short of room the row gives up, in this order, what is used least or can
+  // do with less: the cause chips, then the words beside its glyphs, then the
+  // state chips and the count, then the saved views. Only a phone scrolls it.
+  const fold = useRowFit(rowRef, 5, rowContent);
   const foldCauses = fold >= 1;
   const glyphs = fold >= 2;
-  const scrolls = fold >= 3;
+  const foldStates = fold >= 3;
+  const compact = fold >= 4;
+  const scrolls = fold >= 5;
+  // The folded chips' menu offers what the badge beside the chips does.
+  const clearFiltersEntry =
+    filters.size > 0
+      ? [{ id: 'clear', label: t('filter.clear'), icon: <IconClose />, onSelect: narrowing.clearFilters }]
+      : [];
   const searchPanel = searchOpen && (
     <div
       ref={panelRef}
@@ -365,9 +379,8 @@ export function Downloads() {
       <PageHeader title={t('downloads.title')} />
 
       {/* One row for every action, directly above the list, in the
-          collector's order. It never wraps: short of room it folds the
-          failure chips into one, then shows the verbs as glyphs, and on a
-          phone it scrolls sideways (useRowFit). */}
+          collector's order. It never wraps: short of room it folds its parts
+          away one by one, and on a phone it scrolls sideways (useRowFit). */}
       {list.length > 0 && (
         <div className="relative shrink-0">
           <div
@@ -383,6 +396,8 @@ export function Downloads() {
                 allowed={DOWNLOAD_FILTERS}
                 narrowing={narrowing.narrowing}
                 onApply={narrowing.apply}
+                glyphs={glyphs}
+                folded={compact}
               />
             </div>
             <span data-spacer className="flex-1" />
@@ -394,6 +409,7 @@ export function Downloads() {
                   select="many"
                   size="sm"
                   label={t('filter.label')}
+                  folded={foldStates ? { icon: <IconFilter />, glyph: compact, more: clearFiltersEntry } : undefined}
                   active={filters}
                   onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
                   items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
@@ -412,7 +428,8 @@ export function Downloads() {
                 />
               </div>
             )}
-            {narrowed && (
+            {/* The overview strip counts the visible rows as well. */}
+            {narrowed && !foldStates && (
               <span className="glim-num shrink-0 whitespace-nowrap text-xs text-carbon-textMuted">
                 {t('search.shown', { n: filtered.length, total: list.length })}
               </span>
@@ -458,7 +475,7 @@ export function Downloads() {
 
             {/* A retry per failure cause, whatever is selected, as the
                 failures concern the whole list. */}
-            <ErrorCauses causes={causes} base={base} folded={foldCauses} />
+            <ErrorCauses causes={causes} base={base} folded={foldCauses} glyph={glyphs} />
 
             {/* The verbs in one piece, after the count of what they act on. */}
             <div className="flex shrink-0 items-center gap-2">

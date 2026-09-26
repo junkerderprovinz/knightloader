@@ -42,9 +42,24 @@ export function useRowFit(ref: RefObject<HTMLElement | null>, last: number, cont
       if (next !== level) setFit((f) => ({ ...f, level: next }));
     };
     measure();
+    // A child can grow while the row's own box keeps its size: a chip renamed
+    // in place, a font arriving late. So every child is watched as well, and
+    // a child that turns up later joins them.
     const watch = new ResizeObserver(measure);
-    watch.observe(row);
-    return () => watch.disconnect();
+    const observeAll = () => {
+      watch.observe(row);
+      for (const kid of row.children) watch.observe(kid);
+    };
+    observeAll();
+    const arrivals = new MutationObserver(() => {
+      observeAll();
+      measure();
+    });
+    arrivals.observe(row, { childList: true });
+    return () => {
+      watch.disconnect();
+      arrivals.disconnect();
+    };
   }, [ref, level, last, content]);
 
   return level;
