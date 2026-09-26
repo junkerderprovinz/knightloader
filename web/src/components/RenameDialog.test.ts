@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError, type Task } from '../lib/api';
-import { jdWriting, linkRenameNote, renameRefusal } from './RenameDialog';
+import { linkRenameNote, renameRefusal } from './RenameDialog';
 
 function task(over: Partial<Task>): Task {
   return {
@@ -53,21 +53,6 @@ describe('linkRenameNote', () => {
   });
 });
 
-// A renamed package's folder moves with it, unless JDownloader is still
-// writing into it (app.packageFoldersLocked), which the window says beforehand.
-describe('jdWriting', () => {
-  it('counts a JDownloader link that has started and not finished', () => {
-    expect(jdWriting(task({ resolver: 'jd', status: 'running' }))).toBe(true);
-    expect(jdWriting(task({ resolver: 'jd', status: 'paused', loaded: 1 }))).toBe(true);
-  });
-
-  it('leaves out a finished one, one not started and every other backend', () => {
-    expect(jdWriting(task({ resolver: 'jd', status: 'done' }))).toBe(false);
-    expect(jdWriting(task({ resolver: 'jd', status: 'queued' }))).toBe(false);
-    expect(jdWriting(task({ status: 'running', loaded: 100 }))).toBe(false);
-  });
-});
-
 // A refusal the window cannot see coming, such as a part of an archive nothing
 // has numbered yet, is still said in the reader's language.
 describe('renameRefusal', () => {
@@ -81,6 +66,9 @@ describe('renameRefusal', () => {
       'rename.folderExists New',
     );
     expect(renameRefusal(new ApiError('part of Old is being unpacked', 'busy', { name: 'Old' }, 400), t)).toBe('rename.busy Old');
+    expect(renameRefusal(new ApiError('the folder Old could not be renamed', 'notMoved', { name: 'Old' }, 400), t)).toBe(
+      'rename.notMoved Old',
+    );
   });
 
   it('leaves a refusal without a code it knows to the server', () => {
