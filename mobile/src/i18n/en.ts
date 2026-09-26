@@ -60,6 +60,7 @@ export const en = {
   'packages.deleteConfirmTitle': 'Remove package?',
   'packages.deleteConfirmMessage': '{n} links leave the list. Files already downloaded stay.',
   'packages.deleteConfirmButton': 'Remove',
+  'packages.failed': '{n} failed',
 
   'captcha.screenTitle': 'Captchas',
   'captcha.title': 'Captcha needed',
@@ -129,6 +130,8 @@ export const en = {
   'status.finished': 'finished',
   'status.failed': 'failed',
   'status.extracting': 'extracting',
+  'status.collected': 'collected',
+  'status.notUnpacked': 'not unpacked',
 
   'settings.title': 'Settings',
   'settings.back': 'Back',

@@ -1051,6 +1051,7 @@ export const de: Dict = {
   'archive.volumes': '{volumes} Teile',
   'archive.needsPassword': 'Braucht ein Passwort',
   'archive.tally': '{done} von {total} Archiven entpackt',
+  'task.packageFailed': 'Beim Laden oder Entpacken fehlgeschlagen: {n}',
 
   'settings.archives.handles': 'Öffnet',
   'settings.archives.destination': 'Entpacken nach',

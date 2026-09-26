@@ -4,6 +4,8 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   gridTemplate,
+  packageFailures,
+  packageStatus,
   packageUnpacking,
   resolveLayout,
   type CellContext,
@@ -129,5 +131,69 @@ describe('packageUnpacking', () => {
     const got = packageUnpacking(items, ctx(job('a', 'running', ['a1', 'a2'])));
     expect(got?.state).toBe('running');
     expect([got?.done, got?.total]).toEqual([0, 1]);
+  });
+
+  it('speaks for a package whose downloads are in and whose archive failed', () => {
+    const items = [kept('a1', 'error', 1), kept('a2', 'error', 2), task('notes.nfo')];
+    expect(packageUnpacking(items, ctx())?.state).toBe('error');
+  });
+});
+
+describe('packageStatus', () => {
+  const task = (status: TaskStatus) => ({ id: status, status }) as Task;
+
+  it('reads as the work still going on, failure or not', () => {
+    expect(packageStatus([task('done'), task('error'), task('running')])).toBe('running');
+    expect(packageStatus([task('error'), task('queued')])).toBe('queued');
+    expect(packageStatus([task('error'), task('paused')])).toBe('paused');
+  });
+
+  it('reads as failed once nothing is going on', () => {
+    expect(packageStatus([task('done'), task('error'), task('done')])).toBe('error');
+  });
+
+  it('reads as done when everything is', () => {
+    expect(packageStatus([task('done'), task('done')])).toBe('done');
+  });
+});
+
+describe('packageFailures', () => {
+  const ctx = (...jobs: ExtractJob[]): CellContext => ({
+    t: (key) => key,
+    base: '/api',
+    profile: 'downloads',
+    extractions: extractionsByTask(jobs),
+  });
+  const row = (id: string, status: TaskStatus, unpack?: Task['unpack'], archivePart = 0) =>
+    ({ id, status, unpack, archivePart }) as Task;
+
+  it('counts a link that did not download', () => {
+    expect(packageFailures([row('a', 'error'), row('b', 'running'), row('c', 'done')], ctx())).toBe(1);
+  });
+
+  it('counts an archive that did not unpack once, however many parts it has', () => {
+    const items = [row('a1', 'done', 'error', 1), row('a2', 'done', 'error', 2), row('b', 'running')];
+    expect(packageFailures(items, ctx())).toBe(1);
+  });
+
+  it('counts a set whose job failed for want of a password', () => {
+    const failed: ExtractJob = {
+      id: 'j',
+      taskId: 'a1',
+      name: 'a.part1.rar',
+      dir: '/downloads',
+      status: 'error',
+      password: true,
+      files: 0,
+      bytes: 0,
+      volumes: 2,
+      parts: ['a1', 'a2'],
+      queuedAt: '2026-09-25T12:00:00Z',
+    };
+    expect(packageFailures([row('a1', 'done'), row('a2', 'done'), row('c', 'error')], ctx(failed))).toBe(2);
+  });
+
+  it('counts nothing in a package that is fine', () => {
+    expect(packageFailures([row('a', 'done', 'done'), row('b', 'running')], ctx())).toBe(0);
   });
 });

@@ -50,7 +50,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "bg": [
       "task.reason.unsupportedPlayer",
@@ -101,7 +102,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ca": [
       "task.reason.unsupportedPlayer",
@@ -152,7 +154,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "cs": [
       "task.reason.unsupportedPlayer",
@@ -203,7 +206,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "da": [
       "task.reason.unsupportedPlayer",
@@ -254,7 +258,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "el": [
       "task.reason.unsupportedPlayer",
@@ -305,7 +310,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "es": [
       "task.reason.unsupportedPlayer",
@@ -356,7 +362,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "et": [
       "task.reason.unsupportedPlayer",
@@ -407,7 +414,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "eu": [
       "task.reason.unsupportedPlayer",
@@ -458,7 +466,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "fa": [
       "task.reason.unsupportedPlayer",
@@ -509,7 +518,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "fi": [
       "task.reason.unsupportedPlayer",
@@ -560,7 +570,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "fr": [
       "task.reason.unsupportedPlayer",
@@ -611,7 +622,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "gl": [
       "task.reason.unsupportedPlayer",
@@ -662,7 +674,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "he": [
       "task.reason.unsupportedPlayer",
@@ -713,7 +726,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "hi": [
       "task.reason.unsupportedPlayer",
@@ -764,7 +778,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "hr": [
       "task.reason.unsupportedPlayer",
@@ -815,7 +830,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "hu": [
       "task.reason.unsupportedPlayer",
@@ -866,7 +882,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "id": [
       "task.reason.unsupportedPlayer",
@@ -917,7 +934,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "is": [
       "task.reason.unsupportedPlayer",
@@ -968,7 +986,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "it": [
       "task.reason.unsupportedPlayer",
@@ -1019,7 +1038,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ja": [
       "task.reason.unsupportedPlayer",
@@ -1070,7 +1090,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ko": [
       "task.reason.unsupportedPlayer",
@@ -1121,7 +1142,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "lt": [
       "task.reason.unsupportedPlayer",
@@ -1172,7 +1194,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "lv": [
       "task.reason.unsupportedPlayer",
@@ -1223,7 +1246,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ms": [
       "task.reason.unsupportedPlayer",
@@ -1274,7 +1298,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "nl": [
       "task.reason.unsupportedPlayer",
@@ -1325,7 +1350,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "no": [
       "task.reason.unsupportedPlayer",
@@ -1376,7 +1402,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "pl": [
       "task.reason.unsupportedPlayer",
@@ -1427,7 +1454,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "pt": [
       "task.reason.unsupportedPlayer",
@@ -1478,7 +1506,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ro": [
       "task.reason.unsupportedPlayer",
@@ -1529,7 +1558,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "ru": [
       "task.reason.unsupportedPlayer",
@@ -1580,7 +1610,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "sk": [
       "task.reason.unsupportedPlayer",
@@ -1631,7 +1662,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "sl": [
       "task.reason.unsupportedPlayer",
@@ -1682,7 +1714,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "sr": [
       "task.reason.unsupportedPlayer",
@@ -1733,7 +1766,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "sv": [
       "task.reason.unsupportedPlayer",
@@ -1784,7 +1818,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "th": [
       "task.reason.unsupportedPlayer",
@@ -1835,7 +1870,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "tr": [
       "task.reason.unsupportedPlayer",
@@ -1886,7 +1922,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "uk": [
       "task.reason.unsupportedPlayer",
@@ -1937,7 +1974,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "vi": [
       "task.reason.unsupportedPlayer",
@@ -1988,7 +2026,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ],
     "zh": [
       "task.reason.unsupportedPlayer",
@@ -2039,7 +2078,8 @@
       "failure.archiveUnsupported.line",
       "failure.archiveUnsupported.next",
       "failure.unknown.line",
-      "failure.unknown.next"
+      "failure.unknown.next",
+      "task.packageFailed"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

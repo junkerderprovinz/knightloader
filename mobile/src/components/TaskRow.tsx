@@ -5,6 +5,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
+import { rowWord, type StateWord } from '../api/taskState';
 import { InfoTip } from './InfoTip';
 import { Text } from './Text';
 
@@ -25,13 +26,16 @@ function serviceName(resolver: string): string {
   return SERVICE_NAMES[id] ?? id;
 }
 
-const STATUS_KEYS: Record<string, TranslationKey> = {
+/** The key each state word reads as, for a row and a package header alike. */
+export const STATE_KEYS: Record<StateWord, TranslationKey> = {
+  collected: 'status.collected',
   queued: 'status.queued',
   running: 'status.running',
   paused: 'status.paused',
+  extracting: 'status.extracting',
   finished: 'status.finished',
   failed: 'status.failed',
-  extracting: 'status.extracting',
+  notUnpacked: 'status.notUnpacked',
 };
 
 /**
@@ -65,13 +69,14 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
  * and the progress bar, takes the undarkened one, which is why the palette and
  * the ink arrive as two arguments.
  */
-function statusColor(status: string, c: Palette, accentInk: string): string {
-  switch (status) {
+export function statusColor(word: StateWord | null, c: Palette, accentInk: string): string {
+  switch (word) {
     case 'running':
       return accentInk;
     case 'finished':
       return c.statusOkSolid;
     case 'failed':
+    case 'notUnpacked':
       return c.statusFailSolid;
     case 'paused':
       return c.statusWarnSolid;
@@ -104,7 +109,7 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
     : task.size > 0
       ? Math.min(100, Math.round((task.loaded / task.size) * 100))
       : null;
-  const statusKey = STATUS_KEYS[task.status];
+  const word = rowWord(task);
   const name = task.name || task.url;
   const failure = explainFailure(t, task, { part: name, file: name, service: serviceName(task.resolver) });
 
@@ -134,8 +139,8 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
         <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
           {task.name || task.url}
         </Text>
-        <Text style={[styles.status, { color: statusColor(task.status, c, rowInk) }]}>
-          {statusKey ? t(statusKey) : task.status}
+        <Text style={[styles.status, { color: statusColor(word, c, rowInk) }]}>
+          {word ? t(STATE_KEYS[word]) : task.status}
         </Text>
       </View>
 

@@ -485,6 +485,9 @@ jobs:
       - name: Failure wording
         run: node check-failures.mjs
 
+      - name: Row and package words
+        run: node check-task-state.mjs
+
   # Compiles the desktop module on every relevant push, since desktop.yml only
   # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed
   # because Ubuntu 24.04 ships only webkit2gtk-4.1.

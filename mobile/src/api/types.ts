@@ -2,13 +2,14 @@
 // names and types in sync with that file, not the other way around, since
 // the server is the source of truth for this shape.
 export type TaskStatus =
+  | 'collected'
   | 'queued'
   | 'running'
   | 'paused'
-  | 'finished'
-  | 'failed'
   | 'extracting'
-  | string; // the server's Status enum has more values than are worth hard-coding here
+  | 'done'
+  | 'error'
+  | string; // a newer server may send a value this build does not know
 
 export interface Task {
   id: string;
@@ -46,6 +47,10 @@ export interface Task {
   /** A collected variant row its host's preset leaves out; the collector does
    *  not show it. */
   variantOff?: boolean;
+  /** How the last unpacking of this file's archive ended, kept on every part. */
+  unpack?: 'done' | 'error' | 'password';
+  /** The volume number inside a multi-volume set, 0 for a file that is not in one. */
+  archivePart?: number;
 }
 
 export interface AuthState {
