@@ -114,8 +114,9 @@ type Options struct {
 	// Taken hears the account each NZB went to and the id the job goes by
 	// there, and again when the service gives it another. Nil for none.
 	Taken func(slot, remote string)
-	// Interval is the pause between two rounds, Backoff the first wait after
-	// a service declined. Zero means five seconds and a minute.
+	// Interval is the pause between two rounds of each of Run's loops,
+	// Backoff the first wait after a service declined. Zero means five
+	// seconds and a minute.
 	Interval time.Duration
 	Backoff  time.Duration
 	// Now is the clock, time.Now when nil.
@@ -307,7 +308,7 @@ func (m *Manager) Cancel(id string) (taskIDs []string) {
 	return nil
 }
 
-// Kick starts the next round at once rather than at the next tick.
+// Kick offers the waiting NZBs at once rather than at the next tick.
 func (m *Manager) Kick() {
 	select {
 	case m.wake <- struct{}{}:
@@ -315,28 +316,47 @@ func (m *Manager) Kick() {
 	}
 }
 
-// Run works the jobs until ctx is cancelled.
+// Run works the jobs until ctx is cancelled. The taken jobs are followed apart
+// from the uploads, so a long run of them cannot keep the account import from
+// hearing a queued download's new id in time.
 func (m *Manager) Run(ctx context.Context) {
+	followed := make(chan struct{})
+	go func() {
+		defer close(followed)
+		m.every(ctx, nil, m.followRound)
+	}()
+	m.every(ctx, m.wake, m.sendRound)
+	<-followed
+}
+
+// every runs round now and then after each tick or wake-up until ctx ends.
+func (m *Manager) every(ctx context.Context, wake <-chan struct{}, round func(context.Context)) {
 	t := time.NewTicker(m.o.Interval)
 	defer t.Stop()
 	for {
-		m.round(ctx)
+		round(ctx)
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-		case <-m.wake:
+		case <-wake:
 		}
 	}
 }
 
-// round does one pass over the jobs: offers waiting NZBs, follows the taken
-// ones, and deletes the services' copies of what is already on disk.
-func (m *Manager) round(ctx context.Context) {
+// sendRound offers the waiting NZBs and deletes the services' copies of what
+// is already on disk.
+func (m *Manager) sendRound(ctx context.Context) {
 	m.submit(ctx)
-	m.follow(ctx)
 	m.clear(ctx)
 	m.prune()
+	m.reportFailed()
+	m.notePending()
+}
+
+// followRound reads how far the services have got with the taken jobs.
+func (m *Manager) followRound(ctx context.Context) {
+	m.follow(ctx)
 	m.reportFailed()
 	m.notePending()
 }
@@ -398,10 +418,13 @@ func (m *Manager) submit(ctx context.Context) {
 			m.update(id, func(j *Job) { m.failLocked(j, "the .nzb could not be read back: "+err.Error()) })
 			continue
 		}
-		cctx, cancel := context.WithTimeout(ctx, callTimeout)
+		// Shutdown does not cut the upload short: once the NZB is through, the
+		// service may have made the job, and only its answer keeps the next
+		// start from sending the NZB again. Run waits for it.
+		cctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), callTimeout)
 		remote, err := svc.Submit(cctx, name, data)
 		cancel()
-		m.submitted(ctx, id, svc, remote, err)
+		m.submitted(id, svc, remote, err)
 	}
 }
 
@@ -448,7 +471,7 @@ func (m *Manager) noteSubmitLocked(slot string) {
 }
 
 // submitted records what one submit came back with.
-func (m *Manager) submitted(ctx context.Context, id string, svc Service, remote string, err error) {
+func (m *Manager) submitted(id string, svc Service, remote string, err error) {
 	// Heard even for a job cancelled during the upload: the service holds it
 	// until the delete below reaches it.
 	if err == nil {
@@ -476,9 +499,6 @@ func (m *Manager) submitted(ctx context.Context, id string, svc Service, remote 
 		j.Attempts, j.RetryAt = 0, time.Time{}
 		_ = os.Remove(m.nzbPath(id))
 		log.Printf("usenet: %s went to %s", j.Name, svc.Label())
-	case ctx.Err() != nil:
-		// Shutting down; the job is offered again after the restart.
-		return
 	case errors.Is(err, ErrBusy):
 		// The account, not the NZB: every waiting job holds back from it.
 		if acc.backoff == 0 {
