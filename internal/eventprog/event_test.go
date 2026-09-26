@@ -48,7 +48,7 @@ func TestThePlaceholdersAndTheVariablesCarryTheSameEvent(t *testing.T) {
 		t.Fatalf("Args =\n%q\nwant\n%q", got, want)
 	}
 
-	env := envOf(Environ(nil, v))
+	env := envOf(Environ(v))
 	for name, want := range map[string]string{
 		EnvEvent: "task.done", EnvTaskID: "t1", EnvName: "film.mkv", EnvFile: w.File,
 		EnvFolder: w.Folder, EnvPackage: "Pack", EnvCategory: "Films",
@@ -60,7 +60,7 @@ func TestThePlaceholdersAndTheVariablesCarryTheSameEvent(t *testing.T) {
 }
 
 func TestEveryVariableIsSetEvenWhenTheEventHasNothingForIt(t *testing.T) {
-	env := Environ(nil, ValuesOf(script.Firing{Trigger: script.TriggerQueueIdle}, Where{}))
+	env := Environ(ValuesOf(script.Firing{Trigger: script.TriggerQueueIdle}, Where{}))
 	got := envOf(env)
 	for _, name := range []string{EnvEvent, EnvTaskID, EnvName, EnvFile, EnvFolder, EnvPackage, EnvCategory, EnvExtractOK} {
 		if _, ok := got[name]; !ok {
@@ -69,24 +69,6 @@ func TestEveryVariableIsSetEvenWhenTheEventHasNothingForIt(t *testing.T) {
 	}
 	if got[EnvEvent] != "queue.idle" {
 		t.Errorf("%s = %q", EnvEvent, got[EnvEvent])
-	}
-}
-
-func TestTheInstancesOwnKLVariablesAreNotHandedDown(t *testing.T) {
-	base := []string{"PATH=/usr/bin", "KL_TORBOX=secret-key", "kl_alldebrid=other-secret", "KL_NAME=stale", "HOME=/home/x"}
-	env := Environ(base, ValuesOf(doneFiring("a.mkv"), Where{}))
-	joined := strings.Join(env, "\n")
-	for _, leak := range []string{"secret-key", "other-secret", "stale"} {
-		if strings.Contains(joined, leak) {
-			t.Errorf("the program's environment carries %q:\n%s", leak, joined)
-		}
-	}
-	got := envOf(env)
-	if got["PATH"] != "/usr/bin" || got["HOME"] != "/home/x" {
-		t.Errorf("the rest of the environment was not passed on: %v", got)
-	}
-	if got[EnvName] != "a.mkv" {
-		t.Errorf("%s = %q, want the event's name", EnvName, got[EnvName])
 	}
 }
 
@@ -146,14 +128,14 @@ func TestAnUnpackingSaysWhetherItWorked(t *testing.T) {
 		Trigger: script.TriggerExtractDone,
 		Extract: &script.ExtractView{Name: "set.part1.rar", OK: false},
 	}
-	if got := envOf(Environ(nil, ValuesOf(failed, Where{})))[EnvExtractOK]; got != "false" {
+	if got := envOf(Environ(ValuesOf(failed, Where{})))[EnvExtractOK]; got != "false" {
 		t.Errorf("%s = %q for a failed unpacking, want false", EnvExtractOK, got)
 	}
 	failed.Extract.OK = true
-	if got := envOf(Environ(nil, ValuesOf(failed, Where{})))[EnvExtractOK]; got != "true" {
+	if got := envOf(Environ(ValuesOf(failed, Where{})))[EnvExtractOK]; got != "true" {
 		t.Errorf("%s = %q for an unpacking that worked, want true", EnvExtractOK, got)
 	}
-	if got := envOf(Environ(nil, ValuesOf(doneFiring("a.mkv"), Where{})))[EnvExtractOK]; got != "" {
+	if got := envOf(Environ(ValuesOf(doneFiring("a.mkv"), Where{})))[EnvExtractOK]; got != "" {
 		t.Errorf("%s = %q for a finished download, want it empty", EnvExtractOK, got)
 	}
 }

@@ -3,6 +3,7 @@ package reconnect
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,4 +27,15 @@ func TestACancelledRunEndsWhatTheProgramStarted(t *testing.T) {
 		t.Fatal("a program killed at the end of its context was reported as a success")
 	}
 	execxtest.AwaitGone(t, execxtest.Child(t, err.Error()))
+}
+
+func TestTheProgramIsNotGivenTheServiceKeys(t *testing.T) {
+	t.Setenv("KL_TORBOX", "service-key-e41b")
+	err := execRunner(context.Background(), execxtest.Program(t, execxtest.ListKL))
+	if err == nil || !strings.Contains(err.Error(), "KL variables:") {
+		t.Fatalf("the program's listing is not in the error: %v", err)
+	}
+	if strings.Contains(err.Error(), "service-key-e41b") {
+		t.Errorf("the program was given KL_TORBOX: %v", err)
+	}
 }
