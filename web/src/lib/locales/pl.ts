@@ -856,7 +856,7 @@ export const pl: Dict = {
   'settings.reconnect.interval': 'Sekundy między sprawdzeniami (1 do 60)',
   'settings.reconnect.intervalHint': 'Ile czekać między dwoma spojrzeniami na adres sprawdzający po tym, jak metoda się wykonała. Jest dolna granica, bo pętla bez niej robi z usługi sprawdzającej cel.',
   'settings.reconnect.timeout': 'Sekundy sprawdzania (5 do 900)',
-  'settings.reconnect.timeoutHint': 'Jak długo patrzeć, zanim przebieg zostanie uznany za nieudany. Ponowne połączenie, które kwadrans później wciąż czeka, i tak się nie udało, cokolwiek tu wpiszesz. Limit czasu mniejszy od odstępu jest do niego podnoszony, inaczej przebieg skończyłby się przed choćby jednym sprawdzeniem.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Zapisano jako {n}.',
 
   'settings.reconnect.runTitle': 'Uruchom jedno teraz',

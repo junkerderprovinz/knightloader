@@ -864,7 +864,7 @@ export const ja: Dict = {
   'settings.reconnect.interval': '確認の間隔（秒、1 から 60）',
   'settings.reconnect.intervalHint': '方式を実行したあと、確認 URL を見るまでにどれだけ待つかです。下限があるのは、下限のないループが確認サービスを狙い撃ちにしてしまうからです。',
   'settings.reconnect.timeout': '確認を続ける秒数（5 から 900）',
-  'settings.reconnect.timeoutHint': '実行を失敗と判断するまで、どれだけ見続けるかです。15 分たってもまだ待っている再接続は、ここに何と書いてあっても失敗です。間隔より短いタイムアウトは間隔まで引き上げられます。そうしないと、1 回も確認しないうちに実行が終わってしまいます。',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '{n} として保存しました。',
 
   'settings.reconnect.runTitle': '今すぐ実行する',

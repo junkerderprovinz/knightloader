@@ -813,6 +813,45 @@ func TestPasswordNeverReachesTheError(t *testing.T) {
 	}
 }
 
+// TestAHungProgramIsStoppedAtTheTimeout: a program that never returns, like an
+// ssh session to a router that rebooted under it, is stopped once the run's
+// timeout has passed rather than holding the reconnector until shutdown.
+func TestAHungProgramIsStoppedAtTheTimeout(t *testing.T) {
+	hung := func(ctx context.Context, _ string, _ ...string) error {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+	for _, method := range []string{MethodCommand, MethodScript} {
+		t.Run(method, func(t *testing.T) {
+			t.Parallel()
+			cfg := commandConfig()
+			cfg.Method = method
+			cfg.Interpreter = "/bin/sh"
+			cfg.Script = "ssh admin@192.168.1.1 reboot"
+			cfg.TimeoutSeconds = minTimeoutSeconds
+			client := &stubClient{checks: []step{{body: "203.0.113.9"}, {body: "198.51.100.7"}}}
+			rc := newTestReconnector(t, cfg, client, hung, newClock())
+
+			done := make(chan error, 1)
+			go func() {
+				_, err := rc.Do(context.Background())
+				done <- err
+			}()
+			select {
+			case err := <-done:
+				if err == nil || !strings.Contains(err.Error(), "still running after 5s") {
+					t.Errorf("Do() = %v, want the program reported as stopped at the timeout", err)
+				}
+			case <-time.After(30 * time.Second):
+				t.Fatal("a hung program held the reconnector past the run's timeout")
+			}
+			if rc.Busy() {
+				t.Error("Busy() is still true after the program was stopped")
+			}
+		})
+	}
+}
+
 // TestRunnerFailureSkipsTheWait: a failed command is reported at once, not
 // after the full budget.
 func TestRunnerFailureSkipsTheWait(t *testing.T) {

@@ -864,7 +864,7 @@ export const tr: Dict = {
   'settings.reconnect.interval': 'Denetimler arası saniye (1 ile 60)',
   'settings.reconnect.intervalHint': "Yöntem çalıştıktan sonra denetim URL'sine iki bakış arasında ne kadar bekleneceği. Bir alt sınır var, çünkü alt sınırı olmayan bir döngü denetim hizmetini hedefe çevirir.",
   'settings.reconnect.timeout': 'Denetime devam süresi, saniye (5 ile 900)',
-  'settings.reconnect.timeoutHint': 'Çalışma başarısız sayılmadan önce ne kadar bakılacağı. Çeyrek saat sonra hâlâ bekleyen bir yeniden bağlanma, burada ne yazarsa yazsın başarısız olmuştur. Aralığın altındaki bir zaman aşımı aralığa yükseltilir, yoksa tek bir denetim bile yapılmadan çalışma biterdi.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '{n} olarak kaydedildi.',
 
   'settings.reconnect.runTitle': 'Şimdi bir tane çalıştırma',

@@ -864,7 +864,7 @@ export const ca: Dict = {
   'settings.reconnect.interval': 'Segons entre comprovacions (d’1 a 60)',
   'settings.reconnect.intervalHint': 'Quant s’espera entre dues mirades a l’URL de comprovació un cop el mètode s’ha executat. Hi ha un mínim perquè un bucle sense mínim converteix el servei de comprovació en una diana.',
   'settings.reconnect.timeout': 'Segons comprovant (de 5 a 900)',
-  'settings.reconnect.timeoutHint': 'Quanta estona es continua mirant abans de considerar fallida l’execució. Una reconnexió que un quart d’hora després encara espera ja ha fallat, digui el que digui això. Un temps d’espera per sota de l’interval es puja fins a l’interval, o l’execució s’hauria acabat abans de fer ni una sola comprovació.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Desat com a {n}.',
 
   'settings.reconnect.runTitle': 'Executar-ne una ara',

@@ -864,7 +864,7 @@ export const hi: Dict = {
   'settings.reconnect.interval': 'दो जाँचों के बीच सेकंड (1 से 60)',
   'settings.reconnect.intervalHint': 'तरीका चल जाने के बाद जाँच URL पर दो नज़रों के बीच कितनी देर रुकना है। एक न्यूनतम सीमा इसलिए है कि उसके बिना चलने वाला चक्र जाँच सेवा को निशाना बना देता है।',
   'settings.reconnect.timeout': 'कितने सेकंड जाँचते रहना है (5 से 900)',
-  'settings.reconnect.timeoutHint': 'चक्कर को असफल कहने से पहले कितनी देर देखते रहना है। जो री-कनेक्ट पंद्रह मिनट बाद भी इंतज़ार कर रहा है, वह असफल हो चुका है, यहाँ चाहे कुछ भी लिखा हो। अंतराल से कम टाइमआउट को उसी तक बढ़ा दिया जाता है, वरना एक भी जाँच हुए बिना चक्कर ख़त्म हो जाता।',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '{n} के रूप में सहेजा गया।',
 
   'settings.reconnect.runTitle': 'अभी एक चलाना',

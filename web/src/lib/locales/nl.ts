@@ -856,7 +856,7 @@ export const nl: Dict = {
   'settings.reconnect.interval': 'Seconden tussen controles (1 tot 60)',
   'settings.reconnect.intervalHint': 'Hoe lang er tussen twee blikken op de controle-URL gewacht wordt nadat de methode heeft gedraaid. Er is een ondergrens, want een lus zonder ondergrens maakt van de controledienst een doelwit.',
   'settings.reconnect.timeout': 'Seconden blijven controleren (5 tot 900)',
-  'settings.reconnect.timeoutHint': 'Hoe lang er gekeken wordt voordat de run mislukt wordt genoemd. Een reconnect die een kwartier later nog staat te wachten is mislukt, wat hier ook staat. Een time-out onder het interval wordt daarnaar opgetrokken, anders zou de run voorbij zijn voordat er ook maar één controle had plaatsgevonden.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Opgeslagen als {n}.',
 
   'settings.reconnect.runTitle': 'Er nu een draaien',

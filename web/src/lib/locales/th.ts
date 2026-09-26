@@ -864,7 +864,7 @@ export const th: Dict = {
   'settings.reconnect.interval': 'วินาทีระหว่างการตรวจแต่ละครั้ง (1 ถึง 60)',
   'settings.reconnect.intervalHint': 'จะรอนานแค่ไหนระหว่างการดู URL ตรวจสองครั้ง หลังจากวิธีทำงานไปแล้ว ที่มีขั้นต่ำก็เพราะวนซ้ำโดยไม่มีขั้นต่ำจะทำให้บริการตรวจกลายเป็นเป้า',
   'settings.reconnect.timeout': 'วินาทีที่จะตรวจต่อไป (5 ถึง 900)',
-  'settings.reconnect.timeoutHint': 'จะเฝ้าดูอีกนานแค่ไหนก่อนจะถือว่าการทำงานล้มเหลว การเชื่อมต่อใหม่ที่ผ่านไปสิบห้านาทีแล้วยังรออยู่ก็คือล้มเหลว ไม่ว่าตรงนี้จะเขียนไว้เท่าไร ค่าหมดเวลาที่ต่ำกว่าช่วงตรวจจะถูกดันขึ้นเท่ากับช่วงตรวจ ไม่อย่างนั้นการทำงานจะจบก่อนที่จะได้ตรวจสักครั้ง',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'บันทึกเป็น {n}',
 
   'settings.reconnect.runTitle': 'สั่งทำเดี๋ยวนี้',

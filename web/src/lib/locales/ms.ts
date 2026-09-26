@@ -864,7 +864,7 @@ export const ms: Dict = {
   'settings.reconnect.interval': 'Saat antara semakan (1 hingga 60)',
   'settings.reconnect.intervalHint': 'Berapa lama menunggu antara dua kali melihat URL semakan setelah kaedah itu dijalankan. Ada had bawah, kerana gelung tanpa had bawah menjadikan perkhidmatan semakan itu sasaran.',
   'settings.reconnect.timeout': 'Saat untuk terus menyemak (5 hingga 900)',
-  'settings.reconnect.timeoutHint': 'Berapa lama terus melihat sebelum larian itu dikira gagal. Sambung semula yang suku jam kemudian masih menunggu memang sudah gagal, apa pun yang tertulis di sini. Had masa yang lebih kecil daripada selang akan dinaikkan kepada selang itu, jika tidak larian sudah tamat sebelum satu semakan pun sempat berlaku.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Disimpan sebagai {n}.',
 
   'settings.reconnect.runTitle': 'Jalankan satu sekarang',

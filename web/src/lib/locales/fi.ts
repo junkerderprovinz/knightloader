@@ -864,7 +864,7 @@ export const fi: Dict = {
   'settings.reconnect.interval': 'Sekunteja tarkistusten välillä (1-60)',
   'settings.reconnect.intervalHint': 'Kuinka kauan odotetaan kahden tarkistus-URL:n katsomisen välillä sen jälkeen, kun tapa on suoritettu. Alaraja on olemassa siksi, että silmukka ilman sitä tekee tarkistuspalvelusta maalitaulun.',
   'settings.reconnect.timeout': 'Sekunteja tarkistusta (5-900)',
-  'settings.reconnect.timeoutHint': 'Kuinka kauan katsotaan, ennen kuin ajoa kutsutaan epäonnistuneeksi. Uudelleenyhdistäminen, joka vartin päästä yhä odottaa, on epäonnistunut, sanottiin tässä mitä hyvänsä. Aikakatkaisu, joka alittaa välin, nostetaan siihen, tai ajo olisi ohi ennen kuin yhtäkään tarkistusta ehti tapahtua.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Tallennettu arvona {n}.',
 
   'settings.reconnect.runTitle': 'Suorita yksi nyt',

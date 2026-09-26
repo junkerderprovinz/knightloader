@@ -866,7 +866,7 @@ export const no: Dict = {
   'settings.reconnect.interval': 'Sekunder mellom sjekkene (1 til 60)',
   'settings.reconnect.intervalHint': 'Hvor lenge det ventes mellom to blikk på sjekk-URL-en etter at metoden har kjørt. Det finnes en nedre grense, for en løkke uten en gjør sjekketjenesten til en blink.',
   'settings.reconnect.timeout': 'Sekunder med sjekking (5 til 900)',
-  'settings.reconnect.timeoutHint': 'Hvor lenge det ses etter før kjøringen kalles mislykket. En gjenoppkobling som fortsatt venter et kvarter senere har mislyktes, uansett hva som står her. En tidsgrense under intervallet heves til intervallet, ellers ville kjøringen vært over før en eneste sjekk rakk å skje.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Lagret som {n}.',
 
   'settings.reconnect.runTitle': 'Kjør en nå',

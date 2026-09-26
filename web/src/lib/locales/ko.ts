@@ -864,7 +864,7 @@ export const ko: Dict = {
   'settings.reconnect.interval': '확인 간격(초, 1~60)',
   'settings.reconnect.intervalHint': '방식이 실행된 뒤 확인 URL을 두 번 들여다보는 사이에 얼마나 기다릴지입니다. 하한이 있는 이유는, 하한 없는 반복이 확인 서비스를 표적으로 만들기 때문입니다.',
   'settings.reconnect.timeout': '확인을 이어 갈 시간(초, 5~900)',
-  'settings.reconnect.timeoutHint': '실행을 실패로 판정하기까지 얼마나 더 지켜볼지입니다. 15분이 지나도 여전히 기다리고 있는 재연결은 여기 무엇이 적혀 있든 실패한 것입니다. 간격보다 짧은 제한 시간은 간격까지 올라갑니다. 그러지 않으면 확인을 한 번도 못 한 채 실행이 끝나 버립니다.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '{n}(으)로 저장했습니다.',
 
   'settings.reconnect.runTitle': '지금 한 번 실행',

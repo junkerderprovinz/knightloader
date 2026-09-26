@@ -864,7 +864,7 @@ export const fa: Dict = {
   'settings.reconnect.interval': 'ثانیه میان دو بررسی (۱ تا ۶۰)',
   'settings.reconnect.intervalHint': 'پس از اجرای روش، میان دو نگاه به نشانی بررسی چقدر صبر شود. کف دارد، چون حلقه‌ای بی‌کف سرویس بررسی را به هدف تبدیل می‌کند.',
   'settings.reconnect.timeout': 'ثانیه‌های ادامه بررسی (۵ تا ۹۰۰)',
-  'settings.reconnect.timeoutHint': 'چقدر نگاه کردن ادامه یابد پیش از آنکه اجرا شکست‌خورده خوانده شود. اتصال دوباره‌ای که یک ربع بعد هنوز منتظر است شکست خورده، هرچه اینجا نوشته باشد. مهلتی کمتر از فاصله بررسی‌ها تا خودِ آن بالا برده می‌شود، وگرنه اجرا پیش از انجام حتی یک بررسی تمام می‌شد.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'با مقدار {n} ذخیره شد.',
 
   'settings.reconnect.runTitle': 'همین حالا یکی را اجرا کن',

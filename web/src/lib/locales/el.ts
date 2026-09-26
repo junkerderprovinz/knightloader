@@ -864,7 +864,7 @@ export const el: Dict = {
   'settings.reconnect.interval': 'Δευτερόλεπτα μεταξύ των ελέγχων (1 έως 60)',
   'settings.reconnect.intervalHint': 'Πόσο αναμονή ανάμεσα σε δύο ματιές στο URL ελέγχου, αφού τρέξει η μέθοδος. Υπάρχει κατώτατο όριο, γιατί ένας βρόχος χωρίς αυτό μετατρέπει την υπηρεσία ελέγχου σε στόχο.',
   'settings.reconnect.timeout': 'Δευτερόλεπτα συνεχούς ελέγχου (5 έως 900)',
-  'settings.reconnect.timeoutHint': 'Πόσο θα συνεχιστεί ο έλεγχος πριν η εκτέλεση χαρακτηριστεί αποτυχία. Μια επανασύνδεση που ένα τέταρτο αργότερα ακόμη περιμένει έχει αποτύχει, ό,τι κι αν λέει εδώ. Χρονικό όριο μικρότερο από το διάστημα ανεβαίνει σε αυτό, αλλιώς η εκτέλεση θα τελείωνε πριν γίνει ούτε ένας έλεγχος.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Αποθηκεύτηκε ως {n}.',
 
   'settings.reconnect.runTitle': 'Εκτέλεση μιας τώρα',

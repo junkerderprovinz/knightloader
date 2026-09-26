@@ -864,7 +864,7 @@ export const eu: Dict = {
   'settings.reconnect.interval': 'Egiaztapenen arteko segundoak (1etik 60ra)',
   'settings.reconnect.intervalHint': 'Zenbat itxaron behar den egiaztapen URLari bi begiraldi ematen zaizkion bitartean, metodoa exekutatu ondoren. Beheko muga bat dago, muga hori gabeko begizta batek egiaztapen zerbitzua jomuga bihurtzen duelako.',
   'settings.reconnect.timeout': 'Egiaztatzen jarraitzeko segundoak (5etik 900era)',
-  'settings.reconnect.timeoutHint': 'Zenbat denbora begiratzen jarraitu exekuzioa huts egindakotzat jo aurretik. Ordu laurden geroago oraindik zain dagoen birkonexio batek huts egin du, hemen dena delakoa idatzita egonda ere. Tarteak baino txikiagoa den denbora muga tarteraino igotzen da, bestela exekuzioa egiaztapen bakar bat ere gertatu aurretik amaituko litzateke.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': '{n} gisa gorde da.',
 
   'settings.reconnect.runTitle': 'Bat orain exekutatzea',

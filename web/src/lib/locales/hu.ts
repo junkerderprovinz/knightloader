@@ -864,7 +864,7 @@ export const hu: Dict = {
   'settings.reconnect.interval': 'Másodperc két ellenőrzés között (1-60)',
   'settings.reconnect.intervalHint': 'Mennyit vár két pillantás között az ellenőrző címre, miután a módszer lefutott. Van alsó határ, mert a nélküle futó ciklus célponttá teszi az ellenőrző szolgáltatást.',
   'settings.reconnect.timeout': 'Ennyi másodpercig ellenőriz (5-900)',
-  'settings.reconnect.timeoutHint': 'Meddig figyeljen, mielőtt a futást kudarcnak mondja. Az az újracsatlakozás, ami negyed órával később még mindig vár, elbukott, bármi is áll itt. Az időkorlát, ha kisebb a várakozási köznél, felemelődik rá, különben a futás azelőtt véget érne, hogy akár egyetlen ellenőrzés megtörtént volna.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Mentve így: {n}.',
 
   'settings.reconnect.runTitle': 'Futtatás most',

@@ -864,7 +864,7 @@ export const sk: Dict = {
   'settings.reconnect.interval': 'Sekúnd medzi kontrolami (1 až 60)',
   'settings.reconnect.intervalHint': 'Ako dlho čakať medzi dvoma pohľadmi na kontrolnú URL po tom, čo metóda prebehla. Spodná hranica tu je preto, že slučka bez nej spraví z kontrolnej služby terč.',
   'settings.reconnect.timeout': 'Sekúnd kontrolovania (5 až 900)',
-  'settings.reconnect.timeoutHint': 'Ako dlho sa pozerať, kým sa beh vyhlási za neúspešný. Opätovné pripojenie, ktoré o štvrťhodinu stále čaká, zlyhalo, nech tu stojí čokoľvek. Časový limit nižší než interval sa naň zdvihne, inak by bol beh na konci skôr, než by prebehla jediná kontrola.',
+  'settings.reconnect.timeoutHint': 'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Uložené ako {n}.',
 
   'settings.reconnect.runTitle': 'Spustiť jedno hneď',

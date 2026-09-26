@@ -993,7 +993,7 @@ export const en = {
     'How long to wait between two looks at the check URL once the method has run. There is a floor because a loop without one turns the check service into a target.',
   'settings.reconnect.timeout': 'Seconds to keep checking (5 to 900)',
   'settings.reconnect.timeoutHint':
-    'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened.',
+    'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened. The Command and Script methods give their program the same number of seconds to finish before the checking starts; one still running then is stopped, and the run fails.',
   'settings.reconnect.clamped': 'Saved as {n}.',
 
   'settings.reconnect.runTitle': 'Running one now',
