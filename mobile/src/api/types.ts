@@ -37,6 +37,10 @@ export interface Task {
   errorParams?: Record<string, string>;
   /** The typed cause of a failure, core.Reason. */
   reason?: string;
+  /** Set instead of errorCode when the link filter or the tracker ban refused
+   *  to start the link. */
+  rejectCode?: string;
+  rejectParams?: Record<string, string>;
   createdAt: string;
   dir?: string;
   online?: string;

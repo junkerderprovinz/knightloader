@@ -486,12 +486,13 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
 
 /**
  * failureFallback is what a failure's wording falls back on where the server
- * left a value out: the row's own name for the archive part or the file, and
- * its backend for the debrid service.
+ * left a value out: the row's own name for the archive part or the file, its
+ * folder for the path a backend's sentence did not name, and its backend for
+ * the debrid service.
  */
 export function failureFallback(task: Task, t: Translate): Record<string, string> {
   const name = task.name || task.url;
-  return { part: name, file: name, service: resolverLabel(task.resolver.split('#')[0], t) };
+  return { part: name, file: name, path: task.dir || name, service: resolverLabel(task.resolver.split('#')[0], t) };
 }
 
 /** A failure's bubble: what went wrong, what to do, and the tool's own words. */
@@ -1063,6 +1064,8 @@ interface Unpacking {
   failure?: FailureSource;
   /** The archive's own name, for a failure that does not name its part. */
   name?: string;
+  /** The archive's folder, for a failure that does not name its path. */
+  dir?: string;
 }
 
 // app.extractErrorPrefix, which marks the unpacking's own error on a task.
@@ -1075,12 +1078,12 @@ function unpackingOf(task: Task, ctx: CellContext): Unpacking | null {
   if (task.status !== 'done' && task.status !== 'extracting') return null;
   const job = ctx.extractions?.get(task.id);
   const state = job && unpackState(job);
-  if (job && state) return { state, job, failure: job, name: job.name };
+  if (job && state) return { state, job, failure: job, name: job.name, dir: job.dir };
   if (!task.unpack) return null;
   const failure = task.error?.startsWith(EXTRACT_ERROR)
     ? { error: task.error.slice(EXTRACT_ERROR.length), errorCode: task.errorCode, errorParams: task.errorParams }
     : undefined;
-  return { state: task.unpack, failure, name: task.name };
+  return { state: task.unpack, failure, name: task.name, dir: task.dir };
 }
 
 /**
@@ -1104,7 +1107,9 @@ function UnpackStatus({
   // "Needs a password" says what the library's sentence says, and says it in
   // the reader's language.
   const failure =
-    state === 'password' || !unpack.failure ? null : explainFailure(t, unpack.failure, { part: unpack.name ?? '' });
+    state === 'password' || !unpack.failure
+      ? null
+      : explainFailure(t, unpack.failure, { part: unpack.name ?? '', path: unpack.dir ?? unpack.name ?? '' });
   const facts = job
     ? [
         job.files > 0 ? `${job.files} ${t(job.files === 1 ? 'task.file' : 'task.files')}` : '',

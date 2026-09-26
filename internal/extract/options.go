@@ -10,7 +10,6 @@ package extract
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -168,6 +167,16 @@ type Options struct {
 // this one in different words from a broken file.
 var ErrDestinationTaken = errors.New("extract: the destination already exists and the collision policy is to skip")
 
+// DestinationTakenError is ErrDestinationTaken for the folder that was there,
+// so a caller can name it.
+type DestinationTakenError struct {
+	Dir string
+}
+
+func (e *DestinationTakenError) Error() string { return ErrDestinationTaken.Error() + ": " + e.Dir }
+
+func (e *DestinationTakenError) Unwrap() error { return ErrDestinationTaken }
+
 // Extract unpacks path under these options and reports what it wrote.
 //
 // It disposes of nothing. Whether a volume is still somebody else's file is a
@@ -260,7 +269,7 @@ func (o Options) destination(path string) (string, error) {
 		return "", err
 	}
 	if r.Action == collide.Skipped {
-		return "", fmt.Errorf("%w: %s", ErrDestinationTaken, dest)
+		return "", &DestinationTakenError{Dir: dest}
 	}
 	return r.Path, nil
 }

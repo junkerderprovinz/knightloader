@@ -46,14 +46,17 @@ func excluded(rule settings.HostRule, resolverID string) bool {
 	return slices.ContainsFunc(rule.Exclude, func(ex string) bool { return pinMatches(ex, resolverID) })
 }
 
-// unhandledError is the sentence for a link no backend takes: plain, unless
-// the host rule's exclusions are what left nothing, which it says instead.
-func (a *App) unhandledError(url, plain string) string {
+// unhandledError is the failure of a link no backend takes, as Task.SetError
+// takes it: plain, unless the host rule's exclusions are what left nothing,
+// which it says instead.
+func (a *App) unhandledError(url, plain string) (string, core.ErrorCode, map[string]string) {
 	all := a.Registry.All(url)
 	if len(all) == 0 || len(hostChain(all, url, a.Settings.Get())) > 0 {
-		return plain
+		return plain, core.CodeUnsupported, nil
 	}
-	return "every backend that can fetch this link is excluded for " + hostOf(url)
+	host := hostOf(url)
+	return "every backend that can fetch this link is excluded for " + host,
+		core.CodeHostExcluded, map[string]string{"host": host}
 }
 
 // chainFor is the chain a task's backend is picked from: hostChain, or for a

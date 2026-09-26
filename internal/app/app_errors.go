@@ -11,6 +11,8 @@ import (
 	"errors"
 	"io/fs"
 	"net"
+	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -39,6 +41,11 @@ func classify(f failure) core.Reason {
 	if r := classifyErr(f.err); r != core.ReasonUnknown {
 		return r
 	}
+	// A file-system error's sentence is mostly its path, and a file name can
+	// hold any of the words below.
+	if _, ok := localPath(f.err); ok {
+		return core.ReasonUnknown
+	}
 	text := f.text
 	if text == "" && f.err != nil {
 		text = f.err.Error()
@@ -65,6 +72,11 @@ func classifyErr(err error) core.Reason {
 		return core.ReasonCancelled
 	case errors.Is(err, context.DeadlineExceeded):
 		return core.ReasonNetwork
+	}
+	// A syscall.Errno implements net.Error as well, so a file the system
+	// refused would otherwise read as a server that could not be reached.
+	if _, ok := localPath(err); ok {
+		return core.ReasonUnknown
 	}
 	// *net.OpError, *net.DNSError and the *url.Error wrapping them all
 	// implement net.Error, and all mean the transport gave up.
@@ -204,7 +216,8 @@ func classifyText(text string) core.Reason {
 // cause and the code the interface words it by.
 func recordFailure(t *core.Task, f failure) {
 	t.Reason = classify(f)
-	t.SetError(f.sentence(), codeFor(f, t.Reason), nil)
+	code, params := codeFor(f, t.Reason)
+	t.SetError(f.sentence(), code, params)
 }
 
 func (f failure) sentence() string {
@@ -214,30 +227,34 @@ func (f failure) sentence() string {
 	return f.text
 }
 
-// codeFor is the code a failure of reason r reads as. Within a reason it can
-// be finer, a timeout rather than just the network, but never a code of
-// another reason, so the badge and the sentence agree. A failure with no
-// reason gets a code only where its sentence is unmistakable, and "" else.
-func codeFor(f failure, r core.Reason) core.ErrorCode {
+// codeFor is the code a failure of reason r reads as, and the values its
+// wording needs. Within a reason it can be finer, a timeout rather than just
+// the network, but never a code of another reason, so the badge and the
+// sentence agree. A failure with no reason gets a code only where its error
+// value or its sentence is unmistakable, and "" else.
+func codeFor(f failure, r core.Reason) (core.ErrorCode, map[string]string) {
 	low := strings.ToLower(f.sentence())
 	switch r {
 	case core.ReasonNetwork:
 		if f.status == 408 || timedOut(f.err, low) {
-			return core.CodeTimeout
+			return core.CodeTimeout, nil
 		}
 	case core.ReasonAuth:
 		if containsAny(low, premiumPhrases) {
-			return core.CodePremiumNeeded
+			return core.CodePremiumNeeded, nil
 		}
 	case core.ReasonUnknown:
+		if code, params := fileCode(f.err); code != "" {
+			return code, params
+		}
 		switch {
 		case containsAny(low, premiumPhrases):
-			return core.CodePremiumNeeded
-		case writeRefused(f.err, low):
-			return core.CodeNoPermission
+			return core.CodePremiumNeeded, nil
+		case containsAny(low, refusedPhrases):
+			return core.CodeNoPermission, nil
 		}
 	}
-	return r.Code()
+	return r.Code(), nil
 }
 
 // premiumPhrases are how hosters, JDownloader and the debrid services say a
@@ -257,13 +274,41 @@ func timedOut(err error, low string) bool {
 	return containsAny(low, []string{"timeout", "timed out", "deadline exceeded"})
 }
 
-// writeRefused recognises the file system turning a write down. The sentence
-// is checked too because a backend reports over the update channel as text;
-// "access is denied" is Windows' wording, and only read when no HTTP status
-// already made the failure an auth one.
-func writeRefused(err error, low string) bool {
-	return errors.Is(err, fs.ErrPermission) ||
-		containsAny(low, []string{"permission denied", "access is denied", "read-only file system"})
+// refusedPhrases are the file system turning KnightLoader down, in the words a
+// backend reports over the update channel. "access is denied" is Windows'
+// wording, and only read when no HTTP status already made the failure an auth
+// one.
+var refusedPhrases = []string{"permission denied", "access is denied", "read-only file system"}
+
+// localPath is the file or folder a file-system error is about, and whether
+// err is one at all.
+func localPath(err error) (string, bool) {
+	var pe *fs.PathError
+	if errors.As(err, &pe) {
+		return pe.Path, true
+	}
+	var le *os.LinkError
+	if errors.As(err, &le) {
+		return le.New, true
+	}
+	return "", false
+}
+
+// fileCode is the code of a failure the file system reported, with the path
+// it names, or "" for any other failure.
+func fileCode(err error) (core.ErrorCode, map[string]string) {
+	path, local := localPath(err)
+	var params map[string]string
+	if path != "" {
+		params = map[string]string{"path": path}
+	}
+	switch {
+	case errors.Is(err, fs.ErrPermission) || errors.Is(err, syscall.EROFS):
+		return core.CodeNoPermission, params
+	case local:
+		return core.CodeLocalFile, params
+	}
+	return "", nil
 }
 
 func containsAny(low string, phrases []string) bool {
@@ -275,42 +320,47 @@ func containsAny(low string, phrases []string) bool {
 	return false
 }
 
-// diskCode is the code of a file the disk would not take, or "" for any other
-// failure. It is for the steps after a download, renaming, moving and
-// unpacking, whose failures carry no Reason: the download itself finished.
-func diskCode(err error) core.ErrorCode {
-	switch {
-	case isDiskFull(err):
-		return core.CodeDiskFull
-	case errors.Is(err, fs.ErrPermission):
-		return core.CodeNoPermission
+// diskCode is the code of a failure the disk or the file system reported, with
+// the values its wording needs, or "" for any other failure. It is for the
+// steps after a download, renaming, moving and unpacking, whose failures carry
+// no Reason: the download itself finished.
+func diskCode(err error) (core.ErrorCode, map[string]string) {
+	if isDiskFull(err) {
+		return core.CodeDiskFull, nil
 	}
-	return ""
+	return fileCode(err)
 }
 
 // unpackCode is the code an unpacking failure reads as, and the values its
-// wording needs.
+// wording needs. The archive's own problems go first: a missing volume is a
+// file-system error too, and naming it as a part says more.
 func unpackCode(err error) (core.ErrorCode, map[string]string) {
-	code := diskCode(err)
+	code, params := archiveCode(err)
 	if code == "" {
-		code = archiveCode(err)
+		code, params = diskCode(err)
 	}
 	if part := extract.PartOf(err); code != "" && part != "" {
-		return code, map[string]string{"part": part}
+		if params == nil {
+			params = map[string]string{}
+		}
+		params["part"] = part
 	}
-	return code, nil
+	return code, params
 }
 
-func archiveCode(err error) core.ErrorCode {
+func archiveCode(err error) (core.ErrorCode, map[string]string) {
+	var taken *extract.DestinationTakenError
 	switch {
 	case errors.Is(err, extract.ErrPasswordRequired):
-		return core.CodeArchivePassword
+		return core.CodeArchivePassword, nil
 	case errors.Is(err, extract.ErrDamaged):
-		return core.CodeArchiveDamaged
+		return core.CodeArchiveDamaged, nil
 	case errors.Is(err, extract.ErrPartMissing):
-		return core.CodeArchivePartMissing
+		return core.CodeArchivePartMissing, nil
 	case errors.Is(err, extract.ErrUnsupported):
-		return core.CodeArchiveUnsupported
+		return core.CodeArchiveUnsupported, nil
+	case errors.As(err, &taken):
+		return core.CodeArchiveFolderExists, map[string]string{"folder": filepath.Base(taken.Dir)}
 	}
-	return ""
+	return "", nil
 }

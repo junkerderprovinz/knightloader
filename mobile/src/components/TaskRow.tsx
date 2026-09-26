@@ -111,7 +111,12 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
       : null;
   const word = rowWord(task);
   const name = task.name || task.url;
-  const failure = explainFailure(t, task, { part: name, file: name, service: serviceName(task.resolver) });
+  const failure = explainFailure(t, task, {
+    part: name,
+    file: name,
+    path: task.dir || name,
+    service: serviceName(task.resolver),
+  });
 
   return (
     <View

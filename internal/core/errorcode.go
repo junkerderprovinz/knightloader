@@ -34,12 +34,21 @@ const (
 	// CodeDiskFull is the destination out of space, while downloading
 	// (ReasonDiskFull) or while unpacking.
 	CodeDiskFull ErrorCode = "diskFull"
-	// CodeNoPermission is the file system refusing to let the file be
-	// written, while downloading or while unpacking. No Reason.
+	// CodeNoPermission is the file system refusing KnightLoader a file or
+	// folder, while downloading, unpacking or running what a backend needs.
+	// Params: "path", where the failure names it. No Reason.
 	CodeNoPermission ErrorCode = "noPermission"
+	// CodeLocalFile is any other failure the file system reports about a file
+	// or folder on this machine, such as one that is not there. Params:
+	// "path". No Reason.
+	CodeLocalFile ErrorCode = "localFile"
 	// CodeUnsupported is a link no backend here fetches, yt-dlp's
 	// "Unsupported URL" included. ReasonUnsupported.
 	CodeUnsupported ErrorCode = "unsupported"
+	// CodeHostExcluded is a link some backend fetches, but the host rule for
+	// its host switches every such backend off. Params: "host".
+	// ReasonUnsupported.
+	CodeHostExcluded ErrorCode = "hostExcluded"
 	// CodeDebridRefused is a debrid service turning the link down with an
 	// answer nothing more specific recognised. Params: "service". No Reason.
 	CodeDebridRefused ErrorCode = "debridRefused"
@@ -62,6 +71,11 @@ const (
 	// The unpacking codes carry "part", the file of the archive the failure
 	// happened in, where it is known. None has a Reason: the download itself
 	// finished.
+
+	// CodeArchiveFolderExists is a folder of the archive's name already there
+	// while the archive settings say to skip it. The archive is fine. Params:
+	// "folder".
+	CodeArchiveFolderExists ErrorCode = "archiveFolderExists"
 
 	// CodeArchiveDamaged is an archive whose bytes are not what its own
 	// headers and checksums say: a bad block header, a CRC error, a volume

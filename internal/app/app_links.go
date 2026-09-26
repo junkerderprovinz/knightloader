@@ -725,7 +725,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if res == nil {
 		// Staged anyway, with the reason, so links never silently vanish.
 		t.Reason = core.ReasonUnsupported
-		t.SetError(a.unhandledError(u, "no backend handles this link"), core.CodeUnsupported, nil)
+		t.SetError(a.unhandledError(u, "no backend handles this link"))
 		t.Online = core.AvailOffline
 		return a.finishStaging(t, cand)
 	}

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it } from 'vitest';
 
 import type { Task } from '../../lib/api';
 import { I18nProvider } from '../../lib/i18n';
+import { en } from '../../lib/locales/en';
 import { ToastProvider } from '../../lib/toast';
 import { FailureCard } from './FailureCard';
 
@@ -28,6 +29,7 @@ const rejectedAtStart = {
   id: 't1',
   url: 'https://host.example/sample.mkv',
   name: 'sample.mkv',
+  resolver: 'direct',
   status: 'error',
   enabled: true,
   error: 'the server’s own sentence',
@@ -48,6 +50,7 @@ it('words the reason the queue rejected a link for, beside the untranslated mess
   const text = host.textContent ?? '';
   expect(text).toContain('Rejected because');
   expect(text).toContain('rejected by link filter rule "no samples"');
+  expect(text).toContain(en['failure.filterRule.next']);
   // The message row stays word for word, as its (i) promises.
   expect(text).toContain('the server’s own sentence');
 });

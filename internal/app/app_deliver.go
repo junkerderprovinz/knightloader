@@ -139,7 +139,8 @@ func (a *App) recordDelivery(id, src, moved string, err error) {
 	}
 	switch {
 	case err != nil:
-		t.SetError(deliverErrorPrefix+err.Error(), diskCode(err), nil)
+		code, params := diskCode(err)
+		t.SetError(deliverErrorPrefix+err.Error(), code, params)
 	case strings.HasPrefix(t.Error, deliverErrorPrefix):
 		// Only this file's own error; an extraction failure stays.
 		t.SetError("", "", nil)

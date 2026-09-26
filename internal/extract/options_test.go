@@ -264,6 +264,10 @@ func TestSkipRefusesAFolderThatIsAlreadyThere(t *testing.T) {
 	if !errors.Is(err, ErrDestinationTaken) {
 		t.Errorf("destination under skip = %v, want ErrDestinationTaken", err)
 	}
+	var taken *DestinationTakenError
+	if !errors.As(err, &taken) || taken.Dir != filepath.Join(dir, "film") {
+		t.Errorf("destination under skip = %v, want it to name the folder in the way", err)
+	}
 }
 
 func TestRenameStepsAsideAndOverwriteDoesNot(t *testing.T) {
