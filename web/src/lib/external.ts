@@ -21,6 +21,17 @@ export function openExternal(url: string): void {
 }
 
 /**
+ * openMail hands a mailto: address to the mail program. In a browser the page
+ * navigates to it rather than opening it in a new tab, which would leave an
+ * empty tab behind once the mail program has it.
+ */
+export function openMail(url: string): void {
+  const runtime = wails();
+  if (runtime) runtime.BrowserOpenURL(url);
+  else window.location.href = url;
+}
+
+/**
  * The onClick of an anchor that leads out of the app. In a browser the anchor
  * does its own work, so middle-click and copy-link keep working.
  */

@@ -69,7 +69,7 @@ const PARADE_WINDOW_MS = 12_000;
 const PARADE_SHIELDS = 5;
 
 // Parade draws the row of shields and then the checkmark, whose delay is the
-// length of the sweep. pathLength="1" lets .glim-checkmark draw the whole glyph.
+// length of the sweep. pathLength="1" lets .glim-check-draw draw the whole glyph.
 function Parade() {
   return (
     <>
@@ -86,7 +86,7 @@ function Parade() {
       </span>
       <svg width={14} height={14} viewBox="0 0 20 20" className="shrink-0" aria-hidden focusable="false">
         <path
-          className="glim-checkmark kl-parade-check"
+          className="glim-check-draw kl-parade-check"
           pathLength="1"
           d="M4.5 10.5 8.5 14.5 15.5 6"
           stroke="currentColor"

@@ -8,6 +8,14 @@ import { BrowserTools } from './BrowserTools';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom lays nothing out and has no ResizeObserver, which the README buttons
+// use to fit their words.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 let root: Root;
 let host: HTMLDivElement;
 const writeText = vi.fn(() => Promise.resolve());

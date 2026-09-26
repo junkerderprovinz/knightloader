@@ -1120,7 +1120,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [],
       also: [
         'settings.browsertools.storeAndroid',
-        'settings.browsertools.download',
         'settings.browsertools.qrCode',
         'settings.browsertools.installPwaLabel',
       ],
@@ -1137,7 +1136,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.browsertools.serverTitle',
       hint: 'settings.browsertools.serverHint',
       rows: [],
-      also: ['settings.browsertools.sourceZip'],
+      also: ['settings.browsertools.sourceCode', 'settings.browsertools.dockerSub', 'settings.browsertools.unraidSub'],
       body: ['settings.browsertools.dockerHint'],
     },
     {

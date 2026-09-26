@@ -391,6 +391,7 @@ export function SpeedGraph({
           on the same line (GlimStone 1.6.0). */}
       <div className="flex items-center justify-between gap-3">
         <Tabs
+          inline
           label={t('overview.speedWindow')}
           size="sm"
           select="one"

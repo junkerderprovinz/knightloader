@@ -340,7 +340,7 @@ function ScriptRow({
               both follow the motion level and reduced motion. */}
           <Field label={t('settings.scripts.code')}>
             <Suspense fallback={<div className="glim-well glim-live" style={{ minHeight: '220px' }} />}>
-              <div className="glim-content-in">
+              <div className="glim-content-fade">
                 <CodeEditor value={draft.code} onChange={(code) => update({ code })} ariaLabel={t('settings.scripts.code')} />
               </div>
             </Suspense>

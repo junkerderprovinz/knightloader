@@ -427,6 +427,7 @@ export function Collector() {
 
           {offeredFilters.length > 0 && (
             <Tabs
+              inline
               select="many"
               size="sm"
               label={t('filter.label')}

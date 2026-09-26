@@ -217,10 +217,10 @@
   --carbon-hover-raised: #6f6f6f;
   --carbon-border:     #393939;
 
-  /* Brand marks at rest on the about card, adjusted per theme to reach the 3:1
+  /* Brand marks at rest on the About card, adjusted per theme to reach the 3:1
      a graphic needs on a neutral button (published brand colours fail it on
-     one theme or the other). The true colour is the hover fill; see
-     .glim-brand-btn. Values from GlimStone's reference/tokens.css. */
+     one theme or the other). The true colour is the lit tile's fill; see
+     .glim-brand-tile. Values from GlimStone's reference/tokens.css. */
   --brand-coffee:  #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
@@ -778,56 +778,28 @@ body {
   margin-top: 0.75rem;
 }
 
-/* Long-press-to-wiggle reorder (components/dragLift.ts: the settings rail and
-   the priority card), named after CannonadeCommand's nav rail so the gesture
-   is the same across the house. Every item but the held one wiggles. 0.7deg
-   matches the phone (mobile/src/components/DragList.tsx). The angles are
-   fractions of one token so the asymmetric swing survives a change of
-   amplitude. The animation itself is in the motion engine's gate below, so the
-   Motion setting reaches it. */
-@keyframes glim-tab-wiggle {
-  0%   { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
-  25%  { transform: rotate(calc(.875 * var(--motion-wiggle-deg))) translateY(-0.5px); }
-  50%  { transform: rotate(calc(-.75 * var(--motion-wiggle-deg))) translateY(0); }
-  75%  { transform: rotate(var(--motion-wiggle-deg)) translateY(0.5px); }
-  100% { transform: rotate(calc(-1 * var(--motion-wiggle-deg))) translateY(0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Without the wiggle the strip still has to say it is rearrangeable. The
-     data-motion="off" rule in the gate below repeats this, since a rule
-     cannot be shared across two media queries. */
-  .glim-tab-wiggle {
-    animation: none;
-    outline: 2px dashed var(--accent);
-    outline-offset: 2px;
-  }
-}
-
 /* The drag lift (GlimStone, "Reordering by dragging"): the held item floats
    under the pointer, the others shift aside while it passes, and on release it
    settles into the gap they left. A script sets only each item's `translate`;
    the separate `translate` and `scale` properties compose with the wiggle's
-   `transform` instead of replacing it.
+   `rotate` instead of replacing it.
 
    The lift is a state rather than motion, so its shadow and the gap stay at
-   every level; reduced motion and "off" drop only the scale, and the slide
-   durations fall to zero with the motion tokens they read. Storm outranks an
-   OS request for reduced motion, the scale included. */
+   every level. The scale and the slide are dials of the motion engine below;
+   these are their values under reduced motion, where the lift keeps its shadow
+   and neither scales nor slides. Storm outranks that request with numbers of
+   its own. */
 :root {
-  --drag-lift-scale: 1.03;
+  --drag-lift-scale: 1;
+  --drag-settle-dur: 0ms;
   /* The card elevation alone barely shows under something one row tall. */
   --drag-lift-shadow: 0 10px 22px -8px rgba(0, 0, 0, .45), var(--elevation);
   --drag-lift-z: 1;
-  --drag-settle-dur: var(--motion-panel-dur, 0ms);
   --drag-settle-ease: var(--motion-page-ease, ease);
 }
-@media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion="storm"]) { --drag-lift-scale: 1; }
-}
-:root[data-motion="off"] { --drag-lift-scale: 1; }
 
-/* Each class is doubled to outrank the shape-morph rule, whose `transition`
-   matches every element. */
+/* Each class is doubled to outrank the transition rule of the motion engine,
+   whose `transition` matches every element. */
 .glim-drag-lift.glim-drag-lift {
   position: relative;
   z-index: var(--drag-lift-z);
@@ -881,16 +853,18 @@ body {
    changing colour, or refused? Nothing else animates.
 
    The intensity (data-motion="off"|"subtle"|"wild" on <html>, plus the hidden
-   "storm"; see applyMotion() in lib/appearance.ts) only changes the duration,
-   distance and amplitude tokens; the keyframes are the same at every level.
-   --motion-control-dur reaches every transition as well, through the
-   shape-morph rule below. The three levels a picker offers resolve only inside
-   the no-preference gate, so an OS request for reduced motion never meets their
-   selectors; the hidden storm is the one exception, explained at its own block.
-   "off" uses the same substitutes as the reduced-motion block. */
+   "storm"; see applyMotion() in lib/appearance.ts) only changes the dials, the
+   duration, distance and amplitude tokens; the keyframes are the same at every
+   level, and every level declares every dial, so none quietly runs another
+   level's number (check-motion-tokens.mjs). --motion-control-dur reaches every
+   transition as well, through the transition rule below. The three levels a
+   picker offers resolve only inside the no-preference gate, so an OS request
+   for reduced motion never meets their selectors; the hidden storm is the one
+   exception, explained at its own block. "off" uses the same substitutes as
+   the reduced-motion block. */
 
 /* Direction is layout, not motion, so it sits outside the gate. Used by the
-   panel slide and the toast. */
+   toast and the tab slide. */
 :root {
   --dir-sign: 1;
 }
@@ -902,11 +876,20 @@ body {
    that never reaches the animation below still shows. The <path> carries
    pathLength="1" so a dashoffset of 1 to 0 draws the whole glyph. Its colour
    comes from a state token, never a rainbow hue. */
-.glim-checkmark {
+.glim-check-draw {
   fill: none;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
 }
+
+/* The shape morph. Registering the radius tokens as lengths lets them
+   transition on the root, so every corner that reads them follows without a
+   transition of its own; a per-element one would fight each element's other
+   transitions for the shorthand. applyShape() arms it two frames after its
+   first call, so the first radii never animate. */
+@property --radius-card { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --radius-control { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --radius-pill { syntax: '<length>'; inherits: true; initial-value: 0px; }
 
 @keyframes glim-indeterminate {
   0%   { inset-inline-start: -35%; }
@@ -919,7 +902,7 @@ body {
 
    The fade is glim-fade-in beside it, on a curve without spring: a spring
    overshoots and returns, and opacity clamps at 1, so the fade would finish
-   early and sit flat. The same holds for glim-toast-in. */
+   early and sit flat. The same holds for glim-toast-in and glim-tab-slide. */
 @keyframes glim-page-in {
   from { transform: translateY(var(--motion-page-travel)); }
   to   { transform: none; }
@@ -957,20 +940,22 @@ body {
   50%      { opacity: .5; }
 }
 
-/* A staggered row keeps its fade inside one keyframe on a curve without
-   spring, instead of pairing glim-page-in with glim-fade-in: rows arrive by
-   the dozen, and a second animation on each costs parse time a long list
-   notices. The skeleton crossfade reuses glim-fade-in; shape-morph and
-   colour-wipe are transitions and live with the utility classes further down. */
-@keyframes glim-stagger-in {
-  from { opacity: 0; transform: translateY(var(--motion-page-travel)); }
+/* A row or a card arriving in a list. The fade stays inside the keyframe on a
+   plain ease-out instead of pairing glim-page-in with glim-fade-in: rows
+   arrive by the dozen, and a second animation on each costs parse time a long
+   list notices. */
+@keyframes glim-row-in {
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes glim-confirm-pulse {
-  0%   { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
-  50%  { box-shadow: 0 0 0 calc(var(--motion-confirm-glow-mult) * 6px) var(--accent-soft);
-         transform: scale(calc(1 + var(--motion-confirm-scale-mult) * 0.05)); }
-  100% { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
+/* The success pulse, the shake's gentler sibling: a ring in the element's own
+   accent and a small pop. The separate `scale` property leaves a transform the
+   element has alone. */
+@keyframes glim-confirm {
+  0%   { box-shadow: 0 0 0 0 var(--accent-soft); scale: 1; }
+  40%  { box-shadow: 0 0 0 calc(var(--motion-confirm-scale) * 6px) var(--accent-soft);
+         scale: calc(1 + var(--motion-confirm-scale) * .05); }
+  100% { box-shadow: 0 0 0 0 var(--accent-soft); scale: 1; }
 }
 /* "Here it is": the row or card the settings search jumped to (.glim-locate).
    An outline rather than a box-shadow, because cards already own their shadow;
@@ -992,28 +977,37 @@ body {
   outline: 2px solid transparent;
   outline-offset: 3px;
 }
-@keyframes glim-checkmark-draw {
+@keyframes glim-check-draw {
   from { stroke-dashoffset: 1; }
   to   { stroke-dashoffset: 0; }
 }
-@keyframes glim-panel-in-forward {
-  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * var(--motion-panel-dist))); }
-  to   { opacity: 1; transform: none; }
+@keyframes glim-content-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-@keyframes glim-panel-in-back {
-  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * -1 * var(--motion-panel-dist))); }
-  to   { opacity: 1; transform: none; }
+/* A settings tab change. SubPage in pages/Settings.tsx sets --tab-dir to 1
+   toward a later tab and -1 toward an earlier one, and --dir-sign turns the
+   side round under a right-to-left script. */
+@keyframes glim-tab-slide {
+  from { transform: translateX(calc(var(--tab-dir, 1) * var(--dir-sign) * var(--motion-tab-travel))); }
+  to   { transform: none; }
+}
+/* Every item of a list that is being reordered wiggles while one is held
+   (components/dragLift.ts: the settings rail and the priority card), named
+   after CannonadeCommand's nav rail so the gesture is the same across the
+   house. It uses `rotate`, which composes with the drag's `translate` and
+   `scale`. */
+@keyframes glim-wiggle {
+  from { rotate: calc(var(--motion-wiggle-angle) * -1); }
+  to   { rotate: var(--motion-wiggle-angle); }
 }
 
-/* A floating window arrives (GlimStone 1.8.0): the scrim fades up and the card
-   rises a little and settles. Under reduced motion both become a short fade.
-   The scrim half is live through .glim-modal-backdrop; the card half needs
-   .glim-modal-card on the card in components/ui.tsx and
-   components/CommandPalette.tsx, where it would replace .glim-fade. Unlike
-   GlimStone, "subtle" does not switch to a fade keyframe: its tokens make this
-   one a fade. */
+/* A floating window arrives: the scrim fades up and the card rises a little
+   and settles. It ends at `transform: none` and never scales, since a
+   transform held on the card would make it the containing block of anything
+   fixed inside it. Under reduced motion both become a short fade. */
 @keyframes glim-modal-in {
-  from { opacity: 0; transform: translateY(var(--motion-modal-travel)) scale(var(--motion-modal-scale)); }
+  from { opacity: 0; transform: translateY(var(--motion-modal-travel)); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -1043,28 +1037,33 @@ body {
        prefix keeps check-motion-tokens.mjs from asking for a value per level. */
     --egg-storm-pulse-dur: 1.4s;
     --egg-storm-pulse-min: .25;
-    /* The reorder wiggle, at the same angle the phone uses. */
-    --motion-wiggle-dur: .32s;
-    --motion-wiggle-deg: 0.7deg;
+    /* The reorder wiggle at the phone's angle and pace: the duration is one
+       swing, played back and forth, so a full sway takes .32s. */
+    --motion-wiggle-dur: .16s;
+    --motion-wiggle-angle: .7deg;
     --motion-shape-dur: 260ms;
+    --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 420ms;
-    --motion-confirm-glow-mult: 1;
-    --motion-confirm-scale-mult: 1;
+    --motion-confirm-scale: 1;
     --motion-stagger-step: 30ms;
     --motion-stagger-cap: 480ms;
+    --motion-stagger-dur: 240ms;
     --motion-wipe-dur: 320ms;
-    --motion-checkmark-dur: 360ms;
+    --motion-check-dur: 360ms;
     --motion-content-dur: 220ms;
-    --motion-panel-dur: 220ms;
-    --motion-panel-dist: 18px;
+    --motion-tab-dur: 220ms;
+    --motion-tab-travel: 18px;
     /* The scrim is shorter than the card, so the ground is there before the
        card lands. */
     --motion-modal-dur: 260ms;
     --motion-modal-travel: 10px;
-    --motion-modal-scale: .98;
     --motion-scrim-dur: 200ms;
     /* Every transition in the app reads this. 150ms is Tailwind's default. */
     --motion-control-dur: 150ms;
+    /* The sheen that crosses a README button once under the pointer. */
+    --motion-button-sheen-dur: 800ms;
+    --drag-lift-scale: 1.03;
+    --drag-settle-dur: 220ms;
   }
 
   /* data-motion="subtle": smaller numbers, the same keyframes. The attribute
@@ -1081,64 +1080,79 @@ body {
     --motion-fade-dur: 70ms;
     --motion-shake-dur: 220ms;
     --motion-shake-scale: .5;
+    /* An ambient loop is calmed by moving less, not by running faster, so the
+       pulse and the wiggle keep the top level's period and lose amplitude. */
+    --motion-pulse-dur: 2s;
     --motion-pulse-min-opacity: .7;
-    /* Half the swing at the same period: an ambient loop is calmed by moving
-       less, not by running faster. */
-    --motion-wiggle-deg: 0.35deg;
+    --motion-wiggle-dur: .16s;
+    --motion-wiggle-angle: .35deg;
     --motion-shape-dur: 140ms;
+    --motion-shape-ease: cubic-bezier(.2, .6, .2, 1);
     --motion-confirm-dur: 260ms;
-    --motion-confirm-glow-mult: .5;
-    --motion-confirm-scale-mult: .5;
+    --motion-confirm-scale: .5;
     --motion-stagger-step: 15ms;
     --motion-stagger-cap: 200ms;
+    --motion-stagger-dur: 140ms;
     --motion-wipe-dur: 160ms;
-    --motion-checkmark-dur: 200ms;
+    --motion-check-dur: 200ms;
     --motion-content-dur: 120ms;
-    --motion-panel-dur: 130ms;
-    --motion-panel-dist: 10px;
-    /* A small rise without scale, which is a fade. */
+    --motion-tab-dur: 130ms;
+    --motion-tab-travel: 10px;
+    /* A small rise, which reads as a fade. */
     --motion-modal-dur: 150ms;
     --motion-modal-travel: 5px;
-    --motion-modal-scale: 1;
     --motion-scrim-dur: 150ms;
     --motion-control-dur: 80ms;
+    --motion-button-sheen-dur: 1100ms;
+    --drag-lift-scale: 1.015;
+    --drag-settle-dur: 130ms;
   }
 
   /* data-motion="storm" has its numbers outside this gate; see the block after
      it. */
 
   /* data-motion="off" without an OS request: the same result as reduced
-     motion. Page and toast still fade over the reduced-motion durations, with
-     no distance. The shake, the pulse and the wiggle get real substitutes
-     below, since an invisible version of them says nothing. */
+     motion. Page, toast and window still fade over the reduced-motion
+     durations, with no distance. The shake, the pulse and the wiggle get real
+     substitutes below, since an invisible version of them says nothing; their
+     dials are declared here all the same, so nothing at this level borrows the
+     top level's number. */
   :root[data-motion="off"] {
-    --motion-page-dur: 180ms;
     /* The durations stay non-zero, unlike GlimStone's "off": the element still
        fades in, it just does not move. */
+    --motion-page-dur: 180ms;
     --motion-page-travel: 0px;
     --motion-page-ease: linear;
     --motion-toast-ease: ease;
     --motion-toast-dur: 160ms;
     --glim-toast-slide: 0px;
     --motion-fade-dur: 0ms;
+    --motion-shake-dur: 0ms;
+    --motion-shake-scale: 0;
+    --motion-pulse-dur: 2s;
+    --motion-pulse-min-opacity: 1;
+    --motion-wiggle-dur: .16s;
+    --motion-wiggle-angle: 0deg;
     --motion-shape-dur: 0ms;
+    --motion-shape-ease: linear;
     --motion-confirm-dur: 0ms;
-    --motion-confirm-glow-mult: 0;
-    --motion-confirm-scale-mult: 0;
+    --motion-confirm-scale: 0;
     --motion-stagger-step: 0ms;
     --motion-stagger-cap: 0ms;
+    --motion-stagger-dur: 0ms;
     --motion-wipe-dur: 0ms;
-    --motion-checkmark-dur: 0ms;
+    --motion-check-dur: 0ms;
     --motion-content-dur: 0ms;
-    --motion-panel-dur: 0ms;
-    --motion-panel-dist: 0px;
-    /* A window still fades in rather than popping up. */
+    --motion-tab-dur: 0ms;
+    --motion-tab-travel: 0px;
     --motion-modal-dur: 160ms;
     --motion-modal-travel: 0px;
-    --motion-modal-scale: 1;
     --motion-scrim-dur: 160ms;
     /* Every colour, shadow and opacity change lands at once. */
     --motion-control-dur: 0s;
+    --motion-button-sheen-dur: 0s;
+    --drag-lift-scale: 1;
+    --drag-settle-dur: 0ms;
   }
 
   /* Two animations, one duration: the movement on the level's curve, the fade
@@ -1146,7 +1160,7 @@ body {
      end they leave an identity transform and an opacity layer on the wrapper,
      which make it the containing block and the backdrop root of every window
      inside the page, and a window's scrim and blur then stop at the page's
-     edge (check-scrim.mjs). */
+     edge (check-scrim.mjs). The tab slide below fills the same way. */
   .glim-page-enter {
     animation:
       glim-page-in var(--motion-page-dur) var(--motion-page-ease) backwards,
@@ -1165,11 +1179,9 @@ body {
      whose overshoot reads as a bounce on a window. */
   .glim-modal-backdrop { animation: glim-fade-in var(--motion-scrim-dur) ease both; }
   .glim-modal-card { animation: glim-modal-in var(--motion-modal-dur) cubic-bezier(.2, .6, .2, 1) both; }
-  /* The reorder wiggle lives in the gate so the Motion setting reaches the
-     app's one infinite animation. */
-  .glim-tab-wiggle {
-    animation: glim-tab-wiggle var(--motion-wiggle-dur) ease-in-out infinite;
-    transform-origin: 50% 50%;
+  /* Every item but the held one, which floats under the pointer instead. */
+  .glim-drag-armed > :not(.glim-drag-lift) {
+    animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
 
   /* The pulse at "off": a static dot, as under reduced motion. */
@@ -1188,34 +1200,30 @@ body {
     animation: glim-locate-reduced 900ms ease-out;
   }
   /* The wiggle at "off": a static dashed ring, the same substitute the
-     reduced-motion block uses. */
-  :root[data-motion="off"] .glim-tab-wiggle {
+     reduced-motion block uses, so the list still says it is rearrangeable. */
+  :root[data-motion="off"] .glim-drag-armed > :not(.glim-drag-lift) {
     animation: none;
     outline: 2px dashed var(--accent);
     outline-offset: 2px;
   }
 
   /* Most of the app's motion is transitions, not keyframes. They read
-     --motion-control-dur through the shape-morph rule below. This universal
+     --motion-control-dur through the transition rule below. This universal
      rule reaches the transitions this file did not write, such as CodeMirror's
      stylesheet in the log viewer. It removes durations, not transitions. */
   :root[data-motion="off"] * {
     transition-duration: 0s !important;
   }
 
-  /* Shape-morph, and the app's one transition set. Corners ease when the
-     shape setting changes; .glim-shape-armed is added by applyShape() two
-     frames after its first call, so nothing morphs on first paint.
-
-     This rule matches every element and is unlayered, so its `transition`
-     shorthand replaces those of Tailwind's transition utilities. It therefore
-     carries the whole set, with the control duration, so hover colours still
-     ease. `transform` is left out because drag, wiggle and the easter egg own
-     it. */
-  .glim-shape-armed,
-  .glim-shape-armed * {
+  /* The app's one transition set, armed with the shape morph, so hover
+     colours ease at the level's control duration and nothing fades on first
+     paint. This rule matches every element and is unlayered, so its
+     `transition` shorthand replaces those of Tailwind's transition utilities,
+     and it therefore carries the whole set. `transform` is left out because
+     drag, wiggle and the easter egg own it, and the corners because the root
+     transitions the radius tokens themselves. */
+  .glim-shape-transitions * {
     transition:
-      border-radius var(--motion-shape-dur) ease,
       background-color var(--motion-control-dur) ease,
       color var(--motion-control-dur) ease,
       border-color var(--motion-control-dur) ease,
@@ -1224,21 +1232,25 @@ body {
       stroke var(--motion-control-dur) ease,
       opacity var(--motion-control-dur) ease;
   }
+  :root.glim-shape-transitions {
+    transition:
+      --radius-card var(--motion-shape-dur) var(--motion-shape-ease),
+      --radius-control var(--motion-shape-dur) var(--motion-shape-ease),
+      --radius-pill var(--motion-shape-dur) var(--motion-shape-ease);
+  }
   /* A brand tile and its mark change colour in one frame ("Brand tiles"): a
      fade on a mark of many parts trails the tile. */
-  .glim-shape-armed .glim-brand-tile,
-  .glim-shape-armed .glim-brand-tile * {
-    transition:
-      border-radius var(--motion-shape-dur) ease,
-      opacity var(--motion-control-dur) ease;
+  .glim-shape-transitions .glim-brand-tile,
+  .glim-shape-transitions .glim-brand-tile * {
+    transition: opacity var(--motion-control-dur) ease;
   }
 
   /* Colour-wipe: a real rainbow mode change (applyRainbow()) fades every hued
      colour over one window instead of snapping. The doubled class outranks the
-     shape-morph rule above, which would otherwise win the `transition`
+     transition rule above, which would otherwise win the `transition`
      shorthand on the same elements. Opacity is left out. */
-  .glim-wipe.glim-wipe,
-  .glim-wipe.glim-wipe * {
+  .glim-colour-wipe.glim-colour-wipe,
+  .glim-colour-wipe.glim-colour-wipe * {
     transition:
       background-color var(--motion-wipe-dur) ease,
       color var(--motion-wipe-dur) ease,
@@ -1248,12 +1260,12 @@ body {
       stroke var(--motion-wipe-dur) ease;
   }
 
-  /* Confirmation pulse: the gentle opposite of glim-shake, for a field that
-     just saved. It reads --accent-soft, so a hued element pulses in its own
-     hue. Not used yet; a consumer replays it by keying the element on a
-     success counter. */
+  /* The confirmation pulse, the gentle opposite of glim-shake, for a copy, an
+     export, an import or a save that went through. It reads --accent-soft, so
+     a hued element pulses in its own hue. lib/motion.ts's replay() plays it
+     again on the same node. */
   .glim-confirm {
-    animation: glim-confirm-pulse var(--motion-confirm-dur) ease-out;
+    animation: glim-confirm var(--motion-confirm-dur) ease-out;
   }
 
   /* The located row or card, marked once scrolled into view. Twice the
@@ -1263,32 +1275,30 @@ body {
     animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;
   }
 
-  /* Staggered list fade-in, delayed by --stagger-index (the same index the
-     rainbow uses) and capped so a long list finishes in time. Not used yet. */
-  .glim-stagger {
-    animation: glim-stagger-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both;
-    animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
+  /* A tab's cards and a list's new rows arrive one after another, delayed by
+     --row-i and capped so a long list finishes in time. `backwards` holds each
+     one hidden through its delay and leaves no transform behind. */
+  .glim-stagger-row {
+    animation: glim-row-in var(--motion-stagger-dur) ease-out backwards;
+    animation-delay: min(calc(var(--row-i, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
 
-  /* Draws the checkmark in. `both` applies the undrawn start immediately. Not
-     used yet. */
-  .glim-checkmark {
-    animation: glim-checkmark-draw var(--motion-checkmark-dur) ease-out both;
+  /* Draws the checkmark in. `both` applies the undrawn start immediately. */
+  .glim-check-draw {
+    animation: glim-check-draw var(--motion-check-dur) ease-out both;
   }
 
-  /* Skeleton-to-content crossfade, once per mount. Not used yet. */
-  .glim-content-in {
-    animation: glim-fade-in var(--motion-content-dur) ease both;
+  /* Freshly loaded content fades in over its placeholder's place, once per
+     mount. */
+  .glim-content-fade {
+    animation: glim-content-fade-in var(--motion-content-dur) ease both;
   }
 
-  /* Directional panel slide: from the trailing edge towards a later section,
-     from the leading edge towards an earlier one, mirrored under RTL. Not used
-     yet. */
-  .glim-panel-in-forward {
-    animation: glim-panel-in-forward var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
-  }
-  .glim-panel-in-back {
-    animation: glim-panel-in-back var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
+  /* A settings tab change slides the new tab in from its side. */
+  .glim-tab-slide {
+    animation:
+      glim-tab-slide var(--motion-tab-dur) var(--motion-page-ease) backwards,
+      glim-fade-in var(--motion-tab-dur) ease-out backwards;
   }
 
   /* Four moments that did not move, and the easter eggs whose motion lives on
@@ -1352,7 +1362,7 @@ body {
     animation: kl-parade calc(var(--motion-content-dur) * 4) ease-in-out both;
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
-  /* Must come after .glim-checkmark, whose shorthand resets animation-delay. */
+  /* Must come after .glim-check-draw, whose shorthand resets animation-delay. */
   .kl-parade-check {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
@@ -1387,24 +1397,29 @@ body {
   /* The one period that shortens: a livelier ambient loop runs faster. */
   --motion-pulse-dur: var(--egg-storm-pulse-dur);
   --motion-pulse-min-opacity: var(--egg-storm-pulse-min);
-  --motion-wiggle-deg: 1.3deg;
+  --motion-wiggle-dur: .11s;
+  --motion-wiggle-angle: 1.3deg;
   --motion-shape-dur: 470ms;
+  --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
   --motion-confirm-dur: 760ms;
-  --motion-confirm-glow-mult: 1.8;
-  --motion-confirm-scale-mult: 1.8;
+  --motion-confirm-scale: 1.8;
   --motion-stagger-step: 54ms;
   --motion-stagger-cap: 870ms;
+  --motion-stagger-dur: 420ms;
   --motion-wipe-dur: 580ms;
-  --motion-checkmark-dur: 650ms;
+  --motion-check-dur: 650ms;
   --motion-content-dur: 400ms;
-  --motion-panel-dur: 400ms;
-  --motion-panel-dist: 34px;
+  --motion-tab-dur: 400ms;
+  --motion-tab-travel: 34px;
   --motion-modal-dur: 470ms;
   --motion-modal-travel: 19px;
-  --motion-modal-scale: .95;
   --motion-scrim-dur: 360ms;
-  /* --motion-control-dur is left at the wild value: a slow hover tint makes
-     the interface slower, not livelier. */
+  /* The top level's number: a slow hover tint makes the interface slower,
+     not livelier. */
+  --motion-control-dur: 150ms;
+  --motion-button-sheen-dur: 550ms;
+  --drag-lift-scale: 1.06;
+  --drag-settle-dur: 400ms;
 }
 
 /* Each substitute here excludes the storm, and the storm's full animation is
@@ -1427,6 +1442,13 @@ body {
   /* The bar's edge keeps its paint, since it marks where the fill ends. */
   .kl-bar-edge { animation: none; opacity: 1; }
   .kl-curve-line { animation: none; }
+  /* Without the wiggle a list being reordered still has to say it is
+     rearrangeable. The "off" rule in the gate above repeats this, since a rule
+     cannot be shared across two media queries. */
+  .glim-drag-armed > :not(.glim-drag-lift) {
+    outline: 2px dashed var(--accent);
+    outline-offset: 2px;
+  }
   /* Without the animation the shields would sit over the toast's text, so the
      row is hidden and the checkmark is drawn at once. */
   :root:not([data-motion="storm"]) .kl-parade { animation: none; opacity: 0; }
@@ -1456,7 +1478,7 @@ body {
   }
   /* The checkmark waits for the shields, as it does in the gate. */
   :root[data-motion="storm"] .kl-parade-check {
-    animation: glim-checkmark-draw var(--motion-checkmark-dur) ease-out calc(var(--motion-content-dur) * 4) both;
+    animation: glim-check-draw var(--motion-check-dur) ease-out calc(var(--motion-content-dur) * 4) both;
   }
 }
 
@@ -1565,70 +1587,20 @@ body {
   :root { --glim-scrim-blur: 0px; }
 }
 
-/* A button carrying a brand's mark (GlimStone 1.9.0). At rest the mark uses
-   the theme-adjusted colour (--brand); on hover the true colour becomes the
-   fill (--brand-fill) and label and mark switch to its measured ink
-   (--brand-ink). Use `.glim-brand-btn` with one `.glim-brand-<name>`, which
-   supplies the values.
-
-   Both `svg` and `svg path` are painted because a path with its own
-   fill="currentColor" ignores an inherited fill. A mark that brings its own
-   ground, such as a coin disc, takes none of these classes. */
-.glim-brand-btn svg,
-.glim-brand-btn svg path {
-  fill: var(--brand);
-  /* The fallback applies outside the motion gate, under OS reduced motion. */
-  transition: fill var(--motion-control-dur, 120ms);
-}
-.glim-brand-btn:hover:not(:disabled) {
-  background-color: var(--brand-fill);
-  color: var(--brand-ink);
-}
-.glim-brand-btn:hover:not(:disabled) svg,
-.glim-brand-btn:hover:not(:disabled) svg path {
-  fill: currentColor;
-}
-
-/* One block per brand: the adjusted resting mark (a token, because it changes
-   with the theme), then the true colour and its measured ink, which do not. */
-.glim-brand-coffee {
-  --brand: var(--brand-coffee);
-  --brand-fill: #ffdd00;
-  /* Buy Me a Coffee's own near-black, the ink their button uses. 13.8:1. */
-  --brand-ink: #0d0c22;
-}
-.glim-brand-bitcoin {
-  --brand: var(--brand-bitcoin);
-  --brand-fill: #f7931a;
-  --brand-ink: #161616; /* 7.9:1 */
-}
-.glim-brand-paypal {
-  --brand: var(--brand-paypal);
-  --brand-fill: #003087;
-  --brand-ink: #ffffff; /* 13.4:1 */
-}
-.glim-brand-github {
-  --brand: var(--brand-github);
-  --brand-fill: #181717;
-  --brand-ink: #ffffff; /* 18.3:1 */
-}
-
-/* The button that reaches this app's authors. Unlike a vendor's mark it
-   follows the user's accent and the rainbow, so all three values are engine
-   tokens. */
-.glim-brand-house {
-  --brand: var(--accent-ink);
-  --brand-fill: var(--accent);
-  --brand-ink: var(--accent-contrast);
-}
-
-/* The app tiles' single-colour marks at rest. */
+/* The single-colour marks at rest. A published brand colour fails on one of
+   the two grounds, so the marks take the theme-adjusted tokens above, and the
+   house mark, on the button that reaches this app's authors, follows the
+   accent. Each sits on the mark's box, where a lit tile's ink overrides it. */
 .glim-android-mark { color: var(--brand-android); }
 .glim-docker-mark { color: var(--brand-docker); }
 .glim-windows-mark { color: var(--brand-windows); }
+.glim-paypal-mark { color: var(--brand-paypal); }
+.glim-bitcoin-mark { color: var(--brand-bitcoin); }
+.glim-github-mark { color: var(--brand-github); }
+.glim-house-mark { color: var(--accent-ink); }
 
-/* A tile carrying a brand mark (GlimStone's "Brand tiles"): the app tiles and
-   the coin tiles. Under the pointer it fills with the brand's own colour
+/* A tile carrying a brand mark (GlimStone's "Brand tiles"): the README buttons
+   and the coin tiles. Under the pointer it fills with the brand's own colour
    (--tile), the same on both themes, and its name and mark take that colour's
    ink (--tile-ink). A mark paints each part with var(--mark-ink, <own colour>),
    or var(--mark-cut, <own colour>) where the part lies on another part of the
@@ -1657,9 +1629,9 @@ body {
    single-colour version for the hover. */
 .glim-mark-hover { display: none; }
 
-/* The app tiles' brands: the true colour and the ink that holds on it, white
-   wherever white reaches 2:1 and near-black below that. The coins carry theirs
-   in lib/donate.ts. */
+/* The brands' tile colours: the true colour and the ink that holds on it,
+   white wherever white reaches 2:1 and near-black below that. The coins carry
+   theirs in lib/donate.ts. */
 .glim-tile-windows { --tile: #0078d4; --tile-ink: #ffffff; } /* 4.5:1 */
 .glim-tile-apple   { --tile: #6e6e73; --tile-ink: #ffffff; } /* 5.1:1 */
 .glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
@@ -1669,15 +1641,251 @@ body {
 .glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
 .glim-tile-github  { --tile: #181717; --tile-ink: #ffffff; } /* 17.9:1 */
+.glim-tile-paypal  { --tile: #003087; --tile-ink: #ffffff; } /* 13.4:1 */
+/* White reaches 2:1 on Bitcoin's orange, as on the coin tile in lib/donate.ts. */
+.glim-tile-bitcoin { --tile: #f7931a; --tile-ink: #ffffff; } /* 2.3:1 */
+/* Buy Me a Coffee's own near-black, the ink of their button, where the rule
+   asks for a dark one. 13.8:1. */
+.glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
+/* The button that reaches this app's authors follows the colour engine. */
+.glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+/* The browsers the extension buttons offer, in the colour Simple Icons
+   publishes for each. */
+.kl-tile-chrome    { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
+.kl-tile-firefox   { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
 
-/* The browsers the extension tiles offer, in the colour Simple Icons publishes
-   for each. */
-.kl-tile-chrome  { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
-.kl-tile-edge    { --tile: #0078d7; --tile-ink: #ffffff; } /* 4.5:1 */
-.kl-tile-brave   { --tile: #fb542b; --tile-ink: #ffffff; } /* 3.3:1 */
-.kl-tile-opera   { --tile: #ff1b2d; --tile-ink: #ffffff; } /* 3.9:1 */
-.kl-tile-vivaldi { --tile: #ef3939; --tile-ink: #ffffff; } /* 4.0:1 */
-.kl-tile-firefox { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
+/* The README button (GlimStone's "The App tab"): the proportions of the
+   download buttons in the family's READMEs, 160 by 46.6 with a segment of 87
+   on a 16px rem, so a button and two segments take two places in a row. At
+   rest the mark keeps its colours and the name stands alone in the middle.
+   Under the pointer the whole unit fills with its brand's colour, the name
+   moves up and the second line comes in below it. The unit carries `group`
+   and a tile class; each button or segment in it is a `.glim-brand-tile`.
+   components/ReadmeButton.tsx draws it. */
+.glim-readme-btn-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8125rem;
+}
+
+.glim-readme-btn-unit {
+  position: relative;
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.glim-readme-btn {
+  position: relative;
+  flex: none;
+  width: 10rem;
+  height: 2.9125rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* The unit clips everything at its edge, a ring outside the button too. */
+.glim-readme-btn:focus-visible {
+  outline-offset: -3px;
+}
+
+.glim-readme-btn.glim-readme-btn-seg {
+  width: 5.4375rem;
+}
+
+.glim-readme-btn-seg::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 1.5px;
+  background-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* The height is the README's mark, and the box is wider than tall, so a wide
+   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+.glim-readme-btn-mark {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 1.5rem;
+  width: 2rem;
+  height: 1.5625rem;
+  translate: 0 -50%;
+  display: flex;
+}
+
+.glim-readme-btn-mark svg,
+.glim-readme-btn-art svg {
+  width: 100%;
+  height: 100%;
+}
+
+.glim-readme-btn-mark svg:not(.glim-mark-hover),
+.glim-readme-btn-art svg {
+  display: block;
+}
+
+/* A vendor's own button artwork, drawn on the README's canvas, which is the
+   button's: Buy Me a Coffee's cup and lettering. */
+.glim-readme-btn-art {
+  position: absolute;
+  inset: 0;
+}
+
+@media (hover: hover) {
+  .group:hover > .glim-brand-tile .glim-readme-btn-mark,
+  .group:hover .glim-readme-btn-hint {
+    color: var(--tile-ink);
+  }
+  /* A segment under the pointer is a shade deeper than the unit it lights. */
+  .glim-readme-btn-group > .glim-readme-btn:hover {
+    background-color: color-mix(in srgb, var(--tile) 86%, black);
+  }
+}
+
+.glim-readme-btn-text {
+  position: absolute;
+  inset-block: 0;
+  inset-inline: 3.9375rem 0.625rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.glim-readme-btn-seg .glim-readme-btn-text {
+  inset-inline: 0.375rem;
+  align-items: center;
+  text-align: center;
+}
+
+.glim-readme-btn-unit:has(.glim-readme-btn-hint) .glim-readme-btn-text {
+  inset-inline-end: 1.75rem;
+}
+
+.glim-readme-btn-name,
+.glim-readme-btn-sub {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The two lines glide at half the page's duration, which is no glide under
+   reduced motion, where the page duration is not set. Written through the
+   text box, so the brand tile's own transition rule, which reaches every
+   element inside a tile, does not take the glide away. */
+.glim-readme-btn-name {
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+.glim-readme-btn-text > .glim-readme-btn-name {
+  transition: translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
+}
+
+/* Half the second line's height down, so the name alone sits in the middle. */
+.glim-readme-btn-name:not(:only-child) {
+  translate: 0 0.4375rem;
+}
+
+.glim-readme-btn-sub {
+  font-size: var(--text-dense);
+  opacity: 0;
+  translate: 0 0.25rem;
+}
+.glim-readme-btn-text > .glim-readme-btn-sub {
+  transition:
+    opacity calc(var(--motion-page-dur, 0ms) / 2) ease,
+    translate calc(var(--motion-page-dur, 0ms) / 2) var(--motion-page-ease, ease);
+}
+
+/* `--note` holds the second line in view while it reports something, such as
+   a command just copied. A button still to come says so at rest. */
+.glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-name {
+  translate: 0 0;
+}
+
+.glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-sub {
+  opacity: 0.9;
+  translate: 0 0;
+}
+
+.glim-readme-btn-soon .glim-readme-btn {
+  color: var(--carbon-text-muted);
+  cursor: default;
+}
+
+.glim-readme-btn-soon .glim-readme-btn-mark {
+  opacity: 0.45;
+}
+
+/* Without a pointer there is no hover to bring the second line in. */
+@media (hover: none) {
+  .glim-readme-btn-name:not(:only-child) {
+    translate: 0 0;
+  }
+  .glim-readme-btn-sub {
+    opacity: 0.9;
+    translate: 0 0;
+  }
+}
+
+.glim-readme-btn-hint {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0.625rem;
+  z-index: 2;
+  translate: 0 -50%;
+}
+
+/* The README's sheen, here once per visit of the pointer and across the whole
+   unit, a group at nearly twice the time so it crosses at the same speed. */
+.glim-readme-btn-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.glim-readme-btn-sheen::after {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  bottom: -0.75rem;
+  left: -4rem;
+  width: 2.0625rem;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28) 45%, rgb(255 255 255 / 0.28) 55%, transparent);
+  transform: skewX(-16deg);
+}
+
+@keyframes glim-readme-sheen {
+  to {
+    left: calc(100% + 2rem);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion="off"]) .glim-readme-btn-unit:not(.glim-readme-btn-soon):hover .glim-readme-btn-sheen::after {
+    animation: glim-readme-sheen var(--motion-button-sheen-dur) linear;
+  }
+  :root:not([data-motion="off"]) .glim-readme-btn-group:hover .glim-readme-btn-sheen::after {
+    animation-duration: calc(var(--motion-button-sheen-dur) * 1.9);
+  }
+}
+
+/* The About card's give buttons stand a blank line of the card's text apart
+   from the sentences above and below them (GlimStone's "The About card"). */
+.glim-about-give {
+  margin-block: calc(var(--text-body) * 1.5);
+}
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
    out of the rail with a glint along its edge; letting go swings it down while

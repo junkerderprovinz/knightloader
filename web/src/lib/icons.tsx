@@ -541,16 +541,6 @@ export const IconGithub = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export const IconMail = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M1.8 4.4h16.4v11.2H1.8V4.4Zm2.1 1.8L10 10.6l6.1-4.4H3.9Z"
-    />
-  </svg>
-);
-
 // The context menu's glyphs, kept here so there is one drawing per idea.
 
 /** Force start: a lightning bolt, "now" rather than "sooner". */

@@ -4,13 +4,15 @@ import { useT } from '../../lib/i18n';
 import { Button, Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import { IconGithub, IconMail } from '../../lib/icons';
-import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
+import { IconGithub } from '../../lib/icons';
+import { COFFEE_BUTTON_SVG, MAIL_SVG } from '../../lib/appMarks';
+import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
+import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
 import { CoffeeDialog } from '../../components/CoffeeDialog';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
-import { followExternal, openExternal, popupsWork } from '../../lib/external';
+import { followExternal, openExternal, openMail, popupsWork } from '../../lib/external';
 
 /**
  * The help page answers the questions people have ("how do I get past a hoster
@@ -178,15 +180,6 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 
 /**
- * The shared class of the About card's controls. `glim-brand-btn` gives every
- * mark the same colouring; each call site adds its own `glim-brand-<name>`.
- */
-const ABOUT_BTN =
-  'glim-brand-btn inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-carbon-surface2' +
-  ' px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none' +
-  ' hover:bg-carbon-surface3 motion-safe:active:scale-[.98]';
-
-/**
  * releaseTag derives the release tag from a version string the way GlimStone's
  * AboutCard does: it drops semver build metadata and adds a leading 'v' only
  * where the stamp lacks one, since release builds are stamped with it.
@@ -234,8 +227,10 @@ function VersionNumber({
 
 /**
  * About shows what this is, the ways to give and to report something, and the
- * version numbers with their release links. It lives on the Help page, where
- * people already go when something does not work.
+ * version numbers with their release links. It is the last card on the General
+ * tab, where a version and a contact are looked for. Its buttons are the
+ * README's (GlimStone's "The About card"), one line each, every one with its
+ * mark.
  */
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
@@ -250,6 +245,7 @@ export function About({ hue }: { hue: number }) {
     if (await popupsWork()) setGiving('paypal');
     else openExternal(PAYPAL_PAGE);
   };
+  const mailto = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`;
   useEffect(() => {
     fetchHealth()
       .then((h) => {
@@ -261,67 +257,59 @@ export function About({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle>{t('settings.about.title')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
-      {/* Each sentence sits directly above the button it asks for. */}
+      {/* Each sentence sits directly above the buttons it asks for. */}
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
-      {/* The ways to give share one row: the hosted payments first, the
-          wallet last. Each opens its own window in the app. */}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className={`${ABOUT_BTN} glim-brand-coffee`} onClick={() => setGiving('coffee')}>
-          <span className="glim-btn-glyph">
-            <IconBuyMeACoffee />
-          </span>
-          {t('settings.about.coffeeButton')}
-        </button>
-        <button type="button" className={`${ABOUT_BTN} glim-brand-paypal`} onClick={givePaypal}>
-          <span className="glim-btn-glyph">
-            <IconPayPal />
-          </span>
-          {t('settings.about.paypal')}
-        </button>
-        {/* The mark is the bare letterform in one colour, which a brand class
-            can paint (check-brand-marks.mjs). */}
-        <button type="button" className={`${ABOUT_BTN} glim-brand-bitcoin`} onClick={() => setGiving('crypto')}>
-          <span className="glim-btn-glyph">
-            <IconBitcoin />
-          </span>
-          {t('settings.about.crypto')}
-        </button>
+      {/* The ways to give share one row, a blank line apart from the sentences
+          on both sides: the hosted payments first, the wallet last. Each opens
+          its own window in the app. Buy Me a Coffee wears its own artwork,
+          whose lettering carries the words, so its name is the accessible
+          one. */}
+      <div className="glim-readme-btn-rows glim-about-give">
+        <ReadmeButton
+          brand="coffee"
+          parts={[{ name: t('settings.about.coffeeButton'), onClick: () => setGiving('coffee') }]}
+          art={<BrandMark svg={COFFEE_BUTTON_SVG} />}
+        />
+        <ReadmeButton
+          brand="paypal"
+          parts={[{ name: t('settings.about.paypal'), onClick: () => void givePaypal() }]}
+          mark={<IconPayPal />}
+          markClass="glim-paypal-mark"
+        />
+        {/* The bare letterform, which a mark class can paint; the coin tiles
+            in the window keep the disc. */}
+        <ReadmeButton
+          brand="bitcoin"
+          parts={[{ name: t('settings.about.crypto'), onClick: () => setGiving('crypto') }]}
+          mark={<IconBitcoin />}
+          markClass="glim-bitcoin-mark"
+        />
       </div>
       {giving === 'coffee' && <CoffeeDialog onClose={stopGiving} />}
       {giving === 'paypal' && <PaypalDialog onClose={stopGiving} />}
       {giving === 'crypto' && <CryptoDonateDialog onClose={stopGiving} />}
-      {/* The extra space keeps the coffee button paired with its own sentence. */}
-      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.about.report')}</p>
-      <div className="flex flex-wrap gap-2">
-        {/* Anchors, so middle-click and copy-link work. */}
-        <a
-          href={REPO_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={followExternal}
-          className={`${ABOUT_BTN} glim-brand-github`}
-        >
-          <span className="glim-btn-glyph">
-            <IconGithub />
-          </span>
-          {t('settings.about.github')}
-        </a>
-        {/* The one control without a vendor's mark: `glim-brand-house` follows
-            the user's accent. */}
-        <a
-          href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
-          onClick={followExternal}
-          className={`${ABOUT_BTN} glim-brand-house`}
-        >
-          <span className="glim-btn-glyph">
-            <IconMail />
-          </span>
-          {t('settings.about.mail')}
-        </a>
+      <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
+      <div className="glim-readme-btn-rows">
+        {/* A link, so middle-click and copy-link work. */}
+        <ReadmeButton
+          brand="github"
+          parts={[{ name: t('settings.about.github'), href: REPO_URL }]}
+          mark={<IconGithub />}
+          markClass="glim-github-mark"
+        />
+        {/* The one control without a vendor's mark: it reaches this app's
+            authors, so it follows the user's accent, and its envelope opens
+            under the pointer. A mail address opened in a new tab would leave
+            an empty one behind, so it goes through openMail. */}
+        <ReadmeButton
+          brand="house"
+          parts={[{ name: t('settings.about.mail'), onClick: () => openMail(mailto) }]}
+          mark={<BrandMark svg={MAIL_SVG} />}
+          markClass="glim-house-mark"
+        />
       </div>
       {/* The footer: both version numbers link to their release pages (see
-          releaseTag), and the crest sits on this line because the card's
-          title badge is positioned absolutely on its top edge. */}
+          releaseTag). */}
       <p className="glim-num text-xs text-carbon-textMuted">
         {t('settings.about.version')}{' '}
         <VersionNumber version={version} repo={REPO_URL} unreleased={t('nav.workingTitle')} />
