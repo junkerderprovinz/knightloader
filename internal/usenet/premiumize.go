@@ -85,6 +85,8 @@ func (a pmAnswer) err(call string) error {
 		return fmt.Errorf("premiumize %s: %s: %w", call, msg, ErrBusy)
 	case pmTransient[code]:
 		return unreachable{fmt.Errorf("premiumize %s: %s", call, msg)}
+	case code == "not_found":
+		return fmt.Errorf("premiumize %s: %s: %w", call, msg, ErrGone)
 	}
 	if msg == "" {
 		msg = "the call failed and Premiumize.me named no reason"
@@ -217,7 +219,8 @@ func (p *Premiumize) transfer(ctx context.Context, id string) (pmTransfer, error
 
 // Status reads the transfer list once for all of ids, and for a finished
 // transfer the files it left in the cloud. Premiumize.me names no size while
-// a transfer runs, only its progress.
+// a transfer runs, only its progress. A finished transfer whose files cannot
+// be read fails on its own, so the others still come through.
 func (p *Premiumize) Status(ctx context.Context, ids []string) (map[string]Status, error) {
 	all, err := p.transfers(ctx)
 	if err != nil {
@@ -233,12 +236,18 @@ func (p *Premiumize) Status(ctx context.Context, ids []string) (map[string]Statu
 		switch strings.ToLower(tr.Status) {
 		case "finished", "seeding":
 			files, err := p.transferFiles(ctx, tr)
-			if err != nil {
+			switch {
+			case err == nil:
+				st.Phase, st.Files, st.Progress = PhaseReady, files, 1
+				for _, f := range files {
+					st.Size += f.Size
+				}
+			case errors.Is(err, ErrBusy):
 				return nil, err
-			}
-			st.Phase, st.Files, st.Progress = PhaseReady, files, 1
-			for _, f := range files {
-				st.Size += f.Size
+			case temporary(err):
+				// Its files are read again next round.
+			default:
+				st.Phase, st.Reason = PhaseFailed, err.Error()
 			}
 		case "error", "deleted", "banned", "timeout":
 			reason := strings.TrimSpace(tr.Message)
@@ -273,7 +282,9 @@ func (p *Premiumize) transferFiles(ctx context.Context, tr pmTransfer) ([]File, 
 		return []File{{ID: it.ID, Name: it.Name, Size: it.Size}}, nil
 	}
 	if tr.FolderID == "" {
-		return nil, fmt.Errorf("premiumize: transfer %s finished without a file or a folder", tr.ID)
+		// Premiumize.me leaves out both for a transfer it routed to an external
+		// cloud connected to the account.
+		return nil, fmt.Errorf("premiumize: transfer %s went to an external cloud linked to the account, and its files cannot be fetched from there", tr.ID)
 	}
 	var files []File
 	if err := p.walk(ctx, tr.FolderID, "", 0, &files); err != nil {

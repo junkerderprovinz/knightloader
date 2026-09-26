@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -228,6 +229,52 @@ func TestPremiumizeRetryLaterCodesKeepTheNZBWaiting(t *testing.T) {
 				t.Errorf("err = %v reads busy %v, retry soon %v; want %v, %v", err, errors.Is(err, ErrBusy), temporary(err), c.busy, c.soon)
 			}
 		})
+	}
+}
+
+func TestPremiumizeFailsOnlyTheTransferWhoseFilesCannotBeRead(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/transfer/list", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"status":"success","transfers":[`+
+			`{"id":"gone","name":"Gone","status":"finished","progress":1,"folder_id":"root","file_id":"f9"},`+
+			`{"id":"cloud","name":"Cloud","status":"finished","progress":1,"folder_id":null,"file_id":null},`+
+			`{"id":"flaky","name":"Flaky","status":"finished","progress":1,"folder_id":"fold1","file_id":null},`+
+			`{"id":"running","name":"Running","status":"running","progress":0.4}]}`)
+	})
+	mux.HandleFunc("/item/details", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"status":"error","message":"This item does not exist.","code":"not_found"}`)
+	})
+	mux.HandleFunc("/folder/list", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	all, err := NewPremiumize(srv.URL, "premiumize", "pm-key").Status(context.Background(), []string{"gone", "cloud", "flaky", "running"})
+	if err != nil {
+		t.Fatalf("one transfer's files failed the answer for every job: %v", err)
+	}
+	if st := all["gone"]; st.Phase != PhaseFailed {
+		t.Errorf("a transfer whose file was deleted reads %+v, want it failed", st)
+	}
+	if st := all["cloud"]; st.Phase != PhaseFailed || !strings.Contains(st.Reason, "external cloud") {
+		t.Errorf("a transfer routed to an external cloud reads %+v, want it failed with that reason", st)
+	}
+	if st := all["flaky"]; st.Phase != PhaseFetching {
+		t.Errorf("a transfer whose folder could not be read this time reads %+v, want it asked about again", st)
+	}
+	if st := all["running"]; st.Phase != PhaseFetching || st.Progress != 0.4 {
+		t.Errorf("the running transfer reads %+v, want its progress", st)
+	}
+}
+
+func TestPremiumizeReadsAnItemItNoLongerHasAsGone(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"status":"error","message":"This item does not exist.","code":"not_found"}`)
+	}))
+	defer srv.Close()
+	if _, err := NewPremiumize(srv.URL, "premiumize", "pm-key").Link(context.Background(), "tr1", "f9"); !errors.Is(err, ErrGone) {
+		t.Errorf("err = %v, want ErrGone", err)
 	}
 }
 
