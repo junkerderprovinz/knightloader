@@ -3049,4 +3049,7 @@ export const vi: Dict = {
   'settings.torrents.keepOnServiceHint': 'Khi tắt, KnightLoader xóa một torrent khỏi dịch vụ debrid ngay khi mọi tệp của nó đã về đây, và làm tương tự với một lượt tải được nhập từ tài khoản, để không thứ nào dồn lại chiếm giới hạn của tài khoản. Một lượt tải đã nhập mà bạn gỡ bỏ ở đây trước khi nó hoàn tất cũng bị xóa ở bên đó. Khi bật, cả hai đều ở lại trên dịch vụ, chẳng hạn để sau này bạn có thể phát trực tuyến từ đó. Một torrent do KnightLoader thêm vào sẽ bị xóa trong mọi trường hợp nếu bạn gỡ bỏ nó trước khi hoàn tất, còn một torrent mà tài khoản đã có sẵn thì không bao giờ bị xóa.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

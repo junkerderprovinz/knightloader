@@ -3048,4 +3048,7 @@ export const el: Dict = {
   'settings.torrents.keepOnServiceHint': 'Όταν αυτό είναι ανενεργό, το KnightLoader διαγράφει ένα torrent από την υπηρεσία debrid μόλις βρεθούν εδώ όλα τα αρχεία του, και κάνει το ίδιο με μια λήψη που εισήχθη από τον λογαριασμό, ώστε να μη συσσωρεύεται τίποτα εκεί και να μην εξαντλούνται τα όρια του λογαριασμού. Αν αφαιρέσεις εδώ μια εισαγμένη λήψη πριν ολοκληρωθεί, διαγράφεται και εκεί. Όταν είναι ενεργό, μένουν και τα δύο στην υπηρεσία, για παράδειγμα για να τα κάνεις stream από εκεί αργότερα. Ένα torrent που πρόσθεσε το KnightLoader διαγράφεται σε κάθε περίπτωση αν το αφαιρέσεις πριν ολοκληρωθεί, ενώ ένα που είχε ήδη ο λογαριασμός δεν διαγράφεται ποτέ.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

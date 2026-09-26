@@ -2,6 +2,7 @@ package app
 
 import (
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -88,17 +89,25 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 		name   string
 		set    rules.Set
 		wantIn []string
+		// The sentence again as a code with its values, which the interface
+		// words in the reader's language.
+		wantCode   string
+		wantParams map[string]string
 	}{
 		{
 			name: "the rule's own words, with the rule named alongside them",
 			set:  rejectRule("sample files are not wanted here"),
 			// The reason is what the user reads, the rule name is what they edit.
-			wantIn: []string{"sample files are not wanted here", "no samples"},
+			wantIn:     []string{"sample files are not wanted here", "no samples"},
+			wantCode:   skipFilterRuleReason,
+			wantParams: map[string]string{"reason": "sample files are not wanted here", "rule": "no samples"},
 		},
 		{
-			name:   "a rule that gave no reason still names itself",
-			set:    rejectRule(""),
-			wantIn: []string{"no samples"},
+			name:       "a rule that gave no reason still names itself",
+			set:        rejectRule(""),
+			wantIn:     []string{"no samples"},
+			wantCode:   rules.CodeFilterRule,
+			wantParams: map[string]string{"rule": "no samples"},
 		},
 	}
 	for _, tc := range cases {
@@ -120,6 +129,9 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 				if !strings.Contains(got.SkipReason, want) {
 					t.Errorf("the reason reads %q, want it to mention %q", got.SkipReason, want)
 				}
+			}
+			if got.SkipCode != tc.wantCode || !maps.Equal(got.SkipParams, tc.wantParams) {
+				t.Errorf("the reason's code is %q %v, want %q %v", got.SkipCode, got.SkipParams, tc.wantCode, tc.wantParams)
 			}
 			if len(got.MatchedRules) != 1 || got.MatchedRules[0] != "no samples" {
 				t.Errorf("matched rules = %v, want the rule that caught it as data rather than only inside the sentence", got.MatchedRules)

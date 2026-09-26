@@ -3049,4 +3049,7 @@ export const id: Dict = {
   'settings.torrents.keepOnServiceHint': 'Kalau ini mati, KnightLoader menghapus torrent dari layanan debrid begitu semua berkasnya sudah di sini, dan melakukan hal yang sama pada unduhan yang diimpor dari akun, jadi keduanya tidak menumpuk dan menghabiskan batas akun. Unduhan hasil impor yang kamu hapus di sini sebelum selesai juga dihapus di sana. Kalau ini menyala, keduanya tetap di layanan, misalnya supaya kamu bisa streaming dari sana nanti. Torrent yang ditambahkan KnightLoader selalu dihapus kalau kamu menghapusnya sebelum selesai, apa pun pengaturan ini, dan torrent yang sudah ada di akun sebelumnya tidak pernah dihapus.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -3048,4 +3048,7 @@ export const ar: Dict = {
   'settings.torrents.keepOnServiceHint': 'حين يكون هذا مطفأً، يحذف KnightLoader التورنت من خدمة debrid بمجرد أن تصبح كل ملفاته هنا، ويفعل الشيء نفسه مع التنزيل المستورد من الحساب، كي لا يتراكم أي منهما هناك على حساب حدود الحساب. والتنزيل المستورد الذي تزيله هنا قبل اكتماله يُحذف هناك أيضًا. وحين يكون مشغّلًا، يبقى كلاهما على الخدمة، مثلًا كي تشغّلهما بثًّا من هناك لاحقًا. أما التورنت الذي أضافه KnightLoader فيُحذف في كل الأحوال إن أزلته قبل اكتماله، والتورنت الذي كان في الحساب من قبل لا يُحذف أبدًا.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -3049,4 +3049,7 @@ export const hi: Dict = {
   'settings.torrents.keepOnServiceHint': 'यह बंद होने पर, जैसे ही किसी टॉरेंट की सारी फ़ाइलें यहाँ आ जाती हैं, KnightLoader उसे debrid सेवा से मिटा देता है, और खाते से आयात किए गए डाउनलोड के साथ भी यही करता है, ताकि कुछ भी खाते की सीमाओं तक जमा न होता जाए। आयात किया गया जो डाउनलोड आप पूरा होने से पहले यहाँ हटाते हैं, वह वहाँ भी मिटा दिया जाता है। यह चालू होने पर दोनों सेवा पर बने रहते हैं, उदाहरण के लिए ताकि आप बाद में उन्हें वहाँ से स्ट्रीम कर सकें। KnightLoader का जोड़ा हुआ टॉरेंट, अगर आप उसे पूरा होने से पहले हटाते हैं, तो हर हाल में मिटा दिया जाता है, और जो टॉरेंट खाते में पहले से था, वह कभी नहीं मिटाया जाता।',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

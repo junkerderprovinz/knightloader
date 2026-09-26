@@ -3049,4 +3049,7 @@ export const bg: Dict = {
   'settings.torrents.keepOnServiceHint': 'Когато е изключено, KnightLoader изтрива торента от debrid услугата, щом всичките му файлове са тук, и прави същото с изтегляне, внесено от акаунта, за да не се трупа нищо там за сметка на лимитите на акаунта. Внесено изтегляне, което премахнеш тук, преди да е завършило, се изтрива и там. Когато е включено, и двете остават в услугата, например за да можеш по-късно да ги стриймваш оттам. Торент, добавен от KnightLoader, се изтрива във всеки случай, ако го премахнеш, преди да е завършил, а такъв, който акаунтът вече е имал, никога не се изтрива.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

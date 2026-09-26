@@ -3048,4 +3048,7 @@ export const tr: Dict = {
   'settings.torrents.keepOnServiceHint': 'Bu kapalıyken KnightLoader, bir torrentin tüm dosyaları buraya gelir gelmez onu debrid hizmetinden siler ve hesaptan içe aktarılan bir indirmeye de aynısını yapar; böylece hiçbiri orada birikip hesabın sınırlarını doldurmaz. İçe aktarılmış bir indirmeyi bitmeden burada kaldırırsan orada da silinir. Bu açıkken ikisi de hizmette kalır, örneğin onları sonra oradan akışla izleyebilmen için. KnightLoader’ın eklediği bir torrent, bitmeden kaldırırsan her durumda silinir; hesapta zaten olan bir torrent ise asla silinmez.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

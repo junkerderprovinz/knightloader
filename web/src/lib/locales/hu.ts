@@ -3048,4 +3048,7 @@ export const hu: Dict = {
   'settings.torrents.keepOnServiceHint': 'Ha ez ki van kapcsolva, a KnightLoader törli a torrentet a debrid szolgáltatásról, amint minden fájlja itt van, és ugyanígy tesz a fiókból importált letöltéssel is, hogy egyik se gyűljön fel ott a fiók korlátait terhelve. Ha egy importált letöltést a befejezése előtt itt eltávolítasz, ott is törlődik. Ha be van kapcsolva, mindkettő a szolgáltatásnál marad, például hogy később onnan streamelhesd őket. A KnightLoader által hozzáadott torrent mindenképp törlődik, ha a befejezése előtt eltávolítod, a fiókban már korábban is meglévő torrent pedig soha nem törlődik.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

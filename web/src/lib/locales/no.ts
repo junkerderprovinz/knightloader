@@ -3051,4 +3051,7 @@ export const no: Dict = {
   'settings.torrents.keepOnServiceHint': 'Når dette er av, sletter KnightLoader en torrent fra debrid-tjenesten så snart alle filene dens er her, og gjør det samme med en nedlasting som er importert fra kontoen, så ingen av dem blir liggende der og teller mot grensene til kontoen. En importert nedlasting du fjerner her før den er ferdig, slettes der også. Når dette er på, blir begge liggende på tjenesten, for eksempel så du kan strømme dem derfra senere. En torrent KnightLoader la til, slettes uansett hvis du fjerner den før den er ferdig, og en som kontoen allerede hadde, slettes aldri.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

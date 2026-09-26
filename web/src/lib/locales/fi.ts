@@ -3050,4 +3050,7 @@ export const fi: Dict = {
   'settings.torrents.keepOnServiceHint': 'Kun tämä on pois päältä, KnightLoader poistaa torrentin debrid-palvelusta heti, kun kaikki sen tiedostot ovat täällä, ja tekee samoin tililtä tuodulle lataukselle, jottei kumpikaan kasaannu sinne tilin rajoja kuluttamaan. Tuotu lataus, jonka poistat täältä ennen kuin se on valmis, poistetaan myös sieltä. Kun tämä on päällä, molemmat jäävät palveluun, esimerkiksi jotta voit suoratoistaa ne sieltä myöhemmin. KnightLoaderin lisäämä torrent poistetaan joka tapauksessa, jos poistat sen ennen kuin se on valmis, ja torrenttia, joka tilillä oli jo ennestään, ei poisteta koskaan.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

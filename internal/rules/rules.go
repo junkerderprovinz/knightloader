@@ -236,7 +236,16 @@ type Verdict struct {
 	Rejected bool   `json:"rejected"`
 	Rule     string `json:"rule,omitempty"`
 	Reason   string `json:"reason,omitempty"`
+	// Code keys Reason for an interface with words of its own, and Params
+	// holds the values its wording needs. It is empty for a reason somebody
+	// wrote, which is shown as written.
+	Code   string            `json:"code,omitempty"`
+	Params map[string]string `json:"params,omitempty"`
 }
+
+// CodeFilterRule is the code of the reason a rule without one of its own is
+// refused with. Its one value is "rule", the rule's name.
+const CodeFilterRule = "filterRule"
 
 // Problem is one rule Compile could not use, in words meant for the user.
 type Problem struct {
@@ -511,7 +520,7 @@ func (m *Matcher) Check(c Candidate) Verdict {
 	var v Verdict
 	m.walk(c, func(r compiled, g groups) bool {
 		if r.act.Reject {
-			v = Verdict{Rejected: true, Rule: r.name, Reason: m.reason(r, c, g)}
+			v = m.rejection(r, c, g)
 			return false
 		}
 		if m.stopAfterMatch {
@@ -522,14 +531,19 @@ func (m *Matcher) Check(c Candidate) Verdict {
 	return v
 }
 
-// reason is never empty: a rule without a reason still has a name.
-func (m *Matcher) reason(r compiled, c Candidate, g groups) string {
+// rejection is the verdict of a rule that refuses. Its reason is never empty:
+// a rule without a reason still has a name.
+func (m *Matcher) rejection(r compiled, c Candidate, g groups) Verdict {
+	v := Verdict{Rejected: true, Rule: r.name}
 	if r.act.Reason != "" {
 		if out := strings.TrimSpace(m.expand(r.act.Reason, "reason", c, g)); out != "" {
-			return out
+			v.Reason = out
+			return v
 		}
 	}
-	return fmt.Sprintf("blocked by filter rule %q", r.name)
+	v.Reason = fmt.Sprintf("blocked by filter rule %q", r.name)
+	v.Code, v.Params = CodeFilterRule, map[string]string{"rule": r.name}
+	return v
 }
 
 // ResetAppend clears the <jd:append> counter, so a caller that treats each

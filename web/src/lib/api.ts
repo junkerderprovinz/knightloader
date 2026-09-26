@@ -90,7 +90,10 @@ export interface Task {
   enabled: boolean;
   /** Parked without failing: not started, not an error either. */
   skipped?: boolean;
+  /** Why, in English; lib/heldReason.ts words it from skipCode where it can. */
   skipReason?: string;
+  skipCode?: string;
+  skipParams?: Record<string, string>;
   /** Parked by the user; "resume everything" leaves it alone. */
   hold?: boolean;
   /** Runs now, past the concurrency and per-host limits. */

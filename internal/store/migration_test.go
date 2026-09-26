@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"testing"
 	"time"
@@ -168,6 +169,43 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	}
 	if got.Resumable == nil || *got.Resumable != yes {
 		t.Errorf("resumable = %v, want %v", got.Resumable, yes)
+	}
+}
+
+// A held link is worded from its code in the reader's language, so the code
+// and its values have to come back from a restart as they were written.
+func TestAHeldLinksReasonCodeSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	params := map[string]string{"host": "tracker.example.org"}
+	task := core.Task{
+		ID: "held", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", CreatedAt: time.Now(),
+		Status: core.StatusCollected, Skipped: true,
+		SkipReason: "announces tracker.example.org, which is on the banned trackers list",
+		SkipCode:   "bannedTracker", SkipParams: params,
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if got := all[0]; got.SkipCode != "bannedTracker" || !maps.Equal(got.SkipParams, params) {
+		t.Errorf("came back with code %q %v, want %q %v", got.SkipCode, got.SkipParams, "bannedTracker", params)
 	}
 }
 

@@ -3059,4 +3059,7 @@ export const cs: Dict = {
   'settings.torrents.keepOnServiceHint': 'Když je vypnuto, KnightLoader smaže torrent z debrid služby, jakmile jsou tady všechny jeho soubory, a stejně naloží se stahováním importovaným z účtu, takže se tam nic nehromadí na úkor limitů účtu. Importované stahování, které tady odebereš dřív, než se dokončí, se smaže i tam. Když je zapnuto, obojí ve službě zůstane, třeba aby se dalo později streamovat přímo odtamtud. Torrent, který přidal KnightLoader, se smaže v každém případě, když ho odebereš před dokončením, a torrent, který už účet měl, se nesmaže nikdy.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

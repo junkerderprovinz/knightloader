@@ -3040,4 +3040,7 @@ export const et: Dict = {
   'settings.torrents.keepOnServiceHint': 'Kui see on väljas, kustutab KnightLoader torrenti debrid-teenusest kohe, kui kõik selle failid on siin, ja teeb sama kontolt imporditud allalaadimisega, et kumbki ei kuhjuks sinna konto piiranguid täitma. Imporditud allalaadimine, mille eemaldad siin enne selle lõppu, kustutatakse ka seal. Kui see on sees, jäävad mõlemad teenusesse, näiteks et saaksid neid hiljem sealt voogedastada. KnightLoaderi lisatud torrent kustutatakse igal juhul, kui eemaldad selle enne lõppu, ja torrentit, mis kontol juba oli, ei kustutata kunagi.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -3048,4 +3048,7 @@ export const th: Dict = {
   'settings.torrents.keepOnServiceHint': 'เมื่อปิดอยู่ KnightLoader จะลบทอร์เรนต์ออกจากบริการ debrid ทันทีที่ไฟล์ทั้งหมดของมันมาถึงที่นี่ และทำแบบเดียวกันกับดาวน์โหลดที่นำเข้าจากบัญชี เพื่อไม่ให้อะไรสะสมจนชนขีดจำกัดของบัญชี ดาวน์โหลดที่นำเข้าซึ่งคุณนำออกที่นี่ก่อนเสร็จจะถูกลบที่นั่นด้วย เมื่อเปิดอยู่ ทั้งสองอย่างจะอยู่บนบริการต่อไป เช่น เพื่อให้คุณสตรีมจากที่นั่นได้ภายหลัง ทอร์เรนต์ที่ KnightLoader เพิ่มจะถูกลบไม่ว่ากรณีใดถ้าคุณนำออกก่อนเสร็จ และทอร์เรนต์ที่บัญชีมีอยู่แล้วจะไม่ถูกลบเลย',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

@@ -3033,4 +3033,7 @@ export const pl: Dict = {
   'settings.torrents.keepOnServiceHint': 'Gdy przełącznik jest wyłączony, KnightLoader usuwa torrent z usługi debrid, gdy tylko wszystkie jego pliki są tutaj, i tak samo postępuje z pobraniem zaimportowanym z konta, żeby nic się tam nie gromadziło i nie obciążało limitów konta. Zaimportowane pobranie, które usuniesz tutaj przed ukończeniem, zostaje usunięte także tam. Gdy przełącznik jest włączony, jedno i drugie zostaje w usłudze, na przykład żeby można je było później stamtąd streamować. Torrent dodany przez KnightLoader zostaje usunięty w każdym przypadku, jeśli usuniesz go przed ukończeniem, a torrent, który konto już miało, nie jest usuwany nigdy.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

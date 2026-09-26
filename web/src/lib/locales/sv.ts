@@ -3049,4 +3049,7 @@ export const sv: Dict = {
   'settings.torrents.keepOnServiceHint': 'När det här är av raderar KnightLoader en torrent från debrid-tjänsten så snart alla dess filer är här, och gör likadant med en nedladdning som har importerats från kontot, så att inget av dem blir liggande där och räknas mot kontots gränser. En importerad nedladdning som du tar bort här innan den är klar raderas där också. När det här är på stannar båda på tjänsten, till exempel så att du kan streama dem därifrån senare. En torrent som KnightLoader har lagt till raderas i vilket fall som helst om du tar bort den innan den är klar, och en som kontot redan hade raderas aldrig.',
   'settings.access.tokens.name': 'Name',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
+  'collector.filtered.reason.bannedTracker': 'announces {host}, which is on the banned trackers list',
+  'collector.filtered.reason.filterRule': 'blocked by link filter rule "{rule}"',
+  'collector.filtered.reason.filterRuleReason': '{reason} (link filter rule "{rule}")',
 };

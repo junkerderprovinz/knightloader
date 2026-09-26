@@ -358,13 +358,16 @@ func TestApplyDoesNotAliasRuleValues(t *testing.T) {
 }
 
 // TestCheckAlwaysExplainsARejection: however sparse the rule, a rejected link
-// comes back with a rule name and a reason.
+// comes back with a rule name and a reason. The default reason carries a code,
+// so an interface can word it in its own language; a reason somebody wrote
+// carries none.
 func TestCheckAlwaysExplainsARejection(t *testing.T) {
 	cases := []struct {
 		name       string
 		rule       Rule
 		wantRule   string
 		wantReason string
+		wantCode   string
 	}{
 		{
 			name:       "reason given",
@@ -377,6 +380,7 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			rule:       Rule{Name: "no samples", Action: Action{Reject: true}},
 			wantRule:   "no samples",
 			wantReason: `blocked by filter rule "no samples"`,
+			wantCode:   CodeFilterRule,
 		},
 		{
 			// An unnamed rule is named by its position.
@@ -384,12 +388,14 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			rule:       Rule{Action: Action{Reject: true}},
 			wantRule:   "rule 1",
 			wantReason: `blocked by filter rule "rule 1"`,
+			wantCode:   CodeFilterRule,
 		},
 		{
 			name:       "reason is whitespace",
 			rule:       Rule{Name: "x", Action: Action{Reject: true, Reason: "   "}},
 			wantRule:   "x",
 			wantReason: `blocked by filter rule "x"`,
+			wantCode:   CodeFilterRule,
 		},
 	}
 	for _, c := range cases {
@@ -407,6 +413,12 @@ func TestCheckAlwaysExplainsARejection(t *testing.T) {
 			}
 			if v.Reason != c.wantReason {
 				t.Errorf("Reason = %q, want %q", v.Reason, c.wantReason)
+			}
+			if v.Code != c.wantCode {
+				t.Errorf("Code = %q, want %q", v.Code, c.wantCode)
+			}
+			if c.wantCode != "" && v.Params["rule"] != c.wantRule {
+				t.Errorf("Params = %v, want the rule %q", v.Params, c.wantRule)
 			}
 		})
 	}
