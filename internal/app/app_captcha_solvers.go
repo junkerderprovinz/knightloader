@@ -180,7 +180,8 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 	}
 	// Claimed first, so a challenge JD lists again after it dropped out of a
 	// poll is never paid for a second time.
-	if !a.captchaStateFor().paid.claim(c.ID, time.Now()) {
+	ledger := &a.captchaStateFor().paid
+	if !ledger.claim(c.ID, time.Now()) {
 		return
 	}
 
@@ -207,11 +208,15 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		ctx, cancel = context.WithDeadline(a.ctx, c.ExpiresAt)
 		defer cancel()
 	}
-	if !a.holdForWatchers(ctx, c, report) {
-		// A challenge that dropped out of one poll ends the wait, and JD may
-		// list it again; only markSent has to keep it from a second solve.
-		a.captchaStateFor().paid.release(c.ID)
-		return
+	for !a.holdForWatchers(ctx, c, report) {
+		// A challenge that dropped out of one poll ends the wait, and only
+		// markSent has to keep it from a second solve, so the claim goes. If JD
+		// listed it again before that, the solve the poll started gave up on
+		// the claim, and the challenge is taken up again here.
+		ledger.release(c.ID)
+		if ctx.Err() != nil || a.captchaSwitchedOff() || !a.captchaPending(c.ID) || !ledger.claim(c.ID, time.Now()) {
+			return
+		}
 	}
 
 	for _, s := range willing {
@@ -224,7 +229,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		report.State, report.Solver = captcha.SolverSolving, s.label
 		a.reportSolver(c.ID, report)
 
-		a.captchaStateFor().paid.markSent(c.ID, time.Now())
+		ledger.markSent(c.ID, time.Now())
 		text, err := s.Solve(ctx, c)
 		if err == nil {
 			if a.captchaSwitchedOff() {
