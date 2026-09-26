@@ -175,6 +175,9 @@ type DownloadLink struct {
 	Status      string `json:"status"`
 }
 
+// done reports whether JD has finished the link.
+func (l DownloadLink) done() bool { return l.Finished || l.Status == "Finished" }
+
 // QueryDownloads returns the live download links for one package. Scoping the
 // query keeps the response small and away from unrelated links whose odd
 // filenames can make JD emit malformed JSON.
@@ -205,6 +208,8 @@ type downloadPackage struct {
 	UUID   int64  `json:"uuid"`
 	Name   string `json:"name"`
 	Status string `json:"status"`
+	// SaveTo is the folder JD writes the package's files into, as JD sees it.
+	SaveTo string `json:"saveTo"`
 }
 
 // PackageUUID returns the download-list package whose name matches, or 0.
@@ -221,6 +226,7 @@ func (c *Client) Package(name string) (*downloadPackage, error) {
 	data, err := c.call("/downloadsV2/queryPackages", map[string]any{
 		"packageUUIDs": []int64{},
 		"status":       true,
+		"saveTo":       true,
 	})
 	if err != nil {
 		return nil, err
