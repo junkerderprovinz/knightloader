@@ -3,7 +3,6 @@ import {
   IconAccounts,
   IconArchive,
   IconBolt,
-  IconBrowser,
   IconCaptcha,
   IconClipboard,
   IconClock,
@@ -19,6 +18,8 @@ import {
   IconLook,
   IconModules,
   IconSliders,
+  IconTabApp,
+  IconTabGeneral,
   IconUpload,
 } from '../../lib/icons';
 
@@ -45,7 +46,9 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   torrents: IconUpload,
   captcha: IconCaptcha,
   automation: IconClock,
-  look: IconSliders,
+  // General, Look, App and Remote access wear the glyphs GlimStone gives
+  // those tabs in every app; the cog is Settings itself and no tab in it.
+  look: IconTabGeneral,
   appearance: IconLook,
   access: IconLock,
   advanced: IconSliders,
@@ -54,7 +57,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   diagnostics: IconDiagnostics,
   help: IconHelp,
   shortcuts: IconKeyboard,
-  browsertools: IconBrowser,
+  browsertools: IconTabApp,
 };
 
 /** pageGlyph is the page's glyph unsized, for a badge that sizes its own. */
