@@ -930,11 +930,14 @@ func (a *App) dispatchLocked() {
 		// "name (1).ext", once per restart, so it goes before the backend
 		// starts.
 		own := a.ownFileLocked(t)
+		// A torrent takes up the place its earlier attempt had, which is no
+		// collision for that torrent.
+		ownPlace := torrent.IsURI(result.DirectURL) && engine.TakesUpAgain(t.File, dir)
 		// Skip is the one policy decidable here, since it only refuses to
 		// start; rename and overwrite need to name the file, which only the
 		// engine can be told. Without a resolved name there is nothing to
 		// check.
-		if policy == collide.Skip && filename(t) != "" {
+		if policy == collide.Skip && filename(t) != "" && !ownPlace {
 			// The sanitised name is what would land on disk. The task's own
 			// leftover is not in its way.
 			target := filepath.Join(dir, collide.SafeName(t.Name))

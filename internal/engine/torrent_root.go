@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -39,16 +40,11 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 	e.rootMu.Lock()
 	defer e.rootMu.Unlock()
 	dir := opts.Path
-	if prev := j.TorrentRoot; prev != "" {
-		if parent := filepath.Dir(prev); parent == dir || filepath.Dir(parent) == dir {
-			r := torrentRoot{dir: parent, path: prev}
-			if parent != dir {
-				r.nest = parent
-			}
-			opts.Path = parent
-			e.roots[j.TaskID] = r
-			return nil
-		}
+	if TakesUpAgain(j.TorrentRoot, dir) {
+		r := placeOf(dir, j.TorrentRoot)
+		opts.Path = r.dir
+		e.roots[j.TaskID] = r
+		return nil
 	}
 	name := expectedName(j)
 	if name == "" {
@@ -79,6 +75,44 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 			return err
 		}
 	}
+}
+
+// TakesUpAgain reports whether a torrent that landed at root starts again in
+// that place when its folder is dir: root is in dir, or in the folder made for
+// it there because its name was taken.
+func TakesUpAgain(root, dir string) bool {
+	parent := filepath.Dir(root)
+	return root != "" && (parent == dir || filepath.Dir(parent) == dir)
+}
+
+// placeOf is the place of a torrent that landed at root, put in the folder
+// dir.
+func placeOf(dir, root string) torrentRoot {
+	r := torrentRoot{dir: filepath.Dir(root), path: root}
+	if r.dir != dir && filepath.Dir(r.dir) == dir {
+		r.nest = r.dir
+	}
+	return r
+}
+
+// DeleteTorrentFiles deletes the files of a torrent this engine does not know,
+// such as one from before a restart. root is where it landed (see
+// Job.TorrentRoot), dir the folder it was put in, and paths its files' paths
+// inside the torrent. Only those files go, finished or still being written,
+// with the folders they leave empty.
+func DeleteTorrentFiles(dir, root string, paths []string) {
+	if root == "" {
+		return
+	}
+	r := placeOf(dir, root)
+	if fi, err := os.Lstat(root); err == nil && fi.IsDir() {
+		for _, p := range paths {
+			r.files = append(r.files, path.Join(filepath.Base(root), p))
+		}
+	} else {
+		r.files = []string{filepath.Base(root)}
+	}
+	r.remove()
 }
 
 // expectedName is the name a torrent's folder or file will have, as far as
