@@ -857,7 +857,8 @@ submission and for a fixed download.
 - **The Chrome button on the App page lights up in the README's Chrome blue.**
 - **The Advanced tab shows a hammer and a wrench**, the glyph every GlimStone
   app gives that tab, drawn as large as General's sliders beside it.
-- **The browser extension's popup shows a glyph on its Instances tab.**
+- **The browser extension's popup shows a glyph on both its tabs**, the
+  collector's the one the web UI's sidebar draws.
 - **Copy report on the extension's options page says "Copied" at the button**,
   with a check that draws itself and a short pulse. The line in the Group card
   that said it before was usually out of view.
