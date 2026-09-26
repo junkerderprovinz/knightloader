@@ -94,6 +94,13 @@ func ytdlpHelper(mode string) {
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"),
 			[]byte(`{"id":"live1","title":"Weekend Stream","uploader":"Some Channel"}`), 0o644)
 		fmt.Println("[download] Destination: " + final)
+	case "livelong":
+		// A recording that is still going when the test looks, and ends by
+		// itself a moment later.
+		for i := 1; i <= 3; i++ {
+			fmt.Printf("KLP:{\"live\":\"True\",\"p\":{\"downloaded_bytes\":%d,\"speed\":1000.0}}\n", i*(256<<10))
+		}
+		time.Sleep(time.Second)
 	case "hang":
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
@@ -519,5 +526,46 @@ func TestHaltStopsYtdlpQuietlyAndResumeGoesOnInTheNewFolder(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(second, "A Video.mkv")); err != nil {
 		t.Errorf("the resumed run did not write into the folder Dir names after the halt: %v", err)
+	}
+}
+
+// Recording tells a live stream being recorded from a download, since a halt
+// ends a recording instead of pausing it.
+func TestRecordingTellsALiveStreamFromADownload(t *testing.T) {
+	for _, tc := range []struct {
+		mode string
+		live bool
+	}{{"livelong:full", true}, {"hang:full", false}} {
+		t.Run(tc.mode, func(t *testing.T) {
+			t.Setenv(runHelperEnv, tc.mode)
+			rec := &recorder{}
+			b := NewBackend(os.Args[0], t.TempDir(), rec.add)
+			b.FFprobe = os.Args[0]
+			b.Options = func(string) Options { return Options{Live: Live{Enabled: tc.live}} }
+			b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+			defer b.Remove("task-1", false)
+			deadline := time.Now().Add(30 * time.Second)
+			for rec.last().Loaded == 0 {
+				if time.Now().After(deadline) {
+					t.Fatal("yt-dlp never reported progress")
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+			if got := b.Recording("task-1"); got != tc.live {
+				t.Errorf("Recording = %v, want %v", got, tc.live)
+			}
+			if !tc.live {
+				return
+			}
+			for rec.last().Status != core.StatusDone {
+				if time.Now().After(deadline) {
+					t.Fatal("the recording never ended")
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+			if b.Recording("task-1") {
+				t.Error("Recording is still true once the recording has ended")
+			}
+		})
 	}
 }
