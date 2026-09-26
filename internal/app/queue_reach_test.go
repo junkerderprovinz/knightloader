@@ -149,14 +149,14 @@ func TestPackageMoveNeedsOneMovableRowInThePackage(t *testing.T) {
 }
 
 // stageIn is stage with a chosen status instead of a fixed queued. The tasks are
-// held, so the dispatcher passes them over and leaves them where they are.
+// disabled, so the dispatcher passes them over and leaves them where they are.
 func stageIn(a *App, status core.Status, ids ...string) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	for _, id := range ids {
 		a.tasks[id] = &core.Task{
 			ID: id, URL: "https://host.example/" + id + ".bin",
-			Status: status, Enabled: true, Hold: true,
+			Status: status, Enabled: false,
 			CreatedAt: time.Now().Add(time.Duration(len(a.tasks)) * time.Second),
 		}
 		a.queue = append(a.queue, id)
@@ -178,7 +178,7 @@ func stagePackage(a *App, pkg string, rows ...stagedRow) {
 	for _, r := range rows {
 		a.tasks[r.id] = &core.Task{
 			ID: r.id, URL: "https://host.example/" + r.id + ".bin", Package: pkg,
-			Status: r.status, Enabled: true, Hold: true,
+			Status: r.status, Enabled: false,
 			CreatedAt: time.Now().Add(time.Duration(len(a.tasks)) * time.Second),
 		}
 		a.queue = append(a.queue, r.id)

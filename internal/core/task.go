@@ -131,8 +131,6 @@ const (
 	WaitingForced Waiting = "forced"
 	// WaitingDisabled is the task's own switch being off.
 	WaitingDisabled Waiting = "disabled"
-	// WaitingHold is the task being parked by hand.
-	WaitingHold Waiting = "hold"
 	// WaitingCaptcha is a challenge waiting for a person.
 	WaitingCaptcha Waiting = "captcha"
 	// WaitingAccount is every backend that claims the link having a benched,
@@ -393,10 +391,11 @@ type Task struct {
 	// did. The qBittorrent door reports the time from FinishedAt to it as the
 	// torrent's seeding time.
 	SeedingEnded time.Time `json:"seedingEnded,omitzero"`
-	// Enabled is the user's switch for one link; a disabled link keeps its
-	// place and progress but is not started. It defaults to true in the column
-	// too, because a false default would disable the whole queue on upgrade,
-	// and every place that builds a Task sets it explicitly.
+	// Enabled is the one way to park a link. A disabled link keeps its place
+	// and progress, and nothing starts it, "resume everything" included, until
+	// it is enabled again. It defaults to true in the column too, because a
+	// false default would disable the whole queue on upgrade, and every place
+	// that builds a Task sets it explicitly.
 	Enabled bool `json:"enabled"`
 	// Skipped parks a link without failing it. It is a flag rather than a
 	// Status for the same reason as GaveUp.
@@ -408,9 +407,6 @@ type Task struct {
 	// Empty for a reason somebody wrote. Neither is changed after it is set.
 	SkipCode   string            `json:"skipCode,omitempty"`
 	SkipParams map[string]string `json:"skipParams,omitempty"`
-	// Hold is a link the user parked. Unlike paused, "resume everything" does
-	// not start it.
-	Hold bool `json:"hold,omitempty"`
 	// Forced starts a task now, past the concurrency and per-host limits.
 	Forced bool `json:"forced,omitempty"`
 	// ConfirmDue is when the auto-confirm countdown holding this collected
@@ -433,7 +429,7 @@ type Task struct {
 	Source string `json:"source,omitempty"`
 	// MirrorOf names the task this one is a second copy of, when
 	// settings.KeepMirrors staged it rather than folding it away. Such a task
-	// is parked (see app.stageSibling).
+	// is staged disabled (see app.stageSibling).
 	MirrorOf string `json:"mirrorOf,omitempty"`
 	// Resumable is whether an interrupted transfer can continue. Nil means
 	// nobody has asked yet, so no data-loss warning is shown for a transfer

@@ -102,8 +102,6 @@ export interface Task {
   /** `error` as a code when the queue's last check rejected the link. */
   rejectCode?: string;
   rejectParams?: Record<string, string>;
-  /** Parked by the user; "resume everything" leaves it alone. */
-  hold?: boolean;
   /** Runs now, past the concurrency and per-host limits. */
   forced?: boolean;
   /** The password the hoster asks for. `password` is the archive password
@@ -163,7 +161,7 @@ export interface Task {
    * server updates whenever an account or the settings change. Callers fall
    * back for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.
@@ -345,7 +343,7 @@ export interface Settings {
   autoConfirmDelay: number;
   /** The modules switched off on the modules page, by their ids there. */
   modulesOff: string[] | null;
-  /** Whether a confirmed batch starts right away (the default) or waits on Hold. */
+  /** Whether a confirmed batch starts right away (the default) or waits in the queue. */
   autoStart: boolean;
   /** confirm.Policy ("include"|"exclude"|"exclude-and-remove"|"ask") for a
    *  link that duplicates one already in the list. */
@@ -1294,13 +1292,9 @@ export async function fetchPinChoices(ids: string[], base = '/api'): Promise<Pin
 // answer with the ids touched. Everything under /api/tasks/ is forwarded to a
 // peer, so these take a base.
 
-/** setEnabled switches a selection of links on or off. */
+/** setEnabled enables or disables a selection of links. */
 export const setEnabled = async (ids: string[], enabled: boolean, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/enabled`, { ids, enabled })));
-
-/** setHold parks a selection, or lets it go again. */
-export const setHold = async (ids: string[], hold: boolean, base = '/api') =>
-  json<BulkResult>(await ok(await post(`${base}/tasks/hold`, { ids, hold })));
 
 /** setForced marks a selection to run ahead of the concurrency limits. */
 export const setForced = async (ids: string[], forced: boolean, base = '/api') =>

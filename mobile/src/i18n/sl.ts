@@ -37,6 +37,8 @@ export const sl: Dict = {
   'downloads.tabCollector': 'Zbiralnik',
   'packages.loose': 'Brez paketa',
   'packages.start': 'Zaženi ta paket',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Odpri ta paket',
   'packages.collapse': 'Zapri ta paket',
   'packages.delete': 'Odstrani ta paket',
@@ -112,6 +114,7 @@ export const sl: Dict = {
   'status.finished': 'končano',
   'status.failed': 'spodletelo',
   'status.extracting': 'razširjanje',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Nastavitve',
   'settings.back': 'Nazaj',

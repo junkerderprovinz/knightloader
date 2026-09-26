@@ -23,7 +23,7 @@ var idleActionClock idleaction.Clock
 
 // queueIdleForAction reports whether the queue has nothing enabled left to run,
 // start or finish. Disabled links are subtracted so they cannot hold the
-// action off for ever, while paused and held tasks still count as work left.
+// action off for ever, while paused tasks still count as work left.
 // A seeding torrent is StatusDone with a flag beside it, so Counters already
 // leaves it out.
 func (a *App) queueIdleForAction() bool {

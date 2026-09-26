@@ -37,6 +37,8 @@ export const hi: Dict = {
   'downloads.tabCollector': 'संग्राहक',
   'packages.loose': 'बिना पैकेज',
   'packages.start': 'यह पैकेज शुरू करें',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'यह पैकेज खोलें',
   'packages.collapse': 'यह पैकेज बंद करें',
   'packages.delete': 'यह पैकेज हटाएँ',
@@ -112,6 +114,7 @@ export const hi: Dict = {
   'status.finished': 'पूर्ण',
   'status.failed': 'विफल',
   'status.extracting': 'निकाला जा रहा है',
+  'status.disabled': 'disabled',
 
   'settings.title': 'सेटिंग्स',
   'settings.back': 'वापस',

@@ -4,7 +4,7 @@ import type { Task } from '../api/types';
 import { packageState } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
-import IconBadge, { Folder, Trash } from './IconBadge';
+import IconBadge, { Folder, Power, Trash } from './IconBadge';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Arrive } from './Moving';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -60,6 +60,7 @@ type Row = { kind: 'header'; pkg: Pkg } | { kind: 'task'; task: Task; index: num
 export default function PackageList({
   tasks,
   onStartPackage,
+  onSetEnabled,
   onDeletePackage,
   onReorder,
   empty,
@@ -77,6 +78,9 @@ export default function PackageList({
    *  badge is what promotes it. Undefined in the download tab, where the
    *  queue's own controls decide what runs. */
   onStartPackage?: (pkg: Pkg) => void;
+  /** Disables every link of the package, or enables them all once none is
+   *  left enabled, as the web interface's package menu does. */
+  onSetEnabled?: (pkg: Pkg, enabled: boolean) => void;
   /** Both tabs pass this. Confirmed here rather than at the call site, so every
    *  caller gets the same dialog and none of them can forget it. */
   onDeletePackage?: (pkg: Pkg) => void;
@@ -201,6 +205,7 @@ export default function PackageList({
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
         const state = packageState(pkg.tasks);
+        const allOff = pkg.tasks.every((x) => !x.enabled);
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
@@ -244,6 +249,13 @@ export default function PackageList({
                 )}
               </Text>
             </TouchableOpacity>
+            {onSetEnabled && (
+              <IconBadge
+                icon={<Power color={c.textSub} hole={c.surface2} />}
+                onPress={() => scharf || onSetEnabled(pkg, allOff)}
+                accessibilityLabel={t(allOff ? 'packages.enable' : 'packages.disable')}
+              />
+            )}
             {onStartPackage && (
               <IconBadge
                 symbol="▶"

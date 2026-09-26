@@ -37,6 +37,8 @@ export const hu: Dict = {
   'downloads.tabCollector': 'Gyűjtő',
   'packages.loose': 'Csomag nélkül',
   'packages.start': 'Csomag indítása',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Csomag kinyitása',
   'packages.collapse': 'Csomag bezárása',
   'packages.delete': 'Csomag eltávolítása',
@@ -112,6 +114,7 @@ export const hu: Dict = {
   'status.finished': 'befejezve',
   'status.failed': 'sikertelen',
   'status.extracting': 'kicsomagolás',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Beállítások',
   'settings.back': 'Vissza',

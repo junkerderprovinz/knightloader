@@ -37,6 +37,8 @@ export const pt: Dict = {
   'downloads.tabCollector': 'Coletor',
   'packages.loose': 'Sem pacote',
   'packages.start': 'Iniciar este pacote',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Abrir este pacote',
   'packages.collapse': 'Fechar este pacote',
   'packages.delete': 'Remover este pacote',
@@ -112,6 +114,7 @@ export const pt: Dict = {
   'status.finished': 'concluído',
   'status.failed': 'falhou',
   'status.extracting': 'extraindo',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Configurações',
   'settings.back': 'Voltar',

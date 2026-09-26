@@ -37,6 +37,8 @@ export const fa: Dict = {
   'downloads.tabCollector': 'گردآورنده',
   'packages.loose': 'بدون بسته',
   'packages.start': 'شروع این بسته',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'باز کردن این بسته',
   'packages.collapse': 'بستن این بسته',
   'packages.delete': 'حذف این بسته',
@@ -112,6 +114,7 @@ export const fa: Dict = {
   'status.finished': 'تمام‌شده',
   'status.failed': 'ناموفق',
   'status.extracting': 'در حال استخراج',
+  'status.disabled': 'disabled',
 
   'settings.title': 'تنظیمات',
   'settings.back': 'بازگشت',

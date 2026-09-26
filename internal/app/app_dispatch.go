@@ -776,16 +776,13 @@ func (a *App) dispatchLocked() {
 		// Nothing in the queue has been given up on. Cleared here, where every
 		// requeue path (fallback, Resume, boot, RestartTasks) meets.
 		t.GaveUp = false
-		// Disabled, held and captcha-blocked tasks keep their place but do not
-		// start. A captcha-blocked task is normally active, not queued; this
-		// guards against a requeue handing JD the same link twice.
-		if !t.Enabled || t.Hold || a.captchaWaitingLocked(id) {
-			switch {
-			case !t.Enabled:
+		// Disabled and captcha-blocked tasks keep their place but do not start.
+		// A captcha-blocked task is normally active, not queued; this guards
+		// against a requeue handing JD the same link twice.
+		if !t.Enabled || a.captchaWaitingLocked(id) {
+			if !t.Enabled {
 				waiting[id] = core.WaitingDisabled
-			case t.Hold:
-				waiting[id] = core.WaitingHold
-			default:
+			} else {
 				waiting[id] = core.WaitingCaptcha
 			}
 			rest = append(rest, id)

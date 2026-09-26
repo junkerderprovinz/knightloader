@@ -37,6 +37,8 @@ export const hr: Dict = {
   'downloads.tabCollector': 'Sakupljač',
   'packages.loose': 'Bez paketa',
   'packages.start': 'Pokreni ovaj paket',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Otvori ovaj paket',
   'packages.collapse': 'Zatvori ovaj paket',
   'packages.delete': 'Ukloni ovaj paket',
@@ -112,6 +114,7 @@ export const hr: Dict = {
   'status.finished': 'završeno',
   'status.failed': 'neuspjelo',
   'status.extracting': 'raspakiravanje',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Postavke',
   'settings.back': 'Natrag',

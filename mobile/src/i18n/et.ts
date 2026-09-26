@@ -37,6 +37,8 @@ export const et: Dict = {
   'downloads.tabCollector': 'Koguja',
   'packages.loose': 'Paketita',
   'packages.start': 'Käivita see pakett',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Ava see pakett',
   'packages.collapse': 'Sulge see pakett',
   'packages.delete': 'Eemalda see pakett',
@@ -112,6 +114,7 @@ export const et: Dict = {
   'status.finished': 'lõpetatud',
   'status.failed': 'ebaõnnestus',
   'status.extracting': 'pakitakse lahti',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Seaded',
   'settings.back': 'Tagasi',

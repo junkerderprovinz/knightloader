@@ -29,23 +29,19 @@ func TestWaitingSaysWhichLimitIsHoldingATask(t *testing.T) {
 	// A second link on the same host, held by the host limit rather than the
 	// global one.
 	a.tasks["a2"] = &core.Task{ID: "a2", URL: "https://a.example/2", Status: core.StatusQueued, Enabled: true}
-	// One switched off and one parked by hand: two reasons that are not limits
-	// and are not reported as one.
+	// A disabled one, whose reason is not a limit and is not reported as one.
 	a.tasks["off"] = &core.Task{ID: "off", URL: "https://b.example/1", Status: core.StatusQueued}
-	a.tasks["held"] = &core.Task{ID: "held", URL: "https://b.example/2", Status: core.StatusQueued, Enabled: true, Hold: true}
-	a.queue = append(a.queue, "a2", "off", "held")
+	a.queue = append(a.queue, "a2", "off")
 	a.dispatchLocked()
 	got := map[string]core.Waiting{
-		"a2":   a.tasks["a2"].Waiting,
-		"off":  a.tasks["off"].Waiting,
-		"held": a.tasks["held"].Waiting,
+		"a2":  a.tasks["a2"].Waiting,
+		"off": a.tasks["off"].Waiting,
 	}
 	a.mu.Unlock()
 
 	want := map[string]core.Waiting{
-		"a2":   core.WaitingHost,
-		"off":  core.WaitingDisabled,
-		"held": core.WaitingHold,
+		"a2":  core.WaitingHost,
+		"off": core.WaitingDisabled,
 	}
 	for id, w := range want {
 		if got[id] != w {

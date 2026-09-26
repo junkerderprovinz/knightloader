@@ -37,6 +37,8 @@ export const ko: Dict = {
   'downloads.tabCollector': '수집기',
   'packages.loose': '패키지 없음',
   'packages.start': '이 패키지 시작',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': '이 패키지 펼치기',
   'packages.collapse': '이 패키지 접기',
   'packages.delete': '이 패키지 삭제',
@@ -112,6 +114,7 @@ export const ko: Dict = {
   'status.finished': '완료',
   'status.failed': '실패',
   'status.extracting': '압축 해제 중',
+  'status.disabled': 'disabled',
 
   'settings.title': '설정',
   'settings.back': '뒤로',

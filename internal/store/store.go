@@ -207,6 +207,10 @@ var migrations = []string{
 	// nothing recognised.
 	`ALTER TABLE tasks ADD COLUMN error_code TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN error_params TEXT NOT NULL DEFAULT ''`,
+	// A held link becomes a disabled one. Enabled is the one switch that parks
+	// a link, and a disabled link neither starts nor loses its place. The hold
+	// column stays because the builds before this one still read it.
+	`UPDATE tasks SET enabled = 0, hold = 0 WHERE hold = 1`,
 }
 
 func Open(path string) (*Store, error) {
@@ -305,7 +309,7 @@ func (s *Store) BackupTo(path string) error {
 const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,created_at,
 	dir,password,online,retries,next_try,priority,position,checksum,
 	comment,chunks,auto_extract,matched_rules,
-	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
+	finished_at,enabled,skipped,skip_reason,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
@@ -397,7 +401,7 @@ func (s *Store) Save(t *core.Task) error {
 		string(t.Status), t.Error, t.CreatedAt.UnixMilli(),
 		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
 		t.Checksum, t.Comment, t.Chunks, autoExtract, matched,
-		finishedAt, t.Enabled, t.Skipped, t.SkipReason, t.Hold, t.Forced,
+		finishedAt, t.Enabled, t.Skipped, t.SkipReason, t.Forced,
 		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
@@ -449,7 +453,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
 			&t.Dir, &t.Password, &online, &t.Retries, &nextTry, &t.Priority, &t.Position,
 			&t.Checksum, &t.Comment, &t.Chunks, &autoExtract, &matched,
-			&finishedAt, &t.Enabled, &t.Skipped, &t.SkipReason, &t.Hold, &t.Forced,
+			&finishedAt, &t.Enabled, &t.Skipped, &t.SkipReason, &t.Forced,
 			&t.DownloadPassword, &t.ExpectedHash, &t.Connection, &t.Host, &t.Source, &t.MirrorOf,
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,

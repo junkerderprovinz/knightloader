@@ -8,9 +8,9 @@ per row, and the decision is recorded in the Verdict column as we go.
 
 | Status | Count | Meaning |
 |---|---|---|
-| have | 84 | present and working here |
-| partial | 236 | some of it exists, the table says which part is missing |
-| missing | 608 | not built |
+| have | 86 | present and working here |
+| partial | 237 | some of it exists, the table says which part is missing |
+| missing | 605 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
 L several days, XL a project. The Blocker column is empty unless something
@@ -26,11 +26,11 @@ survey nobody re-added.
 ## Contents
 
 1. [Extensions and add-ons](#1-extensions-and-add-ons) - 69 features: 8 have, 26 partial, 35 missing
-2. [Downloads tab](#2-downloads-tab) - 104 features: 21 have, 31 partial, 52 missing
+2. [Downloads tab](#2-downloads-tab) - 104 features: 22 have, 32 partial, 50 missing
 3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 23 partial, 42 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) - 102 features: 3 have, 5 partial, 94 missing
 5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 29 partial, 94 missing
-6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 11 have, 37 partial, 58 missing
+6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 12 have, 37 partial, 57 missing
 7. [Accounts, hosters, premium handling](#7-accounts-hosters-premium-handling) - 87 features: 7 have, 27 partial, 53 missing
 8. [Automation, rules and scripting](#8-automation-rules-and-scripting) - 130 features: 4 have, 34 partial, 92 missing
 9. [Interface behaviour and quality of life](#9-interface-behaviour-and-quality-of-life) - 117 features: 5 have, 24 partial, 88 missing
@@ -121,13 +121,13 @@ JD2 has exactly 11 extension modules: Extraction + Tray Icon ship inside the bas
 
 Everything below is verified against the JD2 source (a shallow clone of github.com/mirror/jdownloader): the authoritative files are src/org/jdownloader/gui/views/downloads/** (table, columns, actions, overviewpanel, bottombar, properties), contextmenumanager/MenuManagerDownloadTableContext.java (the full default context-menu tree), and GuiTranslation.java (English @Default labels) plus translations/.../GuiTranslation.de.lng (German labels). Structurally: the Downloads tab and the LinkGrabber tab share one generic package/children table framework (PackageControllerTable/PackageControllerTableModel), so tree, sorting, drag-drop, search and many columns are common code with only the Downloads-specific columns and actions layered on top; every menu is data-driven through the Menu Manager and is fully user-reorderable, so "the context menu" is a default structure, not a fixed one. The download engine state (running/paused/stopping, stop mark, forced links, mirror detection) lives in jd/controlling/downloadcontroller/DownloadWatchDog.java + DownloadSession.java, entirely separate from the view, which is why the same semantics are reachable from toolbar, context menu and My.JDownloader.
 
-104 features - 21 have, 31 partial, 52 missing.
+104 features - 22 have, 32 partial, 50 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
 | **Delete / Löschen** | Removes the selected rows from the list; a modifier key or a configured delete mode switches it to also recycle or delete the files on disk. | Downloads tab > right-click > 'Delete'; Del key (Shift+Del = also delete files) | core | partial | S | none; missing: the UI trash button (TaskList.tsx:173) never passes files=1 - the locale key task.removeWithFiles exists but is unused, and there is no Shift+Del path |  |
-| **Enable / Disable - Aktivieren / Deaktivieren** | Turns links or whole packages on or off so the engine ignores them without removing them. | Downloads tab > right-click > 'Enable'/'Disable'; also the Enabled/Disabled checkbox column | core | missing | M |  |  |
-| **Enabled / Disabled - Aktiviert / Deaktiviert** | Checkbox column to include or exclude a file or package from downloading without deleting it. | Downloads tab > column 'Enabled / Disabled' | core | missing | M | none; there is no enabled/disabled concept in core.Task at all |  |
+| **Enable / Disable - Aktivieren / Deaktivieren** | Turns links or whole packages on or off so the engine ignores them without removing them. | Downloads tab > right-click > 'Enable'/'Disable'; also the Enabled/Disabled checkbox column | core | have | M | none: right-click > Disable and Enable on links and on a package header; a disabled link keeps its place and nothing starts it, resume everything included |  |
+| **Enabled / Disabled - Aktiviert / Deaktiviert** | Checkbox column to include or exclude a file or package from downloading without deleting it. | Downloads tab > column 'Enabled / Disabled' | core | partial | M | none; missing: the Enabled column with its switch is in the collector only, and the download list marks a disabled row beside its name instead |  |
 | **ETA / Fertig in** | Estimated time until this file or package finishes, derived from the current rate and the remaining bytes. | Downloads tab > column 'ETA' | core | have | S |  |  |
 | **Hoster** | Favicon and name of the file host the link points at, greyed out or coloured depending on whether the link is enabled. | Downloads tab > column 'Hoster' | core | partial | M | per-hoster plugin knowledge for brand names and favicons; the raw hostname is free, the JD-style branded name is not |  |
 | **Max. gleichzeitige Downloads** | Global cap on how many downloads run at once (default 3), the limit that Force Download Start deliberately bypasses. | Settings > General > Download Control; also the overview settings strip | core | have | S |  |  |
@@ -584,11 +584,11 @@ JD2's settings sidebar is a flat list, not a tree, and its exact order is hardco
 
 Grounded in JD2 source (github.com/mirror/JDownloader, src/org/jdownloader/gui/views/linkgrabber/**) plus the shipped German/English label files (mirror/jdownloader translations GuiTranslation.de.lng, JdownloaderTranslation.de.lng); labels quoted are JD's real strings. Structurally the LinkGrabber is one table over a LinkCollector model of CrawledPackage/CrawledLink, with four customizable surfaces: context menu (.jdLGMenu), bottom bar (.jdLGBottomBar), sidebar quickfilters, and the Add-Links dialog; almost every behaviour is a key in Advanced Settings > LinkgrabberSettings / LinkCollectorConfig / LinkCrawlerConfig / LinkFilterSettings. The confirm flow is not a single button but a parametrised action (selection-only x autostart x force x offline/dupe policy) that is reused by the bottom bar, the context menu and the auto-confirm timer.
 
-106 features - 11 have, 37 partial, 58 missing.
+106 features - 12 have, 37 partial, 57 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
-| **Aktiviert / Deaktiviert** | Per-row enable flag; disabled entries can be excluded or bulk-deleted on confirm. | LG column; context menu 'Link de-/aktivieren' | core | missing | M | none - core.Task has no enabled flag; selection (web/src/components/TaskList.tsx:36-51) is transient UI state, not a persisted per-row switch, so nothing can be excluded from a confirm. |  |
+| **Aktiviert / Deaktiviert** | Per-row enable flag; disabled entries can be excluded or bulk-deleted on confirm. | LG column; context menu 'Link de-/aktivieren' | core | have | M | none: the collector's Enabled column and right-click > Disable and Enable; starting the collector passes disabled links over, and Clean up > Remove disabled links deletes them |  |
 | **Alle zur Downloadliste hinzufügen / Zur Downloadliste hinzufügen** | Main confirm button that moves links into the download list; its label flips between all and selection. | LG bottom bar, right side | core | have | S |  |  |
 | **DoLinkCheck (Check links for on/offline status)** | Availability check that runs over every crawled link and fills the Verfügbarkeit column. | Adv. Settings > LinkCollectorConfig | core | partial | L | Only links routed to the 'direct' resolver are probed; app.go:860-864 explicitly leaves debrid/JD/yt-dlp links as unknown because those backends cannot check without starting, which needs per-hoster plugin knowledge to fix. |  |
 | **Downloadpfad setzen** | Changes the destination for the whole package or only the selected links, with an 'Unterordner nach Paketname' option. | LG context menu > Einstellungen | core | have | S |  |  |

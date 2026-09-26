@@ -37,6 +37,8 @@ export const gl: Dict = {
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Sen paquete',
   'packages.start': 'Iniciar este paquete',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Abrir este paquete',
   'packages.collapse': 'Pechar este paquete',
   'packages.delete': 'Retirar este paquete',
@@ -112,6 +114,7 @@ export const gl: Dict = {
   'status.finished': 'rematado',
   'status.failed': 'fallido',
   'status.extracting': 'extraendo',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Axustes',
   'settings.back': 'Atrás',

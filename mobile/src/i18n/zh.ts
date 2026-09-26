@@ -37,6 +37,8 @@ export const zh: Dict = {
   'downloads.tabCollector': '收集器',
   'packages.loose': '无软件包',
   'packages.start': '开始此软件包',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': '展开此包',
   'packages.collapse': '收起此包',
   'packages.delete': '删除此包',
@@ -112,6 +114,7 @@ export const zh: Dict = {
   'status.finished': '已完成',
   'status.failed': '失败',
   'status.extracting': '解压中',
+  'status.disabled': 'disabled',
 
   'settings.title': '设置',
   'settings.back': '返回',

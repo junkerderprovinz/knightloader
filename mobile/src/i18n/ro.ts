@@ -37,6 +37,8 @@ export const ro: Dict = {
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Fără pachet',
   'packages.start': 'Pornește acest pachet',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Deschide acest pachet',
   'packages.collapse': 'Închide acest pachet',
   'packages.delete': 'Elimină acest pachet',
@@ -112,6 +114,7 @@ export const ro: Dict = {
   'status.finished': 'finalizată',
   'status.failed': 'eșuată',
   'status.extracting': 'se extrage',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Setări',
   'settings.back': 'Înapoi',

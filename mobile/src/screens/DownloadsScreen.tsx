@@ -11,7 +11,7 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
-import { deleteTasks, errorText, reorderTasks, startTasks } from '../api/client';
+import { deleteTasks, errorText, reorderTasks, setTasksEnabled, startTasks } from '../api/client';
 import { Text } from '../components/Text';
 import { Arrive } from '../components/Moving';
 import { usePress } from '../theme/MotionContext';
@@ -317,6 +317,18 @@ export default function DownloadsScreen({
               }
             : undefined
         }
+        onSetEnabled={async (pkg, enabled) => {
+          setStartError('');
+          try {
+            await setTasksEnabled(conn, pkg.tasks.map((x) => x.id), enabled, base);
+          } catch (e) {
+            setStartError(errorText(t, e));
+            return;
+          }
+          await live.current?.refresh?.().catch(() => {
+            /* the next tick brings it */
+          });
+        }}
         // Both tabs rather than only the collector: a package in the queue is
         // as likely to be the one somebody wants rid of. The list asks first,
         // so this runs only on a yes.

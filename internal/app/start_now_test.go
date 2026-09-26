@@ -89,6 +89,23 @@ func TestStartNowOnAStoppedQueueStartsThreeAtATime(t *testing.T) {
 	}
 }
 
+// Start now overrides the switch, also on a link still in the collector, where
+// a plain start leaves a disabled link behind.
+func TestStartNowStartsADisabledStagedLink(t *testing.T) {
+	a, stub := newStoppedApp(t)
+	putTask(t, a, core.Task{ID: "off", URL: "https://h.example/off", Name: "off",
+		Status: core.StatusCollected, Enabled: false, Resolver: "jd"})
+
+	a.ForceDownload(Selection{Ids: []string{"off"}})
+
+	if got := collect(t, stub.got, 1); !got["off"] {
+		t.Fatalf("started %v, want the disabled link Start now was pressed for", got)
+	}
+	if !liveTask(a, "off").Enabled {
+		t.Error("the link started but still reads disabled")
+	}
+}
+
 // Forced is stored, so a queue held at boot would let every forced link out if
 // the flag alone opened a stopped queue.
 func TestAForcedLinkWaitsOnAStoppedQueueUntilStartNowIsPressed(t *testing.T) {

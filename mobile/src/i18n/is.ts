@@ -37,6 +37,8 @@ export const is: Dict = {
   'downloads.tabCollector': 'Safnari',
   'packages.loose': 'Án pakka',
   'packages.start': 'Byrja þennan pakka',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Opna þennan pakka',
   'packages.collapse': 'Loka þessum pakka',
   'packages.delete': 'Fjarlægja þennan pakka',
@@ -112,6 +114,7 @@ export const is: Dict = {
   'status.finished': 'lokið',
   'status.failed': 'mistókst',
   'status.extracting': 'afþjappar',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Stillingar',
   'settings.back': 'Til baka',

@@ -15,7 +15,8 @@ export type StateWord =
   | 'extracting'
   | 'finished'
   | 'failed'
-  | 'notUnpacked';
+  | 'notUnpacked'
+  | 'disabled';
 
 // Least settled first.
 const RANK: Record<string, number> = {
@@ -35,6 +36,12 @@ const unpackFailed = (t: Task): boolean => t.status === 'done' && (t.unpack === 
 
 /** rowWord is one task's word, or null for a status this build does not know. */
 export function rowWord(t: Task): StateWord | null {
+  // A disabled link that is waiting says so instead of its queue state, since
+  // nothing starts it until it is enabled. One that runs or has settled says
+  // what it is doing, as the web list does.
+  if (t.enabled === false && (t.status === 'queued' || t.status === 'paused' || t.status === 'collected')) {
+    return 'disabled';
+  }
   switch (t.status) {
     case 'collected':
     case 'queued':

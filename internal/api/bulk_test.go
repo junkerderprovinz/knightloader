@@ -77,10 +77,9 @@ func TestStagedLinksAreEnabled(t *testing.T) {
 	}
 }
 
-// TestBulkEnableAndHold: a selection acts as one. Both flags exist so a link
-// can be parked without being confused with a paused download, and the route
-// answers with what it touched so the interface need not re-fetch the list.
-func TestBulkEnableAndHold(t *testing.T) {
+// TestBulkEnable: a selection acts as one, and the route answers with what it
+// touched so the interface need not re-fetch the list.
+func TestBulkEnable(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -109,18 +108,38 @@ func TestBulkEnableAndHold(t *testing.T) {
 		}
 	}
 
+}
+
+// A client written against the hold route parks and releases links the one way
+// there is.
+func TestTheHoldRouteDisablesAndEnables(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	sel := ids(stage(t, a, "https://host.example/one.bin", "https://host.example/two.bin"))
+	enabled := func() map[string]bool {
+		out := map[string]bool{}
+		for _, task := range a.Tasks() {
+			out[task.ID] = task.Enabled
+		}
+		return out
+	}
+
 	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/hold",
 		map[string]any{"ids": sel[:1], "hold": true}); code != http.StatusOK {
 		t.Fatalf("holding a selection = %d: %s", code, body)
 	}
-	held := 0
-	for _, task := range a.Tasks() {
-		if task.Hold {
-			held++
-		}
+	if on := enabled(); on[sel[0]] || !on[sel[1]] {
+		t.Errorf("after holding the first link the switches read %v, want only that one disabled", on)
 	}
-	if held != 1 {
-		t.Errorf("%d tasks are held, want exactly the one that was named", held)
+
+	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/hold",
+		map[string]any{"ids": sel[:1], "hold": false}); code != http.StatusOK {
+		t.Fatalf("releasing a selection = %d: %s", code, body)
+	}
+	if on := enabled(); !on[sel[0]] {
+		t.Error("releasing the held link left it disabled")
 	}
 }
 

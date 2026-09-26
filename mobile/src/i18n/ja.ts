@@ -37,6 +37,8 @@ export const ja: Dict = {
   'downloads.tabCollector': 'コレクター',
   'packages.loose': 'パッケージなし',
   'packages.start': 'このパッケージを開始',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'このパッケージを開く',
   'packages.collapse': 'このパッケージを閉じる',
   'packages.delete': 'このパッケージを削除',
@@ -112,6 +114,7 @@ export const ja: Dict = {
   'status.finished': '完了',
   'status.failed': '失敗',
   'status.extracting': '展開中',
+  'status.disabled': 'disabled',
 
   'settings.title': '設定',
   'settings.back': '戻る',

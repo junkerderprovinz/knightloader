@@ -37,6 +37,8 @@ export const ru: Dict = {
   'downloads.tabCollector': 'Сборщик',
   'packages.loose': 'Без пакета',
   'packages.start': 'Запустить этот пакет',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Открыть этот пакет',
   'packages.collapse': 'Закрыть этот пакет',
   'packages.delete': 'Удалить этот пакет',
@@ -112,6 +114,7 @@ export const ru: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'ошибка',
   'status.extracting': 'распаковка',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Настройки',
   'settings.back': 'Назад',

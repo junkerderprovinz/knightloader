@@ -18,16 +18,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// SetEnabled switches links on or off. A disabled link keeps its place,
-// progress and package; everything that starts downloads passes it over.
+// SetEnabled enables or disables links. A disabled link keeps its place,
+// progress and package; everything that starts downloads passes it over,
+// "resume everything" included, which is what sets it apart from a pause.
 func (a *App) SetEnabled(ids []string, enabled bool) []string {
 	return a.editAndDispatch(ids, func(t *core.Task) { t.Enabled = enabled })
-}
-
-// SetHold parks links or releases them. Hold is separate from StatusPaused so
-// that "resume everything" leaves held links alone.
-func (a *App) SetHold(ids []string, hold bool) []string {
-	return a.editAndDispatch(ids, func(t *core.Task) { t.Hold = hold })
 }
 
 // SetForced marks links to be started ahead of the limits.

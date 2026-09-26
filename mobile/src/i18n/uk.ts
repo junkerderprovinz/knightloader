@@ -37,6 +37,8 @@ export const uk: Dict = {
   'downloads.tabCollector': 'Збирач',
   'packages.loose': 'Без пакета',
   'packages.start': 'Запустити цей пакет',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Відкрити цей пакунок',
   'packages.collapse': 'Закрити цей пакунок',
   'packages.delete': 'Вилучити цей пакунок',
@@ -112,6 +114,7 @@ export const uk: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'помилка',
   'status.extracting': 'розпакування',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Налаштування',
   'settings.back': 'Назад',

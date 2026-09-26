@@ -466,7 +466,7 @@ func (a *App) runDBMaintenanceIfDue() {
 	st.mu.Unlock()
 
 	// A scheduled pass stands down while downloads run, and records that it
-	// did. Paused and held tasks do not count, or they could block the
+	// did. Paused and disabled tasks do not count, or they could block the
 	// schedule for ever.
 	if a.Counters().Running > 0 {
 		a.recordSkip(st, SkippedDownloadsRunning)

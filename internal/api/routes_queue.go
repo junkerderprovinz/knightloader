@@ -157,7 +157,7 @@ func registerQueue(reg *Registry, a *app.App) {
 	// The bulk switch for disabled links. /api/tasks/enabled takes only ids,
 	// which the list can produce for the rows a filter left on screen; this
 	// one also takes a whole package, and all:true.
-	reg.Add(http.MethodPost, "/api/queue/enabled", "switch a selection, a package, or every disabled link on or off",
+	reg.Add(http.MethodPost, "/api/queue/enabled", "enable or disable a selection, a package, or every disabled link",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				app.Selection

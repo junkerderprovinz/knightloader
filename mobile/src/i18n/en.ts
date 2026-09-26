@@ -54,6 +54,8 @@ export const en = {
   'downloads.tabCollector': 'Collector',
   'packages.loose': 'No package',
   'packages.start': 'Start this package',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Open this package',
   'packages.collapse': 'Close this package',
   'packages.delete': 'Remove this package',
@@ -132,6 +134,7 @@ export const en = {
   'status.extracting': 'extracting',
   'status.collected': 'collected',
   'status.notUnpacked': 'not unpacked',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Settings',
   'settings.back': 'Back',

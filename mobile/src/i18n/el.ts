@@ -37,6 +37,8 @@ export const el: Dict = {
   'downloads.tabCollector': 'Συλλέκτης',
   'packages.loose': 'Χωρίς πακέτο',
   'packages.start': 'Έναρξη αυτού του πακέτου',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Άνοιγμα αυτού του πακέτου',
   'packages.collapse': 'Κλείσιμο αυτού του πακέτου',
   'packages.delete': 'Αφαίρεση αυτού του πακέτου',
@@ -112,6 +114,7 @@ export const el: Dict = {
   'status.finished': 'ολοκληρώθηκε',
   'status.failed': 'απέτυχε',
   'status.extracting': 'εξαγωγή',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Ρυθμίσεις',
   'settings.back': 'Πίσω',

@@ -30,7 +30,6 @@ import {
   runCleanup,
   setEnabled,
   setForced,
-  setHold,
   setPackage,
   setQueue as armStopMark,
   setTaskOptions,
@@ -72,7 +71,6 @@ import {
   IconKey,
   IconMore,
   IconPause,
-  IconPin,
   IconPlay,
   IconPower,
   IconPriority,
@@ -151,7 +149,6 @@ export type QuickFilterId =
   | 'failed'
   | 'offline'
   | 'disabled'
-  | 'held'
   | 'online'
   | 'uncheckable'
   | 'unchecked'
@@ -177,7 +174,6 @@ export const QUICK_FILTERS: QuickFilter[] = [
   { id: 'uncheckable', label: 'filter.uncheckable', match: (t) => t.online === 'uncheckable' },
   { id: 'unchecked', label: 'filter.unchecked', match: (t) => !t.online },
   { id: 'disabled', label: 'filter.disabled', match: (t) => !t.enabled },
-  { id: 'held', label: 'filter.held', match: (t) => !!t.hold },
   // A stalled row still counts as running everywhere else, so it gets its own
   // filter. happened() rather than `!!`, because a never-stalled task carries
   // Go's zero time, which is a truthy string.
@@ -200,7 +196,7 @@ export function offeredQuickFilters(
     .filter(({ f, n }) => n > 0 || active.has(f.id));
 }
 
-/** The nine states a download list is actually filtered by. */
+/** The eight states a download list is actually filtered by. */
 export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'running',
   'queued',
@@ -209,7 +205,6 @@ export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'failed',
   'offline',
   'disabled',
-  'held',
   'stalled',
 ];
 
@@ -220,7 +215,6 @@ export const COLLECTOR_FILTERS: QuickFilterId[] = [
   'uncheckable',
   'unchecked',
   'disabled',
-  'held',
 ];
 
 /**
@@ -1050,20 +1044,6 @@ function taskMenuGroups({
       label: t('menu.disable'),
       icon: <IconPower />,
       onSelect: guard(() => setEnabled(scopeIds, false, base)),
-    });
-  if (scope.some((x) => !x.hold))
-    state.items.push({
-      id: 'hold',
-      label: t('menu.hold'),
-      icon: <IconPin />,
-      onSelect: guard(() => setHold(scopeIds, true, base)),
-    });
-  if (scope.some((x) => !!x.hold))
-    state.items.push({
-      id: 'release',
-      label: t('menu.release'),
-      icon: <IconPin />,
-      onSelect: guard(() => setHold(scopeIds, false, base)),
     });
 
   // Both open TaskOptionsDialog, focused on the named box.

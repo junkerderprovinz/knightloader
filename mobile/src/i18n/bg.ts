@@ -37,6 +37,8 @@ export const bg: Dict = {
   'downloads.tabCollector': 'Събирач',
   'packages.loose': 'Без пакет',
   'packages.start': 'Стартирай пакета',
+  'packages.enable': 'Enable this package',
+  'packages.disable': 'Disable this package',
   'packages.expand': 'Отваряне на пакета',
   'packages.collapse': 'Затваряне на пакета',
   'packages.delete': 'Премахване на пакета',
@@ -112,6 +114,7 @@ export const bg: Dict = {
   'status.finished': 'завършено',
   'status.failed': 'неуспешно',
   'status.extracting': 'разархивиране',
+  'status.disabled': 'disabled',
 
   'settings.title': 'Настройки',
   'settings.back': 'Назад',

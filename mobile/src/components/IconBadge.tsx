@@ -486,6 +486,33 @@ export function Gear({ color, size = GLYPH_BOX }: { color: string; size?: number
   );
 }
 
+/**
+ * Disable and enable: the power mark, a ring open at the top with a stem
+ * through the opening, the glyph the web interface puts on the same two verbs.
+ *
+ * `hole` paints the ring's inside and its opening, for the reason Gear gives.
+ */
+export function Power({ color, hole, size = GLYPH_BOX }: { color: string; hole: string; size?: number }) {
+  const u = unit(size, 15);
+  const at = (left: number, top: number, width: number, height: number) => ({
+    position: 'absolute' as const,
+    left: left * u,
+    top: top * u,
+    width: width * u,
+    height: height * u,
+  });
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 15 * u, height: 15 * u }}>
+        <View style={[at(1, 2, 13, 13), { borderRadius: 6.5 * u, backgroundColor: color }]} />
+        <View style={[at(4, 5, 7, 7), { borderRadius: 3.5 * u, backgroundColor: hole }]} />
+        <View style={[at(5, 1, 5, 6), { backgroundColor: hole }]} />
+        <View style={[at(6.25, 0, 2.5, 8), { borderRadius: 1.25 * u, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   badge: {
     width: BADGE,

@@ -30,9 +30,9 @@ func TestAPackageIsPausedAndResumedInOneRequest(t *testing.T) {
 	defer srv.Close()
 
 	sel := ids(stage(t, a, "https://host.example/one.bin", "https://host.example/two.bin"))
-	// Held on the way into the queue, so the dispatcher leaves them waiting
-	// rather than reaching for a network the test does not have.
-	a.SetHold(sel, true)
+	// A halt by hand, so the dispatcher leaves them waiting rather than
+	// reaching for a network the test does not have.
+	a.SetHalted(true)
 	a.StartTasks(sel)
 
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/pause", map[string]any{"ids": sel})
