@@ -313,6 +313,12 @@ type Job struct {
 	// hands the link to the next backend. Only the first bytes tell, since a
 	// server can send a playlist under any name, such as master.txt.
 	PassOnPlaylists bool
+
+	// RefusePages is set for the HTTP fallback, which gets a link when no
+	// backend could do more with it. A web page arriving there is the page
+	// itself rather than a download, so the job fails with
+	// core.ReasonUnsupportedPlayer and the page is deleted.
+	RefusePages bool
 }
 
 // writeDir is the folder this job's bytes are written into.
@@ -637,7 +643,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		}
 	}
 	file := e.files[ev.Task.ID]
-	passOn := e.jobs[taskID].PassOnPlaylists
+	job := e.jobs[taskID]
 	e.mu.Unlock()
 	if !ok || own {
 		return
@@ -663,11 +669,22 @@ func (e *Engine) onEvent(ev *download.Event) {
 			e.startMend(taskID, ev.Task, u.File, gaps)
 			return
 		}
-		if passOn && streamPlaylist(u.File) {
-			// The app removes the task with its file before the next backend
-			// starts, so the playlist is not left behind as the download.
-			e.emit(taskID, core.Update{Status: core.StatusError, Err: errPlaylist, Unsupported: true, File: u.File})
-			return
+		if job.PassOnPlaylists || job.RefusePages {
+			head := fileHead(u.File)
+			if job.PassOnPlaylists && streamPlaylist(head) {
+				// The app removes the task with its file before the next
+				// backend starts, so the playlist is not left behind as the
+				// download.
+				e.emit(taskID, core.Update{Status: core.StatusError, Err: errPlaylist, Unsupported: true, File: u.File})
+				return
+			}
+			if job.RefusePages && webPage(head) {
+				// No backend comes after the fallback to take the task and
+				// its file away.
+				e.Remove(taskID, true)
+				e.emit(taskID, core.Update{Status: core.StatusError, Err: errPage, Reason: core.ReasonUnsupportedPlayer})
+				return
+			}
 		}
 		if pr := ev.Task.Progress; pr != nil {
 			u.Loaded = pr.Downloaded
