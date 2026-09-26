@@ -7,6 +7,7 @@ import {
   refreshCaptchas,
   reportCaptchaUnanswerable,
   skipCaptcha,
+  withdrawCaptchaUnanswerable,
   type CaptchaAbortScope,
   type CaptchaChallenge,
   type CaptchaImagePayload,
@@ -175,6 +176,10 @@ export function CaptchaModal() {
   const [widgetKey, setWidgetKey] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
+  // The widgets this window told the instance it cannot load. Only these are
+  // taken back when a widget loads, since another window's report is about a
+  // window this one cannot see.
+  const reported = useRef(new Set<string>());
 
   const current = useMemo(() => pickCurrent(challenges), [challenges]);
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
@@ -203,6 +208,7 @@ export function CaptchaModal() {
         } else if (type === 'captchaResolved') {
           const r = data as CaptchaResolution;
           forgetCaptcha(r.id);
+          reported.current.delete(r.id);
           setChallenges((p) => {
             if (!(r.id in p)) return p;
             const n = { ...p };
@@ -260,10 +266,11 @@ export function CaptchaModal() {
   }, [current?.id, current?.expiresAt, solverWaiting]);
 
   // A widget that will not load here cannot be answered here, so the paid
-  // solvers need not wait for this window. The window already says so, which
-  // is all a failed report could add.
+  // solvers need not wait for this window, until a refresh loads it after all.
+  // The window already says so, which is all a failed report could add.
   useEffect(() => {
     if (current?.kind === 'widget' && widgetStatus === 'error') {
+      reported.current.add(current.id);
       reportCaptchaUnanswerable(current.id).catch(() => {});
     }
   }, [current?.id, current?.kind, widgetStatus]);
@@ -278,7 +285,9 @@ export function CaptchaModal() {
       const d = e.data as { source?: string; id?: string; kind?: string; detail?: string } | null;
       if (!d || d.source !== 'knightloader-captcha-widget' || d.id !== id) return;
       if (d.kind === 'ready') setWidgetStatus('ready');
-      else if (d.kind === 'expired') setWidgetStatus('expired');
+      else if (d.kind === 'loaded') {
+        if (reported.current.delete(id)) withdrawCaptchaUnanswerable(id).catch(() => {});
+      } else if (d.kind === 'expired') setWidgetStatus('expired');
       else if (d.kind === 'error' || d.kind === 'unsolvable') {
         setWidgetStatus(d.kind);
         setWidgetError(d.detail ?? null);

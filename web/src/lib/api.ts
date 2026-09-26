@@ -2540,6 +2540,15 @@ export async function reportCaptchaUnanswerable(id: string): Promise<void> {
 }
 
 /**
+ * withdrawCaptchaUnanswerable takes that back once a refresh has loaded the
+ * widget after all, so the windows hold the solvers back again. A solver
+ * already at work on it carries on.
+ */
+export async function withdrawCaptchaUnanswerable(id: string): Promise<void> {
+  await ok(await fetch(`/api/captcha/${encodeURIComponent(id)}/unanswerable`, { method: 'DELETE' }));
+}
+
+/**
  * captchaWidgetUrl builds the widget page address. The rendering data goes in
  * the query string because the caller already holds it, which spares the
  * server a second lookup at JD. lang is the interface language, which the

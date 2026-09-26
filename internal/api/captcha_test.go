@@ -43,6 +43,37 @@ func TestACaptchaWithoutJDIsRefusedWithACode(t *testing.T) {
 	}
 }
 
+// A report that a captcha will not load comes from a window unless it names
+// the phone app, and is taken back the same way. A viewer this instance does
+// not know is refused rather than taken for a window.
+func TestACaptchaThatWillNotLoadIsReportedByAWindowOrThePhone(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := testApp(t)
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+
+	for _, c := range []struct {
+		method, path string
+		want         int
+	}{
+		{http.MethodPost, "/api/captcha/c1/unanswerable", http.StatusNoContent},
+		{http.MethodPost, "/api/captcha/c1/unanswerable?by=window", http.StatusNoContent},
+		{http.MethodPost, "/api/captcha/c1/unanswerable?by=phone", http.StatusNoContent},
+		{http.MethodDelete, "/api/captcha/c1/unanswerable?by=phone", http.StatusNoContent},
+		{http.MethodDelete, "/api/captcha/c1/unanswerable", http.StatusNoContent},
+		{http.MethodPost, "/api/captcha/c1/unanswerable?by=tablet", http.StatusBadRequest},
+		{http.MethodDelete, "/api/captcha/c1/unanswerable?by=Phone", http.StatusBadRequest},
+	} {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, httptest.NewRequest(c.method, c.path, nil))
+		if rec.Code != c.want {
+			t.Errorf("%s %s answered %d, want %d", c.method, c.path, rec.Code, c.want)
+		}
+	}
+}
+
 // An app that polls the list instead of holding a socket counts as watching,
 // for the kinds it lists when it lists them; the web interface reads with
 // watch=0, since its socket reports that already.

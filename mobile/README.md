@@ -172,7 +172,11 @@ can:
   viewport and a wide one draws the checkbox at a third of its size. When the
   instance answers the page with an error status, such as the 400 for a
   challenge JD sent without a site key, the window says so with the status
-  rather than blaming the network (`widgetFailure`).
+  rather than blaming the network (`widgetFailure`). When a widget will not
+  load, the app tells the instance (`reportCaptchaUnanswerable`, with
+  `by=phone`), and the phone's reads of the list stop holding the paid solvers
+  back for it. Once Refresh loads it after all, the app takes the report back
+  (`widgetReport`, through `reportWidget` in `CaptchaWatch`).
 - **Over the relay those two are not answered yet**, and since the phrase is
   the only way to add a connection, that is every connection made today. Only
   one saved by address in an earlier build opens the widget. The page has to
@@ -241,8 +245,9 @@ registers its push token.
   `pollTasks` as its polling equivalent for the relay.
 - `src/api/captcha.ts`: the rules the captcha screen follows (the order, the
   countdown, a click answer, the widget page's address and the vendors it runs,
-  which of the page's messages count, who to blame when it does not load, the
-  bridge script, and what the banner says after a look), kept free of React so
+  which of the page's messages count, who to blame when it does not load and
+  when to tell the instance, the bridge script, and what the banner says after
+  a look), kept free of React so
   `check-captcha.mjs` runs them as they are.
 - `src/components/CaptchaWatch.tsx`, `CaptchaCard.tsx` and `CaptchaWidget.tsx`:
   the watch and its banner, one captcha's card, and the WebView window. See

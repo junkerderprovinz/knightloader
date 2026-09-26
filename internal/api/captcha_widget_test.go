@@ -303,6 +303,22 @@ func TestCaptchaWidgetReportsAScriptThatNeverLoads(t *testing.T) {
 	}
 }
 
+// The page tells the parent once the vendor's widget is on it, so a window that
+// said it could not load the challenge can take that back after a refresh.
+func TestCaptchaWidgetSaysWhenTheWidgetHasLoaded(t *testing.T) {
+	t.Parallel()
+	srv := captchaWidgetServer(t)
+	for _, vendor := range []string{"hcaptcha", "recaptcha"} {
+		_, body := getCaptchaWidget(t, captchaWidgetURL(srv, "42", url.Values{"vendor": {vendor}, "siteKey": {"k"}}))
+		html := string(body)
+		rendered := strings.Index(html, `widget = api.render("kl-widget", params);`)
+		loaded := strings.Index(html, `post("loaded", null);`)
+		if rendered < 0 || loaded < rendered {
+			t.Errorf("%s: the page does not say loaded once it has rendered the widget", vendor)
+		}
+	}
+}
+
 // The interface language reaches the vendor's script as hl, so the widget's
 // own texts match, and anything that is not a language tag is dropped.
 func TestCaptchaWidgetHandsTheInterfaceLanguageToTheVendor(t *testing.T) {

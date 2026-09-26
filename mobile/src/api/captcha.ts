@@ -231,12 +231,12 @@ export function widgetPath(ch: CaptchaChallenge, lang: string): string {
 
 /** What the widget page reports, as routes_captcha_widget.go documents it. */
 export interface WidgetMessage {
-  kind: 'ready' | 'solved' | 'expired' | 'error' | 'unsolvable';
+  kind: 'ready' | 'loaded' | 'solved' | 'expired' | 'error' | 'unsolvable';
   /** The token for "solved", the reason for "error" and "unsolvable". */
   detail: string | null;
 }
 
-const WIDGET_KINDS: readonly string[] = ['ready', 'solved', 'expired', 'error', 'unsolvable'];
+const WIDGET_KINDS: readonly string[] = ['ready', 'loaded', 'solved', 'expired', 'error', 'unsolvable'];
 
 /** The widget page's message about challenge `id`, or null for anything else
  *  that reaches the app from the page. */
@@ -264,6 +264,22 @@ export function widgetFailure(httpStatus: number | null, detail: string | null):
   if (httpStatus !== null) return { by: 'instance', status: httpStatus };
   if (detail === null || detail === 'script' || detail === 'timeout' || detail === 'network') return { by: 'network' };
   return { by: 'vendor', code: detail };
+}
+
+/**
+ * What this phone tells the instance when the widget window for `id` fails or,
+ * with `loaded`, shows the vendor's widget: that it cannot load it, so the
+ * paid solvers stop waiting for the phone, or that it has loaded it after all.
+ * A load is news only after a failure this phone reported: a report from
+ * another phone is about a phone this one cannot see. `reported` holds those
+ * ids and is kept up to date here.
+ */
+export function widgetReport(reported: Set<string>, id: string, loaded: boolean): 'unanswerable' | 'withdraw' | null {
+  if (!loaded) {
+    reported.add(id);
+    return 'unanswerable';
+  }
+  return reported.delete(id) ? 'withdraw' : null;
 }
 
 /**

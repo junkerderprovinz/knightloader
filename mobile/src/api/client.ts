@@ -460,6 +460,19 @@ export async function skipCaptcha(conn: ServerConnection, id: string, scope: Cap
   });
 }
 
+/** Tells the instance this phone could not load widget challenge `id`, so its
+ *  reads of the list stop holding the paid solvers back for it. Only a
+ *  connection saved by address shows the widget, so only one reports it. */
+export async function reportCaptchaUnanswerable(conn: DirectConnection, id: string): Promise<void> {
+  await request(conn, '/api', `/captcha/${encodeURIComponent(id)}/unanswerable?by=phone`, { method: 'POST', body: '{}' });
+}
+
+/** Takes that back once Refresh has loaded the widget after all. A solver
+ *  already at work on it carries on. */
+export async function withdrawCaptchaUnanswerable(conn: DirectConnection, id: string): Promise<void> {
+  await request(conn, '/api', `/captcha/${encodeURIComponent(id)}/unanswerable?by=phone`, { method: 'DELETE' });
+}
+
 export function pollCaptchas(
   conn: ServerConnection,
   onList: (list: CaptchaChallenge[]) => void,

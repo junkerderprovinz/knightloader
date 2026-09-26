@@ -366,8 +366,8 @@ func TestThePhoneAppsRightsReachEveryCallItMakes(t *testing.T) {
 	}
 }
 
-// Saying a window cannot load a captcha takes the right that reads the list,
-// not the one that answers it.
+// Saying a window or the phone cannot load a captcha, and taking it back, takes
+// the right that reads the list, not the one that answers it.
 func TestAReaderMaySayItCannotLoadACaptcha(t *testing.T) {
 	t.Parallel()
 	srv, a := lockedServer(t)
@@ -375,8 +375,14 @@ func TestAReaderMaySayItCannotLoadACaptcha(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if code, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodPost, "/api/captcha/c1/unanswerable", "", reader); code != http.StatusNoContent {
-		t.Errorf("a read token saying it cannot load a captcha answered %d: %+v", code, doc)
+	for _, c := range []struct{ method, path string }{
+		{http.MethodPost, "/api/captcha/c1/unanswerable"},
+		{http.MethodPost, "/api/captcha/c1/unanswerable?by=phone"},
+		{http.MethodDelete, "/api/captcha/c1/unanswerable?by=phone"},
+	} {
+		if code, doc := callAPI(t, http.DefaultClient, srv.URL, c.method, c.path, "", reader); code != http.StatusNoContent {
+			t.Errorf("a read token's %s %s answered %d: %+v", c.method, c.path, code, doc)
+		}
 	}
 }
 

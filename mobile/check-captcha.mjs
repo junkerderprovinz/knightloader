@@ -5,7 +5,8 @@
 // the order the cards come in, the countdown, the shape of a click answer JD
 // accepts, the widget page's address and the vendors it runs, which of the
 // page's messages reach the app, who is to blame when the widget does not load,
-// and what the banner says about a captcha that came or went.
+// when the instance hears that it did not or that it did after all, and what
+// the banner says about a captcha that came or went.
 //
 // The bridge script is run against a stand-in window, because a WebView is
 // where it goes wrong without a sound: the page posts to its own origin, and a
@@ -201,6 +202,7 @@ expect('and every solver that did not deliver in the bubble', stopped.refusals.m
 const msg = (m) => JSON.stringify({ source: 'knightloader-captcha-widget', id: 'c1', ...m });
 expect('a solved token is taken', cap.widgetMessage(msg({ kind: 'solved', detail: 'tok' }), 'c1'), { kind: 'solved', detail: 'tok' });
 expect('ready has no detail', cap.widgetMessage(msg({ kind: 'ready', detail: null }), 'c1'), { kind: 'ready', detail: null });
+expect('a widget on the page is news', cap.widgetMessage(msg({ kind: 'loaded', detail: null }), 'c1'), { kind: 'loaded', detail: null });
 expect('another challenge is not this one', cap.widgetMessage(msg({ kind: 'solved', detail: 'tok' }), 'c2'), null);
 expect('another sender is ignored', cap.widgetMessage(JSON.stringify({ source: 'recaptcha', id: 'c1', kind: 'solved', detail: 'x' }), 'c1'), null);
 expect('an unknown kind is ignored', cap.widgetMessage(msg({ kind: 'surprise' }), 'c1'), null);
@@ -213,6 +215,17 @@ expect('a vendor code is the vendor refusing', cap.widgetFailure(null, 'invalid-
 // routes_captcha_widget.go answers 400 for a challenge JD sent without a site
 // key, which no amount of network would fix.
 expect('an HTTP error is the instance refusing', cap.widgetFailure(400, null), { by: 'instance', status: 400 });
+
+// What the phone tells the instance, one window after another, so the paid
+// solvers stop waiting for a phone that cannot show the widget and wait for it
+// again once Refresh has loaded it.
+const reported = new Set();
+expect('a widget that loads the first time is no news', cap.widgetReport(reported, 'c1', true), null);
+expect('one that fails is reported', cap.widgetReport(reported, 'c1', false), 'unanswerable');
+expect('and again after a Refresh that fails too', cap.widgetReport(reported, 'c1', false), 'unanswerable');
+expect('a Refresh that loads it takes the report back', cap.widgetReport(reported, 'c1', true), 'withdraw');
+expect('once', cap.widgetReport(reported, 'c1', true), null);
+expect('a report about one captcha is not taken back for another', cap.widgetReport(new Set(['c1']), 'c2', true), null);
 
 // The bridge, run twice as the WebView runs it, in a window whose parent is
 // itself.
@@ -240,4 +253,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page gets every field and opens only for a vendor it runs, only its own messages reach the app, the phone watches only for what it can answer, the solver line explains itself only there, and the banner says what came and went');
+console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page gets every field and opens only for a vendor it runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went');

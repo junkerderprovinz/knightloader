@@ -67,9 +67,32 @@ func registerCaptcha(reg *Registry, a *app.App) {
 			}{stillValid})
 		})
 
-	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable", "say that a web window could not load this challenge, so the windows watching stop holding the paid solvers back for it",
+	reg.Add(http.MethodPost, "/api/captcha/{id}/unanswerable", "say that a web window, or with by=phone the phone app, could not load this challenge, so those watching that way stop holding the paid solvers back for it",
 		func(w http.ResponseWriter, r *http.Request) {
-			a.CaptchaUnanswerable(r.PathValue("id"))
-			w.WriteHeader(http.StatusNoContent)
+			if by, ok := captchaViewer(w, r); ok {
+				a.CaptchaUnanswerable(r.PathValue("id"), by)
+				w.WriteHeader(http.StatusNoContent)
+			}
 		})
+
+	reg.Add(http.MethodDelete, "/api/captcha/{id}/unanswerable", "take that back once the challenge has loaded after all, so they hold the paid solvers back again; one already at work carries on",
+		func(w http.ResponseWriter, r *http.Request) {
+			if by, ok := captchaViewer(w, r); ok {
+				a.WithdrawCaptchaUnanswerable(r.PathValue("id"), by)
+				w.WriteHeader(http.StatusNoContent)
+			}
+		})
+}
+
+// captchaViewer reads who reports on a challenge from the by parameter, a
+// window unless it names the phone app, and refuses any other name.
+func captchaViewer(w http.ResponseWriter, r *http.Request) (app.CaptchaViewer, bool) {
+	switch by := app.CaptchaViewer(r.URL.Query().Get("by")); by {
+	case "", app.CaptchaWindow:
+		return app.CaptchaWindow, true
+	case app.CaptchaPhone:
+		return by, true
+	}
+	http.Error(w, "by is window or phone", http.StatusBadRequest)
+	return "", false
 }

@@ -249,8 +249,9 @@ and cannot be explained.
   clicks, and on a connection saved by address reCAPTCHA and hCaptcha as well.
   With **Only when nobody is watching** switched on on the Captcha settings
   page, the paid solvers wait for your answer on those first, and a captcha
-  the app cannot answer does not wait for it. The card says what the solvers
-  are doing, as the web UI's captcha window does.
+  the app cannot answer does not wait for it. Nor does a reCAPTCHA or hCaptcha
+  that will not load in the app, until Refresh loads it after all. The card
+  says what the solvers are doing, as the web UI's captcha window does.
 
 ## The browser extension
 

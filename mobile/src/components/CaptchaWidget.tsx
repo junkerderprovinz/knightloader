@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Modal, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { captchaWidgetSource } from '../api/client';
@@ -8,6 +8,7 @@ import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE, inkFor } from '../theme/tokens';
+import { useCaptchas } from './CaptchaWatch';
 import { GlimButton } from './glim';
 import IconBadge, { Cross } from './IconBadge';
 import { InfoTip } from './InfoTip';
@@ -47,6 +48,7 @@ export function CaptchaWidget({
   const { t, lang } = useT();
   const { c, accent, corners } = useAppearance();
   const { motion } = useMotion();
+  const { reportWidget } = useCaptchas();
   const [status, setStatus] = useState<Status>('loading');
   const [detail, setDetail] = useState<string | null>(null);
   // Set when the instance answered the page itself with an error status.
@@ -60,10 +62,17 @@ export function CaptchaWidget({
     setDetail(why);
   };
 
+  // A widget that will not load here cannot be answered from this phone, so
+  // the paid solvers need not wait for it, until Refresh loads it after all.
+  useEffect(() => {
+    if (status === 'error') reportWidget(challenge.id, false);
+  }, [status, challenge.id, reportWidget]);
+
   const onMessage = (raw: string) => {
     const m = widgetMessage(raw, challenge.id);
     if (!m) return;
     if (m.kind === 'ready') setStatus((s) => (s === 'loading' ? 'ready' : s));
+    else if (m.kind === 'loaded') reportWidget(challenge.id, true);
     else if (m.kind === 'expired') setStatus('expired');
     else if (m.kind === 'error' || m.kind === 'unsolvable') fail(m.kind, m.detail);
     else if (m.kind === 'solved' && m.detail) onSolved(m.detail);

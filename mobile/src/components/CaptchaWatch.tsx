@@ -1,8 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Animated, AppState, Easing, StyleSheet, View } from 'react-native';
-import { pollCaptchas, refreshCaptchas, type Polling } from '../api/client';
-import { byDeadline, noticeFor, type CaptchaNotice } from '../api/captcha';
-import type { CaptchaChallenge, ServerConnection } from '../api/types';
+import {
+  pollCaptchas,
+  refreshCaptchas,
+  reportCaptchaUnanswerable,
+  withdrawCaptchaUnanswerable,
+  type Polling,
+} from '../api/client';
+import { byDeadline, noticeFor, widgetReport, type CaptchaNotice } from '../api/captcha';
+import { isRelayConnection, type CaptchaChallenge, type ServerConnection } from '../api/types';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -25,6 +31,10 @@ export interface CaptchaWatchState {
   /** Runs an answer or a skip of challenge `id`. Its card then leaves without
    *  the banner saying it went elsewhere, unless the call fails. */
   settleHere: <T>(id: string, call: () => Promise<T>) => Promise<T>;
+  /** Tells the instance when the widget window for `id` failed, or loaded
+   *  after a failure this phone reported, so the paid solvers stop waiting
+   *  for the phone or wait for it again (widgetReport). */
+  reportWidget: (id: string, loaded: boolean) => void;
 }
 
 const Ctx = createContext<CaptchaWatchState>({
@@ -34,6 +44,7 @@ const Ctx = createContext<CaptchaWatchState>({
   reload: async () => {},
   refresh: async () => {},
   settleHere: (_id, call) => call(),
+  reportWidget: () => {},
 });
 
 export const useCaptchas = () => useContext(Ctx);
@@ -77,6 +88,8 @@ export function CaptchaWatch({
   const seen = useRef<CaptchaChallenge[] | null>(null);
   // Answered or skipped from this phone, whose card already said how it went.
   const mine = useRef(new Set<string>());
+  // Widgets this phone told the instance it cannot load.
+  const unloaded = useRef(new Set<string>());
   // Read by the poll's callback, which outlives the render that made it.
   const hidden = useRef(bannerHidden);
   hidden.current = bannerHidden;
@@ -90,6 +103,7 @@ export function CaptchaWatch({
   useEffect(() => {
     seen.current = null;
     mine.current.clear();
+    unloaded.current.clear();
     setList([]);
     setLoaded(false);
     setError(null);
@@ -104,8 +118,10 @@ export function CaptchaWatch({
         const sorted = byDeadline(next);
         const said = noticeFor(seen.current, sorted, mine.current, Date.now(), hidden.current);
         seen.current = sorted;
-        for (const id of mine.current) {
-          if (!sorted.some((ch) => ch.id === id)) mine.current.delete(id);
+        for (const ids of [mine.current, unloaded.current]) {
+          for (const id of ids) {
+            if (!sorted.some((ch) => ch.id === id)) ids.delete(id);
+          }
         }
         setList(sorted);
         setLoaded(true);
@@ -149,9 +165,22 @@ export function CaptchaWatch({
     }
   }, []);
 
+  // Only a connection saved by address shows the widget. A report that does
+  // not arrive only leaves the solvers waiting until their time runs out, so
+  // nobody is told about it.
+  const reportWidget = useCallback(
+    (id: string, loaded: boolean) => {
+      if (!conn || isRelayConnection(conn)) return;
+      const news = widgetReport(unloaded.current, id, loaded);
+      if (news === 'unanswerable') reportCaptchaUnanswerable(conn, id).catch(() => {});
+      else if (news === 'withdraw') withdrawCaptchaUnanswerable(conn, id).catch(() => {});
+    },
+    [conn],
+  );
+
   const value = useMemo(
-    () => ({ list, loaded, error, reload, refresh, settleHere }),
-    [list, loaded, error, reload, refresh, settleHere],
+    () => ({ list, loaded, error, reload, refresh, settleHere, reportWidget }),
+    [list, loaded, error, reload, refresh, settleHere, reportWidget],
   );
 
   return (
