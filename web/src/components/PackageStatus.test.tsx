@@ -3,9 +3,10 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 
-import type { Task } from '../lib/api';
+import type { ExtractJob, Task } from '../lib/api';
 import { I18nProvider } from '../lib/i18n';
 import { en } from '../lib/locales/en';
+import { extractionsByTask } from './Archives';
 import { COLUMN_BY_ID, type CellContext } from './columns';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -47,9 +48,9 @@ const ctx: CellContext = {
   profile: 'downloads',
 };
 
-function header(items: Task[]): string {
+function header(items: Task[], context: CellContext = ctx): string {
   const status = COLUMN_BY_ID.get('status');
-  act(() => root.render(<I18nProvider>{status?.aggregate?.(items, ctx)}</I18nProvider>));
+  act(() => root.render(<I18nProvider>{status?.aggregate?.(items, context)}</I18nProvider>));
   return host.textContent ?? '';
 }
 
@@ -78,5 +79,27 @@ it('shows a package with a dead link and nothing left to do as an error', () => 
 
 it('flags an archive that failed while another download in the package still runs', () => {
   header([row('a1', { unpack: 'error', archivePart: 1, error: 'x' }), row('b', { status: 'running', loaded: 1 })]);
+  expect(flagged(1)).not.toBeNull();
+});
+
+it('shows a package still unpacking as unpacking, with an archive that failed flagged', () => {
+  const job = (id: string, status: string, taskId: string): ExtractJob => ({
+    id,
+    taskId,
+    name: `${taskId}.rar`,
+    dir: '/downloads',
+    status,
+    files: 0,
+    bytes: 0,
+    volumes: 1,
+    parts: [taskId],
+    queuedAt: '2026-09-24T12:00:00Z',
+  });
+  const text = header([row('movie', { status: 'extracting' }), row('subs', { unpack: 'error', error: 'extract: x' })], {
+    ...ctx,
+    extractions: extractionsByTask([job('j1', 'running', 'movie'), job('j2', 'error', 'subs')]),
+  });
+  expect(text).toContain(en['status.extracting']);
+  expect(text).not.toContain(en['archive.failed']);
   expect(flagged(1)).not.toBeNull();
 });

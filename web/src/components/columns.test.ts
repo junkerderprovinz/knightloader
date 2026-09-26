@@ -91,9 +91,17 @@ describe('packageUnpacking', () => {
     expect([got?.done, got?.total]).toEqual([1, 2]);
   });
 
-  it('puts a failed archive before one still unpacking', () => {
+  // The failed one is flagged beside it, as a failed link is beside a running one.
+  it('lets an archive still unpacking speak before a failed one', () => {
     const items = [task('a1', 'extracting'), task('b1')];
     const got = packageUnpacking(items, ctx(job('a', 'running', ['a1']), job('b', 'error', ['b1'])));
+    expect(got?.state).toBe('running');
+    expect(got?.job?.id).toBe('a');
+  });
+
+  it('lets a failed archive speak once nothing is left to unpack', () => {
+    const items = [task('a1'), task('b1')];
+    const got = packageUnpacking(items, ctx(job('a', 'done', ['a1']), job('b', 'error', ['b1'])));
     expect(got?.state).toBe('error');
     expect(got?.job?.id).toBe('b');
   });

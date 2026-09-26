@@ -1197,10 +1197,11 @@ export function packageStatus(items: Task[]): Task['status'] {
   return best;
 }
 
-// The order in which a package's archives speak for it: a failure first, for
-// the reason packageStatus puts one first, then the archive being worked on,
-// then the ones waiting, and "Unpacked" only once nothing else is left.
-const UNPACK_RANK: UnpackState[] = ['error', 'password', 'running', 'queued', 'done'];
+// The order in which a package's archives speak for it, as packageStatus
+// orders its links: the archive being worked on, then the ones waiting, with a
+// failure flagged beside them (see PackageStatusCell). Once nothing is left to
+// do a failure speaks, and "Unpacked" only when nothing failed.
+const UNPACK_RANK: UnpackState[] = ['running', 'queued', 'error', 'password', 'done'];
 
 const unpackFailed = (u: Unpacking): boolean => u.state === 'error' || u.state === 'password';
 
