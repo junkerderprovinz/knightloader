@@ -402,7 +402,7 @@ export const uk: Dict = {
   'search.toggle': 'Пошук',
 
   'skipped.summary': '{n} посилань не додано',
-  'skipped.info': 'Посилання, які збирач упізнав як уже зібрані. Нічого не втрачено: завантажиться та копія, що вже є у списку. Очищення лише забуває цю примітку й нічого не повертає.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Очистити',
   'skipped.clearFailed': 'Не вдалося очистити список. Сервер доступний?',
 
@@ -3027,7 +3027,8 @@ export const uk: Dict = {
   'container.nzbTooBig': 'він більший за {max}, а більшим файл .nzb бути не може',
   'container.noUsenet': 'це .nzb, а такі файли отримуються з Usenet через обліковий запис TorBox або Premiumize.me. Жоден ваш обліковий запис цього не вміє: додайте такий у розділі «Облікові записи».',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Файл .nzb, який ви надіслали сюди або який надіслав Sonarr чи Radarr, іде на ваш обліковий запис TorBox або Premiumize.me, який отримує його з Usenet. Далі його файли завантажуються як будь-яке інше посилання.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Завантажується в сервісі {service}',
   'task.remoteSeeds': 'Сіди: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-посилання й файли .torrent ідуть або до «Торент і магнет», тобто вбудованого клієнта, або до debrid-сервісу, що приймає торренти, залежно від того, що вище в списку.',

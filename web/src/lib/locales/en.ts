@@ -457,7 +457,7 @@ export const en = {
   'search.toggle': 'Search',
 
   'skipped.summary': '{n} link(s) were not added',
-  'skipped.info': 'Links the collector recognised as already staged. Nothing was lost: the copy already in the list is the one that will download. Clearing forgets this note; it does not add anything back.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Clear',
   'skipped.clearFailed': 'Could not clear the list. Is the server reachable?',
 
@@ -1584,7 +1584,7 @@ export const en = {
   'settings.help.intake.watchFiles':
     'A watch folder picks up what is dropped into it: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
   'settings.help.intake.nzb':
-    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link.',
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'settings.help.intake.link1': 'Open Link collector settings',
 
   'settings.help.collector.title': 'The collector, before anything downloads',

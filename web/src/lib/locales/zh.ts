@@ -402,7 +402,7 @@ export const zh: Dict = {
   'search.toggle': '搜索',
 
   'skipped.summary': '有 {n} 个链接没有添加',
-  'skipped.info': '收集器认出已经收集过的链接。什么都没丢：会下载的是列表里已有的那一份。清空只是忘掉这条提示，不会把任何东西加回来。',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': '清空',
   'skipped.clearFailed': '无法清空列表。服务器还连得上吗？',
 
@@ -3013,7 +3013,8 @@ export const zh: Dict = {
   'container.nzbTooBig': '它超过了 {max}，这是 .nzb 允许的最大大小',
   'container.noUsenet': '它是 .nzb，这类文件要通过 TorBox 或 Premiumize.me 账户从 Usenet 获取。你的账户都做不到这一点：请在“账户”下添加一个。',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '一个 .nzb，无论是在这里上传的，还是 Sonarr 或 Radarr 发来的，都会交给你的 TorBox 或 Premiumize.me 账户，由它从 Usenet 获取。之后它的文件会像其他链接一样下载。',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '正在 {service} 上获取',
   'task.remoteSeeds': '做种数：{n}',
   'accounts.routing.orderHintTorrents': '磁力链接和 .torrent 文件要么交给内置客户端“种子与磁力链接”，要么交给支持种子的 Debrid 服务，看哪一个在列表中排得更靠前。',

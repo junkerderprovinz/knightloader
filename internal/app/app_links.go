@@ -1023,12 +1023,16 @@ func (a *App) heldLink(id string) bool {
 	return t != nil && t.Skipped
 }
 
-// SkippedLink is a link that never became a task because it was folded into
-// one already in the list, kept so the interface can say what happened to it.
-// Filtered links are tasks in the holding area instead.
+// SkippedLink is a link or file that never became a task, kept so the
+// interface can say what happened to it. Filtered links are tasks in the
+// holding area instead.
 type SkippedLink struct {
 	URL string `json:"url"`
-	// Kind is what the mirror set decided: "duplicate" or "mirror".
+	// Kind is "duplicate" or "mirror" for a link the mirror set folded into one
+	// already in the list. The rest failed before that: "container" (a
+	// container or Click'n'Load that gave no links), "playlist" (entries left
+	// out of a playlist), "nzb" (an .nzb no Usenet service took or fetched) and
+	// "torrent" (a dropped .torrent that could not be read).
 	Kind   string    `json:"kind"`
 	Reason string    `json:"reason"`
 	OfID   string    `json:"ofId,omitempty"`

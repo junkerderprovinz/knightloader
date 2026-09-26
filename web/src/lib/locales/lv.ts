@@ -402,7 +402,7 @@ export const lv: Dict = {
   'search.toggle': 'Meklēt',
 
   'skipped.summary': '{n} saites netika pievienotas',
-  'skipped.info': 'Saites, ko savācējs atpazina kā jau sagatavotas. Nekas nav zudis: lejupielādēsies tā kopija, kas jau ir sarakstā. Notīrīšana tikai aizmirst šo piezīmi, tā neko nepievieno atpakaļ.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Notīrīt',
   'skipped.clearFailed': 'Sarakstu neizdevās notīrīt. Vai serveris ir sasniedzams?',
 
@@ -3017,7 +3017,8 @@ export const lv: Dict = {
   'container.nzbTooBig': 'tas ir lielāks par {max}, kas ir lielākais pieļaujamais .nzb izmērs',
   'container.noUsenet': 'tas ir .nzb, un tos ielādē no Usenet caur TorBox vai Premiumize.me kontu. Neviens no taviem kontiem to nespēj: pievieno kādu sadaļā Konti.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb, ko augšupielādē šeit vai ko atsūta Sonarr vai Radarr, nonāk tavā TorBox vai Premiumize.me kontā, kas to ielādē no Usenet. Tā faili pēc tam tiek lejupielādēti tāpat kā jebkura cita saite.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Ielādē pie {service}',
   'task.remoteSeeds': 'Seedi: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet saites un .torrent faili nonāk vai nu pie Torrent un magnet, iebūvētā klienta, vai pie debrid pakalpojuma, kas pieņem torrentus, atkarībā no tā, kurš sarakstā ir augstāk.',

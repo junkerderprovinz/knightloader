@@ -417,7 +417,7 @@ export const de: Dict = {
   'search.toggle': 'Suche',
 
   'skipped.summary': '{n} Link(s) wurden nicht hinzugefügt',
-  'skipped.info': 'Links, die der Sammler als bereits gesammelt erkannt hat. Verloren ging nichts: Geladen wird die Kopie, die schon in der Liste steht. Löschen vergisst nur diesen Hinweis und holt nichts zurück.',
+  'skipped.info': 'Links und Dateien, aus denen kein Download wurde, jeweils mit dem Grund. Ein Link, der schon in der Liste steht oder den der Linkfilter zurückhält, ist hier nur vermerkt, denn geladen wird die Kopie dort. Bei den anderen wurde nichts geladen: ein Container oder Click\'n\'Load ohne Links, in einer Playlist ausgelassene Einträge, eine .nzb, an der TorBox oder Premiumize.me gescheitert ist, oder eine Datei aus dem Überwachungsordner, die nicht angenommen wurde. Löschen vergisst diese Hinweise und holt nichts zurück.',
   'skipped.clear': 'Löschen',
   'skipped.clearFailed': 'Die Liste ließ sich nicht löschen. Ist der Server erreichbar?',
 
@@ -1409,7 +1409,7 @@ export const de: Dict = {
   'settings.help.intake.watchFiles':
     'Ein Überwachungsordner nimmt auf, was du hineinlegst: Linklisten (.txt, .crawljob, .magnet), .torrent-Dateien, Container (.dlc, .ccf, .rsdf) und .nzb-Dateien.',
   'settings.help.intake.nzb':
-    'Eine .nzb, die du hier hochlädst oder die Sonarr oder Radarr schicken, geht an dein TorBox- oder Premiumize.me-Konto, das sie aus dem Usenet holt. Ihre Dateien laden danach wie jeder andere Link.',
+    'Eine .nzb, die du hier hochlädst oder die Sonarr oder Radarr schicken, geht an dein TorBox- oder Premiumize.me-Konto, das sie aus dem Usenet holt. Ihre Dateien laden danach wie jeder andere Link. TorBox nimmt .nzb-Dateien nur bei Tarifen an, die Usenet enthalten. Ob deiner dazugehört, erfährt KnightLoader erst, wenn TorBox die erste .nzb ablehnt. Diese .nzb schlägt dann fehl, außer ein Premiumize.me-Konto übernimmt sie.',
   'settings.help.intake.link1': 'Linksammler-Einstellungen öffnen',
 
   'settings.help.collector.title': 'Der Sammler, bevor irgendetwas lädt',

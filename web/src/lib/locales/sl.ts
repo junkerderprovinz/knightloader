@@ -402,7 +402,7 @@ export const sl: Dict = {
   'search.toggle': 'Iskanje',
 
   'skipped.summary': '{n} povezav ni bilo dodanih',
-  'skipped.info': 'Povezave, ki jih je zbiralnik prepoznal kot že pripravljene. Nič ni izgubljeno: prenesla se bo kopija, ki je že na seznamu. Čiščenje samo pozabi to opombo, ničesar ne doda nazaj.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Počisti',
   'skipped.clearFailed': 'Seznama ni bilo mogoče počistiti. Je strežnik dosegljiv?',
 
@@ -3026,7 +3026,8 @@ export const sl: Dict = {
   'container.nzbTooBig': 'večja je od {max}, večja pa datoteka .nzb ne sme biti',
   'container.noUsenet': 'je datoteka .nzb, te pa se pridobijo iz Useneta prek računa TorBox ali Premiumize.me. Noben tvoj račun tega ne zmore: dodaj ga pod Računi.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Datoteka .nzb, ki jo naložiš tukaj ali jo pošlje Sonarr ali Radarr, gre na tvoj račun TorBox ali Premiumize.me, ki jo pridobi iz Useneta. Njene datoteke se nato prenesejo kot vsaka druga povezava.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Prenaša se v storitvi {service}',
   'task.remoteSeeds': 'Semena: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetne povezave in datoteke .torrent gredo bodisi k »Torrent in magnet«, torej vgrajenemu odjemalcu, bodisi k storitvi debrid, ki sprejema torrente, odvisno od tega, kaj je na seznamu višje.',

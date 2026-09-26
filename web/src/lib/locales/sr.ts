@@ -402,7 +402,7 @@ export const sr: Dict = {
   'search.toggle': 'Претрага',
 
   'skipped.summary': '{n} веза није додато',
-  'skipped.info': 'Везе које је сакупљач препознао као већ припремљене. Ништа није изгубљено: преузеће се копија која је већ на списку. Чишћење само заборавља ову белешку и ништа не враћа назад.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Очисти',
   'skipped.clearFailed': 'Списак није могао да се очисти. Да ли је сервер доступан?',
 
@@ -3041,7 +3041,8 @@ export const sr: Dict = {
   'container.nzbTooBig': 'већа је од {max}, а већа .nzb датотека не сме да буде',
   'container.noUsenet': 'то је .nzb, а оне се преузимају са Usenet-а преко TorBox или Premiumize.me налога. Ниједан твој налог то не може: додај један под Налози.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb датотека коју овде отпремиш или коју пошаље Sonarr или Radarr иде на твој TorBox или Premiumize.me налог, који је преузима са Usenet-а. Њене датотеке се затим преузимају као и свака друга веза.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Преузима се код услуге {service}',
   'task.remoteSeeds': 'Сидови: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet везе и .torrent датотеке иду или на „Торент и магнет“, уграђени клијент, или на debrid услугу која прима торенте, у зависности од тога шта је више на списку.',

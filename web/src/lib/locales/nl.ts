@@ -394,7 +394,7 @@ export const nl: Dict = {
   'search.toggle': 'Zoeken',
 
   'skipped.summary': '{n} link(s) zijn niet toegevoegd',
-  'skipped.info': 'Links die de verzamelaar herkende als al klaargezet. Er is niets verloren: de kopie die al in de lijst staat, wordt gedownload. Wissen vergeet alleen deze melding en zet niets terug.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Wissen',
   'skipped.clearFailed': 'Kon de lijst niet wissen. Is de server bereikbaar?',
 
@@ -3010,7 +3010,8 @@ export const nl: Dict = {
   'container.nzbTooBig': 'hij is groter dan {max}, het maximum voor een .nzb',
   'container.noUsenet': 'hij is een .nzb, en die worden via een TorBox- of Premiumize.me-account van Usenet opgehaald. Geen van je accounts kan dat: voeg er een toe onder Accounts.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Een .nzb die je hier uploadt of die Sonarr of Radarr stuurt, gaat naar je TorBox- of Premiumize.me-account, dat hem van Usenet ophaalt. De bestanden ervan worden daarna gedownload zoals elke andere link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Ophalen bij {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-links en .torrent-bestanden gaan ofwel naar Torrent en magnet, de ingebouwde client, ofwel naar een debrid-dienst die torrents aanneemt, afhankelijk van welke van de twee hoger in de lijst staat.',

@@ -394,7 +394,7 @@ export const es: Dict = {
   'search.toggle': 'Buscar',
 
   'skipped.summary': 'No se añadieron {n} enlace(s)',
-  'skipped.info': 'Enlaces que el colector reconoció como ya preparados. No se ha perdido nada: la copia que ya está en la lista es la que se descargará. Borrar olvida este aviso; no vuelve a añadir nada.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Borrar',
   'skipped.clearFailed': 'No se pudo borrar la lista. ¿Está accesible el servidor?',
 
@@ -3018,7 +3018,8 @@ export const es: Dict = {
   'container.nzbTooBig': 'supera {max}, el tamaño máximo de un .nzb',
   'container.noUsenet': 'es un .nzb, y esos se descargan de Usenet a través de una cuenta de TorBox o de Premiumize.me. Ninguna de tus cuentas puede hacerlo: añade una en Cuentas.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, subido aquí o enviado por Sonarr o Radarr, va a tu cuenta de TorBox o de Premiumize.me, que lo descarga de Usenet. Después sus archivos se descargan como cualquier otro enlace.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Descargando en {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Los enlaces magnet y los archivos .torrent van o bien a Torrent y magnet, el cliente integrado, o bien a un servicio debrid que acepte torrents, según cuál esté más arriba en la lista.',

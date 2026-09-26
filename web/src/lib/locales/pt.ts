@@ -394,7 +394,7 @@ export const pt: Dict = {
   'search.toggle': 'Pesquisar',
 
   'skipped.summary': '{n} link(s) não foram adicionados',
-  'skipped.info': 'Links que o coletor reconheceu como já preparados. Nada se perdeu: a cópia que já está na lista é a que vai ser transferida. Limpar esquece esta nota; não volta a adicionar nada.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Limpar',
   'skipped.clearFailed': 'Não foi possível limpar a lista. O servidor está acessível?',
 
@@ -3016,7 +3016,8 @@ export const pt: Dict = {
   'container.nzbTooBig': 'é maior do que {max}, o máximo que um .nzb pode ter',
   'container.noUsenet': 'é um .nzb, e estes são obtidos da Usenet através de uma conta TorBox ou Premiumize.me. Nenhuma das tuas contas consegue fazer isso: adiciona uma em Contas.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Um .nzb, carregado aqui ou enviado pelo Sonarr ou pelo Radarr, vai para a tua conta TorBox ou Premiumize.me, que o obtém da Usenet. Depois, os seus ficheiros transferem-se como qualquer outro link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'A obter em {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Os links magnet e os ficheiros .torrent vão ou para Torrent e magnet, o cliente integrado, ou para um serviço debrid que aceite torrents, conforme o que estiver mais acima na lista.',

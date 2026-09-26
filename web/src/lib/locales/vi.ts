@@ -402,7 +402,7 @@ export const vi: Dict = {
   'search.toggle': 'Tìm kiếm',
 
   'skipped.summary': '{n} liên kết không được thêm',
-  'skipped.info': 'Những liên kết mà bộ thu thập nhận ra là đã có sẵn. Không mất gì cả: bản đã nằm trong danh sách chính là bản sẽ được tải. Xóa chỉ quên ghi chú này đi, không thêm lại gì.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Xóa',
   'skipped.clearFailed': 'Không xóa được danh sách. Máy chủ có kết nối được không?',
 
@@ -3027,7 +3027,8 @@ export const vi: Dict = {
   'container.nzbTooBig': 'nó lớn hơn {max}, mức lớn nhất một tệp .nzb được phép',
   'container.noUsenet': 'nó là một tệp .nzb, và loại này được lấy từ Usenet qua một tài khoản TorBox hoặc Premiumize.me. Không tài khoản nào của bạn làm được việc đó: hãy thêm một tài khoản ở mục Tài khoản.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Một tệp .nzb, dù được tải lên ở đây hay do Sonarr hoặc Radarr gửi tới, sẽ đi tới tài khoản TorBox hoặc Premiumize.me của bạn, nơi lấy nó từ Usenet. Sau đó các tệp của nó được tải như mọi liên kết khác.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Đang lấy trên {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Liên kết magnet và tệp .torrent sẽ đi tới “Torrent và magnet”, tức client tích hợp, hoặc tới một dịch vụ debrid hỗ trợ torrent, tùy cái nào đứng cao hơn trong danh sách.',

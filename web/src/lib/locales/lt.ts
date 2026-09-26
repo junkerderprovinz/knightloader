@@ -402,7 +402,7 @@ export const lt: Dict = {
   'search.toggle': 'Ieškoti',
 
   'skipped.summary': '{n} nuorodų nepridėta',
-  'skipped.info': 'Nuorodos, kurias rinktuvas atpažino kaip jau paruoštas. Niekas neprarasta: bus atsisiųsta ta kopija, kuri jau yra sąraše. Išvalymas tik pamiršta šį pranešimą, nieko negrąžina.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Išvalyti',
   'skipped.clearFailed': 'Sąrašo išvalyti nepavyko. Ar serveris pasiekiamas?',
 
@@ -3027,7 +3027,8 @@ export const lt: Dict = {
   'container.nzbTooBig': 'jis didesnis nei {max}, o didesnis .nzb būti negali',
   'container.noUsenet': 'tai .nzb, o tokie failai parsiunčiami iš Usenet per TorBox arba Premiumize.me paskyrą. Nė viena tavo paskyra to negali: pridėk tokią skiltyje Paskyros.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb failas, įkeltas čia arba atsiųstas Sonarr ar Radarr, keliauja į tavo TorBox arba Premiumize.me paskyrą, kuri jį parsiunčia iš Usenet. Paskui jo failai siunčiami kaip bet kuri kita nuoroda.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Parsiunčia {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet nuorodos ir .torrent failai keliauja arba į „Torentas ir magnet“, įtaisytą klientą, arba į debrid paslaugą, kuri priima torrentus, priklausomai nuo to, kuris sąraše yra aukščiau.',

@@ -402,7 +402,7 @@ export const tr: Dict = {
   'search.toggle': 'Ara',
 
   'skipped.summary': '{n} bağlantı eklenmedi',
-  'skipped.info': 'Toplayıcının zaten hazırlanmış olarak tanıdığı bağlantılar. Hiçbir şey kaybolmadı: indirilecek olan, listede zaten duran kopya. Temizlemek bu notu unutur, hiçbir şeyi geri eklemez.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Temizle',
   'skipped.clearFailed': 'Liste temizlenemedi. Sunucuya erişilebiliyor mu?',
 
@@ -3026,7 +3026,8 @@ export const tr: Dict = {
   'container.nzbTooBig': '{max} boyutundan büyük, bir .nzb en fazla bu kadar olabilir',
   'container.noUsenet': 'bu bir .nzb ve bunlar Usenet’ten bir TorBox ya da Premiumize.me hesabıyla alınır. Hesaplarının hiçbiri bunu yapamıyor: Hesaplar altında bir tane ekle.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Burada yüklenen ya da Sonarr veya Radarr tarafından gönderilen bir .nzb, onu Usenet’ten alan TorBox ya da Premiumize.me hesabına gider. Ardından dosyaları diğer her bağlantı gibi indirilir.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service} indiriyor',
   'task.remoteSeeds': 'Seedler: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet bağlantıları ve .torrent dosyaları ya yerleşik istemciye (“Torrent ve magnet”) ya da torrent kabul eden bir debrid hizmetine gider. Listede hangisi daha yukarıdaysa o alır.',

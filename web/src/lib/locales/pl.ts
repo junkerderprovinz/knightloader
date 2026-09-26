@@ -394,7 +394,7 @@ export const pl: Dict = {
   'search.toggle': 'Szukaj',
 
   'skipped.summary': '{n} link(ów) nie zostało dodanych',
-  'skipped.info': 'Linki, które kolektor rozpoznał jako już przygotowane. Nic nie przepadło: pobrana zostanie kopia, która już jest na liście. Wyczyszczenie tylko zapomina tę notatkę i niczego nie dodaje z powrotem.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Wyczyść',
   'skipped.clearFailed': 'Nie udało się wyczyścić listy. Czy serwer jest osiągalny?',
 
@@ -3011,7 +3011,8 @@ export const pl: Dict = {
   'container.nzbTooBig': 'jest większy niż {max}, a większy plik .nzb być nie może',
   'container.noUsenet': 'to plik .nzb, a takie pobiera się z Usenetu przez konto TorBox lub Premiumize.me. Żadne z twoich kont tego nie potrafi: dodaj takie na stronie Konta.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Plik .nzb wgrany tutaj albo wysłany przez Sonarr lub Radarr trafia na twoje konto TorBox lub Premiumize.me, które pobiera go z Usenetu. Jego pliki pobierają się potem jak każdy inny link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Pobieranie w usłudze {service}',
   'task.remoteSeeds': 'Seedy: {n}',
   'accounts.routing.orderHintTorrents': 'Linki magnet i pliki .torrent trafiają albo do „Torrent i magnet”, czyli wbudowanego klienta, albo do usługi debrid, która przyjmuje torrenty, zależnie od tego, co stoi wyżej na liście.',

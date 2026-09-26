@@ -402,7 +402,7 @@ export const hu: Dict = {
   'search.toggle': 'Keresés',
 
   'skipped.summary': '{n} link nem lett hozzáadva',
-  'skipped.info': 'Linkek, amelyeket a gyűjtő már előkészítettként ismert fel. Semmi sem veszett el: a listán már szereplő példány fog letöltődni. A törlés csak ezt a jegyzetet felejti el, semmit nem tesz vissza.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Törlés',
   'skipped.clearFailed': 'A listát nem sikerült törölni. Elérhető a kiszolgáló?',
 
@@ -3026,7 +3026,8 @@ export const hu: Dict = {
   'container.nzbTooBig': 'nagyobb, mint {max}, pedig egy .nzb legfeljebb ekkora lehet',
   'container.noUsenet': '.nzb fájl, ezeket pedig egy TorBox- vagy Premiumize.me-fiók hozza le a Usenetről. Egyik fiókod sem tud ilyet: vegyél fel egyet a Fiókok alatt.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Az .nzb, amelyet itt töltesz fel, vagy a Sonarr vagy a Radarr küld, a TorBox- vagy Premiumize.me-fiókodhoz kerül, amely lehozza a Usenetről. A fájljai ezután ugyanúgy töltődnek le, mint bármely más link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': '{service} tölti le',
   'task.remoteSeeds': 'Seedek: {n}',
   'accounts.routing.orderHintTorrents': 'A magnet linkek és a .torrent fájlok vagy a „Torrent és magnet” sorhoz, azaz a beépített klienshez kerülnek, vagy egy torrenteket fogadó debrid szolgáltatáshoz, attól függően, melyik áll feljebb a listában.',

@@ -402,7 +402,7 @@ export const ms: Dict = {
   'search.toggle': 'Cari',
 
   'skipped.summary': '{n} pautan tidak ditambah',
-  'skipped.info': 'Pautan yang dikenali pengumpul sebagai sudah disediakan. Tiada apa-apa yang hilang: salinan yang sudah ada dalam senarai itulah yang akan dimuat turun. Mengosongkan hanya melupakan nota ini dan tidak menambah apa-apa kembali.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Kosongkan',
   'skipped.clearFailed': 'Senarai tidak dapat dikosongkan. Adakah pelayan boleh dicapai?',
 
@@ -3026,7 +3026,8 @@ export const ms: Dict = {
   'container.nzbTooBig': 'saiznya melebihi {max}, saiz maksimum sesuatu .nzb',
   'container.noUsenet': 'ia ialah .nzb, dan fail sebegini diambil daripada Usenet melalui akaun TorBox atau Premiumize.me. Tiada akaun anda yang boleh melakukannya: tambah satu di bawah Akaun.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Fail .nzb, sama ada dimuat naik di sini atau dihantar oleh Sonarr atau Radarr, pergi ke akaun TorBox atau Premiumize.me anda, yang mengambilnya daripada Usenet. Selepas itu failnya dimuat turun seperti pautan lain.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Mengambil di {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Pautan magnet dan fail .torrent dihantar sama ada ke “Torrent dan magnet”, iaitu klien terbina dalam, atau ke perkhidmatan debrid yang menyokong torrent, mengikut mana yang lebih tinggi dalam senarai.',

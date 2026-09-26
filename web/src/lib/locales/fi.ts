@@ -402,7 +402,7 @@ export const fi: Dict = {
   'search.toggle': 'Haku',
 
   'skipped.summary': '{n} linkkiä ei lisätty',
-  'skipped.info': 'Linkit, jotka kerääjä tunnisti jo valmistelluiksi. Mitään ei menetetty: listalla jo oleva kopio on se, joka ladataan. Tyhjentäminen unohtaa vain tämän huomautuksen; se ei lisää mitään takaisin.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Tyhjennä',
   'skipped.clearFailed': 'Listaa ei saatu tyhjennettyä. Onko palvelin tavoitettavissa?',
 
@@ -3028,7 +3028,8 @@ export const fi: Dict = {
   'container.nzbTooBig': 'se on suurempi kuin {max}, joka on .nzb-tiedoston enimmäiskoko',
   'container.noUsenet': 'se on .nzb, ja ne haetaan Usenetistä TorBox- tai Premiumize.me-tilin kautta. Mikään tileistäsi ei pysty siihen: lisää sellainen kohdassa Tilit.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb, jonka lähetät tänne tai jonka Sonarr tai Radarr lähettää, menee TorBox- tai Premiumize.me-tilillesi, joka hakee sen Usenetistä. Sen tiedostot ladataan sitten kuten mikä tahansa muu linkki.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Haetaan palvelussa {service}',
   'task.remoteSeeds': 'Seedit: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-linkit ja .torrent-tiedostot menevät joko kohteelle Torrent ja magnet eli sisäänrakennetulle asiakasohjelmalle tai torrentteja ottavalle debrid-palvelulle sen mukaan, kumpi on listassa ylempänä.',

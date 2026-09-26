@@ -404,7 +404,7 @@ export const ar: Dict = {
   'search.toggle': 'بحث',
 
   'skipped.summary': 'لم يُضف {n} رابط',
-  'skipped.info': 'روابط عرف المُجمِّع أنها مُجهّزة سلفًا. لم يضع شيء: النسخة الموجودة في القائمة هي التي ستُنزَّل. المسح ينسى هذه الملاحظة؛ ولا يعيد إضافة أي شيء.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'مسح',
   'skipped.clearFailed': 'تعذّر مسح القائمة. هل الخادم متاح؟',
 
@@ -3026,7 +3026,8 @@ export const ar: Dict = {
   'container.nzbTooBig': 'حجمه يتجاوز {max}، وهو أقصى ما يجوز لملف ‎.nzb',
   'container.noUsenet': 'إنه ملف ‎.nzb، وهذه تُجلب من Usenet عبر حساب TorBox أو Premiumize.me. ولا يستطيع أي من حساباتك ذلك: أضف واحدًا في الحسابات.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'ملف ‎.nzb، مرفوع هنا أو مرسل من Sonarr أو Radarr، يذهب إلى حسابك في TorBox أو Premiumize.me، فيجلبه من Usenet. ثم تُنزَّل ملفاته كأي رابط آخر.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'قيد التنزيل لدى {service}',
   'task.remoteSeeds': 'البذور: {n}',
   'accounts.routing.orderHintTorrents': 'تذهب الروابط المغناطيسية وملفات ‎.torrent إما إلى «تورنت ورابط مغناطيسي»، العميل المدمج، وإما إلى خدمة debrid تقبل التورنتات، أيهما أعلى في القائمة.',

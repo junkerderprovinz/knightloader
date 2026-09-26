@@ -404,7 +404,7 @@ export const no: Dict = {
   'search.toggle': 'Søk',
 
   'skipped.summary': '{n} lenke(r) ble ikke lagt til',
-  'skipped.info': 'Lenker samleren kjente igjen som allerede klargjort. Ingenting gikk tapt: kopien som allerede står i lista, er den som lastes ned. Å tømme glemmer bare denne merknaden og legger ikke noe tilbake.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Tøm',
   'skipped.clearFailed': 'Klarte ikke å tømme listen. Er serveren tilgjengelig?',
 
@@ -3029,7 +3029,8 @@ export const no: Dict = {
   'container.nzbTooBig': 'den er større enn {max}, det største en .nzb kan være',
   'container.noUsenet': 'den er en .nzb, og slike hentes fra Usenet gjennom en TorBox- eller Premiumize.me-konto. Ingen av kontoene dine kan det: legg til en under Kontoer.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'En .nzb som lastes opp her eller sendes av Sonarr eller Radarr, går til TorBox- eller Premiumize.me-kontoen din, som henter den fra Usenet. Filene dens lastes så ned som en hvilken som helst annen lenke.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Henter hos {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlenker og .torrent-filer går enten til Torrent og magnet, den innebygde klienten, eller til en debrid-tjeneste som tar torrenter, avhengig av hvilken som står høyest i lista.',

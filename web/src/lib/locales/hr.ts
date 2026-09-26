@@ -402,7 +402,7 @@ export const hr: Dict = {
   'search.toggle': 'Pretraži',
 
   'skipped.summary': '{n} poveznica nije dodano',
-  'skipped.info': 'Poveznice koje je sakupljač prepoznao kao već pripremljene. Ništa nije izgubljeno: preuzet će se kopija koja je već na popisu. Čišćenje zaboravlja ovu napomenu; ništa ne vraća natrag.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Očisti',
   'skipped.clearFailed': 'Popis se nije mogao očistiti. Je li poslužitelj dostupan?',
 
@@ -3041,7 +3041,8 @@ export const hr: Dict = {
   'container.nzbTooBig': 'veća je od {max}, a veća .nzb datoteka ne smije biti',
   'container.noUsenet': 'to je .nzb, a one se dohvaćaju s Useneta preko TorBox ili Premiumize.me računa. Nijedan tvoj račun to ne može: dodaj jedan pod Računi.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Datoteka .nzb koju ovdje preneseš ili koju pošalje Sonarr ili Radarr ide na tvoj TorBox ili Premiumize.me račun, koji je dohvaća s Useneta. Njezine se datoteke zatim preuzimaju kao i svaka druga poveznica.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Preuzima se kod usluge {service}',
   'task.remoteSeeds': 'Seedovi: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet poveznice i .torrent datoteke idu ili ugrađenom klijentu „Torrent i magnet” ili debrid usluzi koja prima torrente, ovisno o tome što je na popisu više.',

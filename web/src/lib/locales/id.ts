@@ -402,7 +402,7 @@ export const id: Dict = {
   'search.toggle': 'Cari',
 
   'skipped.summary': '{n} tautan tidak ditambahkan',
-  'skipped.info': 'Tautan yang dikenali pengumpul sebagai sudah disiapkan. Tidak ada yang hilang: salinan yang sudah ada di daftar itulah yang akan diunduh. Membersihkan hanya melupakan catatan ini; tidak ada yang ditambahkan kembali.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Bersihkan',
   'skipped.clearFailed': 'Daftar tidak bisa dibersihkan. Apakah server terjangkau?',
 
@@ -3027,7 +3027,8 @@ export const id: Dict = {
   'container.nzbTooBig': 'ukurannya melebihi {max}, batas terbesar untuk sebuah .nzb',
   'container.noUsenet': 'berkas ini adalah .nzb, dan berkas seperti itu diambil dari Usenet lewat akun TorBox atau Premiumize.me. Tidak ada akunmu yang bisa melakukannya: tambahkan satu di Akun.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Sebuah .nzb, baik yang diunggah di sini maupun yang dikirim Sonarr atau Radarr, pergi ke akun TorBox atau Premiumize.me milikmu, yang mengambilnya dari Usenet. Setelah itu berkasnya diunduh seperti tautan lainnya.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Mengambil di {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Tautan magnet dan berkas .torrent dikirim ke “Torrent dan magnet”, yaitu klien bawaan, atau ke layanan debrid yang mendukung torrent, mana pun yang lebih tinggi di daftar.',

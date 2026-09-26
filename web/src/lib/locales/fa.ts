@@ -402,7 +402,7 @@ export const fa: Dict = {
   'search.toggle': 'جستجو',
 
   'skipped.summary': '{n} پیوند افزوده نشد',
-  'skipped.info': 'پیوندهایی که گردآور تشخیص داد از قبل آماده شده‌اند. چیزی از دست نرفت: همان نسخه‌ای که در فهرست هست دانلود می‌شود. پاک کردن فقط این یادداشت را فراموش می‌کند و چیزی را برنمی‌گرداند.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'پاک کردن',
   'skipped.clearFailed': 'فهرست پاک نشد. آیا سرور در دسترس است؟',
 
@@ -3016,7 +3016,8 @@ export const fa: Dict = {
   'container.nzbTooBig': 'از {max} بزرگ‌تر است، و یک .nzb بیش از این نمی‌تواند باشد',
   'container.noUsenet': 'یک .nzb است، و این‌ها را یک حساب TorBox یا Premiumize.me از Usenet می‌گیرد. هیچ‌کدام از حساب‌هایت این کار را نمی‌کند: یکی در حساب‌ها اضافه کن.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'یک .nzb، چه اینجا بارگذاری شود چه Sonarr یا Radarr بفرستد، به حساب TorBox یا Premiumize.me تو می‌رود که آن را از Usenet می‌گیرد. سپس فایل‌هایش مثل هر پیوند دیگری دانلود می‌شوند.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'در حال دانلود در {service}',
   'task.remoteSeeds': 'سیدها: {n}',
   'accounts.routing.orderHintTorrents': 'پیوندهای مگنت و فایل‌های .torrent یا به «تورنت و مگنت»، کلاینت داخلی، می‌روند یا به یک سرویس debrid که تورنت می‌پذیرد، هر کدام که در فهرست بالاتر باشد.',

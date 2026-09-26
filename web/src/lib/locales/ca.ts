@@ -402,7 +402,7 @@ export const ca: Dict = {
   'search.toggle': 'Cerca',
 
   'skipped.summary': "No s'han afegit {n} enllaços",
-  'skipped.info': 'Enllaços que el col·lector ha reconegut com a ja preparats. No s’ha perdut res: la còpia que ja és a la llista és la que es baixarà. Netejar oblida aquesta nota; no torna a afegir res.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Neteja',
   'skipped.clearFailed': "No s'ha pogut netejar la llista. El servidor és accessible?",
 
@@ -3013,7 +3013,8 @@ export const ca: Dict = {
   'container.nzbTooBig': 'supera els {max}, el màxim que pot ocupar un .nzb',
   'container.noUsenet': 'és un .nzb, i aquests es baixen d’Usenet a través d’un compte de TorBox o de Premiumize.me. Cap dels teus comptes no ho pot fer: afegeix-ne un a Comptes.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, pujat aquí o enviat per Sonarr o Radarr, va al teu compte de TorBox o de Premiumize.me, que el baixa d’Usenet. Després, els seus fitxers es baixen com qualsevol altre enllaç.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Baixant a {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Els enllaços magnet i els fitxers .torrent van o bé a Torrent i magnet, el client integrat, o bé a un servei debrid que accepti torrents, segons quin estigui més amunt a la llista.',

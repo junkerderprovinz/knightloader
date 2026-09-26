@@ -402,7 +402,7 @@ export const et: Dict = {
   'search.toggle': 'Otsi',
 
   'skipped.summary': '{n} linki ei lisatud',
-  'skipped.info': 'Lingid, mille koguja tundis ära juba kogujas olevatena. Midagi ei läinud kaotsi: alla laaditakse see koopia, mis on juba loendis. Tühjendamine unustab ainult selle märkuse, see ei lisa midagi tagasi.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Tühjenda',
   'skipped.clearFailed': 'Loendit ei õnnestunud tühjendada. Kas server on kättesaadav?',
 
@@ -3018,7 +3018,8 @@ export const et: Dict = {
   'container.nzbTooBig': 'see on suurem kui {max}, mis on .nzb suurim lubatud suurus',
   'container.noUsenet': 'see on .nzb ja neid tuuakse Usenetist TorBoxi või Premiumize.me konto kaudu. Ükski sinu konto seda ei suuda: lisa üks lehel Kontod.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb, mille siia üles laadid või mille Sonarr või Radarr saadab, läheb sinu TorBoxi või Premiumize.me kontole, mis toob selle Usenetist. Selle failid laaditakse seejärel alla nagu iga teine link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Tuuakse teenuses {service}',
   'task.remoteSeeds': 'Seedid: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlingid ja .torrent-failid lähevad kas sisseehitatud kliendile Torrent ja magnet või debrid-teenusele, mis võtab torrente vastu, olenevalt sellest, kumb on loendis eespool.',

@@ -402,7 +402,7 @@ export const cs: Dict = {
   'search.toggle': 'Hledat',
 
   'skipped.summary': '{n} odkazů nebylo přidáno',
-  'skipped.info': 'Odkazy, které sběrač poznal jako už připravené. Nic se neztratilo: stáhne se ta kopie, která už v seznamu je. Vymazání zapomene tuhle poznámku; nic zpátky nepřidá.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Vymazat',
   'skipped.clearFailed': 'Seznam se nepodařilo vymazat. Je server dostupný?',
 
@@ -3037,7 +3037,8 @@ export const cs: Dict = {
   'container.nzbTooBig': 'je větší než {max}, a větší soubor .nzb být nesmí',
   'container.noUsenet': 'je to .nzb a ty se stahují z Usenetu přes účet TorBox nebo Premiumize.me. Žádný z tvých účtů to neumí: přidej si ho v Účtech.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Soubor .nzb nahraný sem nebo poslaný ze Sonarru či Radarru jde na tvůj účet TorBox nebo Premiumize.me, který ho stáhne z Usenetu. Jeho soubory se pak stahují jako každý jiný odkaz.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Stahuje se ve službě {service}',
   'task.remoteSeeds': 'Seedy: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet odkazy a soubory .torrent jdou buď do „Torrent a magnet“, tedy vestavěného klienta, nebo do debrid služby, která bere torrenty, podle toho, co je v seznamu výš.',

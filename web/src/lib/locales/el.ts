@@ -402,7 +402,7 @@ export const el: Dict = {
   'search.toggle': 'Αναζήτηση',
 
   'skipped.summary': '{n} σύνδεσμοι δεν προστέθηκαν',
-  'skipped.info': 'Σύνδεσμοι που ο συλλέκτης αναγνώρισε ως ήδη προετοιμασμένους. Δεν χάθηκε τίποτα: το αντίγραφο που είναι ήδη στη λίστα είναι αυτό που θα κατέβει. Ο καθαρισμός ξεχνά αυτή τη σημείωση· δεν προσθέτει τίποτα πίσω.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Καθαρισμός',
   'skipped.clearFailed': 'Δεν έγινε καθαρισμός της λίστας. Είναι προσβάσιμος ο διακομιστής;',
 
@@ -3026,7 +3026,8 @@ export const el: Dict = {
   'container.nzbTooBig': 'είναι μεγαλύτερο από {max}, το μέγιστο που επιτρέπεται για ένα .nzb',
   'container.noUsenet': 'είναι .nzb, και αυτά τα φέρνει από το Usenet ένας λογαριασμός TorBox ή Premiumize.me. Κανένας από τους λογαριασμούς σου δεν μπορεί να το κάνει: πρόσθεσε έναν στους Λογαριασμούς.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Ένα .nzb, που ανεβάζεις εδώ ή στέλνει το Sonarr ή το Radarr, πηγαίνει στον λογαριασμό σου TorBox ή Premiumize.me, που το φέρνει από το Usenet. Τα αρχεία του κατεβαίνουν μετά όπως κάθε άλλος σύνδεσμος.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Λήψη στο {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Οι σύνδεσμοι magnet και τα αρχεία .torrent πηγαίνουν είτε στο «Torrent και magnet», τον ενσωματωμένο πελάτη, είτε σε μια υπηρεσία debrid που δέχεται torrents, ανάλογα με το ποιο βρίσκεται ψηλότερα στη λίστα.',

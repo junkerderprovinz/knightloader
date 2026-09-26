@@ -403,7 +403,7 @@ export const ro: Dict = {
   'search.toggle': 'Căutare',
 
   'skipped.summary': '{n} linkuri nu au fost adăugate',
-  'skipped.info': 'Linkuri pe care colectorul le-a recunoscut ca fiind deja pregătite. Nu s-a pierdut nimic: copia aflată deja în listă este cea care se va descărca. Golirea uită doar această notă; nu adaugă nimic înapoi.',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'Golește',
   'skipped.clearFailed': 'Lista nu a putut fi golită. Serverul este accesibil?',
 
@@ -3034,7 +3034,8 @@ export const ro: Dict = {
   'container.nzbTooBig': 'depășește {max}, cât poate avea cel mult un .nzb',
   'container.noUsenet': 'este un .nzb, iar acestea sunt preluate din Usenet printr-un cont TorBox sau Premiumize.me. Niciunul dintre conturile tale nu poate face asta: adaugă unul la Conturi.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, încărcat aici sau trimis de Sonarr sau Radarr, ajunge la contul tău TorBox sau Premiumize.me, care îl preia din Usenet. Apoi fișierele lui se descarcă la fel ca orice alt link.',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'Se descarcă la {service}',
   'task.remoteSeeds': 'Seed-uri: {n}',
   'accounts.routing.orderHintTorrents': 'Linkurile magnet și fișierele .torrent merg fie la Torrent și magnet, clientul integrat, fie la un serviciu debrid care acceptă torrente, în funcție de care este mai sus în listă.',

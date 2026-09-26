@@ -402,7 +402,7 @@ export const th: Dict = {
   'search.toggle': 'ค้นหา',
 
   'skipped.summary': 'มี {n} ลิงก์ที่ไม่ได้ถูกเพิ่ม',
-  'skipped.info': 'ลิงก์ที่ตัวรวบรวมรู้ว่าเตรียมไว้แล้ว ไม่มีอะไรหายไป สำเนาที่อยู่ในรายการแล้วคือตัวที่จะถูกดาวน์โหลด การล้างแค่ลืมหมายเหตุนี้ ไม่ได้เพิ่มอะไรกลับมา',
+  'skipped.info': 'Links and files that did not become downloads, each with its reason. A link that was already in the list, or that the link filter is holding, is only noted here, since that copy is the one that downloads. Nothing was downloaded for the others: a container or Click\'n\'Load that gave no links, entries left out of a playlist, an .nzb that TorBox or Premiumize.me gave up on, or a file from the watch folder that could not be taken. Clearing forgets these notes and adds nothing back.',
   'skipped.clear': 'ล้าง',
   'skipped.clearFailed': 'ล้างรายการไม่สำเร็จ เซิร์ฟเวอร์ยังติดต่อได้ไหม',
 
@@ -3026,7 +3026,8 @@ export const th: Dict = {
   'container.nzbTooBig': 'ใหญ่เกิน {max} ซึ่งเป็นขนาดสูงสุดที่ .nzb มีได้',
   'container.noUsenet': 'เป็น .nzb ซึ่งต้องดึงจาก Usenet ผ่านบัญชี TorBox หรือ Premiumize.me ไม่มีบัญชีใดของคุณทำแบบนั้นได้: เพิ่มบัญชีได้ที่หน้าบัญชี',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'ไฟล์ .nzb ที่อัปโหลดที่นี่ หรือที่ Sonarr หรือ Radarr ส่งมา จะไปที่บัญชี TorBox หรือ Premiumize.me ของคุณ ซึ่งจะดึงมันมาจาก Usenet จากนั้นไฟล์ของมันจะดาวน์โหลดเหมือนลิงก์อื่น ๆ',
+  'settings.help.intake.nzb':
+    'An .nzb, uploaded here or sent by Sonarr or Radarr, goes to your TorBox or Premiumize.me account, which fetches it from Usenet. Its files then download like any other link. TorBox takes .nzb files only on plans that include Usenet. KnightLoader finds out when TorBox turns down the first one, and that .nzb fails unless a Premiumize.me account takes it.',
   'task.remote': 'กำลังดึงที่ {service}',
   'task.remoteSeeds': 'ซีด: {n}',
   'accounts.routing.orderHintTorrents': 'ลิงก์แม่เหล็กและไฟล์ .torrent จะไปที่ “ทอร์เรนต์และแม่เหล็ก” ซึ่งเป็นไคลเอนต์ในตัว หรือไปที่บริการ debrid ที่รองรับทอร์เรนต์ แล้วแต่ว่าตัวไหนอยู่สูงกว่าในรายการ',

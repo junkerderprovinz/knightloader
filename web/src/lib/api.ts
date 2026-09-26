@@ -816,12 +816,16 @@ export const CLEANUP_CLASSES = [
 
 export type CleanupClass = (typeof CLEANUP_CLASSES)[number];
 
-/** A link that never became a task, kept so the collector can say what happened to it. */
+/** A link or file that never became a task, kept so the collector can say what happened to it. */
 export interface SkippedLink {
   url: string;
-  /** What the mirror set decided: "duplicate" or "mirror". */
+  /**
+   * "duplicate" or "mirror" for a link folded into one already in the list;
+   * "container", "playlist", "nzb" or "torrent" for one that failed before
+   * that. SkippedLink in internal/app lists what each means.
+   */
   kind: string;
-  /** The sentence to show, which names what the match rests on. */
+  /** The sentence to show: what the match rests on, or why it failed. */
   reason: string;
   /** The task it was folded into. */
   ofId?: string;
