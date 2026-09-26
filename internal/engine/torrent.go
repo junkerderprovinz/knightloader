@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
@@ -80,7 +81,7 @@ func (e *Engine) startTorrent(j Job) {
 		// A magnet's file list comes from a stranger over the network and is
 		// seen here for the first time; an uploaded .torrent was already
 		// checked by the resolver. This runs before Create starts writing.
-		if err := torrent.Contained(opts.Path, landingPaths(rr.Res)); err != nil {
+		if err := checkLanding(opts.Path, rr.Res); err != nil {
 			fail(err)
 			return
 		}
@@ -184,6 +185,17 @@ func landingPaths(res *base.Resource) []string {
 		out = append(out, res.Name)
 	}
 	return out
+}
+
+// checkLanding refuses a resolved torrent that would write outside dir, or
+// outside its own folder there. A file that climbs out of that folder lands
+// beside the torrent, where removing it with its files would delete whatever
+// else has that name.
+func checkLanding(dir string, res *base.Resource) error {
+	if err := torrent.Contained(dir, landingPaths(res)); err != nil || res.Name == "" {
+		return err
+	}
+	return torrent.Contained(filepath.Join(dir, filepath.FromSlash(res.Name)), torrentPaths(res))
 }
 
 // torrentPaths is every file of a resolved torrent by its path inside the

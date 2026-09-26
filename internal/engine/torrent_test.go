@@ -66,7 +66,8 @@ func TestAMagnetsFileListDeletesEveryFileTheLibraryWrote(t *testing.T) {
 // TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated tests the check
 // as the engine composes it. A magnet's file list never passes the resolver,
 // so this is all that stands between a hostile swarm and a write outside the
-// download folder.
+// download folder, or outside the torrent's own folder into another
+// download's files, which removing the torrent with its files would delete.
 func TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated(t *testing.T) {
 	dir := t.TempDir()
 	hostile := []*base.Resource{
@@ -74,17 +75,21 @@ func TestAHostileResolvedTorrentIsRefusedBeforeAnythingIsCreated(t *testing.T) {
 		{Name: "..", Files: []*base.FileInfo{{Name: "ep01.mkv"}}},
 		{Files: []*base.FileInfo{{Name: "x.mkv", Path: ".."}}},
 		{Name: "ok", Files: []*base.FileInfo{{Name: "fine.mkv"}, {Name: "passwd", Path: "../../.."}}},
+		{Name: "Show.S01", Files: []*base.FileInfo{{Name: "ep01.mkv"}, {Name: "Movie.mkv", Path: ".."}}},
+		{Name: "Show.S01", Files: []*base.FileInfo{{Name: "ep01.mkv"}, {Name: ".."}}},
 	}
 	for _, res := range hostile {
-		if err := torrent.Contained(dir, landingPaths(res)); !errors.Is(err, torrent.ErrUnsafePath) {
+		if err := checkLanding(dir, res); !errors.Is(err, torrent.ErrUnsafePath) {
 			t.Fatalf("resource %+v was accepted (err = %v)", res, err)
 		}
 	}
-	fine := &base.Resource{Name: "Show.S01", Files: []*base.FileInfo{
-		{Name: "ep01.mkv"}, {Name: "en.srt", Path: "subs"},
-	}}
-	if err := torrent.Contained(dir, landingPaths(fine)); err != nil {
-		t.Fatalf("an ordinary torrent was refused: %v", err)
+	for _, fine := range []*base.Resource{
+		{Name: "Show.S01", Files: []*base.FileInfo{{Name: "ep01.mkv"}, {Name: "en.srt", Path: "subs"}}},
+		{Files: []*base.FileInfo{{Name: "Movie.mkv"}}},
+	} {
+		if err := checkLanding(dir, fine); err != nil {
+			t.Fatalf("an ordinary torrent was refused: %v", err)
+		}
 	}
 }
 
