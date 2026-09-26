@@ -2617,6 +2617,7 @@ export const en = {
   'failure.geoBlocked.next': 'Run KnightLoader behind a VPN or a proxy in a region the site serves.',
   'failure.drm.next': 'There is nothing to set up for this, so remove the link.',
   'failure.extractorBroken.next': 'Update KnightLoader: a newer image brings a newer yt-dlp.',
+  'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
   'failure.accessDenied.line': 'The host refused access to this file.',
   'failure.accessDenied.next': 'Check this host\'s account on the Accounts page, or add one.',
   'failure.premiumNeeded.line': 'Only a premium account can download this file.',

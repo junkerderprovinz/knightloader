@@ -2376,6 +2376,7 @@ export const de: Dict = {
   'failure.geoBlocked.next': 'Betreib KnightLoader hinter einem VPN oder Proxy in einer Region, die die Seite beliefert.',
   'failure.drm.next': 'Dafür gibt es nichts einzustellen, entfern also den Link.',
   'failure.extractorBroken.next': 'Aktualisier KnightLoader: Ein neueres Abbild bringt ein neueres yt-dlp mit.',
+  'failure.unsupportedPlayer.next': 'Findest du die eigene Adresse des Videos, füg stattdessen die ein.',
   'failure.accessDenied.line': 'Der Hoster verweigert den Zugriff auf diese Datei.',
   'failure.accessDenied.next': 'Prüf das Konto für diesen Hoster auf der Seite Konten oder leg eins an.',
   'failure.premiumNeeded.line': 'Diese Datei lässt sich nur mit einem Premium-Konto laden.',

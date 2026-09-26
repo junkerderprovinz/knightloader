@@ -213,6 +213,8 @@ export const de: Dict = {
   'failure.drm.next': 'Dafür gibt es nichts einzustellen, entfern also den Link.',
   'failure.extractorBroken.line': 'Die Seite hat sich geändert, und das yt-dlp dieses Builds bekommt das Video nicht mehr heraus.',
   'failure.extractorBroken.next': 'Aktualisier KnightLoader: Ein neueres Abbild bringt ein neueres yt-dlp mit.',
+  'failure.unsupportedPlayer.line': 'Die Seite spielt ihr Video in einem Player ab, den hier kein Backend lesen kann.',
+  'failure.unsupportedPlayer.next': 'Findest du die eigene Adresse des Videos, füg stattdessen die ein.',
   'failure.archiveDamaged.line': '{part} ist beschädigt.',
   'failure.archiveDamaged.next': 'Lade {part} noch einmal oder hol es von einem anderen Mirror.',
   'failure.archivePassword.line': 'Das Archiv braucht ein Passwort, und keins der gespeicherten passt.',

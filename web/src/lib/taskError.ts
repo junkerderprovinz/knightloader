@@ -43,6 +43,7 @@ const WORDS: Record<string, Words> = {
   geoBlocked: { line: 'failure.geoBlocked.line', next: 'failure.geoBlocked.next' },
   drm: { line: 'failure.drm.line', next: 'failure.drm.next' },
   extractorBroken: { line: 'failure.extractorBroken.line', next: 'failure.extractorBroken.next' },
+  unsupportedPlayer: { line: 'failure.unsupportedPlayer.line', next: 'failure.unsupportedPlayer.next' },
   archiveDamaged: { line: 'failure.archiveDamaged.line', next: 'failure.archiveDamaged.next' },
   archivePassword: { line: 'failure.archivePassword.line', next: 'failure.archivePassword.next' },
   archivePartMissing: { line: 'failure.archivePartMissing.line', next: 'failure.archivePartMissing.next' },
