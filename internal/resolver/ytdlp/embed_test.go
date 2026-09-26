@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -102,8 +103,8 @@ func TestAPlaymateLinkBecomesItsStream(t *testing.T) {
 	if s.title != "1000267652" {
 		t.Errorf("title = %q, want the page's title", s.title)
 	}
-	if got := s.template(); got != "1000267652.%(ext)s" {
-		t.Errorf("template = %q", got)
+	if s.id != playmateCode {
+		t.Errorf("id = %q, want the embed code", s.id)
 	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -127,11 +128,13 @@ func TestATitleThatNamesNothingGivesWayToTheCode(t *testing.T) {
 	}
 }
 
-func TestATitleIsMadeFitForAFileName(t *testing.T) {
+// The characters a file name cannot hold stay in the title, for the metadata;
+// yt-dlp replaces them in the file name.
+func TestATitleIsPutOnOneShortLine(t *testing.T) {
 	for title, want := range map[string]string{
-		"Part 1: Intro / Outro?":  "Part 1 Intro Outro",
+		"Part 1: Intro / Outro?":  "Part 1: Intro / Outro?",
 		"Tom &amp; Jerry":         "Tom & Jerry",
-		"Say \"when\".":           "Say when",
+		"Say \"when\".":           "Say \"when\"",
 		strings.Repeat("ab", 80):  strings.Repeat("ab", 50),
 		"100% real\tfootage\n\n ": "100% real footage",
 	} {
@@ -143,9 +146,19 @@ func TestATitleIsMadeFitForAFileName(t *testing.T) {
 			t.Errorf("page title %q gave the name %q, want %q", title, s.title, want)
 		}
 	}
-	s := embedded{title: "100% real"}
-	if got := s.template(); got != "100%% real.%(ext)s" {
-		t.Errorf("template = %q, want the percent sign escaped for yt-dlp", got)
+}
+
+// yt-dlp reads the replacement as a regular expression's, where a lone
+// backslash stops it with "bad escape".
+func TestATitleReachesYtdlpAsWritten(t *testing.T) {
+	s := embedded{title: `AC\DC live`, id: playmateCode, referer: "http://playmate.to/"}
+	want := []string{
+		"--add-header", "Referer:http://playmate.to/",
+		"--replace-in-metadata", "title", ".+", `AC\\DC live`,
+		"--replace-in-metadata", "id", ".+", playmateCode,
+	}
+	if got := s.args(); !slices.Equal(got, want) {
+		t.Errorf("args = %q, want %q", got, want)
 	}
 }
 
@@ -214,21 +227,23 @@ func TestOtherLinksGoToYtdlpAsTheyAre(t *testing.T) {
 	}
 }
 
-// runEmbed drives one Backend.run for the playmate link against f, with the
-// helper recording the argv it was started with.
-func runEmbed(t *testing.T, f *fakePlaymate) (string, *recorder) {
+// runEmbed drives one Backend.run for the playmate link against f with the
+// given options, the helper recording the argv it was started with.
+func runEmbed(t *testing.T, f *fakePlaymate, opts Options) (string, *recorder) {
 	t.Helper()
 	t.Setenv(runHelperEnv, "cookies:full")
 	dir := t.TempDir()
 	rec := &recorder{}
 	b := NewBackend(os.Args[0], dir, rec.add)
 	b.Client = playmateSite(t, f)
+	b.Options = func(string) Options { return opts }
 	b.run("task-1", playmateLink)
 	return dir, rec
 }
 
 func TestRunFetchesTheStreamUnderThePageTitle(t *testing.T) {
-	dir, rec := runEmbed(t, &fakePlaymate{title: "1000267652"})
+	const tmpl = "%(title)s [%(id)s].%(ext)s"
+	dir, rec := runEmbed(t, &fakePlaymate{title: "1000267652"}, Options{OutputTemplate: tmpl})
 	if got := rec.last(); got.Status == core.StatusError {
 		t.Fatalf("the run failed: %+v", got)
 	}
@@ -240,28 +255,21 @@ func TestRunFetchesTheStreamUnderThePageTitle(t *testing.T) {
 	if last := argv[len(argv)-1]; last != playmateMaster {
 		t.Errorf("yt-dlp was given %q, want the stream %q", last, playmateMaster)
 	}
-	want := map[string]bool{
-		"-o":                          false,
-		"--add-header":                false,
-		"Referer:http://playmate.to/": false,
-	}
-	for i, a := range argv {
-		if a == "-o" && i+1 < len(argv) && strings.HasSuffix(argv[i+1], string(filepath.Separator)+"1000267652.%(ext)s") {
-			want["-o"] = true
-		}
-		if _, ok := want[a]; ok && a != "-o" {
-			want[a] = true
-		}
-	}
-	for a, seen := range want {
-		if !seen {
-			t.Errorf("argv lacks %s as it should be: %q", a, argv)
+	line := strings.Join(argv, "\n")
+	for _, want := range [][]string{
+		{"-o", filepath.Join(dir, tmpl)},
+		{"--add-header", "Referer:http://playmate.to/"},
+		{"--replace-in-metadata", "title", ".+", "1000267652"},
+		{"--replace-in-metadata", "id", ".+", playmateCode},
+	} {
+		if !strings.Contains(line, strings.Join(want, "\n")) {
+			t.Errorf("argv lacks %q: %q", want, argv)
 		}
 	}
 }
 
 func TestRunReportsAGoneVideoWithoutStartingYtdlp(t *testing.T) {
-	dir, rec := runEmbed(t, &fakePlaymate{pageStatus: http.StatusNotFound})
+	dir, rec := runEmbed(t, &fakePlaymate{pageStatus: http.StatusNotFound}, Options{})
 	got := rec.last()
 	if got.Status != core.StatusError || got.Reason != core.ReasonGone {
 		t.Fatalf("last update = %+v, want a failure saying the video is gone", got)

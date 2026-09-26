@@ -97,9 +97,16 @@ func TestMain(m *testing.M) {
 		fmt.Printf("{\"_type\":\"playlist\",\"title\":%q,\"entries\":[]}\n", strings.Join(os.Args[1:], " "))
 		os.Exit(0)
 	case "stream":
-		// A bare HLS stream, named after its playlist file. The format id
+		// A bare HLS stream, named after its playlist file unless a
+		// --replace-in-metadata for the title says otherwise. The format id
 		// echoes the address yt-dlp was given.
-		fmt.Printf("{\"title\":\"master\",\"formats\":[{\"format_id\":%q,\"ext\":\"mp4\",\"protocol\":\"m3u8_native\",\"height\":1080}]}\n", os.Args[len(os.Args)-1])
+		title := "master"
+		for i := 1; i+3 < len(os.Args); i++ {
+			if os.Args[i] == "--replace-in-metadata" && os.Args[i+1] == "title" {
+				title = strings.ReplaceAll(os.Args[i+3], `\\`, `\`)
+			}
+		}
+		fmt.Printf("{\"title\":%q,\"formats\":[{\"format_id\":%q,\"ext\":\"mp4\",\"protocol\":\"m3u8_native\",\"height\":1080}]}\n", title, os.Args[len(os.Args)-1])
 		os.Exit(0)
 	case "badjson":
 		fmt.Println("not json at all")
