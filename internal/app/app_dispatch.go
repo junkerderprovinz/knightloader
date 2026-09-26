@@ -769,7 +769,7 @@ func (a *App) dispatchLocked() {
 			rest = append(rest, id)
 			continue
 		}
-		if a.moving[id] {
+		if a.moving[id] || a.relocating[id] {
 			rest = append(rest, id)
 			continue
 		}

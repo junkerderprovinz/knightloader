@@ -1,10 +1,12 @@
 package remotefs
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -183,4 +185,83 @@ func firstRune(b []byte) string {
 		return ""
 	}
 	return string(b[:1])
+}
+
+// Halt stops a transfer without a failure reaching the app and returns once
+// the part file is closed, so it can be moved. Resume goes on from it in the
+// folder Dir names by then.
+func TestBackendHaltsQuietlyAndResumesInTheNewFolder(t *testing.T) {
+	tree := ftpTree()
+	big := bytes.Repeat([]byte("B"), 1<<20)
+	tree["/pub/big.bin"] = fakeNode{data: big}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	first, second := t.TempDir(), t.TempDir()
+	var mu sync.Mutex
+	dir := first
+	var limit atomic.Int64
+	limit.Store(64 << 10)
+	rec := newRecorder()
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), first, rec.update)
+	b.Dir = func(string) string {
+		mu.Lock()
+		defer mu.Unlock()
+		return dir
+	}
+	b.RateLimit = limit.Load
+
+	b.Download("t1", LinkOf(s.target("/pub/big.bin")), nil, 1)
+	part := filepath.Join(first, "big.bin"+partSuffix)
+	deadline := time.Now().Add(15 * time.Second)
+	for {
+		if fi, err := os.Stat(part); err == nil && fi.Size() >= 256<<10 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the transfer never got going")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if !b.Halt("t1") {
+		t.Fatal("Halt found no transfer running")
+	}
+	b.mu.Lock()
+	_, running := b.runs["t1"]
+	b.mu.Unlock()
+	if running {
+		t.Error("Halt returned while the transfer was still going")
+	}
+	rec.mu.Lock()
+	for _, u := range rec.all {
+		if u.Status == core.StatusError {
+			t.Errorf("the halt reached the app as a failure: %s", u.Err)
+		}
+	}
+	rec.mu.Unlock()
+	if err := os.Rename(part, filepath.Join(second, "big.bin"+partSuffix)); err != nil {
+		t.Fatalf("the part file could not be moved after the halt: %v", err)
+	}
+
+	mu.Lock()
+	dir = second
+	mu.Unlock()
+	limit.Store(0)
+	for len(s.restarts) > 0 {
+		<-s.restarts
+	}
+	b.Resume("t1")
+	if u := rec.wait(t); u.Status != core.StatusDone {
+		t.Fatalf("update = %+v, want a finished download", u)
+	}
+	got, err := os.ReadFile(filepath.Join(second, "big.bin"))
+	if err != nil || !bytes.Equal(got, big) {
+		t.Fatalf("the finished file holds %d bytes, %v; want the %d served", len(got), err, len(big))
+	}
+	select {
+	case off := <-s.restarts:
+		if off < 256<<10 {
+			t.Errorf("the resume asked the server to restart at %d, before what the part file held", off)
+		}
+	case <-time.After(2 * time.Second):
+		t.Error("no restart reached the server, so the part file was fetched again from the start")
+	}
 }

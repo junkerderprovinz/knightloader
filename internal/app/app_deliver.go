@@ -97,15 +97,18 @@ func (a *App) deliverDownload(id string) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	// StatusDone only: a task in StatusExtracting still needs its volumes
-	// together.
-	if t == nil || t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL {
+	// together. A task whose folder a package rename is moving is delivered
+	// once the move is over.
+	if t == nil || t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL || a.relocating[id] {
 		a.mu.Unlock()
 		return
 	}
 	dest, work := a.dirFor(t), a.workDirFor(t)
 	src := a.fileOfLocked(t)
 	c := *t
+	a.beginPlacingLocked(id)
 	a.mu.Unlock()
+	defer a.endPlacing(id)
 	// Only what sits in the working folder is this move's to make.
 	if dest == work || !sameDir(filepath.Dir(src), work) {
 		return

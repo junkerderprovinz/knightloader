@@ -59,10 +59,10 @@ type Backend struct {
 	// running transfer, and it is the only limit these non-HTTP transfers see.
 	RateLimit func() int64
 
-	mu     sync.Mutex
-	cancel map[string]context.CancelFunc
-	link   map[string]string
-	part   map[string]string
+	mu   sync.Mutex
+	runs map[string]*runState
+	link map[string]string
+	part map[string]string
 	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
 	// Resume and Remove reach whoever holds the transfer.
 	engineTasks map[string]bool
@@ -71,7 +71,7 @@ type Backend struct {
 func NewBackend(accounts Accounts, dialer Dialer, eng Downloader, dir string, onUpdate func(string, core.Update)) *Backend {
 	return &Backend{
 		accounts: accounts, dialer: dialer, eng: eng, dir: dir, onUpdate: onUpdate,
-		cancel:      map[string]context.CancelFunc{},
+		runs:        map[string]*runState{},
 		link:        map[string]string{},
 		part:        map[string]string{},
 		engineTasks: map[string]bool{},
@@ -90,7 +90,7 @@ func (b *Backend) Download(taskID, link string, headers map[string]string, conns
 	b.link[taskID] = link
 	delete(b.engineTasks, taskID)
 	b.mu.Unlock()
-	go b.run(taskID, link)
+	b.launch(taskID, link)
 }
 
 func (b *Backend) Pause(taskID string) {
@@ -99,10 +99,10 @@ func (b *Backend) Pause(taskID string) {
 		return
 	}
 	b.mu.Lock()
-	c := b.cancel[taskID]
+	r := b.runs[taskID]
 	b.mu.Unlock()
-	if c != nil {
-		c()
+	if r != nil {
+		r.cancel()
 	}
 }
 
@@ -116,8 +116,27 @@ func (b *Backend) Resume(taskID string) {
 	b.mu.Unlock()
 	if link != "" {
 		// run measures the part file and continues from there.
-		go b.run(taskID, link)
+		b.launch(taskID, link)
 	}
+}
+
+// Halt stops the task's transfer and returns once its part file is closed, so
+// the file can be moved. Resume carries on in the folder Dir names by then. A
+// transfer handed to the engine is not this backend's to halt. It reports
+// whether one was running.
+func (b *Backend) Halt(taskID string) bool {
+	if b.viaEngine(taskID) {
+		return false
+	}
+	b.mu.Lock()
+	r := b.runs[taskID]
+	b.mu.Unlock()
+	if r == nil {
+		return false
+	}
+	r.cancel()
+	<-r.ended
+	return true
 }
 
 func (b *Backend) Remove(taskID string, deleteFiles bool) {
@@ -129,8 +148,8 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 		return
 	}
 	b.mu.Lock()
-	if c, ok := b.cancel[taskID]; ok {
-		c()
+	if r := b.runs[taskID]; r != nil {
+		r.cancel()
 	}
 	part := b.part[taskID]
 	delete(b.link, taskID)
@@ -161,23 +180,49 @@ func (b *Backend) fail(taskID string, err error) {
 	b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error(), Speed: 0})
 }
 
-func (b *Backend) run(taskID, link string) {
+// runState is one transfer of a task: cancel stops it, and ended is closed
+// once run has returned.
+type runState struct {
+	cancel context.CancelFunc
+	ended  chan struct{}
+}
+
+// launch starts run on a goroutine of its own, registered before it goes, so
+// a Halt that comes straight after finds it.
+func (b *Backend) launch(taskID, link string) {
 	ctx, cancel := context.WithCancel(context.Background())
+	r := &runState{cancel: cancel, ended: make(chan struct{})}
 	b.mu.Lock()
-	b.cancel[taskID] = cancel
+	b.runs[taskID] = r
 	b.mu.Unlock()
-	defer func() {
-		cancel()
-		b.mu.Lock()
-		delete(b.cancel, taskID)
-		b.mu.Unlock()
+	go func() {
+		defer func() {
+			cancel()
+			b.mu.Lock()
+			if b.runs[taskID] == r {
+				delete(b.runs, taskID)
+			}
+			b.mu.Unlock()
+			close(r.ended)
+		}()
+		b.run(ctx, taskID, link)
 	}()
+}
+
+func (b *Backend) run(ctx context.Context, taskID, link string) {
+	// A transfer stopped on the way has nothing to report: the app has
+	// written the status, or a Halt means to carry on with it.
+	fail := func(err error) {
+		if ctx.Err() == nil {
+			b.fail(taskID, err)
+		}
+	}
 
 	// Download sends every http(s) link to the engine, so the flag cannot
 	// matter here.
 	t, err := Parse(link, true)
 	if err != nil {
-		b.fail(taskID, err)
+		fail(err)
 		return
 	}
 	login := Login{Username: t.User}
@@ -194,7 +239,7 @@ func (b *Backend) run(taskID, link string) {
 		}
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		b.fail(taskID, fmt.Errorf("remotefs: %w", err))
+		fail(fmt.Errorf("remotefs: %w", err))
 		return
 	}
 	// collide.SafeName gives the same name the engine would write and keeps a
@@ -207,31 +252,31 @@ func (b *Backend) run(taskID, link string) {
 
 	fs, err := b.dialer.Dial(ctx, t, login)
 	if err != nil {
-		b.fail(taskID, err)
+		fail(err)
 		return
 	}
 	defer fs.Close()
 
 	remote, err := fs.Stat(ctx, t.Path)
 	if err != nil {
-		b.fail(taskID, err)
+		fail(err)
 		return
 	}
 	if remote.Dir {
-		b.fail(taskID, fmt.Errorf("remotefs: %s is a folder, not a file", link))
+		fail(fmt.Errorf("remotefs: %s is a folder, not a file", link))
 		return
 	}
 
 	offset, err := partSize(part)
 	if err != nil {
-		b.fail(taskID, fmt.Errorf("remotefs: %w", err))
+		fail(fmt.Errorf("remotefs: %w", err))
 		return
 	}
 	// A part file longer than the remote file means the server's copy changed
 	// during a pause, so the download starts over.
 	if remote.Size > 0 && offset > remote.Size {
 		if err := os.Remove(part); err != nil && !errors.Is(err, os.ErrNotExist) {
-			b.fail(taskID, fmt.Errorf("remotefs: %w", err))
+			fail(fmt.Errorf("remotefs: %w", err))
 			return
 		}
 		offset = 0
@@ -241,18 +286,14 @@ func (b *Backend) run(taskID, link string) {
 
 	if remote.Size == 0 || offset < remote.Size {
 		if err := b.transfer(ctx, taskID, fs, t.Path, part, offset, remote.Size); err != nil {
-			if ctx.Err() != nil {
-				// Paused or removed; the app has already written the status.
-				return
-			}
-			b.fail(taskID, err)
+			fail(err)
 			return
 		}
 	}
 
 	final, err := b.finish(part, filepath.Join(dir, name))
 	if err != nil {
-		b.fail(taskID, err)
+		fail(err)
 		return
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: remote.Size, Loaded: remote.Size, Speed: 0})

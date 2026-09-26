@@ -2866,8 +2866,6 @@ export const zh: Dict = {
   'settings.transfer.colArrives': '接收后的值',
   'settings.transfer.colArrivesHint': '写入此文件的版本对这个值的理解不同。KnightLoader 会像更新时读取的那样接收它。',
   'rename.linkHint': '保存文件时使用的名字。已经完成的下载也会在磁盘上改名，让列表和文件夹保持一致。名字不是路径，所以不能用 / 和 \\。',
-  'rename.packageHint': '如果下载文件夹以包命名，只要包里还没有任何内容开始下载，文件夹也会改用新名字。名字不是路径，所以不能用 / 和 \\。',
-  'rename.keepsFolder': '这个包的一部分已经下载或正在下载。如果它的文件夹以包命名，文件夹保留原名，只有包改名。',
   'quick.speedWindowHint': '栏中的速度曲线往回显示多久，从 10 秒到一小时。两分钟以内每秒画一个测量值，超过则每十秒画一个。',
   'settings.access.tokens.rights': '权限',
   'settings.access.tokens.rightsHint': '使用这个令牌的应用可以做什么。“完全访问”什么都能做，包括更改设置和密码。“添加和读取”对 Sonarr 和 Radarr 来说就够了。它们清理一个已完成的下载时，这个下载会留在你的列表里，除非令牌还有“控制”权限。“只读”能看到你的下载，但什么都不改。',
@@ -3089,4 +3087,8 @@ export const zh: Dict = {
   'disk.queuedHint': 'What the downloads still owed would add to this folder: the size the host announced, minus what has already arrived. A download whose size the host will not say counts as nothing here, so this is a floor and never a promise, and it is why a folder can show no bytes beside a row of downloads. Disabled downloads stay out, the same rule the counters under the list follow. A download that is already running has usually had its room set aside on the disk the moment it started, so its bytes are missing from the free figure beside this one rather than sitting on top of it.',
   'downloads.retryByCause': 'Retry by cause',
   'downloads.byCause': 'By cause',
+  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name too, with the files already in it, and downloads still running carry on there. A name is not a path, so / and \\ are not allowed.',
+  'rename.keepsFolder': 'JDownloader is still downloading part of this package, and KnightLoader cannot move its files. If the folder is named after the package, it keeps its old name and only the package is renamed.',
+  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
+  'rename.busy': 'Part of this package is being unpacked or moved into its folder. Try again once that has finished.',
 };

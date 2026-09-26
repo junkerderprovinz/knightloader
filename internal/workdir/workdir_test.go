@@ -215,6 +215,42 @@ func TestAWholeFolderCrossesWithItsFilesAndTimes(t *testing.T) {
 	}
 }
 
+// TestMoveAsPutsAFolderUnderTheNameGiven: a renamed package's folder is the
+// same folder under another name, with its parent made when it is missing,
+// both by a rename and by a copy across disks.
+func TestMoveAsPutsAFolderUnderTheNameGiven(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		across bool
+	}{{"rename", false}, {"copy", true}} {
+		t.Run(tc.name, func(t *testing.T) {
+			base := t.TempDir()
+			src := filepath.Join(base, "Old")
+			write(t, filepath.Join(src, "film.part1.rar"), "one")
+			write(t, filepath.Join(src, "unpacked", "film.mkv"), "film")
+			var o Options
+			if tc.across {
+				o.Rename = func(string, string) error { return errors.New("cross-device link") }
+			}
+			target := filepath.Join(base, "films", "New")
+
+			res, err := MoveAs(context.Background(), src, target, o)
+			if err != nil {
+				t.Fatalf("MoveAs: %v", err)
+			}
+			if res.Path != target {
+				t.Errorf("the folder went to %s, want %s", res.Path, target)
+			}
+			if got := read(t, filepath.Join(target, "unpacked", "film.mkv")); got != "film" {
+				t.Errorf("the nested file reads %q", got)
+			}
+			if _, err := os.Stat(src); !errors.Is(err, os.ErrNotExist) {
+				t.Error("the folder is still under its old name")
+			}
+		})
+	}
+}
+
 // TestTheCollisionPolicyDecidesTheDeliveredName. A destination already holding
 // that name is the ordinary case for a second release, and all three answers
 // have to mean here what they mean everywhere else in the app.

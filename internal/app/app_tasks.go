@@ -51,8 +51,8 @@ func (a *App) Tasks() []*core.Task {
 
 // SetPackage moves tasks into a package (an empty name ungroups them). A
 // variant family moves together even when only one of its ids is named, and
-// files already on disk stay where they are (keepFoldersLocked), as they do
-// when their package is renamed.
+// files already on disk stay where they are (keepFoldersLocked): the folder
+// belongs to the package they leave, which may have more in it.
 func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
@@ -883,8 +883,9 @@ func checkName(what, name string) (string, error) {
 
 // RenameRefusal is a rename turned down for a reason the interface words in
 // the reader's language. Code names the reason: torrent, remote, unpacking,
-// volume, empty, separator, dots or exists. Name is the file or the name it is
-// about, and Error says the same in English for every other client.
+// volume, empty, separator, dots or exists for a link, busy or folderExists for
+// a package. Name is the file, folder or name it is about, and Error says the
+// same in English for every other client.
 type RenameRefusal struct {
 	Code string
 	Name string
@@ -895,30 +896,6 @@ func (e *RenameRefusal) Error() string { return e.text }
 
 func refuseRename(code, name, format string, args ...any) error {
 	return &RenameRefusal{Code: code, Name: name, text: fmt.Sprintf(format, args...)}
-}
-
-// RenamePackage gives the named tasks, and every task sharing one of their
-// links (sharingLinksLocked), a new package name. Where the download folder is
-// built from the package name, it follows the new name only while nothing
-// downloading into it has started (keepFoldersLocked).
-func (a *App) RenamePackage(ids []string, name string) ([]string, error) {
-	name, err := checkName("package", name)
-	if err != nil {
-		return nil, err
-	}
-	a.mu.Lock()
-	members := a.sharingLinksLocked(ids)
-	a.keepFoldersLocked(members, func(t *core.Task) { t.Package = name })
-	copies := make([]taskCopy, 0, len(members))
-	for _, t := range members {
-		t.Package = name
-		// A probe that names the link later must not put the package back.
-		t.ManualPackage = true
-		copies = append(copies, a.copyLocked(t))
-	}
-	a.mu.Unlock()
-	a.publishTasks(copies)
-	return idsOf(members), nil
 }
 
 // hasFilesLocked reports whether a task has put bytes on disk or been handed

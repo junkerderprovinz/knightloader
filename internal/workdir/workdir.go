@@ -252,7 +252,31 @@ func Move(ctx context.Context, src, dstDir string, o Options) (Result, error) {
 		}
 		return Result{Path: target, Copied: rep.Copied}, nil
 	}
+	return o.place(ctx, src, target, info)
+}
 
+// MoveAs puts src at target, a name the caller has already settled and found
+// free, where Move would decide the name itself. The parent of target is
+// created when it is missing.
+func MoveAs(ctx context.Context, src, target string, o Options) (Result, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := ctx.Err(); err != nil {
+		return Result{Path: src}, err
+	}
+	info, err := os.Lstat(src)
+	if err != nil {
+		return Result{Path: src}, err
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return Result{Path: src}, fmt.Errorf("workdir: %s: %w", filepath.Dir(target), err)
+	}
+	return o.place(ctx, src, target, info)
+}
+
+// place moves src to target by a rename, or by a copy where no rename reaches.
+func (o Options) place(ctx context.Context, src, target string, info fs.FileInfo) (Result, error) {
 	if err := o.rename(src, target); err == nil {
 		o.prune(filepath.Dir(src))
 		return Result{Path: target}, nil

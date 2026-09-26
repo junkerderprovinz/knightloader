@@ -1148,9 +1148,10 @@ export const setPackage = (ids: string[], pkg: string, base = '/api') =>
   });
 
 /**
- * renamePackage gives the package these tasks are in a new name. The folder
- * follows it only while nothing in the package has started (app.RenamePackage);
- * a name that is empty or holds a separator is refused with the reason.
+ * renamePackage gives the package these tasks are in a new name. A folder named
+ * after the package is renamed with it, files and running downloads included
+ * (app.RenamePackage); a name that is empty or holds a separator, a package
+ * being unpacked and a folder name already taken are refused with the reason.
  */
 export const renamePackage = async (ids: string[], name: string, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/package/rename`, { ids, name })));
