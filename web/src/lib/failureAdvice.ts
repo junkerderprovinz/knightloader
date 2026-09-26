@@ -9,10 +9,12 @@ import type { TranslationKey } from './i18n';
  * A reason with no entry gets no dialog and no button: the reason is an open
  * string, and the row keeps the hoster's own sentence.
  *
- * An action that cannot help is worse than none, so two causes stop at a
+ * An action that cannot help is worse than none, so three causes stop at a
  * sentence. geoBlocked offers no connection picker, because yt-dlp downloads
  * are not routed through connections. extractorBroken offers no update,
  * because the image's packaged, unprivileged yt-dlp cannot update itself.
+ * unsupportedPlayer offers nothing, since no setting teaches a backend a new
+ * player.
  */
 export type FailureFix = 'cookies' | 'remove' | 'none';
 
@@ -62,6 +64,11 @@ export const failureAdvice: Partial<Record<string, Advice>> = {
   extractorBroken: {
     line: 'failure.extractorBroken.line',
     hint: 'failure.extractorBroken.hint',
+    fix: 'none',
+  },
+  unsupportedPlayer: {
+    line: 'failure.unsupportedPlayer.line',
+    hint: 'failure.unsupportedPlayer.hint',
     fix: 'none',
   },
 };

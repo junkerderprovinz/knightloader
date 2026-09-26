@@ -3053,4 +3053,7 @@ export const ro: Dict = {
   'collector.filtered.reason.bannedTracker': 'se anunță la {host}, care este pe lista trackerelor blocate',
   'collector.filtered.reason.filterRule': 'refuzat de regula „{rule}” din filtrul de linkuri',
   'collector.filtered.reason.filterRuleReason': '{reason} (regula „{rule}” din filtrul de linkuri)',
+  'task.reason.unsupportedPlayer': 'Unknown player',
+  'failure.unsupportedPlayer.line': 'The page plays its video in a player no backend here can read.',
+  'failure.unsupportedPlayer.hint': 'Neither yt-dlp nor JDownloader knows this site\'s player. JDownloader found nothing on the page but its own scripts, styles and images, and KnightLoader stopped there instead of saving those as the video. If you can find the video\'s own address, for example a .m3u8 or .mp4 request in the browser\'s developer tools, paste that instead. A stream playlist goes straight to yt-dlp.',
 };

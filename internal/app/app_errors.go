@@ -167,7 +167,7 @@ func addressMayHelp(r core.Reason) bool {
 	case core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
 		core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled,
 		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken:
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer:
 		return false
 	}
 	return true
@@ -179,7 +179,7 @@ func addressMayHelp(r core.Reason) bool {
 func retryCannotHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
-		core.ReasonDRM, core.ReasonExtractorBroken:
+		core.ReasonDRM, core.ReasonExtractorBroken, core.ReasonUnsupportedPlayer:
 		return true
 	}
 	return false
