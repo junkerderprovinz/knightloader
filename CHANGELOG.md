@@ -848,6 +848,19 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The reorder wiggle takes GlimStone's numbers** in the web UI and the phone
+  app: 0.6 degrees each way at 280ms a swing at Wild, 0.3 degrees and 360ms at
+  Subtle, and 1 degree and 220ms at the hidden fourth level. The phone swings
+  from one side to the other and back, the way the web plays it.
+- **The phone app's success swell reads GlimStone's confirm dials**, the same
+  numbers the web's pulse runs on.
+- **The Chrome button on the App page lights up in the README's Chrome blue.**
+- **The Advanced tab shows a hammer and a wrench**, the glyph every GlimStone
+  app gives that tab, drawn as large as General's sliders beside it.
+- **The browser extension's popup shows a glyph on its Instances tab.**
+- **Copy report on the extension's options page says "Copied" at the button**,
+  with a check that draws itself and a short pulse. The line in the Group card
+  that said it before was usually out of view.
 - **The web UI, the browser extension and the phone app follow GlimStone
   2.13.0.**
 - **The App page offers the download buttons from the README.** Every way to

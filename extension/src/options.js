@@ -1575,6 +1575,15 @@ cryptoCopyEl.addEventListener('click', async () => {
 
 const reportEl = document.getElementById('report');
 const copyReportBtn = document.getElementById('copyReport');
+let reportCopiedTimer = 0;
+
+/** The copy button says it landed, as the crypto window's does. */
+function paintReportCopy(copied) {
+  copyReportBtn.replaceChildren(
+    copied ? checkGlyph(14) : glyph(D_COPY, 14),
+    document.createTextNode(t(copied ? 'common.copied' : 'options.problemsCopy')),
+  );
+}
 
 async function buildReport() {
   // The relay is asked, so the report tells an unreachable group from a
@@ -1629,16 +1638,19 @@ async function renderReport() {
   // and later rewrites land without it.
   if (!reportEl.textContent) reportEl.classList.add('glim-content-fade');
   reportEl.textContent = text;
-  copyReportBtn.replaceChildren(glyph(D_COPY, 14), document.createTextNode(t('options.problemsCopy')));
+  paintReportCopy(false);
 }
 
 copyReportBtn.addEventListener('click', async () => {
   const text = await buildReport();
   try {
     await navigator.clipboard.writeText(text);
-    say(t('options.problemsCopied'), true);
-    // The status line sits in the group card, often out of view from here.
+    // Said at the button: the page's status line sits in the group card,
+    // usually out of view from here.
+    paintReportCopy(true);
     confirmPulse(copyReportBtn);
+    clearTimeout(reportCopiedTimer);
+    reportCopiedTimer = setTimeout(() => paintReportCopy(false), 1500);
   } catch {
     // Not every browser allows the clipboard here; the report is on screen to
     // copy by hand.

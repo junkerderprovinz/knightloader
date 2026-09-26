@@ -21,9 +21,9 @@ const paneSendEl = document.getElementById('paneSend');
  * from a variable. `label()` sets text and glyph together.
  */
 const NS = 'http://www.w3.org/2000/svg';
-function glyph(d, size = 14) {
+function glyph(d, size = 14, box = '0 0 16 16') {
   const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('viewBox', box);
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
@@ -40,6 +40,12 @@ const G_CROSS =
   'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
 const G_FILE = 'M4 1h5l4 4v9.2A.8.8 0 0 1 12.2 15H4a.8.8 0 0 1-.8-.8V1.8A.8.8 0 0 1 4 1zm5 1.4V5h2.6L9 2.4z';
 const G_ADD_INSTANCE = 'M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 6h3v2H9v3H7V9H4V7h3V4h2v3z';
+// GlimStone's IconFleet for the other instances, Streamline's
+// interface-essential/hierarchy-2.svg (CC BY 4.0), in a box with the margin
+// the glyphs above have.
+const G_FLEET =
+  'M6.5 0.5C5.67157 0.5 5 1.17157 5 2v1c0 0.74325 0.54057 1.36024 1.25 1.47926V6.25H3c-0.9665 0 -1.75 0.7835 -1.75 1.75v1.52074C0.540572 9.63976 0 10.2568 0 11v1c0 0.8284 0.671573 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V8c0 -0.13807 0.11193 -0.25 0.25 -0.25h3.25v1.77074C5.54057 9.63976 5 10.2568 5 11v1c0 0.8284 0.67157 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V7.75H11c0.1381 0 0.25 0.11193 0.25 0.25v1.52074C10.5406 9.63976 10 10.2568 10 11v1c0 0.8284 0.6716 1.5 1.5 1.5h1c0.8284 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.5406 -1.36024 -1.25 -1.47926V8c0 -0.9665 -0.7835 -1.75 -1.75 -1.75H7.75V4.47926C8.45943 4.36024 9 3.74325 9 3V2C9 1.17157 8.32843 0.5 7.5 0.5h-1Z';
+const G_FLEET_BOX = '-1 -1 16 16';
 
 function label(btn, text, d) {
   btn.replaceChildren(glyph(d), document.createTextNode(text));
@@ -294,13 +300,14 @@ function renderTabs() {
   }
   tabsEl.hidden = false;
   tabsEl.innerHTML = '';
-  for (const [value, label] of [
-    ['send', t('popup.tabInstances')],
+  for (const [value, label, d, box] of [
+    ['send', t('popup.tabInstances'), G_FLEET, G_FLEET_BOX],
     ['collector', t('popup.tabCollector')],
   ]) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = label;
+    if (d) b.replaceChildren(glyph(d, 14, box), document.createTextNode(label));
+    else b.textContent = label;
     b.setAttribute('aria-pressed', String(value === pane));
     b.addEventListener('click', () => {
       cancelCountdown();
