@@ -268,4 +268,6 @@ export const el: Dict = {
   'failure.bannedTracker.next': 'Take the tracker off the banned trackers list in the web UI, then restart the download.',
   'failure.archiveFolderExists.line': 'A folder named {folder} is already there.',
   'failure.archiveFolderExists.next': 'Move or rename that folder, or change "If a file is already there" in the archive settings of the web UI, then unpack it again.',
+  'failure.unsupportedPlayer.line': 'The page plays its video in a player no backend here can read.',
+  'failure.unsupportedPlayer.next': 'If you can find the video\'s own address, paste that instead.',
 };
