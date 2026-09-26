@@ -2912,7 +2912,8 @@ export const fa: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'به‌عنوان SABnzbd در {sabnzbd} و به‌عنوان qBittorrent در {qbittorrent} در دسترس است. در Sonarr یا Radarr، URL Base را روی «{sabnzbdBase}» یا «{qbittorrentBase}» بگذار و یکی از توکن‌های API این نمونه را به‌عنوان API key یا گذرواژهٔ qBittorrent به کار ببر.',
   'captcha.unsolvableTurnstile': 'KnightLoader خودش نمی‌تواند یک چالش Cloudflare Turnstile را نشان دهد، پس فقط یک حل‌کننده از تنظیمات کپچا می‌تواند به آن پاسخ دهد. «انصراف» از این کپچا می‌گذرد.',
   'captcha.solverWaiting': 'یک حل‌کننده {time} دیگر کار را به دست می‌گیرد.',
-  'captcha.solverWaitingHint': 'تو داری نگاه می‌کنی، پس حل‌کننده‌ها اول منتظر پاسخ تو می‌مانند. اگر از این زبانه بروی یا زمان تمام شود، نخستین حل‌کننده در ترتیب تو کار را به دست می‌گیرد.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} دارد این کپچا را حل می‌کند.',
   'captcha.solverSolvingHint': 'باز هم می‌توانی خودت پاسخ بدهی. هر پاسخی که زودتر برسد به کار می‌رود.',
   'captcha.solverStopped': 'هیچ حل‌کننده‌ای نتوانست این کپچا را به دست بگیرد.',
@@ -2927,7 +2928,8 @@ export const fa: Dict = {
   'captcha.solverNoAnswer': '{solver} آن را برداشت، اما پاسخی برنگشت.',
   'captcha.solverGaveUp': '{solver} آن را برداشت و بعد دست کشید: {reason}',
   'captcha.solverFailed': '{solver} در دسترس نبود.',
-  'settings.captcha.onlyUnwatchedHint': 'خاموش: حل‌کننده‌ها همین که کپچایی برسد، هم‌زمان با پنجرهٔ کپچا شروع می‌کنند. روشن: تا وقتی کسی نگاه می‌کند، اول پنجرهٔ کپچا می‌آید و حل‌کننده‌ها منتظر می‌مانند. کسی نگاه می‌کند تا وقتی یک زبانهٔ مرورگر با KnightLoader در پیش‌زمینه باشد یا پنجرهٔ برنامهٔ دسکتاپ روی صفحه باشد، و تا وقتی برنامهٔ گوشی این نمونه را در پیش‌زمینه باز نگه دارد یا برنامهٔ دیگری پیوسته فهرست کپچاهای آن را بخواند. زبانه‌ای در پس‌زمینه و پنجره‌ای که کوچک شده یا در سینی است حساب نمی‌شوند، و صفحهٔ بسته‌شده پس از چند ثانیه دیگر حساب نمی‌شود. همین که دیگر کسی نگاه نکند، یا زمان پایین بی‌پاسخ تمام شود، نخستین حل‌کننده در ترتیب کار را به دست می‌گیرد.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'دانلودهای رایگان',
   'settings.accounts.premiumOnly': 'فقط پریمیوم',
   'settings.accounts.premiumOnlyHint': 'پیوند میزبانی که هیچ‌کدام از حساب‌هایت نتواند دانلودش کند به JDownloader می‌رود که آن را رایگان دانلود می‌کند: آهسته، با زمان‌های انتظار و کپچا. با روشن بودن «فقط پریمیوم»، پیوند به‌جای آن در صف منتظر می‌ماند و دلیلش را می‌گوید، و دانلود رایگانی که مکث کرده‌ای هم همین‌طور. همین که برای آن میزبان اطلاعات ورود یا یک سرویس debrid که پشتیبانی‌اش می‌کند اضافه کنی، خودش شروع می‌شود. یک دسته می‌تواند این را برای پیوندهای خودش جور دیگری تعیین کند.',

@@ -2909,7 +2909,8 @@ export const zh: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': '可作为 SABnzbd 通过 {sabnzbd} 访问，也可作为 qBittorrent 通过 {qbittorrent} 访问。在 Sonarr 或 Radarr 里把 URL Base 设为“{sabnzbdBase}”或“{qbittorrentBase}”，并把这个实例的一个 API 令牌用作 API 密钥或 qBittorrent 密码。',
   'captcha.unsolvableTurnstile': 'KnightLoader 无法自己显示 Cloudflare Turnstile 验证，所以只有“验证码”设置里的解码服务能回答它。“取消”会跳过这个验证码。',
   'captcha.solverWaiting': '{time} 后由解码服务接手。',
-  'captcha.solverWaitingHint': '你正在看着，所以解码服务会先等你的回答。如果你切换到别的标签页，或者时间到了，你排在第一位的解码服务就会接手。',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} 正在解这个验证码。',
   'captcha.solverSolvingHint': '你仍然可以自己回答。哪个答案先到就用哪个。',
   'captcha.solverStopped': '没有哪个解码服务能接手这个验证码。',
@@ -2924,7 +2925,8 @@ export const zh: Dict = {
   'captcha.solverNoAnswer': '{solver} 接手了，但没有返回答案。',
   'captcha.solverGaveUp': '{solver} 接手后又放弃了：{reason}',
   'captcha.solverFailed': '无法连接 {solver}。',
-  'settings.captcha.onlyUnwatchedHint': '关闭：验证码一到，解码服务就开始，和验证码窗口同时出现。开启：有人看着时，先出现验证码窗口，解码服务等待。以下情况算有人在看：带有 KnightLoader 的浏览器标签页在前台，或者桌面应用的窗口显示在屏幕上；手机应用在前台打开着这个实例，或者另一个应用在持续读取它的验证码列表。后台的标签页，以及最小化或缩到托盘的窗口都不算；关闭的页面在几秒后就不再算数。一旦没人看着，或者下面的时间到了还没有回答，顺序中的第一个解码服务就会接手。',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': '免费下载',
   'settings.accounts.premiumOnly': '仅限高级账户',
   'settings.accounts.premiumOnlyHint': '你的账户都下载不了的网盘链接会交给 JDownloader，由它免费下载：速度慢，还有等待时间和验证码。打开“仅限高级账户”后，这样的链接会在队列里等待，并说明原因；你暂停的免费下载也一样。一旦你为这个网盘添加了登录信息，或者添加了支持它的 Debrid 服务，它就会自动开始。分类可以为自己的链接另作决定。',

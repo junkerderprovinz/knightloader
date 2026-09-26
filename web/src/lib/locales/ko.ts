@@ -2914,7 +2914,8 @@ export const ko: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'SABnzbd로는 {sabnzbd}, qBittorrent로는 {qbittorrent}에서 접속할 수 있습니다. Sonarr나 Radarr에서 URL Base를 “{sabnzbdBase}” 또는 “{qbittorrentBase}”로 설정하고, 이 인스턴스의 API 토큰 하나를 API 키나 qBittorrent 비밀번호로 쓰세요.',
   'captcha.unsolvableTurnstile': 'KnightLoader는 Cloudflare Turnstile 문제를 직접 보여 줄 수 없으므로, 캡차 설정에 있는 솔버만 이것을 풀 수 있습니다. 취소를 누르면 이 캡차를 건너뜁니다.',
   'captcha.solverWaiting': '{time} 후에 솔버가 넘겨받습니다.',
-  'captcha.solverWaitingHint': '지금 보고 있으므로 솔버는 먼저 답을 기다립니다. 이 탭에서 벗어나거나 시간이 다 되면, 정해 둔 순서의 첫 솔버가 넘겨받습니다.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver}이(가) 이 캡차를 풀고 있습니다.',
   'captcha.solverSolvingHint': '직접 답할 수도 있습니다. 먼저 도착한 답이 쓰입니다.',
   'captcha.solverStopped': '이 캡차를 맡을 수 있는 솔버가 없었습니다.',
@@ -2929,7 +2930,8 @@ export const ko: Dict = {
   'captcha.solverNoAnswer': '{solver}이(가) 맡았지만 답이 돌아오지 않았습니다.',
   'captcha.solverGaveUp': '{solver}이(가) 맡았다가 포기했습니다: {reason}',
   'captcha.solverFailed': '{solver}에 연결할 수 없었습니다.',
-  'settings.captcha.onlyUnwatchedHint': '끄면 캡차가 도착하자마자 캡차 창과 동시에 솔버가 시작합니다. 켜면 누군가 보고 있는 동안에는 캡차 창이 먼저 나오고 솔버는 기다립니다. 누군가 보고 있다고 보는 경우는 KnightLoader가 열린 브라우저 탭이 앞에 있거나 데스크톱 앱의 창이 화면에 떠 있을 때, 그리고 휴대폰 앱이 이 인스턴스를 앞에 열어 두었거나 다른 앱이 캡차 목록을 계속 읽어 갈 때입니다. 뒤에 있는 탭과 최소화되었거나 트레이에 있는 창은 치지 않으며, 닫힌 페이지는 몇 초 뒤부터 치지 않습니다. 아무도 보고 있지 않게 되거나 아래 시간이 답 없이 지나면, 순서의 첫 솔버가 넘겨받습니다.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': '무료 다운로드',
   'settings.accounts.premiumOnly': '프리미엄만',
   'settings.accounts.premiumOnlyHint': '어느 계정으로도 받을 수 없는 호스터 링크는 JDownloader로 가서 무료로 다운로드됩니다. 느리고, 대기 시간과 캡차가 있습니다. “프리미엄만”을 켜면 그런 링크는 대신 대기열에서 기다리며 이유를 알려 줍니다. 일시 중지한 무료 다운로드도 마찬가지입니다. 그 호스터의 로그인이나 그 호스터를 지원하는 Debrid 서비스를 추가하면 저절로 시작합니다. 카테고리는 자기 링크에 대해 이것을 달리 정할 수 있습니다.',

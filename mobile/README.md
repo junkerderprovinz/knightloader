@@ -187,7 +187,12 @@ can:
 
 The list comes from `/api/captcha`, the route the web UI's `CaptchaModal` reads,
 polled every five seconds while the app is in front (`CaptchaWatch`), over
-either transport, for the active connection only. An instance forwards these
+either transport, for the active connection only. The read names the kinds this
+phone answers on that connection in `watch` (`answeredKinds`): pictures and
+clicks over the relay, the widget as well by address. With "Only when nobody is
+watching" on, the instance holds the paid solvers back for those alone. A card
+shows what the solvers are doing (`solverStatus`), and leaves out the
+explanation that assumes you can answer when the phone cannot. An instance forwards these
 routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
 an older one refuses them with a 403, which the screen words as "update
 KnightLoader there". The overview counts the captchas on every saved instance

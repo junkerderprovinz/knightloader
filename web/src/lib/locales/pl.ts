@@ -2907,7 +2907,8 @@ export const pl: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Osiągalny jako SABnzbd pod {sabnzbd} i jako qBittorrent pod {qbittorrent}. W Sonarr lub Radarr ustaw URL Base na „{sabnzbdBase}” albo „{qbittorrentBase}” i użyj jednego z tokenów API tej instancji jako klucza API albo hasła qBittorrent.',
   'captcha.unsolvableTurnstile': 'KnightLoader nie potrafi sam wyświetlić wyzwania Cloudflare Turnstile, więc odpowiedzieć na nie może tylko solver z ustawień Captcha. Anuluj pomija tę captchę.',
   'captcha.solverWaiting': 'Solver przejmie za {time}.',
-  'captcha.solverWaitingHint': 'Patrzysz, więc solvery najpierw czekają na twoją odpowiedź. Jeśli przełączysz się z tej karty albo skończy się czas, przejmie pierwszy solver w twojej kolejności.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} rozwiązuje tę captchę.',
   'captcha.solverSolvingHint': 'Nadal możesz odpowiedzieć sam. Liczy się odpowiedź, która dotrze pierwsza.',
   'captcha.solverStopped': 'Żaden solver nie mógł przejąć tej captchy.',
@@ -2922,7 +2923,8 @@ export const pl: Dict = {
   'captcha.solverNoAnswer': '{solver} ją przejął, ale nie wróciła żadna odpowiedź.',
   'captcha.solverGaveUp': '{solver} ją przejął, a potem się poddał: {reason}',
   'captcha.solverFailed': 'Nie udało się połączyć z {solver}.',
-  'settings.captcha.onlyUnwatchedHint': 'Wyłączone: solvery startują, gdy tylko przyjdzie captcha, równocześnie z oknem captchy. Włączone: dopóki ktoś patrzy, najpierw pojawia się okno captchy, a solvery czekają. Ktoś patrzy, dopóki karta przeglądarki z KnightLoaderem jest na wierzchu albo okno aplikacji na komputer jest na ekranie, a także dopóki aplikacja na telefon ma tę instancję otwartą na wierzchu albo inna aplikacja stale odczytuje jej listę captch. Karta w tle i okno zminimalizowane albo schowane w zasobniku się nie liczą, a zamknięta strona przestaje się liczyć po kilku sekundach. Gdy nikt już nie patrzy albo czas poniżej minie bez odpowiedzi, przejmuje pierwszy solver w kolejności.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Darmowe pobieranie',
   'settings.accounts.premiumOnly': 'Tylko premium',
   'settings.accounts.premiumOnlyHint': 'Link do hostera, którego nie może pobrać żadne z twoich kont, trafia do JDownloadera, który pobiera go za darmo: powoli, z czasem oczekiwania i captchami. Przy włączonym „Tylko premium” link zamiast tego czeka w kolejce i podaje powód, tak samo jak darmowe pobieranie, które wstrzymałeś. Rusza sam, gdy tylko dodasz logowanie do tego hostera albo usługę debrid, która go obsługuje. Kategoria może rozstrzygać to inaczej dla własnych linków.',

@@ -175,6 +175,30 @@ export interface CaptchaChallenge {
   payload?: CaptchaImagePayload | CaptchaWidgetPayload | CaptchaUnsupportedPayload;
   /** When it stops being answerable. Go writes an unknown deadline as year 1. */
   expiresAt: string;
+  /** What the paid solvers are doing with it, once they have started. */
+  solver?: CaptchaSolverReport;
+}
+
+/** captcha.SolverReport: the paid solvers waiting for somebody watching,
+ *  working on the challenge, or done with it without an answer. */
+export interface CaptchaSolverReport {
+  state: 'waiting' | 'solving' | 'stopped';
+  /** The service at work, by its display name. */
+  solver?: string;
+  /** When a waiting solver takes over. */
+  until?: string;
+  refusals?: CaptchaSolverRefusal[];
+}
+
+/** One solver that did not deliver: 'unsupported', 'noAnswer', 'failed', or
+ *  the provider's own error code. */
+export interface CaptchaSolverRefusal {
+  solver: string;
+  code: string;
+  detail?: string;
+  /** The provider may hold the task and bill it, so no other solver was
+   *  asked after it. */
+  taken?: boolean;
 }
 
 /** How far a skip reaches, captcha.AbortScope on the server. */

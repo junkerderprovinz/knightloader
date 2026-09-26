@@ -2914,7 +2914,8 @@ export const et: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'Kättesaadav SABnzbd-na aadressil {sabnzbd} ja qBittorrentina aadressil {qbittorrent}. Sea Sonarris või Radarris URL Base väärtuseks „{sabnzbdBase}“ või „{qbittorrentBase}“ ja kasuta üht selle eksemplari API-tokenitest API Key väärtusena või qBittorrenti paroolina.',
   'captcha.unsolvableTurnstile': 'KnightLoader ei suuda Cloudflare Turnstile\'i ülesannet ise näidata, seega saab sellele vastata ainult captcha seadetest pärit lahendaja. Loobu jätab selle captcha vahele.',
   'captcha.solverWaiting': 'Lahendaja võtab üle {time} pärast.',
-  'captcha.solverWaitingHint': 'Sa vaatad, seega ootavad lahendajad kõigepealt sinu vastust. Kui lähed sellelt vahekaardilt ära või aeg saab otsa, võtab üle sinu järjekorra esimene lahendaja.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} lahendab seda captchat.',
   'captcha.solverSolvingHint': 'Võid sellele ikka ise vastata. Kasutatakse vastust, mis jõuab esimesena.',
   'captcha.solverStopped': 'Ükski lahendaja ei saanud seda captchat üle võtta.',
@@ -2929,7 +2930,8 @@ export const et: Dict = {
   'captcha.solverNoAnswer': '{solver} võttis selle üle, aga vastust tagasi ei tulnud.',
   'captcha.solverGaveUp': '{solver} võttis selle üle ja andis siis alla: {reason}',
   'captcha.solverFailed': '{solver} ei olnud kättesaadav.',
-  'settings.captcha.onlyUnwatchedHint': 'Väljas: lahendajad alustavad kohe, kui captcha saabub, samal ajal captcha aknaga. Sees: kuni keegi vaatab, tuleb enne captcha aken ja lahendajad ootavad. Keegi vaatab, kuni brauseri vahekaart KnightLoaderiga on esiplaanil või töölauarakenduse aken on ekraanil, ja kuni telefonirakendusel on see eksemplar esiplaanil avatud või mõni teine rakendus loeb pidevalt selle captchade loendit. Taustal olev vahekaart ja minimeeritud või salves olev aken ei lähe arvesse ning suletud leht lakkab mõne sekundi pärast arvesse minemast. Kui keegi enam ei vaata või allolev aeg saab vastuseta otsa, võtab üle järjekorra esimene lahendaja.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Tasuta allalaadimised',
   'settings.accounts.premiumOnly': 'Ainult premium',
   'settings.accounts.premiumOnlyHint': 'Hosteri link, mida ükski sinu konto alla laadida ei saa, läheb JDownloaderile, mis laadib selle tasuta: aeglaselt, ooteaegade ja captchadega. Kui „Ainult premium“ on sees, ootab link hoopis järjekorras ja ütleb, miks, ning sama teeb tasuta allalaadimine, mille oled peatanud. See käivitub ise, kui lisad selle hosteri jaoks sisselogimise või debrid-teenuse, mis seda katab. Kategooria saab oma linkide jaoks seda teisiti otsustada.',

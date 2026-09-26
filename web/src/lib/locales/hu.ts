@@ -2922,7 +2922,8 @@ export const hu: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'SABnzbd-ként itt érhető el: {sabnzbd}, qBittorrentként itt: {qbittorrent}. A Sonarrban vagy a Radarrban állítsd a URL Base mezőt erre: „{sabnzbdBase}” vagy „{qbittorrentBase}”, és használd ennek a példánynak az egyik API-tokenjét API key-ként vagy qBittorrent-jelszóként.',
   'captcha.unsolvableTurnstile': 'A KnightLoader maga nem tud Cloudflare Turnstile feladványt megjeleníteni, ezért csak a Captcha beállításaiban megadott megfejtő tud rá válaszolni. A Mégse kihagyja ezt a captchát.',
   'captcha.solverWaiting': '{time} múlva egy megfejtő átveszi.',
-  'captcha.solverWaitingHint': 'Te nézed, ezért a megfejtők először a te válaszodra várnak. Ha elváltasz erről a lapról, vagy lejár az idő, a sorrended első megfejtője veszi át.',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} éppen megoldja ezt a captchát.',
   'captcha.solverSolvingHint': 'Ettől még te magad is válaszolhatsz rá. Az a válasz számít, amelyik előbb érkezik.',
   'captcha.solverStopped': 'Egyik megfejtő sem tudta átvenni ezt a captchát.',
@@ -2937,7 +2938,8 @@ export const hu: Dict = {
   'captcha.solverNoAnswer': '{solver} átvette, de nem jött vissza válasz.',
   'captcha.solverGaveUp': '{solver} átvette, aztán feladta: {reason}',
   'captcha.solverFailed': '{solver} nem volt elérhető.',
-  'settings.captcha.onlyUnwatchedHint': 'Ki: a megfejtők azonnal indulnak, amint captcha érkezik, a captchaablakkal egy időben. Be: amíg valaki nézi, először a captchaablak jön, a megfejtők pedig várnak. Valaki nézi, amíg egy KnightLoadert mutató böngészőlap előtérben van, vagy az asztali alkalmazás ablaka látszik a képernyőn, illetve amíg a telefonos alkalmazás előtérben nyitva tartja ezt a példányt, vagy egy másik alkalmazás folyamatosan olvassa a captchalistáját. A háttérben lévő lap és a kis méretre állított vagy a tálcán lévő ablak nem számít, a bezárt oldal pedig néhány másodperc után már nem számít. Amint senki sem nézi, vagy a lenti idő válasz nélkül lejár, a sorrend első megfejtője veszi át.',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'Ingyenes letöltések',
   'settings.accounts.premiumOnly': 'Csak prémium',
   'settings.accounts.premiumOnlyHint': 'Azt a tárhelylinket, amelyet egyik fiókod sem tud letölteni, a JDownloader kapja meg, és ingyen tölti le: lassan, várakozásokkal és captchákkal. Ha a „Csak prémium” be van kapcsolva, a link ehelyett a sorban vár, és megmondja, miért; ugyanígy a szüneteltetett ingyenes letöltés is. Magától indul, amint hozzáadsz egy belépést ehhez a tárhelyhez, vagy egy debrid szolgáltatást, amely támogatja. Egy kategória a saját linkjeire ezt másképp is eldöntheti.',

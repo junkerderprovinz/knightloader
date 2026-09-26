@@ -2922,7 +2922,8 @@ export const th: Dict = {
   'settings.modules.detail.downloadclientReadyBoth': 'เข้าถึงได้ในฐานะ SABnzbd ที่ {sabnzbd} และในฐานะ qBittorrent ที่ {qbittorrent} ใน Sonarr หรือ Radarr ให้ตั้ง URL Base เป็น “{sabnzbdBase}” หรือ “{qbittorrentBase}” และใช้โทเคน API ตัวหนึ่งของอินสแตนซ์นี้เป็นคีย์ API หรือรหัสผ่าน qBittorrent',
   'captcha.unsolvableTurnstile': 'KnightLoader แสดงโจทย์ Cloudflare Turnstile เองไม่ได้ จึงมีแต่ตัวแก้จากการตั้งค่าแคปช่าที่ตอบได้ กดยกเลิกเพื่อข้ามแคปช่านี้',
   'captcha.solverWaiting': 'ตัวแก้จะรับช่วงต่อในอีก {time}',
-  'captcha.solverWaitingHint': 'คุณกำลังดูอยู่ ตัวแก้จึงรอคำตอบของคุณก่อน ถ้าคุณสลับออกจากแท็บนี้หรือหมดเวลา ตัวแก้ตัวแรกตามลำดับของคุณจะรับช่วงต่อ',
+  'captcha.solverWaitingHint':
+    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
   'captcha.solverSolving': '{solver} กำลังแก้แคปช่านี้',
   'captcha.solverSolvingHint': 'คุณยังตอบเองได้ คำตอบที่มาถึงก่อนจะถูกใช้',
   'captcha.solverStopped': 'ไม่มีตัวแก้ใดรับแคปช่านี้ได้',
@@ -2937,7 +2938,8 @@ export const th: Dict = {
   'captcha.solverNoAnswer': '{solver} รับไปแล้ว แต่ไม่มีคำตอบกลับมา',
   'captcha.solverGaveUp': '{solver} รับไปแล้วก็ยอมแพ้: {reason}',
   'captcha.solverFailed': 'ติดต่อ {solver} ไม่ได้',
-  'settings.captcha.onlyUnwatchedHint': 'ปิด: ตัวแก้จะเริ่มทันทีที่แคปช่ามาถึง พร้อมกับหน้าต่างแคปช่า เปิด: ขณะที่มีคนดูอยู่ หน้าต่างแคปช่าจะมาก่อนและตัวแก้จะรอ ถือว่ามีคนดูอยู่เมื่อแท็บเบราว์เซอร์ที่เปิด KnightLoader อยู่ด้านหน้า หรือหน้าต่างของแอปเดสก์ท็อปแสดงอยู่บนจอ และเมื่อแอปมือถือเปิดอินสแตนซ์นี้ไว้ด้านหน้า หรือมีแอปอื่นคอยอ่านรายการแคปช่าของมันอยู่ แท็บที่อยู่เบื้องหลัง และหน้าต่างที่ย่อไว้หรืออยู่ในถาดระบบไม่นับ ส่วนหน้าที่ปิดไปแล้วจะเลิกนับหลังจากไม่กี่วินาที เมื่อไม่มีใครดูอยู่แล้ว หรือหมดเวลาด้านล่างโดยไม่มีคำตอบ ตัวแก้ตัวแรกตามลำดับจะรับช่วงต่อ',
+  'settings.captcha.onlyUnwatchedHint':
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.accounts.freeTitle': 'ดาวน์โหลดฟรี',
   'settings.accounts.premiumOnly': 'เฉพาะพรีเมียม',
   'settings.accounts.premiumOnlyHint': 'ลิงก์โฮสเตอร์ที่ไม่มีบัญชีใดของคุณดึงได้จะไปที่ JDownloader ซึ่งดาวน์โหลดแบบฟรี: ช้า มีเวลารอและแคปช่า เมื่อเปิด “เฉพาะพรีเมียม” ลิงก์นั้นจะรออยู่ในคิวแทน พร้อมบอกเหตุผล และดาวน์โหลดฟรีที่คุณหยุดชั่วคราวไว้ก็เช่นกัน มันจะเริ่มเองทันทีที่คุณเพิ่มการเข้าสู่ระบบของโฮสเตอร์นั้น หรือเพิ่มบริการ debrid ที่รองรับโฮสเตอร์นั้น หมวดหมู่หนึ่งกำหนดเรื่องนี้ต่างออกไปสำหรับลิงก์ของตัวเองได้',

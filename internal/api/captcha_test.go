@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
 // Without a JDownloader backend, answering or skipping a captcha is refused
@@ -41,11 +43,12 @@ func TestACaptchaWithoutJDIsRefusedWithACode(t *testing.T) {
 	}
 }
 
-// An app that polls the list instead of holding a socket counts as watching;
-// the web interface reads with watch=0, since its socket reports that already.
+// An app that polls the list instead of holding a socket counts as watching,
+// for the kinds it lists when it lists them; the web interface reads with
+// watch=0, since its socket reports that already.
 func TestReadingTheCaptchaListCountsAsWatchingUnlessAskedNotTo(t *testing.T) {
 	t.Setenv("KL_JD", "")
-	read := func(path string) bool {
+	read := func(path string) *app.App {
 		a := testApp(t)
 		reg := newRegistry()
 		registerCaptcha(reg, a)
@@ -56,13 +59,21 @@ func TestReadingTheCaptchaListCountsAsWatchingUnlessAskedNotTo(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Fatalf("GET %s answered %d", path, rec.Code)
 		}
-		return a.Hub.Watched("captcha", time.Minute)
+		return a
 	}
+	watched := func(a *app.App, typ string) bool { return a.Hub.Watched(typ, time.Minute) }
 
-	if !read("/api/captcha") {
+	if !watched(read("/api/captcha"), "captcha") {
 		t.Error("a poll of the list did not count as watching")
 	}
-	if read("/api/captcha?watch=0") {
+	if a := read("/api/captcha?watch=0"); watched(a, "captcha") || watched(a, "captcha:image") {
 		t.Error("a read with watch=0 counted as watching")
+	}
+	a := read("/api/captcha?watch=image,click,nonsense")
+	if watched(a, "captcha") || watched(a, "captcha:widget") || watched(a, "captcha:nonsense") {
+		t.Error("a read listing pictures counted as watching for more than pictures")
+	}
+	if !watched(a, "captcha:image") || !watched(a, "captcha:click") {
+		t.Error("a read listing pictures did not count as watching for them")
 	}
 }
