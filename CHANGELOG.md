@@ -86,6 +86,9 @@ submission and for a fixed download.
 
 ### Changed
 
+- **Remote access card in one row.** The phrase buttons and the three badges
+  beside them sit on one line, and the warning about a missing password moves
+  underneath.
 - **Browser extension 1.2.0.** It follows GlimStone 3.0.0: the options page's
   About card uses the README's buttons, the popup's tabs carry the web
   interface's symbols, and Copy report answers at the button.
