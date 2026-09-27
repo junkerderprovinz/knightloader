@@ -3,7 +3,7 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Card, Button, IconBadge, LabelBadge, NamedHint, useTooltip } from './ui';
+import { Card, Button, IconBadge, LabelBadge } from './ui';
 import { IconTrash } from '../lib/icons';
 
 interface Stats {
@@ -46,36 +46,25 @@ function usePeerStats(base: string): Stats | null {
 }
 
 // InstanceRow is the quiet form used where instances are a summary rather than
-// the subject of the page: a dot, the name, and the current speed.
+// the subject of the page: the name, the state badge the Instances page shows,
+// and the current speed.
 export function InstanceRow({ name, base, onOpen }: { name: string; base: string; onOpen?: () => void }) {
   const { t } = useT();
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
-  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
-
-  // The dot shows state by colour alone, so it gets a tooltip, which for a
-  // refusal also says what to do about it. Only the hover props are spread:
-  // the row can be a <button>, which must not contain a tabindex, and
-  // aria-label already names the state.
-  const tip = useTooltip<HTMLSpanElement>(
-    refused ? <NamedHint name={state} hint={t('instances.refusedByPassword')} /> : state,
-  );
-  const { ref: tipRef, onMouseEnter, onMouseLeave, 'aria-describedby': tipDescribedBy } = tip.triggerProps;
+  const state = online ? t('instances.connected') : refused ? t('instances.refused') : t('instances.notConnected');
 
   const body = (
     <>
-      <span
-        ref={tipRef}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        aria-describedby={tipDescribedBy}
-        role="img"
-        aria-label={state}
-        className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
-      />
       <span className="min-w-0 flex-1 truncate text-[14px] text-carbon-text">{name}</span>
-      <span className="glim-num text-xs text-carbon-textSub">
+      <LabelBadge
+        label={state}
+        tip={refused ? t('instances.refusedByPassword') : undefined}
+        tone={online ? 'ok' : refused ? undefined : 'fail'}
+        hue={refused ? 3 : undefined}
+      />
+      <span className="glim-num shrink-0 text-xs text-carbon-textSub">
         {stats ? fmtSpeed(stats.speed) || '-' : '-'}
       </span>
     </>
@@ -85,14 +74,13 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
       {onOpen ? (
         <button
           onClick={onOpen}
-          className="flex w-full items-center gap-3 px-6 py-4 text-start transition-colors hover:bg-carbon-hover/50"
+          className="flex w-full items-center gap-2.5 px-4 py-4 text-start transition-colors hover:bg-carbon-hover/50"
         >
           {body}
         </button>
       ) : (
-        <div className="flex items-center gap-3 px-6 py-4">{body}</div>
+        <div className="flex items-center gap-2.5 px-4 py-4">{body}</div>
       )}
-      {tip.node}
     </>
   );
 }
@@ -127,7 +115,7 @@ export function InstanceCard({
   const refused = stats?.refused ?? false;
   // "Refused" takes a rainbow hue, since it is neither ok nor failed, and its
   // (i) says why and what makes the two instances trust each other.
-  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
+  const state = online ? t('instances.connected') : refused ? t('instances.refused') : t('instances.notConnected');
 
   return (
     // padding="none" so the logo runs flush to the start edge at full height,

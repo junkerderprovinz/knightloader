@@ -457,7 +457,7 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
   const ground =
     status === 'online' ? c.statusOkBg : status === 'checking' ? c.statusWarnBg : c.statusFailBg;
   const label =
-    status === 'online' ? t('instance.online') : status === 'checking' ? t('instance.checking') : t('instance.offline');
+    status === 'online' ? t('instance.connected') : status === 'checking' ? t('instance.checking') : t('instance.notConnected');
   return (
     <View style={[styles.statusBadge, { backgroundColor: ground, ...corners.pill }]}>
       <Text style={[styles.statusText, { color: ink }]}>{label}</Text>

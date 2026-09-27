@@ -31,8 +31,8 @@ function statusLine(
   s: InstanceStats | null | undefined,
   reach: ConnStatus,
 ): string {
-  if (s === undefined) return reach === 'offline' ? t('instance.offline') : '…';
-  if (s === null) return t('instance.offline');
+  if (s === undefined) return reach === 'offline' ? t('instance.notConnected') : '…';
+  if (s === null) return t('instance.notConnected');
   const parts: string[] = [];
   if (s.halted) parts.push(t('downloads.queueHalted'));
   else if (s.running > 0) parts.push(t('downloads.queueRunning'));
@@ -231,7 +231,7 @@ export default function ConnectionsScreen({
                     <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
                     <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
                       {[
-                        t('overview.online', { n: gesamt.online, total: gesamt.total }),
+                        t('overview.connected', { n: gesamt.online, total: gesamt.total }),
                         `${gesamt.files} ${t('instance.files')}`,
                         gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
                         gesamt.speed > 0 ? fmtSpeed(gesamt.speed) : null,

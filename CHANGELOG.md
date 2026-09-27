@@ -76,6 +76,10 @@ submission and for a fixed download.
 
 ### Changed
 
+- An instance that answers is **Connected** and one that does not is **Not
+  connected**, in the web interface and the Android app. The Overview's
+  Instances card shows the same badge as the Instances page, and its two cards
+  are the same height.
 - **The App tab in Settings is called Apps.**
 - The browser extension card has a button for each browser again: Chrome,
   Edge, Brave, Opera, Vivaldi and Firefox. The five Chromium browsers get the

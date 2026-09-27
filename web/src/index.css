@@ -823,10 +823,12 @@ body {
  * "First" means no painted sibling before it: PageHeader renders an sr-only
  * header first, which `:first-child` would count. Up to three depths, because
  * a page either wraps its cards or is a card itself, and a settings page sits
- * in the box its tab slides in with (pages/Settings.tsx). */
+ * in the box its tab slides in with (pages/Settings.tsx). At the third depth
+ * the box has to come first too, or the first card of a row further down the
+ * page, such as the Overview's Recent, starts lower than its neighbour. */
 .glim-column-top > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
 .glim-column-top > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *),
-.glim-column-top > * > * > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
+.glim-column-top > * > :not(:not(.sr-only) ~ *) > .glim-card:has(.glim-section-badge):not(:not(.sr-only) ~ *) {
   margin-top: 0.75rem;
 }
 
