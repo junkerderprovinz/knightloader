@@ -39,6 +39,9 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The Overview's Instances card shows each instance's name and state badge**,
+  with the badge at the right edge. The speed beside it, a lone dash while
+  nothing downloads, is gone.
 - **The closed envelope on the About card's mail button sits in the middle of the button**, as GlimStone 3.0.1 draws it. It stood a little too low.
 
 ## [1.3.0] - 2026-09-27
