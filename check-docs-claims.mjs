@@ -170,8 +170,10 @@ if (bundles.length === 0) {
   for (const { slug } of bundles) {
     if (!buttons.has(slug)) fail(`README.md has no download button for knightloader-${slug}.zip, which desktop.yml builds`);
   }
+  // release.yml packs the browser extension itself, next to the desktop zips.
+  const packed = [...RELEASE_YML.matchAll(/dist\/knightloader-([a-z0-9-]+)\.zip/g)].map((m) => m[1]);
   for (const slug of buttons) {
-    if (!bundles.some((b) => b.slug === slug)) {
+    if (!bundles.some((b) => b.slug === slug) && !packed.includes(slug)) {
       fail(`README.md has a download button for knightloader-${slug}.zip, which desktop.yml does not build`);
     }
   }

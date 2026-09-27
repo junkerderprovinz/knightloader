@@ -80,6 +80,9 @@ jobs:
               cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${slug}-installer.exe"
             fi
           done
+          # The browser extension this server serves, under the fixed name the
+          # README button and the manual link to through /releases/latest/.
+          (cd extension/src && zip -qr ../../dist/knightloader-extension.zip .)
           ls -lh dist
 
       # The desktop app verifies the zip it updates to against this file. Run

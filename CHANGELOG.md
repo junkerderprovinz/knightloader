@@ -76,6 +76,9 @@ submission and for a fixed download.
 
 ### Changed
 
+- Every KnightLoader release carries the browser extension it serves, as
+  `knightloader-extension.zip`, and the README button downloads it from
+  there. The separate `extension/latest` release is gone.
 - An instance that answers is **Connected** and one that does not is **Not
   connected**, in the web interface and the Android app. The Overview's
   Instances card shows the same badge as the Instances page, and its two cards
