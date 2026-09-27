@@ -78,6 +78,13 @@ submission and for a fixed download.
   for updates never found anything newer.
 - The Windows installer's entry in the list of installed apps and the program's
   file details show the release's version instead of 1.0.0.
+- The German pages of the Windows installer show their umlauts. The installer
+  script was read in the system's code page, so "Startmenü" and "Verknüpfung"
+  came out garbled.
+- An update that lands while a virus scanner still holds the new program waits
+  a moment for it instead of giving up until the next day.
+- The macOS desktop build finishes again. The tray started while the build read
+  the app's bindings and took the main thread from Wails.
 
 ## [1.2.0] - 2026-09-27
 
