@@ -7,6 +7,7 @@ export function ProgressBar({
   indeterminate,
   moving = false,
   tone = 'accent',
+  striped = false,
 }: {
   percent: number;
   active: boolean;
@@ -20,12 +21,19 @@ export function ProgressBar({
    * default because most bars, such as quotas and disk space, are not transfers.
    */
   moving?: boolean;
-  tone?: 'accent' | 'ok';
+  tone?: 'accent' | 'ok' | 'fail';
+  /**
+   * Diagonal stripes over the fill, for an archive being unpacked. The tone
+   * stays the row's, so the texture is what tells it from a download.
+   */
+  striped?: boolean;
 }) {
   if (!active) return null;
   const isIndet = indeterminate === true;
   const clamped = Math.max(0, Math.min(100, percent));
-  const fill = tone === 'ok' ? 'var(--status-ok-solid)' : 'var(--accent)';
+  const fill =
+    tone === 'ok' ? 'var(--status-ok-solid)' : tone === 'fail' ? 'var(--status-fail-solid)' : 'var(--accent)';
+  const stripes = striped ? ' kl-bar-stripes' : '';
   return (
     <div
       className="relative h-5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70"
@@ -36,13 +44,13 @@ export function ProgressBar({
     >
       {isIndet ? (
         <div
-          className="absolute inset-y-0 w-1/3 rounded-[var(--radius-pill)] opacity-70"
-          style={{ background: fill, animation: 'glim-indeterminate 1.4s ease-in-out infinite' }}
+          className={`absolute inset-y-0 w-1/3 rounded-[var(--radius-pill)] opacity-70${stripes}`}
+          style={{ backgroundColor: fill, animation: 'glim-indeterminate 1.4s ease-in-out infinite' }}
         />
       ) : (
         <div
-          className="kl-bar-fill relative h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
-          style={{ width: `${clamped}%`, background: fill }}
+          className={`kl-bar-fill relative h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out${stripes}`}
+          style={{ width: `${clamped}%`, backgroundColor: fill }}
         >
           {/* The front edge tells a moving download from a stalled one at the
               same percentage. It is drawn wherever there is a fill and pulses

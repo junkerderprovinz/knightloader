@@ -7,8 +7,10 @@ import {
   isParked,
   packageFailures,
   packageStatus,
+  packageUnpackBar,
   packageUnpacking,
   resolveLayout,
+  unpackBar,
   type CellContext,
   type ColumnId,
   type ResolvedLayout,
@@ -237,5 +239,82 @@ describe('packageFailures', () => {
 
   it('counts nothing in a package that is fine', () => {
     expect(packageFailures([row('a', 'done', 'done'), row('b', 'running')], ctx())).toBe(0);
+  });
+});
+
+describe('unpackBar', () => {
+  const task = (id: string, status: TaskStatus = 'done', more: Partial<Task> = {}) => ({ id, status, ...more }) as Task;
+  const job = (status: string, parts: string[], more: Partial<ExtractJob> = {}): ExtractJob => ({
+    id: 'j',
+    taskId: parts[0],
+    name: 'film.part1.rar',
+    dir: '/downloads',
+    status,
+    files: 3,
+    bytes: 300,
+    volumes: parts.length,
+    parts,
+    queuedAt: '2026-09-27T12:00:00Z',
+    ...more,
+  });
+  const ctx = (...jobs: ExtractJob[]): CellContext => ({
+    t: (key) => key,
+    base: '/api',
+    profile: 'downloads',
+    extractions: extractionsByTask(jobs),
+  });
+
+  it('shows how far the unpacking has got on every part of the set', () => {
+    const c = ctx(job('running', ['a1', 'a2', 'a3'], { unpacked: 400, size: 1000 }));
+    for (const t of [task('a1', 'extracting'), task('a2'), task('a3')]) {
+      expect(unpackBar(t, c)).toEqual({ unpacked: 400, size: 1000, failed: false });
+    }
+  });
+
+  it('leaves a file outside the set to its download', () => {
+    const c = ctx(job('running', ['a1'], { unpacked: 400, size: 1000 }));
+    expect(unpackBar(task('b1'), c)).toBeNull();
+  });
+
+  it('measures nothing while the archive waits for its turn', () => {
+    expect(unpackBar(task('a1', 'extracting'), ctx(job('queued', ['a1'])))).toBeNull();
+  });
+
+  it('gives the bar back to the download once the archive is unpacked', () => {
+    expect(unpackBar(task('a1'), ctx(job('done', ['a1'], { unpacked: 1000, size: 1000 })))).toBeNull();
+  });
+
+  it('keeps where a failed unpacking stopped', () => {
+    const c = ctx(job('error', ['a1', 'a2'], { unpacked: 250, size: 1000, error: 'bad block header' }));
+    expect(unpackBar(task('a2'), c)).toEqual({ unpacked: 250, size: 1000, failed: true });
+  });
+
+  it('runs without a size when the format does not say how much it holds', () => {
+    expect(unpackBar(task('a1', 'extracting'), ctx(job('running', ['a1'])))).toEqual({
+      unpacked: 0,
+      size: 0,
+      failed: false,
+    });
+  });
+
+  it('knows nothing of how far it got once the job is gone', () => {
+    expect(unpackBar(task('a1', 'done', { unpack: 'error' }), ctx())).toBeNull();
+  });
+
+  it('lets a file downloading again show its download', () => {
+    const c = ctx(job('running', ['a1'], { unpacked: 400, size: 1000 }));
+    expect(unpackBar(task('a1', 'running'), c)).toBeNull();
+  });
+
+  it('shows the package header the archive being unpacked', () => {
+    const items = [task('a1', 'extracting'), task('a2'), task('b1')];
+    const c = ctx(job('running', ['a1', 'a2'], { unpacked: 600, size: 1000 }));
+    expect(packageUnpackBar(items, c)).toEqual({ unpacked: 600, size: 1000, failed: false });
+  });
+
+  it('leaves the package header to a download still under way', () => {
+    const items = [task('a1', 'extracting'), task('b1', 'running')];
+    const c = ctx(job('running', ['a1'], { unpacked: 600, size: 1000 }));
+    expect(packageUnpackBar(items, c)).toBeNull();
   });
 });

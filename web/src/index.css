@@ -2212,3 +2212,15 @@ body {
     display: none;
   }
 }
+
+/* An archive being unpacked draws its bar in the row's own colour, striped.
+   The colour already means "working" on this row, in every palette and every
+   rainbow position, so the texture carries the difference instead, and a
+   parked row greys it like any other fill. White for the reason the edge is. */
+.kl-bar-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(255 255 255 / .3) 0 4px,
+    transparent 4px 9px
+  );
+}

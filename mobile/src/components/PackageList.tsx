@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { Task, TorrentFileView } from '../api/types';
-import { isParked, packageState } from '../api/taskState';
+import type { ExtractJob, Task, TorrentFileView } from '../api/types';
+import { isParked, packageState, unpackPercent, unpackProgress, type UnpackProgress } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Power, Trash } from './IconBadge';
@@ -82,6 +82,7 @@ export default function PackageList({
   onLoadFiles,
   onSelectFiles,
   sections = [],
+  unpacking,
 }: {
   tasks: Task[];
   /** Parts listed below the main packages under a heading of their own, which
@@ -118,6 +119,9 @@ export default function PackageList({
   /** Makes `paths` the files a torrent fetches and answers with its files, or
    *  with null when the change did not happen, which the caller has said why. */
   onSelectFiles?: (task: Task, paths: string[]) => Promise<TorrentFileView[] | null>;
+  /** The latest unpacking of each file's archive, keyed by task id
+   *  (unpackingByTask). Absent where nothing is unpacked or nothing says so. */
+  unpacking?: Map<string, ExtractJob>;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -161,6 +165,8 @@ export default function PackageList({
     const next = await onSelectFiles?.(task, paths);
     if (next) setFileLists((m) => ({ ...m, [task.id]: next }));
   };
+
+  const unpackOf = (task: Task): UnpackProgress | null => (unpacking ? unpackProgress(task, unpacking) : null);
 
   // Which parts are folded. Open is the default, since a part is there to be seen.
   const [folded, setFolded] = useState<Record<string, boolean>>({});
@@ -216,6 +222,7 @@ export default function PackageList({
             <TaskRow
               task={r.task}
               index={r.index}
+              unpack={unpackOf(r.task)}
               onSwitch={onSetEnabled && (() => scharf || onSetEnabled([r.task], !r.task.enabled))}
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
@@ -322,6 +329,12 @@ export default function PackageList({
         const auf = open[pkg.name] === true;
         const state = packageState(pkg.tasks);
         const allOff = isParked(pkg.tasks);
+        // The header has no bar, so how far its archive has got goes on the
+        // line under "Unpacking". One archive unpacks at a time.
+        const unpacked =
+          state.word === 'extracting'
+            ? pkg.tasks.map(unpackOf).find((u) => u && !u.failed && u.size > 0)
+            : undefined;
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
@@ -357,6 +370,7 @@ export default function PackageList({
                   `${pkg.tasks.length} ${t('instance.files')}`,
                   pkg.size > 0 ? fmtBytes(pkg.size) : null,
                   pkg.speed > 0 ? fmtSpeed(pkg.speed) : null,
+                  unpacked ? `${unpackPercent(unpacked)}%` : null,
                 ]
                   .filter(Boolean)
                   .join(' · ')}
