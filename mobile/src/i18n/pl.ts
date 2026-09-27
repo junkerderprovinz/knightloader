@@ -71,8 +71,6 @@ export const pl: Dict = {
   'captcha.widgetRefused':
     'Usługa captcha odmówiła tu działania i zgłosiła {code}. Wielu hosterów wiąże swoją captchę z własną stroną, więc w KnightLoaderze może się ona w ogóle nie wczytać. Odśwież próbuje ponownie, a Anuluj pomija tę captchę.',
   'captcha.widgetPageRefused': 'Instancja odmówiła wczytania tego wyzwania (błąd {code}). Anuluj pomija tę captchę.',
-  'captcha.widgetRelayTitle': 'Rozwiąż tę captchę w interfejsie webowym',
-  'captcha.widgetRelayReason': 'Przy połączeniu nawiązanym za pomocą frazy aplikacja odpowiada tylko na captche obrazkowe i klikane. Odpowiedz na tę w interfejsie webowym albo anuluj ją tutaj.',
   'captcha.unsupported': 'KnightLoader nie potrafi wyświetlić tego rodzaju wyzwania (zgłoszone jako {vendor}).',
   'captcha.unsupportedHint': 'Użyj przycisku Anuluj poniżej albo zablokuj captche tego hostera na tę sesję.',
   'captcha.unsolvable': 'KnightLoader nie potrafi rozwiązać tej captchy.',

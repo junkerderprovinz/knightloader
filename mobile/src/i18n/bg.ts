@@ -71,8 +71,6 @@ export const bg: Dict = {
   'captcha.widgetRefused':
     'Услугата за captcha отказа да работи тук и съобщи {code}. Много хостъри обвързват своята captcha със собствения си сайт, така че в KnightLoader тя може изобщо да не се зареди. „Опресни“ опитва отново, а „Отказ“ пропуска тази captcha.',
   'captcha.widgetPageRefused': 'Инстанцията отказа да зареди това предизвикателство (грешка {code}). „Отказ“ пропуска тази captcha.',
-  'captcha.widgetRelayTitle': 'Реши тази captcha в уеб интерфейса',
-  'captcha.widgetRelayReason': 'При връзка, осъществена с фразата, приложението отговаря само на captcha с картинка и с щракане. Отговори на тази в уеб интерфейса или я откажи тук.',
   'captcha.unsupported': 'KnightLoader не може да покаже този вид предизвикателство (отчетено като {vendor}).',
   'captcha.unsupportedHint': 'Използвай Отказ по-долу или блокирай captcha-та на този хостър за тази сесия.',
   'captcha.unsolvable': 'KnightLoader не може да реши тази captcha.',

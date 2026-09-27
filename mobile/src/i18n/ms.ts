@@ -71,8 +71,6 @@ export const ms: Dict = {
   'captcha.widgetRefused':
     'Perkhidmatan captcha enggan berjalan di sini dan melaporkan {code}. Banyak hoster mengikat captcha mereka kepada laman web mereka sendiri, jadi ia mungkin langsung tidak dimuatkan dalam KnightLoader. Tekan Segar semula untuk mencuba lagi, atau Batal untuk melangkau captcha ini.',
   'captcha.widgetPageRefused': 'Tika enggan memuatkan cabaran ini (ralat {code}). Tekan Batal untuk melangkau captcha ini.',
-  'captcha.widgetRelayTitle': 'Selesaikan captcha ini dalam antara muka web',
-  'captcha.widgetRelayReason': 'Pada sambungan yang dibuat dengan frasa, aplikasi hanya menjawab captcha gambar dan captcha klik. Jawab captcha ini dalam antara muka web, atau batalkannya di sini.',
   'captcha.unsupported': 'KnightLoader tidak dapat memaparkan jenis cabaran ini (dilaporkan sebagai {vendor}).',
   'captcha.unsupportedHint': 'Guna Batal di bawah, atau sekat captcha hoster ini untuk sesi ini.',
   'captcha.unsolvable': 'KnightLoader tidak dapat menyelesaikan captcha ini.',

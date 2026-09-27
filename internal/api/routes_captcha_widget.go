@@ -7,11 +7,21 @@ package api
 // so the SPA does not need a permanent policy wide enough for a challenge that
 // may never occur.
 //
+// The phone app loads the same page through GET /api/captcha/{id}/widget/phone,
+// which reaches it over the relay as well, since it answers JSON rather than a
+// page: the markup plus the hoster's page address, which the app's WebView
+// loads it under. The vendor then sees the origin a browser on the hoster's
+// page would show, which is what a key locked to the hoster's domains asks
+// for. The policy travels in a meta element there, and leaves out 'self',
+// which would be the hoster, and frame-ancestors, which a meta element cannot
+// carry.
+//
 // The vendor comes from the payload's vendor field, which JDSource fills from
 // JD's challenge class. Without it, Enterprise or a V3Action still prove
-// reCAPTCHA; anything else gets the unsolvable page rather than a guess. So
-// does Cloudflare Turnstile, which the page cannot run and only a paid solver
-// can answer.
+// reCAPTCHA; anything else gets the unsolvable page rather than a guess.
+// Cloudflare Turnstile runs only on the phone's page: every Turnstile key runs
+// on the hostnames its owner lists alone, so under this instance's address it
+// gets the unsolvable page and only a paid solver can answer it.
 //
 // JD reports reCAPTCHA v2, v3 and Enterprise under one class and tells them
 // apart in the rawtoken payload: enterprise is set when the hoster loads
@@ -28,16 +38,20 @@ package api
 // and are path-scoped to /recaptcha/, which covers enterprise.js as well. The
 // hCaptcha sources are the two hosts
 // https://docs.hcaptcha.com/#content-security-policy-settings lists, since its
-// asset subdomains change. A per-response nonce covers the page's own inline
-// script and style, so nothing needs 'unsafe-inline'; styles are in a <style>
-// element because a nonce does not cover a style attribute.
+// asset subdomains change, and the Turnstile source is the one host
+// https://developers.cloudflare.com/turnstile/reference/content-security-policy/
+// names. A per-response nonce covers the page's own inline script and style,
+// so nothing needs 'unsafe-inline'; styles are in a <style> element because a
+// nonce does not cover a style attribute.
 //
 // The widget parameters come from the query string (vendor, siteKey, type,
 // enterprise, v3Action, secureToken, lang, plus host and prompt for the
 // caption). The page only renders, and the caller already holds the payload
 // from its own poll, so nothing is looked up by {id}; the id is echoed for log
 // correlation and in the messages. A stale id renders like a fresh one;
-// Source.Answer decides whether an answer is still valid.
+// Source.Answer decides whether an answer is still valid. The phone's route
+// does look the challenge up, since the hoster's address is in its payload
+// and the app need not send it back.
 //
 // The page posts {source:"knightloader-captcha-widget", id, kind, detail} to
 // window.parent at its own origin: kind is "ready" on load, "loaded" once the
@@ -53,9 +67,9 @@ package api
 // Both vendors let a site owner lock a key to the hoster's domains
 // (https://developers.google.com/recaptcha/docs/domain_validation), and the
 // reCAPTCHA secure token that once worked around that is deprecated, so a key
-// can refuse to work from this origin. The vendor then shows its own error in
-// the widget; hCaptcha also calls the error callback once the checkbox is
-// clicked, which the page reports as "error".
+// can refuse to work from this origin, though not from the phone's. The
+// vendor then shows its own error in the widget; hCaptcha also calls the error
+// callback once the checkbox is clicked, which the page reports as "error".
 
 import (
 	"bytes"
@@ -99,13 +113,16 @@ type captchaWidgetRequest struct {
 	// Host and Prompt only caption the page.
 	Host   string
 	Prompt string
+	// AtHoster is set for the phone's page, which runs under the hoster's
+	// page address rather than this instance's.
+	AtHoster bool
 }
 
 // errCaptchaWidgetNoSiteKey marks a malformed request, unlike a vendor that
 // cannot be identified.
 var errCaptchaWidgetNoSiteKey = errors.New("captcha widget: siteKey is required")
 
-func registerCaptchaWidget(reg *Registry, _ *app.App) {
+func registerCaptchaWidget(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/captcha/{id}/widget",
 		"render a live captcha widget behind a Content-Security-Policy scoped to the one vendor the challenge names, or a page that says it cannot be solved here",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -126,16 +143,102 @@ func registerCaptchaWidget(reg *Registry, _ *app.App) {
 			w.Header().Set("Cache-Control", "no-store")
 			_, _ = w.Write(page.body)
 		})
+
+	reg.Add(http.MethodGet, "/api/captcha/{id}/widget/phone",
+		"the widget page for one pending challenge as the phone app loads it, with the hoster's page address to load it under, so a key locked to the hoster's domains and a Cloudflare Turnstile run too",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			c, ok := pendingCaptcha(a, id)
+			if !ok {
+				writeRefusal(w, http.StatusNotFound, "gone", "captcha "+id+" is not pending", nil)
+				return
+			}
+			req, baseURL, err := phoneWidgetRequest(c, captchaWidgetLangOf(r.URL.Query().Get("lang")))
+			if err != nil {
+				http.Error(w, "captcha widget: "+err.Error(), http.StatusUnprocessableEntity)
+				return
+			}
+			page, err := buildCaptchaWidgetPage(req)
+			if err != nil {
+				if errors.Is(err, errCaptchaWidgetNoSiteKey) {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+				http.Error(w, "captcha widget: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Cache-Control", "no-store")
+			writeJSON(w, phoneWidgetPage{HTML: string(page.body), BaseURL: baseURL})
+		})
+}
+
+// phoneWidgetPage is what the phone's route answers: the page, whose policy
+// is in a meta element, and the address the WebView loads it under.
+type phoneWidgetPage struct {
+	HTML    string `json:"html"`
+	BaseURL string `json:"baseUrl"`
+}
+
+// pendingCaptcha finds challenge id among those waiting.
+func pendingCaptcha(a *app.App, id string) (captcha.Challenge, bool) {
+	for _, c := range a.CaptchaChallenges() {
+		if c.ID == id {
+			return c, true
+		}
+	}
+	return captcha.Challenge{}, false
+}
+
+// phoneWidgetRequest is the page request for c as the phone loads it, from the
+// payload the web UI copies into the query string, and the address to load it
+// under: the hoster's page, or failing that JD's contextUrl, which is only its
+// scheme and host, in the order tokenTask hands them to a paid solver.
+func phoneWidgetRequest(c captcha.Challenge, lang string) (captchaWidgetRequest, string, error) {
+	p, ok := c.Payload.(*captcha.WidgetPayload)
+	if c.Kind != captcha.KindWidget || !ok || p == nil {
+		return captchaWidgetRequest{}, "", fmt.Errorf("captcha %s is not a widget challenge", c.ID)
+	}
+	var baseURL string
+	for _, raw := range []string{p.SiteURL, p.ContextURL} {
+		u, err := url.Parse(strings.TrimSpace(raw))
+		if err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != "" {
+			u.User, u.Fragment = nil, ""
+			baseURL = u.String()
+			break
+		}
+	}
+	if baseURL == "" {
+		return captchaWidgetRequest{}, "", fmt.Errorf("captcha %s names no page to load its widget under", c.ID)
+	}
+	return captchaWidgetRequest{
+		ID:          c.ID,
+		Vendor:      strings.ToLower(strings.TrimSpace(p.Vendor)),
+		SiteKey:     strings.TrimSpace(p.SiteKey),
+		Size:        strings.TrimSpace(p.Type),
+		Enterprise:  p.Enterprise,
+		V3Action:    strings.TrimSpace(p.V3Action),
+		SecureToken: p.SecureToken,
+		Lang:        lang,
+		Host:        c.Host,
+		Prompt:      c.Prompt,
+		AtHoster:    true,
+	}, baseURL, nil
 }
 
 var captchaWidgetLang = regexp.MustCompile(`^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$`)
 
+// captchaWidgetLangOf is lang when it is a language tag, and "" otherwise.
+func captchaWidgetLangOf(lang string) string {
+	lang = strings.TrimSpace(lang)
+	if !captchaWidgetLang.MatchString(lang) {
+		return ""
+	}
+	return lang
+}
+
 func parseCaptchaWidgetRequest(r *http.Request) captchaWidgetRequest {
 	q := r.URL.Query()
-	lang := strings.TrimSpace(q.Get("lang"))
-	if !captchaWidgetLang.MatchString(lang) {
-		lang = ""
-	}
+	lang := captchaWidgetLangOf(q.Get("lang"))
 	return captchaWidgetRequest{
 		ID:          r.PathValue("id"),
 		Vendor:      strings.ToLower(strings.TrimSpace(q.Get("vendor"))),
@@ -155,11 +258,11 @@ func parseCaptchaWidgetBool(v string) bool {
 }
 
 // captchaWidgetVendor is the vendor req renders for, or "" when it names none
-// this page knows and none of its fields prove reCAPTCHA. Both vendors have an
-// invisible size, so the size proves nothing.
+// this page knows and none of its fields prove reCAPTCHA. Both script vendors
+// have an invisible size, so the size proves nothing.
 func captchaWidgetVendor(req captchaWidgetRequest) string {
 	switch req.Vendor {
-	case captcha.VendorRecaptcha, captcha.VendorHCaptcha:
+	case captcha.VendorRecaptcha, captcha.VendorHCaptcha, captcha.VendorTurnstile:
 		return req.Vendor
 	case "":
 		if req.Enterprise || req.V3Action != "" {
@@ -188,6 +291,7 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 	data := widgetPageData{
 		Nonce: nonce, ID: req.ID, Host: req.Host, Prompt: req.Prompt,
 		LoadTimeoutMS: captchaWidgetLoadTimeout.Milliseconds(),
+		Container:     "kl-widget",
 		Params:        map[string]string{"sitekey": req.SiteKey},
 	}
 	var csp string
@@ -198,7 +302,22 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 		// then be opened again.
 		data.Global = "hcaptcha"
 		data.ScriptURL = captchaWidgetScriptURL("https://js.hcaptcha.com/1/api.js", req.Lang)
-		csp = hcaptchaCSP(nonce)
+		csp = hcaptchaCSP(nonce, req.AtHoster)
+	case captcha.VendorTurnstile:
+		if !req.AtHoster {
+			return unsolvableWidgetPage(nonce, req, "turnstile")
+		}
+		// Turnstile's render takes a selector rather than an id. Its language
+		// is left at auto, the WebView's own, since a tag Turnstile does not
+		// know is an error rather than English. Without retries a failure
+		// stays one, so the phone hands the challenge on and Refresh is the
+		// retry.
+		data.Global = "turnstile"
+		data.Container = "#kl-widget"
+		data.ScriptURL = "https://challenges.cloudflare.com/turnstile/v0/api.js?" +
+			url.Values{"onload": {"klWidgetLoaded"}, "render": {"explicit"}}.Encode()
+		data.Params["retry"] = "never"
+		csp = turnstileCSP(nonce)
 	case captcha.VendorRecaptcha:
 		data.Global = "grecaptcha"
 		script := "https://www.google.com/recaptcha/api.js"
@@ -206,7 +325,7 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 			script = "https://www.google.com/recaptcha/enterprise.js"
 			data.Namespace = "enterprise"
 		}
-		csp = recaptchaCSP(nonce)
+		csp = recaptchaCSP(nonce, req.AtHoster)
 		if req.V3Action != "" {
 			action, ok := captcha.RecaptchaAction(req.V3Action)
 			if !ok {
@@ -224,10 +343,10 @@ func buildCaptchaWidgetPage(req captchaWidgetRequest) (captchaWidgetPage, error)
 			data.Params["stoken"] = req.SecureToken
 		}
 	default:
-		if req.Vendor == captcha.VendorTurnstile {
-			return unsolvableWidgetPage(nonce, req, "turnstile")
-		}
 		return unsolvableWidgetPage(nonce, req, "vendor")
+	}
+	if req.AtHoster {
+		data.MetaCSP = csp
 	}
 
 	var buf bytes.Buffer
@@ -263,13 +382,16 @@ func captchaWidgetScoreScriptURL(base, siteKey, lang string) string {
 // no vendor script and no vendor origin, and a message that tells the parent
 // why, so it can say so in the reader's language.
 func unsolvableWidgetPage(nonce string, req captchaWidgetRequest, why string) (captchaWidgetPage, error) {
+	csp := unsolvableWidgetCSP(nonce, req.AtHoster)
+	data := unsolvableWidgetPageData{Nonce: nonce, ID: req.ID, Host: req.Host, Why: why}
+	if req.AtHoster {
+		data.MetaCSP = csp
+	}
 	var buf bytes.Buffer
-	if err := unsolvableWidgetPageTmpl.Execute(&buf, unsolvableWidgetPageData{
-		Nonce: nonce, ID: req.ID, Host: req.Host, Why: why,
-	}); err != nil {
+	if err := unsolvableWidgetPageTmpl.Execute(&buf, data); err != nil {
 		return captchaWidgetPage{}, fmt.Errorf("rendering the unsolvable page: %w", err)
 	}
-	return captchaWidgetPage{csp: unsolvableWidgetCSP(nonce), body: buf.Bytes()}, nil
+	return captchaWidgetPage{csp: csp, body: buf.Bytes()}, nil
 }
 
 // newCaptchaWidgetNonce is one response's CSP nonce. It only has to be
@@ -282,51 +404,92 @@ func newCaptchaWidgetNonce() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(raw), nil
 }
 
+// widgetCSP joins a page's directives. Under the hoster's address 'self' is
+// the hoster, so its sources go, and so does frame-ancestors, which a policy
+// in a meta element cannot carry.
+func widgetCSP(atHoster bool, directives ...string) string {
+	if !atHoster {
+		return strings.Join(directives, "; ")
+	}
+	kept := make([]string, 0, len(directives))
+	for _, d := range directives {
+		f := strings.Fields(d)
+		if f[0] == "frame-ancestors" {
+			continue
+		}
+		sources := f[:1]
+		for _, s := range f[1:] {
+			if s != "'self'" {
+				sources = append(sources, s)
+			}
+		}
+		kept = append(kept, strings.Join(sources, " "))
+	}
+	return strings.Join(kept, "; ")
+}
+
 // recaptchaCSP is the policy for the reCAPTCHA page.
-func recaptchaCSP(nonce string) string {
+func recaptchaCSP(nonce string, atHoster bool) string {
 	n := "'nonce-" + nonce + "'"
-	return strings.Join([]string{
+	return widgetCSP(atHoster,
 		"default-src 'none'",
-		"script-src 'self' " + n + " https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
-		"style-src 'self' " + n,
+		"script-src 'self' "+n+" https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+		"style-src 'self' "+n,
 		"img-src 'self' https://www.gstatic.com",
 		"frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
 		"connect-src 'self' https://www.google.com/recaptcha/",
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'self'",
-	}, "; ")
+	)
 }
 
 // hcaptchaCSP is the policy for the hCaptcha page. hCaptcha names the same two
 // hosts for scripts, styles, frames and connections.
-func hcaptchaCSP(nonce string) string {
+func hcaptchaCSP(nonce string, atHoster bool) string {
 	n := "'nonce-" + nonce + "'"
 	const hosts = "https://hcaptcha.com https://*.hcaptcha.com"
-	return strings.Join([]string{
+	return widgetCSP(atHoster,
 		"default-src 'none'",
-		"script-src 'self' " + n + " " + hosts,
-		"style-src 'self' " + n + " " + hosts,
-		"frame-src " + hosts,
-		"connect-src 'self' " + hosts,
+		"script-src 'self' "+n+" "+hosts,
+		"style-src 'self' "+n+" "+hosts,
+		"frame-src "+hosts,
+		"connect-src 'self' "+hosts,
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'self'",
-	}, "; ")
+	)
+}
+
+// turnstileCSP is the policy for the Turnstile page, which only the phone
+// loads. Cloudflare names one host for scripts and frames, and its mobile
+// guide adds connections.
+func turnstileCSP(nonce string) string {
+	n := "'nonce-" + nonce + "'"
+	const host = "https://challenges.cloudflare.com"
+	return widgetCSP(true,
+		"default-src 'none'",
+		"script-src "+n+" "+host,
+		"style-src "+n,
+		"frame-src "+host,
+		"connect-src "+host,
+		"base-uri 'none'",
+		"form-action 'none'",
+	)
 }
 
 // unsolvableWidgetCSP trusts no vendor origin; only the page's own script and
 // style block may run.
-func unsolvableWidgetCSP(nonce string) string {
+func unsolvableWidgetCSP(nonce string, atHoster bool) string {
 	n := "'nonce-" + nonce + "'"
-	return strings.Join([]string{
+	return widgetCSP(atHoster,
 		"default-src 'none'",
-		"script-src " + n,
-		"style-src 'self' " + n,
+		"script-src "+n,
+		"style-src 'self' "+n,
 		"base-uri 'none'",
 		"form-action 'none'",
 		"frame-ancestors 'self'",
-	}, "; ")
+	)
 }
 
 // widgetPageData feeds widgetPageTmpl. SiteKey, Host, Prompt and the secure
@@ -334,11 +497,16 @@ func unsolvableWidgetCSP(nonce string) string {
 // escapes each for its context.
 type widgetPageData struct {
 	Nonce, ID, Host, Prompt string
-	// Global is the vendor's script object, grecaptcha or hcaptcha, and
-	// Namespace the member of it the calls go to, "enterprise" for reCAPTCHA
-	// Enterprise.
+	// MetaCSP is the policy as a meta element, for the phone's page, which
+	// carries no header of its own.
+	MetaCSP string
+	// Global is the vendor's script object, grecaptcha, hcaptcha or
+	// turnstile, and Namespace the member of it the calls go to,
+	// "enterprise" for reCAPTCHA Enterprise.
 	Global, Namespace string
 	ScriptURL         string
+	// Container is what render is handed to find the widget's box.
+	Container string
 	// Params is the render call's parameters without the callbacks.
 	Params map[string]string
 	// Action is set for a score-based reCAPTCHA key, which is not rendered:
@@ -347,7 +515,7 @@ type widgetPageData struct {
 	LoadTimeoutMS int64
 }
 
-// widgetPageTmpl renders either vendor explicitly, so the page learns when the
+// widgetPageTmpl renders every vendor explicitly, so the page learns when the
 // script has arrived and can tell a widget that never loads from one that is
 // waiting for the user. The parent hears both, so a viewer that said it cannot
 // load the challenge can take that back after a refresh. On failure the widget
@@ -363,7 +531,8 @@ var widgetPageTmpl = template.Must(template.New("captcha-widget").Parse(`<!docty
 <html>
 <head>
 <meta charset="utf-8">
-<title>KnightLoader captcha</title>
+{{if .MetaCSP}}<meta http-equiv="Content-Security-Policy" content="{{.MetaCSP}}">
+{{end}}<title>KnightLoader captcha</title>
 <style nonce="{{.Nonce}}">
 html,body{height:100%;margin:0}
 body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#1a1a1a}
@@ -428,7 +597,7 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
       fail(code || "network");
     };
     try {
-      widget = api.render("kl-widget", params);
+      widget = api.render({{.Container}}, params);
       if (params.size === "invisible") api.execute(widget);
       post("loaded", null);
     } catch (e) {
@@ -439,6 +608,8 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
   var script = document.createElement("script");
   script.src = {{.ScriptURL}};
   script.async = true;
+  // Turnstile hands the nonce on to what it loads itself.
+  script.nonce = {{.Nonce}};
   script.onerror = function(){ fail("script"); };
   document.head.appendChild(script);
   post("ready", null);
@@ -450,9 +621,11 @@ body{display:flex;align-items:center;justify-content:center;font:14px/1.4 -apple
 
 // unsolvableWidgetPageData feeds unsolvableWidgetPageTmpl. Why is "vendor"
 // when the vendor cannot be identified, "turnstile" for Cloudflare Turnstile
-// and "action" for a score-based key without a usable action.
+// under this instance's address and "action" for a score-based key without a
+// usable action.
 type unsolvableWidgetPageData struct {
 	Nonce, ID, Host, Why string
+	MetaCSP              string
 }
 
 // unsolvableWidgetPageTmpl loads no vendor script. Its own script only tells
@@ -462,7 +635,8 @@ var unsolvableWidgetPageTmpl = template.Must(template.New("captcha-widget-unsolv
 <html>
 <head>
 <meta charset="utf-8">
-<title>KnightLoader captcha</title>
+{{if .MetaCSP}}<meta http-equiv="Content-Security-Policy" content="{{.MetaCSP}}">
+{{end}}<title>KnightLoader captcha</title>
 <style nonce="{{.Nonce}}">
 html,body{height:100%;margin:0}
 body{display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#1a1a1a;text-align:center}
@@ -472,7 +646,7 @@ body{display:flex;align-items:center;justify-content:center;padding:24px;box-siz
 <body>
 <div id="kl-wrap">
 {{if eq .Why "turnstile"}}<p><strong>This captcha cannot be shown here.</strong></p>
-<p>It is a Cloudflare Turnstile check{{if .Host}} for {{.Host}}{{end}}, which this page cannot run. Only a solver from the Captcha settings can answer it.</p>
+<p>It is a Cloudflare Turnstile check{{if .Host}} for {{.Host}}{{end}}, which this page cannot run. The phone app or a solver from the Captcha settings can answer it.</p>
 {{else}}<p><strong>This captcha cannot be solved in KnightLoader.</strong></p>
 {{if eq .Why "action"}}<p>It is a reCAPTCHA v3 check{{if .Host}} for {{.Host}}{{end}} without the action the hoster asks for, and a token without it would be refused.</p>
 {{else}}<p>JD reported a widget challenge{{if .Host}} for {{.Host}}{{end}} without saying which vendor it is, and this page will not guess.</p>

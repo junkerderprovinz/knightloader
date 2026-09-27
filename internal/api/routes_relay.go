@@ -307,7 +307,8 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 // The task, link and queue routes take any method, since showing a sibling's
 // downloads without being able to stop them would be half a connection. So do
 // the captcha routes: a captcha holds a download up, and the phone answers or
-// skips it. The rest is read-only apart from the appearance fields. Settings,
+// skips it, loads a widget challenge's page, and says when that will not
+// load. The rest is read-only apart from the appearance fields. Settings,
 // accounts, tokens, scripts and the phrase are not on the list.
 func relayForwardable(method, path string) bool {
 	// The decision is about the route, not its query arguments.
@@ -343,21 +344,31 @@ func relayForwardable(method, path string) bool {
 }
 
 // relayCaptchaRoute reports whether rest is one of the captcha calls the phone
-// makes: the list, a refresh, and answering or skipping one challenge. Matched
-// by shape rather than by prefix, so a route added under /api/captcha later is
-// not forwarded until it is named here.
+// makes: the list, a refresh, answering or skipping one challenge, its widget
+// page and the phone's report that the page will not load. The web UI's own
+// widget page and its report stay off. Matched by shape rather than by
+// prefix, so a route added under /api/captcha later is not forwarded until it
+// is named here.
 func relayCaptchaRoute(method, rest string) bool {
-	switch {
-	case method == http.MethodGet && rest == "captcha":
-		return true
-	case method != http.MethodPost:
-		return false
-	case rest == "captcha/refresh":
-		return true
+	switch rest {
+	case "captcha":
+		return method == http.MethodGet
+	case "captcha/refresh":
+		return method == http.MethodPost
 	}
-	parts := strings.Split(rest, "/")
-	return len(parts) == 3 && parts[0] == "captcha" && parts[1] != "" &&
-		(parts[2] == "answer" || parts[2] == "skip")
+	parts := strings.SplitN(rest, "/", 3)
+	if len(parts) != 3 || parts[0] != "captcha" || parts[1] == "" {
+		return false
+	}
+	switch parts[2] {
+	case "answer", "skip":
+		return method == http.MethodPost
+	case "widget/phone":
+		return method == http.MethodGet
+	case "unanswerable/phone":
+		return method == http.MethodPost || method == http.MethodDelete
+	}
+	return false
 }
 
 // relayRecorder buffers one handler's response in memory, so production code

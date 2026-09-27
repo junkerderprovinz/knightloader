@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -478,6 +479,21 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 		t.Fatalf("GET /api/captcha = %d (%s), want challenge %s", status, body, id)
 	}
 
+	// A widget challenge's page comes over the relay too, with the hoster's
+	// address to load it under, and so does the phone's word that it will not
+	// load and taking that back.
+	status, body = call(http.MethodGet, "/api/captcha/"+id+"/widget/phone?lang=de", "")
+	var page phoneWidgetPage
+	if status != http.StatusOK || json.Unmarshal(body, &page) != nil || page.BaseURL != "https://hoster.example/file" ||
+		!strings.Contains(page.HTML, "https://js.hcaptcha.com/1/api.js") {
+		t.Errorf("GET /api/captcha/%s/widget/phone = %d (%s), want hCaptcha's page and the hoster's address", id, status, body)
+	}
+	for _, method := range []string{http.MethodPost, http.MethodDelete} {
+		if status, body := call(method, "/api/captcha/"+id+"/unanswerable/phone", `{}`); status != http.StatusNoContent {
+			t.Errorf("%s /api/captcha/%s/unanswerable/phone = %d (%s), want 204", method, id, status, body)
+		}
+	}
+
 	status, body = call(http.MethodPost, "/api/captcha/"+id+"/answer", `{"text":"a-token"}`)
 	var answered struct {
 		StillValid bool `json:"stillValid"`
@@ -504,6 +520,10 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 		{http.MethodPost, "/api/captcha"},
 		{http.MethodGet, "/api/captcha/refresh"},
 		{http.MethodGet, "/api/captcha/c1/widget"},
+		{http.MethodPost, "/api/captcha/c1/widget/phone"},
+		{http.MethodGet, "/api/captcha/c1/widget/phone/again"},
+		{http.MethodPost, "/api/captcha/c1/unanswerable"},
+		{http.MethodGet, "/api/captcha/c1/unanswerable/phone"},
 		{http.MethodPost, "/api/captcha/c1/answer/again"},
 		{http.MethodPost, "/api/captcha//answer"},
 		{http.MethodPost, "/api/captcha/solvers"},

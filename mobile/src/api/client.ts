@@ -10,7 +10,7 @@ import {
   type Task,
   type TorrentFileView,
 } from './types';
-import { answeredKinds, widgetPath } from './captcha';
+import { WATCHED, widgetPagePath, widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
@@ -455,10 +455,10 @@ function poll<T>(
 // captchaErrorText.
 
 /** Every captcha waiting on the connected instance, read from its cache. The
- *  read counts as watching the kinds this phone can answer on conn, so with
- *  "only when nobody is watching" on, the paid solvers wait for it on those. */
+ *  read counts as watching the kinds this phone can answer, so with "only when
+ *  nobody is watching" on, the paid solvers wait for it on those. */
 export async function fetchCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
-  const watch = answeredKinds(isRelayConnection(conn)).join(',');
+  const watch = WATCHED.join(',');
   return (await request<CaptchaChallenge[] | null>(conn, '/api', `/captcha?watch=${watch}`)) ?? [];
 }
 
@@ -485,16 +485,15 @@ export async function skipCaptcha(conn: ServerConnection, id: string, scope: Cap
 }
 
 /** Tells the instance this phone could not load widget challenge `id`, so its
- *  reads of the list stop holding the paid solvers back for it. Only a
- *  connection saved by address shows the widget, so only one reports it. An
- *  instance from before the phone's path refuses it and records nothing. */
-export async function reportCaptchaUnanswerable(conn: DirectConnection, id: string): Promise<void> {
+ *  reads of the list stop holding the paid solvers back for it. An instance
+ *  from before the phone's path refuses it and records nothing. */
+export async function reportCaptchaUnanswerable(conn: ServerConnection, id: string): Promise<void> {
   await request(conn, '/api', `/captcha/${encodeURIComponent(id)}/unanswerable/phone`, { method: 'POST', body: '{}' });
 }
 
 /** Takes that back once Refresh has loaded the widget after all. A solver
  *  already at work on it carries on. */
-export async function withdrawCaptchaUnanswerable(conn: DirectConnection, id: string): Promise<void> {
+export async function withdrawCaptchaUnanswerable(conn: ServerConnection, id: string): Promise<void> {
   await request(conn, '/api', `/captcha/${encodeURIComponent(id)}/unanswerable/phone`, { method: 'DELETE' });
 }
 
@@ -507,10 +506,20 @@ export function pollCaptchas(
   return poll(() => fetchCaptchas(conn), onList, onError, intervalMs);
 }
 
+/** The widget page for challenge `id` and the hoster's page address, which a
+ *  WebView loads it under so the vendor sees the hoster's origin. */
+export async function fetchCaptchaWidgetPage(
+  conn: ServerConnection,
+  id: string,
+  lang: string
+): Promise<{ html: string; baseUrl: string }> {
+  return request<{ html: string; baseUrl: string }>(conn, '/api', widgetPagePath(id, lang));
+}
+
 /**
- * What a WebView loads for a widget challenge: the instance's widget page and
- * the token it asks for. Only a direct connection has an address to load it
- * from.
+ * What a WebView loads for a widget challenge from an instance that predates
+ * fetchCaptchaWidgetPage: the web UI's widget page, from the instance's own
+ * address, and the token it asks for.
  */
 export function captchaWidgetSource(
   conn: DirectConnection,

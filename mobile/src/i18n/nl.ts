@@ -71,8 +71,6 @@ export const nl: Dict = {
   'captcha.widgetRefused':
     'De captchadienst wilde hier niet draaien en meldde {code}. Veel hosters koppelen hun captcha aan hun eigen website, dus misschien laadt hij in KnightLoader helemaal niet. Vernieuwen probeert het opnieuw, en Annuleren slaat deze captcha over.',
   'captcha.widgetPageRefused': 'De instantie wilde deze uitdaging niet laden (fout {code}). Annuleren slaat deze captcha over.',
-  'captcha.widgetRelayTitle': 'Los deze op in de webinterface',
-  'captcha.widgetRelayReason': 'Via een verbinding met de zin beantwoordt de app alleen afbeeldings- en klikcaptcha’s. Beantwoord deze in de webinterface, of annuleer hem hier.',
   'captcha.unsupported': 'KnightLoader kan dit soort uitdaging niet tonen (gemeld als {vendor}).',
   'captcha.unsupportedHint': 'Gebruik Annuleren hieronder, of blokkeer de captcha’s van deze hoster voor deze sessie.',
   'captcha.unsolvable': 'KnightLoader kan deze captcha niet oplossen.',

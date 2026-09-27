@@ -359,6 +359,7 @@ func TestThePhoneAppsRightsReachEveryCallItMakes(t *testing.T) {
 		{http.MethodGet, "/api/appearance", ""},
 		{http.MethodPost, "/api/appearance", `{"rainbowPalette":null}`},
 		{http.MethodGet, "/api/instances/office/tasks", ""},
+		{http.MethodGet, "/api/captcha/c1/widget/phone", ""},
 	} {
 		if code, doc := callAPI(t, http.DefaultClient, srv.URL, c.method, c.path, c.body, phone); code == http.StatusForbidden || code == http.StatusUnauthorized {
 			t.Errorf("the phone app's %s %s answered %d: %+v", c.method, c.path, code, doc)

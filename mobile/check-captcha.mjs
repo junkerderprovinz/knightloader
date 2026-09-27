@@ -111,8 +111,13 @@ expect(
   { x: [30, 100], y: [20, 100] },
 );
 
-// The widget page reads every field from the query string (see
-// parseCaptchaWidgetRequest in internal/api/routes_captcha_widget.go).
+// The phone's widget page is looked up by id and takes only the language.
+expect('the phone asks for its page by id', cap.widgetPagePath('17/a b', 'pt-BR'), '/captcha/17%2Fa%20b/widget/phone?lang=pt-BR');
+expect('without a language it sends none', cap.widgetPagePath('1', ''), '/captcha/1/widget/phone');
+
+// The web UI's page, the one an older instance offers, reads every field from
+// the query string (see parseCaptchaWidgetRequest in
+// internal/api/routes_captcha_widget.go).
 const widget = ch('17/a b', ZERO, {
   kind: 'widget',
   host: 'files.example',
@@ -139,28 +144,27 @@ expect(
   'vendor=hcaptcha&siteKey=k',
 );
 
-// The vendors captchaWidgetVendor renders, and a missing one it decides itself.
+// The vendors captchaWidgetVendor renders under the hoster's address, and a
+// missing one it decides itself.
 const vendorOf = (vendor) => ch('1', ZERO, { kind: 'widget', payload: { vendor, siteKey: 'k' } });
 expect(
-  'the page runs reCAPTCHA, hCaptcha and whatever it works out itself',
-  ['recaptcha', 'hcaptcha', 'HCaptcha', ''].map((v) => cap.widgetRuns(vendorOf(v))),
-  [true, true, true, true],
+  'the page runs reCAPTCHA, hCaptcha, Turnstile and whatever it works out itself',
+  ['recaptcha', 'hcaptcha', 'HCaptcha', 'turnstile', ''].map((v) => cap.widgetRuns(vendorOf(v))),
+  [true, true, true, true, true],
 );
-expect('a Turnstile would only be refused by the page', cap.widgetRuns(vendorOf('turnstile')), false);
+expect('another vendor would only be refused by the page', cap.widgetRuns(vendorOf('friendlycaptcha')), false);
 
 // What the phone tells the instance it watches for, so the paid solvers wait
-// only for a captcha somebody here can answer.
-expect('over the relay the phone answers pictures and clicks', cap.answeredKinds(true), ['image', 'click']);
-expect('by address it answers the widget as well', cap.answeredKinds(false), ['image', 'click', 'widget']);
+// only for a captcha somebody here can answer. "turnstile" tells it from an
+// app that cannot run one.
+expect('the phone answers pictures, clicks and widgets, Turnstile too', cap.WATCHED, ['image', 'click', 'widget', 'turnstile']);
 const picture = ch('1', ZERO);
 expect(
-  'what can be answered here, over the relay and by address',
-  [picture, vendorOf('recaptcha'), vendorOf('turnstile')].map((c) => [cap.answerableHere(c, true), cap.answerableHere(c, false)]),
-  [
-    [true, true],
-    [false, true],
-    [false, false],
-  ],
+  'what can be answered here',
+  [picture, vendorOf('recaptcha'), vendorOf('turnstile'), vendorOf('friendlycaptcha'), ch('1', ZERO, { kind: 'unsupported' })].map(
+    (c) => cap.answerableHere(c),
+  ),
+  [true, true, true, false, false],
 );
 
 // The solver line, and the why behind it only for somebody who can answer.
@@ -215,6 +219,9 @@ expect('a vendor code is the vendor refusing', cap.widgetFailure(null, 'invalid-
 // routes_captcha_widget.go answers 400 for a challenge JD sent without a site
 // key, which no amount of network would fix.
 expect('an HTTP error is the instance refusing', cap.widgetFailure(400, null), { by: 'instance', status: 400 });
+// The relay refuses a route an instance does not forward with a bare 403.
+expect('a 403 over the relay is an instance too old for the page', cap.widgetFailure(403, null, true), { by: 'outdated' });
+expect('by address it is the instance refusing', cap.widgetFailure(403, null, false), { by: 'instance', status: 403 });
 
 // What the phone tells the instance, one window after another, so the paid
 // solvers stop waiting for a phone that cannot show the widget and wait for it
@@ -228,8 +235,8 @@ expect('once', cap.widgetReport(reported, 'c1', true), null);
 expect('a report about one captcha is not taken back for another', cap.widgetReport(new Set(['c1']), 'c2', true), null);
 
 // The bridge, run twice as the WebView runs it, in a window whose parent is
-// itself.
-const origin = 'http://192.168.1.10:8749';
+// itself, at the hoster's address the page is loaded under.
+const origin = 'https://files.example';
 const listeners = [];
 const forwarded = [];
 const win = {
@@ -253,4 +260,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page gets every field and opens only for a vendor it runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went');
+console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page is asked for by id, the web UI’s gets every field, and a window opens only for a vendor the page runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went');

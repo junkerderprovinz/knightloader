@@ -732,8 +732,8 @@ func solverStates(t *testing.T, f *activityFakeConn, id, last string) []string {
 	return states
 }
 
-// Nobody can answer a Cloudflare Turnstile at the prompt, so a viewer on
-// screen does not hold the solvers back for one.
+// A browser tab cannot run a Cloudflare Turnstile, so a viewer on screen does
+// not hold the solvers back for one.
 func TestTheSolversDoNotWaitForATurnstile(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	onlyUnwatched(t, a)
@@ -751,8 +751,31 @@ func TestTheSolversDoNotWaitForATurnstile(t *testing.T) {
 	}
 }
 
-// The phone on a phrase connection answers pictures but no widget, so it holds
-// the solvers back for a picture only.
+// The phone app runs a Turnstile under the hoster's address and says so when it
+// reads the list, so it holds the solvers back for one until it cannot load
+// it. An app that names only the widget kind predates that and does not.
+func TestThePhoneHoldsTheSolversForATurnstileItRuns(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	c := pending(a, captcha.Challenge{ID: "t1", Host: "h", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+		Vendor: captcha.VendorTurnstile, SiteKey: "0x4AAAAAAA",
+	}})
+
+	a.CaptchaSeen([]string{"image", "click", "widget"})
+	if a.captchaWatched(c) {
+		t.Fatal("an app that cannot run a Turnstile holds the solvers back for one")
+	}
+	a.CaptchaSeen([]string{"image", "click", "widget", "turnstile"})
+	if !a.captchaWatched(c) {
+		t.Fatal("the phone that runs a Turnstile does not hold the solvers back for one")
+	}
+	a.ReportCaptchaUnanswerable("t1", CaptchaPhone)
+	if a.captchaWatched(c) {
+		t.Error("a phone that cannot load the Turnstile still holds the solvers")
+	}
+}
+
+// An app that names pictures and clicks alone, as the phone did on a phrase
+// connection, holds the solvers back for a picture only.
 func TestAnAppHoldsTheSolversOnlyForWhatItCanAnswer(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	onlyUnwatched(t, a)

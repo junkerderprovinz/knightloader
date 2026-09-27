@@ -71,8 +71,6 @@ export const vi: Dict = {
   'captcha.widgetRefused':
     'Dịch vụ captcha từ chối chạy ở đây và báo {code}. Nhiều hoster gắn captcha với chính trang web của họ, nên nó có thể hoàn toàn không tải được trong KnightLoader. Làm mới sẽ thử lại, còn Hủy sẽ bỏ qua captcha này.',
   'captcha.widgetPageRefused': 'Phiên bản đã từ chối tải thử thách này (lỗi {code}). Hủy sẽ bỏ qua captcha này.',
-  'captcha.widgetRelayTitle': 'Hãy giải captcha này trong giao diện web',
-  'captcha.widgetRelayReason': 'Trên một kết nối được tạo bằng cụm từ, ứng dụng chỉ trả lời captcha hình ảnh và captcha nhấp. Hãy trả lời captcha này trong giao diện web, hoặc hủy nó ở đây.',
   'captcha.unsupported': 'KnightLoader không thể hiển thị loại thử thách này (được báo cáo là {vendor}).',
   'captcha.unsupportedHint': 'Dùng Hủy bên dưới, hoặc chặn captcha của dịch vụ lưu trữ này trong phiên này.',
   'captcha.unsolvable': 'KnightLoader không giải được captcha này.',

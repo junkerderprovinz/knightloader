@@ -8,7 +8,7 @@ import {
   type Polling,
 } from '../api/client';
 import { byDeadline, noticeFor, widgetReport, type CaptchaNotice } from '../api/captcha';
-import { isRelayConnection, type CaptchaChallenge, type ServerConnection } from '../api/types';
+import type { CaptchaChallenge, ServerConnection } from '../api/types';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -165,12 +165,11 @@ export function CaptchaWatch({
     }
   }, []);
 
-  // Only a connection saved by address shows the widget. A report that does
-  // not arrive only leaves the solvers waiting until their time runs out, so
-  // nobody is told about it.
+  // A report that does not arrive only leaves the solvers waiting until their
+  // time runs out, so nobody is told about it.
   const reportWidget = useCallback(
     (id: string, loaded: boolean) => {
-      if (!conn || isRelayConnection(conn)) return;
+      if (!conn) return;
       const news = widgetReport(unloaded.current, id, loaded);
       if (news === 'unanswerable') reportCaptchaUnanswerable(conn, id).catch(() => {});
       else if (news === 'withdraw') withdrawCaptchaUnanswerable(conn, id).catch(() => {});

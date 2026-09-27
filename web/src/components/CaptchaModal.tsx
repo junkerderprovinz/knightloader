@@ -36,7 +36,7 @@ import { isOnTop } from '../lib/windowStack';
 //
 // The socket reports whether this tab is in the foreground: with "only when
 // nobody is watching" on, the paid solvers wait while it is, for every captcha
-// but a Turnstile, which nobody can answer here. In the desktop app the shell
+// but a Turnstile, which only the phone app can show. In the desktop app the shell
 // reports its window instead, since a webview's visibilityState is not
 // reliable.
 
@@ -370,8 +370,9 @@ export function CaptchaModal() {
   const continueDisabled = busy || (current.kind === 'image' ? answer.trim() === '' : points.length === 0);
   const title = moreWaiting > 0 ? t('captcha.titleMore', { n: moreWaiting }) : t('captcha.title');
   const widget = current.kind === 'widget' ? (current.payload as CaptchaWidgetPayload | undefined) : undefined;
-  // The widget page renders reCAPTCHA and hCaptcha only, so a Turnstile is
-  // left to the solvers without loading it.
+  // Under this instance's address the widget page renders reCAPTCHA and
+  // hCaptcha only, so a Turnstile is left to the phone app and the solvers
+  // without loading it.
   const turnstile = widget?.vendor === 'turnstile';
   const unsolvable = turnstile || widgetStatus === 'unsolvable';
   const why = turnstile

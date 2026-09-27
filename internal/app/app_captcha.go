@@ -232,6 +232,7 @@ func (a *App) CaptchaChallenges() []captcha.Challenge {
 // as the phone app, as watching for the kinds it can answer, so the paid
 // solvers wait only for those; nil stands for every kind. A name that is no
 // kind a person answers is dropped, so a reader cannot grow the hub's table.
+// A reader that runs a Turnstile names captchaWatchTurnstile as well.
 func (a *App) CaptchaSeen(kinds []string) {
 	if kinds == nil {
 		a.Hub.Seen("captcha")
@@ -239,11 +240,18 @@ func (a *App) CaptchaSeen(kinds []string) {
 	}
 	for _, k := range kinds {
 		switch kind := captcha.Kind(k); kind {
-		case captcha.KindImage, captcha.KindClick, captcha.KindWidget:
+		case captcha.KindImage, captcha.KindClick, captcha.KindWidget, captchaWatchTurnstile:
 			a.Hub.Seen(captchaWatchKey(kind))
 		}
 	}
 }
+
+// captchaWatchTurnstile is what a reader lists besides the widget kind when it
+// runs a Cloudflare Turnstile too. Every Turnstile key runs only on the
+// hostnames its owner lists, which the phone app's page can claim and a
+// browser tab on this instance cannot, and an app that lists only the widget
+// kind cannot run one either.
+const captchaWatchTurnstile captcha.Kind = "turnstile"
 
 // captchaWatchKey is the hub kind a reader that answers only some kinds of
 // challenge is seen under.

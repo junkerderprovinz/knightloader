@@ -71,8 +71,6 @@ export const hu: Dict = {
   'captcha.widgetRefused':
     'A captcha-szolgáltatás itt megtagadta a futást, és ezt jelentette: {code}. Sok tárhely a saját weboldalához köti a captcháját, így lehet, hogy a KnightLoaderben egyáltalán nem töltődik be. A Frissítés újra megpróbálja, a Mégse pedig kihagyja ezt a captchát.',
   'captcha.widgetPageRefused': 'A példány nem volt hajlandó betölteni ezt a feladványt (hiba: {code}). A Mégse kihagyja ezt a captchát.',
-  'captcha.widgetRelayTitle': 'Ezt a webes felületen oldd meg',
-  'captcha.widgetRelayReason': 'Kifejezéssel létrehozott kapcsolaton az alkalmazás csak a képes és a kattintós captchákra válaszol. Erre a webes felületen válaszolj, vagy itt szakítsd meg.',
   'captcha.unsupported': 'A KnightLoader nem tudja megjeleníteni ezt a fajta kihívást ({vendor} néven jelentve).',
   'captcha.unsupportedHint': 'Használd a Mégse gombot alább, vagy tiltsd le ennek a hosternek a captcháit erre a munkamenetre.',
   'captcha.unsolvable': 'A KnightLoader nem tudja megoldani ezt a captchát.',

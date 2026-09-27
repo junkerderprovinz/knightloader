@@ -71,8 +71,6 @@ export const gl: Dict = {
   'captcha.widgetRefused':
     'O servizo de captcha negouse a funcionar aquí e informou de {code}. Moitos aloxadores vinculan o seu captcha ao seu propio sitio web, así que pode que non cargue en KnightLoader de ningún xeito. Preme Actualizar para tentalo de novo, ou Cancelar para saltar este captcha.',
   'captcha.widgetPageRefused': 'A instancia negouse a cargar este reto (erro {code}). Preme Cancelar para saltar este captcha.',
-  'captcha.widgetRelayTitle': 'Resolve este na interface web',
-  'captcha.widgetRelayReason': 'Nunha conexión feita coa frase, a aplicación só responde captchas de imaxe e de clic. Responde este na interface web ou cancélao aquí.',
   'captcha.unsupported': 'KnightLoader non pode amosar este tipo de reto (indicado como {vendor}).',
   'captcha.unsupportedHint': 'Usa Cancelar de abaixo, ou bloquea os captchas deste aloxador para esta sesión.',
   'captcha.unsolvable': 'KnightLoader non pode resolver este captcha.',

@@ -71,8 +71,6 @@ export const zh: Dict = {
   'captcha.widgetRefused':
     '验证码服务拒绝在这里运行，并报告了 {code}。很多网盘把验证码绑定在自己的网站上，所以它在 KnightLoader 里可能根本加载不出来。“刷新”会再试一次，“取消”会跳过这个验证码。',
   'captcha.widgetPageRefused': '实例拒绝加载这个验证（错误 {code}）。“取消”会跳过这个验证码。',
-  'captcha.widgetRelayTitle': '请在网页界面中完成这个验证码',
-  'captcha.widgetRelayReason': '在用连接词语建立的连接上，应用只回答图片验证码和点选验证码。请在网页界面中回答这个验证码，或者在这里取消它。',
   'captcha.unsupported': 'KnightLoader 无法显示此类验证（报告为 {vendor}）。',
   'captcha.unsupportedHint': '使用下方的取消，或在本次会话中屏蔽此网盘的验证码。',
   'captcha.unsolvable': 'KnightLoader 无法完成这个验证码。',

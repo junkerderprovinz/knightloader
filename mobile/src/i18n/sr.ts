@@ -71,8 +71,6 @@ export const sr: Dict = {
   'captcha.widgetRefused':
     'Captcha услуга је одбила да ради овде и пријавила {code}. Многи хостери везују своју captcha за сопствени сајт, па се у KnightLoader-у можда уопште неће учитати. „Освежи“ покушава поново, а „Откажи“ прескаче ову captcha.',
   'captcha.widgetPageRefused': 'Инстанца је одбила да учита овај изазов (грешка {code}). „Откажи“ прескаче ову captcha.',
-  'captcha.widgetRelayTitle': 'Реши ову captcha у веб интерфејсу',
-  'captcha.widgetRelayReason': 'На вези успостављеној фразом апликација одговара само на captcha са сликом и кликом. На ову одговори у веб интерфејсу или је овде откажи.',
   'captcha.unsupported': 'KnightLoader не може да прикаже ову врсту изазова (пријављено као {vendor}).',
   'captcha.unsupportedHint': 'Користи Откажи испод, или блокирај captcha овог хостера за ову сесију.',
   'captcha.unsolvable': 'KnightLoader не може да реши ову captcha.',

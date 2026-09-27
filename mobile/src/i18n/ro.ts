@@ -71,8 +71,6 @@ export const ro: Dict = {
   'captcha.widgetRefused':
     'Serviciul captcha a refuzat să ruleze aici și a raportat {code}. Mulți hosteri își leagă captcha de propriul site, așa că s-ar putea să nu se încarce deloc în KnightLoader. Apasă Reîmprospătează ca să încerci din nou sau Anulează ca să sari peste această captcha.',
   'captcha.widgetPageRefused': 'Instanța a refuzat să încarce această provocare (eroarea {code}). Apasă Anulează ca să sari peste această captcha.',
-  'captcha.widgetRelayTitle': 'Rezolv-o pe aceasta în interfața web',
-  'captcha.widgetRelayReason': 'Pe o conexiune făcută cu fraza, aplicația răspunde doar la captcha cu imagine și cu clic. Răspunde la aceasta în interfața web sau anuleaz-o aici.',
   'captcha.unsupported': 'KnightLoader nu poate afișa acest tip de provocare (raportat ca {vendor}).',
   'captcha.unsupportedHint': 'Folosește Anulează mai jos, sau blochează captcha acestui hoster pentru această sesiune.',
   'captcha.unsolvable': 'KnightLoader nu poate rezolva această captcha.',

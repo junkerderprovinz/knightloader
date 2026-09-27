@@ -162,50 +162,50 @@ can:
 - **Picture and click captchas** are answered on the phone. Type what the
   picture says, or tap the points it asks for; the taps go out in the picture's
   own pixels, in the shape JD takes (`clickAnswer` in `src/api/captcha.ts`).
-- **reCAPTCHA and hCaptcha** open the instance's own widget page
-  (`internal/api/routes_captcha_widget.go`) in a WebView. It is the page the web
-  UI puts in an iframe, loaded from the same address under its own
-  Content-Security-Policy, so the app runs no vendor script itself. The page
-  posts its result to its own origin, and in a WebView it is the top window, so
-  the message lands on the page itself; `WIDGET_BRIDGE` hands it to the app.
+- **reCAPTCHA, hCaptcha and Cloudflare Turnstile** open the instance's own
+  widget page (`internal/api/routes_captcha_widget.go`) in a WebView, on
+  either kind of connection. The app asks for it on the phone's route,
+  `GET /api/captcha/{id}/widget/phone` (`fetchCaptchaWidgetPage`), which the
+  relay forwards like the other captcha calls. The instance looks the
+  challenge up and answers JSON: the page's HTML and the hoster's page address
+  from the challenge (JD's `siteUrl`, or its `contextUrl` when that is
+  missing). The WebView loads the HTML with `source={{ html, baseUrl }}`, so
+  the page's origin is the hoster's, the one a browser on that page would
+  show. That is what a site key locked to the hoster's domains needs, and
+  every Turnstile key is locked that way. The page is the one the web UI puts
+  in an iframe, so the app runs no vendor script of its own and the vendor
+  loading lives in one place. Its Content-Security-Policy travels in a meta
+  element, without `'self'`, which would be the hoster, and without
+  `frame-ancestors`, which a meta element cannot carry. The page posts its
+  result to its own origin, and in a WebView it is the top window, so the
+  message lands on the page itself; `WIDGET_BRIDGE` hands it to the app, and
+  the token goes back through `/api/captcha/{id}/answer` like any answer.
   The WebView runs with `scalesPageToFit={false}`, because the page sets no
-  viewport and a wide one draws the checkbox at a third of its size. When the
-  instance answers the page with an error status, such as the 400 for a
-  challenge JD sent without a site key, the window says so with the status
-  rather than blaming the network (`widgetFailure`). When a widget will not
-  load, the app reports it on the phone's own path
-  (`reportCaptchaUnanswerable`, `/api/captcha/{id}/unanswerable/phone`), and
-  the phone's reads of the list stop holding the paid solvers back for it. An
-  older instance has no such path and records nothing. Once Refresh loads the
-  widget after all, the app withdraws the report (`widgetReport`, through
-  `reportWidget` in `CaptchaWatch`).
-- **Over the relay those two are not answered yet**, and since the phrase is
-  the only way to add a connection, that is every connection made today. Only
-  one saved by address in an earlier build opens the widget. The page has to
-  come from an address, and a connection made with the phrase has none. Loaded
-  from a string it would have no origin: both vendors refuse `about:blank`, the
-  page's own `postMessage` to `location.origin` throws, and its CSP header is
-  gone. Loading its HTML under an address it did not come from would get round
-  that, either the instance's own from `/api/remote-access` (empty on the
-  desktop build) or the hoster's domain, which a site key is usually locked
-  to. Which origin the app may claim is a decision still to be made, not a
-  missing piece of code. Until then such a card says to answer it in the web
-  UI, and Cancel and the two blocking choices still work.
-- **Cloudflare Turnstile** is not among them. The widget page runs reCAPTCHA
-  and hCaptcha only (`captchaWidgetVendor`), so the card for any other service
-  names it and offers Cancel rather than a window that would only refuse
-  (`widgetRuns`). Teaching the page Turnstile would not be enough on its own:
-  every Turnstile key runs only on the hostnames its owner lists, so a page
-  from the instance's address is refused. It would need the hoster's domain
-  as its origin, one of the two ways round the relay case above.
+  viewport and a wide one draws the checkbox at a third of its size.
+
+  When the page cannot be fetched, the vendor's script does not arrive or the
+  vendor reports an error, the window says who is to blame (`widgetFailure`):
+  the instance with its status, such as the 400 for a challenge JD sent
+  without a site key, an instance too old for the phone's route (a bare 403
+  over the relay), the network, or the vendor with its code. It also reports
+  the failure on the phone's own path (`reportCaptchaUnanswerable`,
+  `/api/captcha/{id}/unanswerable/phone`), and the phone's reads of the list
+  stop holding the paid solvers back for it. Once Refresh loads the widget
+  after all, the app withdraws the report (`widgetReport`, through
+  `reportWidget` in `CaptchaWatch`). A challenge answered or dropped while
+  the window opened closes it (a 404 with the code `gone`). An instance from
+  before the phone's route answers it with a plain 404; on a connection saved
+  by address the app then loads the web UI's page from the instance's own
+  address, as it used to, where a Turnstile gets the page's refusal.
 - Anything else shows JD's name for it and offers Cancel.
 
 The list comes from `/api/captcha`, the route the web UI's `CaptchaModal` reads,
 polled every five seconds while the app is in front (`CaptchaWatch`), over
-either transport, for the active connection only. The read names the kinds this
-phone answers on that connection in `watch` (`answeredKinds`): pictures and
-clicks over the relay, the widget as well by address. With "Only when nobody is
-watching" on, the instance holds the paid solvers back for those alone. A card
+either transport, for the active connection only. The read names what this
+phone answers in `watch` (`WATCHED`): pictures, clicks and widgets, and
+`turnstile` to say that it runs a Turnstile as well, which an older app that
+names only the widget kind cannot. With "Only when nobody is watching" on, the
+instance holds the paid solvers back for those alone. A card
 shows what the solvers are doing (`solverStatus`), and leaves out the
 explanation that assumes you can answer when the phone cannot. An instance forwards these
 routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
@@ -246,7 +246,7 @@ registers its push token.
   WebSocket task subscription for a connection saved by address, and
   `pollTasks` as its polling equivalent for the relay.
 - `src/api/captcha.ts`: the rules the captcha screen follows (the order, the
-  countdown, a click answer, the widget page's address and the vendors it runs,
+  countdown, a click answer, the widget page's paths and the vendors it runs,
   which of the page's messages count, who to blame when it does not load and
   when to tell the instance, the bridge script, and what the banner says after
   a look), kept free of React so

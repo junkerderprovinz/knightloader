@@ -71,8 +71,6 @@ export const ja: Dict = {
   'captcha.widgetRefused':
     'キャプチャのサービスはここでの動作を拒否し、{code} を報告しました。多くのホスターはキャプチャを自分のウェブサイトに結び付けているため、KnightLoader ではまったく読み込めないことがあります。「更新」でもう一度試し、「キャンセル」でこのキャプチャを飛ばします。',
   'captcha.widgetPageRefused': 'インスタンスがこの課題の読み込みを拒否しました（エラー {code}）。「キャンセル」でこのキャプチャを飛ばします。',
-  'captcha.widgetRelayTitle': 'これは Web UI で解いてください',
-  'captcha.widgetRelayReason': 'フレーズで作った接続では、アプリが答えられるのは画像とクリックのキャプチャだけです。これは Web UI で答えるか、ここでキャンセルしてください。',
   'captcha.unsupported': 'KnightLoader はこの種類の課題を表示できません（{vendor} として報告されました）。',
   'captcha.unsupportedHint': '下の「キャンセル」を使うか、このセッションでこのホスターのキャプチャをブロックしてください。',
   'captcha.unsolvable': 'KnightLoader ではこのキャプチャを解けません。',

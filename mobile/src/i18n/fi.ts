@@ -71,8 +71,6 @@ export const fi: Dict = {
   'captcha.widgetRefused':
     'Captcha-palvelu kieltäytyi toimimasta täällä ja ilmoitti koodin {code}. Monet hosterit sitovat captchansa omaan sivustoonsa, joten se ei ehkä lataudu KnightLoaderissa lainkaan. Päivitä yrittää uudelleen, ja Peruuta ohittaa tämän captchan.',
   'captcha.widgetPageRefused': 'Instanssi kieltäytyi lataamasta tätä haastetta (virhe {code}). Peruuta ohittaa tämän captchan.',
-  'captcha.widgetRelayTitle': 'Ratkaise tämä verkkokäyttöliittymässä',
-  'captcha.widgetRelayReason': 'Lauseella muodostetun yhteyden kautta sovellus vastaa vain kuva- ja napsautuscaptchoihin. Vastaa tähän verkkokäyttöliittymässä tai peruuta se täällä.',
   'captcha.unsupported': 'KnightLoader ei voi näyttää tämäntyyppistä haastetta (ilmoitettu nimellä {vendor}).',
   'captcha.unsupportedHint': 'Käytä alla olevaa Peruuta-painiketta, tai estä tämän hosterin captchat tälle istunnolle.',
   'captcha.unsolvable': 'KnightLoader ei pysty ratkaisemaan tätä captchaa.',

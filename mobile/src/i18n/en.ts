@@ -89,8 +89,6 @@ export const en = {
   'captcha.widgetRefused':
     'The captcha service refused to run here and reported {code}. Many hosters tie their captcha to their own website, so it may not load in KnightLoader at all. Refresh tries again, and Cancel skips this captcha.',
   'captcha.widgetPageRefused': 'The instance refused to load this challenge (error {code}). Cancel skips this captcha.',
-  'captcha.widgetRelayTitle': 'Solve this one in the web UI',
-  'captcha.widgetRelayReason': 'On a connection made with the phrase, the app answers picture and click captchas only. Answer this one in the web UI, or cancel it here.',
   'captcha.unsupported': 'KnightLoader cannot show this kind of challenge (reported as {vendor}).',
   'captcha.unsupportedHint': 'Use Cancel below, or block this hoster’s captchas for this session.',
   'captcha.unsolvable': 'KnightLoader cannot solve this captcha.',

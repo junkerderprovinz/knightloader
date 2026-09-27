@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,11 +9,15 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/dop251/goja"
+
+	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/captcha"
 )
 
 // captchaWidgetServer is the widget route alone on a throwaway app.
@@ -420,7 +425,7 @@ func TestCaptchaWidgetSaysPlainlyWhatItCannotSolve(t *testing.T) {
 		{"explicit-false-enterprise", url.Values{"siteKey": {"anykey"}, "enterprise": {"false"}}, "vendor"},
 		{"invisible, which both vendors have", url.Values{"siteKey": {"anykey"}, "type": {"INVISIBLE"}}, "vendor"},
 		{"a vendor this page does not know", url.Values{"vendor": {"friendlycaptcha"}, "siteKey": {"anykey"}}, "vendor"},
-		{"Cloudflare Turnstile, which only a solver answers", url.Values{"vendor": {"turnstile"}, "siteKey": {"0x4AAAA-key"}}, "turnstile"},
+		{"Cloudflare Turnstile under this instance's address", url.Values{"vendor": {"turnstile"}, "siteKey": {"0x4AAAA-key"}}, "turnstile"},
 		{"a v3 object without an action", url.Values{"vendor": {"recaptcha"}, "siteKey": {"6Lc-key"}, "v3Action": {`{"score":0.5}`}}, "action"},
 		{"a v3 action reCAPTCHA would refuse", url.Values{"siteKey": {"6Lc-key"}, "v3Action": {`{"action":"free download"}`}}, "action"},
 		{"a v3 object that is not JSON", url.Values{"siteKey": {"6Lc-key"}, "enterprise": {"1"}, "v3Action": {`{action:`}}, "action"},
@@ -671,4 +676,171 @@ func assertNoBareWildcard(t *testing.T, csp string) {
 			}
 		}
 	}
+}
+
+// getPhoneWidget asks the phone's route for challenge id's page.
+func getPhoneWidget(t *testing.T, srv *httptest.Server, id, lang string) (int, phoneWidgetPage, []byte) {
+	t.Helper()
+	resp, body := getCaptchaWidget(t, srv.URL+"/api/captcha/"+url.PathEscape(id)+"/widget/phone?lang="+url.QueryEscape(lang))
+	var page phoneWidgetPage
+	if resp.StatusCode == http.StatusOK {
+		if err := json.Unmarshal(body, &page); err != nil {
+			t.Fatalf("the phone's page is no JSON: %v\n%s", err, body)
+		}
+	}
+	return resp.StatusCode, page, body
+}
+
+var metaCSP = regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="([^"]*)">`)
+
+// pagePolicy is the policy in page's meta element, unescaped.
+func pagePolicy(t *testing.T, page string) string {
+	t.Helper()
+	m := metaCSP.FindStringSubmatch(page)
+	if m == nil {
+		t.Fatalf("the page carries no policy of its own:\n%s", page)
+	}
+	return strings.ReplaceAll(m[1], "&#39;", "'")
+}
+
+// The phone loads the widget page from a string under the hoster's page
+// address, so the vendor sees the origin a browser on that page would show.
+// The page carries its policy itself, without 'self', which would be the
+// hoster, and without frame-ancestors, which a meta element cannot carry.
+func TestThePhoneGetsTheWidgetPageWithTheHostersAddress(t *testing.T) {
+	jd, _ := fakeJDWithHCaptcha(t)
+	t.Setenv("KL_JD", jd.URL)
+	srv, a := captchaServer(t)
+	a.RefreshCaptchas(context.Background())
+
+	status, page, body := getPhoneWidget(t, srv, "5", "de")
+	if status != http.StatusOK {
+		t.Fatalf("the phone's page answered %d: %s", status, body)
+	}
+	if page.BaseURL != "https://hoster.example/file" {
+		t.Errorf("the page loads under %q, want the hoster's page", page.BaseURL)
+	}
+	w := parseRenderedWidget(t, page.HTML)
+	if w.global != "hcaptcha" || w.params["sitekey"] != "10000000-ffff-ffff-ffff-000000000001" || w.script.Query().Get("hl") != "de" {
+		t.Errorf("the phone's page renders %+v, want hCaptcha with JD's key in German", w)
+	}
+	csp := cspDirectives(pagePolicy(t, page.HTML))
+	for name, sources := range csp {
+		if slices.Contains(sources, "'self'") {
+			t.Errorf("%s trusts 'self', which is the hoster on the phone: %v", name, sources)
+		}
+	}
+	if _, ok := csp["frame-ancestors"]; ok {
+		t.Error("the page's own policy names frame-ancestors, which a meta element cannot carry")
+	}
+	if !slices.Contains(csp["script-src"], "https://*.hcaptcha.com") || csp["default-src"][0] != "'none'" {
+		t.Errorf("the page's own policy is not hCaptcha's: %v", csp)
+	}
+
+	_, web := getCaptchaWidget(t, captchaWidgetURL(srv, "5", url.Values{"vendor": {"hcaptcha"}, "siteKey": {"k"}}))
+	if metaCSP.Match(web) {
+		t.Error("the web UI's page carries a policy of its own besides its header")
+	}
+}
+
+// A challenge that has left the list has no page, and says so with a code,
+// so the app closes its window rather than blame the instance.
+func TestThePhoneIsToldWhenACaptchaIsGone(t *testing.T) {
+	srv, _ := captchaServer(t)
+	resp, body := getCaptchaWidget(t, srv.URL+"/api/captcha/nope/widget/phone")
+	var refusal struct {
+		Code string `json:"code"`
+	}
+	if resp.StatusCode != http.StatusNotFound || json.Unmarshal(body, &refusal) != nil || refusal.Code != "gone" {
+		t.Errorf("a gone captcha answered %d %s, want 404 with code gone", resp.StatusCode, body)
+	}
+}
+
+// The page loads under the hoster's page, or JD's contextUrl when the page is
+// missing, as a paid solver is handed them, and only under a web address.
+func TestThePhonesPageLoadsUnderTheHostersWebAddress(t *testing.T) {
+	cases := []struct {
+		name, site, context, want string
+	}{
+		{"the hoster's page", "https://hoster.example/file/1", "https://hoster.example", "https://hoster.example/file/1"},
+		{"its scheme and host when the page is missing", "", "https://hoster.example", "https://hoster.example"},
+		{"a plain http page", "http://hoster.example/f", "", "http://hoster.example/f"},
+		{"without credentials or a fragment", "https://u:p@hoster.example/f#top", "", "https://hoster.example/f"},
+		{"not a script address", "javascript:alert(1)", "https://hoster.example", "https://hoster.example"},
+		{"not a file", "file:///etc/passwd", "", ""},
+		{"not without a host", "/file/1", "", ""},
+		{"not without any", "", "", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ch := captcha.Challenge{ID: "1", Kind: captcha.KindWidget, Payload: &captcha.WidgetPayload{
+				Vendor: captcha.VendorRecaptcha, SiteKey: "k", SiteURL: c.site, ContextURL: c.context,
+			}}
+			req, base, err := phoneWidgetRequest(ch, "")
+			if base != c.want || (err == nil) != (c.want != "") {
+				t.Fatalf("loads under %q (%v), want %q", base, err, c.want)
+			}
+			if err == nil && !req.AtHoster {
+				t.Error("the request does not say the page runs under the hoster's address")
+			}
+		})
+	}
+
+	picture := captcha.Challenge{ID: "2", Kind: captcha.KindImage, Payload: &captcha.ImagePayload{DataURL: "data:image/png;base64,AA=="}}
+	if _, _, err := phoneWidgetRequest(picture, ""); err == nil {
+		t.Error("a picture challenge was given a widget page")
+	}
+}
+
+// Under the hoster's address the phone runs a Cloudflare Turnstile, which the
+// web UI's page refuses: Cloudflare's script, rendered explicitly into the
+// page's box by selector, without retries, behind a policy naming Cloudflare's
+// one host.
+func TestThePhoneRunsATurnstile(t *testing.T) {
+	t.Parallel()
+	page, err := buildCaptchaWidgetPage(captchaWidgetRequest{
+		ID: "9", Vendor: captcha.VendorTurnstile, SiteKey: "0x4AAAA-key", Lang: "de", AtHoster: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := string(page.body)
+	w := parseRenderedWidget(t, html)
+	if w.global != "turnstile" || w.params["sitekey"] != "0x4AAAA-key" || w.params["retry"] != "never" {
+		t.Errorf("renders %+v, want Turnstile with the key and no retries", w)
+	}
+	q := w.script.Query()
+	if w.script.Host != "challenges.cloudflare.com" || q.Get("onload") != "klWidgetLoaded" || q.Get("render") != "explicit" || q.Has("hl") {
+		t.Errorf("loads %s, want Cloudflare's script rendered explicitly and no hl", w.script)
+	}
+	if !strings.Contains(html, `api.render("#kl-widget", params)`) {
+		t.Error("Turnstile is not handed the box by selector")
+	}
+	csp := cspDirectives(pagePolicy(t, html))
+	for _, d := range []string{"script-src", "frame-src", "connect-src"} {
+		if !slices.Contains(csp[d], "https://challenges.cloudflare.com") {
+			t.Errorf("%s does not name Cloudflare: %v", d, csp[d])
+		}
+	}
+	assertNoBareWildcard(t, page.csp)
+
+	posted, renders := runWidgetPage(t, html, false)
+	if got := strings.Join(posted, " "); got != "ready loaded" || renders != 1 {
+		t.Errorf("the page posted %q and rendered %d times, want ready and loaded after one render", got, renders)
+	}
+}
+
+// captchaServer is the captcha routes and both widget pages on a throwaway
+// app.
+func captchaServer(t *testing.T) (*httptest.Server, *app.App) {
+	t.Helper()
+	a := testApp(t)
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	registerCaptchaWidget(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	return srv, a
 }

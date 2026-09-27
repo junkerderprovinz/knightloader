@@ -71,11 +71,12 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/browser-extension.zip":     apitoken.ScopeRead,
 	"GET /api/browser-extension/version": apitoken.ScopeRead,
 
-	"GET /api/captcha":              apitoken.ScopeRead,
-	"POST /api/captcha/refresh":     apitoken.ScopeControl,
-	"POST /api/captcha/{id}/answer": apitoken.ScopeControl,
-	"POST /api/captcha/{id}/skip":   apitoken.ScopeControl,
-	"GET /api/captcha/{id}/widget":  apitoken.ScopeRead,
+	"GET /api/captcha":                   apitoken.ScopeRead,
+	"POST /api/captcha/refresh":          apitoken.ScopeControl,
+	"POST /api/captcha/{id}/answer":      apitoken.ScopeControl,
+	"POST /api/captcha/{id}/skip":        apitoken.ScopeControl,
+	"GET /api/captcha/{id}/widget":       apitoken.ScopeRead,
+	"GET /api/captcha/{id}/widget/phone": apitoken.ScopeRead,
 	// They answer and skip nothing. Like a read of the list, which counts as
 	// watching, they only say whether this viewer holds the solvers back.
 	"POST /api/captcha/{id}/unanswerable":         apitoken.ScopeRead,
