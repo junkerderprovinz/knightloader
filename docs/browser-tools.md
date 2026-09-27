@@ -81,19 +81,25 @@ not worked around; it is not on that path.
 There are four context-menu entries (page, link, image, selection) and a
 toolbar popup, and both draw the group as instance cards, the same card the web
 UI's own Instances tab draws, with a **Standard** badge on the default and a
-right-click to move it.
+right-click to move it. A card shows whether its instance is online and what its
+queue is doing, and links to its web interface. It has no start or stop button:
+running the queue belongs to the web interface, the app and the desktop tray,
+and the extension only hands links over.
 
-Permissions: `contextMenus`, `storage` (the phrase, a random browser ID, the
-default instance, the language, the appearance and whether to follow an
-instance's, the Click'n'Load switch and countdown, whether the pin hint was
-shown, and in session storage a send waiting for the popup), `scripting`,
-`declarativeNetRequest` and `<all_urls>`, plus `clipboardRead` as an optional
-permission for the paste button next to the phrase. There is no `activeTab`:
-the popup reads the current tab's address and title through the site access
-`<all_urls>` already grants, a right-click send reads the page title the same
-way, and Chrome's review counts `activeTab` beside it as a permission the
-extension does not need. Apart from those reads, `scripting`,
-`declarativeNetRequest` and `<all_urls>` exist for one feature only:
+Permissions: `activeTab`, `contextMenus`, `storage` (the phrase, a random
+browser ID, the default instance, the language, the appearance and whether to
+follow an instance's, the Click'n'Load switch and countdown, whether the pin
+hint was shown, and in session storage a send waiting for the popup),
+`scripting` and `declarativeNetRequest`. None of them asks for access to any
+website at install. `activeTab` is what lets the popup read the current tab's
+address and title, and a right-click send the page title: both are a user's
+click on the extension, which grants access to that one tab until it
+navigates. The relay is a WebSocket, which needs no host permission.
+
+Two permissions are optional and asked for only when they are needed:
+`clipboardRead` for the paste button next to the phrase, and `<all_urls>` in
+`optional_host_permissions`, which `scripting` and `declarativeNetRequest`
+need for one feature only:
 
 ### Click'n'Load, in the browser
 
@@ -109,14 +115,36 @@ to the service worker, which relays them to the chosen instance with
 JDownloader would answer it. Detection works because `cnl-main.js` sets
 `window.jdownloader` at `document_start`, before the site's `jdcheck.js` looks.
 
-It is **on from the first second**, which is what most people install this for,
-and the switch on the options page really removes it:
+It needs access to every site, because a button can be on any of them, and the
+`jdcheck.js` redirect needs access to the page that asks as well as to the port.
+That access is optional (`optional_host_permissions`), so the install dialog
+names none. A fresh install stores Click'n'Load as wanted, and the options page
+it opens leads with a card whose **Allow access** button calls
+`chrome.permissions.request`. The switch on the Click'n'Load card does the same.
+The switch shows whether the scripts run, never only whether they are wanted: it
+cannot read "on" while the browser withholds the access. A refusal leaves it off
+with the reason underneath. The popup shows the same notice with a button to the
+options page, because Chrome's permission prompt closes the popup and the
+request with it.
+
+The service worker applies the switch and the access together (`applyCnl` in
+`background.js`) on install, update, browser start, a change of the switch and
+`permissions.onAdded`/`onRemoved`, so access withdrawn in the browser's own
+settings switches the feature off as well. Switching it off on the options page
+also calls `chrome.permissions.remove`.
 `chrome.scripting.unregisterContentScripts` takes both scripts away, verifiable
 with `chrome.scripting.getRegisteredContentScripts()`, which is more than a
 static `content_scripts` entry could ever offer, and the `cnl` ruleset that
-answers `jdcheck.js` is switched off with it. That holds for pages opened or
-reloaded afterwards; a tab already open keeps its script until it reloads, and
-a submission caught there is dropped.
+answers `jdcheck.js` is switched off with it. The ruleset follows the scripts,
+not the flag: if registering fails, both go off, so a site never shows a button
+that nothing catches. That holds for pages opened or reloaded afterwards; a tab
+already open keeps its script until it reloads, and a submission caught there
+is dropped.
+
+An update from a version that required `<all_urls>` keeps the grant in
+Chromium, because the permission is still in the manifest as an optional one.
+Where a browser drops it, the update opens the options page on the card that
+asks again.
 
 This is the answer to the case a loopback port cannot serve: KnightLoader on a
 server, a browser on a laptop, and a CnL button on a website that only knows how

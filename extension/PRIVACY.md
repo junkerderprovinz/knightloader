@@ -1,7 +1,7 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 18 September 2026. Applies to version 1.0.0, the first store
-release, and later, until this date changes.
+Last updated: 27 September 2026. Applies to version 1.4.0 and later, until this
+date changes.
 
 ## The short version
 
@@ -82,22 +82,22 @@ These travel through the relay, and only your instances can read them:
   package name ("From the browser", in the extension's language) rather than a
   page title.
 - While the popup or options page is open: requests for your instances' queue
-  status and web addresses, a request to pause or resume a queue when you press
-  that button, and a request for an instance's appearance settings if you chose to
-  follow them.
+  status and web addresses, and a request for an instance's appearance settings
+  if you chose to follow them.
 
 The extension makes no other network requests.
 
 ## What happens inside the pages you visit
 
-This section is about one feature, Click'n'Load, which is on by default and can be
-switched off in the options.
+This section is about one feature, Click'n'Load. It runs only after you allow it,
+and you can switch it off again in the options.
 
 Click'n'Load is how a website hands a list of links to a download manager: its
 button sends the list to `http://127.0.0.1:9666`, the address JDownloader listens
 on. Such a button can be on any site, so to catch it the extension has to run a
-small script in every page and frame. That is why it asks for access to all
-websites when you install it.
+small script in every page and frame. That needs access to all websites, which
+the extension does not get at install. Your browser asks for it when you switch
+Click'n'Load on, and you can say no.
 
 While Click'n'Load is on:
 
@@ -119,20 +119,23 @@ Apart from a submission aimed at that address, the script does not read page
 content, form fields, passwords or cookies, and it does not change how a page
 looks.
 
-Switching Click'n'Load off removes the script and switches the network rule off.
-From then on, no code from this extension runs in pages you open or reload. A tab
-that was already open keeps the script until you reload it, but a button caught
-there is no longer sent anywhere.
+Switching Click'n'Load off removes the script, switches the network rule off and
+gives the access to all websites back to the browser. From then on, no code from
+this extension runs in pages you open or reload. A tab that was already open keeps
+the script until you reload it, but a button caught there is no longer sent
+anywhere. The same happens when you take the access away in the browser's own
+extension settings.
 
 ## Permissions
 
 | Permission | Used for |
 | --- | --- |
+| `activeTab` | Reading the address and title of the tab you are on, and only when you press the toolbar button or pick a right-click entry there. |
 | `contextMenus` | The four right-click entries: send link, image, selection, page. |
 | `storage` | The settings listed above. |
 | `scripting` | Adding and removing the Click'n'Load script. |
 | `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe while Click'n'Load is on. |
-| Access to all websites | Running the Click'n'Load script in pages that may carry a button; reading the current tab's address and title when you press send in the toolbar popup; reading the page title when you send something with a right-click. |
+| Access to all websites (optional) | Running the Click'n'Load script in pages that may carry a button, and answering the `jdcheck.js` probe. Asked for only when you switch Click'n'Load on, and given back when you switch it off. |
 | `clipboardRead` (optional) | Pasting your phrase with the paste button. Requested only when you press it, and read only then. |
 
 ## What the extension does not do

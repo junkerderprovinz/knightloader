@@ -84,7 +84,7 @@ function staggerRows(starts, rows) {
  * right-click menu, since the default is set once and a button on every card
  * would be louder than it deserves. `index` is the card's palette position.
  */
-function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, status, onQueue, onOpen }) {
+function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, status, onOpen }) {
   // A div, since the card holds buttons and a button inside a button is
   // dropped by browsers. A pickable card gets the radio role and its keyboard
   // handling instead.
@@ -152,30 +152,16 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     card.appendChild(badge);
   }
 
-  // The square actions, only when the caller supplies handlers: the popup
-  // operates the group, while the options page sets it up and only lists it.
-  if (onQueue || onOpen) {
+  // The popup links to each instance's web interface, which is where its
+  // queue is run; the extension only hands links over. The options page sets
+  // the group up and only lists it.
+  if (onOpen) {
     const actions = document.createElement('span');
     actions.className = 'glim-instance-actions';
-    const halted = status?.queue?.halted === true;
-    const live = status !== null && status !== undefined;
-
-    if (onQueue) {
-      // Two controls rather than one toggle whose glyph flips, which would have
-      // to be read before every press.
-      actions.appendChild(
-        squareAction(GLYPH_PLAY, t('instance.start'), !live || !halted, (el) => onQueue(inst, false, el)),
-      );
-      actions.appendChild(
-        squareAction(GLYPH_STOP, t('instance.stop'), !live || halted, (el) => onQueue(inst, true, el), t('instance.haltedHint')),
-      );
-    }
-    if (onOpen) {
-      // Disabled rather than hidden without an address, so every card has the
-      // same controls.
-      const url = status?.webUrl ?? '';
-      actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
-    }
+    // Disabled rather than hidden without an address, so every card has the
+    // same control.
+    const url = status?.webUrl ?? '';
+    actions.appendChild(squareAction(GLYPH_OPEN, t('instance.open'), !url, (el) => onOpen(inst, url, el)));
     card.appendChild(actions);
   }
 
@@ -203,18 +189,15 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
 
 /* The card's glyphs, built as nodes because Mozilla's linter, a release gate
    here, fails an innerHTML assignment from a variable. */
-const GLYPH_PLAY = 'M5 3.5v9l8-4.5z';
-const GLYPH_STOP = 'M4.5 4.5h7v7h-7z';
 const GLYPH_OPEN = 'M9 2h5v5h-1.5V4.56L7.8 9.26 6.74 8.2l4.7-4.7H9zM3 4h4v1.5H4.5v6h6V9H12v4H3z';
 
-function squareAction(d, label, disabled, onClick, extraTip) {
+function squareAction(d, label, disabled, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'glim-square';
   b.disabled = !!disabled;
-  const tip = extraTip ? `${label}: ${extraTip}` : label;
   b.setAttribute('aria-label', label);
-  b.setAttribute('data-tip', tip);
+  b.setAttribute('data-tip', label);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
   // A glyph alone in a square fills half of it (GlimStone 1.8.0).
@@ -484,4 +467,37 @@ async function writeCnlCountdown(seconds) {
   const safe = !Number.isFinite(n) || n < 0 ? CNL_COUNTDOWN_DEFAULT : Math.min(Math.round(n), CNL_COUNTDOWN_MAX);
   await chrome.storage.local.set({ cnlCountdown: safe });
   return safe;
+}
+
+/**
+ * The site access Click'n'Load runs on. A button can sit on any site, and the
+ * jdcheck.js redirect needs access to the page that asks as well as to the
+ * port. It is optional, so the browser asks when the switch is turned on.
+ */
+const CNL_ACCESS = { origins: ['<all_urls>'] };
+
+/**
+ * Click'n'Load's state. `wanted` is the stored switch, where nothing stored
+ * means on; `on` also needs the access, which the browser can withhold or take
+ * back at any time. Wanted without access is the state the options page offers
+ * to fix with one click, and the popup points there.
+ */
+async function cnlState() {
+  const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
+  const wanted = cnlEnabled !== false;
+  return { wanted, on: wanted && (await chrome.permissions.contains(CNL_ACCESS)) };
+}
+
+/**
+ * Asks for the access and stores the answer as the switch, so a refusal leaves
+ * Click'n'Load off rather than waiting. The request has to come before any
+ * other await, while the click still counts as a user gesture; Firefox refuses
+ * it otherwise.
+ */
+async function requestCnlAccess() {
+  // It rejects instead of answering false when the gesture is gone or another
+  // request is still open.
+  const granted = await chrome.permissions.request(CNL_ACCESS).catch(() => false);
+  await chrome.storage.local.set({ cnlEnabled: granted });
+  return granted;
 }

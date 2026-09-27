@@ -57,12 +57,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     });
   }
 
-  // Click'n'Load is on from a fresh install. An update never switches it back
-  // on for someone who turned it off.
+  // A fresh install wants Click'n'Load on, and the options page it opens asks
+  // for the access. An update never switches it back on for someone who turned
+  // it off.
   if (details.reason === 'install') {
     await chrome.storage.local.set({ cnlEnabled: true });
   }
-  await syncCnlScripts((await chrome.storage.local.get('cnlEnabled')).cnlEnabled !== false);
+  await applyCnl();
 
   // A fresh install opens the options page when there is no phrase yet, or
   // when Chromium has hidden the new button behind the puzzle piece, which it
@@ -72,6 +73,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install' && (!(await readPhrase()) || hidden)) {
     if (hidden) await chrome.storage.local.set({ showPinHint: true });
     chrome.runtime.openOptionsPage();
+    return;
+  }
+  // An update that finds Click'n'Load wanted but without its access opens the
+  // page that asks for it, since only a click can request it. Otherwise the
+  // feature would stop without a word.
+  if (details.reason === 'update') {
+    const cnl = await cnlState();
+    if (cnl.wanted && !cnl.on) chrome.runtime.openOptionsPage();
   }
 });
 
@@ -88,6 +97,16 @@ async function notOnToolbar() {
     return false;
   }
 }
+
+// The switch lives in storage, whichever page flips it.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.cnlEnabled) void applyCnl();
+});
+
+// The access comes and goes from the options page and the browser's own
+// site-access settings alike.
+chrome.permissions.onAdded.addListener(() => void applyCnl());
+chrome.permissions.onRemoved.addListener(() => void applyCnl());
 
 // Menu titles are fixed at creation, so a language change from the options
 // page updates the existing entries.
@@ -209,11 +228,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === 'knightloader-cnl') {
     void handleCnl(msg);
   }
-  // The options page cannot register content scripts that outlive it, so it
-  // asks here once the permission is granted.
-  if (msg?.type === 'knightloader-cnl-scripts') {
-    void syncCnlScripts(msg.on === true);
-  }
 });
 
 /**
@@ -222,10 +236,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
  * send.
  */
 async function handleCnl(msg) {
-  const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
-  // Absent means on; install writes the flag, and a lost value must not turn
-  // the main feature off.
-  if (cnlEnabled === false) return;
+  // A tab opened while the feature was on keeps its script until it reloads.
+  if (!(await cnlState()).on) return;
 
   const f = msg.fields || {};
   let links = [];
@@ -307,43 +319,60 @@ function cnlScriptMatches(have, want) {
  * rewrites it.
  */
 async function syncCnlScripts(on) {
-  // The jdcheck.js redirect (cnl-rules.json) follows the same switch. It sits
-  // in its own try so a scripting failure cannot skip it, and it is written on
-  // every sync because an update resets a static ruleset's state.
+  let live;
   try {
-    await chrome.declarativeNetRequest.updateEnabledRulesets(on ? { enableRulesetIds: ['cnl'] } : { disableRulesetIds: ['cnl'] });
+    live = await reconcileCnlScripts(on);
+  } catch (e) {
+    console.warn('[KnightLoader] Click’n’Load scripts not registered:', e);
+    live = false;
+    await reconcileCnlScripts(false).catch(() => {});
+  }
+  // The jdcheck.js redirect (cnl-rules.json) follows the scripts rather than
+  // the flag: on its own it would bring up a site's button that then leads
+  // nowhere. It is written on every sync because an update resets a static
+  // ruleset's state.
+  try {
+    await chrome.declarativeNetRequest.updateEnabledRulesets(live ? { enableRulesetIds: ['cnl'] } : { disableRulesetIds: ['cnl'] });
   } catch (e) {
     console.warn('[KnightLoader] Click’n’Load redirect rule not switched:', e);
   }
-  try {
-    const have = await chrome.scripting.getRegisteredContentScripts();
-    const mine = have.filter((s) => s.id.startsWith('cnl-'));
-    if (!on) {
-      if (mine.length) await chrome.scripting.unregisterContentScripts({ ids: mine.map((s) => s.id) });
-      return;
-    }
-    const stale = mine.filter((s) => {
-      const want = CNL_SCRIPTS.find((w) => w.id === s.id);
-      // An id this version no longer defines is stale too.
-      return !want || !cnlScriptMatches(s, want);
-    });
-    if (stale.length) await chrome.scripting.unregisterContentScripts({ ids: stale.map((s) => s.id) });
-    const kept = new Set(mine.filter((s) => !stale.includes(s)).map((s) => s.id));
-    const missing = CNL_SCRIPTS.filter((s) => !kept.has(s.id));
-    if (missing.length) await chrome.scripting.registerContentScripts(missing);
-  } catch (e) {
-    // Without the host permission this throws and the feature stays off
-    // rather than half on. Logged so a failed registration is visible.
-    console.warn('[KnightLoader] Click’n’Load scripts not registered:', e);
-  }
 }
 
-// Reapplied on every start, since a permission revoked in the browser's
-// settings sends no event. `!== false` because nothing stored means on, as on
-// install and in the options page.
-chrome.runtime.onStartup?.addListener(() => {
-  void chrome.storage.local.get('cnlEnabled').then(({ cnlEnabled }) => syncCnlScripts(cnlEnabled !== false));
-});
+/** Brings the registered scripts in line with `on` and returns it. Throws when
+ *  the browser refuses, and syncCnlScripts then switches everything off. */
+async function reconcileCnlScripts(on) {
+  const have = await chrome.scripting.getRegisteredContentScripts();
+  const mine = have.filter((s) => s.id.startsWith('cnl-'));
+  if (!on) {
+    if (mine.length) await chrome.scripting.unregisterContentScripts({ ids: mine.map((s) => s.id) });
+    return false;
+  }
+  const stale = mine.filter((s) => {
+    const want = CNL_SCRIPTS.find((w) => w.id === s.id);
+    // An id this version no longer defines is stale too.
+    return !want || !cnlScriptMatches(s, want);
+  });
+  if (stale.length) await chrome.scripting.unregisterContentScripts({ ids: stale.map((s) => s.id) });
+  const kept = new Set(mine.filter((s) => !stale.includes(s)).map((s) => s.id));
+  const missing = CNL_SCRIPTS.filter((s) => !kept.has(s.id));
+  if (missing.length) await chrome.scripting.registerContentScripts(missing);
+  return true;
+}
+
+/**
+ * Applies the switch and the access together (cnlState in shared.js). Calls
+ * run one after another: granting the access and storing the switch arrive as
+ * two events, and two overlapping syncs would register the same script twice.
+ */
+let cnlQueue = Promise.resolve();
+function applyCnl() {
+  cnlQueue = cnlQueue.catch(() => {}).then(async () => syncCnlScripts((await cnlState()).on));
+  return cnlQueue;
+}
+
+// Reapplied on every start, since not every browser reports a withdrawn
+// access as an event.
+chrome.runtime.onStartup?.addListener(() => void applyCnl());
 
 /** Marks the toolbar icon when a send ends with nothing arriving. */
 function notifyCnl(key) {

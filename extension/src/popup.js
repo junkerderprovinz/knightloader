@@ -95,6 +95,7 @@ function paintHues() {
   label(sendBtn, t(sendLabelKey(pending)), G_SEND);
   targetEl.textContent = t('popup.loading');
   targetEl.hidden = false;
+  void renderCnlAccess();
 
   // A send parked by the service worker (a Click'n'Load batch or a right-click
   // that needs a choice) takes precedence over the current tab. It is read
@@ -226,13 +227,6 @@ async function renderTargets(preferredFromPending) {
         await writeDefaultTarget(picked.instanceId);
         await renderTargets();
       },
-      onQueue: async (picked, halted, el) => {
-        const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
-        statusEl.textContent = ok ? '' : t('options.followFailed');
-        // Shakes the pressed control, as the options page does.
-        if (!ok) shake(el);
-        if (ok) await loadStatus();
-      },
       onOpen: (picked, url) => {
         if (url) void chrome.tabs.create({ url });
       },
@@ -339,6 +333,26 @@ function showPane() {
   collectorEl.hidden = pane !== 'collector' || group.length === 0;
   renderTabs();
 }
+
+const cnlAccessEl = document.getElementById('cnlAccess');
+const cnlAccessOpenEl = document.getElementById('cnlAccessOpen');
+
+/** Points at the options page while Click'n'Load waits for its access. */
+async function renderCnlAccess() {
+  const { wanted, on } = await cnlState();
+  cnlAccessEl.hidden = !wanted || on;
+  if (cnlAccessEl.hidden) return;
+  document.getElementById('cnlAccessTitle').textContent = t('options.cnlAccessHeading');
+  document.getElementById('cnlAccessReason').textContent = t('popup.cnlAccess');
+  // The header's cog, so the button and the badge beside the name agree.
+  const cog = openOptionsBtn.querySelector('svg').cloneNode(true);
+  cog.setAttribute('width', '14');
+  cog.setAttribute('height', '14');
+  cnlAccessOpenEl.replaceChildren(cog, document.createTextNode(t('common.settings')));
+}
+
+// The popup closes on its own once the options tab takes the focus.
+cnlAccessOpenEl.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 sendBtn.addEventListener('click', async () => {
   cancelCountdown();

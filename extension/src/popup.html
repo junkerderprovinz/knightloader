@@ -164,6 +164,8 @@
          as in .sendRow. */
       .collectorRow { display: flex; gap: 8px; }
       .collectorRow button { flex: 1; min-width: 0; }
+      #cnlAccess { margin-bottom: 16px; }
+      #cnlAccess button { margin-top: 10px; }
     </style>
   </head>
   <body>
@@ -185,6 +187,16 @@
         </svg>
       </button>
     </div>
+    <!-- Click'n'Load is wanted but the browser has not granted its access
+         (cnlState in shared.js). The button leads to the options page, whose
+         card asks for it: Chrome's prompt closes this window, and the request
+         goes with it. -->
+    <div id="cnlAccess" class="glim-unavailable" hidden>
+      <span class="glim-unavailable-title" id="cnlAccessTitle"></span>
+      <span class="glim-unavailable-reason" id="cnlAccessReason"></span>
+      <button id="cnlAccessOpen" class="secondary" type="button"></button>
+    </div>
+
     <!-- Instances and the link collector as two tabs, like the app. The strip
          appears once there is a group. -->
     <div id="tabs" class="glim-seg" role="group" hidden></div>

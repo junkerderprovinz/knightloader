@@ -5,11 +5,16 @@
  *      still load, register their listeners and survive install and a
  *      language change. A top-level contextMenus call would stop the file
  *      before the message listener and lose every popup send.
- *   2. The jdcheck.js ruleset follows the Click'n'Load switch both ways, even
- *      when the scripting call fails, and an update or a browser start applies
- *      the stored state again, since an update resets a ruleset's state.
+ *   2. The jdcheck.js ruleset follows the Click'n'Load scripts both ways and
+ *      goes off when the scripting call fails, so a site never shows a button
+ *      nothing catches. An update or a browser start applies the stored state
+ *      again, since an update resets a ruleset's state.
  *   3. Leaving the group also removes the random browser ID, so the relay does
  *      not see the same member in another group.
+ *   4. Click'n'Load runs only with the optional site access: wanted without it
+ *      stays off, granting or withdrawing it switches the scripts, the grant
+ *      and the stored switch arriving together register nothing twice, and an
+ *      update that finds the access missing opens the page that asks for it.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,9 +31,13 @@ function event() {
   return { addListener: (f) => listeners.push(f), listeners };
 }
 
-function makeChrome({ withMenus, scriptingThrows = false }) {
+function makeChrome({ withMenus, scriptingThrows = false, granted = true }) {
   const calls = { dnr: [], registered: [], unregistered: [], removed: [], openedOptions: 0, menuCreates: 0 };
   const store = {};
+  const access = { granted };
+  // Registrations are kept, and a second one under a taken id throws as the
+  // browser does.
+  const live = new Map();
   const chrome = {
     runtime: {
       onInstalled: event(),
@@ -51,14 +60,30 @@ function makeChrome({ withMenus, scriptingThrows = false }) {
       },
       session: { get: async () => ({}), set: async () => {}, remove: async () => {} },
     },
+    permissions: {
+      onAdded: event(),
+      onRemoved: event(),
+      contains: async (p) => access.granted && p?.origins?.includes('<all_urls>'),
+    },
     action: {
       getUserSettings: async () => ({ isOnToolbar: true }),
       setBadgeText: () => {}, setBadgeBackgroundColor: () => {}, setTitle: () => {}, openPopup: async () => {},
     },
     scripting: {
-      getRegisteredContentScripts: async () => { if (scriptingThrows) throw new Error('no host permission'); return []; },
-      registerContentScripts: async (s) => { calls.registered.push(...s.map((x) => x.id)); },
-      unregisterContentScripts: async ({ ids }) => { calls.unregistered.push(...ids); },
+      getRegisteredContentScripts: async () => {
+        if (scriptingThrows) throw new Error('no host permission');
+        // Answered a tick later with what was there when asked, so two
+        // overlapping syncs both read before either writes.
+        const now = [...live.values()];
+        await new Promise((r) => setTimeout(r, 1));
+        return now;
+      },
+      registerContentScripts: async (s) => {
+        for (const x of s) if (live.has(x.id)) throw new Error(`Duplicate script ID '${x.id}'`);
+        for (const x of s) live.set(x.id, x);
+        calls.registered.push(...s.map((x) => x.id));
+      },
+      unregisterContentScripts: async ({ ids }) => { for (const id of ids) live.delete(id); calls.unregistered.push(...ids); },
     },
     declarativeNetRequest: {
       updateEnabledRulesets: async (o) => { calls.dnr.push(o); },
@@ -68,7 +93,7 @@ function makeChrome({ withMenus, scriptingThrows = false }) {
   if (withMenus) {
     chrome.contextMenus = { create: () => { calls.menuCreates++; }, update: () => {}, onClicked: event() };
   }
-  return { chrome, calls, store };
+  return { chrome, calls, store, access, live };
 }
 
 function load(chrome) {
@@ -89,6 +114,14 @@ function load(chrome) {
   }
   return { ctx, error: null };
 }
+
+/** Lets listeners that return no promise finish their work. */
+const settle = () => new Promise((r) => setTimeout(r, 30));
+const lastRuleset = (calls) => {
+  const o = calls.dnr.at(-1);
+  if (!o) return 'untouched';
+  return o.enableRulesetIds?.includes('cnl') ? 'on' : o.disableRulesetIds?.includes('cnl') ? 'off' : 'untouched';
+};
 
 // 1. No context-menu API.
 {
@@ -117,16 +150,17 @@ function load(chrome) {
   if (chrome.contextMenus.onClicked.listeners.length !== 1) fail('with chrome.contextMenus present no onClicked listener is registered');
 }
 
-// 2. The jdcheck.js ruleset follows the switch.
+// 2. The jdcheck.js ruleset follows the scripts.
 for (const scriptingThrows of [false, true]) {
   for (const on of [false, true]) {
     const { chrome, calls } = makeChrome({ withMenus: true, scriptingThrows });
     const { ctx, error } = load(chrome);
     if (error) { fail(error); continue; }
     await vm.runInContext('syncCnlScripts', ctx)(on);
-    const want = on ? 'enableRulesetIds' : 'disableRulesetIds';
-    const hit = calls.dnr.some((o) => Array.isArray(o[want]) && o[want].includes('cnl'));
-    if (!hit) fail(`syncCnlScripts(${on})${scriptingThrows ? ' with the scripting API failing' : ''} did not ${on ? 'enable' : 'disable'} the 'cnl' ruleset`);
+    const want = on && !scriptingThrows ? 'on' : 'off';
+    if (lastRuleset(calls) !== want) {
+      fail(`syncCnlScripts(${on})${scriptingThrows ? ' with the scripting API failing' : ''} left the 'cnl' ruleset ${lastRuleset(calls)}, want ${want}`);
+    }
   }
 }
 
@@ -140,11 +174,9 @@ for (const stored of [false, undefined]) {
     if (error) { fail(error); continue; }
     if (path === 'update') for (const f of chrome.runtime.onInstalled.listeners) await f({ reason: 'update' });
     else for (const f of chrome.runtime.onStartup.listeners) f();
-    await new Promise((r) => setTimeout(r, 0)); // onStartup returns no promise
-    const want = stored === false ? 'disableRulesetIds' : 'enableRulesetIds';
-    const other = stored === false ? 'enableRulesetIds' : 'disableRulesetIds';
-    const has = (k) => calls.dnr.some((o) => Array.isArray(o[k]) && o[k].includes('cnl'));
-    if (!has(want) || has(other)) fail(`on ${path} with cnlEnabled ${stored === undefined ? 'not stored' : stored} the 'cnl' ruleset was not ${stored === false ? 'disabled' : 'enabled'}`);
+    await settle();
+    const want = stored === false ? 'off' : 'on';
+    if (lastRuleset(calls) !== want) fail(`on ${path} with cnlEnabled ${stored === undefined ? 'not stored' : stored} the 'cnl' ruleset was left ${lastRuleset(calls)}, want ${want}`);
   }
 }
 
@@ -161,8 +193,67 @@ for (const stored of [false, undefined]) {
   }
 }
 
+// 4. The site access decides.
+{
+  // A fresh install wants the feature but has no access yet.
+  const { chrome, calls, live, store } = makeChrome({ withMenus: true, granted: false });
+  const { error } = load(chrome);
+  if (error) fail(error);
+  else {
+    for (const f of chrome.runtime.onInstalled.listeners) await f({ reason: 'install' });
+    if (store.cnlEnabled !== true) fail('a fresh install does not store Click\'n\'Load as wanted');
+    if (live.size || lastRuleset(calls) !== 'off') fail('a fresh install without the site access registered scripts or left the ruleset on');
+  }
+}
+{
+  // Granted and withdrawn through the browser.
+  const { chrome, calls, live, access } = makeChrome({ withMenus: true, granted: false });
+  const { error } = load(chrome);
+  if (error) fail(error);
+  else {
+    access.granted = true;
+    for (const f of chrome.permissions.onAdded.listeners) f({ origins: ['<all_urls>'] });
+    await settle();
+    if (live.size !== 2 || lastRuleset(calls) !== 'on') fail(`granting the access left ${live.size} script(s) and the ruleset ${lastRuleset(calls)}, want 2 and on`);
+    access.granted = false;
+    for (const f of chrome.permissions.onRemoved.listeners) f({ origins: ['<all_urls>'] });
+    await settle();
+    if (live.size !== 0 || lastRuleset(calls) !== 'off') fail(`withdrawing the access left ${live.size} script(s) and the ruleset ${lastRuleset(calls)}, want 0 and off`);
+  }
+}
+{
+  // The options page grants and stores the switch in one go, which reaches the
+  // worker as two events at once.
+  const { chrome, calls, live, access, store } = makeChrome({ withMenus: true, granted: false });
+  store.cnlEnabled = false;
+  const { error } = load(chrome);
+  if (error) fail(error);
+  else {
+    access.granted = true;
+    store.cnlEnabled = true;
+    for (const f of chrome.permissions.onAdded.listeners) f({ origins: ['<all_urls>'] });
+    for (const f of chrome.storage.onChanged.listeners) f({ cnlEnabled: { newValue: true } }, 'local');
+    await settle();
+    if (live.size !== 2 || lastRuleset(calls) !== 'on') {
+      fail(`a grant and the stored switch arriving together left ${live.size} script(s) and the ruleset ${lastRuleset(calls)}; overlapping syncs register the same id twice`);
+    }
+  }
+}
+for (const granted of [true, false]) {
+  const { chrome, calls, store } = makeChrome({ withMenus: true, granted });
+  store.cnlEnabled = true;
+  store.phrase = 'twelve words';
+  const { error } = load(chrome);
+  if (error) { fail(error); continue; }
+  for (const f of chrome.runtime.onInstalled.listeners) await f({ reason: 'update' });
+  const opened = calls.openedOptions > 0;
+  if (opened === granted) {
+    fail(granted ? 'an update with the access in place opens the options page' : 'an update that finds the access gone does not open the options page that asks for it');
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the switch and every update and start re-applies it, leaving forgets the browser id');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, leaving forgets the browser id, Click\'n\'Load follows the site access');
