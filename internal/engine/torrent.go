@@ -41,7 +41,7 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 func (e *Engine) startTorrent(j Job) {
 	if j.Seed {
 		e.mu.Lock()
-		e.seeds[j.TaskID] = &seedRun{from: j.SeedFrom}
+		e.seeds[j.TaskID] = &seedRun{from: j.SeedFrom, mark: j.SeedMark}
 		e.mu.Unlock()
 	}
 	go func() {

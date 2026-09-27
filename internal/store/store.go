@@ -224,6 +224,11 @@ var migrations = []string{
 	// seeded from its finish to that stop, which is the best figure there is.
 	`UPDATE tasks SET seed_seconds = (seeding_ended - finished_at) / 1000
 	  WHERE finished_at > 0 AND seeding_ended > finished_at`,
+	// Where the seeding targets of a torrent started to seed by hand count
+	// from, so a restart does not end that seeding at the targets it had
+	// already met before.
+	`ALTER TABLE tasks ADD COLUMN seed_mark_ratio REAL NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN seed_mark_seconds INTEGER NOT NULL DEFAULT 0`,
 }
 
 func Open(path string) (*Store, error) {
@@ -327,7 +332,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
 	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files,error_code,error_params,
-	uploaded,ratio,seed_seconds,seeding_over`
+	uploaded,ratio,seed_seconds,seeding_over,seed_mark_ratio,seed_mark_seconds`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -424,7 +429,7 @@ func (s *Store) Save(t *core.Task) error {
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
 		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams),
 		magnetFiles, string(t.ErrorCode), codeParams(t.ErrorParams),
-		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver)
+		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver, t.SeedMark.Ratio, t.SeedMark.SeedSeconds)
 	if err != nil {
 		return err
 	}
@@ -476,7 +481,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
 			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
 			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles, &errorCode, &errorParams,
-			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver); err != nil {
+			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)

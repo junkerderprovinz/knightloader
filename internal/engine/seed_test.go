@@ -295,3 +295,33 @@ func leech(t *testing.T, raw []byte, port int) int64 {
 	})
 	return tor.Length()
 }
+
+// A torrent started to seed by hand counts its targets from its mark, so the
+// ratio its earlier runs reached does not stop it.
+func TestATorrentStartedToSeedByHandCountsItsTargetsFromItsMark(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
+	}
+	dir := t.TempDir()
+	uri, root := finishedTorrent(t, dir)
+	sink := &taskSink{}
+	e, err := New(t.TempDir(), sink.apply)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+	if err := e.SetTorrentConfig(0, 1, 0); err != nil {
+		t.Fatal(err)
+	}
+	from := core.TorrentStats{Uploaded: 200 << 10, Ratio: 1.25, SeedSeconds: 600}
+	e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack",
+		Seed: true, SeedFrom: from, SeedMark: core.SeedMark{Ratio: from.Ratio, SeedSeconds: from.SeedSeconds}})
+	defer e.Remove("s", false)
+
+	waitFor(t, "the torrent to seed", 60*time.Second, func() bool { return sink.stats().Seeding })
+	time.Sleep(2 * torrentStatsInterval)
+	if s := sink.stats(); !s.Seeding || s.AtTarget {
+		t.Errorf("the torrent started by hand reads %+v, want it seeding past the ratio it had met", s)
+	}
+}

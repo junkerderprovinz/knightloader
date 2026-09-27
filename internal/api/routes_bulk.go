@@ -78,6 +78,26 @@ func registerBulk(reg *Registry, a *app.App) {
 			}
 			bulkDone(w, a.ResumeTasks(body.Ids))
 		})
+	reg.Add(http.MethodPost, "/api/tasks/seeding/stop", "stop the finished torrents of a selection from seeding, also across a restart",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			bulkDone(w, a.StopSeeding(body.Ids))
+		})
+	reg.Add(http.MethodPost, "/api/tasks/seeding/start", "seed the finished torrents of a selection that stopped seeding, to the seeding targets counted from now",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			bulkDone(w, a.StartSeeding(body.Ids))
+		})
 	reg.Add(http.MethodPost, "/api/tasks/force", "mark a selection to run ahead of the limits",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

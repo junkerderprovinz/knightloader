@@ -508,6 +508,7 @@ func (a *App) seedJobLocked(t *core.Task) (engine.Job, error) {
 	}
 	job.Seed = true
 	job.SeedFrom = core.TorrentStats{Uploaded: t.Uploaded, Ratio: t.Ratio, SeedSeconds: t.SeedSeconds}
+	job.SeedMark = t.SeedMark
 	return job, nil
 }
 
