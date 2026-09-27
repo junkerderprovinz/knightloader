@@ -316,17 +316,14 @@ export function liveTasks(
   const streamable = !isRelayConnection(conn) && base === '/api';
   return streamable
     ? subscribeTasks(conn, onSnapshot, onError, onJobs)
-    : pollTasks(conn, base, onSnapshot, onError);
+    : pollTasks(conn, base, onSnapshot, onError, onJobs);
 }
 
 /** Every unpacking the instance knows about, oldest first. */
-export async function fetchExtractJobs(conn: ServerConnection): Promise<ExtractJob[]> {
-  return request<ExtractJob[]>(conn, '/api', '/extract');
+export async function fetchExtractJobs(conn: ServerConnection, base = '/api'): Promise<ExtractJob[]> {
+  return request<ExtractJob[]>(conn, base, '/extract');
 }
 
-// The unpackings come only with the stream. Neither the relay nor the
-// federation proxy forwards /api/extract, so a polled list has none and its
-// rows show the finished download while an archive unpacks.
 export function subscribeTasks(
   conn: ServerConnection,
   onSnapshot: (tasks: Task[]) => void,
@@ -428,10 +425,32 @@ export function pollTasks(
   base: string,
   onSnapshot: (tasks: Task[]) => void,
   onError?: (err: unknown) => void,
+  onJobs?: (jobs: ExtractJob[]) => void,
   intervalMs = 3000
 ): UnsubscribeFn {
-  const sorted = async () => (await fetchTasks(conn, base)).slice().sort((a, b) => a.position - b.position);
-  return poll(sorted, onSnapshot, onError, intervalMs);
+  // The unpackings are read only while an archive waits for its turn or is
+  // being unpacked, and once more after that, so a job that ended leaves its
+  // last state on the rows. An idle list costs one request per cycle.
+  let following = false;
+  const read = async () => {
+    const tasks = (await fetchTasks(conn, base)).slice().sort((a, b) => a.position - b.position);
+    const unpacking = tasks.some((t) => t.status === 'extracting');
+    // An instance too old to forward the route refuses it, and the rows keep
+    // their download bars.
+    const jobs =
+      onJobs && (unpacking || following) ? await fetchExtractJobs(conn, base).catch(() => undefined) : undefined;
+    following = unpacking;
+    return { tasks, jobs };
+  };
+  return poll(
+    read,
+    ({ tasks, jobs }) => {
+      onSnapshot(tasks);
+      if (jobs) onJobs?.(jobs);
+    },
+    onError,
+    intervalMs
+  );
 }
 
 /** A running poll: calling it stops it, and `refresh` pulls once, now. */

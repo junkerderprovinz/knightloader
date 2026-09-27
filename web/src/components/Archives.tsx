@@ -21,19 +21,16 @@ const partsOf = (j: ExtractJob): string[] => j.parts ?? [j.taskId];
 
 /**
  * useExtractJobs streams an instance's extraction jobs, pushed over the
- * WebSocket locally and polled from a peer, like useTasks.
+ * WebSocket locally and polled from a peer. `unpacking` says whether one of
+ * the peer's archives waits for its turn or is being unpacked.
  */
-export function useExtractJobs(instance: string): ExtractJob[] {
+export function useExtractJobs(instance: string, unpacking: boolean): ExtractJob[] {
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
   useEffect(() => {
-    const base = apiBase(instance);
     setJobs([]);
-    const load = () => fetchExtractJobs(base).then(setJobs).catch(() => setJobs([]));
+    if (instance) return;
+    const load = () => fetchExtractJobs().then(setJobs).catch(() => setJobs([]));
     void load();
-    if (instance) {
-      const iv = setInterval(() => void load(), 2000);
-      return () => clearInterval(iv);
-    }
     return connectWS(
       (type, data) => {
         // The server greets every connection with a snapshot, a reconnect
@@ -57,6 +54,16 @@ export function useExtractJobs(instance: string): ExtractJob[] {
       ['extract'],
     );
   }, [instance]);
+  // Every read of a peer's jobs goes through the forward to the peer, so it
+  // is asked while an archive of it unpacks, and once more when that ends.
+  useEffect(() => {
+    if (!instance) return;
+    const load = () => fetchExtractJobs(apiBase(instance)).then(setJobs).catch(() => setJobs([]));
+    void load();
+    if (!unpacking) return;
+    const iv = setInterval(() => void load(), 2000);
+    return () => clearInterval(iv);
+  }, [instance, unpacking]);
   return jobs;
 }
 

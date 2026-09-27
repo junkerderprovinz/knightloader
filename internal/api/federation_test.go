@@ -328,3 +328,63 @@ func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
 		t.Error("refused = true for an unreachable peer - that sends somebody hunting a credential problem on a machine that is switched off")
 	}
 }
+
+// A peer's list reads its unpackings through the forward, and nothing more of
+// them: starting or stopping one stays on the peer.
+func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
+	t.Parallel()
+	var mu sync.Mutex
+	var asked []string
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		asked = append(asked, r.Method+" "+r.URL.Path)
+		mu.Unlock()
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer peer.Close()
+
+	srv, _ := testServer(t)
+	defer srv.Close()
+	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": peer.URL})
+	resp, err := http.Post(srv.URL+"/api/instances", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	call := func(method, rest string) int {
+		req, _ := http.NewRequest(method, srv.URL+"/api/instances/cellar/"+rest, strings.NewReader(`{}`))
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+	if code := call(http.MethodGet, "extract"); code != http.StatusOK {
+		t.Errorf("GET extract answered %d, want 200", code)
+	}
+	for _, c := range []struct{ method, rest string }{
+		{http.MethodPost, "extract"},
+		{http.MethodDelete, "extract"},
+		{http.MethodPost, "extract/start"},
+		{http.MethodGet, "extract/start"},
+		{http.MethodPost, "extract/j1/abort"},
+	} {
+		if code := call(c.method, c.rest); code != http.StatusForbidden {
+			t.Errorf("%s %s answered %d, want 403", c.method, c.rest, code)
+		}
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	// Registering the peer asks for its tasks, to say whether it is online.
+	var jobs []string
+	for _, a := range asked {
+		if strings.Contains(a, "/extract") {
+			jobs = append(jobs, a)
+		}
+	}
+	if len(jobs) != 1 || jobs[0] != "GET /api/extract" {
+		t.Errorf("the peer was asked %v about unpackings, want only GET /api/extract", jobs)
+	}
+}

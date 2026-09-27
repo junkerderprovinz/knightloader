@@ -120,7 +120,8 @@ export function Downloads() {
   const tasks = useTasks(instance);
   // Extraction has its own progress, failure and stop, so it is its own stream.
   // The status column reads it per row and the right-click menu stops it.
-  const jobs = useExtractJobs(instance);
+  const unpacking = useMemo(() => Object.values(tasks).some((x) => x.status === 'extracting'), [tasks]);
+  const jobs = useExtractJobs(instance, unpacking);
   const extractions = useMemo(() => extractionsByTask(jobs), [jobs]);
 
   useEffect(() => {
@@ -305,7 +306,8 @@ export function Downloads() {
     ),
   );
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
-  const archiveGroups = useArchiveMenu({ chosen, base, jobs });
+  // Starting or stopping an unpacking is not forwarded to a peer.
+  const archiveGroups = useArchiveMenu({ chosen: instance === '' ? chosen : [], base, jobs });
   // Reveal and open natively only on this instance's own filesystem.
   const fileGroups = useFileMenu({ chosen, base, local: instance === '' });
   // Saved scripts become manual commands on this menu (ScriptActions.tsx).

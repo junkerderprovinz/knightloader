@@ -44,10 +44,10 @@ submission and for a fixed download.
   the unpacking, as in JDownloader, and is striped so it does not look like a
   download. Once the archive is unpacked, the bar shows the finished download
   again. A failed unpacking leaves its bar red, where it stopped. The Android
-  app shows the same on a connection saved by address, with the percentage on
-  the package line. Over a connection made with the phrase, or on another
-  instance's list, the app does not hear about the unpacking and shows the
-  finished download.
+  app shows the same, with the percentage on the package line, whether it is
+  connected by address or with the phrase. Another instance's list shows it
+  too, in the app and in the web interface, and asks that instance about its
+  unpackings only while one of its archives waits or is being unpacked.
 - **The phone app answers reCAPTCHA, hCaptcha and Cloudflare Turnstile on a
   connection made with the phrase.** The instance hands the captcha's page to
   the app over the relay, and the app shows it under the address of the
