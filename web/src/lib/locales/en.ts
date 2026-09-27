@@ -1351,7 +1351,7 @@ export const en = {
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
   'captcha.unsolvableTurnstile':
-    'KnightLoader cannot show a Cloudflare Turnstile challenge itself, so only a solver from the Captcha settings can answer it. Cancel skips this captcha.',
+    'KnightLoader shows a Cloudflare Turnstile challenge only in the phone app. Answer it there, or leave it to a solver from the Captcha settings. Cancel skips this captcha.',
   'captcha.solverWaiting': 'A solver takes over in {time}.',
   'captcha.solverWaitingHint':
     'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the tray, or the time runs out, the first solver in your order takes over.',
@@ -1392,7 +1392,7 @@ export const en = {
   'settings.captcha.whenTitle': 'When solvers start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
   'settings.captcha.onlyUnwatchedHint':
-    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer, which on a connection made with the phrase are pictures and clicks. A Cloudflare Turnstile goes to the solvers at once, since nobody can answer it in KnightLoader. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
+    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the tray do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer. For a Cloudflare Turnstile only the phone app counts, since neither a browser tab nor the desktop app can show one. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
   'settings.captcha.wait': 'Wait for an answer (seconds)',
   'settings.captcha.waitHint':
     'How long the solvers wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a solver still has time to answer it. From 10 to 600 seconds.',

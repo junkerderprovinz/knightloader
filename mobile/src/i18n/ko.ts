@@ -71,8 +71,6 @@ export const ko: Dict = {
   'captcha.widgetRefused':
     '캡차 서비스가 여기서 실행되기를 거부하고 {code}을(를) 보고했습니다. 많은 호스터가 캡차를 자기 웹사이트에 묶어 두기 때문에, KnightLoader에서는 아예 불러오지 못할 수 있습니다. 새로고침은 다시 시도하고, 취소는 이 캡차를 건너뜁니다.',
   'captcha.widgetPageRefused': '인스턴스가 이 문제를 불러오기를 거부했습니다(오류 {code}). 취소를 누르면 이 캡차를 건너뜁니다.',
-  'captcha.widgetRelayTitle': '이 캡차는 웹 UI에서 푸세요',
-  'captcha.widgetRelayReason': '문구로 만든 연결에서는 앱이 그림 캡차와 클릭 캡차에만 답할 수 있습니다. 이 캡차는 웹 UI에서 답하거나 여기서 취소하세요.',
   'captcha.unsupported': 'KnightLoader는 이런 종류의 문제를 표시할 수 없습니다 ({vendor}(으)로 보고됨).',
   'captcha.unsupportedHint': '아래의 취소를 사용하거나, 이번 세션에서 이 호스터의 캡차를 차단하세요.',
   'captcha.unsolvable': 'KnightLoader는 이 캡차를 풀 수 없습니다.',

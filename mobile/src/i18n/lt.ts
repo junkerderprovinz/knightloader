@@ -71,8 +71,6 @@ export const lt: Dict = {
   'captcha.widgetRefused':
     'Captcha paslauga atsisakė čia veikti ir pranešė {code}. Daugelis hosterių savo captcha susieja su savo svetaine, todėl KnightLoader ji gali visai neįsikelti. Atnaujinti bando dar kartą, o Atsisakyti praleidžia šią captcha.',
   'captcha.widgetPageRefused': 'Egzempliorius atsisakė įkelti šią užduotį (klaida {code}). Atsisakyti praleidžia šią captcha.',
-  'captcha.widgetRelayTitle': 'Išspręsk šią captcha žiniatinklio sąsajoje',
-  'captcha.widgetRelayReason': 'Per ryšį, sukurtą su fraze, programa atsako tik į paveikslėlių ir spustelėjimo captcha. Į šią atsakyk žiniatinklio sąsajoje arba jos čia atsisakyk.',
   'captcha.unsupported': 'KnightLoader negali parodyti šio tipo iššūkio (nurodyta kaip {vendor}).',
   'captcha.unsupportedHint': 'Naudok Atsisakyti žemiau arba užblokuok šio hosterio captcha šiai sesijai.',
   'captcha.unsolvable': 'KnightLoader negali išspręsti šios captcha.',

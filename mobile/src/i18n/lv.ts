@@ -71,8 +71,6 @@ export const lv: Dict = {
   'captcha.widgetRefused':
     'Captcha pakalpojums atteicās šeit darboties un ziņoja {code}. Daudzi hosteri piesaista savu captcha savai tīmekļa vietnei, tāpēc KnightLoader tā var nemaz neielādēties. Atsvaidzināt mēģina vēlreiz, un Atcelt izlaiž šo captcha.',
   'captcha.widgetPageRefused': 'Instance atteicās ielādēt šo uzdevumu (kļūda {code}). Atcelt izlaiž šo captcha.',
-  'captcha.widgetRelayTitle': 'Atrisini šo tīmekļa saskarnē',
-  'captcha.widgetRelayReason': 'Savienojumā, kas izveidots ar frāzi, lietotne atbild tikai uz attēlu un klikšķu captcha. Atbildi uz šo tīmekļa saskarnē vai atcel to šeit.',
   'captcha.unsupported': 'KnightLoader nevar parādīt šāda veida uzdevumu (norādīts kā {vendor}).',
   'captcha.unsupportedHint': 'Izmanto Atcelt zemāk vai bloķē šī hostera captcha šai sesijai.',
   'captcha.unsolvable': 'KnightLoader nevar atrisināt šo captcha.',

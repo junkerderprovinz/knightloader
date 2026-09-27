@@ -39,6 +39,15 @@ submission and for a fixed download.
 
 ### Added
 
+- **The phone app answers reCAPTCHA, hCaptcha and Cloudflare Turnstile on a
+  connection made with the phrase.** The instance hands the captcha's page to
+  the app over the relay, and the app shows it under the address of the
+  hoster's page the captcha came from, so a captcha tied to the hoster's
+  website runs as it would in a browser there. A connection saved by address
+  works the same way. A Turnstile, which a browser tab cannot show, now waits
+  for the phone app when Only when nobody is watching is on. If the captcha
+  will not load on the phone, the app tells the instance, and the paid solvers
+  take it straight away.
 - **A Windows installer beside each zip.** It puts KnightLoader under Program
   Files for everyone on the computer and asks for an administrator once, while
   it installs. A page asks whether you want a Start menu entry and a desktop

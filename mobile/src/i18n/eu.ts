@@ -71,8 +71,6 @@ export const eu: Dict = {
   'captcha.widgetRefused':
     'Captcha zerbitzuak ez du hemen exekutatu nahi izan eta {code} jakinarazi du. Ostalari askok beren captcha beren webgunera lotzen dute, beraz baliteke KnightLoaderren batere ez kargatzea. Sakatu Freskatu berriro saiatzeko, edo Utzi captcha hau saltatzeko.',
   'captcha.widgetPageRefused': 'Instantziak ez du erronka hau kargatu nahi izan ({code} errorea). Sakatu Utzi captcha hau saltatzeko.',
-  'captcha.widgetRelayTitle': 'Ebatzi hau web-interfazean',
-  'captcha.widgetRelayReason': 'Esaldiarekin egindako konexio batean, aplikazioak irudi- eta klik-captchei bakarrik erantzuten die. Erantzun honi web-interfazean, edo sakatu Utzi hemen.',
   'captcha.unsupported': 'KnightLoaderrek ezin du erronka mota hau erakutsi ({vendor} gisa jakinarazita).',
   'captcha.unsupportedHint': 'Erabili beheko Utzi, edo blokeatu ostalari honen captchak saio honetarako.',
   'captcha.unsolvable': 'KnightLoaderrek ezin du captcha hau ebatzi.',

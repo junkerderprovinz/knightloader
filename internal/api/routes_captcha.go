@@ -15,7 +15,7 @@ import (
 )
 
 func registerCaptcha(reg *Registry, a *app.App) {
-	reg.Add(http.MethodGet, "/api/captcha", "every captcha challenge currently pending on this instance; reading it counts as watching them for a few seconds, for the kinds listed in watch (image, click, widget) or for all of them, and not at all with watch=0",
+	reg.Add(http.MethodGet, "/api/captcha", "every captcha challenge currently pending on this instance; reading it counts as watching them for a few seconds, for the kinds listed in watch (image, click, widget, and turnstile from a reader that runs Cloudflare Turnstile as well) or for all of them, and not at all with watch=0",
 		func(w http.ResponseWriter, r *http.Request) {
 			// An app that polls this list, over the relay as well, holds no
 			// socket to report itself on, so its reads say it is watching,

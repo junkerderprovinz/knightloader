@@ -71,8 +71,6 @@ export const he: Dict = {
   'captcha.widgetRefused':
     'שירות הקאפצ׳ה סירב לרוץ כאן ודיווח {code}. הרבה מארחים קושרים את הקאפצ׳ה שלהם לאתר שלהם עצמם, כך שייתכן שהיא לא תיטען ב-KnightLoader בכלל. „רענון” מנסה שוב, ו„ביטול” מדלג על הקאפצ׳ה הזו.',
   'captcha.widgetPageRefused': 'המופע סירב לטעון את האתגר הזה (שגיאה {code}). „ביטול” מדלג על הקאפצ׳ה הזו.',
-  'captcha.widgetRelayTitle': 'פתור את זו בממשק האינטרנט',
-  'captcha.widgetRelayReason': 'בחיבור שנעשה עם הביטוי, האפליקציה עונה רק על קאפצ׳ות של תמונה ושל לחיצה. ענה על זו בממשק האינטרנט, או בטל אותה כאן.',
   'captcha.unsupported': 'KnightLoader לא יכול להציג סוג כזה של אתגר (דווח בתור {vendor}).',
   'captcha.unsupportedHint': 'השתמש בביטול שלמטה, או חסום את הקאפצ׳ות של המארח הזה עבור הפעלה זו.',
   'captcha.unsolvable': 'KnightLoader לא יכול לפתור את הקאפצ׳ה הזו.',

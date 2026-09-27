@@ -71,8 +71,6 @@ export const tr: Dict = {
   'captcha.widgetRefused':
     'Captcha hizmeti burada çalışmayı reddetti ve {code} bildirdi. Birçok hoster captchasını kendi web sitesine bağlar, bu yüzden KnightLoader’da hiç yüklenmeyebilir. Yenile yeniden dener, Vazgeç ise bu captchayı atlar.',
   'captcha.widgetPageRefused': 'Örnek bu doğrulamayı yüklemeyi reddetti (hata {code}). Vazgeç bu captchayı atlar.',
-  'captcha.widgetRelayTitle': 'Bunu web arayüzünde çöz',
-  'captcha.widgetRelayReason': 'İfadeyle kurulan bir bağlantıda uygulama yalnızca resimli ve tıklamalı captchaları yanıtlar. Bunu web arayüzünde yanıtla ya da burada iptal et.',
   'captcha.unsupported': 'KnightLoader bu tür bir bulmacayı gösteremiyor ({vendor} olarak bildirildi).',
   'captcha.unsupportedHint': 'Aşağıdaki Vazgeç’i kullanın veya bu oturum için bu hosterin captchalarını engelleyin.',
   'captcha.unsolvable': 'KnightLoader bu captchayı çözemez.',

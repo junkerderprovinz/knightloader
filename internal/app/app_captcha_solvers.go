@@ -285,14 +285,14 @@ func (a *App) holdForWatchers(ctx context.Context, c captcha.Challenge, report c
 
 // captchaWatched reports whether somebody who could answer c is watching the
 // captcha prompt: a web interface tab or the desktop app's window on screen,
-// or an app polling the list for c's kind (see CaptchaSeen). Nobody can
-// answer a Cloudflare Turnstile, which the widget page does not run, so the
-// solvers never wait for one. The windows stop counting for a challenge one of
-// them could not load, and the phone app for one it could not load (see
-// ReportCaptchaUnanswerable).
+// or an app polling the list for c's kind (see CaptchaSeen). Only the phone
+// app runs a Cloudflare Turnstile, so the windows never count for one. The
+// windows stop counting for a challenge one of them could not load, and the
+// phone app for one it could not load (see ReportCaptchaUnanswerable).
 func (a *App) captchaWatched(c captcha.Challenge) bool {
 	if w, ok := c.Payload.(*captcha.WidgetPayload); ok && w.Vendor == captcha.VendorTurnstile {
-		return false
+		return !a.CaptchaUnanswerable(c.ID, CaptchaPhone) &&
+			a.Hub.Watched(captchaWatchKey(captchaWatchTurnstile), captchaWatchGrace)
 	}
 	if !a.CaptchaUnanswerable(c.ID, CaptchaWindow) && a.Hub.Watched("captcha", captchaWatchGrace) {
 		return true

@@ -71,8 +71,6 @@ export const it: Dict = {
   'captcha.widgetRefused':
     'Il servizio captcha si è rifiutato di funzionare qui e ha segnalato {code}. Molti hoster legano il loro captcha al proprio sito, quindi potrebbe non caricarsi affatto in KnightLoader. Il pulsante «Aggiorna» riprova, e «Annulla» salta questo captcha.',
   'captcha.widgetPageRefused': 'L’istanza si è rifiutata di caricare questa verifica (errore {code}). «Annulla» salta questo captcha.',
-  'captcha.widgetRelayTitle': 'Risolvi questo nell’interfaccia web',
-  'captcha.widgetRelayReason': 'Su un collegamento fatto con la frase, l’app risponde solo ai captcha con immagine e a clic. Rispondi a questo nell’interfaccia web, oppure annullalo qui.',
   'captcha.unsupported': 'KnightLoader non può mostrare questo tipo di verifica (segnalata come {vendor}).',
   'captcha.unsupportedHint': 'Usa Annulla qui sotto, oppure blocca i captcha di questo hoster per questa sessione.',
   'captcha.unsolvable': 'KnightLoader non può risolvere questo captcha.',

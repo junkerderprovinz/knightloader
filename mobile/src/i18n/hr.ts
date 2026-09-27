@@ -71,8 +71,6 @@ export const hr: Dict = {
   'captcha.widgetRefused':
     'Captcha usluga ovdje nije htjela raditi i javila je {code}. Mnogi hosteri vežu svoju captchu uz vlastitu web-stranicu, pa se u KnightLoaderu možda uopće ne učita. Osvježi pokušava ponovno, a Odustani preskače ovu captchu.',
   'captcha.widgetPageRefused': 'Instanca nije htjela učitati ovaj izazov (greška {code}). Odustani preskače ovu captchu.',
-  'captcha.widgetRelayTitle': 'Ovu captchu riješi u web sučelju',
-  'captcha.widgetRelayReason': 'Na vezi uspostavljenoj frazom aplikacija odgovara samo na slikovne i klik captche. Na ovu odgovori u web sučelju ili ovdje odustani od nje.',
   'captcha.unsupported': 'KnightLoader ne može prikazati ovu vrstu izazova (prijavljeno kao {vendor}).',
   'captcha.unsupportedHint': 'Upotrijebi Odustani ispod, ili blokiraj captche ovog hostera za ovu sesiju.',
   'captcha.unsolvable': 'KnightLoader ne može riješiti ovu captchu.',

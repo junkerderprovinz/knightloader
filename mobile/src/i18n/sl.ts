@@ -71,8 +71,6 @@ export const sl: Dict = {
   'captcha.widgetRefused':
     'Storitev captcha tukaj ni hotela teči in je sporočila {code}. Veliko gostiteljev veže svojo captcho na lastno spletno stran, zato se v KnightLoaderju morda sploh ne naloži. Osveži poskusi znova, Prekliči pa to captcho preskoči.',
   'captcha.widgetPageRefused': 'Instanca ni hotela naložiti tega izziva (napaka {code}). Prekliči to captcho preskoči.',
-  'captcha.widgetRelayTitle': 'To captcho reši v spletnem vmesniku',
-  'captcha.widgetRelayReason': 'Pri povezavi, vzpostavljeni s frazo, aplikacija odgovarja samo na slikovne captche in captche s kliki. Na to odgovori v spletnem vmesniku ali jo tukaj prekliči.',
   'captcha.unsupported': 'KnightLoader ne more prikazati te vrste izziva (sporočeno kot {vendor}).',
   'captcha.unsupportedHint': 'Uporabi Prekliči spodaj ali za to sejo blokiraj captche tega gostitelja.',
   'captcha.unsolvable': 'KnightLoader te captche ne more rešiti.',

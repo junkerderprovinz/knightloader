@@ -71,8 +71,6 @@ export const pt: Dict = {
   'captcha.widgetRefused':
     'O serviço de captcha recusou-se a funcionar aqui e comunicou {code}. Muitos hosters prendem o captcha ao próprio site, por isso pode nem sequer carregar no KnightLoader. Atualizar tenta outra vez, e Cancelar salta este captcha.',
   'captcha.widgetPageRefused': 'A instância recusou-se a carregar este desafio (erro {code}). Cancelar salta este captcha.',
-  'captcha.widgetRelayTitle': 'Resolve este na interface web',
-  'captcha.widgetRelayReason': 'Numa ligação feita com a frase, a aplicação só responde a captchas de imagem e de clique. Responde a este na interface web, ou cancela-o aqui.',
   'captcha.unsupported': 'O KnightLoader não consegue mostrar este tipo de desafio (comunicado como {vendor}).',
   'captcha.unsupportedHint': 'Utilize Cancelar abaixo, ou bloqueie os captchas deste hoster nesta sessão.',
   'captcha.unsolvable': 'O KnightLoader não consegue resolver este captcha.',

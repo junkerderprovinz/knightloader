@@ -71,8 +71,6 @@ export const ca: Dict = {
   'captcha.widgetRefused':
     'El servei de captcha s’ha negat a funcionar aquí i ha indicat {code}. Molts allotjadors lliguen el seu captcha al seu propi lloc web, així que potser no es carrega gens a KnightLoader. El botó «Actualitza» ho torna a provar, i «Cancel·la» se salta aquest captcha.',
   'captcha.widgetPageRefused': 'La instància s’ha negat a carregar aquest repte (error {code}). «Cancel·la» se salta aquest captcha.',
-  'captcha.widgetRelayTitle': 'Resol aquest a la interfície web',
-  'captcha.widgetRelayReason': 'En una connexió feta amb la frase, l’aplicació només respon captchas d’imatge i de clic. Respon aquest a la interfície web, o cancel·la’l aquí.',
   'captcha.unsupported': 'KnightLoader no pot mostrar aquest tipus de repte (indicat com a {vendor}).',
   'captcha.unsupportedHint': 'Fes servir Cancel·la de sota, o bloca els captches d’aquest allotjador per a aquesta sessió.',
   'captcha.unsolvable': 'KnightLoader no pot resoldre aquest captcha.',

@@ -88,8 +88,6 @@ export const de: Dict = {
   'captcha.widgetRefused':
     'Der Captcha-Dienst läuft hier nicht und hat {code} gemeldet. Viele Hoster binden ihr Captcha an ihre eigene Website, dann lädt es in KnightLoader vielleicht gar nicht. Aktualisieren versucht es noch einmal, Abbrechen überspringt dieses Captcha.',
   'captcha.widgetPageRefused': 'Die Instanz wollte diese Aufgabe nicht laden (Fehler {code}). Abbrechen überspringt dieses Captcha.',
-  'captcha.widgetRelayTitle': 'Löse dieses Captcha in der Weboberfläche',
-  'captcha.widgetRelayReason': 'Über eine Verbindung mit der Phrase beantwortet die App nur Bild- und Klick-Captchas. Beantworte dieses in der Weboberfläche oder brich es hier ab.',
   'captcha.unsupported': 'KnightLoader kann diese Art von Captcha nicht anzeigen (gemeldet als {vendor}).',
   'captcha.unsupportedHint': 'Nutze Abbrechen unten, oder blockiere die Captchas dieses Hosters für diese Sitzung.',
   'captcha.unsolvable': 'Dieses Captcha kann KnightLoader nicht lösen.',

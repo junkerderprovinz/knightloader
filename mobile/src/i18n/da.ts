@@ -71,8 +71,6 @@ export const da: Dict = {
   'captcha.widgetRefused':
     'Captcha-tjenesten ville ikke køre her og meldte {code}. Mange hostere binder deres captcha til deres eget websted, så den indlæses måske slet ikke i KnightLoader. Opdater prøver igen, og Annullér springer denne captcha over.',
   'captcha.widgetPageRefused': 'Instansen ville ikke indlæse denne udfordring (fejl {code}). Annullér springer denne captcha over.',
-  'captcha.widgetRelayTitle': 'Løs denne i webgrænsefladen',
-  'captcha.widgetRelayReason': 'På en forbindelse, der er oprettet med sætningen, besvarer appen kun billed- og klikcaptchaer. Besvar denne i webgrænsefladen, eller annullér den her.',
   'captcha.unsupported': 'KnightLoader kan ikke vise denne slags udfordring (rapporteret som {vendor}).',
   'captcha.unsupportedHint': 'Brug Annullér nedenfor, eller bloker denne hosters captchaer for denne session.',
   'captcha.unsolvable': 'KnightLoader kan ikke løse denne captcha.',

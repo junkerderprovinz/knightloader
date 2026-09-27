@@ -71,8 +71,6 @@ export const et: Dict = {
   'captcha.widgetRefused':
     'Captcha-teenus keeldus siin töötamast ja teatas koodi {code}. Paljud hosterid seovad oma captcha oma veebisaidiga, nii et KnightLoaderis ei pruugi see üldse laadida. Värskenda proovib uuesti ja Loobu jätab selle captcha vahele.',
   'captcha.widgetPageRefused': 'Eksemplar keeldus seda ülesannet laadimast (viga {code}). Loobu jätab selle captcha vahele.',
-  'captcha.widgetRelayTitle': 'Lahenda see veebiliideses',
-  'captcha.widgetRelayReason': 'Fraasiga loodud ühenduse kaudu vastab rakendus ainult pildi- ja klõpsucaptchadele. Vasta sellele veebiliideses või loobu sellest siin.',
   'captcha.unsupported': 'KnightLoader ei suuda seda tüüpi ülesannet näidata (teatatud kui {vendor}).',
   'captcha.unsupportedHint': 'Kasuta allolevat nuppu Loobu või blokeeri selle hosteri captcha’d selleks seansiks.',
   'captcha.unsolvable': 'KnightLoader ei suuda seda captchat lahendada.',

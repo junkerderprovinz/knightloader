@@ -71,8 +71,6 @@ export const sv: Dict = {
   'captcha.widgetRefused':
     'Captcha-tjänsten vägrade köra här och rapporterade {code}. Många hosters knyter sin captcha till sin egen webbplats, så den kanske inte laddas i KnightLoader alls. Uppdatera försöker igen, och Avbryt hoppar över den här captchan.',
   'captcha.widgetPageRefused': 'Instansen vägrade läsa in den här utmaningen (fel {code}). Avbryt hoppar över den här captchan.',
-  'captcha.widgetRelayTitle': 'Lös den här i webbgränssnittet',
-  'captcha.widgetRelayReason': 'På en anslutning som gjorts med frasen besvarar appen bara bild- och klickcaptchor. Besvara den i webbgränssnittet, eller avbryt den här.',
   'captcha.unsupported': 'KnightLoader kan inte visa den här typen av utmaning (rapporterad som {vendor}).',
   'captcha.unsupportedHint': 'Använd Avbryt nedan, eller blockera den här hosterns captchor för den här sessionen.',
   'captcha.unsolvable': 'KnightLoader kan inte lösa den här captchan.',

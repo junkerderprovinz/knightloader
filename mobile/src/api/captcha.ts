@@ -1,7 +1,6 @@
 import type { TranslationKey } from '../i18n/en';
 import type {
   CaptchaChallenge,
-  CaptchaKind,
   CaptchaSolverRefusal,
   CaptchaSolverReport,
   CaptchaWidgetPayload,
@@ -138,30 +137,27 @@ export function clickAnswer(points: ClickPoint[], width: number, height: number)
 }
 
 /**
- * Whether the widget page can run `ch`, by the rule captchaWidgetVendor in
- * routes_captcha_widget.go follows: reCAPTCHA and hCaptcha by name, and a
- * challenge without a vendor is left to the page. Any other vendor, such as
- * Cloudflare Turnstile, would get the page's refusal in the web UI as much as
- * here, so its card neither opens a window nor points to the web UI.
+ * Whether the phone's widget page can run `ch`, by the rule captchaWidgetVendor
+ * in routes_captcha_widget.go follows: reCAPTCHA, hCaptcha and Cloudflare
+ * Turnstile by name, and a challenge without a vendor is left to the page. Any
+ * other vendor would only get the page's refusal, so its card opens no window.
  */
 export function widgetRuns(ch: CaptchaChallenge): boolean {
   const vendor = ((ch.payload as Partial<CaptchaWidgetPayload> | undefined)?.vendor ?? '').trim().toLowerCase();
-  return vendor === '' || vendor === 'recaptcha' || vendor === 'hcaptcha';
+  return vendor === '' || vendor === 'recaptcha' || vendor === 'hcaptcha' || vendor === 'turnstile';
 }
 
 /**
- * The kinds this phone answers, which it names when it reads the list so the
- * instance holds the paid solvers back for those alone: pictures and clicks
- * everywhere, a widget only on a connection saved by address, the one its page
- * loads from.
+ * What this phone answers, which it names when it reads the list so the
+ * instance holds the paid solvers back for those alone: pictures, clicks and
+ * widgets, and "turnstile" to say that a Turnstile is among them, which an
+ * app that names only the widget kind cannot run.
  */
-export function answeredKinds(relay: boolean): CaptchaKind[] {
-  return relay ? ['image', 'click'] : ['image', 'click', 'widget'];
-}
+export const WATCHED = ['image', 'click', 'widget', 'turnstile'] as const;
 
 /** Whether `ch` can be answered on this phone. */
-export function answerableHere(ch: CaptchaChallenge, relay: boolean): boolean {
-  return ch.kind === 'widget' ? !relay && widgetRuns(ch) : answeredKinds(relay).includes(ch.kind);
+export function answerableHere(ch: CaptchaChallenge): boolean {
+  return ch.kind === 'widget' ? widgetRuns(ch) : ch.kind === 'image' || ch.kind === 'click';
 }
 
 /** A catalogue line and what fills it in. */
@@ -210,9 +206,19 @@ function refusal(r: CaptchaSolverRefusal): Phrase {
 }
 
 /**
- * The widget page's path below /api, with the rendering data in the query
- * string, since the page looks nothing up by id. `lang` is the app's language,
+ * The path below /api of the phone's widget page, which the instance answers
+ * as JSON with the address to load it under. `lang` is the app's language,
  * which the vendor's widget then speaks too.
+ */
+export function widgetPagePath(id: string, lang: string): string {
+  const q = lang ? `?${new URLSearchParams({ lang }).toString()}` : '';
+  return `/captcha/${encodeURIComponent(id)}/widget/phone${q}`;
+}
+
+/**
+ * The path below /api of the web UI's widget page, with the rendering data in
+ * the query string, since that page looks nothing up by id. An instance from
+ * before the phone's page has only this one.
  */
 export function widgetPath(ch: CaptchaChallenge, lang: string): string {
   const p = (ch.payload ?? {}) as Partial<CaptchaWidgetPayload>;
@@ -253,14 +259,21 @@ export function widgetMessage(raw: string, id: string): WidgetMessage | null {
 }
 
 /** Who kept the widget window from showing the challenge. */
-export type WidgetFailure = { by: 'instance'; status: number } | { by: 'network' } | { by: 'vendor'; code: string };
+export type WidgetFailure =
+  | { by: 'instance'; status: number }
+  | { by: 'outdated' }
+  | { by: 'network' }
+  | { by: 'vendor'; code: string };
 
 /**
  * Tells apart the instance refusing its own widget page with an HTTP status,
  * a page or vendor script that never arrived, and a code the vendor sent back.
- * `detail` is the page's "error" detail, null when the page itself failed.
+ * `detail` is the page's "error" detail, null when the page itself failed. The
+ * relay refuses a route the instance does not forward with a bare 403, which
+ * for the page means the instance predates it.
  */
-export function widgetFailure(httpStatus: number | null, detail: string | null): WidgetFailure {
+export function widgetFailure(httpStatus: number | null, detail: string | null, relay = false): WidgetFailure {
+  if (httpStatus === 403 && relay) return { by: 'outdated' };
   if (httpStatus !== null) return { by: 'instance', status: httpStatus };
   if (detail === null || detail === 'script' || detail === 'timeout' || detail === 'network') return { by: 'network' };
   return { by: 'vendor', code: detail };
@@ -285,10 +298,10 @@ export function widgetReport(reported: Set<string>, id: string, loaded: boolean)
 /**
  * The script a WebView runs in the widget page to hand its messages to the app.
  *
- * The page posts to window.parent at its own origin. In a WebView it is the top
- * window, so its parent is itself and the message arrives there; this passes
- * the page's own messages on to React Native and nothing else, not the
- * vendor's frames talking to their script. It runs twice, before the page and
+ * The page posts to window.parent at its own origin, the hoster's address it is
+ * loaded under. In a WebView it is the top window, so its parent is itself and
+ * the message arrives there; this passes the page's own messages on to React
+ * Native and nothing else, not the vendor's frames talking to their script. It runs twice, before the page and
  * after it, because the first run can land before the new document exists, so
  * it installs itself once.
  */

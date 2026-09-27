@@ -71,8 +71,6 @@ export const el: Dict = {
   'captcha.widgetRefused':
     'Η υπηρεσία captcha αρνήθηκε να τρέξει εδώ και ανέφερε {code}. Πολλοί hoster δένουν το captcha τους με τον δικό τους ιστότοπο, οπότε μπορεί να μη φορτώνει καθόλου στο KnightLoader. Η «Ανανέωση» δοκιμάζει ξανά, και το «Άκυρο» παραλείπει αυτό το captcha.',
   'captcha.widgetPageRefused': 'Η παρουσία αρνήθηκε να φορτώσει αυτή την πρόκληση (σφάλμα {code}). Το «Άκυρο» παραλείπει αυτό το captcha.',
-  'captcha.widgetRelayTitle': 'Λύσε αυτό στη διεπαφή web',
-  'captcha.widgetRelayReason': 'Σε σύνδεση που έγινε με τη φράση, η εφαρμογή απαντά μόνο σε captcha με εικόνα και με κλικ. Απάντησε σε αυτό στη διεπαφή web ή ακύρωσέ το εδώ.',
   'captcha.unsupported': 'Το KnightLoader δεν μπορεί να εμφανίσει αυτό το είδος πρόκλησης (αναφέρθηκε ως {vendor}).',
   'captcha.unsupportedHint': 'Χρησιμοποιήστε το Άκυρο παρακάτω, ή αποκλείστε τα captcha αυτού του hoster για αυτήν τη συνεδρία.',
   'captcha.unsolvable': 'Το KnightLoader δεν μπορεί να λύσει αυτό το captcha.',

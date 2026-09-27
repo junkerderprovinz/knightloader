@@ -71,8 +71,6 @@ export const cs: Dict = {
   'captcha.widgetRefused':
     'Captcha služba tu odmítla běžet a nahlásila {code}. Hodně hosterů váže svou captchu na vlastní web, takže se v KnightLoaderu nemusí načíst vůbec. Obnovit to zkusí znovu a Zrušit tuhle captchu přeskočí.',
   'captcha.widgetPageRefused': 'Instance tuhle úlohu odmítla načíst (chyba {code}). Zrušit tuhle captchu přeskočí.',
-  'captcha.widgetRelayTitle': 'Vyřeš tuhle captchu ve webovém rozhraní',
-  'captcha.widgetRelayReason': 'Při spojení navázaném pomocí fráze aplikace odpovídá jen na obrázkové a klikací captchy. Na tuhle odpověz ve webovém rozhraní, nebo ji tady zruš.',
   'captcha.unsupported': 'KnightLoader neumí zobrazit tento typ výzvy (nahlášeno jako {vendor}).',
   'captcha.unsupportedHint': 'Použijte tlačítko Zrušit níže, nebo pro tuto relaci zablokujte captchy tohoto hostera.',
   'captcha.unsolvable': 'KnightLoader tuhle captchu vyřešit neumí.',

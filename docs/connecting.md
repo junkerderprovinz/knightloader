@@ -184,7 +184,8 @@ could have joined the group and been handed one anyway.
 That makes the reachable surface the thing to bound, and it is an allowlist
 rather than a property each route happens to have. A sibling may read and
 drive **tasks, links and the queue**, answer or skip the captchas holding them
-up, and may read whether a password is set,
+up, load a widget captcha's page for the phone and say when it will not load,
+and may read whether a password is set,
 who else is in the group, and the instance's own accent and corner shape. It
 cannot read the settings or the accounts, change the password, mint an API
 token, or ask for the phrase back. A route added later is outside the list
@@ -232,10 +233,13 @@ and cannot be explained.
 - **Captchas** are answered on the phone. A card on the instance's downloads,
   a count on its overview card and a banner over the open screen lead to a list
   of what is waiting, and picture and click captchas are answered right there.
-  reCAPTCHA and hCaptcha open the instance's own widget page in a WebView, which
-  loads from the instance's address, so only a connection saved by address
-  shows them. On one made with the phrase, which is every connection made
-  today, their card points to the web UI, and Cancel still skips them.
+  reCAPTCHA, hCaptcha and Cloudflare Turnstile open in a window of their own,
+  on either kind of connection. The app fetches the instance's widget page,
+  over the relay as well, and shows it under the address of the hoster's page
+  the captcha came from. The captcha service then sees the hoster's website,
+  as it would in a browser on that page. Many hosters tie their captcha to
+  their own domains, and every Turnstile key is tied that way, so anywhere
+  else the service refuses to run.
   The banner also says when a captcha timed out or was answered somewhere else,
   as the web UI's messages do.
 
@@ -245,12 +249,12 @@ and cannot be explained.
   Android has kept the app in memory. After Android has closed it, the card on
   the downloads still shows what is waiting, but no banner comes up. The app
   sends no notification while it is closed. While it watches, the instance
-  counts you as watching for the captchas the app can answer: pictures and
-  clicks, and on a connection saved by address reCAPTCHA and hCaptcha as well.
-  With **Only when nobody is watching** switched on on the Captcha settings
-  page, the paid solvers wait for your answer on those first, and a captcha
-  the app cannot answer does not wait for it. Nor does a reCAPTCHA or hCaptcha
-  that will not load in the app, until Refresh loads it after all. The card
+  counts you as watching for the captchas the app can answer, which is every
+  kind except a captcha service KnightLoader does not know. With **Only when
+  nobody is watching** switched on on the Captcha settings page, the paid
+  solvers wait for your answer on those first, and a captcha the app cannot
+  answer does not wait for it. Nor does a widget captcha that will not load in
+  the app, until Refresh loads it after all. The card
   says what the solvers are doing, as the web UI's captcha window does.
 
 ## The browser extension

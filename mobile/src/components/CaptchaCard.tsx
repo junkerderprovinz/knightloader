@@ -11,21 +11,20 @@ import {
   type ClickPoint,
   type Phrase,
 } from '../api/captcha';
-import {
-  isRelayConnection,
-  type CaptchaAbortScope,
-  type CaptchaChallenge,
-  type CaptchaImagePayload,
-  type CaptchaUnsupportedPayload,
-  type CaptchaWidgetPayload,
-  type ServerConnection,
+import type {
+  CaptchaAbortScope,
+  CaptchaChallenge,
+  CaptchaImagePayload,
+  CaptchaUnsupportedPayload,
+  CaptchaWidgetPayload,
+  ServerConnection,
 } from '../api/types';
 import { useT } from '../i18n/I18nContext';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useCaptchas } from './CaptchaWatch';
 import { CaptchaWidget } from './CaptchaWidget';
-import { GlimButton, NotchCard, UnavailableNotice } from './glim';
+import { GlimButton, NotchCard } from './glim';
 import { Check, Cross, Play } from './IconBadge';
 import { InfoTip } from './InfoTip';
 import { Text, TextInput } from './Text';
@@ -77,13 +76,12 @@ export function CaptchaCard({
   const runs = kind === 'widget' && widgetRuns(challenge);
   const line = challenge.prompt || (runs ? vendorName : '');
   const left = secondsLeft(challenge, now);
-  const widgetHere = runs && !isRelayConnection(conn);
   // A widget the page cannot run is as far out of reach as an unknown kind.
   const unshown = kind === 'unsupported' || (kind === 'widget' && !runs);
   const unshownName =
     kind === 'unsupported' ? (challenge.payload as CaptchaUnsupportedPayload | undefined)?.vendor : vendorName;
   const solver = challenge.solver
-    ? solverStatus(challenge.solver, now, answerableHere(challenge, isRelayConnection(conn)))
+    ? solverStatus(challenge.solver, now, answerableHere(challenge))
     : null;
 
   // The answer is in the picture's own pixels, so its real size is needed
@@ -186,17 +184,8 @@ export function CaptchaCard({
         </>
       )}
 
-      {runs && !widgetHere && (
-        <UnavailableNotice title={t('captcha.widgetRelayTitle')} reason={t('captcha.widgetRelayReason')} />
-      )}
-
       {unshown && (
-        <Text style={[styles.body, { color: c.text }]}>
-          {/* A Turnstile is out of reach here but not for the paid solvers. */}
-          {vendor === 'turnstile'
-            ? t('captcha.unsolvableTurnstile')
-            : t('captcha.unsupported', { vendor: unshownName || '?' })}
-        </Text>
+        <Text style={[styles.body, { color: c.text }]}>{t('captcha.unsupported', { vendor: unshownName || '?' })}</Text>
       )}
 
       {error !== '' && <Text style={[styles.error, { color: c.statusFailText }]}>{error}</Text>}
@@ -222,7 +211,7 @@ export function CaptchaCard({
             onPress={submit}
           />
         )}
-        {widgetHere && (
+        {runs && (
           <GlimButton
             hue={hue}
             grow
@@ -254,7 +243,7 @@ export function CaptchaCard({
         )}
       </View>
 
-      {solving && !isRelayConnection(conn) && (
+      {solving && (
         <CaptchaWidget
           conn={conn}
           challenge={challenge}

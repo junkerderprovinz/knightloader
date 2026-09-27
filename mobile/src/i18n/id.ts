@@ -71,8 +71,6 @@ export const id: Dict = {
   'captcha.widgetRefused':
     'Layanan captcha menolak berjalan di sini dan melaporkan {code}. Banyak hoster mengikat captcha mereka ke situs web mereka sendiri, jadi captcha itu mungkin sama sekali tidak dimuat di KnightLoader. Tekan Segarkan untuk mencoba lagi, atau Batal untuk melewati captcha ini.',
   'captcha.widgetPageRefused': 'Instans menolak memuat tantangan ini (kesalahan {code}). Tekan Batal untuk melewati captcha ini.',
-  'captcha.widgetRelayTitle': 'Pecahkan captcha ini di antarmuka web',
-  'captcha.widgetRelayReason': 'Pada sambungan yang dibuat dengan frasa, aplikasi hanya menjawab captcha gambar dan captcha klik. Jawab captcha ini di antarmuka web, atau batalkan di sini.',
   'captcha.unsupported': 'KnightLoader tidak dapat menampilkan jenis tantangan ini (dilaporkan sebagai {vendor}).',
   'captcha.unsupportedHint': 'Gunakan Batal di bawah, atau blokir captcha dari hoster ini untuk sesi ini.',
   'captcha.unsolvable': 'KnightLoader tidak dapat menyelesaikan captcha ini.',

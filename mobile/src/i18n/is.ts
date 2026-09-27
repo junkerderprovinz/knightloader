@@ -71,8 +71,6 @@ export const is: Dict = {
   'captcha.widgetRefused':
     'Captcha-þjónustan neitaði að keyra hér og tilkynnti {code}. Margir hýsingaraðilar binda captcha sitt við eigin vefsíðu, svo það hleðst hugsanlega alls ekki í KnightLoader. Endurnýja reynir aftur, og Hætta við sleppir þessu captcha.',
   'captcha.widgetPageRefused': 'Tilvikið neitaði að hlaða þessa þraut (villa {code}). Hætta við sleppir þessu captcha.',
-  'captcha.widgetRelayTitle': 'Leystu þetta í vefviðmótinu',
-  'captcha.widgetRelayReason': 'Á tengingu sem gerð er með setningunni svarar forritið aðeins mynda- og smellu-captcha. Svaraðu þessu í vefviðmótinu, eða hættu við það hér.',
   'captcha.unsupported': 'KnightLoader getur ekki sýnt þessa tegund af þraut (tilkynnt sem {vendor}).',
   'captcha.unsupportedHint': 'Notaðu Hætta við hér fyrir neðan, eða loka á captcha frá þessum hýsingaraðila fyrir þessa lotu.',
   'captcha.unsolvable': 'KnightLoader getur ekki leyst þetta captcha.',
