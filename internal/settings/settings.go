@@ -387,7 +387,9 @@ type Settings struct {
 	// AutoUpdate lets the desktop build download a newer release once a day
 	// and put it in place for the next start (desktop/updates.go). A container
 	// cannot replace itself from the inside and reads it nowhere. On by
-	// default, since an app nobody updates keeps its bugs.
+	// default, since an app nobody updates keeps its bugs. The copy installed
+	// for all users on Windows keeps it in a file of its own; see
+	// KeepAutoUpdateIn.
 	AutoUpdate bool `json:"autoUpdate"`
 
 	// KeepAwake asks the desktop build to keep the computer from going to
@@ -823,6 +825,8 @@ type Store struct {
 
 	mu  sync.Mutex
 	cur Settings
+	// autoUpdatePath is the file set by KeepAutoUpdateIn, or "".
+	autoUpdatePath string
 }
 
 // Load reads settings.json from dir, falling back to defaults.
@@ -967,6 +971,11 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	b, err := json.MarshalIndent(n, "", "  ")
 	if err != nil {
 		return s.cur, err
+	}
+	if s.autoUpdatePath != "" && n.AutoUpdate != s.cur.AutoUpdate {
+		if err := writeAutoUpdate(s.autoUpdatePath, n.AutoUpdate); err != nil {
+			return s.cur, err
+		}
 	}
 	if err := os.WriteFile(s.path, b, 0o600); err != nil {
 		return s.cur, err
