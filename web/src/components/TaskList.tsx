@@ -10,6 +10,7 @@ import {
   type DragEvent,
   type KeyboardEvent,
   type PointerEvent,
+  type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -1659,6 +1660,7 @@ export function TaskListCard({
   sortKey,
   count,
   fold,
+  edge,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1698,6 +1700,8 @@ export function TaskListCard({
   count?: number;
   /** Folds the card to its title, for a card that sits below the main list. */
   fold?: { folded: boolean; onToggle: () => void };
+  /** The card's own verbs, badges on its top edge beside the fold. */
+  edge?: ReactNode;
 }) {
   const { t } = useT();
   // Only the row move reports through this so far (see dropBlock and
@@ -3143,7 +3147,8 @@ export function TaskListCard({
         {/* On the top edge across from the title, as a second notch, so it
             takes no row of its own above the table. */}
         {fold && (
-          <div className="absolute end-4 top-0 z-10 -translate-y-1/2">
+          <div className="absolute end-4 top-0 z-10 flex -translate-y-1/2 items-center gap-2">
+            {edge}
             <IconBadge
               icon={folded ? <IconChevronDown width={16} height={16} /> : <IconChevronUp width={16} height={16} />}
               title={t(folded ? 'task.expand' : 'task.collapse')}

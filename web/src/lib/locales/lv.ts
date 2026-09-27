@@ -33,6 +33,10 @@ export const lv: Dict = {
 
   'task.pause': 'Pauzēt',
   'task.resume': 'Turpināt',
+  'task.stopSeeding': 'Apturēt sēšanu',
+  'task.startSeeding': 'Sākt sēšanu',
+  'task.stopSeedingAll': 'Apturēt visu šīs kartītes torrentu sēšanu',
+  'task.startSeedingAll': 'Sākt visu šīs kartītes torrentu sēšanu',
   'task.start': 'Sākt',
   'task.restart': 'Sākt no jauna',
   'task.remove': 'Noņemt',

@@ -33,6 +33,10 @@ export const sl: Dict = {
 
   'task.pause': 'Zaustavi',
   'task.resume': 'Nadaljuj',
+  'task.stopSeeding': 'Ustavi sejanje',
+  'task.startSeeding': 'Začni sejanje',
+  'task.stopSeedingAll': 'Ustavi sejanje vseh torrentov na tej kartici',
+  'task.startSeedingAll': 'Začni sejanje vseh torrentov na tej kartici',
   'task.start': 'Zaženi',
   'task.restart': 'Zaženi znova',
   'task.remove': 'Odstrani',

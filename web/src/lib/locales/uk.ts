@@ -33,6 +33,10 @@ export const uk: Dict = {
 
   'task.pause': 'Призупинити',
   'task.resume': 'Продовжити',
+  'task.stopSeeding': 'Зупинити роздачу',
+  'task.startSeeding': 'Почати роздачу',
+  'task.stopSeedingAll': 'Зупинити роздачу всіх торентів у цій картці',
+  'task.startSeedingAll': 'Почати роздачу всіх торентів у цій картці',
   'task.start': 'Почати',
   'task.restart': 'Перезапустити',
   'task.remove': 'Прибрати',

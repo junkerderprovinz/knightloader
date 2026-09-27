@@ -33,6 +33,10 @@ export const ca: Dict = {
 
   'task.pause': 'Pausa',
   'task.resume': 'Reprèn',
+  'task.stopSeeding': 'Atura el seed',
+  'task.startSeeding': 'Inicia el seed',
+  'task.stopSeedingAll': 'Atura el seed de tots els torrents d’aquesta targeta',
+  'task.startSeedingAll': 'Inicia el seed de tots els torrents d’aquesta targeta',
   'task.start': 'Inicia',
   'task.restart': 'Reinicia',
   'task.remove': 'Elimina',

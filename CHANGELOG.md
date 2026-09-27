@@ -48,6 +48,17 @@ submission and for a fixed download.
   connected by address or with the phrase. Another instance's list shows it
   too, in the app and in the web interface, and asks that instance about its
   unpackings only while one of its archives waits or is being unpacked.
+- **Stop and start seeding by hand.** In the Torrents card the right-click
+  menu offers Stop seeding for a torrent that seeds and Start seeding for one
+  that has stopped, for one torrent or a whole selection. Two buttons on the
+  card's top edge, beside the fold, do the same for every torrent in the card.
+  A torrent you stop stays stopped after a restart. One you start seeds to the
+  seeding targets once more, counted from the moment you start it, so a
+  torrent that had met them already does not stop straight away; with no
+  targets set it seeds until you stop it. The Android app has the same on the
+  Torrents part of its list and on each package in it. Scripts reach it
+  through `POST /api/tasks/seeding/stop` and `POST /api/tasks/seeding/start`,
+  which take a list of ids and a token with the control scope.
 - **The phone app answers reCAPTCHA, hCaptcha and Cloudflare Turnstile on a
   connection made with the phrase.** The instance hands the captcha's page to
   the app over the relay, and the app shows it under the address of the

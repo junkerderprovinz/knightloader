@@ -35,6 +35,10 @@ export const he: Dict = {
 
   'task.pause': 'השהה',
   'task.resume': 'המשך',
+  'task.stopSeeding': 'עצירת ההזרעה',
+  'task.startSeeding': 'התחלת ההזרעה',
+  'task.stopSeedingAll': 'עצירת ההזרעה של כל הטורנטים בכרטיס הזה',
+  'task.startSeedingAll': 'התחלת ההזרעה של כל הטורנטים בכרטיס הזה',
   'task.start': 'התחל',
   'task.restart': 'התחל מחדש',
   'task.remove': 'הסר',

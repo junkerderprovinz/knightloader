@@ -33,6 +33,10 @@ export const th: Dict = {
 
   'task.pause': 'หยุดชั่วคราว',
   'task.resume': 'ทำต่อ',
+  'task.stopSeeding': 'หยุดซีด',
+  'task.startSeeding': 'เริ่มซีด',
+  'task.stopSeedingAll': 'หยุดซีดทอร์เรนต์ทั้งหมดในการ์ดนี้',
+  'task.startSeedingAll': 'เริ่มซีดทอร์เรนต์ทั้งหมดในการ์ดนี้',
   'task.start': 'เริ่ม',
   'task.restart': 'เริ่มใหม่',
   'task.remove': 'นำออก',

@@ -33,6 +33,10 @@ export const sr: Dict = {
 
   'task.pause': 'Паузирај',
   'task.resume': 'Настави',
+  'task.stopSeeding': 'Заустави сидовање',
+  'task.startSeeding': 'Покрени сидовање',
+  'task.stopSeedingAll': 'Заустави сидовање свих торената у овој картици',
+  'task.startSeedingAll': 'Покрени сидовање свих торената у овој картици',
   'task.start': 'Покрени',
   'task.restart': 'Поново покрени',
   'task.remove': 'Уклони',

@@ -173,6 +173,15 @@ export async function setTasksEnabled(conn: ServerConnection, ids: string[], ena
   });
 }
 
+// Stops or starts the seeding of finished torrents. A stop holds across a
+// restart of the instance, and a start seeds to the targets counted from now.
+export async function setSeeding(conn: ServerConnection, ids: string[], seed: boolean, base = '/api'): Promise<void> {
+  await request(conn, base, seed ? '/tasks/seeding/start' : '/tasks/seeding/stop', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
 // A torrent's files, asked for only while its row is open: the task carries
 // just their count, since a torrent can list thousands.
 export async function fetchTorrentFiles(conn: ServerConnection, id: string, base = '/api'): Promise<TorrentFileView[]> {

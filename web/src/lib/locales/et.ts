@@ -33,6 +33,10 @@ export const et: Dict = {
 
   'task.pause': 'Peata',
   'task.resume': 'Jätka',
+  'task.stopSeeding': 'Peata levitamine',
+  'task.startSeeding': 'Alusta levitamist',
+  'task.stopSeedingAll': 'Peata kõigi selle kaardi torrentite levitamine',
+  'task.startSeedingAll': 'Alusta kõigi selle kaardi torrentite levitamist',
   'task.start': 'Käivita',
   'task.restart': 'Alusta uuesti',
   'task.remove': 'Eemalda',

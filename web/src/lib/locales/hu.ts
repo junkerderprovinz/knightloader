@@ -33,6 +33,10 @@ export const hu: Dict = {
 
   'task.pause': 'Szünet',
   'task.resume': 'Folytatás',
+  'task.stopSeeding': 'Seedelés leállítása',
+  'task.startSeeding': 'Seedelés indítása',
+  'task.stopSeedingAll': 'Seedelés leállítása a kártya összes torrentjénél',
+  'task.startSeedingAll': 'Seedelés indítása a kártya összes torrentjénél',
   'task.start': 'Indítás',
   'task.restart': 'Újraindítás',
   'task.remove': 'Eltávolítás',

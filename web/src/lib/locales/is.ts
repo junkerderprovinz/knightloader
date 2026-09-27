@@ -33,6 +33,10 @@ export const is: Dict = {
 
   'task.pause': 'Gera hlé',
   'task.resume': 'Halda áfram',
+  'task.stopSeeding': 'Stöðva sáningu',
+  'task.startSeeding': 'Hefja sáningu',
+  'task.stopSeedingAll': 'Stöðva sáningu allra torrenta á þessu spjaldi',
+  'task.startSeedingAll': 'Hefja sáningu allra torrenta á þessu spjaldi',
   'task.start': 'Ræsa',
   'task.restart': 'Endurræsa',
   'task.remove': 'Fjarlægja',

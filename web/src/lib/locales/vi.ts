@@ -33,6 +33,10 @@ export const vi: Dict = {
 
   'task.pause': 'Tạm dừng',
   'task.resume': 'Tiếp tục',
+  'task.stopSeeding': 'Dừng seed',
+  'task.startSeeding': 'Bắt đầu seed',
+  'task.stopSeedingAll': 'Dừng seed mọi torrent trong thẻ này',
+  'task.startSeedingAll': 'Bắt đầu seed mọi torrent trong thẻ này',
   'task.start': 'Bắt đầu',
   'task.restart': 'Chạy lại',
   'task.remove': 'Gỡ bỏ',

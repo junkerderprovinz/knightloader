@@ -33,6 +33,10 @@ export const zh: Dict = {
 
   'task.pause': '暂停',
   'task.resume': '继续',
+  'task.stopSeeding': '停止做种',
+  'task.startSeeding': '开始做种',
+  'task.stopSeedingAll': '停止此卡片中所有种子的做种',
+  'task.startSeedingAll': '开始此卡片中所有种子的做种',
   'task.start': '开始',
   'task.restart': '重新开始',
   'task.remove': '移除',

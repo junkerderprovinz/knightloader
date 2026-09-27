@@ -33,6 +33,10 @@ export const ro: Dict = {
 
   'task.pause': 'Pauză',
   'task.resume': 'Continuă',
+  'task.stopSeeding': 'Oprește seed-ul',
+  'task.startSeeding': 'Pornește seed-ul',
+  'task.stopSeedingAll': 'Oprește seed-ul tuturor torrentelor din acest card',
+  'task.startSeedingAll': 'Pornește seed-ul tuturor torrentelor din acest card',
   'task.start': 'Pornește',
   'task.restart': 'Repornește',
   'task.remove': 'Elimină',
