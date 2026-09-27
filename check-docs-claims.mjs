@@ -147,7 +147,7 @@ const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
 const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
   platform: m[1],
   slug: m[2],
-  installer: /extra: "-nsis"/.test(DESKTOP_YML.slice(m.index).split(/^\s+- os:/m)[0]),
+  installer: /args: "[^"]*--installer/.test(DESKTOP_YML.slice(m.index).split(/^\s+- os:/m)[0]),
 }));
 const listedPlatforms = INSTALLING.match(/Every release tag builds ([^.]+?),?\s+and attaches/)?.[1];
 const buttonBlock = README.match(/<!-- download-buttons\b[^>]*-->([\s\S]*?)<!-- \/download-buttons -->/)?.[1];
