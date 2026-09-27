@@ -53,8 +53,8 @@ jobs:
               - '.github/workflows/release.yml'
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version into web/dist, and
-            # check-version-sources.mjs reads release.yml and the extension's
-            # version route.
+            # check-version-sources.mjs reads the manifest, release.yml and the
+            # extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
             # and lib/taskError.test.ts the failure codes.
@@ -63,6 +63,7 @@ jobs:
               - 'mobile/app.json'
               - 'mobile/src/i18n/en.ts'
               - 'mobile/src/i18n/de.ts'
+              - 'extension/src/manifest.json'
               - '.github/workflows/release.yml'
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
@@ -403,11 +404,9 @@ jobs:
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
 
-      # --self-hosted checks the package without AMO listing metadata. Two codes
-      # are skipped: a cross-browser manifest always declares both background
-      # forms, and the add-on is desktop Firefox only, so the Android minimum
-      # version notice does not apply. Raising strict_min_version would drop
-      # Firefox ESR 140, and adding gecko_android would list it on Android.
+      # --self-hosted checks the package without AMO listing metadata. One code
+      # is skipped: a cross-browser manifest always declares both background
+      # forms.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -415,7 +414,7 @@ jobs:
           printf '%s' "$out" | node -e '
             let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
               let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
-              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED", "KEY_FIREFOX_ANDROID_UNSUPPORTED_BY_MIN_VERSION"]);
+              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED"]);
               const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
               for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
               if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }

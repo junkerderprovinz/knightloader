@@ -110,8 +110,8 @@ Edge shows it read-only):
 > - Catch Click'n'Load buttons. Many download sites offer them to hand a list of
 >   links to a download manager on the same computer. The extension catches the
 >   button in the page and sends the links to your instance, wherever it runs.
-> - See your instances in the toolbar popup: which ones are online, how many files
->   are queued, and a button to pause or resume each queue.
+> - See your instances in the toolbar popup: which ones are online and how many
+>   files are queued, with a button to open each one's web interface.
 > - Paste or drop several links (or a file that contains them) into the popup's
 >   collector and send them together.
 >
@@ -124,10 +124,11 @@ Edge shows it read-only):
 >
 > Privacy: messages to your instances pass through a relay. They are end-to-end
 > encrypted, so the relay cannot read the links you send. There are no analytics,
-> no ads and no tracking. Click'n'Load is on by default and is the main reason the
-> extension asks for access to all websites; the same access lets it read the
-> address and title of a page you send. Switching Click'n'Load off in the options
-> stops the extension from running code in the pages you open.
+> no ads and no tracking. The extension asks for no website access when you
+> install it, and it reads the tab you are on only when you click its button or
+> use its right-click menu. Click'n'Load needs access to all websites, because its
+> buttons can be on any site. The extension asks for that access when you switch
+> Click'n'Load on, and gives it back when you switch it off.
 
 **Categories**
 
@@ -135,7 +136,7 @@ Edge shows it read-only):
 | --- | --- |
 | Chrome Web Store | Productivity, then the closest sub-category the dashboard offers (Tools) |
 | Edge Add-ons | Productivity |
-| AMO | Download Management (desktop; no Android categories, the add-on is not offered there) |
+| AMO | Download Management |
 
 **Links and contact**
 
@@ -174,6 +175,13 @@ Both dashboards ask the same questions. Each justification below is under the
 
 **Permission justifications**
 
+`activeTab`
+
+> Reads the address and title of the tab the user is on, only when they click the
+> toolbar button or pick one of the right-click entries on that tab. That is how
+> "Send this page" and the right-click sends know what to send. The extension has
+> no other access to tabs.
+
 `contextMenus`
 
 > Adds four right-click entries: send a link, an image, selected text or the
@@ -188,9 +196,10 @@ Both dashboards ask the same questions. Each justification below is under the
 
 `scripting`
 
-> Registers and unregisters the two Click'n'Load content scripts at runtime. When
-> the user switches Click'n'Load off in the options, the scripts are unregistered,
-> so no extension code runs in pages opened or reloaded after that.
+> Registers and unregisters the two Click'n'Load content scripts at runtime, once
+> the user has switched Click'n'Load on and granted the optional site access. When
+> they switch it off, or take the access away in the browser, the scripts are
+> unregistered, so no extension code runs in pages opened or reloaded after that.
 
 `declarativeNetRequest`
 
@@ -198,22 +207,23 @@ Both dashboards ask the same questions. Each justification below is under the
 > sites load http://127.0.0.1:9666/jdcheck.js to check whether a receiver is
 > present. The two rules answer exactly that request (for 127.0.0.1 and localhost)
 > with a small script bundled in the extension, so the button appears and can be
-> caught. No other request is matched, blocked or changed. The ruleset is switched
-> off together with Click'n'Load.
+> caught. No other request is matched, blocked or changed. The redirect only works
+> with the optional site access the user grants for Click'n'Load, and the ruleset
+> is switched off together with Click'n'Load.
 
-Host permission `<all_urls>`
+Optional host permission `<all_urls>`, if the dashboard asks. The package has no
+required host permission; `<all_urls>` is only under `optional_host_permissions`.
 
-> Mainly for Click'n'Load. The buttons can be on any website, and the script that
-> catches them has to run in the page before the site's own code, in every frame,
-> including blank frames a site opens for the button. Apart from declaring the two
-> globals sites check (jdownloader, version), it acts only on requests
+> Optional and not granted at install. The browser asks for it only when the user
+> switches Click'n'Load on in the options, and the extension gives it back when
+> they switch it off. Click'n'Load buttons can be on any website, so the script
+> that catches them has to run in the page before the site's own code, in every
+> frame, including blank frames a site opens for the button. Apart from declaring
+> the two globals sites check (jdownloader, version), it acts only on requests
 > addressed to 127.0.0.1:9666 or localhost:9666: those are stopped and their link
 > list is handed to the extension. Every other request passes through unchanged
-> and is not recorded. Switching the feature off in the options removes the script
-> and the redirect rule for pages opened after that. The same access lets the
-> extension read the address and title of the current tab when the user presses
-> "Send this page", and the page title for a right-click send, which is why it
-> does not also request activeTab.
+> and is not recorded. The jdcheck.js redirect needs the same access. Sending
+> pages and links does not use it; that goes through activeTab.
 
 `clipboardRead` (optional permission)
 
@@ -251,10 +261,11 @@ single purpose, no use for creditworthiness or lending).
   encryption; its add-on policy 6.2.1 requires the declaration to be accurate.
   Mozilla's location category does not cover IP addresses, so it is not declared.
   The dashboard answers must match the manifest.
-- **Desktop only**: the manifest has no `gecko_android` key, so AMO lists the
-  add-on for desktop Firefox only. Firefox for Android has no context-menu API and
-  the extension has never been tested there. Do not add Android in the dashboard;
-  with the key present, AMO locks that setting.
+- **Android**: the manifest names a minimum version for Firefox for Android
+  (`gecko_android`, 142), so AMO offers the add-on there as well and locks that
+  setting in the dashboard. Firefox for Android has no context-menu API, so the
+  right-click entries do not exist there, and the extension has not been tried on
+  an Android phone yet.
 - **Minimum version**: Firefox 140, the first desktop version with
   `data_collection_permissions`. That keeps Firefox ESR 140. Before Firefox 149,
   `action.openPopup()` needs a user gesture, so a caught Click'n'Load button cannot
@@ -305,7 +316,7 @@ because the last line is what the field cuts.
 - Additional instructions:
 
 > Username = connection phrase, Password = web UI password.
-> 1. Options page (opens on install): paste the phrase, press Connect. Pin the icon.
+> 1. Options page (opens on install): paste the phrase, press Connect, then Allow access and accept. Pin the icon.
 > 2. Open https://review.halleluja.design/test/, right-click the trailer link > Send link to KnightLoader. Icon shows a check.
 > 3. Press the Click'n'Load button there; popup counts down, sends.
 > 4. Both show up at https://review.halleluja.design > Link collector.
@@ -321,7 +332,9 @@ because the last line is what the field cuts.
 >    KnightLoader), because its only confirmation is a check mark on its icon.
 > 2. Paste this connection phrase into the Remote access field and press Connect:
 >    <PHRASE>
->    One instance, "Review", appears as Online.
+>    One instance, "Review", appears as Online. Then press "Allow access" on the
+>    card at the top of the page and accept the browser's prompt. Click'n'Load
+>    needs that access; nothing else does.
 > 3. Open https://review.halleluja.design/test/. Right-click the trailer link and choose "Send link to
 >    KnightLoader". The toolbar icon shows a green check mark.
 > 4. On the same page, press the "Click'n'Load: both films" button. The extension
@@ -342,6 +355,8 @@ because the last line is what the field cuts.
 >    Toolbar); its only confirmation is a check mark on that icon.
 > 2. Open the add-on's options, paste this connection phrase into Remote access,
 >    press Connect: <PHRASE>
+>    Then press "Allow access" on the card at the top of the page and accept
+>    Firefox's prompt. Click'n'Load needs that access; nothing else does.
 > 3. Open https://review.halleluja.design/test/, right-click the trailer link, "Send link to KnightLoader".
 >    The add-on's toolbar icon shows a check mark.
 > 4. Press "Click'n'Load: both films" on that page; the popup counts down and

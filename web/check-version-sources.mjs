@@ -1,5 +1,7 @@
 // The two version numbers on the Apps page come from where the downloads
-// beside them come from, never from a number typed into the page.
+// beside them come from, never from a number typed into the page, and the two
+// files that carry KnightLoader's version name the same one, since one vX.Y.Z
+// tag releases the server, the app and the extension together.
 //
 // The browser tiles download the copy of extension/src the server embeds, so
 // the extension's number is read at runtime from that same embedded
@@ -25,6 +27,8 @@
 //   release   the APK address names the tag and the file release.yml
 //             publishes, and release.yml refuses a tag that app.json or the
 //             manifest disagrees with.
+//   one       mobile/app.json and extension/src/manifest.json carry the same
+//             version.
 //   words     no translation of a settings.browsertools string carries a
 //             version.
 //
@@ -159,6 +163,14 @@ if (!apk) {
   }
 }
 
+// one
+const extensionVersion = JSON.parse(read(root, 'extension', 'src', 'manifest.json')).version;
+if (extensionVersion !== appVersion) {
+  problems.push(
+    `mobile/app.json says ${appVersion} and extension/src/manifest.json says ${extensionVersion}, but one tag releases both; raise the lower one`,
+  );
+}
+
 // words
 const localeDir = join(web, 'src', 'lib', 'locales');
 const locales = readdirSync(localeDir).filter((f) => /^[a-z]{2}\.ts$/.test(f));
@@ -177,5 +189,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  `ok: the app card shows and downloads app.json's ${appVersion} through one constant, the extension card shows the embedded manifest's number, and ${locales.length} locales carry no version.`,
+  `ok: app.json and the manifest both say ${appVersion}, the app card shows and downloads it through one constant, the extension card shows the embedded manifest's number, and ${locales.length} locales carry no version.`,
 );

@@ -97,15 +97,18 @@ gets `success\r\n` back, the same answer a local JDownloader gives. Sites find
 a downloader at all because `cnl-main.js` sets `window.jdownloader` at
 `document_start`, before their own `jdcheck.js` looks for it.
 
-It is **on by default**: it is the reason most people install this, and a
-switch that reads "on" while waiting for someone to find a permission dialog
-would be a lie. That is mainly what `<all_urls>` in the manifest is for: such a
-button can be on any site, so the set cannot be narrowed in advance. The same
-access also lets the popup read the current tab's address and title when you
-press send, and a right-click send read the page title, which is why there is no
-`activeTab`.
+It runs on access to every site, because such a button can be on any site and
+the set cannot be narrowed in advance. That access is `<all_urls>` under
+`optional_host_permissions`, so installing the extension grants no site access
+at all. The switch is on until someone turns it off, but Click'n'Load only runs
+once the browser has granted the access: the options page asks for it with one
+click ("Allow access"), turning the switch on asks as well, and a refusal
+leaves it off. The popup points to the options page while the access is
+missing. Sending a page or a link does not need it: `activeTab` gives the popup
+the current tab's address and title when you press send, and a right-click
+send the page title.
 
-Switching it off in the options unregisters both content scripts
+Switching it off in the options hands the access back, unregisters both content scripts
 (`chrome.scripting.unregisterContentScripts`), which
 `chrome.scripting.getRegisteredContentScripts()` will confirm, and switches off
 the `cnl` ruleset that answers `jdcheck.js`
