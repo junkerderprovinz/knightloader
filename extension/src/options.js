@@ -23,6 +23,10 @@ const cnlCountdownLabelEl = document.getElementById('cnlCountdownLabel');
 const cnlCountdownUnitEl = document.getElementById('cnlCountdownUnit');
 const cnlCountdownUpEl = document.getElementById('cnlCountdownUp');
 const cnlCountdownDownEl = document.getElementById('cnlCountdownDown');
+const cnlRefusedEl = document.getElementById('cnlRefused');
+const cnlAccessEl = document.getElementById('cnlAccess');
+const cnlAccessAllowEl = document.getElementById('cnlAccessAllow');
+const cnlAccessKeepOffEl = document.getElementById('cnlAccessKeepOff');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
 const themeHeadingEl = document.getElementById('themeHeading');
 const shapeHeadingEl = document.getElementById('shapeHeading');
@@ -381,7 +385,13 @@ function applyStaticText() {
   glimSetInfo('languageHeading', t('options.languageSub'));
 
   cnlToggleEl.textContent = t('options.cnlToggle');
-  glimSetInfo('cnlHeading', t('options.cnlSub'));
+  glimSetInfo('cnlHeading', `${t('options.cnlSub')} ${t('options.cnlAccessInfo')}`);
+  document.getElementById('cnlRefusedTitle').textContent = t('options.cnlRefusedTitle');
+  document.getElementById('cnlRefusedReason').textContent = t('options.cnlRefused');
+  document.getElementById('cnlAccessHeading').textContent = t('options.cnlAccessHeading');
+  document.getElementById('cnlAccessBody').textContent = t('options.cnlAccessBody');
+  cnlAccessAllowEl.textContent = t('options.cnlAccessAllow');
+  cnlAccessKeepOffEl.textContent = t('options.cnlAccessKeepOff');
 
   // Look and Colours have no heading bubble because their rows explain
   // themselves.
@@ -748,17 +758,24 @@ async function renderLanguagePicker() {
 }
 
 /**
- * Click'n'Load is on by default, as the main reason to install the extension.
- * That is why <all_urls> is in the manifest: a default-on feature has to work
- * on a fresh install, and the install dialog names the access, as with
- * JDownloader's own extension. Switching it off unregisters the content
- * scripts, so sites reach 127.0.0.1:9666 as before.
+ * Whether the browser refused the access since this page opened. Page state:
+ * the notice explains the switch falling back, and a reload has nothing to
+ * explain.
+ */
+let cnlRefused = false;
+
+/**
+ * The switch shows whether Click'n'Load runs, never only whether it is wanted,
+ * so it cannot read "on" while the browser withholds the access. Wanted
+ * without access brings up the card at the top, whose button asks for it.
+ * Switching off unregisters the content scripts, so sites reach
+ * 127.0.0.1:9666 as before.
  */
 async function renderCnl() {
-  const stored = await chrome.storage.local.get('cnlEnabled');
-  // Absent means on, as in background.js.
-  const on = stored.cnlEnabled !== false;
+  const { wanted, on } = await cnlState();
   cnlEnabledEl.setAttribute('aria-checked', String(on));
+  cnlAccessEl.hidden = !wanted || on;
+  cnlRefusedEl.hidden = on || !cnlRefused;
 
   // The countdown goes with its switch (GlimStone 1.10.0 and 1.16.0): with
   // Click'n'Load off no batch is ever parked, so nothing reads the number.
@@ -829,16 +846,43 @@ cnlCountdownEl.addEventListener('change', async () => {
   markCountdownEnds();
 });
 
+// No status message: the switch is the feedback, and say() writes into the
+// group card. Switching off also hands the access back.
 cnlEnabledEl.addEventListener('click', async () => {
-  const on = cnlEnabledEl.getAttribute('aria-checked') !== 'true';
-  cnlEnabledEl.setAttribute('aria-checked', String(on));
+  if (cnlEnabledEl.getAttribute('aria-checked') !== 'true') {
+    await turnCnlOn();
+    return;
+  }
+  cnlEnabledEl.setAttribute('aria-checked', 'false');
   // The countdown row follows the switch at once.
-  cnlCountdownRow.hidden = !on;
-  await chrome.storage.local.set({ cnlEnabled: on });
-  await chrome.runtime.sendMessage({ type: 'knightloader-cnl-scripts', on }).catch(() => {});
-  // No status message: the switch is the feedback, and say() writes into the
-  // group card.
+  cnlCountdownRow.hidden = true;
+  cnlRefused = false;
+  await chrome.storage.local.set({ cnlEnabled: false });
+  await chrome.permissions.remove(CNL_ACCESS);
+  await renderCnl();
 });
+
+/** Nothing may be awaited before requestCnlAccess, or the click stops counting
+ *  as a gesture. */
+async function turnCnlOn() {
+  const granted = await requestCnlAccess();
+  cnlRefused = !granted;
+  await renderCnl();
+  if (!granted) {
+    shake(cnlEnabledEl);
+    cnlRefusedEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+cnlAccessAllowEl.addEventListener('click', () => void turnCnlOn());
+cnlAccessKeepOffEl.addEventListener('click', async () => {
+  await chrome.storage.local.set({ cnlEnabled: false });
+  await renderCnl();
+});
+
+// The browser's own extension settings change the access too.
+chrome.permissions.onAdded.addListener(() => void renderCnl());
+chrome.permissions.onRemoved.addListener(() => void renderCnl());
 
 // Appearance: theme, corners, accent and the rainbow. appearance.js applies
 // them at the top of every page, and the look can also be taken from the
@@ -1299,11 +1343,11 @@ function renderAbout() {
   const gh = document.getElementById('aboutGithub');
   const mail = document.getElementById('aboutMail');
   if (!versions) return;
-  // Both versions link to their release. Extension tags carry an "extension/"
-  // prefix because the repository ships three products.
+  // Both versions link to their release. The extension carries KnightLoader's
+  // own number, so its release is the main one.
   versions.replaceChildren(
     document.createTextNode(`${t('options.aboutVersion')} `),
-    versionLink(`${REPO_URL}/releases/tag/extension/v${chrome.runtime.getManifest().version}`, chrome.runtime.getManifest().version),
+    versionLink(`${REPO_URL}/releases/tag/v${chrome.runtime.getManifest().version}`, chrome.runtime.getManifest().version),
     document.createTextNode(' · GlimStone '),
     versionLink(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
   );
@@ -1597,10 +1641,10 @@ async function buildReport() {
       reachable = 'the relay could not be reached';
     }
   }
-  const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
-  // A switched-off feature, missing or stale scripts and an unloaded redirect
-  // rule all look the same from outside, so the report lists each script with
-  // its world and fallback, and the enabled rulesets.
+  const cnl = await cnlState();
+  // A switched-off feature, a withheld access, missing or stale scripts and an
+  // unloaded redirect rule all look the same from outside, so the report lists
+  // each script with its world and fallback, and the enabled rulesets.
   let registered = '?';
   try {
     const s = await chrome.scripting.getRegisteredContentScripts();
@@ -1626,7 +1670,7 @@ async function buildReport() {
     `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'} rainbow=${a.rainbow?.on ? 'on' : 'off'}`,
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
     `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
-    `clicknload: ${cnlEnabled !== false ? 'on' : 'off'}`,
+    `clicknload: ${cnl.on ? 'on' : cnl.wanted ? 'wanted, no site access' : 'off'}`,
     `  scripts: ${registered}`,
     `  rules:   ${rules}`,
   ].join('\n');

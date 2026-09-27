@@ -144,14 +144,6 @@ function bestWebUrl(remote) {
   return (domain ?? usable[0])?.url ?? '';
 }
 
-/** Halt or release one instance's queue, through the relay. */
-async function setQueueHalted(instanceId, halted) {
-  return withGroup(async ({ call }) => {
-    const res = await call(instanceId, 'POST', '/api/queue', JSON.stringify({ halted }));
-    return !!res && res.status >= 200 && res.status < 300;
-  });
-}
-
 /** What an instance is called in a list, falling back to the start of its id so
  *  two unnamed instances still differ. */
 function instanceLabel(inst) {

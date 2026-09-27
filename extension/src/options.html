@@ -26,11 +26,8 @@
          `[hidden] { display: none }`, so the attribute gets the weight to win. */
       [hidden] { display: none !important; }
       /* 40px between stacked cards, the shared number. The first visible card
-         gets none: #pinHint comes first and is usually hidden, so the card
-         after a hidden one resets as well. */
-      section.glim-card + section.glim-card { margin-top: 40px; }
-      section.glim-card:first-of-type { margin-top: 0; }
-      section.glim-card[hidden] + section.glim-card { margin-top: 0; }
+         gets none: the two hint cards at the top are usually hidden. */
+      section.glim-card:not([hidden]) ~ section.glim-card:not([hidden]) { margin-top: 40px; }
       h2 { margin: 0; font-size: var(--text-caption); font-weight: 500; }
       label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Fields match the web UI's (ui.tsx inputClass): a filled surface and no
@@ -186,6 +183,7 @@
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
+      .cnlRefused { margin-top: 14px; }
       .aboutVersions {
         margin: 0;
         font-size: var(--text-dense);
@@ -223,6 +221,19 @@
       <p id="pinBody" class="aboutText"></p>
       <div class="fields">
         <button id="pinDismiss" class="secondary" type="button"></button>
+      </div>
+    </section>
+
+    <!-- Shown while Click'n'Load is wanted but the browser has not granted the
+         access it runs on (cnlState in shared.js): after a fresh install, and
+         when an update or the browser's own settings took the access away. It
+         sits at the top because an update opens this page for it. -->
+    <section class="glim-card glim-stagger-row" id="cnlAccess" style="--row-i: 0" hidden>
+      <h2 class="glim-section-badge" id="cnlAccessHeading"></h2>
+      <p id="cnlAccessBody" class="aboutText"></p>
+      <div class="fields">
+        <button id="cnlAccessKeepOff" class="secondary" type="button"></button>
+        <button id="cnlAccessAllow" type="button"></button>
       </div>
     </section>
 
@@ -348,6 +359,11 @@
         <span class="glim-switch-label" id="cnlToggle"></span>
         <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
       </button>
+      <!-- Why the switch fell back after the browser refused the access. -->
+      <div class="glim-unavailable cnlRefused" id="cnlRefused" hidden>
+        <span class="glim-unavailable-title" id="cnlRefusedTitle"></span>
+        <span class="glim-unavailable-reason" id="cnlRefusedReason"></span>
+      </div>
       <div class="glim-row" id="cnlCountdownRow">
         <span class="glim-row-label" id="cnlCountdownLabel"></span>
         <span class="glim-row-control">

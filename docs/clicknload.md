@@ -102,8 +102,9 @@ There are two answers, and the browser extension is the one most people want.
 **The browser extension.** It catches the submission *inside the page*, before
 it is ever sent, then hands the links to whichever instance you pick, the same
 chooser every other send from the extension uses. Nothing runs on your desktop,
-no port is owned, and it works wherever the instance is. It is on from the
-first second, because it is what most people install the extension for.
+no port is owned, and it works wherever the instance is. It is what most people
+install the extension for, so the options page that opens after the install
+leads with it.
 
 This looks impossible at first, since an extension cannot listen on a TCP port
 and so never receives the POST. Instead it patches the page's own `fetch`, `XHR`
@@ -114,12 +115,13 @@ the site with the identical `success\r\n` a real listener would. The detection
 step is answered the same way: the interceptor declares `jdownloader = true`
 before any script the page brings, so the button appears.
 
-That means running code in every page you visit, which is a real permission and
-is named as one at install time: the manifest declares `<all_urls>`, and the
-browser says so before anything is installed. It was optional once, requested
-only when the feature was switched on: a better story for a store reviewer and
-a worse product, because a switch that reads "on" while quietly waiting for a
-permission dialog is a lie about what the extension is doing.
+That means running code in every page you visit, which is a real permission.
+The manifest lists `<all_urls>` under `optional_host_permissions`, so the
+install dialog asks for no website access, and the browser asks for it when
+Click'n'Load is switched on. The switch shows whether the interception runs,
+not whether it is wanted, so it never reads "on" while the browser still
+withholds the access. A fresh install opens the options page with a card that
+asks for it in one click.
 
 **Switching it off really switches it off**, which is the part a static
 `content_scripts` entry could never offer: the two scripts are unregistered
