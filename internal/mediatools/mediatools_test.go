@@ -546,3 +546,25 @@ func TestTheCacheNoticesTheFileChanging(t *testing.T) {
 		t.Fatalf("the cache did not notice the file changing: %q", v)
 	}
 }
+
+// The daily update asks CanInstall before it asks GitHub, so the check itself
+// must leave the tools folder as it found it.
+func TestCanInstallLeavesNothingBehind(t *testing.T) {
+	if len(candidates()) == 0 {
+		t.Skip("yt-dlp publishes no build for this platform")
+	}
+	dir := t.TempDir()
+	if err := CanInstall(dir); err != nil {
+		t.Fatalf("a writable data directory was refused: %v", err)
+	}
+	left, err := os.ReadDir(ToolsDir(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(left) != 0 {
+		t.Errorf("the check left %d files in the tools folder", len(left))
+	}
+	if CanInstall("") == nil {
+		t.Error("no data directory at all was accepted")
+	}
+}

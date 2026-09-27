@@ -403,12 +403,16 @@ type Settings struct {
 
 	// YtdlpVersionCheck asks the Resolvers page to call GET
 	// /api/mediatools/ytdlp/latest once when it loads, instead of only when
-	// somebody presses "Ask GitHub". Off by default, because it is an outbound
-	// call to api.github.com. It never downloads and never replaces anything,
-	// and there is no companion switch that installs what it finds: yt-dlp does
-	// ship regressions, and a new one silently changes what every download
-	// produces.
+	// somebody presses "Ask GitHub". Off by default. It never downloads and
+	// never replaces anything; YtdlpAutoUpdate is the switch that does.
 	YtdlpVersionCheck bool `json:"ytdlpVersionCheck"`
+
+	// YtdlpAutoUpdate lets the app fetch a newer yt-dlp once a day, through the
+	// same checksum and smoke test as the button, and keep the one in use when
+	// either fails. On by default: the container's distribution package lags
+	// weeks behind, and a site that changed its page breaks every download
+	// from it until yt-dlp catches up.
+	YtdlpAutoUpdate bool `json:"ytdlpAutoUpdate"`
 
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. Stored exactly as the user wrote it: rules.Compile is
@@ -753,6 +757,7 @@ func Defaults() Settings {
 		PreParserEnabled: true,
 		KeepAwake:        true,
 		AutoUpdate:       true,
+		YtdlpAutoUpdate:  true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.

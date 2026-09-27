@@ -64,9 +64,9 @@ type Latest struct {
 // is no yt-dlp at all).
 //
 // It is the only function in this package that touches the network on its own,
-// and nothing calls it except a press of the button or the opt-in "ask when
-// this page opens" switch. Probing versions and reading the record never leave
-// the box.
+// and nothing calls it except a press of the button, the opt-in "ask when this
+// page opens" switch and the daily update run. Probing versions and reading
+// the record never leave the box.
 func CheckLatest(ctx context.Context, installed string) Latest {
 	rel, err := ghrelease.Latest(ctx, ytdlpRepo)
 	if err != nil {
@@ -131,6 +131,29 @@ func Install(ctx context.Context, dataDir string) (ManagedRecord, error) {
 		return rec, fmt.Errorf("release %s: %s could not be read: %w", rel.Tag, checksumAsset, err)
 	}
 	return install(ctx, dataDir, names, rel, sums, downloadAsset)
+}
+
+// CanInstall reports why Install could not put a copy in place on this
+// machine, or nil when it could. It asks nothing of GitHub, so the daily run
+// stands down on a read-only data volume or an unsupported platform before it
+// downloads anything.
+func CanInstall(dataDir string) error {
+	if dataDir == "" {
+		return errors.New("there is no data directory to put a fetched copy in")
+	}
+	if len(candidates()) == 0 {
+		return fmt.Errorf("yt-dlp publishes no build for %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
+	if err := os.MkdirAll(ToolsDir(dataDir), 0o755); err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(ToolsDir(dataDir), ".write-test-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	_ = f.Close()
+	return os.Remove(name)
 }
 
 // fetcher writes one release asset to a path on disk. It is a parameter of

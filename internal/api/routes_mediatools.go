@@ -9,10 +9,9 @@ package api
 // settings page into a call to api.github.com nobody asked for. Asking GitHub
 // is its own route, reached by a button or a toggle that ships off.
 //
-// No route installs on its own. Replacing the extractor unattended changes
-// what a download produces, yt-dlp does ship regressions, and internal/update
-// refuses the same step for this app's own binary. Fetching happens because
-// somebody pressed "fetch this release".
+// No route installs on its own: a fetch through here happens because somebody
+// pressed "fetch this release". The daily update in internal/app takes the
+// same path without a request.
 
 import (
 	"net/http"

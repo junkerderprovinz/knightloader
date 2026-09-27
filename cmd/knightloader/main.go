@@ -131,11 +131,12 @@ func main() {
 	defer func() { _ = logring.CloseFile() }()
 
 	// Hoster logins are pushed into the JD sidecar on a loop, so a recreated JD
-	// container gets them back without a restart. This and the account health
-	// sweep below belong to the server binary rather than app.New, which every
-	// test calls.
+	// container gets them back without a restart. This, the account health
+	// sweep and the daily yt-dlp update belong to the binaries rather than
+	// app.New, which every test calls.
 	a.StartHosterAuth()
 	a.StartAccountHealthNow()
+	a.StartYtdlpAutoUpdate()
 
 	a.CnL = cnl.Listen(a)
 	defer a.CnL.Stop()
