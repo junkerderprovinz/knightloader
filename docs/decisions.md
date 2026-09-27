@@ -8,34 +8,57 @@ and the next person to read the code fixes it back.
 Each entry names what was chosen, and what was rejected and why. The rejected
 half is the part worth keeping.
 
-## Ownership: PUID, PGID and UMASK report, they do not apply
+## Ownership: UMASK applies, PUID and PGID only report
 
 **Built:** the readout. Which user and group downloaded files land as, under
 which mask, per configured folder, plus the same figures in the diagnostics
-bundle and one line at boot.
+bundle. And UMASK: the process takes it as its own umask at startup, the way
+linuxserver.io images read it, and logs one line saying so.
 
-**Not built:** an entrypoint that makes those variables take effect.
+**Not built:** an entrypoint that makes PUID and PGID take effect.
 
-`Dockerfile` declares `USER knight`, on purpose. Honouring PUID and PGID means
-starting the container as root and dropping privileges in an entrypoint, which
-turns a deliberately non-root image into a root-started one, and it needs a
-first-ever docker build job in CI to prove the result. That is a separate
-decision on a separate day.
+The two kinds of variable need different things. A umask belongs to the
+process, any process may set its own, and the children it starts (yt-dlp,
+ffmpeg, the headless JDownloader) inherit it, so honouring UMASK needs no
+privilege at all. Changing the uid does. `Dockerfile` declares `USER knight`, on
+purpose. Honouring PUID and PGID means starting the container as root and
+dropping privileges in an entrypoint, which turns a non-root image into a
+root-started one, and it needs a first-ever docker build job in CI to prove the
+result. That is a separate decision on a separate day. On Unraid,
+`--user 99:100` in Extra Parameters does what PUID and PGID do elsewhere.
+
+For the mask to decide anything, every file a download produces is requested as
+0666 and every folder as 0777 (`internal/filemode`), extracted files included.
+With `UMASK=000`, the Unraid convention, the account that reaches the share over
+SMB can move and delete what KnightLoader wrote. The torrent library is the
+exception: it creates files 0644 and folders 0755 whatever the umask, and makes
+each file read-only once it is complete, with no option to change either. So a
+finished torrent's own files and folders are set to what the umask asks for
+when it completes, before the app moves them on.
+
+The mask widens nothing the app keeps for itself. The database, settings, keys,
+sessions and backups are written with explicit modes, and a umask only takes
+bits away. JDownloader is the one child that writes secrets with modes of its
+own choosing, the hoster logins it is handed, so its folder in the data
+directory is kept at 0700.
 
 Two consequences are load-bearing and must not be "tidied":
 
-- There is no per-variable "did this take" flag, because this build could not
-  answer one honestly. `applied.puid = true` could only ever mean "the value you
-  set happens to equal the uid you already had", which reads on screen as "PUID
-  works". One `envRead: false` says the true thing once.
-- No string in the interface may imply that setting PUID would change anything.
-  `settings.owner.envIgnored` means: the variable is set, and nothing in this
-  image reads it.
+- The readout reports per variable. `umaskApplied` says whether UMASK took;
+  a single `idsRead: false` says that nothing reads PUID or PGID. There is no
+  per-id "did this take" flag, because this build could not answer one
+  honestly: `applied.puid = true` could only ever mean "the value you set
+  happens to equal the uid you already had", which reads on screen as "PUID
+  works".
+- No string in the interface may imply that setting PUID or PGID would change
+  anything. `settings.owner.envIgnored` means: the variable is set, and nothing
+  in this image reads it.
 
 `routes_fileowner.go` carries a test that reads this repo's own `Dockerfile` and
-fails in BOTH directions: while `USER knight` is there and `envRead` is true, and
-when `USER knight` is gone and `envRead` is still false. So the day somebody does
-take the entrypoint decision, that test tells them the copy has to move with it.
+fails in both directions: while `USER knight` is there and `idsRead` is true,
+and when `USER knight` is gone and `idsRead` is still false. So the day somebody
+does take the entrypoint decision, that test tells them the copy has to move
+with it.
 
 ## Metrics: a guarded route and a switch that ships off
 

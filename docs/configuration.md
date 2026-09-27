@@ -20,6 +20,7 @@ the Accounts page. None of them is required.
 | `KL_JD` | | headless JDownloader API URL, e.g. `http://jd:3128`; the catch-all for hoster links nothing else claims |
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 | `KL_PROVISION_JD` | `1` | provisions a private headless JDownloader on first run and uses it as the hoster catch-all; `0` opts out, and it is skipped whenever `KL_JD` is already set |
+| `UMASK` | the container's own, usually `022` | octal mask for every file and folder KnightLoader and the programs it starts create, read the way linuxserver.io images read it: `000`, `002`, `022`. Downloads are created 0666 and folders 0777 before the mask. `000` is the Unraid convention and lets the SMB account move and delete downloads. A value that is not octal is logged and ignored. `PUID` and `PGID` are not read; use `--user` instead, see [Installing](installing.md#as-a-container) |
 
 ## Services without a variable
 
