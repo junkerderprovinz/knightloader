@@ -33,16 +33,16 @@ group is the credential.
 
 ## Versions
 
-This extension carries its own version in `src/manifest.json` and is tagged on
-its own (`extension/vX.Y.Z`), separately from KnightLoader itself - it is
-installed separately and upgrades separately, so one shared number would be
-wrong in one direction or the other. See the Versioning section of the root
-`CHANGELOG.md`.
+The extension has KnightLoader's version, written in `src/manifest.json`, and
+is released with everything else under the `vX.Y.Z` tag, as
+`knightloader-vX.Y.Z-extension.zip` and `knightloader-extension.zip`. The
+release workflow refuses a tag the manifest does not match. See the Versioning
+section of the root `CHANGELOG.md`.
 
-The copy most people run does not come from that tag. The zip served by
-Settings > App is built from the copy embedded in whatever server
-binary is running (`embed.go`), so that one tracks the server. The tag exists
-for a browser store submission and for anyone who wants a fixed download.
+The copy most people run does not come from the release. The zip served by
+Settings > App is built from the copy embedded in whatever server binary is
+running (`embed.go`), so that one matches the server. The release zip is for a
+browser store submission and for anyone who wants a fixed download.
 
 Both are **byte-identical to `src/`**. The download used to bake the serving
 instance's address into a `config.default.json`; that file is gone, because the

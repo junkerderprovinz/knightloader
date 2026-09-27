@@ -7,14 +7,10 @@ repository.
 
 REPO = "knightloader"
 RELEASE = "https://github.com/junkerderprovinz/knightloader/releases/latest/download/"
-# The app and the extension are released on tags of their own, so the
-# product's /releases/latest/ never carries them. Their workflows copy the
-# newest build into a standing release each, under a name without a version.
-NEWEST = "https://github.com/junkerderprovinz/knightloader/releases/download/%s/latest/"
 
 BUTTONS = {
-    "windows": RELEASE + "knightloader-windows-amd64.zip",
-    "windows-arm": RELEASE + "knightloader-windows-arm64.zip",
+    "windows": RELEASE + "knightloader-windows-amd64-installer.exe",
+    "windows-arm": RELEASE + "knightloader-windows-arm64-installer.exe",
     "macos": RELEASE + "knightloader-macos-universal.zip",
     "linux": RELEASE + "knightloader-linux-amd64.zip",
     "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
@@ -29,9 +25,9 @@ BUTTONS = {
     # No listing yet, so the button is drawn without a link. The listing's
     # address goes here once it exists.
     "google-play": None,
-    "apk": NEWEST % "mobile" + "knightloader-android.apk",
+    "apk": RELEASE + "knightloader-android.apk",
     # One zip for every Chromium browser.
-    "chrome": NEWEST % "extension" + "knightloader-extension.zip",
+    "chrome": RELEASE + "knightloader-extension.zip",
     # Firefox takes only an add-on Mozilla has signed, and the signed builds
     # come from the Firefox Add-ons listing. Its address goes here once the
     # listing is live.

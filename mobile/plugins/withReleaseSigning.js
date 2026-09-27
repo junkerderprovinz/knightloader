@@ -27,7 +27,7 @@ const { withAppBuildGradle } = require('expo/config-plugins');
  *
  * With none of them set the build falls back to the debug key, which is right
  * for `npm run android` on a laptop. The fallback is not the safety net for a
- * release: release-mobile.yml refuses to build a tag without the secrets, and
+ * release: release.yml refuses to build a tag without the secrets, and
  * then verifies the finished APK's certificate is not the debug one, because an
  * env var being set is no proof of what ended up in the artifact.
  */
@@ -92,7 +92,7 @@ ${debugBlock}`,
             // The real key when the environment carries one, the debug key
             // otherwise. A laptop build stays a one-command build; a release
             // is stopped long before here when the secrets are missing (see
-            // .github/workflows/release-mobile.yml), and the APK's own
+            // .github/workflows/release.yml), and the APK's own
             // certificate is checked afterwards.
             signingConfig System.getenv('KL_ANDROID_KEYSTORE') ? signingConfigs.release : signingConfigs.debug`,
     );

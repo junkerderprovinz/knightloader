@@ -8,24 +8,23 @@ JDownloader instance rather than a second JDownloader.
 
 ## Versions
 
-The app carries its own version in `app.json` and is tagged on its own
-(`mobile/vX.Y.Z`), separately from KnightLoader itself - an APK on a phone does
-not change when a container is pulled. See the Versioning section of the root
-`CHANGELOG.md`.
+The app has KnightLoader's version and is released with everything else under
+the `vX.Y.Z` tag, as `knightloader-vX.Y.Z-android.apk` and
+`knightloader-android.apk`. `expo.version` in `app.json` names it, and
+`.github/workflows/release.yml` refuses a tag that it does not match. See the
+Versioning section of the root `CHANGELOG.md`.
 
-Bump **both** fields together: `expo.version` is the name people see, and
-`expo.android.versionCode` is what Android decides upgrade order by. A build
-handed to anybody needs a higher versionCode than the one before it, even when
-the version name is unchanged - two builds sharing a versionCode are
-indistinguishable to the phone. `.github/workflows/release-mobile.yml` refuses
-a tag whose version does not match `app.json`.
+`app.json` carries no `versionCode`. Android decides upgrade order by it, so
+the release build works it out from the version as
+`major * 10000 + minor * 100 + patch`, and every release gets a higher one than
+the release before.
 
-**Signing.** The release APK is signed with the Android debug key the Expo
-template ships (`CN=Android Debug`) - public, and identical for everyone. That
-is what makes a build install cleanly over an earlier one, and it is fine for
-installing on your own devices. It is not fine for publishing anywhere: anyone
-can sign an APK that Android accepts as an update to it. A real key belongs in
-a repository secret, never in the repo.
+**Signing.** A release APK is signed with KnightLoader's own key, which lives in
+repository secrets and never in the repository. `plugins/withReleaseSigning.js`
+picks it up from the environment, and the release workflow checks the
+certificate of the finished APK. A local build without those variables falls
+back to the Android debug key the Expo template ships, which is public and fine
+only for your own devices.
 
 ## Why a companion app, not a second engine
 

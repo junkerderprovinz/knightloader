@@ -6,34 +6,33 @@ All notable changes to KnightLoader. The format follows
 
 ## Versioning
 
-Three things here are installed separately and upgrade separately, so they are
-versioned and tagged separately. An APK on a phone does not change when a
-container is pulled, and a browser extension does not change because a server
-did - tying them to one number would mean either bumping it for changes it does
-not contain, or not bumping it for changes it does.
+KnightLoader has one version number. The server, the web UI, the container
+image, the desktop apps, the Android app and the browser extension all carry
+it, and one `vX.Y.Z` tag releases them together, with the APK and the extension
+zip attached next to the desktop downloads. A release gives the app and the
+extension the new number even when neither changed, so the number alone tells
+you which app, extension and server belong together.
 
-| What | Version lives in | Tag |
-| --- | --- | --- |
-| KnightLoader itself (server, web UI, desktop) | the tag | `vX.Y.Z` |
-| Android app | `mobile/app.json` (`expo.version` **and** `expo.android.versionCode`) | `mobile/vX.Y.Z` |
-| Browser extension | `extension/src/manifest.json` | `extension/vX.Y.Z` |
+| What | Version lives in |
+| --- | --- |
+| Server, web UI, container image, desktop apps | the tag |
+| Android app | `mobile/app.json` (`expo.version`) |
+| Browser extension | `extension/src/manifest.json` |
 
-Both are released at `mobile/v1.0.0` and `extension/v1.0.0`. KnightLoader
-itself is released at `v1.0.0`.
+Raise both files to the new number before tagging. `release.yml` refuses a tag
+that either file disagrees with.
 
-Each tag runs its own workflow and no other: a `*` in a GitHub ref filter does
-not cross a `/`, so `mobile/v1.0.0` is invisible to the bare `v*.*.*` pattern
-and the reverse. Each workflow refuses a tag whose version does not match the
-file it claims to describe.
+Android decides upgrade order by `versionCode`, not by the version name. The
+release build works it out from the version as
+`major * 10000 + minor * 100 + patch`, so 1.4.0 is 10400, and nobody has to
+raise it by hand.
 
-`versionCode` matters as much as the version string: Android decides upgrade
-order by it, and it must go up on every build you hand anybody, even when the
-version name is unchanged.
-
-The copy of the extension most people run does not come from its tag. The App
-page in Settings serves a zip built from the copy embedded in whatever server
-binary is running, so that one tracks the server. The tag exists for a store
-submission and for a fixed download.
+The copy of the extension most people run does not come from the release. The
+App page in Settings serves a zip built from the copy embedded in whatever
+server binary is running, so that one always matches the server. The zip on the
+release is for a store submission and for a fixed download. Firefox Add-ons
+gets a version only when the Firefox Add-ons workflow is run by hand on the
+release's tag.
 
 ## [Unreleased]
 
@@ -70,6 +69,12 @@ submission and for a fixed download.
 
 ### Changed
 
+- **One version number for everything.** The server, the desktop apps, the
+  Android app and the browser extension are released together under one
+  `vX.Y.Z` tag, and each release carries the APK and the extension zip next to
+  the desktop downloads. The README's Android button and the App page in
+  Settings download the app from there. The app and the extension no longer
+  have releases of their own.
 - **The README and the manual no longer warn against installing KnightLoader.**
 - **The README's badges** add the lint run, the Docker Hub pulls and image
   size, the desktop app, the three download engines, the manual and the

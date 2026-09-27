@@ -147,7 +147,7 @@ export function BrowserTools() {
       </Card>
 
       <Card hue={3} className="flex flex-col gap-4">
-        {extensionVersion && <ReleaseVersion version={extensionVersion} tagPrefix="extension/v" />}
+        {extensionVersion && <ReleaseVersion version={extensionVersion} />}
         <SectionTitle>{t('settings.browsertools.extensionTitle')}</SectionTitle>
         {/* A button for every browser, though the Chromium ones share one
             package. Each (i) holds the steps that install it. */}
@@ -222,7 +222,7 @@ function PhoneCard() {
 
   return (
     <Card hue={0} className="flex flex-col gap-4">
-      <ReleaseVersion version={APP_VERSION} tagPrefix="mobile/v" />
+      <ReleaseVersion version={APP_VERSION} />
       <SectionTitle hint={t('settings.browsertools.phoneHint')}>{t('settings.browsertools.phoneTitle')}</SectionTitle>
       <div className="glim-readme-btn-rows">
         <ReadmeButton
@@ -486,15 +486,15 @@ const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 
 // The app this build offers is the version mobile/app.json names when the page
 // is built (vite.config.ts), and the APK tile fetches exactly that release's
-// file, so the card's number is the app the tile gives. The standing "newest"
-// download is whatever was tagged last, which this build cannot know.
+// file, so the card's number is the app the tile gives. /releases/latest/ is
+// whatever was released last, which this build cannot know.
 // check-version-sources.mjs holds both ends. An empty listing URL turns its
 // tile into one that is still to come.
 const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
   play: '',
-  apk: `${REPO_URL}/releases/download/mobile/v${APP_VERSION}/KnightLoader-${APP_VERSION}.apk`,
+  apk: `${REPO_URL}/releases/download/v${APP_VERSION}/knightloader-v${APP_VERSION}-android.apk`,
 };
 
 const UNRAID_CA_URL = '';
@@ -520,17 +520,16 @@ function dockerRun(): string {
 /**
  * ReleaseVersion links a version to its release page, on the card's top edge
  * opposite the title, so a card with a version keeps its buttons where every
- * other card has them. The extension's and the app's tags carry a prefix of
- * their own, since three products share the releases list; a stamp that is
- * not a plain three-part version shows without a link.
+ * other card has them. A stamp that is not a plain three-part version shows
+ * without a link.
  */
-function ReleaseVersion({ version, tagPrefix }: { version: string; tagPrefix: 'extension/v' | 'mobile/v' }) {
+function ReleaseVersion({ version }: { version: string }) {
   const notch = `glim-num absolute end-5 top-0 z-10 -translate-y-1/2 rounded-[var(--radius-pill)] bg-carbon-surface2
     px-2.5 py-[3px] text-[11px] leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
   if (!/^\d+\.\d+\.\d+$/.test(version)) return <span className={notch}>v{version}</span>;
   return (
     <a
-      href={`${REPO_URL}/releases/tag/${tagPrefix}${version}`}
+      href={`${REPO_URL}/releases/tag/v${version}`}
       target="_blank"
       rel="noreferrer noopener"
       onClick={followExternal}
