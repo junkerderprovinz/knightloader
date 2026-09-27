@@ -1158,7 +1158,25 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.browsertools.bookmarkletStep3',
       ],
     },
-    { title: 'settings.browsertools.extensionTitle', rows: [], also: ['settings.browsertools.installLabel'] },
+    {
+      title: 'settings.browsertools.extensionTitle',
+      rows: [],
+      also: ['settings.browsertools.installLabel'],
+      body: [
+        'settings.browsertools.installChromiumStep1',
+        'settings.browsertools.installChromiumStep3',
+        'settings.browsertools.installDevModeTopRight',
+        'settings.browsertools.installDevModeLeft',
+        'settings.browsertools.installChromiumStep4',
+        'settings.browsertools.installPinPuzzle',
+        'settings.browsertools.installPinEdge',
+        'settings.browsertools.installPinOpera',
+        'settings.browsertools.installPinVivaldi',
+        'settings.browsertools.installFirefoxStep1',
+        'settings.browsertools.installFirefoxStep2',
+        'settings.browsertools.installFirefoxStep3',
+      ],
+    },
   ],
 
   shortcuts: [

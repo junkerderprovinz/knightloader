@@ -115,6 +115,11 @@ submission and for a fixed download.
 - Every KnightLoader release carries the browser extension it serves, as
   `knightloader-extension.zip`, and the README button downloads it from
   there. The separate `extension/latest` release is gone.
+- The install steps behind each browser's extension button on Settings, Apps
+  fit that browser: its own extensions page, where its Developer mode switch
+  is (top right in Chrome, Opera and Vivaldi, the left column in Edge), and
+  how a new extension gets onto its toolbar. Vivaldi has nothing to pin and
+  shows the button in the address bar instead.
 - An instance that answers is **Connected** and one that does not is **Not
   connected**, in the web interface and the Android app. The Overview's
   Instances card shows the same badge as the Instances page, and its two cards

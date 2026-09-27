@@ -58,17 +58,40 @@ export function BrowserTools() {
       .catch(() => {});
   }, []);
 
-  const chromiumHint = (
+  // The Chromium browsers share the package and the load step. Each has its
+  // own extensions page, puts the developer mode switch in its own place and
+  // gets a new extension onto the toolbar its own way; a freshly loaded one
+  // that stays off the toolbar otherwise reads as a failed install. Brave's
+  // help does not say where its switch is, so its step does not either.
+  const chromiumHint = (page: string, devMode: ReactNode, pin: ReactNode) => (
     <ol className="list-decimal space-y-1 ps-4">
       <li>{t('settings.browsertools.installChromiumStep1')}</li>
-      <li>{t('settings.browsertools.installChromiumStep2')}</li>
-      <li>{t('settings.browsertools.installChromiumStep3')}</li>
+      <li>{t('settings.browsertools.installOpenPage', { page })}</li>
+      <li>{devMode}</li>
       <li>{t('settings.browsertools.installChromiumStep4')}</li>
-      {/* Chrome keeps a freshly loaded extension off the toolbar until it is
-          pinned, which otherwise reads as a failed install. */}
-      <li>{t('settings.browsertools.installChromiumStep5')}</li>
+      <li>{pin}</li>
     </ol>
   );
+  const topRight = t('settings.browsertools.installDevModeTopRight');
+  const hints = {
+    chrome: chromiumHint(
+      'chrome://extensions',
+      topRight,
+      t('settings.browsertools.installPinPuzzle', { browser: 'Chrome' }),
+    ),
+    edge: chromiumHint(
+      'edge://extensions',
+      t('settings.browsertools.installDevModeLeft'),
+      t('settings.browsertools.installPinEdge'),
+    ),
+    brave: chromiumHint(
+      'brave://extensions',
+      t('settings.browsertools.installChromiumStep3'),
+      t('settings.browsertools.installPinPuzzle', { browser: 'Brave' }),
+    ),
+    opera: chromiumHint('opera://extensions', topRight, t('settings.browsertools.installPinOpera')),
+    vivaldi: chromiumHint('vivaldi://extensions', topRight, t('settings.browsertools.installPinVivaldi')),
+  };
   const firefoxHint = (
     <ol className="list-decimal space-y-1 ps-4">
       <li>{t('settings.browsertools.installFirefoxStep1')}</li>
@@ -133,7 +156,7 @@ export function BrowserTools() {
             brand="chrome"
             parts={[chromiumPart('Chrome', 'Chrome')]}
             mark={<BrandMark svg={CHROME_SVG} lit={CHROME_LIT_SVG} />}
-            hint={chromiumHint}
+            hint={hints.chrome}
             hintLabel={installLabel}
             soonLabel={soon}
           />
@@ -141,7 +164,7 @@ export function BrowserTools() {
             brand="edge"
             parts={[chromiumPart('Edge', 'Edge')]}
             mark={<BrandMark svg={EDGE_SVG} lit={EDGE_LIT_SVG} />}
-            hint={chromiumHint}
+            hint={hints.edge}
             hintLabel={installLabel}
             soonLabel={soon}
           />
@@ -149,7 +172,7 @@ export function BrowserTools() {
             brand="brave"
             parts={[chromiumPart('Brave', 'Chrome')]}
             mark={<BrandMark svg={BRAVE_SVG} lit={BRAVE_LIT_SVG} />}
-            hint={chromiumHint}
+            hint={hints.brave}
             hintLabel={installLabel}
             soonLabel={soon}
           />
@@ -157,7 +180,7 @@ export function BrowserTools() {
             brand="opera"
             parts={[chromiumPart('Opera', 'Chrome')]}
             mark={<BrandMark svg={OPERA_SVG} lit={OPERA_LIT_SVG} />}
-            hint={chromiumHint}
+            hint={hints.opera}
             hintLabel={installLabel}
             soonLabel={soon}
           />
@@ -165,7 +188,7 @@ export function BrowserTools() {
             brand="vivaldi"
             parts={[chromiumPart('Vivaldi', 'Chrome')]}
             mark={<BrandMark svg={VIVALDI_SVG} lit={VIVALDI_LIT_SVG} />}
-            hint={chromiumHint}
+            hint={hints.vivaldi}
             hintLabel={installLabel}
             soonLabel={soon}
           />
