@@ -37,6 +37,8 @@ submission and for a fixed download.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-27
+
 ### Added
 
 - **The progress bar shows how far an archive has unpacked.** While an archive
