@@ -26,9 +26,12 @@ export function CoffeeDonate({ visible, onClose }: { visible: boolean; onClose: 
   return (
     <Modal visible={visible} transparent animationType={motion === 'off' ? 'none' : 'fade'} onRequestClose={onClose}>
       <NoArrival>
-        <Pressable style={[styles.scrim, { backgroundColor: c.scrim }]} onPress={onClose}>
-          {/* Swallows the press so a tap inside the window closes nothing. */}
-          <Pressable style={styles.window} onPress={() => {}} accessibilityViewIsModal>
+        <View style={[styles.scrim, { backgroundColor: c.scrim }]}>
+          {/* The scrim closes from behind the window rather than around it,
+              since a pressable around the web view would take its scroll
+              gesture. */}
+          <Pressable style={styles.behind} onPress={onClose} accessible={false} />
+          <View style={styles.window} accessibilityViewIsModal>
             <NotchCard title="Buy Me a Coffee" info={t('settings.coffeeIntro')} style={styles.flush}>
               <Text style={[styles.appeal, { color: c.text }]}>{t('settings.donateAppeal')}</Text>
               {/* A fixed share of the screen, since the widget scrolls itself
@@ -50,8 +53,8 @@ export function CoffeeDonate({ visible, onClose }: { visible: boolean; onClose: 
                 <GlimButton tone="quiet" label={t('settings.donateClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
               </View>
             </NotchCard>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </NoArrival>
     </Modal>
   );
@@ -65,5 +68,6 @@ const styles = StyleSheet.create({
   // BMAC paints its page white, so the box does too while it loads.
   widget: { overflow: 'hidden', backgroundColor: '#ffffff' },
   loading: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
+  behind: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
 });
