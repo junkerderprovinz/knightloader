@@ -1,7 +1,9 @@
-// Composes the desktop app icon: the logo centred on GlimStone's --carbon-bg in
-// a square tile, left unrounded because the OS applies its own mask. Wails
-// builds the platform .ico and .icns from desktop/build/appicon.png, the one
-// committed file under desktop/build.
+// Composes the app icons from the logo. The desktop app's icon is the logo on
+// a transparent ground, because the taskbar, the Dock and the installer draw
+// their own behind it. The container icon, knightloader-appicon.png, puts it on
+// GlimStone's --carbon-bg in a square tile, left unrounded because Unraid
+// applies its own mask. Wails builds the platform .ico and .icns from
+// desktop/build/appicon.png.
 // Run: node .github/assets/gen-appicon.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -35,15 +37,20 @@ const embedded = LOGO.replace(
   `<svg x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${logoW.toFixed(1)}" height="${logoH.toFixed(1)}" viewBox="0 0 ${VB_W} ${VB_H}" xmlns="http://www.w3.org/2000/svg">`,
 );
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+const tile = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
   <rect width="${SIZE}" height="${SIZE}" fill="${BG}"/>
   ${embedded}
 </svg>
 `;
+const bare = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+  ${embedded}
+</svg>
+`;
 
-const outSvg = join(REPO, ".github/assets/knightloader-appicon.svg");
-writeFileSync(outSvg, svg);
-const png = new Resvg(svg, { background: BG, fitTo: { mode: "width", value: SIZE } }).render().asPng();
-writeFileSync(join(REPO, "desktop/build/appicon.png"), png);
-writeFileSync(join(REPO, ".github/assets/knightloader-appicon.png"), png);
-console.log("wrote appicon.png (" + png.length + " bytes) + knightloader-appicon.svg/.png");
+const render = (svg) => new Resvg(svg, { fitTo: { mode: "width", value: SIZE } }).render().asPng();
+
+writeFileSync(join(REPO, ".github/assets/knightloader-appicon.svg"), tile);
+writeFileSync(join(REPO, ".github/assets/knightloader-appicon.png"), render(tile));
+const desktop = render(bare);
+writeFileSync(join(REPO, "desktop/build/appicon.png"), desktop);
+console.log("wrote desktop/build/appicon.png (" + desktop.length + " bytes) + knightloader-appicon.svg/.png");
