@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
+import { fetchListCards, fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
+import { splitByCard, type CardSwitches } from '../api/taskState';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
@@ -75,6 +76,10 @@ export default function DownloadsScreen({
   const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
   const queued = tasks.filter((x) => x.status !== 'collected');
   const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
+  // Seeding and finished packages leave the download list for parts of their
+  // own below it, as on the web's Downloads page, by the instance's switches.
+  const [cardsOn, setCardsOn] = useState<CardSwitches>({ seeding: true, finished: true });
+  const parts = splitByCard(queued, cardsOn);
   const fabPress = usePress();
 
   /** The live handle, kept so an action that just changed something on the
@@ -97,6 +102,16 @@ export default function DownloadsScreen({
       handle();
     };
   }, [conn, base, peer]);
+
+  // The switches of the instance this app is connected to, a peer's list
+  // included, the way a browser shows a peer by its own instance's settings.
+  useEffect(() => {
+    let alive = true;
+    void fetchListCards(conn).then((on) => alive && setCardsOn(on));
+    return () => {
+      alive = false;
+    };
+  }, [conn]);
 
   useEffect(() => {
     let alive = true;
@@ -177,7 +192,15 @@ export default function DownloadsScreen({
           list's width cap, centring and margins, four places to keep in step;
           inside the content container there are none. */}
       <PackageList
-        tasks={shown === 'collector' ? collected : queued}
+        tasks={shown === 'collector' ? collected : parts.downloads}
+        sections={
+          shown === 'collector'
+            ? []
+            : [
+                { key: 'seeding', title: t('status.seeding'), hue: 1, tasks: parts.seeding },
+                { key: 'finished', title: t('status.finished'), hue: 2, tasks: parts.finished },
+              ]
+        }
         lineKey={shown}
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
         header={

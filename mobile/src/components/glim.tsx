@@ -63,6 +63,27 @@ export function NotchCard({
   );
 }
 
+/** NotchCard's badge on its own, for a heading inside a list, where the rows
+ *  under it are the card and there is no edge for it to hang over. */
+export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
+  const { c, accent, accentContrast, corners, hueAt, rainbow } = useAppearance();
+  const { fill, ink } = restingFill(hue, {
+    accent,
+    accentContrast,
+    hueAt,
+    reactive: rainbow.on && rainbow.reactive,
+    muted: c.textMuted,
+    ground: c.bg,
+  });
+  return (
+    <View style={[styles.label, { backgroundColor: fill, ...corners.pill }]}>
+      <Text style={[styles.notchText, { color: ink }]} numberOfLines={1}>
+        {title}
+      </Text>
+    </View>
+  );
+}
+
 /** The one horizontal selector: a groove one surface deeper, equal segments,
  *  and only the chosen segment is a badge. No per-segment borders.
  *
@@ -358,6 +379,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
   },
+  label: { paddingVertical: 3, paddingHorizontal: 12, flexShrink: 1 },
   // The line height is stated rather than left to the platform, because it is
   // half of what makes the badge 22 points tall: 16 of text between 3 and 3 of
   // padding.
