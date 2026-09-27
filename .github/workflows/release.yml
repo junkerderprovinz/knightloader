@@ -75,6 +75,10 @@ jobs:
             slug="${d#bundles/knightloader-}"
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${v}-${slug}.zip"
             cp "$d/knightloader-${slug}.zip" "dist/knightloader-${slug}.zip"
+            if [ -f "$d/knightloader-${slug}-installer.exe" ]; then
+              cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${v}-${slug}-installer.exe"
+              cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${slug}-installer.exe"
+            fi
           done
           ls -lh dist
 
@@ -84,7 +88,7 @@ jobs:
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe > checksums.txt)
           cat dist/checksums.txt
 
       # Only from a pushed tag. checksums.txt is named explicitly rather than
@@ -94,7 +98,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/checksums.txt
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed
