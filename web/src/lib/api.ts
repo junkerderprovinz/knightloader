@@ -1633,12 +1633,15 @@ export interface VolumeBucket {
   byResolver: Record<string, number> | null;
 }
 
-/** GET /api/stats/volume */
-export interface VolumeStats {
-  /** Newest last, one entry per day, gaps filled with a zero bucket. */
-  days: VolumeBucket[];
-  /** Newest last, one entry per month, gaps filled with a zero bucket. */
-  months: VolumeBucket[];
+/**
+ * GET /api/stats/volume?span=, where the span is 'all' or a count of days or
+ * months such as '45d' or '6m'.
+ */
+export interface VolumeCurve {
+  /** Days up to 92 days, months beyond; the server decides from the span's length. */
+  unit: 'day' | 'month';
+  /** Newest last, gaps filled with a zero bucket. */
+  buckets: VolumeBucket[];
   /** The zone the server bucketed by, so the chart can say whose calendar it is. */
   timeZone: string;
   /** The oldest finish time the history still holds; before it nothing is recorded. */
@@ -1661,8 +1664,8 @@ export interface VolumeUsage {
   reached: boolean;
 }
 
-export async function fetchVolumeStats(): Promise<VolumeStats> {
-  return json<VolumeStats>(await fetch('/api/stats/volume'));
+export async function fetchVolumeCurve(span: string): Promise<VolumeCurve> {
+  return json<VolumeCurve>(await fetch(`/api/stats/volume?span=${encodeURIComponent(span)}`));
 }
 
 export async function fetchVolumeUsage(): Promise<VolumeUsage> {

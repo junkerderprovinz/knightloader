@@ -1049,7 +1049,7 @@ function Stepper({ up = false }: { up?: boolean }) {
  * ref rather than being torn down and rebuilt on every keystroke: a number
  * field re-renders on each character typed into it.
  */
-function useFocusWheel(field: RefObject<HTMLInputElement | null>, onStep: (up: boolean) => void) {
+export function useFocusWheel(field: RefObject<HTMLInputElement | null>, onStep: (up: boolean) => void) {
   const step = useRef(onStep);
   useEffect(() => {
     step.current = onStep;
