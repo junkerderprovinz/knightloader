@@ -22,7 +22,7 @@ import {
   rainbowFromSettings,
   readCachedDisco,
 } from '../lib/appearance';
-import { onUpdateReady } from '../lib/desktop';
+import { onUpdateReady, useTrayWords } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { setListCards } from '../lib/listCards';
@@ -181,6 +181,8 @@ export function Layout() {
   // Here rather than per page, so unpacking is watched on every page.
   useExtractionToasts();
   useUpdateReadyToast();
+  // The desktop app draws the tray menu in the language shown here.
+  useTrayWords(useT().t);
   useAppearance();
   // Keyed on the section, not the path: the key replays the enter animation
   // by remounting, which would throw away a section's state on every click

@@ -3,7 +3,15 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { desktopOS, isDesktop, openURL } from '../lib/desktop';
 import { PAYPAL } from '../lib/donate';
+
+vi.mock('../lib/desktop', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/desktop')>()),
+  isDesktop: vi.fn(() => false),
+  openURL: vi.fn(async () => {}),
+  desktopOS: vi.fn(async () => ''),
+}));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -209,32 +217,30 @@ describe('PaypalDialog', () => {
 });
 
 describe('the PayPal button in the desktop build', () => {
-  // The part of the Wails runtime the button uses, as the desktop build injects it.
-  function desktop(platform: string) {
-    const runtime = {
-      BrowserOpenURL: vi.fn(),
-      Environment: vi.fn(async () => ({ buildType: 'production', platform, arch: 'amd64' })),
-    };
-    (window as unknown as { runtime?: typeof runtime }).runtime = runtime;
-    return runtime;
+  // The part of the desktop app the button asks: which system it runs on, and
+  // the hand-off to the system browser.
+  function desktop(os: string) {
+    vi.mocked(isDesktop).mockReturnValue(true);
+    vi.mocked(desktopOS).mockResolvedValue(os);
   }
 
   afterEach(() => {
-    delete (window as unknown as { runtime?: unknown }).runtime;
+    vi.mocked(isDesktop).mockReturnValue(false);
+    vi.mocked(openURL).mockClear();
   });
 
-  it.each(['darwin', 'linux'])('opens the donation page in the system browser on %s', async (platform) => {
-    const runtime = desktop(platform);
+  it.each(['darwin', 'linux'])('opens the donation page in the system browser on %s', async (os) => {
+    desktop(os);
     await openWindow();
-    expect(runtime.BrowserOpenURL).toHaveBeenCalledWith('https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS');
+    expect(openURL).toHaveBeenCalledWith('https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS');
     expect(scripts).toHaveLength(0);
     expect(document.querySelector('[role="dialog"]')).toBeNull();
   });
 
   it('keeps the PayPal window on Windows, where its popup works', async () => {
-    const runtime = desktop('windows');
+    desktop('windows');
     await openWindow();
-    expect(runtime.BrowserOpenURL).not.toHaveBeenCalled();
+    expect(openURL).not.toHaveBeenCalled();
     expect(scripts).toHaveLength(1);
   });
 });

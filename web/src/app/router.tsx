@@ -8,6 +8,7 @@ import { Instances } from '../pages/Instances';
 import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
 import { QuickAdd } from '../pages/QuickAdd';
+import { TrayOverview } from '../pages/TrayOverview';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
@@ -29,6 +30,8 @@ export function AppRouter() {
             {/* Outside <Layout>: the bookmarklet and the extension open it as
                 a small window with no room for a sidebar. */}
             <Route path="/quickadd" element={<QuickAdd />} />
+            {/* The desktop app's small window at the tray icon. */}
+            <Route path="/tray" element={<TrayOverview />} />
             <Route element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="/collector" element={<Collector />} />
