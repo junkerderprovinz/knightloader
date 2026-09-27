@@ -39,6 +39,40 @@ submission and for a fixed download.
 
 ### Added
 
+- **playmate.to videos download.** An embed link asks the site for its stream
+  playlist and hands that to yt-dlp, so the video arrives under the page's title
+  instead of the page's scripts and images.
+- **A pasted stream playlist downloads the stream.** `.m3u8`, `.m3u` and `.mpd`
+  links go to yt-dlp, and a playlist behind another name, such as a
+  `master.txt`, is recognised by its first bytes once it arrives and handed to
+  yt-dlp instead of being kept as a text file. A header profile's playlist goes
+  the same way.
+- **Errors say what went wrong and what to do, in the interface language.** A
+  failed download or unpacking shows a short sentence and a next step in the web
+  UI and the app, for example that a part of an archive is damaged and should be
+  restarted or fetched from another mirror. The tool's own message stays in the
+  row's bubble for a report. Rejected links, missing permissions and files, a
+  host rule that excludes every backend and an unpacking folder that already
+  exists each have their own wording.
+- **A package shows when something in it failed.** A link that did not download
+  or an archive that did not unpack marks its package header as failed, and
+  while other links still run, the header counts the failures beside what is
+  running.
+- **Renaming a package moves its files.** A package can be renamed at any time.
+  Finished and partial files move to the new folder, and downloads that are
+  still running carry on there: the built-in engine, JDownloader, yt-dlp, FTP
+  and SFTP, and torrents, which also keep seeding. A folder of unpacked files
+  named after the package moves with it. While a part is being unpacked, moved
+  into place or recorded from a live stream, the rename is refused with a
+  message, and on Windows a folder with an open file stays as it was.
+- **Single links can be disabled in the app.** Each link row has the power
+  badge the package header already had.
+- **The app has a translation ledger like the web UI.**
+  `mobile/untranslated.json` lists every app text still in English, and CI fails
+  on an English text the ledger does not name.
+- **A magnet's file list is kept.** Removing a magnet with its files after a
+  restart takes exactly its files and then its folder, as for a `.torrent`.
+  Magnets that finished before this version still leave their folder.
 - **Sonarr, Radarr and Prowlarr can hand torrents over through qBittorrent's
   API.** KnightLoader answers the part of qBittorrent's Web API they use at
   `/api/qbittorrent`, so the client's URL Base is `api/qbittorrent`. The
@@ -313,6 +347,17 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **A page whose player nothing supports fails with a reason.** JDownloader no
+  longer downloads such a page's scripts and images as the download, the HTTP
+  fallback no longer keeps its HTML, and files JDownloader already fetched for
+  it are deleted.
+- **A captcha that failed to load and then loads takes back its failure mark.**
+  The report names the captcha whose widget failed, not the next one, and the
+  app reports its own load failure on a direct connection.
+- **A magnet can no longer land in a foreign folder with its real name.** A
+  magnet whose real name is already taken is refused before it writes, and a
+  torrent's files stay inside its own folder.
+- **A permission problem no longer reads as a network error.**
 - **Sonarr and Radarr no longer delete other downloads after an import.** The
   SABnzbd door told them a grab lived in its category's folder, or in the
   download folder itself, whenever packages had no subfolder of their own or a
@@ -848,6 +893,20 @@ submission and for a fixed download.
 
 ### Changed
 
+- **Disable is the one way to park a link.** Hold and Release are gone from the
+  right-click menu, the quick filters and the row marks. Held links become
+  disabled on upgrade, saved views on the old filter follow them, and a disabled
+  link keeps its place and is not started by "Resume all". `POST
+  /api/tasks/hold` stays as the older name of `/api/tasks/enabled`.
+- **"Turn off" and "Turn on" read "Disable" and "Enable"** for links and
+  packages, in German "Deaktivieren" and "Aktivieren".
+- **The entry that takes away a stop mark reads "Remove stop".**
+- **The Downloads and Collector toolbars stay on one line.** The failure chips
+  sit in the row. When room runs short, the row folds step by step (the causes
+  into one menu, the verbs into glyphs, the state filters into one chip, saved
+  views into one) and scrolls sideways only below 1024 pixels.
+- **A row shows one status.** JDownloader's plain state word, such as
+  "Running", no longer appears next to KnightLoader's own.
 - **The reorder wiggle takes GlimStone's numbers** in the web UI and the phone
   app: 0.6 degrees each way at 280ms a swing at Wild, 0.3 degrees and 360ms at
   Subtle, and 1 degree and 220ms at the hidden fourth level. The phone swings
