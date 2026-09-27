@@ -10,8 +10,8 @@ export const en = {
   'settings.accounts.showInSidebar': 'Show in the sidebar too',
   'settings.accounts.showInSidebarHint': 'This tab and the Accounts entry in the sidebar show the same page. Turn this off if having both feels redundant.',
   'settings.accounts.freeTitle': 'Free downloads',
-  'settings.accounts.premiumOnly': 'Premium only',
-  'settings.accounts.premiumOnlyHint': 'A hoster link that none of your accounts can fetch goes to JDownloader, which downloads it for free: slowly, with waiting times and captchas. With Premium only on, the link waits in the queue instead and says why, and so does a free download you paused. It starts by itself once you add a login for that hoster, or a debrid service that carries it. A category can decide this differently for its own links.',
+  'settings.accounts.allowFree': 'Allow free downloads',
+  'settings.accounts.allowFreeHint': 'A hoster link that none of your accounts can fetch goes to JDownloader, which downloads it for free: slowly, with waiting times and captchas. Switch this off and such a link waits in the queue instead and says why. So does a free download you paused. It starts by itself once you add a login for that hoster, or a debrid service that carries it. A category can decide this differently for its own links.',
   // The same three, for the Instances tab. Its own keys rather than a shared
   // pair, because the hint names the destination.
   'settings.nav.instances': 'Instances',
@@ -2122,8 +2122,10 @@ export const en = {
   'settings.categories.extractHint': 'Whether an archive that comes in under this category is unpacked. Inherit leaves the decision to the Archives page, which is not the same as Off: Off keeps archives packed even when the global setting says unpack, for example in a music drawer where the archive is the delivery. A download\'s own switch still wins over this one, because that is a rule or a person having spoken about one download.',
   'settings.categories.speedLimit': 'Speed limit (0 = no opinion)',
   'settings.categories.speedLimitHint': 'How fast a download filed here may pull. 0 means this category has no opinion and the instance-wide limit applies. Nothing enforces it yet: this build has one limiter for the whole app, shared out between the backends, and no per-download allowance for this number to be written into. The value is stored and resolved correctly, and then nothing acts on it. It is offered now so the setting does not change shape later, once people already have files on disk.',
-  'settings.categories.premiumOnly': 'Premium only',
-  'settings.categories.premiumOnlyHint': 'Whether a link filed here that could only be downloaded for free waits for an account instead. Inherit follows the Premium only switch on the Accounts settings page. On holds such links even when that switch is off. Off lets this category download for free even when it is on.',
+  'settings.categories.free': 'Free downloads',
+  'settings.categories.freeHint': 'Whether a link filed here that only a free download could fetch may start. Inherit follows the Allow free downloads switch on the Accounts settings page. Allowed lets this category download for free even when that switch is off. Blocked makes such a link wait for an account even when the switch is on.',
+  'settings.categories.freeAllowed': 'Allowed',
+  'settings.categories.freeBlocked': 'Blocked',
   'settings.categories.collision': 'If a file is already there',
   'settings.categories.collisionHint': 'What happens when the file a download filed here is about to write already exists. Inherit takes the instance-wide answer from the download settings, and empty really means inherit: it is not a quiet "keep both", so a category with no opinion cannot overrule an instance set to skip. Keep both writes alongside it as "name (2)", Skip keeps what is there and writes nothing, Overwrite truncates it. There is no "ask me": nobody would be there to answer, and the download would sit in the queue for ever with nothing saying why.',
   'settings.downloads.diskReserve': 'Headroom per download (GiB)',
