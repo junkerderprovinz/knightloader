@@ -6,7 +6,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
-import { isParked, rowWord, type StateWord } from '../api/taskState';
+import { isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
 import { InfoTip } from './InfoTip';
 import IconBadge, { Power } from './IconBadge';
 import { Text } from './Text';
@@ -21,6 +21,8 @@ const SERVICE_NAMES: Record<string, string> = {
   premiumize: 'Premiumize.me',
   debridlink: 'Debrid-Link',
 };
+
+const SEGMENTS = Array.from({ length: 80 }, (_, i) => i);
 
 /** serviceName is the service behind a resolver id such as "realdebrid#work". */
 function serviceName(resolver: string): string {
@@ -97,9 +99,13 @@ export default function TaskRow({
   index,
   onSwitch,
   files,
+  unpack,
 }: {
   task: Task;
   index: number;
+  /** How far the unpacking of this file's archive has got, which the bar
+   *  shows in place of the finished download (unpackProgress). */
+  unpack?: UnpackProgress | null;
   /** Disables this link, or enables it again; the package header's badge
    *  does the same for all of its links. */
   onSwitch?: () => void;
@@ -130,7 +136,10 @@ export default function TaskRow({
     : task.size > 0
       ? Math.min(100, Math.round((task.loaded / task.size) * 100))
       : null;
-  const word = rowWord(task);
+  const unpackPct = unpack ? unpackPercent(unpack) : null;
+  // The other parts of a set are done as far as the instance is concerned,
+  // while their bar shows the unpacking. The word says so on each of them.
+  const word = unpack && !unpack.failed ? 'extracting' : rowWord(task);
   // Greyed by colour rather than opacity, so the switch beside the row keeps
   // its full strength.
   const parked = isParked([task]);
@@ -189,13 +198,44 @@ export default function TaskRow({
             />
           </View>
         )}
+        {unpack && (
+          <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
+            {/* Cut into segments where the web stripes it: the row's own colour
+                already means working, so the texture is what tells unpacking
+                from downloading. A size nobody knows fills the track. */}
+            <View style={[styles.progressFill, styles.segments, { width: `${unpackPct ?? 100}%` }]}>
+              {SEGMENTS.map((i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.segment,
+                    {
+                      backgroundColor: parked
+                        ? c.statusNeutralSolid
+                        : unpack.failed
+                          ? c.statusFailSolid
+                          : rowAccent,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.footer}>
-          <Text style={[styles.meta, { color: c.textMuted }]}>
-            {remote ? `${pct}%` : fmtBytes(task.loaded)}
-            {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
-            {!remote && pct !== null ? ` · ${pct}%` : ''}
-          </Text>
+          {unpack ? (
+            <Text style={[styles.meta, { color: c.textMuted }]}>
+              {fmtBytes(unpack.unpacked)}
+              {unpackPct !== null ? ` / ${fmtBytes(unpack.size)} · ${unpackPct}%` : ''}
+            </Text>
+          ) : (
+            <Text style={[styles.meta, { color: c.textMuted }]}>
+              {remote ? `${pct}%` : fmtBytes(task.loaded)}
+              {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
+              {!remote && pct !== null ? ` · ${pct}%` : ''}
+            </Text>
+          )}
           {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}
           {remote ? (
             <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
@@ -274,6 +314,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progressFill: { height: '100%' },
+  // Clipped at the fill's width, so the count only has to cover the widest
+  // row: 80 steps of 8 points outrun the list's 640-point cap.
+  segments: { flexDirection: 'row', overflow: 'hidden', gap: 2 },
+  segment: { width: 6, height: '100%', flexShrink: 0 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   // Tabular figures: a byte count, a total and a percentage rewritten every
   // refresh, in a row that stacks down the whole screen. With proportional

@@ -4,7 +4,7 @@
 //
 // It imports nothing at run time, so check-task-state.mjs can load it in node.
 
-import type { Task } from './types';
+import type { ExtractJob, Task } from './types';
 
 /** The word a row or a package header shows, as its `status.*` key names it. */
 export type StateWord =
@@ -165,4 +165,48 @@ export function splitByCard(tasks: Task[], on: CardSwitches): Record<ListCard, T
     out[name === '' ? placed(packageCard([t])) : (cardOf.get(name) ?? 'downloads')].push(t);
   }
   return out;
+}
+
+/** How far an unpacking has got, as a row's bar draws it. */
+export interface UnpackProgress {
+  unpacked: number;
+  /** 0 when the format does not say how much the archive holds. */
+  size: number;
+  failed: boolean;
+}
+
+/**
+ * unpackingByTask maps every file of an archive to the latest unpacking of it,
+ * as the web's list does (extractionsByTask in web/src/components/Archives.tsx).
+ * The jobs arrive oldest first, so a retry replaces the failure before it, and
+ * a cancelled job hands the rows back to their own status.
+ */
+export function unpackingByTask(jobs: ExtractJob[]): Map<string, ExtractJob> {
+  const out = new Map<string, ExtractJob>();
+  for (const j of jobs) {
+    for (const id of j.parts ?? [j.taskId]) {
+      if (j.status === 'cancelled') out.delete(id);
+      else out.set(id, j);
+    }
+  }
+  return out;
+}
+
+/**
+ * unpackProgress is what a row's bar shows in place of the finished download,
+ * by the rule of the web's progress column (barOf in
+ * web/src/components/columns.tsx). A file downloading again has left its
+ * archive's unpacking behind.
+ */
+export function unpackProgress(t: Task, byTask: Map<string, ExtractJob>): UnpackProgress | null {
+  if (t.status !== 'done' && t.status !== 'extracting') return null;
+  const job = byTask.get(t.id);
+  if (job?.status === 'running') return { unpacked: job.unpacked ?? 0, size: job.size ?? 0, failed: false };
+  if (job?.status === 'error' && job.size) return { unpacked: job.unpacked ?? 0, size: job.size, failed: true };
+  return null;
+}
+
+/** unpackPercent is an unpacking's share done, or null when its size is unknown. */
+export function unpackPercent(u: UnpackProgress): number | null {
+  return u.size > 0 ? Math.min(100, Math.round((u.unpacked / u.size) * 100)) : null;
 }

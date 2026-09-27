@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { fetchListCards, fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
-import { splitByCard, type CardSwitches } from '../api/taskState';
-import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
+import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
+import type { ExtractJob, Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
@@ -58,6 +58,9 @@ export default function DownloadsScreen({
   const waiting = peer ? [] : captchas;
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
+  // Arrive only over the stream, from a directly connected instance.
+  const [jobs, setJobs] = useState<ExtractJob[]>([]);
+  const unpacking = useMemo(() => unpackingByTask(jobs), [jobs]);
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
@@ -90,12 +93,13 @@ export default function DownloadsScreen({
   useEffect(() => {
     setConnected(false);
     setTasks([]);
+    setJobs([]);
     const onSnapshot = (snapshot: Task[]) => {
       setConnected(true);
       setTasks(snapshot);
     };
     const onError = () => setConnected(false);
-    const handle = liveTasks(conn, base, onSnapshot, onError);
+    const handle = liveTasks(conn, base, onSnapshot, onError, setJobs);
     live.current = handle;
     return () => {
       live.current = null;
@@ -193,6 +197,7 @@ export default function DownloadsScreen({
           inside the content container there are none. */}
       <PackageList
         tasks={shown === 'collector' ? collected : parts.downloads}
+        unpacking={unpacking}
         sections={
           shown === 'collector'
             ? []

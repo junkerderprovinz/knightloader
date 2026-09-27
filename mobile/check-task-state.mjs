@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { rowWord, packageState, isParked, packageCard, splitByCard } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
+const { rowWord, packageState, isParked, packageCard, splitByCard, unpackingByTask, unpackProgress, unpackPercent } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -134,6 +134,40 @@ expect('with both parts switched off everything stays in the download list', spl
   finished: [],
   torrents: [],
 });
+
+// While an archive unpacks, the bar on each of its parts shows how far it has
+// got, as on the web and in JDownloader.
+const job = (id, status, parts, more = {}) => ({ id, taskId: parts[0], status, parts, ...more });
+const unpackingOf = (id, status, jobs) => unpackProgress({ id, status }, unpackingByTask(jobs));
+const running = job('j', 'running', ['a1', 'a2'], { unpacked: 400, size: 1000 });
+expect('the part the unpacking started on', unpackingOf('a1', 'extracting', [running]), {
+  unpacked: 400,
+  size: 1000,
+  failed: false,
+});
+expect('another part of the same set', unpackingOf('a2', 'done', [running]), { unpacked: 400, size: 1000, failed: false });
+expect('a file outside the set', unpackingOf('b', 'done', [running]), null);
+expect('a part downloading again', unpackingOf('a2', 'running', [running]), null);
+expect('an archive waiting for its turn', unpackingOf('a1', 'extracting', [job('j', 'queued', ['a1'])]), null);
+expect('an archive unpacked', unpackingOf('a1', 'done', [job('j', 'done', ['a1'], { unpacked: 9, size: 9 })]), null);
+expect(
+  'a failed unpacking keeps where it stopped',
+  unpackingOf('a2', 'done', [job('j', 'error', ['a1', 'a2'], { unpacked: 250, size: 1000 })]),
+  { unpacked: 250, size: 1000, failed: true },
+);
+expect(
+  'a retry replaces the failure before it',
+  unpackingOf('a1', 'extracting', [job('old', 'error', ['a1'], { unpacked: 5, size: 10 }), job('new', 'running', ['a1'])]),
+  { unpacked: 0, size: 0, failed: false },
+);
+expect('a cancelled unpacking hands the row back', unpackingOf('a1', 'done', [running, job('k', 'cancelled', ['a1', 'a2'])]), null);
+expect('an older server names only the first volume', unpackingOf('a1', 'extracting', [{ id: 'j', taskId: 'a1', status: 'running' }]), {
+  unpacked: 0,
+  size: 0,
+  failed: false,
+});
+expect('the share done', unpackPercent({ unpacked: 400, size: 1000, failed: false }), 40);
+expect('no share without a size', unpackPercent({ unpacked: 400, size: 0, failed: false }), null);
 
 if (problems.length > 0) {
   console.error(problems.join('\n'));

@@ -64,6 +64,21 @@ export interface Task {
   torrentFileCount?: number;
 }
 
+/** One unpacking, the part of internal/app's ExtractJob the list reads. */
+export interface ExtractJob {
+  id: string;
+  /** The volume the job started on, the first part of a set. */
+  taskId: string;
+  /** 'queued' | 'running' | 'done' | 'error' | 'cancelled', open for a newer server. */
+  status: string;
+  /** How far through the archive open now the job is, against what its
+   *  headers say it holds. `size` is absent when the format does not say. */
+  unpacked?: number;
+  size?: number;
+  /** The task of every file in the set; an older server sends none. */
+  parts?: string[];
+}
+
 /** One file of a torrent task. `path` is inside the torrent; `done` is how many
  *  of its bytes are here, absent where nothing can say. */
 export interface TorrentFileView {

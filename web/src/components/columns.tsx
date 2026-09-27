@@ -897,14 +897,20 @@ export function ProgressCell({
   // queue has no size either, and looping a bar over it said "working" about a
   // queue that was switched off.
   live,
+  unpack,
 }: {
   loaded: number;
   size: number;
   done: boolean;
   active: boolean;
   live: boolean;
+  /** The bar measures an unpacking rather than the download (unpackBar). */
+  unpack?: UnpackBar;
 }) {
-  const p = pct(loaded, size, done);
+  const bar = unpack
+    ? { loaded: unpack.unpacked, size: unpack.size, done: false, active: true, live: !unpack.failed }
+    : { loaded, size, done, active, live };
+  const p = pct(bar.loaded, bar.size, bar.done);
   return (
     <div className="flex items-center gap-2">
       <div className="min-w-0 flex-1">
@@ -915,10 +921,11 @@ export function ProgressCell({
             every finished and paused row pulsing. */}
         <ProgressBar
           percent={p}
-          active={active}
-          indeterminate={live && !done && size <= 0}
-          moving={live}
-          tone={done ? 'ok' : 'accent'}
+          active={bar.active}
+          indeterminate={bar.live && !bar.done && bar.size <= 0}
+          moving={bar.live}
+          tone={unpack?.failed ? 'fail' : bar.done ? 'ok' : 'accent'}
+          striped={unpack !== undefined}
         />
       </div>
       <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{fmtPct(p)}</span>
@@ -1310,6 +1317,36 @@ export function packageUnpacking(
   return { ...lead, done: all.filter((u) => u.state === 'done').length, total: all.length };
 }
 
+/** How far an unpacking has got, as the progress column draws it. */
+export interface UnpackBar {
+  unpacked: number;
+  /** 0 when the format does not say how much the archive holds. */
+  size: number;
+  failed: boolean;
+}
+
+/**
+ * barOf is what the progress bar shows of an unpacking in place of the
+ * finished download, the way JDownloader shows it on an archive's links: how
+ * far a running job has got, or where a failed one stopped. A job still
+ * waiting has nothing to measure, and a finished one gives the bar back to
+ * the download. Without a job, after a restart, nobody knows how far it got.
+ */
+function barOf(u: Unpacking | null): UnpackBar | null {
+  if (!u?.job) return null;
+  const { job } = u;
+  if (u.state === 'running') return { unpacked: job.unpacked ?? 0, size: job.size ?? 0, failed: false };
+  if (unpackFailed(u) && job.size) return { unpacked: job.unpacked ?? 0, size: job.size, failed: true };
+  return null;
+}
+
+/** unpackBar is a row's unpacking, on every part of the set being unpacked. */
+export const unpackBar = (task: Task, ctx: CellContext): UnpackBar | null => barOf(unpackingOf(task, ctx));
+
+/** packageUnpackBar is the unpacking that speaks for the package header. */
+export const packageUnpackBar = (items: Task[], ctx: CellContext): UnpackBar | null =>
+  barOf(packageUnpacking(items, ctx));
+
 /**
  * packageFailures counts what in a package failed: each link that did not
  * download, and each archive that did not unpack, once however many parts it
@@ -1592,7 +1629,7 @@ export const COLUMNS: ColumnDef[] = [
     align: 'start',
     hideable: true,
     compare: (a, b) => pct(a.loaded, a.size, a.status === 'done') - pct(b.loaded, b.size, b.status === 'done'),
-    render: (task) => {
+    render: (task, ctx) => {
       // Nothing of a torrent comes here while a debrid service fetches it, so
       // the bar shows how far the service has got.
       const remote = task.status === 'running' ? task.remote : undefined;
@@ -1603,10 +1640,11 @@ export const COLUMNS: ColumnDef[] = [
           done={task.status === 'done'}
           active={task.status !== 'error'}
           live={task.status === 'running' || task.status === 'extracting'}
+          unpack={unpackBar(task, ctx) ?? undefined}
         />
       );
     },
-    aggregate: (items) => {
+    aggregate: (items, ctx) => {
       const size = sum(items, (x) => x.size);
       const loaded = sum(items, (x) => x.loaded);
       return (
@@ -1616,6 +1654,7 @@ export const COLUMNS: ColumnDef[] = [
           done={items.every((x) => x.status === 'done')}
           active={items.some((x) => x.status !== 'error')}
           live={items.some((x) => x.status === 'running' || x.status === 'extracting')}
+          unpack={packageUnpackBar(items, ctx) ?? undefined}
         />
       );
     },

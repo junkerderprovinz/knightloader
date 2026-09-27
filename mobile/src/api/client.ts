@@ -4,6 +4,7 @@ import {
   type CaptchaAbortScope,
   type CaptchaChallenge,
   type DirectConnection,
+  type ExtractJob,
   type Instance,
   type QueueState,
   type ServerConnection,
@@ -309,22 +310,33 @@ export function liveTasks(
   conn: ServerConnection,
   base: string,
   onSnapshot: (tasks: Task[]) => void,
-  onError?: (err: unknown) => void
+  onError?: (err: unknown) => void,
+  onJobs?: (jobs: ExtractJob[]) => void
 ): LiveTasks {
   const streamable = !isRelayConnection(conn) && base === '/api';
   return streamable
-    ? subscribeTasks(conn, onSnapshot, onError)
+    ? subscribeTasks(conn, onSnapshot, onError, onJobs)
     : pollTasks(conn, base, onSnapshot, onError);
 }
 
+/** Every unpacking the instance knows about, oldest first. */
+export async function fetchExtractJobs(conn: ServerConnection): Promise<ExtractJob[]> {
+  return request<ExtractJob[]>(conn, '/api', '/extract');
+}
+
+// The unpackings come only with the stream. Neither the relay nor the
+// federation proxy forwards /api/extract, so a polled list has none and its
+// rows show the finished download while an archive unpacks.
 export function subscribeTasks(
   conn: ServerConnection,
   onSnapshot: (tasks: Task[]) => void,
-  onError?: (err: unknown) => void
+  onError?: (err: unknown) => void,
+  onJobs?: (jobs: ExtractJob[]) => void
 ): UnsubscribeFn {
   if (isRelayConnection(conn)) throw new Error('subscribeTasks: a relay connection has no stream - use liveTasks');
   const wsUrl = conn.baseUrl.replace(/^http/, 'ws') + '/api/ws';
   let tasks = new Map<string, Task>();
+  let jobs = new Map<string, ExtractJob>();
   let closedByCaller = false;
   let socket: WebSocket | null = null;
   let retryDelayMs = 1000;
@@ -332,6 +344,21 @@ export function subscribeTasks(
 
   const emit = () => {
     onSnapshot(Array.from(tasks.values()).sort((a, b) => a.position - b.position));
+  };
+  // Map keeps insertion order, and the server lists jobs oldest first, which
+  // is the order unpackingByTask needs.
+  const emitJobs = () => onJobs?.(Array.from(jobs.values()));
+  // A job that ended while the socket was down never sends its last message,
+  // so every (re)connect reads the whole list once.
+  const catchUp = () => {
+    if (!onJobs) return;
+    fetchExtractJobs(conn)
+      .then((list) => {
+        if (closedByCaller) return;
+        jobs = new Map(list.map((j) => [j.id, j]));
+        emitJobs();
+      })
+      .catch(() => {});
   };
 
   const connect = () => {
@@ -354,6 +381,7 @@ export function subscribeTasks(
         if (msg.type === 'snapshot' && Array.isArray(msg.data)) {
           tasks = new Map((msg.data as Task[]).map((t) => [t.id, t]));
           emit();
+          catchUp();
         } else if (msg.type === 'task' && msg.data && typeof msg.data === 'object') {
           const t = msg.data as Task;
           tasks.set(t.id, t);
@@ -361,6 +389,10 @@ export function subscribeTasks(
         } else if (msg.type === 'taskRemoved' && typeof msg.data === 'string') {
           tasks.delete(msg.data);
           emit();
+        } else if (msg.type === 'extract' && onJobs && msg.data && typeof msg.data === 'object') {
+          const j = msg.data as ExtractJob;
+          jobs.set(j.id, j);
+          emitJobs();
         }
         // Other broadcast kinds (activity, activitySnapshot and so on) are
         // ignored: this client tracks the queue, not the activity feed.
