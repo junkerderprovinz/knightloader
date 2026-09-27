@@ -1642,7 +1642,7 @@ export const it: Dict = {
   'settings.torrents.portTitle': 'Porta e mappatura',
   'settings.torrents.port': 'Porta',
   'settings.torrents.portHint': 'La porta su cui questa istanza ascolta le connessioni dello sciame. 0 lascia che sia il client torrent integrato a sceglierne una.',
-  'settings.torrents.clientApplyHint': 'Una modifica vale appena nessun torrent sta scaricando o facendo seed. Il torrent successivo parte già con essa.',
+  'settings.torrents.clientApplyHint': 'Una modifica vale appena nessun torrent sta scaricando, in pausa o facendo seed, oppure dopo un riavvio. Il torrent successivo parte già con essa.',
   'settings.torrents.portMapNowHint': 'Chiedere al router di mappare la porta funziona subito, che un torrent ci sia già in ascolto o no.',
   'settings.torrents.portMapHint': 'Chiede al router di inoltrare la porta sopra a questa macchina via UPnP, così i peer dietro un altro router possono comunque raggiungerla. Non tutti i router lo supportano, e alcuni accettano la richiesta senza che funzioni davvero.',
   'settings.torrents.portMapButton': 'Prova la mappatura UPnP',

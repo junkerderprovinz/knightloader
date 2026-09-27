@@ -1649,7 +1649,7 @@ export const vi: Dict = {
   'settings.torrents.portTitle': 'Cổng và ánh xạ',
   'settings.torrents.port': 'Cổng',
   'settings.torrents.portHint': 'Cổng mà thực thể này lắng nghe kết nối từ bầy. 0 để client torrent tích hợp tự chọn.',
-  'settings.torrents.clientApplyHint': 'Thay đổi có hiệu lực khi không còn torrent nào đang tải xuống hay seed. Torrent tiếp theo sẽ khởi động với thay đổi đó.',
+  'settings.torrents.clientApplyHint': 'Thay đổi có hiệu lực khi không còn torrent nào đang tải xuống, tạm dừng hay seed, hoặc sau khi khởi động lại. Torrent tiếp theo sẽ khởi động với thay đổi đó.',
   'settings.torrents.portMapNowHint': 'Việc yêu cầu router ánh xạ cổng có tác dụng ngay, dù đã có torrent nào lắng nghe trên cổng đó hay chưa.',
   'settings.torrents.portMapHint': 'Yêu cầu router chuyển tiếp cổng ở trên đến máy này qua UPnP, để các peer sau một router khác vẫn có thể tiếp cận nó. Không phải router nào cũng hỗ trợ điều này, và một số chấp nhận yêu cầu mà không thực sự hoạt động.',
   'settings.torrents.portMapButton': 'Thử ánh xạ UPnP',

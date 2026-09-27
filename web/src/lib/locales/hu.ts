@@ -1649,7 +1649,7 @@ export const hu: Dict = {
   'settings.torrents.portTitle': 'Port és továbbítás',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Az a port, amelyen ez a példány a rajból érkező kapcsolatokat fogadja. 0 esetén a beépített torrentkliens választ egyet.',
-  'settings.torrents.clientApplyHint': 'A változás akkor lép életbe, amikor egy torrent sem tölt le és nem seedel. A következő torrent már ezzel indul.',
+  'settings.torrents.clientApplyHint': 'A változás akkor lép életbe, amikor egy torrent sem tölt le, nincs szüneteltetve és nem seedel, vagy újraindítás után. A következő torrent már ezzel indul.',
   'settings.torrents.portMapNowHint': 'A routert azonnal megkérheted a port továbbítására, akár figyel már rajta torrent, akár nem.',
   'settings.torrents.portMapHint': 'Megkéri a routert, hogy UPnP-n keresztül továbbítsa a fenti portot erre a gépre, hogy a más router mögötti peerek is elérjék. Nem minden router támogatja ezt, és némelyik úgy fogadja el a kérést, hogy az valójában nem működik.',
   'settings.torrents.portMapButton': 'UPnP-továbbítás megkísérlése',

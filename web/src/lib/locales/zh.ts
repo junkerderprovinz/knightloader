@@ -1646,7 +1646,7 @@ export const zh: Dict = {
   'settings.torrents.portTitle': '端口与映射',
   'settings.torrents.port': '端口',
   'settings.torrents.portHint': '这个实例用来监听种子网络连接的端口。填 0 则由内置种子客户端自己选一个。',
-  'settings.torrents.clientApplyHint': '更改会在没有种子正在下载或做种时生效。下一个种子会以新设置启动。',
+  'settings.torrents.clientApplyHint': '更改会在没有种子正在下载、暂停或做种时生效，重启之后同样生效。下一个种子会以新设置启动。',
   'settings.torrents.portMapNowHint': '请求路由器映射端口立刻就能用，不管是否已经有种子在这个端口上监听。',
   'settings.torrents.portMapHint': '通过 UPnP 请求路由器将上方的端口转发到本机,以便其他路由器后面的节点仍能连接到它。并非所有路由器都支持此功能,有些路由器会接受请求但实际并不生效。',
   'settings.torrents.portMapButton': '尝试 UPnP 映射',

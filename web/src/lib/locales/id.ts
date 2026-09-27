@@ -1649,7 +1649,7 @@ export const id: Dict = {
   'settings.torrents.portTitle': 'Port dan pemetaan',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port tempat instans ini mendengarkan koneksi dari swarm. 0 membiarkan klien torrent bawaan memilih sendiri.',
-  'settings.torrents.clientApplyHint': 'Perubahan berlaku begitu tidak ada torrent yang sedang mengunduh atau melakukan seed. Torrent berikutnya dimulai dengan perubahan itu.',
+  'settings.torrents.clientApplyHint': 'Perubahan berlaku begitu tidak ada torrent yang sedang mengunduh, dijeda, atau melakukan seed, atau setelah dimulai ulang. Torrent berikutnya dimulai dengan perubahan itu.',
   'settings.torrents.portMapNowHint': 'Meminta router memetakan port langsung berhasil, entah sudah ada torrent yang mendengarkan di port itu atau belum.',
   'settings.torrents.portMapHint': 'Meminta router meneruskan port di atas ke perangkat ini melalui UPnP, sehingga peer di belakang router lain tetap bisa menjangkaunya. Tidak semua router mendukung ini, dan beberapa menerima permintaan tanpa benar-benar berfungsi.',
   'settings.torrents.portMapButton': 'Coba pemetaan UPnP',

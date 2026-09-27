@@ -1642,7 +1642,7 @@ export const pl: Dict = {
   'settings.torrents.portTitle': 'Port i mapowanie',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port, na którym ta instancja nasłuchuje połączeń z roju. 0 pozwala wbudowanemu klientowi torrentów wybrać go samemu.',
-  'settings.torrents.clientApplyHint': 'Zmiana zacznie działać, gdy żaden torrent nie będzie pobierał ani seedował. Następny torrent startuje już z nią.',
+  'settings.torrents.clientApplyHint': 'Zmiana zacznie działać, gdy żaden torrent nie będzie pobierał, wstrzymany ani seedował, albo po ponownym uruchomieniu. Następny torrent startuje już z nią.',
   'settings.torrents.portMapNowHint': 'Prośba do routera o mapowanie portu działa od razu, niezależnie od tego, czy jakiś torrent już na nim nasłuchuje.',
   'settings.torrents.portMapHint': 'Prosi router o przekierowanie powyższego portu do tego urządzenia przez UPnP, aby peery za innym routerem mogły go mimo to osiągnąć. Nie każdy router to obsługuje, a niektóre przyjmują żądanie bez faktycznego działania.',
   'settings.torrents.portMapButton': 'Spróbuj mapowania UPnP',

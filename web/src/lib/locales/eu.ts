@@ -1649,7 +1649,7 @@ export const eu: Dict = {
   'settings.torrents.portTitle': 'Ataka eta birbideratzea',
   'settings.torrents.port': 'Ataka',
   'settings.torrents.portHint': 'Instantzia honek enjanbreko konexioak entzuteko erabiltzen duen ataka. 0 balioarekin barneko torrent bezeroak aukeratzen du bat.',
-  'settings.torrents.clientApplyHint': 'Aldaketa indarrean sartzen da torrentik deskargatzen edo seed egiten ari ez denean. Hurrengo torrenta harekin abiatzen da.',
+  'settings.torrents.clientApplyHint': 'Aldaketa indarrean sartzen da torrentik deskargatzen, pausatuta edo seed egiten ari ez denean, edo berrabiarazi ondoren. Hurrengo torrenta harekin abiatzen da.',
   'settings.torrents.portMapNowHint': 'Bideratzaileari ataka birbideratzeko eskatzeak berehala funtzionatzen du, torrent bat bertan entzuten ari den ala ez.',
   'settings.torrents.portMapHint': 'Bideratzaileari eskatzen dio goiko ataka UPnP bidez makina honetara birbideratzeko, beste bideratzaile baten atzean dauden peerrek ere hura lortu ahal izateko. Bideratzaile guztiek ez dute hau onartzen, eta batzuek eskaera onartzen dute benetan funtzionatu gabe.',
   'settings.torrents.portMapButton': 'UPnP birbideratzea saiatu',

@@ -1649,7 +1649,7 @@ export const lv: Dict = {
   'settings.torrents.portTitle': 'Ports un pārsūtīšana',
   'settings.torrents.port': 'Ports',
   'settings.torrents.portHint': 'Ports, kurā šī instance klausās savienojumus no roja. 0 ļauj iebūvētajam torrentu klientam izvēlēties to pašam.',
-  'settings.torrents.clientApplyHint': 'Izmaiņas stājas spēkā, kad neviens torrents vairs nelejupielādē un nesēj. Nākamais torrents sākas jau ar tām.',
+  'settings.torrents.clientApplyHint': 'Izmaiņas stājas spēkā, kad neviens torrents vairs nelejupielādē, nav pauzēts un nesēj, vai pēc restartēšanas. Nākamais torrents sākas jau ar tām.',
   'settings.torrents.portMapNowHint': 'Lūgt maršrutētājam pārsūtīt portu var uzreiz, neatkarīgi no tā, vai kāds torrents uz tā jau klausās.',
   'settings.torrents.portMapHint': 'Lūdz maršrutētājam caur UPnP pārsūtīt iepriekš norādīto portu uz šo datoru, lai peeri aiz cita maršrutētāja to tomēr varētu sasniegt. Ne katrs maršrutētājs to atbalsta, un daži pieņem pieprasījumu, lai gan tas patiesībā nedarbojas.',
   'settings.torrents.portMapButton': 'Mēģināt UPnP pārsūtīšanu',

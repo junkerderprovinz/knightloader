@@ -1649,7 +1649,7 @@ export const ca: Dict = {
   'settings.torrents.portTitle': 'Port i redirecció',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'El port en què aquesta instància escolta connexions de l’eixam. 0 deixa que el client de torrents integrat en triï un.',
-  'settings.torrents.clientApplyHint': 'Un canvi té efecte quan cap torrent no està baixant ni fent seed. El torrent següent ja comença amb el canvi.',
+  'settings.torrents.clientApplyHint': 'Un canvi té efecte quan cap torrent no està baixant, en pausa ni fent seed, o després d’un reinici. El torrent següent ja comença amb el canvi.',
   'settings.torrents.portMapNowHint': 'Demanar al router que redirigeixi el port funciona de seguida, tant si ja hi ha un torrent escoltant-hi com si no.',
   'settings.torrents.portMapHint': 'Demana al router que redirigeixi el port de dalt a aquesta màquina per UPnP, perquè els peers darrere d’un altre router hi puguin arribar igualment. No tots els routers ho admeten, i alguns accepten la sol·licitud sense que arribi a funcionar de veritat.',
   'settings.torrents.portMapButton': 'Prova la redirecció UPnP',

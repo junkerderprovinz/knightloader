@@ -1650,7 +1650,7 @@ export const sl: Dict = {
   'settings.torrents.portTitle': 'Vrata in preslikava',
   'settings.torrents.port': 'Vrata',
   'settings.torrents.portHint': 'Vrata, na katerih ta instanca posluša povezave iz roja. Pri 0 jih izbere vgrajeni odjemalec za torrente.',
-  'settings.torrents.clientApplyHint': 'Sprememba začne veljati, ko noben torrent ne prenaša ali seje. Naslednji torrent se že zažene z njo.',
+  'settings.torrents.clientApplyHint': 'Sprememba začne veljati, ko noben torrent ne prenaša, ni zaustavljen in ne seje, ali po ponovnem zagonu. Naslednji torrent se že zažene z njo.',
   'settings.torrents.portMapNowHint': 'Prošnja usmerjevalniku za preslikavo vrat deluje takoj, ne glede na to, ali na njih že posluša kak torrent.',
   'settings.torrents.portMapHint': 'Usmerjevalnik zaprosi, naj zgornja vrata preko UPnP preusmeri na ta računalnik, tako da ga soležniki za drugim usmerjevalnikom vseeno lahko dosežejo. Tega ne podpira vsak usmerjevalnik, nekateri pa zahtevo sprejmejo, čeprav dejansko ne deluje.',
   'settings.torrents.portMapButton': 'Poskusi preslikavo UPnP',

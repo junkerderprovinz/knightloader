@@ -1649,7 +1649,7 @@ export const is: Dict = {
   'settings.torrents.portTitle': 'Gátt og tilfærsla',
   'settings.torrents.port': 'Gátt',
   'settings.torrents.portHint': 'Gáttin sem þetta tilvik hlustar á eftir tengingum frá sveimnum. 0 lætur innbyggða torrent-biðlarann velja gátt.',
-  'settings.torrents.clientApplyHint': 'Breyting tekur gildi þegar ekkert torrent er að hlaða niður eða sá. Næsta torrent byrjar með henni.',
+  'settings.torrents.clientApplyHint': 'Breyting tekur gildi þegar ekkert torrent er að hlaða niður, í hléi eða að sá, eða eftir endurræsingu. Næsta torrent byrjar með henni.',
   'settings.torrents.portMapNowHint': 'Að biðja beininn um að framsenda gáttina virkar strax, hvort sem torrent hlustar þegar á hana eða ekki.',
   'settings.torrents.portMapHint': 'Biður beininn um að framsenda gáttina hér að ofan á þessa vél um UPnP, svo að jafningjar á bak við annan beini nái henni samt. Ekki styðja allir beinar þetta, og sumir taka við beiðninni án þess að hún virki í raun.',
   'settings.torrents.portMapButton': 'Reyna UPnP-tilfærslu',

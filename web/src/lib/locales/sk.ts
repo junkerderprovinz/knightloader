@@ -1650,7 +1650,7 @@ export const sk: Dict = {
   'settings.torrents.portTitle': 'Port a mapovanie',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port, na ktorom táto inštancia počúva spojenia z roja. 0 nechá port vybrať vstavaný torrentový klient.',
-  'settings.torrents.clientApplyHint': 'Zmena začne platiť, keď žiadny torrent nesťahuje ani neseeduje. Ďalší torrent sa už spustí s ňou.',
+  'settings.torrents.clientApplyHint': 'Zmena začne platiť, keď žiadny torrent nesťahuje, nie je pozastavený ani neseeduje, alebo po reštarte. Ďalší torrent sa už spustí s ňou.',
   'settings.torrents.portMapNowHint': 'Požiadať router o mapovanie portu sa dá hneď, bez ohľadu na to, či na ňom už nejaký torrent počúva.',
   'settings.torrents.portMapHint': 'Požiada router o presmerovanie vyššie uvedeného portu na tento počítač cez UPnP, aby ho peeri za iným routerom aj tak dosiahli. Nie každý router to podporuje a niektoré žiadosť prijmú, aj keď to v skutočnosti nefunguje.',
   'settings.torrents.portMapButton': 'Skúsiť mapovanie UPnP',

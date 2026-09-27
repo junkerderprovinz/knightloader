@@ -1649,7 +1649,7 @@ export const da: Dict = {
   'settings.torrents.portTitle': 'Port og mapping',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Den port, denne instans lytter på for forbindelser fra sværmen. 0 lader den indbyggede torrentklient vælge en.',
-  'settings.torrents.clientApplyHint': 'En ændring træder i kraft, når ingen torrent downloader eller seeder. Den næste torrent starter med den.',
+  'settings.torrents.clientApplyHint': 'En ændring træder i kraft, når ingen torrent downloader, er sat på pause eller seeder, eller efter en genstart. Den næste torrent starter med den.',
   'settings.torrents.portMapNowHint': 'At bede routeren om at mappe porten virker med det samme, uanset om en torrent allerede lytter på den.',
   'settings.torrents.portMapHint': 'Beder routeren om at videresende porten ovenfor til denne maskine via UPnP, så peers bag en anden router alligevel kan nå den. Ikke alle routere understøtter dette, og nogle accepterer anmodningen, uden at det reelt virker.',
   'settings.torrents.portMapButton': 'Prøv UPnP-mapping',

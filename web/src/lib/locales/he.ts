@@ -1651,7 +1651,7 @@ export const he: Dict = {
   'settings.torrents.portTitle': 'פורט ומיפוי',
   'settings.torrents.port': 'פורט',
   'settings.torrents.portHint': 'הפורט שבו המופע הזה מאזין לחיבורים מהנחיל. 0 נותן ללקוח הטורנטים המובנה לבחור אחד.',
-  'settings.torrents.clientApplyHint': 'שינוי נכנס לתוקף כשאף טורנט לא מוריד או מזריע. הטורנט הבא כבר מתחיל איתו.',
+  'settings.torrents.clientApplyHint': 'שינוי נכנס לתוקף כשאף טורנט לא מוריד, מושהה או מזריע, או לאחר הפעלה מחדש. הטורנט הבא כבר מתחיל איתו.',
   'settings.torrents.portMapNowHint': 'בקשה מהנתב למפות את הפורט עובדת מיד, בין אם טורנט כבר מאזין עליו ובין אם לא.',
   'settings.torrents.portMapHint': 'מבקש מהנתב להעביר את הפורט שלמעלה למחשב הזה דרך UPnP, כך שעמיתים מאחורי נתב אחר יוכלו להגיע אליו בכל זאת. לא כל נתב תומך בכך, וחלקם מקבלים את הבקשה מבלי שהיא באמת עובדת.',
   'settings.torrents.portMapButton': 'ניסיון מיפוי UPnP',
