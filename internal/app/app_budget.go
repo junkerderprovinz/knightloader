@@ -211,12 +211,7 @@ func (a *App) measureLocked() (speed [familyCount]int64, working [familyCount]bo
 // applyBudget measures, splits and pushes the three shares.
 func (a *App) applyBudget() {
 	a.mu.Lock()
-	// The limit in force, which a schedule window may override. Negative means
-	// no window has set one since boot.
-	limit := a.limitInForce
-	if limit < 0 {
-		limit = a.Settings.Get().SpeedLimit
-	}
+	limit := a.limitInForceLocked()
 	speed, working := a.measureLocked()
 	a.mu.Unlock()
 

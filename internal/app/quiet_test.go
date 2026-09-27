@@ -269,3 +269,32 @@ func TestQuietWithNoSpeedOfItsOwnLeavesTheWindowAlone(t *testing.T) {
 		t.Errorf("MaxConcurrent in force = %d, want the quiet 1 from the half that is configured", concurrent)
 	}
 }
+
+// The speed graphs draw the limit from the queue state, so it has to be the
+// one the meters are held to, not the settings page's figure.
+func TestQueueStateReportsTheLimitInForce(t *testing.T) {
+	s := loudAndQuiet()
+	s.Schedule = allDay(schedule.ActionLimit)
+	for i := range s.Schedule {
+		s.Schedule[i].Limit = quietWindow
+	}
+	a := newTurtleApp(t, s)
+
+	// Before the runner's first pass the configured limit applies.
+	a.mu.Lock()
+	a.limitInForce = -1
+	a.mu.Unlock()
+	if got := a.Queue().Limit; got != quietDaytime {
+		t.Errorf("the queue reports %d before the first pass, want the configured %d", got, quietDaytime)
+	}
+
+	tick(a)
+	if got := a.Queue().Limit; got != quietWindow {
+		t.Errorf("the queue reports %d inside a limit window, want the window's %d", got, quietWindow)
+	}
+
+	a.SetQuiet(true)
+	if got := a.Queue().Limit; got != quietTurtle {
+		t.Errorf("the queue reports %d with the turtle on, want the quiet %d", got, quietTurtle)
+	}
+}
