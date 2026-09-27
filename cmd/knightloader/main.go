@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/fileowner"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
@@ -43,6 +44,19 @@ func main() {
 	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
 	resetTwoFactor := flag.Bool("reset-2fa", false, "turn the second login factor off and exit; the password is untouched. For an operator who has lost both the phone and the recovery codes")
 	flag.Parse()
+
+	// Before anything creates a file or starts JDownloader, which inherits
+	// the mask. PUID and PGID are not applied here: switching uid
+	// needs root, and the image runs as USER knight (see docs/decisions.md).
+	if v := os.Getenv("UMASK"); v != "" {
+		if err := filemode.Apply(v); err != nil {
+			log.Printf("UMASK ignored: %v", err)
+		} else {
+			log.Printf("UMASK=%s applied: new files come out %04o, new folders %04o",
+				v, filemode.File&^filemode.Mask(), filemode.Dir&^filemode.Mask())
+		}
+	}
+
 	if *remote != "" {
 		runBridge(*remote, *remotePw, *watchClipboard)
 		return

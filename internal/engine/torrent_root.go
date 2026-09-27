@@ -21,6 +21,7 @@ import (
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -61,7 +62,7 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 		e.roots[j.TaskID] = torrentRoot{dir: dir, path: target, before: namesIn(dir)}
 		return nil
 	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
 		return err
 	}
 	for n := 1; ; n++ {
@@ -69,7 +70,7 @@ func (e *Engine) placeTorrent(j Job, opts *base.Options) error {
 		if e.takenLocked(j.TaskID, nest) {
 			continue
 		}
-		switch err := os.Mkdir(nest, 0o755); {
+		switch err := os.Mkdir(nest, filemode.Dir); {
 		case err == nil:
 			log.Printf("%s is taken, so the torrent goes into %s", target, nest)
 			opts.Path = nest
@@ -224,11 +225,50 @@ func (e *Engine) settleTorrent(taskID string, res *base.Resource) (string, error
 	if res.Name != "" {
 		// On disk at once, so a torrent of the same name started later finds
 		// it taken even before the first piece arrives.
-		if err := os.MkdirAll(root, 0o755); err != nil {
+		if err := os.MkdirAll(root, filemode.Dir); err != nil {
 			return "", err
 		}
 	}
 	return root, nil
+}
+
+// settleModes gives a finished torrent's files, and the folders between them
+// and its download folder, the modes the umask asks for. The torrent library
+// creates them 0644 and 0755 whatever the umask is and makes each file
+// read-only once it is complete, so with UMASK=000 on an Unraid share the SMB
+// account still could not move or delete the download. A file left out of the
+// selection may not exist, which is not a failure.
+func (e *Engine) settleModes(taskID string) {
+	e.rootMu.Lock()
+	r, ok := e.roots[taskID]
+	e.rootMu.Unlock()
+	if !ok {
+		return
+	}
+	var failed int
+	var first error
+	settle := func(p string) {
+		if err := filemode.Settle(p); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			if failed == 0 {
+				first = err
+			}
+			failed++
+		}
+	}
+	folders := map[string]bool{}
+	for _, rel := range r.files {
+		p := filepath.Join(r.dir, filepath.FromSlash(rel))
+		settle(p)
+		for d := filepath.Dir(p); len(d) > len(r.dir); d = filepath.Dir(d) {
+			folders[d] = true
+		}
+	}
+	for d := range folders {
+		settle(d)
+	}
+	if failed > 0 {
+		log.Printf("could not set the modes of %d files and folders of %s: %v", failed, r.path, first)
+	}
 }
 
 // unplace forgets where a torrent that did not start would have landed, and

@@ -16,8 +16,9 @@ package api
 // `docker inspect`; no file names or contents.
 //
 // The image runs as USER knight and nothing reads PUID or PGID, so the readout
-// says what the ownership is and that those variables are not read (see
-// envReadByThisBuild).
+// says what the ownership is and that those two are not read (see
+// idsReadByThisBuild). UMASK is applied at startup (internal/filemode), and the
+// readout says whether it took.
 
 import (
 	"errors"
@@ -30,29 +31,30 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/fileowner"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // The variables an operator reaches for when downloads land with the wrong
-// owner, reported verbatim and acted on by nothing. They use the names other
-// NAS containers use rather than a KL_ prefix, which also keeps
-// check-docs-claims.mjs from expecting a Go reader for them; in turn nothing
-// automatic notices if an entrypoint starts reading them.
+// owner or mode, reported verbatim. They use the names other NAS containers
+// use rather than a KL_ prefix, which also keeps check-docs-claims.mjs from
+// expecting a Go reader for them; in turn nothing automatic notices if an
+// entrypoint starts reading PUID or PGID.
 const (
 	envPUID  = "PUID"
 	envPGID  = "PGID"
 	envUMASK = "UMASK"
 )
 
-// envReadByThisBuild says whether anything in this image acts on PUID, PGID or
-// UMASK. The Dockerfile declares USER knight, and an unprivileged process
+// idsReadByThisBuild says whether anything in this image acts on PUID and
+// PGID. The Dockerfile declares USER knight, and an unprivileged process
 // cannot change its uid; honouring PUID would mean starting as root and
 // dropping privileges in an entrypoint, which has not been decided. An
 // identity chosen before start (--user, runAsUser, rootless Docker) is what
 // the readout reports as in force. A test keeps this in step with the
-// Dockerfile.
-const envReadByThisBuild = false
+// Dockerfile. UMASK needs no such flag, since any process may set its own.
+const idsReadByThisBuild = false
 
 // OwnerEnv is what the operator set, verbatim. "" means unset, which differs
 // from 0: an unset PUID means the image's uid 1000, not root.
@@ -79,12 +81,15 @@ type OwnerIdentity struct {
 	// Umask is the effective mask as four octal digits. It comes from
 	// /proc/self/status where that exists, since reading umask(2) means
 	// setting it, which races with other goroutines creating files.
-	Umask      string   `json:"umask"`
-	UmaskKnown bool     `json:"umaskKnown"`
-	Env        OwnerEnv `json:"env"`
-	// EnvRead says whether anything in this build acts on Env; see
-	// envReadByThisBuild.
-	EnvRead bool `json:"envRead"`
+	Umask      string `json:"umask"`
+	UmaskKnown bool   `json:"umaskKnown"`
+	// UmaskApplied is true when UMASK was set and this process took it as its
+	// umask. A value it could not read leaves it false and the mask as it was.
+	UmaskApplied bool     `json:"umaskApplied"`
+	Env          OwnerEnv `json:"env"`
+	// IDsRead says whether anything in this build acts on Env.PUID and
+	// Env.PGID; see idsReadByThisBuild.
+	IDsRead bool `json:"idsRead"`
 }
 
 // FolderOwnership is one configured folder as a stat saw it, with nothing
@@ -225,19 +230,20 @@ func selectTargets(all []app.TargetFolder, dirs []string) ([]app.TargetFolder, e
 func ownerIdentity() OwnerIdentity {
 	me := fileowner.Who()
 	id := OwnerIdentity{
-		Known:      me.Known,
-		Deployment: buildinfo.Deployment,
-		UID:        me.UID,
-		GID:        me.GID,
-		User:       me.User,
-		Group:      me.Group,
-		UmaskKnown: me.UmaskKnown,
+		Known:        me.Known,
+		Deployment:   buildinfo.Deployment,
+		UID:          me.UID,
+		GID:          me.GID,
+		User:         me.User,
+		Group:        me.Group,
+		UmaskKnown:   me.UmaskKnown,
+		UmaskApplied: filemode.Applied(),
 		Env: OwnerEnv{
 			PUID:  os.Getenv(envPUID),
 			PGID:  os.Getenv(envPGID),
 			Umask: os.Getenv(envUMASK),
 		},
-		EnvRead: envReadByThisBuild,
+		IDsRead: idsReadByThisBuild,
 	}
 	// Left empty when unknown, since "0000" is a real and alarming mask.
 	if me.UmaskKnown {

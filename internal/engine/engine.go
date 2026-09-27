@@ -723,6 +723,8 @@ func (e *Engine) onEvent(ev *download.Event) {
 		// in between, done-and-not-seeding would read as "nothing owed" to the
 		// idle action.
 		if e.isTorrent(taskID) {
+			// Before done goes out, since done is what moves the files on.
+			e.settleModes(taskID)
 			if s, _, ok := e.readTorrentStats(ev.Task.ID); ok {
 				u.Torrent = &s
 			}

@@ -27,6 +27,8 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/nwaples/rardecode/v2"
 	"github.com/ulikunitz/xz"
+
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // nonFirstVolume matches volumes of a multi-part set that do not start an
@@ -132,7 +134,7 @@ func unpackOnce(path, dest, password string) (*Result, error) {
 	expectWatched(0)
 	// Everything that can hold more than one file unpacks into its own folder;
 	// only the single-stream path below decides for itself.
-	container := func() error { return os.MkdirAll(dest, 0o755) }
+	container := func() error { return os.MkdirAll(dest, filemode.Dir) }
 	// The bytes pick the reader, the name only breaks the tie. See format.go:
 	// keying off the name alone hands a renamed .rar to the zip reader and
 	// reports a healthy file as broken.
@@ -222,13 +224,13 @@ func safePath(dest, name string) (string, error) {
 }
 
 func writeFile(dst string, mode os.FileMode, r io.Reader) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), filemode.Dir); err != nil {
 		return err
 	}
-	if mode == 0 {
-		mode = 0o644
-	}
-	f, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode.Perm())
+	// Only the entry's execute bits are kept. The rest is left to the umask, as
+	// for every other download: 0600 set on the packer's machine says nothing
+	// about who may use the file on this one.
+	f, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, filemode.File|mode.Perm()&0o111)
 	if err != nil {
 		return err
 	}
@@ -584,7 +586,7 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 
 	res := &Result{Dir: dest, Volumes: []string{path}}
 	if looksLikeTar(head) {
-		if err := os.MkdirAll(dest, 0o755); err != nil {
+		if err := os.MkdirAll(dest, filemode.Dir); err != nil {
 			return nil, err
 		}
 		if err := unpackTar(tar.NewReader(br), dest, res); err != nil {

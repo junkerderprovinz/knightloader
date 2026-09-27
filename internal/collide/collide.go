@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	gopeed "github.com/GopeedLab/gopeed/pkg/util"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // Policy is what to do about a name that is already taken.
@@ -181,9 +182,10 @@ func (r Result) handoff() (Result, error) {
 // and writes at offsets; tests fake the failures and let successes fall
 // through to a temp directory.
 type Options struct {
-	// Perm is the mode a reserved file is created with. Zero means 0644.
+	// Perm is the mode a reserved file is created with. Zero means
+	// filemode.File, which the umask narrows.
 	Perm fs.FileMode
-	// DirPerm is the mode a missing parent gets. Zero means 0755.
+	// DirPerm is the mode a missing parent gets. Zero means filemode.Dir.
 	DirPerm fs.FileMode
 	// MaxAttempts caps how many names Rename tries, counting the unsuffixed
 	// one. Zero means DefaultMaxAttempts.
@@ -418,14 +420,14 @@ func (o Options) perm() fs.FileMode {
 	if o.Perm != 0 {
 		return o.Perm
 	}
-	return 0o644
+	return filemode.File
 }
 
 func (o Options) dirPerm() fs.FileMode {
 	if o.DirPerm != 0 {
 		return o.DirPerm
 	}
-	return 0o755
+	return filemode.Dir
 }
 
 func (o Options) maxAttempts() int {

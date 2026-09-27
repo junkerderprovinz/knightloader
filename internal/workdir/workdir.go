@@ -55,6 +55,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // keyDigest is how many bytes of the destination's digest go into a working
@@ -275,7 +276,7 @@ func MoveAs(ctx context.Context, src, target string, o Options) (Result, error) 
 	if err != nil {
 		return Result{Path: src}, err
 	}
-	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), filemode.Dir); err != nil {
 		return Result{Path: src}, fmt.Errorf("workdir: %s: %w", filepath.Dir(target), err)
 	}
 	return o.place(ctx, src, target, info)
@@ -369,7 +370,7 @@ func (o Options) target(src, dstDir string, folder bool) (string, bool, error) {
 			// here instead - see Options.Policy for what the word means in a
 			// move. MkdirAll rather than nothing, because the destination
 			// folder may not exist yet and the rename below cannot make it.
-			if err := os.MkdirAll(dstDir, 0o755); err != nil {
+			if err := os.MkdirAll(dstDir, filemode.Dir); err != nil {
 				return "", false, fmt.Errorf("workdir: %s: %w", dstDir, err)
 			}
 			return filepath.Join(dstDir, collide.SafeName(filepath.Base(src))), false, nil
@@ -408,7 +409,7 @@ func (o Options) prune(dir string) {
 // tried again when whatever failed has been fixed.
 func copyAcross(ctx context.Context, src, target string, info fs.FileInfo) error {
 	dir := filepath.Dir(target)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
 		return fmt.Errorf("workdir: %s: %w", dir, err)
 	}
 	tmp, err := stageCopy(ctx, src, dir, info)

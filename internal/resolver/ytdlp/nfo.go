@@ -5,6 +5,8 @@ import (
 	"encoding/xml"
 	"os"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // Jellyfin, Kodi and Plex match file names against online databases, which a
@@ -122,7 +124,7 @@ func writeNFO(path string, d infoDict) error {
 	}
 	out := append([]byte(xml.Header), body...)
 	out = append(out, '\n')
-	return os.WriteFile(path, out, 0o644)
+	return os.WriteFile(path, out, filemode.File)
 }
 
 // parseUploadDate converts yt-dlp's YYYYMMDD into the ISO date Kodi's

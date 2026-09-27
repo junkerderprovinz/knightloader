@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -386,7 +387,7 @@ func createFolder(parent, name string) (string, error) {
 		return "", folderRefusal{http.StatusForbidden, "outside",
 			"this instance may not create folders in " + parent + "; it is outside " + strings.Join(b.roots, ", ")}
 	}
-	err = os.Mkdir(filepath.Join(real, name), 0o755)
+	err = os.Mkdir(filepath.Join(real, name), filemode.Dir)
 	switch {
 	case err == nil:
 		return filepath.Join(parent, name), nil
