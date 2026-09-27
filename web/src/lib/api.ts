@@ -591,6 +591,10 @@ export interface Settings {
   navLabels: NavLabelMode;
   /** How much of an entry the phone layout's bottom bar draws, or 'follow' for navLabels'. */
   bottomBarLabels: BarLabelMode;
+  /** Whether seeding and finished packages leave the download list for cards
+   *  of their own (lib/listCards.ts). The app reads them too. */
+  seedingCard: boolean;
+  finishedCard: boolean;
   /** Only the container build's General tab acts on it. */
   autoUpdateCheck: boolean;
   /** Downloads a newer release for the next start. Only the desktop build acts on it. */

@@ -146,6 +146,7 @@ export type QuickFilterId =
   | 'queued'
   | 'paused'
   | 'finished'
+  | 'seeding'
   | 'failed'
   | 'offline'
   | 'disabled'
@@ -165,7 +166,10 @@ export const QUICK_FILTERS: QuickFilter[] = [
   { id: 'running', label: 'filter.running', match: (t) => t.status === 'running' || t.status === 'extracting' },
   { id: 'queued', label: 'filter.queued', match: (t) => t.status === 'queued' },
   { id: 'paused', label: 'filter.paused', match: (t) => t.status === 'paused' },
-  { id: 'finished', label: 'filter.finished', match: (t) => t.status === 'done' },
+  // A torrent still uploading reads Seeding in its row and has a card of its
+  // own, so Finished leaves it out.
+  { id: 'finished', label: 'filter.finished', match: (t) => t.status === 'done' && !t.seeding },
+  { id: 'seeding', label: 'filter.seeding', match: (t) => t.status === 'done' && !!t.seeding },
   { id: 'failed', label: 'filter.failed', match: (t) => t.status === 'error' },
   { id: 'online', label: 'filter.online', match: (t) => t.online === 'online' },
   { id: 'offline', label: 'filter.offline', match: (t) => t.online === 'offline' },
@@ -196,12 +200,13 @@ export function offeredQuickFilters(
     .filter(({ f, n }) => n > 0 || active.has(f.id));
 }
 
-/** The eight states a download list is actually filtered by. */
+/** The states a download list is actually filtered by. */
 export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'running',
   'queued',
   'paused',
   'finished',
+  'seeding',
   'failed',
   'offline',
   'disabled',
@@ -934,6 +939,7 @@ function taskMenuGroups({
   removal,
   queue,
   onOptions,
+  settled,
 }: {
   chosen: Task[];
   ids: string[];
@@ -949,6 +955,7 @@ function taskMenuGroups({
   /** The priorities this server offers and where the stop mark currently sits. */
   queue: QueueVerbs;
   onOptions: (focus: 'dir' | 'password') => void;
+  settled?: boolean;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
   const idsInScope = (p: (x: Task) => boolean) => scope.filter(p).map((x) => x.id);
@@ -1080,6 +1087,10 @@ function taskMenuGroups({
     ],
   };
 
+  // A card of settled packages offers what can be done with a download that is
+  // over: fetching it again and taking it away. The queue, the switches and the
+  // options only matter to a download still to come.
+  if (settled) return [{ id: 'transport', items: transport.items.filter((x) => x.id === 'restart') }, gone];
   return [transport, queueGroup, state, options, gone];
 }
 
@@ -1128,6 +1139,7 @@ export function ListMenu({
   list,
   rename,
   extraGroups = [],
+  settled,
 }: {
   anchor: MenuAnchor | null;
   onClose: () => void;
@@ -1144,6 +1156,9 @@ export function ListMenu({
   rename?: Rename;
   /** Groups another wave contributes, appended after the standard ones. */
   extraGroups?: MenuGroup[];
+  /** Whether the menu belongs to the Seeding or the Finished card, which
+   *  offer only the verbs for a download that is over. */
+  settled?: boolean;
 }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -1295,6 +1310,7 @@ export function ListMenu({
         removal,
         queue,
         onOptions: (focus) => setOptions({ tasks: chosen, focus }),
+        settled,
       }),
       ...extraGroups,
     );

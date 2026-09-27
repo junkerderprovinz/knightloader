@@ -25,6 +25,7 @@ import {
 import { onUpdateReady } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
+import { setListCards } from '../lib/listCards';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
 import { useTasks } from '../lib/useTasks';
@@ -82,6 +83,8 @@ function useAppearance() {
         // Cached so the next load paints the chosen look immediately instead of
         // flashing the default while this request is in flight.
         cacheAppearance(s.shape, s.accent, rainbow);
+        // An instance older than the switches has both cards on.
+        setListCards({ seeding: s.seedingCard !== false, finished: s.finishedCard !== false });
       })
       .catch(() => {
         // The cached look from the last successful load stays.

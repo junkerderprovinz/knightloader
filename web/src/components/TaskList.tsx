@@ -149,6 +149,8 @@ import {
   IconSettings,
   IconArrowUp,
   IconArrowDown,
+  IconChevronDown,
+  IconChevronUp,
   IconClose,
 } from '../lib/icons';
 
@@ -1654,6 +1656,9 @@ export function TaskListCard({
   onRemovePackage,
   extractions,
   stopMark,
+  sortKey,
+  count,
+  fold,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1686,6 +1691,13 @@ export function TaskListCard({
   extractions?: ReadonlyMap<string, ExtractJob>;
   /** See CellContext.stopMark. */
   stopMark?: string;
+  /** Where this card keeps its sort, when it shares its columns with another
+   *  list of the same profile but sorts on its own. Defaults to the profile. */
+  sortKey?: string;
+  /** How many links the card holds, shown in its title. */
+  count?: number;
+  /** Folds the card to its title, for a card that sits below the main list. */
+  fold?: { folded: boolean; onToggle: () => void };
 }) {
   const { t } = useT();
   // Only the row move reports through this so far (see dropBlock and
@@ -1694,7 +1706,7 @@ export function TaskListCard({
   const { toast } = useToast();
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
-  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
+  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
   const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
   // The torrents whose files are shown under their row, by task id. Kept like
   // the folded packages, and trimmed to the tasks on the list at every write.
@@ -1724,6 +1736,7 @@ export function TaskListCard({
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const switchShown = layout.visible.some((c) => c.id === 'enabled');
+  const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
     () => ({ t, base, profile, onRemovePackage, extractions, stopMark, switchShown }),
     [t, base, profile, onRemovePackage, extractions, stopMark, switchShown],
@@ -3029,7 +3042,7 @@ export function TaskListCard({
           ?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(row.key)}"] [role="switch"]`)
           ?.click(),
     },
-    enabled: rows.length > 0,
+    enabled: rows.length > 0 && !folded,
   });
 
   // Scroll a named row into view, exactly once per request.
@@ -3127,7 +3140,20 @@ export function TaskListCard({
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
       >
-        <div className="flex items-center gap-2 px-4 pt-4">
+        {/* On the top edge across from the title, as a second notch, so it
+            takes no row of its own above the table. */}
+        {fold && (
+          <div className="absolute end-4 top-0 z-10 -translate-y-1/2">
+            <IconBadge
+              icon={folded ? <IconChevronDown width={16} height={16} /> : <IconChevronUp width={16} height={16} />}
+              title={t(folded ? 'task.expand' : 'task.collapse')}
+              aria-label={t(folded ? 'task.expand' : 'task.collapse')}
+              aria-expanded={!folded}
+              onClick={fold.onToggle}
+            />
+          </div>
+        )}
+        <div className={`flex items-center gap-2 px-4 pt-4 ${folded ? 'pb-4' : ''}`}>
           {/* The bubble on this badge holds the one explanation the table needs
               and nothing else could carry: right-click the header for the
               column menu, click a label to sort. One bubble and not two, since
@@ -3142,8 +3168,10 @@ export function TaskListCard({
             second={sort ? { label: t('list.sortedView'), hint: t('list.sortedViewTip') } : undefined}
           >
             {title}
+            {count !== undefined && <span className="glim-num ms-1.5">{count}</span>}
           </SectionTitle>
         </div>
+        {!folded && (
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
 
           {/* min-w-min, not min-w-max: max-content pins the table at the sum of
@@ -3328,6 +3356,7 @@ export function TaskListCard({
             </div>
           </div>
         </div>
+        )}
 
         {menuAt && (
           <ColumnMenu
@@ -3349,7 +3378,7 @@ export function TaskListCard({
           Nothing to edit means no panel: an empty properties panel is a card of
           disabled controls, which reads as broken. propertiesOpen gates it on
           top of that, so a double-click is what opens it. */}
-      {propertiesOpen && chosenIds && chosen.length > 0 && (
+      {propertiesOpen && !folded && chosenIds && chosen.length > 0 && (
         <TaskProperties
           key={[...chosenIds].join(',')}
           ids={[...chosenIds]}
@@ -3375,7 +3404,7 @@ export function TaskListCard({
           mount, this one re-renders live off the task object the websocket
           replaces on every tick, and a key derived from anything that moves
           would tear the player down once a second. */}
-      {propertiesOpen && chosenIds?.size === 1 && chosen.length === 1 && (
+      {propertiesOpen && !folded && chosenIds?.size === 1 && chosen.length === 1 && (
         <TaskDetailPanel task={chosen[0]} base={base} hue={hue === undefined ? undefined : hue + 1} />
       )}
     </div>

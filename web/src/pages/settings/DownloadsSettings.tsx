@@ -13,6 +13,7 @@ import { ChunksField, MaxConcurrentField, MaxPerHostField } from './downloads/Co
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
 import { FolderCheckCard } from './downloads/FolderCheck';
+import { ListCardsCard } from './downloads/ListCards';
 import { ReclaimCard } from './downloads/Reclaim';
 import { SpeedLimitField } from './downloads/SpeedLimit';
 import { StallCard } from './downloads/Stall';
@@ -145,6 +146,8 @@ export function DownloadsSettings() {
       <FeedsCard hue={7} />
 
       <FolderCheckCard hue={8} />
+
+      <ListCardsCard hue={9} />
     </div>
   );
 }
