@@ -112,8 +112,9 @@ Wails' own tray, and adds the window's close/minimise/start-hidden behaviour.
 A click on the icon opens a small window beside it (`overview.go`, the page
 at `/tray`) with the speed, the counts, the captchas waiting, what is
 downloading and the latest downloads, a button that stops or starts the queue
-and one that opens the main window. A double click opens the main window, and
-a right click the menu. The menu shows and hides the window, stops or starts
+and one that opens the main window. Its edges can be dragged, and
+`desktop.json` keeps the size. A double click opens the main window, and a
+right click the menu. The menu shows and hides the window, stops or starts
 the queue, quits, and holds the preferences, which are set there rather than
 on a settings page. The page hands the menu its words in the interface's
 language. The preferences belong to one installation on one machine. They
