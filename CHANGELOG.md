@@ -100,6 +100,8 @@ release's tag.
   opens on that card; Chrome and Edge keep it.
 - **The browser extension needs Firefox for Android 142 or later** there. On
   desktop Firefox it stays at 140.
+- **The browser extension's instance cards say Connected and Not connected**,
+  the words the web interface and the app use, instead of Online and Offline.
 
 ### Removed
 
