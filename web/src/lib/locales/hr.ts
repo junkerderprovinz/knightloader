@@ -93,6 +93,8 @@ export const hr: Dict = {
 
   'downloads.title': 'Preuzimanja',
   'downloads.listTitle': 'Popis preuzimanja',
+  'downloads.seedingTitle': 'Seeda',
+  'downloads.finishedTitle': 'Gotovo',
   'downloads.thisInstance': 'Ova instanca',
   'downloads.pauseAll': 'Pauziraj sve',
   'downloads.resumeAll': 'Nastavi sve',
@@ -347,6 +349,7 @@ export const hr: Dict = {
   'filter.queued': 'U redu čekanja',
   'filter.paused': 'Pauzirano',
   'filter.finished': 'Gotovo',
+  'filter.seeding': 'Seeda',
   'filter.failed': 'Neuspjelo',
   'filter.online': 'Dostupno',
   'filter.offline': 'Nedostupno',
@@ -1787,6 +1790,10 @@ export const hr: Dict = {
 
   'settings.downloads.workDir': 'Radna mapa',
   'settings.downloads.workDirHint': 'Kamo se preuzimanje zapisuje dok još stiže. Gotova datoteka zatim se premješta u mapu za preuzimanja, kad su kontrolni zbroj i eventualno raspakiravanje gotovi, pa se ondje nikad ne vidi ništa napola gotovo. Prazno, kako dolazi zadano, znači da se preuzimanja zapisuju ravno na odredište. Postavi je kad mapu za preuzimanja prati nešto drugo: Unraidov mover uzme pola datoteke s cachea i kopira je na polje, a skener biblioteke doda nedovršen video, jednom ga ne uspije reproducirati i više ga nikad ne pogleda. Jedna stalna apsolutna putanja, bez varijabli: sva preuzimanja s istim odredištem dijele ovu mapu, a predložak bi razbacao dijelove višedijelne arhive. Putanja koja nije apsolutna odbacuje se pri spremanju. Torrenti i preuzimanja koja dohvaća drugi program nikad je ne koriste.',
+  'settings.downloads.seedingCard': 'Prikaži torrente koji seedaju u zasebnoj kartici',
+  'settings.downloads.seedingCardHint': 'Torrent koji je preuzet do kraja, ali još šalje podatke, seli se s popisa preuzimanja u karticu „Seeda” ispod njega, a kad prestane seedati, prelazi u „Gotovo”. Kad je ovo isključeno, ostaje na popisu preuzimanja.',
+  'settings.downloads.finishedCard': 'Prikaži gotove pakete u zasebnoj kartici',
+  'settings.downloads.finishedCardHint': 'Čim je svaka poveznica paketa preuzeta i svaka arhiva u njemu raspakirana, paket se seli s popisa preuzimanja u karticu „Gotovo” ispod njega. Poveznice koje si isključio ne zadržavaju ga. Ako se neka od njegovih poveznica ponovno preuzima ili dodaš novu, paket se odmah vraća. Kad je ovo isključeno, gotovi paketi ostaju na popisu preuzimanja.',
 
   'settings.archives.moveTo': 'Premjesti raspakirane datoteke u',
   'settings.archives.moveToHint': 'Kamo se premještaju raspakirane datoteke čim raspakiravanje završi. Ostavi prazno i ostaju ondje gdje su raspakirane. To nije drugo „Raspakiraj u”: ondje raspakiravanje zapisuje, pa napola gotovo izdanje leži na tom odredištu dok god traje. Ovo premješta datoteke poslije, pa se na cilju nikad ne vidi ništa nedovršeno. Uz to premješta sadržaj, a ne mapu izdanja, pa „Show.S01.COMPLETE.WEB/ep01.mkv” stiže kao „ep01.mkv”, bez mape koju nijedna biblioteka nije tražila. Varijable su ovdje dopuštene. Pravilo Packagizera koje je za određenu poveznicu navelo mapu nadjačava ovo.',

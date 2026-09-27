@@ -93,6 +93,8 @@ export const cs: Dict = {
 
   'downloads.title': 'Stahování',
   'downloads.listTitle': 'Seznam stahování',
+  'downloads.seedingTitle': 'Seeduje',
+  'downloads.finishedTitle': 'Hotovo',
   'downloads.thisInstance': 'Tato instance',
   'downloads.pauseAll': 'Pozastavit vše',
   'downloads.resumeAll': 'Pokračovat ve všem',
@@ -347,6 +349,7 @@ export const cs: Dict = {
   'filter.queued': 'Ve frontě',
   'filter.paused': 'Pozastaveno',
   'filter.finished': 'Hotovo',
+  'filter.seeding': 'Seeduje',
   'filter.failed': 'Selhalo',
   'filter.online': 'Dostupné',
   'filter.offline': 'Nedostupné',
@@ -1787,6 +1790,10 @@ export const cs: Dict = {
 
   'settings.downloads.workDir': 'Pracovní složka',
   'settings.downloads.workDirHint': 'Kam se stahování zapisuje, dokud ještě přichází. Hotový soubor se potom přesune do složky pro stahování, až po kontrolním součtu a případném rozbalení, takže tam nikdy není vidět nic rozdělaného. Prázdné, jak je to ve výchozím stavu, znamená, že se stahování zapisují rovnou do cíle. Nastav to, když složku pro stahování sleduje ještě něco jiného: mover v Unraidu vezme půlku souboru z cache a zkopíruje ji na pole a skener knihovny přidá nedokončené video, jednou ho nedokáže přehrát a už se na něj nikdy nepodívá. Jedna pevná absolutní cesta, žádné proměnné: tuhle složku sdílí všechna stahování mířící do stejného cíle a šablona by rozházela části vícedílného archivu. Cesta, která není absolutní, se při uložení zahodí. Torrenty a stahování, která stahuje jiný program, ji nikdy nepoužívají.',
+  'settings.downloads.seedingCard': 'Zobrazovat seedující torrenty ve vlastní kartě',
+  'settings.downloads.seedingCardHint': 'Torrent, který je stažený, ale ještě odesílá data, se přesune ze seznamu stahování do karty „Seeduje“ pod ním, a jakmile přestane seedovat, přejde do „Hotovo“. Když je to vypnuté, zůstane v seznamu stahování.',
+  'settings.downloads.finishedCard': 'Zobrazovat hotové balíčky ve vlastní kartě',
+  'settings.downloads.finishedCardHint': 'Jakmile je každý odkaz balíčku stažený a každý archiv v něm rozbalený, balíček se přesune ze seznamu stahování do karty „Hotovo“ pod ním. Odkazy, které jsi vypnul, ho nezdržují. Když se některý z jeho odkazů stahuje znovu nebo přidáš nový, balíček se hned vrátí. Když je to vypnuté, hotové balíčky zůstanou v seznamu stahování.',
   'settings.archives.moveTo': 'Rozbalené soubory přesunout do',
   'settings.archives.moveToHint': 'Kam se rozbalené soubory přesunou, jakmile rozbalování skončí. Když to necháš prázdné, zůstanou tam, kde se rozbalily. Není to druhé „Rozbalit do“: tam rozbalování zapisuje, takže rozdělané vydání leží v tom cíli po celou dobu, co běží. Tohle soubory přesune až potom, takže v cíli nikdy není vidět nic nedokončeného. Navíc přesouvá obsah, a ne složku vydání, takže ze „Show.S01.COMPLETE.WEB/ep01.mkv“ dorazí „ep01.mkv“, bez složky, o kterou žádná knihovna nestála. Proměnné jsou tu povolené. Pravidlo Packagizeru, které pro konkrétní odkaz určilo složku, má před tímhle přednost.',
   'settings.downloads.collision': 'Když už tam ten soubor je',

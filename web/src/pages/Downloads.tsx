@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { type Instance, pause, resume, restartTasks, fetchInstances } from '../lib/api';
+import { type Instance, type Task, pause, resume, restartTasks, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { useNavLabels } from '../lib/navLabels';
 import { useRowFit } from '../lib/rowFit';
+import { splitByCard, useListCards, type ListCard } from '../lib/listCards';
+import { useUIState } from '../lib/uistate';
 import { PageHeader, EmptyState, IconBadge } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
@@ -60,6 +62,20 @@ import {
   IconTrashFiles,
 } from '../lib/icons';
 
+// The two cards below the download list, in the order they are drawn. Each
+// sorts and folds on its own and shares the download list's columns.
+const SETTLED = [
+  { card: 'seeding', title: 'downloads.seedingTitle', hue: 1 },
+  { card: 'finished', title: 'downloads.finishedTitle', hue: 2 },
+] as const;
+
+type Narrowed = Record<ListCard, [string, Task[]][]>;
+
+// A stable empty grouping for a folded card, which draws no rows.
+const NONE: [string, Task[]][] = [];
+
+const flat = (groups: [string, Task[]][]): Task[] => groups.flatMap(([, items]) => items);
+
 export function Downloads() {
   const { t } = useT();
   const [instances, setInstances] = useState<Instance[]>([]);
@@ -79,9 +95,9 @@ export function Downloads() {
   const panelRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // The row TaskListCard should scroll to, with the request's nonce so a
-  // second jump to the same row is a new value.
-  const [revealRow, setRevealRow] = useState<string | undefined>(undefined);
+  // The row a card should scroll to, with the request's nonce so a second jump
+  // to the same row is a new value, and the card that holds it.
+  const [revealRow, setRevealRow] = useState<{ key: string; card: ListCard } | undefined>(undefined);
   const { toast } = useToast();
   const menu = useContextMenu();
   // The clean-up menu opens under a badge; `menu` above opens at the pointer.
@@ -91,6 +107,14 @@ export function Downloads() {
   const queueVerbs = useQueueVerbs(base);
   // A link, a package header and empty space each offer their own menu.
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
+  const [menuCard, setMenuCard] = useState<ListCard>('downloads');
+  const cardsOn = useListCards();
+  const [seedingFolded, setSeedingFolded] = useUIState<boolean>('list.folded.seeding', false);
+  const [finishedFolded, setFinishedFolded] = useUIState<boolean>('list.folded.finished', false);
+  const cardFold: Record<'seeding' | 'finished', { folded: boolean; onToggle: () => void }> = {
+    seeding: { folded: seedingFolded, onToggle: () => setSeedingFolded(!seedingFolded) },
+    finished: { folded: finishedFolded, onToggle: () => setFinishedFolded(!finishedFolded) },
+  };
   // The same folded set the list card reads; folding is also a menu entry.
   const folds = useCollapsedPackages('downloads');
   const tasks = useTasks(instance);
@@ -125,11 +149,31 @@ export function Downloads() {
     [all],
   );
 
+  // Split before the search and the quick filters narrow it, because a
+  // package's card follows all of its links. The narrowing then applies to all
+  // three cards alike: a search is how somebody finds a file, wherever it is.
+  const byCard = useMemo(() => splitByCard(groupByPackage(list), cardsOn), [list, cardsOn]);
+  const shown = useMemo<Narrowed>(() => {
+    const narrow = (groups: [string, Task[]][]) =>
+      groups
+        .map(([name, items]): [string, Task[]] => [
+          name,
+          items.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
+        ])
+        .filter(([, items]) => items.length > 0);
+    return { downloads: narrow(byCard.downloads), seeding: narrow(byCard.seeding), finished: narrow(byCard.finished) };
+  }, [byCard, filters, search]);
+  const groups = shown.downloads;
+  // Every row on the page, in the order the cards draw them.
   const filtered = useMemo(
-    () => list.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
-    [list, filters, search],
+    () => [...flat(shown.downloads), ...flat(shown.seeding), ...flat(shown.finished)],
+    [shown],
   );
-  const groups = useMemo(() => groupByPackage(filtered), [filtered]);
+  // Which card each row is in, whatever hides it.
+  const cardIds = useMemo(() => {
+    const ids = (c: ListCard) => new Set(flat(byCard[c]).map((x) => x.id));
+    return { downloads: ids('downloads'), seeding: ids('seeding'), finished: ids('finished') };
+  }, [byCard]);
 
   useEffect(() => {
     setSelected((prev) => {
@@ -153,12 +197,32 @@ export function Downloads() {
     // a setting and survives.
     if (!matchesQuickFilters(task, filters)) narrowing.clearFilters();
     if (!matchesSearch(task, search)) narrowing.setSearch({ text: '', category: search.category });
-    // '' is the ungrouped bucket's real name. A folded package draws no rows.
+    // '' is the ungrouped bucket's real name. A folded package draws no rows,
+    // and neither does a folded card.
     folds.expand([task.package || '']);
+    const card: ListCard = cardIds.seeding.has(reveal.id)
+      ? 'seeding'
+      : cardIds.finished.has(reveal.id)
+        ? 'finished'
+        : 'downloads';
+    if (card === 'seeding' && seedingFolded) setSeedingFolded(false);
+    if (card === 'finished' && finishedFolded) setFinishedFolded(false);
     setSelected(new Set([reveal.id]));
     // Selecting the row marks it; .glim-row-selected paints the wash.
-    setRevealRow(`task:${reveal.id}#${reveal.nonce}`);
-  }, [reveal, tasks, filters, search, folds, narrowing]);
+    setRevealRow({ key: `task:${reveal.id}#${reveal.nonce}`, card });
+  }, [
+    reveal,
+    tasks,
+    filters,
+    search,
+    folds,
+    narrowing,
+    cardIds,
+    seedingFolded,
+    finishedFolded,
+    setSeedingFolded,
+    setFinishedFolded,
+  ]);
 
   // Closes the search popover on an outside click or Escape, as in the collector.
   useEffect(() => {
@@ -179,8 +243,14 @@ export function Downloads() {
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
   // The rows actually drawn, narrower than `filtered` by every folded package
-  // (lib/selectionReach.ts).
-  const drawn = useDrawnRows(groups, folds.collapsed);
+  // and folded card (lib/selectionReach.ts).
+  const drawnDownloads = useDrawnRows(groups, folds.collapsed);
+  const drawnSeeding = useDrawnRows(seedingFolded ? NONE : shown.seeding, folds.collapsed);
+  const drawnFinished = useDrawnRows(finishedFolded ? NONE : shown.finished, folds.collapsed);
+  const drawn = useMemo(
+    () => new Set([...drawnDownloads, ...drawnSeeding, ...drawnFinished]),
+    [drawnDownloads, drawnSeeding, drawnFinished],
+  );
   const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
   // Drops hidden rows from the selection and can offer the whole selection back.
   const reduceToShown = useCallback(() => {
@@ -241,16 +311,22 @@ export function Downloads() {
   // Saved scripts become manual commands on this menu (ScriptActions.tsx).
   const scriptGroups = useScriptMenu({ chosen, base });
 
-  const selection: Selection = {
-    ids: selected,
-    toggle: (id) =>
-      setSelected((s) => {
-        const n = new Set(s);
-        if (n.has(id)) n.delete(id);
-        else n.add(id);
-        return n;
-      }),
-    set: setSelected,
+  // Each card selects on its own: a click in one keeps only that card's rows,
+  // so the menu and the verbs never act on rows of two cards at once unless
+  // "select all" asked for every row on the page.
+  const selectionIn = (card: ListCard): Selection => {
+    const mine = (ids: Iterable<string>) => new Set([...ids].filter((id) => cardIds[card].has(id)));
+    return {
+      ids: selected,
+      toggle: (id) =>
+        setSelected((s) => {
+          const n = mine(s);
+          if (n.has(id)) n.delete(id);
+          else n.add(id);
+          return n;
+        }),
+      set: (ids) => setSelected(mine(ids)),
+    };
   };
   const ids = () => [...selected];
 
@@ -325,17 +401,20 @@ export function Downloads() {
    * package header takes its package unless a larger selection holds it; empty
    * space acts on the list.
    */
-  function onContextMenu(e: React.MouseEvent): void {
+  function onContextMenu(e: React.MouseEvent, card: ListCard): void {
     // The column header may have claimed this right-click. Read off the native
     // event, since React fixes the synthetic defaultPrevented when it builds it.
     if (e.nativeEvent.defaultPrevented) return;
     const id = targetTaskId(e);
     const pkg = id === null ? targetPackage(e) : null;
+    setMenuCard(card);
     if (id) {
       if (!selected.has(id)) setSelected(new Set([id]));
       setTarget({ kind: 'selection' });
     } else if (pkg !== null) {
-      const ids = filtered.filter((x) => (x.package || '') === pkg).map((x) => x.id);
+      const ids = flat(shown[card])
+        .filter((x) => (x.package || '') === pkg)
+        .map((x) => x.id);
       if (!(ids.length > 0 && ids.every((x) => selected.has(x)))) setSelected(new Set(ids));
       setTarget({ kind: 'package', name: pkg });
     } else {
@@ -345,16 +424,19 @@ export function Downloads() {
     menu.openAt(anchorFromEvent(e));
   }
 
+  // The menu's view of the card it was opened in. A package header there stands
+  // for the package's links in that card, which for the loose links is not all
+  // of them.
   const listContext: ListContext = {
-    packages: groups.map(([name]) => name),
+    packages: shown[menuCard].map(([name]) => name),
     collapsed: folds.collapsed,
     onCollapse: folds.collapse,
     onExpand: folds.expand,
-    onSelectAll: () => setSelected(new Set(filtered.map((x) => x.id))),
+    onSelectAll: () => setSelected(new Set(flat(shown[menuCard]).map((x) => x.id))),
     onSelectNone: clearSelection,
     // Clean-up always runs here, never on the peer whose list is being shown.
     local: instance === '',
-    members,
+    members: (pkg) => byCard[menuCard].find(([name]) => name === pkg)?.[1] ?? [],
   };
 
   const selectedIds = chosen.map((x) => x.id);
@@ -585,10 +667,12 @@ export function Downloads() {
         </div>
       )}
 
-      {/* The one scrolling region: everything above keeps its height and the
-          list takes the rest, never less than a few rows. A window too short
-          for that scrolls the frame instead. */}
-      <div className="flex min-h-48 flex-1 flex-col" onContextMenu={onContextMenu}>
+      {/* The scrolling regions: everything above keeps its height and the
+          download list takes the rest, never less than a few rows. The two
+          cards below it scroll on their own under a cap while the download
+          list has rows, so a long finished list cannot push it off the page.
+          A window too short for that scrolls the frame instead. */}
+      <div className="flex min-h-48 flex-1 flex-col gap-6">
         {list.length === 0 ? (
           <EmptyState
             fill
@@ -599,23 +683,56 @@ export function Downloads() {
         ) : filtered.length === 0 ? (
           <EmptyState fill icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
         ) : (
-          // The collector's scroll box: a flex column, since h-full on
-          // TaskListCard does not resolve through a flex-grown overflow box, and
-          // pt-3 keeps the card's title badge inside its clip edge.
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
-            <TaskListCard
-              groups={groups}
-              base={base}
-              selection={selection}
-              revealKey={revealRow}
-              // The same removal path as the selection bar and the context menu.
-              onRemovePackage={removal.askWithFiles}
-              extractions={extractions}
-              stopMark={queueVerbs.stopMark}
-              title={t('downloads.listTitle')}
-              hue={0}
-            />
-          </div>
+          <>
+            {groups.length > 0 && (
+              // The collector's scroll box: a flex column, since h-full on
+              // TaskListCard does not resolve through a flex-grown overflow
+              // box, and pt-3 keeps the card's title badge inside its clip edge.
+              <div
+                className="flex min-h-48 flex-[1_0_50%] flex-col overflow-y-auto pt-3"
+                onContextMenu={(e) => onContextMenu(e, 'downloads')}
+              >
+                <TaskListCard
+                  groups={groups}
+                  base={base}
+                  selection={selectionIn('downloads')}
+                  revealKey={revealRow?.card === 'downloads' ? revealRow.key : undefined}
+                  // The same removal path as the selection bar and the context menu.
+                  onRemovePackage={removal.askWithFiles}
+                  extractions={extractions}
+                  stopMark={queueVerbs.stopMark}
+                  title={t('downloads.listTitle')}
+                  count={flat(groups).length}
+                  hue={0}
+                />
+              </div>
+            )}
+            {SETTLED.map(
+              ({ card, title, hue }) =>
+                shown[card].length > 0 && (
+                  <div
+                    key={card}
+                    className={`flex min-h-0 flex-initial flex-col overflow-y-auto pt-3 ${groups.length > 0 ? 'max-h-[35vh]' : ''} ${cardFold[card].folded ? 'shrink-0' : ''}`}
+                    onContextMenu={(e) => onContextMenu(e, card)}
+                  >
+                    <TaskListCard
+                      groups={shown[card]}
+                      base={base}
+                      selection={selectionIn(card)}
+                      revealKey={revealRow?.card === card ? revealRow.key : undefined}
+                      onRemovePackage={removal.askWithFiles}
+                      extractions={extractions}
+                      stopMark={queueVerbs.stopMark}
+                      sortKey={`downloads.${card}`}
+                      title={t(title)}
+                      count={flat(shown[card]).length}
+                      fold={cardFold[card]}
+                      hue={hue}
+                    />
+                  </div>
+                ),
+            )}
+          </>
         )}
       </div>
 
@@ -641,6 +758,7 @@ export function Downloads() {
         list={listContext}
         rename={rename}
         extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
+        settled={menuCard !== 'downloads'}
       />
       {removal.dialog}
       {rename.dialog}

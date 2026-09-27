@@ -64,6 +64,8 @@
   "hideInstancesFromSidebar": false,
   "navLabels": "both",
   "bottomBarLabels": "follow",
+  "seedingCard": true,
+  "finishedCard": true,
   "autoUpdateCheck": false,
   "autoUpdate": true,
   "ytdlpVersionCheck": false,
