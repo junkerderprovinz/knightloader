@@ -90,6 +90,23 @@ release's tag.
 - **The downloaded volume's selectors sit under the chart**, below the figures
   they choose.
 - **The closed envelope on the About card's mail button sits in the middle of the button**, as GlimStone 3.0.1 draws it. It stood a little too low.
+- **The browser extension asks for access to all websites only for
+  Click'n'Load.** The install asks for no website access at all. Switching
+  Click'n'Load on asks for it, and switching it off gives it back. A fresh
+  install opens the options page with a card that asks in one click, and a
+  refusal leaves the switch off with the reason under it. Sending a page, link,
+  image or selection uses `activeTab`, the access to one tab that a click on
+  the extension gives. If an update finds the access gone, the options page
+  opens on that card; Chrome and Edge keep it.
+- **The browser extension needs Firefox for Android 142 or later** there. On
+  desktop Firefox it stays at 140.
+
+### Removed
+
+- **The start and stop buttons on the browser extension's instance cards.**
+  The extension catches and sends links; the queue is run from the web
+  interface, the app and the desktop tray. A card still shows whether its
+  instance is online and what the queue is doing.
 
 ### Fixed
 
