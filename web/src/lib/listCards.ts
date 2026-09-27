@@ -9,14 +9,18 @@
 import { useSyncExternalStore } from 'react';
 import type { Task } from './api';
 
-export type ListCard = 'downloads' | 'seeding' | 'finished';
+export type ListCard = 'downloads' | 'finished' | 'torrents';
 
 export interface CardSwitches {
-  seeding: boolean;
   finished: boolean;
+  torrents: boolean;
 }
 
 const unpackFailed = (t: Task): boolean => t.unpack === 'error' || t.unpack === 'password';
+
+// Same signal as isTorrentTask in components/columns.tsx. A torrent a debrid
+// service fetched comes down over HTTP, never seeds, and is not one.
+const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
 /**
  * packageCard is the card a package belongs in, judged over all of its links.
@@ -25,8 +29,9 @@ const unpackFailed = (t: Task): boolean => t.unpack === 'error' || t.unpack === 
  * left to unpack: no archive waiting for its turn or being unpacked (both are
  * status extracting) and none that failed to unpack, since that archive is the
  * thing left to act on. A failed link keeps the package in the download list for
- * the same reason. It is seeding when it would be finished but for a torrent
- * that is still uploading.
+ * the same reason. A finished package holding a torrent goes to Torrents, where
+ * it stays whether it still seeds or not, since a torrent is often kept there
+ * for a long time.
  *
  * A switched-off link that has not downloaded does not hold the package back,
  * since switching a link off is how somebody says they do not want it. One that
@@ -36,22 +41,23 @@ const unpackFailed = (t: Task): boolean => t.unpack === 'error' || t.unpack === 
 export function packageCard(items: readonly Task[]): ListCard {
   if (items.every((x) => x.enabled === false)) return 'downloads';
   let done = 0;
-  let seeding = false;
+  let torrent = false;
   for (const x of items) {
     if (x.status === 'done' && !unpackFailed(x)) {
       done++;
-      if (x.seeding) seeding = true;
+      if (isTorrent(x)) torrent = true;
       continue;
     }
     if (x.enabled === false && x.status !== 'running' && x.status !== 'extracting') continue;
     return 'downloads';
   }
   if (done === 0) return 'downloads';
-  return seeding ? 'seeding' : 'finished';
+  return torrent ? 'torrents' : 'finished';
 }
 
+// With the Torrents card off a torrent is finished like any other download.
 function placed(card: ListCard, on: CardSwitches): ListCard {
-  if (card === 'seeding' && !on.seeding) return 'downloads';
+  if (card === 'torrents' && !on.torrents) card = 'finished';
   if (card === 'finished' && !on.finished) return 'downloads';
   return card;
 }
@@ -61,21 +67,22 @@ function placed(card: ListCard, on: CardSwitches): ListCard {
  * on, keeping the order of the groups. The loose links share the unnamed group
  * without belonging together, so each of them is placed on its own and a
  * finished file among them does not wait for an unrelated one. A card that is
- * off leaves its packages in the download list.
+ * off hands its packages on: Torrents to Finished, Finished to the download
+ * list.
  *
  * Pass the whole list, not a filtered one: a package's card follows all of its
  * links, so a filter cannot move it.
  */
 export function splitByCard(groups: [string, Task[]][], on: CardSwitches): Record<ListCard, [string, Task[]][]> {
-  const out: Record<ListCard, [string, Task[]][]> = { downloads: [], seeding: [], finished: [] };
+  const out: Record<ListCard, [string, Task[]][]> = { downloads: [], finished: [], torrents: [] };
   for (const [name, items] of groups) {
     if (name !== '') {
       out[placed(packageCard(items), on)].push([name, items]);
       continue;
     }
-    const loose: Record<ListCard, Task[]> = { downloads: [], seeding: [], finished: [] };
+    const loose: Record<ListCard, Task[]> = { downloads: [], finished: [], torrents: [] };
     for (const x of items) loose[placed(packageCard([x]), on)].push(x);
-    for (const card of ['downloads', 'seeding', 'finished'] as const) {
+    for (const card of ['downloads', 'finished', 'torrents'] as const) {
       if (loose[card].length > 0) out[card].push(['', loose[card]]);
     }
   }
@@ -88,9 +95,9 @@ function readCache(): CardSwitches {
   try {
     const raw = localStorage.getItem(CACHE);
     const v = raw ? (JSON.parse(raw) as Partial<CardSwitches>) : {};
-    return { seeding: v.seeding !== false, finished: v.finished !== false };
+    return { finished: v.finished !== false, torrents: v.torrents !== false };
   } catch {
-    return { seeding: true, finished: true };
+    return { finished: true, torrents: true };
   }
 }
 
@@ -101,7 +108,7 @@ const listeners = new Set<() => void>();
  *  saved values, and when a toggle on the settings page moves. */
 export function setListCards(next: Partial<CardSwitches>): void {
   const merged = { ...switches, ...next };
-  if (merged.seeding === switches.seeding && merged.finished === switches.finished) return;
+  if (merged.finished === switches.finished && merged.torrents === switches.torrents) return;
   switches = merged;
   try {
     localStorage.setItem(CACHE, JSON.stringify(switches));

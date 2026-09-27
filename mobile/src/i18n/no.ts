@@ -19,6 +19,7 @@ export const no: Dict = {
   'downloads.queueRunning': 'Kjører',
   'downloads.queueActive': '{n} aktive',
   'downloads.empty': 'Ingen nedlastinger.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Kobler til serveren…',
   'overview.title': 'Alle instanser',
   'overview.connected': '{n}/{total} tilkoblet',

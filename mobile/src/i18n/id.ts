@@ -19,6 +19,7 @@ export const id: Dict = {
   'downloads.queueRunning': 'Berjalan',
   'downloads.queueActive': '{n} aktif',
   'downloads.empty': 'Tidak ada unduhan.',
+  'downloads.torrentsTitle': 'Torrent',
   'downloads.emptyConnecting': 'Menyambungkan ke server…',
   'overview.title': 'Semua instans',
   'overview.connected': '{n}/{total} terhubung',

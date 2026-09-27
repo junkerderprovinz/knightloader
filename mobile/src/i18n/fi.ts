@@ -19,6 +19,7 @@ export const fi: Dict = {
   'downloads.queueRunning': 'Käynnissä',
   'downloads.queueActive': '{n} aktiivista',
   'downloads.empty': 'Ei latauksia.',
+  'downloads.torrentsTitle': 'Torrentit',
   'downloads.emptyConnecting': 'Yhdistetään palvelimeen…',
   'overview.title': 'Kaikki instanssit',
   'overview.connected': '{n}/{total} yhdistetty',

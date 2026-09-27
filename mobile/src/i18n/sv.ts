@@ -19,6 +19,7 @@ export const sv: Dict = {
   'downloads.queueRunning': 'Igång',
   'downloads.queueActive': '{n} aktiva',
   'downloads.empty': 'Inga nedladdningar.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Ansluter till servern…',
   'overview.title': 'Alla instanser',
   'overview.connected': '{n}/{total} anslutna',

@@ -19,6 +19,7 @@ export const ca: Dict = {
   'downloads.queueRunning': 'En marxa',
   'downloads.queueActive': '{n} actives',
   'downloads.empty': 'No hi ha baixades.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Connectant amb el servidor…',
   'overview.title': 'Totes les instàncies',
   'overview.connected': '{n}/{total} connectades',

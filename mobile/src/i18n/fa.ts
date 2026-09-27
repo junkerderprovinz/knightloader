@@ -19,6 +19,7 @@ export const fa: Dict = {
   'downloads.queueRunning': 'در حال اجرا',
   'downloads.queueActive': '{n} فعال',
   'downloads.empty': 'دانلودی وجود ندارد.',
+  'downloads.torrentsTitle': 'تورنت‌ها',
   'downloads.emptyConnecting': 'در حال اتصال به سرور…',
   'overview.title': 'همه نمونه‌ها',
   'overview.connected': '{n}/{total} متصل',

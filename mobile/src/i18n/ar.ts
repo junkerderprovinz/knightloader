@@ -19,6 +19,7 @@ export const ar: Dict = {
   'downloads.queueRunning': 'قيد التشغيل',
   'downloads.queueActive': '{n} نشطة',
   'downloads.empty': 'لا توجد تنزيلات.',
+  'downloads.torrentsTitle': 'التورنتات',
   'downloads.emptyConnecting': 'جارٍ الاتصال بالخادم…',
   'overview.title': 'كل النسخ',
   'overview.connected': '{n}/{total} متصل',

@@ -19,6 +19,7 @@ export const tr: Dict = {
   'downloads.queueRunning': 'Çalışıyor',
   'downloads.queueActive': '{n} etkin',
   'downloads.empty': 'İndirme yok.',
+  'downloads.torrentsTitle': 'Torrentler',
   'downloads.emptyConnecting': 'Sunucuya bağlanıyor…',
   'overview.title': 'Tüm örnekler',
   'overview.connected': '{n}/{total} bağlı',

@@ -562,17 +562,17 @@ export async function fetchAppearance(conn: ServerConnection): Promise<InstanceA
 }
 
 /**
- * fetchListCards reads whether the instance splits seeding and finished
- * packages out of its download list, the switches the web's Downloads page
+ * fetchListCards reads whether the instance splits finished packages and
+ * torrents out of its download list, the switches the web's Downloads page
  * follows too. An instance too old to answer, or out of reach, has both on,
  * which is their default.
  */
 export async function fetchListCards(conn: ServerConnection): Promise<CardSwitches> {
   try {
     const s = await request<Record<string, unknown>>(conn, '/api', '/appearance');
-    return { seeding: s.seedingCard !== false, finished: s.finishedCard !== false };
+    return { finished: s.finishedCard !== false, torrents: s.torrentCard !== false };
   } catch {
-    return { seeding: true, finished: true };
+    return { finished: true, torrents: true };
   }
 }
 

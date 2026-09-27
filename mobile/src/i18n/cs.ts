@@ -19,6 +19,7 @@ export const cs: Dict = {
   'downloads.queueRunning': 'Probíhá',
   'downloads.queueActive': '{n} aktivních',
   'downloads.empty': 'Žádná stahování.',
+  'downloads.torrentsTitle': 'Torrenty',
   'downloads.emptyConnecting': 'Připojování k serveru…',
   'overview.title': 'Všechny instance',
   'overview.connected': '{n}/{total} připojeno',

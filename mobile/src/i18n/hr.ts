@@ -19,6 +19,7 @@ export const hr: Dict = {
   'downloads.queueRunning': 'U tijeku',
   'downloads.queueActive': '{n} aktivno',
   'downloads.empty': 'Nema preuzimanja.',
+  'downloads.torrentsTitle': 'Torrenti',
   'downloads.emptyConnecting': 'Povezivanje s poslužiteljem…',
   'overview.title': 'Sve instance',
   'overview.connected': '{n}/{total} povezano',

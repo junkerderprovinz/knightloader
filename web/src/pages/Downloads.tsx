@@ -65,8 +65,8 @@ import {
 // The two cards below the download list, in the order they are drawn. Each
 // sorts and folds on its own and shares the download list's columns.
 const SETTLED = [
-  { card: 'seeding', title: 'downloads.seedingTitle', hue: 1 },
-  { card: 'finished', title: 'downloads.finishedTitle', hue: 2 },
+  { card: 'finished', title: 'downloads.finishedTitle', hue: 1 },
+  { card: 'torrents', title: 'downloads.torrentsTitle', hue: 2 },
 ] as const;
 
 type Narrowed = Record<ListCard, [string, Task[]][]>;
@@ -109,11 +109,11 @@ export function Downloads() {
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
   const [menuCard, setMenuCard] = useState<ListCard>('downloads');
   const cardsOn = useListCards();
-  const [seedingFolded, setSeedingFolded] = useUIState<boolean>('list.folded.seeding', false);
   const [finishedFolded, setFinishedFolded] = useUIState<boolean>('list.folded.finished', false);
-  const cardFold: Record<'seeding' | 'finished', { folded: boolean; onToggle: () => void }> = {
-    seeding: { folded: seedingFolded, onToggle: () => setSeedingFolded(!seedingFolded) },
+  const [torrentsFolded, setTorrentsFolded] = useUIState<boolean>('list.folded.torrents', false);
+  const cardFold: Record<'finished' | 'torrents', { folded: boolean; onToggle: () => void }> = {
     finished: { folded: finishedFolded, onToggle: () => setFinishedFolded(!finishedFolded) },
+    torrents: { folded: torrentsFolded, onToggle: () => setTorrentsFolded(!torrentsFolded) },
   };
   // The same folded set the list card reads; folding is also a menu entry.
   const folds = useCollapsedPackages('downloads');
@@ -161,18 +161,18 @@ export function Downloads() {
           items.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
         ])
         .filter(([, items]) => items.length > 0);
-    return { downloads: narrow(byCard.downloads), seeding: narrow(byCard.seeding), finished: narrow(byCard.finished) };
+    return { downloads: narrow(byCard.downloads), finished: narrow(byCard.finished), torrents: narrow(byCard.torrents) };
   }, [byCard, filters, search]);
   const groups = shown.downloads;
   // Every row on the page, in the order the cards draw them.
   const filtered = useMemo(
-    () => [...flat(shown.downloads), ...flat(shown.seeding), ...flat(shown.finished)],
+    () => [...flat(shown.downloads), ...flat(shown.finished), ...flat(shown.torrents)],
     [shown],
   );
   // Which card each row is in, whatever hides it.
   const cardIds = useMemo(() => {
     const ids = (c: ListCard) => new Set(flat(byCard[c]).map((x) => x.id));
-    return { downloads: ids('downloads'), seeding: ids('seeding'), finished: ids('finished') };
+    return { downloads: ids('downloads'), finished: ids('finished'), torrents: ids('torrents') };
   }, [byCard]);
 
   useEffect(() => {
@@ -200,13 +200,13 @@ export function Downloads() {
     // '' is the ungrouped bucket's real name. A folded package draws no rows,
     // and neither does a folded card.
     folds.expand([task.package || '']);
-    const card: ListCard = cardIds.seeding.has(reveal.id)
-      ? 'seeding'
-      : cardIds.finished.has(reveal.id)
-        ? 'finished'
+    const card: ListCard = cardIds.finished.has(reveal.id)
+      ? 'finished'
+      : cardIds.torrents.has(reveal.id)
+        ? 'torrents'
         : 'downloads';
-    if (card === 'seeding' && seedingFolded) setSeedingFolded(false);
     if (card === 'finished' && finishedFolded) setFinishedFolded(false);
+    if (card === 'torrents' && torrentsFolded) setTorrentsFolded(false);
     setSelected(new Set([reveal.id]));
     // Selecting the row marks it; .glim-row-selected paints the wash.
     setRevealRow({ key: `task:${reveal.id}#${reveal.nonce}`, card });
@@ -218,10 +218,10 @@ export function Downloads() {
     folds,
     narrowing,
     cardIds,
-    seedingFolded,
     finishedFolded,
-    setSeedingFolded,
+    torrentsFolded,
     setFinishedFolded,
+    setTorrentsFolded,
   ]);
 
   // Closes the search popover on an outside click or Escape, as in the collector.
@@ -245,11 +245,11 @@ export function Downloads() {
   // The rows actually drawn, narrower than `filtered` by every folded package
   // and folded card (lib/selectionReach.ts).
   const drawnDownloads = useDrawnRows(groups, folds.collapsed);
-  const drawnSeeding = useDrawnRows(seedingFolded ? NONE : shown.seeding, folds.collapsed);
   const drawnFinished = useDrawnRows(finishedFolded ? NONE : shown.finished, folds.collapsed);
+  const drawnTorrents = useDrawnRows(torrentsFolded ? NONE : shown.torrents, folds.collapsed);
   const drawn = useMemo(
-    () => new Set([...drawnDownloads, ...drawnSeeding, ...drawnFinished]),
-    [drawnDownloads, drawnSeeding, drawnFinished],
+    () => new Set([...drawnDownloads, ...drawnFinished, ...drawnTorrents]),
+    [drawnDownloads, drawnFinished, drawnTorrents],
   );
   const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
   // Drops hidden rows from the selection and can offer the whole selection back.

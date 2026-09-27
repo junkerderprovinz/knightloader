@@ -19,6 +19,7 @@ export const pt: Dict = {
   'downloads.queueRunning': 'Em execução',
   'downloads.queueActive': '{n} ativos',
   'downloads.empty': 'Nenhum download.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Conectando ao servidor…',
   'overview.title': 'Todas as instâncias',
   'overview.connected': '{n}/{total} ligadas',

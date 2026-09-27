@@ -100,46 +100,50 @@ export function packageState(tasks: Task[]): PackageState {
 }
 
 /** Which part of the Downloads screen a package is listed in. */
-export type ListCard = 'downloads' | 'seeding' | 'finished';
+export type ListCard = 'downloads' | 'finished' | 'torrents';
+
+// A torrent a debrid service fetched comes down over HTTP and is not one.
+const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
 /**
  * packageCard is the part of the list a package belongs in, by the rule the
  * web's Downloads page uses (packageCard in web/src/lib/listCards.ts). It is
  * finished once every link has downloaded and nothing is left to unpack: none
  * waiting for or in the middle of unpacking, none that failed to. A failed link
- * keeps it in the download list, and a torrent still uploading makes it
- * seeding. A disabled link that has not downloaded does not hold it back unless
- * it is still running, and a package switched off whole stays in the download
- * list, where it can be switched on again.
+ * keeps it in the download list, and a finished package holding a torrent goes
+ * to Torrents, seeding or not. A disabled link that has not downloaded does not
+ * hold it back unless it is still running, and a package switched off whole
+ * stays in the download list, where it can be switched on again.
  */
 export function packageCard(tasks: Task[]): ListCard {
   if (tasks.every((t) => t.enabled === false)) return 'downloads';
   let done = 0;
-  let seeding = false;
+  let torrent = false;
   for (const t of tasks) {
     if (t.status === 'done' && !unpackFailed(t)) {
       done++;
-      if (t.seeding) seeding = true;
+      if (isTorrent(t)) torrent = true;
       continue;
     }
     if (t.enabled === false && t.status !== 'running' && t.status !== 'extracting') continue;
     return 'downloads';
   }
   if (done === 0) return 'downloads';
-  return seeding ? 'seeding' : 'finished';
+  return torrent ? 'torrents' : 'finished';
 }
 
 /** The two parts below the download list and whether each is switched on. */
 export interface CardSwitches {
-  seeding: boolean;
   finished: boolean;
+  torrents: boolean;
 }
 
 /**
  * splitByCard sorts the tasks of the download list into its parts, keeping
  * their order. A package goes by all of its links; the loose links, which share
  * the unnamed group without belonging together, go one by one. A part that is
- * switched off leaves its packages in the download list.
+ * switched off hands its packages on: Torrents to Finished, Finished to the
+ * download list.
  */
 export function splitByCard(tasks: Task[], on: CardSwitches): Record<ListCard, Task[]> {
   const byPackage = new Map<string, Task[]>();
@@ -149,11 +153,13 @@ export function splitByCard(tasks: Task[], on: CardSwitches): Record<ListCard, T
     if (list) list.push(t);
     else byPackage.set(name, [t]);
   }
-  const placed = (card: ListCard): ListCard =>
-    (card === 'seeding' && !on.seeding) || (card === 'finished' && !on.finished) ? 'downloads' : card;
+  const placed = (card: ListCard): ListCard => {
+    if (card === 'torrents' && !on.torrents) card = 'finished';
+    return card === 'finished' && !on.finished ? 'downloads' : card;
+  };
   const cardOf = new Map<string, ListCard>();
   for (const [name, list] of byPackage) if (name !== '') cardOf.set(name, placed(packageCard(list)));
-  const out: Record<ListCard, Task[]> = { downloads: [], seeding: [], finished: [] };
+  const out: Record<ListCard, Task[]> = { downloads: [], finished: [], torrents: [] };
   for (const t of tasks) {
     const name = t.package || '';
     out[name === '' ? placed(packageCard([t])) : (cardOf.get(name) ?? 'downloads')].push(t);

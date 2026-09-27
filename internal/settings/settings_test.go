@@ -178,8 +178,8 @@ func TestListCardsAreOnForAnInstallThatNeverSawThem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s := st.Get(); !s.SeedingCard || !s.FinishedCard {
-		t.Errorf("after an upgrade seedingCard is %v and finishedCard %v, want both on", s.SeedingCard, s.FinishedCard)
+	if s := st.Get(); !s.TorrentCard || !s.FinishedCard {
+		t.Errorf("after an upgrade torrentCard is %v and finishedCard %v, want both on", s.TorrentCard, s.FinishedCard)
 	}
 }
 
@@ -192,7 +192,7 @@ func TestASwitchedOffListCardStaysOff(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s := st.Get(); s.FinishedCard || !s.SeedingCard {
-		t.Errorf("finishedCard %v and seedingCard %v, want the stored off and the default on", s.FinishedCard, s.SeedingCard)
+	if s := st.Get(); s.FinishedCard || !s.TorrentCard {
+		t.Errorf("finishedCard %v and torrentCard %v, want the stored off and the default on", s.FinishedCard, s.TorrentCard)
 	}
 }

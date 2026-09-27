@@ -19,6 +19,7 @@ export const lv: Dict = {
   'downloads.queueRunning': 'Notiek',
   'downloads.queueActive': '{n} aktīvi',
   'downloads.empty': 'Nav lejupielāžu.',
+  'downloads.torrentsTitle': 'Torrenti',
   'downloads.emptyConnecting': 'Savienojas ar serveri…',
   'overview.title': 'Visi gadījumi',
   'overview.connected': '{n}/{total} savienoti',

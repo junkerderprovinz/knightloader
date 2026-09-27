@@ -20,7 +20,9 @@ const link = (id: string, over: Partial<Task> = {}): Task => ({
   ...over,
 });
 
-const ON = { seeding: true, finished: true };
+const ON = { finished: true, torrents: true };
+
+const torrent = (id: string, over: Partial<Task> = {}): Task => link(id, { resolver: 'torrent', ...over });
 
 describe('packageCard', () => {
   it('puts a package whose links have all downloaded under Finished', () => {
@@ -46,16 +48,24 @@ describe('packageCard', () => {
     expect(packageCard([link('a'), link('b', { status: 'error' })])).toBe('downloads');
   });
 
-  it('puts a package with a torrent still uploading under Seeding', () => {
-    expect(packageCard([link('a'), link('b', { seeding: true })])).toBe('seeding');
+  it('puts a finished package holding a torrent under Torrents', () => {
+    expect(packageCard([link('a'), torrent('b', { seeding: true })])).toBe('torrents');
   });
 
-  it('keeps a seeding torrent beside a download still queued in the download list', () => {
-    expect(packageCard([link('a', { seeding: true }), link('b', { status: 'queued' })])).toBe('downloads');
+  it('keeps a torrent under Torrents once it stopped seeding', () => {
+    expect(packageCard([torrent('a', { seeding: false })])).toBe('torrents');
   });
 
-  it('moves a torrent that stopped seeding on to Finished', () => {
-    expect(packageCard([link('a', { seeding: false })])).toBe('finished');
+  it('keeps a torrent beside a download still queued in the download list', () => {
+    expect(packageCard([torrent('a', { seeding: true }), link('b', { status: 'queued' })])).toBe('downloads');
+  });
+
+  it('keeps a torrent still downloading in the download list', () => {
+    expect(packageCard([torrent('a', { status: 'running', loaded: 500 })])).toBe('downloads');
+  });
+
+  it('treats a torrent a debrid service fetched as an ordinary link', () => {
+    expect(packageCard([link('a', { resolver: 'realdebrid' })])).toBe('finished');
   });
 
   it('does not let a switched-off link that never downloaded hold a package back', () => {
@@ -80,8 +90,9 @@ describe('packageCard', () => {
     expect(packageCard([...finished, link('c', { status: 'queued', loaded: 0 })])).toBe('downloads');
   });
 
-  it('moves a seeding package back to the download list when a link is retried', () => {
-    expect(packageCard([link('a', { seeding: true }), link('b', { status: 'running' })])).toBe('downloads');
+  it('moves a torrent back to the download list when it is downloaded again', () => {
+    expect(packageCard([torrent('a')])).toBe('torrents');
+    expect(packageCard([torrent('a', { status: 'queued', loaded: 0 })])).toBe('downloads');
   });
 });
 
@@ -97,14 +108,15 @@ describe('splitByCard', () => {
       groups([
         link('a', { package: 'Done' }),
         link('b', { package: 'Busy', status: 'running' }),
-        link('c', { package: 'Upload', seeding: true }),
+        torrent('c', { package: 'Upload', seeding: true }),
         link('d', { package: 'Done too' }),
+        torrent('e', { package: 'Seeded' }),
       ]),
       ON,
     );
     expect(split.downloads.map(([n]) => n)).toEqual(['Busy']);
-    expect(split.seeding.map(([n]) => n)).toEqual(['Upload']);
     expect(split.finished.map(([n]) => n)).toEqual(['Done', 'Done too']);
+    expect(split.torrents.map(([n]) => n)).toEqual(['Upload', 'Seeded']);
   });
 
   it('places the loose links one by one', () => {
@@ -112,22 +124,29 @@ describe('splitByCard', () => {
       groups([
         link('a', { package: '' }),
         link('b', { package: '', status: 'running' }),
-        link('c', { package: '', seeding: true }),
+        torrent('c', { package: '' }),
       ]),
       ON,
     );
     expect(split.downloads).toEqual([['', [expect.objectContaining({ id: 'b' })]]]);
-    expect(split.seeding).toEqual([['', [expect.objectContaining({ id: 'c' })]]]);
     expect(split.finished).toEqual([['', [expect.objectContaining({ id: 'a' })]]]);
+    expect(split.torrents).toEqual([['', [expect.objectContaining({ id: 'c' })]]]);
   });
 
-  it('leaves the packages of a switched-off card in the download list', () => {
-    const list = groups([link('a', { package: 'Done' }), link('b', { package: 'Upload', seeding: true })]);
-    const noFinished = splitByCard(list, { seeding: true, finished: false });
+  it('leaves the packages of a switched-off Finished card in the download list', () => {
+    const list = groups([link('a', { package: 'Done' }), torrent('b', { package: 'Upload', seeding: true })]);
+    const noFinished = splitByCard(list, { finished: false, torrents: true });
     expect(noFinished.downloads.map(([n]) => n)).toEqual(['Done']);
     expect(noFinished.finished).toEqual([]);
-    const noSeeding = splitByCard(list, { seeding: false, finished: true });
-    expect(noSeeding.downloads.map(([n]) => n)).toEqual(['Upload']);
-    expect(noSeeding.seeding).toEqual([]);
+    expect(noFinished.torrents.map(([n]) => n)).toEqual(['Upload']);
+  });
+
+  it('files torrents under Finished while the Torrents card is off', () => {
+    const list = groups([link('a', { package: 'Done' }), torrent('b', { package: 'Upload', seeding: true })]);
+    const noTorrents = splitByCard(list, { finished: true, torrents: false });
+    expect(noTorrents.finished.map(([n]) => n)).toEqual(['Done', 'Upload']);
+    expect(noTorrents.torrents).toEqual([]);
+    const neither = splitByCard(list, { finished: false, torrents: false });
+    expect(neither.downloads.map(([n]) => n)).toEqual(['Done', 'Upload']);
   });
 });

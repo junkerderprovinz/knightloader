@@ -311,7 +311,9 @@ export default function PackageList({
       accessibilityState={{ expanded: auf }}
       accessibilityLabel={`${section.title} ${section.tasks.length}`}
     >
-      <NotchLabel title={`${section.title} ${section.tasks.length}`} hue={section.hue} />
+      {/* The count is a badge of its own, as beside the web's card titles. */}
+      <NotchLabel title={section.title} hue={section.hue} />
+      <NotchLabel title={String(section.tasks.length)} hue={section.hue} />
       <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
     </TouchableOpacity>
   );

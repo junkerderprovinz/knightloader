@@ -19,6 +19,7 @@ export const vi: Dict = {
   'downloads.queueRunning': 'Đang chạy',
   'downloads.queueActive': '{n} đang hoạt động',
   'downloads.empty': 'Không có mục tải xuống nào.',
+  'downloads.torrentsTitle': 'Torrent',
   'downloads.emptyConnecting': 'Đang kết nối với máy chủ…',
   'overview.title': 'Tất cả phiên bản',
   'overview.connected': 'Đã kết nối {n}/{total}',

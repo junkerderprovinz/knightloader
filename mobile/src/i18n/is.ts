@@ -19,6 +19,7 @@ export const is: Dict = {
   'downloads.queueRunning': 'Í gangi',
   'downloads.queueActive': '{n} virk',
   'downloads.empty': 'Engar niðurhalanir.',
+  'downloads.torrentsTitle': 'Torrent',
   'downloads.emptyConnecting': 'Tengist netþjóni…',
   'overview.title': 'Öll tilvik',
   'overview.connected': '{n}/{total} tengd',

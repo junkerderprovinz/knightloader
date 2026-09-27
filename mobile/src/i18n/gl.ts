@@ -19,6 +19,7 @@ export const gl: Dict = {
   'downloads.queueRunning': 'En marcha',
   'downloads.queueActive': '{n} activas',
   'downloads.empty': 'Non hai descargas.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Conectando co servidor…',
   'overview.title': 'Todas as instancias',
   'overview.connected': '{n}/{total} conectadas',

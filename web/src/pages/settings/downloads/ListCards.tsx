@@ -4,7 +4,7 @@ import { setListCards } from '../../../lib/listCards';
 import { useDraft } from '../context';
 
 /**
- * ListCardsCard switches the Seeding and Finished cards of the Downloads page.
+ * ListCardsCard switches the Finished and Torrents cards of the Downloads page.
  * The app reads the same two settings through /api/appearance.
  */
 export function ListCardsCard({ hue }: { hue: number }) {
@@ -16,24 +16,24 @@ export function ListCardsCard({ hue }: { hue: number }) {
       <SectionTitle>{t('downloads.listTitle')}</SectionTitle>
       <ToggleRow
         hue={0}
-        checked={cfg.seedingCard}
-        onChange={(v) => {
-          patch({ seedingCard: v });
-          // The Downloads page follows at once instead of after the autosave.
-          setListCards({ seeding: v });
-        }}
-        label={t('settings.downloads.seedingCard')}
-        hint={t('settings.downloads.seedingCardHint')}
-      />
-      <ToggleRow
-        hue={1}
         checked={cfg.finishedCard}
         onChange={(v) => {
           patch({ finishedCard: v });
+          // The Downloads page follows at once instead of after the autosave.
           setListCards({ finished: v });
         }}
         label={t('settings.downloads.finishedCard')}
         hint={t('settings.downloads.finishedCardHint')}
+      />
+      <ToggleRow
+        hue={1}
+        checked={cfg.torrentCard}
+        onChange={(v) => {
+          patch({ torrentCard: v });
+          setListCards({ torrents: v });
+        }}
+        label={t('settings.downloads.torrentCard')}
+        hint={t('settings.downloads.torrentCardHint')}
       />
     </Card>
   );

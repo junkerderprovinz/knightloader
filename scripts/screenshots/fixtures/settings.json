@@ -64,7 +64,7 @@
   "hideInstancesFromSidebar": false,
   "navLabels": "both",
   "bottomBarLabels": "follow",
-  "seedingCard": true,
+  "torrentCard": true,
   "finishedCard": true,
   "autoUpdateCheck": false,
   "autoUpdate": true,

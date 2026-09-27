@@ -19,6 +19,7 @@ export const hi: Dict = {
   'downloads.queueRunning': 'चल रहा है',
   'downloads.queueActive': '{n} सक्रिय',
   'downloads.empty': 'कोई डाउनलोड नहीं है।',
+  'downloads.torrentsTitle': 'टॉरेंट',
   'downloads.emptyConnecting': 'सर्वर से कनेक्ट हो रहा है…',
   'overview.title': 'सभी इंस्टेंस',
   'overview.connected': '{n}/{total} कनेक्टेड',

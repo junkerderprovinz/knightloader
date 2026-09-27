@@ -89,7 +89,12 @@ expect('a package with a link still queued stays in the download list', packageC
 expect('a package with an archive still unpacking stays', packageCard([task('done'), task('extracting')]), 'downloads');
 expect('a package whose archive did not unpack stays', packageCard([task('done', { unpack: 'password' })]), 'downloads');
 expect('a package with a failed link stays', packageCard([task('done'), task('error')]), 'downloads');
-expect('a package with a torrent still uploading is seeding', packageCard([task('done'), seeding()]), 'seeding');
+const torrent = (status, more = {}) => task(status, { resolver: 'torrent', ...more });
+expect('a finished package holding a torrent goes to Torrents', packageCard([task('done'), torrent('done', { seeding: true })]), 'torrents');
+expect('a torrent stays in Torrents once it stopped seeding', packageCard([torrent('done', { seeding: false })]), 'torrents');
+expect('a torrent still downloading stays in the download list', packageCard([torrent('running')]), 'downloads');
+expect('a torrent a debrid service fetched is an ordinary link', packageCard([task('done', { resolver: 'realdebrid' })]), 'finished');
+expect('a torrent downloaded again goes back to the download list', packageCard([torrent('queued')]), 'downloads');
 expect(
   'a disabled link that never downloaded does not hold a package back',
   packageCard([task('done'), task('queued', { enabled: false })]),
@@ -110,19 +115,24 @@ const split = (list, on) =>
 const mixed = [
   named('a', 'Done', 'done'),
   named('b', 'Busy', 'running'),
-  named('c', 'Upload', 'done', { seeding: true }),
+  named('c', 'Upload', 'done', { resolver: 'torrent', seeding: true }),
   named('d', '', 'done'),
   named('e', '', 'queued'),
 ];
-expect('the list splits into its three parts, loose links one by one', split(mixed, { seeding: true, finished: true }), {
+expect('the list splits into its three parts, loose links one by one', split(mixed, { finished: true, torrents: true }), {
   downloads: ['b', 'e'],
-  seeding: ['c'],
   finished: ['a', 'd'],
+  torrents: ['c'],
 });
-expect('a part that is switched off leaves its packages in the download list', split(mixed, { seeding: false, finished: false }), {
+expect('with Torrents switched off a torrent is finished like any other download', split(mixed, { finished: true, torrents: false }), {
+  downloads: ['b', 'e'],
+  finished: ['a', 'c', 'd'],
+  torrents: [],
+});
+expect('with both parts switched off everything stays in the download list', split(mixed, { finished: false, torrents: false }), {
   downloads: ['a', 'b', 'c', 'd', 'e'],
-  seeding: [],
   finished: [],
+  torrents: [],
 });
 
 if (problems.length > 0) {

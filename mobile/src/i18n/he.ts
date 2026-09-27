@@ -19,6 +19,7 @@ export const he: Dict = {
   'downloads.queueRunning': 'פעיל',
   'downloads.queueActive': '{n} פעילות',
   'downloads.empty': 'אין הורדות.',
+  'downloads.torrentsTitle': 'טורנטים',
   'downloads.emptyConnecting': 'מתחבר לשרת…',
   'overview.title': 'כל המופעים',
   'overview.connected': '{n}/{total} מחוברים',
