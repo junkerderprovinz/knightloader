@@ -143,11 +143,11 @@ type App struct {
 	// when a shutdown is already under way.
 	RequestExit func(restart bool) bool
 
-	// RequestUpdateInstall, set on the desktop build only, downloads and
-	// applies a newer release, starts it, and exits through the tray's
-	// graceful path. A container updates through its deployment instead (see
-	// internal/update). Nil means not supported here.
-	RequestUpdateInstall func(ctx context.Context) error
+	// UpdateReady, set on the desktop build only, returns the version the
+	// desktop app has put in place for its next start, or "" while there is
+	// none. A container updates through its deployment instead (see
+	// internal/update).
+	UpdateReady func() string
 
 	// RequestSuspend, set on the desktop build only, puts the machine to sleep
 	// for the end-of-queue "suspend" action. The per-OS calls live in

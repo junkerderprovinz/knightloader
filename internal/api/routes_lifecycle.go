@@ -47,26 +47,13 @@ func registerLifecycle(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodGet, "/api/system/update-check",
-		"whether a newer release exists on GitHub than this build's own version",
+		"whether a newer release exists on GitHub than this build's own version, and on desktop which one waits for the next start",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, update.Check(r.Context(), buildinfo.Version))
-		})
-
-	// Desktop only: RequestUpdateInstall is nil on the container build. The
-	// request blocks until the install fails or the process is about to
-	// relaunch, in which case losing the response is expected.
-	reg.Add(http.MethodPost, "/api/system/update-install",
-		"download and apply the latest release, then relaunch - desktop only",
-		func(w http.ResponseWriter, r *http.Request) {
-			if a.RequestUpdateInstall == nil {
-				http.Error(w, "this build cannot install updates from here", http.StatusNotImplemented)
-				return
+			info := update.Check(r.Context(), buildinfo.Version)
+			if a.UpdateReady != nil {
+				info.Ready = a.UpdateReady()
 			}
-			if err := a.RequestUpdateInstall(r.Context()); err != nil {
-				writeJSONStatus(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-				return
-			}
-			writeJSONStatus(w, http.StatusAccepted, map[string]string{"status": "installing"})
+			writeJSON(w, info)
 		})
 }
 

@@ -42,13 +42,15 @@ jobs:
         id: filter
         with:
           filters: |
-            # internal/update's tests hold its slugs to desktop.yml's matrix.
+            # internal/update's tests hold its release zips to desktop.yml's
+            # matrix and to the names release.yml publishes.
             go:
               - '**/*.go'
               - 'go.mod'
               - 'go.sum'
               - 'Dockerfile'
               - '.github/workflows/desktop.yml'
+              - '.github/workflows/release.yml'
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version into web/dist, and
             # check-version-sources.mjs reads the other three.
@@ -170,6 +172,30 @@ jobs:
           go vet -tags bridgeclipboard ./...
           go test -tags bridgeclipboard ./internal/bridge/... -count=1
           go build -tags bridgeclipboard -o /tmp/knightloader-bridgeclipboard ./cmd/knightloader
+
+  # The desktop app replaces itself differently on each system, and only that
+  # system's runner can run its tests. Linux is covered by the server job.
+  updater:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    name: Desktop updater (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Vet and test
+        run: |
+          go vet ./internal/update/
+          go test ./internal/update/ -count=1
 
   web:
     needs: changes

@@ -563,9 +563,10 @@ export interface Settings {
   navLabels: NavLabelMode;
   /** How much of an entry the phone layout's bottom bar draws, or 'follow' for navLabels'. */
   bottomBarLabels: BarLabelMode;
+  /** Only the container build's General tab acts on it. */
   autoUpdateCheck: boolean;
-  /** Needs autoUpdateCheck, and only the desktop build acts on it. */
-  autoUpdateInstall: boolean;
+  /** Downloads a newer release for the next start. Only the desktop build acts on it. */
+  autoUpdate: boolean;
   /** Holds off sleep while a download runs. Only the desktop build acts on it. */
   keepAwake: boolean;
 
@@ -2941,6 +2942,8 @@ export interface UpdateCheck {
   current: string;
   latest?: string;
   url?: string;
+  /** The version the desktop build has downloaded for its next start. */
+  ready?: string;
 }
 
 export async function fetchUpdateCheck(): Promise<UpdateCheck> {
@@ -3017,15 +3020,6 @@ export async function updateYtdlp(): Promise<{ tag: string; version: string; pat
 /** Deletes the fetched copy and its record and answers the resulting status. */
 export async function revertYtdlp(): Promise<MediaToolsStatus> {
   return json(await fetch('/api/mediatools/ytdlp/revert', { method: 'POST' }));
-}
-
-/**
- * Downloads and applies the latest release, then relaunches. Desktop only;
- * the container build answers 501. The process is already exiting when the
- * request resolves, so a network error here most likely means it worked.
- */
-export async function installUpdate(): Promise<{ status: string }> {
-  return json(await fetch('/api/system/update-install', { method: 'POST' }));
 }
 
 // fetchDiagnostics is called again right before a download, so the bundle

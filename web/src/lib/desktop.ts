@@ -32,3 +32,18 @@ export async function openNatively(taskId: string): Promise<void> {
   if (!b) throw new Error('open natively is only available in the desktop app');
   await b.OpenNatively(taskId);
 }
+
+interface WailsRuntime {
+  EventsOn(name: string, callback: (...data: unknown[]) => void): () => void;
+}
+
+/**
+ * onUpdateReady calls back with the version the desktop app has downloaded for
+ * its next start. The window reaches the server through Wails' asset handler
+ * and has no socket to the hub, so the news comes as a Wails event. Outside the
+ * desktop app there is no runtime and it does nothing.
+ */
+export function onUpdateReady(callback: (version: string) => void): () => void {
+  const runtime = (window as unknown as { runtime?: WailsRuntime }).runtime;
+  return runtime?.EventsOn('updateReady', (version) => callback(String(version))) ?? (() => {});
+}

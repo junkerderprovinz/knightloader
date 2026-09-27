@@ -34,6 +34,28 @@ wails build          # bundle for the current OS → build/bin/
 wails dev            # live-reload dev run
 ```
 
+## Updates
+
+The app only updates itself when it knows its version. The tag build in
+`.github/workflows/desktop.yml` stamps it:
+
+```sh
+wails build -ldflags "-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=v1.3.0"
+```
+
+A build without it is a dev build and never looks for updates. `updates.go`
+runs the daily check and reads the Update automatically setting;
+`internal/update` finds the release, downloads this platform's zip, checks it
+against `checksums.txt` and swaps the program inside it in for the next start.
+On Windows the running exe steps aside as `KnightLoader.exe.old`, which the next
+start removes.
+
+To try the whole path locally, build with `-tags updatetest`. That build reads
+`KL_UPDATE_API` (a stand-in for `https://api.github.com` that serves
+`/repos/junkerderprovinz/knightloader/releases/latest`) and `KL_UPDATE_DELAY`
+(how long to wait before the first check, such as `15s`). Release builds leave
+the tag out, so no environment variable can change where an update comes from.
+
 ## How it fits together
 
 - `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then calls

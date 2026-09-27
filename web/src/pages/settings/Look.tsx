@@ -8,7 +8,6 @@ import {
   type DeploymentInfo,
   fetchDeploymentInfo,
   fetchUpdateCheck,
-  installUpdate,
   requestQuit,
   requestRestart,
   type UpdateCheck as UpdateCheckT,
@@ -890,26 +889,21 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
 }
 
 /**
- * UpdateCard checks GitHub for a newer release on both deployments, on request
- * or once on mount when the auto-check switch is on (off by default). A
- * container is pointed at the release; the desktop build can also install
- * through internal/update, which does the download, swap and relaunch.
+ * UpdateCard checks GitHub for a newer release on request, and a container
+ * also once on mount while its auto-check switch is on (off by default). A
+ * container is pointed at the release. The desktop build updates itself in the
+ * background (desktop/updates.go), and a check there also tells whether a
+ * downloaded version waits for the next start.
  */
 function UpdateCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  // Installing from inside the app is the In-app updates module; its row says
+  // Updating from inside the app is the In-app updates module; its row says
   // why neither build switches it.
   const updater = useFeatures().features.modules.find((m) => m.id === 'updater');
-  const { toast } = useToast();
   const [deployment, setDeployment] = useState<string | null>(null);
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
-  const [installing, setInstalling] = useState(false);
-  // The failure counter of the button, so a repeated refusal shakes it again.
-  const [installShake, setInstallShake] = useState(0);
-  // Once true, stays true: the process is on its way to relaunch.
-  const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
     void fetchDeploymentInfo()
@@ -928,83 +922,54 @@ function UpdateCard({ hue }: { hue: number }) {
     }
   }, []);
 
-  const onInstall = useCallback(async () => {
-    setInstalling(true);
-    try {
-      await installUpdate();
-      setInstalled(true);
-    } catch (e) {
-      // A network error is ambiguous, since the process may already be
-      // exiting, but a retryable failure beats a spinner that never ends.
-      toast(t('settings.look.updatesInstallFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail');
-      setInstallShake((n) => n + 1);
-      setInstalling(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast/t are stable for this card's lifetime
-  }, []);
-
-  // Auto-check once, when the switch's value arrives.
+  // Auto-check once, when the switch's value arrives, on a container only:
+  // the desktop build asks GitHub on its own.
   useEffect(() => {
-    if (cfg.autoUpdateCheck) void onCheck();
+    if (deployment === 'container' && cfg.autoUpdateCheck) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
     // when deployment/autoUpdateCheck first resolve, not on every cfg change.
   }, [deployment, cfg.autoUpdateCheck]);
 
-  // Auto-install once, when a check this page ran finds an update and the
-  // switch is on; turning the switch on does not act on an older result.
-  useEffect(() => {
-    if (deployment === 'desktop' && cfg.autoUpdateInstall && check?.checked && check.available && !installing && !installed) {
-      toast(t('settings.look.updatesAutoInstalling', { version: check.latest ?? '' }), 'info');
-      void onInstall();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts only to a fresh check result
-  }, [check]);
-
   // Wait for the deployment rather than flash the wrong copy.
   if (deployment === null) return null;
   const isDesktop = deployment === 'desktop';
-  const canInstallNow = isDesktop && !installed && check?.checked && check.available;
+  const ready = check?.ready;
 
   return (
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.look.updatesHint')}>
         {t('settings.look.updatesTitle')}
       </SectionTitle>
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
-        <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
-      </div>
-      {/* Shown on both builds; a container cannot install from here (the route
-          answers 501), so the row is disabled and says why. */}
+      {!isDesktop && (
+        <ToggleRow
+          label={t('settings.look.updatesAuto')}
+          hint={t('settings.look.updatesAutoHint')}
+          checked={cfg.autoUpdateCheck}
+          onChange={(v) => patch({ autoUpdateCheck: v })}
+        />
+      )}
+      {/* Shown on both builds; a container cannot replace itself, so there the
+          row is disabled and says why. */}
       <ToggleRow
-        label={t('settings.look.updatesAutoInstall')}
-        hint={isDesktop ? t('settings.look.updatesAutoInstallHint') : t('settings.look.updatesAutoInstallContainerHint')}
-        checked={isDesktop && cfg.autoUpdateInstall}
+        label={t('settings.look.updatesAutoUpdate')}
+        hint={isDesktop ? t('settings.look.updatesAutoUpdateHint') : t('settings.look.updatesAutoUpdateContainerHint')}
+        checked={isDesktop && cfg.autoUpdate}
         disabled={!isDesktop}
-        onChange={(v) => patch({ autoUpdateInstall: v })}
+        onChange={(v) => patch({ autoUpdate: v })}
         // The module's row has no switch of its own, so the badge names the
         // page rather than claiming this switch is there as well.
         aside={updater && <ModulesPageBadge m={updater} title={t('settings.nav.modules')} />}
       />
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking || installing}>
+        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
           {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
         </Button>
-        {canInstallNow && (
-          <Button
-            shake={installShake}
-            kind="primary"
-            onClick={() => void onInstall()}
-            disabled={installing}
-          >
-            {installing ? t('settings.look.updatesInstalling') : t('settings.look.updatesInstallNow')}
-          </Button>
-        )}
         {check && !check.checked && <span className="text-sm text-statusFail">{t('settings.look.updatesFailed')}</span>}
-        {check && check.checked && !check.available && (
+        {ready && <span className="text-sm text-statusOk">{t('settings.look.updatesReady', { version: ready })}</span>}
+        {!ready && check && check.checked && !check.available && (
           <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
         )}
-        {check && check.checked && check.available && (
+        {!ready && check && check.checked && check.available && (
           <span className="inline-flex items-center text-sm font-medium text-carbon-text">
             {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
             {!isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
@@ -1014,7 +979,6 @@ function UpdateCard({ hue }: { hue: number }) {
           <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />
         )}
       </div>
-      {installed && <p className="text-sm text-statusOk">{t('settings.look.updatesInstalled')}</p>}
     </Card>
   );
 }

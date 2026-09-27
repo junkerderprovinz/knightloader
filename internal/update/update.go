@@ -1,382 +1,269 @@
-// Package update checks whether a newer KnightLoader release exists, on both
-// deployments' General tab. What differs by deployment is not whether the
-// check runs but what happens once an update is available: desktop can fetch,
-// verify and install the new release when the user asks (Download, Apply and
-// Relaunch below), while a container cannot replace itself from the inside and
-// is pointed at the release page instead, to be updated the way it was
-// deployed. See routes_features.go's updaterReason.
+// Package update keeps the desktop app current from KnightLoader's GitHub
+// releases. It finds a newer published release, downloads this platform's zip,
+// checks it against the release's checksums.txt and puts the program inside it
+// where the next start picks it up, leaving the running program alone.
 //
-// Check only checks and reports, identically on both deployments. Download,
-// Apply and Relaunch are desktop-only (App.RequestUpdateInstall is nil on the
-// container build) and are never triggered automatically: a background
-// auto-updater that replaces its own binary unattended is an attack surface
-// however well it verifies what it downloads. What runs once the user asks:
-// fetch the matching platform zip, verify its SHA-256 against a checksums.txt
-// published in the same release, swap it into place and relaunch.
-// Code-signature verification is the one piece of that chain not attempted,
-// see the integrity notes further down.
+// Check, the package function, only reports whether a newer release exists. It
+// serves both deployments' General tab, since a container is updated the way it
+// was deployed and only learns that there is something to update to.
 package update
 
 import (
-	"archive/zip"
+	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
-	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/junkerderprovinz/knightloader/internal/checksum"
 )
 
-// releasesAPI is GitHub's own "latest release" endpoint - not the releases
-// list, which would need pagination and a definition of "latest" this
-// package would then have to reinvent. Unauthenticated: fine for a public
-// repo, and returns 404 for a private one (github.com/junkerderprovinz/
-// knightloader is private until the v1 release - see the project's own
-// vault note) rather than anything Check needs to treat specially, since a
-// 404 already reads as "not available" through the same status check every
-// other non-200 response gets.
-const releasesAPI = "https://api.github.com/repos/junkerderprovinz/knightloader/releases/latest"
+// Repo is where KnightLoader's releases are published.
+const Repo = "junkerderprovinz/knightloader"
 
-// Info is what the settings page shows. Checked is false whenever Check
-// could not complete (network error, private repo, rate limit) - distinct
-// from Available=false, which means the check succeeded and the answer was
-// "no, you already have the latest".
+// ChecksumsFile is the release file listing the SHA-256 of every other file,
+// in the format sha256sum writes.
+const ChecksumsFile = "checksums.txt"
+
+// Assets names the zip of each platform desktop.yml builds, as release.yml
+// publishes it without the version in its name. Both Macs take the universal
+// bundle.
+var Assets = map[string]string{
+	"windows/amd64": "knightloader-windows-amd64.zip",
+	"windows/arm64": "knightloader-windows-arm64.zip",
+	"darwin/amd64":  "knightloader-macos-universal.zip",
+	"darwin/arm64":  "knightloader-macos-universal.zip",
+	"linux/amd64":   "knightloader-linux-amd64.zip",
+	"linux/arm64":   "knightloader-linux-arm64.zip",
+}
+
+// Updater holds what an update needs to know about the program. API, Client
+// and Path fall back to GitHub, http.DefaultClient and the running program.
+type Updater struct {
+	// Repo is "owner/name" on GitHub.
+	Repo string
+	// Version is the running version, such as "v1.3.0".
+	Version string
+	// Assets maps "GOOS/GOARCH" to the name of that platform's release zip.
+	// A platform without an entry is never updated.
+	Assets map[string]string
+	// UninstallKey names the entry under
+	// HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall whose
+	// DisplayVersion follows an update of the installed copy.
+	UninstallKey string
+
+	API    string
+	Client *http.Client
+	// Path is the file, or on macOS the .app bundle, that an update replaces.
+	Path string
+	// Logf receives what Cleanup and Swap could not do but did not fail on.
+	Logf func(format string, args ...any)
+
+	// staged is the version Swap put in place during this run, so a later
+	// Check does not fetch it again.
+	staged string
+}
+
+// Release is a newer release with a file for this platform.
+type Release struct {
+	Version string
+	asset   string
+	url     string
+	sumsURL string
+}
+
+type githubRelease struct {
+	TagName    string `json:"tag_name"`
+	HTMLURL    string `json:"html_url"`
+	Prerelease bool   `json:"prerelease"`
+	Assets     []struct {
+		Name string `json:"name"`
+		URL  string `json:"browser_download_url"`
+	} `json:"assets"`
+}
+
+// Check asks GitHub for the newest published release. It returns nil when that
+// release is no newer than the running version or than one already staged.
+func (u *Updater) Check(ctx context.Context) (*Release, error) {
+	current, ok := parseVersion(u.Version)
+	if !ok {
+		return nil, fmt.Errorf("running version %q is not a release version", u.Version)
+	}
+	if staged, ok := parseVersion(u.staged); ok {
+		current = staged
+	}
+	name := u.Assets[runtime.GOOS+"/"+runtime.GOARCH]
+	if name == "" {
+		return nil, fmt.Errorf("no release file for %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
+
+	gr, err := u.latest(ctx)
+	if err != nil {
+		return nil, err
+	}
+	latest, ok := releaseVersion(gr)
+	if !ok || compare(latest, current) <= 0 {
+		return nil, nil
+	}
+
+	rel := &Release{Version: strings.TrimPrefix(gr.TagName, "v"), asset: name}
+	for _, a := range gr.Assets {
+		switch a.Name {
+		case name:
+			rel.url = a.URL
+		case ChecksumsFile:
+			rel.sumsURL = a.URL
+		}
+	}
+	if rel.url == "" {
+		return nil, fmt.Errorf("release %s has no %s", gr.TagName, name)
+	}
+	return rel, nil
+}
+
+// Fetch downloads the release's zip into the folder the program sits in, so
+// Swap can move the program with a rename, and verifies it against
+// checksums.txt. A folder the user cannot write to, as under Program Files or
+// on a read-only mount, fails here before anything is downloaded.
+func (u *Updater) Fetch(ctx context.Context, rel *Release) (string, error) {
+	target, err := u.target()
+	if err != nil {
+		return "", err
+	}
+	f, err := os.CreateTemp(filepath.Dir(target), downloadPrefix(target)+"*")
+	if err != nil {
+		return "", fmt.Errorf("cannot write next to %s: %w", target, err)
+	}
+	keep := false
+	defer func() {
+		f.Close()
+		if !keep {
+			os.Remove(f.Name())
+		}
+	}()
+
+	if rel.sumsURL == "" {
+		return "", fmt.Errorf("release %s has no %s", rel.Version, ChecksumsFile)
+	}
+	sums, err := u.get(ctx, rel.sumsURL, 1<<20)
+	if err != nil {
+		return "", err
+	}
+	want, ok := lookupSum(sums, rel.asset)
+	if !ok {
+		return "", fmt.Errorf("%s of release %s lists no checksum for %s", ChecksumsFile, rel.Version, rel.asset)
+	}
+
+	resp, err := u.open(ctx, rel.url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	h := sha256.New()
+	if _, err := io.Copy(io.MultiWriter(f, h), resp.Body); err != nil {
+		return "", fmt.Errorf("downloading %s: %w", rel.asset, err)
+	}
+	if got := hex.EncodeToString(h.Sum(nil)); got != want {
+		return "", fmt.Errorf("%s has checksum %s, but %s says %s", rel.asset, got, ChecksumsFile, want)
+	}
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+	keep = true
+	return f.Name(), nil
+}
+
+// Info is what the General tab shows. Checked is false when GitHub could not
+// be asked, which is not the same as Available being false.
 type Info struct {
 	Checked   bool   `json:"checked"`
 	Available bool   `json:"available"`
 	Current   string `json:"current"`
 	Latest    string `json:"latest,omitempty"`
 	URL       string `json:"url,omitempty"`
+	// Ready is the version the desktop app has put in place for its next
+	// start. The route fills it in; Check knows nothing of it.
+	Ready string `json:"ready,omitempty"`
 }
 
-// ghAsset is one file attached to a GitHub release - release.yml's "publish"
-// job uploads exactly one versioned zip per platform, named
-// "knightloader-{tag}-{slug}.zip" (assetName below builds the same string).
-type ghAsset struct {
-	Name               string `json:"name"`
-	BrowserDownloadURL string `json:"browser_download_url"`
-	Size               int64  `json:"size"`
-}
-
-type ghRelease struct {
-	TagName string    `json:"tag_name"`
-	HTMLURL string    `json:"html_url"`
-	Assets  []ghAsset `json:"assets"`
-}
-
-// fetchLatestRelease is Check's and Download's shared GitHub call - one
-// request, one decode, both callers read the same response shape (Check
-// only needs TagName/HTMLURL; Download also needs Assets).
-func fetchLatestRelease(ctx context.Context) (ghRelease, error) {
-	var rel ghRelease
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, releasesAPI, nil)
-	if err != nil {
-		return rel, err
-	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return rel, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		// 404 (private repo, no releases yet), rate-limited, or any other
-		// non-200 - all read the same way to a caller: could not check.
-		return rel, fmt.Errorf("github: unexpected status %s", resp.Status)
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		return rel, err
-	}
-	return rel, nil
-}
-
-// Check compares `current` (buildinfo.Version) against the latest GitHub
-// release tag. "dev" - every untagged local/main build - can never be
-// meaningfully compared to a released version, so it is reported as
-// checked-but-not-available rather than a version parse this package would
-// have to guess at.
+// Check reports whether KnightLoader has a published release newer than
+// current.
 func Check(ctx context.Context, current string) Info {
-	info := Info{Current: current}
-	if current == "" || current == "dev" {
+	u := &Updater{Repo: Repo, Version: current, Client: &http.Client{Timeout: 10 * time.Second}}
+	return u.Info(ctx)
+}
+
+// Info compares the running version with the newest published release. A dev
+// build has nothing to compare and is reported as checked and current without
+// asking GitHub.
+func (u *Updater) Info(ctx context.Context) Info {
+	info := Info{Current: u.Version}
+	have, ok := parseVersion(u.Version)
+	if !ok {
 		info.Checked = true
 		return info
 	}
-
-	rel, err := fetchLatestRelease(ctx)
+	gr, err := u.latest(ctx)
 	if err != nil {
 		return info
 	}
-
 	info.Checked = true
-	latest := strings.TrimPrefix(rel.TagName, "v")
-	currentTrimmed := strings.TrimPrefix(current, "v")
-	newer, ok := isNewer(latest, currentTrimmed)
-	if !ok {
-		// A tag that does not parse as X.Y.Z is not something this package
-		// can order against the running version - reported as checked, not
-		// available, rather than guessing.
-		return info
-	}
-	info.Available = newer
-	if newer {
-		info.Latest = rel.TagName
-		info.URL = rel.HTMLURL
+	if latest, ok := releaseVersion(gr); ok && compare(latest, have) > 0 {
+		info.Available = true
+		info.Latest = gr.TagName
+		info.URL = gr.HTMLURL
 	}
 	return info
 }
 
-// isNewer reports whether `latest` sorts after `current` under plain X.Y.Z
-// comparison - the project's own versioning convention (patch/minor/major,
-// no pre-release suffixes to weigh) has no use for a general semver library
-// here. ok is false when either string does not parse as three numeric
-// parts.
-func isNewer(latest, current string) (newer bool, ok bool) {
-	lp, lok := parts(latest)
-	cp, cok := parts(current)
-	if !lok || !cok {
-		return false, false
-	}
-	for i := 0; i < 3; i++ {
-		if lp[i] != cp[i] {
-			return lp[i] > cp[i], true
-		}
-	}
-	return false, true
-}
-
-func parts(v string) ([3]int, bool) {
-	var out [3]int
-	seg := strings.SplitN(v, ".", 3)
-	if len(seg) != 3 {
-		return out, false
-	}
-	for i, s := range seg {
-		n, err := strconv.Atoi(s)
-		if err != nil {
-			return out, false
-		}
-		out[i] = n
-	}
-	return out, true
-}
-
-// Install: download, verify and apply a newer release, then relaunch. Desktop
-// only, because a container cannot replace itself from the inside;
-// App.RequestUpdateInstall is nil there and the route refuses before any of
-// this runs.
-//
-// Everything below is deployment-agnostic and testable on its own. The one
-// thing this package does not decide is how to relaunch and exit the old
-// process, which stays a callback on app.App wired by desktop/main.go, the
-// same split RequestExit follows.
-//
-// Integrity. downloadAsset pins the download to GitHub's own asset hosts
-// rather than following browser_download_url blindly, and confirms the
-// downloaded size matches the asset metadata GitHub reported, so the bytes
-// came from this repo's own release. release.yml's publish job also generates
-// a checksums.txt over every platform zip in the same job run and publishes it
-// beside them, and Download fetches it alongside the zip and verifies the
-// SHA-256 before it returns a path for Apply to unpack. A download cannot be
-// truncated, corrupted or tampered with in transit or in a CDN cache without
-// Download refusing to hand it on.
-//
-// That is not code-signature verification. A published sha256 proves the bytes
-// match what the release pipeline produced and says nothing about whether the
-// pipeline was trustworthy, since both the zip and its checksums.txt come out
-// of the same Actions job. Only a signature tied to an identity outside the
-// build pipeline would close that gap.
-//
-// A latest release with a platform zip and no checksums.txt is a hard failure
-// rather than a fallback to unverified. Download only looks at GitHub's
-// "latest" release, and every release publishes checksums.txt in the same job
-// run as the zips, so the combination means the Checksums step failed or the
-// asset was removed, which is the broken release this package already refuses
-// to install from.
-
-// allowedAssetHosts are the only hosts downloadAsset will fetch from,
-// whatever browser_download_url says. GitHub serves release assets from its
-// own CDN hosts and never from an arbitrary redirect target, so pinning here
-// is a real, if partial, integrity boundary.
-var allowedAssetHosts = map[string]bool{
-	"github.com":                           true,
-	"objects.githubusercontent.com":        true,
-	"release-assets.githubusercontent.com": true,
-}
-
-// desktopSlugs maps a GOOS/GOARCH pair to the matrix.slug desktop.yml zips
-// that platform's bundle under. macOS gets one universal bundle, so both of
-// its architectures download the same zip.
-var desktopSlugs = map[string]string{
-	"windows/amd64": "windows-amd64",
-	"windows/arm64": "windows-arm64",
-	"darwin/amd64":  "macos-universal",
-	"darwin/arm64":  "macos-universal",
-	"linux/amd64":   "linux-amd64",
-	"linux/arm64":   "linux-arm64",
-}
-
-// platformSlug names the release zip built for goos and goarch. A platform
-// desktop.yml builds nothing for is reported rather than guessed at.
-func platformSlug(goos, goarch string) (string, error) {
-	if slug, ok := desktopSlugs[goos+"/"+goarch]; ok {
-		return slug, nil
-	}
-	return "", fmt.Errorf("update: no published desktop build for %s/%s", goos, goarch)
-}
-
-// assetName is exactly the string release.yml's "Package" step builds:
-// `knightloader-${v}-${slug}.zip`, where v is the tag.
-func assetName(tag, slug string) string {
-	return fmt.Sprintf("knightloader-%s-%s.zip", tag, slug)
-}
-
-// executableName is the file wails.json's outputfilename produces per
-// platform - a bare binary on Linux, ".exe" on Windows, and a full ".app"
-// bundle (a directory, not a single file) on macOS.
-func executableName() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "KnightLoader.exe"
-	case "darwin":
-		return "KnightLoader.app"
-	default:
-		return "KnightLoader"
-	}
-}
-
-// checksumAssetName is the file release.yml's "publish" job writes alongside
-// the platform zips (see that job's "Checksums" step) - a plain
-// sha256sum-format text file, one line per zip, filenames bare with no path
-// prefix.
-const checksumAssetName = "checksums.txt"
-
-// Download fetches the release asset matching this platform from the
-// latest GitHub release (only when it is actually newer than `current` -
-// mirrors Check's own "dev never compares" and X.Y.Z-only rules so a caller
-// cannot download a same-or-older build by mistake) into a fresh temp file
-// and returns its path. Before returning, it also fetches that same
-// release's checksums.txt asset and verifies the downloaded zip's own
-// SHA-256 against the entry in it for this platform's filename - see this
-// package's own doc comment for what that does and does not prove, and for
-// why a release missing checksums.txt entirely is a hard failure here
-// rather than a fallback to unverified. Deleting the returned path once
-// Apply has consumed it is the caller's job (os.RemoveAll is safe to call
-// on a path that no longer exists).
-func Download(ctx context.Context, current string) (zipPath string, tag string, err error) {
-	if current == "" || current == "dev" {
-		return "", "", errors.New("update: cannot compare an untagged build to a release")
-	}
-	rel, err := fetchLatestRelease(ctx)
+func (u *Updater) latest(ctx context.Context) (githubRelease, error) {
+	var gr githubRelease
+	body, err := u.get(ctx, u.api()+"/repos/"+u.Repo+"/releases/latest", 1<<20)
 	if err != nil {
-		return "", "", err
+		return gr, err
 	}
-	latest := strings.TrimPrefix(rel.TagName, "v")
-	currentTrimmed := strings.TrimPrefix(current, "v")
-	newer, ok := isNewer(latest, currentTrimmed)
-	if !ok {
-		return "", "", fmt.Errorf("update: could not compare %q against %q", rel.TagName, current)
+	if err := json.Unmarshal(body, &gr); err != nil {
+		return gr, fmt.Errorf("reading the latest release: %w", err)
 	}
-	if !newer {
-		return "", "", fmt.Errorf("update: %s is already the latest release", current)
-	}
-
-	slug, err := platformSlug(runtime.GOOS, runtime.GOARCH)
-	if err != nil {
-		return "", "", err
-	}
-	want := assetName(rel.TagName, slug)
-	var asset *ghAsset
-	for i := range rel.Assets {
-		if rel.Assets[i].Name == want {
-			asset = &rel.Assets[i]
-			break
-		}
-	}
-	if asset == nil {
-		return "", "", fmt.Errorf("update: release %s has no asset named %s", rel.TagName, want)
-	}
-
-	var checksums *ghAsset
-	for i := range rel.Assets {
-		if rel.Assets[i].Name == checksumAssetName {
-			checksums = &rel.Assets[i]
-			break
-		}
-	}
-	if checksums == nil {
-		// Treated exactly like the missing-zip-asset case just above, not as
-		// a softer "older release predates this feature" fallback - see this
-		// package's doc comment for the reasoning. In short: Download only
-		// ever looks at "latest", and every release from this feature
-		// onward publishes checksums.txt in the same job run that publishes
-		// the platform zips, so this can only mean the release is broken or
-		// was tampered with after publishing. Either way, not something to
-		// quietly proceed past.
-		return "", "", fmt.Errorf("update: release %s has no %s asset, so the unverifiable download is not installed", rel.TagName, checksumAssetName)
-	}
-
-	path, err := downloadAsset(ctx, *asset)
-	if err != nil {
-		return "", "", err
-	}
-
-	checksumsData, err := downloadChecksums(ctx, *checksums)
-	if err != nil {
-		os.Remove(path)
-		return "", "", err
-	}
-	if err := verifyChecksum(path, want, checksumsData); err != nil {
-		os.Remove(path)
-		return "", "", err
-	}
-
-	return path, rel.TagName, nil
+	return gr, nil
 }
 
-// fetchAsset builds the validated request and does the GET common to both
-// downloadAsset (the platform zip, staged to a temp file) and
-// downloadChecksums (checksums.txt, small enough to keep in memory) - host
-// pinning and redirect re-validation only need writing once. The caller owns
-// resp.Body and must close it.
-func fetchAsset(ctx context.Context, asset ghAsset) (*http.Response, error) {
-	u, err := url.Parse(asset.BrowserDownloadURL)
-	if err != nil {
-		return nil, fmt.Errorf("update: bad asset URL: %w", err)
+// releaseVersion is the version of gr, unless gr is flagged as a pre-release
+// or tagged like one (1.4.0-rc1), which an update never goes to.
+func releaseVersion(gr githubRelease) (version, bool) {
+	if gr.Prerelease {
+		return version{}, false
 	}
-	if u.Scheme != "https" || !allowedAssetHosts[u.Hostname()] {
-		return nil, fmt.Errorf("update: refusing to download from untrusted host %q", u.Hostname())
-	}
+	return parseVersion(gr.TagName)
+}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+func (u *Updater) api() string {
+	if u.API != "" {
+		return strings.TrimSuffix(u.API, "/")
+	}
+	return "https://api.github.com"
+}
+
+func (u *Updater) open(ctx context.Context, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	// A plain http.Client follows redirects (including cross-host ones) by
-	// default - GitHub's download URL 302s to its own CDN host, which is
-	// exactly the release-assets.githubusercontent.com case
-	// allowedAssetHosts already covers, but a client here is built with a
-	// CheckRedirect that re-validates every hop against the same allowlist
-	// rather than trusting Go's default "follow anywhere" behaviour.
-	client := &http.Client{
-		Timeout: 5 * time.Minute,
-		CheckRedirect: func(r *http.Request, via []*http.Request) error {
-			if !allowedAssetHosts[r.URL.Hostname()] || r.URL.Scheme != "https" {
-				return fmt.Errorf("update: refusing redirect to untrusted host %q", r.URL.Hostname())
-			}
-			return nil
-		},
+	req.Header.Set("User-Agent", path.Base(u.Repo)+"/"+u.Version)
+	req.Header.Set("Accept", "application/vnd.github+json, application/octet-stream")
+	client := u.Client
+	if client == nil {
+		client = http.DefaultClient
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -384,327 +271,60 @@ func fetchAsset(ctx context.Context, asset ghAsset) (*http.Response, error) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return nil, fmt.Errorf("update: download failed: %s", resp.Status)
+		return nil, fmt.Errorf("GET %s: %s", url, resp.Status)
 	}
 	return resp, nil
 }
 
-func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
-	resp, err := fetchAsset(ctx, asset)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	out, err := os.CreateTemp("", "knightloader-update-*.zip")
-	if err != nil {
-		return "", err
-	}
-	n, err := io.Copy(out, resp.Body)
-	closeErr := out.Close()
-	if err != nil {
-		os.Remove(out.Name())
-		return "", err
-	}
-	if closeErr != nil {
-		os.Remove(out.Name())
-		return "", closeErr
-	}
-	if asset.Size > 0 && n != asset.Size {
-		os.Remove(out.Name())
-		return "", fmt.Errorf("update: downloaded %d bytes, but the release reports %d, so the partial or corrupt asset is refused", n, asset.Size)
-	}
-	return out.Name(), nil
-}
-
-// downloadChecksums fetches checksums.txt through the same host-pinned,
-// redirect-revalidated path as downloadAsset, but keeps the bytes in memory
-// instead of staging a temp file - the file is a handful of short text
-// lines (one per platform zip), nothing that benefits from disk staging the
-// way a multi-hundred-megabyte platform bundle does. The 1 MiB cap is
-// generous headroom over the one "<hex>  <filename>" line per zip a release
-// carries; it exists only so a compromised or misbehaving host cannot turn
-// this into an unbounded read.
-func downloadChecksums(ctx context.Context, asset ghAsset) ([]byte, error) {
-	resp, err := fetchAsset(ctx, asset)
+func (u *Updater) get(ctx context.Context, url string, limit int64) ([]byte, error) {
+	resp, err := u.open(ctx, url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	if err != nil {
-		return nil, err
-	}
-	if asset.Size > 0 && int64(len(body)) != asset.Size {
-		return nil, fmt.Errorf("update: downloaded %s is %d bytes, but the release reports %d, so the partial or corrupt asset is refused", checksumAssetName, len(body), asset.Size)
-	}
-	return body, nil
+	return io.ReadAll(io.LimitReader(resp.Body, limit))
 }
 
-// verifyChecksum checks the file at zipPath against the entry for
-// wantAssetName in checksumsData (checksums.txt's raw bytes, as downloaded)
-// - the integrity half this package's doc comment names: TLS plus host
-// pinning (fetchAsset) already guarantee the bytes came from this repo's own
-// GitHub release, this additionally guarantees they were not truncated,
-// corrupted, or altered after the release pipeline published them, by
-// checking them against a digest published as its own asset at release
-// time.
-//
-// The actual parsing and hashing is internal/checksum's job, not
-// reimplemented here: that package already reads the exact
-// "<hex>  <filename>" sha256sum format release.yml's "Checksums" step
-// writes (ParseHashFile, shared with .sfv/md5sum/sha1sum downloads
-// elsewhere in this codebase) and already hashes-and-compares a file on
-// disk against one parsed entry (Verify) with its own test coverage - this
-// function is just the two calls plus finding the one entry that matters
-// for this asset name.
-func verifyChecksum(zipPath, wantAssetName string, checksumsData []byte) error {
-	sums, err := checksum.ParseHashFile(bytes.NewReader(checksumsData))
-	if err != nil {
-		return fmt.Errorf("update: %s: %w", checksumAssetName, err)
+func (u *Updater) logf(format string, args ...any) {
+	if u.Logf != nil {
+		u.Logf(format, args...)
 	}
-	var want *checksum.Sum
-	for i := range sums {
-		if sums[i].Name == wantAssetName {
-			want = &sums[i]
-			break
-		}
-	}
-	if want == nil {
-		return fmt.Errorf("update: %s has no entry for %s", checksumAssetName, wantAssetName)
-	}
-	if want.Kind != checksum.SHA256 {
-		// release.yml only ever writes sha256sum output - a different digest
-		// length here means checksums.txt was hand-edited or generated by
-		// something else, not the format this package knows how to trust.
-		return fmt.Errorf("update: %s entry for %s is %s, not sha256", checksumAssetName, wantAssetName, want.Kind)
-	}
-	ok, err := checksum.Verify(zipPath, *want)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("update: checksum mismatch for %s against %s; a download that does not match its published digest is not installed", wantAssetName, checksumAssetName)
-	}
-	return nil
 }
 
-// CurrentExecutable resolves the running process's own image, and - on
-// macOS specifically - the enclosing .app bundle that is the actual unit
-// Apply swaps (os.Executable there returns the binary buried inside
-// Contents/MacOS/, not the bundle Finder/Wails' own installer deals in).
-// installPath is what Apply's exePath argument expects; runnablePath is
-// what Relaunch actually execs - identical to installPath on Windows and
-// Linux, where the "install" IS the one runnable file.
-func CurrentExecutable() (installPath string, runnablePath string, err error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", "", err
+// lookupSum finds name in the output of sha256sum, where a "*" before the name
+// marks binary mode.
+func lookupSum(sums []byte, name string) (string, bool) {
+	sc := bufio.NewScanner(bytes.NewReader(sums))
+	for sc.Scan() {
+		fields := strings.Fields(sc.Text())
+		if len(fields) == 2 && strings.TrimPrefix(fields[1], "*") == name {
+			return strings.ToLower(fields[0]), true
+		}
 	}
-	exe, err = filepath.EvalSymlinks(exe)
-	if err != nil {
-		return "", "", err
-	}
-	if runtime.GOOS != "darwin" {
-		return exe, exe, nil
-	}
-	// .../KnightLoader.app/Contents/MacOS/KnightLoader -> .../KnightLoader.app
-	dir := filepath.Dir(exe)    // .../Contents/MacOS
-	dir = filepath.Dir(dir)     // .../Contents
-	bundle := filepath.Dir(dir) // .../KnightLoader.app
-	if !strings.HasSuffix(bundle, ".app") {
-		return "", "", fmt.Errorf("update: %s does not look like it is running from a .app bundle", exe)
-	}
-	return bundle, exe, nil
+	return "", false
 }
 
-// Apply extracts the platform build from zipPath and atomically swaps it in
-// at installPath (a single file on Windows/Linux, a .app bundle directory
-// on macOS), then removes the now-consumed zip. installPath's own parent
-// directory is used as the staging area specifically so the final swap is a
-// same-filesystem os.Rename - the one operation that is genuinely atomic
-// (no window where installPath is half-written), rather than a copy that
-// could be interrupted partway.
-//
-// The previous version is renamed to installPath+".old" rather than deleted
-// outright: on Windows, the currently-running process still holds its own
-// image open under that name, and only a rename (not a delete) of a
-// running executable is reliably permitted while it is still executing -
-// the same reason every self-updating Windows tool uses this exact
-// rename-aside-then-move-in pattern instead of a direct overwrite. Best-
-// effort cleanup is attempted immediately; if it fails (still locked) the
-// leftover .old is harmless and gets replaced by the next Apply.
-func Apply(zipPath, installPath string) error {
-	stagingParent := filepath.Dir(installPath)
-	staged, err := extractExecutable(zipPath, stagingParent)
-	if err != nil {
-		return err
+type version [3]int
+
+// parseVersion reads "1.2.3" or "v1.2.3". Anything else, "dev" and a
+// pre-release suffix included, is not a version an update may go to or start
+// from.
+func parseVersion(s string) (version, bool) {
+	parts := strings.Split(strings.TrimPrefix(s, "v"), ".")
+	if len(parts) != 3 {
+		return version{}, false
 	}
-	// Extraction can leave `staged` behind on any early return below.
-	cleanupStaged := true
-	defer func() {
-		if cleanupStaged {
-			os.RemoveAll(staged)
+	var v version
+	for i, p := range parts {
+		n, err := strconv.Atoi(p)
+		if err != nil || n < 0 {
+			return version{}, false
 		}
-	}()
-
-	oldPath := installPath + ".old"
-	os.RemoveAll(oldPath) // a leftover from a previous, only-partially-cleaned-up Apply
-
-	if _, err := os.Lstat(installPath); err == nil {
-		if err := os.Rename(installPath, oldPath); err != nil {
-			return fmt.Errorf("update: could not move the current version aside: %w", err)
-		}
-	} else if !os.IsNotExist(err) {
-		return err
+		v[i] = n
 	}
-
-	if err := os.Rename(staged, installPath); err != nil {
-		// Best-effort: put the old version back rather than leaving nothing
-		// installed at all.
-		_ = os.Rename(oldPath, installPath)
-		return fmt.Errorf("update: could not move the new version into place: %w", err)
-	}
-	cleanupStaged = false
-
-	if runtime.GOOS != "windows" {
-		_ = chmodExecutable(installPath)
-	}
-	_ = os.RemoveAll(oldPath) // best-effort; a lock here (Windows) is not fatal
-	_ = os.Remove(zipPath)
-	return nil
+	return v, true
 }
 
-// extractExecutable unzips zipPath into a fresh temp directory under
-// stagingDir (same filesystem as the eventual install path, for Apply's
-// atomic rename) and returns the path to just the platform executable/
-// bundle inside it - desktop.yml zips the *contents* of Wails' own output
-// directory, which on Windows/Linux is exactly one file and on macOS is
-// exactly one directory, so there is never more than one plausible match.
-func extractExecutable(zipPath, stagingDir string) (string, error) {
-	r, err := zip.OpenReader(zipPath)
-	if err != nil {
-		return "", err
-	}
-	defer r.Close()
-
-	dest, err := os.MkdirTemp(stagingDir, "knightloader-staged-*")
-	if err != nil {
-		return "", err
-	}
-	for _, f := range r.File {
-		// desktop.yml's `zip -qry` runs from inside the build output
-		// directory, so entries are relative paths with no leading
-		// directory component to guard against traversal from - still
-		// rejected defensively rather than trusted.
-		cleanName := filepath.Clean(f.Name)
-		if cleanName == ".." || strings.HasPrefix(cleanName, ".."+string(filepath.Separator)) || filepath.IsAbs(cleanName) {
-			os.RemoveAll(dest)
-			return "", fmt.Errorf("update: refusing a zip entry outside the extraction root: %s", f.Name)
-		}
-		target := filepath.Join(dest, cleanName)
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(target, 0o755); err != nil {
-				os.RemoveAll(dest)
-				return "", err
-			}
-			continue
-		}
-		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
-			os.RemoveAll(dest)
-			return "", err
-		}
-		if err := extractFile(f, target); err != nil {
-			os.RemoveAll(dest)
-			return "", err
-		}
-	}
-
-	entries, err := os.ReadDir(dest)
-	if err != nil {
-		os.RemoveAll(dest)
-		return "", err
-	}
-	want := executableName()
-	for _, e := range entries {
-		if e.Name() == want {
-			return filepath.Join(dest, e.Name()), nil
-		}
-	}
-	os.RemoveAll(dest)
-	return "", fmt.Errorf("update: extracted zip has no %s at its top level", want)
-}
-
-func extractFile(f *zip.File, target string) error {
-	rc, err := f.Open()
-	if err != nil {
-		return err
-	}
-	defer rc.Close()
-
-	mode := f.Mode()
-	if mode == 0 {
-		mode = 0o644
-	}
-	out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
-	if err != nil {
-		return err
-	}
-	_, copyErr := io.Copy(out, rc)
-	closeErr := out.Close()
-	if copyErr != nil {
-		return copyErr
-	}
-	return closeErr
-}
-
-// chmodExecutable makes sure the swapped-in file is actually runnable -
-// desktop.yml zips on the runner that built the bundle, so the Unix
-// permission bits are in the zip and this is normally a no-op. It was not
-// always: up to v1.1.5 the bundle went through an artifact first, which drops
-// file modes, and the published zips carried the binary as 0644. For a .app
-// the bits inside the bundle are what count, and those only a correct zip
-// provides.
-func chmodExecutable(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	if info.IsDir() {
-		// The macOS .app bundle case: the bundle directory itself does not
-		// need +x, only the binary inside Contents/MacOS/ does, and that
-		// entry already carries whatever mode extractFile wrote it with.
-		return nil
-	}
-	return os.Chmod(path, info.Mode()|0o111)
-}
-
-// Relaunch starts the freshly-applied build as a new, independent process
-// and returns immediately without waiting for it - the caller (desktop/
-// main.go, via App.RequestUpdateInstall) is expected to exit the OLD
-// process right after this returns successfully, the same "spawn the
-// replacement before tearing down the original" order every self-updater
-// uses to avoid a window with no running instance at all.
-func Relaunch(runnablePath string, args []string) error {
-	cmd := exec.Command(runnablePath, args...)
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	cmd.Stdin = nil
-	// No SysProcAttr group/session detachment: a plain child process is
-	// already independent of its parent's lifetime on every platform this
-	// ships for (it is not killed just because the parent exits normally),
-	// which is all "keeps running after the old process quits" requires.
-	return cmd.Start()
-}
-
-// String is a small debug/log helper, not used by the API response itself.
-func (i Info) String() string {
-	if !i.Checked {
-		return "update check: failed"
-	}
-	if !i.Available {
-		return fmt.Sprintf("update check: %s is current", i.Current)
-	}
-	return fmt.Sprintf("update check: %s available (running %s)", i.Latest, i.Current)
+func compare(a, b version) int {
+	return slices.Compare(a[:], b[:])
 }

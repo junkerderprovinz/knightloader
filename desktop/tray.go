@@ -476,6 +476,18 @@ func (tc *trayController) showWindow() {
 	tc.show(ctx)
 }
 
+// emit sends a Wails event to the page in the window. The window has no
+// socket to the hub, since it reaches the server through the asset handler.
+func (tc *trayController) emit(name string, data ...any) {
+	tc.mu.Lock()
+	ctx := tc.ctx
+	tc.mu.Unlock()
+	if ctx == nil {
+		return
+	}
+	wailsruntime.EventsEmit(ctx, name, data...)
+}
+
 func (tc *trayController) hideWindow() {
 	tc.mu.Lock()
 	ctx := tc.ctx
