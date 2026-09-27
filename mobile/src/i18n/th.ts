@@ -19,6 +19,7 @@ export const th: Dict = {
   'downloads.queueRunning': 'กำลังทำงาน',
   'downloads.queueActive': 'กำลังทำงาน {n} รายการ',
   'downloads.empty': 'ไม่มีการดาวน์โหลด',
+  'downloads.torrentsTitle': 'ทอร์เรนต์',
   'downloads.emptyConnecting': 'กำลังเชื่อมต่อกับเซิร์ฟเวอร์…',
   'overview.title': 'ทุกอินสแตนซ์',
   'overview.connected': 'เชื่อมต่อแล้ว {n}/{total}',

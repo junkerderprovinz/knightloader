@@ -19,6 +19,7 @@ export const nl: Dict = {
   'downloads.queueRunning': 'Actief',
   'downloads.queueActive': '{n} actief',
   'downloads.empty': 'Geen downloads.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Verbinden met de server…',
   'overview.title': 'Alle instanties',
   'overview.connected': '{n}/{total} verbonden',

@@ -19,6 +19,7 @@ export const sl: Dict = {
   'downloads.queueRunning': 'Poteka',
   'downloads.queueActive': '{n} aktivnih',
   'downloads.empty': 'Ni prenosov.',
+  'downloads.torrentsTitle': 'Torrenti',
   'downloads.emptyConnecting': 'Povezovanje s strežnikom…',
   'overview.title': 'Vsi primerki',
   'overview.connected': '{n}/{total} povezanih',

@@ -19,6 +19,7 @@ export const ru: Dict = {
   'downloads.queueRunning': 'Работает',
   'downloads.queueActive': '{n} активных',
   'downloads.empty': 'Нет загрузок.',
+  'downloads.torrentsTitle': 'Торренты',
   'downloads.emptyConnecting': 'Подключение к серверу…',
   'overview.title': 'Все экземпляры',
   'overview.connected': '{n}/{total} подключено',

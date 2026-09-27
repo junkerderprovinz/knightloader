@@ -19,6 +19,7 @@ export const lt: Dict = {
   'downloads.queueRunning': 'Vykdoma',
   'downloads.queueActive': 'Aktyvūs: {n}',
   'downloads.empty': 'Nėra atsisiuntimų.',
+  'downloads.torrentsTitle': 'Torrentai',
   'downloads.emptyConnecting': 'Jungiamasi prie serverio…',
   'overview.title': 'Visi egzemplioriai',
   'overview.connected': '{n}/{total} prisijungta',

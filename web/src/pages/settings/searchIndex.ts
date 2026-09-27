@@ -213,8 +213,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'downloads.listTitle',
       rows: [
-        { key: 'settings.downloads.seedingCard', hint: 'settings.downloads.seedingCardHint' },
         { key: 'settings.downloads.finishedCard', hint: 'settings.downloads.finishedCardHint' },
+        { key: 'settings.downloads.torrentCard', hint: 'settings.downloads.torrentCardHint' },
       ],
     },
   ],

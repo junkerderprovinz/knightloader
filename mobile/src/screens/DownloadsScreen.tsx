@@ -76,9 +76,9 @@ export default function DownloadsScreen({
   const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
   const queued = tasks.filter((x) => x.status !== 'collected');
   const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
-  // Seeding and finished packages leave the download list for parts of their
+  // Finished packages and torrents leave the download list for parts of their
   // own below it, as on the web's Downloads page, by the instance's switches.
-  const [cardsOn, setCardsOn] = useState<CardSwitches>({ seeding: true, finished: true });
+  const [cardsOn, setCardsOn] = useState<CardSwitches>({ finished: true, torrents: true });
   const parts = splitByCard(queued, cardsOn);
   const fabPress = usePress();
 
@@ -197,8 +197,8 @@ export default function DownloadsScreen({
           shown === 'collector'
             ? []
             : [
-                { key: 'seeding', title: t('status.seeding'), hue: 1, tasks: parts.seeding },
-                { key: 'finished', title: t('status.finished'), hue: 2, tasks: parts.finished },
+                { key: 'finished', title: t('status.finished'), hue: 1, tasks: parts.finished },
+                { key: 'torrents', title: t('downloads.torrentsTitle'), hue: 2, tasks: parts.torrents },
               ]
         }
         lineKey={shown}

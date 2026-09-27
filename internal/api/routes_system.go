@@ -17,7 +17,7 @@ import (
 // round.
 var appearanceFields = []string{
 	"shape", "accent", "rainbow", "rainbowReactive", "rainbowRotate", "rainbowSeed", "rainbowPalette",
-	"seedingCard", "finishedCard",
+	"torrentCard", "finishedCard",
 }
 
 func appearanceOf(s settings.Settings) map[string]any {
@@ -29,7 +29,7 @@ func appearanceOf(s settings.Settings) map[string]any {
 		"rainbowRotate":   s.RainbowRotate,
 		"rainbowSeed":     s.RainbowSeed,
 		"rainbowPalette":  s.RainbowPalette,
-		"seedingCard":     s.SeedingCard,
+		"torrentCard":     s.TorrentCard,
 		"finishedCard":    s.FinishedCard,
 	}
 }

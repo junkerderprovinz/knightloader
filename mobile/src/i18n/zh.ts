@@ -19,6 +19,7 @@ export const zh: Dict = {
   'downloads.queueRunning': '运行中',
   'downloads.queueActive': '{n} 个活动任务',
   'downloads.empty': '没有下载任务。',
+  'downloads.torrentsTitle': '种子',
   'downloads.emptyConnecting': '正在连接服务器…',
   'overview.title': '所有实例',
   'overview.connected': '已连接 {n}/{total}',

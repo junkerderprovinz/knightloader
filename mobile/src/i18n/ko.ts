@@ -19,6 +19,7 @@ export const ko: Dict = {
   'downloads.queueRunning': '실행 중',
   'downloads.queueActive': '{n}개 활성',
   'downloads.empty': '다운로드가 없습니다.',
+  'downloads.torrentsTitle': '토렌트',
   'downloads.emptyConnecting': '서버에 연결하는 중…',
   'overview.title': '모든 인스턴스',
   'overview.connected': '{n}/{total} 연결됨',

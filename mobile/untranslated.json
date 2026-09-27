@@ -20,7 +20,8 @@
       "settings.disco",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "downloads.torrentsTitle"
     ],
     "cs": [
       "addDownload.placeholder",
@@ -41,14 +42,16 @@
       "settings.aboutPaypal",
       "settings.aboutVersion",
       "settings.aboutGithub",
-      "settings.motion.storm"
+      "settings.motion.storm",
+      "downloads.torrentsTitle"
     ],
     "el": [
       "addDownload.placeholder",
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail"
+      "settings.aboutMail",
+      "downloads.torrentsTitle"
     ],
     "es": [
       "captcha.screenTitle",
@@ -56,7 +59,8 @@
       "settings.disco",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "downloads.torrentsTitle"
     ],
     "et": [
       "addDownload.placeholder",
@@ -92,7 +96,8 @@
       "settings.aboutPaypal",
       "settings.aboutCrypto",
       "settings.aboutVersion",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "downloads.torrentsTitle"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -100,7 +105,8 @@
       "settings.disco",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "downloads.torrentsTitle"
     ],
     "he": [
       "addDownload.placeholder",
@@ -185,7 +191,8 @@
       "settings.aboutGithub",
       "settings.aboutMailSubject",
       "settings.motion.wild",
-      "settings.motion.storm"
+      "settings.motion.storm",
+      "downloads.torrentsTitle"
     ],
     "no": [
       "downloads.start",
@@ -194,7 +201,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.motion.storm"
+      "settings.motion.storm",
+      "downloads.torrentsTitle"
     ],
     "pl": [
       "addDownload.placeholder",
@@ -209,7 +217,8 @@
       "settings.disco",
       "task.mode.premium",
       "settings.aboutPaypal",
-      "settings.aboutGithub"
+      "settings.aboutGithub",
+      "downloads.torrentsTitle"
     ],
     "ro": [
       "downloads.queueActive",
@@ -255,7 +264,8 @@
       "settings.aboutPaypal",
       "settings.aboutVersion",
       "settings.aboutGithub",
-      "settings.motion.storm"
+      "settings.motion.storm",
+      "downloads.torrentsTitle"
     ],
     "th": [
       "addDownload.placeholder",

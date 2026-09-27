@@ -19,6 +19,7 @@ export const et: Dict = {
   'downloads.queueRunning': 'Käib',
   'downloads.queueActive': '{n} aktiivset',
   'downloads.empty': 'Allalaadimisi pole.',
+  'downloads.torrentsTitle': 'Torrendid',
   'downloads.emptyConnecting': 'Ühendumine serveriga…',
   'overview.title': 'Kõik eksemplarid',
   'overview.connected': '{n}/{total} ühendatud',

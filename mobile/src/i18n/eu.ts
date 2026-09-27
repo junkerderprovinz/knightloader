@@ -19,6 +19,7 @@ export const eu: Dict = {
   'downloads.queueRunning': 'Abian',
   'downloads.queueActive': '{n} aktibo',
   'downloads.empty': 'Ez dago deskargarik.',
+  'downloads.torrentsTitle': 'Torrentak',
   'downloads.emptyConnecting': 'Zerbitzariarekin konektatzen…',
   'overview.title': 'Instantzia guztiak',
   'overview.connected': '{n}/{total} konektatuta',

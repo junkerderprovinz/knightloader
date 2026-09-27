@@ -19,6 +19,7 @@ export const ro: Dict = {
   'downloads.queueRunning': 'Activă',
   'downloads.queueActive': '{n} active',
   'downloads.empty': 'Nicio descărcare.',
+  'downloads.torrentsTitle': 'Torrenturi',
   'downloads.emptyConnecting': 'Se conectează la server…',
   'overview.title': 'Toate instanțele',
   'overview.connected': '{n}/{total} conectate',

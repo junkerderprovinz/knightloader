@@ -19,6 +19,7 @@ export const bg: Dict = {
   'downloads.queueRunning': 'Активна',
   'downloads.queueActive': '{n} активни',
   'downloads.empty': 'Няма изтегляния.',
+  'downloads.torrentsTitle': 'Торенти',
   'downloads.emptyConnecting': 'Свързване със сървъра…',
   'overview.title': 'Всички инстанции',
   'overview.connected': '{n}/{total} свързани',

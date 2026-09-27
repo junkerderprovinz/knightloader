@@ -93,7 +93,7 @@ export const hr: Dict = {
 
   'downloads.title': 'Preuzimanja',
   'downloads.listTitle': 'Popis preuzimanja',
-  'downloads.seedingTitle': 'Seeda',
+  'downloads.torrentsTitle': 'Torrenti',
   'downloads.finishedTitle': 'Gotovo',
   'downloads.thisInstance': 'Ova instanca',
   'downloads.pauseAll': 'Pauziraj sve',
@@ -1790,8 +1790,8 @@ export const hr: Dict = {
 
   'settings.downloads.workDir': 'Radna mapa',
   'settings.downloads.workDirHint': 'Kamo se preuzimanje zapisuje dok još stiže. Gotova datoteka zatim se premješta u mapu za preuzimanja, kad su kontrolni zbroj i eventualno raspakiravanje gotovi, pa se ondje nikad ne vidi ništa napola gotovo. Prazno, kako dolazi zadano, znači da se preuzimanja zapisuju ravno na odredište. Postavi je kad mapu za preuzimanja prati nešto drugo: Unraidov mover uzme pola datoteke s cachea i kopira je na polje, a skener biblioteke doda nedovršen video, jednom ga ne uspije reproducirati i više ga nikad ne pogleda. Jedna stalna apsolutna putanja, bez varijabli: sva preuzimanja s istim odredištem dijele ovu mapu, a predložak bi razbacao dijelove višedijelne arhive. Putanja koja nije apsolutna odbacuje se pri spremanju. Torrenti i preuzimanja koja dohvaća drugi program nikad je ne koriste.',
-  'settings.downloads.seedingCard': 'Prikaži torrente koji seedaju u zasebnoj kartici',
-  'settings.downloads.seedingCardHint': 'Torrent koji je preuzet do kraja, ali još šalje podatke, seli se s popisa preuzimanja u karticu „Seeda” ispod njega, a kad prestane seedati, prelazi u „Gotovo”. Kad je ovo isključeno, ostaje na popisu preuzimanja.',
+  'settings.downloads.torrentCard': 'Prikaži torrente u zasebnoj kartici',
+  'settings.downloads.torrentCardHint': 'Torrent koji je preuzet do kraja seli se s popisa preuzimanja u karticu „Torrenti” ispod njega. Ondje ostaje dok seeda i nakon toga, a stupac Stanje pokazuje što od toga vrijedi. Ako ga ponovno preuzmeš, vraća se na popis preuzimanja. Kad je ovo isključeno, gotovi torrenti idu u „Gotovo” kao svako drugo preuzimanje.',
   'settings.downloads.finishedCard': 'Prikaži gotove pakete u zasebnoj kartici',
   'settings.downloads.finishedCardHint': 'Čim je svaka poveznica paketa preuzeta i svaka arhiva u njemu raspakirana, paket se seli s popisa preuzimanja u karticu „Gotovo” ispod njega. Poveznice koje si isključio ne zadržavaju ga. Ako se neka od njegovih poveznica ponovno preuzima ili dodaš novu, paket se odmah vraća. Kad je ovo isključeno, gotovi paketi ostaju na popisu preuzimanja.',
 

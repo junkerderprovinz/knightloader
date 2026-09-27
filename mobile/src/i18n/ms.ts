@@ -19,6 +19,7 @@ export const ms: Dict = {
   'downloads.queueRunning': 'Berjalan',
   'downloads.queueActive': '{n} aktif',
   'downloads.empty': 'Tiada muat turun.',
+  'downloads.torrentsTitle': 'Torrent',
   'downloads.emptyConnecting': 'Menyambung ke pelayan…',
   'overview.title': 'Semua tika',
   'overview.connected': '{n}/{total} bersambung',

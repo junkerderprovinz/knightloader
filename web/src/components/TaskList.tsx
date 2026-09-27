@@ -1694,7 +1694,7 @@ export function TaskListCard({
   /** Where this card keeps its sort, when it shares its columns with another
    *  list of the same profile but sorts on its own. Defaults to the profile. */
   sortKey?: string;
-  /** How many links the card holds, shown in its title. */
+  /** How many links the card holds, shown in a badge beside its title. */
   count?: number;
   /** Folds the card to its title, for a card that sits below the main list. */
   fold?: { folded: boolean; onToggle: () => void };
@@ -3165,10 +3165,12 @@ export function TaskListCard({
               that shows one order while running another reads as a bug. */}
           <SectionTitle
             hint={t('columns.headerHint')}
-            second={sort ? { label: t('list.sortedView'), hint: t('list.sortedViewTip') } : undefined}
+            beside={[
+              ...(count !== undefined ? [{ key: 'count', label: <span className="glim-num">{count}</span> }] : []),
+              ...(sort ? [{ key: 'sort', label: t('list.sortedView'), hint: t('list.sortedViewTip') }] : []),
+            ]}
           >
             {title}
-            {count !== undefined && <span className="glim-num ms-1.5">{count}</span>}
           </SectionTitle>
         </div>
         {!folded && (

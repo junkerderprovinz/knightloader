@@ -19,6 +19,7 @@ export const hu: Dict = {
   'downloads.queueRunning': 'Fut',
   'downloads.queueActive': '{n} aktív',
   'downloads.empty': 'Nincsenek letöltések.',
+  'downloads.torrentsTitle': 'Torrentek',
   'downloads.emptyConnecting': 'Kapcsolódás a szerverhez…',
   'overview.title': 'Összes példány',
   'overview.connected': '{n}/{total} csatlakozva',

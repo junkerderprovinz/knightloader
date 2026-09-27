@@ -19,6 +19,7 @@ export const ja: Dict = {
   'downloads.queueRunning': '実行中',
   'downloads.queueActive': '{n}件アクティブ',
   'downloads.empty': 'ダウンロードはありません。',
+  'downloads.torrentsTitle': 'トレント',
   'downloads.emptyConnecting': 'サーバーに接続中…',
   'overview.title': 'すべてのインスタンス',
   'overview.connected': '{n}/{total} 接続済み',

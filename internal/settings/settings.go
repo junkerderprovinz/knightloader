@@ -370,12 +370,13 @@ type Settings struct {
 	// changes nothing on a wider screen, where there is no bar.
 	BottomBarLabels string `json:"bottomBarLabels"`
 
-	// SeedingCard takes a package whose downloads are over while a torrent in
-	// it still uploads out of the download list and into a card of its own
-	// below it. FinishedCard does the same for a package that is downloaded
-	// and unpacked. Both are on by default and read by the web interface and
-	// the app alike, so the two show one list the same way.
-	SeedingCard  bool `json:"seedingCard"`
+	// TorrentCard takes a package holding a torrent out of the download list
+	// once its downloads are over and into a card of its own below it, where
+	// it stays whether it still seeds or not. FinishedCard does the same for
+	// any other package that is downloaded and unpacked. Both are on by
+	// default and read by the web interface and the app alike, so the two show
+	// one list the same way.
+	TorrentCard  bool `json:"torrentCard"`
 	FinishedCard bool `json:"finishedCard"`
 
 	// AutoUpdateCheck asks the container build's General tab to check for a
@@ -762,7 +763,7 @@ func Defaults() Settings {
 		Shape:           DefaultShape,
 		NavLabels:       NavLabelsBoth,
 		BottomBarLabels: BottomBarFollowsNav,
-		SeedingCard:     true,
+		TorrentCard:     true,
 		FinishedCard:    true,
 		// Keep the archive, unpack beside it, and write into the folder that is
 		// already there. The retention is only consulted once somebody switches

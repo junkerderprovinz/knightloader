@@ -37,15 +37,15 @@ func TestAppearanceCarriesTheListCards(t *testing.T) {
 	defer srv.Close()
 
 	got := appearanceCall(t, http.MethodGet, srv.URL, nil)
-	if got["seedingCard"] != true || got["finishedCard"] != true {
-		t.Fatalf("a fresh install answers seedingCard %v, finishedCard %v, want both true", got["seedingCard"], got["finishedCard"])
+	if got["torrentCard"] != true || got["finishedCard"] != true {
+		t.Fatalf("a fresh install answers torrentCard %v, finishedCard %v, want both true", got["torrentCard"], got["finishedCard"])
 	}
 
 	got = appearanceCall(t, http.MethodPost, srv.URL, []byte(`{"finishedCard": false}`))
-	if got["finishedCard"] != false || got["seedingCard"] != true {
+	if got["finishedCard"] != false || got["torrentCard"] != true {
 		t.Errorf("after switching the finished card off the answer is %v", got)
 	}
-	if s := a.Settings.Get(); s.FinishedCard || !s.SeedingCard {
-		t.Errorf("stored finishedCard %v, seedingCard %v", s.FinishedCard, s.SeedingCard)
+	if s := a.Settings.Get(); s.FinishedCard || !s.TorrentCard {
+		t.Errorf("stored finishedCard %v, torrentCard %v", s.FinishedCard, s.TorrentCard)
 	}
 }

@@ -19,6 +19,7 @@ export const el: Dict = {
   'downloads.queueRunning': 'Σε εξέλιξη',
   'downloads.queueActive': '{n} ενεργές',
   'downloads.empty': 'Δεν υπάρχουν λήψεις.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Σύνδεση με τον διακομιστή…',
   'overview.title': 'Όλες οι υπηρεσίες',
   'overview.connected': '{n}/{total} συνδεδεμένα',

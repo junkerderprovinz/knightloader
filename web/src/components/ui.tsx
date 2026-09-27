@@ -1720,23 +1720,25 @@ export function ErrorCard({
 // not a plain sentence, such as a list of steps, takes the title's words as its
 // accessible name, so give it a string title. `hue` opts the badge into a
 // rainbow position; omit it for a card that is the only one of its kind on the
-// page. `right` is for a far-right header action. `second` is a
-// badge beside the title, filled the same way; with it the h2 takes the notch's
-// placement and lays both out in a row, so the pair centres on the card edge
-// as one group (GlimStone's rule for a pair of heading badges).
+// page. `right` is for a far-right header action. `beside` holds badges next
+// to the title, filled the same way, such as a count kept apart from the
+// title's words; with them the h2 takes the notch's placement and lays them
+// out in a row, so they centre on the card edge as one group (GlimStone's rule
+// for a pair of heading badges).
 export function SectionTitle({
   children,
   hint,
   hue,
   right,
-  second,
+  beside,
   id,
 }: {
   children: ReactNode;
   hint?: ReactNode;
   hue?: number;
   right?: ReactNode;
-  second?: { label: ReactNode; hint?: string };
+  /** Further badges in the title's look, beside it on the same notch. */
+  beside?: { key: string; label: ReactNode; hint?: string }[];
   /**
    * Names the heading's words so a window can point `aria-labelledby` at
    * them. Modal is the one caller that has to say which element is its
@@ -1749,11 +1751,12 @@ export function SectionTitle({
   // The half-overlap is self-relative: `top-0` plus `-translate-y-1/2` resolves
   // against the positioned element's own rendered height, so it re-centres
   // whether the badge takes one line or two, which in 42 locales a long card
-  // title has to be able to do. With a second badge the group is positioned
-  // and the badges are not, or both would land on the same spot.
+  // title has to be able to do. With badges beside it the group is positioned
+  // and the badges are not, or all of them would land on the same spot.
   const notch = 'absolute top-0 z-10 -translate-y-1/2';
   const hued = hue !== undefined ? 'glim-hue ' : '';
   const hueStyle = hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined;
+  const grouped = beside !== undefined && beside.length > 0;
   const look = `glim-section-badge inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-accent px-3 py-[3.5px]
     text-[12px] font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`;
   // The position lives on the Card (GlimStone 1.4.0), so a badge carries only
@@ -1765,7 +1768,7 @@ export function SectionTitle({
   // with no hued card above it and sets the properties here.
   const title = (
     <h2 className="flex items-center">
-      <span className={`${hued}${second ? '' : `${notch} `}${look}`} style={hueStyle}>
+      <span className={`${hued}${grouped ? '' : `${notch} `}${look}`} style={hueStyle}>
         <span id={id}>{children}</span>
         {hint && (
           <InfoBubble tip={hint} label={typeof hint !== 'string' && typeof children === 'string' ? children : undefined} onColor />
@@ -1775,13 +1778,15 @@ export function SectionTitle({
   );
   return (
     <div className="flex items-center gap-3">
-      {second ? (
+      {grouped ? (
         <div className={`${notch} flex items-center gap-2`}>
           {title}
-          <span className={`${hued}${look}`} style={hueStyle}>
-            {second.label}
-            {second.hint && <InfoBubble tip={second.hint} onColor />}
-          </span>
+          {beside.map((b) => (
+            <span key={b.key} className={`${hued}${look}`} style={hueStyle}>
+              {b.label}
+              {b.hint && <InfoBubble tip={b.hint} onColor />}
+            </span>
+          ))}
         </div>
       ) : (
         title

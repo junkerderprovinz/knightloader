@@ -19,6 +19,7 @@ export const sr: Dict = {
   'downloads.queueRunning': 'У току',
   'downloads.queueActive': '{n} активно',
   'downloads.empty': 'Нема преузимања.',
+  'downloads.torrentsTitle': 'Торенти',
   'downloads.emptyConnecting': 'Повезивање са сервером…',
   'overview.title': 'Све инстанце',
   'overview.connected': '{n}/{total} повезано',

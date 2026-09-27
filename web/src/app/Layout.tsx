@@ -84,7 +84,7 @@ function useAppearance() {
         // flashing the default while this request is in flight.
         cacheAppearance(s.shape, s.accent, rainbow);
         // An instance older than the switches has both cards on.
-        setListCards({ seeding: s.seedingCard !== false, finished: s.finishedCard !== false });
+        setListCards({ finished: s.finishedCard !== false, torrents: s.torrentCard !== false });
       })
       .catch(() => {
         // The cached look from the last successful load stays.

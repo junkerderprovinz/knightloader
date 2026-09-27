@@ -36,6 +36,7 @@ export const en = {
   'downloads.queueRunning': 'Running',
   'downloads.queueActive': '{n} active',
   'downloads.empty': 'No downloads.',
+  'downloads.torrentsTitle': 'Torrents',
   'downloads.emptyConnecting': 'Connecting to the server…',
   'overview.title': 'All instances',
   'overview.connected': '{n}/{total} connected',

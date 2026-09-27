@@ -65,14 +65,15 @@ submission and for a fixed download.
   fetches at once and keeps everything already downloaded. A magnet shows its
   files once the swarm has sent the list, and a finished torrent shows them
   without switches. The Android app lists them inside the torrent's card.
-- **Seeding and Finished cards on the Downloads page.** A torrent that is still
-  seeding moves out of the download list into a Seeding card, and a package
-  whose links have all downloaded and whose archives are unpacked moves into a
-  Finished card. Downloading one of its links again puts the package straight
-  back. Each card sorts, selects and folds on its own; search and quick filters
-  apply to all three, with a new Seeding filter beside Finished. Both cards can
-  be switched off under Settings, Downloads, and the Android app shows the same
-  two parts.
+- **Finished and Torrents cards on the Downloads page.** A package whose links
+  have all downloaded and whose archives are unpacked moves out of the download
+  list into a Finished card. A finished torrent goes to a Torrents card instead
+  and stays there, whether it still seeds or has stopped; the Status column
+  says which. Downloading one of its links again puts the package straight
+  back. Each card sorts, selects and folds on its own, and its link count sits
+  in a badge beside its title. Search and quick filters apply to all three,
+  with a new Seeding filter beside Finished. Both cards can be switched off
+  under Settings, Downloads, and the Android app shows the same two parts.
 
 ### Changed
 

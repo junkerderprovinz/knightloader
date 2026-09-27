@@ -308,7 +308,7 @@ const GROUPS: Record<string, TransferGroup> = {
   rainbowPalette: 'look',
   navLabels: 'look',
   bottomBarLabels: 'look',
-  seedingCard: 'look',
+  torrentCard: 'look',
   finishedCard: 'look',
   hideAccountsFromSidebar: 'look',
   hideInstancesFromSidebar: 'look',

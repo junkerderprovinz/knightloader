@@ -93,7 +93,7 @@ export const cs: Dict = {
 
   'downloads.title': 'Stahování',
   'downloads.listTitle': 'Seznam stahování',
-  'downloads.seedingTitle': 'Seeduje',
+  'downloads.torrentsTitle': 'Torrenty',
   'downloads.finishedTitle': 'Hotovo',
   'downloads.thisInstance': 'Tato instance',
   'downloads.pauseAll': 'Pozastavit vše',
@@ -1790,8 +1790,8 @@ export const cs: Dict = {
 
   'settings.downloads.workDir': 'Pracovní složka',
   'settings.downloads.workDirHint': 'Kam se stahování zapisuje, dokud ještě přichází. Hotový soubor se potom přesune do složky pro stahování, až po kontrolním součtu a případném rozbalení, takže tam nikdy není vidět nic rozdělaného. Prázdné, jak je to ve výchozím stavu, znamená, že se stahování zapisují rovnou do cíle. Nastav to, když složku pro stahování sleduje ještě něco jiného: mover v Unraidu vezme půlku souboru z cache a zkopíruje ji na pole a skener knihovny přidá nedokončené video, jednou ho nedokáže přehrát a už se na něj nikdy nepodívá. Jedna pevná absolutní cesta, žádné proměnné: tuhle složku sdílí všechna stahování mířící do stejného cíle a šablona by rozházela části vícedílného archivu. Cesta, která není absolutní, se při uložení zahodí. Torrenty a stahování, která stahuje jiný program, ji nikdy nepoužívají.',
-  'settings.downloads.seedingCard': 'Zobrazovat seedující torrenty ve vlastní kartě',
-  'settings.downloads.seedingCardHint': 'Torrent, který je stažený, ale ještě odesílá data, se přesune ze seznamu stahování do karty „Seeduje“ pod ním, a jakmile přestane seedovat, přejde do „Hotovo“. Když je to vypnuté, zůstane v seznamu stahování.',
+  'settings.downloads.torrentCard': 'Zobrazovat torrenty ve vlastní kartě',
+  'settings.downloads.torrentCardHint': 'Torrent, který je stažený, se přesune ze seznamu stahování do karty „Torrenty“ pod ním. Zůstane tam, dokud seeduje, i potom, a sloupec Stav ukazuje, co z toho platí. Když ho stáhneš znovu, vrátí se do seznamu stahování. Když je to vypnuté, hotové torrenty jdou do „Hotovo“ jako každé jiné stahování.',
   'settings.downloads.finishedCard': 'Zobrazovat hotové balíčky ve vlastní kartě',
   'settings.downloads.finishedCardHint': 'Jakmile je každý odkaz balíčku stažený a každý archiv v něm rozbalený, balíček se přesune ze seznamu stahování do karty „Hotovo“ pod ním. Odkazy, které jsi vypnul, ho nezdržují. Když se některý z jeho odkazů stahuje znovu nebo přidáš nový, balíček se hned vrátí. Když je to vypnuté, hotové balíčky zůstanou v seznamu stahování.',
   'settings.archives.moveTo': 'Rozbalené soubory přesunout do',
