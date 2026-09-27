@@ -84,7 +84,12 @@ func TestOnePackageMakesOneCall(t *testing.T) {
 
 	r.Enqueue("jellyfin", "Die.Serie.S01E01")
 
-	eventually(t, "the call to go out", func() bool { return srv.hits.Load() == 1 })
+	// The result, not the server's count: the server sees the call before the
+	// runner has the answer it records.
+	eventually(t, "the call's result", func() bool { _, ok := r.Last("jellyfin"); return ok })
+	if n := srv.hits.Load(); n != 1 {
+		t.Fatalf("the package made %d calls, want 1", n)
+	}
 	last, ok := r.Last("jellyfin")
 	if !ok || !last.OK {
 		t.Fatalf("Last = %+v, ok=%v", last, ok)
@@ -109,7 +114,7 @@ func TestABurstBecomesOneCall(t *testing.T) {
 		r.Enqueue("jellyfin", pkg)
 	}
 
-	eventually(t, "the one call for the burst", func() bool { return srv.hits.Load() >= 1 })
+	eventually(t, "the result of the one call for the burst", func() bool { _, ok := r.Last("jellyfin"); return ok })
 	last, _ := r.Last("jellyfin")
 	if last.Packages != 3 {
 		t.Errorf("the call folded %d packages, want 3", last.Packages)
