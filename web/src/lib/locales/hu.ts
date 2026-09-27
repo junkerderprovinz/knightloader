@@ -1533,7 +1533,7 @@ export const hu: Dict = {
   'settings.browsertools.install': 'Telepítés',
   'settings.browsertools.installIOS':
     'iPhone-on vagy iPad-en: nyissa meg ezt az oldalt Safariban, koppintson a Megosztásra, majd „Kezdőképernyőhöz adás”.',
-  'settings.nav.browsertools': 'Alkalmazás',
+  'settings.nav.browsertools': 'Alkalmazások',
   'settings.browsertools.bookmarkletStep1': 'Húzd az alábbi gombot a böngésződ könyvjelzősávjára. Úgy mentődik, mint bármelyik könyvjelző, és semmi sem települ.',
   'settings.browsertools.bookmarkletStep2': 'Bármelyik oldalon kattints rá (előbb jelölj ki szöveget, ha csak azt szeretnéd). Megnyílik egy kis KnightLoader-lap, amelyben már ki van töltve az oldal linkje vagy a kijelölt szöveg. Nézd át, és onnan add hozzá letöltésként.',
   'settings.browsertools.installLabel': 'Így telepítheted',
@@ -1546,9 +1546,6 @@ export const hu: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Válaszd a „Kiegészítő telepítése fájlból…” lehetőséget, és válaszd ki ezt a fájlt.',
   'settings.browsertools.installFirefoxStep3': 'Gyors kipróbáláshoz nyisd meg inkább az about:debugging#/runtime/this-firefox oldalt, és válaszd az „Ideiglenes kiegészítő betöltése” lehetőséget. A kiegészítő a Firefox újraindításakor eltűnik.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Hozzáadás a KnightLoaderhez',
-  'settings.browsertools.copyCode': 'Inkább a kód másolása',
-  'settings.browsertools.copied': 'Másolva.',
   'settings.browsertools.extensionTitle': 'Böngészőbővítmény',
   'quickadd.title': 'Hozzáadás a KnightLoaderhez',
   'quickadd.manualLabel': 'Link (vagy illesszen be többet, soronként egyet)',

@@ -1533,7 +1533,7 @@ export const et: Dict = {
   'settings.browsertools.install': 'Paigalda',
   'settings.browsertools.installIOS':
     'iPhone’il või iPadil: ava see leht Safaris, puuduta Jaga ja seejärel „Lisa avakuvale“.',
-  'settings.nav.browsertools': 'Rakendus',
+  'settings.nav.browsertools': 'Rakendused',
   'settings.browsertools.bookmarkletStep1': 'Lohista allolev nupp oma brauseri järjehoidjaribale. See salvestub nagu iga teine järjehoidja ja midagi ei paigaldata.',
   'settings.browsertools.bookmarkletStep2': 'Klõpsa sellel mis tahes lehel (vali enne tekst, kui tahad ainult seda). Avaneb väike KnightLoaderi vahekaart, kus selle lehe link või valitud tekst on juba sisse kirjutatud. Vaata see üle ja lisa see sealt allalaadimisena.',
   'settings.browsertools.installLabel': 'Kuidas seda paigaldada',
@@ -1546,9 +1546,6 @@ export const et: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Vali „Paigalda lisand failist…” ja vali see fail.',
   'settings.browsertools.installFirefoxStep3': 'Kiireks proovimiseks ava hoopis about:debugging#/runtime/this-firefox ja vali „Laadi ajutine lisand“. Lisand kaob, kui Firefox taaskäivitub.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Lisa KnightLoaderisse',
-  'settings.browsertools.copyCode': 'Kopeeri hoopis kood',
-  'settings.browsertools.copied': 'Kopeeritud.',
   'settings.browsertools.extensionTitle': 'Brauserilaiendus',
   'quickadd.title': 'Lisa KnightLoaderisse',
   'quickadd.manualLabel': 'Link (või kleebi mitu, üks reale)',

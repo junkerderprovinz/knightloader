@@ -1534,7 +1534,7 @@ export const sl: Dict = {
   'settings.browsertools.install': 'Namesti',
   'settings.browsertools.installIOS':
     'Na iPhonu ali iPadu: odpri to stran v Safariju, tapni Deli, nato „Dodaj na začetni zaslon“.',
-  'settings.nav.browsertools': 'Aplikacija',
+  'settings.nav.browsertools': 'Aplikacije',
   'settings.browsertools.bookmarkletStep1': 'Povleci spodnji gumb v vrstico z zaznamki brskalnika. Shrani se kot vsak drug zaznamek, ničesar se ne namesti.',
   'settings.browsertools.bookmarkletStep2': 'Na kateri koli strani klikni nanj (najprej izberi besedilo, če želiš samo tega). Odpre se majhen zavihek KnightLoader, v katerem sta povezava te strani ali izbrano besedilo že vpisana. Preglej vnos in ga od tam dodaj kot prenos.',
   'settings.browsertools.installLabel': 'Kako jo namestiti',
@@ -1547,9 +1547,6 @@ export const sl: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Izberi „Namesti dodatek iz datoteke…“ in izberi to datoteko.',
   'settings.browsertools.installFirefoxStep3': 'Za hiter preizkus namesto tega odpri about:debugging#/runtime/this-firefox in izberi »Naloži začasni dodatek«. Dodatek izgine ob ponovnem zagonu Firefoxa.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Dodaj v KnightLoader',
-  'settings.browsertools.copyCode': 'Namesto tega kopiraj kodo',
-  'settings.browsertools.copied': 'Kopirano.',
   'settings.browsertools.extensionTitle': 'Razširitev brskalnika',
   'quickadd.title': 'Dodaj v KnightLoader',
   'quickadd.manualLabel': 'Povezava (ali prilepi več, eno na vrstico)',

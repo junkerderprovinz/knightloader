@@ -1533,7 +1533,7 @@ export const lt: Dict = {
   'settings.browsertools.install': 'Įdiegti',
   'settings.browsertools.installIOS':
     '„iPhone“ ar „iPad“: atverkite šį puslapį „Safari“, palieskite Bendrinti, tada „Pridėti prie pradžios ekrano“.',
-  'settings.nav.browsertools': 'Programa',
+  'settings.nav.browsertools': 'Programos',
   'settings.browsertools.bookmarkletStep1': 'Nutempk žemiau esantį mygtuką į naršyklės žymelių juostą. Jis išsaugomas kaip bet kuri kita žymelė, nieko nediegiama.',
   'settings.browsertools.bookmarkletStep2': 'Bet kuriame puslapyje spustelėk jį (jei nori tik dalies teksto, pirmiausia jį pažymėk). Atsidarys mažas KnightLoader skirtukas, kuriame jau bus įrašyta to puslapio nuoroda arba pažymėtas tekstas. Peržiūrėk ir iš ten pridėk kaip atsisiuntimą.',
   'settings.browsertools.installLabel': 'Kaip ją įdiegti',
@@ -1546,9 +1546,6 @@ export const lt: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Pasirink „Įdiegti priedą iš failo…“ ir pasirink šį failą.',
   'settings.browsertools.installFirefoxStep3': 'Jei nori greitai išbandyti, atidaryk about:debugging#/runtime/this-firefox ir pasirink „Įkelti laikiną priedą“. Priedas dings, kai Firefox bus paleista iš naujo.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Pridėti prie KnightLoader',
-  'settings.browsertools.copyCode': 'Vietoj to kopijuoti kodą',
-  'settings.browsertools.copied': 'Nukopijuota.',
   'settings.browsertools.extensionTitle': 'Naršyklės plėtinys',
   'quickadd.title': 'Pridėti prie KnightLoader',
   'quickadd.manualLabel': 'Nuoroda (arba įklijuokite kelias, po vieną eilutėje)',

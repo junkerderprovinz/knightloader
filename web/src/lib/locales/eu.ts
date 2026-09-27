@@ -1533,7 +1533,7 @@ export const eu: Dict = {
   'settings.browsertools.install': 'Instalatu',
   'settings.browsertools.installIOS':
     'iPhone edo iPad-ean: ireki orri hau Safarin, sakatu Partekatu, eta gero «Gehitu hasiera-pantailan».',
-  'settings.nav.browsertools': 'Aplikazioa',
+  'settings.nav.browsertools': 'Aplikazioak',
   'settings.browsertools.bookmarkletStep1': 'Arrastatu beheko botoia zure nabigatzailearen laster-marken barrara. Beste edozein laster-marka bezala gordetzen da, eta ez da ezer instalatzen.',
   'settings.browsertools.bookmarkletStep2': 'Edozein orritan, egin klik gainean (hautatu testua aurretik hori bakarrik nahi baduzu). KnightLoader fitxa txiki bat irekitzen da, orri horren estekarekin edo hautatutako testuarekin jada beteta. Berrikusi eta gehitu deskarga gisa handik.',
   'settings.browsertools.installLabel': 'Nola instalatu',
@@ -1546,9 +1546,6 @@ export const eu: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Aukeratu «Instalatu gehigarria fitxategitik…» eta hautatu fitxategi hau.',
   'settings.browsertools.installFirefoxStep3': 'Proba azkar baterako, ireki horren ordez about:debugging#/runtime/this-firefox eta aukeratu «Kargatu aldi baterako gehigarria». Gehigarria desagertu egiten da Firefox berrabiaraztean.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet-a',
-  'settings.browsertools.bookmarkletLink': 'Gehitu KnightLoader-era',
-  'settings.browsertools.copyCode': 'Kopiatu kodea horren ordez',
-  'settings.browsertools.copied': 'Kopiatuta.',
   'settings.browsertools.extensionTitle': 'Nabigatzaile-hedapena',
   'quickadd.title': 'Gehitu KnightLoader-era',
   'quickadd.manualLabel': 'Esteka (edo itsatsi hainbat, bat lerroko)',

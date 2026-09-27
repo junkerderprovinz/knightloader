@@ -1534,7 +1534,7 @@ export const sk: Dict = {
   'settings.browsertools.install': 'Nainštalovať',
   'settings.browsertools.installIOS':
     'Na iPhone alebo iPad: otvor túto stránku v Safari, klepni na Zdieľať a potom na „Pridať na plochu“.',
-  'settings.nav.browsertools': 'Aplikácia',
+  'settings.nav.browsertools': 'Aplikácie',
   'settings.browsertools.bookmarkletStep1': 'Presuň tlačidlo nižšie na panel záložiek prehliadača. Uloží sa ako každá iná záložka a nič sa neinštaluje.',
   'settings.browsertools.bookmarkletStep2': 'Na ktorejkoľvek stránke naň klikni (ak chceš len nejaký text, najprv ho označ). Otvorí sa malá karta KnightLoadera, v ktorej je už vyplnený odkaz na túto stránku alebo označený text. Skontroluj ho a odtiaľ ho pridaj ako sťahovanie.',
   'settings.browsertools.installLabel': 'Ako ju nainštalovať',
@@ -1547,9 +1547,6 @@ export const sk: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Zvoľ „Inštalovať doplnok zo súboru…“ a vyber tento súbor.',
   'settings.browsertools.installFirefoxStep3': 'Na rýchle vyskúšanie namiesto toho otvor about:debugging#/runtime/this-firefox a zvoľ „Načítať dočasný doplnok“. Doplnok po reštarte Firefoxu zmizne.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Pridať do KnightLoader',
-  'settings.browsertools.copyCode': 'Namiesto toho skopírovať kód',
-  'settings.browsertools.copied': 'Skopírované.',
   'settings.browsertools.extensionTitle': 'Rozšírenie prehliadača',
   'quickadd.title': 'Pridať do KnightLoader',
   'quickadd.manualLabel': 'Odkaz (alebo vlož viac, jeden na riadok)',

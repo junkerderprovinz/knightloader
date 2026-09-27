@@ -51,6 +51,18 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The App tab in Settings is called Apps.**
+- The browser extension card has a button for each browser again: Chrome,
+  Edge, Brave, Opera, Vivaldi and Firefox. The five Chromium browsers get the
+  same ZIP.
+- The bookmarklet is a button like the others on the Apps page. It is called
+  KnightLoader, which is also the bookmark's name once it is dragged to the
+  bar, and Copy beside it copies the code, on an address without HTTPS too.
+- The ARM64 builds of the desktop app say Windows or Linux on top and ARM64
+  below it. A segment beside a button shows both its lines at rest.
+- The version on the phone app and browser extension cards sits on the card's
+  top edge, so every card on the Apps page starts its buttons the same
+  distance below its title.
 - The desktop app no longer has an Install now button or a switch that installs
   what a check finds and restarts right away. Updates come in the background
   and wait for the next start, so a running download is never cut off. Check

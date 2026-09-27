@@ -1535,7 +1535,7 @@ export const ar: Dict = {
   'settings.browsertools.install': 'تثبيت',
   'settings.browsertools.installIOS':
     'على آيفون أو آيباد: افتح هذه الصفحة في Safari، اضغط مشاركة، ثم «إضافة إلى الشاشة الرئيسية».',
-  'settings.nav.browsertools': 'التطبيق',
+  'settings.nav.browsertools': 'التطبيقات',
   'settings.browsertools.bookmarkletStep1': 'اسحب الزر أدناه إلى شريط الإشارات المرجعية في متصفحك. يُحفظ مثل أي إشارة مرجعية أخرى، ولا يُثبَّت أي شيء.',
   'settings.browsertools.bookmarkletStep2': 'في أي صفحة، انقر عليه (حدّد نصًا أولًا إن كنت لا تريد غيره). يُفتح تبويب صغير لـKnightLoader فيه رابط تلك الصفحة، أو النص المحدد، معبأً مسبقًا. راجعه وأضفه من هناك كتنزيل.',
   'settings.browsertools.installLabel': 'كيفية التثبيت',
@@ -1548,9 +1548,6 @@ export const ar: Dict = {
   'settings.browsertools.installFirefoxStep2': 'اختر «تثبيت إضافة من ملف…» وحدد هذا الملف.',
   'settings.browsertools.installFirefoxStep3': 'لتجربة سريعة بدلًا من ذلك، افتح about:debugging#/runtime/this-firefox واختر «تحميل إضافة مؤقتة». تختفي الإضافة عند إعادة تشغيل Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'إضافة إلى KnightLoader',
-  'settings.browsertools.copyCode': 'نسخ الكود بدلًا من ذلك',
-  'settings.browsertools.copied': 'نُسخ.',
   'settings.browsertools.extensionTitle': 'إضافة المتصفح',
   'quickadd.title': 'إضافة إلى KnightLoader',
   'quickadd.manualLabel': 'رابط (أو الصق عدة روابط، رابطًا في كل سطر)',

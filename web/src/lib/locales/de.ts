@@ -1661,7 +1661,7 @@ export const de: Dict = {
   'settings.browsertools.install': 'Installieren',
   'settings.browsertools.installIOS':
     'Auf iPhone oder iPad: diese Seite in Safari öffnen, auf Teilen tippen, dann „Zum Home-Bildschirm“.',
-  'settings.nav.browsertools': 'App',
+  'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Ziehe den Button unten in die Lesezeichenleiste deines Browsers. Er wird wie jedes andere Lesezeichen gespeichert, installiert wird nichts.',
   'settings.browsertools.bookmarkletStep2': 'Klicke auf einer beliebigen Seite darauf (markiere vorher Text, wenn du nur den willst). Es öffnet sich ein kleiner KnightLoader-Tab, in dem der Link dieser Seite oder der markierte Text schon eingetragen ist. Prüfe den Eintrag und füge ihn von dort als Download hinzu.',
   'settings.browsertools.installLabel': 'So installierst du sie',
@@ -1674,9 +1674,6 @@ export const de: Dict = {
   'settings.browsertools.installFirefoxStep2': '„Add-on aus Datei installieren…“ wählen und diese Datei auswählen.',
   'settings.browsertools.installFirefoxStep3': 'Für einen schnellen Test stattdessen about:debugging#/runtime/this-firefox öffnen und „Temporäres Add-on laden“ wählen. Das Add-on verschwindet beim Neustart von Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Zu KnightLoader hinzufügen',
-  'settings.browsertools.copyCode': 'Stattdessen den Code kopieren',
-  'settings.browsertools.copied': 'Kopiert.',
   'settings.browsertools.extensionTitle': 'Browsererweiterung',
   'quickadd.title': 'Zu KnightLoader hinzufügen',
   'quickadd.manualLabel': 'Link (oder mehrere einfügen, einer pro Zeile)',

@@ -1534,7 +1534,7 @@ export const bg: Dict = {
   'settings.browsertools.install': 'Инсталирай',
   'settings.browsertools.installIOS':
     'На iPhone или iPad: отвори тази страница в Safari, докосни Сподели, после „Добавяне към начален екран“.',
-  'settings.nav.browsertools': 'Приложение',
+  'settings.nav.browsertools': 'Приложения',
   'settings.browsertools.bookmarkletStep1': 'Плъзни бутона по-долу в лентата с отметки на браузъра си. Записва се като всяка друга отметка и нищо не се инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На която и да е страница щракни върху него (първо маркирай текст, ако искаш само него). Отваря се малък раздел на KnightLoader, в който връзката на тази страница или маркираният текст вече са попълнени. Прегледай го и го добави оттам като изтегляне.',
   'settings.browsertools.installLabel': 'Как да я инсталирате',
@@ -1547,9 +1547,6 @@ export const bg: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Изберете „Инсталиране на добавка от файл…“ и изберете този файл.',
   'settings.browsertools.installFirefoxStep3': 'За бърз тест вместо това отвори about:debugging#/runtime/this-firefox и избери „Зареждане на временна добавка“. Добавката изчезва при рестартиране на Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Добави към KnightLoader',
-  'settings.browsertools.copyCode': 'Вместо това копирай кода',
-  'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Разширение за браузър',
   'quickadd.title': 'Добави към KnightLoader',
   'quickadd.manualLabel': 'Връзка (или постави няколко, по една на ред)',

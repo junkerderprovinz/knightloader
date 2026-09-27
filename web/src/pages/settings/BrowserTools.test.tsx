@@ -24,7 +24,7 @@ beforeEach(() => {
   // The versions and the build the cards show come from the server, which is
   // not here.
   vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
-  // jsdom has no clipboard, and the copy button is only offered with one.
+  // jsdom has no clipboard to copy the bookmarklet into.
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
   host = document.createElement('div');
   document.body.append(host);
@@ -40,7 +40,7 @@ afterEach(() => {
 });
 
 function bookmarkletLink() {
-  return [...host.querySelectorAll('a')].find((a) => a.textContent === 'Add to KnightLoader')!;
+  return [...host.querySelectorAll('a')].find((a) => a.textContent === 'KnightLoader')!;
 }
 
 describe('BrowserTools', () => {
@@ -57,9 +57,9 @@ describe('BrowserTools', () => {
     expect(bookmarkletLink().getAttribute('href')).toBe(buildBookmarklet(window.location.origin));
   });
 
-  it('copies the same code with the button beside the link', async () => {
+  it('copies the same code with the segment beside the link', async () => {
     await act(async () => root.render(<BrowserTools />));
-    const copy = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Copy the code instead')!;
+    const copy = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Copy')!;
     await act(async () => copy.click());
     expect(writeText).toHaveBeenCalledWith(buildBookmarklet(window.location.origin));
   });

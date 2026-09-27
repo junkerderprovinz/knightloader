@@ -1526,7 +1526,7 @@ export const pt: Dict = {
   'settings.browsertools.install': 'Instalar',
   'settings.browsertools.installIOS':
     'No iPhone ou iPad: abra esta página no Safari, toque em Partilhar e depois em «Adicionar ao Ecrã Principal».',
-  'settings.nav.browsertools': 'Aplicação',
+  'settings.nav.browsertools': 'Aplicações',
   'settings.browsertools.bookmarkletStep1': 'Arrasta o botão abaixo para a barra de favoritos do teu navegador. Fica guardado como qualquer outro favorito, e nada é instalado.',
   'settings.browsertools.bookmarkletStep2': 'Em qualquer página, clica nele (seleciona algum texto primeiro se só quiseres esse). Abre-se um pequeno separador do KnightLoader com o link dessa página, ou o texto selecionado, já preenchido. Revê-o e adiciona-o como transferência a partir daí.',
   'settings.browsertools.installLabel': 'Como instalar',
@@ -1539,9 +1539,6 @@ export const pt: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Escolha «Instalar add-on a partir de um arquivo…» e selecione este arquivo.',
   'settings.browsertools.installFirefoxStep3': 'Para um teste rápido, abre antes about:debugging#/runtime/this-firefox e escolhe «Carregar extra temporário». O extra desaparece quando o Firefox reinicia.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Adicionar ao KnightLoader',
-  'settings.browsertools.copyCode': 'Copiar o código em vez disso',
-  'settings.browsertools.copied': 'Copiado.',
   'settings.browsertools.extensionTitle': 'Extensão de navegador',
   'quickadd.title': 'Adicionar ao KnightLoader',
   'quickadd.manualLabel': 'Ligação (ou cole várias, uma por linha)',

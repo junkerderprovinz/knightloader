@@ -1533,7 +1533,7 @@ export const lv: Dict = {
   'settings.browsertools.install': 'Instalēt',
   'settings.browsertools.installIOS':
     'iPhone vai iPad: atveriet šo lapu Safari, pieskarieties Kopīgot, tad „Pievienot sākuma ekrānam“.',
-  'settings.nav.browsertools': 'Lietotne',
+  'settings.nav.browsertools': 'Lietotnes',
   'settings.browsertools.bookmarkletStep1': 'Ievelc zemāk esošo pogu sava pārlūka grāmatzīmju joslā. Tā tiek saglabāta kā jebkura cita grāmatzīme, un nekas netiek instalēts.',
   'settings.browsertools.bookmarkletStep2': 'Jebkurā lapā noklikšķini uz tās (ja gribi tikai daļu teksta, vispirms to atlasi). Atveras neliela KnightLoader cilne, kurā jau ir ierakstīta šīs lapas saite vai atlasītais teksts. Pārskati to un no turienes pievieno kā lejupielādi.',
   'settings.browsertools.installLabel': 'Kā to instalēt',
@@ -1546,9 +1546,6 @@ export const lv: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Izvēlies „Instalēt papildinājumu no faila…” un norādi šo failu.',
   'settings.browsertools.installFirefoxStep3': 'Ātrai izmēģināšanai atver about:debugging#/runtime/this-firefox un izvēlies „Ielādēt pagaidu papildinājumu“. Papildinājums pazūd, kad Firefox tiek restartēts.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Pievienot KnightLoader',
-  'settings.browsertools.copyCode': 'Tā vietā kopēt kodu',
-  'settings.browsertools.copied': 'Nokopēts.',
   'settings.browsertools.extensionTitle': 'Pārlūka paplašinājums',
   'quickadd.title': 'Pievienot KnightLoader',
   'quickadd.manualLabel': 'Saite (vai ielīmējiet vairākas, pa vienai rindā)',
