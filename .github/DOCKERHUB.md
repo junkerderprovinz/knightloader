@@ -29,9 +29,8 @@ docker run -d --name knightloader \
 
 Then open `http://<host>:8749`.
 
-On Unraid, search for KnightLoader in Community Applications. The template runs
-it with `--user 99:100` and `UMASK=000`, so the account you use over SMB can
-move and delete what KnightLoader downloads.
+On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over
+SMB can move and delete what KnightLoader downloads.
 
 `latest` is the newest release. Each release is also tagged with its version,
 such as `1.3.0`, and with `1.3` and `1`.

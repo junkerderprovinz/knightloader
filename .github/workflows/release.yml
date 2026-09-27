@@ -107,9 +107,9 @@ jobs:
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed
   # tag pushes, and only the exact version; the moving tags wait for the
-  # release in image-latest. KnightLoader also goes to Docker Hub, which the
-  # Unraid template pulls from, once the DOCKERHUB_USERNAME variable and the
-  # DOCKERHUB_TOKEN secret are set together.
+  # release in image-latest. KnightLoader also goes to Docker Hub once the
+  # DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret are set
+  # together.
   images:
     needs: notes
     name: ${{ matrix.name }} image (amd64 + arm64)

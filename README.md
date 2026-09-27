@@ -20,7 +20,6 @@
   <a href="https://jdownloader.org"><img src="https://img.shields.io/badge/Engine-JDownloader-DEC319?style=for-the-badge&logoColor=white" alt="JDownloader" height="36"></a>&nbsp;
   <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/Engine-yt--dlp-E30505?style=for-the-badge&logoColor=white" alt="yt-dlp" height="36"></a>&nbsp;
   <img src="https://img.shields.io/badge/Languages-42-393939?style=for-the-badge&logo=googletranslate&logoColor=white" alt="Languages" height="36">&nbsp;
-  <a href="https://unraid.net"><img src="https://img.shields.io/badge/Unraid-Template-f15a2c?style=for-the-badge&logo=unraid&logoColor=white" alt="Unraid" height="36"></a>&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge&logo=gnu&logoColor=white" alt="License: AGPL-3.0" height="36"></a>&nbsp;
   <a href="https://junkerderprovinz.github.io/knightloader/"><img src="https://img.shields.io/badge/Docs-online-526CFE?style=for-the-badge&logo=materialformkdocs&logoColor=white" alt="Documentation" height="36"></a>&nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/releases"><img src="https://img.shields.io/github/downloads/junkerderprovinz/knightloader/total?style=for-the-badge&logo=github&logoColor=white&label=Downloads&color=1d99f3" alt="Downloads" height="36"></a>
@@ -276,10 +275,8 @@ docker run -d --name knightloader \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```
 
-On Unraid, search for KnightLoader in Community Applications, or add
-`https://github.com/junkerderprovinz/unraid-apps` under Docker → Template
-repositories. The template runs it with `--user 99:100` and `UMASK=000`, so
-the account you use over SMB can move and delete what KnightLoader downloads.
+On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over
+SMB can move and delete what KnightLoader downloads.
 
 Then open `http://<host>:8749`. The desktop apps, the Android app and the
 browser extension are covered under
