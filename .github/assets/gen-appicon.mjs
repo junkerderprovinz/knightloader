@@ -2,14 +2,17 @@
 // a transparent ground, because the taskbar, the Dock and the installer draw
 // their own behind it. The container icon, knightloader-appicon.png, puts it on
 // GlimStone's --carbon-bg in a square tile, left unrounded because Unraid
-// applies its own mask. Wails builds the platform .ico and .icns from
-// desktop/build/appicon.png.
+// applies its own mask. Wails builds the .icns from desktop/build/appicon.png.
+// desktop/build/appicon.ico has a frame drawn for each size Windows shows the
+// program at, the taskbar's 24 to 48 px included, with the logo the full height
+// of the frame as other programs' icons are.
 // Run: node .github/assets/gen-appicon.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
+import { frame, ico } from "./icon-frames.mjs";
 
 const require = createRequire(import.meta.url);
 const groot = execSync("npm root -g").toString().trim();
@@ -53,4 +56,6 @@ writeFileSync(join(REPO, ".github/assets/knightloader-appicon.svg"), tile);
 writeFileSync(join(REPO, ".github/assets/knightloader-appicon.png"), render(tile));
 const desktop = render(bare);
 writeFileSync(join(REPO, "desktop/build/appicon.png"), desktop);
-console.log("wrote desktop/build/appicon.png (" + desktop.length + " bytes) + knightloader-appicon.svg/.png");
+const SIZES = [16, 20, 24, 30, 32, 36, 40, 48, 60, 64, 72, 96, 128, 256];
+writeFileSync(join(REPO, "desktop/build/appicon.ico"), ico(SIZES));
+console.log("wrote desktop/build/appicon.png, appicon.ico (" + SIZES.join("/") + ") + knightloader-appicon.svg/.png");

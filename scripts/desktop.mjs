@@ -95,6 +95,10 @@ run('wails3', [
   'generate', 'icons', '-input', 'build/appicon.png',
   '-windowsfilename', 'build/windows/icon.ico', '-macfilename', 'build/darwin/icons.icns',
 ])
+// Wails scales every frame of its .ico down from the one large PNG. The
+// committed one has each size drawn for itself, the logo the full height of
+// the frame; see .github/assets/gen-appicon.mjs.
+cpSync(join(desktop, 'build', 'appicon.ico'), join(desktop, 'build', 'windows', 'icon.ico'))
 
 if (process.platform === 'win32') {
   writeWindowsVersion()

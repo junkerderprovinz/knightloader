@@ -27,12 +27,13 @@ node_modules/
 web/node_modules/
 
 # Everything scripts/desktop.mjs has Wails generate on every build: the Windows
-# manifest, icon and version resource, the macOS Info.plist and icon, the
+# manifest and version resource, the macOS Info.plist and icon, the
 # installer's helper macros and the WebView2 bootstrapper it carries, and the
-# build output. What is committed is what Wails cannot write for us: the logo
+# build output. What is committed is what Wails cannot write for us: the icons
 # gen-appicon.mjs draws, the build configuration and the installer script.
 desktop/build/*
 !desktop/build/appicon.png
+!desktop/build/appicon.ico
 !desktop/build/config.yml
 !desktop/build/windows/
 desktop/build/windows/*
