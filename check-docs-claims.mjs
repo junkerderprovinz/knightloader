@@ -143,9 +143,11 @@ if (!built) {
 // buttons count, the ARM64 halves beside Windows and Linux too: a text link
 // elsewhere in the README is not where a reader looks for a download.
 const DESKTOP_YML = read('.github', 'workflows', 'desktop.yml');
+// A bundle built with NSIS has an installer, and its button points there.
 const bundles = [...DESKTOP_YML.matchAll(/^\s+platform: (\S+)\n\s+slug: (\S+)$/gm)].map((m) => ({
   platform: m[1],
   slug: m[2],
+  installer: /extra: "-nsis"/.test(DESKTOP_YML.slice(m.index).split(/^\s+- os:/m)[0]),
 }));
 const listedPlatforms = INSTALLING.match(/Every release tag builds ([^.]+?),?\s+and attaches/)?.[1];
 const buttonBlock = README.match(/<!-- download-buttons\b[^>]*-->([\s\S]*?)<!-- \/download-buttons -->/)?.[1];
@@ -161,14 +163,18 @@ if (bundles.length === 0) {
   if (listed.join(',') !== built.join(',')) {
     fail(`docs/installing.md says every release builds ${listed.join(', ')}, desktop.yml builds ${built.join(', ')}`);
   }
-  // <a href=".../releases/latest/download/knightloader-windows-arm64.zip"><img ...
-  const buttons = new Set(
-    [...buttonBlock.matchAll(/<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+)\.zip"><img /g)].map(
-      (m) => m[1],
+  // <a href=".../releases/latest/download/knightloader-windows-arm64-installer.exe"><img ...
+  const links = [
+    ...buttonBlock.matchAll(
+      /<a href="[^"]*\/releases\/latest\/download\/knightloader-([a-z0-9-]+?)(-installer\.exe|\.zip)"><img /g,
     ),
-  );
-  for (const { slug } of bundles) {
-    if (!buttons.has(slug)) fail(`README.md has no download button for knightloader-${slug}.zip, which desktop.yml builds`);
+  ];
+  const buttons = new Set(links.map((m) => m[1]));
+  for (const { slug, installer } of bundles) {
+    const file = `knightloader-${slug}${installer ? '-installer.exe' : '.zip'}`;
+    if (!links.some((m) => `knightloader-${m[1]}${m[2]}` === file)) {
+      fail(`README.md has no download button for ${file}, which desktop.yml builds`);
+    }
   }
   // release.yml packs the browser extension itself, next to the desktop zips.
   const packed = [...RELEASE_YML.matchAll(/dist\/knightloader-([a-z0-9-]+)\.zip/g)].map((m) => m[1]);
