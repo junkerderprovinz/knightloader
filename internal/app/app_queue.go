@@ -893,13 +893,34 @@ type QueueState struct {
 	// whether by the switch or a timetable window. ScheduleState.State.Quiet
 	// says whether the timetable did it.
 	Quiet bool `json:"quiet"`
+	// Limit is the global speed limit in force in bytes per second, 0 for
+	// none: the settings page's figure, or what a limit window or quiet mode
+	// put in its place. The volume cap's throttle is left out, since it has
+	// its own push ("volume") and would change this without a broadcast.
+	Limit int64 `json:"limit"`
 }
 
 // Queue reports the master switch.
 func (a *App) Queue() QueueState {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return QueueState{Halted: a.halted, StopMark: a.stopMark, Running: len(a.active), Quiet: a.quiet.inForce}
+	return QueueState{
+		Halted:   a.halted,
+		StopMark: a.stopMark,
+		Running:  len(a.active),
+		Quiet:    a.quiet.inForce,
+		Limit:    a.limitInForceLocked(),
+	}
+}
+
+// limitInForceLocked is the limit applyBudget shares out before the volume
+// cap folds in. Until the runner's first pass nothing has been put in force,
+// and the configured limit is what applies. Caller holds a.mu.
+func (a *App) limitInForceLocked() int64 {
+	if a.limitInForce < 0 {
+		return a.Settings.Get().SpeedLimit
+	}
+	return a.limitInForce
 }
 
 // SetHalted stops or resumes handing queued tasks to a backend. Halting leaves
