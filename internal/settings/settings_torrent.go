@@ -14,11 +14,9 @@ import "strings"
 // BitTorrent download this instance starts: one block per instance rather than
 // one per task.
 //
-// That matches gopeed's bt fetcher, where DHT and PEX participation and the
-// listen port are properties of the one embedded torrent client every task
-// shares. bt.Fetcher.initClient builds it lazily on the first torrent the
-// process touches and never rebuilds it, so a per-task override of either is a
-// shape gopeed's surface does not offer.
+// That matches gopeed's bt fetcher, where the listen port, DHT and PEX belong
+// to the one embedded torrent client every task shares, and its upload limit
+// to every torrent at once.
 type Torrent struct {
 	// SeedRatioTarget is uploaded over downloaded; 0 means no ratio target, so
 	// only SeedDurationSeconds applies if that is non-zero. 1.0 is gopeed's own
@@ -41,14 +39,9 @@ type Torrent struct {
 	// here is live for the next torrent rather than after a restart.
 	SeedDurationSeconds int `json:"seedDurationSeconds"`
 
-	// UploadLimitKiBs caps upload bandwidth in KiB/s; 0 is unlimited, the
-	// convention Settings.SpeedLimit uses for downloads.
-	//
-	// Nothing honours it yet. gopeed's per-protocol config (bt.config) has no
-	// upload-rate field, and its client leaves UploadRateLimiter at
-	// anacrolix/torrent's unlimited default, so the number has nowhere to go
-	// through gopeed's public surface. It is stored so the settings page and
-	// the API shape can exist ahead of an engine that can honour it.
+	// UploadLimitKiBs caps upload bandwidth in KiB/s for all torrents together;
+	// 0 is unlimited. A change applies at once, to torrents already seeding too,
+	// through the upload limiter the gopeed fork (see go.mod) shares between them.
 	UploadLimitKiBs int `json:"uploadLimitKiBs"`
 
 	// Port is the TCP port this instance's torrent client listens on; 0 lets
@@ -57,10 +50,9 @@ type Torrent struct {
 	// because initClient assigns cfg.ListenPort unconditionally.
 	//
 	// It reaches gopeed through the same ProtocolConfig["bt"] the two seed
-	// fields use, but unlike those it only takes if no torrent has started yet
-	// in this process: gopeed's bt client is a lazy singleton built once and
-	// never rebuilt. A later save is stored correctly and still reaches
-	// gopeed's config, but no torrent this process starts will read it.
+	// fields use. The torrent client is built with it, so a new port takes
+	// effect when gopeed builds the client again: at once if no torrent is in
+	// the library, otherwise once the last one is gone.
 	Port int `json:"port"`
 
 	// DHTEnabled and PEXEnabled are this instance's default participation in
@@ -69,15 +61,10 @@ type Torrent struct {
 	// neither, with no toggle able to set either back to true for it. See
 	// EffectiveDHT and EffectivePEX below.
 	//
-	// For an ordinary torrent neither field is wired, and a UI must not imply
-	// otherwise. gopeed's bt.config carries five fields (ListenPort, Trackers,
-	// SeedKeep, SeedRatio, SeedTime) and neither DHT nor PEX; the vendored
-	// gopeed source mentions NoDHT and DisablePEX nowhere, and initClient
-	// builds the shared torrent.Client from NewDefaultClientConfig, overriding
-	// six fields that do not include them. Both therefore sit at anacrolix's
-	// defaults, DHT and PEX on, for the life of the process. Wiring them would
-	// also stay process-wide: NoDHT and DisablePEX are ClientConfig fields
-	// consumed once by torrent.NewClient, on a client built once.
+	// For an ordinary torrent both reach the gopeed fork's bt config as
+	// DisableDHT and DisablePEX. They are anacrolix/torrent ClientConfig fields,
+	// read once when the shared client is built, so a change takes effect the
+	// way a new Port does.
 	//
 	// The private-torrent half needs no wiring from here. gopeed reads
 	// info.Private only to skip adding extra trackers, but anacrolix/torrent
@@ -140,8 +127,8 @@ func (s Settings) TorrentFileRulesFor(id string) TorrentFileRules {
 
 // defaultTorrent is Torrent's starting values for a fresh install. The numbers
 // are gopeed's own rather than invented ones, see the fields' doc comments. DHT
-// and PEX default on, which is what the client does regardless of this setting
-// and what an ordinary BitTorrent client does on a public swarm.
+// and PEX default on, which is what an ordinary BitTorrent client does on a
+// public swarm.
 func defaultTorrent() Torrent {
 	return Torrent{
 		SeedRatioTarget:     1.0,
@@ -218,11 +205,10 @@ func trimmedLines(in []string) []string {
 // the swarm's answer. A bare bool rather than that Metadata type keeps this
 // package off the resolver for one field.
 //
-// It is a stated policy rather than an enforcement point. Nothing in
-// internal/engine reads either return value, and for an ordinary torrent
-// gopeed's public API gives this package nothing to set. For a private torrent
-// the answer matches what anacrolix/torrent already enforces inside the
-// library, so it would hold even without this function. See DHTEnabled.
+// It is a stated policy rather than an enforcement point: internal/engine
+// hands the torrent client DHTEnabled itself, and for a private torrent the
+// answer matches what anacrolix/torrent already enforces inside the library.
+// See DHTEnabled.
 func (t Torrent) EffectiveDHT(private bool) bool {
 	return t.DHTEnabled && !private
 }

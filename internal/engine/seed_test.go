@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	cryptorand "crypto/rand"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -41,12 +42,18 @@ func (l *updateLog) snapshot() []core.Update {
 // .torrent as the URI the app carries it as, and where it landed.
 func finishedTorrent(t *testing.T, dir string) (uri, root string) {
 	t.Helper()
+	return finishedTorrentOf(t, dir, 80<<10)
+}
+
+// finishedTorrentOf is finishedTorrent with files of size bytes each.
+func finishedTorrentOf(t *testing.T, dir string, size int) (uri, root string) {
+	t.Helper()
 	root = filepath.Join(dir, "Pack")
 	if err := os.MkdirAll(root, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"a.bin", "b.bin"} {
-		data := make([]byte, 80<<10)
+		data := make([]byte, size)
 		_, _ = cryptorand.Read(data)
 		if err := os.WriteFile(filepath.Join(root, name), data, 0o644); err != nil {
 			t.Fatal(err)
@@ -163,7 +170,7 @@ func TestATorrentTakenUpToSeedStopsAtTheTargetsOfItsWholeSeeding(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer e.Close()
-	if err := e.SetTorrentConfig(0, 1, 0); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{SeedRatio: 1}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -217,7 +224,7 @@ func TestATorrentTakenUpToSeedUploadsOnTopOfWhatItHad(t *testing.T) {
 	}
 	defer e.Close()
 	port := freePort(t)
-	if err := e.SetTorrentConfig(port, 0, 0); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: port}); err != nil {
 		t.Fatal(err)
 	}
 	from := core.TorrentStats{Uploaded: 5000, Ratio: 0.5, SeedSeconds: 3600}
@@ -248,15 +255,27 @@ func (s *taskSink) stats() core.TorrentStats {
 		SeedSeconds: s.t.SeedSeconds, Seeding: s.t.Seeding, AtTarget: s.atTarget}
 }
 
-// freePort is a TCP port nothing listens on at the moment.
+// freePort is a port nothing listens on at the moment, over TCP or UDP, since
+// the torrent client binds both. Windows reserves UDP ranges that overlap the
+// TCP ports it hands out, so a TCP port alone can fail the client's start.
 func freePort(t *testing.T) int {
 	t.Helper()
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
+	for range 20 {
+		l, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		port := l.Addr().(*net.TCPAddr).Port
+		l.Close()
+		u, err := net.ListenPacket("udp4", fmt.Sprintf(":%d", port))
+		if err != nil {
+			continue
+		}
+		u.Close()
+		return port
 	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port
+	t.Fatal("no port free over both TCP and UDP")
+	return 0
 }
 
 // leech downloads the torrent raw describes from the one peer listening on
@@ -311,7 +330,7 @@ func TestATorrentStartedToSeedByHandCountsItsTargetsFromItsMark(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer e.Close()
-	if err := e.SetTorrentConfig(0, 1, 0); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{SeedRatio: 1}); err != nil {
 		t.Fatal(err)
 	}
 	from := core.TorrentStats{Uploaded: 200 << 10, Ratio: 1.25, SeedSeconds: 600}
@@ -323,5 +342,56 @@ func TestATorrentStartedToSeedByHandCountsItsTargetsFromItsMark(t *testing.T) {
 	time.Sleep(2 * torrentStatsInterval)
 	if s := sink.stats(); !s.Seeding || s.AtTarget {
 		t.Errorf("the torrent started by hand reads %+v, want it seeding past the ratio it had met", s)
+	}
+}
+
+// An upload limit saved while a torrent seeds holds a peer that takes the
+// whole torrent to that pace, without the torrent being started again.
+func TestAnUploadLimitSlowsATorrentThatIsAlreadySeeding(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race under real upload activity; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
+	}
+	dir := t.TempDir()
+	uri, root := finishedTorrentOf(t, dir, 1<<20)
+	sink := &taskSink{}
+	e, err := New(t.TempDir(), sink.apply)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+	port := freePort(t)
+	if err := e.SetTorrentConfig(TorrentConfig{Port: port}); err != nil {
+		t.Fatal(err)
+	}
+	e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack", Seed: true})
+	defer e.Remove("s", false)
+	waitFor(t, "the torrent to seed", 60*time.Second, func() bool { return sink.stats().Seeding })
+
+	const limit = 256 << 10
+	if err := e.SetTorrentConfig(TorrentConfig{Port: port, UploadLimit: limit}); err != nil {
+		t.Fatal(err)
+	}
+	// The limit is the library's for the whole process.
+	defer e.SetTorrentConfig(TorrentConfig{Port: port})
+
+	raw, err := torrent.DecodeBytes(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	size := leech(t, raw, port)
+	took := time.Since(start)
+
+	// The limiter lets its burst of 1 MiB through at once and paces the rest.
+	paced := time.Duration(float64(size-1<<20) / limit * float64(time.Second))
+	t.Logf("%d bytes in %s at a limit of %d KiB/s, %.0f KiB/s on average",
+		size, took.Round(time.Millisecond), limit>>10, float64(size)/took.Seconds()/1024)
+	if took < paced*9/10 {
+		t.Errorf("the peer took %d bytes in %s; at %d KiB/s the part after the burst alone takes %s",
+			size, took, limit>>10, paced)
+	}
+	if took > 3*paced {
+		t.Errorf("the peer took %s, far longer than the %s the limit asks for", took, paced)
 	}
 }
