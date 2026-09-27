@@ -200,24 +200,31 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	a.Hub.Add(c)
+	OpenStream(a, c)
 	defer func() {
 		a.Hub.Remove(c)
 		c.CloseNow()
 	}()
+	for {
+		_, data, err := c.Read(r.Context())
+		if err != nil {
+			return
+		}
+		StreamControl(a, c, data)
+	}
+}
+
+// OpenStream registers c with the hub as a live stream and queues what every
+// new stream starts with. The desktop window, which cannot open /api/ws, uses
+// it for the streams it carries over Wails events.
+func OpenStream(a *app.App, c hub.Conn) {
+	a.Hub.Add(c)
 	// Queued through the hub rather than written to the socket, so a task
 	// event sent after Add cannot overtake the older snapshot. The activity
 	// snapshot gives a reconnecting client the current counters instead of
 	// whatever its last broadcast said.
 	a.Hub.SendTo(c, "snapshot", a.Tasks())
 	a.Hub.SendTo(c, "activitySnapshot", a.ActivitySnapshot())
-	for {
-		_, data, err := c.Read(r.Context())
-		if err != nil {
-			return
-		}
-		handleWSControl(a, c, data)
-	}
 }
 
 // wsControl is what a client sends up the socket: which broadcast kinds it
@@ -229,10 +236,10 @@ type wsControl struct {
 	Visible *bool    `json:"visible"`
 }
 
-// handleWSControl applies one client frame. A frame it cannot parse is ignored
-// rather than closing the socket; the read loop is there to notice a dead
-// connection, not to police the client.
-func handleWSControl(a *app.App, c hub.Conn, data []byte) {
+// StreamControl applies one frame a client sent up its stream. A frame it
+// cannot parse is ignored rather than closing the socket; the read loop is
+// there to notice a dead connection, not to police the client.
+func StreamControl(a *app.App, c hub.Conn, data []byte) {
 	var msg wsControl
 	if json.Unmarshal(data, &msg) != nil {
 		return

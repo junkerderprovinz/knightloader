@@ -60,8 +60,12 @@ the tag out, so no environment variable can change where an update comes from.
 
 - `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then calls
   `wails.Run` with the server's `api.Handler` as the Wails **AssetServer
-  handler**, so the SPA, `/api/*` and `/api/ws` are served in-window,
-  identical to the browser build.
+  handler**, so the SPA and `/api/*` are served in-window, identical to the
+  browser build.
+- The asset handler cannot carry a WebSocket, so the window never reaches
+  `/api/ws`. `stream.go` binds `HubBridge` instead: each stream the page opens
+  is a hub connection of its own whose messages arrive as Wails events, and
+  `connectWS` in `web/src/lib/api.ts` picks it whenever it runs in the window.
 - The frontend is the shared `../web` project (Carbon UI).
 
 ## Tray and window behaviour

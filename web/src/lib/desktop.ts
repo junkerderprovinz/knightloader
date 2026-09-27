@@ -37,11 +37,83 @@ interface WailsRuntime {
   EventsOn(name: string, callback: (...data: unknown[]) => void): () => void;
 }
 
+interface HubBridgeBinding {
+  Open(page: string, id: string): Promise<void>;
+  Send(id: string, frame: string): Promise<void>;
+  Close(id: string): Promise<void>;
+}
+
+/** StreamHandlers are a WebSocket's callbacks for one live stream. */
+export interface StreamHandlers {
+  onOpen(): void;
+  onMessage(raw: string): void;
+  /** Called when the stream ends without close(). */
+  onClose(): void;
+}
+
+/** LiveStream is one open live stream, however it travels. */
+export interface LiveStream {
+  send(frame: string): void;
+  close(): void;
+}
+
+// Tells this page's streams from those of the page before a reload, which
+// never closed its own; desktop/stream.go drops them when it sees a new page.
+const pageId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+let streamCount = 0;
+
+/**
+ * openDesktopStream opens the live stream over Wails events, because the
+ * window's asset handler cannot carry a WebSocket. It returns null outside the
+ * desktop app.
+ */
+export function openDesktopStream(h: StreamHandlers): LiveStream | null {
+  const w = window as unknown as { go?: { main?: { HubBridge?: HubBridgeBinding } }; runtime?: WailsRuntime };
+  const bridge = w.go?.main?.HubBridge;
+  const runtime = w.runtime;
+  if (!bridge || !runtime) return null;
+
+  const id = `${pageId}.${++streamCount}`;
+  let closed = false;
+  const offMessage = runtime.EventsOn(`hub:${id}`, (raw) => h.onMessage(String(raw)));
+  const offClosed = runtime.EventsOn(`hub:${id}:closed`, () => end());
+  const end = () => {
+    if (closed) return;
+    closed = true;
+    offMessage();
+    offClosed();
+    h.onClose();
+  };
+  // Every call waits for the one before, because Wails runs bound methods
+  // concurrently and a socket keeps its frames in order.
+  let calls: Promise<unknown> = bridge.Open(pageId, id).then(
+    () => {
+      if (!closed) h.onOpen();
+    },
+    () => end(),
+  );
+  const call = (f: () => Promise<void>) => {
+    calls = calls.then(f).catch(() => undefined);
+  };
+  return {
+    send(frame) {
+      if (!closed) call(() => bridge.Send(id, frame));
+    },
+    close() {
+      if (closed) return;
+      closed = true;
+      offMessage();
+      offClosed();
+      call(() => bridge.Close(id));
+    },
+  };
+}
+
 /**
  * onUpdateReady calls back with the version the desktop app has downloaded for
- * its next start. The window reaches the server through Wails' asset handler
- * and has no socket to the hub, so the news comes as a Wails event. Outside the
- * desktop app there is no runtime and it does nothing.
+ * its next start. The desktop shell sends it as a Wails event of its own, not
+ * through the hub. Outside the desktop app there is no runtime and it does
+ * nothing.
  */
 export function onUpdateReady(callback: (version: string) => void): () => void {
   const runtime = (window as unknown as { runtime?: WailsRuntime }).runtime;

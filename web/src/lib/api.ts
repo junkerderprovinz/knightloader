@@ -5,6 +5,7 @@ import type { EventProgramRow } from './eventprograms';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
 import { socketURL, withBase } from './basePath';
+import { type LiveStream, type StreamHandlers, openDesktopStream } from './desktop';
 
 export type TaskStatus =
   | 'collected'
@@ -3767,43 +3768,60 @@ export async function leaveConnect(): Promise<void> {
  * `reportVisibility` tells the server whenever the page goes to the background
  * or comes back, which decides whether somebody is watching the captcha prompt
  * (hub.Watched). A connection that never reports is not counted as a viewer.
+ *
+ * In the desktop window the stream comes over Wails events instead of a
+ * WebSocket (openDesktopStream), with the same messages and frames.
  */
 export function connectWS(
   onMessage: (type: string, data: any) => void,
   kinds?: string[],
   reportVisibility = false,
 ): () => void {
-  let ws: WebSocket | null = null;
+  let stream: LiveStream | null = null;
   let closed = false;
   const sendVisibility = () => {
-    if (ws?.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'visibility', visible: document.visibilityState === 'visible' }));
+    stream?.send(JSON.stringify({ type: 'visibility', visible: document.visibilityState === 'visible' }));
   };
-  const open = () => {
-    // A reconnect timer can fire after the caller has closed the stream.
-    if (closed) return;
-    ws = new WebSocket(socketURL('/api/ws'));
-    ws.onopen = () => {
-      if (kinds && kinds.length > 0) ws?.send(JSON.stringify({ type: 'subscribe', kinds }));
+  const handlers: StreamHandlers = {
+    onOpen: () => {
+      if (kinds && kinds.length > 0) stream?.send(JSON.stringify({ type: 'subscribe', kinds }));
       if (reportVisibility) sendVisibility();
-    };
-    ws.onmessage = (e) => {
+    },
+    onMessage: (raw) => {
       try {
-        const m = JSON.parse(e.data);
+        const m = JSON.parse(raw);
         onMessage(m.type, m.data);
       } catch {
         /* ignore */
       }
-    };
-    ws.onclose = () => {
+    },
+    onClose: () => {
       if (!closed) setTimeout(open, 1500);
-    };
+    },
+  };
+  const open = () => {
+    // A reconnect timer can fire after the caller has closed the stream.
+    if (closed) return;
+    stream = openDesktopStream(handlers) ?? openSocket(handlers);
   };
   if (reportVisibility) document.addEventListener('visibilitychange', sendVisibility);
   open();
   return () => {
     closed = true;
     if (reportVisibility) document.removeEventListener('visibilitychange', sendVisibility);
-    ws?.close();
+    stream?.close();
+  };
+}
+
+function openSocket(h: StreamHandlers): LiveStream {
+  const ws = new WebSocket(socketURL('/api/ws'));
+  ws.onopen = h.onOpen;
+  ws.onmessage = (e) => h.onMessage(e.data);
+  ws.onclose = h.onClose;
+  return {
+    send: (frame) => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(frame);
+    },
+    close: () => ws.close(),
   };
 }

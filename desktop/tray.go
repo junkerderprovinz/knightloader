@@ -476,8 +476,8 @@ func (tc *trayController) showWindow() {
 	tc.show(ctx)
 }
 
-// emit sends a Wails event to the page in the window. The window has no
-// socket to the hub, since it reaches the server through the asset handler.
+// emit sends a Wails event to the page in the window, and drops it before
+// Wails has started.
 func (tc *trayController) emit(name string, data ...any) {
 	tc.mu.Lock()
 	ctx := tc.ctx

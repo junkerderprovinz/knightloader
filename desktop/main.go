@@ -1,6 +1,7 @@
 // Command desktop is KnightLoader's native desktop app: the same server running
 // inside a Wails webview window, with its HTTP handler as the asset handler, so
-// the UI and the REST and WebSocket API match the container build.
+// the UI and the REST API match the container build. The live stream the
+// browser gets from /api/ws comes over Wails events instead; see stream.go.
 //
 // It is a separate Go module so the Wails toolchain never touches the server
 // build; .github/workflows/desktop.yml builds it per platform.
@@ -113,6 +114,7 @@ func main() {
 	// Exposed to the frontend as window.go.main.DesktopFiles for reveal in
 	// folder and open natively; see files.go.
 	desktopFiles := newDesktopFiles(a)
+	hubBridge := newHubBridge(a, tc.emit)
 
 	err = wails.Run(&options.App{
 		Title:            "KnightLoader",
@@ -122,7 +124,7 @@ func main() {
 		MinHeight:        480,
 		BackgroundColour: &options.RGBA{R: 22, G: 22, B: 22, A: 1},
 		AssetServer:      &assetserver.Options{Handler: api.Handler(a)},
-		Bind:             []interface{}{desktopFiles},
+		Bind:             []interface{}{desktopFiles, hubBridge},
 		StartHidden:      tc.effectiveStartHidden(),
 		// With true, Wails v2.13.0 skips OnBeforeClose on Windows and always
 		// hides. The hooks below decide from the live preference instead, so
@@ -131,6 +133,7 @@ func main() {
 		OnStartup:         tc.onWailsStartup,
 		OnBeforeClose:     tc.onBeforeClose,
 		OnShutdown: func(context.Context) {
+			hubBridge.stop()
 			stopUpdates()
 			up.stop()
 			tc.onShutdown()
