@@ -1,0 +1,31 @@
+# Pushes .github/DOCKERHUB.md to the Docker Hub repository's overview, on
+# demand and nothing else. It builds nothing and pushes no image. The README
+# itself does not go there: its images use paths inside this repository, which
+# Docker Hub cannot resolve.
+name: Docker Hub description
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync the description to Docker Hub
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # No gate and no continue-on-error: a missing secret or a refused login
+      # has to turn the run red rather than pass quietly.
+      - name: Sync the description to Docker Hub
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_USERNAME }}/knightloader
+          short-description: "Self-hosted download manager: debrid services, torrents, yt-dlp and JDownloader in one web UI."
+          readme-filepath: .github/DOCKERHUB.md
+          enable-url-completion: true
