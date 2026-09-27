@@ -1537,6 +1537,8 @@ export const hr: Dict = {
   'settings.nav.browsertools': 'Aplikacije',
   'settings.browsertools.bookmarkletStep1': 'Povuci gumb ispod na traku oznaka svog preglednika. Sprema se kao svaka druga oznaka i ništa se ne instalira.',
   'settings.browsertools.bookmarkletStep2': 'Na bilo kojoj stranici klikni na njega (prije toga označi tekst ako želiš samo njega). Otvara se mala kartica KnightLoadera u kojoj je već upisana poveznica te stranice ili označeni tekst. Pregledaj je i odande dodaj kao preuzimanje.',
+  'settings.browsertools.bookmarkletStep3':
+    'Na mobitelu nema trake u koju biste ga povukli. Dodajte bilo koju stranicu u oznake, zamijenite adresu oznake kodom koji „Kopiraj” stavlja u međuspremnik i otvorite oznaku na stranici koju želite poslati.',
   'settings.browsertools.installLabel': 'Kako je instalirati',
   'settings.browsertools.installChromiumStep1': 'Raspakiraj preuzetu datoteku.',
   'settings.browsertools.installChromiumStep2': 'Otvori chrome://extensions (ili edge://extensions, brave://extensions).',

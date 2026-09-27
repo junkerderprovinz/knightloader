@@ -1536,6 +1536,8 @@ export const eu: Dict = {
   'settings.nav.browsertools': 'Aplikazioak',
   'settings.browsertools.bookmarkletStep1': 'Arrastatu beheko botoia zure nabigatzailearen laster-marken barrara. Beste edozein laster-marka bezala gordetzen da, eta ez da ezer instalatzen.',
   'settings.browsertools.bookmarkletStep2': 'Edozein orritan, egin klik gainean (hautatu testua aurretik hori bakarrik nahi baduzu). KnightLoader fitxa txiki bat irekitzen da, orri horren estekarekin edo hautatutako testuarekin jada beteta. Berrikusi eta gehitu deskarga gisa handik.',
+  'settings.browsertools.bookmarkletStep3':
+    'Mugikorrean ez dago arrastatzeko barrarik. Gehitu edozein orri laster-marketara, ordeztu laster-markaren helbidea «Kopiatu» aukerak arbelean jartzen duen kodearekin, eta ireki laster-marka bidali nahi duzun orrian.',
   'settings.browsertools.installLabel': 'Nola instalatu',
   'settings.browsertools.installChromiumStep1': 'Deskonprimitu deskargatutako fitxategia.',
   'settings.browsertools.installChromiumStep2': 'Ireki chrome://extensions (edo edge://extensions, brave://extensions).',

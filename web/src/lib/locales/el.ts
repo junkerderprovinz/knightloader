@@ -1536,6 +1536,8 @@ export const el: Dict = {
   'settings.nav.browsertools': 'Εφαρμογές',
   'settings.browsertools.bookmarkletStep1': 'Σύρε το κουμπί παρακάτω στη γραμμή σελιδοδεικτών του προγράμματος περιήγησής σου. Αποθηκεύεται όπως κάθε άλλος σελιδοδείκτης και δεν εγκαθίσταται τίποτα.',
   'settings.browsertools.bookmarkletStep2': 'Σε οποιαδήποτε σελίδα, κάνε κλικ πάνω του (επίλεξε πρώτα κείμενο αν θέλεις μόνο αυτό). Ανοίγει μια μικρή καρτέλα KnightLoader με τον σύνδεσμο της σελίδας, ή το επιλεγμένο κείμενο, ήδη συμπληρωμένο. Έλεγξέ το και πρόσθεσέ το από εκεί ως λήψη.',
+  'settings.browsertools.bookmarkletStep3':
+    'Στο κινητό δεν υπάρχει γραμμή για να το σύρετε. Προσθέστε οποιαδήποτε σελίδα στους σελιδοδείκτες, αντικαταστήστε τη διεύθυνση του σελιδοδείκτη με τον κώδικα που βάζει το «Αντιγραφή» στο πρόχειρο και ανοίξτε τον σελιδοδείκτη στη σελίδα που θέλετε να στείλετε.',
   'settings.browsertools.installLabel': 'Πώς να την εγκαταστήσετε',
   'settings.browsertools.installChromiumStep1': 'Αποσυμπιέστε το ληφθέν αρχείο.',
   'settings.browsertools.installChromiumStep2': 'Ανοίξτε chrome://extensions (ή edge://extensions, brave://extensions).',

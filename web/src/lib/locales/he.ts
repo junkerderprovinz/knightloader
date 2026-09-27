@@ -1538,6 +1538,8 @@ export const he: Dict = {
   'settings.nav.browsertools': 'אפליקציות',
   'settings.browsertools.bookmarkletStep1': 'גרור את הכפתור שלמטה לסרגל הסימניות של הדפדפן שלך. הוא נשמר כמו כל סימנייה אחרת, ושום דבר לא מותקן.',
   'settings.browsertools.bookmarkletStep2': 'בכל עמוד, לחץ עליו (בחר קודם טקסט אם אתה רוצה רק אותו). נפתחת לשונית קטנה של KnightLoader שבה הקישור של העמוד, או הטקסט שנבחר, כבר ממולא. עבור עליו והוסף אותו משם כהורדה.',
+  'settings.browsertools.bookmarkletStep3':
+    'בטלפון אין סרגל לגרור אליו. הוסיפו סימנייה לדף כלשהו, החליפו את כתובת הסימנייה בקוד ש״העתק״ מעתיק ללוח, ופתחו את הסימנייה בדף שתרצו לשלוח.',
   'settings.browsertools.installLabel': 'איך להתקין',
   'settings.browsertools.installChromiumStep1': 'חלץ את הקובץ שהורדת.',
   'settings.browsertools.installChromiumStep2': 'פתח את chrome://extensions (או edge://extensions, brave://extensions).',

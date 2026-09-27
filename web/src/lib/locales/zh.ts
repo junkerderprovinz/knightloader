@@ -1534,6 +1534,8 @@ export const zh: Dict = {
   'settings.nav.browsertools': '应用',
   'settings.browsertools.bookmarkletStep1': '把下面的按钮拖到浏览器的书签栏上。它会像其他书签一样保存，不会安装任何东西。',
   'settings.browsertools.bookmarkletStep2': '在任意页面上点击它（如果只想要某段文字，先选中它）。会打开一个小的 KnightLoader 标签页，里面已经填好该页面的链接或所选文字。检查一下，然后从那里把它添加为下载。',
+  'settings.browsertools.bookmarkletStep3':
+    '手机上没有可以拖入的栏。随便给一个页面添加书签，把书签地址换成“复制”复制到剪贴板的代码，然后在要发送的页面上打开这个书签。',
   'settings.browsertools.installLabel': '安装方法',
   'settings.browsertools.installChromiumStep1': '解压下载的文件。',
   'settings.browsertools.installChromiumStep2': '打开 chrome://extensions(或 edge://extensions、brave://extensions)。',

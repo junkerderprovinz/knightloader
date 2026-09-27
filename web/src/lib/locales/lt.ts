@@ -1536,6 +1536,8 @@ export const lt: Dict = {
   'settings.nav.browsertools': 'Programos',
   'settings.browsertools.bookmarkletStep1': 'Nutempk žemiau esantį mygtuką į naršyklės žymelių juostą. Jis išsaugomas kaip bet kuri kita žymelė, nieko nediegiama.',
   'settings.browsertools.bookmarkletStep2': 'Bet kuriame puslapyje spustelėk jį (jei nori tik dalies teksto, pirmiausia jį pažymėk). Atsidarys mažas KnightLoader skirtukas, kuriame jau bus įrašyta to puslapio nuoroda arba pažymėtas tekstas. Peržiūrėk ir iš ten pridėk kaip atsisiuntimą.',
+  'settings.browsertools.bookmarkletStep3':
+    'Telefone nėra juostos, į kurią galėtumėte jį nuvilkti. Pažymėkite bet kurį puslapį žyme, pakeiskite žymės adresą kodu, kurį „Kopijuoti“ įdeda į iškarpinę, ir atidarykite žymę puslapyje, kurį norite išsiųsti.',
   'settings.browsertools.installLabel': 'Kaip ją įdiegti',
   'settings.browsertools.installChromiumStep1': 'Išpakuok atsisiųstą failą.',
   'settings.browsertools.installChromiumStep2': 'Atidaryk chrome://extensions (arba edge://extensions, brave://extensions).',

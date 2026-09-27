@@ -1536,6 +1536,8 @@ export const et: Dict = {
   'settings.nav.browsertools': 'Rakendused',
   'settings.browsertools.bookmarkletStep1': 'Lohista allolev nupp oma brauseri järjehoidjaribale. See salvestub nagu iga teine järjehoidja ja midagi ei paigaldata.',
   'settings.browsertools.bookmarkletStep2': 'Klõpsa sellel mis tahes lehel (vali enne tekst, kui tahad ainult seda). Avaneb väike KnightLoaderi vahekaart, kus selle lehe link või valitud tekst on juba sisse kirjutatud. Vaata see üle ja lisa see sealt allalaadimisena.',
+  'settings.browsertools.bookmarkletStep3':
+    'Telefonis pole riba, kuhu seda lohistada. Lisa mõni leht järjehoidjatesse, asenda järjehoidja aadress koodiga, mille „Kopeeri“ lõikelauale paneb, ja ava järjehoidja lehel, mida soovid saata.',
   'settings.browsertools.installLabel': 'Kuidas seda paigaldada',
   'settings.browsertools.installChromiumStep1': 'Paki allalaaditud fail lahti.',
   'settings.browsertools.installChromiumStep2': 'Ava chrome://extensions (või edge://extensions, brave://extensions).',

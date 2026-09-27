@@ -1537,6 +1537,8 @@ export const bg: Dict = {
   'settings.nav.browsertools': 'Приложения',
   'settings.browsertools.bookmarkletStep1': 'Плъзни бутона по-долу в лентата с отметки на браузъра си. Записва се като всяка друга отметка и нищо не се инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На която и да е страница щракни върху него (първо маркирай текст, ако искаш само него). Отваря се малък раздел на KnightLoader, в който връзката на тази страница или маркираният текст вече са попълнени. Прегледай го и го добави оттам като изтегляне.',
+  'settings.browsertools.bookmarkletStep3':
+    'На телефона няма лента, в която да го плъзнете. Добавете която и да е страница в отметките, заменете адреса на отметката с кода, който „Копирай“ поставя в клипборда, и отворете отметката на страницата, която искате да изпратите.',
   'settings.browsertools.installLabel': 'Как да я инсталирате',
   'settings.browsertools.installChromiumStep1': 'Разархивирайте изтегления файл.',
   'settings.browsertools.installChromiumStep2': 'Отворете chrome://extensions (или edge://extensions, brave://extensions).',

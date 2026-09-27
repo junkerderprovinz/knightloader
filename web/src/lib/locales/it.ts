@@ -1529,6 +1529,8 @@ export const it: Dict = {
   'settings.nav.browsertools': 'App',
   'settings.browsertools.bookmarkletStep1': 'Trascina il pulsante qui sotto nella barra dei segnalibri del browser. Si salva come qualsiasi altro segnalibro e non si installa nulla.',
   'settings.browsertools.bookmarkletStep2': 'Su qualsiasi pagina, cliccaci sopra (seleziona prima del testo se vuoi solo quello). Si apre una piccola scheda di KnightLoader con il link di quella pagina, o il testo selezionato, già inserito. Controllalo e aggiungilo come download da lì.',
+  'settings.browsertools.bookmarkletStep3':
+    'Sul telefono non c’è una barra in cui trascinarlo. Aggiungi una pagina qualsiasi ai preferiti, sostituisci l’indirizzo del preferito con il codice che «Copia» mette negli appunti e apri il preferito sulla pagina da inviare.',
   'settings.browsertools.installLabel': 'Come installarla',
   'settings.browsertools.installChromiumStep1': 'Estrai il file scaricato.',
   'settings.browsertools.installChromiumStep2': 'Apri chrome://extensions (o edge://extensions, brave://extensions).',

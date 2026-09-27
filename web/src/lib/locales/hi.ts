@@ -1536,6 +1536,8 @@ export const hi: Dict = {
   'settings.nav.browsertools': 'ऐप्स',
   'settings.browsertools.bookmarkletStep1': 'नीचे दिए बटन को अपने ब्राउज़र की बुकमार्क बार पर खींचें। यह किसी भी दूसरे बुकमार्क की तरह सहेजा जाता है, और कुछ भी इंस्टॉल नहीं होता।',
   'settings.browsertools.bookmarkletStep2': 'किसी भी पेज पर उस पर क्लिक करें (अगर सिर्फ़ कुछ टेक्स्ट चाहिए तो पहले उसे चुन लें)। एक छोटा KnightLoader टैब खुलता है जिसमें उस पेज का लिंक, या चुना गया टेक्स्ट, पहले से भरा होता है। उसे देख लें और वहीं से डाउनलोड के रूप में जोड़ें।',
+  'settings.browsertools.bookmarkletStep3':
+    'फ़ोन पर इसे खींचकर डालने के लिए कोई बार नहीं होता। किसी भी पेज को बुकमार्क करें, बुकमार्क का पता उस कोड से बदलें जो “कॉपी करें” क्लिपबोर्ड पर रखता है, और जिस पेज को भेजना है उस पर बुकमार्क खोलें।',
   'settings.browsertools.installLabel': 'इसे कैसे इंस्टॉल करें',
   'settings.browsertools.installChromiumStep1': 'डाउनलोड की गई फ़ाइल को अनज़िप करें।',
   'settings.browsertools.installChromiumStep2': 'chrome://extensions खोलें (या edge://extensions, brave://extensions)।',

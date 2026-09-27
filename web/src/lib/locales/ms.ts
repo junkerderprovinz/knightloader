@@ -1536,6 +1536,8 @@ export const ms: Dict = {
   'settings.nav.browsertools': 'Aplikasi',
   'settings.browsertools.bookmarkletStep1': 'Seret butang di bawah ke bar penanda halaman pelayar anda. Ia disimpan seperti penanda halaman lain, dan tiada apa-apa yang dipasang.',
   'settings.browsertools.bookmarkletStep2': 'Pada mana-mana halaman, klik padanya (pilih teks dahulu jika anda hanya mahukan teks itu). Tab KnightLoader kecil dibuka dengan pautan halaman itu, atau teks yang dipilih, sudah diisi. Semak dan tambahkannya sebagai muat turun dari situ.',
+  'settings.browsertools.bookmarkletStep3':
+    'Pada telefon tiada bar untuk menyeretnya. Tandakan mana-mana halaman, gantikan alamat penanda dengan kod yang diletakkan oleh “Salin” pada papan keratan, kemudian buka penanda itu pada halaman yang hendak dihantar.',
   'settings.browsertools.installLabel': 'Cara memasangnya',
   'settings.browsertools.installChromiumStep1': 'Nyahzip fail yang dimuat turun.',
   'settings.browsertools.installChromiumStep2': 'Buka chrome://extensions (atau edge://extensions, brave://extensions).',

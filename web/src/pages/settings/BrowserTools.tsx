@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { appAddress, withBase } from '../../lib/basePath';
 import { ARCH_LABEL, desktopSlug, visitorArch, type Arch, type DesktopOS, type DesktopSlug } from '../../lib/desktopBuild';
@@ -11,7 +10,18 @@ import { followExternal, openExternal } from '../../lib/external';
 import { useT } from '../../lib/i18n';
 import { qrMatrix } from '../../lib/qrmatrix';
 import { openWindow } from '../../lib/windowStack';
-import { ANDROID_SVG, APPLE_SVG, DOCKER_SVG, LINUX_SVG, PLAY_SVG, UNRAID_SVG, WINDOWS_SVG, ZIP_SVG } from '../../lib/appMarks';
+import {
+  ANDROID_SVG,
+  APPLE_SVG,
+  DOCKER_SVG,
+  KNIGHTLOADER_LIT_SVG,
+  KNIGHTLOADER_SVG,
+  LINUX_SVG,
+  PLAY_SVG,
+  UNRAID_SVG,
+  WINDOWS_SVG,
+  ZIP_SVG,
+} from '../../lib/appMarks';
 import { BrandMark, ReadmeButton, type ReadmePart } from '../../components/ReadmeButton';
 import { QRCode } from '../../components/QRCode';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
@@ -82,16 +92,19 @@ export function BrowserTools() {
             <ol className="list-decimal space-y-1 ps-4">
               <li>{t('settings.browsertools.bookmarkletStep1')}</li>
               <li>{t('settings.browsertools.bookmarkletStep2')}</li>
+              <li>{t('settings.browsertools.bookmarkletStep3')}</li>
             </ol>
           }
         >
           {t('settings.browsertools.bookmarkletTitle')}
         </SectionTitle>
         {/* A javascript: link, since only that can be dragged into a bookmarks
-            bar. Its text becomes the bookmark's name, so it has no second line. */}
+            bar. Its text becomes the bookmark's name, so it has no second line, and
+            the logo is inline SVG because a drag that starts on an <img> takes
+            the picture instead of the link. */}
         <div className="glim-readme-btn-rows">
           <ReadmeButton
-            brand="house"
+            brand="knightloader"
             parts={[
               { name: 'KnightLoader', bookmarklet },
               {
@@ -104,7 +117,7 @@ export function BrowserTools() {
                   }),
               },
             ]}
-            mark={<img src={logoUrl} alt="" className="h-full w-full object-contain" />}
+            mark={<BrandMark svg={KNIGHTLOADER_SVG} lit={KNIGHTLOADER_LIT_SVG} />}
             confirm={copies}
           />
         </div>

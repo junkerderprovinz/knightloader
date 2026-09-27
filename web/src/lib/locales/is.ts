@@ -1536,6 +1536,8 @@ export const is: Dict = {
   'settings.nav.browsertools': 'Forrit',
   'settings.browsertools.bookmarkletStep1': 'Dragðu hnappinn hér fyrir neðan á bókamerkjastiku vafrans þíns. Hann vistast eins og hvert annað bókamerki og ekkert er sett upp.',
   'settings.browsertools.bookmarkletStep2': 'Smelltu á hann á hvaða síðu sem er (veldu texta fyrst ef þú vilt aðeins hann). Lítill KnightLoader-flipi opnast með tengli þeirrar síðu, eða valda textanum, þegar útfylltum. Farðu yfir það og bættu því við sem niðurhali þaðan.',
+  'settings.browsertools.bookmarkletStep3':
+    'Í síma er engin stika til að draga það á. Bættu einhverri síðu við bókamerki, skiptu vistfangi bókamerkisins út fyrir kóðann sem „Afrita“ setur á klippispjaldið og opnaðu bókamerkið á síðunni sem þú vilt senda.',
   'settings.browsertools.installLabel': 'Svona setur þú hana upp',
   'settings.browsertools.installChromiumStep1': 'Taktu sótta skrá úr þjöppun.',
   'settings.browsertools.installChromiumStep2': 'Opnaðu chrome://extensions (eða edge://extensions, brave://extensions).',

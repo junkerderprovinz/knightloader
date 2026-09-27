@@ -1651,6 +1651,8 @@ body {
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+/* The logo's gold, for the bookmarklet that carries it. 10.1:1. */
+.kl-tile-knightloader { --tile: #e6bc59; --tile-ink: #161616; }
 /* The browsers the extension buttons offer: Chrome in the README button's
    blue, the others in the colour Simple Icons publishes for each. */
 .kl-tile-chrome    { --tile: #1a73e8; --tile-ink: #ffffff; } /* 4.5:1 */
@@ -1819,17 +1821,6 @@ body {
 }
 
 .glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-sub {
-  opacity: 0.9;
-  translate: 0 0;
-}
-
-/* A segment names only what differs from the button beside it, and a name such
-   as "Windows" alone would repeat that button, so both its lines stay. */
-.glim-readme-btn-seg .glim-readme-btn-name:not(:only-child) {
-  translate: 0 0;
-}
-
-.glim-readme-btn-seg .glim-readme-btn-sub {
   opacity: 0.9;
   translate: 0 0;
 }

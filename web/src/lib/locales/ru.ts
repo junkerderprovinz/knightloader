@@ -1529,6 +1529,8 @@ export const ru: Dict = {
   'settings.nav.browsertools': 'Приложения',
   'settings.browsertools.bookmarkletStep1': 'Перетащите кнопку ниже на панель закладок браузера. Она сохраняется как любая другая закладка, и ничего не устанавливается.',
   'settings.browsertools.bookmarkletStep2': 'На любой странице щёлкните по ней (сначала выделите текст, если нужен только он). Откроется небольшая вкладка KnightLoader, в которой уже заполнены ссылка на эту страницу или выделенный текст. Проверьте и добавьте оттуда как загрузку.',
+  'settings.browsertools.bookmarkletStep3':
+    'На телефоне нет панели, куда его можно перетащить. Добавьте любую страницу в закладки, замените адрес закладки кодом, который «Копировать» помещает в буфер обмена, и откройте закладку на странице, которую хотите отправить.',
   'settings.browsertools.installLabel': 'Как её установить',
   'settings.browsertools.installChromiumStep1': 'Распакуй скачанный файл.',
   'settings.browsertools.installChromiumStep2': 'Открой chrome://extensions (или edge://extensions, brave://extensions).',

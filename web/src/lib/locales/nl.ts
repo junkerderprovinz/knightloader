@@ -1529,6 +1529,8 @@ export const nl: Dict = {
   'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Sleep de knop hieronder naar de bladwijzerbalk van je browser. Hij wordt opgeslagen zoals elke andere bladwijzer, en er wordt niets geïnstalleerd.',
   'settings.browsertools.bookmarkletStep2': 'Klik er op een willekeurige pagina op (selecteer eerst wat tekst als je alleen die wilt). Er opent een klein KnightLoader-tabblad waarin de link van die pagina, of de geselecteerde tekst, al is ingevuld. Controleer het en voeg het van daaruit toe als download.',
+  'settings.browsertools.bookmarkletStep3':
+    'Op een telefoon is er geen balk om het naartoe te slepen. Maak een bladwijzer voor een willekeurige pagina, vervang het adres van de bladwijzer door de code die “Kopiëren” op het klembord zet, en open de bladwijzer op de pagina die je wilt versturen.',
   'settings.browsertools.installLabel': 'Zo installeer je hem',
   'settings.browsertools.installChromiumStep1': 'Pak het gedownloade bestand uit.',
   'settings.browsertools.installChromiumStep2': 'Open chrome://extensions (of edge://extensions, brave://extensions).',

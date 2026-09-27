@@ -1536,6 +1536,8 @@ export const lv: Dict = {
   'settings.nav.browsertools': 'Lietotnes',
   'settings.browsertools.bookmarkletStep1': 'Ievelc zemāk esošo pogu sava pārlūka grāmatzīmju joslā. Tā tiek saglabāta kā jebkura cita grāmatzīme, un nekas netiek instalēts.',
   'settings.browsertools.bookmarkletStep2': 'Jebkurā lapā noklikšķini uz tās (ja gribi tikai daļu teksta, vispirms to atlasi). Atveras neliela KnightLoader cilne, kurā jau ir ierakstīta šīs lapas saite vai atlasītais teksts. Pārskati to un no turienes pievieno kā lejupielādi.',
+  'settings.browsertools.bookmarkletStep3':
+    'Tālrunī nav joslas, kurā to ievilkt. Pievienojiet grāmatzīmēm jebkuru lapu, aizstājiet grāmatzīmes adresi ar kodu, ko “Kopēt” ieliek starpliktuvē, un atveriet grāmatzīmi lapā, kuru vēlaties nosūtīt.',
   'settings.browsertools.installLabel': 'Kā to instalēt',
   'settings.browsertools.installChromiumStep1': 'Izsaiņo lejupielādēto failu.',
   'settings.browsertools.installChromiumStep2': 'Atver chrome://extensions (vai edge://extensions, brave://extensions).',
