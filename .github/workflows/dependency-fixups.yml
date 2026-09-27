@@ -54,6 +54,7 @@ jobs:
       - name: What the branch updates
         id: changed
         run: |
+          echo "config=$(sha256sum .git/config | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           base=$(git merge-base origin/main HEAD)
           if ! git diff --quiet "$base" HEAD -- web/package.json web/package-lock.json; then
             echo "web=true" >> "$GITHUB_OUTPUT"
@@ -93,13 +94,22 @@ jobs:
           git diff --cached --quiet || git commit -m "Tidy desktop/go.mod"
 
       # No force: if Renovate has pushed in the meantime, that push starts a
-      # fresh run. Hooks are off because an install script could have left one.
+      # fresh run. An install script could have left a hook or a url rewrite
+      # that sends the token elsewhere, so hooks are off, only the repository's
+      # own config is read, and that has to be as the checkout left it.
       - name: Push
         env:
           TOKEN: ${{ secrets.RENOVATE_DIST_TOKEN }}
+          GIT_CONFIG_NOSYSTEM: "1"
+          GIT_CONFIG_GLOBAL: /dev/null
+          CONFIG_SHA: ${{ steps.changed.outputs.config }}
         run: |
           if [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ]; then
             echo "Nothing to commit"
             exit 0
+          fi
+          if [ "$(sha256sum .git/config | cut -d' ' -f1)" != "$CONFIG_SHA" ]; then
+            echo "::error::.git/config changed during the build"
+            exit 1
           fi
           git -c core.hooksPath=/dev/null push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
