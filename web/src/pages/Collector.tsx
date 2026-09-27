@@ -391,13 +391,13 @@ export function Collector() {
   return (
     // flex-1 rather than h-full, since app/Layout.tsx's wrapper is a flex column.
     <div className="flex min-h-0 flex-1 flex-col gap-6">
-      <div className="shrink-0">
-        <PageHeader title={t('collector.title')} />
-      </div>
+      <PageHeader title={t('collector.title')} />
 
       {/* Three columns of equal height through the row's default stretch;
-          AddLinksForm takes the free width. */}
-      <div className="flex min-w-0 shrink-0 flex-col gap-4 lg:flex-row">
+          AddLinksForm takes the free width. The cards sit deeper than
+          .glim-column-top reaches in index.css, so the row keeps the room their
+          badges overhang the top edge by. */}
+      <div className="flex min-w-0 shrink-0 flex-col gap-4 pt-3 lg:flex-row">
         <div className="min-w-0 flex-1">
           <AddLinksForm
             pkg={pkg}
