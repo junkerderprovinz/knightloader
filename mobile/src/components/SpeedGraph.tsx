@@ -23,11 +23,87 @@ import { Text } from './Text';
  *
  * Both labels sit above and below the plot rather than beside it, so the bars
  * span the full width of whatever holds them.
+ *
+ * A speed limit in force is a red line across the plot with its figure, as on
+ * the web UI's curves, and the scale takes it in the same way (scaleTop).
  */
 const SAMPLES = 40;
 const INTERVALL_MS = 1500;
 
-export default function SpeedGraph({ speed, height = 44 }: { speed: number; height?: number }) {
+// The frame's vertical padding, which the bars stand inside.
+const PAD = 4;
+
+// The top of the scale sits this far above a limit it takes in.
+const HEADROOM = 1.2;
+
+// A limit more than this many times the busiest bar stays out of the scale, or
+// a slow download under a generous limit would shrink to a row of stubs.
+const REACH = 4;
+
+/**
+ * scaleTop is what a full-height bar stands for: the tallest sample, raised to
+ * take in the speed limit with room above it. A limit beyond REACH is left out
+ * while anything moves; with nothing moving it sets the scale.
+ */
+export function scaleTop(history: readonly number[], limit: number): number {
+  const peak = Math.max(1, ...history);
+  if (limit <= 0) return peak;
+  const room = limit * HEADROOM;
+  const moving = history.some((v) => v > 0);
+  if (moving && room > REACH * peak) return peak;
+  return Math.max(peak, room);
+}
+
+// Enough dashes to cross the widest card at a few points each.
+const DASHES = 48;
+
+/**
+ * LimitLine is the limit across the plot, dashed and pinned to its top edge
+ * when the scale left it out. The figure sits over the line where there is
+ * room and under it otherwise, on the plot's own ground so a bar behind it
+ * does not cut through the digits.
+ */
+function LimitLine({ limit, top, height }: { limit: number; top: number; height: number }) {
+  const { c } = useAppearance();
+  const over = limit > top;
+  const plot = height - 2 * PAD;
+  const bottom = over ? height - PAD - 1 : PAD + Math.round((limit / top) * plot);
+  const labelAbove = height - bottom - 1 >= TYPE.caption + 4;
+  return (
+    <>
+      <View style={[styles.limit, { bottom }]} pointerEvents="none">
+        {over ? (
+          Array.from({ length: DASHES }, (_, i) => (
+            <View key={i} style={[styles.dash, { backgroundColor: c.statusFailSolid }]} />
+          ))
+        ) : (
+          <View style={[styles.solid, { backgroundColor: c.statusFailSolid }]} />
+        )}
+      </View>
+      <Text
+        style={[
+          styles.limitLabel,
+          { color: c.statusFailText, backgroundColor: c.surface2 },
+          labelAbove ? { bottom: bottom + 1 } : { top: height - bottom + 1 },
+        ]}
+        numberOfLines={1}
+      >
+        {fmtSpeed(limit)}
+      </Text>
+    </>
+  );
+}
+
+export default function SpeedGraph({
+  speed,
+  height = 44,
+  limit = 0,
+}: {
+  speed: number;
+  height?: number;
+  /** The speed limit in force in bytes/s, 0 for none. */
+  limit?: number;
+}) {
   const { c, accent, corners } = useAppearance();
   const [history, setHistory] = useState<number[]>([]);
   // A ref beside the state, so the interval below reads the current speed
@@ -43,7 +119,7 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
     return () => clearInterval(id);
   }, []);
 
-  const peak = Math.max(1, ...history);
+  const peak = scaleTop(history, limit);
   // The window in whole seconds, from the two constants rather than a third
   // number to keep in step.
   const fenster = Math.round((SAMPLES * INTERVALL_MS) / 1000);
@@ -71,12 +147,13 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
               flex: 1,
               // A floor of 2 so a live-but-slow moment is still a mark rather
               // than a gap indistinguishable from "no sample yet".
-              height: Math.max(v > 0 ? 2 : 0, Math.round((v / peak) * (height - 8))),
+              height: Math.max(v > 0 ? 2 : 0, Math.round((v / peak) * (height - 2 * PAD))),
               backgroundColor: accent,
               borderRadius: 1,
             }}
           />
         ))}
+        {limit > 0 && <LimitLine limit={limit} top={peak} height={height} />}
       </View>
       {/* The abscissa: oldest on the left, now on the right, flush with the
           plot at both ends. */}
@@ -99,7 +176,26 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 2,
     paddingHorizontal: 6,
-    paddingVertical: 4,
+    paddingVertical: PAD,
     overflow: 'hidden',
+  },
+  limit: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  solid: { flex: 1 },
+  dash: { width: 4 },
+  limitLabel: {
+    position: 'absolute',
+    left: 6,
+    paddingHorizontal: 2,
+    fontSize: TYPE.caption,
+    lineHeight: TYPE.caption + 2,
+    fontVariant: ['tabular-nums'],
   },
 });
