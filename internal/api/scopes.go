@@ -253,6 +253,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/tasks/reorder":            apitoken.ScopeControl,
 	"POST /api/tasks/restart":            apitoken.ScopeControl,
 	"POST /api/tasks/resume":             apitoken.ScopeControl,
+	"POST /api/tasks/seeding/start":      apitoken.ScopeControl,
+	"POST /api/tasks/seeding/stop":       apitoken.ScopeControl,
 	"POST /api/tasks/start":              apitoken.ScopeControl,
 	"POST /api/tasks/undo-delete":        apitoken.ScopeControl,
 	"DELETE /api/tasks/{id}":             apitoken.ScopeControl,

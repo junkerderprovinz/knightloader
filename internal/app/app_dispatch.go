@@ -961,6 +961,9 @@ func (a *App) dispatchLocked() {
 		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
 		space.commit(dir, t)
 		t.NextTry = time.Time{}
+		// The library counts a new download's seeding from nothing, and its
+		// targets with it.
+		t.SeedMark = core.SeedMark{}
 		// The backend the task leaves may still hold it, as JD keeps its
 		// download list across restarts, and would fetch the file a second
 		// time. The bytes it counted go with it. Nothing of this task runs
@@ -1292,6 +1295,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 	} else {
 		t.Note = u.Note
 		t.Remote = u.Remote
+	}
+	// Nothing seeds a torrent that is over and no longer started, so a reading
+	// that says it does was taken just before somebody stopped it.
+	if u.Torrent != nil && u.Torrent.Seeding && t.SeedingOver && !a.started[id] {
+		u.Torrent = nil
 	}
 	seedingEnded := u.Torrent != nil && t.Seeding && !u.Torrent.Seeding
 	if seedingEnded {

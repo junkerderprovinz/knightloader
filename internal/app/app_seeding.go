@@ -4,7 +4,8 @@ package app
 // memory only, so a finished torrent stops seeding with the process. Each
 // start takes every torrent that still owes seeding up again where its files
 // are, and it seeds on from the figures saved with the task, so its targets
-// count the whole of its seeding.
+// count the whole of its seeding, or all of it since somebody started it by
+// hand.
 
 import (
 	"fmt"
@@ -28,7 +29,7 @@ const seedSaveEvery = time.Minute
 // targets. A disabled one, and one held back by the torrent module being off,
 // owe it as well and seed once they may.
 func SeedPending(t *core.Task) bool {
-	return t.Resolver == (torrent.Resolver{}).Info().ID && t.Status == core.StatusDone && !t.Seeding && !t.SeedingOver
+	return seedsHere(t) && !t.Seeding && !t.SeedingOver
 }
 
 // resumeSeeding takes up every torrent that owes seeding and may seed: it is
@@ -100,9 +101,10 @@ func (a *App) resumeSeeding() {
 // seedingEnd says why a torrent that owes seeding is done with it, or "" when
 // it can seed on.
 func seedingEnd(t *core.Task, tc settings.Torrent) string {
+	since := t.SeedMark.Since(core.TorrentStats{Ratio: t.Ratio, SeedSeconds: t.SeedSeconds})
 	switch {
-	case tc.SeedRatioTarget > 0 && t.Ratio >= tc.SeedRatioTarget,
-		tc.SeedDurationSeconds > 0 && t.SeedSeconds >= int64(tc.SeedDurationSeconds):
+	case tc.SeedRatioTarget > 0 && since.Ratio >= tc.SeedRatioTarget,
+		tc.SeedDurationSeconds > 0 && since.SeedSeconds >= int64(tc.SeedDurationSeconds):
 		return "it has reached its seeding target"
 	case t.File == "":
 		return "nothing records where its files are"
@@ -163,4 +165,87 @@ func (a *App) seedFiguresDueLocked(id string) bool {
 	}
 	a.seedSaved[id] = now
 	return true
+}
+
+// seedsHere reports whether a task is a finished torrent of the built-in
+// client, the only kind that seeds.
+func seedsHere(t *core.Task) bool {
+	return t.Resolver == (torrent.Resolver{}).Info().ID && t.Status == core.StatusDone
+}
+
+// StopSeeding ends the seeding of the torrents among ids that seed or owe it,
+// and marks it over, so a restart does not take them up again. It returns the
+// ones it stopped.
+func (a *App) StopSeeding(ids []string) []string {
+	now := time.UnixMilli(time.Now().UnixMilli())
+	var touched, drop []string
+	var copies []taskCopy
+	a.mu.Lock()
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || !seedsHere(t) || t.SeedingOver {
+			continue
+		}
+		// No longer started, so onUpdate drops a reading the poll took before
+		// the engine let go.
+		if a.started[id] {
+			drop = append(drop, id)
+			delete(a.started, id)
+		}
+		if t.Seeding {
+			t.SeedingEnded = now
+		}
+		t.Seeding, t.SeedingOver, t.Peers, t.Seeds = false, true, 0, 0
+		copies = append(copies, a.copyLocked(t))
+		touched = append(touched, id)
+	}
+	a.mu.Unlock()
+	for _, id := range drop {
+		a.Engine.Remove(id, false)
+	}
+	a.publishTasks(copies)
+	return touched
+}
+
+// StartSeeding takes up the torrents among ids whose seeding is over and
+// returns them. Each seeds to the targets once more, counted from its figures
+// now, as the download library counts them on a new start. One that may not
+// seed yet, disabled or with the torrent module off, seeds once it may.
+func (a *App) StartSeeding(ids []string) []string {
+	a.mu.Lock()
+	var over, held []string
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || !seedsHere(t) || !t.SeedingOver {
+			continue
+		}
+		over = append(over, id)
+		if a.started[id] {
+			held = append(held, id)
+		}
+	}
+	a.mu.Unlock()
+	// The engine still knows a torrent that stopped at its targets, and the new
+	// start must not find that one in its way.
+	for _, id := range held {
+		a.Engine.Remove(id, false)
+	}
+	var touched []string
+	var copies []taskCopy
+	a.mu.Lock()
+	for _, id := range over {
+		t := a.tasks[id]
+		if t == nil || !seedsHere(t) || !t.SeedingOver {
+			continue
+		}
+		delete(a.started, id)
+		t.SeedingOver = false
+		t.SeedMark = core.SeedMark{Ratio: t.Ratio, SeedSeconds: t.SeedSeconds}
+		copies = append(copies, a.copyLocked(t))
+		touched = append(touched, id)
+	}
+	a.mu.Unlock()
+	a.publishTasks(copies)
+	a.resumeSeeding()
+	return touched
 }

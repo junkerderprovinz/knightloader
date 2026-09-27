@@ -282,6 +282,20 @@ type ServiceJob struct {
 	Partial string `json:"partial,omitempty"`
 }
 
+// SeedMark is a torrent's ratio and seeding time at the moment its seeding
+// targets start to count.
+type SeedMark struct {
+	Ratio       float64
+	SeedSeconds int64
+}
+
+// Since is what a torrent's totals add up to from the mark on.
+func (m SeedMark) Since(s TorrentStats) TorrentStats {
+	s.Ratio -= m.Ratio
+	s.SeedSeconds -= m.SeedSeconds
+	return s
+}
+
 // ApplyTo writes one reading onto a task, zeros included.
 func (s TorrentStats) ApplyTo(t *Task) {
 	t.Peers = s.Peers
@@ -585,9 +599,14 @@ type Task struct {
 	// done everywhere.
 	Seeding bool `json:"seeding,omitempty"`
 	// SeedingOver says a finished torrent seeds no more: it reached a seeding
-	// target, or its files are gone. A shutdown or a crash does not set it, so
-	// the next start takes the torrent up again to seed.
+	// target, its files are gone, or somebody stopped its seeding. A shutdown
+	// or a crash does not set it, so the next start takes the torrent up again
+	// to seed.
 	SeedingOver bool `json:"seedingOver,omitempty"`
+	// SeedMark is where the seeding targets count from. It is zero until
+	// somebody starts a torrent's seeding by hand, which seeds it to the
+	// targets once more from the figures it had then.
+	SeedMark SeedMark `json:"-"`
 	// TorrentFiles is the multi-file selection. It is persisted, since it is
 	// the user's decision and forgetting it would fetch excluded files. It is
 	// not sent with the task: a torrent can list thousands of files, and every

@@ -10,7 +10,8 @@ package engine
 //
 // The library measures its seeding targets from the new start, so it would
 // seed such a torrent to the full targets once more. The engine stops it
-// itself when the totals reach them.
+// itself when the totals reach them. A torrent started to seed by hand counts
+// them from its mark instead, which is where the library counts from as well.
 
 import (
 	"log"
@@ -20,9 +21,11 @@ import (
 )
 
 // seedRun is one torrent started only to seed: from is what it had uploaded
-// before, and seeding is whether the library has found its files complete.
+// before, mark where its targets count from, and seeding is whether the
+// library has found its files complete.
 type seedRun struct {
 	from    core.TorrentStats
+	mark    core.SeedMark
 	seeding bool
 }
 
@@ -78,13 +81,17 @@ func (e *Engine) seedStats(taskID string, s core.TorrentStats) *core.TorrentStat
 	return &s
 }
 
-// seedDone reports whether a seed run's totals have reached a target, and if
-// so takes the torrent out of the library, which closes its upload, and out
-// of the poll. The files stay, and so does the rest of what the engine knows
-// of the task, for a later removal with its files.
+// seedDone reports whether a seed run's totals have reached a target since its
+// mark, and if so takes the torrent out of the library, which closes its
+// upload, and out of the poll. The files stay, and so does the rest of what
+// the engine knows of the task, for a later removal with its files.
 func (e *Engine) seedDone(taskID, gid string, s core.TorrentStats) bool {
 	e.mu.Lock()
-	reached := e.targets.reached(s)
+	var mark core.SeedMark
+	if sd := e.seeds[taskID]; sd != nil {
+		mark = sd.mark
+	}
+	reached := e.targets.reached(mark.Since(s))
 	e.mu.Unlock()
 	if !reached {
 		return false

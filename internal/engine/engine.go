@@ -340,9 +340,11 @@ type Job struct {
 	// Seed takes a finished torrent up again where its files are, only to seed
 	// it: neither its start nor its finish is reported, which are the
 	// download's and already happened, only the swarm readings, which count on
-	// from SeedFrom's upload and ratio (see seed.go).
+	// from SeedFrom's upload and ratio (see seed.go). Its targets count from
+	// SeedMark.
 	Seed     bool
 	SeedFrom core.TorrentStats
+	SeedMark core.SeedMark
 
 	// Collision is what to do when the resolved name is taken. Empty means no
 	// policy at all, unlike collide, where empty means Rename; the older entry
