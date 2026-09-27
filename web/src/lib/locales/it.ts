@@ -316,6 +316,9 @@ export const it: Dict = {
   'task.uncheckable': "L'host non ha risposto",
   'task.expand': 'Espandi',
   'task.collapse': 'Comprimi',
+  'task.torrentFile.fetch': 'Scarica questo file',
+  'task.torrentFile.skip': 'Salta questo file',
+  'task.torrentFile.lastOne': 'Un torrent ha bisogno di almeno un file. Prima attivane un altro.',
 
   'search.placeholder': 'Cerca in questo elenco…',
   'search.in': 'Cerca in',

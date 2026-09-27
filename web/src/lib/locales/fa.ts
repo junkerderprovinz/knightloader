@@ -324,6 +324,9 @@ export const fa: Dict = {
   'task.uncheckable': 'میزبان پاسخ نداد',
   'task.expand': 'گسترش',
   'task.collapse': 'جمع کردن',
+  'task.torrentFile.fetch': 'دانلود این فایل',
+  'task.torrentFile.skip': 'رد کردن این فایل',
+  'task.torrentFile.lastOne': 'هر تورنت دست‌کم به یک فایل نیاز دارد. اول فایل دیگری را روشن کن.',
 
   'search.placeholder': 'جست‌وجو در این فهرست…',
   'search.in': 'جست‌وجو در',

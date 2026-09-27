@@ -324,6 +324,9 @@ export const sr: Dict = {
   'task.uncheckable': 'Хостер није одговорио',
   'task.expand': 'Прошири',
   'task.collapse': 'Скупи',
+  'task.torrentFile.fetch': 'Преузми ову датотеку',
+  'task.torrentFile.skip': 'Прескочи ову датотеку',
+  'task.torrentFile.lastOne': 'Торенту је потребна бар једна датотека. Прво укључи неку другу.',
 
   'search.placeholder': 'Тражи по овом списку…',
   'search.in': 'Тражи у',

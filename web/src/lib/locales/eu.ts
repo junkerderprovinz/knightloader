@@ -324,6 +324,9 @@ export const eu: Dict = {
   'task.uncheckable': 'Ostalariak ez du erantzun',
   'task.expand': 'Zabaldu',
   'task.collapse': 'Tolestu',
+  'task.torrentFile.fetch': 'Deskargatu fitxategi hau',
+  'task.torrentFile.skip': 'Saltatu fitxategi hau',
+  'task.torrentFile.lastOne': 'Torrent batek fitxategi bat behar du gutxienez. Aktibatu beste bat lehenago.',
 
   'search.placeholder': 'Bilatu zerrenda honetan…',
   'search.in': 'Bilatu hemen',

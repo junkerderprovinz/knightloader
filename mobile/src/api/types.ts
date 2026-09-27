@@ -59,6 +59,18 @@ export interface Task {
   archivePart?: number;
   /** A finished torrent still uploading, a flag beside status 'done'. */
   seeding?: boolean;
+  /** How many files a torrent has, once that is known. The files themselves
+   *  are asked for when the row is opened (fetchTorrentFiles). */
+  torrentFileCount?: number;
+}
+
+/** One file of a torrent task. `path` is inside the torrent; `done` is how many
+ *  of its bytes are here, absent where nothing can say. */
+export interface TorrentFileView {
+  path: string;
+  size: number;
+  selected: boolean;
+  done?: number;
 }
 
 export interface AuthState {

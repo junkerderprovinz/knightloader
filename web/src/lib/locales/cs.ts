@@ -324,6 +324,9 @@ export const cs: Dict = {
   'task.uncheckable': 'Hoster neodpověděl',
   'task.expand': 'Rozbalit',
   'task.collapse': 'Sbalit',
+  'task.torrentFile.fetch': 'Stáhnout tento soubor',
+  'task.torrentFile.skip': 'Přeskočit tento soubor',
+  'task.torrentFile.lastOne': 'Torrent potřebuje aspoň jeden soubor. Nejdřív zapni jiný.',
 
   'search.placeholder': 'Hledat v tomto seznamu…',
   'search.in': 'Hledat v',

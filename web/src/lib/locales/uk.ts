@@ -324,6 +324,9 @@ export const uk: Dict = {
   'task.uncheckable': 'Хостер не відповів',
   'task.expand': 'Розгорнути',
   'task.collapse': 'Згорнути',
+  'task.torrentFile.fetch': 'Завантажити цей файл',
+  'task.torrentFile.skip': 'Пропустити цей файл',
+  'task.torrentFile.lastOne': 'У торренті має лишитися хоча б один файл. Спершу увімкніть інший.',
 
   'search.placeholder': 'Пошук у цьому списку…',
   'search.in': 'Шукати в',

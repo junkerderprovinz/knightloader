@@ -2,8 +2,10 @@ package engine
 
 import (
 	"fmt"
+	"log"
 	"path"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
@@ -83,6 +85,12 @@ func (e *Engine) startTorrent(j Job) {
 				opts.SelectFiles = sel
 			}
 		}
+		// Somebody changed the files while the swarm was being asked; written
+		// in the same gap as above.
+		if p, ok := e.takePendingPick(j.TaskID); ok {
+			sel = p
+			opts.SelectFiles = allOr(sel, len(rr.Res.Files))
+		}
 		// A magnet's file list comes from a stranger over the network and is
 		// seen here for the first time; an uploaded .torrent was already
 		// checked by the resolver. This runs before Create starts writing.
@@ -95,24 +103,41 @@ func (e *Engine) startTorrent(j Job) {
 			fail(err)
 			return
 		}
+		// A seed run reports nothing of the start but the file list, which a
+		// torrent finished before the list was kept has not got.
+		u := core.Update{TorrentFiles: pickedFiles(rr.Res, sel)}
 		if !j.Seed {
-			name, size := torrentMeta(rr.Res, sel)
-			u := core.Update{Status: core.StatusRunning, Name: name, Size: size, File: root}
+			u.Status, u.File = core.StatusRunning, root
+			u.Name, u.Size = torrentMeta(rr.Res, sel)
 			if magnet {
 				u.MagnetFiles = torrentPaths(rr.Res)
 			}
-			e.emit(j.TaskID, u)
 		}
+		e.emit(j.TaskID, u)
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
 			fail(err)
 			return
 		}
+		e.layouts.watchFiles(gid)
+		e.pickMu.Lock()
 		e.mu.Lock()
+		if old := e.toGopeed[j.TaskID]; old != "" && old != gid {
+			e.layouts.unwatchFiles(old)
+		}
 		e.toKL[gid] = j.TaskID
 		e.toGopeed[j.TaskID] = gid
 		e.torrents[j.TaskID] = true
+		e.picks[j.TaskID] = torrentPick{count: len(rr.Res.Files), sel: slices.Clone(sel)}
 		e.mu.Unlock()
+		// A change that came after the one taken above, while the library was
+		// being handed the torrent.
+		if p, ok := e.takePendingPick(j.TaskID); ok {
+			if err := e.repick(j.TaskID, gid, len(rr.Res.Files), p); err != nil {
+				log.Printf("task %s: the files chosen while it started were not applied: %v", j.TaskID, err)
+			}
+		}
+		e.pickMu.Unlock()
 		e.startTorrentPoll()
 	}()
 }
@@ -227,13 +252,7 @@ func autoSelect(pick torrent.Picker, res *base.Resource) []int {
 	if res == nil {
 		return nil
 	}
-	files := make([]core.TorrentFile, len(res.Files))
-	for i, f := range res.Files {
-		if f != nil {
-			files[i] = core.TorrentFile{Path: path.Join(f.Path, f.Name), Size: f.Size}
-		}
-	}
-	return core.SelectedTorrentIndices(pick.Pick(files))
+	return core.SelectedTorrentIndices(pick.Pick(resolvedFiles(res)))
 }
 
 // uploadSelect is the selection pick makes from an uploaded .torrent, by
@@ -361,6 +380,7 @@ func (e *Engine) pollOne(taskID, gid string) {
 		// since Stats on a task without a fetcher makes the library restore
 		// one.
 		e.forgetTorrent(taskID)
+		e.dropUnpicked(taskID, true)
 	}
 }
 

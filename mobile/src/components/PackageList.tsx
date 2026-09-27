@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { Task } from '../api/types';
+import type { Task, TorrentFileView } from '../api/types';
 import { isParked, packageState } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
@@ -12,6 +12,7 @@ import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
+import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -66,6 +67,8 @@ export default function PackageList({
   empty,
   header,
   lineKey,
+  onLoadFiles,
+  onSelectFiles,
 }: {
   tasks: Task[];
   /** Everything that belongs above the list and has to line up with it: the
@@ -93,6 +96,11 @@ export default function PackageList({
   empty: string;
   /** Which tab the rows belong to, so switching tabs lets the new rows arrive. */
   lineKey?: string;
+  /** A torrent's files, asked for while its card is open. */
+  onLoadFiles?: (task: Task) => Promise<TorrentFileView[]>;
+  /** Makes `paths` the files a torrent fetches and answers with its files, or
+   *  with null when the change did not happen, which the caller has said why. */
+  onSelectFiles?: (task: Task, paths: string[]) => Promise<TorrentFileView[] | null>;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -106,6 +114,36 @@ export default function PackageList({
    *  stays open across the five-second refresh that replaces every Task object
    *  in the list. */
   const [open, setOpen] = useState<Record<string, boolean>>({});
+
+  /** The torrents whose files are open, and their lists as last fetched. */
+  const [filesOpen, setFilesOpen] = useState<Record<string, boolean>>({});
+  const [fileLists, setFileLists] = useState<Record<string, TorrentFileView[]>>({});
+  // Fetched again whenever an open torrent's task changes, which while it
+  // downloads is every refresh, so each file's count keeps up with the row's.
+  const openTorrents = tasks.filter((x) => filesOpen[x.id] && hasTorrentFiles(x));
+  const filesKey = openTorrents.map((x) => `${x.id}:${x.status}:${x.size}:${x.loaded}`).join(',');
+  useEffect(() => {
+    if (!onLoadFiles) return;
+    let alive = true;
+    for (const task of openTorrents) {
+      onLoadFiles(task).then(
+        (files) => alive && setFileLists((m) => ({ ...m, [task.id]: files })),
+        () => undefined,
+      );
+    }
+    return () => {
+      alive = false;
+    };
+    // filesKey is what openTorrents is made of.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filesKey, onLoadFiles]);
+
+  const flipFile = async (task: Task, file: TorrentFileView) => {
+    const files = fileLists[task.id] ?? [];
+    const paths = files.filter((f) => (f.path === file.path ? !file.selected : f.selected)).map((f) => f.path);
+    const next = await onSelectFiles?.(task, paths);
+    if (next) setFileLists((m) => ({ ...m, [task.id]: next }));
+  };
 
   const rows: Row[] = [];
   let n = 0;
@@ -139,6 +177,20 @@ export default function PackageList({
               task={r.task}
               index={r.index}
               onSwitch={onSetEnabled && (() => scharf || onSetEnabled([r.task], !r.task.enabled))}
+              files={
+                onLoadFiles && hasTorrentFiles(r.task)
+                  ? (hue) => (
+                      <TorrentFiles
+                        task={r.task}
+                        open={filesOpen[r.task.id] === true}
+                        onToggle={() => scharf || setFilesOpen((o) => ({ ...o, [r.task.id]: !o[r.task.id] }))}
+                        files={fileLists[r.task.id]}
+                        onFlip={(f) => scharf || void flipFile(r.task, f)}
+                        hue={hue}
+                      />
+                    )
+                  : undefined
+              }
             />
           ),
         },

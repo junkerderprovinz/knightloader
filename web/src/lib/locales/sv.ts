@@ -324,6 +324,9 @@ export const sv: Dict = {
   'task.uncheckable': 'Värden svarade inte',
   'task.expand': 'Fäll ut',
   'task.collapse': 'Fäll ihop',
+  'task.torrentFile.fetch': 'Hämta den här filen',
+  'task.torrentFile.skip': 'Hoppa över den här filen',
+  'task.torrentFile.lastOne': 'En torrent behöver minst en fil. Slå på en annan först.',
 
   'search.placeholder': 'Sök i den här listan…',
   'search.in': 'Sök i',

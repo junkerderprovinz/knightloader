@@ -324,6 +324,9 @@ export const tr: Dict = {
   'task.uncheckable': 'Sunucu yanıt vermedi',
   'task.expand': 'Genişlet',
   'task.collapse': 'Daralt',
+  'task.torrentFile.fetch': 'Bu dosyayı indir',
+  'task.torrentFile.skip': 'Bu dosyayı atla',
+  'task.torrentFile.lastOne': 'Bir torrentte en az bir dosya seçili kalmalı. Önce başka birini aç.',
 
   'search.placeholder': 'Bu listede ara…',
   'search.in': 'Şurada ara',

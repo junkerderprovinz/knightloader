@@ -22,8 +22,16 @@ const unsharedMagnet = "magnet:?xt=urn:btih:111111111111111111111111111111111111
 // taskSink is a core.Task behind a lock, since updates arrive on the engine's
 // goroutines while the test reads on its own.
 type taskSink struct {
-	mu sync.Mutex
-	t  core.Task
+	mu     sync.Mutex
+	t      core.Task
+	listed []core.TorrentFile
+}
+
+// files is the file list the engine last reported.
+func (s *taskSink) files() []core.TorrentFile {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.listed
 }
 
 func (s *taskSink) apply(_ string, u core.Update) {
@@ -46,6 +54,9 @@ func (s *taskSink) apply(_ string, u core.Update) {
 	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(&s.t)
+	}
+	if u.TorrentFiles != nil {
+		s.listed = u.TorrentFiles
 	}
 }
 

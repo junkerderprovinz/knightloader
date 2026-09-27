@@ -182,8 +182,11 @@ export interface Task {
    *  set. Kept by the server, so it outlives the job after a restart. */
   unpack?: 'done' | 'error' | 'password';
 
-  /** The file selection of a multi-file torrent; absent for everything else. */
-  torrentFiles?: TorrentFile[];
+  /** How many files a torrent has, once that is known; absent for everything
+   *  else and for a magnet whose swarm has not sent its list. The files
+   *  themselves come from fetchTorrentFiles, since a torrent can list
+   *  thousands and the task goes out on every tick. */
+  torrentFileCount?: number;
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
@@ -220,6 +223,30 @@ export interface TorrentFile {
   path: string;
   size: number;
   selected: boolean;
+}
+
+/** app.TorrentFileView: one file of a torrent task and how many of its bytes
+ *  are here. `done` is absent where nothing can say, as for a file the
+ *  running torrent leaves out. */
+export interface TorrentFileView extends TorrentFile {
+  done?: number;
+}
+
+/** fetchTorrentFiles lists a torrent task's files, empty for a magnet whose
+ *  swarm has not sent the list yet. */
+export async function fetchTorrentFiles(id: string, base = '/api'): Promise<TorrentFileView[]> {
+  return (await json<TorrentFileView[] | null>(await fetch(`${base}/tasks/${id}/torrent-files`))) ?? [];
+}
+
+/**
+ * selectTorrentFiles makes `paths` the files a torrent task fetches and
+ * answers with its files. A running torrent carries on with the new choice and
+ * keeps what it has; a finished one refuses, as does a choice of no file.
+ */
+export async function selectTorrentFiles(id: string, paths: string[], base = '/api'): Promise<TorrentFileView[]> {
+  return (
+    (await json<TorrentFileView[] | null>(await post(`${base}/tasks/${id}/torrent-files`, { selectedPaths: paths }))) ?? []
+  );
 }
 
 /** One RSS or Atom subscription, mirroring feed.Subscription. */

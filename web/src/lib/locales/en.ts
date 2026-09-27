@@ -370,6 +370,9 @@ export const en = {
   'task.uncheckable': 'Host would not say',
   'task.expand': 'Expand',
   'task.collapse': 'Collapse',
+  'task.torrentFile.fetch': 'Download this file',
+  'task.torrentFile.skip': 'Skip this file',
+  'task.torrentFile.lastOne': 'A torrent needs at least one file. Switch another one on first.',
 
   'search.placeholder': 'Search this list…',
   'search.in': 'Search in',

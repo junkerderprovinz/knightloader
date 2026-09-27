@@ -324,6 +324,9 @@ export const et: Dict = {
   'task.uncheckable': 'Majutaja ei vastanud',
   'task.expand': 'Ava',
   'task.collapse': 'Sulge',
+  'task.torrentFile.fetch': 'Laadi see fail alla',
+  'task.torrentFile.skip': 'Jäta see fail vahele',
+  'task.torrentFile.lastOne': 'Torrentil peab olema vähemalt üks fail. Lülita enne mõni teine sisse.',
 
   'search.placeholder': 'Otsi sellest loendist…',
   'search.in': 'Otsi väljalt',

@@ -324,6 +324,9 @@ export const lt: Dict = {
   'task.uncheckable': 'Talpykla neatsakė',
   'task.expand': 'Išskleisti',
   'task.collapse': 'Suskleisti',
+  'task.torrentFile.fetch': 'Atsisiųsti šį failą',
+  'task.torrentFile.skip': 'Praleisti šį failą',
+  'task.torrentFile.lastOne': 'Torrentui reikia bent vieno failo. Pirma įjunk kitą.',
 
   'search.placeholder': 'Ieškoti šiame sąraše…',
   'search.in': 'Ieškoti lauke',

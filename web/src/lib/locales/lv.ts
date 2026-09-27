@@ -324,6 +324,9 @@ export const lv: Dict = {
   'task.uncheckable': 'Glabātājs neatbildēja',
   'task.expand': 'Izvērst',
   'task.collapse': 'Sakļaut',
+  'task.torrentFile.fetch': 'Lejupielādēt šo failu',
+  'task.torrentFile.skip': 'Izlaist šo failu',
+  'task.torrentFile.lastOne': 'Torrentam vajag vismaz vienu failu. Vispirms ieslēdz citu.',
 
   'search.placeholder': 'Meklēt šajā sarakstā…',
   'search.in': 'Meklēt laukā',

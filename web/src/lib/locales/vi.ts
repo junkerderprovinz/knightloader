@@ -324,6 +324,9 @@ export const vi: Dict = {
   'task.uncheckable': 'Máy chủ không trả lời',
   'task.expand': 'Mở rộng',
   'task.collapse': 'Thu gọn',
+  'task.torrentFile.fetch': 'Tải tệp này',
+  'task.torrentFile.skip': 'Bỏ qua tệp này',
+  'task.torrentFile.lastOne': 'Torrent cần ít nhất một tệp. Hãy bật một tệp khác trước.',
 
   'search.placeholder': 'Tìm trong danh sách này…',
   'search.in': 'Tìm trong',

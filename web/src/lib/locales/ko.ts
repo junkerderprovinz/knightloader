@@ -324,6 +324,9 @@ export const ko: Dict = {
   'task.uncheckable': '호스트가 답하지 않음',
   'task.expand': '펼치기',
   'task.collapse': '접기',
+  'task.torrentFile.fetch': '이 파일 다운로드',
+  'task.torrentFile.skip': '이 파일 건너뛰기',
+  'task.torrentFile.lastOne': '토렌트에는 파일이 하나 이상 있어야 합니다. 먼저 다른 파일을 켜세요.',
 
   'search.placeholder': '이 목록에서 검색…',
   'search.in': '검색 대상',

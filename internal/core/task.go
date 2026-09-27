@@ -233,6 +233,11 @@ type Update struct {
 	// MagnetFiles is a magnet's file list, which comes with File once the
 	// swarm has sent it (see Task.MagnetFiles).
 	MagnetFiles []string
+	// TorrentFiles is every file of a torrent the built-in client has
+	// resolved, with the selection it runs with. It comes once, with the
+	// resolve, so a torrent whose files nobody chose by hand keeps the choice
+	// the file rules made.
+	TorrentFiles []TorrentFile
 }
 
 // TorrentStats is one reading of a torrent's swarm, taken from gopeed's
@@ -569,8 +574,15 @@ type Task struct {
 	// done everywhere.
 	Seeding bool `json:"seeding,omitempty"`
 	// TorrentFiles is the multi-file selection. It is persisted, since it is
-	// the user's decision and forgetting it would fetch excluded files.
-	TorrentFiles []TorrentFile `json:"torrentFiles,omitempty"`
+	// the user's decision and forgetting it would fetch excluded files. It is
+	// not sent with the task: a torrent can list thousands of files, and every
+	// progress tick would carry them all. The interface asks for them when a
+	// row is opened (GET /api/tasks/{id}/torrent-files).
+	TorrentFiles []TorrentFile `json:"-"`
+	// TorrentFileCount is how many files the torrent has, once that is known,
+	// which is what the interface needs to offer the row's files. Not
+	// persisted; the app works it out from TorrentFiles or the link.
+	TorrentFileCount int `json:"torrentFileCount,omitempty"`
 	// MagnetFiles is every file of a magnet's torrent, by its path inside the
 	// torrent, as the swarm listed it. A .torrent keeps its list in its link,
 	// but after a restart nothing else knows a magnet's, and removing it with

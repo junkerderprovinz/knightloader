@@ -324,6 +324,9 @@ export const fi: Dict = {
   'task.uncheckable': 'Palvelu ei kertonut',
   'task.expand': 'Laajenna',
   'task.collapse': 'Supista',
+  'task.torrentFile.fetch': 'Lataa tämä tiedosto',
+  'task.torrentFile.skip': 'Ohita tämä tiedosto',
+  'task.torrentFile.lastOne': 'Torrentissa on oltava vähintään yksi tiedosto. Kytke ensin jokin toinen päälle.',
 
   'search.placeholder': 'Hae tästä listasta…',
   'search.in': 'Hae kentästä',

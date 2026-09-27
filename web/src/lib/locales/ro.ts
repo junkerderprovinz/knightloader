@@ -325,6 +325,9 @@ export const ro: Dict = {
   'task.uncheckable': 'Gazda nu a răspuns',
   'task.expand': 'Extinde',
   'task.collapse': 'Restrânge',
+  'task.torrentFile.fetch': 'Descarcă acest fișier',
+  'task.torrentFile.skip': 'Omite acest fișier',
+  'task.torrentFile.lastOne': 'Un torrent are nevoie de cel puțin un fișier. Pornește mai întâi altul.',
 
   'search.placeholder': 'Caută în această listă…',
   'search.in': 'Caută în',

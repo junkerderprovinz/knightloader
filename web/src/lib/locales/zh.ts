@@ -324,6 +324,9 @@ export const zh: Dict = {
   'task.uncheckable': '主机没有回应',
   'task.expand': '展开',
   'task.collapse': '折叠',
+  'task.torrentFile.fetch': '下载此文件',
+  'task.torrentFile.skip': '跳过此文件',
+  'task.torrentFile.lastOne': '种子至少要保留一个文件。请先打开另一个。',
 
   'search.placeholder': '在此列表中搜索…',
   'search.in': '搜索范围',

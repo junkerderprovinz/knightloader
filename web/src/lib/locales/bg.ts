@@ -324,6 +324,9 @@ export const bg: Dict = {
   'task.uncheckable': 'Хостърът не отговори',
   'task.expand': 'Разгъни',
   'task.collapse': 'Сгъни',
+  'task.torrentFile.fetch': 'Изтегли този файл',
+  'task.torrentFile.skip': 'Пропусни този файл',
+  'task.torrentFile.lastOne': 'Торентът трябва да има поне един файл. Първо включи друг.',
 
   'search.placeholder': 'Търсене в този списък…',
   'search.in': 'Търси в',

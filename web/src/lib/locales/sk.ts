@@ -324,6 +324,9 @@ export const sk: Dict = {
   'task.uncheckable': 'Hoster neodpovedal',
   'task.expand': 'Rozbaliť',
   'task.collapse': 'Zbaliť',
+  'task.torrentFile.fetch': 'Stiahnuť tento súbor',
+  'task.torrentFile.skip': 'Preskočiť tento súbor',
+  'task.torrentFile.lastOne': 'Torrent potrebuje aspoň jeden súbor. Najprv zapni iný.',
 
   'search.placeholder': 'Hľadať v tomto zozname…',
   'search.in': 'Hľadať v',

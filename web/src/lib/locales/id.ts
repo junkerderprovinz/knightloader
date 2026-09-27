@@ -324,6 +324,9 @@ export const id: Dict = {
   'task.uncheckable': 'Host tidak menjawab',
   'task.expand': 'Bentangkan',
   'task.collapse': 'Ciutkan',
+  'task.torrentFile.fetch': 'Unduh berkas ini',
+  'task.torrentFile.skip': 'Lewati berkas ini',
+  'task.torrentFile.lastOne': 'Torrent butuh setidaknya satu berkas. Nyalakan berkas lain dulu.',
 
   'search.placeholder': 'Cari di daftar ini…',
   'search.in': 'Cari di',

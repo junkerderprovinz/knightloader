@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import type { Task } from '../lib/api';
+import type { Task, TorrentFileView } from '../lib/api';
 
 // The flat row model and the window over it, shared by TaskList.tsx and
 // listKeyboard.ts.
 
 /**
- * ListRow is one line of the table: a package header or a link. The rows are
+ * ListRow is one line of the table: a package header, a link, or a file of a
+ * torrent whose row is open. The rows are
  * flat so a window can slice them, and they are the on-screen order that the
  * Shift-range, drag preview and window all use.
  *
@@ -31,6 +32,19 @@ export type ListRow =
       /** Position among the drawn link rows, which sets the rainbow hue. */
       index: number;
       level: 2;
+      posinset: number;
+      setsize: number;
+    }
+  | {
+      /** One file of an opened torrent. It is not a task: nothing selects,
+       *  moves or removes it, and its switch is its only control. */
+      kind: 'file';
+      key: string;
+      task: Task;
+      file: TorrentFileView;
+      /** The torrent's hue position, so its files wear its colour. */
+      index: number;
+      level: 3;
       posinset: number;
       setsize: number;
     };
@@ -116,7 +130,8 @@ export function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement
     const out = new Float64Array(rows.length + 1);
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const h = heights.current.get(row.key) ?? estimate.current[row.kind];
+      // A file row is drawn to a link row's height.
+      const h = heights.current.get(row.key) ?? estimate.current[row.kind === 'package' ? 'package' : 'task'];
       out[i + 1] = out[i] + h;
     }
     return out;
@@ -236,4 +251,10 @@ export type RowDragKey = { kind: 'task'; id: string } | { kind: 'package'; name:
  */
 export function rowKey(u: RowDragKey): string {
   return u.kind === 'task' ? `task:${u.id}` : `pkg:${u.name}`;
+}
+
+/** fileRowKey is a torrent file row's key: its task and its place in the
+ *  torrent, which is fixed for the torrent's life. */
+export function fileRowKey(taskId: string, at: number): string {
+  return `file:${taskId}:${at}`;
 }

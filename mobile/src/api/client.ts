@@ -8,6 +8,7 @@ import {
   type QueueState,
   type ServerConnection,
   type Task,
+  type TorrentFileView,
 } from './types';
 import { answeredKinds, widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
@@ -168,6 +169,28 @@ export async function setTasksEnabled(conn: ServerConnection, ids: string[], ena
     method: 'POST',
     body: JSON.stringify({ ids, enabled }),
   });
+}
+
+// A torrent's files, asked for only while its row is open: the task carries
+// just their count, since a torrent can list thousands.
+export async function fetchTorrentFiles(conn: ServerConnection, id: string, base = '/api'): Promise<TorrentFileView[]> {
+  return (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`)) ?? [];
+}
+
+// selectTorrentFiles makes `paths` the files a torrent fetches. A running
+// torrent carries on with them and keeps what it has.
+export async function selectTorrentFiles(
+  conn: ServerConnection,
+  id: string,
+  paths: string[],
+  base = '/api',
+): Promise<TorrentFileView[]> {
+  return (
+    (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`, {
+      method: 'POST',
+      body: JSON.stringify({ selectedPaths: paths }),
+    })) ?? []
+  );
 }
 
 export async function deleteTasks(conn: ServerConnection, ids: string[], deleteFiles: boolean, base = '/api'): Promise<void> {

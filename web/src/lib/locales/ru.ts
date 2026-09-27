@@ -316,6 +316,9 @@ export const ru: Dict = {
   'task.uncheckable': 'Хостер не ответил',
   'task.expand': 'Развернуть',
   'task.collapse': 'Свернуть',
+  'task.torrentFile.fetch': 'Скачать этот файл',
+  'task.torrentFile.skip': 'Пропустить этот файл',
+  'task.torrentFile.lastOne': 'В торренте должен остаться хотя бы один файл. Сначала включите другой.',
 
   'search.placeholder': 'Поиск в этом списке…',
   'search.in': 'Искать в',

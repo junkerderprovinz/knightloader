@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type RefObject } from 'react';
+import type { Task } from '../lib/api';
 import type { ListRow, RowWindow } from './listRows';
 
 // Keyboard navigation for the windowed download list. Only the rows near the
@@ -46,6 +47,7 @@ export function useListKeyboard({
   collapse,
   expand,
   openProperties,
+  files,
   enabled = true,
 }: {
   rows: ListRow[];
@@ -65,6 +67,17 @@ export function useListKeyboard({
   expand: (names: string[]) => void;
   /** Opens the properties panel without selecting; see Enter below. */
   openProperties: () => void;
+  /** The torrents whose files are open under their row, and what the keys do
+   *  to them: right and left open and shut a torrent the way they do a
+   *  folder, and Space flips a file's switch, since a file row has nothing to
+   *  select. */
+  files: {
+    has: (task: Task) => boolean;
+    open: ReadonlySet<string>;
+    show: (id: string) => void;
+    hide: (id: string) => void;
+    flip: (row: Extract<ListRow, { kind: 'file' }>) => void;
+  };
   /** False for an empty list, which should not take the tab stop. */
   enabled?: boolean;
 }): ListKeyboard {
@@ -91,7 +104,7 @@ export function useListKeyboard({
     if (!row) return;
     setCurrentKey(row.key);
     lastIndex.current = i;
-    if (mods) {
+    if (mods && row.kind !== 'file') {
       if (row.kind === 'package') {
         selectUnit(
           'package',
@@ -213,7 +226,9 @@ export function useListKeyboard({
       // falls through
       case 'Spacebar':
         take();
-        if (row.kind === 'package') {
+        if (row.kind === 'file') {
+          files.flip(row);
+        } else if (row.kind === 'package') {
           selectUnit(
             'package',
             row.name,
@@ -226,6 +241,8 @@ export function useListKeyboard({
         return;
       case 'Enter':
         take();
+        // A file is not a task, and the panel edits tasks.
+        if (row.kind === 'file') return;
         // No selection first: a new selection closes the properties panel in
         // the same commit. The arrow that reached this row already selected it.
         openProperties();
@@ -234,22 +251,32 @@ export function useListKeyboard({
 
     if (e.key === forward) {
       take();
-      // Opens a shut folder, or steps onto its first link.
-      if (row.kind !== 'package') return;
-      if (collapsed.has(row.name)) expand([row.name]);
-      else if (row.items.length > 0) goTo(index + 1, null);
+      // Opens a shut folder or torrent, or steps onto its first link or file.
+      if (row.kind === 'package') {
+        if (collapsed.has(row.name)) expand([row.name]);
+        else if (row.items.length > 0) goTo(index + 1, null);
+      } else if (row.kind === 'task' && files.has(row.task)) {
+        if (!files.open.has(row.task.id)) files.show(row.task.id);
+        else if (rows[index + 1]?.kind === 'file') goTo(index + 1, null);
+      }
       return;
     }
 
     if (e.key === back) {
       take();
-      // Shuts an open folder, or steps from a link to its folder's header.
+      // Shuts an open folder or torrent, or steps from a file to its torrent
+      // and from a link to its folder's header.
       if (row.kind === 'package') {
         if (!collapsed.has(row.name)) collapse([row.name]);
         return;
       }
+      if (row.kind === 'task' && files.open.has(row.task.id)) {
+        files.hide(row.task.id);
+        return;
+      }
+      const up = row.kind === 'file' ? 'task' : 'package';
       for (let i = index - 1; i >= 0; i--) {
-        if (rows[i].kind === 'package') {
+        if (rows[i].kind === up) {
           goTo(i, null);
           return;
         }
