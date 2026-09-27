@@ -257,9 +257,9 @@ and accounts in them are made up.
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-8-app-dark.png">
-    <img src=".github/assets/screenshots/knightloader-8-app-light.png" alt="The App tab with the phone app, the desktop apps, the bookmarklet and the browser extensions" width="90%">
+    <img src=".github/assets/screenshots/knightloader-8-app-light.png" alt="The Apps tab with the phone app, the desktop apps, the bookmarklet and the browser extensions" width="90%">
   </picture>
-  <br><em>The App tab: the phone app, the desktop builds, the bookmarklet and the browser extension.</em>
+  <br><em>The Apps tab: the phone app, the desktop builds, the bookmarklet and the browser extension.</em>
 </p>
 
 <br>

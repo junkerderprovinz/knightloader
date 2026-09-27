@@ -1534,7 +1534,7 @@ export const uk: Dict = {
   'settings.browsertools.install': 'Встановити',
   'settings.browsertools.installIOS':
     'На iPhone або iPad: відкрийте цю сторінку в Safari, торкніться «Поділитися», потім «На головний екран».',
-  'settings.nav.browsertools': 'Застосунок',
+  'settings.nav.browsertools': 'Застосунки',
   'settings.browsertools.bookmarkletStep1': 'Перетягніть кнопку нижче на панель закладок браузера. Вона зберігається як будь-яка інша закладка, нічого не встановлюється.',
   'settings.browsertools.bookmarkletStep2': 'На будь-якій сторінці натисніть її (спершу виділіть текст, якщо потрібен лише він). Відкриється невелика вкладка KnightLoader, де вже заповнено посилання на цю сторінку або виділений текст. Перевірте й додайте звідти як завантаження.',
   'settings.browsertools.installLabel': 'Як її встановити',
@@ -1547,9 +1547,6 @@ export const uk: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Обери «Встановити доповнення з файлу…» і вибери цей файл.',
   'settings.browsertools.installFirefoxStep3': 'Для швидкої спроби натомість відкрийте about:debugging#/runtime/this-firefox і виберіть «Завантажити тимчасовий додаток». Після перезапуску Firefox додаток зникне.',
   'settings.browsertools.bookmarkletTitle': 'Букмарклет',
-  'settings.browsertools.bookmarkletLink': 'Додати до KnightLoader',
-  'settings.browsertools.copyCode': 'Натомість скопіювати код',
-  'settings.browsertools.copied': 'Скопійовано.',
   'settings.browsertools.extensionTitle': 'Розширення браузера',
   'quickadd.title': 'Додати до KnightLoader',
   'quickadd.manualLabel': 'Посилання (або вставте декілька, по одному в рядку)',

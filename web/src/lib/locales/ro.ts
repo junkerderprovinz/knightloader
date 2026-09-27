@@ -1534,7 +1534,7 @@ export const ro: Dict = {
   'settings.browsertools.install': 'Instalează',
   'settings.browsertools.installIOS':
     'Pe iPhone sau iPad: deschide această pagină în Safari, atinge Distribuie, apoi „Adaugă pe ecranul de Start”.',
-  'settings.nav.browsertools': 'Aplicație',
+  'settings.nav.browsertools': 'Aplicații',
   'settings.browsertools.bookmarkletStep1': 'Trage butonul de mai jos în bara de marcaje a browserului. Se salvează ca orice alt marcaj și nu se instalează nimic.',
   'settings.browsertools.bookmarkletStep2': 'Pe orice pagină, dă clic pe el (selectează mai întâi text dacă vrei doar textul). Se deschide o filă mică KnightLoader cu linkul acelei pagini, sau textul selectat, deja completat. Verifică-l și adaugă-l de acolo ca descărcare.',
   'settings.browsertools.installLabel': 'Cum o instalezi',
@@ -1547,9 +1547,6 @@ export const ro: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Alege „Instalează suplimentul din fișier…” și selectează acest fișier.',
   'settings.browsertools.installFirefoxStep3': 'Pentru o încercare rapidă, deschide în schimb about:debugging#/runtime/this-firefox și alege „Încarcă un supliment temporar”. Suplimentul dispare când repornește Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Adaugă la KnightLoader',
-  'settings.browsertools.copyCode': 'Copiază codul în schimb',
-  'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensie de browser',
   'quickadd.title': 'Adaugă la KnightLoader',
   'quickadd.manualLabel': 'Link (sau lipește mai multe, unul pe rând)',

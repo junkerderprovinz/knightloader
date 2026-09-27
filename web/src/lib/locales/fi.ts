@@ -1533,7 +1533,7 @@ export const fi: Dict = {
   'settings.browsertools.install': 'Asenna',
   'settings.browsertools.installIOS':
     'iPhonessa tai iPadissa: avaa tämä sivu Safarissa, napauta Jaa, ja sitten ”Lisää Koti-valikkoon”.',
-  'settings.nav.browsertools': 'Sovellus',
+  'settings.nav.browsertools': 'Sovellukset',
   'settings.browsertools.bookmarkletStep1': 'Vedä alla oleva painike selaimesi kirjanmerkkipalkkiin. Se tallentuu kuten mikä tahansa muu kirjanmerkki, eikä mitään asenneta.',
   'settings.browsertools.bookmarkletStep2': 'Napsauta sitä millä tahansa sivulla (valitse ensin tekstiä, jos haluat vain sen). Pieni KnightLoader-välilehti avautuu, ja siinä on valmiiksi täytettynä sivun linkki tai valittu teksti. Tarkista se ja lisää se sieltä lataukseksi.',
   'settings.browsertools.installLabel': 'Näin asennat sen',
@@ -1546,9 +1546,6 @@ export const fi: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Valitse ”Asenna lisäosa tiedostosta…” ja valitse tämä tiedosto.',
   'settings.browsertools.installFirefoxStep3': 'Nopeaa kokeilua varten avaa sen sijaan about:debugging#/runtime/this-firefox ja valitse ”Lataa väliaikainen lisäosa”. Lisäosa katoaa, kun Firefox käynnistyy uudelleen.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Lisää KnightLoaderiin',
-  'settings.browsertools.copyCode': 'Kopioi koodi sen sijaan',
-  'settings.browsertools.copied': 'Kopioitu.',
   'settings.browsertools.extensionTitle': 'Selainlaajennus',
   'quickadd.title': 'Lisää KnightLoaderiin',
   'quickadd.manualLabel': 'Linkki (tai liitä useita, yksi riviä kohti)',

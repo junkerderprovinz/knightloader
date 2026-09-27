@@ -3,7 +3,7 @@ import { followExternal } from '../lib/external';
 import { useConfirm } from '../lib/useShake';
 import { InfoBubble } from './ui';
 
-// A button in the shape of the README's download buttons, on the App page and
+// A button in the shape of the README's download buttons, on the Apps page and
 // the About card (GlimStone's "The App tab"), from its reference/react
 // ReadmeButton. The first part carries the mark and the full name; the parts
 // after it are segments that name only what differs, such as ARM64 beside
@@ -29,6 +29,10 @@ const TILES = {
   coffee: 'glim-tile-coffee',
   house: 'glim-tile-house',
   chrome: 'kl-tile-chrome',
+  edge: 'kl-tile-edge',
+  brave: 'kl-tile-brave',
+  opera: 'kl-tile-opera',
+  vivaldi: 'kl-tile-vivaldi',
   firefox: 'kl-tile-firefox',
 } as const;
 
@@ -38,6 +42,10 @@ export interface ReadmePart {
   sub?: string;
   href?: string;
   onClick?: () => void;
+  /** A javascript: address for a link that is dragged into a bookmarks bar
+   *  rather than clicked. React 19 swaps such an href for one that throws, so
+   *  it is set on the node, which React leaves alone. */
+  bookmarklet?: string;
 }
 
 export function ReadmeButton({
@@ -77,7 +85,7 @@ export function ReadmeButton({
   onLinkClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const ref = useConfirm<HTMLDivElement>(confirm);
-  const soon = !parts[0].href && !parts[0].onClick;
+  const soon = !parts[0].href && !parts[0].onClick && !parts[0].bookmarklet;
   const words = parts.map((p) => `${p.name}\n${p.sub ?? ''}`).join('\n') + (soon ? soonLabel : '');
   useLayoutEffect(() => {
     const root = ref.current;
@@ -124,6 +132,20 @@ export function ReadmeButton({
             <span key={i} className={className} aria-disabled aria-label={label}>
               {face}
             </span>
+          );
+        }
+        if (part.bookmarklet) {
+          const script = part.bookmarklet;
+          return (
+            <a
+              key={i}
+              ref={(a) => a?.setAttribute('href', script)}
+              onClick={(e) => e.preventDefault()}
+              aria-label={label}
+              className={className}
+            >
+              {face}
+            </a>
           );
         }
         if (part.href) {

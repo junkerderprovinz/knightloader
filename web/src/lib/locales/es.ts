@@ -1526,7 +1526,7 @@ export const es: Dict = {
   'settings.browsertools.install': 'Instalar',
   'settings.browsertools.installIOS':
     'En iPhone o iPad: abre esta página en Safari, toca Compartir y luego «Añadir a pantalla de inicio».',
-  'settings.nav.browsertools': 'App',
+  'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Arrastra el botón de abajo a la barra de marcadores de tu navegador. Se guarda como cualquier otro marcador y no se instala nada.',
   'settings.browsertools.bookmarkletStep2': 'En cualquier página, haz clic en él (selecciona antes algo de texto si solo quieres eso). Se abre una pequeña pestaña de KnightLoader con el enlace de esa página, o el texto seleccionado, ya rellenado. Revísalo y añádelo como descarga desde ahí.',
   'settings.browsertools.installLabel': 'Cómo instalarla',
@@ -1539,9 +1539,6 @@ export const es: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Elige «Instalar complemento desde archivo…» y selecciona este archivo.',
   'settings.browsertools.installFirefoxStep3': 'Para una prueba rápida, abre about:debugging#/runtime/this-firefox y elige «Cargar complemento temporal». El complemento desaparece cuando Firefox se reinicia.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Añadir a KnightLoader',
-  'settings.browsertools.copyCode': 'Copiar el código en su lugar',
-  'settings.browsertools.copied': 'Copiado.',
   'settings.browsertools.extensionTitle': 'Extensión de navegador',
   'quickadd.title': 'Añadir a KnightLoader',
   'quickadd.manualLabel': 'Enlace (o pega varios, uno por línea)',

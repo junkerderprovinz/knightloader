@@ -1533,7 +1533,7 @@ export const ca: Dict = {
   'settings.browsertools.install': 'Instal·la',
   'settings.browsertools.installIOS':
     'A l’iPhone o l’iPad: obre aquesta pàgina a Safari, toca Comparteix i després «Afegeix a la pantalla d’inici».',
-  'settings.nav.browsertools': 'Aplicació',
+  'settings.nav.browsertools': 'Aplicacions',
   'settings.browsertools.bookmarkletStep1': 'Arrossega el botó de sota a la barra d’adreces d’interès del navegador. Es desa com qualsevol altra adreça d’interès, i no s’instal·la res.',
   'settings.browsertools.bookmarkletStep2': 'A qualsevol pàgina, fes-hi clic (selecciona primer un text si només vols això). S’obre una petita pestanya de KnightLoader amb l’enllaç d’aquella pàgina, o el text seleccionat, ja emplenat. Revisa-ho i afegeix-ho des d’allà com a baixada.',
   'settings.browsertools.installLabel': 'Com instal·lar-la',
@@ -1546,9 +1546,6 @@ export const ca: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Tria «Instal·la el complement des d’un fitxer…» i selecciona aquest fitxer.',
   'settings.browsertools.installFirefoxStep3': 'Per a una prova ràpida, obre about:debugging#/runtime/this-firefox i tria «Carrega un complement temporal». El complement desapareix quan reinicies el Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Afegeix a KnightLoader',
-  'settings.browsertools.copyCode': 'Copia el codi en lloc d’això',
-  'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensió de navegador',
   'quickadd.title': 'Afegeix a KnightLoader',
   'quickadd.manualLabel': 'Enllaç (o enganxa’n diversos, un per línia)',

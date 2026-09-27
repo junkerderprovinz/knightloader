@@ -1533,7 +1533,7 @@ export const el: Dict = {
   'settings.browsertools.install': 'Εγκατάσταση',
   'settings.browsertools.installIOS':
     'Σε iPhone ή iPad: ανοίξτε αυτήν τη σελίδα στο Safari, πατήστε Κοινοποίηση, και έπειτα «Προσθήκη στην Αρχική οθόνη».',
-  'settings.nav.browsertools': 'Εφαρμογή',
+  'settings.nav.browsertools': 'Εφαρμογές',
   'settings.browsertools.bookmarkletStep1': 'Σύρε το κουμπί παρακάτω στη γραμμή σελιδοδεικτών του προγράμματος περιήγησής σου. Αποθηκεύεται όπως κάθε άλλος σελιδοδείκτης και δεν εγκαθίσταται τίποτα.',
   'settings.browsertools.bookmarkletStep2': 'Σε οποιαδήποτε σελίδα, κάνε κλικ πάνω του (επίλεξε πρώτα κείμενο αν θέλεις μόνο αυτό). Ανοίγει μια μικρή καρτέλα KnightLoader με τον σύνδεσμο της σελίδας, ή το επιλεγμένο κείμενο, ήδη συμπληρωμένο. Έλεγξέ το και πρόσθεσέ το από εκεί ως λήψη.',
   'settings.browsertools.installLabel': 'Πώς να την εγκαταστήσετε',
@@ -1546,9 +1546,6 @@ export const el: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Επιλέξτε «Εγκατάσταση προσθέτου από αρχείο…» και επιλέξτε αυτό το αρχείο.',
   'settings.browsertools.installFirefoxStep3': 'Για μια γρήγορη δοκιμή, άνοιξε το about:debugging#/runtime/this-firefox και επίλεξε «Φόρτωση προσωρινού προσθέτου». Το πρόσθετο εξαφανίζεται όταν γίνει επανεκκίνηση του Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Προσθήκη στο KnightLoader',
-  'settings.browsertools.copyCode': 'Αντιγραφή του κώδικα αντ’ αυτού',
-  'settings.browsertools.copied': 'Αντιγράφηκε.',
   'settings.browsertools.extensionTitle': 'Επέκταση περιηγητή',
   'quickadd.title': 'Προσθήκη στο KnightLoader',
   'quickadd.manualLabel': 'Σύνδεσμος (ή επικολλήστε πολλούς, έναν ανά γραμμή)',

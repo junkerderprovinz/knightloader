@@ -1533,7 +1533,7 @@ export const tr: Dict = {
   'settings.browsertools.install': 'Yükle',
   'settings.browsertools.installIOS':
     "iPhone veya iPad'de: bu sayfayı Safari'de açın, Paylaş'a dokunun, ardından «Ana Ekrana Ekle»ye dokunun.",
-  'settings.nav.browsertools': 'Uygulama',
+  'settings.nav.browsertools': 'Uygulamalar',
   'settings.browsertools.bookmarkletStep1': 'Aşağıdaki düğmeyi tarayıcının yer imleri çubuğuna sürükle. Diğer yer imleri gibi kaydedilir ve hiçbir şey yüklenmez.',
   'settings.browsertools.bookmarkletStep2': 'Herhangi bir sayfada ona tıkla (yalnızca bir metni istiyorsan önce onu seç). O sayfanın bağlantısı ya da seçili metin önceden doldurulmuş küçük bir KnightLoader sekmesi açılır. Gözden geçir ve oradan indirme olarak ekle.',
   'settings.browsertools.installLabel': 'Nasıl kurulur',
@@ -1546,9 +1546,6 @@ export const tr: Dict = {
   'settings.browsertools.installFirefoxStep2': '„Dosyadan Eklenti Yükle…”yi seç ve bu dosyayı belirle.',
   'settings.browsertools.installFirefoxStep3': 'Bunun yerine hızlıca denemek için about:debugging#/runtime/this-firefox adresini aç ve “Geçici Eklenti Yükle”yi seç. Eklenti, Firefox yeniden başladığında kaybolur.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': "KnightLoader'a ekle",
-  'settings.browsertools.copyCode': 'Bunun yerine kodu kopyala',
-  'settings.browsertools.copied': 'Kopyalandı.',
   'settings.browsertools.extensionTitle': 'Tarayıcı uzantısı',
   'quickadd.title': "KnightLoader'a ekle",
   'quickadd.manualLabel': 'Bağlantı (veya birden fazlasını yapıştırın, satır başına bir tane)',

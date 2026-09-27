@@ -1,4 +1,4 @@
-// The marks on the App tab's and the About card's buttons ("The App tab" in
+// The marks on the Apps tab's and the About card's buttons ("The App tab" in
 // design-language.md), as markup for ReadmeButton's BrandMark. Every id carries
 // a glim- prefix so two marks on one page cannot collide.
 //

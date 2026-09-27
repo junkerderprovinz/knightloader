@@ -1534,7 +1534,7 @@ export const sr: Dict = {
   'settings.browsertools.install': 'Инсталирај',
   'settings.browsertools.installIOS':
     'На iPhone-у или iPad-у: отвори ову страницу у Safari-ју, додирни Подели, затим „Додај на почетни екран“.',
-  'settings.nav.browsertools': 'Апликација',
+  'settings.nav.browsertools': 'Апликације',
   'settings.browsertools.bookmarkletStep1': 'Превуци дугме испод на траку обележивача у прегледачу. Чува се као сваки други обележивач и ништа се не инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На било којој страници кликни на њега (прво изабери текст ако желиш само њега). Отвара се мала KnightLoader картица у којој су веза те странице или изабрани текст већ уписани. Прегледај унос и одатле га додај као преузимање.',
   'settings.browsertools.installLabel': 'Како је инсталирати',
@@ -1547,9 +1547,6 @@ export const sr: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Изабери „Инсталирај додатак из датотеке…” и изабери ову датотеку.',
   'settings.browsertools.installFirefoxStep3': 'За брзу пробу уместо тога отвори about:debugging#/runtime/this-firefox и изабери „Учитај привремени додатак“. Додатак нестаје када се Firefox поново покрене.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Додај у KnightLoader',
-  'settings.browsertools.copyCode': 'Уместо тога копирај код',
-  'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Екстензија прегледача',
   'quickadd.title': 'Додај у KnightLoader',
   'quickadd.manualLabel': 'Веза (или налепи више њих, по једна у реду)',

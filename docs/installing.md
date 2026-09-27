@@ -121,7 +121,7 @@ Every release tag builds `windows/amd64`, `windows/arm64`, `darwin/universal`,
 Take x64 for most computers and ARM64 for one with an ARM processor, such as a
 laptop with a Snapdragon chip. The macOS bundle is universal, so it runs on
 Intel and on Apple silicon. A running instance offers the same downloads under
-Settings, App, and picks the matching build when the browser reports the
+Settings, Apps, and picks the matching build when the browser reports the
 processor.
 
 The desktop app brings no Java, yt-dlp or ffmpeg of its own:
@@ -186,11 +186,11 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 
 ## The browser extension
 
-A running instance offers it under Settings, App: the Chrome button gives the
-ZIP for every Chromium browser, the Firefox button the add-on. The same ZIP is
-on the
+A running instance offers it under Settings, Apps: Chrome, Edge, Brave, Opera and
+Vivaldi each have a button for the same ZIP, and the Firefox button gives the
+add-on. The same ZIP is on the
 [latest extension release](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip),
-one file for Chrome, Edge, Brave and Opera:
+one file for Chrome, Edge, Brave, Opera and Vivaldi:
 
 1. Unpack the ZIP.
 2. Open `chrome://extensions` (in Edge `edge://extensions`) and switch on

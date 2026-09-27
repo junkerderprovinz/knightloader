@@ -1829,7 +1829,7 @@ export const en = {
   // server install, the bookmarklet, the MV3 browser extension and the PWA
   // install step (pages/settings/BrowserTools.tsx). settings.nav.browsertools
   // is this page's rail label.
-  'settings.nav.browsertools': 'App',
+  'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar. It is saved like any other bookmark, and nothing gets installed.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in. Review it and add it as a download from there.',
   'settings.browsertools.installLabel': 'How to install',
@@ -1862,9 +1862,6 @@ export const en = {
   'settings.browsertools.installFirefoxStep2': 'Choose “Install Add-on From File…” and pick this file.',
   'settings.browsertools.installFirefoxStep3': 'For a quick trial instead, open about:debugging#/runtime/this-firefox and choose “Load Temporary Add-on”. The add-on disappears when Firefox restarts.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Add to KnightLoader',
-  'settings.browsertools.copyCode': 'Copy the code instead',
-  'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
 
   // /quickadd (pages/QuickAdd.tsx): the one page the bookmarklet, the browser

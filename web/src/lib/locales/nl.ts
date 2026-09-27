@@ -1526,7 +1526,7 @@ export const nl: Dict = {
   'settings.browsertools.install': 'Installeren',
   'settings.browsertools.installIOS':
     'Op iPhone of iPad: open deze pagina in Safari, tik op Delen en dan op “Zet op beginscherm”.',
-  'settings.nav.browsertools': 'App',
+  'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Sleep de knop hieronder naar de bladwijzerbalk van je browser. Hij wordt opgeslagen zoals elke andere bladwijzer, en er wordt niets geïnstalleerd.',
   'settings.browsertools.bookmarkletStep2': 'Klik er op een willekeurige pagina op (selecteer eerst wat tekst als je alleen die wilt). Er opent een klein KnightLoader-tabblad waarin de link van die pagina, of de geselecteerde tekst, al is ingevuld. Controleer het en voeg het van daaruit toe als download.',
   'settings.browsertools.installLabel': 'Zo installeer je hem',
@@ -1539,9 +1539,6 @@ export const nl: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Kies „Add-on installeren vanuit bestand…” en selecteer dit bestand.',
   'settings.browsertools.installFirefoxStep3': 'Voor een snelle test open je in plaats daarvan about:debugging#/runtime/this-firefox en kies je “Tijdelijke add-on laden”. De add-on verdwijnt als Firefox opnieuw start.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Toevoegen aan KnightLoader',
-  'settings.browsertools.copyCode': 'In plaats daarvan de code kopiëren',
-  'settings.browsertools.copied': 'Gekopieerd.',
   'settings.browsertools.extensionTitle': 'Browserextensie',
   'quickadd.title': 'Toevoegen aan KnightLoader',
   'quickadd.manualLabel': 'Link (of plak er meerdere, één per regel)',

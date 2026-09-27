@@ -1652,8 +1652,12 @@ body {
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
 /* The browsers the extension buttons offer: Chrome in the README button's
-   blue, Firefox in the colour Simple Icons publishes. */
+   blue, the others in the colour Simple Icons publishes for each. */
 .kl-tile-chrome    { --tile: #1a73e8; --tile-ink: #ffffff; } /* 4.5:1 */
+.kl-tile-edge      { --tile: #0078d7; --tile-ink: #ffffff; } /* 4.5:1 */
+.kl-tile-brave     { --tile: #fb542b; --tile-ink: #ffffff; } /* 3.3:1 */
+.kl-tile-opera     { --tile: #ff1b2d; --tile-ink: #ffffff; } /* 3.9:1 */
+.kl-tile-vivaldi   { --tile: #ef3939; --tile-ink: #ffffff; } /* 4.0:1 */
 .kl-tile-firefox   { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
 
 /* The README button (GlimStone's "The App tab"): the proportions of the
@@ -1815,6 +1819,17 @@ body {
 }
 
 .glim-readme-btn-unit:is(:hover, :focus-within, .glim-readme-btn-unit--note, .glim-readme-btn-soon) .glim-readme-btn-sub {
+  opacity: 0.9;
+  translate: 0 0;
+}
+
+/* A segment names only what differs from the button beside it, and a name such
+   as "Windows" alone would repeat that button, so both its lines stay. */
+.glim-readme-btn-seg .glim-readme-btn-name:not(:only-child) {
+  translate: 0 0;
+}
+
+.glim-readme-btn-seg .glim-readme-btn-sub {
   opacity: 0.9;
   translate: 0 0;
 }

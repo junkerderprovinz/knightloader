@@ -329,7 +329,7 @@ export const IconTabAdvanced = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** The App page: Streamline's computer with a device beside it. */
+/** The Apps page: Streamline's computer with a device beside it. */
 export const IconTabApp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ viewBox: '-2.33 -1.33 18.67 18.67', ...p })}>
     <path

@@ -1526,7 +1526,7 @@ export const pl: Dict = {
   'settings.browsertools.install': 'Zainstaluj',
   'settings.browsertools.installIOS':
     'Na iPhonie lub iPadzie: otwórz tę stronę w Safari, dotknij Udostępnij, a potem „Dodaj do ekranu głównego”.',
-  'settings.nav.browsertools': 'Aplikacja',
+  'settings.nav.browsertools': 'Aplikacje',
   'settings.browsertools.bookmarkletStep1': 'Przeciągnij poniższy przycisk na pasek zakładek przeglądarki. Zapisuje się jak każda inna zakładka i nic nie jest instalowane.',
   'settings.browsertools.bookmarkletStep2': 'Na dowolnej stronie kliknij go (najpierw zaznacz tekst, jeśli chcesz tylko jego). Otworzy się mała karta KnightLoadera z już wpisanym linkiem tej strony albo zaznaczonym tekstem. Sprawdź wpis i dodaj go stamtąd jako pobieranie.',
   'settings.browsertools.installLabel': 'Jak ją zainstalować',
@@ -1539,9 +1539,6 @@ export const pl: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Wybierz „Zainstaluj dodatek z pliku…” i wskaż ten plik.',
   'settings.browsertools.installFirefoxStep3': 'Aby szybko wypróbować, otwórz zamiast tego about:debugging#/runtime/this-firefox i wybierz „Wczytaj tymczasowy dodatek”. Dodatek znika po ponownym uruchomieniu Firefoksa.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Dodaj do KnightLoader',
-  'settings.browsertools.copyCode': 'Zamiast tego skopiuj kod',
-  'settings.browsertools.copied': 'Skopiowano.',
   'settings.browsertools.extensionTitle': 'Rozszerzenie przeglądarki',
   'quickadd.title': 'Dodaj do KnightLoader',
   'quickadd.manualLabel': 'Link (albo wklej kilka, po jednym w wierszu)',

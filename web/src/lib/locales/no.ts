@@ -1535,7 +1535,7 @@ export const no: Dict = {
   'settings.browsertools.install': 'Installer',
   'settings.browsertools.installIOS':
     'På iPhone eller iPad: åpne denne siden i Safari, trykk på Del, og deretter «Legg til på Hjem-skjerm».',
-  'settings.nav.browsertools': 'App',
+  'settings.nav.browsertools': 'Apper',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedenfor til bokmerkelinja i nettleseren din. Den lagres som et hvilket som helst annet bokmerke, og ingenting installeres.',
   'settings.browsertools.bookmarkletStep2': 'Klikk på den på en hvilken som helst side (merk tekst først hvis du bare vil ha den). En liten KnightLoader-fane åpnes med lenka til siden, eller den merkede teksten, allerede fylt inn. Se over den og legg den til som nedlasting derfra.',
   'settings.browsertools.installLabel': 'Slik installerer du den',
@@ -1548,9 +1548,6 @@ export const no: Dict = {
   'settings.browsertools.installFirefoxStep2': 'Velg «Installer tillegg fra fil…» og velg denne filen.',
   'settings.browsertools.installFirefoxStep3': 'For en rask test kan du i stedet åpne about:debugging#/runtime/this-firefox og velge «Last inn midlertidig tillegg». Tillegget forsvinner når Firefox starter på nytt.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletLink': 'Legg til i KnightLoader',
-  'settings.browsertools.copyCode': 'Kopier koden i stedet',
-  'settings.browsertools.copied': 'Kopiert.',
   'settings.browsertools.extensionTitle': 'Nettleserutvidelse',
   'quickadd.title': 'Legg til i KnightLoader',
   'quickadd.manualLabel': 'Lenke (eller lim inn flere, én per linje)',

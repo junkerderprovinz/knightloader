@@ -1,4 +1,4 @@
-// The two version numbers on the App page come from where the downloads
+// The two version numbers on the Apps page come from where the downloads
 // beside them come from, never from a number typed into the page.
 //
 // The browser tiles download the copy of extension/src the server embeds, so

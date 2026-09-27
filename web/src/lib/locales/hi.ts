@@ -1533,7 +1533,7 @@ export const hi: Dict = {
   'settings.browsertools.install': 'इंस्टॉल करें',
   'settings.browsertools.installIOS':
     'iPhone या iPad पर: इस पेज को Safari में खोलें, शेयर पर टैप करें, फिर «होम स्क्रीन पर जोड़ें»।',
-  'settings.nav.browsertools': 'ऐप',
+  'settings.nav.browsertools': 'ऐप्स',
   'settings.browsertools.bookmarkletStep1': 'नीचे दिए बटन को अपने ब्राउज़र की बुकमार्क बार पर खींचें। यह किसी भी दूसरे बुकमार्क की तरह सहेजा जाता है, और कुछ भी इंस्टॉल नहीं होता।',
   'settings.browsertools.bookmarkletStep2': 'किसी भी पेज पर उस पर क्लिक करें (अगर सिर्फ़ कुछ टेक्स्ट चाहिए तो पहले उसे चुन लें)। एक छोटा KnightLoader टैब खुलता है जिसमें उस पेज का लिंक, या चुना गया टेक्स्ट, पहले से भरा होता है। उसे देख लें और वहीं से डाउनलोड के रूप में जोड़ें।',
   'settings.browsertools.installLabel': 'इसे कैसे इंस्टॉल करें',
@@ -1546,9 +1546,6 @@ export const hi: Dict = {
   'settings.browsertools.installFirefoxStep2': '“Install Add-on From File…” चुनें और यह फ़ाइल चुनें।',
   'settings.browsertools.installFirefoxStep3': 'इसके बजाय जल्दी आज़माने के लिए about:debugging#/runtime/this-firefox खोलें और “Load Temporary Add-on” चुनें। Firefox के फिर से शुरू होने पर ऐड-ऑन हट जाता है।',
   'settings.browsertools.bookmarkletTitle': 'बुकमार्कलेट',
-  'settings.browsertools.bookmarkletLink': 'KnightLoader में जोड़ें',
-  'settings.browsertools.copyCode': 'इसके बजाय कोड कॉपी करें',
-  'settings.browsertools.copied': 'कॉपी हो गया।',
   'settings.browsertools.extensionTitle': 'ब्राउज़र एक्सटेंशन',
   'quickadd.title': 'KnightLoader में जोड़ें',
   'quickadd.manualLabel': 'लिंक (या कई पेस्ट करें, प्रति पंक्ति एक)',
