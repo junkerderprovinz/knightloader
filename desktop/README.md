@@ -50,11 +50,37 @@ against `checksums.txt` and swaps the program inside it in for the next start.
 On Windows the running exe steps aside as `KnightLoader.exe.old`, which the next
 start removes.
 
+The Windows installer (`build/windows/installer/project.nsi`) puts the app under
+Program Files for all users, where it cannot replace itself. It creates the
+scheduled task **KnightLoader Update**, which starts `KnightLoader.exe --update`
+as the system account once a day and five minutes after boot. That run
+(`machine_windows.go`) returns before JDownloader, Click'n'Load or the window
+start, checks that it is the copy named by `InstallLocation` in the uninstall
+entry under HKLM, reads the switch from `%ProgramData%\KnightLoader\settings.json`
+and runs the same check, download and swap, logging to `update.log` beside it.
+The installed app keeps the switch in that file too and only watches the entry's
+`DisplayVersion` for a newer version to announce. Any other copy is portable and
+updates itself.
+
 To try the whole path locally, build with `-tags updatetest`. That build reads
 `KL_UPDATE_API` (a stand-in for `https://api.github.com` that serves
 `/repos/junkerderprovinz/knightloader/releases/latest`) and `KL_UPDATE_DELAY`
 (how long to wait before the first check, such as `15s`). Release builds leave
 the tag out, so no environment variable can change where an update comes from.
+
+The same build installs as **KnightLoader Test**, beside a real installation,
+with a task and a folder under ProgramData of that name. Build its installer by
+running makensis once more after `wails build -tags updatetest -nsis`, from
+`build/windows/installer`:
+
+```powershell
+makensis "-DINFO_PRODUCTNAME=KnightLoader Test" -DINFO_PROJECTNAME=KnightLoaderTest `
+  -DINFO_PRODUCTVERSION=1.2.1 "-DARG_WAILS_AMD64_BINARY=..\..\bin\KnightLoader.exe" project.nsi
+```
+
+Its task starts without your environment and reads the stand-in's address from
+`updatetest-api` in `%ProgramData%\KnightLoader Test`, which an administrator
+writes there after installing.
 
 ## How it fits together
 
