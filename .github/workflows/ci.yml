@@ -514,9 +514,9 @@ jobs:
       - name: Row and package words
         run: node check-task-state.mjs
 
-  # Compiles the desktop module on every relevant push, since desktop.yml only
-  # runs for releases. Packaging stays in desktop.yml. webkit2_41 is needed
-  # because Ubuntu 24.04 ships only webkit2gtk-4.1.
+  # Compiles and tests the desktop module on every relevant push, since
+  # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is
+  # the tag the release build uses; without it Wails wants GTK 4.
   desktop:
     needs: changes
     if: needs.changes.outputs.desktop == 'true'
@@ -540,10 +540,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
 
       - name: Vet
-        run: go vet -tags webkit2_41 ./...
+        run: go vet -tags gtk3 ./...
 
       - name: Build
-        run: go build -tags webkit2_41 ./...
+        run: go build -tags gtk3 ./...
+
+      - name: Test
+        run: go test -tags gtk3 ./... -count=1
 
       # desktop.yml cross-builds the Windows arm64 bundle without cgo, so a
       # dependency that starts to need it fails here rather than at a release.

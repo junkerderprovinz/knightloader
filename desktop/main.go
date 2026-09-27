@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/wailsapp/wails/v3/pkg/application"
+
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -21,14 +23,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/keepawake"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
-
-// generatingBindings is set in the run that wails build makes to read the
-// bound methods; see bindings.go.
-var generatingBindings bool
 
 func main() {
 	// The installer's scheduled task starts the program this way as the system
@@ -39,16 +34,6 @@ func main() {
 			os.Exit(1)
 		}
 		return
-	}
-
-	// The bindings run of wails build only reads the bound methods. In a
-	// throwaway folder, with JDownloader, Click'n'Load and the startup check off,
-	// it leaves the user's data and ports alone and ends in seconds.
-	if generatingBindings {
-		os.Setenv("KL_DATA", filepath.Join(os.TempDir(), "knightloader-bindings"))
-		os.Setenv("KL_JD", "http://127.0.0.1:0")
-		os.Setenv("KL_CNL", "0")
-		os.Setenv("KL_STARTUP_CHECK", "0")
 	}
 
 	// Must be set before app.New; the default is "container".
@@ -99,7 +84,7 @@ func main() {
 
 	// Window and tray preferences stay out of settings.Settings, which every
 	// connected browser reads and writes; see config.go.
-	tc := newTrayController(a.Hub, filepath.Join(dataDir, "desktop.json"))
+	tray := newTray(a, filepath.Join(dataDir, "desktop.json"))
 
 	// RequestExit stays nil here because the window and tray already shut
 	// down through a.Close.
@@ -114,14 +99,12 @@ func main() {
 			a.Settings.KeepAutoUpdateIn(filepath.Join(dir, machineSettingsFile))
 		}
 	}
-	up := newUpdater(log.Printf, func(version string) { tc.emit(updateReadyEvent, version) })
+	up := newUpdater(log.Printf, func(version string) { tray.emit(updateReadyEvent, version) })
 	a.UpdateReady = up.readyVersion
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
-	switch {
-	case generatingBindings:
-	case installed:
+	if installed {
 		go up.follow(updateCtx)
-	default:
+	} else {
 		go up.run(updateCtx, func() bool { return a.Settings.Get().AutoUpdate })
 	}
 
@@ -139,50 +122,55 @@ func main() {
 	})
 	awake.Start()
 
-	// Wails and systray both want the main thread on macOS and systray.Run
-	// blocks, so the tray runs in a goroutine started before wails.Run. It is
-	// not tracked by tc.spawn: onShutdown waits on that group before calling
-	// systray.Quit, which is what ends this goroutine.
-	if tc.isTrayAvailable() && !generatingBindings {
-		go runTray(tc)
-	}
-
-	// Exposed to the frontend as window.go.main.DesktopFiles for reveal in
-	// folder and open natively; see files.go.
+	// The page calls these as main.DesktopFiles, main.HubBridge and main.Tray;
+	// see web/src/lib/desktop.ts.
 	desktopFiles := newDesktopFiles(a)
-	hubBridge := newHubBridge(a, tc.emit)
+	hubBridge := newHubBridge(a, tray.emitTo)
 
-	err = wails.Run(&options.App{
+	wails := application.New(application.Options{
+		Name:        "KnightLoader",
+		Description: "Self-hosted, cross-platform download manager",
+		Icon:        appIcon,
+		Services: []application.Service{
+			application.NewService(desktopFiles),
+			application.NewService(hubBridge),
+			application.NewService(tray),
+		},
+		// The API is the whole asset server, the interface included, so the
+		// window opens no port of its own.
+		Assets: application.AssetOptions{Handler: api.Handler(a)},
+		// The close button decides alone whether the program ends; see
+		// Tray.closing.
+		Windows: application.WindowsOptions{DisableQuitOnLastWindowClosed: true},
+		Linux:   application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
+	})
+	window := wails.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name:             "main",
 		Title:            "KnightLoader",
 		Width:            1100,
 		Height:           780,
 		MinWidth:         720,
 		MinHeight:        480,
-		BackgroundColour: &options.RGBA{R: 22, G: 22, B: 22, A: 1},
-		AssetServer:      &assetserver.Options{Handler: api.Handler(a)},
-		Bind:             []interface{}{desktopFiles, hubBridge},
-		StartHidden:      tc.effectiveStartHidden(),
-		// With true, Wails v2.13.0 skips OnBeforeClose on Windows and always
-		// hides. The hooks below decide from the live preference instead, so
-		// a change in the tray menu applies without a restart.
-		HideWindowOnClose: false,
-		OnStartup:         tc.onWailsStartup,
-		OnBeforeClose:     tc.onBeforeClose,
-		OnShutdown: func(context.Context) {
-			hubBridge.stop()
-			stopUpdates()
-			up.stop()
-			tc.onShutdown()
-			a.CnL.Stop()
-			// Before a.Close, whose task list the guard reads.
-			_ = awake.Close()
-			_ = a.Close()
-			// After a.Close so the shutdown's own records reach the file.
-			// Writes are unbuffered; closing releases the Windows handle.
-			_ = logring.CloseFile()
-		},
+		BackgroundColour: application.NewRGB(22, 22, 22),
+		URL:              "/",
+		Hidden:           tray.effectiveStartHidden(),
 	})
-	if err != nil {
+	tray.attach(wails, window)
+
+	wails.OnShutdown(func() {
+		hubBridge.stop()
+		stopUpdates()
+		up.stop()
+		tray.onShutdown()
+		a.CnL.Stop()
+		// Before a.Close, whose task list the guard reads.
+		_ = awake.Close()
+		_ = a.Close()
+		// After a.Close so the shutdown's own records reach the file.
+		// Writes are unbuffered; closing releases the Windows handle.
+		_ = logring.CloseFile()
+	})
+	if err := wails.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

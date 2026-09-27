@@ -1,8 +1,8 @@
 ﻿Unicode true
 
-# Wails fills in the project's name, version and binaries in wails_tools.nsh,
-# which it writes on every -nsis build. This file is Wails' own template with a
-# page for choosing the shortcuts, installed for all users.
+# Wails writes the project's name, version and helper macros into
+# wails_tools.nsh on every build (scripts/desktop.mjs). This file is Wails'
+# own template with a page for choosing the shortcuts, installed for all users.
 
 # Under Program Files, like any other program. Nobody but an administrator may
 # write there, so a scheduled task running as the system account keeps it
@@ -20,11 +20,11 @@
 
 ${StrStr}
 
-# Wails' own name for the entry runs company and product together, and
-# wails.json leaves the company to default to the product. An installation
+# Wails' own name for the entry runs company and product together, and the
+# Wails 2 builds left the company to default to the product. An installation
 # under that name sits either under Program Files\KnightLoader\KnightLoader for
 # all users or under AppData\Local\Programs\KnightLoader for one.
-!define LEGACY_KEY_NAME "${INFO_COMPANYNAME}${INFO_PRODUCTNAME}"
+!define LEGACY_KEY_NAME "${INFO_PRODUCTNAME}${INFO_PRODUCTNAME}"
 !define LEGACY_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${LEGACY_KEY_NAME}"
 !define LEGACY_CHOICE_KEY "Software\${LEGACY_KEY_NAME}"
 

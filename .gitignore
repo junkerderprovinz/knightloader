@@ -26,22 +26,20 @@
 node_modules/
 web/node_modules/
 
-# Wails desktop build output - all ignored except appicon.png, which is the
-# actual repo asset gen-appicon.mjs writes there (Wails reads it from this
-# exact path at build time), not a build output.
+# Everything scripts/desktop.mjs has Wails generate on every build: the Windows
+# manifest, icon and version resource, the macOS Info.plist and icon, the
+# installer's helper macros and the WebView2 bootstrapper it carries, and the
+# build output. What is committed is what Wails cannot write for us: the logo
+# gen-appicon.mjs draws, the build configuration and the installer script.
 desktop/build/*
 !desktop/build/appicon.png
-# Wails writes the rest of the Windows installer on every build; the script is ours.
+!desktop/build/config.yml
 !desktop/build/windows/
 desktop/build/windows/*
-!desktop/build/windows/installer/
-desktop/build/windows/installer/*
-!desktop/build/windows/installer/project.nsi
-
-# `wails build`/`wails dev` also write generated JS bindings straight into
-# the shared web/ project - regenerated on every build, not source.
-web/wailsjs/
-web/package.json.md5
+!desktop/build/windows/nsis/
+desktop/build/windows/nsis/*
+!desktop/build/windows/nsis/project.nsi
+desktop/*.syso
 # A signing key never belongs in here. mobile/.gitignore already covers *.jks
 # for the app; this is the same rule at the root, because the one place a
 # keystore actually gets dropped by accident is next to whatever command was

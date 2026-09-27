@@ -2,7 +2,7 @@ package main
 
 // product names the installation for all users: its entry under Apps and its
 // folder under ProgramData. It is INFO_PRODUCTNAME in
-// build/windows/installer/project.nsi.
+// build/windows/nsis/project.nsi.
 var product = "KnightLoader"
 
 // machineSettingsFile holds the installed copy's Update automatically switch in
