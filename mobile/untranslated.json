@@ -23,9 +23,6 @@
       "settings.aboutGithub"
     ],
     "cs": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
@@ -33,9 +30,6 @@
       "settings.aboutGithub"
     ],
     "da": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "downloads.start",
       "downloads.stop",
       "downloads.tabDownloads",
@@ -143,9 +137,6 @@
       "settings.aboutGithub"
     ],
     "it": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "addDownload.placeholder",
       "addDownload.errorServer",
       "settings.disco",
@@ -183,9 +174,6 @@
       "settings.aboutGithub"
     ],
     "nl": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "downloads.tabDownloads",
       "addDownload.placeholder",
       "addDownload.errorServer",
@@ -209,9 +197,6 @@
       "settings.motion.storm"
     ],
     "pl": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "addDownload.placeholder",
       "settings.disco",
       "task.mode.premium",
@@ -219,9 +204,6 @@
       "settings.aboutGithub"
     ],
     "pt": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "captcha.screenTitle",
       "addDownload.placeholder",
       "settings.disco",
@@ -231,9 +213,6 @@
     ],
     "ro": [
       "downloads.queueActive",
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "addDownload.placeholder",
       "addDownload.errorServer",
       "settings.accent",
@@ -249,9 +228,6 @@
       "settings.aboutGithub"
     ],
     "sk": [
-      "overview.online",
-      "instance.offline",
-      "instance.online",
       "addDownload.placeholder",
       "addDownload.errorServer",
       "task.mode.premium",
