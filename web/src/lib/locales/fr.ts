@@ -316,6 +316,9 @@ export const fr: Dict = {
   'task.uncheckable': 'L’hébergeur n’a rien dit',
   'task.expand': 'Déplier',
   'task.collapse': 'Replier',
+  'task.torrentFile.fetch': 'Télécharger ce fichier',
+  'task.torrentFile.skip': 'Ignorer ce fichier',
+  'task.torrentFile.lastOne': 'Un torrent a besoin d’au moins un fichier. Activez-en d’abord un autre.',
 
   'search.placeholder': 'Rechercher dans cette liste…',
   'search.in': 'Rechercher dans',

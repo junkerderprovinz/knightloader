@@ -79,12 +79,16 @@ func (m *mend) missing() int64 {
 // layoutStore is the library's task store that can also hand out the
 // connection layout the library saves for an HTTP task: which range each
 // connection was given and how much of it arrived. That is the only place the
-// library says where a file's gaps are.
+// library says where a file's gaps are. For a torrent it keeps what the same
+// save carries instead, the bytes of each file (see torrentProgress).
 type layoutStore struct {
 	download.Storage
 
 	mu   sync.Mutex
 	want map[string][]byte
+	// files is the last per-file reading of every torrent watched, by the
+	// library's task id; nil until the first save.
+	files map[string][]int64
 }
 
 // savedLayoutBucket is the library's name for the bucket it saves a task's
@@ -96,6 +100,11 @@ func (s *layoutStore) Put(bucket, key string, v any) error {
 		s.mu.Lock()
 		if _, asked := s.want[key]; asked {
 			s.want[key], _ = json.Marshal(v)
+		}
+		if _, watched := s.files[key]; watched {
+			if done, ok := savedFileProgress(v); ok {
+				s.files[key] = done
+			}
 		}
 		s.mu.Unlock()
 	}

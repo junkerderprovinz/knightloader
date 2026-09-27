@@ -99,6 +99,7 @@ import {
   variantKindOf,
   PriorityTag,
   RowMarks,
+  TWISTY_STEP,
   type CellContext,
   type ColumnDef,
   type ColumnId,
@@ -111,7 +112,8 @@ import { RetrySkipBadge } from './RetryCountdown';
 import { rowState } from './StatusPill';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
-import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
+import { fileRowKey, rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
+import { TorrentFileRow, hasTorrentFiles, useTorrentFiles } from './TorrentFileRow';
 import {
   aimAt,
   carriedOffsets,
@@ -193,6 +195,13 @@ function inOrder(groups: [string, Task[]][], order: readonly string[]): [string,
   const flat = groups.flatMap(([, items]) => items);
   if (flat.length !== rank.size || flat.some((x) => !rank.has(x.id))) return null;
   return groupByPackage([...flat].sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0)));
+}
+
+/** The row key a drawn row moves under: its own, or for a torrent's file its
+ *  torrent's, whose place it keeps during a move. */
+function dragKeyOf(node: HTMLElement): string {
+  const of = node.dataset.fileOf;
+  return of !== undefined ? rowKey({ kind: 'task', id: of }) : (node.dataset.rowKey ?? '');
 }
 
 /** The drawn rows of a strip: the two window spacers and the probes carry no key. */
@@ -288,6 +297,34 @@ function Twisty({ open }: { open: boolean }) {
   );
 }
 
+/**
+ * The twisty in front of a torrent's name that shows its files under it: the
+ * package header's tree control, beside a link's name.
+ */
+function FilesTwisty({ open, onToggle, focusable }: { open: boolean; onToggle: () => void; focusable: boolean }) {
+  const { t } = useT();
+  const label = t(open ? 'task.collapse' : 'task.expand');
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onToggle}
+        tabIndex={focusable ? 0 : -1}
+        aria-expanded={open}
+        aria-label={label}
+        {...hover}
+        className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)] text-carbon-textSub
+          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+      >
+        <Twisty open={open} />
+      </button>
+      {tip.node}
+    </>
+  );
+}
+
 function TaskRow({
   task,
   base,
@@ -302,6 +339,7 @@ function TaskRow({
   level,
   posinset,
   setsize,
+  files,
 }: {
   task: Task;
   base: string;
@@ -328,6 +366,9 @@ function TaskRow({
   level: number;
   posinset: number;
   setsize: number;
+  /** A torrent with files to show under it: whether they are shown, and the
+   *  twisty that shows and hides them. Absent for every other row. */
+  files?: { open: boolean; onToggle: () => void };
 }) {
   const { t } = useT();
   const collected = task.status === 'collected';
@@ -359,6 +400,7 @@ function TaskRow({
       // Roving tabindex: one row is the tab stop, not five thousand.
       tabIndex={current ? 0 : -1}
       aria-selected={selection ? selection.ids.has(task.id) : undefined}
+      aria-expanded={files ? files.open : undefined}
       aria-level={level}
       aria-posinset={posinset}
       aria-setsize={setsize}
@@ -417,7 +459,14 @@ function TaskRow({
             // furniture (see columns.tsx), so a link's name starts where its
             // package's name starts. A smaller value starts it before the
             // package's, which reads as the tree upside down.
-            style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT}px` } : undefined}
+            //
+            // An open-able torrent hangs its twisty in front of its name, so the
+            // name still starts where every other link's does.
+            style={
+              col.id === 'name'
+                ? { paddingInlineStart: `${files ? TREE_INDENT - TWISTY_STEP : TREE_INDENT}px` }
+                : undefined
+            }
             // text-xs is the scale's dense row, which is what a table cell takes.
             className={`min-w-0 truncate text-xs text-carbon-textSub ${
               col.id === 'name' ? 'pe-2' : 'px-2'
@@ -429,7 +478,20 @@ function TaskRow({
                 bubble, so a name too long for its width is readable without
                 widening the column first. Never a native `title` and the
                 operating system's balloon beside it; see columns.tsx's Tip. */}
-            {typeof node === 'string' ? (
+            {col.id === 'name' && files ? (
+              <div className="flex min-w-0 items-center gap-1.5">
+                <FilesTwisty open={files.open} onToggle={files.onToggle} focusable={current} />
+                <div className="min-w-0 flex-1">
+                  {typeof node === 'string' ? (
+                    <Tip tip={node} className="block truncate">
+                      {node}
+                    </Tip>
+                  ) : (
+                    node
+                  )}
+                </div>
+              </div>
+            ) : typeof node === 'string' ? (
               <Tip tip={node} className="block truncate">
                 {node}
               </Tip>
@@ -1056,6 +1118,8 @@ interface Gesture {
  *  not a row (the two window spacers, the keyboard's own probe). */
 function unitOfRow(el: HTMLElement): RowDragKey | null {
   if (el.dataset.taskId !== undefined) return { kind: 'task', id: el.dataset.taskId };
+  // A torrent's file is no unit of its own; a sweep over it is over the torrent.
+  if (el.dataset.fileOf !== undefined) return { kind: 'task', id: el.dataset.fileOf };
   if (el.dataset.packageRow !== undefined) return { kind: 'package', name: el.dataset.packageRow };
   return null;
 }
@@ -1632,6 +1696,10 @@ export function TaskListCard({
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
   const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
+  // The torrents whose files are shown under their row, by task id. Kept like
+  // the folded packages, and trimmed to the tasks on the list at every write.
+  const [storedOpen, setStoredOpen] = useUIState<string[]>(`list.openTorrents.${profile}`, NO_COLLAPSED);
+  const openTorrents = useMemo(() => new Set(storedOpen), [storedOpen]);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   // The properties panel's visibility, kept apart from the selection: a single
   // click, a Ctrl-click and a Shift-range select without opening the panel, and
@@ -1677,8 +1745,21 @@ export function TaskListCard({
     [sorted, sort, pending],
   );
 
+  // Every task on screen, flattened out of the package groups in display order:
+  // the same tasks `chosen` reads off `view` below rather than the raw `groups`
+  // prop, so a drag position always matches what is drawn.
+  const flatTasks = useMemo(() => view.flatMap(([, items]) => items), [view]);
+  const taskById = useMemo(() => new Map(flatTasks.map((x) => [x.id, x] as const)), [flatTasks]);
+
+  const { lists: fileLists, put: putFiles } = useTorrentFiles(openTorrents, taskById, base);
+  function showFiles(id: string, show: boolean): void {
+    const next = [...openTorrents].filter((x) => x !== id && taskById.has(x));
+    setStoredOpen(show ? [...next, id] : next);
+  }
+
   // The table, flattened: every folder header and, while that folder is open,
-  // its own links, in the order they are drawn. Everything downstream reads
+  // its own links, and under an open torrent its files, in the order they are
+  // drawn. Everything downstream reads
   // this rather than walking the packages again, so the window, the Shift-range
   // and the rows on screen cannot describe three different lists. See ListRow.
   const rows = useMemo<ListRow[]>(() => {
@@ -1704,21 +1785,35 @@ export function TaskListCard({
         setsize: packages,
       });
       if (!folded) {
-        items.forEach((x, i) =>
+        items.forEach((x, i) => {
+          const index = hue++;
           out.push({
             kind: 'task',
             key: rowKey({ kind: 'task', id: x.id }),
             task: x,
-            index: hue++,
+            index,
             level: 2,
             posinset: i + 1,
             setsize: items.length,
-          }),
-        );
+          });
+          const files = openTorrents.has(x.id) && hasTorrentFiles(x) ? fileLists.get(x.id) : undefined;
+          files?.forEach((file, at) =>
+            out.push({
+              kind: 'file',
+              key: fileRowKey(x.id, at),
+              task: x,
+              file,
+              index,
+              level: 3,
+              posinset: at + 1,
+              setsize: files.length,
+            }),
+          );
+        });
       }
     }
     return out;
-  }, [view, collapsed]);
+  }, [view, collapsed, openTorrents, fileLists]);
 
   // selectableOrder is the flat, on-screen order a Shift-click's range walks:
   // `rows` above with each entry's own ids attached. A collapsed package
@@ -1728,12 +1823,16 @@ export function TaskListCard({
   // Every row the list holds, never only the ones the window has drawn: a range
   // that stopped at the edge of the viewport would select a different set
   // depending on how far somebody had scrolled.
+  //
+  // A torrent's files are not in it: nothing selects a file.
   const selectableOrder = useMemo(
     () =>
-      rows.map((r) =>
-        r.kind === 'package'
-          ? { kind: 'package' as const, key: r.name, ids: r.items.map((x) => x.id) }
-          : { kind: 'task' as const, key: r.task.id, ids: [r.task.id] },
+      rows.flatMap((r): { kind: 'task' | 'package'; key: string; ids: string[] }[] =>
+        r.kind === 'file'
+          ? []
+          : r.kind === 'package'
+            ? [{ kind: 'package', key: r.name, ids: r.items.map((x) => x.id) }]
+            : [{ kind: 'task', key: r.task.id, ids: [r.task.id] }],
       ),
     [rows],
   );
@@ -1875,7 +1974,16 @@ export function TaskListCard({
     // Layout offsets and not client boxes, which would count a landing slide
     // still in flight. The strip is every row's offsetParent.
     const slots: RowSlot[] = [];
-    root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
+    root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row],[data-file-of]').forEach((el) => {
+      // An open torrent's files are part of its box: they travel with it and
+      // make room with it.
+      if (el.dataset.fileOf !== undefined) {
+        const last = slots[slots.length - 1];
+        if (last?.unit.kind === 'task' && last.unit.id === el.dataset.fileOf) {
+          last.bottom = el.offsetTop + el.offsetHeight;
+        }
+        return;
+      }
       const unit = unitOfRow(el);
       if (!unit) return;
       slots.push({ unit, top: el.offsetTop, bottom: el.offsetTop + el.offsetHeight });
@@ -1888,12 +1996,6 @@ export function TaskListCard({
     const root = stripRef.current;
     return root ? clientY - root.getBoundingClientRect().top : clientY;
   }
-
-  // Every task on screen, flattened out of the package groups in display order:
-  // the same tasks `chosen` reads off `view` above rather than the raw `groups`
-  // prop, so a drag position always matches what is drawn.
-  const flatTasks = useMemo(() => view.flatMap(([, items]) => items), [view]);
-  const taskById = useMemo(() => new Map(flatTasks.map((x) => [x.id, x] as const)), [flatTasks]);
 
   // A band mirrors the reorder endpoint's own grouping: same priority and same
   // forced flag. Each band's ids, in the order they are drawn, is what POST
@@ -1959,10 +2061,12 @@ export function TaskListCard({
   // its own movable links, so one holding a finished file still travels whole.
   const blockRows = useMemo<BlockRow[]>(
     () =>
-      rows.map((r) =>
-        r.kind === 'package'
-          ? { unit: { kind: 'package', name: r.name }, ids: r.items.filter(movable).map((x) => x.id) }
-          : { unit: { kind: 'task', id: r.task.id }, ids: [r.task.id] },
+      rows.flatMap((r): BlockRow[] =>
+        r.kind === 'file'
+          ? []
+          : r.kind === 'package'
+            ? [{ unit: { kind: 'package', name: r.name }, ids: r.items.filter(movable).map((x) => x.id) }]
+            : [{ unit: { kind: 'task', id: r.task.id }, ids: [r.task.id] }],
       ),
     // movable is a pure helper over its own argument, so rows is the only input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2315,7 +2419,7 @@ export function TaskListCard({
       rowKey,
     );
     for (const node of drawnRows(strip)) {
-      const dy = at.get(node.dataset.rowKey ?? '');
+      const dy = at.get(dragKeyOf(node));
       if (dy === undefined || !node.classList.contains(LIFT)) continue;
       if (!g.scale) g.scale = liftScale(node);
       node.style.scale = String(g.scale);
@@ -2641,7 +2745,7 @@ export function TaskListCard({
       for (const node of moved) node.style.transition = '';
     }
     for (const node of nodes) {
-      const carried = settle.has(node.dataset.rowKey ?? '');
+      const carried = settle.has(dragKeyOf(node));
       if (carried) node.style.scale = '';
       if (carried || from) node.style.translate = '0px 0px';
     }
@@ -2914,6 +3018,17 @@ export function TaskListCard({
       setPropertiesAutoFocus(true);
       setPropertiesOpen(true);
     },
+    files: {
+      has: hasTorrentFiles,
+      open: openTorrents,
+      show: (id) => showFiles(id, true),
+      hide: (id) => showFiles(id, false),
+      // Through the row's own switch, so a key and a click refuse alike.
+      flip: (row) =>
+        stripRef.current
+          ?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(row.key)}"] [role="switch"]`)
+          ?.click(),
+    },
     enabled: rows.length > 0,
   });
 
@@ -3134,7 +3249,21 @@ export function TaskListCard({
                 )}
                 {win.padTop > 0 && <div aria-hidden style={{ height: win.padTop }} />}
                 {rows.slice(win.start, win.end).map((row) =>
-                  row.kind === 'package' ? (
+                  row.kind === 'file' ? (
+                    <TorrentFileRow
+                      key={row.key}
+                      row={row}
+                      siblings={fileLists.get(row.task.id) ?? []}
+                      base={base}
+                      ctx={ctx}
+                      columns={layout.visible}
+                      current={keys.currentKey === row.key}
+                      onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
+                      onChanged={(files) => putFiles(row.task.id, files)}
+                      look={dnd.look({ kind: 'task', id: row.task.id })}
+                      slide={dnd.slide({ kind: 'task', id: row.task.id })}
+                    />
+                  ) : row.kind === 'package' ? (
                     <PackageRow
                       key={row.key}
                       name={row.name}
@@ -3170,6 +3299,14 @@ export function TaskListCard({
                       level={row.level}
                       posinset={row.posinset}
                       setsize={row.setsize}
+                      files={
+                        hasTorrentFiles(row.task)
+                          ? {
+                              open: openTorrents.has(row.task.id),
+                              onToggle: () => showFiles(row.task.id, !openTorrents.has(row.task.id)),
+                            }
+                          : undefined
+                      }
                       current={keys.currentKey === row.key}
                       onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
                       onOpenProperties={() => {

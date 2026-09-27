@@ -324,6 +324,9 @@ export const gl: Dict = {
   'task.uncheckable': 'O servidor non respondeu',
   'task.expand': 'Despregar',
   'task.collapse': 'Pregar',
+  'task.torrentFile.fetch': 'Descargar este ficheiro',
+  'task.torrentFile.skip': 'Omitir este ficheiro',
+  'task.torrentFile.lastOne': 'Un torrent precisa polo menos un ficheiro. Activa outro primeiro.',
 
   'search.placeholder': 'Buscar nesta lista…',
   'search.in': 'Buscar en',

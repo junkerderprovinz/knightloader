@@ -54,6 +54,13 @@ type Engine struct {
 	// cannot both find it free.
 	rootMu sync.Mutex
 	roots  map[string]torrentRoot
+	// picks is the file count and selection of every torrent handed to the
+	// library, and pendingPicks a selection made while its torrent was still
+	// resolving, both by KL task id (see torrent_files.go). pickMu keeps two
+	// changes to one selection from crossing inside the library.
+	picks        map[string]torrentPick
+	pendingPicks map[string][]int
+	pickMu       sync.Mutex
 
 	onUpdate func(taskID string, u core.Update)
 
@@ -114,7 +121,7 @@ var newDownloaderMu sync.Mutex
 // New boots an embedded Gopeed downloader that saves into dir and reports
 // per-task changes through onUpdate.
 func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
-	layouts := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}}
+	layouts := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}}
 	cfg := (&download.DownloaderConfig{
 		RefreshInterval: 500, // ms between progress events
 		Storage:         layouts,
@@ -151,6 +158,8 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		mends:        map[string]*mend{},
 		layouts:      layouts,
 		roots:        map[string]torrentRoot{},
+		picks:        map[string]torrentPick{},
+		pendingPicks: map[string][]int{},
 		seeds:        map[string]*seedRun{},
 		onUpdate:     onUpdate,
 		done:         make(chan struct{}),
@@ -617,16 +626,29 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	delete(e.files, gid)
 	delete(e.jobs, taskID)
 	delete(e.seeds, taskID)
+	pick := e.picks[taskID]
+	delete(e.picks, taskID)
+	delete(e.pendingPicks, taskID)
 	e.mu.Unlock()
+	e.layouts.unwatchFiles(gid)
 	root, isTorrent := e.takeRoot(taskID)
+	finished := false
 	switch {
 	case isTorrent && gid != "":
+		if t := e.d.GetTask(gid); t != nil {
+			finished = t.Status == base.DownloadStatusDone
+		}
 		e.dropTorrent(gid)
 	case gid != "":
 		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, deleteFiles)
 	}
-	if isTorrent && deleteFiles {
+	switch {
+	case isTorrent && deleteFiles:
 		root.remove()
+	case finished:
+		// The library has let go of the files, so what a seeding torrent
+		// held open can be deleted (see dropUnpicked).
+		removeUnpicked(root, pick, true)
 	}
 }
 
@@ -728,6 +750,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 			if s, _, ok := e.readTorrentStats(ev.Task.ID); ok {
 				u.Torrent = &s
 			}
+			e.dropUnpicked(taskID, false)
 		}
 		e.emit(taskID, u)
 	case download.EventKeyError:

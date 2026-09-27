@@ -324,6 +324,9 @@ export const hu: Dict = {
   'task.uncheckable': 'A tárhely nem válaszolt',
   'task.expand': 'Kibont',
   'task.collapse': 'Összecsuk',
+  'task.torrentFile.fetch': 'Fájl letöltése',
+  'task.torrentFile.skip': 'Fájl kihagyása',
+  'task.torrentFile.lastOne': 'Egy torrentben legalább egy fájlnak maradnia kell. Előbb kapcsolj be egy másikat.',
 
   'search.placeholder': 'Keresés ebben a listában…',
   'search.in': 'Keresés ebben',

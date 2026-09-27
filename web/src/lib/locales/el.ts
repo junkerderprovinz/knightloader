@@ -324,6 +324,9 @@ export const el: Dict = {
   'task.uncheckable': 'Ο πάροχος δεν απάντησε',
   'task.expand': 'Ανάπτυξη',
   'task.collapse': 'Σύμπτυξη',
+  'task.torrentFile.fetch': 'Λήψη αυτού του αρχείου',
+  'task.torrentFile.skip': 'Παράλειψη αυτού του αρχείου',
+  'task.torrentFile.lastOne': 'Ένα torrent χρειάζεται τουλάχιστον ένα αρχείο. Ενεργοποίησε πρώτα κάποιο άλλο.',
 
   'search.placeholder': 'Αναζήτηση σε αυτή τη λίστα…',
   'search.in': 'Αναζήτηση σε',

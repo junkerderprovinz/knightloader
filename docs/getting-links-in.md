@@ -50,6 +50,16 @@ fetched. A category can have a file selection of its own instead, for example
 a music category where the small files are the album. It applies to every
 torrent filed there, whether you picked the category or a Packagizer rule did.
 
+**A torrent's files** can be changed after it was added. Once its file list is
+known, the torrent's row in the collector and in Downloads opens with the small
+triangle in front of its name, the way a package does. Each file then gets a
+row of its own with its path inside the torrent, its size, how much of it is
+here and a switch. Switching a file on or off while the torrent downloads
+changes what it fetches straight away, and nothing already downloaded is
+fetched again. At least one file stays on. A magnet shows its files once the
+swarm has sent the list, and a finished torrent shows them without switches.
+The phone app lists them inside the torrent's card.
+
 **Where a torrent lands**: one with several files gets a folder named after
 it, and a single file goes straight into the download's folder. If that name
 is already taken there, by a folder, a file or another torrent that is just

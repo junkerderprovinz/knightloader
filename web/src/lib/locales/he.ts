@@ -326,6 +326,9 @@ export const he: Dict = {
   'task.uncheckable': 'המארח לא ענה',
   'task.expand': 'פרוס',
   'task.collapse': 'כווץ',
+  'task.torrentFile.fetch': 'הורד את הקובץ הזה',
+  'task.torrentFile.skip': 'דלג על הקובץ הזה',
+  'task.torrentFile.lastOne': 'טורנט צריך לפחות קובץ אחד. הפעל קודם קובץ אחר.',
 
   'search.placeholder': 'חפש ברשימה הזאת…',
   'search.in': 'חפש בשדה',

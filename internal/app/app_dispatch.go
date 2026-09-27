@@ -1267,6 +1267,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.MagnetFiles != nil {
 		t.MagnetFiles = u.MagnetFiles
 	}
+	// The list the client resolved is taken when the task has none, and only
+	// then: a selection somebody changed while it started is the newer one.
+	filesKnown := len(u.TorrentFiles) > 0 && len(t.TorrentFiles) == 0
+	if filesKnown {
+		t.TorrentFiles = u.TorrentFiles
+		t.TorrentFileCount = len(u.TorrentFiles)
+	}
 	if u.Status != "" && !stale {
 		t.Status = u.Status
 	}
@@ -1521,9 +1528,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
-	// on every poll. A debrid job is saved with or without one, and so is the
-	// end of seeding.
-	if u.Status != "" || u.Job != nil || seedingEnded {
+	// on every poll. A debrid job is saved with or without one, and so are the
+	// end of seeding and a torrent's file list.
+	if u.Status != "" || u.Job != nil || seedingEnded || filesKnown {
 		a.publish(&c)
 	} else {
 		a.show(&c)

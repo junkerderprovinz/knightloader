@@ -137,10 +137,13 @@ export function GlimToggle({
   value,
   onChange,
   hue,
+  label,
 }: {
   value: boolean;
   onChange: (v: boolean) => void;
   hue?: number;
+  /** What pressing it does, for a switch with no caption beside it. */
+  label?: string;
 }) {
   const { c, accent, corners, hueAt } = useAppearance();
   const on = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
@@ -148,6 +151,7 @@ export function GlimToggle({
     <TouchableOpacity
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
+      accessibilityLabel={label}
       onPress={() => onChange(!value)}
       style={[styles.track, { ...corners.pill, backgroundColor: value ? on : c.surface3 }]}
     >

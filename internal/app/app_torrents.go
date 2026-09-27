@@ -80,6 +80,7 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 		t.Size = torrentSize(md, shown)
 		t.InfoHash = md.InfoHash
 		t.Trackers = md.Trackers
+		t.TorrentFileCount = len(md.Files)
 	}
 
 	cand.Filename, cand.Filesize = filename(t), t.Size

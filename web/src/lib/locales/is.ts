@@ -324,6 +324,9 @@ export const is: Dict = {
   'task.uncheckable': 'Hýsillinn svaraði ekki',
   'task.expand': 'Fletta út',
   'task.collapse': 'Fella saman',
+  'task.torrentFile.fetch': 'Sækja þessa skrá',
+  'task.torrentFile.skip': 'Sleppa þessari skrá',
+  'task.torrentFile.lastOne': 'Torrent þarf að minnsta kosti eina skrá. Kveiktu fyrst á annarri.',
 
   'search.placeholder': 'Leita í þessum lista…',
   'search.in': 'Leita í',

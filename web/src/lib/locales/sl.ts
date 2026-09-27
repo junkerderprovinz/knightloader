@@ -324,6 +324,9 @@ export const sl: Dict = {
   'task.uncheckable': 'Gostitelj ni odgovoril',
   'task.expand': 'Razširi',
   'task.collapse': 'Strni',
+  'task.torrentFile.fetch': 'Prenesi to datoteko',
+  'task.torrentFile.skip': 'Preskoči to datoteko',
+  'task.torrentFile.lastOne': 'Torrent potrebuje vsaj eno datoteko. Najprej vklopi drugo.',
 
   'search.placeholder': 'Išči po tem seznamu…',
   'search.in': 'Išči v',

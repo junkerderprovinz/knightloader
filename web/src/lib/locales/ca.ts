@@ -324,6 +324,9 @@ export const ca: Dict = {
   'task.uncheckable': "L'amfitrió no ha contestat",
   'task.expand': 'Desplega',
   'task.collapse': 'Plega',
+  'task.torrentFile.fetch': 'Baixa aquest fitxer',
+  'task.torrentFile.skip': 'Omet aquest fitxer',
+  'task.torrentFile.lastOne': 'Un torrent necessita almenys un fitxer. Primer activa’n un altre.',
 
   'search.placeholder': 'Cerca en aquesta llista…',
   'search.in': 'Cerca a',

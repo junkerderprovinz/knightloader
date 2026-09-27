@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 )
 
 func registerTasks(reg *Registry, a *app.App) {
@@ -175,6 +176,30 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.Resume(r.PathValue("id"))
 			w.WriteHeader(http.StatusNoContent)
 		})
+	reg.Add(http.MethodGet, "/api/tasks/{id}/torrent-files", "the files of one torrent task, which of them it fetches and how many bytes of each are here; empty for a magnet whose file list has not arrived",
+		func(w http.ResponseWriter, r *http.Request) {
+			files, err := a.TorrentFiles(r.PathValue("id"))
+			if err != nil {
+				writeTorrentFilesRefusal(w, err)
+				return
+			}
+			writeJSON(w, files)
+		})
+	reg.Add(http.MethodPost, "/api/tasks/{id}/torrent-files", "choose which files of one torrent task are fetched, by their paths inside the torrent; a running torrent carries on with the new choice and keeps what it has",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				SelectedPaths []string `json:"selectedPaths"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			files, err := a.SelectTorrentFiles(r.PathValue("id"), body.SelectedPaths)
+			if err != nil {
+				writeTorrentFilesRefusal(w, err)
+				return
+			}
+			writeJSON(w, files)
+		})
 	reg.Add(http.MethodDelete, "/api/tasks/{id}", "remove one task; ?files=1 also deletes what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Through the bulk path, which takes along the set-aside rows of a
@@ -182,6 +207,21 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.RemoveTasks([]string{r.PathValue("id")}, r.URL.Query().Get("files") == "1")
 			w.WriteHeader(http.StatusNoContent)
 		})
+}
+
+// writeTorrentFilesRefusal answers a refused look at or change to a torrent's
+// files with the status that says whose problem it is.
+func writeTorrentFilesRefusal(w http.ResponseWriter, err error) {
+	status := http.StatusInternalServerError
+	switch {
+	case errors.Is(err, app.ErrNoTorrent):
+		status = http.StatusNotFound
+	case errors.Is(err, app.ErrTorrentFilesUnknown), errors.Is(err, engine.ErrTorrentFinished):
+		status = http.StatusConflict
+	case errors.Is(err, app.ErrNoFileSelected):
+		status = http.StatusBadRequest
+	}
+	http.Error(w, err.Error(), status)
 }
 
 // writeTaskRefusal answers a refused rename with its code and the name it is

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -55,6 +56,7 @@ func torrentsServer(t *testing.T) (*app.App, *httptest.Server) {
 	a := testApp(t)
 	reg := newRegistry()
 	registerTorrents(reg, a)
+	registerTasks(reg, a)
 	mux := http.NewServeMux()
 	reg.attach(mux, http.NotFoundHandler())
 	srv := httptest.NewServer(mux)
@@ -208,6 +210,7 @@ func TestStageTorrentAppliesTheSelection(t *testing.T) {
 	if err := json.Unmarshal(respBody, &task); err != nil {
 		t.Fatalf("decoding the staged task: %v (%s)", err, respBody)
 	}
+	task = stagedTask(t, a, task.ID)
 	if task.ID == "" {
 		t.Fatal("no task id in the stage response")
 	}
@@ -238,7 +241,7 @@ func TestStageTorrentAppliesTheSelection(t *testing.T) {
 // list comes from the server's own re-parse.
 func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 	t.Parallel()
-	_, srv := torrentsServer(t)
+	a, srv := torrentsServer(t)
 	data := testMultiFileTorrent(t, "Pack2", []metainfo.FileInfo{{Length: 10, Path: []string{"real.bin"}}})
 	code, body := postMultipartFile(t, srv.URL+"/api/torrents/parse", "file", "pack2.torrent", data)
 	if code != http.StatusOK {
@@ -267,6 +270,7 @@ func TestStageTorrentIgnoresAPathThatIsNotReallyInTheTorrent(t *testing.T) {
 	if err := json.Unmarshal(respBody, &task); err != nil {
 		t.Fatal(err)
 	}
+	task = stagedTask(t, a, task.ID)
 	if len(task.TorrentFiles) != 1 {
 		t.Fatalf("torrent files = %+v, want exactly the one real file; fabricated paths must not appear", task.TorrentFiles)
 	}
@@ -382,7 +386,7 @@ func parseAndStage(t *testing.T, a *app.App, srv string, selected []string) (tor
 	if err := json.Unmarshal(respBody, &task); err != nil {
 		t.Fatal(err)
 	}
-	return tree, task
+	return tree, stagedTask(t, a, task.ID)
 }
 
 func chosen(files []core.TorrentFile) []string {
@@ -453,4 +457,66 @@ func TestTheTrackerListRouteReportsTheListTheSettingsName(t *testing.T) {
 	if st.URL != "http://127.0.0.1:1/best.txt" || st.Trackers != 0 {
 		t.Fatalf("status = %+v, want the saved address and no trackers", st)
 	}
+}
+
+// stagedTask is the task as the app holds it. The file selection is not sent
+// with a task, so the stage answer does not carry it.
+func stagedTask(t *testing.T, a *app.App, id string) core.Task {
+	t.Helper()
+	for _, x := range a.Tasks() {
+		if x.ID == id {
+			return *x
+		}
+	}
+	t.Fatalf("task %s is not in the list", id)
+	return core.Task{}
+}
+
+func TestATorrentsFilesAreAskedForAndChosenByTheirOwnRoute(t *testing.T) {
+	t.Parallel()
+	a, srv := torrentsServer(t)
+	_, task := parseAndStage(t, a, srv.URL, nil)
+	route := srv.URL + "/api/tasks/" + task.ID + "/torrent-files"
+
+	var files []app.TorrentFileView
+	if code := getJSON(t, route, &files); code != http.StatusOK {
+		t.Fatalf("GET = %d", code)
+	}
+	if len(files) != 3 || !slices.Equal(chosenViews(files), []string{"movie.mkv"}) {
+		t.Fatalf("GET = %+v, want the three files with what the rules keep selected", files)
+	}
+
+	code, body := postJSON(t, http.MethodPost, route, map[string]any{"selectedPaths": []string{"movie.mkv", "movie.nfo"}})
+	if code != http.StatusOK {
+		t.Fatalf("POST = %d: %s", code, body)
+	}
+	if err := json.Unmarshal(body, &files); err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(chosenViews(files), []string{"movie.mkv", "movie.nfo"}) {
+		t.Errorf("POST answered %+v, want the new selection", files)
+	}
+	if code, _ := postJSON(t, http.MethodPost, route, map[string]any{"selectedPaths": []string{}}); code != http.StatusBadRequest {
+		t.Errorf("POST with nothing selected = %d, want 400", code)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/nope/torrent-files", map[string]any{"selectedPaths": []string{"a"}}); code != http.StatusNotFound {
+		t.Errorf("POST for an unknown task = %d, want 404", code)
+	}
+
+	// The list stays off the task itself, which only says how long it is.
+	var raw []map[string]any
+	getJSON(t, srv.URL+"/api/tasks", &raw)
+	if len(raw) != 1 || raw[0]["torrentFileCount"] != float64(3) || raw[0]["torrentFiles"] != nil {
+		t.Errorf("GET /api/tasks = %v, want a file count and no file list", raw)
+	}
+}
+
+func chosenViews(files []app.TorrentFileView) []string {
+	var out []string
+	for _, f := range files {
+		if f.Selected {
+			out = append(out, f.Path)
+		}
+	}
+	return out
 }

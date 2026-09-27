@@ -110,6 +110,9 @@ const CELL_PAD = 8;
 const TWISTY_BOX = 24;
 /** `gap-1.5` between twisty, folder and name. */
 const TREE_GAP = 6;
+/** A tree control and the gap after it: how far an open torrent's twisty
+ *  hangs in front of its name, and how much deeper its files are indented. */
+export const TWISTY_STEP = TWISTY_BOX + TREE_GAP;
 /** The package glyph. Exported so the row that draws it uses this very number. */
 export const FOLDER_GLYPH = 16;
 
@@ -323,10 +326,6 @@ export function EnabledSwitch({
   // Both halves of GlimStone's failure feedback: the toast carries the
   // sentence, and this counter makes the switch itself say that it refused.
   const [shake, setShake] = useState(0);
-  const shakeRef = useShake<HTMLButtonElement>(shake);
-  const label = t(on ? 'task.disable' : 'task.enable');
-  const tip = useTooltip<HTMLButtonElement>(label);
-  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
 
   async function flip() {
     if (busy || ids.length === 0) return;
@@ -342,6 +341,34 @@ export function EnabledSwitch({
       setBusy(false);
     }
   }
+
+  return <RowSwitch on={on} label={t(on ? 'task.disable' : 'task.enable')} busy={busy} shake={shake} onFlip={flip} />;
+}
+
+/**
+ * RowSwitch is the on/off switch a list row carries, drawn once for a link's
+ * Enabled switch and for a torrent file's. `label` says what pressing it does,
+ * and every step of `shake` is a refusal, which shakes it in place.
+ */
+export function RowSwitch({
+  on,
+  label,
+  busy,
+  shake,
+  onFlip,
+  tabIndex,
+}: {
+  on: boolean;
+  label: string;
+  busy: boolean;
+  shake: number;
+  onFlip: () => void;
+  /** Whether this is the roving tab stop, where the row keeps one. */
+  tabIndex?: number;
+}) {
+  const shakeRef = useShake<HTMLButtonElement>(shake);
+  const tip = useTooltip<HTMLButtonElement>(label);
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
 
   // The switch is not the accent when it is on. Every row is enabled by
   // default, so an accent-filled pill per row spends the one colour that means
@@ -360,13 +387,14 @@ export function EnabledSwitch({
         role="switch"
         aria-checked={on}
         aria-label={label}
+        tabIndex={tabIndex}
         {...hover}
         ref={(el) => {
           shakeRef.current = el;
           hover.ref.current = el;
         }}
         disabled={busy}
-        onClick={flip}
+        onClick={onFlip}
         className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
           on ? 'bg-carbon-surface3' : 'bg-carbon-surface2'
         }`}
@@ -860,7 +888,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   );
 }
 
-function ProgressCell({
+export function ProgressCell({
   loaded,
   size,
   done,

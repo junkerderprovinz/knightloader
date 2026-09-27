@@ -324,6 +324,9 @@ export const da: Dict = {
   'task.uncheckable': 'Værten svarede ikke',
   'task.expand': 'Fold ud',
   'task.collapse': 'Fold sammen',
+  'task.torrentFile.fetch': 'Hent denne fil',
+  'task.torrentFile.skip': 'Spring denne fil over',
+  'task.torrentFile.lastOne': 'En torrent skal have mindst én fil. Slå en anden til først.',
 
   'search.placeholder': 'Søg i denne liste…',
   'search.in': 'Søg i',

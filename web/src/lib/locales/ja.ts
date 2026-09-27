@@ -324,6 +324,9 @@ export const ja: Dict = {
   'task.uncheckable': 'ホストが答えませんでした',
   'task.expand': '展開',
   'task.collapse': '折りたたむ',
+  'task.torrentFile.fetch': 'このファイルをダウンロード',
+  'task.torrentFile.skip': 'このファイルをスキップ',
+  'task.torrentFile.lastOne': 'トレントには少なくとも1つのファイルが必要です。先に別のファイルをオンにしてください。',
 
   'search.placeholder': 'このリストを検索…',
   'search.in': '検索対象',

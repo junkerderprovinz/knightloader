@@ -326,6 +326,9 @@ export const ar: Dict = {
   'task.uncheckable': 'المستضيف لم يجب',
   'task.expand': 'توسيع',
   'task.collapse': 'طي',
+  'task.torrentFile.fetch': 'تنزيل هذا الملف',
+  'task.torrentFile.skip': 'تخطي هذا الملف',
+  'task.torrentFile.lastOne': 'يحتاج التورنت إلى ملف واحد على الأقل. شغّل ملفًا آخر أولًا.',
 
   'search.placeholder': 'ابحث في هذه القائمة…',
   'search.in': 'ابحث في',

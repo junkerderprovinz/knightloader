@@ -316,6 +316,9 @@ export const pl: Dict = {
   'task.uncheckable': 'Hoster nie odpowiedział',
   'task.expand': 'Rozwiń',
   'task.collapse': 'Zwiń',
+  'task.torrentFile.fetch': 'Pobierz ten plik',
+  'task.torrentFile.skip': 'Pomiń ten plik',
+  'task.torrentFile.lastOne': 'Torrent potrzebuje co najmniej jednego pliku. Najpierw włącz inny.',
 
   'search.placeholder': 'Szukaj na tej liście…',
   'search.in': 'Szukaj w',

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
@@ -11,7 +11,15 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
-import { deleteTasks, errorText, reorderTasks, setTasksEnabled, startTasks } from '../api/client';
+import {
+  deleteTasks,
+  errorText,
+  fetchTorrentFiles,
+  reorderTasks,
+  selectTorrentFiles,
+  setTasksEnabled,
+  startTasks,
+} from '../api/client';
 import { Text } from '../components/Text';
 import { Arrive } from '../components/Moving';
 import { usePress } from '../theme/MotionContext';
@@ -56,6 +64,7 @@ export default function DownloadsScreen({
    *  swallowed, the same line the overview carries: a control that reports
    *  nothing cannot be told apart from one that does nothing. */
   const [startError, setStartError] = useState('');
+  const loadFiles = useCallback((task: Task) => fetchTorrentFiles(conn, task.id, base), [conn, base]);
   // Which half of the instance is on screen. The two are one task list with one
   // status telling them apart, since "collected" means staged and not started,
   // so this is a filter over what already streams rather than a second request.
@@ -317,6 +326,21 @@ export default function DownloadsScreen({
               }
             : undefined
         }
+        onLoadFiles={loadFiles}
+        onSelectFiles={async (task, paths) => {
+          setStartError('');
+          // A torrent with no file left would be read as all of them.
+          if (paths.length === 0) {
+            setStartError(t('torrent.lastFile'));
+            return null;
+          }
+          try {
+            return await selectTorrentFiles(conn, task.id, paths, base);
+          } catch (e) {
+            setStartError(errorText(t, e));
+            return null;
+          }
+        }}
         onSetEnabled={async (links, enabled) => {
           setStartError('');
           try {

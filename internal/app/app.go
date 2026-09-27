@@ -375,6 +375,9 @@ type App struct {
 	// trackerListState is the public tracker list (app_torrentrules.go), the
 	// same way.
 	trackerListState
+	// torrentPickState orders changes to a torrent's files
+	// (app_torrentselect.go), the same way.
+	torrentPickState
 	// mediaToolsState describes yt-dlp and ffmpeg on this machine
 	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
@@ -579,6 +582,7 @@ func New(dataDir string) (*App, error) {
 		if enqueue {
 			requeue = append(requeue, t.ID)
 		}
+		countTorrentFiles(t)
 		a.tasks[t.ID] = t
 		a.restoreServiceJob(t)
 		// Only live tasks are filed: pasting a finished or failed download again

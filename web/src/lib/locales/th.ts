@@ -324,6 +324,9 @@ export const th: Dict = {
   'task.uncheckable': 'โฮสต์ไม่ตอบ',
   'task.expand': 'กางออก',
   'task.collapse': 'ยุบ',
+  'task.torrentFile.fetch': 'ดาวน์โหลดไฟล์นี้',
+  'task.torrentFile.skip': 'ข้ามไฟล์นี้',
+  'task.torrentFile.lastOne': 'ทอร์เรนต์ต้องมีอย่างน้อยหนึ่งไฟล์ เปิดไฟล์อื่นก่อน',
 
   'search.placeholder': 'ค้นในรายการนี้…',
   'search.in': 'ค้นในช่อง',

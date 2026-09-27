@@ -316,6 +316,9 @@ export const nl: Dict = {
   'task.uncheckable': 'Host gaf geen antwoord',
   'task.expand': 'Uitklappen',
   'task.collapse': 'Inklappen',
+  'task.torrentFile.fetch': 'Dit bestand downloaden',
+  'task.torrentFile.skip': 'Dit bestand overslaan',
+  'task.torrentFile.lastOne': 'Een torrent heeft minstens één bestand nodig. Zet eerst een ander aan.',
 
   'search.placeholder': 'Zoeken in deze lijst…',
   'search.in': 'Zoeken in',

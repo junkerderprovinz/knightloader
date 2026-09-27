@@ -947,6 +947,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	if torrent.IsURI(cand.URL) {
 		if md, err := (torrent.Resolver{}).Describe(cand.URL); err == nil {
 			t.InfoHash, t.Trackers = md.InfoHash, md.Trackers
+			t.TorrentFileCount = len(md.Files)
 		}
 		t.TorrentFiles = files
 	}

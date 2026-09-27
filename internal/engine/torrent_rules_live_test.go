@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
+	"golang.org/x/time/rate"
 )
 
 // requireTorrentClient skips a test that starts a real torrent client on the
@@ -43,6 +44,14 @@ type seedFile struct {
 // returns the .torrent's bytes and a magnet that names the seeder as a peer, so
 // a download needs neither a tracker nor the DHT.
 func seedTorrent(t *testing.T, name string, files []seedFile) ([]byte, string) {
+	t.Helper()
+	return seedTorrentAt(t, name, files, 0)
+}
+
+// seedTorrentAt is seedTorrent with the seeder's upload held to bytesPerSec,
+// for a test that has to act on a torrent while it is still downloading. Zero
+// leaves it unlimited.
+func seedTorrentAt(t *testing.T, name string, files []seedFile, bytesPerSec int) ([]byte, string) {
 	t.Helper()
 	root, err := os.MkdirTemp("", "kl-bt-seeder-*")
 	if err != nil {
@@ -81,6 +90,9 @@ func seedTorrent(t *testing.T, name string, files []seedFile) ([]byte, string) {
 	cfg.DisableIPv6 = true
 	cfg.DisableUTP = true
 	cfg.ListenHost = func(string) string { return "127.0.0.1" }
+	if bytesPerSec > 0 {
+		cfg.UploadRateLimiter = rate.NewLimiter(rate.Limit(bytesPerSec), 16<<10)
+	}
 	cl, err := anacrolix.NewClient(cfg)
 	if err != nil {
 		t.Fatal(err)

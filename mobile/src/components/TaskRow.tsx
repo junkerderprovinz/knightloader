@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { fmtBytes, fmtSpeed } from '../api/stats';
 import type { Task } from '../api/types';
@@ -95,12 +96,16 @@ export default function TaskRow({
   task,
   index,
   onSwitch,
+  files,
 }: {
   task: Task;
   index: number;
   /** Disables this link, or enables it again; the package header's badge
    *  does the same for all of its links. */
   onSwitch?: () => void;
+  /** A torrent's files, drawn under the rest of the card in the row's own
+   *  colour. */
+  files?: (hue: string) => ReactNode;
 }) {
   const { t } = useT();
   const { c, accent, dark, corners, hueAt, rainbow } = useAppearance();
@@ -230,6 +235,7 @@ export default function TaskRow({
             {failure.raw ? <InfoTip text={`${t('failure.raw')}: ${failure.raw}`} /> : null}
           </View>
         ) : null}
+        {files?.(rowAccent)}
       </View>
 
       {/* The package header's switch, per link, so one mirror or one part can

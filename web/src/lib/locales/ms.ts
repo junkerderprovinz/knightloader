@@ -324,6 +324,9 @@ export const ms: Dict = {
   'task.uncheckable': 'Hos tidak menjawab',
   'task.expand': 'Kembangkan',
   'task.collapse': 'Kuncupkan',
+  'task.torrentFile.fetch': 'Muat turun fail ini',
+  'task.torrentFile.skip': 'Langkau fail ini',
+  'task.torrentFile.lastOne': 'Torrent memerlukan sekurang-kurangnya satu fail. Hidupkan fail lain dahulu.',
 
   'search.placeholder': 'Cari dalam senarai ini…',
   'search.in': 'Cari dalam',

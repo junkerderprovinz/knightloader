@@ -48,6 +48,13 @@ submission and for a fixed download.
   An installed copy and a portable one both update where they are. A copy in a
   folder you cannot write to, such as an older installation under Program
   Files, stays as it is, and the log says why.
+- **A torrent's files show under its row.** In the collector and in Downloads
+  a torrent with more than one file opens like a package, with a row per file:
+  its path inside the torrent, its size, how much of it is here and a switch.
+  Switching files on or off while the torrent downloads changes what it
+  fetches at once and keeps everything already downloaded. A magnet shows its
+  files once the swarm has sent the list, and a finished torrent shows them
+  without switches. The Android app lists them inside the torrent's card.
 
 ### Changed
 

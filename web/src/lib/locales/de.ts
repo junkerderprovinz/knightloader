@@ -344,6 +344,9 @@ export const de: Dict = {
   'task.uncheckable': 'Hoster gab keine Auskunft',
   'task.expand': 'Aufklappen',
   'task.collapse': 'Zuklappen',
+  'task.torrentFile.fetch': 'Diese Datei laden',
+  'task.torrentFile.skip': 'Diese Datei überspringen',
+  'task.torrentFile.lastOne': 'Ein Torrent braucht mindestens eine Datei. Schalte zuerst eine andere ein.',
 
   'search.placeholder': 'Diese Liste durchsuchen…',
   'search.in': 'Suchen in',

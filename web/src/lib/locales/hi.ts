@@ -324,6 +324,9 @@ export const hi: Dict = {
   'task.uncheckable': 'होस्ट ने जवाब नहीं दिया',
   'task.expand': 'खोलें',
   'task.collapse': 'समेटें',
+  'task.torrentFile.fetch': 'यह फ़ाइल डाउनलोड करें',
+  'task.torrentFile.skip': 'यह फ़ाइल छोड़ें',
+  'task.torrentFile.lastOne': 'टॉरेंट में कम से कम एक फ़ाइल होनी चाहिए। पहले कोई दूसरी फ़ाइल चालू करें।',
 
   'search.placeholder': 'इस सूची में खोजें…',
   'search.in': 'यहाँ खोजें',
