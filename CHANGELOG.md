@@ -59,6 +59,9 @@ submission and for a fixed download.
 
 ### Fixed
 
+- The desktop window gets live updates the way a browser tab does. It could
+  never open the connection they arrive on, so the download and collector lists
+  stayed empty, progress did not move and a new captcha prompt did not appear.
 - The desktop app knows which release it is. It called itself `dev`, so Check
   for updates never found anything newer.
 - The Windows installer's entry in the list of installed apps and the program's

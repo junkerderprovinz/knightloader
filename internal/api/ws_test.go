@@ -2,7 +2,7 @@ package api
 
 // End-to-end coverage for the WebSocket control protocol. internal/hub's own
 // tests cover Subscribe, Unsubscribe and Broadcast in isolation; this file
-// covers handleWSControl (api.go) wiring a real client's subscribe frame into
+// covers StreamControl (api.go) wiring a real client's subscribe frame into
 // that hub over a real connection, which hub_test.go cannot see.
 
 import (
@@ -141,7 +141,7 @@ func TestWSUnsubscribedConnectionIsUnaffectedByOthersSubscribing(t *testing.T) {
 
 // TestWSMalformedControlFrameDoesNotCloseTheSocket: a client sending garbage
 // on this socket, through a bug or an unrelated protocol version, is not
-// disconnected over it. See handleWSControl.
+// disconnected over it. See StreamControl.
 func TestWSMalformedControlFrameDoesNotCloseTheSocket(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
