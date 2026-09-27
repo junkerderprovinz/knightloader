@@ -5,18 +5,10 @@
 
 import type { MouseEvent } from 'react';
 
-interface WailsRuntime {
-  BrowserOpenURL(url: string): void;
-  Environment(): Promise<{ platform: string }>;
-}
-
-function wails(): WailsRuntime | undefined {
-  return (window as unknown as { runtime?: WailsRuntime }).runtime;
-}
+import { desktopOS, isDesktop, openURL } from './desktop';
 
 export function openExternal(url: string): void {
-  const runtime = wails();
-  if (runtime) runtime.BrowserOpenURL(url);
+  if (isDesktop()) void openURL(url);
   else window.open(url, '_blank', 'noopener,noreferrer');
 }
 
@@ -26,8 +18,7 @@ export function openExternal(url: string): void {
  * empty tab behind once the mail program has it.
  */
 export function openMail(url: string): void {
-  const runtime = wails();
-  if (runtime) runtime.BrowserOpenURL(url);
+  if (isDesktop()) void openURL(url);
   else window.location.href = url;
 }
 
@@ -36,7 +27,7 @@ export function openMail(url: string): void {
  * does its own work, so middle-click and copy-link keep working.
  */
 export function followExternal(e: MouseEvent<HTMLAnchorElement>): void {
-  if (!wails()) return;
+  if (!isDesktop()) return;
   e.preventDefault();
   openExternal(e.currentTarget.href);
 }
@@ -47,8 +38,6 @@ export function followExternal(e: MouseEvent<HTMLAnchorElement>): void {
  * the WebKit views the desktop build uses on macOS and Linux open nothing.
  */
 export async function popupsWork(): Promise<boolean> {
-  const runtime = wails();
-  if (!runtime) return true;
-  const { platform } = await runtime.Environment();
-  return platform === 'windows';
+  if (!isDesktop()) return true;
+  return (await desktopOS()) === 'windows';
 }

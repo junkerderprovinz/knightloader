@@ -3,20 +3,25 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { desktopOS, isDesktop, openURL } from './desktop';
 import { followExternal, openExternal, popupsWork } from './external';
+
+// How the page reaches the desktop app is desktop.test.ts's business; here
+// only whether it asks.
+vi.mock('./desktop', () => ({
+  isDesktop: vi.fn(() => false),
+  openURL: vi.fn(async () => {}),
+  desktopOS: vi.fn(async () => ''),
+}));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let root: Root;
 let host: HTMLDivElement;
 
-function desktop(platform: string) {
-  const runtime = {
-    BrowserOpenURL: vi.fn(),
-    Environment: vi.fn(async () => ({ buildType: 'production', platform, arch: 'amd64' })),
-  };
-  (window as unknown as { runtime?: typeof runtime }).runtime = runtime;
-  return runtime;
+function desktop(os: string) {
+  vi.mocked(isDesktop).mockReturnValue(true);
+  vi.mocked(desktopOS).mockResolvedValue(os);
 }
 
 /** Clicks an anchor wired the way the pages wire theirs, and says whether the browser would still follow it. */
@@ -36,8 +41,9 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   host.remove();
-  delete (window as unknown as { runtime?: unknown }).runtime;
+  vi.mocked(isDesktop).mockReturnValue(false);
   vi.restoreAllMocks();
+  vi.mocked(openURL).mockClear();
 });
 
 describe('openExternal', () => {
@@ -45,13 +51,14 @@ describe('openExternal', () => {
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     openExternal('https://github.com/junkerderprovinz/knightloader');
     expect(open).toHaveBeenCalledWith('https://github.com/junkerderprovinz/knightloader', '_blank', 'noopener,noreferrer');
+    expect(openURL).not.toHaveBeenCalled();
   });
 
   it('hands the address to the system in the desktop build', () => {
-    const runtime = desktop('linux');
+    desktop('linux');
     const open = vi.spyOn(window, 'open');
     openExternal('https://github.com/junkerderprovinz/knightloader');
-    expect(runtime.BrowserOpenURL).toHaveBeenCalledWith('https://github.com/junkerderprovinz/knightloader');
+    expect(openURL).toHaveBeenCalledWith('https://github.com/junkerderprovinz/knightloader');
     expect(open).not.toHaveBeenCalled();
   });
 });
@@ -62,10 +69,10 @@ describe('followExternal', () => {
   });
 
   it('sends a mail anchor to the mail program in the desktop build', async () => {
-    const runtime = desktop('darwin');
+    desktop('darwin');
     const followed = await clickAnchor('mailto:hello@halleluja.design?subject=KnightLoader%20Feedback');
     expect(followed).toBe(false);
-    expect(runtime.BrowserOpenURL).toHaveBeenCalledWith('mailto:hello@halleluja.design?subject=KnightLoader%20Feedback');
+    expect(openURL).toHaveBeenCalledWith('mailto:hello@halleluja.design?subject=KnightLoader%20Feedback');
   });
 });
 
@@ -78,8 +85,8 @@ describe('popupsWork', () => {
     ['windows', true],
     ['darwin', false],
     ['linux', false],
-  ])('in the desktop build on %s is %s', async (platform, works) => {
-    desktop(platform);
+  ])('in the desktop build on %s is %s', async (os, works) => {
+    desktop(os);
     expect(await popupsWork()).toBe(works);
   });
 });

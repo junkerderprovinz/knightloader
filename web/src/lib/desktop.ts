@@ -1,46 +1,124 @@
-// The desktop app's two OS-native actions, reveal-in-folder and
-// open-natively, and the check whether the page runs inside the desktop app.
+// What only the desktop app has: its two OS-native actions, reveal-in-folder
+// and open-natively, the live stream over Wails events, the news of a
+// downloaded update, and the tray's words.
 //
-// Wails injects the Go bindings as window.go.<package>.<Type>.<Method> before
-// the page's scripts run. Only desktop/main.go binds DesktopFiles, so in a
-// browser the object is undefined and isDesktop() is a plain check for it.
-interface DesktopFilesBinding {
-  RevealInFolder(taskId: string): Promise<void>;
-  OpenNatively(taskId: string): Promise<void>;
-}
+// The shared interface does not load the Wails runtime. The page calls the
+// runtime's endpoint the way @wailsio/runtime does, by the bound method's
+// name, and takes Wails events through the dispatcher Wails calls.
 
-function binding(): DesktopFilesBinding | null {
-  const w = window as unknown as { go?: { main?: { DesktopFiles?: DesktopFilesBinding } } };
-  return w.go?.main?.DesktopFiles ?? null;
-}
+import { useEffect } from 'react';
 
-/** isDesktop is whether the two OS-native actions can work at all here. */
+import type { TranslationKey } from './i18n';
+
+/** Whether this page runs in the desktop app's window, which Wails serves from an origin of its own. */
 export function isDesktop(): boolean {
-  return binding() !== null;
+  return window.location.protocol === 'wails:' || window.location.hostname === 'wails.localhost';
+}
+
+// The runtime's objects and their methods; objectNames in @wailsio/runtime.
+const CALL = 0;
+const SYSTEM = 8;
+const SYSTEM_ENVIRONMENT = 1;
+const BROWSER = 9;
+const BROWSER_OPEN_URL = 0;
+
+async function runtimeCall(object: number, method: number, args?: unknown): Promise<unknown> {
+  const res = await fetch('/wails/runtime', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(args === undefined ? { object, method } : { object, method, args }),
+  });
+  const json = res.headers.get('Content-Type')?.includes('application/json');
+  if (!res.ok) {
+    // A bound method's error arrives as {message}, with the Go side's reason.
+    const message = json ? ((await res.json()) as { message?: string }).message : await res.text();
+    throw new Error(message || res.statusText);
+  }
+  return json ? res.json() : res.text();
+}
+
+// Tells this page's calls and streams from those of the page before a reload;
+// desktop/stream.go drops the streams it sees a new page for.
+const pageId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+let callCount = 0;
+
+/** call runs a method desktop/main.go binds, such as main.DesktopFiles.OpenNatively. */
+function call(method: string, ...args: unknown[]): Promise<unknown> {
+  return runtimeCall(CALL, 0, { 'call-id': `${pageId}.${++callCount}`, methodName: method, args });
+}
+
+/** The window this page runs in: the tray window at /tray, or the main one. */
+function windowName(): string {
+  return window.location.pathname === '/tray' ? 'tray' : 'main';
+}
+
+/** showMain brings the main window forward, from the tray window. */
+export async function showMain(): Promise<void> {
+  await call('main.Tray.ShowMain');
 }
 
 /** revealInFolder and openNatively reject with the Go side's reason, which
  *  the caller shows. */
 export async function revealInFolder(taskId: string): Promise<void> {
-  const b = binding();
-  if (!b) throw new Error('reveal-in-folder is only available in the desktop app');
-  await b.RevealInFolder(taskId);
+  if (!isDesktop()) throw new Error('reveal-in-folder is only available in the desktop app');
+  await call('main.DesktopFiles.RevealInFolder', taskId);
 }
 
 export async function openNatively(taskId: string): Promise<void> {
-  const b = binding();
-  if (!b) throw new Error('open natively is only available in the desktop app');
-  await b.OpenNatively(taskId);
+  if (!isDesktop()) throw new Error('open natively is only available in the desktop app');
+  await call('main.DesktopFiles.OpenNatively', taskId);
 }
 
-interface WailsRuntime {
-  EventsOn(name: string, callback: (...data: unknown[]) => void): () => void;
+/** openURL hands an address to the system browser or mail program. */
+export async function openURL(url: string): Promise<void> {
+  await runtimeCall(BROWSER, BROWSER_OPEN_URL, { url });
 }
 
-interface HubBridgeBinding {
-  Open(page: string, id: string): Promise<void>;
-  Send(id: string, frame: string): Promise<void>;
-  Close(id: string): Promise<void>;
+/** desktopOS is the operating system the desktop app runs on, as Go names it. */
+export async function desktopOS(): Promise<string> {
+  const env = (await runtimeCall(SYSTEM, SYSTEM_ENVIRONMENT)) as { OS?: string };
+  return env.OS ?? '';
+}
+
+type Channel = { postMessage(message: string): void };
+
+type WailsHost = {
+  _wails?: { dispatchWailsEvent?: (ev: { name: string; data: unknown }) => void };
+  chrome?: { webview?: Channel };
+  webkit?: { messageHandlers?: { external?: Channel } };
+};
+
+const listeners = new Map<string, Set<(data: unknown) => void>>();
+
+let announced = false;
+
+/**
+ * Tells Wails the page can take events. Wails holds every event for a window
+ * until it hears this, which its own runtime would send. It goes straight to
+ * the webview's message channel, WebView2's chrome.webview or WebKit's
+ * handler, which is there from the start. Wails' copy in `_wails.invoke`
+ * arrives only after the page has loaded, and unbound from its channel.
+ */
+function announce(host: WailsHost) {
+  if (announced) return;
+  announced = true;
+  (host.chrome?.webview ?? host.webkit?.messageHandlers?.external)?.postMessage('wails:runtime:ready');
+}
+
+/** listen calls back with every Wails event of one name until the returned function is called. */
+function listen(name: string, onEvent: (data: unknown) => void): () => void {
+  const host = window as unknown as WailsHost;
+  host._wails = host._wails ?? {};
+  host._wails.dispatchWailsEvent = (ev) => {
+    for (const listener of listeners.get(ev.name) ?? []) listener(ev.data);
+  };
+  announce(host);
+  const named = listeners.get(name) ?? new Set();
+  listeners.set(name, named);
+  named.add(onEvent);
+  return () => {
+    named.delete(onEvent);
+  };
 }
 
 /** StreamHandlers are a WebSocket's callbacks for one live stream. */
@@ -57,9 +135,6 @@ export interface LiveStream {
   close(): void;
 }
 
-// Tells this page's streams from those of the page before a reload, which
-// never closed its own; desktop/stream.go drops them when it sees a new page.
-const pageId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 let streamCount = 0;
 
 /**
@@ -68,15 +143,12 @@ let streamCount = 0;
  * desktop app.
  */
 export function openDesktopStream(h: StreamHandlers): LiveStream | null {
-  const w = window as unknown as { go?: { main?: { HubBridge?: HubBridgeBinding } }; runtime?: WailsRuntime };
-  const bridge = w.go?.main?.HubBridge;
-  const runtime = w.runtime;
-  if (!bridge || !runtime) return null;
+  if (!isDesktop()) return null;
 
   const id = `${pageId}.${++streamCount}`;
   let closed = false;
-  const offMessage = runtime.EventsOn(`hub:${id}`, (raw) => h.onMessage(String(raw)));
-  const offClosed = runtime.EventsOn(`hub:${id}:closed`, () => end());
+  const offMessage = listen(`hub:${id}`, (raw) => h.onMessage(String(raw)));
+  const offClosed = listen(`hub:${id}:closed`, () => end());
   const end = () => {
     if (closed) return;
     closed = true;
@@ -86,36 +158,67 @@ export function openDesktopStream(h: StreamHandlers): LiveStream | null {
   };
   // Every call waits for the one before, because Wails runs bound methods
   // concurrently and a socket keeps its frames in order.
-  let calls: Promise<unknown> = bridge.Open(pageId, id).then(
+  let calls: Promise<unknown> = call('main.HubBridge.Open', windowName(), pageId, id).then(
     () => {
       if (!closed) h.onOpen();
     },
     () => end(),
   );
-  const call = (f: () => Promise<void>) => {
+  const queue = (f: () => Promise<unknown>) => {
     calls = calls.then(f).catch(() => undefined);
   };
   return {
     send(frame) {
-      if (!closed) call(() => bridge.Send(id, frame));
+      if (!closed) queue(() => call('main.HubBridge.Send', id, frame));
     },
     close() {
       if (closed) return;
       closed = true;
       offMessage();
       offClosed();
-      call(() => bridge.Close(id));
+      queue(() => call('main.HubBridge.Close', id));
     },
   };
 }
 
 /**
  * onUpdateReady calls back with the version the desktop app has downloaded for
- * its next start. The desktop shell sends it as a Wails event of its own, not
- * through the hub. Outside the desktop app there is no runtime and it does
- * nothing.
+ * its next start; updateReadyEvent in desktop/updates.go. Outside the desktop
+ * app nothing sends it, and nothing is set up.
  */
 export function onUpdateReady(callback: (version: string) => void): () => void {
-  const runtime = (window as unknown as { runtime?: WailsRuntime }).runtime;
-  return runtime?.EventsOn('updateReady', (version) => callback(String(version))) ?? (() => {});
+  if (!isDesktop()) return () => {};
+  return listen('updateReady', (version) => callback(String(version)));
+}
+
+/** The tray menu's labels; TrayWords in desktop/config.go. */
+const TRAY_WORDS = {
+  show: 'tray.show',
+  hide: 'tray.hide',
+  startHidden: 'tray.startHidden',
+  closeToTray: 'tray.closeToTray',
+  minimiseToTray: 'tray.minimiseToTray',
+  captcha: 'tray.captcha',
+  raiseOff: 'tray.raiseOff',
+  raiseFront: 'tray.raiseFront',
+  raiseFocus: 'tray.raiseFocus',
+  stopQueue: 'queue.stop',
+  startQueue: 'queue.start',
+  quit: 'tray.quit',
+} as const satisfies Record<string, TranslationKey>;
+
+export type TrayWords = Record<keyof typeof TRAY_WORDS, string>;
+
+export function trayWords(t: (key: TranslationKey) => string): TrayWords {
+  return Object.fromEntries(Object.entries(TRAY_WORDS).map(([field, key]) => [field, t(key)])) as TrayWords;
+}
+
+/** Hands the tray its words whenever the language changes, so the menu speaks it too. */
+export function useTrayWords(t: (key: TranslationKey) => string): void {
+  useEffect(() => {
+    if (!isDesktop()) return;
+    // A failure leaves the menu in its last language, which is no reason to
+    // bother anybody.
+    void call('main.Tray.SetWords', trayWords(t)).catch(() => {});
+  }, [t]);
 }
