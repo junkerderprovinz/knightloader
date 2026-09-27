@@ -14,8 +14,8 @@ const probeTimeout = 2 * time.Second
 
 // probeTray reports whether a tray host will show the icon. GNOME has no
 // StatusNotifierWatcher without an extension, i3 and sway need a bar that
-// provides one, and a minimal session may have no bus at all. It checks the
-// bus name go-systray registers with.
+// provides one, and a minimal session may have no bus at all. It checks for the
+// StatusNotifierWatcher that Wails' tray registers its item with.
 func probeTray() (ok bool, reason string) {
 	ctx, cancel := context.WithTimeout(context.Background(), probeTimeout)
 	defer cancel()

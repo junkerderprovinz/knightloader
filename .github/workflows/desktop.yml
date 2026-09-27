@@ -99,6 +99,35 @@ jobs:
       - name: Build
         run: node scripts/desktop.mjs ${{ matrix.args }}
 
+      # A bundle that builds can still die on start: the tray and the window
+      # both need the main thread on macOS. The app runs for a while with a
+      # throwaway data folder and no JDownloader, and has to be alive with no
+      # crash in its log.
+      - name: Start the app
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          KL_DATA: ${{ runner.temp }}/kl-data
+          KL_JD: http://127.0.0.1:9
+          KL_STARTUP_CHECK: "0"
+        run: |
+          log="$RUNNER_TEMP/kl-start.log"
+          desktop/build/bin/KnightLoader.app/Contents/MacOS/KnightLoader > "$log" 2>&1 &
+          pid=$!
+          sleep 20
+          if ! kill -0 "$pid" 2>/dev/null; then
+            cat "$log"
+            echo "::error::KnightLoader exited within 20 seconds of starting"
+            exit 1
+          fi
+          kill "$pid"
+          wait "$pid" 2>/dev/null || true
+          cat "$log"
+          if grep -Eq "SIGTRAP|panic:|fatal error" "$log"; then
+            echo "::error::the start log shows a crash"
+            exit 1
+          fi
+
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip
       # holds the program alone at its root, which internal/update expects, and
