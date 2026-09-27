@@ -99,21 +99,32 @@ jobs:
 
       # Wails runs the built binary to generate bindings, and the start report
       # fails on a runner without yt-dlp or ffmpeg.
+      #
+      # Only a tag build knows its version. Every other build keeps "dev", which
+      # never updates itself. wails.json carries the version into the exe's
+      # details and the installer's entry in the list of installed apps.
       - name: Build
         working-directory: desktop
+        shell: bash
         env:
           KL_STARTUP_CHECK: "0"
           # Empty for every entry without a cgo key, which leaves Go's own
           # default; Wails turns it on for Linux and macOS regardless.
           CGO_ENABLED: ${{ matrix.cgo }}
         run: |
+          set -eu
+          ldflags=""
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            ldflags="-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=$GITHUB_REF_NAME"
+            node -e 'const fs = require("fs"); const j = JSON.parse(fs.readFileSync("wails.json", "utf8")); j.info.productVersion = process.argv[1]; fs.writeFileSync("wails.json", JSON.stringify(j, null, 2) + "\n")' "${GITHUB_REF_NAME#v}"
+          fi
           go mod tidy
-          wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}
+          wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }} -ldflags "$ldflags"
 
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip
-      # holds build/bin at its root, which internal/update expects, and -y keeps
-      # symlinks inside the .app.
+      # holds the program alone at its root, which internal/update expects, and
+      # -y keeps symlinks inside the .app.
       - name: Zip the bundle
         if: runner.os != 'Windows'
         shell: bash

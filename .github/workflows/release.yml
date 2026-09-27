@@ -60,8 +60,8 @@ jobs:
           pattern: knightloader-*
           path: bundles
 
-      # Each zip goes out twice: named for the tag, which internal/update asks
-      # for, and without a version for the README buttons, since
+      # Each zip goes out twice: named for the tag, and without a version for
+      # the README buttons and the desktop app's update, since
       # /releases/latest/download/ takes only an exact name. A dispatched run
       # from a branch like fix/x has a slash in its ref name, hence the
       # substitution.
@@ -82,7 +82,7 @@ jobs:
           done
           ls -lh dist
 
-      # internal/update verifies the downloaded zip against this file. Run
+      # The desktop app verifies the zip it updates to against this file. Run
       # inside dist/ so the entries are bare file names, which is what both
       # internal/update and a manual `sha256sum -c` expect.
       - name: Checksums
