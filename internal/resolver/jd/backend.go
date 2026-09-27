@@ -612,6 +612,8 @@ func (b *Backend) poll(taskID string) {
 	page := b.page[taskID]
 	b.mu.Unlock()
 	var crawl steadyCount
+	// Readings in a row where JD has finished crawling the page and found nothing.
+	empty := 0
 	ticker := time.NewTicker(750 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -646,7 +648,12 @@ func (b *Backend) poll(taskID string) {
 				return
 			}
 			if !seen {
-				crawled := b.grabberLinks(pkg)
+				crawled, answered := b.crawledOf(pkg)
+				if page && answered && len(crawled) == 0 && !b.collecting() {
+					empty++
+				} else {
+					empty = 0
+				}
 				if allOffline(crawled) {
 					b.dropGrabberPackage(pkg)
 					b.onUpdate(taskID, core.Update{
@@ -668,6 +675,13 @@ func (b *Backend) poll(taskID string) {
 
 			p, err := b.c.Package(pkg)
 			if err != nil || p == nil || p.UUID == 0 {
+				// A page JD read without finding a single link has no player
+				// it knows, and nothing will reach the download list.
+				if err == nil && empty >= emptyCrawlReadings {
+					b.dropGrabberPackage(pkg)
+					b.onUpdate(taskID, pagePartsFailure())
+					return
+				}
 				continue // still crawling / not in the download list yet
 			}
 			puuid := p.UUID
@@ -723,9 +737,16 @@ func (b *Backend) poll(taskID string) {
 // grabberLinks returns the links of the grabber package pkg, none when the
 // grabber cannot be read.
 func (b *Backend) grabberLinks(pkg string) []CrawledLink {
+	links, _ := b.crawledOf(pkg)
+	return links
+}
+
+// crawledOf is grabberLinks with whether JD answered, so a JD that is down is
+// not taken for a crawl that found nothing.
+func (b *Backend) crawledOf(pkg string) ([]CrawledLink, bool) {
 	pkgs, err := b.c.CrawledPackages()
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	var ids []int64
 	for _, p := range pkgs {
@@ -733,11 +754,14 @@ func (b *Backend) grabberLinks(pkg string) []CrawledLink {
 			ids = append(ids, p.UUID)
 		}
 	}
+	if len(ids) == 0 {
+		return nil, true
+	}
 	links, err := b.c.CrawledLinks(ids...)
 	if err != nil {
-		return nil
+		return nil, false
 	}
-	return links
+	return links, true
 }
 
 // allOffline reports whether JD's link check found every one of links
@@ -759,6 +783,11 @@ func allOffline(links []CrawledLink) bool {
 // appearLimit is how long JD gets to turn a submitted link into a download.
 // Crawling, container decryption and a captcha all happen in here.
 const appearLimit = 15 * time.Minute
+
+// emptyCrawlReadings is how many polls, 750ms apart, a page crawl has to stay
+// finished and empty before the page counts as one JD can do nothing with:
+// about 15 seconds, so a crawl that starts late is not cut short.
+const emptyCrawlReadings = 20
 
 // stallLimit is how long a started download may make no progress before it is
 // given up on. It is generous because JD handles hoster cool-downs itself.

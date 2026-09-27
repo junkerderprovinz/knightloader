@@ -350,7 +350,8 @@ submission and for a fixed download.
 - **A page whose player nothing supports fails with a reason.** JDownloader no
   longer downloads such a page's scripts and images as the download, the HTTP
   fallback no longer keeps its HTML, and files JDownloader already fetched for
-  it are deleted.
+  it are deleted. A page on which JDownloader finds nothing at all fails within
+  seconds instead of after 15 minutes.
 - **A captcha that failed to load and then loads takes back its failure mark.**
   The report names the captcha whose widget failed, not the next one, and the
   app reports its own load failure on a direct connection.
