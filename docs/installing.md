@@ -1,9 +1,5 @@
 # Installing
 
-!!! warning "Read the notice on the start page first"
-    KnightLoader is not ready to install yet. Everything below works, and it is
-    here so the builds can be tested.
-
 ## As a container
 
 Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
@@ -23,7 +19,10 @@ docker run -d --name knightloader \
 
 Then open `http://<host>:8749`.
 
-On Unraid, put `--user 99:100` in Extra Parameters and add the variable
+On Unraid, search for KnightLoader in Community Applications, or add
+`https://github.com/junkerderprovinz/unraid-apps` under Docker → Template
+repositories. The template sets what follows. To set up the container by hand
+instead, put `--user 99:100` in Extra Parameters and add the variable
 `UMASK` with the value `000`. Finished files then land as `nobody:users` with
 mode 0666 and their folders with 0777, so the account you use over SMB can
 move, rename and delete them. `UMASK` is read the way linuxserver.io images

@@ -3,14 +3,6 @@
 A self-hosted download manager that puts debrid services, torrents, yt-dlp and
 a headless JDownloader behind one web interface.
 
-!!! warning "Not ready to install yet"
-    KnightLoader is under development. The releases and the container image
-    exist so the builds can be tested, and it is not listed in Community
-    Applications. What is here changes daily, including the storage format, the
-    settings document and the wire protocol instances use to reach each other,
-    and none of those changes comes with a migration path yet. If you install
-    it now, expect to lose your configuration and your queue.
-
 ## What makes it different
 
 It is **one Go process**. The download engine, the REST and WebSocket API, the
