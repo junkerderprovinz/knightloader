@@ -327,7 +327,7 @@ func relayForwardable(method, path string) bool {
 	if relayCaptchaRoute(method, rest) {
 		return true
 	}
-	// Setting the seven appearance fields is less than a phrase holder can
+	// Setting the appearance fields is less than a phrase holder can
 	// already do through the queue.
 	if method == http.MethodPost && rest == "appearance" {
 		return true

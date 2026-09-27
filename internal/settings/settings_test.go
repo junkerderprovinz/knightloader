@@ -168,3 +168,31 @@ func TestAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
 		t.Error("AutoUpdate is off after an upgrade; the default is on")
 	}
 }
+
+func TestListCardsAreOnForAnInstallThatNeverSawThem(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"maxConcurrent": 2}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := st.Get(); !s.SeedingCard || !s.FinishedCard {
+		t.Errorf("after an upgrade seedingCard is %v and finishedCard %v, want both on", s.SeedingCard, s.FinishedCard)
+	}
+}
+
+func TestASwitchedOffListCardStaysOff(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"finishedCard": false}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := st.Get(); s.FinishedCard || !s.SeedingCard {
+		t.Errorf("finishedCard %v and seedingCard %v, want the stored off and the default on", s.FinishedCard, s.SeedingCard)
+	}
+}

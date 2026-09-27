@@ -9,6 +9,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // appearanceFields is the allowlist both halves of /api/appearance are built
@@ -16,6 +17,21 @@ import (
 // round.
 var appearanceFields = []string{
 	"shape", "accent", "rainbow", "rainbowReactive", "rainbowRotate", "rainbowSeed", "rainbowPalette",
+	"seedingCard", "finishedCard",
+}
+
+func appearanceOf(s settings.Settings) map[string]any {
+	return map[string]any{
+		"shape":           s.Shape,
+		"accent":          s.Accent,
+		"rainbow":         s.Rainbow,
+		"rainbowReactive": s.RainbowReactive,
+		"rainbowRotate":   s.RainbowRotate,
+		"rainbowSeed":     s.RainbowSeed,
+		"rainbowPalette":  s.RainbowPalette,
+		"seedingCard":     s.SeedingCard,
+		"finishedCard":    s.FinishedCard,
+	}
 }
 
 func registerSystem(reg *Registry, a *app.App) {
@@ -38,26 +54,17 @@ func registerSystem(reg *Registry, a *app.App) {
 	// a relay sibling) never needs /api/settings, which stays off the relay
 	// allowlist.
 	reg.Add(http.MethodGet, "/api/appearance",
-		"the instance's own accent, corner shape and rainbow settings - what a client needs to match its look, and nothing else",
+		"the instance's own accent, corner shape, rainbow settings and which cards its download list is split into - what a client needs to match its look, and nothing else",
 		func(w http.ResponseWriter, r *http.Request) {
-			s := a.Settings.Get()
-			writeJSON(w, map[string]any{
-				"shape":           s.Shape,
-				"accent":          s.Accent,
-				"rainbow":         s.Rainbow,
-				"rainbowReactive": s.RainbowReactive,
-				"rainbowRotate":   s.RainbowRotate,
-				"rainbowSeed":     s.RainbowSeed,
-				"rainbowPalette":  s.RainbowPalette,
-			})
+			writeJSON(w, appearanceOf(a.Settings.Get()))
 		})
 
-	// The same seven fields, written. The palette lives on the instance rather
-	// than per client because colours are handed out by position, and every
-	// client has to agree on them. Only the named fields are applied, so this
-	// is no second door into /api/settings.
+	// The same fields, written. The palette lives on the instance rather than
+	// per client because colours are handed out by position, and every client
+	// has to agree on them. Only the named fields are applied, so this is no
+	// second door into /api/settings.
 	reg.Add(http.MethodPost, "/api/appearance",
-		"set the instance's accent, corner shape and rainbow settings - the same seven fields GET answers with, and nothing else",
+		"set the instance's accent, corner shape, rainbow settings and list cards - the same fields GET answers with, and nothing else",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body map[string]json.RawMessage
 			if !decodeJSON(w, r, &body) {
@@ -78,15 +85,7 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			writeJSON(w, map[string]any{
-				"shape":           applied.Shape,
-				"accent":          applied.Accent,
-				"rainbow":         applied.Rainbow,
-				"rainbowReactive": applied.RainbowReactive,
-				"rainbowRotate":   applied.RainbowRotate,
-				"rainbowSeed":     applied.RainbowSeed,
-				"rainbowPalette":  applied.RainbowPalette,
-			})
+			writeJSON(w, appearanceOf(applied))
 		})
 
 	// The password lock. These routes stay reachable while locked out, since
