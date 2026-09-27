@@ -284,13 +284,12 @@ single purpose, no use for creditworthiness or lending).
   channel, so the listing is a new version of that add-on, not a new add-on:
   open it in the Developer Hub and upload a new version "On this site". AMO takes
   each version number once across both channels. Upload the release's Firefox
-  zip of the first version that has no build on AMO yet; the Firefox Add-ons workflow
+  zip of the first version that has no build on AMO yet; the Stores workflow
   submits nothing while the add-on has no listed version, so it cannot take the
   number first (`.github/scripts/amo-listed.mjs`).
-- **After the listing** the Firefox Add-ons workflow
-  (`.github/workflows/firefox-addons.yml`), run by hand on a release tag, submits
-  that version to the listed channel for review; the signed file comes from AMO
-  once it passes. Point the
+- **After the listing** the Stores workflow (`.github/workflows/stores.yml`)
+  submits each later version to the listed channel for review; the signed file
+  comes from AMO once it passes. Point the
   `firefox` entry in `scripts/download_buttons.py` at the listing when it is live;
   until then the entry is empty and the button shows "coming soon".
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
@@ -397,15 +396,37 @@ because the last line is what the field cuts.
 1. Release KnightLoader: raise `version` in `extension/src/manifest.json` and
    `expo.version` in `mobile/app.json`, write `.github/release-notes/vX.Y.Z.md`
    and push the tag `vX.Y.Z` from `main`. The release workflow checks the tag
-   against both files and attaches the two extension zips. To send that version to
-   AMO, run the Firefox Add-ons workflow on the tag (Actions, Firefox Add-ons,
-   Run workflow, then pick the tag under "Use workflow from").
-2. Upload `knightloader-vX.Y.Z-extension.zip` to the Chrome Web Store and Edge
-   Add-ons. Every upload is
-   reviewed again: Chrome in a few days, Edge in up to seven business days, AMO
-   usually within a day.
+   against both files and attaches the two extension zips.
+2. Once the release is out and is the newest one, the release workflow runs the
+   Stores workflow (`.github/workflows/stores.yml`). If anything under
+   `extension/src` changed since the previous release, apart from the version,
+   it submits `knightloader-vX.Y.Z-extension.zip` to the Chrome Web Store and
+   Edge Add-ons and the extension to AMO. Every version is reviewed again:
+   Chrome in a few days, Edge in up to seven business days, AMO usually within
+   a day. To submit a version by hand, or one that did not change, run Stores
+   on its tag with "force" (Actions, Stores, Run workflow, then pick the tag
+   under "Use workflow from").
 3. Users' browsers pick up a published update on their own.
 
-The Chrome and Edge uploads can be automated as well once their listings exist:
-Chrome Web Store API v2 (`upload`, `publish`) with a service account and the
-Edge Add-ons API v1.1 with an API key, both as repository secrets.
+The workflow skips a store whose settings are missing, with a notice in the
+run. What it reads:
+
+| Store | Repository variables | Repository secrets |
+| --- | --- | --- |
+| Chrome Web Store | `CHROME_PUBLISHER_ID`, `CHROME_ITEM_ID` | `GOOGLE_SERVICE_ACCOUNT_JSON` |
+| Edge Add-ons | `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID` | `EDGE_API_KEY` |
+| Firefox Add-ons | | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET` |
+| Google Play (the app) | `PLAY_TRACK` (`internal`, `alpha`, `beta` or `production`) | `GOOGLE_SERVICE_ACCOUNT_JSON` |
+
+One Google Cloud service account serves both Google stores: its email is added
+in the Chrome Web Store dashboard under Account and invited in the Play Console
+under Users and permissions, and its JSON key is the secret. The Chrome Web
+Store API has to be enabled in the service account's Cloud project. The Edge
+client ID and API key come from Partner Center, Microsoft Edge, Publish API;
+the key expires, and Partner Center shows when.
+
+Google Play takes app bundles only. Each release attaches
+`knightloader-vX.Y.Z-android.aab`, signed with the same key as the APK, and
+the Stores workflow uploads it to the `PLAY_TRACK` track when anything under
+`mobile/` changed. The app's first version is uploaded by hand in the Play
+Console, like the extension's first listings.
