@@ -53,7 +53,8 @@ jobs:
               - '.github/workflows/release.yml'
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version into web/dist, and
-            # check-version-sources.mjs reads the other three.
+            # check-version-sources.mjs reads release.yml and the extension's
+            # version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
             # and lib/taskError.test.ts the failure codes.
@@ -62,7 +63,7 @@ jobs:
               - 'mobile/app.json'
               - 'mobile/src/i18n/en.ts'
               - 'mobile/src/i18n/de.ts'
-              - '.github/workflows/release-mobile.yml'
+              - '.github/workflows/release.yml'
               - 'internal/api/routes_browsertools.go'
               - 'internal/api/routes_features.go'
               - 'internal/api/routes_health.go'

@@ -5,8 +5,8 @@
 // the extension's number is read at runtime from that same embedded
 // manifest.json (GET /api/browser-extension/version, whose Go test compares it
 // with the manifest inside the served zip). The APK tile downloads the app
-// release that mobile/app.json names when the page is built, so the card's
-// number and the file's address are both made from the one constant
+// from the release that mobile/app.json names when the page is built, so the
+// card's number and the file's address are both made from the one constant
 // vite.config.ts reads out of app.json.
 //
 // A typed number drifts without a sound: nothing fails when app.json or the
@@ -20,16 +20,17 @@
 //             app's number and the APK address are made from the constant
 //             that reads __MOBILE_VERSION__; the extension's number is the
 //             one fetchExtensionVersion answers, and that asks the route that
-//             reads the embedded manifest.
-//   release   the APK address names the tag and the file release-mobile.yml
-//             publishes, and that workflow refuses a tag app.json disagrees
-//             with.
+//             reads the embedded manifest; both link to the release tagged
+//             v<number>.
+//   release   the APK address names the tag and the file release.yml
+//             publishes, and release.yml refuses a tag that app.json or the
+//             manifest disagrees with.
 //   words     no translation of a settings.browsertools string carries a
 //             version.
 //
-// Not checked: whether the release for the current app.json exists yet, since
-// app.json is raised before its tag is pushed, and web/dist, which CI rebuilds
-// and compares with the sources.
+// Not checked: whether the release for the current version exists yet, since
+// the files are raised before the tag is pushed, and web/dist, which CI
+// rebuilds and compares with the sources.
 //
 // Run: `node web/check-version-sources.mjs`.
 import { readdirSync, readFileSync } from 'node:fs';
@@ -104,18 +105,21 @@ if (literal) {
 const appConst = /const\s+(\w+)\s*=\s*__MOBILE_VERSION__\s*;/.exec(code)?.[1];
 if (!appConst) {
   problems.push('BrowserTools.tsx: no constant takes __MOBILE_VERSION__, so the app card has no number from app.json');
-} else {
-  if (!new RegExp(`<ReleaseVersion\\s+version=\\{${appConst}\\}\\s+tagPrefix="mobile/v"`).test(code)) {
-    problems.push(`BrowserTools.tsx: the app card's number is not <ReleaseVersion version={${appConst}} tagPrefix="mobile/v" />`);
-  }
+} else if (!new RegExp(`<ReleaseVersion\\s+version=\\{${appConst}\\}\\s*/>`).test(code)) {
+  problems.push(`BrowserTools.tsx: the app card's number is not <ReleaseVersion version={${appConst}} />`);
 }
 
 const extState = /const \[(\w+), (\w+)\] = useState<string \| null>\(null\);/.exec(code);
 const extFetch = extState && new RegExp(`fetchExtensionVersion\\(\\)\\s*\\.then\\(\\((\\w+)\\)\\s*=>\\s*${extState[2]}\\(\\1\\.version\\)\\)`).test(code);
 if (!extFetch) {
   problems.push('BrowserTools.tsx: the extension card\'s number is not the version fetchExtensionVersion answers');
-} else if (!new RegExp(`<ReleaseVersion\\s+version=\\{${extState[1]}\\}\\s+tagPrefix="extension/v"`).test(code)) {
-  problems.push(`BrowserTools.tsx: the extension card's number is not <ReleaseVersion version={${extState[1]}} tagPrefix="extension/v" />`);
+} else if (!new RegExp(`<ReleaseVersion\\s+version=\\{${extState[1]}\\}\\s*/>`).test(code)) {
+  problems.push(`BrowserTools.tsx: the extension card's number is not <ReleaseVersion version={${extState[1]}} />`);
+}
+
+const releaseLink = /function ReleaseVersion\([\s\S]*?\n\}/.exec(code)?.[0] ?? '';
+if (!/href=\{`\$\{REPO_URL\}\/releases\/tag\/v\$\{version\}`\}/.test(releaseLink)) {
+  problems.push('BrowserTools.tsx: ReleaseVersion does not link to the release tagged v<version>');
 }
 
 const api = read(web, 'src', 'lib', 'api.ts');
@@ -130,20 +134,28 @@ if (!/fs\.ReadFile\(extension\.Dist, "src\/manifest\.json"\)/.test(handler)) {
 }
 
 // release
-const workflow = read(root, '.github', 'workflows', 'release-mobile.yml');
-if (!/require\('\.\/app\.json'\)\.expo\.version/.test(workflow)) {
-  problems.push('release-mobile.yml: the tag is no longer checked against app.json, so a tag no longer names the app.json version');
+const workflow = read(root, '.github', 'workflows', 'release.yml');
+if (!/tagged="\$\{GITHUB_REF_NAME#v\}"/.test(workflow)) {
+  problems.push('release.yml: the tag job does not read the version out of the tag');
 }
-const tagPrefix = /v="\$\{GITHUB_REF_NAME#([^}]+)\}"\s*\n\s*out="([^"$]*)\$v([^"]*)"/.exec(workflow);
-if (!tagPrefix) fail('release-mobile.yml: the step that names the APK after its version was not found.');
-const [, prefix, fileHead, fileTail] = tagPrefix;
+if (!/require\('\.\/mobile\/app\.json'\)\.expo\.version/.test(workflow)) {
+  problems.push('release.yml: the tag is not checked against mobile/app.json');
+}
+if (!/require\('\.\/extension\/src\/manifest\.json'\)\.version/.test(workflow)) {
+  problems.push('release.yml: the tag is not checked against extension/src/manifest.json');
+}
+// v is the whole tag, v1.4.0, with any slash of a branch name replaced.
+if (!/v="\$\{GITHUB_REF_NAME\/\/\\\/\/-\}"/.test(workflow)) fail('release.yml: the Package step does not set v from the tag.');
+const named = /cp apk\/app-release\.apk "dist\/([^"$]*)\$\{v\}([^"]*)"/.exec(workflow);
+if (!named) fail('release.yml: the step that names the APK after its version was not found.');
+const [, fileHead, fileTail] = named;
 const apk = /apk:\s*`([^`]*)`/.exec(code)?.[1];
 if (!apk) {
   problems.push('BrowserTools.tsx: APP_URLS has no apk address');
 } else if (appConst) {
-  const want = `/releases/download/${prefix}\${${appConst}}/${fileHead}\${${appConst}}${fileTail}`;
+  const want = `/releases/download/v\${${appConst}}/${fileHead}v\${${appConst}}${fileTail}`;
   if (!apk.endsWith(want)) {
-    problems.push(`BrowserTools.tsx: the APK address ends in "${apk.replace(/^\$\{\w+\}/, '')}", but release-mobile.yml publishes "${want}"`);
+    problems.push(`BrowserTools.tsx: the APK address ends in "${apk.replace(/^\$\{\w+\}/, '')}", but release.yml publishes "${want}"`);
   }
 }
 

@@ -51,7 +51,7 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
 <p align="center">
   <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(6160,0,841.9,245.3))" alt="On Google Play soon" width="160" height="46.618">
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7026,0,841.9,245.3))" alt="Download the Android app" width="160" height="46.618"></a>
+  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7026,0,841.9,245.3))" alt="Download the Android app" width="160" height="46.618"></a>
   &nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7892,0,841.9,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="160" height="46.618"></a>
   &nbsp;

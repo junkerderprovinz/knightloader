@@ -48,14 +48,14 @@ skipped or reordered.
    nothing about you beyond" in the policy are not true yet.
 3. **Merge to `main`.** The privacy policy URL points at `main`, which serves the
    old policy until the merge.
-4. **Release.** The tag `extension/vX.Y.Z` on `main` publishes "Browser Extension
-   X.Y.Z" once the release workflow has checked it against the manifest. Tag from
-   a clone that has run `git fetch --prune --prune-tags origin`, confirm
-   `git rev-parse extension/vX.Y.Z^{commit}` equals `origin/main`, and push that
-   one tag, never `--tags`.
-5. **Package:** the zip that release carries. It is `extension/src` zipped as it
-   is, with no build step, so a reviewer can compare it file by file with the tag.
-   Submit no other zip.
+4. **Release.** The extension is released with KnightLoader under the tag
+   `vX.Y.Z` on `main`, once the release workflow has checked the tag against the
+   manifest and `mobile/app.json`. Tag from a clone that has run
+   `git fetch --prune --prune-tags origin`, confirm `git rev-parse vX.Y.Z^{commit}`
+   equals `origin/main`, and push that one tag, never `--tags`.
+5. **Package:** `knightloader-vX.Y.Z-extension.zip` from that release. It is
+   `extension/src` zipped as it is, with no build step, so a reviewer can compare
+   it file by file with the tag. Submit no other zip.
 6. **Reviewer instance and files** (see "Reviewer notes"): run a dedicated
    instance named "Review" whose group holds that instance only, with a web UI
    password set and its download queue paused. It is up: `review.halleluja.design`
@@ -269,11 +269,13 @@ single purpose, no use for creditworthiness or lending).
   channel, so the listing is a new version of that add-on, not a new add-on:
   open it in the Developer Hub and upload a new version "On this site". AMO takes
   each version number once across both channels. Upload the release zip of the
-  first version that has no build on AMO yet; the release workflow leaves a tag
-  alone while the add-on has no listed version, so the tag does not take the
+  first version that has no build on AMO yet; the Firefox Add-ons workflow
+  submits nothing while the add-on has no listed version, so it cannot take the
   number first (`.github/scripts/amo-listed.mjs`).
-- **After the listing** the release workflow submits every new tag to the listed
-  channel for review; the signed file comes from AMO once it passes. Point the
+- **After the listing** the Firefox Add-ons workflow
+  (`.github/workflows/firefox-addons.yml`), run by hand on a release tag, submits
+  that version to the listed channel for review; the signed file comes from AMO
+  once it passes. Point the
   `firefox` entry in `scripts/download_buttons.py` at the listing when it is live;
   until then the entry is empty and the button shows "coming soon".
 - **Privacy policy**: tick "This add-on has a privacy policy" and paste the text of
@@ -373,10 +375,12 @@ because the last line is what the field cuts.
 
 ## After the first listing: updates
 
-1. Bump `version` in `extension/src/manifest.json`, write
-   `.github/release-notes/extension/vX.Y.Z.md`, push the tag `extension/vX.Y.Z`
-   from `main`. The release workflow checks the tag against the manifest,
-   attaches the zip and submits the version to AMO.
+1. Release KnightLoader: raise `version` in `extension/src/manifest.json` and
+   `expo.version` in `mobile/app.json`, write `.github/release-notes/vX.Y.Z.md`
+   and push the tag `vX.Y.Z` from `main`. The release workflow checks the tag
+   against both files and attaches the extension zip. To send that version to
+   AMO, run the Firefox Add-ons workflow on the tag (Actions, Firefox Add-ons,
+   Run workflow, then pick the tag under "Use workflow from").
 2. Upload that zip to the Chrome Web Store and Edge Add-ons. Every upload is
    reviewed again: Chrome in a few days, Edge in up to seven business days, AMO
    usually within a day.

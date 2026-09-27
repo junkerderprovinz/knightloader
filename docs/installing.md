@@ -233,7 +233,8 @@ tag.
 ## The Android app
 
 The APK is on the
-[latest app release](https://github.com/junkerderprovinz/knightloader/releases/download/mobile/latest/knightloader-android.apk).
+[latest release](https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-android.apk),
+with the same version number as the server beside it.
 It reaches an instance on your own network or, with the twelve words, from
 anywhere else: see [Connecting instances and apps](connecting.md).
 

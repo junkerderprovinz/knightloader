@@ -1,29 +1,32 @@
 name: Release
 
-# The release is created last, with the desktop zips and checksums.txt in one
-# command (.github/scripts/publish-release.sh), because it counts as latest the
-# moment it is published and the README buttons and the in-app update read
+# One tag, vX.Y.Z, releases everything under the same number: the server and
+# its images, the desktop apps, the Android app and the browser extension.
+#
+# The release is created last, with every file and checksums.txt in one command
+# (.github/scripts/publish-release.sh), because it counts as latest the moment
+# it is published and the README buttons and the in-app update read
 # /releases/latest/download/<name>. A failed build leaves no release;
 # re-running the failed jobs finishes it.
 #
 # The images build alongside, and their `latest` moves only once the release is
 # out, by the same rule the release uses. dockerhub-copy.yml puts a release
-# that is already out on Docker Hub.
+# that is already out on Docker Hub, and firefox-addons.yml sends a released
+# extension to Mozilla.
 on:
   push:
     tags:
       - "v*.*.*"
-  # A dispatched run builds and packages everything but pushes and publishes
-  # nothing, so the chain can be tried before a tag depends on it.
+  # A dispatched run builds and packages everything but signs, pushes and
+  # publishes nothing, so the chain can be tried before a tag depends on it.
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # Release notes are written by hand; a tag without them stops here, before
-  # the long builds.
-  notes:
+  # Both checks stop a tag here, before the long builds.
+  tag:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -38,13 +41,183 @@ jobs:
             exit 1
           fi
 
+      # The app and the extension carry the number in their own files, where
+      # the phone and the browser read it, so a tag those files disagree with
+      # would ship builds that call themselves something else.
+      - name: The version files name this tag
+        if: github.ref_type == 'tag'
+        run: |
+          set -eu
+          tagged="${GITHUB_REF_NAME#v}"
+          app=$(node -p "require('./mobile/app.json').expo.version")
+          extension=$(node -p "require('./extension/src/manifest.json').version")
+          wrong=""
+          [ "$app" = "$tagged" ] || wrong="$wrong mobile/app.json says $app."
+          [ "$extension" = "$tagged" ] || wrong="$wrong extension/src/manifest.json says $extension."
+          if [ -n "$wrong" ]; then
+            echo "::error::the tag says $tagged, but$wrong Raise them to $tagged before tagging."
+            exit 1
+          fi
+          echo "app.json and manifest.json both say $tagged"
+
   desktop:
-    needs: notes
+    needs: tag
     uses: ./.github/workflows/desktop.yml
+
+  # Android identifies an app by package name and signing certificate, so the
+  # key can never change without an uninstall. expo prebuild signs release
+  # builds with the public debug key unless told otherwise, and anybody could
+  # publish an update to such an APK. Only a pushed tag signs with the release
+  # key; a dispatched run shows that the app builds.
+  android:
+    needs: tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SIGNED: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      # 17 is what the Gradle plugin of this Expo SDK expects.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install
+        run: npm ci
+
+      - name: Signing key is available
+        if: env.SIGNED == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=""
+          [ -n "$KS" ] || missing="$missing ANDROID_KEYSTORE_BASE64"
+          [ -n "$KS_PASS" ] || missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ] || missing="$missing ANDROID_KEY_ALIAS"
+          [ -n "$KEY_PASS" ] || missing="$missing ANDROID_KEY_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::missing repository secret(s):$missing - a release APK must not be signed with the public Android debug key. Create a keystore once (keytool -genkeypair -v -keystore knightloader.jks -alias knightloader -keyalg RSA -keysize 4096 -validity 10000), then: gh secret set ANDROID_KEYSTORE_BASE64 < <(base64 -w0 knightloader.jks) and set the other three. Keep the .jks file itself out of this repository, and keep a backup of it: losing it means no future version can ever update an installed copy."
+            exit 1
+          fi
+
+      # Android orders updates by versionCode, so it is made from the version
+      # and rises with every release without anybody raising it by hand. The
+      # tag job has held app.json's version to the tag.
+      - name: versionCode from the version
+        run: |
+          node -e '
+            const fs = require("fs");
+            const app = JSON.parse(fs.readFileSync("app.json", "utf8"));
+            const version = app.expo.version;
+            if (!/^[0-9]+[.][0-9]+[.][0-9]+$/.test(version)) throw new Error(version + " is not an X.Y.Z version");
+            const [major, minor, patch] = version.split(".").map(Number);
+            if (minor > 99 || patch > 99) throw new Error(version + " does not fit versionCode = major*10000 + minor*100 + patch");
+            app.expo.android.versionCode = major * 10000 + minor * 100 + patch;
+            fs.writeFileSync("app.json", JSON.stringify(app, null, 2) + "\n");
+            console.log("version", version, "versionCode", app.expo.android.versionCode);
+          '
+
+      # android/ is generated, not committed. The signing config comes from
+      # mobile/plugins/withReleaseSigning.js.
+      - name: Generate the native project
+        run: npx expo prebuild --platform android --clean
+
+      # Outside android/, which prebuild --clean deletes, and outside the
+      # workspace.
+      - name: Unpack the keystore
+        if: env.SIGNED == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+          test -s "$RUNNER_TEMP/release.jks"
+
+      - name: Build the APK
+        run: ./gradlew assembleRelease --no-daemon
+        working-directory: mobile/android
+        env:
+          KL_ANDROID_KEYSTORE: ${{ env.SIGNED == 'true' && format('{0}/release.jks', runner.temp) || '' }}
+          KL_ANDROID_STORE_PASSWORD: ${{ env.SIGNED == 'true' && secrets.ANDROID_KEYSTORE_PASSWORD || '' }}
+          KL_ANDROID_KEY_ALIAS: ${{ env.SIGNED == 'true' && secrets.ANDROID_KEY_ALIAS || '' }}
+          KL_ANDROID_KEY_PASSWORD: ${{ env.SIGNED == 'true' && secrets.ANDROID_KEY_PASSWORD || '' }}
+
+      # A broken gradle wiring or a wrong alias still ends in a green,
+      # debug-signed build, so the certificate in the finished APK is checked.
+      - name: The APK is signed with our own key
+        if: env.SIGNED == 'true'
+        run: |
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ -z "$apksigner" ]; then
+            echo "::error::no apksigner in $ANDROID_HOME/build-tools - cannot verify what signed this APK, and publishing it unverified is the thing this step exists to prevent."
+            exit 1
+          fi
+          certs=$("$apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk)
+          echo "$certs"
+          if printf '%s' "$certs" | grep -qi 'CN=Android Debug'; then
+            echo "::error::this APK is signed with the public Android debug key. Every installed copy would be updatable by anyone, and the key cannot be changed later without an uninstall. Check the ANDROID_KEYSTORE_* secrets and mobile/plugins/withReleaseSigning.js."
+            exit 1
+          fi
+
+      # Not named knightloader-*, which publish reads as desktop bundles.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: android-apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+  # The zip is src/ as it is, with no build step, so the checks CI runs on it
+  # are repeated here and a release cannot skip them.
+  extension:
+    needs: tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      - name: Syntax and the extension's own checks
+        run: |
+          set -eu
+          for f in extension/src/*.js; do node --check "$f"; done
+          for f in extension/check-*.mjs; do node "$f"; done
+
+      # Same lint and skip list as ci.yml, which explains the skipped codes.
+      - name: web-ext lint
+        run: |
+          cd extension/src
+          out=$(npx --yes web-ext lint --self-hosted --output=json 2>/dev/null || true)
+          printf '%s' "$out" | node -e '
+            let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
+              let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
+              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED", "KEY_FIREFOX_ANDROID_UNSUPPORTED_BY_MIN_VERSION"]);
+              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
+              for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
+              if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
+              console.log("web-ext lint clean");
+            });
+          '
 
   # The release also waits for the images, so it never exists without them.
   publish:
-    needs: [desktop, images]
+    needs: [desktop, android, extension, images]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -61,7 +234,12 @@ jobs:
           pattern: knightloader-*
           path: bundles
 
-      # Each zip goes out twice: named for the tag, and without a version for
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: android-apk
+          path: apk
+
+      # Each file goes out twice: named for the tag, and without a version for
       # the README buttons and the desktop app's update, since
       # /releases/latest/download/ takes only an exact name. A dispatched run
       # from a branch like fix/x has a slash in its ref name, hence the
@@ -81,9 +259,11 @@ jobs:
               cp "$d/knightloader-${slug}-installer.exe" "dist/knightloader-${slug}-installer.exe"
             fi
           done
-          # The browser extension this server serves, under the fixed name the
-          # README button and the manual link to through /releases/latest/.
+          cp apk/app-release.apk "dist/knightloader-${v}-android.apk"
+          cp apk/app-release.apk dist/knightloader-android.apk
+          # The browser extension, the same files the server embeds and serves.
           (cd extension/src && zip -qr ../../dist/knightloader-extension.zip .)
+          cp dist/knightloader-extension.zip "dist/knightloader-${v}-extension.zip"
           ls -lh dist
 
       # The desktop app verifies the zip it updates to against this file. Run
@@ -92,7 +272,7 @@ jobs:
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip *.exe > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe *.apk > checksums.txt)
           cat dist/checksums.txt
 
       # Only from a pushed tag. checksums.txt is named explicitly rather than
@@ -102,7 +282,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.apk dist/checksums.txt
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed
@@ -111,7 +291,7 @@ jobs:
   # DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret are set
   # together.
   images:
-    needs: notes
+    needs: tag
     name: ${{ matrix.name }} image (amd64 + arm64)
     runs-on: ubuntu-latest
     # The main image compiles the whole server for arm64 under QEMU.

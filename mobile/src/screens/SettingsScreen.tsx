@@ -724,7 +724,7 @@ export default function SettingsScreen({
           {`${t('settings.aboutVersion')} `}
           <Text
             style={{ color: accentInk }}
-            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/mobile/v${Constants.expoConfig?.version ?? ''}`)}
+            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/v${Constants.expoConfig?.version ?? ''}`)}
           >
             {Constants.expoConfig?.version ?? '-'}
           </Text>

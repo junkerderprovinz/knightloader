@@ -51,7 +51,7 @@ if (same) {
   console.log(`AMO already has ${version} (${same.channel}); nothing to submit.`);
   submit = false;
 } else if (!known.some((v) => v.channel === "listed")) {
-  console.log(`::notice::${guid} has no listed version yet. Upload ${version} by hand as the first one (extension/store/SUBMISSION.md); later tags go to AMO from here.`);
+  console.log(`::notice::${guid} has no listed version yet. Upload ${version} by hand as the first one (extension/store/SUBMISSION.md); later versions go to AMO from here.`);
   submit = false;
 } else {
   console.log(`${version} goes to Firefox Add-ons for review.`);
