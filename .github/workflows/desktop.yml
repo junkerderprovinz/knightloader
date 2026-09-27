@@ -19,14 +19,15 @@ jobs:
           - os: windows-latest
             platform: windows/amd64
             slug: windows-amd64
-            extra: ""
+            # The installer, next to the portable exe in the zip.
+            extra: "-nsis"
           # Cross-built on the x64 runner, which can still run the host binary
           # Wails generates the bindings with. WebView2 needs no cgo, and with
           # cgo on, the build would want an arm64 C compiler the runner lacks.
           - os: windows-latest
             platform: windows/arm64
             slug: windows-arm64
-            extra: ""
+            extra: "-nsis"
             cgo: "0"
           - os: macos-latest
             platform: darwin/universal
@@ -71,6 +72,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
+      # -nsis needs makensis, and the runner image has dropped its
+      # preinstalled NSIS before (actions/runner-images#11754).
+      - name: Install NSIS
+        if: runner.os == 'Windows'
+        run: |
+          choco install nsis -y
+          # The running job does not see choco's PATH change, and wails only
+          # warns "makensis not found" and skips the installer.
+          echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       # The CLI must match the library version in desktop/go.mod, so it is read
       # from there and the step fails if it cannot find it. bash on every
       # runner, and sed rather than grep -P, which BSD grep on macOS lacks.
@@ -112,11 +123,15 @@ jobs:
       - name: Zip the bundle
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path desktop/build/bin/* -DestinationPath "knightloader-${{ matrix.slug }}.zip"
+        run: |
+          Compress-Archive -Path desktop/build/bin/KnightLoader.exe -DestinationPath "knightloader-${{ matrix.slug }}.zip"
+          Copy-Item desktop/build/bin/KnightLoader-*-installer.exe "knightloader-${{ matrix.slug }}-installer.exe"
 
       # Named by the slug, since the platform string contains a slash.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: knightloader-${{ matrix.slug }}
-          path: knightloader-${{ matrix.slug }}.zip
+          path: |
+            knightloader-${{ matrix.slug }}.zip
+            knightloader-${{ matrix.slug }}-installer.exe
           if-no-files-found: error

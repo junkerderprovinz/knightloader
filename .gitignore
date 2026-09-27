@@ -31,6 +31,12 @@ web/node_modules/
 # exact path at build time), not a build output.
 desktop/build/*
 !desktop/build/appicon.png
+# Wails writes the rest of the Windows installer on every build; the script is ours.
+!desktop/build/windows/
+desktop/build/windows/*
+!desktop/build/windows/installer/
+desktop/build/windows/installer/*
+!desktop/build/windows/installer/project.nsi
 
 # `wails build`/`wails dev` also write generated JS bindings straight into
 # the shared web/ project - regenerated on every build, not source.
