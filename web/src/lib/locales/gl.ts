@@ -27,6 +27,7 @@ export const gl: Dict = {
   'status.running': 'Descargando',
   'status.paused': 'En pausa',
   'status.extracting': 'Extraendo',
+  'status.seeding': 'Facendo seed',
   'status.done': 'Feito',
   'status.error': 'Erro',
 

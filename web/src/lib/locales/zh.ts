@@ -27,6 +27,7 @@ export const zh: Dict = {
   'status.running': '下载中',
   'status.paused': '已暂停',
   'status.extracting': '解压中',
+  'status.seeding': '做种中',
   'status.done': '已完成',
   'status.error': '错误',
 

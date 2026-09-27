@@ -767,6 +767,56 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
+/* A parked list row (isParked in components/columns.tsx): a disabled link, or
+   a package whose links all are. Its parts take the muted ink for text, glyphs,
+   status words and the progress fill, so the row reads as switched off at a
+   glance. Colour and not opacity, because the switch and the marks beside
+   these parts stay at full strength, and GlimStone dims the parts, never the
+   row. Both names of each token are set: the utilities read the @theme copies,
+   which :root has already resolved, and ProgressBar reads the plain ones. Set
+   below the row's .glim-hue, so a rainbow position greys as well.
+
+   Ink takes the muted text step and a fill the neutral dot's grey, which is
+   the lighter of the two on a light theme: a bar in the text grey outweighs
+   the live bars around it. */
+.kl-parked {
+  --carbon-text: var(--carbon-text-muted);
+  --carbon-text-sub: var(--carbon-text-muted);
+  --accent: var(--status-neutral-solid);
+  --accent-ink: var(--carbon-text-muted);
+  --status-ok-text: var(--carbon-text-muted);
+  --status-ok-solid: var(--status-neutral-solid);
+  --status-fail-text: var(--carbon-text-muted);
+  --status-fail-solid: var(--status-neutral-solid);
+  --status-warn-text: var(--carbon-text-muted);
+  --status-warn-solid: var(--status-neutral-solid);
+  --status-info-text: var(--carbon-text-muted);
+  --status-info-solid: var(--status-neutral-solid);
+  --status-neutral-text: var(--carbon-text-muted);
+  --color-carbon-text: var(--carbon-text-muted);
+  --color-carbon-textSub: var(--carbon-text-muted);
+  --color-accent: var(--status-neutral-solid);
+  --color-accentInk: var(--carbon-text-muted);
+  --color-statusOk: var(--carbon-text-muted);
+  --color-statusOkSolid: var(--status-neutral-solid);
+  --color-statusFail: var(--carbon-text-muted);
+  --color-statusFailSolid: var(--status-neutral-solid);
+  --color-statusWarn: var(--carbon-text-muted);
+  --color-statusWarnSolid: var(--status-neutral-solid);
+  --color-statusInfo: var(--carbon-text-muted);
+  --color-statusInfoSolid: var(--status-neutral-solid);
+  --color-statusNeutral: var(--carbon-text-muted);
+}
+/* A host's logo is a picture, which no token reaches. */
+.kl-parked img {
+  filter: grayscale(1);
+}
+/* Nothing moves on a parked row, and a white edge on the grey fill would be
+   the brightest mark on it. */
+.kl-parked .kl-bar-edge {
+  display: none;
+}
+
 /* The notch badge overhangs its card's top edge by 12px, and a scrolling
  * column clips there. The room goes to the first card that has a badge rather
  * than to the column, so pages without one still start on the sidebar's line.

@@ -114,6 +114,7 @@ export const nl: Dict = {
   'status.finished': 'voltooid',
   'status.failed': 'mislukt',
   'status.extracting': 'uitpakken',
+  'status.seeding': 'seedt',
   'status.disabled': 'uitgezet',
 
   'settings.title': 'Instellingen',

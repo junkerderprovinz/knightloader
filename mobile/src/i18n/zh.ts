@@ -114,6 +114,7 @@ export const zh: Dict = {
   'status.finished': '已完成',
   'status.failed': '失败',
   'status.extracting': '解压中',
+  'status.seeding': '做种中',
   'status.disabled': '已停用',
 
   'settings.title': '设置',

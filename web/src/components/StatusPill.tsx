@@ -11,20 +11,33 @@ import {
   IconDownloads,
   IconKey,
   IconPause,
+  IconUpload,
   IconWarning,
 } from '../lib/icons';
+
+/**
+ * RowState is what a row's status column says. Seeding is a flag beside
+ * 'done' on the wire (core.Task.Seeding), but a torrent still uploading is
+ * doing something, and "Done" beside it reads as if it had stopped.
+ */
+export type RowState = TaskStatus | 'seeding';
+
+export function rowState(task: Pick<Task, 'status' | 'seeding'>): RowState {
+  return task.status === 'done' && task.seeding ? 'seeding' : task.status;
+}
 
 // Paused shares the neutral tone; the glyph and label tell it apart.
 type Tone = 'ok' | 'fail' | 'info' | 'neutral';
 
 type Glyph = ComponentType<SVGProps<SVGSVGElement>>;
 
-const statusTone: Record<TaskStatus, { tone: Tone; key: TranslationKey }> = {
+const statusTone: Record<RowState, { tone: Tone; key: TranslationKey }> = {
   collected: { tone: 'neutral', key: 'status.collected' },
   queued: { tone: 'neutral', key: 'status.queued' },
   running: { tone: 'info', key: 'status.running' },
   paused: { tone: 'neutral', key: 'status.paused' },
   extracting: { tone: 'info', key: 'status.extracting' },
+  seeding: { tone: 'info', key: 'status.seeding' },
   done: { tone: 'ok', key: 'status.done' },
   error: { tone: 'fail', key: 'status.error' },
 };
@@ -36,13 +49,14 @@ const toneText: Record<Tone, string> = {
   neutral: 'text-statusNeutral',
 };
 
-// Seven states share four tones, so the glyph is what tells them apart.
-const statusGlyph: Record<TaskStatus, Glyph> = {
+// Eight states share four tones, so the glyph is what tells them apart.
+const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
   queued: IconClock,
   running: IconDownloads,
   paused: IconPause,
   extracting: IconArchive,
+  seeding: IconUpload,
   done: IconCheck,
   error: IconWarning,
 };
@@ -64,7 +78,7 @@ function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; l
   );
 }
 
-export function StatusPill({ status }: { status: TaskStatus }) {
+export function StatusPill({ status }: { status: RowState }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
   return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconClock} label={t(s.key)} />;

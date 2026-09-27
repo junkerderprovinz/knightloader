@@ -27,6 +27,7 @@ export const tr: Dict = {
   'status.running': 'İndiriliyor',
   'status.paused': 'Duraklatıldı',
   'status.extracting': 'Ayıklanıyor',
+  'status.seeding': 'Seed ediliyor',
   'status.done': 'Bitti',
   'status.error': 'Hata',
 

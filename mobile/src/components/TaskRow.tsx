@@ -5,7 +5,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
-import { rowWord, type StateWord } from '../api/taskState';
+import { isParked, rowWord, type StateWord } from '../api/taskState';
 import { InfoTip } from './InfoTip';
 import IconBadge, { Power } from './IconBadge';
 import { Text } from './Text';
@@ -34,6 +34,7 @@ export const STATE_KEYS: Record<StateWord, TranslationKey> = {
   running: 'status.running',
   paused: 'status.paused',
   extracting: 'status.extracting',
+  seeding: 'status.seeding',
   finished: 'status.finished',
   failed: 'status.failed',
   notUnpacked: 'status.notUnpacked',
@@ -69,11 +70,14 @@ function rgb(hex: string): { r: number; g: number; b: number } | null {
  * accent darkened until they can, because gold text on a white card is
  * unreadable at 12 points whichever gold it is. The row's own fill, the wash
  * and the progress bar, takes the undarkened one, which is why the palette and
- * the ink arrive as two arguments.
+ * the ink arrive as two arguments. A parked row (isParked) says its word in
+ * the muted ink, whatever the word is.
  */
-export function statusColor(word: StateWord | null, c: Palette, accentInk: string): string {
+export function statusColor(word: StateWord | null, c: Palette, accentInk: string, parked = false): string {
+  if (parked) return c.textMuted;
   switch (word) {
     case 'running':
+    case 'seeding':
       return accentInk;
     case 'finished':
       return c.statusOkSolid;
@@ -122,6 +126,9 @@ export default function TaskRow({
       ? Math.min(100, Math.round((task.loaded / task.size) * 100))
       : null;
   const word = rowWord(task);
+  // Greyed by colour rather than opacity, so the switch beside the row keeps
+  // its full strength.
+  const parked = isParked([task]);
   const name = task.name || task.url;
   const failure = explainFailure(t, task, {
     part: name,
@@ -147,24 +154,34 @@ export default function TaskRow({
         // under the threshold anyone registers as change. The running row gets
         // the stronger 22% the web gives the selected row, running being this
         // list's active state.
-        hue && (!rainbow.reactive || task.status === 'running')
+        //
+        // A parked row has none: the wash is its colour, and colour is what a
+        // parked row gives up.
+        hue && !parked && (!rainbow.reactive || task.status === 'running')
           ? { backgroundColor: blend(c.surface, hue, task.status === 'running' ? 0.22 : 0.16) }
           : null,
       ]}
     >
       <View style={styles.body}>
         <View style={styles.header}>
-          <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+          <Text style={[styles.name, { color: parked ? c.textMuted : c.text }]} numberOfLines={1}>
             {task.name || task.url}
           </Text>
-          <Text style={[styles.status, { color: statusColor(word, c, rowInk) }]}>
+          <Text style={[styles.status, { color: statusColor(word, c, rowInk, parked) }]}>
             {word ? t(STATE_KEYS[word]) : task.status}
           </Text>
         </View>
 
         {task.status === 'running' && (
           <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
-            <View style={[styles.progressFill, { width: `${pct ?? 0}%`, backgroundColor: rowAccent }]} />
+            <View
+              style={[
+                styles.progressFill,
+                // The neutral fill rather than the text grey, as on the web: a
+                // bar in the text grey outweighs the live ones on a light theme.
+                { width: `${pct ?? 0}%`, backgroundColor: parked ? c.statusNeutralSolid : rowAccent },
+              ]}
+            />
           </View>
         )}
 
@@ -201,7 +218,7 @@ export default function TaskRow({
         {failure ? (
           <View style={styles.failure}>
             <View style={styles.failureText}>
-              <Text style={[styles.failureLine, { color: c.statusFailSolid }]} numberOfLines={2}>
+              <Text style={[styles.failureLine, { color: parked ? c.textMuted : c.statusFailSolid }]} numberOfLines={2}>
                 {failure.line}
               </Text>
               <Text style={[styles.failureLine, { color: c.textMuted }]} numberOfLines={3}>

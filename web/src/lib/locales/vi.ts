@@ -27,6 +27,7 @@ export const vi: Dict = {
   'status.running': 'Đang tải',
   'status.paused': 'Tạm dừng',
   'status.extracting': 'Đang giải nén',
+  'status.seeding': 'Đang seed',
   'status.done': 'Xong',
   'status.error': 'Lỗi',
 

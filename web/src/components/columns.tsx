@@ -42,7 +42,16 @@ import { explainFailure, type Explained, type FailureSource } from '../lib/taskE
 import { FailureAdvice } from './FailureAdvice';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
-import { ResolverBadge, StatusPill, UnpackPill, unpackLabel, unpackState, type UnpackState } from './StatusPill';
+import {
+  ResolverBadge,
+  StatusPill,
+  UnpackPill,
+  rowState,
+  unpackLabel,
+  unpackState,
+  type RowState,
+  type UnpackState,
+} from './StatusPill';
 import { RetryNote, retryPending } from './RetryCountdown';
 import { useShake } from '../lib/useShake';
 import { useTooltip } from './ui';
@@ -561,9 +570,10 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
         {/* Peers, seeds and ratio have their own columns, hidden by default
             like the other low-traffic ones, so they are here for the same
             reason connection, added, finished, comment and source are.
-            Uploaded and "still seeding" go no further than this bubble,
-            which carries the full peer and seed detail the three columns
-            leave out. */}
+            Uploaded goes no further than this bubble, which carries the
+            full peer and seed detail the three columns leave out. "Still
+            seeding" repeats the status column's word for a list that has
+            that column hidden. */}
         {isTorrent && (
           <TooltipField label={t('task.tooltip.swarm')}>
             {t('task.tooltip.swarmDetail', {
@@ -692,6 +702,19 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
 }
 
 /**
+ * isParked is whether a row reads as parked: a disabled link, or a package
+ * whose links are all disabled. Such a row draws its text, glyphs and progress
+ * in the muted ink (.kl-parked in index.css), and its switch and marks stay at
+ * full strength, since they are how it is enabled again.
+ */
+export function isParked(items: Task[]): boolean {
+  return items.length > 0 && items.every((x) => !x.enabled);
+}
+
+/** The class a parked row's parts carry; see isParked. */
+export const PARKED = 'kl-parked';
+
+/**
  * RowMarks shows what the right-click menu leaves on a row: the stop mark,
  * Start now and Disable, each as the glyph of its menu entry with the state's
  * name in the bubble. On a package row `items` is its links, and it
@@ -750,20 +773,25 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   const openTip = useTooltip<HTMLButtonElement>(t('failure.open'));
   const { role: _openRole, tabIndex: _openTabIndex, ...openHover } = openTip.triggerProps;
   const priorityNames = usePriorityNames();
+  const parked = isParked([task]) ? PARKED : '';
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
         <RowMarks items={[task]} ctx={ctx} />
-        <PriorityTag value={task.priority} names={priorityNames} t={t} />
-        {/* text-sm is the scale's body row; a half-pixel value is not a step
-            the four-row table has. */}
-        <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-sm text-carbon-text">
-          {/* task.ext is a display-only hint (see core.Task.Ext), never
-              appended to task.name itself: Name stays the resolved-versus-
-              placeholder sentinel the backend's rename and probe guards key
-              on. Only shown once a real name has resolved, so a bare URL
-              placeholder gets no extension tacked onto it. */}
-          {task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name || task.url}
+        {/* `contents`, so the parked ink reaches what follows the marks and
+            not the marks, without a box of its own on the line. */}
+        <div className={`contents ${parked}`}>
+          <PriorityTag value={task.priority} names={priorityNames} t={t} />
+          {/* text-sm is the scale's body row; a half-pixel value is not a step
+              the four-row table has. */}
+          <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-sm text-carbon-text">
+            {/* task.ext is a display-only hint (see core.Task.Ext), never
+                appended to task.name itself: Name stays the resolved-versus-
+                placeholder sentinel the backend's rename and probe guards key
+                on. Only shown once a real name has resolved, so a bare URL
+                placeholder gets no extension tacked onto it. */}
+            {task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name || task.url}
+          </div>
         </div>
       </div>
       {tip.node}
@@ -771,7 +799,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
         <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
       )}
       {failure && (
-        <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
+        <div className={`mt-0.5 flex items-center gap-1.5 text-[11px] ${parked}`}>
           {/* The typed cause leads the line as a tag rather than a second
               sentence: a column reading "disk full" four times is one fact
               about this box, where four hoster sentences that each mean it are
@@ -971,9 +999,11 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
   // the availability dot is the only honest reading: the transfer has not begun
   // and the row has no state of its own yet.
   if (task.status === 'collected') return <AvailCell task={task} t={t} />;
+  const state = rowState(task);
+  const shown = unpack && !seedingOutranks(state, unpack) ? unpack : null;
   return (
     <span className={STATUS_LINE}>
-      {unpack ? <UnpackStatus unpack={unpack} t={t} /> : <StatusPill status={task.status} />}
+      {shown ? <UnpackStatus unpack={shown} t={t} /> : <StatusPill status={state} />}
       {/* What the backend is doing, when "running" is not the whole truth: JD
           can report "Captcha recognition (rapidgator.net)" on a package while
           this column says running with no bytes moving. Beside the status
@@ -1062,6 +1092,15 @@ interface Unpacking {
   name?: string;
   /** The archive's folder, for a failure that does not name its path. */
   dir?: string;
+}
+
+/**
+ * seedingOutranks is whether a seeding torrent's word stands in the place of
+ * its archive's. An archive unpacked is old news beside an upload still going
+ * on; one being unpacked, or one that failed, is still the thing to say.
+ */
+function seedingOutranks(state: RowState, unpack: Unpacking): boolean {
+  return state === 'seeding' && unpack.state === 'done';
 }
 
 // app.extractErrorPrefix, which marks the unpacking's own error on a task.
@@ -1171,14 +1210,18 @@ export { hostOf } from '../lib/searchQuery';
 
 // Sorting by status alphabetically tells nobody anything; sorting by where a
 // task is in its life does. Fault last, because that is what people sort to find.
-const STATUS_RANK: Record<Task['status'], number> = {
+//
+// Seeding sits after every state that still owes a download: a package with a
+// file queued is not finished because another one is uploading.
+const STATUS_RANK: Record<RowState, number> = {
   running: 0,
   extracting: 1,
   queued: 2,
   paused: 3,
-  collected: 4,
-  done: 5,
-  error: 6,
+  seeding: 4,
+  collected: 5,
+  done: 6,
+  error: 7,
 };
 
 /**
@@ -1190,10 +1233,13 @@ const STATUS_RANK: Record<Task['status'], number> = {
  * files and one dead link is not a finished package, and a header that says
  * "Done" hides the one row somebody has to act on.
  */
-export function packageStatus(items: Task[]): Task['status'] {
+export function packageStatus(items: Task[]): RowState {
   if (items.length === 0) return 'queued';
-  let best = items[0].status;
-  for (const x of items) if (STATUS_RANK[x.status] < STATUS_RANK[best]) best = x.status;
+  let best = rowState(items[0]);
+  for (const x of items) {
+    const state = rowState(x);
+    if (STATUS_RANK[state] < STATUS_RANK[best]) best = state;
+  }
   if (STATUS_RANK[best] >= STATUS_RANK.collected && items.some((x) => x.status === 'error')) return 'error';
   return best;
 }
@@ -1229,7 +1275,7 @@ export function packageUnpacking(
   ctx: CellContext,
 ): (Unpacking & { done: number; total: number }) | null {
   const status = packageStatus(items);
-  if (status !== 'done' && status !== 'extracting') return null;
+  if (status !== 'done' && status !== 'extracting' && status !== 'seeding') return null;
   const all = archivesOf(items, ctx);
   if (all.length === 0) return null;
   const lead = all.reduce((a, b) => (UNPACK_RANK.indexOf(b.state) < UNPACK_RANK.indexOf(a.state) ? b : a));
@@ -1251,7 +1297,8 @@ export function packageFailures(items: Task[], ctx: CellContext): number {
  */
 function PackageStatusCell({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   const status = packageStatus(items);
-  const unpack = packageUnpacking(items, ctx);
+  const found = packageUnpacking(items, ctx);
+  const unpack = found && !seedingOutranks(status, found) ? found : null;
   const failed = packageFailures(items, ctx);
   const word = unpack ? (
     <UnpackStatus
@@ -1584,7 +1631,7 @@ export const COLUMNS: ColumnDef[] = [
     minWidth: 90,
     align: 'center',
     hideable: true,
-    compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
+    compare: (a, b) => STATUS_RANK[rowState(a)] - STATUS_RANK[rowState(b)],
     render: (task, ctx) =>
       ctx.profile === 'collector' ? (
         <AvailCell task={task} t={ctx.t} />

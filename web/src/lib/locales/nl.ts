@@ -26,6 +26,7 @@ export const nl: Dict = {
   'status.running': 'Downloaden',
   'status.paused': 'Gepauzeerd',
   'status.extracting': 'Uitpakken',
+  'status.seeding': 'Seeden',
   'status.done': 'Klaar',
   'status.error': 'Fout',
   'task.pause': 'Pauzeren',

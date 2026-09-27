@@ -27,6 +27,7 @@ export const da: Dict = {
   'status.running': 'Downloader',
   'status.paused': 'Sat på pause',
   'status.extracting': 'Pakker ud',
+  'status.seeding': 'Seeder',
   'status.done': 'Færdig',
   'status.error': 'Fejl',
 

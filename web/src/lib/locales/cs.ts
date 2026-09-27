@@ -27,6 +27,7 @@ export const cs: Dict = {
   'status.running': 'Stahuje se',
   'status.paused': 'Pozastaveno',
   'status.extracting': 'Rozbaluje se',
+  'status.seeding': 'Seeduje',
   'status.done': 'Hotovo',
   'status.error': 'Chyba',
 

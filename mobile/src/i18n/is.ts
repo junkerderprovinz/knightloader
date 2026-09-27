@@ -114,6 +114,7 @@ export const is: Dict = {
   'status.finished': 'lokið',
   'status.failed': 'mistókst',
   'status.extracting': 'afþjappar',
+  'status.seeding': 'sáir',
   'status.disabled': 'slökkt',
 
   'settings.title': 'Stillingar',

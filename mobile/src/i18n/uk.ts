@@ -114,6 +114,7 @@ export const uk: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'помилка',
   'status.extracting': 'розпакування',
+  'status.seeding': 'роздається',
   'status.disabled': 'вимкнено',
 
   'settings.title': 'Налаштування',

@@ -27,6 +27,7 @@ export const hu: Dict = {
   'status.running': 'Letöltés',
   'status.paused': 'Szüneteltetve',
   'status.extracting': 'Kibontás',
+  'status.seeding': 'Seedel',
   'status.done': 'Kész',
   'status.error': 'Hiba',
 

@@ -83,11 +83,13 @@ import { renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
   FOLDER_GLYPH,
+  PARKED,
   Tip,
   TREE_INDENT,
   VARIANT_KIND_LABEL_KEY,
   applySort,
   gridTemplate,
+  isParked,
   moveColumn,
   nextSort,
   resolveLayout,
@@ -106,6 +108,7 @@ import {
   type SortState,
 } from './columns';
 import { RetrySkipBadge } from './RetryCountdown';
+import { rowState } from './StatusPill';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
 import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
@@ -205,6 +208,15 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
  * it.
  */
 const ACTIONS_CELL = 'flex items-center justify-end gap-1';
+
+/**
+ * Whether a parked row greys this cell (see isParked). The switch is how the
+ * row is enabled again, the name cell greys its own parts around the marks, and
+ * the collector's pickers still decide what the link will fetch.
+ */
+function parksCell(id: ColumnId, profile: ListProfile): boolean {
+  return id !== 'enabled' && id !== 'name' && !(id === 'variant' && profile === 'collector');
+}
 
 /**
  * useCollapsedPackages is the folded set, and the only thing that knows where
@@ -320,6 +332,7 @@ function TaskRow({
   const { t } = useT();
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
+  const parked = isParked([task]);
   const unit: RowDragKey = { kind: 'task', id: task.id };
 
   // In rainbow mode the row owns a colour, and everything inside it that paints
@@ -408,7 +421,9 @@ function TaskRow({
             // text-xs is the scale's dense row, which is what a table cell takes.
             className={`min-w-0 truncate text-xs text-carbon-textSub ${
               col.id === 'name' ? 'pe-2' : 'px-2'
-            } ${col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
+            } ${col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'} ${
+              col.numeric ? 'glim-num' : ''
+            } ${parked && parksCell(col.id, ctx.profile) ? PARKED : ''}`}
           >
             {/* A column that renders plain text carries that text in the house
                 bubble, so a name too long for its width is readable without
@@ -549,7 +564,8 @@ function PackageName({
 }) {
   const { t } = useT();
   const priorityNames = usePriorityNames();
-  const done = items.filter((x) => x.status === 'done').length;
+  const done = items.filter((x) => rowState(x) === 'done').length;
+  const seeding = items.filter((x) => rowState(x) === 'seeding').length;
   const label = t(collapsed ? 'task.expand' : 'task.collapse');
   // The twisty draws a glyph and nothing else, so it needs a tooltip
   // unconditionally, and it takes the house bubble rather than the OS balloon
@@ -559,7 +575,7 @@ function PackageName({
 
   const count = `${items.length} ${items.length === 1 ? t('task.file') : t('task.files')}${
     done > 0 ? ` · ${done} ${t('overview.done').toLowerCase()}` : ''
-  }`;
+  }${seeding > 0 ? ` · ${seeding} ${t('status.seeding').toLowerCase()}` : ''}`;
 
   return (
     // @container, because what follows the name is whole or gone, never
@@ -595,25 +611,30 @@ function PackageName({
           is there to announce. Rows that disagree show nothing here and keep
           their own marks inside. */}
       <RowMarks items={items} ctx={ctx} />
-      <PriorityTag value={sharedPriority(items)} names={priorityNames} t={t} />
-      {/* The name wins the room: everything after it shrinks and the name does
-          not, below its own floor. With the counts pinned instead, a package
-          called "Season One" in a narrow column renders as "S · 3 files", and
-          the name is the one thing on the row nobody can do without. */}
-      <Tip
-        tip={`${name || t('task.ungrouped')} - ${count}`}
-        className="min-w-[5rem] flex-1 truncate text-sm font-semibold text-carbon-text"
-      >
-        {name || t('task.ungrouped')}
-      </Tip>
-      {/* The count hangs in the name's bubble as well, so a column too narrow
-          to show it has hidden nothing that cannot be got at. No online ratio
-          beside it: the package's aggregate dot in the Status column already
-          says that, and saying it twice is how a package reads differently
-          from its own status cell. */}
-      <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
-        {count}
-      </span>
+      {/* A parked package greys what follows its marks, as a link row does
+          (see NameCell); the twisty still folds and keeps its ink. */}
+      <div className={`contents ${isParked(items) ? PARKED : ''}`}>
+        <PriorityTag value={sharedPriority(items)} names={priorityNames} t={t} />
+        {/* The name wins the room: everything after it shrinks and the name
+            does not, below its own floor. With the counts pinned instead, a
+            package called "Season One" in a narrow column renders as "S · 3
+            files", and the name is the one thing on the row nobody can do
+            without. */}
+        <Tip
+          tip={`${name || t('task.ungrouped')} - ${count}`}
+          className="min-w-[5rem] flex-1 truncate text-sm font-semibold text-carbon-text"
+        >
+          {name || t('task.ungrouped')}
+        </Tip>
+        {/* The count hangs in the name's bubble as well, so a column too
+            narrow to show it has hidden nothing that cannot be got at. No
+            online ratio beside it: the package's aggregate dot in the Status
+            column already says that, and saying it twice is how a package
+            reads differently from its own status cell. */}
+        <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
+          {count}
+        </span>
+      </div>
     </div>
   );
 }
@@ -835,6 +856,7 @@ function PackageRow({
   setsize: number;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
+  const parked = isParked(items);
   const unit: RowDragKey = { kind: 'package', name };
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
 
@@ -900,7 +922,7 @@ function PackageRow({
           key={col.id}
           className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
             col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
-          } ${col.numeric ? 'glim-num' : ''}`}
+          } ${col.numeric ? 'glim-num' : ''} ${parked && parksCell(col.id, ctx.profile) ? PARKED : ''}`}
         >
           {col.id === 'name' ? (
             <PackageName

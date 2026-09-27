@@ -114,6 +114,7 @@ export const th: Dict = {
   'status.finished': 'เสร็จสิ้น',
   'status.failed': 'ล้มเหลว',
   'status.extracting': 'กำลังแตกไฟล์',
+  'status.seeding': 'กำลังซีด',
   'status.disabled': 'ปิดใช้',
 
   'settings.title': 'การตั้งค่า',

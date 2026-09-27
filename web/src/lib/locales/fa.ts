@@ -27,6 +27,7 @@ export const fa: Dict = {
   'status.running': 'در حال دانلود',
   'status.paused': 'مکث‌شده',
   'status.extracting': 'در حال استخراج',
+  'status.seeding': 'در حال سید',
   'status.done': 'تمام‌شده',
   'status.error': 'خطا',
 

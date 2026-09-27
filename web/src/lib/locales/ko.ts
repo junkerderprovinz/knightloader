@@ -27,6 +27,7 @@ export const ko: Dict = {
   'status.running': '다운로드 중',
   'status.paused': '일시 중지',
   'status.extracting': '압축 푸는 중',
+  'status.seeding': '시드 중',
   'status.done': '완료',
   'status.error': '오류',
 

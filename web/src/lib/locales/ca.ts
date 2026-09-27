@@ -27,6 +27,7 @@ export const ca: Dict = {
   'status.running': 'Baixant',
   'status.paused': 'En pausa',
   'status.extracting': 'Extraient',
+  'status.seeding': 'Fent seed',
   'status.done': 'Fet',
   'status.error': 'Error',
 

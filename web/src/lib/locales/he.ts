@@ -29,6 +29,7 @@ export const he: Dict = {
   'status.running': 'בהורדה',
   'status.paused': 'מושהה',
   'status.extracting': 'חילוץ',
+  'status.seeding': 'בהזרעה',
   'status.done': 'הושלם',
   'status.error': 'שגיאה',
 

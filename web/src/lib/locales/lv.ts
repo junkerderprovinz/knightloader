@@ -27,6 +27,7 @@ export const lv: Dict = {
   'status.running': 'Lejupielādē',
   'status.paused': 'Pauzēts',
   'status.extracting': 'Izpako',
+  'status.seeding': 'Sēj',
   'status.done': 'Pabeigts',
   'status.error': 'Kļūda',
 

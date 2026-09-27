@@ -32,6 +32,7 @@ export const en = {
   'status.running': 'Downloading',
   'status.paused': 'Paused',
   'status.extracting': 'Unpacking',
+  'status.seeding': 'Seeding',
   'status.done': 'Done',
   'status.error': 'Error',
 

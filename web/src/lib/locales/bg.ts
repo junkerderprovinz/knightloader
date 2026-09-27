@@ -27,6 +27,7 @@ export const bg: Dict = {
   'status.running': 'Изтегля се',
   'status.paused': 'На пауза',
   'status.extracting': 'Разархивира се',
+  'status.seeding': 'Сийдва',
   'status.done': 'Готово',
   'status.error': 'Грешка',
 

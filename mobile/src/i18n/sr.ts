@@ -114,6 +114,7 @@ export const sr: Dict = {
   'status.finished': 'завршено',
   'status.failed': 'неуспело',
   'status.extracting': 'распакивање',
+  'status.seeding': 'сидује',
   'status.disabled': 'искључено',
 
   'settings.title': 'Подешавања',

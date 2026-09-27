@@ -103,3 +103,43 @@ it('shows a package still unpacking as unpacking, with an archive that failed fl
   expect(text).not.toContain(en['archive.failed']);
   expect(flagged(1)).not.toBeNull();
 });
+
+const torrent = (id: string, over: Partial<Task> = {}) =>
+  row(id, { resolver: 'torrent', seeding: true, uploaded: 5000, ratio: 5, ...over });
+
+function cell(task: Task): string {
+  const status = COLUMN_BY_ID.get('status');
+  act(() => root.render(<I18nProvider>{status?.render(task, ctx)}</I18nProvider>));
+  return host.textContent ?? '';
+}
+
+it('shows a finished torrent that still uploads as seeding', () => {
+  const text = cell(torrent('t'));
+  expect(text).toContain(en['status.seeding']);
+  expect(text).not.toContain(en['status.done']);
+});
+
+it('shows a torrent that stopped seeding as done', () => {
+  expect(cell(torrent('t', { seeding: false }))).toContain(en['status.done']);
+});
+
+it('says seeding over an archive the torrent already unpacked', () => {
+  expect(cell(torrent('t', { unpack: 'done' }))).toContain(en['status.seeding']);
+});
+
+it('still names an archive that failed to unpack while the torrent seeds', () => {
+  const text = cell(torrent('t', { unpack: 'error', error: 'extract: t.rar: bad block header' }));
+  expect(text).toContain(en['archive.failed']);
+});
+
+it('counts a seeding torrent as seeding in the package header, not as done', () => {
+  const text = header([row('a'), torrent('b')]);
+  expect(text).toContain(en['status.seeding']);
+  expect(text).not.toContain(en['status.done']);
+});
+
+it('keeps a package of a seeding torrent and a dead link on seeding, with the failure flagged', () => {
+  const text = header([torrent('a'), row('b', { status: 'error', error: 'x' })]);
+  expect(text).toContain(en['status.seeding']);
+  expect(flagged(1)).not.toBeNull();
+});

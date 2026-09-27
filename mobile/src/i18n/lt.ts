@@ -114,6 +114,7 @@ export const lt: Dict = {
   'status.finished': 'baigta',
   'status.failed': 'nepavyko',
   'status.extracting': 'išpakuojama',
+  'status.seeding': 'sėja',
   'status.disabled': 'išjungta',
 
   'settings.title': 'Nustatymai',

@@ -114,6 +114,7 @@ export const he: Dict = {
   'status.finished': 'הושלם',
   'status.failed': 'נכשל',
   'status.extracting': 'מחלץ',
+  'status.seeding': 'בהזרעה',
   'status.disabled': 'כבוי',
 
   'settings.title': 'הגדרות',

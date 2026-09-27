@@ -1,5 +1,6 @@
 // Checks that every theme token stands in all three theme blocks of
-// src/index.css, and that every colour class has an @theme key.
+// src/index.css, that every colour class has an @theme key, and that a parked
+// row's block reaches every ink key.
 //
 // The palette is written three times: the dark ramp on `:root,
 // [data-theme="dark"]`, the system light ramp in `@media
@@ -222,6 +223,33 @@ for (const path of files) {
   }
 }
 
+// A parked row greys every ink a cell can draw with.
+//
+// .kl-parked (isParked in src/components/columns.tsx) redefines the text,
+// accent and status tokens on a disabled row's parts. An ink added to @theme
+// and not to that block is one a disabled row still shows in colour. The two
+// greys it maps onto, the muted text and the neutral fill, stay as they are.
+
+const parked = masked.match(/\.kl-parked\s*\{/);
+if (!parked) fail('no .kl-parked block in src/index.css.');
+const parkedBody = masked.slice(parked.index, closes(parked.index + parked[0].length));
+const inks = [...keys].filter(
+  (k) => /^(?:carbon-text|accent|status)/.test(k) && !/Bg|Contrast|Soft|textMuted|statusNeutralSolid/.test(k),
+);
+for (const ink of inks) {
+  if (new RegExp(`--color-${ink}\\s*:`).test(parkedBody)) continue;
+  problems.push(
+    `src/index.css:${lineAt(parked.index)} .kl-parked leaves --color-${ink} alone, ` +
+      'so a disabled row still draws that ink in colour',
+  );
+}
+if (/(?:^|[\s;{])opacity\s*:/.test(parkedBody)) {
+  problems.push(
+    `src/index.css:${lineAt(parked.index)} .kl-parked sets an opacity, which would fade the switch and marks ` +
+      'beside the parts as well; it greys by colour',
+  );
+}
+
 // A double-quoted list inside a template is read by both patterns.
 const unique = [...new Set(problems)].sort();
 problems.length = 0;
@@ -229,7 +257,10 @@ problems.push(...unique);
 
 if (problems.length) {
   console.error(`check-theme-tokens: ${problems.length} problem(s).`);
-  console.error('A token that stands in one theme block is absent from the other two, or a class has no key:');
+  console.error(
+    'A token that stands in one theme block is absent from the other two, a class has no key, ' +
+      'or a parked row misses an ink:',
+  );
   for (const p of problems.slice(0, 40)) console.error(`  ${p}`);
   if (problems.length > 40) console.error(`  ... and ${problems.length - 40} more`);
   process.exit(1);
@@ -238,5 +269,5 @@ if (problems.length) {
 console.log(
   `ok: ${BLOCKS.length} theme blocks agree on ${tokens.size} tokens ` +
     `(${exempt} derived and documented), ${keys.size} @theme keys cover ` +
-    `${seenClasses.size} colour classes across ${files.length} files`,
+    `${seenClasses.size} colour classes across ${files.length} files, and a parked row greys all ${inks.length} inks`,
 );

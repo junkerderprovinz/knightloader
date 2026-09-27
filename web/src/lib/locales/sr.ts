@@ -27,6 +27,7 @@ export const sr: Dict = {
   'status.running': 'Преузима се',
   'status.paused': 'Паузирано',
   'status.extracting': 'Распакује се',
+  'status.seeding': 'Сидује',
   'status.done': 'Готово',
   'status.error': 'Грешка',
 

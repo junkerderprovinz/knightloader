@@ -27,6 +27,7 @@ export const uk: Dict = {
   'status.running': 'Завантажується',
   'status.paused': 'Призупинено',
   'status.extracting': 'Розпакування',
+  'status.seeding': 'Роздається',
   'status.done': 'Готово',
   'status.error': 'Помилка',
 
