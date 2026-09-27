@@ -1,7 +1,7 @@
 # KnightLoader desktop
 
 The native desktop build (Windows / macOS / Linux), packaged with
-[Wails](https://wails.io). It runs the exact same server as the container build
+[Wails 3](https://v3.wails.io). It runs the exact same server as the container build
 (engine, resolvers, REST + WebSocket API, embedded UI) inside a native
 webview window, and provisions a private headless JDownloader on first run so
 hoster coverage works out of the box (JD's own UI is never shown).
@@ -25,22 +25,29 @@ Desktop bundles are built **per platform in CI** (`.github/workflows/desktop.yml
 because each target needs its own toolchain (WebView2 on Windows, Cocoa on
 macOS, GTK/WebKit2GTK on Linux) and signing.
 
-Locally, with the [Wails CLI](https://wails.io/docs/gettingstarted/installation)
-and a JDK-free Go toolchain:
+Locally, with the Wails 3 CLI at the version `go.mod` requires and a JDK-free
+Go toolchain, from the repository root:
 
 ```sh
-cd desktop
-wails build          # bundle for the current OS → build/bin/
-wails dev            # live-reload dev run
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.26
+node scripts/desktop.mjs               # bundle for the current OS → build/bin/
+node scripts/desktop.mjs --installer   # on Windows, the NSIS installer as well
 ```
+
+The script has Wails write the manifest, the icons, the version resource, the
+Info.plist and the installer's helper macros into `build/` from
+`build/config.yml`, and git ignores all of them. The interface is the
+committed `web/dist`, so run `npm run build` in `web/` first after changing
+it. On Linux, install the CLI with `-tags gtk3`; without it the CLI wants
+GTK 4.
 
 ## Updates
 
-The app only updates itself when it knows its version. The tag build in
-`.github/workflows/desktop.yml` stamps it:
+The app only updates itself when it knows its version. `scripts/desktop.mjs`
+stamps the tag on a tag build, and `KL_VERSION` anywhere else:
 
 ```sh
-wails build -ldflags "-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=v1.3.0"
+KL_VERSION=v1.3.0 node scripts/desktop.mjs
 ```
 
 A build without it is a dev build and never looks for updates. `updates.go`
@@ -50,7 +57,7 @@ against `checksums.txt` and swaps the program inside it in for the next start.
 On Windows the running exe steps aside as `KnightLoader.exe.old`, which the next
 start removes.
 
-The Windows installer (`build/windows/installer/project.nsi`) puts the app under
+The Windows installer (`build/windows/nsis/project.nsi`) puts the app under
 Program Files for all users, where it cannot replace itself. It creates the
 scheduled task **KnightLoader Update**, which starts `KnightLoader.exe --update`
 as the system account once a day and five minutes after boot. That run
@@ -69,13 +76,10 @@ To try the whole path locally, build with `-tags updatetest`. That build reads
 the tag out, so no environment variable can change where an update comes from.
 
 The same build installs as **KnightLoader Test**, beside a real installation,
-with a task and a folder under ProgramData of that name. Build its installer by
-running makensis once more after `wails build -tags updatetest -nsis`, from
-`build/windows/installer`:
+with a task and a folder under ProgramData of that name:
 
-```powershell
-makensis "-DINFO_PRODUCTNAME=KnightLoader Test" -DINFO_PROJECTNAME=KnightLoaderTest `
-  -DINFO_PRODUCTVERSION=1.2.1 "-DARG_WAILS_AMD64_BINARY=..\..\bin\KnightLoader.exe" project.nsi
+```sh
+KL_VERSION=v1.2.1 node scripts/desktop.mjs --installer --updatetest
 ```
 
 Its task starts without your environment and reads the stand-in's address from
@@ -84,25 +88,38 @@ writes there after installing.
 
 ## How it fits together
 
-- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then calls
-  `wails.Run` with the server's `api.Handler` as the Wails **AssetServer
-  handler**, so the SPA and `/api/*` are served in-window, identical to the
-  browser build.
+- `main.go` boots `app.New`, provisions JD if `KL_JD` is unset, then starts
+  Wails with the server's `api.Handler` as the whole **asset server**, so the
+  SPA and `/api/*` are served in-window, identical to the browser build.
+- The page calls the Go side through Wails' runtime endpoint by name:
+  `main.DesktopFiles` (`files.go`), `main.HubBridge` (`stream.go`) and
+  `main.Tray` (`tray.go`). `web/src/lib/desktop.ts` holds every such call and
+  does without Wails' JavaScript runtime. v3 finds the bound methods by
+  reflection at run time, so no build step runs the program to generate
+  bindings.
 - The asset handler cannot carry a WebSocket, so the window never reaches
-  `/api/ws`. `stream.go` binds `HubBridge` instead: each stream the page opens
-  is a hub connection of its own whose messages arrive as Wails events, and
-  `connectWS` in `web/src/lib/api.ts` picks it whenever it runs in the window.
+  `/api/ws`. `HubBridge` carries the stream instead: each stream a page opens
+  is a hub connection of its own whose messages arrive as Wails events in the
+  window that opened it, and `connectWS` in `web/src/lib/api.ts` picks it
+  whenever it runs in a window.
 - The frontend is the shared `../web` project (Carbon UI).
 
 ## Tray and window behaviour
 
 `tray.go` (plus `config.go`, `tray_probe_*.go` and the embedded icon in
-`assets.go`) adds a system tray icon, a tray menu and the window's
-close/minimize/start-hidden behaviour, all configured from the tray menu
-itself rather than a settings page: these are preferences for one
-installation on one machine, saved to `desktop.json` next to the rest of
-this build's data directory (`KL_DATA`, or the OS config directory), and
-never sent to `settings.Settings`, which every connected browser shares.
+`assets.go`) puts an icon in the notification area or the menu bar with
+Wails' own tray, and adds the window's close/minimise/start-hidden behaviour.
+A click on the icon opens a small window beside it (`overview.go`, the page
+at `/tray`) with the speed, the counts, the captchas waiting, what is
+downloading and the latest downloads, a button that stops or starts the queue
+and one that opens the main window. A double click opens the main window, and
+a right click the menu. The menu shows and hides the window, stops or starts
+the queue, quits, and holds the preferences, which are set there rather than
+on a settings page. The page hands the menu its words in the interface's
+language. The preferences belong to one installation on one machine. They
+are saved to `desktop.json` next to the rest of this build's data directory
+(`KL_DATA`, or the OS config directory), and never sent to
+`settings.Settings`, which every connected browser shares.
 
 At startup the app probes whether a tray icon can actually appear before
 offering any tray-dependent behaviour:
