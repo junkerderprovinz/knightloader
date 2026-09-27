@@ -671,3 +671,76 @@ func TestAnUpgradeDisablesAHeldLink(t *testing.T) {
 		t.Error("a disabled link came back enabled")
 	}
 }
+
+// beforeTheSeedFigures is how many migrations there were before a torrent's
+// upload figures and the end of its seeding were kept.
+const beforeTheSeedFigures = 64
+
+// After the upgrade a torrent that stopped seeding before it carries the time
+// from its finish to that stop as the time it seeded, and nothing reads as
+// over for good, since nothing recorded why seeding stopped. The new figures
+// then survive a save.
+func TestAnUpgradeKeepsHowLongATorrentSeeded(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	db := openRaw(t, path)
+	for i := range beforeTheSeedFigures {
+		if _, err := db.Exec(migrations[i]); err != nil {
+			t.Fatalf("old migration %d: %v", i+1, err)
+		}
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, beforeTheSeedFigures)); err != nil {
+		t.Fatal(err)
+	}
+	finished := time.Now().Add(-3 * time.Hour).UnixMilli()
+	for _, row := range []struct {
+		id    string
+		ended int64
+	}{
+		{"stopped", finished + 90*60*1000},
+		{"never", 0},
+	} {
+		if _, err := db.Exec(
+			`INSERT INTO tasks (id,url,name,package,resolver,size,loaded,speed,status,error,created_at,finished_at,seeding_ended)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			row.id, "magnet:?xt=urn:btih:"+row.id, row.id, "", "torrent", 100, 100, 0, string(core.StatusDone), "",
+			finished, finished, row.ended); err != nil {
+			t.Fatal(err)
+		}
+	}
+	db.Close()
+
+	s, err := Open(path)
+	if err != nil {
+		t.Fatalf("upgrading an existing database failed: %v", err)
+	}
+	defer s.Close()
+	got := map[string]*core.Task{}
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, task := range all {
+		got[task.ID] = task
+	}
+	if stopped := got["stopped"]; stopped == nil || stopped.SeedSeconds != 90*60 || stopped.SeedingOver {
+		t.Errorf("the torrent that seeded an hour and a half reads %+v, want 5400 seconds and not over", stopped)
+	}
+	if never := got["never"]; never == nil || never.SeedSeconds != 0 {
+		t.Errorf("the torrent with no end of seeding reads %+v, want no seeding time", never)
+	}
+
+	stopped := *got["stopped"]
+	stopped.Uploaded, stopped.Ratio, stopped.SeedSeconds, stopped.SeedingOver = 7000, 0.7, 6000, true
+	if err := s.Save(&stopped); err != nil {
+		t.Fatal(err)
+	}
+	all, err = s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, task := range all {
+		if task.ID == "stopped" && (task.Uploaded != 7000 || task.Ratio != 0.7 || task.SeedSeconds != 6000 || !task.SeedingOver) {
+			t.Errorf("the saved figures came back as %d bytes, ratio %v, %d s, over %v", task.Uploaded, task.Ratio, task.SeedSeconds, task.SeedingOver)
+		}
+	}
+}

@@ -1297,9 +1297,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if seedingEnded {
 		t.SeedingEnded = time.UnixMilli(time.Now().UnixMilli())
 	}
+	// A torrent seeding again after a restart has not stopped, and one
+	// downloaded again owes its seeding afresh.
+	seedingBegan := u.Torrent != nil && !t.Seeding && u.Torrent.Seeding
+	if seedingBegan {
+		t.SeedingEnded, t.SeedingOver = time.Time{}, false
+	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
+		t.SeedingOver = t.SeedingOver || u.Torrent.AtTarget
 	}
+	seedFigures := u.Torrent != nil && t.Seeding && a.seedFiguresDueLocked(id)
 	// A fact about the service, so a stale update still counts.
 	applyServiceJobLocked(t, u.Job)
 	if u.Err != "" {
@@ -1529,8 +1537,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
 	// on every poll. A debrid job is saved with or without one, and so are the
-	// end of seeding and a torrent's file list.
-	if u.Status != "" || u.Job != nil || seedingEnded || filesKnown {
+	// start and end of seeding, a torrent's file list, and now and then its
+	// upload figures, which a crash would otherwise take with it.
+	if u.Status != "" || u.Job != nil || seedingEnded || seedingBegan || seedFigures || filesKnown {
 		a.publish(&c)
 	} else {
 		a.show(&c)

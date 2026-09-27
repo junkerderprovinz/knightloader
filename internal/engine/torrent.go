@@ -311,11 +311,12 @@ func (e *Engine) readTorrentStats(gid string) (core.TorrentStats, *download.Task
 		return core.TorrentStats{}, t, false
 	}
 	return core.TorrentStats{
-		Peers:    s.TotalPeers,
-		Seeds:    s.ConnectedSeeders,
-		Ratio:    s.SeedRatio,
-		Uploaded: s.SeedBytes,
-		Seeding:  t.Uploading && t.Status == base.DownloadStatusDone,
+		Peers:       s.TotalPeers,
+		Seeds:       s.ConnectedSeeders,
+		Ratio:       s.SeedRatio,
+		Uploaded:    s.SeedBytes,
+		SeedSeconds: s.SeedTime,
+		Seeding:     t.Uploading && t.Status == base.DownloadStatusDone,
 	}, t, true
 }
 
@@ -374,14 +375,19 @@ func (e *Engine) pollOne(taskID, gid string) {
 			u.Speed = t.Progress.Speed
 		}
 	}
-	e.emit(taskID, u)
-	if t.Status == base.DownloadStatusDone && !t.Uploading {
+	closed := t.Status == base.DownloadStatusDone && !t.Uploading
+	switch {
+	case closed:
 		// Seeding reached its target and the fetcher closed. Stop polling,
 		// since Stats on a task without a fetcher makes the library restore
 		// one.
 		e.forgetTorrent(taskID)
 		e.dropUnpicked(taskID, true)
+		u.Torrent.AtTarget = true
+	case seed && e.seedDone(taskID, gid, *u.Torrent):
+		u.Torrent.Seeding, u.Torrent.AtTarget = false, true
 	}
+	e.emit(taskID, u)
 }
 
 func (e *Engine) torrentPairs() map[string]string {

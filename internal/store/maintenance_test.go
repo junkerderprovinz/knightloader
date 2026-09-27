@@ -212,6 +212,24 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The schema outgrows page 1 as columns are added, and the file does not
+	// open without it either.
+	schema := map[int]bool{}
+	rows, err := s.db.Query(`SELECT pageno FROM dbstat WHERE name = 'sqlite_schema'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for rows.Next() {
+		var page int
+		if err := rows.Scan(&page); err != nil {
+			t.Fatal(err)
+		}
+		schema[page] = true
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	rows.Close()
 	if err := s.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -225,9 +243,12 @@ func TestIntegrityCheckReportsEveryProblem(t *testing.T) {
 		t.Fatalf("the database is only %d bytes, too small to damage a page in the middle of", len(raw))
 	}
 	// Page 1 holds the header, without which the file would not open at all.
-	// Everything from page 3 on is overwritten, so there are many findings.
+	// Everything else from page 3 on is overwritten, so there are many
+	// findings.
 	for i := pageSize * 2; i < len(raw); i++ {
-		raw[i] = 0xA5
+		if !schema[i/pageSize+1] {
+			raw[i] = 0xA5
+		}
 	}
 	if err := os.WriteFile(path, raw, 0o600); err != nil {
 		t.Fatal(err)

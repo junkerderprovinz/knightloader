@@ -1016,6 +1016,57 @@ func TestATorrentThatStoppedSeedingReportsTheTimeItSeeded(t *testing.T) {
 	}
 }
 
+// TestATorrentAShutdownStoppedIsNotDoneSeedingForSonarr reads two finished
+// torrents of the built-in client that seeded ten minutes, one stopped by a
+// shutdown and waiting to seed again, one stopped at a target. Only the second
+// may be removed, and both report the time they seeded rather than the time
+// since they finished.
+func TestATorrentAShutdownStoppedIsNotDoneSeedingForSonarr(t *testing.T) {
+	t.Parallel()
+	content := filepath.Join(t.TempDir(), "Show.S01E07")
+	if err := os.MkdirAll(content, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	finished := time.UnixMilli(time.Now().Add(-3 * time.Hour).UnixMilli())
+	seeded := func(id, hash string, over bool) core.Task {
+		// Disabled, so this start leaves the first one waiting to seed, as the
+		// check of its files does for a while after every start.
+		return core.Task{
+			ID: id, URL: "magnet:?xt=urn:btih:" + hash, Name: "Show.S01E07", Package: "Show.S01E07",
+			Resolver: "torrent", InfoHash: hash, Dir: content, File: content, Size: 10, Loaded: 10,
+			Status: core.StatusDone, CreatedAt: finished, FinishedAt: finished, SeedingEnded: finished.Add(2 * time.Hour),
+			Uploaded: 2, Ratio: 0.2, SeedSeconds: 600, SeedingOver: over,
+		}
+	}
+	a := appWithTasks(t, seeded("waiting", qbitTestHash, false), seeded("over", qbitOtherHash, true))
+	_, srv, secret, qb := qbitServerOn(t, a, nil)
+	for hash, id := range map[string]string{qbitTestHash: "waiting", qbitOtherHash: "over"} {
+		if err := qb.record(qbitTorrent{Hash: hash, Category: "tv-sonarr", TaskIDs: []string{id}, Folder: content, AddedAt: finished}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	c := sonarrClient(t)
+	qbitLogin(t, c, srv, secret)
+	_, body := qbitGet(t, c, srv, "app/preferences", nil)
+	var prefs sonarrPrefs
+	if err := json.Unmarshal(body, &prefs); err != nil {
+		t.Fatal(err)
+	}
+
+	for hash, removable := range map[string]bool{qbitTestHash: false, qbitOtherHash: true} {
+		infos := qbitInfos(t, c, srv, url.Values{"hashes": {hash}})
+		if len(infos) != 1 || infos[0].State != "pausedUP" {
+			t.Fatalf("%s reads %+v, want one torrent in pausedUP", hash, infos)
+		}
+		if got := sonarrMayRemove(infos[0], prefs); got != removable {
+			t.Errorf("Sonarr may remove %s: %v, want %v", hash, got, removable)
+		}
+		if got := infos[0].SeedingTime; got != 600 {
+			t.Errorf("%s reports seeding_time %d, want the 600 seconds it seeded", hash, got)
+		}
+	}
+}
+
 // TestAListingDuringAnAddKeepsTheNewTorrent lets a listing wait on the torrent
 // document while an add stages a magnet and records it. The listing prunes
 // torrents whose tasks are gone, and must not take the new one for such.

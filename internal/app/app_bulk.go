@@ -21,8 +21,13 @@ import (
 // SetEnabled enables or disables links. A disabled link keeps its place,
 // progress and package; everything that starts downloads passes it over,
 // "resume everything" included, which is what sets it apart from a pause.
+// A finished torrent enabled again seeds on, if it owes that.
 func (a *App) SetEnabled(ids []string, enabled bool) []string {
-	return a.editAndDispatch(ids, func(t *core.Task) { t.Enabled = enabled })
+	touched := a.editAndDispatch(ids, func(t *core.Task) { t.Enabled = enabled })
+	if enabled {
+		a.resumeSeeding()
+	}
+	return touched
 }
 
 // SetForced marks links to be started ahead of the limits.

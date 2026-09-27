@@ -211,6 +211,19 @@ var migrations = []string{
 	// a link, and a disabled link neither starts nor loses its place. The hold
 	// column stays because the builds before this one still read it.
 	`UPDATE tasks SET enabled = 0, hold = 0 WHERE hold = 1`,
+	// What a finished torrent has uploaded, its ratio and how long it has
+	// seeded, and whether its seeding is over for good. The download library
+	// keeps the figures in memory only, so without them a torrent taken up
+	// again after a restart would count its seeding targets from zero, and
+	// without the flag a stop at the targets would read like a shutdown.
+	`ALTER TABLE tasks ADD COLUMN uploaded INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN ratio REAL NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN seed_seconds INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN seeding_over INTEGER NOT NULL DEFAULT 0`,
+	// Before the seeding time was kept, a torrent that stopped seeding had
+	// seeded from its finish to that stop, which is the best figure there is.
+	`UPDATE tasks SET seed_seconds = (seeding_ended - finished_at) / 1000
+	  WHERE finished_at > 0 AND seeding_ended > finished_at`,
 }
 
 func Open(path string) (*Store, error) {
@@ -313,7 +326,8 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
 	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
 	category,extract_dir,variant_off,audio_bitrate,confirm_due,created_ns,file,unpack,resolver_pin,
-	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files,error_code,error_params`
+	service_job,seeding_ended,skip_code,skip_params,reject_code,reject_params,magnet_files,error_code,error_params,
+	uploaded,ratio,seed_seconds,seeding_over`
 
 // placeholders is one ? per column, derived from the list so adding a column
 // cannot miscount.
@@ -409,7 +423,8 @@ func (s *Store) Save(t *core.Task) error {
 		t.Category, t.ExtractDir, t.VariantOff, t.AudioBitrate, confirmDue,
 		t.CreatedAt.Nanosecond()%int(time.Millisecond), t.File, string(t.Unpack), t.ResolverPin,
 		serviceJob, seedingEnded, t.SkipCode, codeParams(t.SkipParams), t.RejectCode, codeParams(t.RejectParams),
-		magnetFiles, string(t.ErrorCode), codeParams(t.ErrorParams))
+		magnetFiles, string(t.ErrorCode), codeParams(t.ErrorParams),
+		t.Uploaded, t.Ratio, t.SeedSeconds, t.SeedingOver)
 	if err != nil {
 		return err
 	}
@@ -460,7 +475,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.InfoHash, &trackers, &mode,
 			&t.Category, &t.ExtractDir, &t.VariantOff, &t.AudioBitrate, &confirmDue,
 			&createdNs, &t.File, &unpack, &t.ResolverPin, &serviceJob, &seedingEnded,
-			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles, &errorCode, &errorParams); err != nil {
+			&t.SkipCode, &skipParams, &t.RejectCode, &rejectParams, &magnetFiles, &errorCode, &errorParams,
+			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)

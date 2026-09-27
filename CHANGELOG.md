@@ -112,6 +112,15 @@ submission and for a fixed download.
 
 ### Fixed
 
+- Finished torrents seed again after KnightLoader restarts. Seeding stopped
+  with the process, so after a restart or a container update a finished
+  torrent never seeded again. Each start now picks such a torrent up where its
+  files are. Its upload, ratio and seeding time carry over, so the seeding
+  targets count all of its seeding. A torrent that reached a target stays
+  stopped, and one whose files are gone is marked as done seeding rather than
+  downloaded again. The qBittorrent door no longer tells Sonarr that a torrent
+  a restart stopped is done seeding, and it reports the time a torrent really
+  seeded.
 - A bookmarklet dragged to the bookmarks bar by its logo arrives with its name
   and still runs. The drag used to take the picture instead of the link.
 - Files KnightLoader downloads can be moved and deleted over an Unraid share.

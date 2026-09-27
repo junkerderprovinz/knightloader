@@ -33,7 +33,7 @@ func TestWhenATorrentStopsSeedingIsKeptAcrossARestart(t *testing.T) {
 
 	before := time.Now().Add(-time.Second)
 	// The poll that finds the first one has reached its targets.
-	a.onUpdate(atTarget.ID, core.Update{Torrent: &core.TorrentStats{Seeding: false}})
+	a.onUpdate(atTarget.ID, core.Update{Torrent: &core.TorrentStats{AtTarget: true}})
 	if err := a.Close(); err != nil {
 		t.Fatal(err)
 	}

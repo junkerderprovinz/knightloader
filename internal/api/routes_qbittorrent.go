@@ -1060,6 +1060,11 @@ type qbitView struct {
 	finishedAt   time.Time
 	seedingEnded time.Time
 	changedAt    time.Time
+	// seeded is the longest any of its tasks has seeded, in seconds over
+	// every run, and seedPending says one of them stopped at a shutdown and
+	// seeds again (see app.SeedPending).
+	seeded      int64
+	seedPending bool
 }
 
 // views renders every torrent this bridge staged, oldest first. It prunes
@@ -1133,6 +1138,8 @@ func (qb *qbitClient) view(t qbitTorrent, live map[string]*core.Task) qbitView {
 		if task.ChangedAt.After(v.changedAt) {
 			v.changedAt = task.ChangedAt
 		}
+		v.seeded = max(v.seeded, task.SeedSeconds)
+		v.seedPending = v.seedPending || app.SeedPending(task)
 		if s := qbitState(task); qbitStateRank[s] < qbitStateRank[v.state] {
 			v.state = s
 		}
@@ -1292,7 +1299,11 @@ func (v qbitView) info() qbitInfo {
 	}
 	switch v.state {
 	case "uploading", "stalledUP":
-		if !v.finishedAt.IsZero() {
+		// The engine's count leaves out the time the instance was down.
+		switch {
+		case v.seeded > 0:
+			i.SeedingTime = v.seeded
+		case !v.finishedAt.IsZero():
 			i.SeedingTime = int64(time.Since(v.finishedAt).Seconds())
 		}
 	case "pausedUP":
@@ -1301,13 +1312,18 @@ func (v qbitView) info() qbitInfo {
 		// its own is reported as it is, since the engine seeds to the
 		// instance's targets and can stop short of it, and so is the time it
 		// seeded, which Sonarr holds against a seed time its indexer asked for.
-		if v.torrent.RatioLimit == nil && v.torrent.SeedingTimeLimit == nil {
+		// A torrent a shutdown stopped has not reached anything and seeds
+		// again shortly.
+		if v.torrent.RatioLimit == nil && v.torrent.SeedingTimeLimit == nil && !v.seedPending {
 			i.RatioLimit = 0
 		}
 		// Unknown until the finish time is on the live task (see
 		// app.reconcileFinishTimes), and an end before the finish is left from
 		// an earlier download of the same task.
-		if !v.finishedAt.IsZero() && v.seedingEnded.After(v.finishedAt) {
+		switch {
+		case v.seeded > 0:
+			i.SeedingTime = v.seeded
+		case !v.finishedAt.IsZero() && v.seedingEnded.After(v.finishedAt):
 			i.SeedingTime = int64(v.seedingEnded.Sub(v.finishedAt).Seconds())
 		}
 	}
