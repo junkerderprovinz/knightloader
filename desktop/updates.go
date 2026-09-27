@@ -2,23 +2,23 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
 // The first check waits for the window and JDownloader to settle; one a day
-// follows.
+// follows. An installed copy looks every followEvery for a version the
+// scheduled task has put in place.
 var (
-	updateAPI  = "https://api.github.com"
-	firstCheck = time.Minute
+	updateAPI   = "https://api.github.com"
+	firstCheck  = time.Minute
+	followEvery = 10 * time.Minute
 )
 
 const checkEvery = 24 * time.Hour
@@ -28,10 +28,11 @@ const checkEvery = 24 * time.Hour
 const updateReadyEvent = "updateReady"
 
 // updater keeps the desktop app current. It is the only caller of
-// update.Updater, so there is never more than one update in flight.
+// update.Updater in its process, so there is never more than one update in
+// flight.
 type updater struct {
 	u     *update.Updater
-	a     *app.App
+	logf  func(format string, args ...any)
 	ready atomic.Pointer[string]
 	// announce tells the window which version waits for the next start.
 	announce func(version string)
@@ -40,30 +41,27 @@ type updater struct {
 	swapping sync.Mutex
 }
 
-func newUpdater(a *app.App, announce func(version string)) *updater {
+func newUpdater(logf func(format string, args ...any), announce func(version string)) *updater {
 	return &updater{
-		a:        a,
+		logf:     logf,
 		announce: announce,
 		u: &update.Updater{
 			Repo:    update.Repo,
 			Version: buildinfo.Version,
 			Assets:  update.Assets,
-			// Wails names the installer's entry after the company and the
-			// product, and wails.json leaves the company to default to the
-			// product.
-			UninstallKey: "KnightLoaderKnightLoader",
-			API:          updateAPI,
+			API:     updateAPI,
 			// Long enough for the zip on a slow line, short enough that a
 			// connection that stalls does not hold up every later check.
 			Client: &http.Client{Timeout: 30 * time.Minute},
-			Logf:   log.Printf,
+			Logf:   logf,
 		},
 	}
 }
 
 // run removes what the last update left and then checks for updates until ctx
-// ends. A dev build never checks, since it has no version to compare.
-func (up *updater) run(ctx context.Context) {
+// ends, whenever autoUpdate allows. A dev build never checks, since it has no
+// version to compare.
+func (up *updater) run(ctx context.Context, autoUpdate func() bool) {
 	up.u.Cleanup()
 	if buildinfo.Version == "dev" {
 		return
@@ -76,26 +74,46 @@ func (up *updater) run(ctx context.Context) {
 			return
 		case <-timer.C:
 		}
-		if up.a.Settings.Get().AutoUpdate {
+		if autoUpdate() {
 			up.once(ctx)
 		}
 		timer.Reset(checkEvery)
 	}
 }
 
+// follow is run for the installed copy, which cannot replace itself. It waits
+// for the scheduled task to record a newer version in the uninstall entry and
+// says once that it starts next time.
+func (up *updater) follow(ctx context.Context) {
+	tick := time.NewTicker(followEvery)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+		if v := update.InstalledVersion(product); update.Newer(v, buildinfo.Version) {
+			up.ready.Store(&v)
+			up.announce(v)
+			return
+		}
+	}
+}
+
 func (up *updater) once(ctx context.Context) {
 	rel, err := up.u.Check(ctx)
 	if err != nil {
-		log.Printf("update: %v", err)
+		up.logf("update: %v", err)
 		return
 	}
 	if rel == nil {
-		log.Printf("update: no newer release")
+		up.logf("update: no newer release")
 		return
 	}
 	download, err := up.u.Fetch(ctx, rel)
 	if err != nil {
-		log.Printf("update: not updating to %s: %v", rel.Version, err)
+		up.logf("update: not updating to %s: %v", rel.Version, err)
 		return
 	}
 	defer os.Remove(download)
@@ -104,10 +122,10 @@ func (up *updater) once(ctx context.Context) {
 	err = up.u.Swap(download, rel)
 	up.swapping.Unlock()
 	if err != nil {
-		log.Printf("update: not updating to %s: %v", rel.Version, err)
+		up.logf("update: not updating to %s: %v", rel.Version, err)
 		return
 	}
-	log.Printf("update: %s is in place and starts next time", rel.Version)
+	up.logf("update: %s is in place and starts next time", rel.Version)
 	up.ready.Store(&rel.Version)
 	up.announce(rel.Version)
 }
