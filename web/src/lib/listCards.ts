@@ -30,10 +30,11 @@ const unpackFailed = (t: Task): boolean => t.unpack === 'error' || t.unpack === 
  *
  * A switched-off link that has not downloaded does not hold the package back,
  * since switching a link off is how somebody says they do not want it. One that
- * is still downloading or unpacking does, and at least one link has to have
- * downloaded, so a package switched off whole stays where it is.
+ * is still downloading or unpacking does, and a package switched off whole is
+ * parked rather than finished, so it stays where it can be switched on again.
  */
 export function packageCard(items: readonly Task[]): ListCard {
+  if (items.every((x) => x.enabled === false)) return 'downloads';
   let done = 0;
   let seeding = false;
   for (const x of items) {

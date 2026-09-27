@@ -70,6 +70,7 @@ describe('packageCard', () => {
 
   it('keeps a package whose links are all switched off in the download list', () => {
     expect(packageCard([link('a', { enabled: false, status: 'queued' })])).toBe('downloads');
+    expect(packageCard([link('a', { enabled: false }), link('b', { enabled: false, status: 'queued' })])).toBe('downloads');
   });
 
   it('moves a finished package back to the download list when a link is downloaded again', () => {

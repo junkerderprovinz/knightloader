@@ -109,9 +109,11 @@ export type ListCard = 'downloads' | 'seeding' | 'finished';
  * waiting for or in the middle of unpacking, none that failed to. A failed link
  * keeps it in the download list, and a torrent still uploading makes it
  * seeding. A disabled link that has not downloaded does not hold it back unless
- * it is still running, and at least one link has to have downloaded.
+ * it is still running, and a package switched off whole stays in the download
+ * list, where it can be switched on again.
  */
 export function packageCard(tasks: Task[]): ListCard {
+  if (tasks.every((t) => t.enabled === false)) return 'downloads';
   let done = 0;
   let seeding = false;
   for (const t of tasks) {
