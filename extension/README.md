@@ -35,7 +35,9 @@ group is the credential.
 
 The extension has KnightLoader's version, written in `src/manifest.json`, and
 is released with everything else under the `vX.Y.Z` tag, as
-`knightloader-vX.Y.Z-extension.zip` and `knightloader-extension.zip`. The
+`knightloader-vX.Y.Z-extension.zip` and `knightloader-extension.zip` for
+Chromium browsers, and `knightloader-vX.Y.Z-extension-firefox.zip` and
+`knightloader-extension-firefox.zip` for Firefox. The
 release workflow refuses a tag the manifest does not match. See the Versioning
 section of the root `CHANGELOG.md`.
 
@@ -44,10 +46,12 @@ Settings > App is built from the copy embedded in whatever server binary is
 running (`embed.go`), so that one matches the server. The release zip is for a
 browser store submission and for anyone who wants a fixed download.
 
-Both are **byte-identical to `src/`**. The download used to bake the serving
-instance's address into a `config.default.json`; that file is gone, because the
-extension holds no addresses any more, which is also what makes a store build
-reproducible from a checkout.
+The download and the Firefox zip are byte-identical to `src/`, which loads in
+Firefox and, unpacked, in Chromium browsers too. The Chromium zip differs only
+in `manifest.json`: it leaves out `background.scripts` and
+`browser_specific_settings`, because Edge Add-ons refuses a package that names
+background scripts next to the service worker. The extension holds no
+addresses, so a store build is reproducible from a checkout.
 
 ## Loading it
 

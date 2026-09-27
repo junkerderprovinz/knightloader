@@ -53,9 +53,13 @@ skipped or reordered.
    manifest and `mobile/app.json`. Tag from a clone that has run
    `git fetch --prune --prune-tags origin`, confirm `git rev-parse vX.Y.Z^{commit}`
    equals `origin/main`, and push that one tag, never `--tags`.
-5. **Package:** `knightloader-vX.Y.Z-extension.zip` from that release. It is
-   `extension/src` zipped as it is, with no build step, so a reviewer can compare
-   it file by file with the tag. Submit no other zip.
+5. **Package:** from that release, `knightloader-vX.Y.Z-extension.zip` for the
+   Chrome Web Store and Edge Add-ons, `knightloader-vX.Y.Z-extension-firefox.zip`
+   for AMO. The Firefox zip is `extension/src` zipped as it is, with no build
+   step, so a reviewer can compare it file by file with the tag. The other one
+   differs only in `manifest.json`, which drops `background.scripts` and
+   `browser_specific_settings`: Edge refuses a package that names background
+   scripts next to the service worker. Submit no other zip.
 6. **Reviewer instance and files** (see "Reviewer notes"): run a dedicated
    instance named "Review" whose group holds that instance only, with a web UI
    password set and its download queue paused. It is up: `review.halleluja.design`
@@ -279,8 +283,8 @@ single purpose, no use for creditworthiness or lending).
 - **The add-on already exists on AMO**, from a build signed on the unlisted
   channel, so the listing is a new version of that add-on, not a new add-on:
   open it in the Developer Hub and upload a new version "On this site". AMO takes
-  each version number once across both channels. Upload the release zip of the
-  first version that has no build on AMO yet; the Firefox Add-ons workflow
+  each version number once across both channels. Upload the release's Firefox
+  zip of the first version that has no build on AMO yet; the Firefox Add-ons workflow
   submits nothing while the add-on has no listed version, so it cannot take the
   number first (`.github/scripts/amo-listed.mjs`).
 - **After the listing** the Firefox Add-ons workflow
@@ -393,10 +397,11 @@ because the last line is what the field cuts.
 1. Release KnightLoader: raise `version` in `extension/src/manifest.json` and
    `expo.version` in `mobile/app.json`, write `.github/release-notes/vX.Y.Z.md`
    and push the tag `vX.Y.Z` from `main`. The release workflow checks the tag
-   against both files and attaches the extension zip. To send that version to
+   against both files and attaches the two extension zips. To send that version to
    AMO, run the Firefox Add-ons workflow on the tag (Actions, Firefox Add-ons,
    Run workflow, then pick the tag under "Use workflow from").
-2. Upload that zip to the Chrome Web Store and Edge Add-ons. Every upload is
+2. Upload `knightloader-vX.Y.Z-extension.zip` to the Chrome Web Store and Edge
+   Add-ons. Every upload is
    reviewed again: Chrome in a few days, Edge in up to seven business days, AMO
    usually within a day.
 3. Users' browsers pick up a published update on their own.

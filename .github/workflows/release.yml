@@ -261,9 +261,23 @@ jobs:
           done
           cp apk/app-release.apk "dist/knightloader-${v}-android.apk"
           cp apk/app-release.apk dist/knightloader-android.apk
-          # The browser extension, the same files the server embeds and serves.
-          (cd extension/src && zip -qr ../../dist/knightloader-extension.zip .)
+          # The Firefox zip holds the same files the server embeds and serves.
+          # Edge Add-ons refuses a manifest that names background.scripts next
+          # to the service worker, so the zip for Chromium browsers drops that
+          # and the gecko settings, which only Firefox reads.
+          (cd extension/src && zip -qr ../../dist/knightloader-extension-firefox.zip .)
+          cp -r extension/src "$RUNNER_TEMP/chromium"
+          node -e '
+            const fs = require("fs");
+            const f = process.argv[1];
+            const m = JSON.parse(fs.readFileSync(f, "utf8"));
+            delete m.background.scripts;
+            delete m.browser_specific_settings;
+            fs.writeFileSync(f, JSON.stringify(m, null, 2) + "\n");
+          ' "$RUNNER_TEMP/chromium/manifest.json"
+          (cd "$RUNNER_TEMP/chromium" && zip -qr "$GITHUB_WORKSPACE/dist/knightloader-extension.zip" .)
           cp dist/knightloader-extension.zip "dist/knightloader-${v}-extension.zip"
+          cp dist/knightloader-extension-firefox.zip "dist/knightloader-${v}-extension-firefox.zip"
           ls -lh dist
 
       # The desktop app verifies the zip it updates to against this file. Run

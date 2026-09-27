@@ -37,6 +37,15 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The extension zip passes Edge Add-ons.** Edge refused the package because
+  its manifest named background scripts next to the service worker, which
+  only Firefox needs. The release now carries two zips:
+  `knightloader-extension.zip` for Chrome, Edge and the other Chromium
+  browsers without the Firefox parts, and `knightloader-extension-firefox.zip`
+  for Firefox as it is in the repository.
+
 ## [1.4.0] - 2026-09-27
 
 ### Added
