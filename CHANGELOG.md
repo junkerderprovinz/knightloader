@@ -55,16 +55,15 @@ submission and for a fixed download.
   `GET /api/stats/volume` takes the span as `?span=`, such as `45d`, `6m` or
   `all`, and answers as before without it.
 - **The container image is on Docker Hub too**, as
-  `junkerderprovinz/knightloader`, which the Unraid template pulls. `latest`
-  there moves by the same rule as on GHCR, once the release is out.
+  `junkerderprovinz/knightloader`. `latest` there moves by the same rule as on
+  GHCR, once the release is out.
 
 ### Changed
 
 - **The README and the manual no longer warn against installing KnightLoader.**
-  They say how to install it from Community Applications on Unraid.
 - **The README's badges** add the lint run, the Docker Hub pulls and image
-  size, the desktop app, the three download engines, the Unraid template, the
-  manual and the release downloads.
+  size, the desktop app, the three download engines, the manual and the
+  release downloads.
 - **The Overview's Instances card shows each instance's name and state badge**,
   with the badge at the right edge. The speed beside it, a lone dash while
   nothing downloads, is gone.
