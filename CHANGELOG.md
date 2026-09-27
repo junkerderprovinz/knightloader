@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-09-28
+
 ### Added
 
 - **Releases go to the stores on their own.** Once a release is out, the new
@@ -47,6 +49,16 @@ release's tag.
   A store whose credentials are not set up yet is skipped.
 - **An app bundle for Google Play.** Each release carries
   `knightloader-vX.Y.Z-android.aab` next to the APK, signed with the same key.
+
+### Improved
+
+- **Buy Me a Coffee in the app opens a window** with the appeal and the
+  donation page, as the web interface does. PayPal still opens in the
+  browser, since its wallet login needs a popup an embedded page does not
+  open reliably.
+- **The tray icon is called the icon in the notification area**, in every
+  language: the module, its two switches (Close to the notification area,
+  Minimise to the notification area) and the hints that mention it.
 
 ### Fixed
 
