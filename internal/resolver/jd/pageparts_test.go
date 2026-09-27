@@ -252,3 +252,27 @@ func TestACrawlWithADownloadInItIsLeftToJD(t *testing.T) {
 		})
 	}
 }
+
+// A page JD crawls to nothing fails as an unsupported player once the crawl
+// has stayed empty for a while, instead of waiting out appearLimit.
+func TestAPageJDFindsNothingOnFailsWithoutWaitingOutTheList(t *testing.T) {
+	f := &fakeJDPage{}
+	u := downloadPage(t, f, "https://example.org/", 25*time.Second)
+	if u == nil || u.Status != core.StatusError || u.Reason != core.ReasonUnsupportedPlayer {
+		t.Fatalf("update %+v, want a failure naming the unsupported player", u)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.grabberGone {
+		t.Error("the empty crawl was left in JD's grabber")
+	}
+}
+
+// A link to a file is not a page, so an empty crawl is JD still working on
+// it and nothing fails early.
+func TestAnEmptyCrawlOfAFileLinkIsLeftToJD(t *testing.T) {
+	f := &fakeJDPage{}
+	if u := downloadPage(t, f, "https://host.example/film.mkv", 20*time.Second); u != nil {
+		t.Fatalf("update %+v for a file link JD had not crawled yet", *u)
+	}
+}
