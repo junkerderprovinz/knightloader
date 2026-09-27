@@ -5,17 +5,19 @@ import { ProgressBar } from '../components/ProgressBar';
 import { StatusPill, rowState } from '../components/StatusPill';
 import { Button } from '../components/ui';
 import { type QueueState, connectWS, fetchCaptchas, fetchQueue, setQueue } from '../lib/api';
-import { showMain } from '../lib/desktop';
+import { showMain, useEdgeResize } from '../lib/desktop';
 import { fmtRate, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { IconCaptcha, IconPause, IconPlay } from '../lib/icons';
 import { useTasks } from '../lib/useTasks';
 
-/** How many running downloads the window lists before it only counts the rest. */
-const SHOWN = 5;
-
-/** How many of the other downloads, newest first, fill the room below. */
-const RECENT = 5;
+/**
+ * How many running downloads the window lists before it only counts the rest,
+ * and how many of the others, newest first, follow them. The lists scroll
+ * inside the window at any size.
+ */
+const SHOWN = 20;
+const RECENT = 20;
 
 /**
  * The small window at the desktop app's tray icon: the queue's switch, the
@@ -25,6 +27,7 @@ const RECENT = 5;
  */
 export function TrayOverview() {
   const { t } = useT();
+  useEdgeResize();
   const tasks = useTasks('');
   const [queue, setQueueState] = useState<QueueState | null>(null);
   const [captchas, setCaptchas] = useState<Set<string>>(new Set());

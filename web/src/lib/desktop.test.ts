@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"url":"http://wails.localhost/"}
+import { act, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { connectWS } from './api';
-import { desktopOS, isDesktop, onUpdateReady, openNatively, openURL, trayWords } from './desktop';
+import { desktopOS, edgeAt, isDesktop, onUpdateReady, openNatively, openURL, trayWords, useEdgeResize } from './desktop';
 
 type Host = {
   _wails?: { dispatchWailsEvent?: (ev: { name: string; data: unknown }) => void };
@@ -11,6 +13,8 @@ type Host = {
 };
 
 // WebView2's message channel, which the window has from the start.
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
 const said: string[] = [];
 (window as unknown as Host).chrome = { webview: { postMessage: (m) => said.push(m) } };
 
@@ -213,5 +217,45 @@ describe('the tray words', () => {
     );
     expect(words.stopQueue).toBe('<queue.stop>');
     expect(words.startQueue).toBe('<queue.start>');
+  });
+});
+
+describe('resizing the frameless tray window', () => {
+  it.each([
+    [0, 100, 'w-resize'],
+    [359, 100, 'e-resize'],
+    [150, 0, 'n-resize'],
+    [150, 479, 's-resize'],
+    [2, 2, 'nw-resize'],
+    [355, 478, 'se-resize'],
+    [1, 470, 'sw-resize'],
+    [358, 10, 'ne-resize'],
+    [150, 200, ''],
+  ] as const)('reads %i,%i in a 360 by 480 window as %s', (x, y, edge) => {
+    expect(edgeAt(x, y, 360, 480)).toBe(edge);
+  });
+
+  it('hands a drag that starts at an edge to Wails', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    function Resizable() {
+      useEdgeResize();
+      return null;
+    }
+    await act(async () => root.render(createElement(Resizable)));
+    said.length = 0;
+    const at = (type: string, x: number, y: number) =>
+      window.dispatchEvent(new MouseEvent(type, { clientX: x, clientY: y, button: 0, bubbles: true }));
+    at('mousemove', window.innerWidth - 1, window.innerHeight - 1);
+    expect(document.body.style.cursor).toBe('nwse-resize');
+    at('mousedown', window.innerWidth - 1, window.innerHeight - 1);
+    at('mousemove', window.innerWidth - 20, window.innerHeight - 20);
+    expect(said).toEqual(['wails:resize:se-resize']);
+    at('mouseup', 0, 0);
+    at('mousemove', 200, 200);
+    expect(document.body.style.cursor).toBe('');
+    act(() => root.unmount());
+    host.remove();
   });
 });
