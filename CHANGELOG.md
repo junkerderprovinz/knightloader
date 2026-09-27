@@ -77,6 +77,9 @@ submission and for a fixed download.
 
 ### Changed
 
+- **Browser extension 1.2.0.** It follows GlimStone 3.0.0: the options page's
+  About card uses the README's buttons, the popup's tabs carry the web
+  interface's symbols, and Copy report answers at the button.
 - Every KnightLoader release carries the browser extension it serves, as
   `knightloader-extension.zip`, and the README button downloads it from
   there. The separate `extension/latest` release is gone.
