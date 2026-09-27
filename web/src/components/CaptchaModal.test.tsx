@@ -95,7 +95,7 @@ describe('SolverStatus', () => {
   it('names the window as well as the tab while the solvers wait', async () => {
     const until = new Date(Date.now() + 42_000).toISOString();
     const { bubble } = await show({ state: 'waiting', until });
-    expect(bubble).toContain('this tab is in the background, this window is minimised or in the tray');
+    expect(bubble).toContain('this tab is in the background, this window is minimised or in the notification area');
   });
 });
 
