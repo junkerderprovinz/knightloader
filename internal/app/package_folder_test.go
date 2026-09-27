@@ -48,7 +48,7 @@ func oldPackage(t *testing.T, a *App, base string) string {
 		x.File = filepath.Join(old, "film.part1.rar")
 	})
 	putTask(t, a, core.Task{ID: "part2", URL: "https://host.example/film.part2.rar", Name: "film.part2.rar",
-		Package: "Old", Status: core.StatusQueued, Enabled: true, Hold: true})
+		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	return old
 }
 
