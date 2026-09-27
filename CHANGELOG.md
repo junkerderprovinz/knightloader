@@ -99,8 +99,12 @@ submission and for a fixed download.
   and the card explains how to set it up on a phone.
 - The ARM64 builds of the desktop app are named Windows or Linux, with ARM64
   as the second line under the pointer like on every other download button.
-- **GlimStone 2.15.0.** The link collector starts level with the sidebar like
-  every other page.
+- **GlimStone 3.0.0** in the web UI, the phone app and the browser extension.
+  The link collector starts level with the sidebar like every other page. With
+  Navigation labels set to On hover, a name opens at the pace of the motion
+  level in the sidebar, the settings column and the crypto window's coin
+  tiles: on Wild it slides in and overshoots a little, on Subtle it glides,
+  and at Off it simply appears, instead of snapping open whatever the level.
 - The version on the phone app and browser extension cards sits on the card's
   top edge, so every card on the Apps page starts its buttons the same
   distance below its title.

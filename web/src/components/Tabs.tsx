@@ -507,7 +507,7 @@ export function Tabs(props: TabsProps) {
         // reveals it too. The ceiling is the label's own line box: a line
         // height of 1 cuts off every descender in a box that hides its overflow.
         const hiddenLabel =
-          'leading-[1.4] max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-[1.4em] ' +
+          'glim-label-reactive glim-label-reactive-y leading-[1.4] max-h-0 opacity-0 group-hover:max-h-[1.4em] ' +
           'group-hover:opacity-100 group-focus-visible:max-h-[1.4em] group-focus-visible:opacity-100';
         const inner = (
           <>
