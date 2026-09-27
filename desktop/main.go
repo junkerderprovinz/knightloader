@@ -20,7 +20,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/keepawake"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
-	"github.com/junkerderprovinz/knightloader/internal/update"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -74,41 +73,14 @@ func main() {
 	tc := newTrayController(a.Hub, filepath.Join(dataDir, "desktop.json"))
 
 	// RequestExit stays nil here because the window and tray already shut
-	// down through a.Close. Updating swaps the binary, starts the new one and
-	// then quits through tc.quit, the path the tray's Quit item uses.
-	a.RequestUpdateInstall = func(ctx context.Context) error {
-		zipPath, _, err := update.Download(ctx, buildinfo.Version)
-		if err != nil {
-			return err
-		}
-		installPath, _, err := update.CurrentExecutable()
-		if err != nil {
-			os.Remove(zipPath)
-			return err
-		}
-		if err := update.Apply(zipPath, installPath); err != nil {
-			return err
-		}
-		_, newRunnable, err := update.CurrentExecutable()
-		if err != nil {
-			// Apply already swapped the files. The install path is the
-			// runnable on Windows and Linux; only a macOS bundle differs.
-			newRunnable = installPath
-		}
-		// The new instance binds the Click'n'Load port as soon as it starts,
-		// and this one would hold it until its window has been torn down.
-		wasListening := a.CnL.Port() > 0
-		a.CnL.Stop()
-		if err := update.Relaunch(newRunnable, os.Args[1:]); err != nil {
-			if wasListening {
-				_ = a.CnL.Start()
-			}
-			return err
-		}
-		// Quit asynchronously so the HTTP response reaches the browser first.
-		go tc.quit()
-		return nil
-	}
+	// down through a.Close.
+
+	// A newer release is downloaded in the background and starts next time;
+	// see updates.go.
+	up := newUpdater(a, func(version string) { tc.emit(updateReadyEvent, version) })
+	a.UpdateReady = up.readyVersion
+	updateCtx, stopUpdates := context.WithCancel(context.Background())
+	go up.run(updateCtx)
 
 	// Only the desktop can put the machine to sleep; internal/idleaction offers
 	// the action when this is set. See power.go.
@@ -153,6 +125,8 @@ func main() {
 		OnStartup:         tc.onWailsStartup,
 		OnBeforeClose:     tc.onBeforeClose,
 		OnShutdown: func(context.Context) {
+			stopUpdates()
+			up.stop()
 			tc.onShutdown()
 			a.CnL.Stop()
 			// Before a.Close, whose task list the guard reads.

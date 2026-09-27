@@ -65,7 +65,7 @@
   "navLabels": "both",
   "bottomBarLabels": "follow",
   "autoUpdateCheck": false,
-  "autoUpdateInstall": false,
+  "autoUpdate": true,
   "ytdlpVersionCheck": false,
   "packagizer": {
     "rules": [

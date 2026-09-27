@@ -250,11 +250,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
-      rows: [{ key: 'settings.look.updatesAutoInstall', hint: 'settings.look.updatesAutoInstallHint' }],
-      // The daily-check switch has a hand-built caption with no anchor.
-      also: ['settings.look.updatesAuto'],
-      // The container build uses its own sentence for the auto-install hint.
-      body: ['settings.look.updatesAutoInstallContainerHint'],
+      rows: [
+        { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
+        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
+      ],
+      // The container build uses its own sentence for the update hint.
+      body: ['settings.look.updatesAutoUpdateContainerHint'],
     },
     { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
     // The archive and "settings only" share one card, so the old card titles

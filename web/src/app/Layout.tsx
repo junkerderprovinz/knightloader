@@ -13,7 +13,7 @@ import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
-import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
+import { connectWS, fetchSettings, type Task } from '../lib/api';
 import {
   applyAccent,
   applyRainbow,
@@ -22,6 +22,7 @@ import {
   rainbowFromSettings,
   readCachedDisco,
 } from '../lib/appearance';
+import { onUpdateReady } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
@@ -162,35 +163,13 @@ function ShellBar({ visible }: { visible: boolean }) {
   );
 }
 
-// Once per app load on the desktop build: if update checks are on, toast a
-// newer release, so it reaches people who never open Settings. Silent when
-// current. With autoUpdateInstall on, it installs directly.
-function useAutoUpdateToast() {
+// The desktop build downloads a newer release in the background and says so
+// once it waits for the next start, which reaches people who never open
+// Settings.
+function useUpdateReadyToast() {
   const { toast } = useToast();
   const { t } = useT();
-  useEffect(() => {
-    let live = true;
-    void (async () => {
-      const [deployment, settings] = await Promise.all([fetchDeploymentInfo(), fetchSettings()]);
-      if (!live || deployment.deployment !== 'desktop' || !settings.autoUpdateCheck) return;
-      const check = await fetchUpdateCheck().catch(() => null);
-      if (!live || !check?.checked || !check.available || !check.latest) return;
-      if (!settings.autoUpdateInstall) {
-        toast(t('settings.look.updatesAvailable', { version: check.latest }), 'info');
-        return;
-      }
-      toast(t('settings.look.updatesAutoInstalling', { version: check.latest }), 'info');
-      try {
-        await installUpdate();
-      } catch {
-        if (live) toast(t('settings.look.updatesInstallFailed', { error: t('settings.look.updatesFailed') }), 'fail');
-      }
-    })();
-    return () => {
-      live = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
-  }, []);
+  useEffect(() => onUpdateReady((version) => toast(t('settings.look.updatesReady', { version }), 'info')), [toast, t]);
 }
 
 export function Layout() {
@@ -198,7 +177,7 @@ export function Layout() {
   useCompletionToasts();
   // Here rather than per page, so unpacking is watched on every page.
   useExtractionToasts();
-  useAutoUpdateToast();
+  useUpdateReadyToast();
   useAppearance();
   // Keyed on the section, not the path: the key replays the enter animation
   // by remounting, which would throw away a section's state on every click

@@ -131,8 +131,10 @@ this page opens" toggle that ships off and only ever checks.
 **Not built:** an automatic install.
 
 Replacing the extractor unattended silently changes what downloads produce, and
-yt-dlp does ship regressions. `internal/update/update.go` already refuses the
-same step for KnightLoader's own binary, and the same line holds here.
+yt-dlp does ship regressions. The desktop app does replace its own program
+unattended, but with a KnightLoader release, built and published together with
+the code that runs it, and only from the next start. A new yt-dlp is somebody
+else's release that nothing here has tried against this build.
 
 A fetched copy DOES outrank an explicitly set `KL_YTDLP`, which is the one place
 this feature overrides an operator's own setting. The reason is that the
@@ -140,6 +142,22 @@ Dockerfile pins `KL_YTDLP=/usr/bin/yt-dlp` on every container, so the other
 answer would make the whole button a silent no-op in exactly the situation the
 button exists for. It is visible and reversible: the card states plainly that
 `KL_YTDLP` is not being started and offers "back to the system copy".
+
+## The desktop update: on the next start, checked by its checksum
+
+**Built:** a desktop app that downloads a newer release in the background once
+a day, checks it against the release's `checksums.txt` and puts it in place of
+the program for the next start. The switch is on from the start.
+
+**Not built:** an Install now button that restarts into the new version, and a
+code signature check.
+
+A restart in the middle of the day would cut off whatever is downloading, and
+the next start comes soon enough for a download manager that runs all day. The
+checksum proves the file is the one the release workflow published, not that
+the workflow was trustworthy, since both come out of the same job. Only a
+signature tied to a key outside the build would close that gap, and the
+releases are not signed yet.
 
 ## The end-of-queue command is redacted whole
 

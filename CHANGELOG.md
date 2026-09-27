@@ -37,6 +37,33 @@ submission and for a fixed download.
 
 ## [Unreleased]
 
+### Added
+
+- **The desktop app keeps itself up to date.** A minute after it starts and
+  once a day after that, it looks for a new release, downloads the zip for your
+  system in the background and checks it against the release's `checksums.txt`
+  before using it. The new version starts the next time you open KnightLoader,
+  and a note in the corner says so as soon as it is ready. The switch is Update
+  automatically on the General page of Settings, and it is on from the start.
+  An installed copy and a portable one both update where they are. A copy in a
+  folder you cannot write to, such as an older installation under Program
+  Files, stays as it is, and the log says why.
+
+### Changed
+
+- The desktop app no longer has an Install now button or a switch that installs
+  what a check finds and restarts right away. Updates come in the background
+  and wait for the next start, so a running download is never cut off. Check
+  automatically on startup is left on the container build, where it only
+  reports a newer release.
+
+### Fixed
+
+- The desktop app knows which release it is. It called itself `dev`, so Check
+  for updates never found anything newer.
+- The Windows installer's entry in the list of installed apps and the program's
+  file details show the release's version instead of 1.0.0.
+
 ## [1.2.0] - 2026-09-27
 
 ### Added

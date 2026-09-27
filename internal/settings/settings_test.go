@@ -151,3 +151,20 @@ func TestSanitizeRainbowPalette(t *testing.T) {
 		}
 	}
 }
+
+// Every settings file written before the desktop app updated itself carries the
+// two old switches, both off, and neither may keep the new one off.
+func TestAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
+	dir := t.TempDir()
+	old := `{"maxConcurrent": 2, "autoUpdateCheck": false, "autoUpdateInstall": false}`
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !st.Get().AutoUpdate {
+		t.Error("AutoUpdate is off after an upgrade; the default is on")
+	}
+}

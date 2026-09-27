@@ -142,6 +142,25 @@ left to do it lets it sleep again. The screen can still turn off. The switch is 
 Linux the app asks logind for a sleep lock, which a local desktop session gets
 without a password.
 
+### Updates
+
+The desktop app updates itself. A minute after it starts and once a day after
+that, it asks GitHub for the newest release, downloads the zip for your system
+in the background and checks it against the release's `checksums.txt`. The new
+version starts the next time you open KnightLoader, so nothing changes while it
+runs. **Update automatically** on the **General** page of Settings turns this
+off.
+
+An update replaces the program where it is, so it has to be able to write to
+that folder. The Windows installer puts KnightLoader under
+`AppData\Local\Programs`, where it can, and the entry in the list of installed
+apps follows the new version. A portable copy updates in its own folder and
+stays portable. An older installation under Program Files, a read-only folder,
+or a macOS app your account cannot change stays as it is, and the log says why.
+
+A container does not update itself. The same page tells you when a newer
+release exists; pull the new image the way you deployed this one.
+
 ### Building it from source
 
 ```sh
@@ -149,7 +168,9 @@ go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
 cd desktop && wails build
 ```
 
-The bundle lands in `desktop/build/bin`. Windows and macOS need only their
+The bundle lands in `desktop/build/bin`. It is a dev build, which never updates
+itself; only a build stamped with its version, as the release workflow makes,
+does (see `desktop/README.md`). Windows and macOS need only their
 usual toolchains. Linux needs GTK and WebKit: `libgtk-3-dev` and
 `libwebkit2gtk-4.1-dev` to build. Build it there with
 `wails build -tags webkit2_41`. Without the tag Wails looks for webkit2gtk

@@ -311,7 +311,7 @@ const GROUPS: Record<string, TransferGroup> = {
   hideAccountsFromSidebar: 'look',
   hideInstancesFromSidebar: 'look',
   autoUpdateCheck: 'look',
-  autoUpdateInstall: 'look',
+  autoUpdate: 'look',
 };
 
 export function groupOf(key: string): TransferGroup {

@@ -370,20 +370,17 @@ type Settings struct {
 	// changes nothing on a wider screen, where there is no bar.
 	BottomBarLabels string `json:"bottomBarLabels"`
 
-	// AutoUpdateCheck asks the desktop build to call update.Check once at
-	// startup, and the Allgemein tab to do the same on load, instead of only on
-	// a click of "Check for updates". The container build reads it nowhere. Off
-	// by default: it is an outbound call to GitHub on every launch.
+	// AutoUpdateCheck asks the container build's General tab to check for a
+	// newer release when it loads, instead of only on a click of "Check for
+	// updates". Off by default: it is an outbound call to GitHub. The desktop
+	// build checks on its own, see AutoUpdate.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
-	// AutoUpdateInstall asks the desktop build to install a newer release
-	// (download, verify, swap the running binary, relaunch) the moment
-	// AutoUpdateCheck finds one. It means nothing without AutoUpdateCheck, and
-	// nothing on the container build, which cannot replace itself from the
-	// inside: App.RequestUpdateInstall is nil there and the route refuses
-	// before this field is read. Off by default, since opting into a version
-	// check does not imply opting into replacing the running binary.
-	AutoUpdateInstall bool `json:"autoUpdateInstall"`
+	// AutoUpdate lets the desktop build download a newer release once a day
+	// and put it in place for the next start (desktop/updates.go). A container
+	// cannot replace itself from the inside and reads it nowhere. On by
+	// default, since an app nobody updates keeps its bugs.
+	AutoUpdate bool `json:"autoUpdate"`
 
 	// KeepAwake asks the desktop build to keep the computer from going to
 	// sleep while at least one download is running, and to let it sleep again
@@ -744,6 +741,7 @@ func Defaults() Settings {
 		VerifyChecksums:  true,
 		PreParserEnabled: true,
 		KeepAwake:        true,
+		AutoUpdate:       true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.
