@@ -1112,6 +1112,13 @@ body {
     --motion-modal-dur: 260ms;
     --motion-modal-travel: 10px;
     --motion-scrim-dur: 200ms;
+    /* The label that opens under the pointer in hover mode: its box opens on
+       a curve that overshoots while the words slide in from the start edge
+       and unsquash. GlimStone's numbers at every level. */
+    --motion-label-dur: 320ms;
+    --motion-label-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --motion-label-shift: -0.4rem;
+    --motion-label-squash: 0.82;
     /* Every transition in the app reads this. 150ms is Tailwind's default. */
     --motion-control-dur: 150ms;
     /* The sheen that crosses a README button once under the pointer. */
@@ -1157,6 +1164,10 @@ body {
     --motion-modal-dur: 150ms;
     --motion-modal-travel: 5px;
     --motion-scrim-dur: 150ms;
+    --motion-label-dur: 160ms;
+    --motion-label-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --motion-label-shift: 0rem;
+    --motion-label-squash: 1;
     --motion-control-dur: 80ms;
     --motion-button-sheen-dur: 1100ms;
     --drag-lift-scale: 1.015;
@@ -1203,6 +1214,10 @@ body {
     --motion-modal-dur: 160ms;
     --motion-modal-travel: 0px;
     --motion-scrim-dur: 160ms;
+    --motion-label-dur: 0s;
+    --motion-label-ease: linear;
+    --motion-label-shift: 0rem;
+    --motion-label-squash: 1;
     /* Every colour, shadow and opacity change lands at once. */
     --motion-control-dur: 0s;
     --motion-button-sheen-dur: 0s;
@@ -1298,6 +1313,36 @@ body {
   .glim-shape-transitions .glim-brand-tile,
   .glim-shape-transitions .glim-brand-tile * {
     transition: opacity var(--motion-control-dur) ease;
+  }
+
+  /* A hover-mode label opens sideways in a nav row and downwards under a rail
+     tile's glyph or a coin (-y). The doubled class outranks the transition
+     rule above. Colour stays out of the list, so a lit brand tile's ticker
+     changes colour in the tile's frame. */
+  .glim-label-reactive.glim-label-reactive {
+    transition:
+      max-width var(--motion-label-dur) var(--motion-label-ease),
+      max-height var(--motion-label-dur) var(--motion-label-ease),
+      padding-inline-start var(--motion-label-dur) var(--motion-label-ease),
+      opacity calc(var(--motion-label-dur) * 0.6) ease-out,
+      transform var(--motion-label-dur) var(--motion-label-ease);
+    transform: translateX(calc(var(--motion-label-shift) * var(--dir-sign))) scaleX(var(--motion-label-squash));
+    transform-origin: left center;
+  }
+  [dir="rtl"] .glim-label-reactive.glim-label-reactive {
+    transform-origin: right center;
+  }
+  .glim-label-reactive-y.glim-label-reactive-y {
+    transform: translateY(calc(var(--motion-label-shift) * -1)) scaleY(var(--motion-label-squash));
+    transform-origin: center top;
+  }
+  .group:focus-visible .glim-label-reactive.glim-label-reactive {
+    transform: none;
+  }
+  @media (hover: hover) {
+    .group:hover .glim-label-reactive.glim-label-reactive {
+      transform: none;
+    }
   }
 
   /* Colour-wipe: a real rainbow mode change (applyRainbow()) fades every hued
@@ -1470,6 +1515,10 @@ body {
   --motion-modal-dur: 470ms;
   --motion-modal-travel: 19px;
   --motion-scrim-dur: 360ms;
+  --motion-label-dur: 480ms;
+  --motion-label-ease: cubic-bezier(.22, 1.94, .45, 1);
+  --motion-label-shift: -0.6rem;
+  --motion-label-squash: 0.7;
   /* The top level's number: a slow hover tint makes the interface slower,
      not livelier. */
   --motion-control-dur: 150ms;

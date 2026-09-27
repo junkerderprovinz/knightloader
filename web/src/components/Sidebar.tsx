@@ -112,14 +112,15 @@ export const navHued = 'glim-hue glim-hue-icon';
  * collapses to zero width inside a centred row and grows back under the
  * pointer, so the glyph slides without anything being measured. The gap comes
  * from its own padding because a collapsed element cannot squeeze a row gap or
- * padding away.
+ * padding away. The reveal runs on the motion level's label dials
+ * (.glim-label-reactive).
  */
 export function NavLabel({ label, mode }: { label: string; mode: NavLabelMode }) {
   if (mode === 'glyph') return null;
   if (mode !== 'hover') return <span className="flex-1">{label}</span>;
   return (
     <span
-      className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200
+      className="glim-label-reactive max-w-0 overflow-hidden whitespace-nowrap opacity-0
         group-hover:ps-3 group-hover:max-w-40 group-hover:opacity-100
         group-focus-visible:ps-3 group-focus-visible:max-w-40 group-focus-visible:opacity-100"
     >

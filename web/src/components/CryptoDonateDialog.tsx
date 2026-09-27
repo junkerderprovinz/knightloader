@@ -132,9 +132,10 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
 
 // Collapsed rather than omitted, so the ticker grows back in place without
 // re-measuring the tile, as Tabs.tsx hides rail labels. Only its size and
-// opacity move: its colour changes with the lit tile, in the same frame.
+// opacity move, on the label dials: its colour changes with the lit tile, in
+// the same frame.
 const HIDDEN_TICKER =
-  'leading-[1.4] max-h-0 opacity-0 transition-[max-height,opacity] duration-200 group-hover:max-h-[1.4em] ' +
+  'glim-label-reactive glim-label-reactive-y leading-[1.4] max-h-0 opacity-0 group-hover:max-h-[1.4em] ' +
   'group-hover:opacity-100 group-focus-visible:max-h-[1.4em] group-focus-visible:opacity-100';
 
 /**
