@@ -125,7 +125,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
     top.className = 'glim-instance-top';
     const badge = document.createElement('span');
     badge.className = status === null ? 'glim-status glim-status--off' : 'glim-status glim-status--on';
-    badge.textContent = t(status === null ? 'instance.offline' : 'instance.online');
+    badge.textContent = t(status === null ? 'instance.notConnected' : 'instance.connected');
     top.append(name, badge);
     body.append(top, what);
   } else {
@@ -137,7 +137,7 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   if (status !== undefined) {
     const line = document.createElement('span');
     line.className = 'glim-instance-stats glim-num';
-    line.textContent = status === null ? t('instance.offline') : statusLine(status);
+    line.textContent = status === null ? t('instance.notConnected') : statusLine(status);
     if (status === null) line.classList.add('glim-instance-stats--off');
     if (status && downloading(status)) livePulse(line);
     body.appendChild(line);
