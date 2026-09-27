@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-27
+
 ### Added
 
 - **yt-dlp keeps itself up to date.** A few minutes after start and then once
@@ -109,7 +111,7 @@ release's tag.
 - **The start and stop buttons on the browser extension's instance cards.**
   The extension catches and sends links; the queue is run from the web
   interface, the app and the desktop tray. A card still shows whether its
-  instance is online and what the queue is doing.
+  instance is connected and what the queue is doing.
 
 ### Fixed
 
@@ -117,6 +119,10 @@ release's tag.
   taskbar, the Dock, the installer and the program file. In the taskbar and
   the notification area the logo is as tall as the icons beside it, and each
   size is drawn sharp for itself.
+- **Downloads no longer race inside the download library.** Starting, pausing
+  and showing progress at the same moment could read and change a download's
+  state without a lock. The gopeed fork now keeps its task list and each
+  task's state under their locks, always taken in the same order.
 
 ## [1.3.0] - 2026-09-27
 
