@@ -97,6 +97,7 @@ expect(
 );
 expect('a disabled link still running does', packageCard([task('done'), task('running', { enabled: false })]), 'downloads');
 expect('a package switched off whole stays', packageCard([task('queued', { enabled: false })]), 'downloads');
+expect('a package switched off whole stays though part of it downloaded', packageCard([task('done', { enabled: false }), task('queued', { enabled: false })]), 'downloads');
 expect(
   'a finished package goes back to the download list when a link is downloaded again',
   packageCard([task('done'), task('queued')]),
