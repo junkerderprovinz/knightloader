@@ -645,3 +645,36 @@ func TestChangingTheTorrentConfigLeavesTheConfigInUseAlone(t *testing.T) {
 		t.Errorf("new bt config = %+v", bt)
 	}
 }
+
+// The bt fetcher's client goroutine reads a context that closing the library
+// sets to nil, so a close straight after a torrent resolve began waits for it.
+func TestCloseRightAfterATorrentResolveLetsTheLibrarySettle(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.mu.Lock()
+	e.torrentAt = time.Now()
+	e.mu.Unlock()
+	start := time.Now()
+	if err := e.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if took := time.Since(start); took < torrentSettle-50*time.Millisecond {
+		t.Errorf("Close returned after %s, before the library had %s to settle", took, torrentSettle)
+	}
+}
+
+func TestCloseWithoutATorrentDoesNotWait(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	if err := e.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if took := time.Since(start); took >= torrentSettle {
+		t.Errorf("Close took %s with no torrent ever resolved", took)
+	}
+}

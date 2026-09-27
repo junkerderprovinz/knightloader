@@ -159,6 +159,9 @@ func (e *Engine) resolveTorrent(j Job, opts *base.Options) (*download.ResolveRes
 		err error
 	}
 	ch := make(chan answer, 1)
+	e.mu.Lock()
+	e.torrentAt = time.Now()
+	e.mu.Unlock()
 	go func() {
 		// The torrent stack panics on input it considers impossible
 		// (anacrolix/torrent asserts a non-zero info hash), and a panic here

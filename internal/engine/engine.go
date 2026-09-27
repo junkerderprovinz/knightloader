@@ -79,6 +79,9 @@ type Engine struct {
 	pollOnce  sync.Once
 	// closed is set under mu by Close before wg.Wait runs; see Start.
 	closed bool
+	// torrentAt is when the last torrent resolve began, under mu; see
+	// torrentSettle.
+	torrentAt time.Time
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
@@ -261,10 +264,25 @@ func (e *Engine) Close() error {
 		case <-waited:
 		case <-time.After(closeGrace):
 		}
+		e.mu.Lock()
+		since := time.Since(e.torrentAt)
+		torrents := !e.torrentAt.IsZero()
+		e.mu.Unlock()
+		if torrents && since < torrentSettle {
+			time.Sleep(torrentSettle - since)
+		}
 		e.closeErr = e.d.Close()
 	})
 	return e.closeErr
 }
+
+// torrentSettle is how long after a torrent resolve began Close waits before
+// shutting the library down. The bt fetcher builds its client at the start of
+// a resolve and hands a package-level context to a goroutine that reads it only
+// once it runs, while closing the client sets that context to nil, so a close
+// in between crashes the process:
+// https://github.com/GopeedLab/gopeed/blob/v1.9.3/internal/protocol/bt/fetcher.go#L87-L90
+const torrentSettle = 500 * time.Millisecond
 
 // closeGrace is how long Close waits for its own goroutines before shutting
 // the download library down anyway.
