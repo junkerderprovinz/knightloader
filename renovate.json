@@ -13,30 +13,35 @@
   "labels": ["dependencies"],
   "prHourlyLimit": 4,
   "prConcurrentLimit": 6,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "platformAutomerge": false,
+  "rebaseWhen": "conflicted",
+  "gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
   "packageRules": [
     {
-      "description": "GitHub Actions: auto-merge all updates",
+      "description": "GitHub Actions: auto-merge all updates once every check is green; main has no required checks, so GitHub's own auto-merge would not wait for them",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest"],
       "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true,
       "commitMessagePrefix": "ci:",
       "labels": ["github-actions"]
     },
     {
-      "description": "Go: group minor+patch module updates into one weekly PR; majors stay separate for review",
+      "description": "Go: group minor, patch and digest module updates into one weekly PR that merges once CI is green; majors stay separate for review. dependency-fixups.yml tidies desktop/go.mod on the branch",
       "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "groupName": "Go modules (non-major)",
-      "commitMessagePrefix": "chore(deps):"
+      "commitMessagePrefix": "chore(deps):",
+      "automerge": true
     },
     {
-      "description": "npm (web UI): group minor+patch into one weekly PR; majors stay separate",
+      "description": "npm: group minor and patch into one weekly PR that merges once CI is green; majors stay separate. dependency-fixups.yml rebuilds web/dist on the branch",
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "web dependencies (non-major)",
-      "commitMessagePrefix": "chore(deps):"
+      "commitMessagePrefix": "chore(deps):",
+      "automerge": true
     },
     {
       "description": "The Expo SDK decides React, React Native and the native modules in mobile/; npx expo install --fix moves them with an SDK upgrade",
@@ -44,6 +49,17 @@
       "matchPackageNames": ["expo", "expo-*", "@expo/**", "react", "react-dom", "@types/react", "react-native", "react-native-*", "@react-native/**", "@react-native-community/**"],
       "matchUpdateTypes": ["minor", "major"],
       "enabled": false
+    },
+    {
+      "description": "A new Expo SDK gets a PR of its own, never merged automatically, so the rest of mobile/ can follow it by hand",
+      "matchFileNames": ["mobile/package.json"],
+      "matchPackageNames": ["expo"],
+      "matchUpdateTypes": ["major"],
+      "enabled": true,
+      "automerge": false,
+      "groupName": "Expo SDK",
+      "addLabels": ["expo-sdk"],
+      "prBodyNotes": ["Run `npx expo install --fix` in `mobile/` on this branch and commit the result, so React, React Native and the `expo-*` modules move to this SDK's versions."]
     },
     {
       "description": "Override for xcode, which loads uuid with require(); 12 and later are ESM only",
