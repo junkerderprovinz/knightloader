@@ -12,11 +12,12 @@ import {
 } from '../../components/ui';
 import type { TorrentFileRules } from '../../lib/api';
 import { happened } from '../../lib/countdown';
-import { fmtDate, RATE_UNITS } from '../../lib/format';
+import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
+import { UploadLimitField } from './torrents/UploadLimit';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
@@ -94,13 +95,6 @@ export function Torrents() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('settings.torrents.title')} />
 
-      {/* The upload limit and the DHT/PEX default for ordinary torrents have no
-          gopeed setting to reach. Saying that this build does not apply them
-          is the one note on the page that is not behind an (i). */}
-      <div className="glim-well px-3 py-2.5 text-[11px] text-statusWarn">
-        {t('settings.torrents.notApplied')}
-      </div>
-
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.seedingTitle')}</SectionTitle>
         <ModuleToggle id="torrents" />
@@ -132,22 +126,18 @@ export function Torrents() {
 
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.transferTitle')}</SectionTitle>
-        {/* Stored in whole KiB/s, shown like every other speed. */}
-        <Field label={t('settings.torrents.uploadLimit')} hint={t('settings.torrents.uploadLimitHint')}>
-          <UnitNumberInput
-            value={tr.uploadLimitKiBs * KIB}
-            units={RATE_UNITS}
-            snap={(bytes) => Math.round(bytes / KIB) * KIB}
-            onValue={(bytes) => write({ uploadLimitKiBs: bytes / KIB })}
-          />
-        </Field>
+        <UploadLimitField value={tr.uploadLimitKiBs} onValue={(uploadLimitKiBs) => write({ uploadLimitKiBs })} />
       </Card>
 
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.portTitle')}</SectionTitle>
         <Field
           label={t('settings.torrents.port')}
-          hint={[t('settings.torrents.portHint'), t('settings.torrents.portRestartHint')]}
+          hint={[
+            t('settings.torrents.portHint'),
+            t('settings.torrents.clientApplyHint'),
+            t('settings.torrents.portMapNowHint'),
+          ]}
         >
           <NumberInput
             value={tr.port}
@@ -165,13 +155,13 @@ export function Torrents() {
           checked={tr.dhtEnabled}
           onChange={(v) => write({ dhtEnabled: v })}
           label={t('settings.torrents.dht')}
-          hint={t('settings.torrents.dhtHint')}
+          hint={[t('settings.torrents.dhtHint'), t('settings.torrents.clientApplyHint')]}
         />
         <ToggleRow
           checked={tr.pexEnabled}
           onChange={(v) => write({ pexEnabled: v })}
           label={t('settings.torrents.pex')}
-          hint={t('settings.torrents.pexHint')}
+          hint={[t('settings.torrents.pexHint'), t('settings.torrents.clientApplyHint')]}
         />
       </Card>
 

@@ -677,8 +677,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.portTitle',
       rows: [{ key: 'settings.torrents.port', hint: 'settings.torrents.portHint' }],
-      // The port's second paragraph, and the (i) inside the mapping button.
-      body: ['settings.torrents.portRestartHint', 'settings.torrents.portMapHint', 'settings.torrents.portMapNeedsPort'],
+      // The port's further paragraphs, and the (i) inside the mapping button.
+      body: [
+        'settings.torrents.clientApplyHint',
+        'settings.torrents.portMapNowHint',
+        'settings.torrents.portMapHint',
+        'settings.torrents.portMapNeedsPort',
+      ],
     },
     {
       title: 'settings.torrents.networkTitle',

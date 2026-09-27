@@ -103,6 +103,10 @@ submission and for a fixed download.
   in a badge beside its title. Search and quick filters apply to all three,
   with a new Seeding filter beside Finished. Both cards can be switched off
   under Settings, Downloads, and the Android app shows the same two parts.
+- **The torrent upload limit works.** All torrents together upload no faster
+  than the rate set under Settings, Torrents, while they download and while
+  they seed, and a change reaches torrents that are already running. The limit
+  is also in the quick settings, below the download speed limit.
 
 ### Changed
 
@@ -162,6 +166,9 @@ submission and for a fixed download.
 - KnightLoader no longer crashes when it is stopped within a moment of a
   torrent starting, as can happen when a restart resumes seeding and the
   container is stopped again at once.
+- The DHT and PEX switches under Settings, Torrents reach ordinary torrents;
+  they had no effect before. They take effect once no torrent is downloading
+  or seeding, and so does a new port, which used to need a restart.
 - Finished torrents seed again after KnightLoader restarts. Seeding stopped
   with the process, so after a restart or a container update a finished
   torrent never seeded again. Each start now picks such a torrent up where its

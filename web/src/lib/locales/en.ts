@@ -1983,13 +1983,16 @@ export const en = {
   'settings.torrents.seedDurationUnit': 'hours',
   'settings.torrents.transferTitle': 'Transfer limit',
   'settings.torrents.uploadLimit': 'Upload limit',
-  'settings.torrents.uploadLimitHint': 'Caps how fast a torrent uploads to the swarm while seeding. 0 = unlimited.',
+  'settings.torrents.uploadLimitHint':
+    'Caps how fast all torrents together upload to the swarm, both while they download and while they seed. A change applies at once. 0 = unlimited.',
   'settings.torrents.portTitle': 'Port & mapping',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint':
     'The port this instance listens for swarm connections on. 0 lets the built-in torrent client pick one.',
-  'settings.torrents.portRestartHint':
-    'The engine builds its torrent client only once, so a new port takes effect after this instance restarts. Asking the router to map it works right away, whether or not a torrent is listening on it yet.',
+  'settings.torrents.clientApplyHint':
+    'A change takes effect once no torrent is downloading or seeding. The next torrent starts with it.',
+  'settings.torrents.portMapNowHint':
+    'Asking the router to map the port works right away, whether or not a torrent is listening on it yet.',
   'settings.torrents.portMapHint':
     'Asks the router to forward the port above to this machine over UPnP, so peers behind a different router can still reach it. Not every router supports this, and some accept the request without it actually working.',
   'settings.torrents.portMapButton': 'Attempt UPnP mapping',
@@ -2009,8 +2012,6 @@ export const en = {
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
     'A private torrent switches both off automatically once its metadata is known, regardless of what is set here: immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
-  'settings.torrents.notApplied':
-    'This build does not apply two of the settings below yet. The upload limit is saved and checked, but the engine cannot apply it to a running download. DHT and PEX do not reach an ordinary torrent either: it seeds with both on, whatever is set here. A private torrent works differently, as the (i) of Peer discovery explains.',
   'settings.torrents.filesTitle': 'File selection',
   'settings.torrents.filesHint':
     'Chooses which files of a torrent are fetched when nobody chose them by hand. For a magnet link that happens once its file list has arrived. A .torrent opens its file list with this choice ticked, and it applies if you add the torrent without changing it. Whatever you tick or untick yourself always wins. If nothing would be left, every file is fetched. A category can have its own file selection instead.',
