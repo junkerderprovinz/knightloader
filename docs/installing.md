@@ -21,8 +21,15 @@ docker run -d --name knightloader \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```
 
-Then open `http://<host>:8749`. On Unraid add `--user 99:100`, so finished
-files land as `nobody:users`.
+Then open `http://<host>:8749`.
+
+On Unraid, put `--user 99:100` in Extra Parameters and add the variable
+`UMASK` with the value `000`. Finished files then land as `nobody:users` with
+mode 0666 and their folders with 0777, so the account you use over SMB can
+move, rename and delete them. `UMASK` is read the way linuxserver.io images
+read it, as an octal mask such as `000`, `002` or `022`. `PUID` and `PGID` are
+not read: the image runs as a fixed user, and `--user` is how you choose
+another one. Settings, Diagnostics shows which user and mask are in force.
 
 ### Behind a reverse proxy
 

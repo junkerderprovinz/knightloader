@@ -77,6 +77,13 @@ submission and for a fixed download.
 
 - A bookmarklet dragged to the bookmarks bar by its logo arrives with its name
   and still runs. The drag used to take the picture instead of the link.
+- Files KnightLoader downloads can be moved and deleted over an Unraid share.
+  They landed as 0644 in 0755 folders, so the SMB account could only read
+  them. The container takes `UMASK` as its umask at start, like linuxserver.io
+  images, and with `UMASK=000` downloads, unpacked files and finished torrents
+  come out 0666 in 0777 folders. `PUID` and `PGID` are still not read, and
+  Diagnostics says whether `UMASK` took. JDownloader's folder with the hoster
+  logins stays closed to other users.
 - The desktop window gets live updates the way a browser tab does. It could
   never open the connection they arrive on, so the download and collector lists
   stayed empty, progress did not move and a new captcha prompt did not appear.

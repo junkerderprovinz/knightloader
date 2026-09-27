@@ -46,6 +46,7 @@ ssh -p <ssh-port> root@<host> '
   docker run -d --name knightloader \
     --restart unless-stopped \
     --user 99:100 \
+    -e UMASK=000 \
     --cpus 2 --memory 1g \
     --network br0.20 --ip <instance-ip> \
     -v /mnt/user/appdata/knightloader:/data \
@@ -65,7 +66,9 @@ in only one of them is undone the next time somebody presses Apply in the
 Docker tab, or the next time the preview is redeployed from here.
 
 `--user 99:100` makes downloaded files land as `nobody:users`, which is what the
-rest of an Unraid box expects. `VERSION` is stamped into the binary and shown
+rest of an Unraid box expects, and `UMASK=000` makes them 0666 and their
+folders 0777, so the SMB account can move and delete them. The template needs
+the same `UMASK` variable. `VERSION` is stamped into the binary and shown
 under the wordmark in the sidebar; `COMMIT` is stamped the same way and is what
 `GET /api/health` answers as `commit`. Check both after a deploy:
 
