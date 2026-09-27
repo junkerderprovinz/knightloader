@@ -2273,7 +2273,7 @@ export const is: Dict = {
   'overview.speedWindow': 'Tímabil kúrfunnar',
   'overview.speedWindow.minute': 'Síðasta mínútan',
   'overview.speedWindow.hour': 'Síðasta klukkustundin',
-  'overview.speedGraphHint': 'Tilvikið skráir þessa kúrfu sjálft: eitt mæligildi á sekúndu fyrir síðustu tvær mínúturnar, eitt á tíu sekúndna fresti fyrir síðustu klukkustund. Þess vegna er hún þegar fyllt eftir að síðan er endurhlaðin, í stað þess að byrja flöt. Skráningin liggur aðeins í vinnsluminni: endurræsir þú KnightLoader er hún tóm, kúrfan byrjar aftur sem flöt lína og fyllist eftir því sem á líður.',
+  'overview.speedGraphHint': 'Tilvikið skráir þessa kúrfu sjálft: eitt mæligildi á sekúndu fyrir síðustu tvær mínúturnar, eitt á tíu sekúndna fresti fyrir síðustu klukkustund. Þess vegna er hún þegar fyllt eftir að síðan er endurhlaðin, í stað þess að byrja flöt. Skráningin liggur aðeins í vinnsluminni: endurræsir þú KnightLoader er hún tóm, kúrfan byrjar aftur sem flöt lína og fyllist eftir því sem á líður. Á meðan hraðatakmörk gilda sýnir rauð lína þau, með gildið vinstra megin. Ef takmörkin eru langt yfir núverandi hraða er línan strikuð og situr við efri brúnina, svo hægt niðurhal fletjist ekki út.',
   'settings.diagnostics.speedSamples': 'Skráð hraðagildi',
   'settings.diagnostics.speedSamplesHint': 'Úr hve mörgum mæligildum hraðakúrfan á Yfirliti er teiknuð núna, miðað við það mesta sem hún geymir: fyrst skráningin yfir tvær mínútur, svo sú yfir eina klukkustund. Standi núll við báðar er ekkert að skrá, og kúrfan á Yfirliti helst flöt þar til það er lagað. Eftir hverja endurræsingu byrjar skráningin tóm, og á diskinn er hún aldrei skrifuð.',
   'settings.downloads.idleActionQuit': 'Hætta í KnightLoader',

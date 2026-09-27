@@ -2276,7 +2276,7 @@ export const sl: Dict = {
   'overview.speedWindow': 'Časovno okno krivulje',
   'overview.speedWindow.minute': 'Zadnja minuta',
   'overview.speedWindow.hour': 'Zadnja ura',
-  'overview.speedGraphHint': 'Instanca to krivuljo beleži sama: ena meritev na sekundo za zadnji dve minuti, ena vsakih deset sekund za zadnjo uro. Zato je po ponovnem nalaganju strani že polna, namesto da bi se začela ravna. Zapis je samo v delovnem pomnilniku: če znova zaženeš KnightLoader, je prazen, krivulja se spet začne kot ravna črta in se med tekom napolni.',
+  'overview.speedGraphHint': 'Instanca to krivuljo beleži sama: ena meritev na sekundo za zadnji dve minuti, ena vsakih deset sekund za zadnjo uro. Zato je po ponovnem nalaganju strani že polna, namesto da bi se začela ravna. Zapis je samo v delovnem pomnilniku: če znova zaženeš KnightLoader, je prazen, krivulja se spet začne kot ravna črta in se med tekom napolni. Dokler velja omejitev hitrosti, jo označuje rdeča črta z vrednostjo na levi. Če je omejitev precej nad trenutno hitrostjo, je črta črtkana in ostane ob zgornjem robu, da se počasen prenos ne splošči.',
   'settings.diagnostics.speedSamples': 'Zabeležene meritve hitrosti',
   'settings.diagnostics.speedSamplesHint': 'Iz koliko meritev je krivulja hitrosti na Pregledu trenutno narisana, glede na to, kar največ obdrži: najprej dvominutni zapis, nato enourni. Če je pri obeh nič, se ne beleži nič, in krivulja na Pregledu ostane ravna, dokler to ni odpravljeno. Po vsakem ponovnem zagonu se zapis začne prazen, na disk se nikoli ne zapiše.',
   'settings.downloads.idleActionQuit': 'Zapri KnightLoader',

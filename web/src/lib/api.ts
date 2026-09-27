@@ -708,6 +708,10 @@ export interface QueueState {
   halted: boolean;
   stopMark?: string;
   running: number;
+  /** The global speed limit in force in bytes/s, 0 for none, with a limit
+   *  window or quiet mode applied but not the volume cap. A peer on an older
+   *  build leaves it out. */
+  limit?: number;
 }
 
 export interface AuthState {

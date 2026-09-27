@@ -2277,7 +2277,7 @@ export const sv: Dict = {
   'overview.speedWindow': 'Kurvans tidsfönster',
   'overview.speedWindow.minute': 'Senaste minuten',
   'overview.speedWindow.hour': 'Senaste timmen',
-  'overview.speedGraphHint': 'Instansen registrerar den här kurvan själv: ett mätvärde per sekund för de senaste två minuterna, ett var tionde sekund för den senaste timmen. Därför är den redan fylld när du laddar om sidan, i stället för att börja platt. Mätvärdena ligger bara i arbetsminnet: startar du om KnightLoader är de borta, kurvan börjar som en platt linje igen och fylls på efter hand.',
+  'overview.speedGraphHint': 'Instansen registrerar den här kurvan själv: ett mätvärde per sekund för de senaste två minuterna, ett var tionde sekund för den senaste timmen. Därför är den redan fylld när du laddar om sidan, i stället för att börja platt. Mätvärdena ligger bara i arbetsminnet: startar du om KnightLoader är de borta, kurvan börjar som en platt linje igen och fylls på efter hand. Så länge en hastighetsgräns gäller markeras den av en röd linje, med värdet till vänster. Ligger gränsen långt över den aktuella hastigheten är linjen streckad och stannar vid överkanten, så att en långsam nedladdning inte trycks platt.',
   'settings.diagnostics.speedSamples': 'Registrerade hastighetsvärden',
   'settings.diagnostics.speedSamplesHint': 'Ur hur många mätvärden hastighetskurvan på Översikt ritas just nu, mätt mot det mesta den behåller: först registreringen över två minuter, sedan den över en timme. Står det noll på båda registreras ingenting, och kurvan på Översikt förblir platt tills det är åtgärdat. Efter varje omstart börjar registreringen tom, och den skrivs aldrig till disken.',
   'settings.downloads.idleActionQuit': 'Avsluta KnightLoader',

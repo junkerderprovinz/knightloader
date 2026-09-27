@@ -2267,7 +2267,7 @@ export const lv: Dict = {
   'overview.speedWindow': 'Līknes laika logs',
   'overview.speedWindow.minute': 'Pēdējā minūte',
   'overview.speedWindow.hour': 'Pēdējā stunda',
-  'overview.speedGraphHint': 'Instance šo līkni pieraksta pati: viens mērījums sekundē pēdējām divām minūtēm, viens ik pēc desmit sekundēm pēdējai stundai. Tāpēc pēc lapas pārlādēšanas tā ir jau piepildīta, nevis sākas plakana. Pieraksts glabājas tikai operatīvajā atmiņā: ja KnightLoader restartē, tas ir tukšs, līkne atkal sākas kā plakana līnija un piepildās darbības gaitā.',
+  'overview.speedGraphHint': 'Instance šo līkni pieraksta pati: viens mērījums sekundē pēdējām divām minūtēm, viens ik pēc desmit sekundēm pēdējai stundai. Tāpēc pēc lapas pārlādēšanas tā ir jau piepildīta, nevis sākas plakana. Pieraksts glabājas tikai operatīvajā atmiņā: ja KnightLoader restartē, tas ir tukšs, līkne atkal sākas kā plakana līnija un piepildās darbības gaitā. Kamēr ir spēkā ātruma ierobežojums, to iezīmē sarkana līnija ar vērtību kreisajā pusē. Ja ierobežojums ir krietni virs pašreizējā ātruma, līnija ir raustīta un paliek pie augšējās malas, lai lēna lejupielāde netiktu saspiesta plakana.',
   'settings.diagnostics.speedSamples': 'Pierakstītie ātruma mērījumi',
   'settings.diagnostics.speedSamplesHint': 'No cik mērījumiem ātruma līkne Pārskata lapā tiek zīmēta tieši tagad, salīdzinot ar to, cik daudz tā vispār patur: vispirms divu minūšu pieraksts, tad vienas stundas pieraksts. Ja abos ir nulle, nekas netiek pierakstīts, un līkne Pārskatā paliks plakana, līdz tas ir novērsts. Pēc katras restartēšanas pieraksts sākas tukšs, un diskā to neraksta nekad.',
   'settings.downloads.idleActionQuit': 'Iziet no KnightLoader',

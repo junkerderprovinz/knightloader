@@ -2287,7 +2287,7 @@ export const cs: Dict = {
   'overview.speedWindow': 'Časové okno křivky',
   'overview.speedWindow.minute': 'Poslední minuta',
   'overview.speedWindow.hour': 'Poslední hodina',
-  'overview.speedGraphHint': 'Instance si tuhle křivku zaznamenává sama: jeden vzorek za sekundu pro poslední dvě minuty, jeden každých deset sekund pro poslední hodinu. Proto je po načtení stránky rovnou zaplněná, místo aby začínala jako rovná čára. Záznam leží jen v paměti: když KnightLoader restartuješ, je prázdný, křivka začne zase jako rovná čára a plní se v průběhu času.',
+  'overview.speedGraphHint': 'Instance si tuhle křivku zaznamenává sama: jeden vzorek za sekundu pro poslední dvě minuty, jeden každých deset sekund pro poslední hodinu. Proto je po načtení stránky rovnou zaplněná, místo aby začínala jako rovná čára. Záznam leží jen v paměti: když KnightLoader restartuješ, je prázdný, křivka začne zase jako rovná čára a plní se v průběhu času. Dokud platí omezení rychlosti, označuje ho červená čára s hodnotou vlevo. Když je omezení vysoko nad aktuální rychlostí, je čára čárkovaná a zůstává u horního okraje, aby se pomalé stahování nesplasklo do roviny.',
   'settings.diagnostics.speedSamples': 'Zaznamenané vzorky rychlosti',
   'settings.diagnostics.speedSamplesHint': 'Z kolika vzorků se právě kreslí křivka rychlosti na Přehledu, proti tomu, kolik jich nejvíc drží: nejdřív záznam za dvě minuty, potom ten za hodinu. Když je u obou nula, nezaznamenává nic a křivka na Přehledu zůstane rovná, dokud se to nespraví. Po každém restartu začíná záznam prázdný a na disk se nikdy nezapisuje.',
   'settings.downloads.idleActionQuit': 'Ukončit KnightLoader',
