@@ -37,6 +37,8 @@ submission and for a fixed download.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-27
+
 ### Added
 
 - **playmate.to videos download.** An embed link asks the site for its stream
