@@ -20,6 +20,7 @@ import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
 import { ScheduleSuspendField } from '../pages/settings/automation/ScheduleSuspend';
 import { ChunksField, MaxConcurrentField, MaxPerHostField } from '../pages/settings/downloads/Concurrency';
 import { SpeedLimitField } from '../pages/settings/downloads/SpeedLimit';
+import { UploadLimitField } from '../pages/settings/torrents/UploadLimit';
 import { fetchFeatures, type Feature } from '../pages/settings/features';
 import { ModulesPageBadge, PageBadge } from '../pages/settings/ModuleToggle';
 import {
@@ -47,6 +48,7 @@ interface Extras {
   idleActions: string[];
   reconnect: ReconnectState | null;
   reconnectModule: Feature | undefined;
+  torrentsModule: Feature | undefined;
 }
 
 interface RowContext {
@@ -63,6 +65,9 @@ interface QuickRow {
   render: (c: RowContext) => ReactNode;
 }
 
+/** The settings type leaves the torrent block out, as the Torrents page notes. */
+type TorrentBlock = { torrent?: Record<string, unknown> & { uploadLimitKiBs?: number } };
+
 // What people reach for while downloads run comes first: how fast and how many,
 // then the timetable and what happens once the queue is empty, then the two
 // switches and the bar's own curve, and the one action last.
@@ -72,6 +77,23 @@ const ROWS: QuickRow[] = [
     render: ({ cfg, patch }) => (
       <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
     ),
+  },
+  {
+    id: 'uploadLimit',
+    // Only torrents upload, so the row goes with the built-in torrent client.
+    // The whole block is sent, as the Torrents page sends it.
+    render: ({ cfg, patch, extras }) => {
+      if (extras.torrentsModule?.parked) return null;
+      const torrent = (cfg as TorrentBlock).torrent ?? {};
+      return (
+        <UploadLimitField
+          value={torrent.uploadLimitKiBs ?? 0}
+          onValue={(uploadLimitKiBs) =>
+            patch({ torrent: { ...torrent, uploadLimitKiBs } } as unknown as Partial<Settings>)
+          }
+        />
+      );
+    },
   },
   {
     id: 'maxConcurrent',
@@ -451,6 +473,7 @@ function useQuickExtras(open: boolean) {
           idleActions: idleActions.status === 'fulfilled' ? idleActions.value : [],
           reconnect: reconnect.status === 'fulfilled' ? reconnect.value : null,
           reconnectModule: module('reconnect'),
+          torrentsModule: module('torrents'),
         });
       },
     );

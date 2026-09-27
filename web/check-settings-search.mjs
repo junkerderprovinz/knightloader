@@ -68,6 +68,7 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Resolvers.tsx', pages: ['resolvers'] },
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
+  { file: 'src/pages/settings/torrents/', pages: ['torrents'] },
   { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
   { file: 'src/pages/settings/Automation.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/automation/', pages: ['automation'] },
