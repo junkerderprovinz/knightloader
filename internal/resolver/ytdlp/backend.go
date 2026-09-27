@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 type Backend struct {
@@ -147,7 +148,7 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			dir = d
 		}
 	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
 		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
 		return
 	}

@@ -29,6 +29,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // DefaultDepth is how many archives deep a job follows when the caller does not
@@ -400,7 +402,7 @@ func (s *sink) join(first string) (string, []string, error) {
 	// O_EXCL, so a file already sitting under the joined name is a refusal and
 	// never a silent overwrite. It is either the last run's output or somebody
 	// else's file, and neither is ours to replace.
-	f, err := os.OpenFile(target, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+	f, err := os.OpenFile(target, os.O_CREATE|os.O_EXCL|os.O_WRONLY, filemode.File)
 	if err != nil {
 		return "", nil, fmt.Errorf("extract: %s cannot be joined: %w", stem, err)
 	}

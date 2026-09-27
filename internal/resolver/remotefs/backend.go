@@ -15,6 +15,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // Downloader is the byte-transfer backend a WebDAV link is handed on to, the
@@ -238,7 +239,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 			dir = d
 		}
 	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
 		fail(fmt.Errorf("remotefs: %w", err))
 		return
 	}
@@ -335,7 +336,7 @@ func (b *Backend) transfer(ctx context.Context, taskID string, fs FS, remotePath
 		}
 	}()
 
-	f, err := os.OpenFile(part, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	f, err := os.OpenFile(part, os.O_CREATE|os.O_WRONLY|os.O_APPEND, filemode.File)
 	if err != nil {
 		return fmt.Errorf("remotefs: %w", err)
 	}

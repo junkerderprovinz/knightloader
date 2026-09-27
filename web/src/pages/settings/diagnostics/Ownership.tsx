@@ -5,8 +5,9 @@ import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
 
 /**
  * The card shows the uid, gid and umask this instance writes files as. The
- * image runs as a fixed user and reads no PUID, PGID or UMASK, so any of them
- * that is set is echoed beside the identity in force, marked as ignored.
+ * image runs as a fixed user and reads no PUID or PGID, so either of them that
+ * is set is echoed beside the identity in force, marked as ignored. UMASK is
+ * applied at start, and the card says whether the value took.
  */
 export function OwnershipCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -18,12 +19,21 @@ export function OwnershipCard({ hue }: { hue: number }) {
   const who = `${data.uid}:${data.gid}`;
   const named = (id: number, name: string) => (name ? `${id} (${name})` : String(id));
 
-  // Each variable that is set and ignored, by name, so every value is echoed back.
-  const ignored: Array<[string, string]> = [];
-  if (!data.envRead) {
-    if (data.env.puid) ignored.push(['PUID', data.env.puid]);
-    if (data.env.pgid) ignored.push(['PGID', data.env.pgid]);
-    if (data.env.umask) ignored.push(['UMASK', data.env.umask]);
+  // Every variable that is set, with what became of it, so each value is echoed back.
+  const asked: Array<{ name: string; line: string; took: boolean }> = [];
+  const ignored = (name: string, value: string) =>
+    asked.push({ name, took: false, line: t('settings.owner.envIgnored', { name, value, owner: who }) });
+  if (!data.idsRead) {
+    if (data.env.puid) ignored('PUID', data.env.puid);
+    if (data.env.pgid) ignored('PGID', data.env.pgid);
+  }
+  if (data.env.umask) {
+    const value = data.env.umask;
+    asked.push(
+      data.umaskApplied
+        ? { name: 'UMASK', took: true, line: t('settings.owner.umaskApplied', { value }) }
+        : { name: 'UMASK', took: false, line: t('settings.owner.umaskRefused', { value }) },
+    );
   }
 
   return (
@@ -48,15 +58,15 @@ export function OwnershipCard({ hue }: { hue: number }) {
         <span className="text-[11px] text-carbon-textMuted">{t('settings.owner.desktopNote')}</span>
       )}
 
-      {data.deployment !== 'desktop' && ignored.length > 0 && (
+      {data.deployment !== 'desktop' && asked.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="flex items-center text-[11px] uppercase tracking-wide text-carbon-textMuted">
             {t('settings.owner.asked')}
             <InfoBubble tip={t('settings.owner.envHow')} />
           </span>
-          {ignored.map(([name, value]) => (
-            <span key={name} className="text-sm text-statusWarn">
-              {t('settings.owner.envIgnored', { name, value, owner: who })}
+          {asked.map(({ name, line, took }) => (
+            <span key={name} className={took ? 'text-sm text-carbon-textSub' : 'text-sm text-statusWarn'}>
+              {line}
             </span>
           ))}
         </div>

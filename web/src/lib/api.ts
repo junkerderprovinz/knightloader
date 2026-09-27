@@ -3213,15 +3213,18 @@ export interface FileOwnerIdentity {
    *  Linux 4.7). Setting and restoring the umask to read it would race with
    *  the goroutines creating files. */
   umaskKnown: boolean;
+  /** True when UMASK was set and the process took it as its umask at start.
+   *  A set value it could not read leaves this false and the mask unchanged. */
+  umaskApplied: boolean;
   /** What the operator set, verbatim. "" means unset, which is not 0. */
   env: { puid: string; pgid: string; umask: string };
   /**
-   * Whether this build acts on those three. It does not: the image runs as
+   * Whether this build acts on PUID and PGID. It does not: the image runs as
    * USER knight (uid 1000), which cannot switch to another uid. Shown so an
    * operator can tell an ignored PUID from a mistyped one; never render it as
    * "PUID would work if you set it".
    */
-  envRead: boolean;
+  idsRead: boolean;
 }
 
 /** One folder as the probe measured it by creating, stat-ing and removing a

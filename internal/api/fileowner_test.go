@@ -52,8 +52,8 @@ func TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide(t *test
 	if got.Env.PUID != "99" || got.Env.PGID != "100" {
 		t.Errorf("the variables the operator set did not reach the readout: %+v", got.Env)
 	}
-	if got.EnvRead {
-		t.Error("the readout claims this build acts on PUID/PGID/UMASK; nothing in it does, and saying otherwise sends somebody to set a variable that will not work")
+	if got.IDsRead {
+		t.Error("the readout claims this build acts on PUID/PGID; nothing in it does, and saying otherwise sends somebody to set a variable that will not work")
 	}
 	if got.Deployment == "" {
 		t.Error("no deployment kind, so the page cannot tell a container from the desktop app and has to guess which sentence to show")
@@ -231,7 +231,7 @@ func TestTheOwnershipRoutesNeedASession(t *testing.T) {
 }
 
 // TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser keeps
-// envReadByThisBuild in step with the Dockerfile's USER line, in both
+// idsReadByThisBuild in step with the Dockerfile's USER line, in both
 // directions.
 func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
 	t.Parallel()
@@ -241,11 +241,26 @@ func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
 	}
 	pinned := strings.Contains(string(b), "\nUSER knight")
 	switch {
-	case pinned && envReadByThisBuild:
+	case pinned && idsReadByThisBuild:
 		t.Error("the image still declares USER knight, so it starts as uid 1000 and cannot change uid, " +
-			"but envReadByThisBuild is true; the readout would be telling people PUID works when it cannot")
-	case !pinned && !envReadByThisBuild:
-		t.Error("the image no longer pins its user. If an entrypoint now applies PUID/PGID/UMASK, set envReadByThisBuild " +
+			"but idsReadByThisBuild is true; the readout would be telling people PUID works when it cannot")
+	case !pinned && !idsReadByThisBuild:
+		t.Error("the image no longer pins its user. If an entrypoint now applies PUID/PGID, set idsReadByThisBuild " +
 			"and rewrite the copy that currently explains that those variables are ignored; if it does not, say why here")
+	}
+}
+
+// TestAnUnappliedUmaskIsNotReportedAsApplied checks that UMASK set in the
+// environment is not taken for applied: only startup applies it, and a
+// readout that echoed the variable as in force would hide a value that was
+// refused.
+func TestAnUnappliedUmaskIsNotReportedAsApplied(t *testing.T) {
+	t.Setenv("UMASK", "000")
+	id := ownerIdentity()
+	if id.Env.Umask != "000" {
+		t.Errorf("the UMASK the operator set came back as %q", id.Env.Umask)
+	}
+	if id.UmaskApplied {
+		t.Error("the readout says UMASK was applied, but nothing in this test process applied it")
 	}
 }

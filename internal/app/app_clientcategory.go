@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -75,7 +76,7 @@ func (a *App) GrabFolder(category, dir, name string) (string, error) {
 	if err := settings.Validate("the folder for this batch", base); err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(base, 0o755); err != nil {
+	if err := os.MkdirAll(base, filemode.Dir); err != nil {
 		return "", err
 	}
 	name = sanitizeSegment(name)
@@ -84,7 +85,7 @@ func (a *App) GrabFolder(category, dir, name string) (string, error) {
 		if n > 0 {
 			folder += "." + strconv.Itoa(n)
 		}
-		switch err := os.Mkdir(folder, 0o755); {
+		switch err := os.Mkdir(folder, filemode.Dir); {
 		case err == nil:
 			return folder, nil
 		case !errors.Is(err, fs.ErrExist):

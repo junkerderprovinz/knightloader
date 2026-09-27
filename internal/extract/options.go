@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // Disposal is what happens to an archive whose extraction succeeded.
@@ -359,14 +360,14 @@ func (o Options) trashDir(path string) (string, error) {
 	beside := filepath.Join(filepath.Dir(path), TrashName)
 	root := strings.TrimSpace(o.TrashRoot)
 	if root == "" {
-		return beside, os.MkdirAll(beside, 0o755)
+		return beside, os.MkdirAll(beside, filemode.Dir)
 	}
 	dir := filepath.Join(root, TrashName)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return beside, os.MkdirAll(beside, 0o755)
+	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
+		return beside, os.MkdirAll(beside, filemode.Dir)
 	}
 	if !renameReaches(path, dir) {
-		return beside, os.MkdirAll(beside, 0o755)
+		return beside, os.MkdirAll(beside, filemode.Dir)
 	}
 	return dir, nil
 }

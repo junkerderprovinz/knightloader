@@ -11,9 +11,10 @@
 // Known false means the numbers mean nothing (Windows has no unix owners), as
 // in internal/diskspace; a readout must say so instead of printing zeros.
 //
-// Nothing here reads PUID, PGID or UMASK or changes an owner: the image runs
-// as an unprivileged user, which cannot switch uid. The package reports the
+// Nothing here reads PUID or PGID or changes an owner: the image runs as an
+// unprivileged user, which cannot switch uid. The package reports the
 // ownership so it can be fixed in the run command or with a chown on the host.
+// UMASK is applied at startup by internal/filemode.
 package fileowner
 
 import (
@@ -21,6 +22,8 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+
+	"github.com/junkerderprovinz/knightloader/internal/filemode"
 )
 
 // The verdicts are stable ids, not prose, so the client can show them in its
@@ -47,13 +50,13 @@ const (
 	VerdictUnknown = "unknown"
 )
 
-// The permission bits the probe asks for are the ones internal/collide
-// creates every download and package folder with. The measured mode is
-// requested &^ umask, so other numbers would measure a mode no download gets
-// (with 0644, for instance, a umask of 002 changes nothing).
+// The probe asks for the modes every download and package folder is created
+// with. The measured mode is requested &^ umask, so other numbers would
+// measure a mode no download gets (with 0644, for instance, a umask of 002
+// changes nothing).
 const (
-	probeFilePerm = 0o644
-	probeDirPerm  = 0o755
+	probeFilePerm = filemode.File
+	probeDirPerm  = filemode.Dir
 )
 
 // probePrefix starts every probe name: a dot-file, so it stays out of file

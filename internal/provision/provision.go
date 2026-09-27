@@ -136,7 +136,7 @@ func (p *Provisioner) EnsureJar(ctx context.Context) error {
 			return fmt.Errorf("provision: discard unusable JD jar: %w", err)
 		}
 	}
-	if err := os.MkdirAll(p.Dir, 0o755); err != nil {
+	if err := os.MkdirAll(p.Dir, 0o700); err != nil {
 		return err
 	}
 
@@ -415,6 +415,16 @@ func (p *Provisioner) WaitReachable(ctx context.Context) error {
 // A JD that started but never answered keeps running on purpose (it is probably
 // mid self-update); it stays tracked, so Stop still terminates it at shutdown.
 func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
+	// JD keeps the hoster logins it is handed under cfg and inherits the
+	// umask, which on Unraid is 000. A folder only this account can enter
+	// keeps them private whatever modes JD gives its files, and the Chmod
+	// covers a folder that already exists with wider ones.
+	if err := os.MkdirAll(p.Dir, 0o700); err != nil {
+		return nil, "", err
+	}
+	if err := os.Chmod(p.Dir, 0o700); err != nil {
+		return nil, "", err
+	}
 	if err := p.EnsureJar(ctx); err != nil {
 		return nil, "", err
 	}
