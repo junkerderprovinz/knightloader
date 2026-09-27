@@ -47,8 +47,10 @@ type Engine struct {
 	jobs    map[string]Job
 	mends   map[string]*mend
 	layouts *layoutStore
-	// seeds is every torrent started only to seed (Job.Seed), by KL task id.
-	seeds map[string]*seedRun
+	// seeds is every torrent started only to seed (Job.Seed), by KL task id,
+	// and targets the seeding targets they stop at (see seed.go).
+	seeds   map[string]*seedRun
+	targets seedTargets
 	// roots is where each torrent lands (see torrent_root.go). rootMu is held
 	// across the look at the disk and the note, so two torrents of one name
 	// cannot both find it free.
@@ -206,10 +208,14 @@ type btProtocolConfig struct {
 // Call it at boot and on every settings save.
 //
 // The seeding targets reach every torrent started afterwards, since gopeed
-// reads the config per task. The port does not: gopeed builds its shared
-// torrent client once, on the first torrent of the process, so a new port
-// only applies if no torrent has started yet.
+// reads the config per task, and every torrent started only to seed, which
+// the engine stops itself (see seed.go). The port does not: gopeed builds its
+// shared torrent client once, on the first torrent of the process, so a new
+// port only applies if no torrent has started yet.
 func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSeconds int) error {
+	e.mu.Lock()
+	e.targets = seedTargets{ratio: seedRatio, seconds: int64(seedDurationSeconds)}
+	e.mu.Unlock()
 	var decodeErr error
 	err := e.updateConfig(func(cfg *base.DownloaderStoreConfig) bool {
 		var bt btProtocolConfig

@@ -25,6 +25,17 @@ type taskSink struct {
 	mu     sync.Mutex
 	t      core.Task
 	listed []core.TorrentFile
+	// readings counts the swarm readings, and atTarget is the last one's
+	// flag, which a task does not keep.
+	readings int
+	atTarget bool
+}
+
+// seen reports whether a swarm reading has arrived.
+func (s *taskSink) seen() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.readings > 0
 }
 
 // files is the file list the engine last reported.
@@ -54,6 +65,8 @@ func (s *taskSink) apply(_ string, u core.Update) {
 	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(&s.t)
+		s.readings++
+		s.atTarget = u.Torrent.AtTarget
 	}
 	if u.TorrentFiles != nil {
 		s.listed = u.TorrentFiles

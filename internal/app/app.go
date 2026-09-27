@@ -354,6 +354,10 @@ type App struct {
 	// cannot say it, since it is stored: a queue held at boot or by the hard
 	// stop would let every forced link out.
 	startNow map[string]bool
+	// seedSaved is when each seeding torrent's figures were last written to
+	// the store, which a poll does only once in seedSaveEvery. Built on first
+	// use.
+	seedSaved map[string]time.Time
 	// siteBench is when a service may be asked about a site again after it
 	// said it has switched that site off (see benchSiteLocked). Under mu.
 	siteBench map[serviceSite]time.Time
@@ -620,6 +624,9 @@ func New(dataDir string) (*App, error) {
 	// dispatches the requeued tasks, so a restart cannot slip past a pause
 	// window.
 	a.sched.Start()
+	// The finished torrents seed on as they did before the restart. A halt
+	// does not stop seeding, so the schedule has no say in it.
+	a.resumeSeeding()
 	// idleAction would otherwise see an empty queue and arm its countdown.
 	a.idleAction.Start()
 	// Feeds come up after a.dupes is seeded, unlike drop folders: a poller
@@ -855,7 +862,8 @@ func (a *App) Close() error {
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
-	// The engine keeps its transfers in memory only, so seeding ends here.
+	// The engine keeps its transfers in memory only, so seeding ends here,
+	// until the next start takes it up again.
 	a.endSeeding()
 	if a.Engine != nil {
 		a.Engine.Close()
@@ -863,7 +871,9 @@ func (a *App) Close() error {
 	return a.Store.Close()
 }
 
-// endSeeding records the end of seeding on every torrent still seeding.
+// endSeeding records the end of seeding on every torrent still seeding, with
+// the figures it has reached. SeedingOver stays as it is: a shutdown is not
+// one of the targets.
 func (a *App) endSeeding() {
 	ended := time.UnixMilli(time.Now().UnixMilli())
 	var copies []taskCopy
@@ -1032,6 +1042,8 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
 	a.applyModuleSwitches(applied)
+	// The torrent module may be back on.
+	a.resumeSeeding()
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
 		// The policy is fixed at construction, so a change needs a new set,

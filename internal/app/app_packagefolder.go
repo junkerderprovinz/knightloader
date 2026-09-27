@@ -470,7 +470,9 @@ func (a *App) restartDroppedLocked(held []*heldTransfer) ([]taskCopy, []engine.J
 			if !slices.Contains(a.queue, h.id) {
 				a.queue = append(a.queue, h.id)
 			}
-		case t.Seeding:
+		case t.Seeding, SeedPending(t):
+			// The second is a torrent taken up to seed that was still
+			// checking its files.
 			job, err := a.seedJobLocked(t)
 			if err != nil {
 				log.Printf("task %s could not go on seeding: %v", t.ID, err)
@@ -497,8 +499,15 @@ func (a *App) seedJobLocked(t *core.Task) (engine.Job, error) {
 	job.Route, _ = a.routeForLocked(t, hostOf(t.URL))
 	job.TorrentSelect = core.SelectedTorrentIndices(t.TorrentFiles)
 	a.torrentJobLocked(&job, t, cfg, t.File)
+	// Where the files are, even when the task's folder has changed since
+	// with a setting: a torrent placed anywhere else would be fetched again
+	// there.
+	job.WorkDir = ""
+	if !engine.TakesUpAgain(t.File, job.Dir) {
+		job.Dir = filepath.Dir(t.File)
+	}
 	job.Seed = true
-	job.SeedFrom = core.TorrentStats{Uploaded: t.Uploaded, Ratio: t.Ratio}
+	job.SeedFrom = core.TorrentStats{Uploaded: t.Uploaded, Ratio: t.Ratio, SeedSeconds: t.SeedSeconds}
 	return job, nil
 }
 

@@ -247,9 +247,14 @@ type TorrentStats struct {
 	Seeds    int
 	Ratio    float64
 	Uploaded int64
+	// SeedSeconds is how long the torrent has seeded since it finished.
+	SeedSeconds int64
 	// Seeding is derived: gopeed's Task.Uploading is set at creation for
 	// every torrent, so seeding means that flag and a finished download.
 	Seeding bool
+	// AtTarget says the seeding stopped because it reached a seeding target,
+	// as opposed to a start only to seed that failed.
+	AtTarget bool
 }
 
 // RemoteFetch is a debrid service fetching a torrent onto its own servers
@@ -283,6 +288,7 @@ func (s TorrentStats) ApplyTo(t *Task) {
 	t.Seeds = s.Seeds
 	t.Ratio = s.Ratio
 	t.Uploaded = s.Uploaded
+	t.SeedSeconds = s.SeedSeconds
 	t.Seeding = s.Seeding
 }
 
@@ -393,8 +399,9 @@ type Task struct {
 	FinishedAt time.Time `json:"finishedAt,omitempty"`
 	// SeedingEnded is when a finished torrent last stopped seeding, at its
 	// targets or at a shutdown, zero while it seeds and for anything that never
-	// did. The qBittorrent door reports the time from FinishedAt to it as the
-	// torrent's seeding time.
+	// did. SeedingOver tells the two apart. The qBittorrent door reports the
+	// time from FinishedAt to it as the torrent's seeding time when SeedSeconds
+	// has nothing to say.
 	SeedingEnded time.Time `json:"seedingEnded,omitzero"`
 	// Enabled is the one way to park a link. A disabled link keeps its place
 	// and progress, and nothing starts it, "resume everything" included, until
@@ -557,9 +564,11 @@ type Task struct {
 	// memory, and after a restart it is all that says an archive was unpacked.
 	Unpack UnpackResult `json:"unpack,omitempty"`
 
-	// The torrent fields stay zero for every other task. Peers, Seeds, Ratio,
-	// Uploaded and Seeding are live readings and not persisted; gopeed keeps
-	// its own upload totals across a restart.
+	// The torrent fields stay zero for every other task. Peers, Seeds and
+	// Seeding are live readings and not persisted. Ratio, Uploaded and
+	// SeedSeconds are readings too, but they are saved, since the download
+	// library forgets them on a restart and a torrent taken up again to seed
+	// counts its targets from them.
 
 	// Peers is how many peers the swarm has shown, seeding or not.
 	Peers int `json:"peers,omitempty"`
@@ -569,10 +578,16 @@ type Task struct {
 	Ratio float64 `json:"ratio,omitempty"`
 	// Uploaded is bytes sent to the swarm.
 	Uploaded int64 `json:"uploaded,omitempty"`
+	// SeedSeconds is how long the torrent has seeded, over every run.
+	SeedSeconds int64 `json:"seedSeconds,omitempty"`
 	// Seeding is a finished torrent still uploading. It is a flag beside
 	// StatusDone, for the same reason as GaveUp, and a seeding task reads as
 	// done everywhere.
 	Seeding bool `json:"seeding,omitempty"`
+	// SeedingOver says a finished torrent seeds no more: it reached a seeding
+	// target, or its files are gone. A shutdown or a crash does not set it, so
+	// the next start takes the torrent up again to seed.
+	SeedingOver bool `json:"seedingOver,omitempty"`
 	// TorrentFiles is the multi-file selection. It is persisted, since it is
 	// the user's decision and forgetting it would fetch excluded files. It is
 	// not sent with the task: a torrent can list thousands of files, and every
