@@ -1832,6 +1832,8 @@ export const en = {
   'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar. It is saved like any other bookmark, and nothing gets installed.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in. Review it and add it as a download from there.',
+  'settings.browsertools.bookmarkletStep3':
+    'On a phone there is no bar to drag it into. Bookmark any page, replace the bookmark’s address with the code “Copy” puts on the clipboard, and open the bookmark on the page you want to send.',
   'settings.browsertools.installLabel': 'How to install',
   'settings.browsertools.phoneTitle': 'Phone app',
   'settings.browsertools.phoneHint': 'The KnightLoader app for Android phones. It shows and steers the downloads on your instances and sends them links. The APK is the version shown in the corner.',

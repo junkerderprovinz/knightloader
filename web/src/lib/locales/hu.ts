@@ -1536,6 +1536,8 @@ export const hu: Dict = {
   'settings.nav.browsertools': 'Alkalmazások',
   'settings.browsertools.bookmarkletStep1': 'Húzd az alábbi gombot a böngésződ könyvjelzősávjára. Úgy mentődik, mint bármelyik könyvjelző, és semmi sem települ.',
   'settings.browsertools.bookmarkletStep2': 'Bármelyik oldalon kattints rá (előbb jelölj ki szöveget, ha csak azt szeretnéd). Megnyílik egy kis KnightLoader-lap, amelyben már ki van töltve az oldal linkje vagy a kijelölt szöveg. Nézd át, és onnan add hozzá letöltésként.',
+  'settings.browsertools.bookmarkletStep3':
+    'Telefonon nincs sáv, ahová be lehetne húzni. Tegyél könyvjelzőbe bármilyen oldalt, cseréld le a könyvjelző címét arra a kódra, amelyet a „Másolás” a vágólapra tesz, és nyisd meg a könyvjelzőt azon az oldalon, amelyet el akarsz küldeni.',
   'settings.browsertools.installLabel': 'Így telepítheted',
   'settings.browsertools.installChromiumStep1': 'Csomagold ki a letöltött fájlt.',
   'settings.browsertools.installChromiumStep2': 'Nyisd meg: chrome://extensions (vagy edge://extensions, brave://extensions).',

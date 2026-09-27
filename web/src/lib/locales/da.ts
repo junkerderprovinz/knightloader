@@ -1536,6 +1536,8 @@ export const da: Dict = {
   'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Træk knappen nedenfor op på din browsers bogmærkelinje. Den gemmes som ethvert andet bogmærke, og intet bliver installeret.',
   'settings.browsertools.bookmarkletStep2': 'Klik på den på en hvilken som helst side (marker først noget tekst, hvis du kun vil have den). Der åbnes en lille KnightLoader-fane med sidens link, eller den markerede tekst, allerede udfyldt. Gennemse det, og tilføj det derfra som en download.',
+  'settings.browsertools.bookmarkletStep3':
+    'På en telefon er der ingen bjælke at trække det over i. Opret et bogmærke til en vilkårlig side, erstat bogmærkets adresse med koden, som “Kopier” lægger i udklipsholderen, og åbn bogmærket på den side, du vil sende.',
   'settings.browsertools.installLabel': 'Sådan installerer du den',
   'settings.browsertools.installChromiumStep1': 'Udpak den downloadede fil.',
   'settings.browsertools.installChromiumStep2': 'Åbn chrome://extensions (eller edge://extensions, brave://extensions).',

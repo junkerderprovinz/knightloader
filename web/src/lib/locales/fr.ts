@@ -1529,6 +1529,8 @@ export const fr: Dict = {
   'settings.nav.browsertools': 'Applications',
   'settings.browsertools.bookmarkletStep1': 'Faites glisser le bouton ci-dessous dans la barre de favoris de votre navigateur. Il est enregistré comme n’importe quel autre favori, et rien n’est installé.',
   'settings.browsertools.bookmarkletStep2': 'Sur n’importe quelle page, cliquez dessus (sélectionnez d’abord du texte si vous ne voulez que celui-ci). Un petit onglet KnightLoader s’ouvre avec le lien de cette page, ou le texte sélectionné, déjà rempli. Vérifiez-le et ajoutez-le comme téléchargement depuis là.',
+  'settings.browsertools.bookmarkletStep3':
+    'Sur un téléphone, il n’y a pas de barre où le glisser. Ajoutez n’importe quelle page aux favoris, remplacez l’adresse du favori par le code que « Copier » place dans le presse-papiers, puis ouvrez le favori sur la page à envoyer.',
   'settings.browsertools.installLabel': 'Comment l’installer',
   'settings.browsertools.installChromiumStep1': 'Décompressez le fichier téléchargé.',
   'settings.browsertools.installChromiumStep2': 'Ouvrez chrome://extensions (ou edge://extensions, brave://extensions).',

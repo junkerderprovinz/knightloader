@@ -1536,6 +1536,8 @@ export const fi: Dict = {
   'settings.nav.browsertools': 'Sovellukset',
   'settings.browsertools.bookmarkletStep1': 'Vedä alla oleva painike selaimesi kirjanmerkkipalkkiin. Se tallentuu kuten mikä tahansa muu kirjanmerkki, eikä mitään asenneta.',
   'settings.browsertools.bookmarkletStep2': 'Napsauta sitä millä tahansa sivulla (valitse ensin tekstiä, jos haluat vain sen). Pieni KnightLoader-välilehti avautuu, ja siinä on valmiiksi täytettynä sivun linkki tai valittu teksti. Tarkista se ja lisää se sieltä lataukseksi.',
+  'settings.browsertools.bookmarkletStep3':
+    'Puhelimessa ei ole palkkia, johon sen voisi vetää. Lisää mikä tahansa sivu kirjanmerkkeihin, korvaa kirjanmerkin osoite koodilla, jonka ”Kopioi” laittaa leikepöydälle, ja avaa kirjanmerkki sivulla, jonka haluat lähettää.',
   'settings.browsertools.installLabel': 'Näin asennat sen',
   'settings.browsertools.installChromiumStep1': 'Pura ladattu tiedosto.',
   'settings.browsertools.installChromiumStep2': 'Avaa chrome://extensions (tai edge://extensions, brave://extensions).',

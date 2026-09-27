@@ -1535,6 +1535,8 @@ export const th: Dict = {
   'settings.nav.browsertools': 'แอป',
   'settings.browsertools.bookmarkletStep1': 'ลากปุ่มด้านล่างไปที่แถบบุ๊กมาร์กของเบราว์เซอร์ มันจะถูกบันทึกเหมือนบุ๊กมาร์กอื่น ๆ และไม่มีการติดตั้งอะไร',
   'settings.browsertools.bookmarkletStep2': 'คลิกที่ปุ่มนี้บนหน้าใดก็ได้ (เลือกข้อความก่อนหากต้องการเฉพาะส่วนนั้น) แท็บ KnightLoader เล็ก ๆ จะเปิดขึ้นพร้อมลิงก์ของหน้านั้นหรือข้อความที่เลือกกรอกไว้แล้ว ตรวจดูแล้วเพิ่มเป็นการดาวน์โหลดจากตรงนั้น',
+  'settings.browsertools.bookmarkletStep3':
+    'บนโทรศัพท์ไม่มีแถบให้ลากไปวาง ให้บุ๊กมาร์กหน้าใดก็ได้ แทนที่ที่อยู่ของบุ๊กมาร์กด้วยโค้ดที่ “คัดลอก” คัดลอกไว้ในคลิปบอร์ด แล้วเปิดบุ๊กมาร์กบนหน้าที่ต้องการส่ง',
   'settings.browsertools.installLabel': 'วิธีติดตั้ง',
   'settings.browsertools.installChromiumStep1': 'แตกไฟล์ที่ดาวน์โหลดมา',
   'settings.browsertools.installChromiumStep2': 'เปิด chrome://extensions (หรือ edge://extensions, brave://extensions)',

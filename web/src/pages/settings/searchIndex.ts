@@ -1143,7 +1143,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.browsertools.bookmarkletTitle',
       rows: [],
-      body: ['settings.browsertools.bookmarkletStep1', 'settings.browsertools.bookmarkletStep2'],
+      body: [
+        'settings.browsertools.bookmarkletStep1',
+        'settings.browsertools.bookmarkletStep2',
+        'settings.browsertools.bookmarkletStep3',
+      ],
     },
     { title: 'settings.browsertools.extensionTitle', rows: [], also: ['settings.browsertools.installLabel'] },
   ],

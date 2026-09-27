@@ -1537,6 +1537,8 @@ export const sv: Dict = {
   'settings.nav.browsertools': 'Appar',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedan till webbläsarens bokmärkesfält. Den sparas som vilket bokmärke som helst, och inget installeras.',
   'settings.browsertools.bookmarkletStep2': 'Klicka på den på valfri sida (markera text först om du bara vill ha den). En liten KnightLoader-flik öppnas med sidans länk, eller den markerade texten, redan ifylld. Granska den och lägg till den som en nedladdning därifrån.',
+  'settings.browsertools.bookmarkletStep3':
+    'I en telefon finns inget fält att dra den till. Lägg till valfri sida som bokmärke, ersätt bokmärkets adress med koden som ”Kopiera” lägger i urklipp och öppna bokmärket på sidan du vill skicka.',
   'settings.browsertools.installLabel': 'Så installerar du den',
   'settings.browsertools.installChromiumStep1': 'Packa upp den nedladdade filen.',
   'settings.browsertools.installChromiumStep2': 'Öppna chrome://extensions (eller edge://extensions, brave://extensions).',

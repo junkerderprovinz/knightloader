@@ -1536,6 +1536,8 @@ export const tr: Dict = {
   'settings.nav.browsertools': 'Uygulamalar',
   'settings.browsertools.bookmarkletStep1': 'Aşağıdaki düğmeyi tarayıcının yer imleri çubuğuna sürükle. Diğer yer imleri gibi kaydedilir ve hiçbir şey yüklenmez.',
   'settings.browsertools.bookmarkletStep2': 'Herhangi bir sayfada ona tıkla (yalnızca bir metni istiyorsan önce onu seç). O sayfanın bağlantısı ya da seçili metin önceden doldurulmuş küçük bir KnightLoader sekmesi açılır. Gözden geçir ve oradan indirme olarak ekle.',
+  'settings.browsertools.bookmarkletStep3':
+    'Telefonda sürükleyip bırakacak bir çubuk yoktur. Herhangi bir sayfayı yer imlerine ekleyin, yer iminin adresini “Kopyala” düğmesinin panoya koyduğu kodla değiştirin ve göndermek istediğiniz sayfada yer imini açın.',
   'settings.browsertools.installLabel': 'Nasıl kurulur',
   'settings.browsertools.installChromiumStep1': 'İndirilen dosyayı ayıkla.',
   'settings.browsertools.installChromiumStep2': 'chrome://extensions (veya edge://extensions, brave://extensions) adresini aç.',

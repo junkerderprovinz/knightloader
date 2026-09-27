@@ -1536,6 +1536,8 @@ export const fa: Dict = {
   'settings.nav.browsertools': 'برنامه‌ها',
   'settings.browsertools.bookmarkletStep1': 'دکمهٔ زیر را به نوار نشانک‌های مرورگرت بکش. مثل هر نشانک دیگری ذخیره می‌شود و چیزی نصب نمی‌شود.',
   'settings.browsertools.bookmarkletStep2': 'در هر صفحه‌ای رویش کلیک کن (اگر فقط متنی را می‌خواهی، اول آن را انتخاب کن). یک زبانهٔ کوچک KnightLoader باز می‌شود که پیوند آن صفحه یا متن انتخاب‌شده از قبل در آن پر شده است. بررسی‌اش کن و از همان‌جا به‌عنوان دانلود اضافه‌اش کن.',
+  'settings.browsertools.bookmarkletStep3':
+    'در گوشی نواری برای کشیدن آن وجود ندارد. هر صفحه‌ای را نشانک کنید، نشانی نشانک را با کدی که «کپی» در کلیپ‌بورد می‌گذارد جایگزین کنید و نشانک را در صفحه‌ای که می‌خواهید بفرستید باز کنید.',
   'settings.browsertools.installLabel': 'نحوه نصب',
   'settings.browsertools.installChromiumStep1': 'فایل دانلودشده را از حالت فشرده خارج کنید.',
   'settings.browsertools.installChromiumStep2': 'chrome://extensions را باز کنید (یا edge://extensions، brave://extensions).',

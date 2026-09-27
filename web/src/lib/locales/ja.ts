@@ -1536,6 +1536,8 @@ export const ja: Dict = {
   'settings.nav.browsertools': 'アプリ',
   'settings.browsertools.bookmarkletStep1': '下のボタンをブラウザーのブックマークバーにドラッグしてください。ほかのブックマークと同じように保存されるだけで、何もインストールされません。',
   'settings.browsertools.bookmarkletStep2': 'どのページでもこれをクリックしてください（一部のテキストだけを送りたい場合は、先に選択しておきます）。そのページのリンクか選択したテキストが入力済みの、小さな KnightLoader タブが開きます。内容を確認して、そこからダウンロードとして追加してください。',
+  'settings.browsertools.bookmarkletStep3':
+    'スマートフォンにはドラッグ先のバーがありません。任意のページをブックマークし、そのアドレスを「コピー」でクリップボードに入るコードに置き換えて、送りたいページでそのブックマークを開いてください。',
   'settings.browsertools.installLabel': 'インストール方法',
   'settings.browsertools.installChromiumStep1': 'ダウンロードしたファイルを解凍する。',
   'settings.browsertools.installChromiumStep2': 'chrome://extensions を開く(または edge://extensions、brave://extensions)。',

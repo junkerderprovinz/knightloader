@@ -1538,6 +1538,8 @@ export const ar: Dict = {
   'settings.nav.browsertools': 'التطبيقات',
   'settings.browsertools.bookmarkletStep1': 'اسحب الزر أدناه إلى شريط الإشارات المرجعية في متصفحك. يُحفظ مثل أي إشارة مرجعية أخرى، ولا يُثبَّت أي شيء.',
   'settings.browsertools.bookmarkletStep2': 'في أي صفحة، انقر عليه (حدّد نصًا أولًا إن كنت لا تريد غيره). يُفتح تبويب صغير لـKnightLoader فيه رابط تلك الصفحة، أو النص المحدد، معبأً مسبقًا. راجعه وأضفه من هناك كتنزيل.',
+  'settings.browsertools.bookmarkletStep3':
+    'لا يوجد في الهاتف شريط يمكن سحبه إليه. أضف أي صفحة إلى الإشارات المرجعية، واستبدل عنوان الإشارة بالرمز الذي يضعه «نسخ» في الحافظة، ثم افتح الإشارة وأنت على الصفحة التي تريد إرسالها.',
   'settings.browsertools.installLabel': 'كيفية التثبيت',
   'settings.browsertools.installChromiumStep1': 'فك ضغط الملف الذي تم تنزيله.',
   'settings.browsertools.installChromiumStep2': 'افتح chrome://extensions (أو edge://extensions، brave://extensions).',

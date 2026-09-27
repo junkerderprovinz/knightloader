@@ -1536,6 +1536,8 @@ export const ca: Dict = {
   'settings.nav.browsertools': 'Aplicacions',
   'settings.browsertools.bookmarkletStep1': 'Arrossega el botó de sota a la barra d’adreces d’interès del navegador. Es desa com qualsevol altra adreça d’interès, i no s’instal·la res.',
   'settings.browsertools.bookmarkletStep2': 'A qualsevol pàgina, fes-hi clic (selecciona primer un text si només vols això). S’obre una petita pestanya de KnightLoader amb l’enllaç d’aquella pàgina, o el text seleccionat, ja emplenat. Revisa-ho i afegeix-ho des d’allà com a baixada.',
+  'settings.browsertools.bookmarkletStep3':
+    'Al mòbil no hi ha cap barra on arrossegar-lo. Afegeix qualsevol pàgina als marcadors, substitueix l’adreça del marcador pel codi que «Copia» posa al porta-retalls i obre el marcador a la pàgina que vulguis enviar.',
   'settings.browsertools.installLabel': 'Com instal·lar-la',
   'settings.browsertools.installChromiumStep1': 'Descomprimeix el fitxer descarregat.',
   'settings.browsertools.installChromiumStep2': 'Obre chrome://extensions (o edge://extensions, brave://extensions).',

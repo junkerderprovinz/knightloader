@@ -1536,6 +1536,8 @@ export const ko: Dict = {
   'settings.nav.browsertools': '앱',
   'settings.browsertools.bookmarkletStep1': '아래 버튼을 브라우저의 북마크 바로 끌어다 놓으세요. 다른 북마크처럼 저장될 뿐 아무것도 설치되지 않습니다.',
   'settings.browsertools.bookmarkletStep2': '아무 페이지에서나 이것을 클릭하세요(일부만 보내려면 먼저 텍스트를 선택하세요). 그 페이지의 링크나 선택한 텍스트가 이미 채워진 작은 KnightLoader 탭이 열립니다. 내용을 확인하고 거기서 다운로드로 추가하세요.',
+  'settings.browsertools.bookmarkletStep3':
+    '휴대폰에는 끌어다 놓을 막대가 없습니다. 아무 페이지나 북마크하고, 북마크 주소를 “복사”가 클립보드에 넣는 코드로 바꾼 다음, 보내려는 페이지에서 북마크를 여세요.',
   'settings.browsertools.installLabel': '설치 방법',
   'settings.browsertools.installChromiumStep1': '다운로드한 파일의 압축을 풉니다.',
   'settings.browsertools.installChromiumStep2': 'chrome://extensions(또는 edge://extensions, brave://extensions)를 엽니다.',

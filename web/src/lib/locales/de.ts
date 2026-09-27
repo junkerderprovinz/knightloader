@@ -1664,6 +1664,8 @@ export const de: Dict = {
   'settings.nav.browsertools': 'Apps',
   'settings.browsertools.bookmarkletStep1': 'Ziehe den Button unten in die Lesezeichenleiste deines Browsers. Er wird wie jedes andere Lesezeichen gespeichert, installiert wird nichts.',
   'settings.browsertools.bookmarkletStep2': 'Klicke auf einer beliebigen Seite darauf (markiere vorher Text, wenn du nur den willst). Es öffnet sich ein kleiner KnightLoader-Tab, in dem der Link dieser Seite oder der markierte Text schon eingetragen ist. Prüfe den Eintrag und füge ihn von dort als Download hinzu.',
+  'settings.browsertools.bookmarkletStep3':
+    'Am Handy gibt es keine Leiste zum Hineinziehen. Leg für irgendeine Seite ein Lesezeichen an, ersetze seine Adresse durch den Code, den „Kopieren“ in die Zwischenablage legt, und öffne das Lesezeichen auf der Seite, die du schicken willst.',
   'settings.browsertools.installLabel': 'So installierst du sie',
   'settings.browsertools.installChromiumStep1': 'Entpacke die heruntergeladene Datei.',
   'settings.browsertools.installChromiumStep2': 'Öffne chrome://extensions (oder edge://extensions, brave://extensions).',

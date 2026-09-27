@@ -1537,6 +1537,8 @@ export const sr: Dict = {
   'settings.nav.browsertools': 'Апликације',
   'settings.browsertools.bookmarkletStep1': 'Превуци дугме испод на траку обележивача у прегледачу. Чува се као сваки други обележивач и ништа се не инсталира.',
   'settings.browsertools.bookmarkletStep2': 'На било којој страници кликни на њега (прво изабери текст ако желиш само њега). Отвара се мала KnightLoader картица у којој су веза те странице или изабрани текст већ уписани. Прегледај унос и одатле га додај као преузимање.',
+  'settings.browsertools.bookmarkletStep3':
+    'На телефону нема траке у коју бисте га превукли. Додајте било коју страницу у обележиваче, замените адресу обележивача кодом који „Копирај“ ставља у оставу и отворите обележивач на страници коју желите да пошаљете.',
   'settings.browsertools.installLabel': 'Како је инсталирати',
   'settings.browsertools.installChromiumStep1': 'Распакуј преузету датотеку.',
   'settings.browsertools.installChromiumStep2': 'Отвори chrome://extensions (или edge://extensions, brave://extensions).',

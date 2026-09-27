@@ -1537,6 +1537,8 @@ export const sl: Dict = {
   'settings.nav.browsertools': 'Aplikacije',
   'settings.browsertools.bookmarkletStep1': 'Povleci spodnji gumb v vrstico z zaznamki brskalnika. Shrani se kot vsak drug zaznamek, ničesar se ne namesti.',
   'settings.browsertools.bookmarkletStep2': 'Na kateri koli strani klikni nanj (najprej izberi besedilo, če želiš samo tega). Odpre se majhen zavihek KnightLoader, v katerem sta povezava te strani ali izbrano besedilo že vpisana. Preglej vnos in ga od tam dodaj kot prenos.',
+  'settings.browsertools.bookmarkletStep3':
+    'Na telefonu ni vrstice, kamor bi ga povlekli. Dodajte katero koli stran med zaznamke, zamenjajte naslov zaznamka s kodo, ki jo „Kopiraj“ postavi v odložišče, in odprite zaznamek na strani, ki jo želite poslati.',
   'settings.browsertools.installLabel': 'Kako jo namestiti',
   'settings.browsertools.installChromiumStep1': 'Razširi preneseno datoteko.',
   'settings.browsertools.installChromiumStep2': 'Odpri chrome://extensions (ali edge://extensions, brave://extensions).',

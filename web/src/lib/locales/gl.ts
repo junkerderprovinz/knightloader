@@ -1536,6 +1536,8 @@ export const gl: Dict = {
   'settings.nav.browsertools': 'Aplicacións',
   'settings.browsertools.bookmarkletStep1': 'Arrastra o botón de abaixo á barra de marcadores do teu navegador. Gárdase como calquera outro marcador e non se instala nada.',
   'settings.browsertools.bookmarkletStep2': 'En calquera páxina, fai clic nel (selecciona antes un texto se só queres iso). Ábrese unha pequena lapela de KnightLoader coa ligazón desa páxina, ou co texto seleccionado, xa cuberta. Revísaa e engade a descarga desde alí.',
+  'settings.browsertools.bookmarkletStep3':
+    'No móbil non hai ningunha barra onde arrastralo. Engade calquera páxina aos marcadores, substitúe o enderezo do marcador polo código que «Copiar» pon no portapapeis e abre o marcador na páxina que queiras enviar.',
   'settings.browsertools.installLabel': 'Como instalala',
   'settings.browsertools.installChromiumStep1': 'Descomprime o ficheiro descargado.',
   'settings.browsertools.installChromiumStep2': 'Abre chrome://extensions (ou edge://extensions, brave://extensions).',

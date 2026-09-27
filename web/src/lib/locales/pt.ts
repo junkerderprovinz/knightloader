@@ -1529,6 +1529,8 @@ export const pt: Dict = {
   'settings.nav.browsertools': 'Aplicações',
   'settings.browsertools.bookmarkletStep1': 'Arrasta o botão abaixo para a barra de favoritos do teu navegador. Fica guardado como qualquer outro favorito, e nada é instalado.',
   'settings.browsertools.bookmarkletStep2': 'Em qualquer página, clica nele (seleciona algum texto primeiro se só quiseres esse). Abre-se um pequeno separador do KnightLoader com o link dessa página, ou o texto selecionado, já preenchido. Revê-o e adiciona-o como transferência a partir daí.',
+  'settings.browsertools.bookmarkletStep3':
+    'No telemóvel não há barra para onde o arrastar. Adicione qualquer página aos marcadores, substitua o endereço do marcador pelo código que «Copiar» coloca na área de transferência e abra o marcador na página que quer enviar.',
   'settings.browsertools.installLabel': 'Como instalar',
   'settings.browsertools.installChromiumStep1': 'Descompacte o arquivo baixado.',
   'settings.browsertools.installChromiumStep2': 'Abra chrome://extensions (ou edge://extensions, brave://extensions).',

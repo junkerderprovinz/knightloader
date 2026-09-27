@@ -1537,6 +1537,8 @@ export const cs: Dict = {
   'settings.nav.browsertools': 'Aplikace',
   'settings.browsertools.bookmarkletStep1': 'Přetáhni tlačítko níže na panel záložek prohlížeče. Uloží se jako každá jiná záložka a nic se neinstaluje.',
   'settings.browsertools.bookmarkletStep2': 'Na libovolné stránce na něj klikni (pokud chceš jen nějaký text, nejdřív ho označ). Otevře se malá karta KnightLoaderu, ve které už je vyplněný odkaz té stránky nebo označený text. Zkontroluj ho a odtud ho přidej jako stahování.',
+  'settings.browsertools.bookmarkletStep3':
+    'V telefonu není lišta, kam by se dalo přetáhnout. Přidejte libovolnou stránku do záložek, nahraďte adresu záložky kódem, který „Kopírovat“ vloží do schránky, a otevřete záložku na stránce, kterou chcete poslat.',
   'settings.browsertools.installLabel': 'Jak ji nainstalovat',
   'settings.browsertools.installChromiumStep1': 'Rozbal stažený soubor.',
   'settings.browsertools.installChromiumStep2': 'Otevři chrome://extensions (nebo edge://extensions, brave://extensions).',

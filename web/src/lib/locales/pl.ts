@@ -1529,6 +1529,8 @@ export const pl: Dict = {
   'settings.nav.browsertools': 'Aplikacje',
   'settings.browsertools.bookmarkletStep1': 'Przeciągnij poniższy przycisk na pasek zakładek przeglądarki. Zapisuje się jak każda inna zakładka i nic nie jest instalowane.',
   'settings.browsertools.bookmarkletStep2': 'Na dowolnej stronie kliknij go (najpierw zaznacz tekst, jeśli chcesz tylko jego). Otworzy się mała karta KnightLoadera z już wpisanym linkiem tej strony albo zaznaczonym tekstem. Sprawdź wpis i dodaj go stamtąd jako pobieranie.',
+  'settings.browsertools.bookmarkletStep3':
+    'Na telefonie nie ma paska, do którego można go przeciągnąć. Dodaj dowolną stronę do zakładek, zastąp adres zakładki kodem, który „Kopiuj” kopiuje do schowka, i otwórz zakładkę na stronie, którą chcesz wysłać.',
   'settings.browsertools.installLabel': 'Jak ją zainstalować',
   'settings.browsertools.installChromiumStep1': 'Rozpakuj pobrany plik.',
   'settings.browsertools.installChromiumStep2': 'Otwórz chrome://extensions (lub edge://extensions, brave://extensions).',

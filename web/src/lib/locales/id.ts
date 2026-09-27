@@ -1536,6 +1536,8 @@ export const id: Dict = {
   'settings.nav.browsertools': 'Aplikasi',
   'settings.browsertools.bookmarkletStep1': 'Seret tombol di bawah ke bilah markah browsermu. Tombol itu tersimpan seperti markah lainnya, dan tidak ada yang dipasang.',
   'settings.browsertools.bookmarkletStep2': 'Di halaman mana pun, klik tombol itu (pilih teks dulu kalau kamu hanya ingin bagian itu). Tab KnightLoader kecil terbuka dengan tautan halaman itu, atau teks yang dipilih, sudah terisi. Periksa lalu tambahkan sebagai unduhan dari sana.',
+  'settings.browsertools.bookmarkletStep3':
+    'Di ponsel tidak ada bilah untuk menyeretnya. Bookmark halaman apa saja, ganti alamat bookmark dengan kode yang disalin “Salin” ke papan klip, lalu buka bookmark itu di halaman yang ingin dikirim.',
   'settings.browsertools.installLabel': 'Cara memasangnya',
   'settings.browsertools.installChromiumStep1': 'Ekstrak file yang diunduh.',
   'settings.browsertools.installChromiumStep2': 'Buka chrome://extensions (atau edge://extensions, brave://extensions).',

@@ -1536,6 +1536,8 @@ export const vi: Dict = {
   'settings.nav.browsertools': 'Ứng dụng',
   'settings.browsertools.bookmarkletStep1': 'Kéo nút bên dưới vào thanh dấu trang của trình duyệt. Nó được lưu như mọi dấu trang khác, không cài đặt gì cả.',
   'settings.browsertools.bookmarkletStep2': 'Trên bất kỳ trang nào, nhấp vào nó (chọn trước một đoạn văn bản nếu bạn chỉ muốn đoạn đó). Một thẻ KnightLoader nhỏ mở ra, đã điền sẵn liên kết của trang đó hoặc đoạn văn bản đã chọn. Xem lại rồi thêm nó thành lượt tải từ đó.',
+  'settings.browsertools.bookmarkletStep3':
+    'Trên điện thoại không có thanh để kéo vào. Hãy đánh dấu một trang bất kỳ, thay địa chỉ của dấu trang bằng đoạn mã mà “Sao chép” đưa vào bộ nhớ tạm, rồi mở dấu trang trên trang bạn muốn gửi.',
   'settings.browsertools.installLabel': 'Cách cài đặt',
   'settings.browsertools.installChromiumStep1': 'Giải nén tệp đã tải xuống.',
   'settings.browsertools.installChromiumStep2': 'Mở chrome://extensions (hoặc edge://extensions, brave://extensions).',

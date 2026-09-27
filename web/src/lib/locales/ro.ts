@@ -1537,6 +1537,8 @@ export const ro: Dict = {
   'settings.nav.browsertools': 'Aplicații',
   'settings.browsertools.bookmarkletStep1': 'Trage butonul de mai jos în bara de marcaje a browserului. Se salvează ca orice alt marcaj și nu se instalează nimic.',
   'settings.browsertools.bookmarkletStep2': 'Pe orice pagină, dă clic pe el (selectează mai întâi text dacă vrei doar textul). Se deschide o filă mică KnightLoader cu linkul acelei pagini, sau textul selectat, deja completat. Verifică-l și adaugă-l de acolo ca descărcare.',
+  'settings.browsertools.bookmarkletStep3':
+    'Pe telefon nu există o bară în care să-l tragi. Adaugă orice pagină la marcaje, înlocuiește adresa marcajului cu codul pe care „Copiază” îl pune în clipboard și deschide marcajul pe pagina pe care vrei s-o trimiți.',
   'settings.browsertools.installLabel': 'Cum o instalezi',
   'settings.browsertools.installChromiumStep1': 'Dezarhivează fișierul descărcat.',
   'settings.browsertools.installChromiumStep2': 'Deschide chrome://extensions (sau edge://extensions, brave://extensions).',

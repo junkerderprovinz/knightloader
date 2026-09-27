@@ -1538,6 +1538,8 @@ export const no: Dict = {
   'settings.nav.browsertools': 'Apper',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedenfor til bokmerkelinja i nettleseren din. Den lagres som et hvilket som helst annet bokmerke, og ingenting installeres.',
   'settings.browsertools.bookmarkletStep2': 'Klikk på den på en hvilken som helst side (merk tekst først hvis du bare vil ha den). En liten KnightLoader-fane åpnes med lenka til siden, eller den merkede teksten, allerede fylt inn. Se over den og legg den til som nedlasting derfra.',
+  'settings.browsertools.bookmarkletStep3':
+    'På en telefon finnes det ingen linje å dra det til. Lag et bokmerke for en hvilken som helst side, bytt ut bokmerkets adresse med koden som «Kopier» legger på utklippstavlen, og åpne bokmerket på siden du vil sende.',
   'settings.browsertools.installLabel': 'Slik installerer du den',
   'settings.browsertools.installChromiumStep1': 'Pakk ut den nedlastede filen.',
   'settings.browsertools.installChromiumStep2': 'Åpne chrome://extensions (eller edge://extensions, brave://extensions).',

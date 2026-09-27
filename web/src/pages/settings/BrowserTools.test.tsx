@@ -57,6 +57,12 @@ describe('BrowserTools', () => {
     expect(bookmarkletLink().getAttribute('href')).toBe(buildBookmarklet(window.location.origin));
   });
 
+  it('draws the bookmarklet logo without an image a drag could pick up instead of the link', async () => {
+    await act(async () => root.render(<BrowserTools />));
+    expect(bookmarkletLink().querySelector('img')).toBeNull();
+    expect(bookmarkletLink().querySelector('svg')).not.toBeNull();
+  });
+
   it('copies the same code with the segment beside the link', async () => {
     await act(async () => root.render(<BrowserTools />));
     const copy = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Copy')!;
