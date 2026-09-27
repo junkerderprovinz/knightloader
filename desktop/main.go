@@ -25,6 +25,10 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
+// generatingBindings is set in the run that wails build makes to read the
+// bound methods; see bindings.go.
+var generatingBindings bool
+
 func main() {
 	// Must be set before app.New; the default is "container".
 	buildinfo.Deployment = "desktop"
@@ -80,7 +84,9 @@ func main() {
 	up := newUpdater(a, func(version string) { tc.emit(updateReadyEvent, version) })
 	a.UpdateReady = up.readyVersion
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
-	go up.run(updateCtx)
+	if !generatingBindings {
+		go up.run(updateCtx)
+	}
 
 	// Only the desktop can put the machine to sleep; internal/idleaction offers
 	// the action when this is set. See power.go.
@@ -100,7 +106,7 @@ func main() {
 	// blocks, so the tray runs in a goroutine started before wails.Run. It is
 	// not tracked by tc.spawn: onShutdown waits on that group before calling
 	// systray.Quit, which is what ends this goroutine.
-	if tc.isTrayAvailable() {
+	if tc.isTrayAvailable() && !generatingBindings {
 		go runTray(tc)
 	}
 
