@@ -47,12 +47,21 @@ submission and for a fixed download.
   yt-dlp once a day on the Tools card under Settings, Resolvers, and it is on
   from the start. It works in the container and in the desktop app, and it
   does not install yt-dlp on a machine that has none.
+- **More spans for the downloaded volume, and one of your own.** The card on
+  the Overview page offers 7 days, 30 days, 90 days, 12 months and all time,
+  and a field under those steps takes any number of days up to 730 or months
+  up to 120. Up to 92 days the chart draws a bar per day, and a longer span a
+  bar per month. The card remembers the span and the split you picked.
+  `GET /api/stats/volume` takes the span as `?span=`, such as `45d`, `6m` or
+  `all`, and answers as before without it.
 
 ### Changed
 
 - **The Overview's Instances card shows each instance's name and state badge**,
   with the badge at the right edge. The speed beside it, a lone dash while
   nothing downloads, is gone.
+- **The downloaded volume's selectors sit under the chart**, below the figures
+  they choose.
 - **The closed envelope on the About card's mail button sits in the middle of the button**, as GlimStone 3.0.1 draws it. It stood a little too low.
 
 ## [1.3.0] - 2026-09-27
