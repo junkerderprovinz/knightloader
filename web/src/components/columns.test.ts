@@ -4,6 +4,7 @@ import type { ExtractJob, Task, TaskStatus } from '../lib/api';
 import { extractionsByTask } from './Archives';
 import {
   gridTemplate,
+  isParked,
   packageFailures,
   packageStatus,
   packageUnpacking,
@@ -162,6 +163,39 @@ describe('packageStatus', () => {
 
   it('reads as done when everything is', () => {
     expect(packageStatus([task('done'), task('done')])).toBe('done');
+  });
+
+  const seeding = { ...task('done'), seeding: true };
+
+  it('reads as seeding while a finished torrent in it still uploads', () => {
+    expect(packageStatus([task('done'), seeding])).toBe('seeding');
+  });
+
+  it('reads as the download still owed before a torrent that seeds', () => {
+    expect(packageStatus([seeding, task('queued')])).toBe('queued');
+    expect(packageStatus([seeding, task('running')])).toBe('running');
+  });
+
+  it('keeps seeding as the word beside a failure, as work still going on', () => {
+    expect(packageStatus([seeding, task('error')])).toBe('seeding');
+  });
+});
+
+describe('isParked', () => {
+  const row = (enabled: boolean) => ({ id: String(enabled), status: 'queued', enabled }) as Task;
+
+  it('parks a disabled link', () => {
+    expect(isParked([row(false)])).toBe(true);
+    expect(isParked([row(true)])).toBe(false);
+  });
+
+  it('parks a package only when every link in it is disabled', () => {
+    expect(isParked([row(false), row(false)])).toBe(true);
+    expect(isParked([row(false), row(true)])).toBe(false);
+  });
+
+  it('does not park an empty package', () => {
+    expect(isParked([])).toBe(false);
   });
 });
 

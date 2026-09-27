@@ -27,6 +27,7 @@ export const sk: Dict = {
   'status.running': 'Sťahuje sa',
   'status.paused': 'Pozastavené',
   'status.extracting': 'Rozbaľuje sa',
+  'status.seeding': 'Seeduje',
   'status.done': 'Hotovo',
   'status.error': 'Chyba',
 

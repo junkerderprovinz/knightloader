@@ -114,6 +114,7 @@ export const ru: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'ошибка',
   'status.extracting': 'распаковка',
+  'status.seeding': 'раздаётся',
   'status.disabled': 'выключено',
 
   'settings.title': 'Настройки',

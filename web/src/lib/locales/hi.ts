@@ -27,6 +27,7 @@ export const hi: Dict = {
   'status.running': 'डाउनलोड हो रहा',
   'status.paused': 'रुका',
   'status.extracting': 'निकाला जा रहा है',
+  'status.seeding': 'सीड कर रहा',
   'status.done': 'पूरा',
   'status.error': 'त्रुटि',
 

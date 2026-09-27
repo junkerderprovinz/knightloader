@@ -27,6 +27,7 @@ export const sv: Dict = {
   'status.running': 'Laddar ned',
   'status.paused': 'Pausad',
   'status.extracting': 'Packar upp',
+  'status.seeding': 'Delar',
   'status.done': 'Klar',
   'status.error': 'Fel',
 

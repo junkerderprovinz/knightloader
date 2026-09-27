@@ -114,6 +114,7 @@ export const ar: Dict = {
   'status.finished': 'مكتمل',
   'status.failed': 'فشل',
   'status.extracting': 'جارٍ الاستخراج',
+  'status.seeding': 'قيد البذر',
   'status.disabled': 'معطّل',
 
   'settings.title': 'الإعدادات',

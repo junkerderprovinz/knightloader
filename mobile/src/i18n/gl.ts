@@ -114,6 +114,7 @@ export const gl: Dict = {
   'status.finished': 'rematado',
   'status.failed': 'fallido',
   'status.extracting': 'extraendo',
+  'status.seeding': 'facendo seed',
   'status.disabled': 'desactivado',
 
   'settings.title': 'Axustes',

@@ -114,6 +114,7 @@ export const ko: Dict = {
   'status.finished': '완료',
   'status.failed': '실패',
   'status.extracting': '압축 해제 중',
+  'status.seeding': '시드 중',
   'status.disabled': '꺼짐',
 
   'settings.title': '설정',

@@ -27,6 +27,7 @@ export const eu: Dict = {
   'status.running': 'Deskargatzen',
   'status.paused': 'Pausatua',
   'status.extracting': 'Erauzten',
+  'status.seeding': 'Seed egiten',
   'status.done': 'Eginda',
   'status.error': 'Errorea',
 

@@ -27,6 +27,7 @@ export const el: Dict = {
   'status.running': 'Γίνεται λήψη',
   'status.paused': 'Σε παύση',
   'status.extracting': 'Αποσυμπίεση',
+  'status.seeding': 'Κάνει seeding',
   'status.done': 'Ολοκληρώθηκε',
   'status.error': 'Σφάλμα',
 

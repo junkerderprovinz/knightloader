@@ -131,6 +131,7 @@ export const de: Dict = {
   'status.finished': 'fertig',
   'status.failed': 'fehlgeschlagen',
   'status.extracting': 'entpackt',
+  'status.seeding': 'seedet',
   'status.collected': 'gesammelt',
   'status.notUnpacked': 'nicht entpackt',
   'status.disabled': 'deaktiviert',

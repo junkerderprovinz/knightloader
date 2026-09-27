@@ -114,6 +114,7 @@ export const sv: Dict = {
   'status.finished': 'klar',
   'status.failed': 'misslyckades',
   'status.extracting': 'packar upp',
+  'status.seeding': 'delar',
   'status.disabled': 'avstängd',
 
   'settings.title': 'Inställningar',

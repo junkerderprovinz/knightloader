@@ -114,6 +114,7 @@ export const fi: Dict = {
   'status.finished': 'valmis',
   'status.failed': 'epäonnistui',
   'status.extracting': 'puretaan',
+  'status.seeding': 'jakaa',
   'status.disabled': 'pois kytketty',
 
   'settings.title': 'Asetukset',

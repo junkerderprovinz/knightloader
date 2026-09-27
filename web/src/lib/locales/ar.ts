@@ -29,6 +29,7 @@ export const ar: Dict = {
   'status.running': 'قيد التنزيل',
   'status.paused': 'متوقف مؤقتًا',
   'status.extracting': 'جارٍ فك الضغط',
+  'status.seeding': 'قيد البذر',
   'status.done': 'تم',
   'status.error': 'خطأ',
 

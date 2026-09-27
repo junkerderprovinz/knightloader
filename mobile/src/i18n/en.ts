@@ -132,6 +132,7 @@ export const en = {
   'status.finished': 'finished',
   'status.failed': 'failed',
   'status.extracting': 'extracting',
+  'status.seeding': 'seeding',
   'status.collected': 'collected',
   'status.notUnpacked': 'not unpacked',
   'status.disabled': 'disabled',

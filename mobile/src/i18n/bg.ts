@@ -114,6 +114,7 @@ export const bg: Dict = {
   'status.finished': 'завършено',
   'status.failed': 'неуспешно',
   'status.extracting': 'разархивиране',
+  'status.seeding': 'сийдва',
   'status.disabled': 'изключено',
 
   'settings.title': 'Настройки',

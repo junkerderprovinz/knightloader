@@ -27,6 +27,7 @@ export const hr: Dict = {
   'status.running': 'Preuzima se',
   'status.paused': 'Pauzirano',
   'status.extracting': 'Raspakiravanje',
+  'status.seeding': 'Seeda',
   'status.done': 'Gotovo',
   'status.error': 'Greška',
 

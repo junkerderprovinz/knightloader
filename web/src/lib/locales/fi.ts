@@ -27,6 +27,7 @@ export const fi: Dict = {
   'status.running': 'Ladataan',
   'status.paused': 'Keskeytetty',
   'status.extracting': 'Puretaan',
+  'status.seeding': 'Jakaa',
   'status.done': 'Valmis',
   'status.error': 'Virhe',
 

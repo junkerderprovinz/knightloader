@@ -27,6 +27,7 @@ export const is: Dict = {
   'status.running': 'Sækir',
   'status.paused': 'Í hléi',
   'status.extracting': 'Afþjappar',
+  'status.seeding': 'Sáir',
   'status.done': 'Lokið',
   'status.error': 'Villa',
 

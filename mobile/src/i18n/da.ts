@@ -114,6 +114,7 @@ export const da: Dict = {
   'status.finished': 'fuldført',
   'status.failed': 'mislykkedes',
   'status.extracting': 'udpakker',
+  'status.seeding': 'seeder',
   'status.disabled': 'slået fra',
 
   'settings.title': 'Indstillinger',

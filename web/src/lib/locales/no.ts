@@ -29,6 +29,7 @@ export const no: Dict = {
   'status.running': 'Laster ned',
   'status.paused': 'Satt på pause',
   'status.extracting': 'Pakker ut',
+  'status.seeding': 'Seeder',
   'status.done': 'Ferdig',
   'status.error': 'Feil',
 

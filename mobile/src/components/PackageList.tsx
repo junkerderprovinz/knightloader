@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
-import { packageState } from '../api/taskState';
+import { isParked, packageState } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Power, Trash } from './IconBadge';
@@ -212,7 +212,7 @@ export default function PackageList({
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
         const state = packageState(pkg.tasks);
-        const allOff = pkg.tasks.every((x) => !x.enabled);
+        const allOff = isParked(pkg.tasks);
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
@@ -229,11 +229,11 @@ export default function PackageList({
                 {/* Rotated rather than two glyphs: one character, one meaning,
                     and the direction says which way it goes. */}
                 <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
-                <Text style={[styles.headerName, { color: c.text }]} numberOfLines={1}>
+                <Text style={[styles.headerName, { color: allOff ? c.textMuted : c.text }]} numberOfLines={1}>
                   {pkg.name || t('packages.loose')}
                 </Text>
                 {state.word && (
-                  <Text style={[styles.headerState, { color: statusColor(state.word, c, accentInk) }]}>
+                  <Text style={[styles.headerState, { color: statusColor(state.word, c, accentInk, allOff) }]}>
                     {t(STATE_KEYS[state.word])}
                   </Text>
                 )}
@@ -252,7 +252,9 @@ export default function PackageList({
                   .filter(Boolean)
                   .join(' · ')}
                 {state.failed > 0 && (
-                  <Text style={{ color: c.statusFailSolid }}>{` · ${t('packages.failed', { n: state.failed })}`}</Text>
+                  <Text style={{ color: allOff ? c.textMuted : c.statusFailSolid }}>
+                    {` · ${t('packages.failed', { n: state.failed })}`}
+                  </Text>
                 )}
               </Text>
             </TouchableOpacity>

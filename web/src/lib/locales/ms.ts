@@ -27,6 +27,7 @@ export const ms: Dict = {
   'status.running': 'Memuat turun',
   'status.paused': 'Dijeda',
   'status.extracting': 'Mengekstrak',
+  'status.seeding': 'Melakukan seed',
   'status.done': 'Siap',
   'status.error': 'Ralat',
 

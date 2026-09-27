@@ -114,6 +114,7 @@ export const ro: Dict = {
   'status.finished': 'finalizată',
   'status.failed': 'eșuată',
   'status.extracting': 'se extrage',
+  'status.seeding': 'face seed',
   'status.disabled': 'dezactivată',
 
   'settings.title': 'Setări',

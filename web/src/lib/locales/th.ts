@@ -27,6 +27,7 @@ export const th: Dict = {
   'status.running': 'กำลังดาวน์โหลด',
   'status.paused': 'หยุดชั่วคราว',
   'status.extracting': 'กำลังแตกไฟล์',
+  'status.seeding': 'กำลังซีด',
   'status.done': 'เสร็จแล้ว',
   'status.error': 'ผิดพลาด',
 

@@ -12,7 +12,7 @@ import { VolumeCard } from '../components/VolumeCard';
 import { Counters } from '../components/Counters';
 import { DiskSpaceTile } from '../components/DiskSpaceTile';
 import { ProgressBar } from '../components/ProgressBar';
-import { StatusPill } from '../components/StatusPill';
+import { StatusPill, rowState } from '../components/StatusPill';
 import { InstanceRow } from '../components/InstanceCard';
 import { IconDownloads } from '../lib/icons';
 
@@ -102,7 +102,7 @@ export function Dashboard() {
                   <span className="glim-num text-xs text-carbon-textSub">
                     {fmtBytes(x.size)}
                   </span>
-                  <StatusPill status={x.status} />
+                  <StatusPill status={rowState(x)} />
                 </div>
               ))}
             </div>

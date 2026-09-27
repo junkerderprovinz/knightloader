@@ -13,24 +13,29 @@ export type StateWord =
   | 'running'
   | 'paused'
   | 'extracting'
+  | 'seeding'
   | 'finished'
   | 'failed'
   | 'notUnpacked'
   | 'disabled';
 
-// Least settled first.
+// Least settled first. Seeding comes after every state that still owes a
+// download, as on the web.
 const RANK: Record<string, number> = {
   running: 0,
   extracting: 1,
   queued: 2,
   paused: 3,
-  collected: 4,
-  done: 5,
-  error: 6,
+  seeding: 4,
+  collected: 5,
+  done: 6,
+  error: 7,
 };
 
+const seeds = (t: Task): boolean => t.status === 'done' && t.seeding === true;
+
 // A status from a newer instance sorts with the settled ones.
-const rank = (t: Task): number => RANK[t.status] ?? RANK.error;
+const rank = (t: Task): number => (seeds(t) ? RANK.seeding : (RANK[t.status] ?? RANK.error));
 
 const unpackFailed = (t: Task): boolean => t.status === 'done' && (t.unpack === 'error' || t.unpack === 'password');
 
@@ -50,11 +55,22 @@ export function rowWord(t: Task): StateWord | null {
     case 'extracting':
       return t.status;
     case 'done':
-      return unpackFailed(t) ? 'notUnpacked' : 'finished';
+      // An archive that did not unpack is the thing to act on, seeding or not.
+      if (unpackFailed(t)) return 'notUnpacked';
+      return seeds(t) ? 'seeding' : 'finished';
     case 'error':
       return 'failed';
   }
   return null;
+}
+
+/**
+ * isParked is whether a row, or a package header over `tasks`, reads as
+ * switched off: every link in it disabled. Its words and figures then take the
+ * muted ink, and its switch stays as it is, since that is how it comes back.
+ */
+export function isParked(tasks: Task[]): boolean {
+  return tasks.length > 0 && tasks.every((t) => t.enabled === false);
 }
 
 export interface PackageState {
@@ -76,9 +92,9 @@ export function packageState(tasks: Task[]): PackageState {
   const failed = failedDownloads + failedArchives;
   const least = tasks.reduce<Task | undefined>((a, t) => (!a || rank(t) < rank(a) ? t : a), undefined);
   if (!least) return { word: null, failed };
-  if (rank(least) >= RANK.collected) {
-    if (failedDownloads > 0) return { word: 'failed', failed };
-    if (failedArchives > 0) return { word: 'notUnpacked', failed };
-  }
+  if (rank(least) >= RANK.collected && failedDownloads > 0) return { word: 'failed', failed };
+  // An archive that failed speaks over a torrent still seeding, as it does in
+  // the web's header, where only an unpacked archive gives way to the upload.
+  if (rank(least) >= RANK.seeding && failedArchives > 0) return { word: 'notUnpacked', failed };
   return { word: rowWord(least), failed };
 }

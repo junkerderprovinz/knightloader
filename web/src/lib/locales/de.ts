@@ -30,6 +30,7 @@ export const de: Dict = {
   'status.running': 'Herunterladen',
   'status.paused': 'Pausiert',
   'status.extracting': 'Entpacken',
+  'status.seeding': 'Seedet',
   'status.done': 'Fertig',
   'status.error': 'Fehler',
 

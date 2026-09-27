@@ -27,6 +27,7 @@ export const et: Dict = {
   'status.running': 'Laadib alla',
   'status.paused': 'Peatatud',
   'status.extracting': 'Lahtipakkimine',
+  'status.seeding': 'Levitab',
   'status.done': 'Valmis',
   'status.error': 'Viga',
 

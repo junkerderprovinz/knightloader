@@ -27,6 +27,7 @@ export const ja: Dict = {
   'status.running': 'ダウンロード中',
   'status.paused': '一時停止',
   'status.extracting': '展開中',
+  'status.seeding': 'シード中',
   'status.done': '完了',
   'status.error': 'エラー',
 

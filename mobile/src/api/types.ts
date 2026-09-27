@@ -57,6 +57,8 @@ export interface Task {
   unpack?: 'done' | 'error' | 'password';
   /** The volume number inside a multi-volume set, 0 for a file that is not in one. */
   archivePart?: number;
+  /** A finished torrent still uploading, a flag beside status 'done'. */
+  seeding?: boolean;
 }
 
 export interface AuthState {

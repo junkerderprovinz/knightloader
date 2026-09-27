@@ -114,6 +114,7 @@ export const lv: Dict = {
   'status.finished': 'pabeigts',
   'status.failed': 'neizdevās',
   'status.extracting': 'atspiež',
+  'status.seeding': 'sēj',
   'status.disabled': 'izslēgts',
 
   'settings.title': 'Iestatījumi',

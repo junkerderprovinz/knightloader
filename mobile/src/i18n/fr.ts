@@ -114,6 +114,7 @@ export const fr: Dict = {
   'status.finished': 'terminé',
   'status.failed': 'échoué',
   'status.extracting': 'extraction',
+  'status.seeding': 'en partage',
   'status.disabled': 'désactivé',
 
   'settings.title': 'Paramètres',

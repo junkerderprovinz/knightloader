@@ -26,6 +26,7 @@ export const ru: Dict = {
   'status.running': 'Загружается',
   'status.paused': 'Пауза',
   'status.extracting': 'Распаковка',
+  'status.seeding': 'Раздаётся',
   'status.done': 'Готово',
   'status.error': 'Ошибка',
   'task.pause': 'Пауза',

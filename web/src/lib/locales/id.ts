@@ -27,6 +27,7 @@ export const id: Dict = {
   'status.running': 'Mengunduh',
   'status.paused': 'Dijeda',
   'status.extracting': 'Mengekstrak',
+  'status.seeding': 'Melakukan seed',
   'status.done': 'Selesai',
   'status.error': 'Error',
 

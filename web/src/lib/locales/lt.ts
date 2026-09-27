@@ -27,6 +27,7 @@ export const lt: Dict = {
   'status.running': 'Atsisiunčiama',
   'status.paused': 'Pristabdyta',
   'status.extracting': 'Išpakuojama',
+  'status.seeding': 'Sėja',
   'status.done': 'Baigta',
   'status.error': 'Klaida',
 

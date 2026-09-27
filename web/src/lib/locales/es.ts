@@ -26,6 +26,7 @@ export const es: Dict = {
   'status.running': 'Descargando',
   'status.paused': 'En pausa',
   'status.extracting': 'Extrayendo',
+  'status.seeding': 'En seed',
   'status.done': 'Listo',
   'status.error': 'Error',
   'task.pause': 'Pausar',

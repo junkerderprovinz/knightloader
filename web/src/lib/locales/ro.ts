@@ -27,6 +27,7 @@ export const ro: Dict = {
   'status.running': 'Se descarcă',
   'status.paused': 'În pauză',
   'status.extracting': 'Se dezarhivează',
+  'status.seeding': 'Face seed',
   'status.done': 'Gata',
   'status.error': 'Eroare',
 
