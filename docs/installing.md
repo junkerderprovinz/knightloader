@@ -246,7 +246,7 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 A running instance offers it under Settings, Apps: Chrome, Edge, Brave, Opera and
 Vivaldi each have a button for the same ZIP, and the Firefox button gives the
 add-on. The same ZIP is on the
-[latest extension release](https://github.com/junkerderprovinz/knightloader/releases/download/extension/latest/knightloader-extension.zip),
+[latest release](https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-extension.zip),
 one file for Chrome, Edge, Brave, Opera and Vivaldi:
 
 1. Unpack the ZIP.
