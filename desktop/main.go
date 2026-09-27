@@ -41,6 +41,16 @@ func main() {
 		return
 	}
 
+	// The bindings run of wails build only reads the bound methods. In a
+	// throwaway folder, with JDownloader, Click'n'Load and the startup check off,
+	// it leaves the user's data and ports alone and ends in seconds.
+	if generatingBindings {
+		os.Setenv("KL_DATA", filepath.Join(os.TempDir(), "knightloader-bindings"))
+		os.Setenv("KL_JD", "http://127.0.0.1:0")
+		os.Setenv("KL_CNL", "0")
+		os.Setenv("KL_STARTUP_CHECK", "0")
+	}
+
 	// Must be set before app.New; the default is "container".
 	buildinfo.Deployment = "desktop"
 	// The desktop opens no listener, so it never announces, but it still
