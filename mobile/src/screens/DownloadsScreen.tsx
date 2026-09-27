@@ -246,7 +246,7 @@ export default function DownloadsScreen({
                   while bytes are moving. Testing `speed > 0` is right for an
                   empty instance and wrong for a queue that says "running" while
                   nothing moves, where a line flat at zero is the answer. */}
-              {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} />}
+              {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} limit={queue?.limit ?? 0} />}
             </Arrive>
 
             {/* Why the last start or stop did not take. One line, in the fail
