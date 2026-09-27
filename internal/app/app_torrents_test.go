@@ -11,7 +11,9 @@ import (
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
@@ -252,5 +254,32 @@ func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
 	// resolveTorrent's sentence rather than an HTTP failure.
 	if !strings.Contains(last.Error, "torrent") {
 		t.Errorf("error = %q, want the resolveTorrent metadata-timeout sentence naming the torrent", last.Error)
+	}
+}
+
+// The Torrents page reaches the engine in the engine's units, with the two
+// discovery switches turned into gopeed's opt-outs.
+func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
+	got := torrentConfig(settings.Torrent{
+		Port:                51413,
+		SeedRatioTarget:     1.5,
+		SeedDurationSeconds: 3600,
+		UploadLimitKiBs:     300,
+		DHTEnabled:          false,
+		PEXEnabled:          true,
+	})
+	want := engine.TorrentConfig{
+		Port:        51413,
+		SeedRatio:   1.5,
+		SeedSeconds: 3600,
+		UploadLimit: 300 << 10,
+		DisableDHT:  true,
+		DisablePEX:  false,
+	}
+	if got != want {
+		t.Errorf("torrentConfig = %+v, want %+v", got, want)
+	}
+	if got := torrentConfig(settings.Torrent{DHTEnabled: true, PEXEnabled: true}); got != (engine.TorrentConfig{}) {
+		t.Errorf("an unlimited torrent client with DHT and PEX on reads %+v, want gopeed's own defaults", got)
 	}
 }

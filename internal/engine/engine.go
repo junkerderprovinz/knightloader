@@ -9,6 +9,7 @@ import (
 	"maps"
 	"net"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"time"
 
@@ -79,9 +80,6 @@ type Engine struct {
 	pollOnce  sync.Once
 	// closed is set under mu by Close before wg.Wait runs; see Start.
 	closed bool
-	// torrentAt is when the last torrent resolve began, under mu; see
-	// torrentSettle.
-	torrentAt time.Time
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
@@ -195,29 +193,46 @@ func (e *Engine) UseProxy(hostPort string) error {
 	})
 }
 
-// btProtocolConfig mirrors gopeed's unexported bt config with identical json
-// tags. ProtocolConfig["bt"] round-trips through JSON (util.MapToStruct), so
-// the mirror reads and writes it correctly.
+// btProtocolConfig mirrors the bt config of the gopeed fork (see go.mod) with
+// identical json tags. ProtocolConfig["bt"] round-trips through JSON
+// (util.MapToStruct), so the mirror reads and writes it correctly.
 type btProtocolConfig struct {
-	ListenPort int      `json:"listenPort"`
-	Trackers   []string `json:"trackers"`
-	SeedKeep   bool     `json:"seedKeep"`
-	SeedRatio  float64  `json:"seedRatio"`
-	SeedTime   int64    `json:"seedTime"`
+	ListenPort  int      `json:"listenPort"`
+	Trackers    []string `json:"trackers"`
+	SeedKeep    bool     `json:"seedKeep"`
+	SeedRatio   float64  `json:"seedRatio"`
+	SeedTime    int64    `json:"seedTime"`
+	UploadLimit int64    `json:"uploadLimit"`
+	DisableDHT  bool     `json:"disableDht"`
+	DisablePEX  bool     `json:"disablePex"`
 }
 
-// SetTorrentConfig writes the listen port and seeding targets into gopeed's
-// bt protocol config; Trackers and SeedKeep are passed through unchanged.
-// Call it at boot and on every settings save.
+// TorrentConfig is what the torrent client takes from the settings. The zero
+// value is any port, no seeding target, no upload limit, DHT and PEX on.
+type TorrentConfig struct {
+	Port        int
+	SeedRatio   float64
+	SeedSeconds int
+	// UploadLimit is in bytes per second; 0 is unlimited.
+	UploadLimit int64
+	DisableDHT  bool
+	DisablePEX  bool
+}
+
+// SetTorrentConfig writes c into gopeed's bt protocol config; Trackers and
+// SeedKeep are passed through unchanged. Call it at boot and on every
+// settings save.
 //
-// The seeding targets reach every torrent started afterwards, since gopeed
-// reads the config per task, and every torrent started only to seed, which
-// the engine stops itself (see seed.go). The port does not: gopeed builds its
-// shared torrent client once, on the first torrent of the process, so a new
-// port only applies if no torrent has started yet.
-func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSeconds int) error {
+// The upload limit applies at once, to torrents already running too. The
+// seeding targets reach every torrent started afterwards, since gopeed reads
+// the config per task, and every torrent started only to seed, which the
+// engine stops itself (see seed.go). The port, DHT and PEX belong to the one
+// torrent client all torrents share: gopeed rebuilds it with the new values
+// when the save finds no torrent in the library, and otherwise once the last
+// one is gone.
+func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 	e.mu.Lock()
-	e.targets = seedTargets{ratio: seedRatio, seconds: int64(seedDurationSeconds)}
+	e.targets = seedTargets{ratio: c.SeedRatio, seconds: int64(c.SeedSeconds)}
 	e.mu.Unlock()
 	var decodeErr error
 	err := e.updateConfig(func(cfg *base.DownloaderStoreConfig) bool {
@@ -225,16 +240,20 @@ func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSecon
 		if decodeErr = util.MapToStruct(cfg.ProtocolConfig["bt"], &bt); decodeErr != nil {
 			return false
 		}
-		if bt.ListenPort == port && bt.SeedRatio == seedRatio && bt.SeedTime == int64(seedDurationSeconds) {
+		next := bt
+		next.ListenPort = c.Port
+		next.SeedRatio = c.SeedRatio
+		next.SeedTime = int64(c.SeedSeconds)
+		next.UploadLimit = c.UploadLimit
+		next.DisableDHT = c.DisableDHT
+		next.DisablePEX = c.DisablePEX
+		if reflect.DeepEqual(next, bt) {
 			return false
 		}
-		bt.ListenPort = port
-		bt.SeedRatio = seedRatio
-		bt.SeedTime = int64(seedDurationSeconds)
 		if cfg.ProtocolConfig == nil {
 			cfg.ProtocolConfig = map[string]any{}
 		}
-		cfg.ProtocolConfig["bt"] = bt
+		cfg.ProtocolConfig["bt"] = next
 		return true
 	})
 	return cmp.Or(decodeErr, err)
@@ -264,25 +283,10 @@ func (e *Engine) Close() error {
 		case <-waited:
 		case <-time.After(closeGrace):
 		}
-		e.mu.Lock()
-		since := time.Since(e.torrentAt)
-		torrents := !e.torrentAt.IsZero()
-		e.mu.Unlock()
-		if torrents && since < torrentSettle {
-			time.Sleep(torrentSettle - since)
-		}
 		e.closeErr = e.d.Close()
 	})
 	return e.closeErr
 }
-
-// torrentSettle is how long after a torrent resolve began Close waits before
-// shutting the library down. The bt fetcher builds its client at the start of
-// a resolve and hands a package-level context to a goroutine that reads it only
-// once it runs, while closing the client sets that context to nil, so a close
-// in between crashes the process:
-// https://github.com/GopeedLab/gopeed/blob/v1.9.3/internal/protocol/bt/fetcher.go#L87-L90
-const torrentSettle = 500 * time.Millisecond
 
 // closeGrace is how long Close waits for its own goroutines before shutting
 // the download library down anyway.

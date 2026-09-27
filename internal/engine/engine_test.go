@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // TestAnUnroutedDownloadFollowsTheGlobalProxy checks for nil, which keeps the
@@ -516,8 +517,7 @@ func TestConcurrentStartAndCloseNeverPanics(t *testing.T) {
 }
 
 // TestSetTorrentConfigReachesGopeedsOwnProtocolConfig reads the config back
-// the way gopeed's fetcher does. The three values differ so a swapped
-// argument fails.
+// the way gopeed's fetcher does. The numbers differ so a swapped field fails.
 func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
 	e, err := New(t.TempDir(), func(string, core.Update) {})
 	if err != nil {
@@ -525,7 +525,7 @@ func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
 	}
 	defer e.Close()
 
-	if err := e.SetTorrentConfig(6969, 2.5, 10800); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 6969, SeedRatio: 2.5, SeedSeconds: 10800, UploadLimit: 300 << 10, DisableDHT: true, DisablePEX: true}); err != nil {
 		t.Fatalf("SetTorrentConfig: %v", err)
 	}
 
@@ -545,6 +545,12 @@ func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
 	}
 	if bt.SeedTime != 10800 {
 		t.Errorf("SeedTime = %d, want 10800", bt.SeedTime)
+	}
+	if bt.UploadLimit != 300<<10 {
+		t.Errorf("UploadLimit = %d, want %d", bt.UploadLimit, 300<<10)
+	}
+	if !bt.DisableDHT || !bt.DisablePEX {
+		t.Errorf("DisableDHT = %v, DisablePEX = %v, want both true", bt.DisableDHT, bt.DisablePEX)
 	}
 }
 
@@ -568,7 +574,7 @@ func TestSetTorrentConfigLeavesUnrelatedConfigAlone(t *testing.T) {
 	wantMaxRunning := before.MaxRunning
 	wantProxyHost := before.Proxy.Host
 
-	if err := e.SetTorrentConfig(51413, 1.0, 7200); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 51413, SeedRatio: 1.0, SeedSeconds: 7200}); err != nil {
 		t.Fatalf("SetTorrentConfig: %v", err)
 	}
 
@@ -594,10 +600,10 @@ func TestSetTorrentConfigOverwritesRatherThanAccumulates(t *testing.T) {
 	}
 	defer e.Close()
 
-	if err := e.SetTorrentConfig(1111, 1.0, 3600); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 1111, SeedRatio: 1.0, SeedSeconds: 3600}); err != nil {
 		t.Fatalf("SetTorrentConfig (first): %v", err)
 	}
-	if err := e.SetTorrentConfig(2222, 3.0, 7200); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 2222, SeedRatio: 3.0, SeedSeconds: 7200}); err != nil {
 		t.Fatalf("SetTorrentConfig (second): %v", err)
 	}
 
@@ -624,13 +630,13 @@ func TestChangingTheTorrentConfigLeavesTheConfigInUseAlone(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer e.Close()
-	if err := e.SetTorrentConfig(6881, 1, 0); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 6881, SeedRatio: 1}); err != nil {
 		t.Fatal(err)
 	}
 	inUse, _ := e.d.GetConfig()
 	before := fmt.Sprint(inUse.ProtocolConfig["bt"])
 
-	if err := e.SetTorrentConfig(51413, 2, 3600); err != nil {
+	if err := e.SetTorrentConfig(TorrentConfig{Port: 51413, SeedRatio: 2, SeedSeconds: 3600}); err != nil {
 		t.Fatal(err)
 	}
 	if after := fmt.Sprint(inUse.ProtocolConfig["bt"]); after != before {
@@ -646,35 +652,25 @@ func TestChangingTheTorrentConfigLeavesTheConfigInUseAlone(t *testing.T) {
 	}
 }
 
-// The bt fetcher's client goroutine reads a context that closing the library
-// sets to nil, so a close straight after a torrent resolve began waits for it.
-func TestCloseRightAfterATorrentResolveLetsTheLibrarySettle(t *testing.T) {
-	e, err := New(t.TempDir(), func(string, core.Update) {})
-	if err != nil {
-		t.Fatal(err)
+// Closing the engine while a torrent start is still building the library's
+// torrent client must not take the process down, as when a restart resumes
+// seeding and the container is stopped again at once.
+func TestCloseRightAfterATorrentStartDoesNotCrash(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races on a task's status when a real transfer starts")
 	}
-	e.mu.Lock()
-	e.torrentAt = time.Now()
-	e.mu.Unlock()
-	start := time.Now()
-	if err := e.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if took := time.Since(start); took < torrentSettle-50*time.Millisecond {
-		t.Errorf("Close returned after %s, before the library had %s to settle", took, torrentSettle)
-	}
-}
-
-func TestCloseWithoutATorrentDoesNotWait(t *testing.T) {
-	e, err := New(t.TempDir(), func(string, core.Update) {})
-	if err != nil {
-		t.Fatal(err)
-	}
-	start := time.Now()
-	if err := e.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if took := time.Since(start); took >= torrentSettle {
-		t.Errorf("Close took %s with no torrent ever resolved", took)
+	for i := range 60 {
+		dir := t.TempDir()
+		uri, root := finishedTorrent(t, dir)
+		e, err := New(t.TempDir(), func(string, core.Update) {})
+		if err != nil {
+			t.Fatal(err)
+		}
+		e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack", Seed: true})
+		time.Sleep(time.Duration(i%6) * time.Millisecond)
+		if err := e.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

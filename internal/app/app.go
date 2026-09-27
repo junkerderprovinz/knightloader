@@ -1131,16 +1131,26 @@ func (a *App) applyConnections(s settings.Settings) {
 	a.picker = proxycfg.NewPicker(rows, proxycfg.Options{Bans: a.bans})
 }
 
-// applyTorrentConfig pushes the seed ratio, seed duration and port into the
-// engine. The seed settings apply to torrents added from now on; the port only
-// if no torrent has started in this process (see Engine.SetTorrentConfig). A
-// failure is logged rather than failing the save or the boot. It also fetches
-// the public tracker list when that is due.
+// applyTorrentConfig pushes the Torrents page into the engine; see
+// Engine.SetTorrentConfig for when each value takes effect. A failure is
+// logged rather than failing the save or the boot. It also fetches the public
+// tracker list when that is due.
 func (a *App) applyTorrentConfig(t settings.Torrent) {
-	if err := a.Engine.SetTorrentConfig(t.Port, t.SeedRatioTarget, t.SeedDurationSeconds); err != nil {
+	if err := a.Engine.SetTorrentConfig(torrentConfig(t)); err != nil {
 		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
 	}
 	a.refreshTrackerList(t.TrackerListURL)
+}
+
+func torrentConfig(t settings.Torrent) engine.TorrentConfig {
+	return engine.TorrentConfig{
+		Port:        t.Port,
+		SeedRatio:   t.SeedRatioTarget,
+		SeedSeconds: t.SeedDurationSeconds,
+		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
+		DisableDHT:  !t.DHTEnabled,
+		DisablePEX:  !t.PEXEnabled,
+	}
 }
 
 func newID() string {

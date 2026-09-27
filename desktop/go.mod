@@ -201,3 +201,7 @@ require github.com/godbus/dbus/v5 v5.2.2
 
 // Use the server sources from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../
+
+// The same gopeed fork as the server module, since a dependency's replace
+// does not reach this one.
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20260927145944-57b65bc03282
