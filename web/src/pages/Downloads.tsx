@@ -709,12 +709,15 @@ export function Downloads() {
                 />
               </div>
             )}
+            {/* The badges on these cards' top edge are buttons, a whole
+                button height tall, so half of one and its focus ring overhang
+                the edge and need more room above it than a title badge. */}
             {SETTLED.map(
               ({ card, title, hue }) =>
                 shown[card].length > 0 && (
                   <div
                     key={card}
-                    className={`flex min-h-0 flex-initial flex-col overflow-y-auto pt-3 ${groups.length > 0 ? 'max-h-[35vh]' : ''} ${cardFold[card].folded ? 'shrink-0' : ''}`}
+                    className={`flex min-h-0 flex-initial flex-col overflow-y-auto pt-[calc(var(--btn-h)/2_+_4px)] ${groups.length > 0 ? 'max-h-[35vh]' : ''} ${cardFold[card].folded ? 'shrink-0' : ''}`}
                     onContextMenu={(e) => onContextMenu(e, card)}
                   >
                     <TaskListCard
