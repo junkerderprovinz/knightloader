@@ -2,8 +2,9 @@
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
 // accounts and the multihosters reached through JD come first, hoster logins
 // below; the section follows the catalogue's Group field, and both cards draw
-// an AccountTable. The Premium only switch comes under them, since whether a
-// link may be fetched for free is a question of which accounts there are.
+// an AccountTable. The Allow free downloads switch comes under them, since
+// whether a link may be fetched for free is a question of which accounts there
+// are.
 import {
   useCallback,
   useEffect,

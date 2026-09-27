@@ -85,6 +85,10 @@ submission and for a fixed download.
   Instances card shows the same badge as the Instances page, and its two cards
   are the same height.
 - **The App tab in Settings is called Apps.**
+- **Premium only is called Allow free downloads.** The switch on the Accounts
+  page is on while free downloads are allowed, the other way round from
+  before, and your setting keeps its meaning. A category's choice for the same
+  thing reads Inherit, Allowed or Blocked.
 - The browser extension card has a button for each browser again: Chrome,
   Edge, Brave, Opera, Vivaldi and Firefox. The five Chromium browsers get the
   same ZIP.

@@ -362,7 +362,9 @@ function summarise(
     parts.push(`${t('props.autoExtract')}: ${cat.extract ? t('props.on') : t('props.off')}`);
   }
   if (cat.premiumOnly !== undefined) {
-    parts.push(`${t('settings.categories.premiumOnly')}: ${cat.premiumOnly ? t('props.on') : t('props.off')}`);
+    parts.push(
+      `${t('settings.categories.free')}: ${cat.premiumOnly ? t('settings.categories.freeBlocked') : t('settings.categories.freeAllowed')}`,
+    );
   }
   // fmtSpeed returns '' at 0, the "no opinion" case.
   if (cat.speedLimit) parts.push(fmtSpeed(cat.speedLimit));
@@ -608,18 +610,19 @@ function CategoryRow({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FieldGroup label={t('settings.categories.premiumOnly')} hint={t('settings.categories.premiumOnlyHint')}>
-              {/* Three segments for the reason unpacking has them. */}
+            <FieldGroup label={t('settings.categories.free')} hint={t('settings.categories.freeHint')}>
+              {/* Three segments for the reason unpacking has them. Blocked is
+                  the stored premiumOnly true. */}
               <Tabs
                 variant="well"
                 size="sm"
-                label={t('settings.categories.premiumOnly')}
-                active={cat.premiumOnly === undefined ? INHERIT : cat.premiumOnly ? 'on' : 'off'}
-                onSelect={(id) => setPremiumOnly(id === INHERIT ? undefined : id === 'on')}
+                label={t('settings.categories.free')}
+                active={cat.premiumOnly === undefined ? INHERIT : cat.premiumOnly ? 'blocked' : 'allowed'}
+                onSelect={(id) => setPremiumOnly(id === INHERIT ? undefined : id === 'blocked')}
                 items={[
                   { id: INHERIT, label: t('props.inherit') },
-                  { id: 'on', label: t('props.on') },
-                  { id: 'off', label: t('props.off') },
+                  { id: 'allowed', label: t('settings.categories.freeAllowed') },
+                  { id: 'blocked', label: t('settings.categories.freeBlocked') },
                 ]}
               />
             </FieldGroup>

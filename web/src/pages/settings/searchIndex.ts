@@ -328,7 +328,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.accounts.freeTitle',
-      rows: [{ key: 'settings.accounts.premiumOnly', hint: 'settings.accounts.premiumOnlyHint' }],
+      rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
   ],
 
@@ -468,7 +468,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'props.autoExtract', hint: 'settings.categories.extractHint' },
         { key: 'settings.categories.speedLimit', hint: 'settings.categories.speedLimitHint' },
         { key: 'settings.categories.collision', hint: 'settings.categories.collisionHint' },
-        { key: 'settings.categories.premiumOnly', hint: 'settings.categories.premiumOnlyHint' },
+        { key: 'settings.categories.free', hint: 'settings.categories.freeHint' },
         { key: 'settings.categories.notify', hint: 'settings.categories.notifyHint' },
         { key: 'settings.categories.torrentFiles', hint: 'settings.categories.torrentFilesHint' },
       ],

@@ -52,7 +52,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('offers Premium only on the Accounts page itself, not only on its settings tab', async () => {
+it('offers Allow free downloads on the Accounts page itself, not only on its settings tab', async () => {
   await act(async () =>
     root.render(
       <I18nProvider>
@@ -64,11 +64,12 @@ it('offers Premium only on the Accounts page itself, not only on its settings ta
       </I18nProvider>,
     ),
   );
-  const toggle = host.querySelector<HTMLButtonElement>('[role="switch"][aria-label="Premium only"]');
+  const toggle = host.querySelector<HTMLButtonElement>('[role="switch"][aria-label="Allow free downloads"]');
   expect(toggle).not.toBeNull();
-  expect(toggle!.getAttribute('aria-checked')).toBe('false');
+  expect(toggle!.getAttribute('aria-checked')).toBe('true');
 
+  // Switching free downloads off is premium only on, the setting as stored.
   await act(async () => toggle!.click());
   expect(patched).toEqual([{ premiumOnly: true }]);
-  expect(toggle!.getAttribute('aria-checked')).toBe('true');
+  expect(toggle!.getAttribute('aria-checked')).toBe('false');
 });
