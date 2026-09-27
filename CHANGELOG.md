@@ -58,8 +58,12 @@ submission and for a fixed download.
 - The bookmarklet is a button like the others on the Apps page. It is called
   KnightLoader, which is also the bookmark's name once it is dragged to the
   bar, and Copy beside it copies the code, on an address without HTTPS too.
-- The ARM64 builds of the desktop app say Windows or Linux on top and ARM64
-  below it. A segment beside a button shows both its lines at rest.
+  Under the pointer it lights up in the logo's gold with the logo in black,
+  and the card explains how to set it up on a phone.
+- The ARM64 builds of the desktop app are named Windows or Linux, with ARM64
+  as the second line under the pointer like on every other download button.
+- **GlimStone 2.15.0.** The link collector starts level with the sidebar like
+  every other page.
 - The version on the phone app and browser extension cards sits on the card's
   top edge, so every card on the Apps page starts its buttons the same
   distance below its title.
@@ -71,6 +75,8 @@ submission and for a fixed download.
 
 ### Fixed
 
+- A bookmarklet dragged to the bookmarks bar by its logo arrives with its name
+  and still runs. The drag used to take the picture instead of the link.
 - The desktop window gets live updates the way a browser tab does. It could
   never open the connection they arrive on, so the download and collector lists
   stayed empty, progress did not move and a new captcha prompt did not appear.
