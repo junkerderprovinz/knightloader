@@ -35,6 +35,10 @@ export const ar: Dict = {
 
   'task.pause': 'إيقاف مؤقت',
   'task.resume': 'متابعة',
+  'task.stopSeeding': 'إيقاف البذر',
+  'task.startSeeding': 'بدء البذر',
+  'task.stopSeedingAll': 'إيقاف بذر كل التورنتات في هذه البطاقة',
+  'task.startSeedingAll': 'بدء بذر كل التورنتات في هذه البطاقة',
   'task.start': 'بدء',
   'task.restart': 'إعادة البدء',
   'task.remove': 'إزالة',

@@ -33,6 +33,10 @@ export const bg: Dict = {
 
   'task.pause': 'Пауза',
   'task.resume': 'Продължи',
+  'task.stopSeeding': 'Спри сийдването',
+  'task.startSeeding': 'Пусни сийдването',
+  'task.stopSeedingAll': 'Спри сийдването на всички торенти в тази карта',
+  'task.startSeedingAll': 'Пусни сийдването на всички торенти в тази карта',
   'task.start': 'Старт',
   'task.restart': 'Рестарт',
   'task.remove': 'Премахни',

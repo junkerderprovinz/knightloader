@@ -33,6 +33,10 @@ export const tr: Dict = {
 
   'task.pause': 'Duraklat',
   'task.resume': 'Sürdür',
+  'task.stopSeeding': 'Seed etmeyi durdur',
+  'task.startSeeding': 'Seed etmeyi başlat',
+  'task.stopSeedingAll': 'Bu karttaki tüm torrentlerin seed edilmesini durdur',
+  'task.startSeedingAll': 'Bu karttaki tüm torrentlerin seed edilmesini başlat',
   'task.start': 'Başlat',
   'task.restart': 'Yeniden başlat',
   'task.remove': 'Kaldır',

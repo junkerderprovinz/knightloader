@@ -33,6 +33,10 @@ export const ms: Dict = {
 
   'task.pause': 'Jeda',
   'task.resume': 'Sambung',
+  'task.stopSeeding': 'Hentikan seed',
+  'task.startSeeding': 'Mulakan seed',
+  'task.stopSeedingAll': 'Hentikan seed semua torrent dalam kad ini',
+  'task.startSeedingAll': 'Mulakan seed semua torrent dalam kad ini',
   'task.start': 'Mula',
   'task.restart': 'Mula semula',
   'task.remove': 'Buang',

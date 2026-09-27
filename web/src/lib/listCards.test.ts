@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Task } from './api';
-import { packageCard, splitByCard } from './listCards';
+import { packageCard, seedingOff, seedingOn, splitByCard } from './listCards';
 
 const link = (id: string, over: Partial<Task> = {}): Task => ({
   id,
@@ -148,5 +148,19 @@ describe('splitByCard', () => {
     expect(noTorrents.torrents).toEqual([]);
     const neither = splitByCard(list, { finished: false, torrents: false });
     expect(neither.downloads.map(([n]) => n)).toEqual(['Done', 'Upload']);
+  });
+});
+
+describe('seeding verbs', () => {
+  it('offers the stop for a finished torrent that seeds or is about to, and the start once its seeding is over', () => {
+    expect([seedingOn, seedingOff].map((f) => f(torrent('a', { seeding: true })))).toEqual([true, false]);
+    expect([seedingOn, seedingOff].map((f) => f(torrent('b')))).toEqual([true, false]);
+    expect([seedingOn, seedingOff].map((f) => f(torrent('c', { seedingOver: true })))).toEqual([false, true]);
+  });
+
+  it('offers neither for a torrent still downloading or a download that is not a torrent', () => {
+    for (const x of [torrent('a', { status: 'running' }), link('b'), link('c', { resolver: 'realdebrid' })]) {
+      expect(seedingOn(x) || seedingOff(x)).toBe(false);
+    }
   });
 });

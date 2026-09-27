@@ -33,6 +33,10 @@ export const fa: Dict = {
 
   'task.pause': 'مکث',
   'task.resume': 'ادامه',
+  'task.stopSeeding': 'توقف سید کردن',
+  'task.startSeeding': 'شروع سید کردن',
+  'task.stopSeedingAll': 'توقف سید کردن همه تورنت‌های این کارت',
+  'task.startSeedingAll': 'شروع سید کردن همه تورنت‌های این کارت',
   'task.start': 'شروع',
   'task.restart': 'شروع دوباره',
   'task.remove': 'حذف',

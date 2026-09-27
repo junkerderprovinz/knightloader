@@ -22,6 +22,12 @@ const unpackFailed = (t: Task): boolean => t.unpack === 'error' || t.unpack === 
 // service fetched comes down over HTTP, never seeds, and is not one.
 const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
+/** A finished torrent that seeds or is about to, which Stop seeding ends. */
+export const seedingOn = (t: Task): boolean => t.status === 'done' && isTorrent(t) && !t.seedingOver;
+
+/** A finished torrent that seeds no more, which Start seeding takes up again. */
+export const seedingOff = (t: Task): boolean => t.status === 'done' && isTorrent(t) && !!t.seedingOver;
+
 /**
  * packageCard is the card a package belongs in, judged over all of its links.
  *

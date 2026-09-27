@@ -33,6 +33,10 @@ export const ko: Dict = {
 
   'task.pause': '일시 중지',
   'task.resume': '이어서',
+  'task.stopSeeding': '시드 중지',
+  'task.startSeeding': '시드 시작',
+  'task.stopSeedingAll': '이 카드의 모든 토렌트 시드 중지',
+  'task.startSeedingAll': '이 카드의 모든 토렌트 시드 시작',
   'task.start': '시작',
   'task.restart': '다시 시작',
   'task.remove': '제거',

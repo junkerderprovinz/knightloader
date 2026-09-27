@@ -33,6 +33,10 @@ export const gl: Dict = {
 
   'task.pause': 'Pausar',
   'task.resume': 'Retomar',
+  'task.stopSeeding': 'Deter o seed',
+  'task.startSeeding': 'Iniciar o seed',
+  'task.stopSeedingAll': 'Deter o seed de todos os torrents desta tarxeta',
+  'task.startSeedingAll': 'Iniciar o seed de todos os torrents desta tarxeta',
   'task.start': 'Iniciar',
   'task.restart': 'Reiniciar',
   'task.remove': 'Eliminar',

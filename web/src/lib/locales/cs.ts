@@ -33,6 +33,10 @@ export const cs: Dict = {
 
   'task.pause': 'Pozastavit',
   'task.resume': 'Pokračovat',
+  'task.stopSeeding': 'Zastavit seedování',
+  'task.startSeeding': 'Spustit seedování',
+  'task.stopSeedingAll': 'Zastavit seedování všech torrentů v této kartě',
+  'task.startSeedingAll': 'Spustit seedování všech torrentů v této kartě',
   'task.start': 'Spustit',
   'task.restart': 'Spustit znovu',
   'task.remove': 'Odebrat',

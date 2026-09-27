@@ -18,6 +18,7 @@ import {
   fetchTorrentFiles,
   reorderTasks,
   selectTorrentFiles,
+  setSeeding,
   setTasksEnabled,
   startTasks,
 } from '../api/client';
@@ -373,6 +374,18 @@ export default function DownloadsScreen({
           setStartError('');
           try {
             await setTasksEnabled(conn, links.map((x) => x.id), enabled, base);
+          } catch (e) {
+            setStartError(errorText(t, e));
+            return;
+          }
+          await live.current?.refresh?.().catch(() => {
+            /* the next tick brings it */
+          });
+        }}
+        onSeeding={async (links, seed) => {
+          setStartError('');
+          try {
+            await setSeeding(conn, links.map((x) => x.id), seed, base);
           } catch (e) {
             setStartError(errorText(t, e));
             return;

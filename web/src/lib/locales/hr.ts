@@ -33,6 +33,10 @@ export const hr: Dict = {
 
   'task.pause': 'Pauziraj',
   'task.resume': 'Nastavi',
+  'task.stopSeeding': 'Zaustavi seedanje',
+  'task.startSeeding': 'Pokreni seedanje',
+  'task.stopSeedingAll': 'Zaustavi seedanje svih torrenata u ovoj kartici',
+  'task.startSeedingAll': 'Pokreni seedanje svih torrenata u ovoj kartici',
   'task.start': 'Pokreni',
   'task.restart': 'Pokreni ponovno',
   'task.remove': 'Ukloni',

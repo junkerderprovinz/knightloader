@@ -33,6 +33,10 @@ export const fi: Dict = {
 
   'task.pause': 'Keskeytä',
   'task.resume': 'Jatka',
+  'task.stopSeeding': 'Lopeta jakaminen',
+  'task.startSeeding': 'Aloita jakaminen',
+  'task.stopSeedingAll': 'Lopeta tämän kortin kaikkien torrenttien jakaminen',
+  'task.startSeedingAll': 'Aloita tämän kortin kaikkien torrenttien jakaminen',
   'task.start': 'Aloita',
   'task.restart': 'Aloita alusta',
   'task.remove': 'Poista',

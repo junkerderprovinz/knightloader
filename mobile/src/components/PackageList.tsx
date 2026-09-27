@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { ExtractJob, Task, TorrentFileView } from '../api/types';
-import { isParked, packageState, unpackPercent, unpackProgress, type UnpackProgress } from '../api/taskState';
+import {
+  isParked,
+  packageState,
+  seedingOff,
+  seedingOn,
+  unpackPercent,
+  unpackProgress,
+  type UnpackProgress,
+} from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Power, Trash } from './IconBadge';
@@ -81,6 +89,7 @@ export default function PackageList({
   lineKey,
   onLoadFiles,
   onSelectFiles,
+  onSeeding,
   sections = [],
   unpacking,
 }: {
@@ -122,6 +131,10 @@ export default function PackageList({
   /** The latest unpacking of each file's archive, keyed by task id
    *  (unpackingByTask). Absent where nothing is unpacked or nothing says so. */
   unpacking?: Map<string, ExtractJob>;
+  /** Stops or starts the seeding of the finished torrents given. A package
+   *  header offers the one its torrents are not doing, and a part's heading
+   *  offers both for everything in it. */
+  onSeeding?: (tasks: Task[], seed: boolean) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -309,21 +322,41 @@ export default function PackageList({
    * otherwise arm the drag and press whatever was under the finger, which for
    * the bin means a confirmation dialog nobody asked for.
    */
-  const renderHeading = (section: Section, auf: boolean, scharf: boolean) => (
-    <TouchableOpacity
-      style={styles.heading}
-      disabled={scharf}
-      onPress={() => setFolded((f) => ({ ...f, [section.key]: auf }))}
-      accessibilityRole="button"
-      accessibilityState={{ expanded: auf }}
-      accessibilityLabel={`${section.title} ${section.tasks.length}`}
-    >
-      {/* The count is a badge of its own, as beside the web's card titles. */}
-      <NotchLabel title={section.title} hue={section.hue} />
-      <NotchLabel title={String(section.tasks.length)} hue={section.hue} />
-      <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
-    </TouchableOpacity>
-  );
+  const renderHeading = (section: Section, auf: boolean, scharf: boolean) => {
+    const seeds = onSeeding ? section.tasks.filter(seedingOn) : [];
+    const stopped = onSeeding ? section.tasks.filter(seedingOff) : [];
+    return (
+      <View style={styles.heading}>
+        <TouchableOpacity
+          style={styles.headingFold}
+          disabled={scharf}
+          onPress={() => setFolded((f) => ({ ...f, [section.key]: auf }))}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: auf }}
+          accessibilityLabel={`${section.title} ${section.tasks.length}`}
+        >
+          {/* The count is a badge of its own, as beside the web's card titles. */}
+          <NotchLabel title={section.title} hue={section.hue} />
+          <NotchLabel title={String(section.tasks.length)} hue={section.hue} />
+          <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
+        </TouchableOpacity>
+        {seeds.length > 0 && (
+          <IconBadge
+            symbol="■"
+            onPress={() => scharf || onSeeding?.(seeds, false)}
+            accessibilityLabel={t('downloads.stopSeedingAll')}
+          />
+        )}
+        {stopped.length > 0 && (
+          <IconBadge
+            symbol="▶"
+            onPress={() => scharf || onSeeding?.(stopped, true)}
+            accessibilityLabel={t('downloads.startSeedingAll')}
+          />
+        )}
+      </View>
+    );
+  };
 
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
@@ -335,6 +368,8 @@ export default function PackageList({
           state.word === 'extracting'
             ? pkg.tasks.map(unpackOf).find((u) => u && !u.failed && u.size > 0)
             : undefined;
+        const seeds = onSeeding ? pkg.tasks.filter(seedingOn) : [];
+        const stopped = onSeeding ? pkg.tasks.filter(seedingOff) : [];
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
             {/* The whole caption is the hit target, not the chevron: a folder
@@ -395,6 +430,21 @@ export default function PackageList({
                 onPress={() => scharf || onStartPackage(pkg)}
                 accessibilityLabel={t('packages.start')}
               />
+            )}
+            {seeds.length > 0 ? (
+              <IconBadge
+                symbol="■"
+                onPress={() => scharf || onSeeding?.(seeds, false)}
+                accessibilityLabel={t('packages.stopSeeding')}
+              />
+            ) : (
+              stopped.length > 0 && (
+                <IconBadge
+                  symbol="▶"
+                  onPress={() => scharf || onSeeding?.(stopped, true)}
+                  accessibilityLabel={t('packages.startSeeding')}
+                />
+              )
             )}
             {onDeletePackage && (
               <IconBadge
@@ -475,6 +525,7 @@ const styles = StyleSheet.create({
   },
   headerText: { flex: 1, minWidth: 0, gap: 2 },
   heading: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18 },
+  headingFold: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
   chevron: { fontSize: 17, lineHeight: 20, width: 12, textAlign: 'center' },
   chevronOpen: { transform: [{ rotate: '90deg' }] },

@@ -59,6 +59,9 @@ export interface Task {
   archivePart?: number;
   /** A finished torrent still uploading, a flag beside status 'done'. */
   seeding?: boolean;
+  /** A finished torrent that seeds no more: it reached a seeding target, its
+   *  files are gone, or somebody stopped it. */
+  seedingOver?: boolean;
   /** How many files a torrent has, once that is known. The files themselves
    *  are asked for when the row is opened (fetchTorrentFiles). */
   torrentFileCount?: number;

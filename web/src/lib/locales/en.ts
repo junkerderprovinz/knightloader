@@ -38,6 +38,10 @@ export const en = {
 
   'task.pause': 'Pause',
   'task.resume': 'Resume',
+  'task.stopSeeding': 'Stop seeding',
+  'task.startSeeding': 'Start seeding',
+  'task.stopSeedingAll': 'Stop seeding every torrent in this card',
+  'task.startSeedingAll': 'Start seeding every torrent in this card',
   'task.start': 'Start',
   'task.restart': 'Restart',
   'task.remove': 'Remove',

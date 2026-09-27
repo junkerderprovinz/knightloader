@@ -105,6 +105,13 @@ export type ListCard = 'downloads' | 'finished' | 'torrents';
 // A torrent a debrid service fetched comes down over HTTP and is not one.
 const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
+// The web's twins are in web/src/lib/listCards.ts.
+/** A finished torrent that seeds or is about to, which stopping the seeding ends. */
+export const seedingOn = (t: Task): boolean => t.status === 'done' && isTorrent(t) && !t.seedingOver;
+
+/** A finished torrent that seeds no more, which starting the seeding takes up again. */
+export const seedingOff = (t: Task): boolean => t.status === 'done' && isTorrent(t) && !!t.seedingOver;
+
 /**
  * packageCard is the part of the list a package belongs in, by the rule the
  * web's Downloads page uses (packageCard in web/src/lib/listCards.ts). It is

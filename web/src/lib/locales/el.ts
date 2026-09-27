@@ -33,6 +33,10 @@ export const el: Dict = {
 
   'task.pause': 'Παύση',
   'task.resume': 'Συνέχιση',
+  'task.stopSeeding': 'Διακοπή seeding',
+  'task.startSeeding': 'Έναρξη seeding',
+  'task.stopSeedingAll': 'Διακοπή seeding όλων των torrent αυτής της κάρτας',
+  'task.startSeedingAll': 'Έναρξη seeding όλων των torrent αυτής της κάρτας',
   'task.start': 'Έναρξη',
   'task.restart': 'Επανεκκίνηση',
   'task.remove': 'Αφαίρεση',

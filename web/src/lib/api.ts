@@ -204,6 +204,10 @@ export interface Task {
   /** A finished torrent still uploading. A flag beside status 'done' rather
    *  than a status, so the existing status mappings stay exhaustive. */
   seeding?: boolean;
+  /** A finished torrent that seeds no more: it reached a seeding target, its
+   *  files are gone, or somebody stopped it. Without it a finished torrent
+   *  that is not seeding is about to seed again. */
+  seedingOver?: boolean;
 
   /** Set once at stage time and persisted, unlike the swarm fields. */
   infoHash?: string;
@@ -1367,6 +1371,14 @@ export const pauseTasks = async (ids: string[], base = '/api') =>
 /** resumeTasks puts the paused links of a selection back in the wait queue. */
 export const resumeTasks = async (ids: string[], base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/resume`, { ids })));
+
+/** stopSeeding ends the seeding of the finished torrents of a selection, also across a restart. */
+export const stopSeeding = async (ids: string[], base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/seeding/stop`, { ids })));
+
+/** startSeeding seeds the stopped torrents of a selection again, to the seeding targets counted from now. */
+export const startSeeding = async (ids: string[], base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/seeding/start`, { ids })));
 
 /** deleteTasks removes a selection from the list; `withFiles` also erases what was downloaded. */
 export const deleteTasks = async (ids: string[], withFiles = false, base = '/api') =>

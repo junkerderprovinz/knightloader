@@ -33,6 +33,10 @@ export const eu: Dict = {
 
   'task.pause': 'Pausatu',
   'task.resume': 'Jarraitu',
+  'task.stopSeeding': 'Gelditu seed-a',
+  'task.startSeeding': 'Hasi seed-a',
+  'task.stopSeedingAll': 'Gelditu txartel honetako torrent guztien seed-a',
+  'task.startSeedingAll': 'Hasi txartel honetako torrent guztien seed-a',
   'task.start': 'Hasi',
   'task.restart': 'Berrabiarazi',
   'task.remove': 'Kendu',

@@ -33,6 +33,10 @@ export const ja: Dict = {
 
   'task.pause': '一時停止',
   'task.resume': '再開',
+  'task.stopSeeding': 'シードを停止',
+  'task.startSeeding': 'シードを開始',
+  'task.stopSeedingAll': 'このカードのすべてのトレントのシードを停止',
+  'task.startSeedingAll': 'このカードのすべてのトレントのシードを開始',
   'task.start': '開始',
   'task.restart': 'やり直す',
   'task.remove': '削除',

@@ -33,6 +33,10 @@ export const hi: Dict = {
 
   'task.pause': 'रोकें',
   'task.resume': 'जारी रखें',
+  'task.stopSeeding': 'सीडिंग रोकें',
+  'task.startSeeding': 'सीडिंग शुरू करें',
+  'task.stopSeedingAll': 'इस कार्ड के सभी टॉरेंट की सीडिंग रोकें',
+  'task.startSeedingAll': 'इस कार्ड के सभी टॉरेंट की सीडिंग शुरू करें',
   'task.start': 'शुरू करें',
   'task.restart': 'फिर से शुरू',
   'task.remove': 'हटाएँ',

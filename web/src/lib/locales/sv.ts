@@ -33,6 +33,10 @@ export const sv: Dict = {
 
   'task.pause': 'Pausa',
   'task.resume': 'Fortsätt',
+  'task.stopSeeding': 'Sluta dela',
+  'task.startSeeding': 'Börja dela',
+  'task.stopSeedingAll': 'Sluta dela alla torrenter i det här kortet',
+  'task.startSeedingAll': 'Börja dela alla torrenter i det här kortet',
   'task.start': 'Starta',
   'task.restart': 'Starta om',
   'task.remove': 'Ta bort',

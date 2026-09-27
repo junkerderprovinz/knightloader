@@ -20,6 +20,7 @@ import { usePackageMenu } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
+  SeedingBadges,
   SelectionMore,
   matchesQuickFilters,
   offeredQuickFilters,
@@ -732,6 +733,7 @@ export function Downloads() {
                       title={t(title)}
                       count={flat(shown[card]).length}
                       fold={cardFold[card]}
+                      edge={card === 'torrents' ? <SeedingBadges tasks={flat(shown.torrents)} base={base} /> : undefined}
                       hue={hue}
                     />
                   </div>

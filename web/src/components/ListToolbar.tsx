@@ -33,9 +33,12 @@ import {
   setPackage,
   setQueue as armStopMark,
   setTaskOptions,
+  startSeeding,
   startTasks,
+  stopSeeding,
   undoDelete,
 } from '../lib/api';
+import { seedingOff, seedingOn } from '../lib/listCards';
 import { fmtBytes } from '../lib/format';
 import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
@@ -76,10 +79,12 @@ import {
   IconPriority,
   IconRetry,
   IconSearch,
+  IconStop,
   IconStopMark,
   IconTop,
   IconTrash,
   IconTrashFiles,
+  IconUpload,
 } from '../lib/icons';
 
 /**
@@ -1087,11 +1092,29 @@ function taskMenuGroups({
     ],
   };
 
+  const seeding: MenuGroup = { id: 'seeding', items: [] };
+  const seeds = idsInScope(seedingOn);
+  if (seeds.length > 0)
+    seeding.items.push({
+      id: 'stopSeeding',
+      label: t('task.stopSeeding'),
+      icon: <IconStop width={14} height={14} />,
+      onSelect: guard(() => stopSeeding(seeds, base)),
+    });
+  const stopped = idsInScope(seedingOff);
+  if (stopped.length > 0)
+    seeding.items.push({
+      id: 'startSeeding',
+      label: t('task.startSeeding'),
+      icon: <IconUpload width={14} height={14} />,
+      onSelect: guard(() => startSeeding(stopped, base)),
+    });
+
   // A card of settled packages offers what can be done with a download that is
-  // over: fetching it again and taking it away. The queue, the switches and the
-  // options only matter to a download still to come.
-  if (settled) return [{ id: 'transport', items: transport.items.filter((x) => x.id === 'restart') }, gone];
-  return [transport, queueGroup, state, options, gone];
+  // over: seeding it, fetching it again and taking it away. The queue, the
+  // switches and the options only matter to a download still to come.
+  if (settled) return [seeding, { id: 'transport', items: transport.items.filter((x) => x.id === 'restart') }, gone];
+  return [transport, seeding, queueGroup, state, options, gone];
 }
 
 /** The entry that erases files, the same in the right-click menu and under More. */
@@ -1409,6 +1432,35 @@ export function SelectionMore({
         onClick={(e) => menu.openAt(anchorBelow(e.currentTarget))}
       />
       {menu.anchor && <ContextMenu anchor={menu.anchor} label={t('menu.label')} onClose={menu.close} groups={all} />}
+    </>
+  );
+}
+
+/**
+ * SeedingBadges stop and start the seeding of every torrent a card shows, for
+ * the top edge of the Torrents card. Each is off while none of them would
+ * change.
+ */
+export function SeedingBadges({ tasks, base }: { tasks: Task[]; base: string }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const fail = (e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail');
+  const seeds = tasks.filter(seedingOn).map((x) => x.id);
+  const stopped = tasks.filter(seedingOff).map((x) => x.id);
+  return (
+    <>
+      <IconBadge
+        icon={<IconStop width={16} height={16} />}
+        title={t('task.stopSeedingAll')}
+        disabled={seeds.length === 0}
+        onClick={() => void stopSeeding(seeds, base).catch(fail)}
+      />
+      <IconBadge
+        icon={<IconUpload width={16} height={16} />}
+        title={t('task.startSeedingAll')}
+        disabled={stopped.length === 0}
+        onClick={() => void startSeeding(stopped, base).catch(fail)}
+      />
     </>
   );
 }

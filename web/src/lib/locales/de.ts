@@ -36,6 +36,10 @@ export const de: Dict = {
 
   'task.pause': 'Pausieren',
   'task.resume': 'Fortsetzen',
+  'task.stopSeeding': 'Seeden stoppen',
+  'task.startSeeding': 'Seeden starten',
+  'task.stopSeedingAll': 'Seeden aller Torrents in dieser Karte stoppen',
+  'task.startSeedingAll': 'Seeden aller Torrents in dieser Karte starten',
   'task.start': 'Starten',
   'task.restart': 'Neu starten',
   'task.remove': 'Entfernen',
