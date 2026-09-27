@@ -630,11 +630,23 @@ func TestRemovedTaskStopsBlockingItsOwnLink(t *testing.T) {
 	}
 }
 
+// stopRunner stops the App's own schedule runner for a test that plays the
+// runner itself. applySchedule spots a stale answer by the base its caller last
+// read, so a live runner still finishing the pass a settings save woke would be
+// a second reader, and its late answer could lift a halt after the test set it.
+func stopRunner(t *testing.T, a *App) {
+	t.Helper()
+	if err := a.sched.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // SetHalted(false) disarms the stop mark, because a user resuming the queue has
 // finished with it. A window ending at 06:00 is not the user, so it leaves their
 // "finish this, then stop" alone.
 func TestScheduleNeverClearsTheUsersOwnStop(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	stopRunner(t, a)
 	a.mu.Lock()
 	a.tasks["marked"] = &core.Task{ID: "marked", URL: "https://host.example/x.bin"}
 	a.mu.Unlock()
@@ -663,6 +675,7 @@ func TestTheStopMarkSurvivesTheNextBoundary(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.VerifyChecksums, s.Extract = false, false
 	})
+	stopRunner(t, a)
 	a.mu.Lock()
 	a.tasks["marked"] = &core.Task{ID: "marked", URL: "https://host.example/last.bin", Name: "last.bin"}
 	a.mu.Unlock()
@@ -686,6 +699,7 @@ func TestTheStopMarkSurvivesTheNextBoundary(t *testing.T) {
 // ends and the window has nothing to release.
 func TestManualHaltSurvivesTheEndOfAWindow(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) { s.SpeedLimit = 4096 })
+	stopRunner(t, a)
 
 	a.SetHalted(true)
 	base := a.scheduleBase()
