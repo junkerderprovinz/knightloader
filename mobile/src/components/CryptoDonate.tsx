@@ -211,7 +211,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
               </ScrollView>
 
               <View style={styles.actions}>
-                <GlimButton tone="quiet" label={t('settings.cryptoClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+                <GlimButton tone="quiet" label={t('settings.donateClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
               </View>
             </NotchCard>
           </Pressable>
