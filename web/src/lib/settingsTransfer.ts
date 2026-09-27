@@ -293,6 +293,7 @@ const GROUPS: Record<string, TransferGroup> = {
   modulesOff: 'resolvers',
   ytdlp: 'resolvers',
   ytdlpPresets: 'resolvers',
+  ytdlpAutoUpdate: 'resolvers',
   torrent: 'resolvers',
   captchaSolverOrder: 'resolvers',
   captchaSolverOnlyUnwatched: 'resolvers',

@@ -15,9 +15,9 @@ import { ModuleToggle } from '../ModuleToggle';
 
 // The media tools card shows the yt-dlp and ffmpeg a media download runs, and
 // fetches a newer yt-dlp than the image carries when a site breaks between
-// image builds. The fetch is always a button press, since yt-dlp ships
-// regressions. A fetched copy never moves again, so the card warns when it has
-// fallen behind the image's own (Status.shadowed).
+// image builds, by a button press or once a day while ytdlpAutoUpdate is on.
+// With the daily update off a fetched copy never moves again, so the card warns
+// when it has fallen behind the image's own (Status.shadowed).
 
 const SOURCE_KEYS: Record<string, TranslationKey> = {
   managed: 'settings.resolvers.toolsFrom.managed',
@@ -184,6 +184,13 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           {t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' })}
         </p>
       )}
+
+      <ToggleRow
+        checked={cfg.ytdlpAutoUpdate}
+        onChange={(v) => patch({ ytdlpAutoUpdate: v })}
+        label={t('settings.resolvers.toolsAutoUpdate')}
+        hint={t('settings.resolvers.toolsAutoUpdateHint')}
+      />
 
       <ToggleRow
         checked={cfg.ytdlpVersionCheck}

@@ -37,6 +37,17 @@ submission and for a fixed download.
 
 ## [Unreleased]
 
+### Added
+
+- **yt-dlp keeps itself up to date.** A few minutes after start and then once
+  a day, KnightLoader asks GitHub for the newest yt-dlp. If it is newer than
+  the one in use, KnightLoader downloads it, checks it against the release's
+  checksum and makes sure it runs on the machine before switching to it. If
+  any of that fails, the yt-dlp you have stays in use. The switch is Update
+  yt-dlp once a day on the Tools card under Settings, Resolvers, and it is on
+  from the start. It works in the container and in the desktop app, and it
+  does not install yt-dlp on a machine that has none.
+
 ### Changed
 
 - **The Overview's Instances card shows each instance's name and state badge**,

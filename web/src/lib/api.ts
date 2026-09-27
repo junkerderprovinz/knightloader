@@ -607,9 +607,11 @@ export interface Settings {
   keepAwake: boolean;
 
   /** One request to api.github.com when the Resolvers page loads. It never
-   *  installs anything: replacing the extractor unattended would change what
-   *  every download produces. */
+   *  installs anything; ytdlpAutoUpdate does. */
   ytdlpVersionCheck: boolean;
+  /** Fetches a newer yt-dlp once a day, checked the way the fetch button
+   *  checks it, and keeps the one in use when the check fails. */
+  ytdlpAutoUpdate: boolean;
 
   /**
    * The captcha solvers to try before a human is asked, as catalogue ids in

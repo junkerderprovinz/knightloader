@@ -571,6 +571,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.resolvers.toolsHint',
       rows: [
         { key: 'settings.module.ytdlp' },
+        { key: 'settings.resolvers.toolsAutoUpdate', hint: 'settings.resolvers.toolsAutoUpdateHint' },
         { key: 'settings.resolvers.toolsAutoCheck', hint: 'settings.resolvers.toolsAutoCheckHint' },
         { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
       ],

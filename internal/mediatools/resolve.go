@@ -62,10 +62,10 @@ const probeTimeout = 10 * time.Second
 // KL_YTDLP=/usr/bin/yt-dlp on every install, so the other precedence would
 // make "fetch a newer yt-dlp" a no-op on exactly the deployment where the
 // distribution package lagging behind is the problem: a 200, a new file on
-// disk, a version in the record, and nothing changed about what runs. Nothing
-// changes on upgrade either, because no managed copy exists until somebody
-// presses the button, and the settings card says that KL_YTDLP is not being
-// started and offers "back to the system copy".
+// disk, a version in the record, and nothing changed about what runs. No
+// managed copy exists until the button or the daily update fetches one that
+// is newer than what runs, and from then on the settings card says that
+// KL_YTDLP is not being started and offers "back to the system copy".
 //
 // A recorded copy that does not run loses. The managed copy only wins when the
 // record exists, the file exists and it answers --version with exit 0.
@@ -87,7 +87,7 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 			detail = fmt.Sprintf("the record of the fetched copy (%s) could not be read: %v", recordPath(dataDir), err)
 		case rec == nil:
 			// Nothing was ever fetched. Not a detail: it is the ordinary case
-			// on every install that has not pressed the button.
+			// on every install whose yt-dlp was never behind.
 		default:
 			if _, statErr := os.Stat(managed); statErr != nil {
 				detail = fmt.Sprintf("a fetched copy is recorded at %s and the file is not there", managed)

@@ -145,19 +145,25 @@ initiative (`internal/proxycfg/probe.go`, `internal/reconnect/config.go`). The
 row reports that it is declining, names which question it is declining, and
 points at the UPnP button, which is the thing that CAN be pressed.
 
-## yt-dlp: fetch and verify, never install unattended
+## yt-dlp: fetch and verify, once a day unless switched off
 
 **Built:** a button that fetches a newer yt-dlp, verifies its checksum, proves it
-RUNS on this machine, and only then swaps it in. Plus an opt-in "ask GitHub when
-this page opens" toggle that ships off and only ever checks.
+RUNS on this machine, and only then swaps it in. The same path runs once a day
+on its own, a few minutes after start and every 24 hours, behind a switch that
+ships on. Plus an opt-in "ask GitHub when this page opens" toggle that ships off
+and only ever checks.
 
-**Not built:** an automatic install.
+**Not built:** a daily run that installs yt-dlp where there is none, or that
+replaces a version it cannot put in order against the release, such as a build
+from git.
 
-Replacing the extractor unattended silently changes what downloads produce, and
-yt-dlp does ship regressions. The desktop app does replace its own program
-unattended, but with a KnightLoader release, built and published together with
-the code that runs it, and only from the next start. A new yt-dlp is somebody
-else's release that nothing here has tried against this build.
+yt-dlp does ship regressions, and a new one changes what downloads produce.
+The daily run is on anyway because the other failure is the common one: the
+container carries Alpine's yt-dlp package, which lags weeks behind, and a site
+that changed its page breaks every download from it until yt-dlp catches up. A
+new release that fails its checksum or does not start here replaces nothing,
+and the switch and "back to the system copy" stay on the Resolvers page for the
+regression case.
 
 A fetched copy DOES outrank an explicitly set `KL_YTDLP`, which is the one place
 this feature overrides an operator's own setting. The reason is that the

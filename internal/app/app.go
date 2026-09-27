@@ -42,6 +42,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
+	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
@@ -431,6 +432,7 @@ func New(dataDir string) (*App, error) {
 		siteBench:  map[serviceSite]time.Time{},
 		debrid:     map[string]backend{},
 	}
+	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own
 	// client so a router holding connections open cannot starve a crawl.
