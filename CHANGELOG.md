@@ -63,7 +63,8 @@ submission and for a fixed download.
   captchas waiting, what is downloading right now and the latest downloads.
   One button stops or starts the queue, the other opens the main window. A
   double click on the icon opens the main window, and the menu opens on a
-  right click.
+  right click. Drag its edges to make it larger or smaller; it opens at that
+  size the next time.
 - **The tray menu stops and starts the queue**, and its entries follow the
   language of the interface.
 
@@ -88,7 +89,9 @@ submission and for a fixed download.
 ### Fixed
 
 - **The desktop app's icon has no dark square behind the logo** in the
-  taskbar, the Dock, the installer and the program file.
+  taskbar, the Dock, the installer and the program file. In the taskbar and
+  the notification area the logo is as tall as the icons beside it, and each
+  size is drawn sharp for itself.
 
 ## [1.3.0] - 2026-09-27
 
