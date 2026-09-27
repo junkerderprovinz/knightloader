@@ -99,14 +99,6 @@ jobs:
           make_latest: false
           files: ${{ steps.zip.outputs.path }}
 
-      # For the README download buttons; see .github/scripts/publish-newest.sh.
-      - name: The newest zip under a fixed name
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ZIP: ${{ steps.zip.outputs.path }}
-        run: bash .github/scripts/publish-newest.sh extension "$ZIP" knightloader-extension.zip "Browser Extension"
-
       # Firefox installs only add-ons Mozilla has signed, and the listed channel
       # signs a version once it passes review, so this does not wait for it.
       # The GitHub release comes first: a queue at Mozilla must not hold it up.
