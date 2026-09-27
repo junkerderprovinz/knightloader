@@ -9,11 +9,21 @@
 
 <p align="center">
   <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/ci.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/style.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/style.yml?branch=main&label=Lint&style=for-the-badge&logo=githubactions&logoColor=white" alt="Lint" height="36"></a>&nbsp;
+  <a href="https://hub.docker.com/r/junkerderprovinz/knightloader"><img src="https://img.shields.io/docker/pulls/junkerderprovinz/knightloader?style=for-the-badge&logo=docker&logoColor=white&label=Pulls&color=1d99f3" alt="Docker Pulls" height="36"></a>&nbsp;
+  <a href="https://hub.docker.com/r/junkerderprovinz/knightloader"><img src="https://img.shields.io/docker/image-size/junkerderprovinz/knightloader/latest?style=for-the-badge&logo=docker&logoColor=white&label=Size&color=1d99f3" alt="Image Size" height="36"></a>&nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader"><img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-success?style=for-the-badge&logo=linux&logoColor=white" alt="Arch" height="36"></a>&nbsp;
   <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" height="36"></a>&nbsp;
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React%20%2B%20Tailwind-UI-393939?style=for-the-badge&logo=react&logoColor=white" alt="Web stack" height="36"></a>&nbsp;
+  <a href="https://wails.io"><img src="https://img.shields.io/badge/Desktop-Wails-DF0000?style=for-the-badge&logoColor=white" alt="Wails desktop" height="36"></a>&nbsp;
+  <a href="https://github.com/GopeedLab/gopeed"><img src="https://img.shields.io/badge/Engine-Gopeed-5DC76C?style=for-the-badge&logoColor=white" alt="Gopeed" height="36"></a>&nbsp;
+  <a href="https://jdownloader.org"><img src="https://img.shields.io/badge/Engine-JDownloader-DEC319?style=for-the-badge&logoColor=white" alt="JDownloader" height="36"></a>&nbsp;
+  <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/Engine-yt--dlp-E30505?style=for-the-badge&logoColor=white" alt="yt-dlp" height="36"></a>&nbsp;
   <img src="https://img.shields.io/badge/Languages-42-393939?style=for-the-badge&logo=googletranslate&logoColor=white" alt="Languages" height="36">&nbsp;
-  <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-success?style=for-the-badge&logo=linux&logoColor=white" alt="Arch" height="36">&nbsp;
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-yellow?style=for-the-badge&logo=gnu&logoColor=white" alt="License" height="36"></a>
+  <a href="https://unraid.net"><img src="https://img.shields.io/badge/Unraid-Template-f15a2c?style=for-the-badge&logo=unraid&logoColor=white" alt="Unraid" height="36"></a>&nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge&logo=gnu&logoColor=white" alt="License: AGPL-3.0" height="36"></a>&nbsp;
+  <a href="https://junkerderprovinz.github.io/knightloader/"><img src="https://img.shields.io/badge/Docs-online-526CFE?style=for-the-badge&logo=materialformkdocs&logoColor=white" alt="Documentation" height="36"></a>&nbsp;
+  <a href="https://github.com/junkerderprovinz/knightloader/releases"><img src="https://img.shields.io/github/downloads/junkerderprovinz/knightloader/total?style=for-the-badge&logo=github&logoColor=white&label=Downloads&color=1d99f3" alt="Downloads" height="36"></a>
 </p>
 
 <br>
@@ -73,29 +83,6 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <br>
 
-<div align="center">
-
-> # ⚠️ Under development: please do not install this yet
->
-> **KnightLoader is not ready for anyone to run.** This repository is public so
-> the work can be followed and the browser extension can go through store
-> review.
->
-> The releases, the container image and the downloads above exist so the builds
-> can be tested. KnightLoader is **not listed in Community Applications** yet. What
-> is here changes daily, including things that will break an existing setup without a migration path:
-> the storage format, the settings document, and the wire protocol instances
-> use to reach each other.
->
-> **If you install it now, expect to lose your configuration and your queue.**
-> Nothing here is supported, and no upgrade path is promised yet.
->
-> Watch the repository if you want to know when that changes.
-
-</div>
-
-<br>
-
 ## Table of Contents
 
 1. [Overview](#1-overview)
@@ -137,11 +124,11 @@ The table sets KnightLoader beside the programs people usually weigh it
 against. Every cell about another program comes from that program's own
 documentation, source code or forum as it stood in September 2026; if one has
 changed since, please open an issue. KnightLoader's column describes the code in this
-repository, which is not ready to install yet (see the notice at the top).
+repository.
 
 | | **KnightLoader** | [JDownloader 2](https://jdownloader.org/) | [pyLoad](https://pyload.net/) | [rdt-client](https://github.com/rogerfar/rdt-client) |
 |---|:---:|:---:|:---:|:---:|
-| Stable release | ❌ in development | ✅ | ❌ pre-release | ✅ |
+| Stable release | ✅ | ✅ | ❌ pre-release | ✅ |
 | Open source | ✅ AGPL-3.0 | ⚠️ GPL-3.0, [a few parts closed](https://board.jdownloader.org/showthread.php?p=517795#post517795) | ✅ AGPL-3.0 | ✅ MIT |
 | Runs without a runtime to install | ✅ one Go binary | ⚠️ Java, bundled on Windows and macOS | ❌ Python 3.9 or newer | ❌ .NET 10 |
 | Web interface | ✅ | ⚠️ only through my.jdownloader.org | ✅ | ✅ |
@@ -277,7 +264,7 @@ and accounts in them are made up.
 ## 3. Quick Start
 
 Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
-and arm64 (see the notice above before you run it):
+and arm64:
 
 ```sh
 docker run -d --name knightloader \
@@ -289,8 +276,10 @@ docker run -d --name knightloader \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```
 
-On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over
-SMB can move and delete what KnightLoader downloads.
+On Unraid, search for KnightLoader in Community Applications, or add
+`https://github.com/junkerderprovinz/unraid-apps` under Docker → Template
+repositories. The template runs it with `--user 99:100` and `UMASK=000`, so
+the account you use over SMB can move and delete what KnightLoader downloads.
 
 Then open `http://<host>:8749`. The desktop apps, the Android app and the
 browser extension are covered under
