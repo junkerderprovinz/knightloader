@@ -46,8 +46,7 @@ function usePeerStats(base: string): Stats | null {
 }
 
 // InstanceRow is the quiet form used where instances are a summary rather than
-// the subject of the page: the name, the state badge the Instances page shows,
-// and the current speed.
+// the subject of the page: the name and the state badge the Instances page shows.
 export function InstanceRow({ name, base, onOpen }: { name: string; base: string; onOpen?: () => void }) {
   const { t } = useT();
   const stats = usePeerStats(base);
@@ -64,9 +63,6 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
         tone={online ? 'ok' : refused ? undefined : 'fail'}
         hue={refused ? 3 : undefined}
       />
-      <span className="glim-num shrink-0 text-xs text-carbon-textSub">
-        {stats ? fmtSpeed(stats.speed) || '-' : '-'}
-      </span>
     </>
   );
   return (
