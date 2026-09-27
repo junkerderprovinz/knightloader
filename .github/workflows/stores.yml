@@ -1,0 +1,171 @@
+name: Stores
+
+# Sends a released version to the Chrome Web Store, Edge Add-ons, Firefox
+# Add-ons and Google Play. release.yml calls this once the release is out and
+# is the newest one; a run by hand on a release tag does the same, and with
+# "force" it sends the extension and the app even when they did not change.
+#
+# Each store's first listing is made by hand (extension/store/SUBMISSION.md);
+# the APIs only take new versions of an existing entry. A store whose
+# credentials are not set is skipped with a notice, so a release never waits
+# for one.
+on:
+  workflow_call:
+    inputs:
+      force:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Send the extension and the app even if they did not change
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      extension: ${{ steps.changes.outputs.extension }}
+      app: ${{ steps.changes.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - id: changes
+        env:
+          FORCE: ${{ inputs.force }}
+        run: bash .github/scripts/store-changes.sh
+
+  chrome:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      READY: ${{ vars.CHROME_PUBLISHER_ID != '' && vars.CHROME_ITEM_ID != '' }}
+    steps:
+      - name: Is the Chrome Web Store set up
+        run: |
+          if [ "$READY" != true ]; then
+            echo "::notice::the CHROME_PUBLISHER_ID and CHROME_ITEM_ID variables are not set, so nothing goes to the Chrome Web Store."
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: env.READY == 'true'
+
+      - id: google
+        if: env.READY == 'true'
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          create_credentials_file: false
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+
+      - name: Submit to the Chrome Web Store
+        if: env.READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHROME_TOKEN: ${{ steps.google.outputs.access_token }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID }}
+        run: |
+          set -eu
+          zip="knightloader-${GITHUB_REF_NAME}-extension.zip"
+          gh release download "$GITHUB_REF_NAME" -p "$zip"
+          bash .github/scripts/chrome-webstore.sh "$zip"
+
+  edge:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      READY: ${{ vars.EDGE_PRODUCT_ID != '' && vars.EDGE_CLIENT_ID != '' }}
+    steps:
+      - name: Is Edge Add-ons set up
+        run: |
+          if [ "$READY" != true ]; then
+            echo "::notice::the EDGE_PRODUCT_ID and EDGE_CLIENT_ID variables are not set, so nothing goes to Edge Add-ons."
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: env.READY == 'true'
+
+      - name: Submit to Edge Add-ons
+        if: env.READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ vars.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: |
+          set -eu
+          zip="knightloader-${GITHUB_REF_NAME}-extension.zip"
+          gh release download "$GITHUB_REF_NAME" -p "$zip"
+          bash .github/scripts/edge-addons.sh "$zip" \
+            "KnightLoader ${GITHUB_REF_NAME#v}. What changed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME"
+
+  # AMO signs a listed version once it passes review, so this does not wait
+  # for it.
+  firefox:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      - name: Is this version for Firefox Add-ons
+        id: amo
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: node .github/scripts/amo-listed.mjs
+
+      - name: Submit to Firefox Add-ons
+        if: steps.amo.outputs.submit == 'true'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: npx --yes web-ext@8 sign --channel=listed --approval-timeout=0 --source-dir extension/src
+
+  play:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      READY: ${{ vars.PLAY_TRACK != '' }}
+    steps:
+      - name: Is Google Play set up
+        run: |
+          if [ "$READY" != true ]; then
+            echo "::notice::the PLAY_TRACK variable is not set, so nothing goes to Google Play."
+          fi
+
+      - name: Download the app bundle
+        if: env.READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" -p "knightloader-${GITHUB_REF_NAME}-android.aab"
+
+      - name: Submit to Google Play
+        if: env.READY == 'true'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.junkerderprovinz.knightloader
+          releaseFiles: knightloader-${{ github.ref_name }}-android.aab
+          track: ${{ vars.PLAY_TRACK }}
+          status: completed

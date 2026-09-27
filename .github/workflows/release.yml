@@ -11,8 +11,8 @@ name: Release
 #
 # The images build alongside, and their `latest` moves only once the release is
 # out, by the same rule the release uses. dockerhub-copy.yml puts a release
-# that is already out on Docker Hub, and firefox-addons.yml sends a released
-# extension to Mozilla.
+# that is already out on Docker Hub, and stores.yml, called last, sends what
+# changed to the browser stores and Google Play.
 on:
   push:
     tags:
@@ -147,8 +147,10 @@ jobs:
           printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
           test -s "$RUNNER_TEMP/release.jks"
 
-      - name: Build the APK
-        run: ./gradlew assembleRelease --no-daemon
+      # The APK is for direct installs, the bundle for Google Play, which
+      # takes nothing else.
+      - name: Build the APK and the app bundle
+        run: ./gradlew assembleRelease bundleRelease --no-daemon
         working-directory: mobile/android
         env:
           KL_ANDROID_KEYSTORE: ${{ env.SIGNED == 'true' && format('{0}/release.jks', runner.temp) || '' }}
@@ -178,6 +180,12 @@ jobs:
         with:
           name: android-apk
           path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: android-aab
+          path: mobile/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
   # The zip is src/ as it is, with no build step, so the checks CI runs on it
@@ -239,6 +247,11 @@ jobs:
           name: android-apk
           path: apk
 
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: android-aab
+          path: aab
+
       # Each file goes out twice: named for the tag, and without a version for
       # the README buttons and the desktop app's update, since
       # /releases/latest/download/ takes only an exact name. A dispatched run
@@ -261,6 +274,7 @@ jobs:
           done
           cp apk/app-release.apk "dist/knightloader-${v}-android.apk"
           cp apk/app-release.apk dist/knightloader-android.apk
+          cp aab/app-release.aab "dist/knightloader-${v}-android.aab"
           # The Firefox zip holds the same files the server embeds and serves.
           # Edge Add-ons refuses a manifest that names background.scripts next
           # to the service worker, so the zip for Chromium browsers drops that
@@ -286,7 +300,7 @@ jobs:
       - name: Checksums
         run: |
           set -eu
-          (cd dist && sha256sum *.zip *.exe *.apk > checksums.txt)
+          (cd dist && sha256sum *.zip *.exe *.apk *.aab > checksums.txt)
           cat dist/checksums.txt
 
       # Only from a pushed tag. checksums.txt is named explicitly rather than
@@ -296,7 +310,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.apk dist/checksums.txt
+        run: bash .github/scripts/publish-release.sh dist/*.zip dist/*.exe dist/*.apk dist/*.aab dist/checksums.txt
 
   # The KnightLoader image and the self-hostable relay image, which the
   # settings page's run command for a private relay points at. Only a pushed
@@ -441,3 +455,13 @@ jobs:
               "${image}:${version}"
             echo "${image}: latest, ${version%.*} and ${version%%.*} are ${version}"
           done
+
+  # Only the newest release goes to the stores: each of them refuses a version
+  # lower than the one it has, so re-cutting an older one sends nothing.
+  stores:
+    needs: publish
+    if: github.event_name == 'push' && github.ref_type == 'tag' && needs.publish.outputs.latest == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/stores.yml
+    secrets: inherit

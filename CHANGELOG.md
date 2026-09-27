@@ -37,6 +37,17 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **Releases go to the stores on their own.** Once a release is out, the new
+  Stores workflow submits the extension to the Chrome Web Store, Edge Add-ons
+  and Firefox Add-ons, and the Android app to Google Play. The extension goes
+  only when something in it changed since the previous release, and the app
+  likewise, so no store reviews a version that is the same as the last one.
+  A store whose credentials are not set up yet is skipped.
+- **An app bundle for Google Play.** Each release carries
+  `knightloader-vX.Y.Z-android.aab` next to the APK, signed with the same key.
+
 ### Fixed
 
 - **The extension zip passes Edge Add-ons.** Edge refused the package because
