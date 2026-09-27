@@ -3,6 +3,12 @@ Unicode true
 # Wails fills in the project's name, version and binaries in wails_tools.nsh,
 # which it writes on every -nsis build. This file is Wails' own template with a
 # page for choosing the shortcuts.
+
+# For the person installing only, under AppData\Local\Programs: an update then
+# replaces the program without asking for an administrator.
+!define REQUEST_EXECUTION_LEVEL "user"
+!define WAILS_INSTALL_SCOPE "user"
+
 !include "wails_tools.nsh"
 !include "LogicLib.nsh"
 !include "Sections.nsh"
@@ -98,6 +104,30 @@ SectionEnd
 Function .onInit
     !insertmacro wails.checkArchitecture
     !insertmacro wails.setShellContext
+
+    # A version installed for all users sits in Program Files. Its own
+    # uninstaller asks for an administrator once, and this installation takes
+    # its place. It hands itself to a copy and returns at once, so the wait is
+    # for its registry entry to go.
+    SetRegView 64
+    ClearErrors
+    ReadRegStr $1 HKLM "${UNINST_KEY}" "UninstallString"
+    ${IfNot} ${Errors}
+        StrCpy $1 $1 "" 1
+        StrCpy $1 $1 -1
+        ExecShellWait "runas" "$1" "/S"
+        StrCpy $2 0
+        ${Do}
+            Sleep 500
+            ClearErrors
+            ReadRegStr $3 HKLM "${UNINST_KEY}" "UninstallString"
+            ${If} ${Errors}
+                ${Break}
+            ${EndIf}
+            IntOp $2 $2 + 1
+        ${LoopUntil} $2 >= 120
+    ${EndIf}
+    SetRegView default
 
     # Both are ticked on a first install; later ones start from the last choice.
     ClearErrors
