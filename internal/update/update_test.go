@@ -348,6 +348,23 @@ func TestParseVersion(t *testing.T) {
 	}
 }
 
+func TestNewerNeedsTwoReleaseVersions(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		want bool
+	}{
+		{"1.3.0", "v1.2.9", true},
+		{"1.2.0", "v1.2.0", false},
+		{"1.1.0", "1.2.0", false},
+		{"1.3.0", "dev", false},
+		{"", "1.2.0", false},
+	} {
+		if got := Newer(c.a, c.b); got != c.want {
+			t.Errorf("Newer(%q, %q) = %v, want %v", c.a, c.b, got, c.want)
+		}
+	}
+}
+
 func TestLookupSumReadsSha256sumOutput(t *testing.T) {
 	sums := []byte("ABCDEF  one.exe\n123456 *two.zip\n")
 	if got, ok := lookupSum(sums, "one.exe"); !ok || got != "abcdef" {

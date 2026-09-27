@@ -31,6 +31,16 @@ import (
 var generatingBindings bool
 
 func main() {
+	// The installer's scheduled task starts the program this way as the system
+	// account. It must not provision JDownloader, listen for Click'n'Load or
+	// open a window, so it runs before any of that.
+	if len(os.Args) == 2 && os.Args[1] == "--update" {
+		if err := updateInstalled(); err != nil {
+			os.Exit(1)
+		}
+		return
+	}
+
 	// Must be set before app.New; the default is "container".
 	buildinfo.Deployment = "desktop"
 	// The desktop opens no listener, so it never announces, but it still
@@ -81,12 +91,24 @@ func main() {
 	// down through a.Close.
 
 	// A newer release is downloaded in the background and starts next time;
-	// see updates.go.
-	up := newUpdater(a, func(version string) { tc.emit(updateReadyEvent, version) })
+	// see updates.go. The copy installed for all users leaves that to the
+	// installer's scheduled task, which reads the switch from ProgramData, and
+	// only passes on the news.
+	installed := isInstalled()
+	if installed {
+		if dir, err := machineData(); err == nil {
+			a.Settings.KeepAutoUpdateIn(filepath.Join(dir, machineSettingsFile))
+		}
+	}
+	up := newUpdater(log.Printf, func(version string) { tc.emit(updateReadyEvent, version) })
 	a.UpdateReady = up.readyVersion
 	updateCtx, stopUpdates := context.WithCancel(context.Background())
-	if !generatingBindings {
-		go up.run(updateCtx)
+	switch {
+	case generatingBindings:
+	case installed:
+		go up.follow(updateCtx)
+	default:
+		go up.run(updateCtx, func() bool { return a.Settings.Get().AutoUpdate })
 	}
 
 	// Only the desktop can put the machine to sleep; internal/idleaction offers

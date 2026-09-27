@@ -121,17 +121,28 @@ func TestCleanupRemovesTheOldProgramOnceItHasExited(t *testing.T) {
 	}
 }
 
-func TestRecordVersionUpdatesOnlyTheInstalledCopy(t *testing.T) {
+// testEntry creates an uninstall entry under HKCU and points the package at
+// it for the length of the test.
+func testEntry(t *testing.T) (registry.Key, string) {
+	t.Helper()
 	name := "update-test-" + strings.ReplaceAll(t.Name(), "/", "-") + time.Now().Format("150405.000")
 	k, _, err := registry.CreateKey(registry.CURRENT_USER, uninstallRoot+name, registry.ALL_ACCESS)
 	if err != nil {
 		t.Fatal(err)
 	}
+	hive := uninstallHive
+	uninstallHive = registry.CURRENT_USER
 	t.Cleanup(func() {
+		uninstallHive = hive
 		k.Close()
 		registry.DeleteKey(registry.CURRENT_USER, uninstallRoot+name)
 	})
-	exe := `C:\Users\someone\AppData\Local\Programs\Prog\Prog.exe`
+	return k, name
+}
+
+func TestRecordVersionUpdatesOnlyTheInstalledCopy(t *testing.T) {
+	k, name := testEntry(t)
+	exe := `C:\Program Files\Prog\Prog.exe`
 	k.SetStringValue("DisplayIcon", exe)
 	k.SetStringValue("DisplayVersion", "1.3.0")
 
@@ -149,5 +160,21 @@ func TestRecordVersionUpdatesOnlyTheInstalledCopy(t *testing.T) {
 	}
 	if err := recordVersion(name+"-missing", exe, "1.4.0"); err != nil {
 		t.Errorf("a missing entry: %v", err)
+	}
+}
+
+func TestInstallLocationAndVersionComeFromTheEntry(t *testing.T) {
+	k, name := testEntry(t)
+	k.SetStringValue("InstallLocation", `C:\Program Files\Prog`)
+	k.SetStringValue("DisplayVersion", "1.3.0")
+
+	if got := InstallLocation(name); got != `C:\Program Files\Prog` {
+		t.Errorf("InstallLocation = %q", got)
+	}
+	if got := InstalledVersion(name); got != "1.3.0" {
+		t.Errorf("InstalledVersion = %q", got)
+	}
+	if got := InstallLocation(name + "-missing"); got != "" {
+		t.Errorf("a missing entry has the location %q", got)
 	}
 }
