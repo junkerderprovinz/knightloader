@@ -57,6 +57,15 @@ submission and for a fixed download.
 - **The container image is on Docker Hub too**, as
   `junkerderprovinz/knightloader`. `latest` there moves by the same rule as on
   GHCR, once the release is out.
+- **A small window at the tray icon.** A click on KnightLoader's icon in the
+  notification area or the menu bar opens it beside the icon. It shows the
+  total speed, how many downloads are active, queued, done and failed, the
+  captchas waiting, what is downloading right now and the latest downloads.
+  One button stops or starts the queue, the other opens the main window. A
+  double click on the icon opens the main window, and the menu opens on a
+  right click.
+- **The tray menu stops and starts the queue**, and its entries follow the
+  language of the interface.
 
 ### Changed
 
@@ -64,12 +73,22 @@ submission and for a fixed download.
 - **The README's badges** add the lint run, the Docker Hub pulls and image
   size, the desktop app, the three download engines, the manual and the
   release downloads.
+- **The desktop app is built on Wails 3 and uses its tray.** The tray came
+  from a second library that also wanted the program's main thread on macOS,
+  where a start could fail when both asked at once. On macOS and Linux the
+  window loads the interface from a new address, so once after the update it
+  forgets the language and look you chose and starts from your system's.
 - **The Overview's Instances card shows each instance's name and state badge**,
   with the badge at the right edge. The speed beside it, a lone dash while
   nothing downloads, is gone.
 - **The downloaded volume's selectors sit under the chart**, below the figures
   they choose.
 - **The closed envelope on the About card's mail button sits in the middle of the button**, as GlimStone 3.0.1 draws it. It stood a little too low.
+
+### Fixed
+
+- **The desktop app's icon has no dark square behind the logo** in the
+  taskbar, the Dock, the installer and the program file.
 
 ## [1.3.0] - 2026-09-27
 
