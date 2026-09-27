@@ -140,6 +140,9 @@ submission and for a fixed download.
 
 ### Fixed
 
+- The fold buttons on the top edge of the Finished and Torrents cards are no
+  longer cut off at the top. The list above them clipped half a button's
+  height minus a few pixels, which left a title badge whole but not a button.
 - KnightLoader no longer crashes when it is stopped within a moment of a
   torrent starting, as can happen when a restart resumes seeding and the
   container is stopped again at once.
