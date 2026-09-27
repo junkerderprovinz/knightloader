@@ -197,8 +197,8 @@ if (bundles.length === 0) {
 // go.mod is the one place the number lives and the one thing worth comparing
 // against.
 const DESKTOP_GOMOD = read('desktop', 'go.mod');
-const manualWails = INSTALLING.match(/wails\/v2\/cmd\/wails@(v[\d.]+)/)?.[1];
-const modWails = DESKTOP_GOMOD.match(/wailsapp\/wails\/v2 (v[\d.]+)/)?.[1];
+const manualWails = INSTALLING.match(/wails\/v3\/cmd\/wails3@(v[\w.-]+)/)?.[1];
+const modWails = DESKTOP_GOMOD.match(/wailsapp\/wails\/v3 (v[\w.-]+)/)?.[1];
 if (!manualWails || !modWails) {
   fail('the wails install line is missing from docs/installing.md, or the require line from desktop/go.mod');
 } else if (manualWails !== modWails) {

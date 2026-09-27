@@ -1,0 +1,12 @@
+# What `wails3 update build-assets` writes into the Windows manifest and version
+# resource, the macOS Info.plist and the installer. scripts/desktop.mjs runs it
+# on every build and passes the version.
+version: '3'
+
+info:
+  companyName: "junkerderprovinz"
+  productName: "KnightLoader"
+  productIdentifier: "com.junkerderprovinz.knightloader"
+  description: "Self-hosted, cross-platform download manager"
+  copyright: "junkerderprovinz"
+  comments: "Self-hosted, cross-platform download manager"

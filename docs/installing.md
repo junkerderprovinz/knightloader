@@ -217,18 +217,18 @@ release exists; pull the new image the way you deployed this one.
 ### Building it from source
 
 ```sh
-go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
-cd desktop && wails build
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.26
+node scripts/desktop.mjs
 ```
 
-The bundle lands in `desktop/build/bin`. It is a dev build, which never updates
-itself; only a build stamped with its version, as the release workflow makes,
-does (see `desktop/README.md`). Windows and macOS need only their
-usual toolchains. Linux needs GTK and WebKit: `libgtk-3-dev` and
-`libwebkit2gtk-4.1-dev` to build. Build it there with
-`wails build -tags webkit2_41`. Without the tag Wails looks for webkit2gtk
-**4.0**, which Ubuntu 24.04 and its relatives no longer package, and the error
-names a missing package rather than a dropped version.
+The bundle lands in `desktop/build/bin`; `--installer` adds the Windows
+installer, which needs NSIS. It is a dev build, which never updates itself;
+only a build stamped with its version, as the release workflow makes, does (see
+`desktop/README.md`). Windows and macOS need only their usual toolchains. Linux
+needs GTK 3 and WebKit: `libgtk-3-dev` and `libwebkit2gtk-4.1-dev` to build.
+There, install the CLI with `go install -tags gtk3 ...` as well. Without the tag
+the CLI looks for GTK 4, and the error names a missing package rather than the
+tag.
 
 ## The Android app
 

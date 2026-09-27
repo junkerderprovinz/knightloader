@@ -9,8 +9,9 @@ import (
 )
 
 type emitted struct {
-	name string
-	typ  string // the hub message's type, empty for a close
+	window string
+	name   string
+	typ    string // the hub message's type, empty for a close
 }
 
 // newTestBridge returns a bridge over a fresh app whose events land on the
@@ -24,8 +25,8 @@ func newTestBridge(t *testing.T) (*HubBridge, *app.App, chan emitted) {
 	}
 	t.Cleanup(func() { _ = a.Close() })
 	events := make(chan emitted, 256)
-	b := newHubBridge(a, func(name string, data ...any) {
-		e := emitted{name: name}
+	b := newHubBridge(a, func(window, name string, data ...any) {
+		e := emitted{window: window, name: name}
 		if len(data) == 1 {
 			var msg struct {
 				Type string `json:"type"`
@@ -73,7 +74,7 @@ func nothing(t *testing.T, events chan emitted, name, typ string) {
 
 func TestStreamStartsWithTheSnapshotsASocketGets(t *testing.T) {
 	b, a, events := newTestBridge(t)
-	b.Open("p1", "p1.1")
+	b.Open("main", "p1", "p1.1")
 	next(t, events, "hub:p1.1", "snapshot")
 	next(t, events, "hub:p1.1", "activitySnapshot")
 
@@ -83,7 +84,7 @@ func TestStreamStartsWithTheSnapshotsASocketGets(t *testing.T) {
 
 func TestSubscribeFrameNarrowsTheStream(t *testing.T) {
 	b, a, events := newTestBridge(t)
-	b.Open("p1", "p1.1")
+	b.Open("main", "p1", "p1.1")
 	next(t, events, "hub:p1.1", "activitySnapshot")
 
 	b.Send("p1.1", `{"type":"subscribe","kinds":["task"]}`)
@@ -95,7 +96,7 @@ func TestSubscribeFrameNarrowsTheStream(t *testing.T) {
 
 func TestStreamIsAViewerOnlyWhileItReportsVisible(t *testing.T) {
 	b, a, _ := newTestBridge(t)
-	b.Open("p1", "p1.1")
+	b.Open("main", "p1", "p1.1")
 	b.Send("p1.1", `{"type":"subscribe","kinds":["captcha"]}`)
 	if a.Hub.Watched("captcha", 0) {
 		t.Fatal("watched before the stream reported anything")
@@ -117,12 +118,12 @@ func TestStreamIsAViewerOnlyWhileItReportsVisible(t *testing.T) {
 
 func TestReloadedPageDropsTheStreamsOfTheOldOne(t *testing.T) {
 	b, a, events := newTestBridge(t)
-	b.Open("p1", "p1.1")
-	b.Open("p1", "p1.2")
+	b.Open("main", "p1", "p1.1")
+	b.Open("main", "p1", "p1.2")
 	if n := a.Hub.Len(); n != 2 {
 		t.Fatalf("hub holds %d connections, want 2", n)
 	}
-	b.Open("p2", "p2.1")
+	b.Open("main", "p2", "p2.1")
 	if n := a.Hub.Len(); n != 1 {
 		t.Fatalf("hub holds %d connections after the reload, want 1", n)
 	}
@@ -131,14 +132,49 @@ func TestReloadedPageDropsTheStreamsOfTheOldOne(t *testing.T) {
 
 func TestHubDropIsReportedToThePage(t *testing.T) {
 	b, a, events := newTestBridge(t)
-	b.Open("p1", "p1.1")
+	b.Open("main", "p1", "p1.1")
 	a.Hub.Remove(b.lookup("p1.1"))
 	next(t, events, "hub:p1.1:closed", "")
 }
 
 func TestClosedStreamIsNotReportedAsDropped(t *testing.T) {
 	b, _, events := newTestBridge(t)
-	b.Open("p1", "p1.1")
+	b.Open("main", "p1", "p1.1")
 	b.Close("p1.1")
 	nothing(t, events, "hub:p1.1:closed", "")
+}
+
+// The tray window is a page of its own, and its first stream must not end the
+// main window's.
+func TestAPageInTheOtherWindowKeepsTheseStreams(t *testing.T) {
+	b, a, _ := newTestBridge(t)
+	b.Open("main", "p1", "p1.1")
+	b.Open("tray", "p2", "p2.1")
+	if n := a.Hub.Len(); n != 2 {
+		t.Fatalf("hub holds %d connections, want both windows' streams", n)
+	}
+	b.Open("tray", "p3", "p3.1")
+	if b.lookup("p1.1") == nil || b.lookup("p2.1") != nil {
+		t.Error("a reload in the tray window reached beyond its own streams")
+	}
+}
+
+func TestAStreamSpeaksOnlyToTheWindowThatOpenedIt(t *testing.T) {
+	b, a, events := newTestBridge(t)
+	b.Open("tray", "p1", "p1.1")
+	a.Hub.Broadcast("queue", "x")
+	deadline := time.After(5 * time.Second)
+	for {
+		select {
+		case e := <-events:
+			if e.window != "tray" {
+				t.Fatalf("stream p1.1 sent %s to window %q", e.name, e.window)
+			}
+			if e.typ == "queue" {
+				return
+			}
+		case <-deadline:
+			t.Fatal("the queue broadcast never arrived")
+		}
+	}
 }

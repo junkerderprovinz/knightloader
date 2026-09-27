@@ -1,8 +1,8 @@
 package main
 
 // Wails' asset handler cannot upgrade a request to a WebSocket, so /api/ws
-// never connects in the window. HubBridge carries the same stream over Wails
-// events instead. Every stream the page opens is a hub connection of its own,
+// never connects in a window. HubBridge carries the same stream over Wails
+// events instead. Every stream a page opens is a hub connection of its own,
 // started by api.OpenStream and fed the page's frames through
 // api.StreamControl, so snapshots, subscriptions and visibility behave as they
 // do for a socket in a browser.
@@ -16,41 +16,45 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
-// HubBridge is bound to the frontend as window.go.main.HubBridge.
+// HubBridge is bound to the frontend as main.HubBridge.
 type HubBridge struct {
-	app  *app.App
-	emit func(name string, data ...any)
+	app *app.App
+	// emit sends one event to the named window only, so the main window and
+	// the tray window each get the streams they opened.
+	emit func(window, name string, data ...any)
 
 	mu sync.Mutex
-	// page names the page instance whose streams are open. A page that
-	// reloads never closes its streams, so the first Open from a new page
-	// drops them.
-	page    string
+	// pages names the page instance in each window whose streams are open. A
+	// page that reloads never closes its streams, so the first Open from a
+	// new page in the same window drops them.
+	pages   map[string]string
 	streams map[string]*bridgeStream
 	stopped bool
 }
 
-func newHubBridge(a *app.App, emit func(name string, data ...any)) *HubBridge {
-	return &HubBridge{app: a, emit: emit, streams: map[string]*bridgeStream{}}
+func newHubBridge(a *app.App, emit func(window, name string, data ...any)) *HubBridge {
+	return &HubBridge{app: a, emit: emit, pages: map[string]string{}, streams: map[string]*bridgeStream{}}
 }
 
-// Open starts stream id for page. Its messages arrive as the Wails event
-// "hub:<id>", and "hub:<id>:closed" says the hub dropped it.
-func (b *HubBridge) Open(page, id string) {
+// Open starts stream id for page in window. Its messages arrive as the Wails
+// event "hub:<id>", and "hub:<id>:closed" says the hub dropped it.
+func (b *HubBridge) Open(window, page, id string) {
 	b.mu.Lock()
 	if b.stopped {
 		b.mu.Unlock()
 		return
 	}
 	var stale []*bridgeStream
-	if page != b.page {
-		for _, s := range b.streams {
-			stale = append(stale, s)
+	if page != b.pages[window] {
+		for sid, s := range b.streams {
+			if s.window == window {
+				stale = append(stale, s)
+				delete(b.streams, sid)
+			}
 		}
-		b.streams = map[string]*bridgeStream{}
-		b.page = page
+		b.pages[window] = page
 	}
-	s := &bridgeStream{b: b, id: id}
+	s := &bridgeStream{b: b, id: id, window: window}
 	b.streams[id] = s
 	b.mu.Unlock()
 
@@ -99,16 +103,17 @@ func (b *HubBridge) lookup(id string) *bridgeStream {
 }
 
 // bridgeStream is one stream as the hub sees it: a hub.Conn whose writes
-// become Wails events.
+// become Wails events in the window that opened it.
 type bridgeStream struct {
-	b  *HubBridge
-	id string
+	b      *HubBridge
+	id     string
+	window string
 }
 
 // Write hands the frame on as the string a socket's onmessage would get, so
 // the page parses it the same way.
 func (s *bridgeStream) Write(_ context.Context, _ websocket.MessageType, p []byte) error {
-	s.b.emit("hub:"+s.id, string(p))
+	s.b.emit(s.window, "hub:"+s.id, string(p))
 	return nil
 }
 
@@ -123,7 +128,7 @@ func (s *bridgeStream) CloseNow() error {
 	}
 	s.b.mu.Unlock()
 	if dropped {
-		s.b.emit("hub:" + s.id + ":closed")
+		s.b.emit(s.window, "hub:"+s.id+":closed")
 	}
 	return nil
 }

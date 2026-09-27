@@ -15,38 +15,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # platform names the target, which internal/update's Assets and the
+        # manual are checked against; args is what scripts/desktop.mjs builds.
         include:
+          # The installer, next to the portable exe in the zip.
           - os: windows-latest
             platform: windows/amd64
             slug: windows-amd64
-            # The installer, next to the portable exe in the zip.
-            extra: "-nsis"
-          # Cross-built on the x64 runner, which can still run the host binary
-          # Wails generates the bindings with. WebView2 needs no cgo, and with
-          # cgo on, the build would want an arm64 C compiler the runner lacks.
+            args: "--arch amd64 --installer"
+          # Cross-built on the x64 runner: WebView2 needs no cgo, so the build
+          # wants no ARM64 C compiler.
           - os: windows-latest
             platform: windows/arm64
             slug: windows-arm64
-            extra: "-nsis"
-            cgo: "0"
+            args: "--arch arm64 --installer"
           - os: macos-latest
             platform: darwin/universal
             slug: macos-universal
-            extra: ""
-          # Wails binds webkit2gtk-4.0 by default and Ubuntu 24.04 ships only
-          # 4.1, which pkg-config reports as a missing package. The flag is a
-          # whole string so it expands to nothing on the other platforms, where
-          # the step runs under pwsh or bash.
+            args: ""
+          # Built natively: WebKitGTK is linked through cgo, and Wails does not
+          # cross-compile to Linux.
           - os: ubuntu-latest
             platform: linux/amd64
             slug: linux-amd64
-            extra: "-tags webkit2_41"
-          # Built natively: webkit2gtk is linked through cgo, and Wails does
-          # not cross-compile to Linux.
+            args: "--arch amd64"
           - os: ubuntu-24.04-arm
             platform: linux/arm64
             slug: linux-arm64
-            extra: "-tags webkit2_41"
+            args: "--arch arm64"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -61,65 +57,47 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "24"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
-      # No libayatana-appindicator3-dev: go-systray talks StatusNotifierItem
-      # over D-Bus in pure Go on Linux.
+      # No libayatana-appindicator3-dev: Wails talks StatusNotifierItem over
+      # D-Bus in pure Go on Linux.
       - name: Linux WebKit deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
-      # -nsis needs makensis, and the runner image has dropped its
+      # The installer needs makensis, and the runner image has dropped its
       # preinstalled NSIS before (actions/runner-images#11754).
       - name: Install NSIS
         if: runner.os == 'Windows'
         run: |
           choco install nsis -y
-          # The running job does not see choco's PATH change, and wails only
-          # warns "makensis not found" and skips the installer.
+          # The running job does not see choco's PATH change, and a missing
+          # makensis would only surface at the last step.
           echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       # The CLI must match the library version in desktop/go.mod, so it is read
       # from there and the step fails if it cannot find it. bash on every
-      # runner, and sed rather than grep -P, which BSD grep on macOS lacks.
+      # runner, and sed rather than grep -P, which BSD grep on macOS lacks. The
+      # CLI links the Linux webview too, and without the tag it wants GTK 4,
+      # which the runner does not have; elsewhere the tag changes nothing.
       - name: Install Wails
         working-directory: desktop
         shell: bash
         run: |
-          version=$(sed -n 's|.*github\.com/wailsapp/wails/v2 \(v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*|\1|p' go.mod | head -1)
+          version=$(sed -n 's|.*github\.com/wailsapp/wails/v3 \(v[0-9][0-9A-Za-z.-]*\).*|\1|p' go.mod | head -1)
           if [ -z "$version" ]; then
             echo "could not read the wails version out of desktop/go.mod" >&2
             exit 1
           fi
-          echo "installing wails CLI $version, as required by desktop/go.mod"
-          go install github.com/wailsapp/wails/v2/cmd/wails@"$version"
+          echo "installing wails3 CLI $version, as required by desktop/go.mod"
+          go install -tags gtk3 github.com/wailsapp/wails/v3/cmd/wails3@"$version"
 
-      # Wails runs the built binary to generate bindings, and the start report
-      # fails on a runner without yt-dlp or ffmpeg.
-      #
-      # Only a tag build knows its version. Every other build keeps "dev", which
-      # never updates itself. wails.json carries the version into the exe's
-      # details and the installer's entry in the list of installed apps.
+      # Only a tag build knows its version, which scripts/desktop.mjs reads
+      # from the ref. Every other build keeps "dev", which never updates
+      # itself.
       - name: Build
-        working-directory: desktop
-        shell: bash
-        env:
-          KL_STARTUP_CHECK: "0"
-          # Empty for every entry without a cgo key, which leaves Go's own
-          # default; Wails turns it on for Linux and macOS regardless.
-          CGO_ENABLED: ${{ matrix.cgo }}
-        run: |
-          set -eu
-          ldflags=""
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            ldflags="-X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=$GITHUB_REF_NAME"
-            node -e 'const fs = require("fs"); const j = JSON.parse(fs.readFileSync("wails.json", "utf8")); j.info.productVersion = process.argv[1]; fs.writeFileSync("wails.json", JSON.stringify(j, null, 2) + "\n")' "${GITHUB_REF_NAME#v}"
-          fi
-          go mod tidy
-          wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }} -ldflags "$ldflags"
+        run: node scripts/desktop.mjs ${{ matrix.args }}
 
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip
@@ -138,7 +116,6 @@ jobs:
           Compress-Archive -Path desktop/build/bin/KnightLoader.exe -DestinationPath "knightloader-${{ matrix.slug }}.zip"
           Copy-Item desktop/build/bin/KnightLoader-*-installer.exe "knightloader-${{ matrix.slug }}-installer.exe"
 
-      # Named by the slug, since the platform string contains a slash.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: knightloader-${{ matrix.slug }}
