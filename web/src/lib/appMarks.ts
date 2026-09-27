@@ -46,8 +46,8 @@ export const COFFEE_BUTTON_SVG =
 // leaves room for the open flap, so the envelope opens under the pointer
 // without jumping (glyphs.md, IconMail and IconMailOpen).
 export const MAIL_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 0.64 20 19.36" class="glim-mark-rest"><path fill="currentColor" d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/></svg>' +
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 0.64 20 19.36" class="glim-mark-hover"><path fill="currentColor" d="M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z"/></svg>';
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 2.32 20 19.36" class="glim-mark-rest"><path fill="currentColor" d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/></svg>' +
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 2.32 20 19.36" overflow="visible" class="glim-mark-hover"><path fill="currentColor" d="M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z"/></svg>';
 
 // KnightLoader's own logo from assets/logo.svg with its classes resolved to
 // fills, since a <style> in inline SVG would reach the whole page. The lit one
