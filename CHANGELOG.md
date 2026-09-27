@@ -119,6 +119,9 @@ submission and for a fixed download.
 
 ### Fixed
 
+- KnightLoader no longer crashes when it is stopped within a moment of a
+  torrent starting, as can happen when a restart resumes seeding and the
+  container is stopped again at once.
 - Finished torrents seed again after KnightLoader restarts. Seeding stopped
   with the process, so after a restart or a container update a finished
   torrent never seeded again. Each start now picks such a torrent up where its
