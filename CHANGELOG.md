@@ -39,15 +39,25 @@ submission and for a fixed download.
 
 ### Added
 
-- **The desktop app keeps itself up to date.** A minute after it starts and
-  once a day after that, it looks for a new release, downloads the zip for your
-  system in the background and checks it against the release's `checksums.txt`
-  before using it. The new version starts the next time you open KnightLoader,
-  and a note in the corner says so as soon as it is ready. The switch is Update
-  automatically on the General page of Settings, and it is on from the start.
-  An installed copy and a portable one both update where they are. A copy in a
-  folder you cannot write to, such as an older installation under Program
-  Files, stays as it is, and the log says why.
+- **A Windows installer beside each zip.** It puts KnightLoader under Program
+  Files for everyone on the computer and asks for an administrator once, while
+  it installs. A page asks whether you want a Start menu entry and a desktop
+  shortcut, and the next install starts from that answer. Your settings,
+  accounts and private JDownloader in `%APPDATA%\KnightLoader` stay where they
+  are, when installing and when uninstalling.
+- **The desktop app keeps itself up to date.** It looks for a new release,
+  downloads the zip for your system in the background and checks it against
+  the release's `checksums.txt` before using it. The new version starts the
+  next time you open KnightLoader, and a note in the corner says so as soon as
+  it is ready. The switch is Update automatically on the General page of
+  Settings, and it is on from the start. The installed copy is updated by a
+  scheduled task called KnightLoader Update, once a day and shortly after the
+  computer starts, whether KnightLoader is open or not. It runs as the system
+  account, since nobody else may write to Program Files, logs to
+  `%ProgramData%\KnightLoader\update.log`, and uninstalling removes it. A
+  portable copy, and the app on macOS and Linux, update themselves a minute
+  after they start and once a day after that. A copy in a folder you cannot
+  write to stays as it is, and the log says why.
 - **A torrent's files show under its row.** In the collector and in Downloads
   a torrent with more than one file opens like a package, with a row per file:
   its path inside the torrent, its size, how much of it is here and a switch.

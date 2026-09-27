@@ -294,7 +294,10 @@ SMB can move and delete what KnightLoader downloads.
 
 Then open `http://<host>:8749`. The desktop apps, the Android app and the
 browser extension are covered under
-[Installing](https://junkerderprovinz.github.io/knightloader/installing/).
+[Installing](https://junkerderprovinz.github.io/knightloader/installing/). On
+Windows the installer puts KnightLoader under Program Files for everyone on the
+computer, and a scheduled task running as the system account keeps it up to
+date, whether the app is open or not.
 
 <br>
 
