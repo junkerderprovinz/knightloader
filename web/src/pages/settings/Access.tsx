@@ -387,108 +387,129 @@ function RemoteAccessCard({
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {/* What to do first, then how it works. Button names are interpolated
-            from the buttons' own keys, so the steps cannot drift from the
-            labels. */}
-        <LabelBadge
-          label={t('settings.access.phrase.howButton')}
-          tip={
-            <span className="flex flex-col gap-2">
-              <ol className="list-decimal space-y-1 ps-4">
-                <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
-                <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
-                <li>{t('settings.access.phrase.howStep3')}</li>
-              </ol>
-              {paragraphs(t('settings.access.phrase.howWhat'))}
-            </span>
-          }
-          hue={2}
-        />
-        {/* Four sentences, since "disconnected" can mean no relay configured
-            or a configured relay out of reach. */}
-        <LabelBadge
-          label={
-            conn.connected
-              ? t('settings.access.phrase.statusConnected')
-              : t('settings.access.phrase.statusDisconnected')
-          }
-          tip={
-            conn.connected
-              ? conn.relayMode === 'own'
-                ? t('settings.access.phrase.statusHintOwn')
-                : t('settings.access.phrase.statusHintProject')
-              : conn.relayMode === 'off'
-                ? t('settings.access.phrase.statusHintOff')
-                : t('settings.access.phrase.statusHintLost')
-          }
-          tone={conn.connected ? 'ok' : 'fail'}
-        />
-        {/* Which relay carries the words, as a reading; the switches live in the
-            relay cards below. The address is in the tip. */}
-        <LabelBadge
-          label={
-            conn.relayMode === 'off'
-              ? t('settings.access.relay.none')
-              : conn.relayMode === 'own'
-                ? t('settings.access.relay.own')
-                : t('settings.access.relay.project')
-          }
-          tip={
-            conn.relayMode === 'off'
-              ? t('settings.access.relay.noneHint')
-              : t('settings.access.relay.whichHint', { address: conn.relayUrl })
-          }
-          tone={conn.relayMode === 'own' ? 'ok' : undefined}
-        />
+      {/* The warning sits under the row: an unprotected instance puts the
+          whole group at risk, since the phrase reaches every member. */}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Not set up: start a group or join one. */}
+          {!conn.active && (
+            <>
+              <Button hue={1} disabled={phraseBusy} onClick={() => void onActivate()}>
+                {t('settings.access.phrase.activate')}
+              </Button>
+              <Button
+                hue={3}
+                icon={<IconClipboard width={16} height={16} />}
+                onClick={() => {
+                  setJoinOpen(!joinOpen);
+                  setPhraseErr('');
+                }}
+              >
+                {t('settings.access.phrase.joinButton')}
+              </Button>
+            </>
+          )}
+          {/* Set up: leave steps back, so it leads; showing the phrase comes
+              last. Revealing it on an unprotected instance warns but does not
+              block, since this page cannot tell whether anything can reach it. */}
+          {conn.active && !phrase && !revealOpen && (
+            <>
+              <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
+                {t('settings.access.phrase.leave')}
+              </Button>
+              <Button
+                hue={1}
+                onClick={() => {
+                  setPhraseErr('');
+                  // Without a password there is nothing to re-enter.
+                  if (conn.passwordSet) setRevealOpen(true);
+                  else void onReveal();
+                }}
+              >
+                {t('settings.access.phrase.showAgain')}
+              </Button>
+            </>
+          )}
+          <div className="ms-auto flex flex-wrap items-center justify-end gap-2">
+            {/* What to do first, then how it works. Button names are
+                interpolated from the buttons' own keys, so the steps cannot
+                drift from the labels. */}
+            <LabelBadge
+              label={t('settings.access.phrase.howButton')}
+              tip={
+                <span className="flex flex-col gap-2">
+                  <ol className="list-decimal space-y-1 ps-4">
+                    <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
+                    <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
+                    <li>{t('settings.access.phrase.howStep3')}</li>
+                  </ol>
+                  {paragraphs(t('settings.access.phrase.howWhat'))}
+                </span>
+              }
+              hue={2}
+            />
+            {/* Four sentences, since "disconnected" can mean no relay
+                configured or a configured relay out of reach. */}
+            <LabelBadge
+              label={
+                conn.connected
+                  ? t('settings.access.phrase.statusConnected')
+                  : t('settings.access.phrase.statusDisconnected')
+              }
+              tip={
+                conn.connected
+                  ? conn.relayMode === 'own'
+                    ? t('settings.access.phrase.statusHintOwn')
+                    : t('settings.access.phrase.statusHintProject')
+                  : conn.relayMode === 'off'
+                    ? t('settings.access.phrase.statusHintOff')
+                    : t('settings.access.phrase.statusHintLost')
+              }
+              tone={conn.connected ? 'ok' : 'fail'}
+            />
+            {/* Which relay carries the words, as a reading; the switches live
+                in the relay cards below. The address is in the tip. */}
+            <LabelBadge
+              label={
+                conn.relayMode === 'off'
+                  ? t('settings.access.relay.none')
+                  : conn.relayMode === 'own'
+                    ? t('settings.access.relay.own')
+                    : t('settings.access.relay.project')
+              }
+              tip={
+                conn.relayMode === 'off'
+                  ? t('settings.access.relay.noneHint')
+                  : t('settings.access.relay.whichHint', { address: conn.relayUrl })
+              }
+              tone={conn.relayMode === 'own' ? 'ok' : undefined}
+            />
+          </div>
+        </div>
+        {!conn.passwordSet && (!conn.active || (!phrase && !revealOpen)) && (
+          <p className="text-[11px] leading-relaxed text-statusWarn">
+            {t('settings.access.phrase.noPasswordWarning')}
+          </p>
+        )}
       </div>
 
-      {/* Not set up: start a group or join one. */}
-      {conn && !conn.active && (
-        <div className="flex flex-col gap-3">
-          {/* The warning beside the buttons: an unprotected instance puts the
-              whole group at risk, since the phrase reaches every member. */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button hue={1} disabled={phraseBusy} onClick={() => void onActivate()}>
-              {t('settings.access.phrase.activate')}
-            </Button>
-            <Button
-              hue={3}
-              icon={<IconClipboard width={16} height={16} />}
-              onClick={() => {
-                setJoinOpen(!joinOpen);
-                setPhraseErr('');
-              }}
-            >
-              {t('settings.access.phrase.joinButton')}
-            </Button>
-            {!conn.passwordSet && (
-              <p className="min-w-[12rem] flex-1 text-[11px] leading-relaxed text-statusWarn">
-                {t('settings.access.phrase.noPasswordWarning')}
-              </p>
-            )}
-          </div>
-          {joinOpen && (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <TextInput
-                dir="ltr"
-                spellCheck={false}
-                className="min-w-0 flex-1"
-                placeholder={t('settings.access.phrase.joinPlaceholder')}
-                value={joinInput}
-                onChange={(e) => setJoinInput(e.target.value)}
-              />
-              <Button hue={1} disabled={phraseBusy || joinInput.trim() === ''} onClick={() => void onJoin()}>
-                {t('settings.access.phrase.joinConfirm')}
-              </Button>
-            </div>
-          )}
+      {!conn.active && joinOpen && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <TextInput
+            dir="ltr"
+            spellCheck={false}
+            className="min-w-0 flex-1"
+            placeholder={t('settings.access.phrase.joinPlaceholder')}
+            value={joinInput}
+            onChange={(e) => setJoinInput(e.target.value)}
+          />
+          <Button hue={1} disabled={phraseBusy || joinInput.trim() === ''} onClick={() => void onJoin()}>
+            {t('settings.access.phrase.joinConfirm')}
+          </Button>
         </div>
       )}
 
-      {/* Set up: show the phrase or leave. Whether it is connected is the pill
-          in the title. */}
-      {conn?.active && (
+      {conn.active && (phrase || revealOpen) && (
         <div className="flex flex-col gap-3">
           {phrase ? (
             <div className="flex flex-col gap-2">
@@ -546,7 +567,7 @@ function RemoteAccessCard({
                 </div>
               </div>
             </div>
-          ) : revealOpen ? (
+          ) : (
             <div className="flex flex-col gap-2">
               {/* Why a password is asked for sits on the caption's (i). */}
               <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
@@ -567,31 +588,6 @@ function RemoteAccessCard({
                   {t('settings.access.phrase.revealConfirm')}
                 </Button>
               </div>
-            </div>
-          ) : (
-            // Leave steps back, so it leads the row; showing the phrase comes
-            // last. Revealing it on an unprotected instance warns but does not
-            // block, since this page cannot tell whether anything can reach it.
-            <div className="flex flex-wrap items-center gap-3">
-              <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
-                {t('settings.access.phrase.leave')}
-              </Button>
-              <Button
-                hue={1}
-                onClick={() => {
-                  setPhraseErr('');
-                  // Without a password there is nothing to re-enter.
-                  if (conn.passwordSet) setRevealOpen(true);
-                  else void onReveal();
-                }}
-              >
-                {t('settings.access.phrase.showAgain')}
-              </Button>
-              {!conn.passwordSet && (
-                <p className="min-w-[12rem] flex-1 text-[11px] leading-relaxed text-statusWarn">
-                  {t('settings.access.phrase.noPasswordWarning')}
-                </p>
-              )}
             </div>
           )}
         </div>
