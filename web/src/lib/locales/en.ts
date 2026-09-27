@@ -2711,7 +2711,7 @@ export const en = {
   'overview.speedWindow': 'Speed window',
   'overview.speedWindow.minute': 'Last minute',
   'overview.speedWindow.hour': 'Last hour',
-  'overview.speedGraphHint': 'The instance records this curve itself: one sample a second for the last two minutes, one every ten seconds for the last hour. That is why a reload draws it already filled instead of starting flat. The record is held in memory only, so restarting KnightLoader empties it and the curve starts as a flat line again and fills up as it runs.',
+  'overview.speedGraphHint': 'The instance records this curve itself: one sample a second for the last two minutes, one every ten seconds for the last hour. That is why a reload draws it already filled instead of starting flat. The record is held in memory only, so restarting KnightLoader empties it and the curve starts as a flat line again and fills up as it runs. While a speed limit applies, a red line marks it, with the figure on the left. If the limit is far above the current speed, the line is dashed and stays at the top edge, so a slow download is not squeezed flat.',
   'settings.diagnostics.speedSamples': 'Speed samples recorded',
   'settings.diagnostics.speedSamplesHint': 'How many samples the speed curve on the Overview page is drawn from right now, out of the most it keeps: the two minute record first, the one hour record second. Zero on both means nothing is recording, and the curve on Overview will stay flat until that is fixed. The record starts empty after every restart and is never written to disk.',
   'settings.downloads.idleActionQuit': 'Quit KnightLoader',

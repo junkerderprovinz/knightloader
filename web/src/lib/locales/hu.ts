@@ -2276,7 +2276,7 @@ export const hu: Dict = {
   'overview.speedWindow': 'A görbe időablaka',
   'overview.speedWindow.minute': 'Utolsó perc',
   'overview.speedWindow.hour': 'Utolsó óra',
-  'overview.speedGraphHint': 'A példány maga rögzíti ezt a görbét: másodpercenként egy mérési értéket az utolsó két percre, tíz másodpercenként egyet az utolsó órára. Ezért az oldal újratöltése után már kitöltve jelenik meg, ahelyett hogy laposan indulna. A rögzítés csak a memóriában él: ha újraindítod a KnightLoadert, üres lesz, a görbe megint egyenes vonalként indul, és futás közben töltődik fel.',
+  'overview.speedGraphHint': 'A példány maga rögzíti ezt a görbét: másodpercenként egy mérési értéket az utolsó két percre, tíz másodpercenként egyet az utolsó órára. Ezért az oldal újratöltése után már kitöltve jelenik meg, ahelyett hogy laposan indulna. A rögzítés csak a memóriában él: ha újraindítod a KnightLoadert, üres lesz, a görbe megint egyenes vonalként indul, és futás közben töltődik fel. Amíg sebességkorlát van érvényben, egy piros vonal jelöli, az értékkel a bal oldalon. Ha a korlát jóval a mostani sebesség fölött van, a vonal szaggatott, és a felső szélen marad, hogy egy lassú letöltés ne lapuljon laposra.',
   'settings.diagnostics.speedSamples': 'Rögzített sebességértékek',
   'settings.diagnostics.speedSamplesHint': 'Hány értékből rajzolódik éppen az Áttekintés sebességgörbéje, ahhoz mérve, amennyit legfeljebb megtart: elöl a két perces rögzítés, utána az egyórás. Ha mindkettőnél nulla áll, semmi nem rögzít, és az Áttekintés görbéje lapos marad, amíg ez nincs orvosolva. A rögzítés minden újraindítás után üresen kezdődik, és soha nem íródik a lemezre.',
   'settings.downloads.idleActionQuit': 'Kilépés a KnightLoaderből',

@@ -2263,7 +2263,7 @@ export const zh: Dict = {
   'overview.speedWindow': '曲线时间范围',
   'overview.speedWindow.minute': '最近一分钟',
   'overview.speedWindow.hour': '最近一小时',
-  'overview.speedGraphHint': '这条曲线由实例自己记录：最近两分钟每秒一个采样，最近一小时每十秒一个。所以重新加载页面之后，它一上来就是满的，而不是从平的开始。记录只放在内存里：重启 KnightLoader 之后它就空了，曲线又从一条平线开始，再随着时间填满。',
+  'overview.speedGraphHint': '这条曲线由实例自己记录：最近两分钟每秒一个采样，最近一小时每十秒一个。所以重新加载页面之后，它一上来就是满的，而不是从平的开始。记录只放在内存里：重启 KnightLoader 之后它就空了，曲线又从一条平线开始，再随着时间填满。有限速时，一条红线标出限速位置，数值显示在左侧。如果限速远高于当前速度，这条线会变成虚线并停在上边缘，这样慢速下载的曲线就不会被压成一条平线。',
   'settings.diagnostics.speedSamples': '已记录的速度采样',
   'settings.diagnostics.speedSamplesHint': '概览页上的速度曲线此刻用了多少个采样在画，对照的是它最多保留多少：前面是两分钟的记录，后面是一小时的记录。两个都是零，说明什么都没在记录，概览上的曲线在这件事修好之前会一直是平的。每次重启后记录都从空开始，也从不写到磁盘上。',
   'settings.downloads.idleActionQuit': '退出 KnightLoader',

@@ -2277,7 +2277,7 @@ export const lt: Dict = {
   'overview.speedWindow': 'Kreivės laiko intervalas',
   'overview.speedWindow.minute': 'Paskutinė minutė',
   'overview.speedWindow.hour': 'Paskutinė valanda',
-  'overview.speedGraphHint': 'Egzempliorius šią kreivę įrašo pats: po vieną reikšmę per sekundę pastarosioms dviem minutėms, po vieną kas dešimt sekundžių pastarajai valandai. Todėl iš naujo įkėlus puslapį ji jau būna užpildyta, o ne prasideda plokščia. Įrašas laikomas tik atmintyje: paleidus KnightLoader iš naujo jis tuščias, kreivė vėl prasideda kaip plokščia linija ir prisipildo veikimo eigoje.',
+  'overview.speedGraphHint': 'Egzempliorius šią kreivę įrašo pats: po vieną reikšmę per sekundę pastarosioms dviem minutėms, po vieną kas dešimt sekundžių pastarajai valandai. Todėl iš naujo įkėlus puslapį ji jau būna užpildyta, o ne prasideda plokščia. Įrašas laikomas tik atmintyje: paleidus KnightLoader iš naujo jis tuščias, kreivė vėl prasideda kaip plokščia linija ir prisipildo veikimo eigoje. Kol galioja greičio riba, ją žymi raudona linija, o reikšmė rodoma kairėje. Jei riba gerokai viršija dabartinį greitį, linija būna punktyrinė ir lieka prie viršutinio krašto, kad lėtas atsisiuntimas nebūtų suplotas.',
   'settings.diagnostics.speedSamples': 'Įrašytos greičio reikšmės',
   'settings.diagnostics.speedSamplesHint': 'Iš kiek reikšmių dabar piešiama greičio kreivė Apžvalgos puslapyje, palyginti su tuo, kiek jų daugiausia laikoma: pirmiausia dviejų minučių įrašas, tada vienos valandos. Jei abu rodo nulį, niekas neįrašinėja, ir kreivė Apžvalgoje liks plokščia, kol tai nebus sutvarkyta. Po kiekvieno paleidimo iš naujo įrašas prasideda tuščias, o į diską jis nerašomas niekada.',
   'settings.downloads.idleActionQuit': 'Išeiti iš KnightLoader',

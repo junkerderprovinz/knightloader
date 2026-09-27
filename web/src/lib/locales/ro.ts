@@ -2284,7 +2284,7 @@ export const ro: Dict = {
   'overview.speedWindow': 'Fereastra de timp a curbei',
   'overview.speedWindow.minute': 'Ultimul minut',
   'overview.speedWindow.hour': 'Ultima oră',
-  'overview.speedGraphHint': 'Instanța înregistrează singură această curbă: o valoare pe secundă pentru ultimele două minute, una la fiecare zece secunde pentru ultima oră. De aceea, după reîncărcarea paginii, curba este deja plină, în loc să înceapă plată. Înregistrarea stă doar în memorie: dacă repornești KnightLoader, ea rămâne goală, curba începe din nou ca o linie plată și se umple pe parcurs.',
+  'overview.speedGraphHint': 'Instanța înregistrează singură această curbă: o valoare pe secundă pentru ultimele două minute, una la fiecare zece secunde pentru ultima oră. De aceea, după reîncărcarea paginii, curba este deja plină, în loc să înceapă plată. Înregistrarea stă doar în memorie: dacă repornești KnightLoader, ea rămâne goală, curba începe din nou ca o linie plată și se umple pe parcurs. Cât timp se aplică o limită de viteză, o linie roșie o marchează, cu valoarea în stânga. Dacă limita e mult peste viteza curentă, linia e punctată și rămâne la marginea de sus, ca o descărcare lentă să nu fie turtită.',
   'settings.diagnostics.speedSamples': 'Valori de viteză înregistrate',
   'settings.diagnostics.speedSamplesHint': 'Din câte valori este desenată chiar acum curba de viteză din pagina Prezentare, raportat la cât păstrează cel mult: mai întâi înregistrarea pe două minute, apoi cea pe o oră. Zero la amândouă înseamnă că nu înregistrează nimic, iar curba din Prezentare rămâne plată până când asta se rezolvă. După fiecare repornire, înregistrarea începe goală, iar pe disc nu se scrie niciodată.',
   'settings.downloads.idleActionQuit': 'Închide KnightLoader',

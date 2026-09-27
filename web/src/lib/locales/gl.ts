@@ -2274,7 +2274,7 @@ export const gl: Dict = {
   'overview.speedWindow': 'Xanela de tempo da curva',
   'overview.speedWindow.minute': 'Último minuto',
   'overview.speedWindow.hour': 'Última hora',
-  'overview.speedGraphHint': 'A instancia rexistra esta curva por si mesma: unha mostra por segundo para os últimos dous minutos, unha cada dez segundos para a última hora. Por iso, ao recargar a páxina, xa aparece chea en vez de empezar plana. O rexistro está só na memoria: se reinicias KnightLoader queda baleiro, a curva volve empezar como unha liña plana e vaise enchendo co tempo.',
+  'overview.speedGraphHint': 'A instancia rexistra esta curva por si mesma: unha mostra por segundo para os últimos dous minutos, unha cada dez segundos para a última hora. Por iso, ao recargar a páxina, xa aparece chea en vez de empezar plana. O rexistro está só na memoria: se reinicias KnightLoader queda baleiro, a curva volve empezar como unha liña plana e vaise enchendo co tempo. Mentres se aplica un límite de velocidade, unha liña vermella márcao, co valor á esquerda. Se o límite está moi por riba da velocidade actual, a liña é descontinua e queda no bordo superior, para que unha descarga lenta non quede esmagada.',
   'settings.diagnostics.speedSamples': 'Mostras de velocidade rexistradas',
   'settings.diagnostics.speedSamplesHint': 'Con cantas mostras se está a debuxar agora mesmo a curva de velocidade da páxina Resumo, fronte ao máximo que conserva: primeiro o rexistro de dous minutos, despois o dunha hora. Se nos dous pon cero, non se está rexistrando nada, e a curva do Resumo quedará plana ata que iso se arranxe. Despois de cada reinicio o rexistro comeza baleiro, e no disco non se escribe nunca.',
   'settings.downloads.idleActionQuit': 'Saír de KnightLoader',

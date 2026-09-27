@@ -2268,7 +2268,7 @@ export const et: Dict = {
   'overview.speedWindow': 'Kõvera ajaaken',
   'overview.speedWindow.minute': 'Viimane minut',
   'overview.speedWindow.hour': 'Viimane tund',
-  'overview.speedGraphHint': 'Eksemplar salvestab seda kõverat ise: üks mõõteväärtus sekundis viimase kahe minuti kohta, üks iga kümne sekundi tagant viimase tunni kohta. Seepärast on ta pärast lehe uuesti laadimist juba täidetud, selle asemel et alata lamedana. Salvestus on ainult mälus: kui KnightLoaderi uuesti käivitad, on see tühi, kõver algab jälle sirge joonena ja täitub aja jooksul.',
+  'overview.speedGraphHint': 'Eksemplar salvestab seda kõverat ise: üks mõõteväärtus sekundis viimase kahe minuti kohta, üks iga kümne sekundi tagant viimase tunni kohta. Seepärast on ta pärast lehe uuesti laadimist juba täidetud, selle asemel et alata lamedana. Salvestus on ainult mälus: kui KnightLoaderi uuesti käivitad, on see tühi, kõver algab jälle sirge joonena ja täitub aja jooksul. Kuni kiirusepiirang kehtib, märgib seda punane joon, väärtus vasakul. Kui piirang on praegusest kiirusest palju kõrgemal, on joon katkendlik ja jääb ülaserva, et aeglane allalaadimine ei surutaks lamedaks.',
   'settings.diagnostics.speedSamples': 'Salvestatud kiiruseväärtused',
   'settings.diagnostics.speedSamplesHint': 'Mitmest mõõteväärtusest Ülevaate kiiruskõverat praegu joonistatakse, võrreldes sellega, mida ta kõige rohkem alles hoiab: kõigepealt kahe minuti salvestus, siis tunni oma. Kui mõlemas on null, ei salvesta miski, ja Ülevaate kõver jääb lamedaks, kuni see on korda tehtud. Pärast iga taaskäivitust algab salvestus tühjalt ja kettale seda kunagi ei kirjutata.',
   'settings.downloads.idleActionQuit': 'Välju KnightLoaderist',

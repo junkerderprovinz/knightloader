@@ -2276,7 +2276,7 @@ export const tr: Dict = {
   'overview.speedWindow': 'Eğrinin zaman aralığı',
   'overview.speedWindow.minute': 'Son bir dakika',
   'overview.speedWindow.hour': 'Son bir saat',
-  'overview.speedGraphHint': 'Bu eğriyi örneğin kendisi kaydeder: son iki dakika için saniyede bir ölçüm, son bir saat için on saniyede bir ölçüm. Sayfayı yeniden yüklediğinde bu yüzden düz başlamak yerine çoktan dolmuş olarak çizilir. Kayıt yalnızca bellekte durur: KnightLoader’ı yeniden başlatırsan boşalır, eğri yine düz bir çizgi olarak başlar ve zaman içinde dolar.',
+  'overview.speedGraphHint': 'Bu eğriyi örneğin kendisi kaydeder: son iki dakika için saniyede bir ölçüm, son bir saat için on saniyede bir ölçüm. Sayfayı yeniden yüklediğinde bu yüzden düz başlamak yerine çoktan dolmuş olarak çizilir. Kayıt yalnızca bellekte durur: KnightLoader’ı yeniden başlatırsan boşalır, eğri yine düz bir çizgi olarak başlar ve zaman içinde dolar. Bir hız sınırı geçerli olduğu sürece kırmızı bir çizgi onu gösterir, değeri solda yazar. Sınır şu anki hızın çok üstündeyse çizgi kesikli olur ve üst kenarda kalır, böylece yavaş bir indirme ezilip düzleşmez.',
   'settings.diagnostics.speedSamples': 'Kaydedilen hız ölçümleri',
   'settings.diagnostics.speedSamplesHint': 'Genel bakıştaki hız eğrisinin şu anda kaç ölçümden çizildiği, en çok tuttuğu sayıya göre: önce iki dakikalık kayıt, sonra bir saatlik kayıt. İkisinde de sıfır yazıyorsa hiçbir şey kaydetmiyor demektir ve Genel bakıştaki eğri bu düzelene kadar düz kalır. Her yeniden başlatmadan sonra kayıt boş başlar, diske hiçbir zaman yazılmaz.',
   'settings.downloads.idleActionQuit': 'KnightLoader\'ı kapat',

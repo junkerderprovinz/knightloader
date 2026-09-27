@@ -2261,7 +2261,7 @@ export const pl: Dict = {
   'overview.speedWindow': 'Okno czasowe krzywej',
   'overview.speedWindow.minute': 'Ostatnia minuta',
   'overview.speedWindow.hour': 'Ostatnia godzina',
-  'overview.speedGraphHint': 'Instancja sama zapisuje tę krzywą: jeden pomiar na sekundę dla ostatnich dwóch minut, jeden co dziesięć sekund dla ostatniej godziny. Dlatego po przeładowaniu strony jest już wypełniona, zamiast zaczynać płasko. Zapis leży tylko w pamięci: gdy uruchomisz KnightLoader ponownie, jest pusty, krzywa znów zaczyna jako płaska linia i wypełnia się z biegiem czasu.',
+  'overview.speedGraphHint': 'Instancja sama zapisuje tę krzywą: jeden pomiar na sekundę dla ostatnich dwóch minut, jeden co dziesięć sekund dla ostatniej godziny. Dlatego po przeładowaniu strony jest już wypełniona, zamiast zaczynać płasko. Zapis leży tylko w pamięci: gdy uruchomisz KnightLoader ponownie, jest pusty, krzywa znów zaczyna jako płaska linia i wypełnia się z biegiem czasu. Dopóki obowiązuje limit prędkości, zaznacza go czerwona linia z wartością po lewej. Gdy limit jest dużo wyżej niż obecna prędkość, linia jest przerywana i zostaje przy górnej krawędzi, żeby wolne pobieranie nie zostało spłaszczone.',
   'settings.diagnostics.speedSamples': 'Zapisane pomiary prędkości',
   'settings.diagnostics.speedSamplesHint': 'Z ilu pomiarów jest w tej chwili rysowana krzywa prędkości na stronie Przegląd, wobec tego, ile ich najwyżej zachowuje: najpierw zapis z dwóch minut, potem ten z godziny. Jeśli przy obu stoi zero, nic nie zapisuje, a krzywa na stronie Przegląd zostanie płaska, dopóki to się nie naprawi. Po każdym ponownym uruchomieniu zapis zaczyna się pusty, a na dysk nie trafia nigdy.',
   'settings.downloads.idleActionQuit': 'Zamknij KnightLoader',
