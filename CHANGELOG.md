@@ -541,6 +541,19 @@ submission and for a fixed download.
   what the Sonarr bridge or `/api/metrics` needs. Tokens made before this keep
   every right, and so do browser sessions, siblings on the relay and paired
   instances.
+- **Download buttons in the README** for the desktop apps, the container, the
+  Android app and the browser extension. Each points at the newest build, so a
+  release does not need a README edit.
+- **A container image of KnightLoader itself.** Every release tag publishes
+  `ghcr.io/junkerderprovinz/knightloader` for amd64 and arm64, beside the relay
+  image.
+- **The desktop zips also carry a name without the version**, because
+  `/releases/latest/download/` needs a name that stays the same from one release
+  to the next. `checksums.txt` lists both names.
+- **A standing release each for the app and the extension.** A new app or
+  extension release also copies its file to `mobile/latest` as
+  `knightloader-android.apk`, or to `extension/latest` as
+  `knightloader-extension.zip`, which is where the README buttons lead.
 
 ### Fixed
 
@@ -923,11 +936,6 @@ submission and for a fixed download.
   Every selector's track now has a colour of its own on any ground, and the
   time fields are fields, with a clock.
 
-- **The image build no longer takes `latest` before the release exists.**
-  `docker/metadata-action` adds `latest` by itself unless told not to, so the
-  guard added in 1.1.6 decided nothing: on v1.1.6 the build moved `latest` half
-  an hour before the release was created, and the job meant to decide it only
-  corrected it afterwards. The build sets version tags only now.
 - **The APK tile on Settings > App downloads the app version the
   card shows.** The number came from `mobile/app.json`, but the tile opened the
   list of all releases, where the newest app can be another version. The tile
@@ -1088,6 +1096,29 @@ submission and for a fixed download.
   some zoom levels, drew a sliver of the neighbour down the side of a button.
   PayPal's dark blue had a yellow line on its left and an orange one on its
   right. The buttons in that image have space between them.
+- **The crypto window has a visible way out**, a close button in its footer
+  that carries its word and its glyph and follows the labelling setting like
+  every other button. The window has nothing to decide and so had no footer,
+  and a window draws a corner X only when it asks for one, which left Escape
+  and a click on the dimmed ground as its only exits. "Close" is a shared
+  string in all forty-two languages now.
+- **The Linux and macOS desktop zips hold a program that runs.** The bundles
+  went through a build artifact before they were zipped, and an artifact drops
+  file modes, so `KnightLoader` on Linux and the executable inside
+  `KnightLoader.app` on macOS came out as mode 644. They are zipped on the
+  machine that built them now, where the modes are still right.
+- **A send from the extension's toolbar popup could get lost.** The popup
+  closed before the extension's sleeping background had the message. It now
+  waits for the background to confirm.
+- **Switching Click'n'Load off left the `jdcheck.js` answer on**, so sites still
+  saw a receiver. The rule follows the switch now and is set again after every
+  update and browser start.
+- **Leaving the group kept the browser's random member ID.** It is deleted with
+  the phrase now.
+- **Danish and Swedish called a text selection a committee and a sample.** Both
+  say "markering" now.
+- **The relay's backoff for failed handshakes stopped growing at 16 minutes**
+  for a caller that tries one connection at a time. It grows to 50 minutes now.
 
 ### Changed
 
@@ -1375,12 +1406,23 @@ submission and for a fixed download.
   picker and the QR scanner now open without sliding or fading there too.
 - **The interface texts were reworked** in the web UI, the extension, the app,
   the README and the user docs: plainer hints, and no dashes as punctuation.
-- **A release waits for its images too**, not only for the desktop bundles, so
-  a published release always has both.
-- **The moving image tags follow the release.** `latest`, `1.1` and `1` are set
-  once the release for that version is published, and only for the newest one.
-  The build pushes the exact version alone, so a tag whose release never came
-  out cannot leave anyone pinned to `:1` on an unreleased build.
+- **A release goes public only once its desktop zips and both images are
+  built.** A release used to be "latest" twenty minutes and more before its
+  zips were attached, and the README's buttons and the in-app update check met
+  a release without files. `release.yml` runs the desktop build itself and
+  creates the release with the zips and `checksums.txt` in the same command, so
+  a failed build leaves no half-finished release behind.
+- **A tag without release notes stops before the builds** instead of publishing
+  a generated list of commit subjects, the same as the app and the extension.
+- **The release workflow can be dispatched.** It then builds both images for
+  both architectures and pushes neither, and releases nothing.
+- **The moving image tags follow the release.** `latest` and the minor and
+  major tags such as `1.2` and `1` are set once the release for that version is
+  published, and only for the newest one, so re-cutting an older version pulls
+  neither them nor the "Latest" badge back. The build pushes the exact version
+  alone, because `docker/metadata-action` would otherwise add `latest` before
+  the release exists, and a tag whose release never came out cannot leave
+  anyone pinned to `:1` on an unreleased build.
 - **"Latest" is decided once**, by the script that publishes the release, and
   the job that moves the image tag takes that answer instead of working it out
   a second time.
@@ -1582,79 +1624,38 @@ submission and for a fixed download.
   time-left column starts a little wider so "123h 45min" fits.
 - **The README's download buttons come right after the description**, and the
   donation appeal follows. The notice that KnightLoader is not ready to install
-  stays where it was, under the donation row. The band crosses the download
-  rows first and the donation row after them.
+  stays under the donation row and says what exists: the releases, the image
+  and the downloads are there so the builds can be tested, and there is no
+  Community Applications entry yet. The band crosses the download rows first
+  and the donation row after them.
 - **The README's screenshots are new, and there are nine of them.** They show
   the overview, the download list, the quick settings, the link collector with
   a YouTube video's variants, the Appearance page, the accounts, the Rules &
   categories page, the App tab and the instances, each in the theme your system
   uses. The downloads, hosts and accounts in them are made up, and
   `scripts/screenshots/shoot.mjs` draws them again from that sample data.
+- **The extension popup's send button says what it sends**: the page, a link,
+  an image, a selection, or the links a Click'n'Load button handed over.
+- **The extension reads the current tab's address only when you press send**,
+  not when the popup opens, and no longer asks for the `activeTab` permission.
+- **On Firefox the extension declares at install which data it sends**, and it
+  needs Firefox 140 or later on desktop.
 
 ### Removed
 
 - **`/api/controls`.** Nothing calls it any more: the quick settings save
   through `PATCH /api/settings`, and the Android app and the browser extension
   never used it.
-
-## [1.1.6] - 2026-09-18
-
-### Changed
-
-- **A release goes public only with its desktop zips attached.** The README's
-  desktop buttons lead to `/releases/latest/download/`, and a release used to be
-  "latest" from the moment it was created, twenty minutes and more before
-  `desktop.yml` attached the zips, so the buttons answered 404 for that long and
-  the in-app update check met a release without files. `release.yml` now runs
-  the desktop build itself and creates the release once it is done, with the
-  zips and `checksums.txt` in the same command. A failed build leaves no
-  half-finished release behind.
-- **"Latest" goes only to the newest published version**, so re-cutting an
-  older one does not pull the badge, the buttons and the update check back.
-- **A tag without release notes stops before the builds** instead of publishing
-  a generated list of commit subjects, the same as the app and the extension.
-- **`latest` on both images moves only after the GitHub release is out**, by the
-  same rule as the "Latest" badge, so the badge, the download buttons and
-  `docker pull …:latest` always name the same version. The image jobs also
-  wait for the notes check now.
-
-### Fixed
-
-- **The Linux and macOS desktop zips hold a program that runs.** The bundles
-  went through a build artifact before they were zipped, and an artifact drops
-  file modes, so `KnightLoader` on Linux and the executable inside
-  `KnightLoader.app` on macOS came out as mode 644 (checked on v1.1.4 and
-  v1.1.5). They are zipped on the machine that built them now, where the modes
-  are still right.
-
-## [1.1.5] - 2026-09-17
-
-### Changed
-
-- **Settings > Browser & App serves the browser extension 1.0.0**, the version
-  that goes to the browser stores, and the version link on that card leads to
-  its release.
-- **The popup's send button says what it sends**: the page, a link, an image,
-  a selection, or the links a Click'n'Load button handed over.
-- **The extension reads the current tab's address only when you press send**,
-  not when the popup opens, and no longer asks for the `activeTab` permission.
-- **On Firefox the extension declares at install which data it sends**, and it
-  needs Firefox 140 or later on desktop.
-
-### Fixed
-
-- **A send from the toolbar popup could get lost.** The popup closed before the
-  extension's sleeping background had the message. It now waits for the
-  background to confirm.
-- **Switching Click'n'Load off left the `jdcheck.js` answer on**, so sites still
-  saw a receiver. The rule follows the switch now and is set again after every
-  update and browser start.
-- **Leaving the group kept the browser's random member ID.** It is deleted with
-  the phrase now.
-- **Danish and Swedish called a text selection a committee and a sample.** Both
-  say "markering" now.
-- **The relay's backoff for failed handshakes stopped growing at 16 minutes**
-  for a caller that tries one connection at a time. It grows to 50 minutes now.
+- **The crest on the About card.** It was an easter egg: a small coat of arms
+  beside the version line that turned when you pressed and held it, with the
+  seven characters of this build's revision on its back. Gone with everything
+  it touched: the component, the mark in the icon set, the turn in the
+  stylesheet, the state that fed it, and its entry in the easter-egg list.
+- **With it, the revision leaves the interface.** It still reaches the browser
+  and `/api/health` still answers with it, but the back of that crest was the
+  only place it was ever drawn. That matters on a `preview` build, where the
+  version line reads the same in every build and the revision is what tells two
+  of them apart; `docs/preview-deploy.md` points at /api/health for it.
 
 ### Security
 
@@ -1662,93 +1663,9 @@ submission and for a fixed download.
   handshakes and other errors from the web server carried them; they read
   `[address]` now, and a failed certificate renewal still shows up.
 - **A failed address's rate-limit record is deleted within 61 minutes of its
-  last failed attempt.** Before, it stayed until the relay restarted. The relay
-  image also clears records on a timer; an instance's own relay clears them as
+  last failed attempt**, where it used to stay until the relay restarted. The
+  relay image clears records on a timer; an instance's own relay clears them as
   requests come in.
-
-## [1.1.4] - 2026-09-17
-
-### Added
-
-- **Download buttons in the README, in two rows.** Windows, macOS and Linux
-  first, then Docker, the Android app and the browser extension. Each points at
-  the newest build, so a release does not need a README edit.
-- **A container image of KnightLoader itself.** Every release tag publishes
-  `ghcr.io/junkerderprovinz/knightloader` for amd64 and arm64, beside the relay
-  image, and only the newest release tag moves `latest`.
-- **The desktop zips also carry a name without the version**, because
-  `/releases/latest/download/` needs a name that stays the same from one release
-  to the next. `checksums.txt` lists both names.
-- **A standing release each for the app and the extension.** A new app or
-  extension release also copies its file to `mobile/latest` as
-  `knightloader-android.apk`, or to `extension/latest` as
-  `knightloader-extension.zip`, which is where the README buttons lead.
-
-### Changed
-
-- **The notice at the top of the README says what exists now.** The releases,
-  the image and the downloads are there so the builds can be tested; there is
-  still no Community Applications entry, and the advice not to install it yet
-  stays. The donation row moves up under the paragraph that announces it.
-- **One band crosses all three rows of buttons in turn**: the donation row, the
-  desktop row, then the row below it. Three rows need slightly more than seven
-  seconds of travel, so this page's loop is 8.2 seconds, at the house speed and
-  with the house pause.
-- **The release workflow can be dispatched.** It then builds both images for
-  both architectures and pushes neither, and releases nothing.
-- **Both images move `latest` only after their build**, from the tags as they
-  stand at that moment. An older tag's build that finishes last can no longer
-  drag `latest` back onto itself.
-
-## [1.1.3] - 2026-09-16
-
-### Changed
-
-- **The crypto window closes from a button in its footer, not from a corner X.**
-  It carries its word and its glyph and follows the labelling setting like
-  every other button: the word with its glyph, the word alone, or the glyph
-  alone, whichever that one setting says.
-- **The defect the corner was introduced for is still fixed.** This window had
-  no visible way out at all: it has no footer of its own, and Modal draws its
-  corner X only for a caller that asks for one, so this window fell between the
-  two and left Escape and a click on the dimmed ground as the only exits.
-
-## [1.1.2] - 2026-09-16
-
-### Removed
-
-- **The crest on the About card.** It was an easter egg: a small coat of arms
-  beside the version line that turned when you pressed and held it, with the
-  seven characters of this build's revision on its back. Gone with everything
-  it touched - the component, the mark in the icon set, the turn in the
-  stylesheet, the state that fed it, and its entry in the easter-egg list.
-- **With it, the revision leaves the interface.** It still reaches the browser
-  and `/api/health` still answers with it, but the back of that crest was the
-  only place it was ever drawn. That matters on a `preview` build, where the
-  version line reads the same in every build and the revision is what tells two
-  of them apart; `docs/preview-deploy.md` points at /api/health for it now.
-
-## [1.1.1] - 2026-09-16
-
-### Fixed
-
-- **The crypto window had no visible way out at all.** Escape closed it and so
-  did a click on the dimmed ground, and neither of those is something a reader
-  can see. It fell through a rule that is right everywhere else: a window only
-  draws the X in its corner when it asks for one, because seventeen of this
-  app's windows carry a Cancel button in their footer and an X above that
-  offers the same answer twice. This window has no footer, because nothing in
-  it is a decision, so it was the one window the rule left without an exit.
-- **`common.close` exists in all forty-two languages now.** The word was
-  missing as a shared string, which is part of why that corner control had
-  never been asked for.
-
-### Changed
-
-- **The PayPal button opens a donation page rather than a handle.** It says who
-  is being paid, carries a sentence about what the money does, offers three
-  amounts and a free one, takes a card without a PayPal account, and has a box
-  for making it monthly.
 
 ## [1.1.0] - 2026-09-16
 
