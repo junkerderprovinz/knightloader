@@ -1653,7 +1653,7 @@ export const ro: Dict = {
   'settings.torrents.portTitle': 'Port și mapare',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Portul pe care această instanță ascultă conexiunile din rețeaua de peeri. 0 lasă clientul de torrente integrat să aleagă unul.',
-  'settings.torrents.clientApplyHint': 'O modificare intră în vigoare când niciun torrent nu mai descarcă și nu mai face seed. Următorul torrent pornește deja cu ea.',
+  'settings.torrents.clientApplyHint': 'O modificare intră în vigoare când niciun torrent nu mai descarcă, nu e în pauză și nu mai face seed, sau după o repornire. Următorul torrent pornește deja cu ea.',
   'settings.torrents.portMapNowHint': 'Cererea către router de a mapa portul funcționează imediat, fie că un torrent ascultă deja pe el, fie că nu.',
   'settings.torrents.portMapHint': 'Cere routerului să redirecționeze portul de mai sus către acest computer prin UPnP, astfel încât peerii aflați în spatele altui router să îl poată atinge oricum. Nu orice router suportă asta, iar unele acceptă cererea fără ca aceasta să funcționeze cu adevărat.',
   'settings.torrents.portMapButton': 'Încearcă maparea UPnP',

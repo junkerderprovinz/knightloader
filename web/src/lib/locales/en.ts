@@ -1990,7 +1990,7 @@ export const en = {
   'settings.torrents.portHint':
     'The port this instance listens for swarm connections on. 0 lets the built-in torrent client pick one.',
   'settings.torrents.clientApplyHint':
-    'A change takes effect once no torrent is downloading or seeding. The next torrent starts with it.',
+    'A change takes effect once no torrent is downloading, paused, or seeding, or after a restart. The next torrent starts with it.',
   'settings.torrents.portMapNowHint':
     'Asking the router to map the port works right away, whether or not a torrent is listening on it yet.',
   'settings.torrents.portMapHint':

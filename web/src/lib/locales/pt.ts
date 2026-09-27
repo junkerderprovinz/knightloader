@@ -1642,7 +1642,7 @@ export const pt: Dict = {
   'settings.torrents.portTitle': 'Porta e mapeamento',
   'settings.torrents.port': 'Porta',
   'settings.torrents.portHint': 'A porta em que esta instância escuta ligações do enxame. 0 deixa o cliente de torrents integrado escolher uma.',
-  'settings.torrents.clientApplyHint': 'Uma alteração tem efeito quando nenhum torrent estiver a descarregar ou a fazer seed. O torrent seguinte já arranca com ela.',
+  'settings.torrents.clientApplyHint': 'Uma alteração tem efeito quando nenhum torrent estiver a descarregar, em pausa ou a fazer seed, ou após um reinício. O torrent seguinte já arranca com ela.',
   'settings.torrents.portMapNowHint': 'Pedir ao router para mapear a porta funciona logo, haja ou não já um torrent à escuta nela.',
   'settings.torrents.portMapHint': 'Pede ao router para reencaminhar a porta acima para esta máquina via UPnP, para que peers atrás de outro router consigam mesmo assim alcançá-la. Nem todos os routers suportam isto, e alguns aceitam o pedido sem que funcione mesmo.',
   'settings.torrents.portMapButton': 'Tentar mapeamento UPnP',

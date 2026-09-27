@@ -1649,7 +1649,7 @@ export const ko: Dict = {
   'settings.torrents.portTitle': '포트 및 매핑',
   'settings.torrents.port': '포트',
   'settings.torrents.portHint': '이 인스턴스가 스웜의 연결을 기다리는 포트입니다. 0이면 내장 토렌트 클라이언트가 포트를 고릅니다.',
-  'settings.torrents.clientApplyHint': '변경 사항은 다운로드하거나 시드 중인 토렌트가 없어지면 적용됩니다. 다음 토렌트는 바뀐 설정으로 시작합니다.',
+  'settings.torrents.clientApplyHint': '변경 사항은 다운로드하거나 일시 중지되었거나 시드 중인 토렌트가 없어지면, 또는 다시 시작한 뒤 적용됩니다. 다음 토렌트는 바뀐 설정으로 시작합니다.',
   'settings.torrents.portMapNowHint': '공유기에 포트 매핑을 요청하는 것은 그 포트에서 토렌트가 이미 대기 중이든 아니든 바로 됩니다.',
   'settings.torrents.portMapHint': '다른 공유기 뒤에 있는 피어도 도달할 수 있도록, 위 포트를 UPnP로 이 기기에 전달하도록 공유기에 요청합니다. 모든 공유기가 이를 지원하지는 않으며, 일부는 실제로 작동하지 않으면서도 요청을 수락합니다.',
   'settings.torrents.portMapButton': 'UPnP 매핑 시도',

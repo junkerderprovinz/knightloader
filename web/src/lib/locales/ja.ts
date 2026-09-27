@@ -1649,7 +1649,7 @@ export const ja: Dict = {
   'settings.torrents.portTitle': 'ポートとマッピング',
   'settings.torrents.port': 'ポート',
   'settings.torrents.portHint': 'このインスタンスがスウォームからの接続を待ち受けるポートです。0 にすると内蔵トレントクライアントが選びます。',
-  'settings.torrents.clientApplyHint': '変更は、ダウンロード中やシード中のトレントがなくなった時点で有効になります。次のトレントからその設定で始まります。',
+  'settings.torrents.clientApplyHint': '変更は、ダウンロード中や一時停止中、シード中のトレントがなくなった時点、または再起動後に有効になります。次のトレントからその設定で始まります。',
   'settings.torrents.portMapNowHint': 'ルーターへのポートのマッピングの依頼はすぐに効きます。そのポートでトレントがもう待ち受けているかどうかは関係ありません。',
   'settings.torrents.portMapHint': '別のルーターの背後にいるピアからも到達できるよう、UPnP経由で上記のポートをこのマシンに転送するようルーターに依頼します。すべてのルーターが対応しているわけではなく、実際には機能しないまま要求を受け入れるルーターもあります。',
   'settings.torrents.portMapButton': 'UPnPマッピングを試す',

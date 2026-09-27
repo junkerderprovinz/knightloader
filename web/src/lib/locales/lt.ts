@@ -1649,7 +1649,7 @@ export const lt: Dict = {
   'settings.torrents.portTitle': 'Prievadas ir nukreipimas',
   'settings.torrents.port': 'Prievadas',
   'settings.torrents.portHint': 'Prievadas, kuriuo šis egzempliorius klauso spiečiaus ryšių. 0 leidžia įtaisytam torrentų klientui pasirinkti jį pačiam.',
-  'settings.torrents.clientApplyHint': 'Pakeitimas įsigalioja, kai joks torrentas nebesisiunčia ir nebesėja. Kitas torrentas jau pradeda su juo.',
+  'settings.torrents.clientApplyHint': 'Pakeitimas įsigalioja, kai joks torrentas nebesisiunčia, nėra pristabdytas ir nebesėja, arba po paleidimo iš naujo. Kitas torrentas jau pradeda su juo.',
   'settings.torrents.portMapNowHint': 'Paprašyti maršrutizatoriaus nukreipti prievadą galima iš karto, nesvarbu, ar jame jau klauso kuris nors torrentas.',
   'settings.torrents.portMapHint': "Prašo maršrutizatoriaus per UPnP nukreipti aukščiau esantį prievadą į šį kompiuterį, kad peer'iai už kito maršrutizatoriaus vis tiek galėtų jį pasiekti. Ne kiekvienas maršrutizatorius tai palaiko, o kai kurie priima prašymą, nors iš tikrųjų tai neveikia.",
   'settings.torrents.portMapButton': 'Bandyti UPnP nukreipimą',

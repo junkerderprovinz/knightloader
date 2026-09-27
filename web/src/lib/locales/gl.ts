@@ -1649,7 +1649,7 @@ export const gl: Dict = {
   'settings.torrents.portTitle': 'Porto e redirección',
   'settings.torrents.port': 'Porto',
   'settings.torrents.portHint': 'O porto no que esta instancia escoita as conexións do enxame. 0 deixa que o cliente de torrents integrado escolla un.',
-  'settings.torrents.clientApplyHint': 'Un cambio ten efecto cando ningún torrent está a descargar nin a facer seed. O seguinte torrent xa arranca con el.',
+  'settings.torrents.clientApplyHint': 'Un cambio ten efecto cando ningún torrent está a descargar, en pausa nin a facer seed, ou tras un reinicio. O seguinte torrent xa arranca con el.',
   'settings.torrents.portMapNowHint': 'Pedirlle ao router que redirixa o porto funciona de inmediato, haxa ou non xa un torrent escoitando nel.',
   'settings.torrents.portMapHint': 'Pídelle ao router que redirixa o porto de enriba a esta máquina por UPnP, para que os peers detrás doutro router poidan chegar igualmente. Non todos os routers admiten isto, e algúns aceptan a solicitude sen que chegue a funcionar de verdade.',
   'settings.torrents.portMapButton': 'Probar a redirección UPnP',

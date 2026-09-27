@@ -1650,7 +1650,7 @@ export const sv: Dict = {
   'settings.torrents.portTitle': 'Port och mappning',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Porten som den här instansen lyssnar på för anslutningar från svärmen. 0 låter den inbyggda torrentklienten välja en.',
-  'settings.torrents.clientApplyHint': 'En ändring börjar gälla när ingen torrent laddar ner eller delar. Nästa torrent startar med den.',
+  'settings.torrents.clientApplyHint': 'En ändring börjar gälla när ingen torrent laddar ner, är pausad eller delar, eller efter en omstart. Nästa torrent startar med den.',
   'settings.torrents.portMapNowHint': 'Att be routern mappa porten fungerar direkt, oavsett om någon torrent redan lyssnar på den.',
   'settings.torrents.portMapHint': 'Ber routern att vidarebefordra porten ovan till den här datorn via UPnP, så att peers bakom en annan router ändå kan nå den. Inte alla routrar stöder detta, och vissa accepterar begäran utan att det faktiskt fungerar.',
   'settings.torrents.portMapButton': 'Försök med UPnP-mappning',

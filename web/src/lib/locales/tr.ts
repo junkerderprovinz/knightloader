@@ -1649,7 +1649,7 @@ export const tr: Dict = {
   'settings.torrents.portTitle': 'Port ve yönlendirme',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Bu örneğin sürüden gelen bağlantıları dinlediği port. 0, portu yerleşik torrent istemcisinin seçmesine bırakır.',
-  'settings.torrents.clientApplyHint': 'Bir değişiklik, hiçbir torrent indirmediğinde ya da seed etmediğinde geçerli olur. Sonraki torrent onunla başlar.',
+  'settings.torrents.clientApplyHint': 'Bir değişiklik, hiçbir torrent indirmediğinde, duraklatılmadığında ya da seed etmediğinde ya da yeniden başlatmadan sonra geçerli olur. Sonraki torrent onunla başlar.',
   'settings.torrents.portMapNowHint': 'Yönlendiriciden portu yönlendirmesini istemek hemen işe yarar, üzerinde henüz bir torrent dinliyor olsun ya da olmasın.',
   'settings.torrents.portMapHint': 'Farklı bir yönlendirici arkasındaki peerler de erişebilsin diye yukarıdaki portu UPnP üzerinden bu makineye yönlendirmesini yönlendiriciden ister. Her yönlendirici bunu desteklemez, bazıları da isteği gerçekte işe yaramadan kabul eder.',
   'settings.torrents.portMapButton': 'UPnP yönlendirmesini dene',

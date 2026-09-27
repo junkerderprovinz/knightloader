@@ -1642,7 +1642,7 @@ export const es: Dict = {
   'settings.torrents.portTitle': 'Puerto y redirección',
   'settings.torrents.port': 'Puerto',
   'settings.torrents.portHint': 'El puerto en el que esta instancia escucha conexiones del enjambre. 0 deja que el cliente de torrents integrado elija uno.',
-  'settings.torrents.clientApplyHint': 'Un cambio surte efecto cuando ningún torrent está descargando ni haciendo seed. El siguiente torrent ya arranca con él.',
+  'settings.torrents.clientApplyHint': 'Un cambio surte efecto cuando ningún torrent está descargando, en pausa ni haciendo seed, o tras un reinicio. El siguiente torrent ya arranca con él.',
   'settings.torrents.portMapNowHint': 'Pedir al router que redirija el puerto funciona de inmediato, haya o no un torrent escuchando ya en él.',
   'settings.torrents.portMapHint': 'Pide al router que redirija el puerto de arriba a esta máquina por UPnP, para que los peers detrás de otro router puedan alcanzarlo igualmente. No todos los routers lo soportan, y algunos aceptan la petición sin que llegue a funcionar de verdad.',
   'settings.torrents.portMapButton': 'Intentar redirección UPnP',

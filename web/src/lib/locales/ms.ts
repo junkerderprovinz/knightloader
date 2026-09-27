@@ -1649,7 +1649,7 @@ export const ms: Dict = {
   'settings.torrents.portTitle': 'Port dan pemetaan',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port yang digunakan instans ini untuk mendengar sambungan daripada kelompok. 0 membiarkan klien torrent terbina dalam memilih satu.',
-  'settings.torrents.clientApplyHint': 'Perubahan berkuat kuasa apabila tiada torrent yang sedang memuat turun atau melakukan seed. Torrent seterusnya bermula dengannya.',
+  'settings.torrents.clientApplyHint': 'Perubahan berkuat kuasa apabila tiada torrent yang sedang memuat turun, dijeda atau melakukan seed, atau selepas dimulakan semula. Torrent seterusnya bermula dengannya.',
   'settings.torrents.portMapNowHint': 'Meminta penghala memetakan port berfungsi serta-merta, sama ada sudah ada torrent yang mendengar padanya atau belum.',
   'settings.torrents.portMapHint': 'Meminta penghala meneruskan port di atas ke mesin ini melalui UPnP, supaya rakan sebaya di sebalik penghala lain masih boleh menjangkaunya. Bukan semua penghala menyokong ini, dan sesetengahnya menerima permintaan tanpa ia benar-benar berfungsi.',
   'settings.torrents.portMapButton': 'Cuba pemetaan UPnP',

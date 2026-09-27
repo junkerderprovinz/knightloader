@@ -187,8 +187,9 @@ submission and for a fixed download.
   torrent starting, as can happen when a restart resumes seeding and the
   container is stopped again at once.
 - The DHT and PEX switches under Settings, Torrents reach ordinary torrents;
-  they had no effect before. They take effect once no torrent is downloading
-  or seeding, and so does a new port, which used to need a restart.
+  they had no effect before. They take effect once no torrent is downloading,
+  paused, or seeding, or after a restart, and so does a new port, which used
+  to need a restart every time.
 - Finished torrents seed again after KnightLoader restarts. Seeding stopped
   with the process, so after a restart or a container update a finished
   torrent never seeded again. Each start now picks such a torrent up where its

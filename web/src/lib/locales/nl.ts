@@ -1642,7 +1642,7 @@ export const nl: Dict = {
   'settings.torrents.portTitle': 'Poort & mapping',
   'settings.torrents.port': 'Poort',
   'settings.torrents.portHint': 'De poort waarop deze instantie naar verbindingen uit de swarm luistert. Bij 0 kiest de ingebouwde torrentclient er zelf een.',
-  'settings.torrents.clientApplyHint': 'Een wijziging werkt zodra geen torrent meer downloadt of seedt. De volgende torrent start er al mee.',
+  'settings.torrents.clientApplyHint': 'Een wijziging werkt zodra geen torrent meer downloadt, gepauzeerd is of seedt, of na een herstart. De volgende torrent start er al mee.',
   'settings.torrents.portMapNowHint': 'De router vragen om de poort te mappen werkt meteen, of er nu al een torrent op luistert of niet.',
   'settings.torrents.portMapHint': 'Vraagt de router om de poort hierboven via UPnP naar deze machine door te sturen, zodat peers achter een andere router hem toch kunnen bereiken. Niet elke router ondersteunt dit, en sommige accepteren het verzoek zonder dat het echt werkt.',
   'settings.torrents.portMapButton': 'UPnP-mapping proberen',

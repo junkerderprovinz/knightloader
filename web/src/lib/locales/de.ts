@@ -1778,7 +1778,7 @@ export const de: Dict = {
   'settings.torrents.portTitle': 'Port & Weiterleitung',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Der Port, auf dem diese Instanz auf Verbindungen aus dem Schwarm lauscht. 0 lässt den eingebauten Torrent-Client einen wählen.',
-  'settings.torrents.clientApplyHint': 'Eine Änderung gilt, sobald kein Torrent mehr lädt oder seedet. Der nächste Torrent startet damit.',
+  'settings.torrents.clientApplyHint': 'Eine Änderung gilt, sobald kein Torrent mehr lädt, pausiert ist oder seedet, spätestens nach einem Neustart. Der nächste Torrent startet damit.',
   'settings.torrents.portMapNowHint': 'Den Router um die Weiterleitung zu bitten klappt sofort, egal, ob schon ein Torrent auf dem Port lauscht.',
   'settings.torrents.portMapHint': 'Bittet den Router, den obigen Port per UPnP an diesen Rechner weiterzuleiten, damit Peers hinter einem anderen Router ihn trotzdem erreichen. Nicht jeder Router unterstützt das, und manche nehmen die Anfrage an, ohne dass es tatsächlich funktioniert.',
   'settings.torrents.portMapButton': 'UPnP-Weiterleitung versuchen',

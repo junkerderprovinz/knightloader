@@ -1649,7 +1649,7 @@ export const fi: Dict = {
   'settings.torrents.portTitle': 'Portti ja uudelleenohjaus',
   'settings.torrents.port': 'Portti',
   'settings.torrents.portHint': 'Portti, jossa tämä instanssi kuuntelee parven yhteyksiä. 0 antaa sisäänrakennetun torrent-asiakasohjelman valita portin.',
-  'settings.torrents.clientApplyHint': 'Muutos tulee voimaan, kun mikään torrent ei enää lataa eikä jaa. Seuraava torrent käynnistyy jo sillä.',
+  'settings.torrents.clientApplyHint': 'Muutos tulee voimaan, kun mikään torrent ei enää lataa, ole keskeytetty eikä jaa, tai uudelleenkäynnistyksen jälkeen. Seuraava torrent käynnistyy jo sillä.',
   'settings.torrents.portMapNowHint': 'Reitittimeltä voi pyytää portin uudelleenohjausta heti, kuunteleeko siinä jo jokin torrent tai ei.',
   'settings.torrents.portMapHint': 'Pyytää reititintä ohjaamaan yllä olevan portin tähän koneeseen UPnP:n kautta, jotta toisen reitittimen takana olevat peerit voivat silti tavoittaa sen. Kaikki reitittimet eivät tue tätä, ja jotkin hyväksyvät pyynnön ilman että se todella toimii.',
   'settings.torrents.portMapButton': 'Kokeile UPnP-uudelleenohjausta',

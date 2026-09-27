@@ -1649,7 +1649,7 @@ export const et: Dict = {
   'settings.torrents.portTitle': 'Port ja suunamine',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port, millel see eksemplar parve ühendusi kuulab. 0 laseb sisseehitatud torrendikliendil pordi valida.',
-  'settings.torrents.clientApplyHint': 'Muudatus jõustub, kui ükski torrent enam alla ei laadi ega levita. Järgmine torrent alustab juba sellega.',
+  'settings.torrents.clientApplyHint': 'Muudatus jõustub, kui ükski torrent enam alla ei laadi, ei ole peatatud ega levita, või pärast taaskäivitust. Järgmine torrent alustab juba sellega.',
   'settings.torrents.portMapNowHint': 'Ruuterilt pordi suunamist saab paluda kohe, olenemata sellest, kas mõni torrent sellel juba kuulab.',
   'settings.torrents.portMapHint': 'Palub ruuteril suunata ülaltoodud pordi UPnP kaudu sellesse masinasse, et teise ruuteri taga olevad peerid saaksid seda siiski tabada. Mitte iga ruuter ei toeta seda ja mõni võtab päringu vastu, ilma et see tegelikult töötaks.',
   'settings.torrents.portMapButton': 'Proovi UPnP suunamist',

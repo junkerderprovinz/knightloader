@@ -1650,7 +1650,7 @@ export const hr: Dict = {
   'settings.torrents.portTitle': 'Port i mapiranje',
   'settings.torrents.port': 'Port',
   'settings.torrents.portHint': 'Port na kojem ova instanca sluša veze iz roja. 0 prepušta odabir ugrađenom torrent klijentu.',
-  'settings.torrents.clientApplyHint': 'Promjena vrijedi čim nijedan torrent ne preuzima niti seeda. Sljedeći torrent pokreće se već s njom.',
+  'settings.torrents.clientApplyHint': 'Promjena vrijedi čim nijedan torrent ne preuzima, nije pauziran niti seeda, ili nakon ponovnog pokretanja. Sljedeći torrent pokreće se već s njom.',
   'settings.torrents.portMapNowHint': 'Zamoliti usmjerivač za mapiranje porta može se odmah, bez obzira na to sluša li već neki torrent na njemu.',
   'settings.torrents.portMapHint': 'Traži od usmjerivača da putem UPnP-a proslijedi gornji port na ovo računalo, kako bi ga peerovi iza drugog usmjerivača ipak mogli dosegnuti. Ne podržavaju svi usmjerivači ovo, a neki prihvate zahtjev iako to zapravo ne radi.',
   'settings.torrents.portMapButton': 'Pokušaj UPnP mapiranja',
