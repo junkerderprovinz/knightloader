@@ -3115,8 +3115,8 @@ export const sr: Dict = {
   'disk.queuedHint': 'Колико би преостала преузимања још додала у ову фасциклу: величина коју је хостер најавио, умањена за оно што је већ стигло. Преузимање чију величину хостер не каже овде се рачуна као ништа, па је ово доња граница, а никада обећање, и зато фасцикла поред низа преузимања може да показује нула бајтова. Искључена преузимања остају ван, по истом правилу као бројачи испод списка. Преузимање које већ ради обично је свој простор на диску резервисало чим је кренуло, па његови бајтови већ недостају у броју слободног простора поред овог и не долазе поврх њега.',
   'downloads.retryByCause': 'Понови по узроку',
   'downloads.byCause': 'По узроку',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Фасцикла „{name}“ тамо већ постоји. Изабери други назив.',
+  'rename.packageHint': 'Ако је фасцикла за преузимања названа по пакету, она добија нови назив заједно са датотекама које су већ у њој, а преузимања која још трају настављају се тамо. Фасцикла са распакованим датотекама названа по пакету такође се премешта. Назив није путања, па / и \\ нису дозвољени.',
+  'rename.busy': 'Део овог пакета се управо распакује, премешта у своју фасциклу или снима из преноса уживо. Покушај поново када се то заврши.',
+  'rename.notMoved': 'Фасциклу „{name}“ није било могуће преименовати, па се ништа није променило. Можда неки други програм има отворену датотеку у њој. Затвори ту датотеку и покушај поново.',
 };

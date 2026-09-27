@@ -3092,8 +3092,8 @@ export const es: Dict = {
   'disk.queuedHint': 'Lo que las descargas aún pendientes añadirían a esta carpeta: el tamaño que anunció el hoster, menos lo que ya ha llegado. Una descarga cuyo tamaño el hoster no dice cuenta aquí como nada, así que esto es un mínimo y nunca una promesa, y por eso una carpeta puede mostrar cero bytes junto a una fila de descargas. Las descargas desactivadas quedan fuera, la misma regla que siguen los contadores bajo la lista. Una descarga que ya está en marcha suele haber reservado su espacio en el disco en el momento en que empezó, así que sus bytes ya faltan en la cifra de espacio libre de al lado en lugar de sumarse a ella.',
   'downloads.retryByCause': 'Reintentar por causa',
   'downloads.byCause': 'Por causa',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Ya hay una carpeta llamada «{name}». Elige otro nombre.',
+  'rename.packageHint': 'Si la carpeta de descargas lleva el nombre del paquete, adopta el nuevo nombre junto con los archivos que ya contiene, y las descargas en curso siguen ahí. Una carpeta de archivos extraídos con el nombre del paquete también se mueve. Un nombre no es una ruta, así que / y \\ no se permiten.',
+  'rename.busy': 'Parte de este paquete se está extrayendo, moviendo a su carpeta o grabando de una emisión en directo. Vuelve a intentarlo cuando haya terminado.',
+  'rename.notMoved': 'No se pudo cambiar el nombre de la carpeta «{name}», así que no cambió nada. Puede que otro programa tenga abierto un archivo de ella. Cierra ese archivo y vuelve a intentarlo.',
 };

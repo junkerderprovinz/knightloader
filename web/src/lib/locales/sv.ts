@@ -3101,8 +3101,8 @@ export const sv: Dict = {
   'disk.queuedHint': 'Vad de nedladdningar som fortfarande återstår skulle lägga till i den här mappen: storleken som värden angav, minus det som redan har kommit. En nedladdning vars storlek värden inte vill säga räknas här som ingenting, så det här är ett golv och aldrig ett löfte, och det är därför en mapp kan visa noll byte bredvid en rad nedladdningar. Avstängda nedladdningar hålls utanför, samma regel som räknarna under listan följer. En nedladdning som redan körs har oftast fått sitt utrymme reserverat på disken i samma stund som den startade, så dess byte saknas redan i siffran för ledigt utrymme bredvid, i stället för att läggas ovanpå.',
   'downloads.retryByCause': 'Försök igen per orsak',
   'downloads.byCause': 'Per orsak',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Det finns redan en mapp som heter ”{name}” där. Välj ett annat namn.',
+  'rename.packageHint': 'Om nedladdningsmappen har paketets namn får den det nya namnet tillsammans med filerna som redan ligger i den, och nedladdningar som fortfarande pågår fortsätter där. En mapp med uppackade filer som har paketets namn flyttar också med. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',
+  'rename.busy': 'En del av det här paketet packas upp, flyttas till sin mapp eller spelas in från en livesändning. Försök igen när det är klart.',
+  'rename.notMoved': 'Det gick inte att byta namn på mappen ”{name}”, så ingenting ändrades. Ett annat program kanske har en fil i den öppen. Stäng filen och försök igen.',
 };

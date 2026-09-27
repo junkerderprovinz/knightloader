@@ -3101,8 +3101,8 @@ export const bg: Dict = {
   'disk.queuedHint': 'Колко още биха добавили в тази папка дължимите изтегляния: размерът, обявен от хостъра, минус това, което вече е пристигнало. Изтегляне, чийто размер хостърът не казва, се брои тук за нула, така че това е долна граница, а не обещание, и затова до ред изтегляния папката може да показва нула байта. Изключените изтегляния остават навън, по същото правило като броячите под списъка. Изтегляне, което вече върви, обикновено е получило запазено място на диска още при старта си, така че байтовете му вече липсват от числото за свободно място до това и не се добавят отгоре.',
   'downloads.retryByCause': 'Повтори по причина',
   'downloads.byCause': 'По причина',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Там вече има папка с име „{name}“. Избери друго име.',
+  'rename.packageHint': 'Ако папката за изтегляния е кръстена на пакета, тя получава новото име заедно с файловете, които вече са в нея, а изтеглянията, които още текат, продължават там. Папка с разархивирани файлове, кръстена на пакета, също се премества. Името не е път, затова / и \\ не са позволени.',
+  'rename.busy': 'Част от този пакет се разархивира, премества се в папката си или се записва от стрийм на живо. Опитай отново, когато това приключи.',
+  'rename.notMoved': 'Папката „{name}“ не можа да се преименува, затова нищо не се промени. Може би друга програма е отворила файл в нея. Затвори този файл и опитай отново.',
 };

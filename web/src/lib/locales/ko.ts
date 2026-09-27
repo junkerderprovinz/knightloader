@@ -3092,8 +3092,8 @@ export const ko: Dict = {
   'disk.queuedHint': '아직 남은 다운로드가 이 폴더에 더 쓸 양입니다. 호스터가 알린 크기에서 이미 도착한 만큼을 뺀 값입니다. 호스터가 크기를 알려 주지 않는 다운로드는 여기서 0으로 세므로, 이 숫자는 최솟값일 뿐 약속이 아니며, 다운로드가 줄지어 있어도 폴더에 0바이트가 나올 수 있는 것도 그 때문입니다. 꺼진 다운로드는 빠집니다. 목록 아래 카운터와 같은 규칙입니다. 이미 실행 중인 다운로드는 보통 시작하는 순간 디스크에 자리를 확보해 두므로, 그 바이트는 옆의 여유 공간에서 이미 빠져 있고 그 위에 더해지지 않습니다.',
   'downloads.retryByCause': '원인별로 재시도',
   'downloads.byCause': '원인별',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': '“{name}” 폴더가 이미 있습니다. 다른 이름을 고르세요.',
+  'rename.packageHint': '저장 폴더 이름이 패키지 이름과 같으면, 그 폴더는 이미 들어 있는 파일과 함께 새 이름을 받고, 아직 진행 중인 다운로드는 그곳에서 계속됩니다. 패키지 이름을 딴, 압축을 푼 파일의 폴더도 함께 옮겨집니다. 이름은 경로가 아니므로 / 와 \\ 는 쓸 수 없습니다.',
+  'rename.busy': '이 패키지의 일부가 압축을 푸는 중이거나, 폴더로 옮기는 중이거나, 라이브 스트림에서 녹화하는 중입니다. 끝난 뒤에 다시 시도하세요.',
+  'rename.notMoved': '“{name}” 폴더의 이름을 바꾸지 못해서 아무것도 바뀌지 않았습니다. 다른 프로그램이 그 안의 파일을 열고 있을 수 있습니다. 그 파일을 닫고 다시 시도하세요.',
 };

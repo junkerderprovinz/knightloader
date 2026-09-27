@@ -3087,8 +3087,8 @@ export const da: Dict = {
   'disk.queuedHint': 'Hvad de downloads, der stadig mangler, ville lægge i denne mappe: den størrelse, hosteren oplyste, minus det, der allerede er kommet. En download, hvis størrelse hosteren ikke vil oplyse, tæller som ingenting her, så tallet er et gulv og aldrig et løfte, og det er derfor, en mappe kan vise nul byte ved siden af en række downloads. Downloads, der er slået fra, holdes ude, efter samme regel som tællerne under listen. En download, der allerede kører, har som regel fået sin plads reserveret på disken i det øjeblik, den startede, så dens byte mangler allerede i tallet for ledig plads ved siden af i stedet for at komme oveni.',
   'downloads.retryByCause': 'Prøv igen efter årsag',
   'downloads.byCause': 'Efter årsag',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Der findes allerede en mappe med navnet „{name}“. Vælg et andet navn.',
+  'rename.packageHint': 'Hvis downloadmappen er opkaldt efter pakken, får den det nye navn sammen med de filer, der allerede ligger i den, og downloads, der stadig kører, fortsætter dér. En mappe med udpakkede filer, der er opkaldt efter pakken, flytter også med. Et navn er ikke en sti, så / og \\ er ikke tilladt.',
+  'rename.busy': 'En del af denne pakke er ved at blive pakket ud, flyttet til sin mappe eller optaget fra en livestream. Prøv igen, når det er færdigt.',
+  'rename.notMoved': 'Mappen „{name}“ kunne ikke omdøbes, så intet er ændret. Måske har et andet program en fil i den åben. Luk filen, og prøv igen.',
 };

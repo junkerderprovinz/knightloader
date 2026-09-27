@@ -3101,8 +3101,8 @@ export const uk: Dict = {
   'disk.queuedHint': 'Скільки ще додали б у цю теку завантаження, що лишилися: розмір, який оголосив хостер, мінус те, що вже прийшло. Завантаження, розміру якого хостер не називає, тут рахується як нуль, тож це нижня межа, а не обіцянка, і тому поруч із низкою завантажень тека може показувати нуль байтів. Вимкнені завантаження сюди не входять, за тим самим правилом, що й лічильники під списком. Завантаження, яке вже виконується, зазвичай отримало зарезервоване місце на диску ще під час запуску, тож його байтів уже бракує в сусідньому значенні вільного місця, і вони не додаються зверху.',
   'downloads.retryByCause': 'Повторити за причиною',
   'downloads.byCause': 'За причиною',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Там уже є тека «{name}». Виберіть інше ім’я.',
+  'rename.packageHint': 'Якщо теку завантажень названо за пакетом, вона отримує нове ім’я разом із файлами, які вже в ній лежать, а завантаження, що ще тривають, продовжуються там. Тека з розпакованими файлами, названа за пакетом, теж переміщується. Ім’я не є шляхом, тому / і \\ не дозволені.',
+  'rename.busy': 'Частина цього пакета зараз розпаковується, переміщується до своєї теки або записується з прямої трансляції. Спробуйте ще раз, коли це завершиться.',
+  'rename.notMoved': 'Теку «{name}» не вдалося перейменувати, тому нічого не змінилося. Можливо, інша програма тримає відкритим файл у ній. Закрийте цей файл і спробуйте ще раз.',
 };

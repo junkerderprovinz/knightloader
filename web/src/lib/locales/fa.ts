@@ -3090,8 +3090,8 @@ export const fa: Dict = {
   'disk.queuedHint': 'آنچه دانلودهای باقی‌مانده هنوز به این پوشه اضافه می‌کنند: اندازه‌ای که میزبان اعلام کرده، منهای آنچه از پیش رسیده است. دانلودی که میزبان اندازه‌اش را نمی‌گوید اینجا صفر حساب می‌شود، پس این عدد یک کف است و هرگز یک قول نیست، و به همین دلیل ممکن است پوشه‌ای کنار ردیفی از دانلودها صفر بایت نشان دهد. دانلودهای خاموش بیرون می‌مانند، همان قاعده‌ای که شمارنده‌های زیر فهرست دنبال می‌کنند. برای دانلودی که از قبل در حال اجراست معمولاً همان لحظهٔ شروع جا روی دیسک کنار گذاشته شده، پس بایت‌هایش از قبل از عدد فضای آزاد کنار این کم شده‌اند و روی آن اضافه نمی‌شوند.',
   'downloads.retryByCause': 'تلاش دوباره بر اساس علت',
   'downloads.byCause': 'بر اساس علت',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'پوشه‌ای به نام «{name}» از قبل آنجا هست. نام دیگری انتخاب کن.',
+  'rename.packageHint': 'اگر پوشه دانلود به نام بسته باشد، نام تازه را همراه با فایل‌هایی که از قبل در آن هستند می‌گیرد و دانلودهایی که هنوز در جریان‌اند همان‌جا ادامه می‌یابند. پوشه‌ای از فایل‌های استخراج‌شده که به نام بسته است هم جابه‌جا می‌شود. نام یک مسیر نیست، پس / و \\ مجاز نیستند.',
+  'rename.busy': 'بخشی از این بسته در حال استخراج، انتقال به پوشه‌اش یا ضبط از یک پخش زنده است. وقتی تمام شد دوباره امتحان کن.',
+  'rename.notMoved': 'تغییر نام پوشه «{name}» ممکن نشد، پس چیزی عوض نشد. شاید برنامهٔ دیگری فایلی از آن را باز نگه داشته باشد. آن فایل را ببند و دوباره امتحان کن.',
 };

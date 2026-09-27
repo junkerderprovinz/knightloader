@@ -3100,8 +3100,8 @@ export const hu: Dict = {
   'disk.queuedHint': 'Amennyit a még hátralévő letöltések ebbe a mappába írnának: a tárhely által közölt méret, mínusz ami már megérkezett. Az a letöltés, amelynek a méretét a tárhely nem árulja el, itt nullának számít, így ez alsó határ és nem ígéret, és ezért állhat egy mappánál nulla bájt egy egész sor letöltés mellett. A kikapcsolt letöltések kimaradnak, ugyanazzal a szabállyal, amelyet a lista alatti számlálók is követnek. Egy már futó letöltés helyét a lemezen általában már az indulásakor lefoglalják, így a bájtjai már hiányoznak a mellette látható szabad helyből, nem pedig ráadásként jönnek hozzá.',
   'downloads.retryByCause': 'Újrapróbálás ok szerint',
   'downloads.byCause': 'Ok szerint',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Ott már van „{name}” nevű mappa. Válassz másik nevet.',
+  'rename.packageHint': 'Ha a letöltési mappa a csomagról kapta a nevét, a benne lévő fájlokkal együtt megkapja az új nevet, és a még futó letöltések ott folytatódnak. A csomagról elnevezett, kibontott fájlokat tartalmazó mappa is vele költözik. A név nem elérési út, ezért a / és a \\ nem megengedett.',
+  'rename.busy': 'A csomag egy részét éppen kibontják, a mappájába helyezik át vagy egy livestreamből rögzítik. Próbáld újra, ha ez befejeződött.',
+  'rename.notMoved': 'A(z) „{name}” mappát nem sikerült átnevezni, így semmi nem változott. Lehet, hogy egy másik program nyitva tart benne egy fájlt. Zárd be azt a fájlt, és próbáld újra.',
 };

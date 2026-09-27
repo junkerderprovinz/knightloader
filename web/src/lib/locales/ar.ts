@@ -3100,8 +3100,8 @@ export const ar: Dict = {
   'disk.queuedHint': 'ما ستضيفه التنزيلات المتبقية إلى هذا المجلد: الحجم الذي أعلنه المستضيف، ناقصًا ما وصل سلفًا. والتنزيل الذي لا يذكر المستضيف حجمه يُحسب هنا صفرًا، فهذا الرقم حدّ أدنى لا وعد، ولهذا قد يظهر مجلد بلا بايتات بجوار صف من التنزيلات. التنزيلات المعطّلة تبقى خارجه، بالقاعدة نفسها التي تتبعها العدّادات تحت القائمة. والتنزيل الجاري حُجزت له مساحته على القرص في الغالب لحظة بدئه، فبايتاته ناقصة سلفًا من رقم المساحة الحرة المجاور لا مضافة إليه.',
   'downloads.retryByCause': 'إعادة المحاولة حسب السبب',
   'downloads.byCause': 'حسب السبب',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'يوجد بالفعل مجلد باسم «{name}» هناك. اختر اسمًا آخر.',
+  'rename.packageHint': 'إذا كان مجلد التنزيل يحمل اسم الحزمة، فإنه يأخذ الاسم الجديد مع الملفات الموجودة فيه، وتستمر التنزيلات الجارية فيه. وينتقل كذلك مجلد الملفات المفكوكة الذي يحمل اسم الحزمة. الاسم ليس مسارًا، لذا لا يُسمح بـ / و \\.',
+  'rename.busy': 'جزء من هذه الحزمة قيد فك الضغط أو النقل إلى مجلده أو التسجيل من بث مباشر. حاول مرة أخرى بعد انتهاء ذلك.',
+  'rename.notMoved': 'تعذّرت إعادة تسمية المجلد «{name}»، لذا لم يتغير شيء. ربما يفتح برنامج آخر ملفًا فيه. أغلق ذلك الملف وحاول مرة أخرى.',
 };

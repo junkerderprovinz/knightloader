@@ -3098,8 +3098,8 @@ export const gl: Dict = {
   'disk.queuedHint': 'O que as descargas aínda pendentes engadirían a este cartafol: o tamaño que anunciou o aloxador, menos o que xa chegou. Unha descarga da que o aloxador non di o tamaño conta aquí como nada, así que isto é un mínimo e nunca unha promesa, e por iso un cartafol pode amosar cero bytes xunto a unha fila de descargas. As descargas desactivadas quedan fóra, a mesma regra que seguen os contadores de debaixo da lista. A unha descarga que xa está en marcha adoitóuselle reservar o espazo no disco no momento en que comezou, así que os seus bytes xa faltan na cifra de espazo libre de aquí ao lado en vez de sumarse por riba.',
   'downloads.retryByCause': 'Reintentar por motivo',
   'downloads.byCause': 'Por motivo',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Xa hai un cartafol chamado «{name}». Escolle outro nome.',
+  'rename.packageHint': 'Se o cartafol de descargas leva o nome do paquete, colle o novo nome xunto cos ficheiros que xa contén, e as descargas en curso seguen alí. Un cartafol de ficheiros extraídos co nome do paquete tamén se move. Un nome non é unha ruta, así que / e \\ non se permiten.',
+  'rename.busy': 'Parte deste paquete estase a extraer, a mover ao seu cartafol ou a gravar dunha emisión en directo. Téntao de novo cando remate.',
+  'rename.notMoved': 'Non se puido cambiar o nome do cartafol «{name}», así que non cambiou nada. Pode que outro programa teña aberto un ficheiro del. Pecha ese ficheiro e téntao de novo.',
 };

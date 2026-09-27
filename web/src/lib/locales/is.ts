@@ -3097,8 +3097,8 @@ export const is: Dict = {
   'disk.queuedHint': 'Það sem niðurhölin sem enn eru eftir myndu bæta í þessa möppu: stærðin sem hýsillinn gaf upp, að frádregnu því sem þegar er komið. Niðurhal sem hýsillinn gefur ekki upp stærðina á telst sem ekkert hér, talan er því gólf og aldrei loforð, og þess vegna getur mappa sýnt engin bæti við hliðina á röð niðurhala. Niðurhölum sem slökkt er á er haldið utan við, sama regla og teljararnir undir listanum fylgja. Niðurhal sem er þegar í gangi hefur yfirleitt fengið pláss sitt frátekið á disknum um leið og það byrjaði, bæti þess vantar því þegar í töluna yfir laust pláss hér við hliðina í stað þess að bætast ofan á hana.',
   'downloads.retryByCause': 'Reyna aftur eftir ástæðu',
   'downloads.byCause': 'Eftir ástæðu',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Mappa sem heitir „{name}“ er þegar til þar. Veldu annað heiti.',
+  'rename.packageHint': 'Ef niðurhalsmappan heitir eftir pakkanum fær hún nýja heitið ásamt skránum sem þegar eru í henni, og niðurhöl sem enn eru í gangi halda áfram þar. Mappa með afþjöppuðum skrám sem heitir eftir pakkanum flyst líka með. Heiti er ekki slóð, svo / og \\ eru ekki leyfð.',
+  'rename.busy': 'Verið er að afþjappa hluta af þessum pakka, færa hann í möppuna sína eða taka hann upp úr beinni útsendingu. Reyndu aftur þegar því er lokið.',
+  'rename.notMoved': 'Ekki tókst að endurnefna möppuna „{name}“, svo ekkert breyttist. Kannski er annað forrit með skrá í henni opna. Lokaðu þeirri skrá og reyndu aftur.',
 };

@@ -3080,8 +3080,8 @@ export const ru: Dict = {
   'disk.queuedHint': 'Сколько ещё добавят в эту папку незавершённые загрузки: размер, названный хостером, минус то, что уже пришло. Загрузка, размер которой хостер не сообщает, здесь считается нулём, поэтому это нижняя граница, а не обещание, и поэтому у папки может стоять ноль байт рядом с целым рядом загрузок. Выключенные загрузки не учитываются, по тому же правилу, что и счётчики под списком. Уже идущей загрузке место на диске обычно резервируется в момент старта, поэтому её байты уже вычтены из свободного места рядом, а не добавляются сверху.',
   'downloads.retryByCause': 'Повторить по причине',
   'downloads.byCause': 'По причине',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Там уже есть папка «{name}». Выберите другое имя.',
+  'rename.packageHint': 'Если папка загрузок названа по пакету, она получает новое имя вместе с файлами, которые в ней уже лежат, а загрузки, которые ещё идут, продолжаются там. Папка с распакованными файлами, названная по пакету, тоже перемещается. Имя не путь, поэтому / и \\ не допускаются.',
+  'rename.busy': 'Часть этого пакета сейчас распаковывается, перемещается в свою папку или записывается с прямой трансляции. Попробуйте снова, когда это закончится.',
+  'rename.notMoved': 'Папку «{name}» не удалось переименовать, поэтому ничего не изменилось. Возможно, другая программа держит открытым файл в ней. Закройте этот файл и попробуйте снова.',
 };

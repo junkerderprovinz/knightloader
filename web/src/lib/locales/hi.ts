@@ -3101,8 +3101,8 @@ export const hi: Dict = {
   'disk.queuedHint': 'बाकी डाउनलोड इस फ़ोल्डर में कितना और जोड़ेंगे: होस्टर का बताया आकार, उसमें से जो पहले ही आ चुका है वह घटाकर। जिस डाउनलोड का आकार होस्टर नहीं बताता वह यहाँ शून्य गिना जाता है, इसलिए यह संख्या एक न्यूनतम है, कभी कोई वादा नहीं, और इसी वजह से किसी फ़ोल्डर के पास डाउनलोड की पूरी पंक्ति होते हुए भी शून्य बाइट दिख सकता है। बंद डाउनलोड बाहर रहते हैं, वही नियम जो सूची के नीचे के काउंटर मानते हैं। जो डाउनलोड पहले से चल रहा है उसकी जगह आम तौर पर शुरू होते ही डिस्क पर अलग रख दी गई होती है, इसलिए उसके बाइट बगल वाली खाली जगह की संख्या से पहले ही घट चुके होते हैं, उसके ऊपर नहीं जुड़ते।',
   'downloads.retryByCause': 'कारण के अनुसार फिर से आज़माएँ',
   'downloads.byCause': 'कारण के अनुसार',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': '“{name}” नाम का फ़ोल्डर वहाँ पहले से है। कोई दूसरा नाम चुनें।',
+  'rename.packageHint': 'अगर डाउनलोड फ़ोल्डर का नाम पैकेज के नाम पर है, तो उसे उसमें पहले से मौजूद फ़ाइलों के साथ नया नाम मिल जाता है, और जो डाउनलोड अभी चल रहे हैं, वे वहीं जारी रहते हैं। पैकेज के नाम वाला, निकाली गई फ़ाइलों का फ़ोल्डर भी साथ चला जाता है। नाम कोई पथ नहीं है, इसलिए / और \\ की अनुमति नहीं है।',
+  'rename.busy': 'इस पैकेज का कुछ हिस्सा अभी निकाला जा रहा है, उसके फ़ोल्डर में ले जाया जा रहा है या किसी लाइवस्ट्रीम से रिकॉर्ड किया जा रहा है। यह पूरा होने के बाद फिर से कोशिश करें।',
+  'rename.notMoved': 'फ़ोल्डर “{name}” का नाम नहीं बदला जा सका, इसलिए कुछ नहीं बदला। शायद किसी दूसरे प्रोग्राम ने उसमें कोई फ़ाइल खोल रखी है। वह फ़ाइल बंद करें और फिर से कोशिश करें।',
 };

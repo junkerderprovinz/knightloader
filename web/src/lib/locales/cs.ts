@@ -3111,8 +3111,8 @@ export const cs: Dict = {
   'disk.queuedHint': 'Kolik by do této složky ještě přidala dlužná stahování: velikost, kterou hoster ohlásil, minus to, co už dorazilo. Stahování, jehož velikost hoster neprozradí, se tu počítá jako nula, takže je to spodní hranice, nikdy slib, a proto může složka vedle řady stahování ukazovat nula bajtů. Vypnutá stahování se nezapočítávají, podle stejného pravidla jako počítadla pod seznamem. Stahování, které už běží, mělo obvykle místo na disku vyhrazené hned při spuštění, takže jeho bajty už chybí v údaji o volném místě vedle, místo aby se k němu přičítaly.',
   'downloads.retryByCause': 'Opakovat podle příčiny',
   'downloads.byCause': 'Podle příčiny',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Složka s názvem „{name}“ tam už je. Zvol jiný název.',
+  'rename.packageHint': 'Pokud je složka pro stahování pojmenovaná podle balíčku, dostane nový název i se soubory, které v ní už jsou, a stahování, která ještě běží, v ní pokračují. Složka s rozbalenými soubory pojmenovaná podle balíčku se přesune také. Název není cesta, takže / a \\ nejsou povoleny.',
+  'rename.busy': 'Část tohoto balíčku se právě rozbaluje, přesouvá do své složky nebo nahrává z livestreamu. Zkus to znovu, až to skončí.',
+  'rename.notMoved': 'Složku „{name}“ se nepodařilo přejmenovat, takže se nic nezměnilo. Možná v ní má jiný program otevřený soubor. Zavři ten soubor a zkus to znovu.',
 };

@@ -3115,8 +3115,8 @@ export const hr: Dict = {
   'disk.queuedHint': 'Koliko bi još preostala preuzimanja dodala u ovu mapu: veličina koju je hoster najavio, umanjena za ono što je već stiglo. Preuzimanje čiju veličinu hoster ne kaže ovdje se računa kao ništa, pa je ovo donja granica, a nikad obećanje, i zato mapa pokraj niza preuzimanja može pokazivati nula bajtova. Isključena preuzimanja ostaju vani, po istom pravilu kao brojači ispod popisa. Preuzimanje koje već radi obično je svoj prostor na disku rezerviralo čim je krenulo, pa njegovi bajtovi već nedostaju u broju slobodnog prostora pokraj ovoga i ne dolaze povrh njega.',
   'downloads.retryByCause': 'Ponovi po uzroku',
   'downloads.byCause': 'Po uzroku',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Mapa „{name}” tamo već postoji. Odaberi drugi naziv.',
+  'rename.packageHint': 'Ako je mapa za preuzimanja nazvana po paketu, dobiva novi naziv zajedno s datotekama koje su već u njoj, a preuzimanja koja još traju nastavljaju se ondje. Mapa s raspakiranim datotekama nazvana po paketu također se premješta. Naziv nije putanja, pa / i \\ nisu dopušteni.',
+  'rename.busy': 'Dio ovog paketa upravo se raspakira, premješta u svoju mapu ili snima iz streama uživo. Pokušaj ponovno kad to završi.',
+  'rename.notMoved': 'Mapu „{name}” nije bilo moguće preimenovati, pa se ništa nije promijenilo. Možda neki drugi program ima otvorenu datoteku u njoj. Zatvori tu datoteku i pokušaj ponovno.',
 };

@@ -3084,8 +3084,8 @@ export const nl: Dict = {
   'disk.queuedHint': 'Wat de nog openstaande downloads aan deze map zouden toevoegen: de grootte die de hoster heeft genoemd, min wat er al binnen is. Een download waarvan de hoster de grootte niet zegt, telt hier als niets, dus dit is een ondergrens en nooit een belofte, en daarom kan er naast een rij downloads nul bytes staan. Uitgezette downloads tellen niet mee, dezelfde regel die de tellers onder de lijst volgen. Voor een download die al loopt, is de ruimte op de schijf meestal al gereserveerd op het moment dat hij begon, dus zijn bytes ontbreken al in het cijfer voor vrije ruimte hiernaast in plaats van er nog bovenop te komen.',
   'downloads.retryByCause': 'Opnieuw per oorzaak',
   'downloads.byCause': 'Per oorzaak',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Er staat daar al een map met de naam “{name}”. Kies een andere naam.',
+  'rename.packageHint': 'Als de downloadmap naar het pakket is genoemd, krijgt hij de nieuwe naam mee, samen met de bestanden die er al in staan, en downloads die nog lopen gaan daar verder. Een map met uitgepakte bestanden die naar het pakket is genoemd, verhuist ook mee. Een naam is geen pad, dus / en \\ zijn niet toegestaan.',
+  'rename.busy': 'Een deel van dit pakket wordt uitgepakt, naar zijn map verplaatst of opgenomen van een livestream. Probeer het opnieuw zodra dat klaar is.',
+  'rename.notMoved': 'De map “{name}” kon niet worden hernoemd, dus er is niets veranderd. Misschien heeft een ander programma een bestand in die map open. Sluit dat bestand en probeer het opnieuw.',
 };

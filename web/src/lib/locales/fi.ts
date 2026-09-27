@@ -3102,8 +3102,8 @@ export const fi: Dict = {
   'disk.queuedHint': 'Mitä vielä jäljellä olevat lataukset lisäisivät tähän kansioon: hosterin ilmoittama koko miinus se, mikä on jo saapunut. Lataus, jonka kokoa hosteri ei kerro, lasketaan tässä nollaksi, joten luku on alaraja eikä koskaan lupaus, ja siksi kansion kohdalla voi näkyä nolla tavua latausrivien vieressä. Pois kytketyt lataukset jäävät ulkopuolelle samalla säännöllä kuin listan alla olevat laskurit. Jo käynnissä olevalle lataukselle on yleensä varattu tilaa levyltä heti sen alkaessa, joten sen tavut puuttuvat jo viereisestä vapaan tilan luvusta eivätkä tule sen päälle.',
   'downloads.retryByCause': 'Yritä uudelleen syyn mukaan',
   'downloads.byCause': 'Syyn mukaan',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Siellä on jo kansio nimeltä ”{name}”. Valitse toinen nimi.',
+  'rename.packageHint': 'Jos latauskansio on nimetty paketin mukaan, se saa uuden nimen yhdessä siinä jo olevien tiedostojen kanssa, ja vielä käynnissä olevat lataukset jatkuvat siellä. Myös paketin mukaan nimetty purettujen tiedostojen kansio siirtyy mukana. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',
+  'rename.busy': 'Osaa tästä paketista puretaan, siirretään sen kansioon tai tallennetaan livelähetyksestä. Yritä uudelleen, kun se on valmis.',
+  'rename.notMoved': 'Kansiota ”{name}” ei voitu nimetä uudelleen, joten mitään ei muuttunut. Jokin toinen ohjelma saattaa pitää siinä olevaa tiedostoa auki. Sulje se tiedosto ja yritä uudelleen.',
 };

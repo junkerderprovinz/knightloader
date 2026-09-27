@@ -3119,8 +3119,8 @@ export const he: Dict = {
   'disk.queuedHint': 'מה שההורדות שעוד לא הסתיימו יוסיפו לתיקייה הזו: הגודל שהמארח הודיע, פחות מה שכבר הגיע. הורדה שהמארח לא מגלה את גודלה נספרת כאן כאפס, ולכן זה רף תחתון ולא הבטחה, ומכאן גם שתיקייה יכולה להציג אפס בייטים לצד שורה של הורדות. הורדות כבויות נשארות בחוץ, לפי אותו כלל שהמונים שמתחת לרשימה פועלים לפיו. להורדה שכבר רצה בדרך כלל כבר הוקצה מקום בדיסק ברגע שהתחילה, ולכן הבייטים שלה כבר חסרים בנתון המקום הפנוי שלידו, ולא נוספים עליו.',
   'downloads.retryByCause': 'נסה שוב לפי סיבה',
   'downloads.byCause': 'לפי סיבה',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'כבר יש שם תיקייה בשם „{name}”. בחר שם אחר.',
+  'rename.packageHint': 'אם תיקיית ההורדות נקראת על שם החבילה, היא מקבלת את השם החדש יחד עם הקבצים שכבר נמצאים בה, והורדות שעדיין פועלות ממשיכות שם. גם תיקייה של קבצים מחולצים שנקראת על שם החבילה מועברת יחד איתה. שם אינו נתיב, ולכן / ו־\\ אינם מותרים.',
+  'rename.busy': 'חלק מהחבילה הזו נמצא בחילוץ, בהעברה לתיקייה שלו או בהקלטה משידור חי. נסה שוב כשזה יסתיים.',
+  'rename.notMoved': 'לא ניתן היה לשנות את שם התיקייה „{name}”, ולכן שום דבר לא השתנה. ייתכן שתוכנה אחרת מחזיקה קובץ פתוח בתוכה. סגור את הקובץ ונסה שוב.',
 };

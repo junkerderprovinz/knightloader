@@ -3100,8 +3100,8 @@ export const th: Dict = {
   'disk.queuedHint': 'สิ่งที่การดาวน์โหลดที่ยังค้างอยู่จะเพิ่มเข้ามาในโฟลเดอร์นี้ คือขนาดที่โฮสต์ประกาศไว้ ลบด้วยส่วนที่มาถึงแล้ว การดาวน์โหลดที่โฮสต์ไม่บอกขนาดจะนับเป็นศูนย์ที่นี่ ตัวเลขนี้จึงเป็นค่าต่ำสุดและไม่ใช่คำสัญญา และนี่คือเหตุที่โฟลเดอร์อาจแสดงศูนย์ไบต์ทั้งที่มีการดาวน์โหลดเรียงอยู่ข้าง ๆ การดาวน์โหลดที่ปิดใช้ไม่นับรวม ตามกฎเดียวกับตัวนับใต้รายการ การดาวน์โหลดที่กำลังทำงานอยู่มักได้รับการจองพื้นที่บนดิสก์ไว้ตั้งแต่ตอนเริ่ม ไบต์ของมันจึงหายไปจากตัวเลขพื้นที่ว่างข้าง ๆ นี้แล้ว ไม่ได้ซ้อนอยู่ด้านบน',
   'downloads.retryByCause': 'ลองใหม่ตามสาเหตุ',
   'downloads.byCause': 'ตามสาเหตุ',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'มีโฟลเดอร์ชื่อ “{name}” อยู่ที่นั่นแล้ว เลือกชื่ออื่น',
+  'rename.packageHint': 'ถ้าโฟลเดอร์ดาวน์โหลดตั้งชื่อตามแพ็กเกจ โฟลเดอร์นั้นจะได้ชื่อใหม่ไปพร้อมกับไฟล์ที่อยู่ในนั้นแล้ว และดาวน์โหลดที่ยังทำงานอยู่จะทำต่อที่นั่น โฟลเดอร์ของไฟล์ที่แตกแล้วซึ่งตั้งชื่อตามแพ็กเกจก็จะย้ายตามไปด้วย ชื่อไม่ใช่พาธ จึงใช้ / และ \\ ไม่ได้',
+  'rename.busy': 'บางส่วนของแพ็กเกจนี้กำลังแตกไฟล์ กำลังย้ายเข้าโฟลเดอร์ของมัน หรือกำลังบันทึกจากไลฟ์สตรีม ลองอีกครั้งเมื่อเสร็จแล้ว',
+  'rename.notMoved': 'เปลี่ยนชื่อโฟลเดอร์ “{name}” ไม่ได้ จึงไม่มีอะไรเปลี่ยน อาจมีโปรแกรมอื่นเปิดไฟล์ในโฟลเดอร์นั้นอยู่ ปิดไฟล์นั้นแล้วลองอีกครั้ง',
 };

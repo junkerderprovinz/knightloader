@@ -3085,8 +3085,8 @@ export const it: Dict = {
   'disk.queuedHint': 'Quanto i download ancora dovuti aggiungerebbero a questa cartella: la dimensione annunciata dall’hoster, meno quello che è già arrivato. Un download di cui l’hoster non dice la dimensione qui conta zero, quindi questo è un minimo e mai una promessa, ed è per questo che una cartella può mostrare zero byte accanto a una fila di download. I download disattivati restano fuori, con la stessa regola dei contatori sotto l’elenco. Un download già in corso di solito si è visto riservare lo spazio sul disco nel momento in cui è partito, quindi i suoi byte mancano già dal valore di spazio libero qui accanto invece di aggiungersi sopra.',
   'downloads.retryByCause': 'Riprova per causa',
   'downloads.byCause': 'Per causa',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Lì c’è già una cartella chiamata «{name}». Scegli un altro nome.',
+  'rename.packageHint': 'Se la cartella di download ha il nome del pacchetto, prende il nuovo nome insieme ai file che contiene già, e i download ancora in corso proseguono lì. Anche una cartella di file estratti con il nome del pacchetto si sposta. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
+  'rename.busy': 'Una parte di questo pacchetto è in estrazione, in spostamento nella sua cartella o in registrazione da un livestream. Riprova quando avrà finito.',
+  'rename.notMoved': 'Non è stato possibile rinominare la cartella «{name}», quindi non è cambiato nulla. Forse un altro programma ha aperto un file al suo interno. Chiudi quel file e riprova.',
 };

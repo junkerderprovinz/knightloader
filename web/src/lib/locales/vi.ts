@@ -3101,8 +3101,8 @@ export const vi: Dict = {
   'disk.queuedHint': 'Những gì các lượt tải còn lại sẽ thêm vào thư mục này: kích thước hoster đã công bố, trừ đi phần đã về. Một lượt tải mà hoster không cho biết kích thước được tính là không ở đây, nên con số này là mức sàn chứ không bao giờ là lời hứa, và đó là lý do một thư mục có thể hiện không byte bên cạnh cả một hàng lượt tải. Các lượt tải đã tắt không được tính, cùng quy tắc mà các bộ đếm dưới danh sách tuân theo. Một lượt tải đang chạy thường đã được giữ chỗ trên đĩa ngay lúc bắt đầu, nên số byte của nó đã bị trừ khỏi con số dung lượng trống bên cạnh chứ không cộng thêm lên trên.',
   'downloads.retryByCause': 'Thử lại theo nguyên nhân',
   'downloads.byCause': 'Theo nguyên nhân',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Ở đó đã có thư mục tên “{name}”. Hãy chọn tên khác.',
+  'rename.packageHint': 'Nếu thư mục tải về được đặt theo tên gói, thư mục đó sẽ nhận tên mới cùng với các tệp đã có trong đó, và các lượt tải còn đang chạy sẽ tiếp tục ở đó. Thư mục chứa các tệp đã giải nén được đặt theo tên gói cũng được chuyển theo. Tên không phải đường dẫn, nên không được dùng / và \\.',
+  'rename.busy': 'Một phần của gói này đang được giải nén, chuyển vào thư mục của nó hoặc ghi lại từ một livestream. Hãy thử lại khi việc đó xong.',
+  'rename.notMoved': 'Không thể đổi tên thư mục “{name}”, nên không có gì thay đổi. Có thể một chương trình khác đang mở một tệp trong đó. Hãy đóng tệp đó rồi thử lại.',
 };

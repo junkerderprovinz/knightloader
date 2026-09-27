@@ -3095,8 +3095,8 @@ export const eu: Dict = {
   'disk.queuedHint': 'Oraindik egiteko dauden deskargek karpeta honi gehituko liokeena: ostalariak iragarritako tamaina, dagoeneko iritsi dena kenduta. Ostalariak tamaina esaten ez dion deskarga bat ezer ez bezala zenbatzen da hemen, beraz hau gutxieneko bat da eta ez inoiz promesa bat, eta horregatik erakuts ditzake karpeta batek zero byte deskarga-errenkada baten ondoan. Itzalitako deskargak kanpoan geratzen dira, zerrendaren azpiko kontagailuek jarraitzen duten arau bera. Dagoeneko martxan dagoen deskarga batek normalean hasi zen unean bertan izan zuen bere lekua diskoan erreserbatuta, beraz bere byteak jada falta dira ondoko leku librearen zifran, haren gainera gehitu beharrean.',
   'downloads.retryByCause': 'Saiatu berriro arrazoiaren arabera',
   'downloads.byCause': 'Arrazoiaren arabera',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Badago «{name}» izeneko karpeta bat han. Aukeratu beste izen bat.',
+  'rename.packageHint': 'Deskargen karpetak paketearen izena badu, izen berria hartzen du barruan dituen fitxategiekin batera, eta oraindik abian diren deskargek bertan jarraitzen dute. Paketearen izena duen erauzitako fitxategien karpeta ere lekuz aldatzen da. Izen bat ez da bide bat, beraz / eta \\ ez dira onartzen.',
+  'rename.busy': 'Pakete honen zati bat erauzten, bere karpetara eramaten edo zuzeneko emanaldi batetik grabatzen ari da. Saiatu berriro hori amaitzen denean.',
+  'rename.notMoved': 'Ezin izan zaio «{name}» karpetari izena aldatu, beraz ez da ezer aldatu. Baliteke beste programa batek fitxategi bat irekita izatea bertan. Itxi fitxategi hori eta saiatu berriro.',
 };

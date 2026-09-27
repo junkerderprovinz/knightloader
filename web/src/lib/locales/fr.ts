@@ -3089,8 +3089,8 @@ export const fr: Dict = {
   'disk.queuedHint': 'Ce que les téléchargements encore dus ajouteraient à ce dossier : la taille annoncée par l’hébergeur, moins ce qui est déjà arrivé. Un téléchargement dont l’hébergeur ne dit pas la taille compte ici pour rien : ce chiffre est donc un plancher et jamais une promesse, et c’est pourquoi un dossier peut afficher zéro octet à côté d’une série de téléchargements. Les téléchargements désactivés restent en dehors, selon la même règle que les compteurs sous la liste. Un téléchargement déjà en cours a en général eu sa place réservée sur le disque dès son démarrage : ses octets manquent donc déjà dans le chiffre d’espace libre à côté, au lieu de s’y ajouter.',
   'downloads.retryByCause': 'Relancer par cause',
   'downloads.byCause': 'Par cause',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Un dossier nommé « {name} » existe déjà à cet endroit. Choisissez un autre nom.',
+  'rename.packageHint': 'Si le dossier de téléchargement porte le nom du paquet, il prend le nouveau nom avec les fichiers qu’il contient déjà, et les téléchargements encore en cours s’y poursuivent. Un dossier de fichiers extraits portant le nom du paquet est déplacé lui aussi. Un nom n’est pas un chemin, donc / et \\ ne sont pas permis.',
+  'rename.busy': 'Une partie de ce paquet est en cours d’extraction, de déplacement vers son dossier ou d’enregistrement depuis un livestream. Réessayez une fois que c’est terminé.',
+  'rename.notMoved': 'Le dossier « {name} » n’a pas pu être renommé, donc rien n’a changé. Un autre programme garde peut-être un fichier de ce dossier ouvert. Fermez ce fichier et réessayez.',
 };

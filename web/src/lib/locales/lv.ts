@@ -3091,8 +3091,8 @@ export const lv: Dict = {
   'disk.queuedHint': 'Ko vēl gaidāmās lejupielādes pievienotu šai mapei: glabātāja paziņotais izmērs mīnus tas, kas jau ir atnācis. Lejupielāde, kuras izmēru glabātājs nesaka, te skaitās kā nulle, tāpēc šī ir apakšējā robeža un nekad ne solījums, un tāpēc blakus veselai lejupielāžu rindai mapē var būt redzami nulle baitu. Izslēgtās lejupielādes netiek ieskaitītas, pēc tā paša noteikuma kā skaitītāji zem saraksta. Lejupielādei, kas jau notiek, vieta diskā parasti tika rezervēta jau sākšanas brīdī, tāpēc tās baiti jau trūkst blakus esošajā brīvās vietas skaitlī, nevis nāk tam klāt.',
   'downloads.retryByCause': 'Atkārtot pēc iemesla',
   'downloads.byCause': 'Pēc iemesla',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Tur jau ir mape ar nosaukumu „{name}“. Izvēlies citu nosaukumu.',
+  'rename.packageHint': 'Ja lejupielāžu mape nosaukta pakotnes vārdā, tā saņem jauno nosaukumu kopā ar failiem, kas tajā jau ir, un vēl notiekošās lejupielādes turpinās tur. Arī pakotnes vārdā nosaukta izpakoto failu mape tiek pārvietota līdzi. Nosaukums nav ceļš, tāpēc / un \\ nav atļauti.',
+  'rename.busy': 'Daļa šīs pakotnes pašlaik tiek izpakota, pārvietota uz savu mapi vai ierakstīta no tiešraides. Mēģini vēlreiz, kad tas būs beidzies.',
+  'rename.notMoved': 'Mapi „{name}“ neizdevās pārdēvēt, tāpēc nekas nemainījās. Iespējams, cita programma tajā tur atvērtu failu. Aizver šo failu un mēģini vēlreiz.',
 };

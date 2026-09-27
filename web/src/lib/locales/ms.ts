@@ -3100,8 +3100,8 @@ export const ms: Dict = {
   'disk.queuedHint': 'Berapa banyak yang akan ditambah oleh muat turun yang masih tinggal ke folder ini: saiz yang diumumkan oleh hoster, tolak apa yang sudah tiba. Muat turun yang saiznya tidak mahu dinyatakan oleh hoster dikira sebagai kosong di sini, jadi angka ini ialah had bawah dan bukan janji, dan sebab itulah sesuatu folder boleh menunjukkan sifar bait di sebelah sederet muat turun. Muat turun yang dimatikan tidak dikira, peraturan yang sama yang diikuti oleh pembilang di bawah senarai. Muat turun yang sudah berjalan biasanya sudah mendapat ruang yang diketepikan pada cakera sebaik sahaja ia bermula, jadi baitnya sudah tiada dalam angka ruang lapang di sebelahnya dan tidak ditambah di atasnya.',
   'downloads.retryByCause': 'Cuba semula mengikut punca',
   'downloads.byCause': 'Mengikut punca',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Folder bernama “{name}” sudah ada di situ. Pilih nama lain.',
+  'rename.packageHint': 'Jika folder muat turun dinamakan sempena pakej, folder itu menerima nama baharu bersama fail yang sudah ada di dalamnya, dan muat turun yang masih berjalan diteruskan di situ. Folder fail yang diekstrak yang dinamakan sempena pakej turut berpindah. Nama bukan laluan, jadi / dan \\ tidak dibenarkan.',
+  'rename.busy': 'Sebahagian pakej ini sedang diekstrak, dipindahkan ke foldernya atau dirakam daripada livestream. Cuba lagi selepas itu selesai.',
+  'rename.notMoved': 'Folder “{name}” tidak dapat dinamakan semula, jadi tiada apa yang berubah. Mungkin program lain sedang membuka fail di dalamnya. Tutup fail itu dan cuba lagi.',
 };
