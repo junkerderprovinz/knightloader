@@ -5,8 +5,6 @@
   </picture>
 </p>
 
-<br>
-
 <p align="center">
   <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/ci.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/style.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/style.yml?branch=main&label=Lint&style=for-the-badge&logo=githubactions&logoColor=white" alt="Lint" height="36"></a>&nbsp;
@@ -28,7 +26,8 @@
 <br>
 
 <p align="center">
-A self-hosted, cross-platform download manager: a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. One Go binary with the download engine, the API and the web UI inside it, shipped as a container and as native desktop apps.
+<strong>KnightLoader downloads everything. Yes, everything.</strong><br>
+Hosters, debrid services, torrents, Usenet, videos and streams: one download manager handles the lot, and it doesn't look like it was built in 2005. Run it on your server or your desktop, feed it links from the web, your phone or your browser, then go do something more fun.
 </p>
 
 <br>
