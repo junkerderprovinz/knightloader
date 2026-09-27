@@ -1,4 +1,4 @@
-Unicode true
+﻿Unicode true
 
 # Wails fills in the project's name, version and binaries in wails_tools.nsh,
 # which it writes on every -nsis build. This file is Wails' own template with a
