@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Puts the newest build of the app or the browser extension into a standing
-# release, under a file name without a version, for the README's download
-# buttons.
+# Puts the newest build of the app into a standing release, under a file name
+# without a version, for the README's download button. The browser extension
+# rides on the main release instead (release.yml).
 #
 #   publish-newest.sh <surface> <file> <asset name> <product>
 #
-#   surface     mobile or extension: the tag prefix. The standing release is
+#   surface     mobile: the tag prefix. The standing release is
 #               <surface>/latest.
 #   file        the build this tag produced
 #   asset name  the fixed name it is published under
-#   product     as the release titles name it: App, Browser Extension
+#   product     as the release titles name it: App
 #
 # A standing release is needed because a stable download link exists only as
 # /releases/latest/download/<name>, and "latest" belongs to the main vX.Y.Z release;
