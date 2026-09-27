@@ -3108,8 +3108,8 @@ export const ro: Dict = {
   'disk.queuedHint': 'Ce ar adăuga în acest dosar descărcările încă datorate: dimensiunea anunțată de hoster, minus ce a sosit deja. O descărcare a cărei dimensiune hosterul nu o spune contează aici ca nimic, deci aceasta este o limită inferioară și niciodată o promisiune, și de aceea un dosar poate arăta zero octeți lângă un rând de descărcări. Descărcările dezactivate rămân pe dinafară, aceeași regulă pe care o urmează contoarele de sub listă. O descărcare care rulează deja și-a primit de obicei locul rezervat pe disc chiar în clipa în care a pornit, deci octeții ei lipsesc deja din cifra spațiului liber de alături, în loc să se adauge peste ea.',
   'downloads.retryByCause': 'Reîncearcă după cauză',
   'downloads.byCause': 'După cauză',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Acolo există deja un dosar numit „{name}”. Alege alt nume.',
+  'rename.packageHint': 'Dacă dosarul de descărcare poartă numele pachetului, primește noul nume împreună cu fișierele care sunt deja în el, iar descărcările care încă rulează continuă acolo. Un dosar cu fișiere dezarhivate care poartă numele pachetului se mută și el. Un nume nu este o cale, așa că / și \\ nu sunt permise.',
+  'rename.busy': 'O parte din acest pachet se dezarhivează, se mută în dosarul său sau se înregistrează dintr-o transmisiune live. Încearcă din nou după ce se termină.',
+  'rename.notMoved': 'Dosarul „{name}” nu a putut fi redenumit, așa că nu s-a schimbat nimic. Poate că alt program ține deschis un fișier din el. Închide acel fișier și încearcă din nou.',
 };

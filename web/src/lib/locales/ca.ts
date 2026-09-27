@@ -3087,8 +3087,8 @@ export const ca: Dict = {
   'disk.queuedHint': 'El que les baixades encara pendents afegirien a aquesta carpeta: la mida que ha anunciat l’allotjador, menys el que ja ha arribat. Una baixada de la qual l’allotjador no diu la mida aquí compta com a res, així que això és un mínim i mai una promesa, i per això una carpeta pot mostrar zero bytes al costat d’una filera de baixades. Les baixades desactivades en queden fora, la mateixa regla que segueixen els comptadors de sota la llista. Una baixada que ja està en marxa normalment ha tingut el seu espai reservat al disc des del moment que ha començat, així que els seus bytes ja falten a la xifra d’espai lliure del costat en lloc de sumar-s’hi.',
   'downloads.retryByCause': 'Reintenta per causa',
   'downloads.byCause': 'Per causa',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Ja hi ha una carpeta anomenada «{name}». Tria un altre nom.',
+  'rename.packageHint': 'Si la carpeta de baixades porta el nom del paquet, pren el nom nou juntament amb els fitxers que ja hi ha, i les baixades en curs hi continuen. Una carpeta de fitxers extrets que porti el nom del paquet també es mou. Un nom no és un camí, així que / i \\ no s’admeten.',
+  'rename.busy': 'Una part d’aquest paquet s’està extraient, movent a la seva carpeta o gravant d’una emissió en directe. Torna-ho a provar quan hagi acabat.',
+  'rename.notMoved': 'No s’ha pogut canviar el nom de la carpeta «{name}», així que no ha canviat res. Potser un altre programa hi té un fitxer obert. Tanca aquest fitxer i torna-ho a provar.',
 };

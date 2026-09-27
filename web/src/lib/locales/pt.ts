@@ -3090,8 +3090,8 @@ export const pt: Dict = {
   'disk.queuedHint': 'O que as transferências ainda em dívida acrescentariam a esta pasta: o tamanho que o hoster anunciou, menos o que já chegou. Uma transferência cujo tamanho o hoster não diz conta aqui como nada, por isso isto é um mínimo e nunca uma promessa, e é por isso que uma pasta pode mostrar zero bytes ao lado de uma fila de transferências. As transferências desativadas ficam de fora, a mesma regra que seguem os contadores por baixo da lista. Uma transferência que já está a correr teve normalmente o seu espaço reservado no disco no momento em que arrancou, por isso os seus bytes já faltam no valor de espaço livre ao lado em vez de se somarem a ele.',
   'downloads.retryByCause': 'Repetir por causa',
   'downloads.byCause': 'Por causa',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Já existe aí uma pasta chamada «{name}». Escolhe outro nome.',
+  'rename.packageHint': 'Se a pasta de transferências tiver o nome do pacote, recebe o novo nome juntamente com os ficheiros que já lá estão, e as transferências ainda em curso continuam lá. Uma pasta de ficheiros extraídos com o nome do pacote também muda de sítio. Um nome não é um caminho, por isso / e \\ não são permitidos.',
+  'rename.busy': 'Parte deste pacote está a ser extraída, movida para a sua pasta ou gravada a partir de um livestream. Tenta outra vez quando isso terminar.',
+  'rename.notMoved': 'Não foi possível mudar o nome da pasta «{name}», por isso nada mudou. Talvez outro programa tenha um ficheiro aberto dentro dela. Fecha esse ficheiro e tenta outra vez.',
 };

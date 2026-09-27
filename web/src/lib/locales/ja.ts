@@ -3101,8 +3101,8 @@ export const ja: Dict = {
   'disk.queuedHint': 'まだ残っているダウンロードがこのフォルダーに書き込む量です。ホスターが告げたサイズから、すでに届いた分を引いたものです。ホスターがサイズを明かさないダウンロードはここではゼロとして数えるので、この数字は下限であって約束ではありません。ダウンロードが並んでいるのにフォルダーに 0 バイトと出ることがあるのもそのためです。無効なダウンロードは含めません。一覧の下のカウンターと同じ規則です。すでに実行中のダウンロードは、たいてい開始した時点でディスク上の場所が確保されているので、そのバイト数は隣の空き容量からすでに引かれていて、上乗せにはなりません。',
   'downloads.retryByCause': '原因ごとに再試行',
   'downloads.byCause': '原因ごと',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': '「{name}」というフォルダーがすでにあります。別の名前を選んでください。',
+  'rename.packageHint': '保存先フォルダーがパッケージ名になっている場合、そのフォルダーは中にあるファイルごと新しい名前になり、実行中のダウンロードもそこで続きます。パッケージ名の付いた、展開済みファイルのフォルダーも一緒に移動します。名前はパスではないので、/ と \\ は使えません。',
+  'rename.busy': 'このパッケージの一部が展開中、フォルダーへの移動中、またはライブ配信からの録画中です。それが終わってから、もう一度試してください。',
+  'rename.notMoved': 'フォルダー「{name}」の名前を変更できなかったため、何も変わっていません。別のプログラムがその中のファイルを開いている可能性があります。そのファイルを閉じて、もう一度試してください。',
 };

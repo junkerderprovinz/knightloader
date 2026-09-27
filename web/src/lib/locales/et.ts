@@ -3092,8 +3092,8 @@ export const et: Dict = {
   'disk.queuedHint': 'Mida veel ootel olevad allalaadimised sellesse kausta lisaksid: hosteri teatatud suurus, millest on lahutatud juba saabunu. Allalaadimine, mille suurust hoster ei ütle, loeb siin nulliks, seega on see arv alampiir ja mitte kunagi lubadus, ning seepärast võib kausta juures olla allalaadimiste rea kõrval null baiti. Väljalülitatud allalaadimised jäävad välja, sama reegli järgi nagu loendi all olevad loendurid. Juba käimasolevale allalaadimisele on tavaliselt kettal ruum reserveeritud kohe, kui see alustas, seega puuduvad tema baidid juba kõrvalolevast vaba ruumi arvust, mitte ei tule sellele otsa.',
   'downloads.retryByCause': 'Proovi uuesti põhjuse järgi',
   'downloads.byCause': 'Põhjuse järgi',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Kaust nimega „{name}“ on seal juba olemas. Vali mõni muu nimi.',
+  'rename.packageHint': 'Kui allalaadimiste kaust on nimetatud paki järgi, saab see uue nime koos failidega, mis selles juba on, ja veel käivad allalaadimised jätkuvad seal. Ka paki järgi nimetatud lahtipakitud failide kaust liigub kaasa. Nimi ei ole tee, seega / ja \\ pole lubatud.',
+  'rename.busy': 'Osa sellest pakist pakitakse parajasti lahti, viiakse oma kausta või salvestatakse otseülekandest. Proovi uuesti, kui see on lõppenud.',
+  'rename.notMoved': 'Kausta „{name}“ ei õnnestunud ümber nimetada, seega midagi ei muutunud. Võib-olla hoiab mõni teine programm selles kaustas faili avatuna. Sulge see fail ja proovi uuesti.',
 };

@@ -3101,8 +3101,8 @@ export const lt: Dict = {
   'disk.queuedHint': 'Kiek dar laukiami atsisiuntimai įrašytų į šį aplanką: talpyklos nurodytas dydis minus tai, kas jau atėjo. Atsisiuntimas, kurio dydžio talpykla nesako, čia skaičiuojamas kaip nulis, tad tai apatinė riba, o ne pažadas, ir todėl šalia visos eilės atsisiuntimų aplankas gali rodyti nulį baitų. Išjungti atsisiuntimai neįtraukiami, pagal tą pačią taisyklę kaip skaitikliai po sąrašu. Jau vykstančiam atsisiuntimui vieta diske paprastai rezervuojama jau jo paleidimo metu, todėl jo baitų jau trūksta gretimame laisvos vietos skaičiuje, o ne pridedama prie jo.',
   'downloads.retryByCause': 'Kartoti pagal priežastį',
   'downloads.byCause': 'Pagal priežastį',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Ten jau yra aplankas „{name}“. Pasirink kitą pavadinimą.',
+  'rename.packageHint': 'Jei atsisiuntimų aplankas pavadintas pagal paketą, jis gauna naują pavadinimą kartu su jame jau esančiais failais, o dar vykstantys atsisiuntimai ten tęsiami. Pagal paketą pavadintas išpakuotų failų aplankas taip pat perkeliamas. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
+  'rename.busy': 'Dalis šio paketo šiuo metu išpakuojama, perkeliama į savo aplanką arba įrašoma iš tiesioginės transliacijos. Bandyk dar kartą, kai tai baigsis.',
+  'rename.notMoved': 'Aplanko „{name}“ nepavyko pervadinti, todėl niekas nepasikeitė. Galbūt kita programa laiko jame atidarytą failą. Uždaryk tą failą ir bandyk dar kartą.',
 };

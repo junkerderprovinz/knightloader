@@ -3111,8 +3111,8 @@ export const sk: Dict = {
   'disk.queuedHint': 'Koľko by do tohto priečinka ešte pridali dlžné sťahovania: veľkosť, ktorú hoster ohlásil, mínus to, čo už prišlo. Sťahovanie, ktorého veľkosť hoster neprezradí, sa tu počíta ako nula, takže je to spodná hranica, nikdy sľub, a preto môže priečinok vedľa radu sťahovaní ukazovať nula bajtov. Vypnuté sťahovania sa nezapočítavajú, podľa rovnakého pravidla ako počítadlá pod zoznamom. Sťahovanie, ktoré už beží, malo zvyčajne miesto na disku vyhradené hneď pri spustení, takže jeho bajty už chýbajú v údaji o voľnom mieste vedľa namiesto toho, aby sa k nemu pripočítavali.',
   'downloads.retryByCause': 'Zopakovať podľa príčiny',
   'downloads.byCause': 'Podľa príčiny',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Priečinok s názvom „{name}“ tam už je. Vyber iný názov.',
+  'rename.packageHint': 'Ak je priečinok na sťahovanie pomenovaný podľa balíka, dostane nový názov aj so súbormi, ktoré v ňom už sú, a sťahovania, ktoré ešte bežia, v ňom pokračujú. Priečinok s rozbalenými súbormi pomenovaný podľa balíka sa presunie tiež. Názov nie je cesta, takže / a \\ nie sú povolené.',
+  'rename.busy': 'Časť tohto balíka sa práve rozbaľuje, presúva do svojho priečinka alebo nahráva z livestreamu. Skús to znova, keď to skončí.',
+  'rename.notMoved': 'Priečinok „{name}“ sa nepodarilo premenovať, takže sa nič nezmenilo. Možno má v ňom iný program otvorený súbor. Zatvor ten súbor a skús to znova.',
 };

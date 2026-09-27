@@ -3085,8 +3085,8 @@ export const pl: Dict = {
   'disk.queuedHint': 'Ile dopisałyby do tego folderu pobrania, które są jeszcze należne: rozmiar podany przez hostera minus to, co już dotarło. Pobranie, którego rozmiaru hoster nie zdradza, liczy się tu jako zero, więc to dolna granica, a nigdy obietnica, i dlatego obok szeregu pobrań folder może pokazywać zero bajtów. Wyłączone pobrania nie są wliczane, według tej samej reguły co liczniki pod listą. Pobranie, które już trwa, zwykle dostało zarezerwowane miejsce na dysku w chwili startu, więc jego bajtów już brakuje w wartości wolnego miejsca obok, zamiast się do niej dokładać.',
   'downloads.retryByCause': 'Ponów według przyczyny',
   'downloads.byCause': 'Według przyczyny',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Folder o nazwie „{name}” już tam jest. Wybierz inną nazwę.',
+  'rename.packageHint': 'Jeśli folder pobierania nazywa się tak jak paczka, dostaje nową nazwę razem z plikami, które już w nim są, a pobierania, które jeszcze trwają, są tam kontynuowane. Folder z rozpakowanymi plikami nazwany tak jak paczka też jest przenoszony. Nazwa nie jest ścieżką, więc / i \\ są niedozwolone.',
+  'rename.busy': 'Część tej paczki jest właśnie rozpakowywana, przenoszona do swojego folderu albo nagrywana z transmisji na żywo. Spróbuj ponownie, gdy to się skończy.',
+  'rename.notMoved': 'Nie udało się zmienić nazwy folderu „{name}”, więc nic się nie zmieniło. Być może inny program ma otwarty plik w tym folderze. Zamknij ten plik i spróbuj ponownie.',
 };

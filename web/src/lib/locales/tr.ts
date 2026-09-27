@@ -3100,8 +3100,8 @@ export const tr: Dict = {
   'disk.queuedHint': 'Henüz bitmemiş indirmelerin bu klasöre ekleyeceği: hosterin bildirdiği boyut, eksi zaten gelmiş olan. Boyutunu hosterin söylemediği bir indirme burada sıfır sayılır; yani bu bir alt sınırdır, asla bir söz değildir, ve bir klasörün bir sıra indirmenin yanında sıfır bayt gösterebilmesinin nedeni de budur. Devre dışı indirmeler, listenin altındaki sayaçların uyduğu kuralla aynı şekilde dışarıda kalır. Zaten çalışan bir indirmenin diskteki yeri genellikle başladığı anda ayrılmıştır, bu yüzden baytları bunun yanındaki boş alan rakamından zaten düşülmüştür, üstüne eklenmez.',
   'downloads.retryByCause': 'Nedene göre yeniden dene',
   'downloads.byCause': 'Nedene göre',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Orada zaten “{name}” adlı bir klasör var. Başka bir ad seç.',
+  'rename.packageHint': 'İndirme klasörü paketin adını taşıyorsa, içindeki dosyalarla birlikte yeni adı alır ve hâlâ süren indirmeler orada devam eder. Paketin adını taşıyan, ayıklanmış dosyaların bulunduğu bir klasör de onunla birlikte taşınır. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',
+  'rename.busy': 'Bu paketin bir kısmı şu anda ayıklanıyor, klasörüne taşınıyor ya da bir canlı yayından kaydediliyor. Bu bittikten sonra yeniden dene.',
+  'rename.notMoved': '“{name}” klasörü yeniden adlandırılamadı, bu yüzden hiçbir şey değişmedi. Başka bir program içindeki bir dosyayı açık tutuyor olabilir. O dosyayı kapat ve yeniden dene.',
 };

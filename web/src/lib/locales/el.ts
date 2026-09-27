@@ -3100,8 +3100,8 @@ export const el: Dict = {
   'disk.queuedHint': 'Όσα θα πρόσθεταν ακόμα σε αυτόν τον φάκελο οι λήψεις που εκκρεμούν: το μέγεθος που δήλωσε ο hoster, μείον ό,τι έχει ήδη φτάσει. Μια λήψη της οποίας το μέγεθος δεν λέει ο hoster μετρά εδώ ως μηδέν, οπότε αυτό είναι κατώτατο όριο και όχι υπόσχεση, και γι\' αυτό ένας φάκελος μπορεί να δείχνει μηδέν byte δίπλα σε μια σειρά από λήψεις. Οι ανενεργές λήψεις μένουν έξω, με τον ίδιο κανόνα που ακολουθούν οι μετρητές κάτω από τη λίστα. Μια λήψη που τρέχει ήδη έχει συνήθως δεσμεύσει τον χώρο της στον δίσκο τη στιγμή που ξεκίνησε, οπότε τα byte της λείπουν ήδη από τον ελεύθερο χώρο δίπλα σε αυτό και δεν προστίθενται από πάνω.',
   'downloads.retryByCause': 'Επανάληψη ανά αιτία',
   'downloads.byCause': 'Ανά αιτία',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Υπάρχει ήδη εκεί φάκελος με όνομα «{name}». Διάλεξε άλλο όνομα.',
+  'rename.packageHint': 'Αν ο φάκελος λήψεων έχει το όνομα του πακέτου, παίρνει το νέο όνομα μαζί με τα αρχεία που ήδη περιέχει, και οι λήψεις που είναι ακόμη σε εξέλιξη συνεχίζουν εκεί. Ένας φάκελος με αποσυμπιεσμένα αρχεία που έχει το όνομα του πακέτου μετακινείται επίσης. Ένα όνομα δεν είναι διαδρομή, οπότε τα / και \\ δεν επιτρέπονται.',
+  'rename.busy': 'Μέρος αυτού του πακέτου αποσυμπιέζεται, μετακινείται στον φάκελό του ή εγγράφεται από ζωντανή μετάδοση. Δοκίμασε ξανά μόλις τελειώσει αυτό.',
+  'rename.notMoved': 'Ο φάκελος «{name}» δεν μπόρεσε να μετονομαστεί, οπότε δεν άλλαξε τίποτα. Ίσως κάποιο άλλο πρόγραμμα έχει ανοιχτό ένα αρχείο μέσα του. Κλείσε αυτό το αρχείο και δοκίμασε ξανά.',
 };

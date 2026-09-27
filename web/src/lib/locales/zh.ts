@@ -3087,8 +3087,8 @@ export const zh: Dict = {
   'disk.queuedHint': '还欠着的下载会往这个文件夹里写多少：网盘报出的大小，减去已经到手的部分。网盘不肯报大小的下载在这里算作零，所以这个数字是下限，不是承诺，这也是为什么一个文件夹旁边有一排下载却可能显示零字节。已停用的下载不算在内，和列表下方计数器遵循的规则一样。已经在运行的下载，通常在开始的那一刻就在磁盘上预留好了空间，所以它的字节已经从旁边的空闲空间里扣掉了，不会再叠加在上面。',
   'downloads.retryByCause': '按原因重试',
   'downloads.byCause': '按原因',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': '那里已经有名为“{name}”的文件夹。请换一个名字。',
+  'rename.packageHint': '如果下载文件夹是按包命名的，它会连同里面已有的文件一起改用新名字，仍在进行的下载也会在那里继续。按包命名的、存放解压文件的文件夹也会跟着移动。名字不是路径，所以不能用 / 和 \\。',
+  'rename.busy': '这个包有一部分正在解压、移入它的文件夹，或正在从直播流录制。等这些完成后再试一次。',
+  'rename.notMoved': '文件夹“{name}”无法重命名，所以什么都没有改变。可能有别的程序打开了其中的某个文件。关闭那个文件后再试一次。',
 };

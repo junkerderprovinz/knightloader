@@ -3100,8 +3100,8 @@ export const sl: Dict = {
   'disk.queuedHint': 'Kar bi dolgovani prenosi še dodali v to mapo: velikost, ki jo je napovedal gostitelj, manj tega, kar je že prispelo. Prenos, katerega velikosti gostitelj ne pove, tu šteje kot nič, zato je to spodnja meja in nikoli obljuba, in zato lahko mapa ob vrsti prenosov kaže nič bajtov. Izklopljeni prenosi ostanejo zunaj, po istem pravilu kot števci pod seznamom. Prenos, ki že teče, je običajno dobil svoj prostor na disku rezerviran že ob zagonu, zato njegovi bajti že manjkajo v številki prostega prostora zraven in se ne prištejejo še enkrat.',
   'downloads.retryByCause': 'Ponovi po vzroku',
   'downloads.byCause': 'Po vzroku',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Mapa z imenom »{name}« tam že obstaja. Izberi drugo ime.',
+  'rename.packageHint': 'Če je mapa za prenose poimenovana po paketu, dobi novo ime skupaj z datotekami, ki so že v njej, prenosi, ki še potekajo, pa se tam nadaljujejo. Tudi mapa z razpakiranimi datotekami, poimenovana po paketu, se premakne. Ime ni pot, zato / in \\ nista dovoljena.',
+  'rename.busy': 'Del tega paketa se ravno razpakira, premika v svojo mapo ali snema iz pretoka v živo. Poskusi znova, ko se to konča.',
+  'rename.notMoved': 'Mape »{name}« ni bilo mogoče preimenovati, zato se ni nič spremenilo. Morda ima drug program v njej odprto datoteko. Zapri to datoteko in poskusi znova.',
 };

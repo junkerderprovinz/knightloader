@@ -3101,8 +3101,8 @@ export const id: Dict = {
   'disk.queuedHint': 'Berapa banyak yang masih akan ditambahkan unduhan yang tersisa ke folder ini: ukuran yang diumumkan hoster, dikurangi yang sudah tiba. Unduhan yang ukurannya tidak mau disebutkan hoster dihitung nol di sini, jadi angka ini batas bawah, bukan janji, dan itulah sebabnya sebuah folder bisa menunjukkan nol bita di samping sederet unduhan. Unduhan nonaktif tidak dihitung, aturan yang sama dengan penghitung di bawah daftar. Unduhan yang sudah berjalan biasanya sudah mendapat ruang di disk sejak saat dimulai, jadi bitanya sudah hilang dari angka ruang kosong di sebelahnya, bukan ditambahkan di atasnya.',
   'downloads.retryByCause': 'Coba lagi per penyebab',
   'downloads.byCause': 'Per penyebab',
-  'rename.folderExists': 'A folder called “{name}” is already there. Choose another name.',
-  'rename.packageHint': 'Where the download folder is named after the package, it takes the new name along with the files already in it, and downloads still running carry on there. A folder of unpacked files named after the package moves too. A name is not a path, so / and \\ are not allowed.',
-  'rename.busy': 'Part of this package is being unpacked, moved into its folder or recorded from a live stream. Try again once that has finished.',
-  'rename.notMoved': 'The folder “{name}” could not be renamed, so nothing changed. Another program may have a file in it open. Close that file and try again.',
+  'rename.folderExists': 'Folder bernama “{name}” sudah ada di sana. Pilih nama lain.',
+  'rename.packageHint': 'Jika folder unduhan dinamai sesuai paket, folder itu ikut mendapat nama baru beserta berkas yang sudah ada di dalamnya, dan unduhan yang masih berjalan dilanjutkan di sana. Folder berisi berkas hasil ekstrak yang dinamai sesuai paket juga ikut pindah. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',
+  'rename.busy': 'Sebagian paket ini sedang diekstrak, dipindahkan ke foldernya, atau direkam dari livestream. Coba lagi setelah itu selesai.',
+  'rename.notMoved': 'Folder “{name}” tidak bisa diganti namanya, jadi tidak ada yang berubah. Mungkin program lain sedang membuka berkas di dalamnya. Tutup berkas itu dan coba lagi.',
 };
