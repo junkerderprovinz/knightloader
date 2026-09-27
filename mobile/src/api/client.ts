@@ -14,6 +14,7 @@ import { answeredKinds, widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
+import type { CardSwitches } from './taskState';
 import { relayIdentity } from '../storage/relayIdentity';
 import type { TranslationKey } from '../i18n/en';
 
@@ -557,6 +558,21 @@ export async function fetchAppearance(conn: ServerConnection): Promise<InstanceA
     };
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * fetchListCards reads whether the instance splits seeding and finished
+ * packages out of its download list, the switches the web's Downloads page
+ * follows too. An instance too old to answer, or out of reach, has both on,
+ * which is their default.
+ */
+export async function fetchListCards(conn: ServerConnection): Promise<CardSwitches> {
+  try {
+    const s = await request<Record<string, unknown>>(conn, '/api', '/appearance');
+    return { seeding: s.seedingCard !== false, finished: s.finishedCard !== false };
+  } catch {
+    return { seeding: true, finished: true };
   }
 }
 

@@ -98,3 +98,63 @@ export function packageState(tasks: Task[]): PackageState {
   if (rank(least) >= RANK.seeding && failedArchives > 0) return { word: 'notUnpacked', failed };
   return { word: rowWord(least), failed };
 }
+
+/** Which part of the Downloads screen a package is listed in. */
+export type ListCard = 'downloads' | 'seeding' | 'finished';
+
+/**
+ * packageCard is the part of the list a package belongs in, by the rule the
+ * web's Downloads page uses (packageCard in web/src/lib/listCards.ts). It is
+ * finished once every link has downloaded and nothing is left to unpack: none
+ * waiting for or in the middle of unpacking, none that failed to. A failed link
+ * keeps it in the download list, and a torrent still uploading makes it
+ * seeding. A disabled link that has not downloaded does not hold it back unless
+ * it is still running, and at least one link has to have downloaded.
+ */
+export function packageCard(tasks: Task[]): ListCard {
+  let done = 0;
+  let seeding = false;
+  for (const t of tasks) {
+    if (t.status === 'done' && !unpackFailed(t)) {
+      done++;
+      if (t.seeding) seeding = true;
+      continue;
+    }
+    if (t.enabled === false && t.status !== 'running' && t.status !== 'extracting') continue;
+    return 'downloads';
+  }
+  if (done === 0) return 'downloads';
+  return seeding ? 'seeding' : 'finished';
+}
+
+/** The two parts below the download list and whether each is switched on. */
+export interface CardSwitches {
+  seeding: boolean;
+  finished: boolean;
+}
+
+/**
+ * splitByCard sorts the tasks of the download list into its parts, keeping
+ * their order. A package goes by all of its links; the loose links, which share
+ * the unnamed group without belonging together, go one by one. A part that is
+ * switched off leaves its packages in the download list.
+ */
+export function splitByCard(tasks: Task[], on: CardSwitches): Record<ListCard, Task[]> {
+  const byPackage = new Map<string, Task[]>();
+  for (const t of tasks) {
+    const name = t.package || '';
+    const list = byPackage.get(name);
+    if (list) list.push(t);
+    else byPackage.set(name, [t]);
+  }
+  const placed = (card: ListCard): ListCard =>
+    (card === 'seeding' && !on.seeding) || (card === 'finished' && !on.finished) ? 'downloads' : card;
+  const cardOf = new Map<string, ListCard>();
+  for (const [name, list] of byPackage) if (name !== '') cardOf.set(name, placed(packageCard(list)));
+  const out: Record<ListCard, Task[]> = { downloads: [], seeding: [], finished: [] };
+  for (const t of tasks) {
+    const name = t.package || '';
+    out[name === '' ? placed(packageCard([t])) : (cardOf.get(name) ?? 'downloads')].push(t);
+  }
+  return out;
+}

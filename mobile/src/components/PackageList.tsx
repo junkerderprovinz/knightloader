@@ -6,6 +6,7 @@ import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
 import IconBadge, { Folder, Power, Trash } from './IconBadge';
 import { ConfirmDialog } from './ConfirmDialog';
+import { NotchLabel } from './glim';
 import { Arrive } from './Moving';
 import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
@@ -56,7 +57,18 @@ export function groupByPackage(tasks: Task[]): Pkg[] {
   return out;
 }
 
-type Row = { kind: 'header'; pkg: Pkg } | { kind: 'task'; task: Task; index: number };
+/** A part of the list below the main one, such as the finished packages. */
+export interface Section {
+  key: string;
+  title: string;
+  hue: number;
+  tasks: Task[];
+}
+
+type Row =
+  | { kind: 'heading'; section: Section; open: boolean }
+  | { kind: 'header'; pkg: Pkg; section?: string }
+  | { kind: 'task'; task: Task; index: number; section?: string };
 
 export default function PackageList({
   tasks,
@@ -69,8 +81,13 @@ export default function PackageList({
   lineKey,
   onLoadFiles,
   onSelectFiles,
+  sections = [],
 }: {
   tasks: Task[];
+  /** Parts listed below the main packages under a heading of their own, which
+   *  folds them away. Nothing in them is in the wait queue, so they do not
+   *  reorder. */
+  sections?: Section[];
   /** Everything that belongs above the list and has to line up with it: the
    *  queue bar, the speed graph, the Downloads/Collector strip. As siblings of
    *  this list they would carry their own copy of its width and margins; inside
@@ -145,11 +162,24 @@ export default function PackageList({
     if (next) setFileLists((m) => ({ ...m, [task.id]: next }));
   };
 
+  // Which parts are folded. Open is the default, since a part is there to be seen.
+  const [folded, setFolded] = useState<Record<string, boolean>>({});
+
   const rows: Row[] = [];
   let n = 0;
   for (const pkg of packages) {
     rows.push({ kind: 'header', pkg });
     if (open[pkg.name]) for (const task of pkg.tasks) rows.push({ kind: 'task', task, index: n++ });
+  }
+  for (const section of sections) {
+    if (section.tasks.length === 0) continue;
+    const shown = !folded[section.key];
+    rows.push({ kind: 'heading', section, open: shown });
+    if (!shown) continue;
+    for (const pkg of groupByPackage(section.tasks)) {
+      rows.push({ kind: 'header', pkg, section: section.key });
+      if (open[pkg.name]) for (const task of pkg.tasks) rows.push({ kind: 'task', task, index: n++, section: section.key });
+    }
   }
 
   /**
@@ -165,13 +195,23 @@ export default function PackageList({
   // package. Without it a link could be dropped between two packages, where the
   // list cannot render it and the server cannot store it. The parent carries an
   // open package's links along with its header.
+  //
+  // A part below the main list keeps to bands of its own, which applyOrder
+  // turns down, and prefixes its keys, since the loose links can stand in more
+  // than one part.
   const dragRows: DragRow[] = rows.map((r) =>
-    r.kind === 'header'
-      ? { key: `p:${r.pkg.name}`, band: 'packages', render: (_ziehend, scharf) => renderHeader(r.pkg, scharf) }
+    r.kind === 'heading'
+      ? { key: `s:${r.section.key}`, band: `s:${r.section.key}`, render: (_ziehend, scharf) => renderHeading(r.section, r.open, scharf) }
+      : r.kind === 'header'
+      ? {
+          key: `${r.section ?? ''}p:${r.pkg.name}`,
+          band: r.section ? `s:${r.section}` : 'packages',
+          render: (_ziehend, scharf) => renderHeader(r.pkg, scharf),
+        }
       : {
           key: r.task.id,
-          band: `pkg:${r.task.package || ''}`,
-          parent: `p:${r.task.package || ''}`,
+          band: r.section ? `s:${r.section}:${r.task.package || ''}` : `pkg:${r.task.package || ''}`,
+          parent: `${r.section ?? ''}p:${r.task.package || ''}`,
           render: (_ziehend, scharf) => (
             <TaskRow
               task={r.task}
@@ -238,6 +278,7 @@ export default function PackageList({
         .map((x) => x.id);
       return schreibe(ids, packages.flatMap((p) => p.tasks));
     }
+    if (!band.startsWith('pkg:')) return;
     // Within one package: that package's own tasks in the new order. Only its
     // ids travel, and every other task in the band is left where it is, which
     // is what a partial reorder means to the server.
@@ -261,6 +302,20 @@ export default function PackageList({
    * otherwise arm the drag and press whatever was under the finger, which for
    * the bin means a confirmation dialog nobody asked for.
    */
+  const renderHeading = (section: Section, auf: boolean, scharf: boolean) => (
+    <TouchableOpacity
+      style={styles.heading}
+      disabled={scharf}
+      onPress={() => setFolded((f) => ({ ...f, [section.key]: auf }))}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: auf }}
+      accessibilityLabel={`${section.title} ${section.tasks.length}`}
+    >
+      <NotchLabel title={`${section.title} ${section.tasks.length}`} hue={section.hue} />
+      <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
+    </TouchableOpacity>
+  );
+
   const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
         const state = packageState(pkg.tasks);
@@ -403,6 +458,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   headerText: { flex: 1, minWidth: 0, gap: 2 },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18 },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
   chevron: { fontSize: 17, lineHeight: 20, width: 12, textAlign: 'center' },
   chevronOpen: { transform: [{ rotate: '90deg' }] },

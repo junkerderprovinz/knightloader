@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { rowWord, packageState, isParked } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
+const { rowWord, packageState, isParked, packageCard, splitByCard } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -82,6 +82,47 @@ expect(
   [isParked([task('queued', { enabled: false }), task('done', { enabled: true })]), isParked([])],
   [false, false],
 );
+
+// The part of the list a package is shown in, by the web's rule.
+expect('a package whose links have all downloaded is finished', packageCard([task('done'), task('done', { unpack: 'done' })]), 'finished');
+expect('a package with a link still queued stays in the download list', packageCard([task('done'), task('queued')]), 'downloads');
+expect('a package with an archive still unpacking stays', packageCard([task('done'), task('extracting')]), 'downloads');
+expect('a package whose archive did not unpack stays', packageCard([task('done', { unpack: 'password' })]), 'downloads');
+expect('a package with a failed link stays', packageCard([task('done'), task('error')]), 'downloads');
+expect('a package with a torrent still uploading is seeding', packageCard([task('done'), seeding()]), 'seeding');
+expect(
+  'a disabled link that never downloaded does not hold a package back',
+  packageCard([task('done'), task('queued', { enabled: false })]),
+  'finished',
+);
+expect('a disabled link still running does', packageCard([task('done'), task('running', { enabled: false })]), 'downloads');
+expect('a package switched off whole stays', packageCard([task('queued', { enabled: false })]), 'downloads');
+expect(
+  'a finished package goes back to the download list when a link is downloaded again',
+  packageCard([task('done'), task('queued')]),
+  'downloads',
+);
+
+const named = (id, pkg, status, more = {}) => ({ id, package: pkg, status, ...more });
+const split = (list, on) =>
+  Object.fromEntries(Object.entries(splitByCard(list, on)).map(([card, tasks]) => [card, tasks.map((t) => t.id)]));
+const mixed = [
+  named('a', 'Done', 'done'),
+  named('b', 'Busy', 'running'),
+  named('c', 'Upload', 'done', { seeding: true }),
+  named('d', '', 'done'),
+  named('e', '', 'queued'),
+];
+expect('the list splits into its three parts, loose links one by one', split(mixed, { seeding: true, finished: true }), {
+  downloads: ['b', 'e'],
+  seeding: ['c'],
+  finished: ['a', 'd'],
+});
+expect('a part that is switched off leaves its packages in the download list', split(mixed, { seeding: false, finished: false }), {
+  downloads: ['a', 'b', 'c', 'd', 'e'],
+  seeding: [],
+  finished: [],
+});
 
 if (problems.length > 0) {
   console.error(problems.join('\n'));
