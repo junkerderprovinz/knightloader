@@ -342,3 +342,24 @@ func TestTheMenuTicksWhatIsSaved(t *testing.T) {
 		t.Error("the captcha level ticked is not the saved one")
 	}
 }
+
+func TestTheTrayWindowComesBackAtTheSizeItWasGiven(t *testing.T) {
+	tr := newTestTray(t)
+	if w, h := tr.overviewSize(); w != overviewWidth || h != overviewHeight {
+		t.Fatalf("a first start opens at %dx%d, want the default", w, h)
+	}
+	tr.keepOverviewSize(420, 640)
+	next := &Tray{cfg: loadConfig(tr.cfgPath)}
+	if w, h := next.overviewSize(); w != 420 || h != 640 {
+		t.Errorf("the next start opens at %dx%d, want 420x640", w, h)
+	}
+}
+
+// A hand edit below the least size still opens a window the content fits.
+func TestTheTrayWindowNeverOpensSmallerThanItsContent(t *testing.T) {
+	tr := newTestTray(t)
+	tr.cfg.OverviewWidth, tr.cfg.OverviewHeight = 100, 50
+	if w, h := tr.overviewSize(); w != overviewMinWidth || h != overviewMinHeight {
+		t.Errorf("opens at %dx%d, want at least %dx%d", w, h, overviewMinWidth, overviewMinHeight)
+	}
+}

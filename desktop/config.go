@@ -41,6 +41,10 @@ type Config struct {
 	RaiseOnAttention string `json:"raiseOnAttention"`
 	// Words are the tray menu's labels in the interface's language.
 	Words TrayWords `json:"words"`
+	// The size somebody gave the small window at the tray icon, zero for the
+	// default.
+	OverviewWidth  int `json:"overviewWidth,omitempty"`
+	OverviewHeight int `json:"overviewHeight,omitempty"`
 }
 
 // TrayWords are the tray menu's labels, handed over by the page in the

@@ -102,7 +102,91 @@ let announced = false;
 function announce(host: WailsHost) {
   if (announced) return;
   announced = true;
-  (host.chrome?.webview ?? host.webkit?.messageHandlers?.external)?.postMessage('wails:runtime:ready');
+  post(host, 'wails:runtime:ready');
+}
+
+function post(host: WailsHost, message: string) {
+  (host.chrome?.webview ?? host.webkit?.messageHandlers?.external)?.postMessage(message);
+}
+
+/** A resize edge by the name Wails takes it in `wails:resize:<edge>`, or '' inside the window. */
+export type ResizeEdge = '' | 'n-resize' | 's-resize' | 'e-resize' | 'w-resize' | 'ne-resize' | 'nw-resize' | 'se-resize' | 'sw-resize';
+
+/** How close to a side the pointer grabs it, and how far a corner reaches along the sides. */
+const EDGE = 5;
+const CORNER = 15;
+
+/** edgeAt names the side or corner of a width by height window that the point x,y grabs. */
+export function edgeAt(x: number, y: number, width: number, height: number): ResizeEdge {
+  const left = x < EDGE;
+  const right = width - x <= EDGE;
+  const top = y < EDGE;
+  const bottom = height - y <= EDGE;
+  const nearLeft = x < CORNER;
+  const nearRight = width - x <= CORNER;
+  const nearTop = y < CORNER;
+  const nearBottom = height - y <= CORNER;
+  if ((bottom && nearRight) || (right && nearBottom)) return 'se-resize';
+  if ((bottom && nearLeft) || (left && nearBottom)) return 'sw-resize';
+  if ((top && nearLeft) || (left && nearTop)) return 'nw-resize';
+  if ((top && nearRight) || (right && nearTop)) return 'ne-resize';
+  if (left) return 'w-resize';
+  if (right) return 'e-resize';
+  if (top) return 'n-resize';
+  if (bottom) return 's-resize';
+  return '';
+}
+
+const CURSOR: Record<Exclude<ResizeEdge, ''>, string> = {
+  'n-resize': 'ns-resize',
+  's-resize': 'ns-resize',
+  'e-resize': 'ew-resize',
+  'w-resize': 'ew-resize',
+  'ne-resize': 'nesw-resize',
+  'sw-resize': 'nesw-resize',
+  'nw-resize': 'nwse-resize',
+  'se-resize': 'nwse-resize',
+};
+
+/**
+ * useEdgeResize lets a frameless window be resized from its edges. A frameless
+ * window has no frame for Windows or GTK to grab, so the page shows the resize
+ * cursor at an edge and, once the button goes down there and the pointer
+ * moves, hands the resize to Wails, as Wails' own runtime would. macOS resizes
+ * such a window by itself.
+ */
+export function useEdgeResize(): void {
+  useEffect(() => {
+    if (!isDesktop()) return;
+    const host = window as unknown as WailsHost & { _wails?: { environment?: { OS?: string } } };
+    let edge: ResizeEdge = '';
+    let armed = false;
+    const move = (e: MouseEvent) => {
+      if (armed && edge) {
+        armed = false;
+        post(host, `wails:resize:${edge}`);
+        return;
+      }
+      if (host._wails?.environment?.OS === 'darwin') return;
+      edge = edgeAt(e.clientX, e.clientY, window.innerWidth, window.innerHeight);
+      document.body.style.cursor = edge ? CURSOR[edge] : '';
+    };
+    const down = (e: MouseEvent) => {
+      armed = e.button === 0 && edge !== '';
+      if (armed) e.preventDefault();
+    };
+    const up = () => {
+      armed = false;
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mousedown', down, true);
+    window.addEventListener('mouseup', up);
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mousedown', down, true);
+      window.removeEventListener('mouseup', up);
+    };
+  }, []);
 }
 
 /** listen calls back with every Wails event of one name until the returned function is called. */
