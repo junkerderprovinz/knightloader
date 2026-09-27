@@ -58,7 +58,7 @@ export default function DownloadsScreen({
   const waiting = peer ? [] : captchas;
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
-  // Arrive only over the stream, from a directly connected instance.
+  // Streamed from a directly connected instance, polled from the rest.
   const [jobs, setJobs] = useState<ExtractJob[]>([]);
   const unpacking = useMemo(() => unpackingByTask(jobs), [jobs]);
   const [connected, setConnected] = useState(false);

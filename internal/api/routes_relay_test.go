@@ -688,3 +688,24 @@ func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
 		t.Errorf("config = %+v, want serve=false and no clients reported", cfg)
 	}
 }
+
+// The phone reads the unpackings over the relay for its rows; starting or
+// stopping one is not forwarded.
+func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
+	t.Parallel()
+	if !relayForwardable(http.MethodGet, "/api/extract") {
+		t.Error("GET /api/extract is not forwarded, but the app's rows show it")
+	}
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		if relayForwardable(method, "/api/extract") {
+			t.Errorf("%s /api/extract is forwarded, want only GET", method)
+		}
+	}
+	for _, path := range []string{"/api/extract/start", "/api/extract/j1/abort"} {
+		for _, method := range []string{http.MethodGet, http.MethodPost} {
+			if relayForwardable(method, path) {
+				t.Errorf("%s %s is forwarded; a group sibling must not start or stop an unpacking", method, path)
+			}
+		}
+	}
+}

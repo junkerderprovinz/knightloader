@@ -334,11 +334,12 @@ func relayForwardable(method, path string) bool {
 		return true
 	}
 	// Reads a companion needs: whether a password is wanted, the group's
-	// instances, the look, and the addresses this instance answers on. The
-	// addresses travel inside the encrypted frame, so the relay operator
-	// never learns them.
+	// instances, the look, the addresses this instance answers on, and the
+	// unpackings its rows show. The addresses travel inside the encrypted
+	// frame, so the relay operator never learns them.
 	if method == http.MethodGet {
-		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access"
+		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access" ||
+			rest == "extract"
 	}
 	return false
 }
