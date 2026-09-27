@@ -20,7 +20,8 @@ you which app, extension and server belong together.
 | Browser extension | `extension/src/manifest.json` |
 
 Raise both files to the new number before tagging. `release.yml` refuses a tag
-that either file disagrees with.
+that either file disagrees with, and `web/check-version-sources.mjs` fails CI
+while the two files name different versions.
 
 Android decides upgrade order by `versionCode`, not by the version name. The
 release build works it out from the version as
