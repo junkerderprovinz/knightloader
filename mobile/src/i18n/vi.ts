@@ -189,6 +189,7 @@ export const vi: Dict = {
   'settings.appsSource': 'Mã nguồn',
   'settings.appsZip': 'Tệp nén ZIP',
   'settings.appsExtension': 'Tiện ích mở rộng trình duyệt',
+  'settings.appsExtensionHint': 'Tiện ích gửi một liên kết, đoạn văn bản đã chọn hoặc trang đang mở đến KnightLoader của bạn, từ menu chuột phải hoặc nút của nó trên thanh công cụ. Gói cho Chrome cũng chạy được trên Edge, Brave, Opera và Vivaldi.',
   'settings.appsSoon': 'Sắp có',
   'settings.privacyPolicy': 'Chính sách quyền riêng tư',
   'settings.removeAllConnections': 'Xóa tất cả kết nối',

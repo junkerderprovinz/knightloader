@@ -189,6 +189,7 @@ export const nl: Dict = {
   'settings.appsSource': 'Broncode',
   'settings.appsZip': 'ZIP-archief',
   'settings.appsExtension': 'Browserextensie',
+  'settings.appsExtensionHint': 'De extensie stuurt een link, een selectie of de geopende pagina naar je KnightLoader, via het rechtermuisknopmenu of haar knop in de werkbalk. Het Chrome-pakket werkt ook in Edge, Brave, Opera en Vivaldi.',
   'settings.appsSoon': 'Binnenkort',
   'settings.privacyPolicy': 'Privacybeleid',
   'settings.removeAllConnections': 'Alle verbindingen verwijderen',

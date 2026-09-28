@@ -189,6 +189,7 @@ export const eu: Dict = {
   'settings.appsSource': 'Iturburu-kodea',
   'settings.appsZip': 'ZIP artxiboa',
   'settings.appsExtension': 'Nabigatzaile-hedapena',
+  'settings.appsExtensionHint': 'Hedapenak esteka bat, hautapen bat edo irekitako orria bidaltzen dizkio zure KnightLoader-i, eskuineko klikaren menutik edo tresna-barrako bere botoitik. Chrome-rako paketeak Edge, Brave, Opera eta Vivaldin ere funtzionatzen du.',
   'settings.appsSoon': 'Laster',
   'settings.privacyPolicy': 'Pribatutasun-politika',
   'settings.removeAllConnections': 'Kendu konexio guztiak',

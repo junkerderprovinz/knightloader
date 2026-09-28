@@ -189,6 +189,7 @@ export const ja: Dict = {
   'settings.appsSource': 'ソースコード',
   'settings.appsZip': 'ZIPアーカイブ',
   'settings.appsExtension': 'ブラウザー拡張機能',
+  'settings.appsExtensionHint': '拡張機能は、右クリックメニューまたはツールバーのボタンから、リンク、選択したテキスト、開いているページを KnightLoader に送ります。Chrome 用のパッケージは Edge、Brave、Opera、Vivaldi でも動作します。',
   'settings.appsSoon': '近日公開',
   'settings.privacyPolicy': 'プライバシーポリシー',
   'settings.removeAllConnections': 'すべての接続を削除',

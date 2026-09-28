@@ -189,6 +189,7 @@ export const gl: Dict = {
   'settings.appsSource': 'Código fonte',
   'settings.appsZip': 'Arquivo ZIP',
   'settings.appsExtension': 'Extensión de navegador',
+  'settings.appsExtensionHint': 'A extensión envía unha ligazón, unha selección ou a páxina aberta ao teu KnightLoader, desde o menú do clic dereito ou desde o seu botón na barra de ferramentas. A descarga para Chrome tamén funciona en Edge, Brave, Opera e Vivaldi.',
   'settings.appsSoon': 'En breve',
   'settings.privacyPolicy': 'Política de privacidade',
   'settings.removeAllConnections': 'Eliminar todas as conexións',

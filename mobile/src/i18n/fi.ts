@@ -189,6 +189,7 @@ export const fi: Dict = {
   'settings.appsSource': 'Lähdekoodi',
   'settings.appsZip': 'ZIP-arkisto',
   'settings.appsExtension': 'Selainlaajennus',
+  'settings.appsExtensionHint': 'Laajennus lähettää linkin, valinnan tai avoimen sivun KnightLoaderiisi hiiren oikean painikkeen valikosta tai työkalurivin painikkeestaan. Chromen paketti toimii myös Edgessä, Bravessa, Operassa ja Vivaldissa.',
   'settings.appsSoon': 'Tulossa',
   'settings.privacyPolicy': 'Tietosuojaseloste',
   'settings.removeAllConnections': 'Poista kaikki yhteydet',

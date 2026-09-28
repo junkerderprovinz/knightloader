@@ -189,6 +189,7 @@ export const sr: Dict = {
   'settings.appsSource': 'Изворни код',
   'settings.appsZip': 'ZIP архива',
   'settings.appsExtension': 'Екстензија прегледача',
+  'settings.appsExtensionHint': 'Екстензија шаље линк, изабрани текст или отворену страницу твом KnightLoader-у, из менија десног клика или својим дугметом на траци са алаткама. Пакет за Chrome ради и у Edge-у, Brave-у, Opera-и и Vivaldi-ју.',
   'settings.appsSoon': 'Ускоро',
   'settings.privacyPolicy': 'Политика приватности',
   'settings.removeAllConnections': 'Уклони све везе',

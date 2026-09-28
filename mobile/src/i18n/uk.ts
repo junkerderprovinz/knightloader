@@ -189,6 +189,7 @@ export const uk: Dict = {
   'settings.appsSource': 'Вихідний код',
   'settings.appsZip': 'Архів ZIP',
   'settings.appsExtension': 'Розширення браузера',
+  'settings.appsExtensionHint': 'Розширення надсилає посилання, виділений текст або відкриту сторінку до вашого KnightLoader з контекстного меню або кнопкою на панелі інструментів. Пакет для Chrome працює й у Edge, Brave, Opera та Vivaldi.',
   'settings.appsSoon': 'Незабаром',
   'settings.privacyPolicy': 'Політика конфіденційності',
   'settings.removeAllConnections': 'Видалити всі підключення',

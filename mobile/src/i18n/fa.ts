@@ -189,6 +189,7 @@ export const fa: Dict = {
   'settings.appsSource': 'کد منبع',
   'settings.appsZip': 'بایگانی ZIP',
   'settings.appsExtension': 'افزونهٔ مرورگر',
+  'settings.appsExtensionHint': 'افزونه یک پیوند، متن انتخاب‌شده یا صفحهٔ باز را از منوی کلیک راست یا دکمه‌اش در نوار ابزار به KnightLoader شما می‌فرستد. بستهٔ Chrome در Edge، Brave، Opera و Vivaldi هم کار می‌کند.',
   'settings.appsSoon': 'به‌زودی',
   'settings.privacyPolicy': 'سیاست حریم خصوصی',
   'settings.removeAllConnections': 'حذف همه اتصال‌ها',

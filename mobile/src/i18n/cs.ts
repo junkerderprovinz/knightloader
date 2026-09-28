@@ -189,6 +189,7 @@ export const cs: Dict = {
   'settings.appsSource': 'Zdrojový kód',
   'settings.appsZip': 'Archiv ZIP',
   'settings.appsExtension': 'Rozšíření prohlížeče',
+  'settings.appsExtensionHint': 'Rozšíření posílá odkaz, výběr nebo otevřenou stránku do tvého KnightLoaderu, z nabídky pravého tlačítka nebo ze svého tlačítka na panelu nástrojů. Balíček pro Chrome funguje i v Edge, Brave, Opeře a Vivaldi.',
   'settings.appsSoon': 'Brzy',
   'settings.privacyPolicy': 'Zásady ochrany osobních údajů',
   'settings.removeAllConnections': 'Odebrat všechna připojení',

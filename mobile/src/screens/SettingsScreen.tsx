@@ -766,7 +766,7 @@ export default function SettingsScreen({
       {/* One package for every Chromium browser, as on the README. Firefox
           takes only an add-on Mozilla has signed, which comes with the
           listing. */}
-      <NotchCard title={t('settings.appsExtension')} hue={8}>
+      <NotchCard title={t('settings.appsExtension')} hue={8} info={t('settings.appsExtensionHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="chrome"
