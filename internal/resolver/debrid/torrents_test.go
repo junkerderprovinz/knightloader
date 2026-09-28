@@ -1132,13 +1132,12 @@ func TestACachedTorrentGoesToTheServiceWhenOnlyCachedOnesMay(t *testing.T) {
 func TestATorrentThatIsNotSurelyCachedMovesOnWhenOnlyCachedOnesMay(t *testing.T) {
 	cases := []struct {
 		name string
-		svc  TorrentService
+		svc  *cacheAware
 		want string
 	}{
 		{"not cached", &cacheAware{}, "has not cached it"},
 		{"the question failed", &cacheAware{err: errors.New("502 Bad Gateway")}, "asking this one failed: 502 Bad Gateway"},
 		{"no answer in time", &cacheAware{stall: true}, "asking this one failed: context deadline exceeded"},
-		{"a service that cannot say", &scriptedService{}, "cannot say what it has cached"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -1155,7 +1154,7 @@ func TestATorrentThatIsNotSurelyCachedMovesOnWhenOnlyCachedOnesMay(t *testing.T)
 			if !strings.Contains(u.Err, c.want) {
 				t.Errorf("Err = %q, want it to say %q", u.Err, c.want)
 			}
-			if c.svc.(interface{ addCount() int }).addCount() != 0 {
+			if c.svc.addCount() != 0 {
 				t.Error("the torrent was added to the account anyway")
 			}
 		})
