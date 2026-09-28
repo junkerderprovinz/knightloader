@@ -90,6 +90,9 @@ func seedTorrentAt(t *testing.T, name string, files []seedFile, bytesPerSec int)
 	cfg.DisableIPv6 = true
 	cfg.DisableUTP = true
 	cfg.ListenHost = func(string) string { return "127.0.0.1" }
+	// The library's default port is fixed, and two test binaries seeding at
+	// once would both want it.
+	cfg.ListenPort = 0
 	if bytesPerSec > 0 {
 		cfg.UploadRateLimiter = rate.NewLimiter(rate.Limit(bytesPerSec), 16<<10)
 	}
