@@ -35,71 +35,71 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
-## [Unreleased]
+## [1.5.0] - 2026-09-28
 
 ### Added
 
-- **Seeding what a debrid service fetched in qBittorrent.** "Seed in" under
-  "Seed what the debrid service fetched" on Settings, Torrents picks the
-  built-in torrent client or an external qBittorrent. qBittorrent gets the
-  torrent through its Web UI with the files where they are, so cross-seed or
-  qui find it there. KnightLoader checks the files first, the sizes and for a
-  `.torrent` file every piece, and tells qBittorrent to skip its own check, so
-  qBittorrent has to reach the files at the same path. "Download folder in
-  qBittorrent" maps the path when the two containers mount the download folder
-  differently. "Test connection" logs in and shows qBittorrent's version. A
-  torrent qBittorrent cannot take is not seeded, and its row says why.
-  ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
-
-## [1.4.3] - 2026-09-28
-
-### Added
-
-- **Unraid in the Android app and the README.** The app's "On a server" card
-  and the README's download buttons have an Unraid button beside Docker. It
-  stays dimmed and without a link until KnightLoader is listed in Community
-  Applications.
-
+- **Seeding what a debrid service fetched, in the built-in client or in
+  qBittorrent.** With "Seed what the debrid service fetched" on under
+  Settings, Torrents, a torrent the service fetched is seeded once all its
+  files are here, which helps with cross-seeding. Nothing is downloaded for
+  it: every file has to be there at its full size, and for a `.torrent` file
+  every piece is checked too. A torrent that fails is not seeded, and its row
+  says why. "Seed in" picks the built-in torrent client, which seeds under the
+  seeding targets, or an external qBittorrent, where cross-seed or qui find it.
+  qBittorrent gets the torrent through its Web UI with the files where they
+  are and is told to skip its own check, so it has to reach the files at the
+  same path. "Download folder in qBittorrent" maps the path when the two
+  containers mount the download folder differently, and "Test connection"
+  logs in and shows qBittorrent's version. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
 - **Only cached torrents to a debrid service, if you like.** With "Send only
   cached torrents to the debrid service" on under Settings, Torrents,
   KnightLoader asks the service first whether it has a torrent cached. One it
   has not goes on to the next service or the built-in torrent client, so a slow
-  uncached torrent no longer waits on the service. TorBox and Premiumize.me can
+  uncached torrent does not wait on the service. TorBox and Premiumize.me can
   be asked. Real-Debrid, AllDebrid and Debrid-Link cannot, so with the switch on
   they get no torrents. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
-- **Seeding what a debrid service fetched.** "Seed what the debrid service
-  fetched" hands a torrent to the built-in torrent client once all its files
-  are here, to seed under the seeding targets, which helps with cross-seeding.
-  It downloads nothing to do so. Every file has to be there at its full size,
-  and for a `.torrent` file every piece is checked too. A torrent that fails
-  is not seeded, and its row says why. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+- **Releases go to the stores on their own.** Once a release is out, the
+  Stores workflow submits the extension to the Chrome Web Store, Edge Add-ons
+  and Firefox Add-ons, and the Android app to Google Play. The extension goes
+  only when something in it changed since the previous release, and the app
+  likewise, so no store reviews a version that is the same as the last one.
+  A store whose credentials are not set up yet is skipped.
+- **An app bundle for Google Play.** Each release carries
+  `knightloader-vX.Y.Z-android.aab` next to the APK, signed with the same key.
 - **The other versions in the Android app.** Its settings have the web
   interface's Apps cards: the desktop app for Windows and Linux, each in x64
   and ARM64, and macOS; on a server, a Docker button that copies the
   `docker run` command and the source code as a ZIP; and the browser
   extension.
+- **Unraid in the Android app and the README.** The app's "On a server" card
+  and the README's download buttons have an Unraid button beside Docker. It
+  stays dimmed and without a link until KnightLoader is listed in Community
+  Applications.
 - **The privacy policy in the Android app.** The About card in its settings
   links to it.
 
 ### Improved
 
+- **Buy Me a Coffee in the app opens a window** with the appeal and the
+  donation page, as the web interface does. PayPal still opens in the
+  browser, since its wallet login needs a popup an embedded page does not
+  open reliably.
+- **The tray icon is called the icon in the notification area**, in every
+  language: the module, its two switches (Close to the notification area,
+  Minimise to the notification area) and the hints that mention it.
 - **A torrent taken up again to seed never fetches.** After a restart, or when
   its files moved, a finished torrent with a file missing or cut short stops
   seeding with the reason on its row, rather than downloading it again.
 
 ### Fixed
 
-- **A torrent starts even with a single seeder.** The torrent library could
-  miss its cue to ask a peer for pieces, or to send a piece a peer had asked
-  for. A download with few peers then stayed at 0 bytes although a seeder was
-  connected, for a minute or for good. The library is updated to the version
-  that fixes it.
-- **A torrent added to a debrid service at shutdown is still cleaned up.** If
-  KnightLoader stopped while the service was answering the request to add a
-  torrent, or just after, the job it made there was never saved. The next
-  start found the job on the account, took it for one you had added yourself,
-  and left it there once the download finished or was removed. Shutting down
-  now waits for that answer, for up to eight seconds.
+- **The extension zip passes Edge Add-ons.** Edge refused the package because
+  its manifest named background scripts next to the service worker, which
+  only Firefox needs. Each release carries two zips:
+  `knightloader-extension.zip` for Chrome, Edge and the other Chromium
+  browsers without the Firefox parts, and `knightloader-extension-firefox.zip`
+  for Firefox as it is in the repository.
 - **The desktop app's JDownloader stays out of sight.** It opened its own
   window and its update dialogs, because on a desktop it was started without
   being told to run headless. It runs without a window now, as in
@@ -113,6 +113,17 @@ release's tag.
   next to the desktop app.
 - **Closing the desktop app stops its JDownloader.** It kept running without
   the app and held its port against the next start.
+- **A torrent starts even with a single seeder.** The torrent library could
+  miss its cue to ask a peer for pieces, or to send a piece a peer had asked
+  for. A download with few peers then stayed at 0 bytes although a seeder was
+  connected, for a minute or for good. The library is updated to the version
+  that fixes it.
+- **A torrent added to a debrid service at shutdown is still cleaned up.** If
+  KnightLoader stopped while the service was answering the request to add a
+  torrent, or just after, the job it made there was never saved. The next
+  start found the job on the account, took it for one you had added yourself,
+  and left it there once the download finished or was removed. Shutting down
+  now waits for that answer, for up to eight seconds.
 - **The app counts a single file as one.** The overview, an instance's card
   and a package said "1 files".
 - **With one instance found, the app offers to add that instance.** The button
@@ -124,45 +135,6 @@ release's tag.
   overview checked each instance once when it opened, so one that was
   restarting at that moment stayed "Not connected" until the app was
   restarted, while the figures beside the badge were already back.
-
-## [1.4.2] - 2026-09-28
-
-### Fixed
-
-- **The coffee window in the app scrolls.** The window swallowed the swipe,
-  so the payment form below the first screen could not be reached.
-
-## [1.4.1] - 2026-09-28
-
-### Added
-
-- **Releases go to the stores on their own.** Once a release is out, the new
-  Stores workflow submits the extension to the Chrome Web Store, Edge Add-ons
-  and Firefox Add-ons, and the Android app to Google Play. The extension goes
-  only when something in it changed since the previous release, and the app
-  likewise, so no store reviews a version that is the same as the last one.
-  A store whose credentials are not set up yet is skipped.
-- **An app bundle for Google Play.** Each release carries
-  `knightloader-vX.Y.Z-android.aab` next to the APK, signed with the same key.
-
-### Improved
-
-- **Buy Me a Coffee in the app opens a window** with the appeal and the
-  donation page, as the web interface does. PayPal still opens in the
-  browser, since its wallet login needs a popup an embedded page does not
-  open reliably.
-- **The tray icon is called the icon in the notification area**, in every
-  language: the module, its two switches (Close to the notification area,
-  Minimise to the notification area) and the hints that mention it.
-
-### Fixed
-
-- **The extension zip passes Edge Add-ons.** Edge refused the package because
-  its manifest named background scripts next to the service worker, which
-  only Firefox needs. The release now carries two zips:
-  `knightloader-extension.zip` for Chrome, Edge and the other Chromium
-  browsers without the Firefox parts, and `knightloader-extension-firefox.zip`
-  for Firefox as it is in the repository.
 
 ## [1.4.0] - 2026-09-27
 
