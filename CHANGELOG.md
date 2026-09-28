@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-09-28
+
 ### Added
 
 - **Only cached torrents to a debrid service, if you like.** With "Send only
