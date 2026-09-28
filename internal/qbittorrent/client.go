@@ -41,6 +41,15 @@ func (e *Error) Error() string {
 
 func (e *Error) Unwrap() error { return e.Err }
 
+// Reason is the plain sentence for err when it is an Error, and err's own text
+// otherwise.
+func Reason(err error) string {
+	if e, ok := errors.AsType[*Error](err); ok {
+		return e.Reason
+	}
+	return err.Error()
+}
+
 // Client is one session with a qBittorrent Web UI.
 type Client struct {
 	base       string
