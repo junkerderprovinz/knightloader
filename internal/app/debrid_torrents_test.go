@@ -227,23 +227,83 @@ func TestARetryOfADebridTorrentGoesBackToTheJobItHolds(t *testing.T) {
 	}
 }
 
+// appBeforeRestart is openImportApp with the queue coming up stopped on the
+// next start, so nothing starts there before the account is wired again, and
+// the function that closes it.
+func appBeforeRestart(t *testing.T, dir string, site *websiteAccount) (*App, func()) {
+	t.Helper()
+	a := openImportApp(t, dir, site, false)
+	stop := sync.OnceFunc(func() { a.Close() })
+	t.Cleanup(stop)
+	s := a.Settings.Get()
+	s.ResumeOnStart = settings.ResumeNever
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	return a, stop
+}
+
 func TestARestartCarriesOnWithTheJobTheServiceHolds(t *testing.T) {
 	dir := t.TempDir()
 	site := &websiteAccount{}
-	first := openImportApp(t, dir, site, false)
-	stop := sync.OnceFunc(func() { first.Close() })
-	t.Cleanup(stop)
-	// The queue comes up stopped, so nothing starts before the account is
-	// wired again.
-	s := first.Settings.Get()
-	s.ResumeOnStart = settings.ResumeNever
-	if _, err := first.ApplySettings(s); err != nil {
-		t.Fatal(err)
-	}
+	first, stop := appBeforeRestart(t, dir, site)
 	queueTorrent(first, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
 	waitFor(t, "the job noted on the task", func() bool { return liveTask(first, "m1").ServiceJob != nil })
 	stop()
 
+	carriesOn(t, dir, site)
+}
+
+// slowAdd is an account whose add answers only once the test lets it.
+type slowAdd struct {
+	*websiteAccount
+	asked, answer chan struct{}
+}
+
+func (s *slowAdd) AddTorrent(ctx context.Context, src debrid.TorrentSource) (string, bool, error) {
+	close(s.asked)
+	<-s.answer
+	return s.websiteAccount.AddTorrent(ctx, src)
+}
+
+// The service makes the job whether or not anybody still waits for its
+// answer, and only that answer ties the job to the task.
+func TestAJobAddedWhileTheAppClosesIsCarriedOn(t *testing.T) {
+	dir := t.TempDir()
+	site := &websiteAccount{}
+	first, stop := appBeforeRestart(t, dir, site)
+	slow := &slowAdd{websiteAccount: site, asked: make(chan struct{}), answer: make(chan struct{})}
+	first.bmu.Lock()
+	first.debrid["fakedebrid"] = first.torrentsVia("fakedebrid", slow, &routeSpy{name: "links", events: make(chan string, 16)}, engineHandoff{first.Engine, first})
+	first.bmu.Unlock()
+	queueTorrent(first, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
+	select {
+	case <-slow.asked:
+	case <-time.After(30 * time.Second):
+		t.Fatal("the torrent never went to the service")
+	}
+
+	closed := make(chan struct{})
+	go func() {
+		stop()
+		close(closed)
+	}()
+	// A Close that waits for the answer is still waiting after a second, and
+	// one that does not has closed the store by then.
+	select {
+	case <-closed:
+	case <-time.After(time.Second):
+	}
+	close(slow.answer)
+	<-closed
+
+	carriesOn(t, dir, site)
+}
+
+// carriesOn starts the app in dir again and checks that its torrent goes on
+// with the job the first start added, and that removing the task deletes it.
+func carriesOn(t *testing.T, dir string, site *websiteAccount) {
+	t.Helper()
 	second := openImportApp(t, dir, site, false)
 	t.Cleanup(func() { second.Close() })
 	second.SetHalted(false)

@@ -193,6 +193,7 @@ type Runs struct {
 	byTask map[string]*torrentRun
 	// nextRead is when the account's jobs may next be read (see readTurn).
 	nextRead time.Time
+	stopped  bool
 }
 
 // NewRuns starts the runs of the account in slot (resolver.SlotID).
@@ -213,6 +214,26 @@ func (rs *Runs) Restore(taskID, link string, j core.ServiceJob) {
 	rs.mu.Lock()
 	defer rs.mu.Unlock()
 	rs.byTask[taskID] = r
+}
+
+// Stop calls off every attempt, waits until each has returned and starts
+// nothing afterwards. An add still waiting for the service is waited for too,
+// since the service makes the job either way and only its answer ties the job
+// to the task.
+func (rs *Runs) Stop() {
+	rs.mu.Lock()
+	rs.stopped = true
+	var attempts []chan struct{}
+	for _, r := range rs.byTask {
+		r.settle()
+		if r.over != nil {
+			attempts = append(attempts, r.over)
+		}
+	}
+	rs.mu.Unlock()
+	for _, over := range attempts {
+		<-over
+	}
 }
 
 // readTurn books the account's next status read, gap after the one before,
@@ -334,9 +355,13 @@ func (b *TorrentBackend) Download(taskID, link string, headers map[string]string
 // start ends the attempt under way, if there is one, and begins another once
 // its goroutine has returned, so two never work on one run.
 func (b *TorrentBackend) start(taskID string, r *torrentRun) {
+	b.runs.mu.Lock()
+	if b.runs.stopped {
+		b.runs.mu.Unlock()
+		return
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	over := make(chan struct{})
-	b.runs.mu.Lock()
 	r.settle()
 	r.cancel = cancel
 	prev := r.over

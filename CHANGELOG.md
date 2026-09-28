@@ -61,6 +61,12 @@ release's tag.
 
 ### Fixed
 
+- **A torrent added to a debrid service at shutdown is still cleaned up.** If
+  KnightLoader stopped while the service was answering the request to add a
+  torrent, or just after, the job it made there was never saved. The next
+  start found the job on the account, took it for one you had added yourself,
+  and left it there once the download finished or was removed. Shutting down
+  now waits for that answer.
 - **The desktop app's JDownloader stays out of sight.** It opened its own
   window and its update dialogs, because on a desktop it was started without
   being told to run headless. It runs without a window now, as in
