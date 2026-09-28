@@ -35,6 +35,27 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
+## [Unreleased]
+
+### Added
+
+- **A debrid service that stands still hands the torrent on.** "Give up on a
+  debrid service after" under Settings, Torrents deletes a torrent on the
+  service once it has made no progress on it for that many minutes, 10 by
+  default, and hands it to the next service or the built-in torrent client.
+  Time in the service's queue and reading the magnet link count too. A
+  download imported from the account and a torrent pinned to the service are
+  left alone, and 0 turns it off. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+
+### Improved
+
+- **Real-Debrid, AllDebrid and Debrid-Link get cached torrents too.** With
+  "Send only cached torrents to the debrid service" on, these three got no
+  torrents, because they cannot be asked what they have cached. KnightLoader
+  now adds the torrent, keeps it when the service has it ready within a few
+  seconds, and otherwise deletes it there and moves on, with the reason in the
+  task's log. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+
 ## [1.5.0] - 2026-09-28
 
 ### Added
