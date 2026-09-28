@@ -107,9 +107,14 @@ type Torrent struct {
 	KeepOnService bool `json:"keepOnService"`
 	// DebridCachedOnly hands a torrent to a debrid service only when the
 	// service has it cached already, and to the built-in client otherwise,
-	// even where the service would take it. A service that cannot be asked,
-	// and a question that goes unanswered, count as not cached.
+	// even where the service would take it. A service without a cache check
+	// is asked by adding the torrent and deleting it again unless it is ready
+	// at once, and a question that goes unanswered counts as not cached.
 	DebridCachedOnly bool `json:"debridCachedOnly"`
+	// DebridStallMinutes is how long a debrid service may make no progress on
+	// a torrent it fetches before the torrent is deleted there and goes on to
+	// the next backend; 0 waits however long it takes.
+	DebridStallMinutes int `json:"debridStallMinutes"`
 	// SeedAfterDebrid hands a torrent a debrid service fetched to a client to
 	// seed once its files are here, the one SeedIn names. Its files are checked
 	// against the torrent first, and a torrent whose files are not all there is
@@ -200,8 +205,20 @@ func defaultTorrent() Torrent {
 		DHTEnabled:          true,
 		PEXEnabled:          true,
 		SeedIn:              SeedInBuiltIn,
+		DebridStallMinutes:  DefaultDebridStallMinutes,
 	}
 }
+
+// DefaultDebridStallMinutes is long enough for a service to read a magnet
+// link and take a torrent from its queue, and short enough that the built-in
+// client, which starts on the swarm at once, has not been kept waiting long.
+// An install from before the field reads it too, since Load decodes over the
+// defaults.
+const DefaultDebridStallMinutes = 10
+
+// maxDebridStallMinutes is a day. A service that has not moved for longer has
+// given up on the torrent, whatever it reports.
+const maxDebridStallMinutes = 24 * 60
 
 // sanitizeTorrent floors every number that has no honest negative meaning back
 // to its unset zero, and keeps Port inside the range a TCP port has. A negative
@@ -225,6 +242,7 @@ func sanitizeTorrent(n Settings) Settings {
 		// the rest of the page.
 		t.Port = 0
 	}
+	t.DebridStallMinutes = min(max(t.DebridStallMinutes, 0), maxDebridStallMinutes)
 	t.TorrentFileRules = t.TorrentFileRules.sanitized()
 	t.ExtraTrackers = trimmedLines(t.ExtraTrackers)
 	t.BannedTrackers = trimmedLines(t.BannedTrackers)

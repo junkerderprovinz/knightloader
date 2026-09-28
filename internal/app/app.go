@@ -605,6 +605,7 @@ func New(dataDir string) (*App, error) {
 			log.Printf("could not write back the boot state of %s: %v", c.ID, err)
 		}
 	}
+	a.dropProbes()
 	// Housekeeping runs once now so the list is trimmed when first opened. It
 	// runs before the queue is filled and the scheduler starts, since removing
 	// a task dispatches and could ignore a pause window.

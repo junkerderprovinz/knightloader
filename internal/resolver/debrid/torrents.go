@@ -14,6 +14,7 @@ import (
 	"log"
 	"path"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -53,7 +54,8 @@ type HashFinder interface {
 }
 
 // CacheChecker is a service that can say, before a torrent is added, whether
-// it has the torrent cached and so ready to hand out at once.
+// it has the torrent cached and so ready to hand out at once. A service
+// without one is asked by adding the torrent and reading its job (see await).
 type CacheChecker interface {
 	Cached(ctx context.Context, infoHash string) (bool, error)
 }
@@ -175,8 +177,15 @@ const readGap = time.Second
 
 // cacheCheckTimeout bounds the question whether the service has a torrent
 // cached. A service slow to answer counts as one without it, and the torrent
-// goes on to the next backend rather than wait.
+// goes on to the next backend rather than wait. For a service asked by adding
+// the torrent, it is how long the job has to become ready.
 const cacheCheckTimeout = 15 * time.Second
+
+// probePoll is the longest wait between two reads of a job added to see
+// whether the service has it cached. The pacer's five seconds leave three
+// reads in the window, which is tight for Real-Debrid: it is told the files
+// after one read and says the torrent is ready only at a later one.
+const probePoll = 2 * time.Second
 
 // statusMisses is how many reads of a job in a row may fail before the task
 // does. A torrent the service has not cached can take hours, and one dropped
@@ -205,7 +214,7 @@ func NewRuns(slot string) *Runs {
 // Download carries on with it from the first file that is not here yet.
 func (rs *Runs) Restore(taskID, link string, j core.ServiceJob) {
 	_, _, imported := ParseJobLink(link)
-	r := &torrentRun{link: link, job: j.ID, imported: imported, held: !imported && !j.Owned, next: j.Done, partial: j.Partial}
+	r := &torrentRun{link: link, job: j.ID, imported: imported, held: !imported && !j.Owned, probe: j.Probe, next: j.Done, partial: j.Partial}
 	if !imported {
 		if _, name, _, err := sourceOf(link); err == nil {
 			r.name = name
@@ -294,11 +303,17 @@ type TorrentBackend struct {
 	// when the service has it cached. Any other torrent is refused here, and so
 	// goes on to the next backend.
 	CachedOnly func(taskID string) bool
+	// StallMinutes is how many minutes the service may make no progress on
+	// the task's torrent before the job is deleted there and the torrent goes
+	// on to the next backend, 0 for no limit.
+	StallMinutes func(taskID string) int
 	// Added is told the id of every job this backend adds to the account, so
 	// the import from the account knows the job for one of its own.
 	Added func(job string)
 
 	poll, pollMax, gap, cacheWait time.Duration
+	// minute is what StallMinutes counts in.
+	minute time.Duration
 }
 
 // torrentRun is one task's torrent. Every field is guarded by the mu of the
@@ -323,7 +338,10 @@ type torrentRun struct {
 	// whose JobLink names the job. Nothing else holds it, so it is never added
 	// again, and whether it is deleted when the task goes is the app's call.
 	imported bool
-	chosen   bool
+	// probe says the job was added to see whether the service has the torrent
+	// cached, and has not been ready yet.
+	probe  bool
+	chosen bool
 	// next is the first file still to fetch, so a resume skips what is here.
 	next int
 	// partial is where the engine is writing file next, once it has said.
@@ -337,7 +355,7 @@ type torrentRun struct {
 func NewTorrentBackend(svc TorrentService, links Transfers, parts PartDownloader, runs *Runs, onUpdate func(taskID string, u core.Update)) *TorrentBackend {
 	return &TorrentBackend{
 		svc: svc, links: links, parts: parts, runs: runs, onUpdate: onUpdate,
-		poll: torrentPoll, pollMax: torrentPollMax, gap: readGap, cacheWait: cacheCheckTimeout,
+		poll: torrentPoll, pollMax: torrentPollMax, gap: readGap, cacheWait: cacheCheckTimeout, minute: time.Minute,
 	}
 }
 
@@ -450,6 +468,31 @@ func (b *TorrentBackend) Remove(taskID string, deleteFiles bool) {
 	}
 }
 
+// DropProbes deletes the probes no attempt is reading, such as one a restart
+// restored, so none keeps fetching on the account while its task waits. The
+// task's next start asks the service afresh.
+func (b *TorrentBackend) DropProbes() {
+	b.runs.mu.Lock()
+	var tasks, jobs []string
+	for id, r := range b.runs.byTask {
+		if !r.probe || r.job == "" || r.cancel != nil {
+			continue
+		}
+		tasks = append(tasks, id)
+		if r.ours() {
+			jobs = append(jobs, r.job)
+		}
+		r.job, r.probe = "", false
+	}
+	b.runs.mu.Unlock()
+	for _, job := range jobs {
+		b.deleteJob(job)
+	}
+	for _, id := range tasks {
+		b.onUpdate(id, core.Update{Job: &core.ServiceJob{}})
+	}
+}
+
 // Holds reports whether the task has a job on the service here to carry on
 // with. A retry then goes through Download again, which keeps the job and the
 // files already here, rather than through Remove, which gives up both.
@@ -501,7 +544,7 @@ func (b *TorrentBackend) jobLocked(r *torrentRun) *core.ServiceJob {
 	if r.job == "" {
 		return &core.ServiceJob{}
 	}
-	return &core.ServiceJob{Slot: b.runs.slot, ID: r.job, Owned: r.ours(), Done: r.next, Partial: r.partial}
+	return &core.ServiceJob{Slot: b.runs.slot, ID: r.job, Owned: r.ours(), Done: r.next, Partial: r.partial, Probe: r.probe}
 }
 
 // settle ends the attempt under way, which has run its course. Caller holds
@@ -536,6 +579,12 @@ func (b *TorrentBackend) run(ctx context.Context, taskID string, r *torrentRun) 
 	}
 	b.runs.mu.Lock()
 	name := cmp.Or(tj.Name, r.name)
+	// A probe that is ready is the service's cached copy, kept like any job.
+	var kept *core.ServiceJob
+	if r.probe {
+		r.probe = false
+		kept = b.jobLocked(r)
+	}
 	b.runs.mu.Unlock()
 	multi := len(tj.Files) > 1
 	want, err := b.wanted(taskID, name, tj.Files)
@@ -556,7 +605,7 @@ func (b *TorrentBackend) run(ctx context.Context, taskID string, r *torrentRun) 
 			loaded += f.Size
 		}
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: total, Loaded: loaded})
+	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: total, Loaded: loaded, Job: kept})
 	var file string
 	for i := next; i < len(want); i++ {
 		f := want[i]
@@ -596,8 +645,12 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 		b.refuse(ctx, taskID, r, "a torrent from a private tracker stays with the built-in torrent client")
 		return "", false
 	}
+	var probe bool
 	if b.CachedOnly != nil && b.CachedOnly(taskID) {
-		if why := b.notCached(ctx, src.InfoHash); why != "" {
+		cc, asks := b.svc.(CacheChecker)
+		if !asks {
+			probe = true
+		} else if why := b.notCached(ctx, cc, src.InfoHash); why != "" {
 			b.refuse(ctx, taskID, r, why)
 			return "", false
 		}
@@ -622,7 +675,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	b.runs.mu.Lock()
 	kept := b.runs.byTask[taskID] == r
 	if kept {
-		r.job, r.held = job, held
+		r.job, r.held, r.probe = job, held, probe
 	}
 	u := core.Update{Job: b.jobLocked(r)}
 	b.runs.mu.Unlock()
@@ -645,11 +698,7 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 
 // notCached says why the torrent does not count as cached on the service, or
 // returns "" when it is cached there.
-func (b *TorrentBackend) notCached(ctx context.Context, hash string) string {
-	cc, ok := b.svc.(CacheChecker)
-	if !ok {
-		return "only a cached torrent may go to a debrid service, and this one cannot say what it has cached"
-	}
+func (b *TorrentBackend) notCached(ctx context.Context, cc CacheChecker, hash string) string {
 	ctx, cancel := context.WithTimeout(ctx, b.cacheWait)
 	defer cancel()
 	cached, err := cc.Cached(ctx, hash)
@@ -718,10 +767,19 @@ func (b *TorrentBackend) finder() func(context.Context, string) (string, error) 
 }
 
 // await polls the job until the service has every file, showing its progress
-// on the task. It reports false when the task has been dealt with.
+// on the task. It reports false when the task has been dealt with. A probe
+// that is not ready within cacheWait, and a job whose progress has not grown
+// for the task's StallMinutes, go on to the next backend.
 func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun, job string) (TorrentJob, bool) {
+	b.runs.mu.Lock()
+	probe, imported := r.probe, r.imported
+	b.runs.mu.Unlock()
+	start := time.Now()
 	misses := 0
 	pace := pacer{shortest: b.poll, longest: b.pollMax}
+	// best is the most of the torrent the service has reported, and grew is
+	// when it last rose.
+	best, grew := 0.0, start
 	for {
 		if !b.runs.readTurn(ctx, b.gap) {
 			return TorrentJob{}, false
@@ -762,12 +820,50 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 				Remote: &core.RemoteFetch{Progress: progress, Speed: tj.Speed, Seeds: tj.Seeds},
 			})
 		}
+		now := time.Now()
+		if probe && now.Sub(start) >= b.cacheWait {
+			b.refuse(ctx, taskID, r, "only a cached torrent may go to a debrid service, and this one did not have it ready when it was added")
+			return TorrentJob{}, false
+		}
+		minutes := b.stallMinutes(taskID, imported)
+		stall := time.Duration(minutes) * b.minute
+		// A service that has the whole torrent is moving it to where it
+		// hands it out, which it reports no progress for.
+		if progress > best || progress >= 1 {
+			best, grew = progress, now
+		} else if stall > 0 && now.Sub(grew) >= stall {
+			b.refuse(ctx, taskID, r, "the service made no progress on this torrent for "+minutesText(minutes))
+			return TorrentJob{}, false
+		}
+		wait := pace.next(now, progress)
+		if probe {
+			wait = min(wait, probePoll, start.Add(b.cacheWait).Sub(now))
+		}
+		if stall > 0 {
+			wait = min(wait, grew.Add(stall).Sub(now))
+		}
 		select {
 		case <-ctx.Done():
 			return TorrentJob{}, false
-		case <-time.After(pace.next(time.Now(), progress)):
+		case <-time.After(wait):
 		}
 	}
+}
+
+// stallMinutes is the task's StallMinutes, or 0 for a download imported from
+// the account, which is the user's job there and never given up on here.
+func (b *TorrentBackend) stallMinutes(taskID string, imported bool) int {
+	if imported || b.StallMinutes == nil {
+		return 0
+	}
+	return b.StallMinutes(taskID)
+}
+
+func minutesText(n int) string {
+	if n == 1 {
+		return "a minute"
+	}
+	return strconv.Itoa(n) + " minutes"
 }
 
 // pacer spaces the reads of a job the service is still fetching. The wait
@@ -936,7 +1032,7 @@ func (b *TorrentBackend) refuse(ctx context.Context, taskID string, r *torrentRu
 		return
 	}
 	job, ours := r.job, r.ours()
-	r.job = ""
+	r.job, r.probe = "", false
 	r.settle()
 	b.runs.mu.Unlock()
 	if job != "" && ours {
