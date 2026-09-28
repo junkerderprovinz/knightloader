@@ -66,7 +66,7 @@ release's tag.
   torrent, or just after, the job it made there was never saved. The next
   start found the job on the account, took it for one you had added yourself,
   and left it there once the download finished or was removed. Shutting down
-  now waits for that answer.
+  now waits for that answer, for up to eight seconds.
 - **The desktop app's JDownloader stays out of sight.** It opened its own
   window and its update dialogs, because on a desktop it was started without
   being told to run headless. It runs without a window now, as in
