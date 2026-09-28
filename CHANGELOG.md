@@ -37,6 +37,20 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **Seeding what a debrid service fetched in qBittorrent.** "Seed in" under
+  "Seed what the debrid service fetched" on Settings, Torrents picks the
+  built-in torrent client or an external qBittorrent. qBittorrent gets the
+  torrent through its Web UI with the files where they are, so cross-seed or
+  qui find it there. KnightLoader checks the files first, the sizes and for a
+  `.torrent` file every piece, and tells qBittorrent to skip its own check, so
+  qBittorrent has to reach the files at the same path. "Download folder in
+  qBittorrent" maps the path when the two containers mount the download folder
+  differently. "Test connection" logs in and shows qBittorrent's version. A
+  torrent qBittorrent cannot take is not seeded, and its row says why.
+  ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+
 ## [1.4.3] - 2026-09-28
 
 ### Added

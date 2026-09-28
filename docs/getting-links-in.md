@@ -84,6 +84,26 @@ passkey would go to the service with it. A `.torrent` says whether it is
 private. A magnet link counts as private when its own tracker address carries
 a passkey, the same test the extra trackers below use.
 
+**Seeding what a debrid service fetched**: with "Seed what the debrid service
+fetched" on under Settings, Torrents, a torrent the service fetched is seeded
+once all its files are here, which helps with cross-seeding. Nothing is
+downloaded for it. KnightLoader first checks that every file is there at the
+size the torrent gives, and for a `.torrent` file every piece as well. A magnet
+link carries no pieces, so for a magnet only the sizes are checked. "Seed in"
+picks the client. The built-in torrent client seeds under the seeding targets.
+qBittorrent is handed the torrent through its Web UI with the files where they
+are, so tools that watch it, such as cross-seed or qui, find it there. It needs
+its address, the login and, if you like, a category. qBittorrent is told not to
+check the files again, because KnightLoader already has, so it has to reach
+them at the same path. When the two run in separate containers that mount the
+download folder under different paths, set "Download folder in qBittorrent" to
+where qBittorrent sees it, for example `/data/downloads` for a folder
+KnightLoader has at `/downloads`. A torrent whose folder is outside the download
+folder cannot be mapped that way and is not handed over. "Test connection" logs
+in and shows qBittorrent's version. Once qBittorrent has a torrent, KnightLoader
+does nothing more with it. A torrent that fails the check, or that qBittorrent
+does not take, is not seeded anywhere, and its row says why.
+
 **Extra trackers** help a torrent with few peers. Type addresses in, or give
 the address of a public list such as
 [ngosang/trackerslist](https://github.com/ngosang/trackerslist), which is
