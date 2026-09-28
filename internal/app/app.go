@@ -864,6 +864,9 @@ func (a *App) Close() error {
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
+	// Before the engine and the store: a torrent on a debrid service has its
+	// files fetched by the one and its job noted in the other.
+	a.serviceRuns.stop()
 	// The engine keeps its transfers in memory only, so seeding ends here,
 	// until the next start takes it up again.
 	a.endSeeding()

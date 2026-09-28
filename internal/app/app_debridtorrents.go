@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"maps"
 	"os"
 	"path"
 	"path/filepath"
@@ -181,6 +182,16 @@ func (s *serviceRuns) of(slot string) *debrid.Runs {
 		s.bySlot[slot] = rs
 	}
 	return rs
+}
+
+// stop stops the runs of every account (see debrid.Runs.Stop).
+func (s *serviceRuns) stop() {
+	s.mu.Lock()
+	all := slices.Collect(maps.Values(s.bySlot))
+	s.mu.Unlock()
+	for _, rs := range all {
+		rs.Stop()
+	}
 }
 
 // restoreServiceJob hands the job a task held before the restart back to its
