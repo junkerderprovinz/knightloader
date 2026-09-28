@@ -46,6 +46,7 @@ interface TorrentSettings {
   bannedTrackers: string[] | null;
   keepOnService: boolean;
   debridCachedOnly: boolean;
+  debridStallMinutes: number;
   seedAfterDebrid: boolean;
   /** Empty is the built-in client too, as settings.Torrent.SeedIn has it. */
   seedIn: 'builtin' | 'qbittorrent' | '';
@@ -80,10 +81,14 @@ const DEFAULTS: TorrentSettings = {
   bannedTrackers: [],
   keepOnService: false,
   debridCachedOnly: false,
+  debridStallMinutes: 10,
   seedAfterDebrid: false,
   seedIn: 'builtin',
   qbittorrent: { url: '', username: '', password: '', category: '', downloadsPath: '' },
 };
+
+// A day, as settings.maxDebridStallMinutes caps it.
+const DEBRID_STALL_MAX = 24 * 60;
 
 const KIB = 1024;
 
@@ -245,6 +250,19 @@ export function Torrents() {
           label={t('settings.torrents.cachedOnly')}
           hint={t('settings.torrents.cachedOnlyHint')}
         />
+        <Field label={t('settings.torrents.debridStall')} hint={t('settings.torrents.debridStallHint')}>
+          <div className="flex items-center gap-2">
+            <NumberInput
+              value={tr.debridStallMinutes}
+              min={0}
+              max={DEBRID_STALL_MAX}
+              onValue={(v) => write({ debridStallMinutes: Math.max(0, Math.min(DEBRID_STALL_MAX, v)) })}
+            />
+            <span className="glim-num shrink-0 text-xs text-carbon-textMuted">
+              {t('settings.torrents.debridStallUnit')}
+            </span>
+          </div>
+        </Field>
         <ToggleRow
           checked={tr.seedAfterDebrid}
           onChange={(v) => write({ seedAfterDebrid: v })}
