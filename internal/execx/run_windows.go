@@ -23,6 +23,8 @@ import (
 	"syscall"
 
 	"golang.org/x/sys/windows"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // run runs cmd to the end inside a job object that the end of cmd's context
@@ -42,6 +44,7 @@ func run(cmd *exec.Cmd) error {
 			}
 		}
 	}
+	nowindow.Apply(cmd)
 	job, err := windows.CreateJobObject(nil, nil)
 	if err != nil {
 		return err

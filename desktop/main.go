@@ -47,22 +47,25 @@ func main() {
 		log.Fatalf("data dir: %v", err)
 	}
 
-	// A private headless JDownloader gives full hoster coverage out of the box.
-	if os.Getenv("KL_JD") == "" {
-		pv := provision.New(filepath.Join(dataDir, "jd"))
-		log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-		if _, url, err := pv.Ensure(ctx); err != nil {
-			log.Printf("JD provisioning failed (%v); continuing without JD", err)
-		} else {
-			_ = os.Setenv("KL_JD", url)
-		}
-		cancel()
-	}
-
 	a, err := app.New(dataDir)
 	if err != nil {
 		log.Fatalf("start: %v", err)
+	}
+
+	// A private headless JDownloader gives full hoster coverage out of the box.
+	// Its first run downloads and updates JD for minutes, so it comes up in the
+	// background and joins once it answers, and the window does not wait.
+	var pv *provision.Provisioner
+	jdCtx, stopJD := context.WithCancel(context.Background())
+	jdDone := make(chan struct{})
+	if os.Getenv("KL_JD") == "" {
+		pv = provision.New(filepath.Join(dataDir, "jd"))
+		go func() {
+			defer close(jdDone)
+			provisionJD(jdCtx, a, pv)
+		}()
+	} else {
+		close(jdDone)
 	}
 
 	// The browser whose Click'n'Load buttons post to 127.0.0.1 runs on this
@@ -166,6 +169,13 @@ func main() {
 		// Before a.Close, whose task list the guard reads.
 		_ = awake.Close()
 		_ = a.Close()
+		// JD would otherwise keep running without the program that started
+		// it and hold its port against the next start.
+		stopJD()
+		<-jdDone
+		if pv != nil {
+			_ = pv.Stop()
+		}
 		// After a.Close so the shutdown's own records reach the file.
 		// Writes are unbuffered; closing releases the Windows handle.
 		_ = logring.CloseFile()
@@ -173,6 +183,19 @@ func main() {
 	if err := wails.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func provisionJD(ctx context.Context, a *app.App, pv *provision.Provisioner) {
+	log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+	_, url, err := pv.Ensure(ctx)
+	if err != nil {
+		log.Printf("JD provisioning failed (%v); continuing without JD", err)
+		return
+	}
+	a.UseJD(url)
+	log.Printf("headless JDownloader provisioned at %s", url)
 }
 
 func dataDir() string {

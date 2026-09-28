@@ -37,6 +37,22 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The desktop app's JDownloader stays out of sight.** It opened its own
+  window and its update dialogs, because on a desktop it was started without
+  being told to run headless. It runs without a window now, as in
+  the container.
+- **The desktop app's window opens at once.** It waited until JDownloader
+  answered, which on the first start takes minutes while JDownloader
+  downloads and updates itself. JDownloader comes up in the background now
+  and joins when it is ready.
+- **No console windows on Windows.** Java, yt-dlp, ffmpeg, the tool checks
+  and the programs set to run on events each opened an empty console window
+  next to the desktop app.
+- **Closing the desktop app stops its JDownloader.** It kept running without
+  the app and held its port against the next start.
+
 ## [1.4.2] - 2026-09-28
 
 ### Fixed

@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/selftest"
@@ -252,7 +253,7 @@ func (a *App) selfTestJD(context.Context, settings.Settings) selftest.Result {
 // a variable so tests can produce every answer without depending on the local
 // yt-dlp.
 var ytdlpVersionOutput = func(ctx context.Context, bin string) (string, error) {
-	out, err := exec.CommandContext(ctx, bin, "--version").Output()
+	out, err := nowindow.CommandContext(ctx, bin, "--version").Output()
 	if err != nil {
 		// exec's error is only an exit status; stderr carries the diagnosis.
 		var ee *exec.ExitError

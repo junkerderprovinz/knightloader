@@ -13,8 +13,9 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"os/exec"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // maxPlaylistJSON caps how much listing one probe reads: over fifty thousand
@@ -55,7 +56,7 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "--flat-playlist", "-J", rawurl)
+	cmd := nowindow.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "--flat-playlist", "-J", rawurl)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

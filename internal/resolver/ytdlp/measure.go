@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // Measuring reads a finished file back with ffprobe, because yt-dlp exiting 0
@@ -83,7 +84,7 @@ type ffprobeJSON struct {
 // probeMedia runs ffprobe against path. -v quiet keeps warnings out of the
 // JSON on stdout.
 func probeMedia(ctx context.Context, bin, path string) (MediaInfo, error) {
-	cmd := exec.CommandContext(ctx, bin,
+	cmd := nowindow.CommandContext(ctx, bin,
 		"-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path)
 	out, err := cmd.Output()
 	if err != nil {

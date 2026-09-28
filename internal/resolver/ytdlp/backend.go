@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -21,6 +20,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 type Backend struct {
@@ -98,7 +98,7 @@ var availableTimeout = 10 * time.Second
 func (b *Backend) Available() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), availableTimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, b.bin, "--version").Run() == nil
+	return nowindow.CommandContext(ctx, b.bin, "--version").Run() == nil
 }
 
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
@@ -202,7 +202,7 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			args = append(args, "--limit-rate", fmt.Sprint(per))
 		}
 	}
-	cmd := exec.CommandContext(ctx, b.bin, append(args, target)...)
+	cmd := nowindow.CommandContext(ctx, b.bin, append(args, target)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	if opts.Live.Enabled {
 		// A killed yt-dlp leaves a live recording as an unplayable .part; on
@@ -512,7 +512,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		args = append(args, stream.args()...)
 		url = stream.url
 	}
-	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
+	cmd := nowindow.CommandContext(ctx, b.bin, append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
