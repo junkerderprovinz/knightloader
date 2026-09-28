@@ -149,7 +149,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail"
+      "settings.aboutMail",
+      "instance.filesOne"
     ],
     "ja": [
       "addDownload.placeholder",

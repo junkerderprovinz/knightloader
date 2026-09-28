@@ -402,7 +402,7 @@ export default function PackageList({
                   would tell a closed folder holds a dead link. */}
               <Text style={[styles.headerLine, { color: c.textMuted }]} numberOfLines={1}>
                 {[
-                  `${pkg.tasks.length} ${t('instance.files')}`,
+                  pkg.tasks.length === 1 ? t('instance.filesOne') : t('instance.files', { n: pkg.tasks.length }),
                   pkg.size > 0 ? fmtBytes(pkg.size) : null,
                   pkg.speed > 0 ? fmtSpeed(pkg.speed) : null,
                   unpacked ? `${unpackPercent(unpacked)}%` : null,

@@ -324,7 +324,11 @@ export default function RelayConnectScreen({
             }
           />
           {sibs.length > 0 && (
-            <GlimButton hue={3} label={t('relay.saveAllButton', { count: sibs.length })} onPress={saveAll} />
+            <GlimButton
+              hue={3}
+              label={sibs.length === 1 ? t('relay.saveOneButton') : t('relay.saveAllButton', { count: sibs.length })}
+              onPress={saveAll}
+            />
           )}
         </>
       )}
