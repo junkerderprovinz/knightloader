@@ -57,7 +57,7 @@ export function TorrentFiles({
         {/* The package header's chevron, turned the same way. */}
         <Text style={[styles.chevron, { color: c.textSub }, open && styles.chevronOpen]}>›</Text>
         <Text style={[styles.count, { color: c.textMuted }]}>
-          {task.torrentFileCount} {t('instance.files')}
+          {t('instance.files', { n: task.torrentFileCount ?? 0 })}
         </Text>
       </TouchableOpacity>
       {open &&

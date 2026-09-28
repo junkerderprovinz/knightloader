@@ -36,7 +36,7 @@ function statusLine(
   const parts: string[] = [];
   if (s.halted) parts.push(t('downloads.queueHalted'));
   else if (s.running > 0) parts.push(t('downloads.queueRunning'));
-  parts.push(`${s.files} ${t('instance.files')}`);
+  parts.push(s.files === 1 ? t('instance.filesOne') : t('instance.files', { n: s.files }));
   if (s.remaining > 0) parts.push(`${fmtBytes(s.remaining)} ${t('instance.left')}`);
   if (s.speed > 0) parts.push(fmtSpeed(s.speed));
   return parts.join(' · ');
@@ -232,7 +232,7 @@ export default function ConnectionsScreen({
                     <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
                       {[
                         t('overview.connected', { n: gesamt.online, total: gesamt.total }),
-                        `${gesamt.files} ${t('instance.files')}`,
+                        gesamt.files === 1 ? t('instance.filesOne') : t('instance.files', { n: gesamt.files }),
                         gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
                         gesamt.speed > 0 ? fmtSpeed(gesamt.speed) : null,
                       ]

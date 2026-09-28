@@ -74,6 +74,13 @@ release's tag.
   next to the desktop app.
 - **Closing the desktop app stops its JDownloader.** It kept running without
   the app and held its port against the next start.
+- **The app counts a single file as one.** The overview, an instance's card
+  and a package said "1 files".
+- **With one instance found, the app offers to add that instance.** The button
+  read "Add all 1".
+- **The app's About text says what the QR scanner sends.** The scanner is
+  Google's and sends Google usage diagnostics when it scans a code, which
+  "no telemetry" left out. The app itself still collects nothing.
 
 ## [1.4.2] - 2026-09-28
 
