@@ -447,3 +447,26 @@ func TestADebridTorrentGoesByItsCategorysFileRules(t *testing.T) {
 		t.Errorf("an imported download goes by file rules (%v)", err)
 	}
 }
+
+// The cache check follows the Torrents page, and a task pinned to a service
+// goes there whatever the service has cached.
+func TestOnlyAnUnpinnedTorrentWaitsForTheServiceToHaveItCached(t *testing.T) {
+	a, _ := torrentOrderApp(t, []string{"realdebrid", "torrent"})
+	putTask(t, a, core.Task{ID: "free", URL: debridMagnet, Status: core.StatusCollected})
+	putTask(t, a, core.Task{ID: "pinned", URL: debridMagnet, ResolverPin: "realdebrid", Status: core.StatusCollected})
+	if a.cachedOnly("free") {
+		t.Error("with the switch off a torrent waited for the service's cache")
+	}
+
+	s := a.Settings.Get()
+	s.Torrent.DebridCachedOnly = true
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if !a.cachedOnly("free") {
+		t.Error("with the switch on an unpinned torrent went to the service without asking what it has cached")
+	}
+	if a.cachedOnly("pinned") {
+		t.Error("a torrent pinned to the service was held to its cache")
+	}
+}

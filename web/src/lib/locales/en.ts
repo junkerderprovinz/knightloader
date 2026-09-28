@@ -2056,6 +2056,12 @@ export const en = {
   'settings.torrents.keepOnService': 'Keep downloads on the debrid service',
   'settings.torrents.keepOnServiceHint':
     'When this is off, KnightLoader deletes a torrent from the debrid service once all its files are here, and does the same with a download imported from the account, so neither piles up against the account\'s limits. An imported download you remove here before it has finished is deleted there too. When this is on, both stay on the service, for example so you can stream them from there later. A torrent KnightLoader added is deleted either way if you remove it before it has finished, and one the account already had is never deleted.',
+  'settings.torrents.cachedOnly': 'Send only cached torrents to the debrid service',
+  'settings.torrents.cachedOnlyHint':
+    'When this is on, KnightLoader first asks a debrid service whether it already has the torrent cached. If it has, the service fetches the torrent as usual. If not, the torrent moves on down the priority order on the Accounts page, usually to the built-in torrent client, even though the service would have taken it. Only TorBox and Premiumize.me can answer that question. Real-Debrid, AllDebrid and Debrid-Link have no way to ask, so while this is on they get no torrents at all. A check that fails or takes longer than 15 seconds counts as not cached. A torrent pinned to a debrid service still goes there.',
+  'settings.torrents.seedAfterDebrid': 'Seed what the debrid service fetched',
+  'settings.torrents.seedAfterDebridHint':
+    'When this is on, a torrent that came through a debrid service goes to the built-in torrent client once all its files are here. The client checks the files against the torrent and seeds them under the seeding targets on this page, which is useful for cross-seeding. It never downloads anything to do so. If a file is missing, has the wrong size or does not match the torrent, the torrent is not seeded and its row says why. A torrent is only seeded if all of its files were fetched. While it seeds, your address shows up in the swarm, as it does for any torrent of the built-in torrent client.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see

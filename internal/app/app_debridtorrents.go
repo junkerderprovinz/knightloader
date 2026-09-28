@@ -9,10 +9,12 @@ package app
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -224,8 +226,22 @@ func (a *App) torrentsVia(slot string, svc debrid.TorrentService, links backend,
 	tb.Files = a.torrentSelection
 	tb.Rules = a.torrentRules
 	tb.Keep = func() bool { return a.Settings.Get().Torrent.KeepOnService }
+	tb.CachedOnly = a.cachedOnly
 	tb.Added = func(job string) { a.claimImported(slot, job) }
 	return tb
+}
+
+// cachedOnly reports whether a task's torrent may go to a debrid service only
+// when the service has it cached. A task pinned to a service goes there
+// whatever it has, since somebody chose that service for it.
+func (a *App) cachedOnly(taskID string) bool {
+	if !a.Settings.Get().Torrent.DebridCachedOnly {
+		return false
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	t := a.tasks[taskID]
+	return t != nil && t.ResolverPin == ""
 }
 
 // torrentRules is the file rules of a torrent's category, which choose its
@@ -260,4 +276,58 @@ func (a *App) torrentSelection(taskID string) []core.TorrentFile {
 		return slices.Clone(t.TorrentFiles)
 	}
 	return nil
+}
+
+// seedFromService hands a torrent a debrid service fetched to the built-in
+// client once its files are here, when the Torrents page asks for that. The
+// client takes the files up where they are and seeds them under the seeding
+// targets like a torrent of its own. It fetches nothing: a torrent whose files
+// are not all there, or do not match, is not seeded (see engine/seed.go).
+func (a *App) seedFromService(id string) {
+	builtIn := (torrent.Resolver{}).Info().ID
+	if !a.Settings.Get().Torrent.SeedAfterDebrid || a.resolverOff(builtIn) {
+		return
+	}
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Status != core.StatusDone || !torrent.IsURI(t.URL) || a.relocating[id] {
+		a.mu.Unlock()
+		return
+	}
+	tb, ok := a.backendFor(t.Resolver).(*debrid.TorrentBackend)
+	if !ok {
+		a.mu.Unlock()
+		return
+	}
+	if slices.ContainsFunc(t.TorrentFiles, func(f core.TorrentFile) bool { return !f.Selected }) {
+		t.Note = "Not seeded: only some of its files were fetched, and seeding it would fetch the rest"
+		c := a.copyLocked(t)
+		a.mu.Unlock()
+		a.publish(&c)
+		return
+	}
+	from, file := t.Resolver, t.File
+	// A torrent of several files is in a folder of its name, as the service
+	// fetched it (see debrid.localPath).
+	if t.File == "" {
+		t.File = filepath.Join(a.dirFor(t), strings.TrimSpace(t.Name))
+	}
+	t.Resolver = builtIn
+	job, err := a.seedJobLocked(t)
+	if err != nil {
+		t.Resolver, t.File = from, file
+		a.mu.Unlock()
+		log.Printf("task %s is not seeded: %v", id, err)
+		return
+	}
+	// Everything the torrent has, and nothing a file rule would leave out:
+	// the service fetched it whole, and a file that is not here ends the
+	// seeding rather than being fetched.
+	job.TorrentSelect, job.FileRules = nil, torrent.FileRules{}
+	a.started[id] = true
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
+	tb.Release(id)
+	a.Engine.Start(job)
 }

@@ -52,6 +52,28 @@ release's tag.
   next to the desktop app.
 - **Closing the desktop app stops its JDownloader.** It kept running without
   the app and held its port against the next start.
+### Added
+
+- **Only cached torrents to a debrid service, if you like.** With "Send only
+  cached torrents to the debrid service" on under Settings, Torrents,
+  KnightLoader asks the service first whether it has a torrent cached. One it
+  has not goes on to the next service or the built-in torrent client, so a slow
+  uncached torrent no longer waits on the service. TorBox and Premiumize.me can
+  be asked. Real-Debrid, AllDebrid and Debrid-Link cannot, so with the switch on
+  they get no torrents. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+- **Seeding what a debrid service fetched.** "Seed what the debrid service
+  fetched" hands a torrent to the built-in torrent client once all its files
+  are here. The client checks the files against the torrent and seeds them
+  under the seeding targets, which helps with cross-seeding. It downloads
+  nothing to do so: a torrent with a file missing, short or not matching is not
+  seeded, and its row says why. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+
+### Improved
+
+- **A torrent taken up again to seed never fetches.** After a restart, or when
+  its files moved, a finished torrent whose files are missing or damaged stops
+  seeding with the reason on its row, rather than downloading the missing parts
+  again.
 
 ## [1.4.2] - 2026-09-28
 

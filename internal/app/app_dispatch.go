@@ -1314,6 +1314,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
 		t.SeedingOver = t.SeedingOver || u.Torrent.AtTarget
+		if why := u.Torrent.NotSeeded; why != "" {
+			// Another start would find the same files.
+			t.SeedingOver = true
+			if t.SeedingEnded.IsZero() {
+				t.SeedingEnded = time.UnixMilli(time.Now().UnixMilli())
+			}
+			t.Note = "Not seeded: " + why
+		}
 	}
 	seedFigures := u.Torrent != nil && t.Seeding && a.seedFiguresDueLocked(id)
 	// A fact about the service, so a stale update still counts.
@@ -1391,6 +1399,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 				a.verifyTask(id, path)
 			}
 			a.deliverDownload(id)
+			a.seedFromService(id)
 		})
 	}
 	// A backend that says the link is not its business hands the task to the

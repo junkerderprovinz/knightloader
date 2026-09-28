@@ -714,7 +714,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.debridTitle',
       hint: 'settings.torrents.debridHint',
-      rows: [{ key: 'settings.torrents.keepOnService', hint: 'settings.torrents.keepOnServiceHint' }],
+      rows: [
+        { key: 'settings.torrents.keepOnService', hint: 'settings.torrents.keepOnServiceHint' },
+        { key: 'settings.torrents.cachedOnly', hint: 'settings.torrents.cachedOnlyHint' },
+        { key: 'settings.torrents.seedAfterDebrid', hint: 'settings.torrents.seedAfterDebridHint' },
+      ],
     },
   ],
 

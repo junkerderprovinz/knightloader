@@ -52,6 +52,12 @@ type HashFinder interface {
 	JobByHash(ctx context.Context, hash string) (string, error)
 }
 
+// CacheChecker is a service that can say, before a torrent is added, whether
+// it has the torrent cached and so ready to hand out at once.
+type CacheChecker interface {
+	Cached(ctx context.Context, infoHash string) (bool, error)
+}
+
 // TorrentSource is a torrent as a service takes it: a magnet link, or the
 // bytes of an uploaded .torrent.
 type TorrentSource struct {
@@ -167,6 +173,11 @@ const (
 // the tightest, and leave room for the unlocks beside them.
 const readGap = time.Second
 
+// cacheCheckTimeout bounds the question whether the service has a torrent
+// cached. A service slow to answer counts as one without it, and the torrent
+// goes on to the next backend rather than wait.
+const cacheCheckTimeout = 15 * time.Second
+
 // statusMisses is how many reads of a job in a row may fail before the task
 // does. A torrent the service has not cached can take hours, and one dropped
 // call in that time is no reason to give up on it.
@@ -247,11 +258,15 @@ type TorrentBackend struct {
 	// Keep reports whether a finished torrent stays on the service rather than
 	// being deleted there once its files are here.
 	Keep func() bool
+	// CachedOnly reports whether the task's torrent may go to the service only
+	// when the service has it cached. Any other torrent is refused here, and so
+	// goes on to the next backend.
+	CachedOnly func(taskID string) bool
 	// Added is told the id of every job this backend adds to the account, so
 	// the import from the account knows the job for one of its own.
 	Added func(job string)
 
-	poll, pollMax, gap time.Duration
+	poll, pollMax, gap, cacheWait time.Duration
 }
 
 // torrentRun is one task's torrent. Every field is guarded by the mu of the
@@ -290,7 +305,7 @@ type torrentRun struct {
 func NewTorrentBackend(svc TorrentService, links Transfers, parts PartDownloader, runs *Runs, onUpdate func(taskID string, u core.Update)) *TorrentBackend {
 	return &TorrentBackend{
 		svc: svc, links: links, parts: parts, runs: runs, onUpdate: onUpdate,
-		poll: torrentPoll, pollMax: torrentPollMax, gap: readGap,
+		poll: torrentPoll, pollMax: torrentPollMax, gap: readGap, cacheWait: cacheCheckTimeout,
 	}
 }
 
@@ -407,6 +422,23 @@ func (b *TorrentBackend) Holds(taskID string) bool {
 	defer b.runs.mu.Unlock()
 	r := b.runs.byTask[taskID]
 	return r != nil && !r.done && r.job != ""
+}
+
+// Release lets go of a torrent whose files are all here, leaving the files
+// where they are, for a task that another backend takes over from there.
+func (b *TorrentBackend) Release(taskID string) {
+	b.runs.mu.Lock()
+	r := b.runs.byTask[taskID]
+	if r == nil || !r.done {
+		b.runs.mu.Unlock()
+		return
+	}
+	delete(b.runs.byTask, taskID)
+	parts := r.parts
+	b.runs.mu.Unlock()
+	for _, p := range parts {
+		b.parts.Remove(p, false)
+	}
 }
 
 // deleteJob drops a job from the account, best effort and off the caller's
@@ -528,6 +560,12 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 		b.refuse(ctx, taskID, r, "a torrent from a private tracker stays with the built-in torrent client")
 		return "", false
 	}
+	if b.CachedOnly != nil && b.CachedOnly(taskID) {
+		if why := b.notCached(ctx, src.InfoHash); why != "" {
+			b.refuse(ctx, taskID, r, why)
+			return "", false
+		}
+	}
 	sel := b.selection(taskID)
 	keep, err := b.rules(taskID)
 	src.Choose = selectsSome(sel) || len(sel) == 0 && (keep != nil || err != nil)
@@ -567,6 +605,25 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	u.Status, u.Remote = core.StatusRunning, &core.RemoteFetch{}
 	b.onUpdate(taskID, u)
 	return job, true
+}
+
+// notCached says why the torrent does not count as cached on the service, or
+// returns "" when it is cached there.
+func (b *TorrentBackend) notCached(ctx context.Context, hash string) string {
+	cc, ok := b.svc.(CacheChecker)
+	if !ok {
+		return "only a cached torrent may go to a debrid service, and this one cannot say what it has cached"
+	}
+	ctx, cancel := context.WithTimeout(ctx, b.cacheWait)
+	defer cancel()
+	cached, err := cc.Cached(ctx, hash)
+	switch {
+	case err != nil:
+		return "only a cached torrent may go to a debrid service, and asking this one failed: " + err.Error()
+	case !cached:
+		return "only a cached torrent may go to a debrid service, and this one has not cached it"
+	}
+	return ""
 }
 
 // addOrReuse hands the torrent to the service, or reports the job the account

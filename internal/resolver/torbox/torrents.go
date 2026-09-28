@@ -95,6 +95,24 @@ func (c *Client) TorrentByHash(ctx context.Context, hash string) (*Torrent, erro
 	return nil, nil
 }
 
+// TorrentCached asks /api/torrents/checkcached whether TorBox has the torrent
+// with this info hash cached. The list form names only the cached ones.
+func (c *Client) TorrentCached(ctx context.Context, hash string) (bool, error) {
+	q := url.Values{"hash": {hash}, "format": {"list"}}
+	var cached []struct {
+		Hash string `json:"hash"`
+	}
+	if err := c.do(ctx, http.MethodGet, "/api/torrents/checkcached?"+q.Encode(), nil, &cached); err != nil {
+		return false, err
+	}
+	for _, e := range cached {
+		if strings.EqualFold(e.Hash, hash) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // TorrentLink resolves the direct download URL for one file of a torrent.
 func (c *Client) TorrentLink(ctx context.Context, torrentID, fileID int64) (string, error) {
 	q := url.Values{
@@ -169,6 +187,10 @@ func (t Torrents) AddTorrent(ctx context.Context, src debrid.TorrentSource) (str
 		return "", false, declined(err)
 	}
 	return strconv.FormatInt(id, 10), false, nil
+}
+
+func (t Torrents) Cached(ctx context.Context, hash string) (bool, error) {
+	return t.c.TorrentCached(ctx, hash)
 }
 
 // JobByHash finds the torrent the account holds for an info hash. It reads

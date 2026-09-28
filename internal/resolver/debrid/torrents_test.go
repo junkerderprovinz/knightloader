@@ -1079,3 +1079,138 @@ func TestFileRulesThatKeepNothingFetchEveryFile(t *testing.T) {
 		t.Errorf("the engine got %v, want every file, as the built-in client does", got)
 	}
 }
+
+// cacheAware is a service that answers whether it has a torrent cached: with
+// cached, with err, or not at all until the question is called off.
+type cacheAware struct {
+	scriptedService
+	cached bool
+	err    error
+	stall  bool
+	asked  []string
+}
+
+func (s *cacheAware) Cached(ctx context.Context, hash string) (bool, error) {
+	s.mu.Lock()
+	s.asked = append(s.asked, hash)
+	stall := s.stall
+	s.mu.Unlock()
+	if stall {
+		<-ctx.Done()
+		return false, ctx.Err()
+	}
+	return s.cached, s.err
+}
+
+func (s *cacheAware) questions() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.asked)
+}
+
+func onlyCached(string) bool { return true }
+
+func TestACachedTorrentGoesToTheServiceWhenOnlyCachedOnesMay(t *testing.T) {
+	svc := &cacheAware{cached: true}
+	svc.jobs = []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+	b.CachedOnly = onlyCached
+
+	b.Download("t1", testMagnet, nil, 1)
+	up.until(t, core.StatusDone)
+
+	if got := svc.questions(); !slices.Equal(got, []string{"0123456789abcdef0123456789abcdef01234567"}) {
+		t.Errorf("the service was asked about %v, want the torrent's info hash once", got)
+	}
+	if svc.addCount() != 1 {
+		t.Errorf("the service got the torrent %d times, want once", svc.addCount())
+	}
+}
+
+// Each of these leaves the torrent to the next backend without ever adding it
+// to the account.
+func TestATorrentThatIsNotSurelyCachedMovesOnWhenOnlyCachedOnesMay(t *testing.T) {
+	cases := []struct {
+		name string
+		svc  TorrentService
+		want string
+	}{
+		{"not cached", &cacheAware{}, "has not cached it"},
+		{"the question failed", &cacheAware{err: errors.New("502 Bad Gateway")}, "asking this one failed: 502 Bad Gateway"},
+		{"no answer in time", &cacheAware{stall: true}, "asking this one failed: context deadline exceeded"},
+		{"a service that cannot say", &scriptedService{}, "cannot say what it has cached"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			b, up := newTestBackend(t, c.svc, &partRecorder{})
+			b.CachedOnly = onlyCached
+			b.cacheWait = 20 * time.Millisecond
+
+			b.Download("t1", testMagnet, nil, 1)
+			u := up.until(t, core.StatusError)
+
+			if !u.Unsupported || u.Reason != core.ReasonUnsupported {
+				t.Errorf("the task came back as %+v; it has to go on to the next backend", u)
+			}
+			if !strings.Contains(u.Err, c.want) {
+				t.Errorf("Err = %q, want it to say %q", u.Err, c.want)
+			}
+			if c.svc.(interface{ addCount() int }).addCount() != 0 {
+				t.Error("the torrent was added to the account anyway")
+			}
+		})
+	}
+}
+
+func TestWithoutTheSwitchNoServiceIsAskedWhatItHasCached(t *testing.T) {
+	svc := &cacheAware{}
+	svc.jobs = []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+	b.CachedOnly = func(string) bool { return false }
+
+	b.Download("t1", testMagnet, nil, 1)
+	up.until(t, core.StatusDone)
+
+	if got := svc.questions(); len(got) != 0 {
+		t.Errorf("the service was asked about %v with the switch off", got)
+	}
+}
+
+// A pause while the service is being asked keeps the task where it is; the
+// question going unanswered is no reason to hand it on.
+func TestAPauseDuringTheCacheCheckDoesNotHandTheTorrentOn(t *testing.T) {
+	svc := &cacheAware{stall: true}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+	b.CachedOnly = onlyCached
+
+	b.Download("t1", testMagnet, nil, 1)
+	waitFor(t, func() bool { return len(svc.questions()) == 1 }, "the cache check to start")
+	b.Pause("t1")
+	time.Sleep(50 * time.Millisecond)
+
+	for _, u := range up.all() {
+		if u.Unsupported || u.Status == core.StatusError {
+			t.Errorf("the paused task was reported as %+v", u)
+		}
+	}
+}
+
+func TestReleaseLetsGoOfTheFilesWithoutDeletingThem(t *testing.T) {
+	svc := &scriptedService{jobs: []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}}
+	parts := &partRecorder{}
+	b, up := newTestBackend(t, svc, parts)
+	b.Download("t1", testMagnet, nil, 1)
+	up.until(t, core.StatusDone)
+
+	b.Release("t1")
+
+	if got := parts.removedParts(); !slices.Equal(got, []string{"t1/0", "t1/1"}) {
+		t.Errorf("the engine was told to drop %v, want both files", got)
+	}
+	b.runs.mu.Lock()
+	_, kept := b.runs.byTask["t1"]
+	b.runs.mu.Unlock()
+	if kept {
+		t.Error("the backend still holds the released torrent")
+	}
+}
