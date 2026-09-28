@@ -208,6 +208,11 @@ function secretlessKeys(doc: SettingsExportDoc): Set<string> {
     if (programs.some(stored)) out.add('eventPrograms');
   }
 
+  const torrent = s.torrent;
+  if (isPlainObject(torrent) && isPlainObject(torrent.qbittorrent) && torrent.qbittorrent.password === '********') {
+    out.add('torrent');
+  }
+
   return out;
 }
 

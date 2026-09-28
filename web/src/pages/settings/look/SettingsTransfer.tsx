@@ -296,11 +296,13 @@ const INCOMPLETE_LABEL: Record<
   | 'settings.transfer.incompleteConnections'
   | 'settings.transfer.incompleteArchives'
   | 'settings.transfer.incompleteEventPrograms'
+  | 'settings.transfer.incompleteQBittorrent'
 > = {
   'reconnect.password': 'settings.transfer.incompleteReconnect',
   'connections.password': 'settings.transfer.incompleteConnections',
   archivePasswords: 'settings.transfer.incompleteArchives',
   'eventPrograms.command': 'settings.transfer.incompleteEventPrograms',
+  'torrent.qbittorrent.password': 'settings.transfer.incompleteQBittorrent',
 };
 
 /** reasonOf strips the class name a stringified Error puts in front. */

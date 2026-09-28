@@ -718,7 +718,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.torrents.keepOnService', hint: 'settings.torrents.keepOnServiceHint' },
         { key: 'settings.torrents.cachedOnly', hint: 'settings.torrents.cachedOnlyHint' },
         { key: 'settings.torrents.seedAfterDebrid', hint: 'settings.torrents.seedAfterDebridHint' },
+        { key: 'settings.torrents.seedIn', hint: 'settings.torrents.seedInHint' },
+        { key: 'settings.torrents.qbitUrl', hint: 'settings.torrents.qbitUrlHint' },
+        { key: 'settings.torrents.qbitUsername', hint: 'settings.torrents.qbitUsernameHint' },
+        { key: 'settings.torrents.qbitPassword', hint: 'settings.torrents.qbitPasswordHint' },
+        { key: 'settings.torrents.qbitCategory', hint: 'settings.torrents.qbitCategoryHint' },
+        { key: 'settings.torrents.qbitDownloadsPath', hint: 'settings.torrents.qbitDownloadsPathHint' },
       ],
+      also: ['settings.torrents.qbitTest'],
+      // The (i) inside the test button.
+      body: ['settings.torrents.qbitTestHint'],
     },
   ],
 
