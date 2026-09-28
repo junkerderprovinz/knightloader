@@ -593,6 +593,46 @@ export function MailMark({ open, color }: { open: boolean; color: string }) {
   );
 }
 
+/* The Apps card's marks, rendered from the ones the web interface's Apps page
+ * draws: Windows, Apple and Docker from Dashboard Icons, Tux and the browsers'
+ * one-ink marks from Simple Icons (CC0). */
+
+export function WindowsMark({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/windows-mark.png')} color={color} style={styles.fill} />;
+}
+
+export function AppleMark({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/apple-mark.png')} color={color} style={styles.fill} />;
+}
+
+export function DockerMark({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/docker-mark.png')} color={color} style={styles.fill} />;
+}
+
+/** Tux takes the ink and keeps his yellow beak and feet, which on the pressed
+ *  button's yellow read as cut out of him. */
+export function LinuxMark({ color }: { color: string }) {
+  return (
+    <>
+      <Tinted source={require('../../assets/linux-mark.png')} color={color} style={styles.layer} />
+      <Image source={require('../../assets/linux-beak.png')} style={styles.layer} resizeMode="contain" />
+    </>
+  );
+}
+
+/** Chrome in its own colours, and in one ink while pressed, where its
+ *  gradients would flatten to a blot. */
+export function ChromeMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/chrome-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/chrome-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
+/** Firefox in its own colours. Its button has no listing to open yet, so it is
+ *  never pressed and needs no one-ink version. */
+export function FirefoxMark() {
+  return <Image source={require('../../assets/firefox-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
 /**
  * Cross: close, cancel, the way out of a window. The Plus turned a quarter,
  * built the same way from two filled bars, so the two marks match.
