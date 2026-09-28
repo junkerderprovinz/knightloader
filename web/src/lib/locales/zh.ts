@@ -3042,7 +3042,7 @@ export const zh: Dict = {
   'accounts.routing.orderHintTorrents': '磁力链接和 .torrent 文件要么交给内置种子客户端，要么交给支持种子的 Debrid 服务，看哪个在列表里排得更靠上。',
   'accounts.routing.tip.torrent': '内置种子客户端。如果有支持种子的 Debrid 服务排在这一行上面，磁力链接和 .torrent 文件就改由它来获取。',
   'settings.torrents.debridTitle': '通过 Debrid 服务',
-  'settings.torrents.debridHint': 'TorBox、Real-Debrid、AllDebrid、Premiumize.me 和 Debrid-Link 可以代替内置种子客户端获取磁力链接和 .torrent 文件。服务会把种子下载到它自己的服务器上，然后 KnightLoader 像处理其他链接一样从那里获取文件。这台机器不会做种，你的地址也永远不会出现在任何种子网络里，所以不需要开放端口。服务上已经有的种子会立刻就绪。“账户”页面上的优先级顺序决定先用 Debrid 服务还是内置种子客户端。来自私有 Tracker 的种子始终留给内置种子客户端。本页面上的文件选择在这里同样决定要哪些文件：Real-Debrid 和 Debrid-Link 只获取这些文件，而其他服务只会把这些文件传到这里。',
+  'settings.torrents.debridHint': 'TorBox、Real-Debrid、AllDebrid、Premiumize.me 和 Debrid-Link 可以代替内置种子客户端获取磁力链接和 .torrent 文件。服务会把种子下载到它自己的服务器上，然后 KnightLoader 像处理其他链接一样从那里获取文件。除非你在下方开启做种，否则这台机器不会做种，你的地址也永远不会出现在任何种子网络里，所以不需要开放端口。服务上已经有的种子会立刻就绪。“账户”页面上的优先级顺序决定先用 Debrid 服务还是内置种子客户端。来自私有 Tracker 的种子始终留给内置种子客户端。本页面上的文件选择在这里同样决定要哪些文件：Real-Debrid 和 Debrid-Link 只获取这些文件，而其他服务只会把这些文件传到这里。',
   'accounts.col.import': '导入',
   'task.remoteHint': '{service} 正在把它下载到自己的服务器上，目前已完成 {percent}。等它拿到全部文件后，文件就会传到这里。',
   'settings.modules.detail.torrentsOffDebrid': '已关闭。正在运行的种子继续下载并继续做种。新的种子交给支持种子的 Debrid 服务。',
