@@ -2061,7 +2061,34 @@ export const en = {
     'When this is on, KnightLoader first asks a debrid service whether it already has the torrent cached. If it has, the service fetches the torrent as usual. If not, the torrent moves on down the priority order on the Accounts page, usually to the built-in torrent client, even though the service would have taken it. Only TorBox and Premiumize.me can answer that question. Real-Debrid, AllDebrid and Debrid-Link have no way to ask, so while this is on they get no torrents at all. A check that fails or takes longer than 15 seconds counts as not cached. A torrent pinned to a debrid service still goes there.',
   'settings.torrents.seedAfterDebrid': 'Seed what the debrid service fetched',
   'settings.torrents.seedAfterDebridHint':
-    'When this is on, a torrent that came through a debrid service goes to the built-in torrent client once all its files are here, and the client seeds them under the seeding targets on this page, which is useful for cross-seeding. It never downloads anything to do so. First KnightLoader checks that every file is there at the size the torrent gives. For a torrent added as a .torrent file it also checks every piece, which a magnet link does not carry. If a file fails the check, the torrent is not seeded and its row says why. While it seeds, your address shows up in the swarm, as it does for any torrent of the built-in torrent client.',
+    'When this is on, a torrent that came through a debrid service is seeded once all its files are here, which is useful for cross-seeding. The built-in torrent client seeds it under the seeding targets on this page, and qBittorrent under its own. KnightLoader downloads nothing for this. First it checks that every file is there at the size the torrent gives. For a torrent added as a .torrent file it also checks every piece, which a magnet link does not carry. If a file fails the check, the torrent is not seeded and its row says why. While it seeds, your address shows up in the swarm.',
+  'settings.torrents.seedIn': 'Seed in',
+  'settings.torrents.seedInHint':
+    'Which client seeds a torrent the debrid service fetched. qBittorrent is handed the torrent with its files where they are, so tools that watch qBittorrent, such as cross-seed or qui, can find it. Once qBittorrent has it, KnightLoader does nothing more with it. If qBittorrent cannot be reached or turns the torrent down, the torrent is not seeded, and its row says why.',
+  'settings.torrents.seedIn.builtin': 'Built-in torrent client',
+  'settings.torrents.seedIn.qbittorrent': 'qBittorrent',
+  'settings.torrents.qbitUrl': 'qBittorrent address',
+  'settings.torrents.qbitUrlHint':
+    "The address of qBittorrent's Web UI, such as http://192.168.1.10:8080. If a reverse proxy serves it under a path, include the path.",
+  'settings.torrents.qbitUsername': 'Username',
+  'settings.torrents.qbitUsernameHint':
+    "The username for qBittorrent's Web UI. Leave it empty if qBittorrent lets this machine in without logging in.",
+  'settings.torrents.qbitPassword': 'Password',
+  'settings.torrents.qbitPasswordStored': 'stored (leave empty to keep it)',
+  'settings.torrents.qbitPasswordHint':
+    'A stored password is never sent to this page, which is why the box is empty. Leave it empty and the saved one is kept. The password does not follow a changed address: change the address and it has to be entered again.',
+  'settings.torrents.qbitCategory': 'Category',
+  'settings.torrents.qbitCategoryHint':
+    'The qBittorrent category each torrent is filed under, for example the one your cross-seed tool watches. qBittorrent creates it if it does not exist yet. Leave it empty for no category.',
+  'settings.torrents.qbitDownloadsPath': 'Download folder in qBittorrent',
+  'settings.torrents.qbitDownloadsPathHint':
+    "Where qBittorrent sees KnightLoader's download folder. You need this when the two run in separate containers that mount the folder under different paths: if KnightLoader has it at /downloads and qBittorrent at /data/downloads, enter /data/downloads. Leave it empty if both see the same path. qBittorrent does not check the files again, because KnightLoader already has, so it has to find them at exactly this path.",
+  'settings.torrents.qbitTest': 'Test connection',
+  'settings.torrents.qbitTesting': 'Testing…',
+  'settings.torrents.qbitTestHint':
+    'Logs in with the fields above as they are now, saved or not, and asks qBittorrent for its version.',
+  'settings.torrents.qbitTestOk': 'Connected to qBittorrent {version}',
+  'settings.torrents.qbitTestFailed': 'The test failed: {error}',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see
@@ -2847,6 +2874,7 @@ export const en = {
   'settings.transfer.incompleteConnections': 'the proxy passwords',
   'settings.transfer.incompleteArchives': 'the archive passwords',
   'settings.transfer.incompleteEventPrograms': 'the command lines of the event programs',
+  'settings.transfer.incompleteQBittorrent': 'the qBittorrent password',
   'settings.transfer.rulesUncompiled': '{n} rules came over that this build cannot compile. They are saved but never fire. Look at the Rules & categories page.',
   'settings.transfer.parseFailed': 'This is not a settings export: {reason}',
   'settings.transfer.tooNew': 'This file was written by {version} and this server runs {running}. Update the server first, then import.',
