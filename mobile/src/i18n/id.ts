@@ -189,6 +189,7 @@ export const id: Dict = {
   'settings.appsSource': 'Kode sumber',
   'settings.appsZip': 'Arsip ZIP',
   'settings.appsExtension': 'Ekstensi peramban',
+  'settings.appsExtensionHint': 'Ekstensi ini mengirim tautan, teks pilihan, atau halaman yang sedang terbuka ke KnightLoader-mu, dari menu klik kanan atau tombolnya di bilah alat. Paket untuk Chrome juga berjalan di Edge, Brave, Opera, dan Vivaldi.',
   'settings.appsSoon': 'Segera hadir',
   'settings.privacyPolicy': 'Kebijakan privasi',
   'settings.removeAllConnections': 'Hapus semua koneksi',

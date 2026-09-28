@@ -189,6 +189,7 @@ export const is: Dict = {
   'settings.appsSource': 'Frumkóði',
   'settings.appsZip': 'ZIP-safn',
   'settings.appsExtension': 'Vafraviðbót',
+  'settings.appsExtensionHint': 'Viðbótin sendir tengil, val eða opnu síðuna í KnightLoader-inn þinn, úr hægrismellivalmyndinni eða með hnappinum sínum á tækjastikunni. Chrome-pakkinn virkar líka í Edge, Brave, Opera og Vivaldi.',
   'settings.appsSoon': 'Væntanlegt',
   'settings.privacyPolicy': 'Persónuverndarstefna',
   'settings.removeAllConnections': 'Fjarlægja allar tengingar',

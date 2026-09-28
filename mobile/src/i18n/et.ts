@@ -189,6 +189,7 @@ export const et: Dict = {
   'settings.appsSource': 'Lähtekood',
   'settings.appsZip': 'ZIP-arhiiv',
   'settings.appsExtension': 'Brauserilaiendus',
+  'settings.appsExtensionHint': 'Laiendus saadab lingi, valiku või avatud lehe sinu KnightLoaderisse, paremklõpsu menüüst või oma nupust tööriistaribal. Chrome’i pakett töötab ka Edge’is, Brave’is, Operas ja Vivaldis.',
   'settings.appsSoon': 'Varsti',
   'settings.privacyPolicy': 'Privaatsuspoliitika',
   'settings.removeAllConnections': 'Eemalda kõik ühendused',

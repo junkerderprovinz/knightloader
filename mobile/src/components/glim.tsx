@@ -342,15 +342,15 @@ const styles = StyleSheet.create({
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   buttonOff: { opacity: 0.45 },
   // The README's proportions: the mark's 32 by 25 box 24 in from the start,
-  // the name from 63 to 10 short of the end, or 28 where an (i) takes the end.
+  // the name from 63 to 10 short of the end. A name and a second line wrapped
+  // to two lines take 45 of the 46.6.
   readme: { width: 160, height: 46.6, justifyContent: 'center', overflow: 'hidden' },
   readmeMark: { position: 'absolute', start: 24, top: 10.8, width: 32, height: 25 },
   readmeMarkQuiet: { opacity: 0.45 },
   readmeText: { marginStart: 63, marginEnd: 10 },
-  readmeTextHint: { marginEnd: 28 },
-  readmeName: { fontSize: TYPE.body, lineHeight: 17, fontWeight: '700' },
+  readmeNameLine: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  readmeName: { fontSize: TYPE.body, lineHeight: 17, fontWeight: '700', flexShrink: 1 },
   readmeSub: { fontSize: TYPE.dense, lineHeight: 14, opacity: 0.9 },
-  readmeHint: { position: 'absolute', end: 10, top: 0, bottom: 0, justifyContent: 'center' },
   /* 40, the house rhythm for stacked cards, and the number the whole family
    * shares. The language calls 24 the cramped value, and it is cramped for the
    * reason these cards qualify: each carries a notch badge hanging over its own
@@ -620,10 +620,11 @@ export function CardButton({
  * which a vendor's mark may never do. `hue` is that position.
  *
  * The Apps cards' buttons carry a second line, always in view since a phone
- * has no hover to bring it in, and some an (i) at their end, which is a sibling
- * lying over the button so a tap on it opens the bubble and not the button. A
- * button without `onPress` is one still to come, quiet, with `soon` as its
- * second line.
+ * has no hover to bring it in. It wraps rather than shrinks, so every second
+ * line on a card is the same size. An (i) sits beside the name, where it takes
+ * no room from the second line, and a tap on it opens the bubble and not the
+ * button. A button without `onPress` is one still to come, quiet, with `soon`
+ * as its second line.
  */
 export function ReadmeButton({
   brand,
@@ -691,8 +692,8 @@ export function ReadmeButton({
   const words = lit ? ink : quiet ? c.textMuted : c.text;
   const second = quiet ? soon : sub;
   const drawn = mark({ mark: lit ? ink : rest, words, lit });
-  // The scale sits on a view of its own, so the (i) lying over the button
-  // moves with it.
+  // Pressable is not an Animated component, so the scale sits on a view of its
+  // own.
   return (
     <Animated.View style={{ transform: [{ scale: press.scale }] }}>
       <Pressable
@@ -716,24 +717,22 @@ export function ReadmeButton({
         ) : (
           <>
             <View style={[styles.readmeMark, quiet && styles.readmeMarkQuiet]}>{drawn}</View>
-            {/* A translation longer than the button shrinks rather than being
-                cut off. */}
-            <View style={[styles.readmeText, hint ? styles.readmeTextHint : null]}>
-              <Text
-                style={[styles.readmeName, { color: words }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-              >
-                {label}
-              </Text>
-              {second ? (
+            <View style={styles.readmeText}>
+              {/* A name longer than the button shrinks rather than being cut
+                  off. */}
+              <View style={styles.readmeNameLine}>
                 <Text
-                  style={[styles.readmeSub, { color: words }]}
+                  style={[styles.readmeName, { color: words }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.7}
                 >
+                  {label}
+                </Text>
+                {hint ? <InfoTip text={hint} color={lit ? ink : undefined} size={13} /> : null}
+              </View>
+              {second ? (
+                <Text style={[styles.readmeSub, { color: words }]} numberOfLines={2}>
                   {second}
                 </Text>
               ) : null}
@@ -741,11 +740,6 @@ export function ReadmeButton({
           </>
         )}
       </Pressable>
-      {hint ? (
-        <View style={styles.readmeHint} pointerEvents="box-none">
-          <InfoTip text={hint} color={lit ? ink : undefined} />
-        </View>
-      ) : null}
     </Animated.View>
   );
 }

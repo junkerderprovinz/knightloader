@@ -189,6 +189,7 @@ export const lt: Dict = {
   'settings.appsSource': 'Išeities kodas',
   'settings.appsZip': 'ZIP archyvas',
   'settings.appsExtension': 'Naršyklės plėtinys',
+  'settings.appsExtensionHint': 'Plėtinys siunčia nuorodą, pažymėtą tekstą arba atidarytą puslapį į tavo KnightLoader, iš dešiniojo pelės mygtuko meniu arba savo mygtuku įrankių juostoje. Chrome paketas veikia ir Edge, Brave, Opera bei Vivaldi.',
   'settings.appsSoon': 'Netrukus',
   'settings.privacyPolicy': 'Privatumo politika',
   'settings.removeAllConnections': 'Pašalinti visus ryšius',

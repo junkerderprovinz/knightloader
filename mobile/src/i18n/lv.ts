@@ -189,6 +189,7 @@ export const lv: Dict = {
   'settings.appsSource': 'Pirmkods',
   'settings.appsZip': 'ZIP arhīvs',
   'settings.appsExtension': 'Pārlūka paplašinājums',
+  'settings.appsExtensionHint': 'Paplašinājums nosūta saiti, atlasi vai atvērto lapu uz tavu KnightLoader, no labā klikšķa izvēlnes vai ar savu pogu rīkjoslā. Chrome pakotne darbojas arī Edge, Brave, Opera un Vivaldi.',
   'settings.appsSoon': 'Drīzumā',
   'settings.privacyPolicy': 'Privātuma politika',
   'settings.removeAllConnections': 'Noņemt visus savienojumus',

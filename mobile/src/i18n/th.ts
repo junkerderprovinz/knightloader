@@ -189,6 +189,7 @@ export const th: Dict = {
   'settings.appsSource': 'ซอร์สโค้ด',
   'settings.appsZip': 'ไฟล์ ZIP',
   'settings.appsExtension': 'ส่วนขยายเบราว์เซอร์',
+  'settings.appsExtensionHint': 'ส่วนขยายส่งลิงก์ ข้อความที่เลือก หรือหน้าที่เปิดอยู่ไปยัง KnightLoader ของคุณ จากเมนูคลิกขวาหรือปุ่มบนแถบเครื่องมือ แพ็กเกจสำหรับ Chrome ใช้ได้ใน Edge, Brave, Opera และ Vivaldi ด้วย',
   'settings.appsSoon': 'เร็ว ๆ นี้',
   'settings.privacyPolicy': 'นโยบายความเป็นส่วนตัว',
   'settings.removeAllConnections': 'ลบการเชื่อมต่อทั้งหมด',

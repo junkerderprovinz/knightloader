@@ -189,6 +189,7 @@ export const ar: Dict = {
   'settings.appsSource': 'الشيفرة المصدرية',
   'settings.appsZip': 'أرشيف ZIP',
   'settings.appsExtension': 'إضافة المتصفح',
+  'settings.appsExtensionHint': 'ترسل الإضافة رابطًا أو نصًا محددًا أو الصفحة المفتوحة إلى KnightLoader الخاص بك، من قائمة النقر بزر الفأرة الأيمن أو من زرها في شريط الأدوات. تعمل نسخة Chrome أيضًا في Edge وBrave وOpera وVivaldi.',
   'settings.appsSoon': 'قريبًا',
   'settings.privacyPolicy': 'سياسة الخصوصية',
   'settings.removeAllConnections': 'إزالة جميع الاتصالات',

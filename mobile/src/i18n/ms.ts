@@ -189,6 +189,7 @@ export const ms: Dict = {
   'settings.appsSource': 'Kod sumber',
   'settings.appsZip': 'Arkib ZIP',
   'settings.appsExtension': 'Sambungan pelayar',
+  'settings.appsExtensionHint': 'Sambungan ini menghantar pautan, teks pilihan atau halaman yang dibuka kepada KnightLoader anda, daripada menu klik kanan atau butangnya pada bar alat. Pakej untuk Chrome juga berfungsi dalam Edge, Brave, Opera dan Vivaldi.',
   'settings.appsSoon': 'Akan datang',
   'settings.privacyPolicy': 'Dasar privasi',
   'settings.removeAllConnections': 'Alih keluar semua sambungan',
