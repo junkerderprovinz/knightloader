@@ -83,10 +83,10 @@ func sizeIs(p string, size int64) error {
 	return nil
 }
 
-// seedPieces checks every file and every piece of the .torrent in link against
+// CheckPieces checks every file and every piece of the .torrent in link against
 // what is in dir, where the torrent lands. A magnet link carries no pieces and
 // passes.
-func seedPieces(dir, link string) error {
+func CheckPieces(dir, link string) error {
 	if torrent.IsMagnet(link) {
 		return nil
 	}
