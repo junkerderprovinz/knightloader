@@ -37,16 +37,14 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-09-28
+
 ### Added
 
 - **Unraid in the Android app and the README.** The app's "On a server" card
   and the README's download buttons have an Unraid button beside Docker. It
   stays dimmed and without a link until KnightLoader is listed in Community
   Applications.
-
-## [1.4.3] - 2026-09-28
-
-### Added
 
 - **Only cached torrents to a debrid service, if you like.** With "Send only
   cached torrents to the debrid service" on under Settings, Torrents,
