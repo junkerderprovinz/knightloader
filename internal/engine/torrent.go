@@ -70,6 +70,14 @@ func (e *Engine) startTorrent(j Job) {
 			fail(err)
 			return
 		}
+		// Before the resolve, which hands the torrent to the library, and the
+		// library moves a file of the wrong size aside.
+		if j.Verify {
+			if err := seedPieces(opts.Path, j.URL); err != nil {
+				fail(err)
+				return
+			}
+		}
 		rr, err := e.resolveTorrent(j, opts)
 		if err != nil {
 			fail(err)
@@ -99,15 +107,9 @@ func (e *Engine) startTorrent(j Job) {
 			return
 		}
 		if j.Seed {
-			stamps, err := seedFiles(opts.Path, rr.Res, sel)
-			if err != nil {
+			if err := seedFiles(opts.Path, rr.Res, sel); err != nil {
 				fail(err)
 				return
-			}
-			// With only some files chosen, the library writes the pieces they
-			// share with the others, so a write says nothing about the files.
-			if sel == nil || len(sel) == len(rr.Res.Files) {
-				e.watchSeed(j.TaskID, stamps)
 			}
 		}
 		root, err := e.settleTorrent(j.TaskID, rr.Res)
@@ -378,9 +380,6 @@ func (e *Engine) pollOne(taskID, gid string) {
 	sd, seed := e.seedOf(taskID)
 	if seed && !sd.seeding {
 		// Still checking the files it was started on (see seed.go).
-		if err := sd.written(); err != nil {
-			e.stopSeed(taskID, gid, err)
-		}
 		return
 	}
 	u := core.Update{Torrent: e.seedStats(taskID, s)}

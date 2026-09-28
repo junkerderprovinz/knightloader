@@ -3059,7 +3059,7 @@ export const ko: Dict = {
   'settings.torrents.cachedOnly': '캐시된 토렌트만 Debrid 서비스로 보내기',
   'settings.torrents.cachedOnlyHint': '켜 두면 KnightLoader는 먼저 Debrid 서비스에 그 토렌트가 이미 캐시에 있는지 묻습니다. 있으면 서비스가 평소처럼 토렌트를 가져옵니다. 없으면 서비스가 받아 줄 수 있더라도 토렌트는 계정 페이지의 우선순위에서 다음으로 넘어가며, 보통 내장 토렌트 클라이언트로 갑니다. 이 질문에 답할 수 있는 곳은 TorBox와 Premiumize.me뿐입니다. Real-Debrid, AllDebrid, Debrid-Link에는 물어볼 방법이 없으므로, 이 옵션이 켜져 있는 동안에는 토렌트를 하나도 받지 않습니다. 실패하거나 15초보다 오래 걸린 확인은 캐시에 없는 것으로 칩니다. Debrid 서비스에 고정된 토렌트는 그래도 그 서비스로 갑니다.',
   'settings.torrents.seedAfterDebrid': 'Debrid 서비스가 가져온 것을 시드하기',
-  'settings.torrents.seedAfterDebridHint': '켜 두면 Debrid 서비스를 거쳐 온 토렌트는 모든 파일이 여기 도착하는 즉시 내장 토렌트 클라이언트로 넘어갑니다. 클라이언트는 파일을 토렌트와 대조해 확인하고 이 페이지의 시드 목표에 따라 시드하며, 이는 크로스 시드에 유용합니다. 이를 위해 아무것도 다운로드하지 않습니다. 파일이 없거나 크기가 틀리거나 토렌트와 일치하지 않으면 그 토렌트는 시드되지 않고, 해당 행에 이유가 표시됩니다. 모든 파일을 가져온 토렌트만 시드됩니다. 시드하는 동안에는 내장 토렌트 클라이언트의 다른 토렌트와 마찬가지로 내 주소가 스웜에 보입니다.',
+  'settings.torrents.seedAfterDebridHint': '켜 두면 Debrid 서비스를 거쳐 온 토렌트는 모든 파일이 여기 도착하는 즉시 내장 토렌트 클라이언트로 넘어가고, 클라이언트는 이 페이지의 시드 목표에 따라 시드하며, 이는 크로스 시드에 유용합니다. 이를 위해 아무것도 다운로드하지 않습니다. 먼저 KnightLoader가 모든 파일이 토렌트에 적힌 크기로 있는지 확인합니다. .torrent 파일로 추가한 토렌트는 마그넷 링크에는 없는 조각까지 모두 확인합니다. 확인을 통과하지 못한 파일이 있으면 그 토렌트는 시드되지 않고, 해당 행에 이유가 표시됩니다. 시드하는 동안에는 내장 토렌트 클라이언트의 다른 토렌트와 마찬가지로 내 주소가 스웜에 보입니다.',
   'settings.access.tokens.name': '이름',
   'settings.modules.reason.keepawake': '컴퓨터를 깨워 둘 수 있는 것은 데스크톱 앱뿐입니다. 컨테이너가 돌아가는 기기는 언제 절전 모드로 들어갈지 스스로 정합니다.',
   'collector.filtered.reason.bannedTracker': '차단한 트래커 목록에 있는 {host}에 접속합니다',

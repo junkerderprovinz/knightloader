@@ -322,8 +322,9 @@ func (a *App) seedFromService(id string) {
 	}
 	// Everything the torrent has, and nothing a file rule would leave out:
 	// the service fetched it whole, and a file that is not here ends the
-	// seeding rather than being fetched.
-	job.TorrentSelect, job.FileRules = nil, torrent.FileRules{}
+	// seeding rather than being fetched. The files came from the service, not
+	// the swarm, so their pieces are checked too.
+	job.TorrentSelect, job.FileRules, job.Verify = nil, torrent.FileRules{}, true
 	a.started[id] = true
 	c := a.copyLocked(t)
 	a.mu.Unlock()
