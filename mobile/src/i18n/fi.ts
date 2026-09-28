@@ -183,6 +183,7 @@ export const fi: Dict = {
   'settings.appsDesktopHint': 'KnightLoader ohjelmana tietokoneellasi, ja tämä käyttöliittymä omassa ikkunassaan. Jokainen lataus on uusin julkaisu.',
   'settings.appsServer': 'Palvelimella',
   'settings.appsServerHint': 'Palvelimella KnightLoader jatkaa lataamista silloinkin, kun tämä tietokone on sammutettu. Asenna se Unraidin Community Applicationsista, aja se Docker-konttina tai käännä se lähdekoodista.',
+  'settings.appsUnraidSub': 'Malli',
   'settings.appsDockerSub': 'Kopioi komento',
   'settings.appsDockerHint': 'Napsautus kopioi komennon, joka käynnistää kontin:',
   'settings.appsCopied': 'Kopioitu',

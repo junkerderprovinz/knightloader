@@ -183,6 +183,7 @@ export const lt: Dict = {
   'settings.appsDesktopHint': 'KnightLoader kaip programa tavo kompiuteryje, su šia sąsaja atskirame lange. Kiekvienas atsisiuntimas yra naujausias leidimas.',
   'settings.appsServer': 'Serveryje',
   'settings.appsServerHint': 'Serveryje KnightLoader toliau atsisiunčia, net kai šis kompiuteris išjungtas. Įdiek jį iš Unraid Community Applications, paleisk kaip Docker konteinerį arba sukompiliuok iš išeities kodo.',
+  'settings.appsUnraidSub': 'Šablonas',
   'settings.appsDockerSub': 'Kopijuoti komandą',
   'settings.appsDockerHint': 'Spustelėjus nukopijuojama komanda, kuri paleidžia konteinerį:',
   'settings.appsCopied': 'Nukopijuota',

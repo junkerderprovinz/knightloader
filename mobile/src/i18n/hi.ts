@@ -183,6 +183,7 @@ export const hi: Dict = {
   'settings.appsDesktopHint': 'आपके कंप्यूटर पर एक प्रोग्राम के रूप में KnightLoader, यह इंटरफ़ेस अपनी अलग विंडो में। हर डाउनलोड नवीनतम रिलीज़ है।',
   'settings.appsServer': 'सर्वर पर',
   'settings.appsServerHint': 'सर्वर पर KnightLoader तब भी डाउनलोड करता रहता है जब यह कंप्यूटर बंद हो। इसे Unraid के Community Applications से इंस्टॉल करें, Docker कंटेनर के रूप में चलाएँ, या सोर्स कोड से बनाएँ।',
+  'settings.appsUnraidSub': 'टेम्पलेट',
   'settings.appsDockerSub': 'कमांड कॉपी करें',
   'settings.appsDockerHint': 'एक क्लिक वह कमांड कॉपी कर देता है जो कंटेनर शुरू करती है:',
   'settings.appsCopied': 'कॉपी हो गया',

@@ -183,6 +183,7 @@ export const hu: Dict = {
   'settings.appsDesktopHint': 'A KnightLoader programként a számítógépeden, ez a felület egy saját ablakban. Minden letöltés a legújabb kiadás.',
   'settings.appsServer': 'Kiszolgálón',
   'settings.appsServerHint': 'Kiszolgálón a KnightLoader akkor is tovább tölt le, amikor ez a számítógép ki van kapcsolva. Telepítsd az Unraid Community Applications kínálatából, futtasd Docker-konténerként, vagy fordítsd le a forráskódból.',
+  'settings.appsUnraidSub': 'Sablon',
   'settings.appsDockerSub': 'Parancs másolása',
   'settings.appsDockerHint': 'Egy kattintás kimásolja a konténert indító parancsot:',
   'settings.appsCopied': 'Másolva',

@@ -201,6 +201,7 @@ export type Brand =
   | 'windows'
   | 'apple'
   | 'linux'
+  | 'unraid'
   | 'docker'
   | 'zip'
   | 'chrome'
@@ -220,6 +221,7 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   windows: { fill: '#0078d4', ink: '#ffffff' },
   apple: { fill: '#6e6e73', ink: '#ffffff' },
   linux: { fill: '#fcc624', ink: '#161616' },
+  unraid: { fill: '#f15a2c', ink: '#ffffff' },
   docker: { fill: '#1d63ed', ink: '#ffffff' },
   zip: { fill: '#4d5562', ink: '#ffffff' },
   chrome: { fill: '#1a73e8', ink: '#ffffff' },

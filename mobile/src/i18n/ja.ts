@@ -183,6 +183,7 @@ export const ja: Dict = {
   'settings.appsDesktopHint': 'パソコン上のプログラムとして動く KnightLoader で、この画面が専用のウィンドウで開きます。ダウンロードされるのは常に最新のリリースです。',
   'settings.appsServer': 'サーバー上で',
   'settings.appsServerHint': 'サーバー上なら、このパソコンの電源が切れていても KnightLoader はダウンロードを続けます。Unraid の Community Applications からインストールするか、Docker コンテナとして動かすか、ソースコードからビルドしてください。',
+  'settings.appsUnraidSub': 'テンプレート',
   'settings.appsDockerSub': 'コマンドをコピー',
   'settings.appsDockerHint': 'クリックすると、コンテナを起動するコマンドをコピーします:',
   'settings.appsCopied': 'コピーしました',

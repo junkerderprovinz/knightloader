@@ -183,6 +183,7 @@ export const eu: Dict = {
   'settings.appsDesktopHint': 'KnightLoader programa gisa zure ordenagailuan, interfaze hau bere leihoan duela. Deskarga bakoitza azken bertsioa da.',
   'settings.appsServer': 'Zerbitzari batean',
   'settings.appsServerHint': 'Zerbitzari batean, KnightLoaderrek deskargatzen jarraitzen du ordenagailu hau itzalita dagoen bitartean. Instalatu Unraid-en Community Applications-etik, exekutatu Docker edukiontzi gisa, edo konpilatu iturburu-kodetik.',
+  'settings.appsUnraidSub': 'Txantiloia',
   'settings.appsDockerSub': 'Kopiatu komandoa',
   'settings.appsDockerHint': 'Klik batek edukiontzia abiarazten duen komandoa kopiatzen du:',
   'settings.appsCopied': 'Kopiatuta',

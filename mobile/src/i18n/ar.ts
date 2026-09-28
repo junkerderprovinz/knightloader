@@ -183,6 +183,7 @@ export const ar: Dict = {
   'settings.appsDesktopHint': 'KnightLoader كبرنامج على حاسوبك، وهذه الواجهة في نافذة خاصة بها. وكل تنزيل هو أحدث إصدار.',
   'settings.appsServer': 'على خادم',
   'settings.appsServerHint': 'على الخادم يواصل KnightLoader التنزيل حتى حين يكون هذا الحاسوب مطفأ. ثبّته من Community Applications في Unraid، أو شغّله كحاوية Docker، أو ابنه من الشيفرة المصدرية.',
+  'settings.appsUnraidSub': 'قالب',
   'settings.appsDockerSub': 'نسخ الأمر',
   'settings.appsDockerHint': 'نقرة واحدة تنسخ الأمر الذي يبدأ الحاوية:',
   'settings.appsCopied': 'تم النسخ',

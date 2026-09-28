@@ -183,6 +183,7 @@ export const bg: Dict = {
   'settings.appsDesktopHint': 'KnightLoader като програма на компютъра ти, с този интерфейс в собствен прозорец. Изтегля се винаги най-новото издание.',
   'settings.appsServer': 'На сървър',
   'settings.appsServerHint': 'На сървър KnightLoader продължава да изтегля, докато този компютър е изключен. Инсталирай го от Unraid Community Applications, пусни го като Docker контейнер или го компилирай от изходния код.',
+  'settings.appsUnraidSub': 'Шаблон',
   'settings.appsDockerSub': 'Копирай командата',
   'settings.appsDockerHint': 'С едно щракване се копира командата, която стартира контейнера:',
   'settings.appsCopied': 'Копирано',

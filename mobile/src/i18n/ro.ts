@@ -183,6 +183,7 @@ export const ro: Dict = {
   'settings.appsDesktopHint': 'KnightLoader ca program pe calculatorul tău, cu această interfață într-o fereastră proprie. Fiecare descărcare este cea mai nouă versiune.',
   'settings.appsServer': 'Pe un server',
   'settings.appsServerHint': 'Pe un server, KnightLoader continuă să descarce cât timp acest calculator este oprit. Instalează-l din Community Applications de pe Unraid, rulează-l ca container Docker sau compilează-l din codul sursă.',
+  'settings.appsUnraidSub': 'Șablon',
   'settings.appsDockerSub': 'Copiază comanda',
   'settings.appsDockerHint': 'Un clic copiază comanda care pornește containerul:',
   'settings.appsCopied': 'Copiat',

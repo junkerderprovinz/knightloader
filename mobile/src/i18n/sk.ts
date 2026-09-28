@@ -183,6 +183,7 @@ export const sk: Dict = {
   'settings.appsDesktopHint': 'KnightLoader ako program na tvojom počítači, s týmto rozhraním vo vlastnom okne. Zakaždým stiahneš najnovšie vydanie.',
   'settings.appsServer': 'Na serveri',
   'settings.appsServerHint': 'Na serveri KnightLoader sťahuje ďalej, aj keď je tento počítač vypnutý. Nainštaluj ho z Unraid Community Applications, spusti ho ako Docker kontajner alebo ho zostav zo zdrojového kódu.',
+  'settings.appsUnraidSub': 'Šablóna',
   'settings.appsDockerSub': 'Kopírovať príkaz',
   'settings.appsDockerHint': 'Kliknutím skopíruješ príkaz, ktorý spustí kontajner:',
   'settings.appsCopied': 'Skopírované',

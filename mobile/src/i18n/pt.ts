@@ -183,6 +183,7 @@ export const pt: Dict = {
   'settings.appsDesktopHint': 'O KnightLoader como programa no teu computador, com esta interface numa janela própria. Cada transferência é a versão mais recente.',
   'settings.appsServer': 'Num servidor',
   'settings.appsServerHint': 'Num servidor, o KnightLoader continua a transferir enquanto este computador está desligado. Instala-o a partir das Community Applications do Unraid, corre-o como contentor Docker ou compila-o a partir do código-fonte.',
+  'settings.appsUnraidSub': 'Modelo',
   'settings.appsDockerSub': 'Copiar comando',
   'settings.appsDockerHint': 'Um clique copia o comando que arranca o contentor:',
   'settings.appsCopied': 'Copiado',

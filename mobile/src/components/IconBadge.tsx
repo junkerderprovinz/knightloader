@@ -594,7 +594,7 @@ export function MailMark({ open, color }: { open: boolean; color: string }) {
 }
 
 /* The Apps cards' marks, rendered from the ones the web interface's Apps page
- * draws: Windows, Apple and Docker from Dashboard Icons, Tux and the browsers'
+ * draws: Windows, Apple, Docker and Unraid from Dashboard Icons, Tux and the browsers'
  * one-ink marks from Simple Icons (CC0), the ZIP from Font Awesome Free (CC BY
  * 4.0). */
 
@@ -608,6 +608,12 @@ export function AppleMark({ color }: { color: string }) {
 
 export function DockerMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/docker-mark.png')} color={color} style={styles.fill} />;
+}
+
+/** Unraid in its own colours. Its button waits for the Community Applications
+ *  listing, so it is never pressed and needs no one-ink version. */
+export function UnraidMark() {
+  return <Image source={require('../../assets/unraid-mark.png')} style={styles.fill} resizeMode="contain" />;
 }
 
 export function ZipMark({ color }: { color: string }) {

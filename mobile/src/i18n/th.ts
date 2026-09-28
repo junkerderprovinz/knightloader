@@ -183,6 +183,7 @@ export const th: Dict = {
   'settings.appsDesktopHint': 'KnightLoader ในรูปโปรแกรมบนคอมพิวเตอร์ของคุณ โดยหน้าจอนี้อยู่ในหน้าต่างของตัวเอง ดาวน์โหลดเมื่อไรก็ได้รุ่นล่าสุดเสมอ',
   'settings.appsServer': 'บนเซิร์ฟเวอร์',
   'settings.appsServerHint': 'บนเซิร์ฟเวอร์ KnightLoader จะดาวน์โหลดต่อไปแม้คอมพิวเตอร์เครื่องนี้ปิดอยู่ ติดตั้งจาก Community Applications ของ Unraid รันเป็นคอนเทนเนอร์ Docker หรือบิลด์จากซอร์สโค้ด',
+  'settings.appsUnraidSub': 'เทมเพลต',
   'settings.appsDockerSub': 'คัดลอกคำสั่ง',
   'settings.appsDockerHint': 'คลิกเพื่อคัดลอกคำสั่งที่เริ่มคอนเทนเนอร์:',
   'settings.appsCopied': 'คัดลอกแล้ว',

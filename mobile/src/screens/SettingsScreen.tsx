@@ -38,6 +38,7 @@ import IconBadge, {
   Paste,
   PayPal,
   Trash,
+  UnraidMark,
   WindowsMark,
   ZipMark,
 } from '../components/IconBadge';
@@ -694,9 +695,8 @@ export default function SettingsScreen({
 
       {/* The other ways to run KnightLoader, as the web interface's Apps page
           offers them, under its card names and hints. This app is one of them
-          and is not offered here, and Unraid joins once KnightLoader is listed
-          there. Positions 6 to 8 are the next free ones, so the cards around
-          them keep their colours. */}
+          and is not offered here. Positions 6 to 8 are the next free ones, so
+          the cards around them keep their colours. */}
       <NotchCard title={t('settings.appsDesktop')} hue={6} info={t('settings.appsDesktopHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
@@ -737,8 +737,17 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
+      {/* Unraid waits for KnightLoader's listing in Community Applications,
+          whose address becomes its onPress. */}
       <NotchCard title={t('settings.appsServer')} hue={7} info={t('settings.appsServerHint')}>
         <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="unraid"
+            label="Unraid"
+            sub={t('settings.appsUnraidSub')}
+            soon={t('settings.appsSoon')}
+            mark={() => <UnraidMark />}
+          />
           <ReadmeButton
             brand="docker"
             label="Docker"

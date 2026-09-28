@@ -183,6 +183,7 @@ export const fa: Dict = {
   'settings.appsDesktopHint': 'KnightLoader به‌شکل یک برنامه روی رایانه‌ات، با همین رابط در پنجره‌ای جداگانه. هر دانلود تازه‌ترین انتشار است.',
   'settings.appsServer': 'روی سرور',
   'settings.appsServerHint': 'روی سرور، KnightLoader حتی وقتی این رایانه خاموش است به دانلود ادامه می‌دهد. آن را از Community Applications در Unraid نصب کن، به‌صورت کانتینر Docker اجرا کن، یا از کد منبع بساز.',
+  'settings.appsUnraidSub': 'قالب',
   'settings.appsDockerSub': 'کپی فرمان',
   'settings.appsDockerHint': 'یک کلیک دستوری را که کانتینر را راه می‌اندازد کپی می‌کند:',
   'settings.appsCopied': 'کپی شد',

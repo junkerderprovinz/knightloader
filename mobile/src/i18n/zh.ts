@@ -183,6 +183,7 @@ export const zh: Dict = {
   'settings.appsDesktopHint': '作为电脑上的程序运行的 KnightLoader，这个界面在它自己的窗口里打开。每次下载到的都是最新版本。',
   'settings.appsServer': '在服务器上',
   'settings.appsServerHint': '在服务器上，即使这台电脑关机，KnightLoader 也会继续下载。可以从 Unraid 的 Community Applications 安装，作为 Docker 容器运行，或者从源代码构建。',
+  'settings.appsUnraidSub': '模板',
   'settings.appsDockerSub': '复制命令',
   'settings.appsDockerHint': '点一下即可复制启动容器的命令：',
   'settings.appsCopied': '已复制',
