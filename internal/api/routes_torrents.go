@@ -83,7 +83,7 @@ func testQBittorrent(ctx context.Context, q settings.QBittorrent) qbitTest {
 		version, err = c.Version(ctx)
 	}
 	if err != nil {
-		return qbitTest{Error: err.Error()}
+		return qbitTest{Error: qbittorrent.Reason(err)}
 	}
 	return qbitTest{Version: version}
 }

@@ -7,7 +7,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"log"
 	"path/filepath"
 	"time"
@@ -42,12 +41,7 @@ func (a *App) seedInQBittorrent(id string, tb *debrid.TorrentBackend, h handover
 	note := "Seeding in qBittorrent"
 	if err := a.handToQBittorrent(ctx, h, q); err != nil {
 		log.Printf("task %s is not seeded in qBittorrent: %v", id, err)
-		why := err.Error()
-		var qe *qbittorrent.Error
-		if errors.As(err, &qe) {
-			why = qe.Reason
-		}
-		note = "Not seeded: " + why
+		note = "Not seeded: " + qbittorrent.Reason(err)
 	} else {
 		tb.Release(id)
 	}
