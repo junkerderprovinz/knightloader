@@ -1,0 +1,19 @@
+KnightLoader ist ein Downloadmanager, den du selbst betreibst, auf einem Heimserver, einem NAS oder deinem Rechner. Diese App ist die Fernbedienung dazu: Sie zeigt dir, was deine Instanzen gerade laden, und du fügst vom Handy aus Links hinzu und steuerst die Warteschlange. Die Downloads selbst laufen auf deiner Instanz, nie auf dem Handy.
+
+Was du damit machst
+• Alle Instanzen deiner Gruppe auf einem Bildschirm sehen: ob sie erreichbar sind, wie viele Dateien noch fehlen und wie schnell es gerade geht
+• Die Warteschlange einer Instanz live verfolgen, mit Fortschritt und Tempo für jede Datei und einer verständlichen Erklärung, wenn ein Download scheitert
+• Die Warteschlange starten und anhalten, einzelne Links oder ganze Pakete an- und abschalten und Pakete entfernen
+• Links einfügen und an eine Instanz schicken
+• Viele Captchas, die einen Download aufhalten, direkt am Handy lösen
+• Hell oder dunkel, Eckenform und Akzentfarbe selbst wählen oder das Aussehen von deiner Instanz übernehmen
+
+Zum Verbinden tippst du die zwölf Wörter der Verbindungsphrase ein, die dein KnightLoader anzeigt, oder du scannst ihren QR-Code. Alle Instanzen der Gruppe erscheinen dann auf einmal. Du brauchst dafür kein Konto, keine Adresse und keinen offenen Port.
+
+Die App erreicht deine Instanzen über ein Relay. Anfragen und Antworten zwischen App und Instanzen sind Ende-zu-Ende verschlüsselt, mit einem Schlüssel aus deiner Phrase. Das Relay reicht sie weiter, kann sie aber nicht lesen. Werbung zeigt die App keine.
+
+Du brauchst eine laufende KnightLoader-Instanz. KnightLoader ist kostenlos und quelloffen unter der AGPL-3.0: https://github.com/junkerderprovinz/knightloader
+
+KnightLoader ist noch in einem frühen Stadium und ändert sich schnell. Ein Update deiner Instanz kann auch ein Update der App verlangen. Probleme meldest du am besten auf GitHub.
+
+Die Kamera nutzt die App nur, um den QR-Code deiner Phrase zu scannen.

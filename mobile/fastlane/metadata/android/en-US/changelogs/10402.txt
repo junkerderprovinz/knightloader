@@ -1,0 +1,1 @@
+First release on Google Play. The app is the remote control for your self-hosted KnightLoader: see every instance in your group, follow its queue, add links and answer captchas from your phone. Connect with your twelve-word phrase; requests and answers are end-to-end encrypted. KnightLoader is at an early stage, so please report problems on GitHub.
