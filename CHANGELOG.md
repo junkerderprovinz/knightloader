@@ -61,6 +61,11 @@ release's tag.
 
 ### Fixed
 
+- **A torrent starts even with a single seeder.** The torrent library could
+  miss its cue to ask a peer for pieces, or to send a piece a peer had asked
+  for. A download with few peers then stayed at 0 bytes although a seeder was
+  connected, for a minute or for good. The library is updated to the version
+  that fixes it.
 - **A torrent added to a debrid service at shutdown is still cleaned up.** If
   KnightLoader stopped while the service was answering the request to add a
   torrent, or just after, the job it made there was never saved. The next
