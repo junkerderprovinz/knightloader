@@ -197,3 +197,51 @@ func TestEffectiveDHTPEXPrivateAlwaysWins(t *testing.T) {
 		})
 	}
 }
+
+// A settings file that names no client for what a debrid service fetched, or
+// one this build does not know, seeds it in the built-in client.
+func TestSeedingAfterADebridServiceStaysInTheBuiltInClient(t *testing.T) {
+	for _, doc := range []string{
+		`{"torrent":{"seedAfterDebrid":true}}`,
+		`{"torrent":{"seedAfterDebrid":true,"seedIn":"transmission"}}`,
+	} {
+		if got := loadFrom(t, doc).Torrent.SeedIn; got != SeedInBuiltIn {
+			t.Errorf("%s seeds in %q, want the built-in client", doc, got)
+		}
+	}
+}
+
+// The qBittorrent password never reaches a browser, comes back from the mask
+// on a save, and does not follow the address to another host.
+func TestTheQBittorrentPasswordStaysOnTheServer(t *testing.T) {
+	s, err := Load(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := s.Get()
+	n.Torrent.QBittorrent = QBittorrent{URL: "http://qbit:8080", Username: "admin", Password: "secret"}
+	if _, err := s.Set(n); err != nil {
+		t.Fatal(err)
+	}
+	shown := s.Get().Redacted()
+	if shown.Torrent.QBittorrent.Password != "********" {
+		t.Fatalf("the browser is shown %q", shown.Torrent.QBittorrent.Password)
+	}
+
+	saved, err := s.Set(shown)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.Torrent.QBittorrent.Password != "secret" {
+		t.Errorf("saving the page untouched left the password %q", saved.Torrent.QBittorrent.Password)
+	}
+
+	shown.Torrent.QBittorrent.URL = "http://elsewhere:8080"
+	saved, err = s.Set(shown)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.Torrent.QBittorrent.Password != "" {
+		t.Error("the password followed the address to another host")
+	}
+}

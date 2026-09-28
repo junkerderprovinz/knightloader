@@ -8,7 +8,11 @@ package settings
 // side and internal/engine for what starts a torrent task; this file is the
 // configuration those two read.
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+)
 
 // Torrent is the seed, port, DHT, PEX, file and tracker policy for every
 // BitTorrent download this instance starts: one block per instance rather than
@@ -106,11 +110,61 @@ type Torrent struct {
 	// even where the service would take it. A service that cannot be asked,
 	// and a question that goes unanswered, count as not cached.
 	DebridCachedOnly bool `json:"debridCachedOnly"`
-	// SeedAfterDebrid hands a torrent a debrid service fetched to the built-in
-	// client once its files are here. The client checks them against the
-	// torrent and seeds them under the targets above, and a torrent whose
-	// files are not all there is not seeded rather than fetched again.
+	// SeedAfterDebrid hands a torrent a debrid service fetched to a client to
+	// seed once its files are here, the one SeedIn names. Its files are checked
+	// against the torrent first, and a torrent whose files are not all there is
+	// not seeded rather than fetched again.
 	SeedAfterDebrid bool `json:"seedAfterDebrid"`
+	// SeedIn is where SeedAfterDebrid seeds: SeedInBuiltIn, under the targets
+	// above, or SeedInQBittorrent. Empty is the built-in client too.
+	SeedIn      string      `json:"seedIn"`
+	QBittorrent QBittorrent `json:"qbittorrent"`
+}
+
+// The clients a torrent a debrid service fetched can seed in.
+const (
+	SeedInBuiltIn     = "builtin"
+	SeedInQBittorrent = "qbittorrent"
+)
+
+// QBittorrent is the external qBittorrent that takes the torrents a debrid
+// service fetched to seed, for cross-seeding tools that watch it.
+type QBittorrent struct {
+	// URL is the address of its Web UI.
+	URL      string `json:"url"`
+	Username string `json:"username"`
+	// Password is masked by Redacted and put back by WithSecretsFrom.
+	Password string `json:"password"`
+	// Category files each torrent in qBittorrent; empty files it nowhere.
+	Category string `json:"category"`
+	// DownloadsPath is KnightLoader's download folder as qBittorrent sees it,
+	// for two containers that mount it under different paths. Empty means the
+	// same path.
+	DownloadsPath string `json:"downloadsPath"`
+}
+
+// Redacted returns a copy with the password masked, as reconnect masks the
+// router password.
+func (q QBittorrent) Redacted() QBittorrent {
+	if q.Password != "" {
+		q.Password = reconnect.RedactedPassword
+	}
+	return q
+}
+
+// WithSecretsFrom puts back the password Redacted masked, as long as the
+// address is the one it was stored for: a client that was never shown the
+// password cannot have it sent to another host. An empty password stays
+// empty, which is how it is cleared.
+func (q QBittorrent) WithSecretsFrom(prev QBittorrent) QBittorrent {
+	if q.Password != reconnect.RedactedPassword {
+		return q
+	}
+	q.Password = ""
+	if strings.TrimSpace(q.URL) == strings.TrimSpace(prev.URL) {
+		q.Password = prev.Password
+	}
+	return q
 }
 
 // TorrentFileRules are the file selection resolver/torrent.FileRules applies
@@ -145,6 +199,7 @@ func defaultTorrent() Torrent {
 		SeedDurationSeconds: 2 * 60 * 60,
 		DHTEnabled:          true,
 		PEXEnabled:          true,
+		SeedIn:              SeedInBuiltIn,
 	}
 }
 
@@ -174,6 +229,14 @@ func sanitizeTorrent(n Settings) Settings {
 	t.ExtraTrackers = trimmedLines(t.ExtraTrackers)
 	t.BannedTrackers = trimmedLines(t.BannedTrackers)
 	t.TrackerListURL = strings.TrimSpace(t.TrackerListURL)
+	// A client this build does not know seeds in the built-in one, as empty does.
+	if t.SeedIn != "" && t.SeedIn != SeedInQBittorrent {
+		t.SeedIn = SeedInBuiltIn
+	}
+	q := &t.QBittorrent
+	q.URL = strings.TrimSpace(q.URL)
+	q.Category = strings.TrimSpace(q.Category)
+	q.DownloadsPath = strings.TrimSpace(q.DownloadsPath)
 	return n
 }
 

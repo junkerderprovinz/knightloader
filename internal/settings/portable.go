@@ -246,6 +246,7 @@ const (
 	SecretlessConnections      = "connections.password"
 	SecretlessArchivePasswords = "archivePasswords"
 	SecretlessEventPrograms    = "eventPrograms.command"
+	SecretlessQBittorrent      = "torrent.qbittorrent.password"
 )
 
 // Secretless names the keys in d that arrive without their password, or for
@@ -328,6 +329,15 @@ func (d PortableDoc) Secretless() []string {
 					break
 				}
 			}
+		}
+	}
+
+	// A masked qBittorrent password comes back only where this box stores one
+	// for the same address (see QBittorrent.WithSecretsFrom).
+	if raw, ok := d.Settings["torrent"]; ok {
+		var t Torrent
+		if err := json.Unmarshal(raw, &t); err == nil && t.QBittorrent.Password == reconnect.RedactedPassword {
+			out = append(out, SecretlessQBittorrent)
 		}
 	}
 

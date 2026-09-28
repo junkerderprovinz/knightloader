@@ -38,12 +38,12 @@ func sanitizeNetwork(n Settings) Settings {
 	return n
 }
 
-// Redacted returns a copy safe to hand to a browser. Five secrets live in here:
-// the router password, every proxy password, the end-of-queue command line,
-// every event program's command line and every event target header value. The
-// endpoint that serves the settings uses nothing but this, because the moment a
-// client is shown one of them the merge machinery in Set is protecting a value
-// the client already holds.
+// Redacted returns a copy safe to hand to a browser. Six secrets live in here:
+// the router password, every proxy password, the qBittorrent password, the
+// end-of-queue command line, every event program's command line and every
+// event target header value. The endpoint that serves the settings uses
+// nothing but this, because the moment a client is shown one of them the merge
+// machinery in Set is protecting a value the client already holds.
 //
 // The packages disagree about how to hide a secret, and neither is wrapped or
 // normalised here, because each is one half of a round trip its own package
@@ -70,6 +70,7 @@ func sanitizeNetwork(n Settings) Settings {
 func (s Settings) Redacted() Settings {
 	s.Reconnect = s.Reconnect.Redacted()
 	s.IdleAction = s.IdleAction.Redacted()
+	s.Torrent.QBittorrent = s.Torrent.QBittorrent.Redacted()
 	if len(s.Connections) > 0 {
 		out := make([]proxycfg.Entry, len(s.Connections))
 		for i, e := range s.Connections {

@@ -269,9 +269,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/tokens/{id}": apitoken.ScopeAdmin,
 
 	// Parsing a .torrent is the first half of adding one.
-	"POST /api/torrents":         apitoken.ScopeAdd,
-	"POST /api/torrents/parse":   apitoken.ScopeAdd,
-	"POST /api/torrents/portmap": apitoken.ScopeAdmin,
+	"POST /api/torrents":                  apitoken.ScopeAdd,
+	"POST /api/torrents/parse":            apitoken.ScopeAdd,
+	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
+	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
 	// How the tracker list named in the settings was fetched, which is part
 	// of the Torrents settings page.
 	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
