@@ -81,6 +81,10 @@ release's tag.
 - **The app's About text says what the QR scanner sends.** The scanner is
   Google's and sends Google usage diagnostics when it scans a code, which
   "no telemetry" left out. The app itself still collects nothing.
+- **An instance that comes back reads Connected again in the app.** The
+  overview checked each instance once when it opened, so one that was
+  restarting at that moment stayed "Not connected" until the app was
+  restarted, while the figures beside the badge were already back.
 
 ## [1.4.2] - 2026-09-28
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { checkConnection, setQueueHalted } from '../api/client';
+import { setQueueHalted } from '../api/client';
 import { listConnections, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -29,9 +29,8 @@ function statusLine(
   // would otherwise compile and show an empty line in 42 languages.
   t: ReturnType<typeof useT>['t'],
   s: InstanceStats | null | undefined,
-  reach: ConnStatus,
 ): string {
-  if (s === undefined) return reach === 'offline' ? t('instance.notConnected') : '…';
+  if (s === undefined) return '…';
   if (s === null) return t('instance.notConnected');
   const parts: string[] = [];
   if (s.halted) parts.push(t('downloads.queueHalted'));
@@ -95,7 +94,6 @@ export default function ConnectionsScreen({
   const { c, accent, corners, hueAt, rainbow } = useAppearance();
   const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
-  const [status, setStatus] = useState<Record<string, ConnStatus>>({});
   const [loaded, setLoaded] = useState(false);
   const [stats, setStats] = useState<Record<string, InstanceStats | null>>({});
   const [why, setWhy] = useState<Record<string, string>>({});
@@ -110,12 +108,6 @@ export default function ConnectionsScreen({
     const list = await listConnections();
     setConnections(list);
     setLoaded(true);
-    list.forEach((conn) => {
-      setStatus((s) => ({ ...s, [conn.id]: 'checking' }));
-      checkConnection(conn)
-        .then((auth) => setStatus((s) => ({ ...s, [conn.id]: auth.authenticated ? 'online' : 'offline' })))
-        .catch(() => setStatus((s) => ({ ...s, [conn.id]: 'offline' })));
-    });
   }, []);
 
   useEffect(() => {
@@ -200,7 +192,7 @@ export default function ConnectionsScreen({
 
       <MovingList
         data={connections}
-        /* The rows read `status`, `stats` and `why`, three pieces of state the
+        /* The rows read `stats` and `why`, two pieces of state the
            list knows nothing about, while `connections` is set once and never
            again. Without this, VirtualizedList never redraws a cell, so every
            status badge and every figure freezes at what it said on the first
@@ -209,7 +201,7 @@ export default function ConnectionsScreen({
            takes from hueAt and the rainbow is such state: without them a
            palette change, or disco's walk, leaves the rows in their old
            colours. */
-        extraData={[status, stats, why, hueAt, rainbow.reactive]}
+        extraData={[stats, why, hueAt, rainbow.reactive]}
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
         // its own copy of the list's width cap plus a horizontal margin, and
@@ -308,7 +300,11 @@ export default function ConnectionsScreen({
         keyExtractor={(conn) => conn.id}
         contentContainerStyle={[styles.list, { maxWidth: contentMax(wide) }]}
         renderItem={({ item, index }) => {
-          const s = status[item.id] ?? 'checking';
+          const st = stats[item.id];
+          // The same poll as the figures beside it, so an instance that comes
+          // back reads Connected with its next answer and the badge never
+          // contradicts the line under it.
+          const s: ConnStatus = st === undefined ? 'checking' : st === null ? 'offline' : 'online';
           /* This list is a set of equal members, so each card owns a position
              in the palette - the thing that turns "rainbow mode" from one
              wired list into a property of the app. It is also the longest list
@@ -328,7 +324,6 @@ export default function ConnectionsScreen({
              people can actually see. Under the reactive reading the rest
              colour goes away and only what is running is lit; there is no
              hover on a phone, so "running" is this list's active state. */
-          const st = stats[item.id];
           const laeuft = st != null && !st.halted && st.running > 0;
           const hue = hueAt(index);
           return (
@@ -379,7 +374,7 @@ export default function ConnectionsScreen({
                         {' · '}
                       </>
                     ) : null}
-                    {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
+                    {st === null && why[item.id] ? why[item.id] : statusLine(t, st)}
                   </Text>
                 </View>
                 {/* No delete here. A bin on every row of a list somebody taps to
