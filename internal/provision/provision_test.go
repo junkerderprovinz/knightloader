@@ -5,12 +5,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -510,5 +512,51 @@ func TestStartStopsThePreviousProcess(t *testing.T) {
 	}
 	if second.ProcessState != nil {
 		t.Error("the second process was terminated by its own Start")
+	}
+}
+
+// JVM options only count before -jar; after it they are the jar's arguments.
+func TestStartRunsJDHeadless(t *testing.T) {
+	quickGrace(t)
+	p := New(t.TempDir())
+	cmd, err := p.Start(os.Args[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = p.Stop() })
+	headless := slices.Index(cmd.Args, "-Djava.awt.headless=true")
+	jar := slices.Index(cmd.Args, "-jar")
+	if headless < 0 || jar < 0 || headless > jar {
+		t.Errorf("args %q do not ask for headless before -jar", cmd.Args)
+	}
+}
+
+func TestEnsureStartsNothingOnceCancelled(t *testing.T) {
+	p := New(t.TempDir())
+	if err := os.WriteFile(p.jarPath(), fakeJar(t), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	home := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(home, "bin"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	java := "java"
+	if runtime.GOOS == "windows" {
+		java = "java.exe"
+	}
+	if err := os.WriteFile(filepath.Join(home, "bin", java), nil, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("JAVA_HOME", home)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, _, err := p.Ensure(ctx); !errors.Is(err, context.Canceled) {
+		t.Fatalf("Ensure = %v, want context.Canceled", err)
+	}
+	p.mu.Lock()
+	started := p.cmd != nil
+	p.mu.Unlock()
+	if started {
+		t.Error("Ensure started JD after its context ended")
 	}
 }

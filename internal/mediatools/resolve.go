@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // Source names where the yt-dlp that is about to run came from. A string and
@@ -116,5 +118,5 @@ func ResolveYtdlp(dataDir string) (path string, source Source, detail string) {
 func runsAtAll(bin string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), probeTimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, bin, "--version").Run()
+	return nowindow.CommandContext(ctx, bin, "--version").Run()
 }

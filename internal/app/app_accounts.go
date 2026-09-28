@@ -1313,6 +1313,14 @@ type JDStatus struct {
 	Detail  string `json:"detail,omitempty"`
 }
 
+// UseJD points everything that talks to JDownloader at base and wires the
+// backend for it. It is for a JD that answered only after New, such as the
+// desktop app's own, which starts in the background.
+func (a *App) UseJD(base string) {
+	_ = os.Setenv("KL_JD", base)
+	a.rewireBackends()
+}
+
 // JDStatus asks the sidecar live, so an unreachable JD shows up at once. It
 // uses a fresh jd.Client because the backend interface has no Version method.
 func (a *App) JDStatus() JDStatus {

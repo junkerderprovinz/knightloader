@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/ghrelease"
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // ytdlpRepo is yt-dlp's own repository, asked unauthenticated and with no token
@@ -298,7 +298,7 @@ func digestFor(sums []checksum.Sum, name string) string {
 func smokeTest(ctx context.Context, staged, tag string) (string, error) {
 	runCtx, cancel := context.WithTimeout(ctx, smokeTimeout)
 	defer cancel()
-	out, err := exec.CommandContext(runCtx, staged, "--version").CombinedOutput()
+	out, err := nowindow.CommandContext(runCtx, staged, "--version").CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("it downloaded and verified but does not run on this machine: %v%s", err, startAdvice(err))
 	}

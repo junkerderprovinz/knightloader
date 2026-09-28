@@ -128,6 +128,63 @@ jobs:
             exit 1
           fi
 
+      # What a first install on Windows goes through: the installer, a start
+      # that provisions its own JDownloader, and the uninstaller the way the
+      # Settings app runs it, without /S. JDownloader has to run without a
+      # window of its own or a console, and the window must not wait for it.
+      - name: Install, start and uninstall
+        if: matrix.slug == 'windows-amd64'
+        shell: pwsh
+        timeout-minutes: 15
+        env:
+          KL_DATA: ${{ runner.temp }}\kl-data
+          KL_STARTUP_CHECK: "0"
+        run: |
+          $installer = Get-Item desktop/build/bin/KnightLoader-*-installer.exe
+          Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait
+          $key = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KnightLoader'
+          $entry = Get-ItemProperty $key -ErrorAction SilentlyContinue
+          if (-not $entry) { throw "the installer left no uninstall entry" }
+          $exe = Join-Path $entry.InstallLocation 'KnightLoader.exe'
+          if (-not (Test-Path $exe)) { throw "$exe is missing" }
+
+          $app = Start-Process -FilePath $exe -PassThru
+          $deadline = (Get-Date).AddMinutes(8)
+          $java = $null
+          do {
+            Start-Sleep -Seconds 5
+            if ($app.HasExited) { throw "KnightLoader exited with code $($app.ExitCode)" }
+            $java = Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" |
+              Where-Object { $_.CommandLine -like '*JDownloader.jar*' }
+          } until ($java -or (Get-Date) -gt $deadline)
+          if (-not $java) { throw "JDownloader did not start within eight minutes" }
+          foreach ($p in $java) {
+            if ($p.CommandLine -notlike '*-Djava.awt.headless=true*') { throw "JDownloader runs with a window: $($p.CommandLine)" }
+          }
+          Start-Sleep -Seconds 60
+          $app.Refresh()
+          if ($app.HasExited) { throw "KnightLoader exited with code $($app.ExitCode)" }
+          Write-Host "KnightLoader window: '$($app.MainWindowTitle)'"
+          $windows = Get-Process -Id ($java.ProcessId) -ErrorAction SilentlyContinue |
+            Where-Object { $_.MainWindowHandle -ne 0 }
+          if ($windows) { throw "JDownloader opened a window: $($windows.MainWindowTitle)" }
+          $consoles = Get-CimInstance Win32_Process -Filter "Name = 'conhost.exe'" |
+            Where-Object { $_.ParentProcessId -in @($java.ProcessId) } |
+            ForEach-Object { Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue } |
+            Where-Object { $_.MainWindowHandle -ne 0 }
+          if ($consoles) { throw "java runs in a console window" }
+
+          Stop-Process -Id $app.Id -Force
+          foreach ($p in $java) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }
+          Start-Sleep -Seconds 3
+
+          $uninstall = $entry.UninstallString.Trim('"')
+          Start-Process -FilePath $uninstall
+          $deadline = (Get-Date).AddMinutes(2)
+          while ((Test-Path $key) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 2 }
+          if (Test-Path $key) { throw "the uninstaller left its entry behind" }
+          if (Test-Path $exe) { throw "the uninstaller left $exe behind" }
+
       # Zipped on the build runner because artifacts lose file modes, which
       # left the Linux and macOS binaries without their execute bit. The zip
       # holds the program alone at its root, which internal/update expects, and

@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // Tool finds one binary and runs it once for its version.
@@ -64,7 +66,7 @@ func Tool(ctx context.Context, t ToolTarget, timeout time.Duration) Check {
 	// stderr: it is the two-dash `--version` (JDK 9+) that goes to stdout,
 	// and reading stdout alone would report "found, version unknown" for
 	// every healthy JVM in the shipped image.
-	out, runErr := exec.CommandContext(runCtx, path, t.Args...).CombinedOutput()
+	out, runErr := nowindow.CommandContext(runCtx, path, t.Args...).CombinedOutput()
 	line := firstLine(string(out))
 
 	if runCtx.Err() != nil {

@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 	"os/exec"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // revealInFolder asks Explorer to select the file. "/select," and the path
@@ -23,6 +25,7 @@ func revealInFolder(path string) error {
 // would take a quoted path as the title.
 func openNatively(path string) error {
 	cmd := exec.Command("cmd", "/c", "start", "", path)
+	nowindow.Apply(cmd)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("could not open %s: %w", path, err)
 	}

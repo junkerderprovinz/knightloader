@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // Status is everything GET /api/mediatools answers and everything the
@@ -202,7 +204,7 @@ func probeTool(bin, flag string, parse func(string) string) Tool {
 	// CombinedOutput and not Output: some ffmpeg builds print the banner on
 	// stderr, and a version that landed on the wrong stream would read as a
 	// missing program.
-	out, err := exec.CommandContext(ctx, bin, flag).CombinedOutput()
+	out, err := nowindow.CommandContext(ctx, bin, flag).CombinedOutput()
 	if err != nil {
 		t.Detail = strings.TrimSpace(err.Error())
 		if ctx.Err() != nil {

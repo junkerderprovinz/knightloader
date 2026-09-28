@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/nowindow"
 )
 
 // defaultJarURL is JDownloader's official self-updating launcher jar. The
@@ -302,9 +303,14 @@ func FindJava() (string, error) {
 // Start launches headless JD in the background using the given java binary. The
 // process is kept so Stop can terminate it later; the returned command is for
 // callers that want to watch it, not for owning it.
+//
+// Without a display JD runs headless by itself, which is how the container
+// gets it. A desktop has one, so JD would open its own window and its update
+// dialogs there unless told not to.
 func (p *Provisioner) Start(java string) (*exec.Cmd, error) {
-	cmd := exec.Command(java, "-jar", p.jarPath())
+	cmd := exec.Command(java, "-Djava.awt.headless=true", "-jar", p.jarPath())
 	cmd.Dir = p.Dir
+	nowindow.Apply(cmd)
 	return p.start(cmd)
 }
 
@@ -436,6 +442,11 @@ func (p *Provisioner) Ensure(ctx context.Context) (*exec.Cmd, string, error) {
 	}
 	java, err := FindJava()
 	if err != nil {
+		return nil, "", err
+	}
+	// A caller that gave up while the jar was downloading may already have
+	// run Stop, and a JD started after that would outlive it.
+	if err := ctx.Err(); err != nil {
 		return nil, "", err
 	}
 	cmd, err := p.Start(java)
