@@ -7,6 +7,7 @@ package pathvars
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -63,6 +64,19 @@ func Expand(template string, v Vars) string {
 func HasVars(template string) bool {
 	_, _, ok := nextPlaceholder(template)
 	return ok
+}
+
+// Root is the folder every expansion of a folder template lies in: the
+// template itself when it has no placeholder, and otherwise the last whole
+// folder before the first one.
+func Root(template string) string {
+	start, _, ok := nextPlaceholder(template)
+	if !ok {
+		return template
+	}
+	// Whatever stands between the last separator and the placeholder is the
+	// start of a folder name, not a folder.
+	return filepath.Dir(template[:start] + "x")
 }
 
 // nextPlaceholder returns the half-open byte range of the next complete

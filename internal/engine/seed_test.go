@@ -438,7 +438,7 @@ func TestThePieceCheckFindsFilesThatAreNotAsTheTorrentHasThem(t *testing.T) {
 			if err := c.spoil(root); err != nil {
 				t.Fatal(err)
 			}
-			err := seedPieces(dir, uri)
+			err := CheckPieces(dir, uri)
 			switch {
 			case c.want == "" && err != nil:
 				t.Errorf("whole files were refused: %v", err)
@@ -447,7 +447,7 @@ func TestThePieceCheckFindsFilesThatAreNotAsTheTorrentHasThem(t *testing.T) {
 			}
 		})
 	}
-	if err := seedPieces(t.TempDir(), "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a"); err != nil {
+	if err := CheckPieces(t.TempDir(), "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a"); err != nil {
 		t.Errorf("a magnet link, which carries no pieces, was refused: %v", err)
 	}
 }

@@ -73,7 +73,7 @@ func (e *Engine) startTorrent(j Job) {
 		// Before the resolve, which hands the torrent to the library, and the
 		// library moves a file of the wrong size aside.
 		if j.Verify {
-			if err := seedPieces(opts.Path, j.URL); err != nil {
+			if err := CheckPieces(opts.Path, j.URL); err != nil {
 				fail(err)
 				return
 			}
