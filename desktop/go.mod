@@ -26,20 +26,20 @@ require (
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/anacrolix/btree v0.1.1 // indirect
-	github.com/anacrolix/chansync v0.7.0 // indirect
-	github.com/anacrolix/dht/v2 v2.23.0 // indirect
+	github.com/anacrolix/chansync v0.8.0 // indirect
+	github.com/anacrolix/dht/v2 v2.23.1-0.20260525063928-ec3a9bd99456 // indirect
 	github.com/anacrolix/envpprof v1.5.0 // indirect
 	github.com/anacrolix/generics v0.2.0 // indirect
-	github.com/anacrolix/go-libutp v1.3.2 // indirect
+	github.com/anacrolix/go-libutp v1.5.0 // indirect
 	github.com/anacrolix/log v0.17.1-0.20251118025802-918f1157b7bb // indirect
 	github.com/anacrolix/missinggo v1.3.0 // indirect
 	github.com/anacrolix/missinggo/perf v1.0.0 // indirect
-	github.com/anacrolix/missinggo/v2 v2.10.0 // indirect
+	github.com/anacrolix/missinggo/v2 v2.11.0 // indirect
 	github.com/anacrolix/mmsg v1.1.1 // indirect
 	github.com/anacrolix/multiless v0.4.0 // indirect
 	github.com/anacrolix/stm v0.5.0 // indirect
 	github.com/anacrolix/sync v0.6.0 // indirect
-	github.com/anacrolix/torrent v1.61.1-0.20260525011549-eda2204d2568 // indirect
+	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // indirect
 	github.com/anacrolix/upnp v0.1.4 // indirect
 	github.com/anacrolix/utp v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
