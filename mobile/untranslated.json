@@ -43,9 +43,7 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle",
-      "settings.apps",
-      "settings.appsContainer"
+      "downloads.torrentsTitle"
     ],
     "el": [
       "addDownload.placeholder",
@@ -62,8 +60,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "downloads.torrentsTitle",
-      "settings.apps"
+      "downloads.torrentsTitle"
     ],
     "et": [
       "addDownload.placeholder",
@@ -153,8 +150,7 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.aboutMail",
-      "instance.filesOne",
-      "settings.appsContainer"
+      "instance.filesOne"
     ],
     "ja": [
       "addDownload.placeholder",
@@ -197,9 +193,7 @@
       "settings.aboutMailSubject",
       "settings.motion.wild",
       "settings.motion.storm",
-      "downloads.torrentsTitle",
-      "settings.apps",
-      "settings.appsContainer"
+      "downloads.torrentsTitle"
     ],
     "no": [
       "downloads.start",
@@ -209,8 +203,7 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle",
-      "settings.appsContainer"
+      "downloads.torrentsTitle"
     ],
     "pl": [
       "addDownload.placeholder",
@@ -237,8 +230,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMailSubject",
-      "settings.appsContainer"
+      "settings.aboutMailSubject"
     ],
     "ru": [
       "addDownload.placeholder",
@@ -274,8 +266,7 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle",
-      "settings.appsContainer"
+      "downloads.torrentsTitle"
     ],
     "th": [
       "addDownload.placeholder",
@@ -299,8 +290,7 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "settings.aboutMail",
-      "settings.appsContainer"
+      "settings.aboutMail"
     ],
     "zh": [
       "addDownload.placeholder",

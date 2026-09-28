@@ -342,17 +342,15 @@ const styles = StyleSheet.create({
   buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
   buttonOff: { opacity: 0.45 },
   // The README's proportions: the mark's 32 by 25 box 24 in from the start,
-  // the name from 63 to 10 short of the end, and a segment 87 wide.
-  readmeUnit: { flexDirection: 'row', alignSelf: 'flex-start', overflow: 'hidden' },
+  // the name from 63 to 10 short of the end, or 28 where an (i) takes the end.
   readme: { width: 160, height: 46.6, justifyContent: 'center', overflow: 'hidden' },
-  readmeSeg: { width: 87, height: 46.6, justifyContent: 'center' },
   readmeMark: { position: 'absolute', start: 24, top: 10.8, width: 32, height: 25 },
   readmeMarkQuiet: { opacity: 0.45 },
   readmeText: { marginStart: 63, marginEnd: 10 },
-  readmeSegText: { marginHorizontal: 6, alignItems: 'center' },
+  readmeTextHint: { marginEnd: 28 },
   readmeName: { fontSize: TYPE.body, lineHeight: 17, fontWeight: '700' },
   readmeSub: { fontSize: TYPE.dense, lineHeight: 14, opacity: 0.9 },
-  readmeDivider: { position: 'absolute', start: 0, top: 0, bottom: 0, width: 1.5, opacity: 0.22 },
+  readmeHint: { position: 'absolute', end: 10, top: 0, bottom: 0, justifyContent: 'center' },
   /* 40, the house rhythm for stacked cards, and the number the whole family
    * shares. The language calls 24 the cramped value, and it is cramped for the
    * reason these cards qualify: each carries a notch badge hanging over its own
@@ -621,11 +619,11 @@ export function CardButton({
  * app's own authors takes the accent, and with it the card's rainbow position,
  * which a vendor's mark may never do. `hue` is that position.
  *
- * The Apps card's buttons carry a second line, always in view since a phone
- * has no hover to bring it in, and segments that name only what differs, such
- * as ARM64 beside Windows. A finger on any part lights the whole unit, the part
- * under it a shade deeper. A button without `onPress` is one still to come,
- * quiet, with `soon` as its second line.
+ * The Apps cards' buttons carry a second line, always in view since a phone
+ * has no hover to bring it in, and some an (i) at their end, which is a sibling
+ * lying over the button so a tap on it opens the bubble and not the button. A
+ * button without `onPress` is one still to come, quiet, with `soon` as its
+ * second line.
  */
 export function ReadmeButton({
   brand,
@@ -635,7 +633,7 @@ export function ReadmeButton({
   art,
   onPress,
   hue,
-  segments = [],
+  hint,
   soon,
 }: {
   brand: Brand | 'house';
@@ -650,7 +648,7 @@ export function ReadmeButton({
   art?: boolean;
   onPress?: () => void;
   hue?: number;
-  segments?: { label: string; sub: string; onPress: () => void }[];
+  hint?: string;
   soon?: string;
 }) {
   const { c, dark, accent, accentContrast, corners, hueAt, rainbow } = useAppearance();
@@ -681,87 +679,73 @@ export function ReadmeButton({
       // Neither has a colour of its own, so both take the words' ink.
       apple: c.text,
       linux: c.text,
+      zip: c.textSub,
       // Drawn in their own colours at rest; the value reaches no mark.
       chrome: c.text,
       firefox: c.text,
     }[brand];
   }
   const press = usePress();
-  const [held, setHeld] = useState<number | null>(null);
-  const lit = held !== null;
+  const [lit, setLit] = useState(false);
   const quiet = !onPress;
   const words = lit ? ink : quiet ? c.textMuted : c.text;
-  const parts = [{ label, sub: quiet ? soon : sub, onPress }, ...segments];
-  // The scale sits on a view of its own, since it moves the whole unit while a
-  // finger rests on one part of it.
+  const second = quiet ? soon : sub;
+  const drawn = mark({ mark: lit ? ink : rest, words, lit });
+  // The scale sits on a view of its own, so the (i) lying over the button
+  // moves with it.
   return (
     <Animated.View style={{ transform: [{ scale: press.scale }] }}>
-      <View style={[styles.readmeUnit, corners.pill]}>
-        {parts.map((part, i) => {
-          const ground = !lit ? c.surface2 : held === i && parts.length > 1 ? deepen(fill) : fill;
-          const drawn = i === 0 ? mark({ mark: lit ? ink : rest, words, lit }) : null;
-          return (
-            <Pressable
-              key={i}
-              onPress={part.onPress}
-              disabled={!part.onPress}
-              onPressIn={() => {
-                setHeld(i);
-                press.onPressIn();
-              }}
-              onPressOut={() => {
-                setHeld(null);
-                press.onPressOut();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={part.sub ? `${part.label} ${part.sub}` : part.label}
-              accessibilityState={{ disabled: !part.onPress }}
-              style={[i === 0 ? styles.readme : styles.readmeSeg, { backgroundColor: ground }]}
-            >
-              {i === 0 && art ? (
-                drawn
-              ) : (
-                <>
-                  {i > 0 && <View style={[styles.readmeDivider, { backgroundColor: words }]} />}
-                  {drawn && <View style={[styles.readmeMark, quiet && styles.readmeMarkQuiet]}>{drawn}</View>}
-                  {/* A translation longer than the button shrinks rather than
-                      being cut off. */}
-                  <View style={i === 0 ? styles.readmeText : styles.readmeSegText}>
-                    <Text
-                      style={[styles.readmeName, { color: words }]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                    >
-                      {part.label}
-                    </Text>
-                    {part.sub ? (
-                      <Text
-                        style={[styles.readmeSub, { color: words }]}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.7}
-                      >
-                        {part.sub}
-                      </Text>
-                    ) : null}
-                  </View>
-                </>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+      <Pressable
+        onPress={onPress}
+        disabled={quiet}
+        onPressIn={() => {
+          setLit(true);
+          press.onPressIn();
+        }}
+        onPressOut={() => {
+          setLit(false);
+          press.onPressOut();
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={second ? `${label} ${second}` : label}
+        accessibilityState={{ disabled: quiet }}
+        style={[styles.readme, { backgroundColor: lit ? fill : c.surface2, ...corners.pill }]}
+      >
+        {art ? (
+          drawn
+        ) : (
+          <>
+            <View style={[styles.readmeMark, quiet && styles.readmeMarkQuiet]}>{drawn}</View>
+            {/* A translation longer than the button shrinks rather than being
+                cut off. */}
+            <View style={[styles.readmeText, hint ? styles.readmeTextHint : null]}>
+              <Text
+                style={[styles.readmeName, { color: words }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {label}
+              </Text>
+              {second ? (
+                <Text
+                  style={[styles.readmeSub, { color: words }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                >
+                  {second}
+                </Text>
+              ) : null}
+            </View>
+          </>
+        )}
+      </Pressable>
+      {hint ? (
+        <View style={styles.readmeHint} pointerEvents="box-none">
+          <InfoTip text={hint} color={lit ? ink : undefined} />
+        </View>
+      ) : null}
     </Animated.View>
   );
-}
-
-/** A segment's ground while a finger is on it: its unit's fill mixed with 14%
- *  black, as the web's segment under the pointer. */
-function deepen(hex: string): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const n = parseInt(m[1], 16);
-  const mix = (v: number) => Math.round(v * 0.86);
-  return `#${((mix((n >> 16) & 255) << 16) | (mix((n >> 8) & 255) << 8) | mix(n & 255)).toString(16).padStart(6, '0')}`;
 }
