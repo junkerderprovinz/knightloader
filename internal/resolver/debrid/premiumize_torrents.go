@@ -59,6 +59,25 @@ func (p *Premiumize) AddTorrent(ctx context.Context, src TorrentSource) (string,
 	return data.ID, false, nil
 }
 
+// Cached asks /cache/check whether Premiumize has the torrent with this info
+// hash cached. It answers one flag per item asked about, in order.
+func (p *Premiumize) Cached(ctx context.Context, hash string) (bool, error) {
+	var data struct {
+		pmStatus
+		Response []bool `json:"response"`
+	}
+	if err := p.post(ctx, "/cache/check", url.Values{"items[]": {hash}}, &data); err != nil {
+		return false, err
+	}
+	if err := data.err("/cache/check"); err != nil {
+		return false, err
+	}
+	if len(data.Response) != 1 {
+		return false, fmt.Errorf("premiumize /cache/check: %d answers for one torrent", len(data.Response))
+	}
+	return data.Response[0], nil
+}
+
 // pmLoginTrouble reports whether Premiumize failed a call over the key rather
 // than the torrent. It says so only in words.
 func pmLoginTrouble(msg string) bool {

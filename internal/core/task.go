@@ -255,6 +255,10 @@ type TorrentStats struct {
 	// AtTarget says the seeding stopped because it reached a seeding target,
 	// as opposed to a start only to seed that failed.
 	AtTarget bool
+	// NotSeeded says why a torrent taken up only to seed was not seeded: a
+	// file is missing, short or does not match the torrent, and the library
+	// would have fetched it again. Its seeding is over.
+	NotSeeded string
 }
 
 // RemoteFetch is a debrid service fetching a torrent onto its own servers

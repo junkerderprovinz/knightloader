@@ -21,8 +21,8 @@ import { UploadLimitField } from './torrents/UploadLimit';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
- * DHT/PEX, the file selection, the trackers, and whether a debrid service
- * keeps what it fetched. settings.Torrent is a flat group of fields, so the
+ * DHT/PEX, the file selection, the trackers, and how torrents go through a
+ * debrid service. settings.Torrent is a flat group of fields, so the
  * page uses the shared draft like Reconnect.tsx. lib/api.ts's Settings does
  * not name `torrent`, so readTorrent casts the way readReconnect does.
  */
@@ -42,6 +42,8 @@ interface TorrentSettings {
   trackerListUrl: string;
   bannedTrackers: string[] | null;
   keepOnService: boolean;
+  debridCachedOnly: boolean;
+  seedAfterDebrid: boolean;
 }
 
 // For an older server that sends no `torrent`; mirrors settings.defaultTorrent().
@@ -59,6 +61,8 @@ const DEFAULTS: TorrentSettings = {
   trackerListUrl: '',
   bannedTrackers: [],
   keepOnService: false,
+  debridCachedOnly: false,
+  seedAfterDebrid: false,
 };
 
 const KIB = 1024;
@@ -213,6 +217,18 @@ export function Torrents() {
           onChange={(v) => write({ keepOnService: v })}
           label={t('settings.torrents.keepOnService')}
           hint={t('settings.torrents.keepOnServiceHint')}
+        />
+        <ToggleRow
+          checked={tr.debridCachedOnly}
+          onChange={(v) => write({ debridCachedOnly: v })}
+          label={t('settings.torrents.cachedOnly')}
+          hint={t('settings.torrents.cachedOnlyHint')}
+        />
+        <ToggleRow
+          checked={tr.seedAfterDebrid}
+          onChange={(v) => write({ seedAfterDebrid: v })}
+          label={t('settings.torrents.seedAfterDebrid')}
+          hint={t('settings.torrents.seedAfterDebridHint')}
         />
       </Card>
     </div>

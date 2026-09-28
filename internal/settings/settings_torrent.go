@@ -101,6 +101,16 @@ type Torrent struct {
 	// account also when its task is removed. Off, both are deleted there, so
 	// they do not pile up against the account's limits.
 	KeepOnService bool `json:"keepOnService"`
+	// DebridCachedOnly hands a torrent to a debrid service only when the
+	// service has it cached already, and to the built-in client otherwise,
+	// even where the service would take it. A service that cannot be asked,
+	// and a question that goes unanswered, count as not cached.
+	DebridCachedOnly bool `json:"debridCachedOnly"`
+	// SeedAfterDebrid hands a torrent a debrid service fetched to the built-in
+	// client once its files are here. The client checks them against the
+	// torrent and seeds them under the targets above, and a torrent whose
+	// files are not all there is not seeded rather than fetched again.
+	SeedAfterDebrid bool `json:"seedAfterDebrid"`
 }
 
 // TorrentFileRules are the file selection resolver/torrent.FileRules applies

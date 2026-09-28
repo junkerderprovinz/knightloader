@@ -39,6 +39,18 @@ func TestAFinishedDebridTorrentLeavesTheServiceByDefault(t *testing.T) {
 	}
 }
 
+// A fresh install sends torrents where the priority order says, cached or not,
+// and seeds nothing a debrid service fetched.
+func TestTheDebridTorrentOptionsStartOff(t *testing.T) {
+	tr := Defaults().Torrent
+	if tr.DebridCachedOnly {
+		t.Error("DebridCachedOnly defaults to true, want every torrent to go where the priority order sends it")
+	}
+	if tr.SeedAfterDebrid {
+		t.Error("SeedAfterDebrid defaults to true, want nothing a debrid service fetched to seed from here")
+	}
+}
+
 // Nothing typed into a number field produces a value with no honest meaning.
 // The cases start from arbitrary settings rather than Defaults(), as
 // TestSanitizeKeepsLimitsUsable does, so this holds for any bad document.

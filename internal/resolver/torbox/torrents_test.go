@@ -258,3 +258,32 @@ func TestTheTorBoxResolverClaimsTorrentsOnlyWhenAsked(t *testing.T) {
 		t.Error("a TorBox entry that takes torrents does not claim a magnet")
 	}
 }
+
+func TestTorBoxSaysWhetherItHasATorrentCached(t *testing.T) {
+	const hash = "0123456789abcdef0123456789abcdef01234567"
+	for _, c := range []struct {
+		data string
+		want bool
+	}{
+		{`[{"name":"Show","size":730,"hash":"` + strings.ToUpper(hash) + `"}]`, true},
+		{`[]`, false},
+		{`null`, false},
+	} {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method+" "+r.URL.Path != "GET /api/torrents/checkcached" {
+				t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			}
+			if q := r.URL.Query(); q.Get("hash") != hash || q.Get("format") != "list" {
+				t.Errorf("query = %s, want the info hash as a list", r.URL.RawQuery)
+			}
+			fmt.Fprint(w, `{"success":true,"error":null,"detail":"","data":`+c.data+`}`)
+		}))
+		cl := NewClient("k")
+		cl.base = srv.URL
+		got, err := NewTorrents(cl).Cached(context.Background(), hash)
+		srv.Close()
+		if err != nil || got != c.want {
+			t.Errorf("Cached = %v, %v for %s; want %v", got, err, c.data, c.want)
+		}
+	}
+}

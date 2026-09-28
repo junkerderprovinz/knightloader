@@ -6,6 +6,7 @@ package debrid
 // and the job is deleted. A refusal hands the task on.
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -658,4 +659,44 @@ func builtTorrent(t *testing.T, private bool) (string, []byte) {
 		t.Fatalf("fixture broken: %v", err)
 	}
 	return torrent.EncodeBytes(raw), raw
+}
+
+func TestPremiumizeSaysWhetherItHasATorrentCached(t *testing.T) {
+	const hash = "0123456789abcdef0123456789abcdef01234567"
+	for _, c := range []struct {
+		answer string
+		want   bool
+	}{
+		{`{"status":"success","response":[true],"filename":["Show"],"filesize":["730"]}`, true},
+		{`{"status":"success","response":[false],"filename":[null],"filesize":[0]}`, false},
+	} {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method+" "+r.URL.Path != "POST /api/cache/check" {
+				t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			}
+			if got := r.FormValue("items[]"); got != hash {
+				t.Errorf("items[] = %q, want the info hash", got)
+			}
+			fmt.Fprint(w, c.answer)
+		}))
+		pm := NewPremiumize("key")
+		pm.base = srv.URL + "/api"
+		got, err := pm.Cached(context.Background(), hash)
+		srv.Close()
+		if err != nil || got != c.want {
+			t.Errorf("Cached = %v, %v for %s; want %v", got, err, c.answer, c.want)
+		}
+	}
+}
+
+func TestPremiumizeRefusingTheCacheCheckIsAnError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"status":"error","message":"Not logged in."}`)
+	}))
+	defer srv.Close()
+	pm := NewPremiumize("key")
+	pm.base = srv.URL + "/api"
+	if _, err := pm.Cached(context.Background(), "0123456789abcdef0123456789abcdef01234567"); err == nil {
+		t.Error("a refused check read as an answer")
+	}
 }
