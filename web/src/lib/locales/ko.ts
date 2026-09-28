@@ -3047,7 +3047,7 @@ export const ko: Dict = {
   'accounts.routing.orderHintTorrents': '마그넷 링크와 .torrent 파일은 내장 토렌트 클라이언트와 토렌트를 지원하는 Debrid 서비스 중 목록에서 더 위에 있는 쪽으로 갑니다.',
   'accounts.routing.tip.torrent': '내장 토렌트 클라이언트입니다. 토렌트를 지원하는 Debrid 서비스가 이 행보다 위에 있으면 마그넷 링크와 .torrent 파일은 대신 그 서비스가 가져옵니다.',
   'settings.torrents.debridTitle': 'Debrid 서비스를 통해',
-  'settings.torrents.debridHint': 'TorBox, Real-Debrid, AllDebrid, Premiumize.me, Debrid-Link는 내장 토렌트 클라이언트 대신 마그넷 링크와 .torrent 파일을 가져올 수 있습니다. 서비스가 토렌트를 자체 서버로 내려받고, KnightLoader는 그다음 다른 링크처럼 거기서 파일을 가져옵니다. 이 기기에서는 아무것도 시드하지 않고 주소가 스웜에 나타나지도 않으므로, 포트를 열 필요가 없습니다. 서비스에 이미 있는 토렌트는 바로 준비됩니다. Debrid 서비스와 내장 토렌트 클라이언트 중 어느 쪽이 먼저인지는 계정 페이지의 우선순위가 정합니다. 비공개 트래커의 토렌트는 항상 내장 토렌트 클라이언트가 맡습니다. 이 페이지의 파일 선택은 여기서도 파일을 고릅니다. Real-Debrid와 Debrid-Link는 그 파일만 가져오고, 다른 서비스에서는 그 파일만 여기로 옵니다.',
+  'settings.torrents.debridHint': 'TorBox, Real-Debrid, AllDebrid, Premiumize.me, Debrid-Link는 내장 토렌트 클라이언트 대신 마그넷 링크와 .torrent 파일을 가져올 수 있습니다. 서비스가 토렌트를 자체 서버로 내려받고, KnightLoader는 그다음 다른 링크처럼 거기서 파일을 가져옵니다. 아래에서 시드를 켜지 않는 한, 이 기기에서는 아무것도 시드하지 않고 주소가 스웜에 나타나지도 않으므로, 포트를 열 필요가 없습니다. 서비스에 이미 있는 토렌트는 바로 준비됩니다. Debrid 서비스와 내장 토렌트 클라이언트 중 어느 쪽이 먼저인지는 계정 페이지의 우선순위가 정합니다. 비공개 트래커의 토렌트는 항상 내장 토렌트 클라이언트가 맡습니다. 이 페이지의 파일 선택은 여기서도 파일을 고릅니다. Real-Debrid와 Debrid-Link는 그 파일만 가져오고, 다른 서비스에서는 그 파일만 여기로 옵니다.',
   'accounts.col.import': '가져오기',
   'task.remoteHint': '{service}에서 이것을 자체 서버로 다운로드하고 있으며 지금까지 {percent} 진행되었습니다. 모든 파일을 다 받으면 파일이 여기로 옵니다.',
   'settings.modules.detail.torrentsOffDebrid': '꺼짐. 실행 중인 토렌트는 계속 진행하며 시드도 계속합니다. 새 토렌트는 토렌트를 지원하는 Debrid 서비스로 갑니다.',
