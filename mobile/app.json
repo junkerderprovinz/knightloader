@@ -45,7 +45,8 @@
         "expo-camera",
         {
           "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz.",
-          "recordAudioAndroid": false
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
         }
       ],
       "expo-localization",

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { qrFromJpeg } from './qrDecode';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
@@ -18,21 +19,62 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   const { motion } = useMotion();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [size, setSize] = useState<string>();
+  const camera = useRef<CameraView>(null);
+  const report = useRef(onScanned);
+  report.current = onScanned;
 
   // The component stays mounted across opens and closes, rendering null, so
   // `locked` from an earlier scan would still be true the next time it opens
   // and every scan after the first would do nothing.
   useEffect(() => {
     if (visible) setLocked(false);
+    else setReady(false);
   }, [visible]);
 
-  if (!visible) return null;
+  // The camera's own barcode scanner is Google's ML Kit, which is not free
+  // software and keeps the app out of F-Droid, so the frame is photographed
+  // small, several times a second, and decoded here.
+  useEffect(() => {
+    if (!visible || !ready || locked) return;
+    let stopped = false;
+    (async () => {
+      while (!stopped) {
+        try {
+          const shot = await camera.current?.takePictureAsync({ base64: true, quality: 0.5, skipProcessing: true, shutterSound: false });
+          const data = shot?.base64 ? qrFromJpeg(shot.base64) : null;
+          if (data && !stopped) {
+            setLocked(true);
+            report.current(data);
+            return;
+          }
+        } catch {
+          // A frame the camera could not take or decode; the next one tries.
+        }
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+    })();
+    return () => {
+      stopped = true;
+    };
+  }, [visible, ready, locked]);
 
-  const handleScanned = (data: string) => {
-    if (locked) return;
-    setLocked(true);
-    onScanned(data);
+  // A full-resolution photo takes seconds to decode in JavaScript; the
+  // smallest size with 720 lines still resolves a code filling the frame.
+  const onCameraReady = async () => {
+    try {
+      const sizes = (await camera.current?.getAvailablePictureSizesAsync()) ?? [];
+      const lines = (s: string) => Math.min(...s.split('x').map(Number));
+      const usable = sizes.filter((s) => lines(s) >= 720).sort((a, b) => lines(a) - lines(b));
+      if (usable[0]) setSize(usable[0]);
+    } catch {
+      // Without the list the camera keeps its default size, only slower.
+    }
+    setReady(true);
   };
+
+  if (!visible) return null;
 
   return (
     <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
@@ -47,10 +89,12 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
         ) : (
           <>
             <CameraView
+              ref={camera}
               style={StyleSheet.absoluteFill}
               facing="back"
-              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-              onBarcodeScanned={(result) => handleScanned(result.data)}
+              animateShutter={false}
+              pictureSize={size}
+              onCameraReady={onCameraReady}
             />
             <View style={styles.overlay} pointerEvents="none">
               <View style={[styles.frame, { borderColor: accent, ...corners.card }]} />

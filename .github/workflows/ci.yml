@@ -514,6 +514,9 @@ jobs:
       - name: Row and package words
         run: node check-task-state.mjs
 
+      - name: Free QR scanner
+        run: node check-free-scanner.mjs
+
   # Compiles and tests the desktop module on every relevant push, since
   # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is
   # the tag the release build uses; without it Wails wants GTK 4.
