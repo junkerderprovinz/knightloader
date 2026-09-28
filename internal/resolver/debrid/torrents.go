@@ -216,10 +216,16 @@ func (rs *Runs) Restore(taskID, link string, j core.ServiceJob) {
 	rs.byTask[taskID] = r
 }
 
+// stopWait bounds how long Stop waits. An add is answered within a second or
+// two; one the service holds longer is left behind rather than hold up the
+// program's exit, which a container's stop timeout, ten seconds by default,
+// would cut short anyway.
+var stopWait = 8 * time.Second
+
 // Stop calls off every attempt, waits until each has returned and starts
 // nothing afterwards. An add still waiting for the service is waited for too,
-// since the service makes the job either way and only its answer ties the job
-// to the task.
+// up to stopWait, since the service makes the job either way and only its
+// answer ties the job to the task.
 func (rs *Runs) Stop() {
 	rs.mu.Lock()
 	rs.stopped = true
@@ -231,8 +237,13 @@ func (rs *Runs) Stop() {
 		}
 	}
 	rs.mu.Unlock()
+	deadline := time.After(stopWait)
 	for _, over := range attempts {
-		<-over
+		select {
+		case <-over:
+		case <-deadline:
+			return
+		}
 	}
 }
 
