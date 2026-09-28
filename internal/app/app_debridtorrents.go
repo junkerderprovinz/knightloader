@@ -22,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // torrentParts is every torrent file the engine is fetching for a debrid
@@ -289,14 +290,17 @@ func (a *App) torrentSelection(taskID string) []core.TorrentFile {
 	return nil
 }
 
-// seedFromService hands a torrent a debrid service fetched to the built-in
-// client once its files are here, when the Torrents page asks for that. The
+// seedFromService hands a torrent a debrid service fetched to a client to seed
+// once its files are here, when the Torrents page asks for that. The built-in
 // client takes the files up where they are and seeds them under the seeding
-// targets like a torrent of its own. It fetches nothing: a torrent whose files
-// are not all there, or do not match, is not seeded (see engine/seed.go).
+// targets like a torrent of its own; qBittorrent is handed them as they are
+// (see seedInQBittorrent). Neither fetches anything: a torrent whose files are
+// not all there, or do not match, is not seeded (see engine/seed.go).
 func (a *App) seedFromService(id string) {
+	tc := a.Settings.Get().Torrent
+	qbit := tc.SeedIn == settings.SeedInQBittorrent
 	builtIn := (torrent.Resolver{}).Info().ID
-	if !a.Settings.Get().Torrent.SeedAfterDebrid || a.resolverOff(builtIn) {
+	if !tc.SeedAfterDebrid || !qbit && a.resolverOff(builtIn) {
 		return
 	}
 	a.mu.Lock()
@@ -320,13 +324,23 @@ func (a *App) seedFromService(id string) {
 	from, file := t.Resolver, t.File
 	// A torrent of several files is in a folder of its name, as the service
 	// fetched it (see debrid.localPath).
-	if t.File == "" {
-		t.File = filepath.Join(a.dirFor(t), strings.TrimSpace(t.Name))
+	folder := t.File == ""
+	if folder {
+		file = filepath.Join(a.dirFor(t), strings.TrimSpace(t.Name))
 	}
-	t.Resolver = builtIn
+	if qbit {
+		h := handover{link: t.URL, file: file, folder: folder, files: slices.Clone(t.TorrentFiles)}
+		a.mu.Unlock()
+		a.seedInQBittorrent(id, tb, h, tc.QBittorrent)
+		return
+	}
+	t.Resolver, t.File = builtIn, file
 	job, err := a.seedJobLocked(t)
 	if err != nil {
-		t.Resolver, t.File = from, file
+		t.Resolver = from
+		if folder {
+			t.File = ""
+		}
 		a.mu.Unlock()
 		log.Printf("task %s is not seeded: %v", id, err)
 		return

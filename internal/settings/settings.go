@@ -957,6 +957,7 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	// concurrent saves merge against the same stale value, so the second writes
 	// back a router password the first had already changed.
 	n.Reconnect = n.Reconnect.WithSecretsFrom(s.cur.Reconnect)
+	n.Torrent.QBittorrent = n.Torrent.QBittorrent.WithSecretsFrom(s.cur.Torrent.QBittorrent)
 	// Bound to the address and not only to the row id: a header value the
 	// client was shown as eight stars comes back only while the row still
 	// points at the host it was stored for, so a client that was never allowed

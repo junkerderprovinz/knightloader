@@ -6,6 +6,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -17,6 +18,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 const testPieceLength = 32 << 10
@@ -519,4 +521,48 @@ func chosenViews(files []app.TorrentFileView) []string {
 		}
 	}
 	return out
+}
+
+// The page never holds the stored qBittorrent password, so a test sends the
+// mask and the server logs in with the password it stores, but only at the
+// address that password was stored for.
+func TestAQBittorrentTestLogsInWithTheStoredPassword(t *testing.T) {
+	t.Parallel()
+	qb := http.NewServeMux()
+	qb.HandleFunc("POST /api/v2/auth/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.PostFormValue("password") != "secret" {
+			io.WriteString(w, "Fails.")
+			return
+		}
+		http.SetCookie(w, &http.Cookie{Name: "SID", Value: "s1", Path: "/"})
+		io.WriteString(w, "Ok.")
+	})
+	qb.HandleFunc("GET /api/v2/app/version", func(w http.ResponseWriter, r *http.Request) {
+		if c, err := r.Cookie("SID"); err != nil || c.Value != "s1" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		io.WriteString(w, "v5.0.4")
+	})
+	qbSrv := httptest.NewServer(qb)
+	t.Cleanup(qbSrv.Close)
+	a, srv := torrentsServer(t)
+	s := a.Settings.Get()
+	s.Torrent.QBittorrent = settings.QBittorrent{URL: qbSrv.URL, Username: "admin", Password: "secret"}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	route := srv.URL + "/api/torrents/qbittorrent/test"
+
+	for _, c := range []struct {
+		url, want string
+	}{
+		{qbSrv.URL, `{"version":"v5.0.4"}`},
+		{strings.Replace(qbSrv.URL, "127.0.0.1", "localhost", 1), `{"error":"qBittorrent refused the username or password"}`},
+	} {
+		code, body := postJSON(t, http.MethodPost, route, map[string]string{"url": c.url, "username": "admin", "password": "********"})
+		if code != http.StatusOK || strings.TrimSpace(string(body)) != c.want {
+			t.Errorf("testing %s = %d %s, want %s", c.url, code, body, c.want)
+		}
+	}
 }

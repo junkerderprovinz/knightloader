@@ -9,9 +9,11 @@ package api
 // without leaving a half-staged task behind.
 //
 // The torrent settings' own checks live here as well: the file rules and
-// tracker lists a save is refused over, and how the public tracker list fared.
+// tracker lists a save is refused over, how the public tracker list fared, and
+// whether the qBittorrent named for seeding answers.
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,6 +24,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -49,6 +52,40 @@ func registerTorrents(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.TrackerListStatus())
 		})
+
+	reg.Add(http.MethodPost, "/api/torrents/qbittorrent/test",
+		"log in to a qBittorrent as edited on the Torrents page and read its version, taking the password from the stored settings when the client has none",
+		func(w http.ResponseWriter, r *http.Request) {
+			var q settings.QBittorrent
+			if !decodeJSON(w, r, &q) {
+				return
+			}
+			// The client was never shown the password, so the test merges it
+			// back as a save would, and tests what a save would write.
+			writeJSON(w, testQBittorrent(r.Context(), q.WithSecretsFrom(a.Settings.Get().Torrent.QBittorrent)))
+		})
+}
+
+// qbitTest is what a connection test found: the version, or why there is
+// none.
+type qbitTest struct {
+	Version string `json:"version,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+func testQBittorrent(ctx context.Context, q settings.QBittorrent) qbitTest {
+	c, err := qbittorrent.New(q.URL, q.Username, q.Password)
+	if err == nil {
+		err = c.Login(ctx)
+	}
+	var version string
+	if err == nil {
+		version, err = c.Version(ctx)
+	}
+	if err != nil {
+		return qbitTest{Error: err.Error()}
+	}
+	return qbitTest{Version: version}
 }
 
 // torrentTree is what a parsed .torrent hands back: the file tree and the URI
@@ -185,8 +222,9 @@ func stageTorrent(w http.ResponseWriter, r *http.Request, a *app.App) {
 
 // checkTorrentSettings refuses what sanitize would keep but nothing could use,
 // naming the box it is in: a file pattern that does not compile, a line that
-// is no tracker address, a list address that is not http or https, and a
-// banned line that names no host. Blank lines are sanitize's to drop.
+// is no tracker address, a list or qBittorrent address that is not http or
+// https, and a banned line that names no host. Blank lines are sanitize's to
+// drop.
 func checkTorrentSettings(t settings.Torrent) error {
 	refuse := func(field string, err error) error {
 		return &settings.FieldError{Field: "torrent." + field, Err: err}
@@ -211,6 +249,11 @@ func checkTorrentSettings(t settings.Torrent) error {
 	for i, line := range t.BannedTrackers {
 		if strings.TrimSpace(line) != "" && torrent.BannedHost(line) == "" {
 			return refuse("bannedTrackers", fmt.Errorf("banned trackers, line %d: %q names no host", i+1, line))
+		}
+	}
+	if raw := strings.TrimSpace(t.QBittorrent.URL); raw != "" {
+		if u, err := url.Parse(raw); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return refuse("qbittorrent.url", errors.New("the qBittorrent address is not an http or https address"))
 		}
 	}
 	return nil
