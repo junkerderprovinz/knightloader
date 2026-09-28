@@ -7,6 +7,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,11 +25,15 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
-// packTorrent builds a torrent of two files and returns it as the link the app
-// carries, with each file's content by its path inside the torrent.
+// packTorrent builds a torrent of three files and returns it as the link the
+// app carries, with each file's content by its path inside the torrent.
 func packTorrent(t *testing.T) (string, map[string][]byte) {
 	t.Helper()
-	files := map[string][]byte{"a.bin": bytes.Repeat([]byte{'a'}, 40<<10), "b.bin": bytes.Repeat([]byte{'b'}, 24<<10)}
+	files := map[string][]byte{
+		"a.bin": bytes.Repeat([]byte{'a'}, 40<<10),
+		"b.bin": bytes.Repeat([]byte{'b'}, 24<<10),
+		"c.bin": bytes.Repeat([]byte{'c'}, 16<<10),
+	}
 	src := filepath.Join(t.TempDir(), "Pack")
 	if err := os.MkdirAll(src, 0o755); err != nil {
 		t.Fatal(err)
@@ -67,7 +72,7 @@ func (s *packService) AddTorrent(context.Context, debrid.TorrentSource) (string,
 }
 func (s *packService) TorrentStatus(context.Context, string) (debrid.TorrentJob, error) {
 	job := debrid.TorrentJob{Name: "Pack", State: debrid.TorrentReady}
-	for _, name := range []string{"a.bin", "b.bin"} {
+	for _, name := range []string{"a.bin", "b.bin", "c.bin"} {
 		if data, ok := s.held[name]; ok {
 			job.Files = append(job.Files, debrid.TorrentFile{ID: name, Path: "Pack/" + name, Size: int64(len(data)), Held: true})
 			job.Size += int64(len(data))
@@ -133,31 +138,55 @@ func TestATorrentADebridServiceFetchedSeedsFromItsFiles(t *testing.T) {
 	}
 }
 
-// The service delivered only one of the torrent's two files. Seeding it would
-// fetch the other one, so it is not seeded, and the row says why.
-func TestATorrentWhoseFilesAreNotAllHereIsNotSeeded(t *testing.T) {
-	testenv.RequireWideListener(t)
+// The service delivered a file short of the torrent's, or one that differs
+// from it. Seeding either would fetch from the swarm, so the torrent is not
+// seeded, the row says why, and the files stay as the service delivered them.
+func TestATorrentWhoseFilesAreNotAsTheTorrentHasThemIsNotSeeded(t *testing.T) {
 	if raceEnabled {
 		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
 	}
-	link, files := packTorrent(t)
-	a := seedAfterDebridApp(t, true, map[string][]byte{"a.bin": files["a.bin"]})
-	dir := t.TempDir()
+	for _, c := range []struct {
+		name  string
+		spoil func(held map[string][]byte)
+		want  string
+	}{
+		{"one missing", func(held map[string][]byte) { delete(held, "c.bin") }, "c.bin is missing"},
+		{"one damaged", func(held map[string][]byte) {
+			b := bytes.Clone(held["b.bin"])
+			b[100] = 'x'
+			held["b.bin"] = b
+		}, "b.bin does not match the torrent"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			link, files := packTorrent(t)
+			held := maps.Clone(files)
+			c.spoil(held)
+			a := seedAfterDebridApp(t, true, held)
+			dir := t.TempDir()
 
-	queueTorrent(a, &core.Task{ID: "p1", URL: link, Dir: dir, Status: core.StatusQueued, Enabled: true})
-	waitFor(t, "the reason the torrent is not seeded", func() bool {
-		return strings.HasPrefix(liveTask(a, "p1").Note, "Not seeded: ")
-	})
+			queueTorrent(a, &core.Task{ID: "p1", URL: link, Dir: dir, Status: core.StatusQueued, Enabled: true})
+			waitFor(t, "the reason the torrent is not seeded", func() bool {
+				return strings.HasPrefix(liveTask(a, "p1").Note, "Not seeded: ")
+			})
 
-	got := liveTask(a, "p1")
-	if !strings.Contains(got.Note, "b.bin is missing") {
-		t.Errorf("the row says %q, want it to name the missing file", got.Note)
-	}
-	if got.Seeding || !got.SeedingOver || got.Status != core.StatusDone {
-		t.Errorf("the task is %s, seeding %v, over %v; want it done and not owing any seeding", got.Status, got.Seeding, got.SeedingOver)
-	}
-	if _, err := os.Stat(filepath.Join(dir, "Pack", "b.bin")); err == nil {
-		t.Error("the file the service did not deliver was fetched from the swarm")
+			got := liveTask(a, "p1")
+			if !strings.Contains(got.Note, c.want) {
+				t.Errorf("the row says %q, want it to say %q", got.Note, c.want)
+			}
+			if got.Seeding || !got.SeedingOver || got.Status != core.StatusDone {
+				t.Errorf("the task is %s, seeding %v, over %v; want it done and not owing any seeding", got.Status, got.Seeding, got.SeedingOver)
+			}
+			for name := range files {
+				b, err := os.ReadFile(filepath.Join(dir, "Pack", name))
+				want, delivered := held[name]
+				switch {
+				case !delivered && err == nil:
+					t.Errorf("%s, which the service did not deliver, was fetched from the swarm", name)
+				case delivered && !bytes.Equal(b, want):
+					t.Errorf("%s changed after the service delivered it (%v)", name, err)
+				}
+			}
+		})
 	}
 }
 

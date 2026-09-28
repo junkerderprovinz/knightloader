@@ -3054,7 +3054,7 @@ export const zh: Dict = {
   'settings.torrents.cachedOnly': '只把已缓存的种子交给 Debrid 服务',
   'settings.torrents.cachedOnlyHint': '开启后，KnightLoader 会先问 Debrid 服务是否已缓存这个种子。已缓存时，服务照常获取种子。未缓存时，即使服务本会接受，种子也会按账户页面上的优先顺序往下走，通常交给内置种子客户端。只有 TorBox 和 Premiumize.me 能回答这个问题。Real-Debrid、AllDebrid 和 Debrid-Link 没有提供询问的方式，所以开启期间它们收不到任何种子。检查失败或超过 15 秒，按未缓存处理。指定给某个 Debrid 服务的种子仍会交给它。',
   'settings.torrents.seedAfterDebrid': '为 Debrid 服务获取的内容做种',
-  'settings.torrents.seedAfterDebridHint': '开启后，经由 Debrid 服务获取的种子在全部文件到达这里后，会交给内置种子客户端。客户端按种子校验这些文件，并按本页的做种目标做种，这对交叉做种很有用。它不会为此下载任何内容。如果有文件缺失、大小不对或与种子不符，这个种子就不做种，它所在的行会说明原因。只有全部文件都已获取的种子才会做种。做种期间，你的地址会出现在种群中，和内置种子客户端的任何种子一样。',
+  'settings.torrents.seedAfterDebridHint': '开启后，经由 Debrid 服务获取的种子在全部文件到达这里后，会交给内置种子客户端，客户端按本页的做种目标为它们做种，这对交叉做种很有用。它不会为此下载任何内容。KnightLoader 先检查每个文件是否都在，且大小与种子所写一致。以 .torrent 文件添加的种子还会逐块校验，磁力链接不带这些块信息。有文件没通过检查时，这个种子就不做种，它所在的行会说明原因。做种期间，你的地址会出现在种群中，和内置种子客户端的任何种子一样。',
   'settings.access.tokens.name': '名称',
   'settings.modules.reason.keepawake': '只有桌面应用能让电脑保持唤醒。运行容器的那台机器自己决定什么时候睡眠。',
   'collector.filtered.reason.bannedTracker': '会向 {host} 通告，它在屏蔽的 Tracker 列表里',

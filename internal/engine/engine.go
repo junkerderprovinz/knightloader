@@ -349,6 +349,10 @@ type Job struct {
 	Seed     bool
 	SeedFrom core.TorrentStats
 	SeedMark core.SeedMark
+	// Verify checks every piece of a Seed job's files against the torrent
+	// before the library gets it, for files that did not come from the swarm
+	// (see seed.go).
+	Verify bool
 
 	// Collision is what to do when the resolved name is taken. Empty means no
 	// policy at all, unlike collide, where empty means Rename; the older entry

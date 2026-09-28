@@ -413,87 +413,54 @@ func notSeeded(t *testing.T, log *updateLog) core.Update {
 	return got
 }
 
-// A start only to seed fetches nothing: a file that is missing or short ends
-// it before the library is handed the torrent, with the reason, and leaves the
-// files as they were.
-func TestASeedStartWithAFileMissingOrShortSaysWhyAndFetchesNothing(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
-	}
+func TestThePieceCheckFindsFilesThatAreNotAsTheTorrentHasThem(t *testing.T) {
 	for _, c := range []struct {
 		name  string
-		file  string
-		spoil func(p string) error
+		spoil func(root string) error
 		want  string
 	}{
-		{"missing", "b.bin", os.Remove, "b.bin is missing"},
-		{"short", "a.bin", func(p string) error { return os.Truncate(p, 1000) }, "a.bin has 1000 bytes"},
+		{"whole", func(string) error { return nil }, ""},
+		{"missing", func(root string) error { return os.Remove(filepath.Join(root, "b.bin")) }, "b.bin is missing"},
+		{"short", func(root string) error { return os.Truncate(filepath.Join(root, "a.bin"), 1000) }, "a.bin has 1000 bytes"},
+		{"damaged", func(root string) error {
+			p := filepath.Join(root, "b.bin")
+			b, err := os.ReadFile(p)
+			if err != nil {
+				return err
+			}
+			b[len(b)/2] ^= 0xff
+			return os.WriteFile(p, b, 0o644)
+		}, "b.bin does not match the torrent"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			dir := t.TempDir()
 			uri, root := finishedTorrent(t, dir)
-			spoilt := filepath.Join(root, c.file)
-			if err := c.spoil(spoilt); err != nil {
+			if err := c.spoil(root); err != nil {
 				t.Fatal(err)
 			}
-			log := &updateLog{}
-			e, err := New(t.TempDir(), log.add)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer e.Close()
-
-			e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack",
-				Seed: true, SeedFrom: core.TorrentStats{Uploaded: 5000, Ratio: 0.5}})
-			defer e.Remove("s", false)
-
-			u := notSeeded(t, log)
-			if !strings.Contains(u.Torrent.NotSeeded, c.want) {
-				t.Errorf("NotSeeded = %q, want it to say %q", u.Torrent.NotSeeded, c.want)
-			}
-			if u.Torrent.Seeding || u.Torrent.Uploaded != 5000 {
-				t.Errorf("the run ended as %+v, want it over with the upload kept", u.Torrent)
-			}
-			for _, u := range log.snapshot() {
-				if u.Status != "" {
-					t.Errorf("a start only to seed reported the status %q", u.Status)
-				}
-			}
-			switch fi, err := os.Stat(spoilt); {
-			case c.name == "missing" && err == nil:
-				t.Error("the missing file was fetched again")
-			case c.name == "short" && (err != nil || fi.Size() != 1000):
-				t.Errorf("the short file was touched: %v", err)
+			err := seedPieces(dir, uri)
+			switch {
+			case c.want == "" && err != nil:
+				t.Errorf("whole files were refused: %v", err)
+			case c.want != "" && (err == nil || !strings.Contains(err.Error(), c.want)):
+				t.Errorf("the check said %v, want %q", err, c.want)
 			}
 		})
 	}
+	if err := seedPieces(t.TempDir(), "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a"); err != nil {
+		t.Errorf("a magnet link, which carries no pieces, was refused: %v", err)
+	}
 }
 
-// A file of the right size that does not match the torrent ends the seed run
-// once the library begins to fetch the damaged piece, rather than letting it
-// fetch the torrent back to whole and seed that.
-func TestASeedRunWithADamagedFileEndsInsteadOfFetchingIt(t *testing.T) {
-	testenv.RequireWideListener(t)
-	if raceEnabled {
-		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
-	}
-	files := map[string]int{"a.bin": 64 << 10, "b.bin": 64 << 10}
-	_, magnet := testenv.SeedTorrent(t, "Pack", files)
+// Files that did not come from the swarm are checked before the library gets
+// the torrent: a run for damaged ones ends with the reason, reports nothing
+// else and leaves the files exactly as they were.
+func TestASeedRunForDamagedFilesEndsBeforeTheLibraryTouchesThem(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "Pack")
-	if err := os.MkdirAll(root, 0o755); err != nil {
+	uri, root := finishedTorrent(t, dir)
+	short := filepath.Join(root, "a.bin")
+	if err := os.Truncate(short, 1000); err != nil {
 		t.Fatal(err)
-	}
-	// The seeder's own content, see testenv.SeedTorrent, with one byte wrong.
-	for p, size := range files {
-		data := bytes.Repeat([]byte(p), size/len(p)+1)[:size]
-		if p == "a.bin" {
-			data[100] ^= 0xff
-		}
-		if err := os.WriteFile(filepath.Join(root, p), data, 0o644); err != nil {
-			t.Fatal(err)
-		}
 	}
 	log := &updateLog{}
 	e, err := New(t.TempDir(), log.add)
@@ -502,16 +469,55 @@ func TestASeedRunWithADamagedFileEndsInsteadOfFetchingIt(t *testing.T) {
 	}
 	defer e.Close()
 
-	e.Start(Job{TaskID: "s", URL: magnet, Dir: dir, TorrentRoot: root, TorrentName: "Pack", Seed: true})
+	e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack",
+		Seed: true, Verify: true, SeedFrom: core.TorrentStats{Uploaded: 5000, Ratio: 0.5}})
 	defer e.Remove("s", false)
 
 	u := notSeeded(t, log)
-	if !strings.Contains(u.Torrent.NotSeeded, "a.bin does not match the torrent") {
-		t.Errorf("NotSeeded = %q, want it to name the damaged file", u.Torrent.NotSeeded)
+	if !strings.Contains(u.Torrent.NotSeeded, "a.bin has 1000 bytes") {
+		t.Errorf("NotSeeded = %q, want the short file named", u.Torrent.NotSeeded)
+	}
+	if u.Torrent.Seeding || u.Torrent.Uploaded != 5000 {
+		t.Errorf("the run ended as %+v, want it over with the upload kept", u.Torrent)
 	}
 	for _, u := range log.snapshot() {
-		if u.Torrent != nil && u.Torrent.Seeding {
-			t.Error("the torrent seeded after the library had fetched into it")
+		if u.Status != "" {
+			t.Errorf("a start only to seed reported the status %q", u.Status)
 		}
+	}
+	if fi, err := os.Stat(short); err != nil || fi.Size() != 1000 {
+		t.Errorf("the short file was touched: %v", err)
+	}
+}
+
+// A seed run found the magnet's files through the swarm, so it cannot check
+// the pieces first, but a missing file still ends it rather than being
+// fetched.
+func TestASeedRunWithAFileMissingSaysWhyAndFetchesNothing(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3's own bt.Fetcher has an internal data race; see TestARealMagnetPutsRealSwarmNumbersOnTheTask")
+	}
+	dir := t.TempDir()
+	uri, root := finishedTorrent(t, dir)
+	missing := filepath.Join(root, "b.bin")
+	if err := os.Remove(missing); err != nil {
+		t.Fatal(err)
+	}
+	log := &updateLog{}
+	e, err := New(t.TempDir(), log.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+
+	e.Start(Job{TaskID: "s", URL: uri, Dir: dir, TorrentRoot: root, TorrentName: "Pack", Seed: true})
+	defer e.Remove("s", false)
+
+	if u := notSeeded(t, log); !strings.Contains(u.Torrent.NotSeeded, "b.bin is missing") {
+		t.Errorf("NotSeeded = %q, want the missing file named", u.Torrent.NotSeeded)
+	}
+	if _, err := os.Stat(missing); err == nil {
+		t.Error("the missing file was fetched again")
 	}
 }

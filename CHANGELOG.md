@@ -63,17 +63,16 @@ release's tag.
   they get no torrents. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
 - **Seeding what a debrid service fetched.** "Seed what the debrid service
   fetched" hands a torrent to the built-in torrent client once all its files
-  are here. The client checks the files against the torrent and seeds them
-  under the seeding targets, which helps with cross-seeding. It downloads
-  nothing to do so: a torrent with a file missing, short or not matching is not
-  seeded, and its row says why. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+  are here, to seed under the seeding targets, which helps with cross-seeding.
+  It downloads nothing to do so. Every file has to be there at its full size,
+  and for a `.torrent` file every piece is checked too. A torrent that fails
+  is not seeded, and its row says why. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
 
 ### Improved
 
 - **A torrent taken up again to seed never fetches.** After a restart, or when
-  its files moved, a finished torrent whose files are missing or damaged stops
-  seeding with the reason on its row, rather than downloading the missing parts
-  again.
+  its files moved, a finished torrent with a file missing or cut short stops
+  seeding with the reason on its row, rather than downloading it again.
 
 ## [1.4.2] - 2026-09-28
 
