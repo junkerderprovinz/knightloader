@@ -81,6 +81,29 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <br>
 
+<div align="center">
+
+> # ⚠️ Under development: please do not install this yet
+>
+> **KnightLoader is not ready for anyone to run.** This repository is public so
+> the work can be followed and the browser extension can go through store
+> review.
+>
+> The releases, the container image and the downloads above exist so the builds
+> can be tested. KnightLoader is **not listed in Community Applications** yet. What
+> is here changes daily, including things that will break an existing setup without a migration path:
+> the storage format, the settings document, and the wire protocol instances
+> use to reach each other.
+>
+> **If you install it now, expect to lose your configuration and your queue.**
+> Nothing here is supported, and no upgrade path is promised yet.
+>
+> Watch the repository if you want to know when that changes.
+
+</div>
+
+<br>
+
 ## Table of Contents
 
 1. [Overview](#1-overview)
@@ -122,7 +145,7 @@ The table sets KnightLoader beside the programs people usually weigh it
 against. Every cell about another program comes from that program's own
 documentation, source code or forum as it stood in September 2026; if one has
 changed since, please open an issue. KnightLoader's column describes the code in this
-repository.
+repository, which is not ready to install yet (see the notice at the top).
 
 | | **KnightLoader** | [JDownloader 2](https://jdownloader.org/) | [pyLoad](https://pyload.net/) | [rdt-client](https://github.com/rogerfar/rdt-client) |
 |---|:---:|:---:|:---:|:---:|
