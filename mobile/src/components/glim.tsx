@@ -682,6 +682,7 @@ export function ReadmeButton({
       linux: c.text,
       zip: c.textSub,
       // Drawn in their own colours at rest; the value reaches no mark.
+      unraid: c.text,
       chrome: c.text,
       firefox: c.text,
     }[brand];

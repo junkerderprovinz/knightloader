@@ -183,6 +183,7 @@ export const el: Dict = {
   'settings.appsDesktopHint': 'Το KnightLoader ως πρόγραμμα στον υπολογιστή σου, με αυτή τη διεπαφή σε δικό της παράθυρο. Κατεβαίνει πάντα η πιο πρόσφατη έκδοση.',
   'settings.appsServer': 'Σε διακομιστή',
   'settings.appsServerHint': 'Σε διακομιστή το KnightLoader συνεχίζει να κατεβάζει ενώ αυτός ο υπολογιστής είναι κλειστός. Εγκατάστησέ το από τα Unraid Community Applications, τρέξε το ως Docker container ή χτίσε το από τον πηγαίο κώδικα.',
+  'settings.appsUnraidSub': 'Πρότυπο',
   'settings.appsDockerSub': 'Αντιγραφή εντολής',
   'settings.appsDockerHint': 'Ένα κλικ αντιγράφει την εντολή που ξεκινά το container:',
   'settings.appsCopied': 'Αντιγράφηκε',

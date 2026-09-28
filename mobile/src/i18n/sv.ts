@@ -183,6 +183,7 @@ export const sv: Dict = {
   'settings.appsDesktopHint': 'KnightLoader som ett program på din dator, med det här gränssnittet i ett eget fönster. Varje nedladdning är den senaste utgåvan.',
   'settings.appsServer': 'På en server',
   'settings.appsServerHint': 'På en server fortsätter KnightLoader att ladda ned medan den här datorn är avstängd. Installera det från Unraids Community Applications, kör det som en Docker-container eller bygg det från källkoden.',
+  'settings.appsUnraidSub': 'Mall',
   'settings.appsDockerSub': 'Kopiera kommandot',
   'settings.appsDockerHint': 'Ett klick kopierar kommandot som startar containern:',
   'settings.appsCopied': 'Kopierad',

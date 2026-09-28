@@ -183,6 +183,7 @@ export const lv: Dict = {
   'settings.appsDesktopHint': 'KnightLoader kā programma tavā datorā, ar šo saskarni savā logā. Katra lejupielāde ir jaunākais izlaidums.',
   'settings.appsServer': 'Serverī',
   'settings.appsServerHint': 'Serverī KnightLoader turpina lejupielādēt arī tad, kad šis dators ir izslēgts. Instalē to no Unraid Community Applications, palaid kā Docker konteineru vai uzbūvē no pirmkoda.',
+  'settings.appsUnraidSub': 'Veidne',
   'settings.appsDockerSub': 'Kopēt komandu',
   'settings.appsDockerHint': 'Klikšķis nokopē komandu, kas palaiž konteineru:',
   'settings.appsCopied': 'Nokopēts',

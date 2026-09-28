@@ -183,6 +183,7 @@ export const vi: Dict = {
   'settings.appsDesktopHint': 'KnightLoader dưới dạng một chương trình trên máy tính của bạn, với giao diện này trong một cửa sổ riêng. Mỗi lượt tải xuống đều là bản phát hành mới nhất.',
   'settings.appsServer': 'Trên máy chủ',
   'settings.appsServerHint': 'Trên máy chủ, KnightLoader vẫn tiếp tục tải khi máy tính này tắt. Hãy cài nó từ Community Applications của Unraid, chạy nó dưới dạng container Docker, hoặc dựng nó từ mã nguồn.',
+  'settings.appsUnraidSub': 'Mẫu',
   'settings.appsDockerSub': 'Sao chép lệnh',
   'settings.appsDockerHint': 'Một cú nhấp sẽ sao chép lệnh khởi động container:',
   'settings.appsCopied': 'Đã sao chép',

@@ -271,6 +271,7 @@ export const en = {
   'settings.appsDesktopHint': 'KnightLoader as a program on your computer, with this interface in a window of its own. Every download is the latest release.',
   'settings.appsServer': 'On a server',
   'settings.appsServerHint': 'On a server KnightLoader keeps downloading while this computer is off. Install it from Unraid’s Community Applications, run it as a Docker container, or build it from the source code.',
+  'settings.appsUnraidSub': 'Template',
   'settings.appsDockerSub': 'Copy command',
   'settings.appsDockerHint': 'A click copies the command that starts the container:',
   'settings.appsCopied': 'Copied',

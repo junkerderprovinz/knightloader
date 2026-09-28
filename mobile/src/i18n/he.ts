@@ -183,6 +183,7 @@ export const he: Dict = {
   'settings.appsDesktopHint': 'KnightLoader כתוכנה במחשב שלך, עם הממשק הזה בחלון משלו. כל הורדה היא הגרסה האחרונה.',
   'settings.appsServer': 'על שרת',
   'settings.appsServerHint': 'על שרת KnightLoader ממשיך להוריד גם כשהמחשב הזה כבוי. התקן אותו מ-Community Applications של Unraid, הרץ אותו כקונטיינר Docker, או בנה אותו מקוד המקור.',
+  'settings.appsUnraidSub': 'תבנית',
   'settings.appsDockerSub': 'העתקת הפקודה',
   'settings.appsDockerHint': 'לחיצה מעתיקה את הפקודה שמפעילה את הקונטיינר:',
   'settings.appsCopied': 'הועתק',

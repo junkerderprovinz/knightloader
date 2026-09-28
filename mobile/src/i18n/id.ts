@@ -183,6 +183,7 @@ export const id: Dict = {
   'settings.appsDesktopHint': 'KnightLoader sebagai program di komputermu, dengan antarmuka ini di jendelanya sendiri. Setiap unduhan adalah rilis terbaru.',
   'settings.appsServer': 'Di server',
   'settings.appsServerHint': 'Di server, KnightLoader terus mengunduh walaupun komputer ini mati. Pasang dari Community Applications di Unraid, jalankan sebagai kontainer Docker, atau bangun dari kode sumbernya.',
+  'settings.appsUnraidSub': 'Templat',
   'settings.appsDockerSub': 'Salin perintah',
   'settings.appsDockerHint': 'Satu klik menyalin perintah yang menjalankan kontainernya:',
   'settings.appsCopied': 'Disalin',

@@ -183,6 +183,7 @@ export const is: Dict = {
   'settings.appsDesktopHint': 'KnightLoader sem forrit á tölvunni þinni, með þetta viðmót í eigin glugga. Hvert niðurhal er nýjasta útgáfan.',
   'settings.appsServer': 'Á þjóni',
   'settings.appsServerHint': 'Á þjóni heldur KnightLoader áfram að sækja á meðan slökkt er á þessari tölvu. Settu það upp úr Community Applications í Unraid, keyrðu það sem Docker-gám eða smíðaðu það úr frumkóðanum.',
+  'settings.appsUnraidSub': 'Sniðmát',
   'settings.appsDockerSub': 'Afrita skipun',
   'settings.appsDockerHint': 'Einn smellur afritar skipunina sem ræsir gáminn:',
   'settings.appsCopied': 'Afritað',

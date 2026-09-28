@@ -12,13 +12,18 @@ Linux, Docker, Android, Google Play, Chrome and Firefox (`firefox-browser`) from
 the `brands` set, the ZIP (`file-zipper`) and the book (`book`) from the `solid` set. The icons are **CC BY 4.0**,
 which asks for attribution and nothing else. Copyright 2024 Fonticons, Inc.
 
+**Dashboard Icons** (`homarr-labs/dashboard-icons`, <https://dashboardicons.com>):
+Unraid, its `unraid.svg` with the gradient left out, since the button draws it
+in one ink. **Apache-2.0**, whose licence text is beside this file as
+`LICENSE-dashboard-icons.txt`. Copyright the Homarr Labs team and contributors.
+
 ## Trademarks
 
 Every platform mark here is a trademark of its owner. They are used the one way a
 trademark may be used without permission, which is to refer to the thing they
 name: each sits on a download button for that platform, unmodified, and nothing
 here claims endorsement by or affiliation with Microsoft, Apple, the Linux
-Foundation, Docker, Google or Mozilla. The ZIP and the book are no one's marks; they stand for
+Foundation, Docker, Google, Mozilla or Lime Technology. The ZIP and the book are no one's marks; they stand for
 the source archive and the manual.
 
 ## Adding one

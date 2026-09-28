@@ -183,6 +183,7 @@ export const ko: Dict = {
   'settings.appsDesktopHint': '컴퓨터에서 프로그램으로 실행하는 KnightLoader로, 이 화면이 전용 창에 열립니다. 언제 다운로드해도 최신 릴리스입니다.',
   'settings.appsServer': '서버에서',
   'settings.appsServerHint': '서버에서는 이 컴퓨터가 꺼져 있어도 KnightLoader가 계속 다운로드합니다. Unraid의 Community Applications에서 설치하거나, Docker 컨테이너로 실행하거나, 소스 코드에서 빌드하세요.',
+  'settings.appsUnraidSub': '템플릿',
   'settings.appsDockerSub': '명령 복사',
   'settings.appsDockerHint': '클릭하면 컨테이너를 시작하는 명령이 복사됩니다:',
   'settings.appsCopied': '복사됨',

@@ -183,6 +183,7 @@ export const tr: Dict = {
   'settings.appsDesktopHint': 'Bilgisayarında bir program olarak KnightLoader, bu arayüz de kendi penceresinde. Her indirme en yeni sürümdür.',
   'settings.appsServer': 'Bir sunucuda',
   'settings.appsServerHint': 'Bir sunucuda KnightLoader, bu bilgisayar kapalıyken de indirmeyi sürdürür. Unraid’in Community Applications bölümünden kur, Docker konteyneri olarak çalıştır ya da kaynak kodundan derle.',
+  'settings.appsUnraidSub': 'Şablon',
   'settings.appsDockerSub': 'Komutu kopyala',
   'settings.appsDockerHint': 'Bir tıklama, konteyneri başlatan komutu kopyalar:',
   'settings.appsCopied': 'Kopyalandı',
