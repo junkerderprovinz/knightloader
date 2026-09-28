@@ -593,9 +593,10 @@ export function MailMark({ open, color }: { open: boolean; color: string }) {
   );
 }
 
-/* The Apps card's marks, rendered from the ones the web interface's Apps page
+/* The Apps cards' marks, rendered from the ones the web interface's Apps page
  * draws: Windows, Apple and Docker from Dashboard Icons, Tux and the browsers'
- * one-ink marks from Simple Icons (CC0). */
+ * one-ink marks from Simple Icons (CC0), the ZIP from Font Awesome Free (CC BY
+ * 4.0). */
 
 export function WindowsMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/windows-mark.png')} color={color} style={styles.fill} />;
@@ -607,6 +608,10 @@ export function AppleMark({ color }: { color: string }) {
 
 export function DockerMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/docker-mark.png')} color={color} style={styles.fill} />;
+}
+
+export function ZipMark({ color }: { color: string }) {
+  return <Tinted source={require('../../assets/zip-mark.png')} color={color} style={styles.fill} />;
 }
 
 /** Tux takes the ink and keeps his yellow beak and feet, which on the pressed

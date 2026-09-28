@@ -52,10 +52,11 @@ release's tag.
   It downloads nothing to do so. Every file has to be there at its full size,
   and for a `.torrent` file every piece is checked too. A torrent that fails
   is not seeded, and its row says why. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
-- **The other versions in the Android app.** Its settings have an Apps card,
-  as the web interface has: the desktop app for Windows, macOS and Linux, with
-  the ARM64 builds beside the x64 ones, the container and the browser
-  extension, each leading to the latest release.
+- **The other versions in the Android app.** Its settings have the web
+  interface's Apps cards: the desktop app for Windows and Linux, each in x64
+  and ARM64, and macOS; on a server, a Docker button that copies the
+  `docker run` command and the source code as a ZIP; and the browser
+  extension.
 - **The privacy policy in the Android app.** The About card in its settings
   links to it.
 

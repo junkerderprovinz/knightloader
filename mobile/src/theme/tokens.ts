@@ -202,6 +202,7 @@ export type Brand =
   | 'apple'
   | 'linux'
   | 'docker'
+  | 'zip'
   | 'chrome'
   | 'firefox';
 
@@ -215,11 +216,12 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   bitcoin: { fill: '#f7931a', ink: '#161616' },
   paypal: { fill: '#003087', ink: '#ffffff' },
   github: { fill: '#181717', ink: '#ffffff' },
-  // The Apps card's platforms, in the web interface's tile colours.
+  // The Apps cards' platforms, in the web interface's tile colours.
   windows: { fill: '#0078d4', ink: '#ffffff' },
   apple: { fill: '#6e6e73', ink: '#ffffff' },
   linux: { fill: '#fcc624', ink: '#161616' },
   docker: { fill: '#1d63ed', ink: '#ffffff' },
+  zip: { fill: '#4d5562', ink: '#ffffff' },
   chrome: { fill: '#1a73e8', ink: '#ffffff' },
   firefox: { fill: '#ff7139', ink: '#ffffff' },
 };

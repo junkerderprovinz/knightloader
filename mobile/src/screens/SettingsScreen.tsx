@@ -39,6 +39,7 @@ import IconBadge, {
   PayPal,
   Trash,
   WindowsMark,
+  ZipMark,
 } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -58,8 +59,7 @@ const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTU
 const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
 
 // The README's download links (scripts/download_buttons.py). A file under
-// /releases/latest/download/ is always the newest release's, and the container
-// has no file a phone could fetch, so its button opens the package page.
+// /releases/latest/download/ is always the newest release's.
 const RELEASE = `${REPO_URL}/releases/latest/download/knightloader-`;
 const APP_URLS = {
   windows: `${RELEASE}windows-amd64-installer.exe`,
@@ -67,9 +67,26 @@ const APP_URLS = {
   macos: `${RELEASE}macos-universal.zip`,
   linux: `${RELEASE}linux-amd64.zip`,
   linuxArm: `${RELEASE}linux-arm64.zip`,
-  docker: `${REPO_URL}/pkgs/container/knightloader`,
   extension: `${RELEASE}extension.zip`,
 };
+
+/** The source of this app's version where it is a release, the newest
+ *  otherwise, as the web's server card offers it. */
+function sourceZip(version: string): string {
+  return /^\d+\.\d+\.\d+$/.test(version)
+    ? `${REPO_URL}/archive/refs/tags/v${version}.zip`
+    : `${REPO_URL}/archive/refs/heads/main.zip`;
+}
+
+/** The web's server card's docker run on one line, in the phone's time zone. */
+function dockerRun(): string {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return (
+    'docker run -d --name knightloader --restart unless-stopped -p 8749:8749 ' +
+    '-v /path/to/appdata:/data -v /path/to/downloads:/data/downloads -v /path/to/watch:/watch ' +
+    `-e TZ=${zone} ghcr.io/junkerderprovinz/knightloader:latest`
+  );
+}
 
 /** The shape picker's words. Soft's key says what the shape is rather than
  *  repeating the English word, so a translation starts from the meaning. */
@@ -278,6 +295,14 @@ export default function SettingsScreen({
   /** Whether the crypto window is open. */
   const [donating, setDonating] = useState(false);
   const [coffee, setCoffee] = useState(false);
+  /** True for a moment after the docker run command reached the clipboard,
+   *  which the Docker button's second line says. */
+  const [dockerCopied, setDockerCopied] = useState(false);
+  useEffect(() => {
+    if (!dockerCopied) return;
+    const id = setTimeout(() => setDockerCopied(false), 1800);
+    return () => clearTimeout(id);
+  }, [dockerCopied]);
 
   return (
     <MovingScroll style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
@@ -667,12 +692,12 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
-      {/* The other ways to run KnightLoader, in the web interface's Apps page
-          order and under its card names. This app is one of them and is not
-          offered here. hue={6}, the next free position, so the cards around it
-          keep their colours. */}
-      <NotchCard title={t('settings.apps')} hue={6} info={t('settings.appsHint')}>
-        <Text style={[styles.axisLabel, styles.first, { color: c.textSub }]}>{t('settings.appsDesktop')}</Text>
+      {/* The other ways to run KnightLoader, as the web interface's Apps page
+          offers them, under its card names and hints. This app is one of them
+          and is not offered here, and Unraid joins once KnightLoader is listed
+          there. Positions 6 to 8 are the next free ones, so the cards around
+          them keep their colours. */}
+      <NotchCard title={t('settings.appsDesktop')} hue={6} info={t('settings.appsDesktopHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="windows"
@@ -680,7 +705,13 @@ export default function SettingsScreen({
             sub="x64"
             mark={({ mark }) => <WindowsMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.windows)}
-            segments={[{ label: 'Windows', sub: 'ARM64', onPress: () => Linking.openURL(APP_URLS.windowsArm) }]}
+          />
+          <ReadmeButton
+            brand="windows"
+            label="ARM64"
+            sub="Windows"
+            mark={({ mark }) => <WindowsMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.windowsArm)}
           />
           <ReadmeButton
             brand="apple"
@@ -695,23 +726,47 @@ export default function SettingsScreen({
             sub="x64"
             mark={({ mark }) => <LinuxMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.linux)}
-            segments={[{ label: 'Linux', sub: 'ARM64', onPress: () => Linking.openURL(APP_URLS.linuxArm) }]}
+          />
+          <ReadmeButton
+            brand="linux"
+            label="ARM64"
+            sub="Linux"
+            mark={({ mark }) => <LinuxMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.linuxArm)}
           />
         </View>
-        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.appsServer')}</Text>
+      </NotchCard>
+
+      <NotchCard title={t('settings.appsServer')} hue={7} info={t('settings.appsServerHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="docker"
             label="Docker"
-            sub={t('settings.appsContainer')}
+            sub={dockerCopied ? t('settings.appsCopied') : t('settings.appsDockerSub')}
+            hint={`${t('settings.appsDockerHint')} ${dockerRun()}`}
             mark={({ mark }) => <DockerMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.docker)}
+            // A failed write leaves the label as it was; the command is still
+            // in the (i).
+            onPress={() =>
+              void Clipboard.setStringAsync(dockerRun())
+                .then(() => setDockerCopied(true))
+                .catch(() => undefined)
+            }
+          />
+          <ReadmeButton
+            brand="zip"
+            label={t('settings.appsSource')}
+            sub={t('settings.appsZip')}
+            mark={({ mark }) => <ZipMark color={mark} />}
+            onPress={() => Linking.openURL(sourceZip(Constants.expoConfig?.version ?? ''))}
           />
         </View>
-        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.appsExtension')}</Text>
-        {/* One package for every Chromium browser, as on the README. Firefox
-            takes only an add-on Mozilla has signed, which comes with the
-            listing. */}
+      </NotchCard>
+
+      {/* One package for every Chromium browser, as on the README. Firefox
+          takes only an add-on Mozilla has signed, which comes with the
+          listing. */}
+      <NotchCard title={t('settings.appsExtension')} hue={8}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="chrome"
@@ -948,9 +1003,6 @@ const styles = StyleSheet.create({
   // release, so proportional digits make the middle dot wander between builds.
   aboutVersions: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
   privacy: { marginTop: 6, alignSelf: 'flex-start' },
-  // A group label at the top of a card, where the card's own padding is the
-  // space above it.
-  first: { marginTop: 0 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },
