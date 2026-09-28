@@ -37,6 +37,13 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-09-28
+
+### Fixed
+
+- **The coffee window in the app scrolls.** The window swallowed the swipe,
+  so the payment form below the first screen could not be reached.
+
 ## [1.4.1] - 2026-09-28
 
 ### Added
