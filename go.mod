@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
-	github.com/anacrolix/torrent v1.61.1-0.20260525011549-eda2204d2568 // BEP 27 private-torrent DHT/PEX fix (upstream PR #1053) - do not downgrade below this commit, see settings_torrent.go's DHTEnabled doc comment
+	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // BEP 27 private-torrent DHT/PEX fix (upstream PR #1053, see settings_torrent.go's DHTEnabled doc comment) and the fix for a lost peer-writer wakeup that stalls a download at zero bytes (upstream #1070); do not downgrade below this commit
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
@@ -38,15 +38,15 @@ require (
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/anacrolix/btree v0.1.1 // indirect
-	github.com/anacrolix/chansync v0.7.0 // indirect
-	github.com/anacrolix/dht/v2 v2.23.0 // indirect
+	github.com/anacrolix/chansync v0.8.0 // indirect
+	github.com/anacrolix/dht/v2 v2.23.1-0.20260525063928-ec3a9bd99456 // indirect
 	github.com/anacrolix/envpprof v1.5.0 // indirect
 	github.com/anacrolix/generics v0.2.0 // indirect
-	github.com/anacrolix/go-libutp v1.3.2 // indirect
+	github.com/anacrolix/go-libutp v1.5.0 // indirect
 	github.com/anacrolix/log v0.17.1-0.20251118025802-918f1157b7bb // indirect
 	github.com/anacrolix/missinggo v1.3.0 // indirect
 	github.com/anacrolix/missinggo/perf v1.0.0 // indirect
-	github.com/anacrolix/missinggo/v2 v2.10.0 // indirect
+	github.com/anacrolix/missinggo/v2 v2.11.0 // indirect
 	github.com/anacrolix/mmsg v1.1.1 // indirect
 	github.com/anacrolix/multiless v0.4.0 // indirect
 	github.com/anacrolix/stm v0.5.0 // indirect
