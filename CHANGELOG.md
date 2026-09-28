@@ -37,21 +37,6 @@ release's tag.
 
 ## [Unreleased]
 
-### Fixed
-
-- **The desktop app's JDownloader stays out of sight.** It opened its own
-  window and its update dialogs, because on a desktop it was started without
-  being told to run headless. It runs without a window now, as in
-  the container.
-- **The desktop app's window opens at once.** It waited until JDownloader
-  answered, which on the first start takes minutes while JDownloader
-  downloads and updates itself. JDownloader comes up in the background now
-  and joins when it is ready.
-- **No console windows on Windows.** Java, yt-dlp, ffmpeg, the tool checks
-  and the programs set to run on events each opened an empty console window
-  next to the desktop app.
-- **Closing the desktop app stops its JDownloader.** It kept running without
-  the app and held its port against the next start.
 ### Added
 
 - **Only cached torrents to a debrid service, if you like.** With "Send only
@@ -73,6 +58,22 @@ release's tag.
 - **A torrent taken up again to seed never fetches.** After a restart, or when
   its files moved, a finished torrent with a file missing or cut short stops
   seeding with the reason on its row, rather than downloading it again.
+
+### Fixed
+
+- **The desktop app's JDownloader stays out of sight.** It opened its own
+  window and its update dialogs, because on a desktop it was started without
+  being told to run headless. It runs without a window now, as in
+  the container. ([#58](https://github.com/junkerderprovinz/knightloader/issues/58))
+- **The desktop app's window opens at once.** It waited until JDownloader
+  answered, which on the first start takes minutes while JDownloader
+  downloads and updates itself. JDownloader comes up in the background now
+  and joins when it is ready. ([#58](https://github.com/junkerderprovinz/knightloader/issues/58))
+- **No console windows on Windows.** Java, yt-dlp, ffmpeg, the tool checks
+  and the programs set to run on events each opened an empty console window
+  next to the desktop app.
+- **Closing the desktop app stops its JDownloader.** It kept running without
+  the app and held its port against the next start.
 
 ## [1.4.2] - 2026-09-28
 
