@@ -24,7 +24,22 @@ import {
   UnavailableNotice,
   WellSelector,
 } from '../components/glim';
-import IconBadge, { Back, BitcoinLetter, CoffeeArt, Github, MailMark, Paste, PayPal, Trash } from '../components/IconBadge';
+import IconBadge, {
+  AppleMark,
+  Back,
+  BitcoinLetter,
+  ChromeMark,
+  CoffeeArt,
+  DockerMark,
+  FirefoxMark,
+  Github,
+  LinuxMark,
+  MailMark,
+  Paste,
+  PayPal,
+  Trash,
+  WindowsMark,
+} from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CoffeeDonate } from '../components/CoffeeDonate';
@@ -40,6 +55,21 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 // PayPal's hosted donation button, the address the web UI's About card and the
 // README's donate row use.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
+const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
+
+// The README's download links (scripts/download_buttons.py). A file under
+// /releases/latest/download/ is always the newest release's, and the container
+// has no file a phone could fetch, so its button opens the package page.
+const RELEASE = `${REPO_URL}/releases/latest/download/knightloader-`;
+const APP_URLS = {
+  windows: `${RELEASE}windows-amd64-installer.exe`,
+  windowsArm: `${RELEASE}windows-arm64-installer.exe`,
+  macos: `${RELEASE}macos-universal.zip`,
+  linux: `${RELEASE}linux-amd64.zip`,
+  linuxArm: `${RELEASE}linux-arm64.zip`,
+  docker: `${REPO_URL}/pkgs/container/knightloader`,
+  extension: `${RELEASE}extension.zip`,
+};
 
 /** The shape picker's words. Soft's key says what the shape is rather than
  *  repeating the English word, so a translation starts from the meaning. */
@@ -637,6 +667,63 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
+      {/* The other ways to run KnightLoader, in the web interface's Apps page
+          order and under its card names. This app is one of them and is not
+          offered here. hue={6}, the next free position, so the cards around it
+          keep their colours. */}
+      <NotchCard title={t('settings.apps')} hue={6} info={t('settings.appsHint')}>
+        <Text style={[styles.axisLabel, styles.first, { color: c.textSub }]}>{t('settings.appsDesktop')}</Text>
+        <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="windows"
+            label="Windows"
+            sub="x64"
+            mark={({ mark }) => <WindowsMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.windows)}
+            segments={[{ label: 'Windows', sub: 'ARM64', onPress: () => Linking.openURL(APP_URLS.windowsArm) }]}
+          />
+          <ReadmeButton
+            brand="apple"
+            label="macOS"
+            sub="Universal"
+            mark={({ mark }) => <AppleMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.macos)}
+          />
+          <ReadmeButton
+            brand="linux"
+            label="Linux"
+            sub="x64"
+            mark={({ mark }) => <LinuxMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.linux)}
+            segments={[{ label: 'Linux', sub: 'ARM64', onPress: () => Linking.openURL(APP_URLS.linuxArm) }]}
+          />
+        </View>
+        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.appsServer')}</Text>
+        <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="docker"
+            label="Docker"
+            sub={t('settings.appsContainer')}
+            mark={({ mark }) => <DockerMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.docker)}
+          />
+        </View>
+        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.appsExtension')}</Text>
+        {/* One package for every Chromium browser, as on the README. Firefox
+            takes only an add-on Mozilla has signed, which comes with the
+            listing. */}
+        <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="chrome"
+            label="Chrome"
+            sub="Edge, Brave"
+            mark={({ mark, lit }) => <ChromeMark lit={lit} color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.extension)}
+          />
+          <ReadmeButton brand="firefox" label="Firefox" soon={t('settings.appsSoon')} mark={() => <FirefoxMark />} />
+        </View>
+      </NotchCard>
+
       {/* The About card carries the versions and the ways to report something.
           It is the one card in the family whose body is prose rather than an
           info bubble, because it has no control to explain and the sentence is
@@ -735,6 +822,15 @@ export default function SettingsScreen({
           >
             {GLIMSTONE_VERSION}
           </Text>
+        </Text>
+        {/* A line of its own: beside the two numbers it wraps on a narrow phone
+            in the languages with a long word for it. */}
+        <Text
+          style={[styles.aboutVersions, styles.privacy, { color: accentInk }]}
+          accessibilityRole="link"
+          onPress={() => Linking.openURL(PRIVACY_URL)}
+        >
+          {t('settings.privacyPolicy')}
         </Text>
       </NotchCard>
 
@@ -851,6 +947,10 @@ const styles = StyleSheet.create({
   // version numbers on one line, each of them a number that changes with every
   // release, so proportional digits make the middle dot wander between builds.
   aboutVersions: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
+  privacy: { marginTop: 6, alignSelf: 'flex-start' },
+  // A group label at the top of a card, where the card's own padding is the
+  // space above it.
+  first: { marginTop: 0 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },

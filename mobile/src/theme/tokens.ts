@@ -92,6 +92,8 @@ export interface Palette {
   brandBitcoin: string;
   brandPaypal: string;
   brandGithub: string;
+  brandWindows: string;
+  brandDocker: string;
 }
 
 // Ground and surfaces are IBM Carbon's neutral greys rather than a warm
@@ -138,6 +140,9 @@ export const DARK: Palette = {
   brandBitcoin: '#f7931a',
   brandPaypal: '#4fb5f0',
   brandGithub: '#ffffff',
+  // 3.1 and 3.7 to 1, the web interface's values.
+  brandWindows: '#2b88d8',
+  brandDocker: '#2396ed',
 };
 
 // Carbon's light greys, mirroring the dark ramp step for step.
@@ -182,9 +187,23 @@ export const LIGHT: Palette = {
   brandBitcoin: '#a85d00',
   brandPaypal: '#003087',
   brandGithub: '#181717',
+  // 3.7 and 4.2 to 1. Docker's lighter blue, which the dark theme takes,
+  // measures 2.6 here, so this is the deeper one from its own tile.
+  brandWindows: '#0078d4',
+  brandDocker: '#1d63ed',
 };
 
-export type Brand = 'coffee' | 'bitcoin' | 'paypal' | 'github';
+export type Brand =
+  | 'coffee'
+  | 'bitcoin'
+  | 'paypal'
+  | 'github'
+  | 'windows'
+  | 'apple'
+  | 'linux'
+  | 'docker'
+  | 'chrome'
+  | 'firefox';
 
 /**
  * Each brand's true colour and the ink measured on it. The same in both themes,
@@ -196,6 +215,13 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   bitcoin: { fill: '#f7931a', ink: '#161616' },
   paypal: { fill: '#003087', ink: '#ffffff' },
   github: { fill: '#181717', ink: '#ffffff' },
+  // The Apps card's platforms, in the web interface's tile colours.
+  windows: { fill: '#0078d4', ink: '#ffffff' },
+  apple: { fill: '#6e6e73', ink: '#ffffff' },
+  linux: { fill: '#fcc624', ink: '#161616' },
+  docker: { fill: '#1d63ed', ink: '#ffffff' },
+  chrome: { fill: '#1a73e8', ink: '#ffffff' },
+  firefox: { fill: '#ff7139', ink: '#ffffff' },
 };
 
 /**
