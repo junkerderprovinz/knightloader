@@ -132,6 +132,21 @@ export const IconInstances = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Two chain links, for pairing instances into one group. */
+export const IconLink = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M6 6h4.5a4 4 0 0 1 0 8H9v-2h1.5a2 2 0 0 0 0-4H6a2 2 0 0 0 0 4h.2v2H6a4 4 0 0 1 0-8Z"
+    />
+    <path
+      fillRule="evenodd"
+      d="M14 14H9.5a4 4 0 0 1 0-8H11v2H9.5a2 2 0 0 0 0 4H14a2 2 0 0 0 0-4h-.2V6h.2a4 4 0 0 1 0 8Z"
+      opacity=".7"
+    />
+  </svg>
+);
+
 export const IconAccounts = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <circle cx="10" cy="6.5" r="3.2" />
