@@ -4,14 +4,97 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
+
+const pairingPassword = "a-good-password"
+
+// pairingServer is a test server with the login password pairing needs, and
+// an API token its calls sign in with. The relay is off, so nothing dials the
+// project relay.
+func pairingServer(t *testing.T) (*httptest.Server, *app.App, string) {
+	t.Helper()
+	srv, a := testServer(t)
+	t.Cleanup(srv.Close)
+	cfg := a.Settings.Get()
+	cfg.RelayMode = settings.RelayModeOff
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Auth.SetPassword("", pairingPassword); err != nil {
+		t.Fatal(err)
+	}
+	_, token, err := a.APITokens.Create("pairing test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return srv, a, token
+}
+
+// call sends a JSON body signed in with token and returns the status and the
+// raw response.
+func call(t *testing.T, token, method, url string, body any) (int, []byte) {
+	t.Helper()
+	var r io.Reader
+	if body != nil {
+		b, err := json.Marshal(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		r = bytes.NewReader(b)
+	}
+	req, err := http.NewRequest(method, url, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, out
+}
+
+func connectInfoOf(t *testing.T, token, base string) ConnectInfo {
+	t.Helper()
+	code, body := call(t, token, http.MethodGet, base+"/api/connect", nil)
+	if code != http.StatusOK {
+		t.Fatalf("GET /api/connect answered %d: %s", code, body)
+	}
+	var info ConnectInfo
+	if err := json.Unmarshal(body, &info); err != nil {
+		t.Fatal(err)
+	}
+	return info
+}
+
+func activate(t *testing.T, token, base string) string {
+	t.Helper()
+	code, body := call(t, token, http.MethodPost, base+"/api/connect/activate", nil)
+	if code != http.StatusOK {
+		t.Fatalf("activate answered %d: %s", code, body)
+	}
+	var out struct {
+		Phrase string `json:"phrase"`
+	}
+	if err := json.Unmarshal(body, &out); err != nil {
+		t.Fatal(err)
+	}
+	return out.Phrase
+}
 
 func TestConnectStartsInactive(t *testing.T) {
 	t.Parallel()
@@ -36,11 +119,14 @@ func TestConnectStartsInactive(t *testing.T) {
 	if info.SelfHosted {
 		t.Error("a fresh instance reports a self-hosted relay")
 	}
+	if info.Members == nil {
+		t.Error("members is null rather than an empty list")
+	}
 }
 
 // TestConnectNamesTheProjectRelayInEveryMode checks that the project relay's
 // address is answered while another relay, or none, is in use, since the
-// project relay card names it before anybody switches to it.
+// relay card names it before anybody switches to it.
 func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
@@ -69,14 +155,42 @@ func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 	}
 }
 
-// TestActivateReturnsAUsablePhrase checks that activation hands back a phrase
-// that decodes and stores the matching secret.
-func TestActivateReturnsAUsablePhrase(t *testing.T) {
+// TestPairingNeedsALoginPassword checks that without a login password the
+// phrase can be neither generated, entered nor shown, and that the refusal
+// carries a code the page can put into words.
+func TestPairingNeedsALoginPassword(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
+	const phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+	for _, c := range []struct {
+		path string
+		body any
+	}{
+		{"/api/connect/activate", nil},
+		{"/api/connect/join", map[string]string{"phrase": phrase}},
+		{"/api/connect/reveal", map[string]string{"password": ""}},
+	} {
+		code, body := postJSON(t, http.MethodPost, srv.URL+c.path, c.body)
+		var out struct{ Code string }
+		_ = json.Unmarshal(body, &out)
+		if code != http.StatusForbidden || out.Code != "needsPassword" {
+			t.Errorf("%s answered %d %s, want %d needsPassword", c.path, code, body, http.StatusForbidden)
+		}
+	}
+	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored != "" {
+		t.Fatalf("a refused call stored a secret: %q", stored)
+	}
+}
+
+// TestActivateReturnsAUsablePhrase checks that activation hands back a phrase
+// that decodes and stores the matching secret.
+func TestActivateReturnsAUsablePhrase(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+
+	code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/activate", nil)
 	if code != http.StatusOK {
 		t.Fatalf("activate answered %d: %s", code, body)
 	}
@@ -105,13 +219,10 @@ func TestActivateReturnsAUsablePhrase(t *testing.T) {
 // joined with the old phrase.
 func TestActivateRefusesToReplaceAnExistingPhrase(t *testing.T) {
 	t.Parallel()
-	srv, _ := testServer(t)
-	defer srv.Close()
+	srv, _, token := pairingServer(t)
 
-	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
-		t.Fatalf("first activate answered %d: %s", code, body)
-	}
-	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
+	activate(t, token, srv.URL)
+	code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/activate", nil)
 	var out struct{ Code string }
 	_ = json.Unmarshal(body, &out)
 	if code != http.StatusConflict || out.Code != "phraseExists" {
@@ -119,24 +230,15 @@ func TestActivateRefusesToReplaceAnExistingPhrase(t *testing.T) {
 	}
 }
 
-// TestJoinAcceptsAPhraseFromElsewhere checks that a phrase minted on one
+// TestJoinAcceptsAPhraseFromElsewhere checks that a phrase generated on one
 // instance leaves another holding the same secret.
 func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 	t.Parallel()
-	first, firstApp := testServer(t)
-	defer first.Close()
-	second, secondApp := testServer(t)
-	defer second.Close()
+	first, firstApp, firstToken := pairingServer(t)
+	second, secondApp, secondToken := pairingServer(t)
 
-	_, body := postJSON(t, http.MethodPost, first.URL+"/api/connect/activate", nil)
-	var out struct {
-		Phrase string `json:"phrase"`
-	}
-	if err := json.Unmarshal(body, &out); err != nil {
-		t.Fatal(err)
-	}
-
-	if code, body := postJSON(t, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": out.Phrase}); code != http.StatusOK {
+	phrase := activate(t, firstToken, first.URL)
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/join", map[string]string{"phrase": phrase}); code != http.StatusOK {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 
@@ -151,8 +253,7 @@ func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 // as a reason plus details the browser can put into the user's language.
 func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	t.Parallel()
-	srv, _ := testServer(t)
-	defer srv.Close()
+	srv, _, token := pairingServer(t)
 
 	const valid = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 	for _, tc := range []struct {
@@ -184,7 +285,7 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/join", map[string]string{"phrase": tc.phrase})
+			code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/join", map[string]string{"phrase": tc.phrase})
 			if code != http.StatusBadRequest {
 				t.Fatalf("join answered %d, want %d: %s", code, http.StatusBadRequest, body)
 			}
@@ -218,85 +319,38 @@ func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	}
 }
 
-// TestRevealWithoutAPasswordJustAnswers covers an instance without a password,
-// where there is nothing to re-enter.
-func TestRevealWithoutAPasswordJustAnswers(t *testing.T) {
-	t.Parallel()
-	srv, _ := testServer(t)
-	defer srv.Close()
-
-	_, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
-	var minted struct {
-		Phrase string `json:"phrase"`
-	}
-	if err := json.Unmarshal(body, &minted); err != nil {
-		t.Fatal(err)
-	}
-
-	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
-	if code != http.StatusOK {
-		t.Fatalf("reveal answered %d: %s", code, body)
-	}
-	var shown struct {
-		Phrase string `json:"phrase"`
-	}
-	if err := json.Unmarshal(body, &shown); err != nil {
-		t.Fatal(err)
-	}
-	if shown.Phrase != minted.Phrase {
-		t.Fatalf("reveal returned a different phrase:\nminted: %q\nshown:  %q", minted.Phrase, shown.Phrase)
-	}
-}
-
-// TestRevealNeedsThePasswordEvenWithASession checks that a session alone does
-// not show the phrase once a password is set, since the phrase reaches every
+// TestRevealNeedsThePasswordEvenWithASession checks that being signed in is
+// not enough to show the phrase again, since the phrase reaches every
 // instance in the group.
 func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
+	srv, _, token := pairingServer(t)
+	minted := activate(t, token, srv.URL)
 
-	if _, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); len(body) == 0 {
-		t.Fatal("activate returned nothing")
-	}
-	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
-		t.Fatal(err)
-	}
-	_, secret, err := a.APITokens.Create("test script")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// The token passes the session guard, yet the password is still required.
 	for _, c := range []struct {
 		name string
-		body map[string]string
+		body any
 		want int
 	}{
 		{"no password", nil, http.StatusForbidden},
 		{"wrong password", map[string]string{"password": "not-it"}, http.StatusForbidden},
-		{"right password", map[string]string{"password": "a-good-password"}, http.StatusOK},
+		{"right password", map[string]string{"password": pairingPassword}, http.StatusOK},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			if c.body != nil {
-				_ = json.NewEncoder(&buf).Encode(c.body)
+			code, out := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", c.body)
+			if code != c.want {
+				t.Fatalf("reveal answered %d, want %d: %s", code, c.want, out)
 			}
-			req, _ := http.NewRequest(http.MethodPost, srv.URL+"/api/connect/reveal", &buf)
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+secret)
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				t.Fatal(err)
+			var answer struct {
+				Code   string
+				Phrase string
 			}
-			defer resp.Body.Close()
-			if resp.StatusCode != c.want {
-				t.Fatalf("reveal answered %d, want %d", resp.StatusCode, c.want)
+			_ = json.Unmarshal(out, &answer)
+			if c.want == http.StatusForbidden && answer.Code != "passwordWrong" {
+				t.Errorf("the refusal carries the code %q, want passwordWrong", answer.Code)
 			}
-			var out struct{ Code string }
-			_ = json.NewDecoder(resp.Body).Decode(&out)
-			if c.want == http.StatusForbidden && out.Code != "passwordWrong" {
-				t.Errorf("the refusal carries the code %q, want passwordWrong", out.Code)
+			if c.want == http.StatusOK && answer.Phrase != minted {
+				t.Errorf("reveal returned a different phrase:\nminted: %q\nshown:  %q", minted, answer.Phrase)
 			}
 		})
 	}
@@ -304,10 +358,10 @@ func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 
 func TestRevealWithNoPhraseIs404(t *testing.T) {
 	t.Parallel()
-	srv, _ := testServer(t)
-	defer srv.Close()
+	srv, _, token := pairingServer(t)
 
-	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/reveal", nil); code != http.StatusNotFound {
+	code, _ := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", map[string]string{"password": pairingPassword})
+	if code != http.StatusNotFound {
 		t.Fatalf("reveal on an instance with no phrase answered %d, want 404", code)
 	}
 }
@@ -316,22 +370,12 @@ func TestRevealWithNoPhraseIs404(t *testing.T) {
 // click, which is not an error.
 func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
-		t.Fatal("activate failed")
-	}
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
 
 	for i := 0; i < 2; i++ {
-		req, _ := http.NewRequest(http.MethodDelete, srv.URL+"/api/connect", nil)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatal(err)
-		}
-		resp.Body.Close()
-		if resp.StatusCode != http.StatusNoContent {
-			t.Fatalf("delete #%d answered %d, want 204", i+1, resp.StatusCode)
+		if code, body := call(t, token, http.MethodDelete, srv.URL+"/api/connect", nil); code != http.StatusNoContent {
+			t.Fatalf("delete #%d answered %d, want 204: %s", i+1, code, body)
 		}
 	}
 	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored != "" {
@@ -339,15 +383,109 @@ func TestDeleteForgetsTheSecretAndIsIdempotent(t *testing.T) {
 	}
 }
 
+// TestConnectCountsFromWhenThisInstanceJoined checks that a new group reports
+// how long it has waited with nobody seen, and that leaving starts over.
+func TestConnectCountsFromWhenThisInstanceJoined(t *testing.T) {
+	t.Parallel()
+	srv, _, token := pairingServer(t)
+
+	if info := connectInfoOf(t, token, srv.URL); info.JoinedAgo != 0 || info.MemberSeen {
+		t.Fatalf("outside a group: joinedAgo %d, memberSeen %v", info.JoinedAgo, info.MemberSeen)
+	}
+	activate(t, token, srv.URL)
+	info := connectInfoOf(t, token, srv.URL)
+	if !info.Active || info.JoinedAgo < 0 || info.JoinedAgo > 5 {
+		t.Fatalf("right after generating: active %v, joinedAgo %d", info.Active, info.JoinedAgo)
+	}
+	if info.MemberSeen || len(info.Members) != 0 {
+		t.Fatalf("a new group reports a member: %+v", info)
+	}
+	if info.Name == "" {
+		t.Error("no name for this instance")
+	}
+
+	call(t, token, http.MethodDelete, srv.URL+"/api/connect", nil)
+	if info := connectInfoOf(t, token, srv.URL); info.Active || info.JoinedAgo != 0 {
+		t.Fatalf("after leaving: active %v, joinedAgo %d", info.Active, info.JoinedAgo)
+	}
+}
+
+// TestConnectRemembersThatAMemberCame checks that an instance seen on the
+// relay is listed while it is there and counted as having come after it
+// leaves, which tells "gone for now" from "never came".
+func TestConnectRemembersThatAMemberCame(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
+
+	// After activate, whose applyRelay would replace the transport.
+	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
+		{InstanceID: "id-office", Name: "office"},
+		{InstanceID: "id-phone", Name: "KnightLoader app", Client: true},
+	}})
+	info := connectInfoOf(t, token, srv.URL)
+	if len(info.Members) != 1 || info.Members[0].ID != "id-office" || info.Members[0].Name != "office" {
+		t.Fatalf("members = %+v, want the office instance and not the phone", info.Members)
+	}
+	if !info.MemberSeen {
+		t.Error("memberSeen is false with a member there")
+	}
+
+	a.Federation.SetRelay(nil)
+	info = connectInfoOf(t, token, srv.URL)
+	if len(info.Members) != 0 || !info.MemberSeen {
+		t.Fatalf("after the member left: members %+v, memberSeen %v", info.Members, info.MemberSeen)
+	}
+}
+
+// TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart checks that a stored
+// secret with no joining time counts as joined when the instance starts, so
+// its page waits a minute before it says nobody came.
+func TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	a, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	secret, _, err := seedphrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+		t.Fatal(err)
+	}
+
+	srv := httptest.NewServer(Handler(a))
+	defer srv.Close()
+	resp, err := http.Get(srv.URL + "/api/connect")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var info ConnectInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		t.Fatal(err)
+	}
+	if !info.Active || info.JoinedAgo > 5 || info.MemberSeen {
+		t.Fatalf("at start: active %v, joinedAgo %d, memberSeen %v", info.Active, info.JoinedAgo, info.MemberSeen)
+	}
+	if st, _ := a.Federation.Group(nil, time.Now()); st.JoinedAt.IsZero() {
+		t.Fatal("the joining time was not stored")
+	}
+}
+
 // TestRelayTargetDerivesRatherThanSendingTheSecret checks that the relay gets
 // a derived key and never the secret, so its operator cannot rebuild a phrase.
 func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
-		t.Fatal("activate failed")
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
+	cfg := a.Settings.Get()
+	cfg.RelayMode = settings.RelayModeProject
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
 	}
 	storedHex, _ := a.Accounts.Get(relay.SeedAccountService)
 
@@ -382,13 +520,10 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 // pointed at somebody's own relay.
 func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
-		t.Fatal("activate failed")
-	}
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
 	cfg := a.Settings.Get()
+	cfg.RelayMode = settings.RelayModeOwn
 	cfg.RelayURL = "wss://relay.example.com"
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
@@ -412,12 +547,8 @@ func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 // relay.
 func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
-		t.Fatal("activate failed")
-	}
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
 	cfg := a.Settings.Get()
 	cfg.RelayMode = settings.RelayModeOwn
 	cfg.RelayURL = ""
