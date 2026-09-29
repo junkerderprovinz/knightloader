@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -46,16 +47,17 @@ func registerSettings(reg *Registry, a *app.App) {
 				writeValidationError(w, err)
 				return
 			}
-			before := a.Settings.Get().InstanceName
-			beforeRelay := a.Settings.Get().RelayURL
+			prev := a.Settings.Get()
 			applied, err := a.ApplySettings(s)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// The relay and the LAN announce only send the name when they
-			// connect, so a new name or relay address needs a reconnect.
-			if applied.InstanceName != before || applied.RelayURL != beforeRelay {
+			// The relay and the LAN announce only send the name and address
+			// when they connect, so a change to either, or to the relay
+			// address, needs a reconnect.
+			if applied.InstanceName != prev.InstanceName || applied.RelayURL != prev.RelayURL ||
+				!slices.Equal(applied.KnownDomains, prev.KnownDomains) {
 				applyRelay(a)
 				reg.refreshDiscovery()
 			}
@@ -113,9 +115,11 @@ func registerSettings(reg *Registry, a *app.App) {
 				return
 			}
 			// The relay client is rebuilt only when the patch touches what it
-			// is built from: the name it announces in its hello frame, and the
-			// relay it dials.
-			if _, ok := patch["instanceName"]; ok {
+			// is built from: the name and address it announces in its hello
+			// frame, and the relay it dials.
+			_, renamed := patch["instanceName"]
+			_, readdressed := patch["knownDomains"]
+			if renamed || readdressed {
 				applyRelay(a)
 				reg.refreshDiscovery()
 			} else if _, ok := patch["relayUrl"]; ok {

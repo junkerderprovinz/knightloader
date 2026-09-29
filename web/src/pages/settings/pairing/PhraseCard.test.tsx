@@ -35,6 +35,7 @@ const base: ConnectInfo = {
   relayMode: 'project',
   projectRelayUrl: 'wss://relay.halleluja.design/relay/connect',
   name: 'nas',
+  address: '',
   members: [],
   apps: [],
   joinedAgo: 0,

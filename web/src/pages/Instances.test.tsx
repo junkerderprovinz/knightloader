@@ -99,4 +99,28 @@ describe('Instances', () => {
     expect(host.textContent).toContain('Last seen');
     expect(host.textContent).not.toContain('Fleet');
   });
+
+  it('shows every instance under its address and opens a member there', async () => {
+    const open = vi.fn();
+    serve({ ...noGroup, active: true, address: 'https://nas.example.org' }, [
+      { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', address: 'http://192.168.20.86:8749' },
+    ]);
+    vi.stubGlobal('open', open);
+    await draw();
+    expect(host.textContent).toContain('nas.example.org');
+    expect(host.textContent).toContain('192.168.20.86:8749');
+    expect(host.textContent).not.toContain('http://');
+
+    const cards = [...host.querySelectorAll('button')].filter((b) => b.textContent === 'Open');
+    await act(async () => cards[1].click());
+    expect(open).toHaveBeenCalledWith('http://192.168.20.86:8749', '_blank', 'noopener,noreferrer');
+  });
+
+  it('gives the Pairing button no info bubble', async () => {
+    serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', connected: true, lastSeen: 1 }] });
+    await draw();
+    const pairing = [...host.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Pairing');
+    expect(pairing).toBeDefined();
+    expect(pairing!.closest('div')!.querySelector('[role="note"]')).toBeNull();
+  });
 });

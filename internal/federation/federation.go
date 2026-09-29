@@ -45,6 +45,9 @@ type Instance struct {
 	// stored peers. It is never persisted, since it is only true while the
 	// member is reachable.
 	RelayID string `json:"relayId,omitempty"`
+	// Address is where a member's web interface is, as it announced it: its
+	// first known domain, else its address on its network.
+	Address string `json:"address,omitempty"`
 
 	// directURL is where a member on this network takes direct calls, and
 	// viaRelay whether the relay reaches it too.
@@ -213,6 +216,7 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	for _, p := range local {
 		in := member(p.ID, p.Name)
 		in.directURL = p.URL
+		in.Address = p.Address
 		out[p.ID] = in
 	}
 	if rt == nil {
@@ -228,6 +232,9 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		if !ok || in.RelayID == "" {
 			in = member(sib.InstanceID, sib.Name)
 		}
+		if in.Address == "" {
+			in.Address = sib.Address
+		}
 		in.viaRelay = true
 		out[sib.InstanceID] = in
 	}
@@ -242,6 +249,7 @@ func (m *Manager) Add(in Instance) error {
 	// straight into an Instance, so these read-only fields are cleared.
 	in.RelayID = ""
 	in.DisplayName = ""
+	in.Address = ""
 	if !nameRe.MatchString(in.Name) {
 		return errors.New("federation: invalid instance name")
 	}

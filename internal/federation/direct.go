@@ -107,7 +107,7 @@ func (m *Manager) Replay() *relay.ReplayGuard { return m.replay }
 // choosing nor keep a departed member listed by playing its announces back.
 func announceTag(peerAuth []byte, p discovery.Peer) string {
 	mac := hmac.New(sha256.New, peerAuth)
-	mac.Write([]byte("announce\x00" + p.ID + "\x00" + p.URL + "\x00" + p.Name + "\x00" + p.Deployment + "\x00" + strconv.FormatInt(p.Sent, 10)))
+	mac.Write([]byte("announce\x00" + p.ID + "\x00" + p.URL + "\x00" + p.Name + "\x00" + p.Deployment + "\x00" + p.Address + "\x00" + strconv.FormatInt(p.Sent, 10)))
 	return hex.EncodeToString(mac.Sum(nil))
 }
 

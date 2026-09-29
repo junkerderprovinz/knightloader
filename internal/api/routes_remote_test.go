@@ -337,6 +337,43 @@ func TestRemoteAccessRemembersDomainSeenOnARequest(t *testing.T) {
 	}
 }
 
+func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	address := func() string {
+		req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/connect", nil)
+		var info ConnectInfo
+		if code := doJSON(t, req, &info); code != http.StatusOK {
+			t.Fatalf("GET /api/connect answered %d", code)
+		}
+		return info.Address
+	}
+	if got := address(); strings.HasPrefix(got, "https://") {
+		t.Fatalf("address = %q before any domain is known", got)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
+	req.Host = "kl.example.tld"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	if code := doJSON(t, req, nil); code != http.StatusOK {
+		t.Fatalf("GET /api/remote-access answered %d", code)
+	}
+	if got := address(); got != "https://kl.example.tld" {
+		t.Fatalf("address = %q, want the domain the instance was reached on", got)
+	}
+
+	cfg := a.Settings.Get()
+	cfg.KnownDomains = []string{"https://first.example.tld/kl", "https://kl.example.tld"}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := address(); got != "https://first.example.tld/kl" {
+		t.Fatalf("address = %q, want the first known domain", got)
+	}
+}
+
 func TestRemoteAccessDoesNotRememberLoopbackOrBareIP(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)

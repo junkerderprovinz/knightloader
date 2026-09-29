@@ -253,6 +253,7 @@ func applyRelay(a *app.App) {
 			InstanceID: cfg.InstanceID,
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
+			Address:    groupAddress(a),
 		},
 		Serve:  relayProxyHandler(serve),
 		Replay: a.Federation.Replay(),
