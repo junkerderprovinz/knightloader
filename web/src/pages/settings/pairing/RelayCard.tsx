@@ -5,11 +5,11 @@
 // sees next to what it never does, and the encryption underneath both. Every
 // control saves on its own, as the rest of the settings do.
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { Button, Card, IconBadge, InfoBubble, LabelBadge, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
-import { Tabs } from '../../components/Tabs';
-import { saveRelayConfig, type ConnectInfo, type RelayConfig, type RelayMode } from '../../lib/api';
-import { copyToClipboard } from '../../lib/clipboard';
-import { useT, type TranslationKey } from '../../lib/i18n';
+import { Button, Card, IconBadge, InfoBubble, LabelBadge, SectionTitle, TextInput, ToggleRow } from '../../../components/ui';
+import { Tabs } from '../../../components/Tabs';
+import { saveRelayConfig, type ConnectInfo, type RelayConfig, type RelayMode } from '../../../lib/api';
+import { copyToClipboard } from '../../../lib/clipboard';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconCheckDrawn,
   IconChevronDown,
@@ -20,8 +20,8 @@ import {
   IconLock,
   IconSearch,
   IconShieldCheck,
-} from '../../lib/icons';
-import { useToast } from '../../lib/toast';
+} from '../../../lib/icons';
+import { useToast } from '../../../lib/toast';
 import { LegendKey, LegendMessage, RouteDiagram, RouteGlyph } from './pairingArt';
 
 type T = ReturnType<typeof useT>['t'];

@@ -340,30 +340,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
       ],
     },
-    // The Pairing tab of the page drawn below that card.
-    {
-      title: 'pairing.phraseTitle',
-      hint: 'pairing.phraseHint',
-      rows: [],
-      // The two tiles, the word fields and a member's badge.
-      also: ['pairing.create', 'pairing.enter', 'pairing.enterLabel', 'pairing.enterLabelOther', 'pairing.viaRelay'],
-      // The sentence above the step cards and its (i).
-      body: ['pairing.lead', 'pairing.keyNote'],
-    },
-    {
-      title: 'relay.title',
-      hint: 'relay.hint',
-      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
-      // The route picker, the state badge in the header and the facts line.
-      also: ['relay.project', 'relay.own', 'relay.off', 'instances.connected', 'instances.notConnected', 'relay.needLabel'],
-      body: ['relay.lead'],
-    },
-    // The Fleet tab.
+    // The page drawn below that card.
     {
       title: 'instances.foundTitle',
       hint: 'instances.foundHint',
       rows: [],
-      body: ['fleet.empty'],
+      body: ['instances.pairLead'],
     },
   ],
 
@@ -400,6 +382,30 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'auth.passkey.hint',
       rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
       also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
+    },
+    {
+      title: 'pairing.phraseTitle',
+      hint: 'pairing.phraseHint',
+      rows: [],
+      // The two tiles, the word fields and a member's badges.
+      also: [
+        'pairing.create',
+        'pairing.enter',
+        'pairing.enterLabel',
+        'pairing.enterLabelOther',
+        'pairing.direct',
+        'pairing.viaRelay',
+      ],
+      // The sentence above the step cards and its (i).
+      body: ['pairing.lead', 'pairing.keyNote'],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
+      // The route picker, the state badge in the header and the facts line.
+      also: ['relay.project', 'relay.own', 'relay.off', 'instances.connected', 'instances.notConnected', 'relay.needLabel'],
+      body: ['relay.lead'],
     },
     {
       title: 'settings.access.tokens.title',

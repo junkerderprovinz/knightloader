@@ -2,8 +2,8 @@
 // three numbered cards before any button does anything: generate a phrase on
 // the first instance, enter it on every other, done.
 import { Fragment, type ReactNode } from 'react';
-import { Card, InfoBubble, SectionTitle } from '../../components/ui';
-import { useT } from '../../lib/i18n';
+import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
+import { useT } from '../../../lib/i18n';
 import { StepPicture } from './pairingArt';
 
 /** emphasize puts a bold copy of what where text says {token}. */

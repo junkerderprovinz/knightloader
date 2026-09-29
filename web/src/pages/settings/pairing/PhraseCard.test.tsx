@@ -4,8 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { ConnectInfo } from '../../lib/api';
-import { I18nProvider } from '../../lib/i18n';
+import type { ConnectInfo } from '../../../lib/api';
+import { I18nProvider } from '../../../lib/i18n';
 import { PhraseCard } from './PhraseCard';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -34,6 +34,7 @@ const base: ConnectInfo = {
   projectRelayUrl: 'wss://relay.halleluja.design/relay/connect',
   name: 'nas',
   members: [],
+  apps: [],
   joinedAgo: 0,
   memberSeen: false,
 };
@@ -62,10 +63,15 @@ describe('PhraseCard', () => {
     expect(tiles[1]).toContain('Enter phrase');
   });
 
-  it('turns both tiles off and says why without a login password', () => {
+  it('offers both tiles without a login password and says what that means', () => {
     draw({ active: false, passwordSet: false });
-    expect(host.textContent).toContain('Set a login password first');
-    for (const tile of host.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')) expect(tile.disabled).toBe(true);
+    expect(host.textContent).toContain('Anyone who can open this web interface');
+    for (const tile of host.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')) expect(tile.disabled).toBe(false);
+  });
+
+  it('says nothing about a password once one is set', () => {
+    draw({ active: false });
+    expect(host.textContent).not.toContain('Anyone who can open this web interface');
   });
 
   it('says Searching in the first minute after entering a phrase', () => {
@@ -92,17 +98,23 @@ describe('PhraseCard', () => {
 
   it('points at the relay card when there is no relay', () => {
     draw({ joinedAgo: 75, relayMode: 'off', connected: false });
-    expect(host.textContent).toContain('No relay picked?');
+    expect(host.textContent).toContain('Is the other instance on another network?');
     expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toContain('No relay');
   });
 
   it('says Paired only while another instance is there', () => {
-    draw({ joinedAgo: 500, memberSeen: true, members: [{ id: 'b', name: 'office' }] });
+    draw({ joinedAgo: 500, memberSeen: true, members: [{ id: 'b', name: 'office', direct: false, relay: true }] });
     expect(stage()).toBe('paired');
     expect(badge()).toContain('Paired');
     expect(host.textContent).toContain('office');
 
     draw({ joinedAgo: 500, memberSeen: true, members: [] });
     expect(badge()).toContain('Searching');
+  });
+
+  it('says Paired when the only other member is a connected phone', () => {
+    draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', connected: true, lastSeen: 1 }] });
+    expect(badge()).toContain('Paired');
+    expect(host.textContent).toContain('Pixel 8');
   });
 });

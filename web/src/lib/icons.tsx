@@ -132,6 +132,16 @@ export const IconInstances = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A phone, for the Android app in a group. */
+export const IconPhone = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M7 1.5A2 2 0 0 0 5 3.5v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-13a2 2 0 0 0-2-2H7Zm0 2.5h6v10.5H7V4Zm3 11.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Z"
+    />
+  </svg>
+);
+
 /** Two chain links, for pairing instances into one group. */
 export const IconLink = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
