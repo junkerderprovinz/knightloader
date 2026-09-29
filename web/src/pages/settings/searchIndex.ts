@@ -340,6 +340,31 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
       ],
     },
+    // The Pairing tab of the page drawn below that card.
+    {
+      title: 'pairing.phraseTitle',
+      hint: 'pairing.phraseHint',
+      rows: [],
+      // The two tiles, the word fields and a member's badge.
+      also: ['pairing.create', 'pairing.enter', 'pairing.enterLabel', 'pairing.enterLabelOther', 'pairing.viaRelay'],
+      // The sentence above the step cards and its (i).
+      body: ['pairing.lead', 'pairing.keyNote'],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
+      // The route picker, the state badge in the header and the facts line.
+      also: ['relay.project', 'relay.own', 'relay.off', 'instances.connected', 'instances.notConnected', 'relay.needLabel'],
+      body: ['relay.lead'],
+    },
+    // The Fleet tab.
+    {
+      title: 'instances.foundTitle',
+      hint: 'instances.foundHint',
+      rows: [],
+      body: ['fleet.empty'],
+    },
   ],
 
   access: [
@@ -375,36 +400,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'auth.passkey.hint',
       rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
       also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
-    },
-    {
-      title: 'settings.access.cardTitle',
-      hint: 'settings.access.phrase.body',
-      rows: [],
-      // The three badges in the card's header.
-      also: [
-        'settings.access.phrase.howButton',
-        'settings.access.phrase.statusConnected',
-        'settings.access.phrase.statusDisconnected',
-        'settings.access.relay.none',
-        'settings.access.relay.own',
-        'settings.access.relay.project',
-      ],
-      // The phrase's own (i), shown once the phrase is on screen.
-      body: ['settings.access.phrase.pasteHint'],
-    },
-    {
-      title: 'settings.access.relay.title',
-      hint: 'settings.access.relay.body',
-      rows: [{ key: 'settings.access.relay.use', hint: 'settings.access.relay.leadProject' }],
-      also: ['settings.access.relay.seesButton'],
-    },
-    {
-      title: 'settings.access.ownRelay.title',
-      hint: 'settings.access.ownRelay.body',
-      rows: [
-        { key: 'settings.access.ownRelay.use', hint: 'settings.access.ownRelay.lead' },
-        { key: 'settings.access.ownRelay.serveLabel', hint: 'settings.access.ownRelay.serveHint' },
-      ],
     },
     {
       title: 'settings.access.tokens.title',

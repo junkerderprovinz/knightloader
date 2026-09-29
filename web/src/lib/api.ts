@@ -3726,8 +3726,8 @@ export interface ConnectInfo {
   /** Whether the relay socket is up; a stored phrase with an unreachable
    *  relay is active but not connected. */
   connected: boolean;
-  /** Mirrors GET /api/auth, so the page can warn before minting a phrase
-   *  that reaches every instance in the group. */
+  /** Whether a login password is set. Without one the phrase can be neither
+   *  generated, entered nor shown. */
   passwordSet: boolean;
   /** Which relay this instance is pointed at. */
   relayUrl: string;
@@ -3737,6 +3737,20 @@ export interface ConnectInfo {
   relayMode: RelayMode;
   /** Where the project relay is, whichever relay this instance uses. */
   projectRelayUrl: string;
+  /** What the other instances of the group see this one as. */
+  name: string;
+  /** The other instances of the group reachable now. */
+  members: GroupMember[];
+  /** Seconds since this instance generated or entered its phrase, 0 outside
+   *  a group. */
+  joinedAgo: number;
+  /** Whether another instance has shown up in the group since. */
+  memberSeen: boolean;
+}
+
+export interface GroupMember {
+  id: string;
+  name: string;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {
@@ -3782,14 +3796,17 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
   });
   if (!r.ok) {
     const raw = await r.text();
-    // A rejected phrase answers with JSON; other failures (an expired session,
-    // a proxy) answer with text.
+    // A rejected phrase answers with a reason, a refusal such as a missing
+    // password with a code, and other failures (an expired session, a proxy)
+    // with text.
+    let body: { error?: string; code?: string; reason?: string } | null = null;
     try {
-      throw new PhraseRejected(JSON.parse(raw));
-    } catch (e) {
-      if (e instanceof PhraseRejected) throw e;
+      body = JSON.parse(raw);
+    } catch {
       throw new Error(raw.trim() || `${r.status}`);
     }
+    if (body?.reason) throw new PhraseRejected(body);
+    throw new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
   }
   return json(r);
 }
