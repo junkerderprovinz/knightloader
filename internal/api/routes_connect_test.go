@@ -41,8 +41,8 @@ func pairingServer(t *testing.T) (*httptest.Server, *app.App, string) {
 	return srv, a, token
 }
 
-// call sends a JSON body signed in with token and returns the status and the
-// raw response.
+// call sends a JSON body, signed in with token unless it is empty, and
+// returns the status and the raw response.
 func call(t *testing.T, token, method, url string, body any) (int, []byte) {
 	t.Helper()
 	var r io.Reader
@@ -58,7 +58,9 @@ func call(t *testing.T, token, method, url string, body any) (int, []byte) {
 		t.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -155,32 +157,38 @@ func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 	}
 }
 
-// TestPairingNeedsALoginPassword checks that without a login password the
-// phrase can be neither generated, entered nor shown, and that the refusal
-// carries a code the page can put into words.
-func TestPairingNeedsALoginPassword(t *testing.T) {
+// TestPairingWorksWithoutALoginPassword checks that an instance with no
+// password can generate, enter and show the phrase, and that showing it asks
+// for nothing then.
+func TestPairingWorksWithoutALoginPassword(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
+	other, _ := testServer(t)
+	defer other.Close()
 
-	const phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
-	for _, c := range []struct {
-		path string
-		body any
-	}{
-		{"/api/connect/activate", nil},
-		{"/api/connect/join", map[string]string{"phrase": phrase}},
-		{"/api/connect/reveal", map[string]string{"password": ""}},
-	} {
-		code, body := postJSON(t, http.MethodPost, srv.URL+c.path, c.body)
-		var out struct{ Code string }
-		_ = json.Unmarshal(body, &out)
-		if code != http.StatusForbidden || out.Code != "needsPassword" {
-			t.Errorf("%s answered %d %s, want %d needsPassword", c.path, code, body, http.StatusForbidden)
-		}
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
+	if code != http.StatusOK {
+		t.Fatalf("activate answered %d: %s", code, body)
 	}
-	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored != "" {
-		t.Fatalf("a refused call stored a secret: %q", stored)
+	var minted struct{ Phrase string }
+	if err := json.Unmarshal(body, &minted); err != nil {
+		t.Fatal(err)
+	}
+	if code, body := postJSON(t, http.MethodPost, other.URL+"/api/connect/join", map[string]string{"phrase": minted.Phrase}); code != http.StatusOK {
+		t.Fatalf("join answered %d: %s", code, body)
+	}
+	code, body = postJSON(t, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
+	var shown struct{ Phrase string }
+	_ = json.Unmarshal(body, &shown)
+	if code != http.StatusOK || shown.Phrase != minted.Phrase {
+		t.Fatalf("reveal answered %d %s, want the phrase back", code, body)
+	}
+	if info := connectInfoOf(t, "", srv.URL); info.PasswordSet || !info.Active {
+		t.Fatalf("passwordSet %v active %v, want no password and a group", info.PasswordSet, info.Active)
+	}
+	if stored, _ := a.Accounts.Get(relay.SeedAccountService); stored == "" {
+		t.Fatal("no secret was stored")
 	}
 }
 
@@ -438,6 +446,35 @@ func TestConnectRemembersThatAMemberCame(t *testing.T) {
 	}
 }
 
+// TestAPhoneCountsAsSomebodyInTheGroup checks that a group whose only other
+// member is the Android app is not alone, and that the phone is listed apart
+// from the instances.
+func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
+	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
+		{InstanceID: "id-phone", Name: "Pixel 8", Deployment: "mobile", Client: true},
+	}})
+
+	info := connectInfoOf(t, token, srv.URL)
+	if len(info.Members) != 0 {
+		t.Fatalf("members = %+v, want the phone kept apart from the instances", info.Members)
+	}
+	if len(info.Apps) != 1 || info.Apps[0].Name != "Pixel 8" || !info.Apps[0].Connected || info.Apps[0].LastSeen == 0 {
+		t.Fatalf("apps = %+v, want the phone, connected", info.Apps)
+	}
+	if !info.MemberSeen {
+		t.Error("memberSeen is false with the phone there")
+	}
+
+	a.Federation.SetRelay(nil)
+	info = connectInfoOf(t, token, srv.URL)
+	if len(info.Apps) != 1 || info.Apps[0].Connected {
+		t.Fatalf("apps after the phone left = %+v, want it listed as not connected", info.Apps)
+	}
+}
+
 // TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart checks that a stored
 // secret with no joining time counts as joined when the instance starts, so
 // its page waits a minute before it says nobody came.
@@ -471,7 +508,7 @@ func TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart(t *testing.T) {
 	if !info.Active || info.JoinedAgo > 5 || info.MemberSeen {
 		t.Fatalf("at start: active %v, joinedAgo %d, memberSeen %v", info.Active, info.JoinedAgo, info.MemberSeen)
 	}
-	if st, _ := a.Federation.Group(nil, time.Now()); st.JoinedAt.IsZero() {
+	if st, _ := a.Federation.Group(false, time.Now()); st.JoinedAt.IsZero() {
 		t.Fatal("the joining time was not stored")
 	}
 }

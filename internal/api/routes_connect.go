@@ -30,8 +30,9 @@ type ConnectInfo struct {
 	// Connected is whether the relay socket is up right now; a stored secret
 	// with an unreachable relay is configured but not working.
 	Connected bool `json:"connected"`
-	// PasswordSet is whether a login password is set. Without one the phrase
-	// can be neither generated, entered nor shown.
+	// PasswordSet is whether a login password is set. Without one anybody who
+	// opens this web interface can show the phrase and so reach every member,
+	// which the page says.
 	PasswordSet bool `json:"passwordSet"`
 	// RelayURL is the relay this instance dials: the compiled-in default or an
 	// override.
@@ -47,8 +48,10 @@ type ConnectInfo struct {
 	ProjectRelayURL string `json:"projectRelayUrl"`
 	// Name is what the other instances of the group see this one as.
 	Name string `json:"name"`
-	// Members is the other instances of the group reachable now.
+	// Members is the other instances of the group reachable now, and Apps
+	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
+	Apps    []groupApp    `json:"apps"`
 	// JoinedAgo is how many seconds ago this instance generated or entered
 	// its phrase, and MemberSeen whether another instance has shown up since.
 	// Together they tell a group waiting for its second instance from one
@@ -66,11 +69,19 @@ type groupMember struct {
 	Relay  bool `json:"relay"`
 }
 
+type groupApp struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Connected bool   `json:"connected"`
+	// LastSeen is Unix seconds.
+	LastSeen int64 `json:"lastSeen"`
+}
+
 func registerConnect(reg *Registry, a *app.App) {
 	// A stored secret without a joining time counts as joined at start, so
 	// the page waits a minute before it says nobody came.
 	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
-		if st, err := a.Federation.Group(nil, time.Now()); err == nil && st.JoinedAt.IsZero() {
+		if st, err := a.Federation.Group(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
 			if err := a.Federation.SetJoined(time.Now()); err != nil {
 				log.Printf("connect: could not record when this instance joined its group: %v", err)
 			}
@@ -84,11 +95,8 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
-		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password; needs a login password",
+		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
 		func(w http.ResponseWriter, r *http.Request) {
-			if refuseWithoutPassword(w, a) {
-				return
-			}
 			// Replacing an existing secret would orphan every instance joined
 			// to the old phrase; leaving is an explicit DELETE.
 			if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
@@ -109,11 +117,8 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
-		"join the group a phrase belongs to - the other half of activate, for every instance after the first; needs a login password",
+		"join the group a phrase belongs to - the other half of activate, for every instance after the first",
 		func(w http.ResponseWriter, r *http.Request) {
-			if refuseWithoutPassword(w, a) {
-				return
-			}
 			var body struct {
 				Phrase string `json:"phrase"`
 			}
@@ -147,21 +152,19 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/reveal",
-		"show this instance's connection phrase again - requires the login password to be entered again, because the phrase reaches every instance in the group",
+		"show this instance's connection phrase again - requires the login password to be entered again when one is set, because the phrase reaches every instance in the group",
 		func(w http.ResponseWriter, r *http.Request) {
-			if refuseWithoutPassword(w, a) {
-				return
-			}
 			var body struct {
 				Password string `json:"password"`
 			}
-			// Without a body the password is empty and refused below.
+			// The body is optional; without a password there is nothing to
+			// enter again.
 			_ = decodeBody(r, &body)
 
 			// A session is not enough: it may have been left open on an
 			// unattended screen, and the phrase unlocks every instance in the
 			// group.
-			if !a.Auth.Check(body.Password) {
+			if a.Auth.Enabled() && !a.Auth.Check(body.Password) {
 				writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
 				return
 			}
@@ -196,18 +199,6 @@ func registerConnect(reg *Registry, a *app.App) {
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
-}
-
-// refuseWithoutPassword answers 403 while no login password is set and
-// reports whether it did. The phrase opens every instance in the group, so
-// only somebody who has to sign in here may generate, enter or show it.
-func refuseWithoutPassword(w http.ResponseWriter, a *app.App) bool {
-	if a.Auth.Enabled() {
-		return false
-	}
-	writeRefusal(w, http.StatusForbidden, "needsPassword",
-		"set a login password on the Remote access page before pairing this instance", nil)
-	return true
 }
 
 // enterGroup stores secret as this instance's group, or leaves the group with
@@ -255,7 +246,17 @@ func connectInfo(a *app.App) ConnectInfo {
 		}
 		members = append(members, groupMember{ID: p.RelayID, Name: name, Direct: p.Direct(), Relay: p.ViaRelay()})
 	}
-	st, err := a.Federation.Group(peers, now)
+	known, err := a.Federation.Apps(now)
+	if err != nil {
+		log.Printf("connect: could not record the phones of the group: %v", err)
+	}
+	apps := make([]groupApp, 0, len(known))
+	appThere := false
+	for _, p := range known {
+		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Connected: p.Connected, LastSeen: p.LastSeen.Unix()})
+		appThere = appThere || p.Connected
+	}
+	st, err := a.Federation.Group(len(members) > 0 || appThere, now)
 	if err != nil {
 		log.Printf("connect: could not record the first member of the group: %v", err)
 	}
@@ -274,6 +275,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		ProjectRelayURL: relay.DefaultRelayURL,
 		Name:            instanceDisplayName(a),
 		Members:         members,
+		Apps:            apps,
 		JoinedAgo:       joinedAgo,
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
 	}

@@ -4,6 +4,7 @@ import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
 import { checkPhrase, splitPhrase } from '../api/phraseWords';
+import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
@@ -141,7 +142,7 @@ export default function RelayConnectScreen({
       key,
       frameKey,
       selfId: await relayIdentity(),
-      selfName: 'KnightLoader app',
+      selfName: deviceName(),
     });
     // Subscribed rather than passed in as an option: this client may already
     // exist for a saved connection, where constructor options are never
