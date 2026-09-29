@@ -156,6 +156,8 @@ export const gl: Dict = {
   'pairing.enterLabelOther': 'As doce palabras da outra instancia',
   'pairing.enterTip': 'Atópaas alí en {path}.',
   'pairing.enterPlaceholder': 'Pega ou escribe as palabras, separadas por espazos',
+  'pairing.paste': 'Pegar',
+  'pairing.pasteRefused': 'O navegador non permitiu ler o portapapeis, así que pega as palabras no campo con Ctrl+V ou cunha pulsación longa.',
   'pairing.wordCount': '{n} de 12 palabras',
   'pairing.join': 'Emparellar',
   'pairing.joined': 'Emparellado',

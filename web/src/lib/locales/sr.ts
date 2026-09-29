@@ -156,6 +156,8 @@ export const sr: Dict = {
   'pairing.enterLabelOther': 'Дванаест речи са друге инстанце',
   'pairing.enterTip': 'Тамо их налазиш под {path}.',
   'pairing.enterPlaceholder': 'Налепи или укуцај речи, раздвојене размацима',
+  'pairing.paste': 'Налепи',
+  'pairing.pasteRefused': 'Прегледач није дозволио читање привремене меморије, па налепи речи у поље помоћу Ctrl+V или дугим притиском.',
   'pairing.wordCount': '{n} од 12 речи',
   'pairing.join': 'Упари',
   'pairing.joined': 'Упарено',

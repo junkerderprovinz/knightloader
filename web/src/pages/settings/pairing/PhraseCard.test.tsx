@@ -95,13 +95,13 @@ describe('PhraseCard', () => {
     expect(row.slice(-2)).toEqual(['Close', 'Copy']);
   });
 
-  it('takes a first instance\'s words in a window with Close and Pair', () => {
+  it('takes a first instance\'s words in a window with Close, Paste and Pair', () => {
     draw({ active: false });
     act(() => tile('Enter phrase').click());
     expect([...dialog()!.querySelectorAll('h2')].map((h) => h.textContent)).toContain('Enter phrase');
     expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
     const row = [...dialog()!.querySelectorAll('button')].map((b) => b.textContent);
-    expect(row.slice(-2)).toEqual(['Close', 'Pair']);
+    expect(row.slice(-3)).toEqual(['Close', 'Paste', 'Pair']);
   });
 
   it('offers both tiles without a login password and says what that means', () => {

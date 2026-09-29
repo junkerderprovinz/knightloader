@@ -150,6 +150,8 @@ export const ru: Dict = {
   'pairing.enterLabelOther': 'Двенадцать слов с другого экземпляра',
   'pairing.enterTip': 'Вы найдёте их там, в разделе {path}.',
   'pairing.enterPlaceholder': 'Вставьте или введите слова через пробел',
+  'pairing.paste': 'Вставить',
+  'pairing.pasteRefused': 'Браузер не разрешил прочитать буфер обмена, поэтому вставьте слова в поле с помощью Ctrl+V или долгим нажатием.',
   'pairing.wordCount': '{n} из 12 слов',
   'pairing.join': 'Сопрячь',
   'pairing.joined': 'Сопряжено',

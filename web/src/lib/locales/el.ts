@@ -156,6 +156,8 @@ export const el: Dict = {
   'pairing.enterLabelOther': 'Οι δώδεκα λέξεις από την άλλη εγκατάσταση',
   'pairing.enterTip': 'Θα τις βρείτε εκεί κάτω από {path}.',
   'pairing.enterPlaceholder': 'Επικολλήστε ή πληκτρολογήστε τις λέξεις, χωρισμένες με κενά',
+  'pairing.paste': 'Επικόλληση',
+  'pairing.pasteRefused': 'Το πρόγραμμα περιήγησης δεν επέτρεψε την ανάγνωση του προχείρου, οπότε επικολλήστε τις λέξεις στο πεδίο με Ctrl+V ή με παρατεταμένο πάτημα.',
   'pairing.wordCount': '{n} από 12 λέξεις',
   'pairing.join': 'Σύζευξη',
   'pairing.joined': 'Έγινε σύζευξη',

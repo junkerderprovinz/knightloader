@@ -156,6 +156,8 @@ export const hu: Dict = {
   'pairing.enterLabelOther': 'A másik példány tizenkét szava',
   'pairing.enterTip': 'Ott találod őket a {path} alatt.',
   'pairing.enterPlaceholder': 'Illeszd be vagy írd be a szavakat, szóközzel elválasztva',
+  'pairing.paste': 'Beillesztés',
+  'pairing.pasteRefused': 'A böngésző nem engedte olvasni a vágólapot, ezért illeszd be a szavakat a mezőbe Ctrl+V billentyűkkel vagy hosszú nyomással.',
   'pairing.wordCount': '{n}/12 szó',
   'pairing.join': 'Párosítás',
   'pairing.joined': 'Párosítva',

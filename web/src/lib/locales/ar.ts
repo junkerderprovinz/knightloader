@@ -158,6 +158,8 @@ export const ar: Dict = {
   'pairing.enterLabelOther': 'الكلمات الاثنتا عشرة من المثيل الآخر',
   'pairing.enterTip': 'تجدها هناك تحت {path}.',
   'pairing.enterPlaceholder': 'الصق الكلمات أو اكتبها، مفصولة بمسافات',
+  'pairing.paste': 'لصق',
+  'pairing.pasteRefused': 'لم يسمح المتصفح بقراءة الحافظة، لذا الصق الكلمات في الحقل باستخدام Ctrl+V أو بالضغط المطوّل.',
   'pairing.wordCount': '{n} من 12 كلمة',
   'pairing.join': 'اقتران',
   'pairing.joined': 'مقترن',

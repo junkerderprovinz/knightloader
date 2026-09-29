@@ -164,6 +164,8 @@ export const de: Dict = {
   'pairing.enterLabelOther': 'Die zwölf Wörter der anderen Instanz',
   'pairing.enterTip': 'Dort findest du sie unter {path}.',
   'pairing.enterPlaceholder': 'Wörter hier einfügen oder abtippen, mit Leerzeichen getrennt',
+  'pairing.paste': 'Einfügen',
+  'pairing.pasteRefused': 'Der Browser hat das Lesen der Zwischenablage nicht erlaubt, füg die Wörter deshalb mit Strg+V oder durch langes Drücken ins Feld ein.',
   'pairing.wordCount': '{n} von 12 Wörtern',
   'pairing.join': 'Koppeln',
   'pairing.joined': 'Gekoppelt',

@@ -156,6 +156,8 @@ export const is: Dict = {
   'pairing.enterLabelOther': 'Orðin tólf frá hinu tilvikinu',
   'pairing.enterTip': 'Þú finnur þau þar undir {path}.',
   'pairing.enterPlaceholder': 'Límdu inn eða skrifaðu orðin, aðskilin með bilum',
+  'pairing.paste': 'Líma',
+  'pairing.pasteRefused': 'Vafrinn leyfði ekki að lesa klippiborðið, svo límdu orðin inn í reitinn með Ctrl+V eða löngu ýti.',
   'pairing.wordCount': '{n} af 12 orðum',
   'pairing.join': 'Para',
   'pairing.joined': 'Parað',

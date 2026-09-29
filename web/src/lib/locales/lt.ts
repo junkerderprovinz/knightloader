@@ -156,6 +156,8 @@ export const lt: Dict = {
   'pairing.enterLabelOther': 'Dvylika žodžių iš kito egzemplioriaus',
   'pairing.enterTip': 'Ten juos rasite po {path}.',
   'pairing.enterPlaceholder': 'Įklijuokite arba įveskite žodžius, atskirtus tarpais',
+  'pairing.paste': 'Įklijuoti',
+  'pairing.pasteRefused': 'Naršyklė neleido nuskaityti iškarpinės, todėl įklijuokite žodžius į lauką su Ctrl+V arba ilgai paspaudę.',
   'pairing.wordCount': '{n} iš 12 žodžių',
   'pairing.join': 'Susieti',
   'pairing.joined': 'Susieta',

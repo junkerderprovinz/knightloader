@@ -156,6 +156,8 @@ export const eu: Dict = {
   'pairing.enterLabelOther': 'Beste instantziako hamabi hitzak',
   'pairing.enterTip': 'Han aurkituko dituzu, {path} atalean.',
   'pairing.enterPlaceholder': 'Itsatsi edo idatzi hitzak, zuriunez bereizita',
+  'pairing.paste': 'Itsatsi',
+  'pairing.pasteRefused': 'Nabigatzaileak ez du arbela irakurtzen utzi, beraz itsatsi hitzak eremuan Ctrl+V erabiliz edo luze sakatuz.',
   'pairing.wordCount': '{n}/12 hitz',
   'pairing.join': 'Parekatu',
   'pairing.joined': 'Parekatuta',

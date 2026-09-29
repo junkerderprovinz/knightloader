@@ -156,6 +156,8 @@ export const sl: Dict = {
   'pairing.enterLabelOther': 'Dvanajst besed z druge instance',
   'pairing.enterTip': 'Tam jih najdeš pod {path}.',
   'pairing.enterPlaceholder': 'Prilepi ali vtipkaj besede, ločene s presledki',
+  'pairing.paste': 'Prilepi',
+  'pairing.pasteRefused': 'Brskalnik ni dovolil branja odložišča, zato prilepi besede v polje s Ctrl+V ali z dolgim pritiskom.',
   'pairing.wordCount': '{n} od 12 besed',
   'pairing.join': 'Seznani',
   'pairing.joined': 'Seznanjeno',

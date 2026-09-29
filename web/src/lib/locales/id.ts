@@ -156,6 +156,8 @@ export const id: Dict = {
   'pairing.enterLabelOther': 'Dua belas kata dari instance lainnya',
   'pairing.enterTip': 'Anda menemukannya di sana di bawah {path}.',
   'pairing.enterPlaceholder': 'Tempel atau ketik kata-katanya, dipisahkan dengan spasi',
+  'pairing.paste': 'Tempel',
+  'pairing.pasteRefused': 'Browser tidak mengizinkan membaca papan klip, jadi tempel kata-katanya ke kolom dengan Ctrl+V atau tekan lama.',
   'pairing.wordCount': '{n} dari 12 kata',
   'pairing.join': 'Pasangkan',
   'pairing.joined': 'Dipasangkan',

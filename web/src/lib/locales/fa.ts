@@ -156,6 +156,8 @@ export const fa: Dict = {
   'pairing.enterLabelOther': 'دوازده کلمهٔ نمونهٔ دیگر',
   'pairing.enterTip': 'آنجا زیر {path} پیدایشان می‌کنی.',
   'pairing.enterPlaceholder': 'کلمه‌ها را جای‌گذاری یا تایپ کن، با فاصله جدا شده',
+  'pairing.paste': 'جای‌گذاری',
+  'pairing.pasteRefused': 'مرورگر اجازه‌ی خواندن کلیپ‌بورد را نداد، پس کلمه‌ها را با Ctrl+V یا فشار طولانی در فیلد جای‌گذاری کن.',
   'pairing.wordCount': '{n} از ۱۲ کلمه',
   'pairing.join': 'جفت کن',
   'pairing.joined': 'جفت شد',

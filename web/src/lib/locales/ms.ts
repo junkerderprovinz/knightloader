@@ -156,6 +156,8 @@ export const ms: Dict = {
   'pairing.enterLabelOther': 'Dua belas perkataan daripada instans yang satu lagi',
   'pairing.enterTip': 'Anda akan menemuinya di sana di bawah {path}.',
   'pairing.enterPlaceholder': 'Tampal atau taip perkataan, dipisahkan dengan ruang',
+  'pairing.paste': 'Tampal',
+  'pairing.pasteRefused': 'Pelayar tidak membenarkan papan keratan dibaca, jadi tampal perkataan ke dalam medan dengan Ctrl+V atau tekan lama.',
   'pairing.wordCount': '{n} daripada 12 perkataan',
   'pairing.join': 'Gandingkan',
   'pairing.joined': 'Digandingkan',

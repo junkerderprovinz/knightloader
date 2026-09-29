@@ -156,6 +156,8 @@ export const cs: Dict = {
   'pairing.enterLabelOther': 'Dvanáct slov z druhé instance',
   'pairing.enterTip': 'Najdete je tam pod {path}.',
   'pairing.enterPlaceholder': 'Vložte nebo napište slova, oddělená mezerami',
+  'pairing.paste': 'Vložit',
+  'pairing.pasteRefused': 'Prohlížeč nepovolil čtení schránky, vložte proto slova do pole pomocí Ctrl+V nebo dlouhým stisknutím.',
   'pairing.wordCount': '{n} z 12 slov',
   'pairing.join': 'Spárovat',
   'pairing.joined': 'Spárováno',

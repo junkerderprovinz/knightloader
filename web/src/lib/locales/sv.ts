@@ -156,6 +156,8 @@ export const sv: Dict = {
   'pairing.enterLabelOther': 'De tolv orden från den andra instansen',
   'pairing.enterTip': 'Du hittar dem där under {path}.',
   'pairing.enterPlaceholder': 'Klistra in eller skriv orden, åtskilda med mellanslag',
+  'pairing.paste': 'Klistra in',
+  'pairing.pasteRefused': 'Webbläsaren tillät inte att urklipp lästes, så klistra in orden i fältet med Ctrl+V eller ett långt tryck.',
   'pairing.wordCount': '{n} av 12 ord',
   'pairing.join': 'Parkoppla',
   'pairing.joined': 'Parkopplad',

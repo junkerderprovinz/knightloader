@@ -156,6 +156,8 @@ export const zh: Dict = {
   'pairing.enterLabelOther': '另一台实例上的十二个单词',
   'pairing.enterTip': '你可以在那边的{path}下找到它们。',
   'pairing.enterPlaceholder': '粘贴或输入单词，用空格分隔',
+  'pairing.paste': '粘贴',
+  'pairing.pasteRefused': '浏览器不允许读取剪贴板，请用 Ctrl+V 或长按把单词粘贴到输入框中。',
   'pairing.wordCount': '{n}/12 个单词',
   'pairing.join': '配对',
   'pairing.joined': '已配对',

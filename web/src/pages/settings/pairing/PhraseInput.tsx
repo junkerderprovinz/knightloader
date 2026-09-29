@@ -6,7 +6,7 @@
 import { useState, type ReactNode } from 'react';
 import { Button, InfoBubble, TextArea } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
-import { IconLink } from '../../../lib/icons';
+import { IconClipboard, IconLink } from '../../../lib/icons';
 import { PHRASE_WORDS, checkPhrase } from '../../../lib/phraseWords';
 import { WordSlots } from './WordSlots';
 
@@ -25,11 +25,12 @@ interface PhraseEntryOptions {
 }
 
 /**
- * usePhraseEntry is the word field and its Pair button apart, for a window
- * that puts the button in its footer.
+ * usePhraseEntry is the word field and its Paste and Pair buttons apart, for
+ * a window that puts the buttons in its footer.
  */
 export function usePhraseEntry({ id, label, tip, bare = false, disabled = false, busy, onPair }: PhraseEntryOptions): {
   field: ReactNode;
+  paste: ReactNode;
   pair: ReactNode;
 } {
   const { t } = useT();
@@ -44,6 +45,20 @@ export function usePhraseEntry({ id, label, tip, bare = false, disabled = false,
   }
   if (!problem && words.length > PHRASE_WORDS) {
     problem = t('pairing.errWordCount', { count: words.length });
+  }
+
+  // The clipboard text goes through the same parser as a paste into the
+  // field. A browser that will not hand it over (no secure context, or the
+  // permission refused) leaves the field to paste into by hand.
+  async function pasteClipboard() {
+    try {
+      const clip = await navigator.clipboard.readText();
+      setText(clip);
+      setRefusal(null);
+    } catch {
+      setRefusal(t('pairing.pasteRefused'));
+    }
+    document.getElementById(id)?.focus();
   }
 
   async function pair() {
@@ -100,5 +115,10 @@ export function usePhraseEntry({ id, label, tip, bare = false, disabled = false,
       {t('pairing.join')}
     </Button>
   );
-  return { field, pair: pairButton };
+  const pasteButton = (
+    <Button kind="secondary" icon={<IconClipboard />} onClick={() => void pasteClipboard()} disabled={disabled || busy}>
+      {t('pairing.paste')}
+    </Button>
+  );
+  return { field, paste: pasteButton, pair: pairButton };
 }

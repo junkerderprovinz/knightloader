@@ -156,6 +156,8 @@ export const uk: Dict = {
   'pairing.enterLabelOther': 'Дванадцять слів з іншого екземпляра',
   'pairing.enterTip': 'Ви знайдете їх там, під {path}.',
   'pairing.enterPlaceholder': 'Вставте або введіть слова, розділені пробілами',
+  'pairing.paste': 'Вставити',
+  'pairing.pasteRefused': 'Браузер не дозволив прочитати буфер обміну, тому вставте слова в поле за допомогою Ctrl+V або довгим натисканням.',
   'pairing.wordCount': '{n} із 12 слів',
   'pairing.join': 'Спарувати',
   'pairing.joined': 'Спаровано',
