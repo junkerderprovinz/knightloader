@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
-import { fmtSpeed } from '../lib/format';
+import { fmtDate, fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { Card, Button, IconBadge, LabelBadge } from './ui';
-import { IconTrash } from '../lib/icons';
+import { IconPhone, IconTrash } from '../lib/icons';
 
 interface Stats {
   online: boolean;
@@ -174,6 +174,48 @@ export function InstanceCard({
           {t('instances.open')}
         </Button>
       )}
+    </Card>
+  );
+}
+
+// AppCard shows a phone that joined the group with the phrase: the device
+// name, whether it is there now and when it last was. A phone serves no
+// downloads, so it has no figures and nothing to open.
+export function AppCard({
+  name,
+  connected,
+  lastSeen,
+  hue,
+}: {
+  name: string;
+  connected: boolean;
+  /** Unix seconds. */
+  lastSeen: number;
+  hue?: number;
+}) {
+  const { t } = useT();
+  return (
+    <Card padding="none" hue={hue} className="flex h-full flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 items-stretch">
+        {/* The glyph fills the slot the logo takes on an instance's card. */}
+        <div className="flex w-26 shrink-0 items-center justify-center self-stretch ps-4 text-carbon-textMuted [&>svg]:h-14 [&>svg]:w-14">
+          <IconPhone />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 p-7">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
+            <span className="ms-auto flex items-center gap-2">
+              <LabelBadge
+                label={connected ? t('instances.connected') : t('instances.notConnected')}
+                tone={connected ? 'ok' : 'fail'}
+              />
+            </span>
+          </div>
+          <div className="truncate text-xs text-carbon-textMuted">
+            {t('instances.lastSeen', { time: fmtDate(new Date(lastSeen * 1000).toISOString()) })}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

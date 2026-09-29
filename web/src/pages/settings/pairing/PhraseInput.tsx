@@ -4,10 +4,10 @@
 // is sent. Pair stays off until twelve known words are there; whether they
 // belong together only the server can say, from the checksum.
 import { useState } from 'react';
-import { Button, InfoBubble, TextArea } from '../../components/ui';
-import { useT } from '../../lib/i18n';
-import { IconLink } from '../../lib/icons';
-import { PHRASE_WORDS, checkPhrase } from '../../lib/phraseWords';
+import { Button, InfoBubble, TextArea } from '../../../components/ui';
+import { useT } from '../../../lib/i18n';
+import { IconLink } from '../../../lib/icons';
+import { PHRASE_WORDS, checkPhrase } from '../../../lib/phraseWords';
 
 export function PhraseInput({
   id,

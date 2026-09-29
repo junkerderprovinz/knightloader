@@ -53,11 +53,11 @@ const FILE_PAGES = [
   // The Free downloads card, which the Accounts page draws under both entries.
   { file: 'src/components/FreeDownloadsCard.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
-  // The Instances page it draws below its own card, whose Pairing tab holds
-  // the phrase and the relay.
-  { file: 'src/pages/instances/', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
   { file: 'src/pages/settings/access/', pages: ['access'] },
+  { file: 'src/pages/settings/pairing/', pages: ['access'] },
+  // The Instances page, which the Instances tab draws below its own card.
+  { file: 'src/pages/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Advanced.tsx', pages: ['advanced'] },
   { file: 'src/pages/settings/Rules.tsx', pages: ['rules'] },
   // Most settings.rules.* keys live here rather than in Rules.tsx.

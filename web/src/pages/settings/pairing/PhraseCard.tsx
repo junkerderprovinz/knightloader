@@ -3,9 +3,8 @@
 // shows who else is there, and when nobody has come after a minute it says
 // the likely reasons with the steps that fix them.
 import { useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Card, InfoBubble, LabelBadge, PasswordInput, SectionTitle } from '../../components/ui';
-import { QRCode } from '../../components/QRCode';
+import { Button, Card, InfoBubble, LabelBadge, PasswordInput, SectionTitle } from '../../../components/ui';
+import { QRCode } from '../../../components/QRCode';
 import {
   ApiError,
   PhraseRejected,
@@ -14,11 +13,12 @@ import {
   leaveConnect,
   revealConnect,
   type ConnectInfo,
+  type GroupApp,
   type GroupMember,
   type QRMatrix,
-} from '../../lib/api';
-import { copyToClipboard } from '../../lib/clipboard';
-import { useT } from '../../lib/i18n';
+} from '../../../lib/api';
+import { copyToClipboard } from '../../../lib/clipboard';
+import { useT } from '../../../lib/i18n';
 import {
   IconCheck,
   IconCheckDrawn,
@@ -27,18 +27,22 @@ import {
   IconEye,
   IconEyeOff,
   IconKeyboard,
+  IconPhone,
   IconPlus,
   IconRetry,
   IconSignOut,
   IconWarning,
-} from '../../lib/icons';
-import { useShake } from '../../lib/useShake';
-import { useToast } from '../../lib/toast';
+} from '../../../lib/icons';
+import { useShake } from '../../../lib/useShake';
+import { useToast } from '../../../lib/toast';
 import { PhraseInput } from './PhraseInput';
 import { STAGE_BADGE, clock, pairStage } from './pairStage';
 import { RouteGlyph } from './pairingArt';
 
 type T = ReturnType<typeof useT>['t'];
+
+/** The id of the login password's card on the same page. */
+export const PASSWORD_ANCHOR = 'login-password';
 
 /** refusalText says what is wrong with a phrase or a request the server
  *  turned down, in the reader's language. */
@@ -49,7 +53,6 @@ export function refusalText(t: T, e: unknown): string {
     return t('pairing.errChecksum');
   }
   if (e instanceof ApiError) {
-    if (e.code === 'needsPassword') return t('pairing.needsPassword');
     if (e.code === 'passwordWrong') return t('pairing.passwordWrong');
     if (e.code === 'phraseExists') return t('pairing.errExists');
   }
@@ -124,8 +127,19 @@ function MemberRow({ m, t }: { m: GroupMember; t: T }) {
     <li className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
       <span className="min-w-0 break-words text-sm font-semibold text-carbon-text">{m.name || m.id}</span>
       <span className="ms-auto">
-        <LabelBadge label={t('pairing.viaRelay')} />
+        <LabelBadge label={m.direct ? t('pairing.direct') : t('pairing.viaRelay')} tone={m.direct ? 'ok' : undefined} />
       </span>
+    </li>
+  );
+}
+
+function AppRow({ app }: { app: GroupApp }) {
+  return (
+    <li className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+      <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">
+        <IconPhone />
+      </span>
+      <span className="min-w-0 break-words text-sm font-semibold text-carbon-text">{app.name || app.id}</span>
     </li>
   );
 }
@@ -259,7 +273,6 @@ export function PhraseCard({
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [phrase, setPhrase] = useState<string | null>(null);
   const [qr, setQr] = useState<QRMatrix | null>(null);
   const [createdHere, setCreatedHere] = useState(false);
@@ -276,7 +289,6 @@ export function PhraseCard({
   const joinedAgo = useJoinedAgo(group);
 
   const stage = pairStage(group, joinedAgo, createdHere);
-  const locked = !group.passwordSet;
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -350,11 +362,15 @@ export function PhraseCard({
     else setShake((n) => n + 1);
   }
 
-  const lockedNote = locked && (
+  // The password card sits above this one on the same page.
+  const noPasswordNote = !group.passwordSet && (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
-      <p className="min-w-0 flex-[1_1_16rem] text-sm leading-relaxed text-carbon-text">{t('pairing.needsPassword')}</p>
-      <Button kind="secondary" onClick={() => navigate('/settings/access')}>
-        {t('settings.help.access.link1')}
+      <p className="min-w-0 flex-[1_1_16rem] text-sm leading-relaxed text-carbon-text">{t('pairing.noPasswordHint')}</p>
+      <Button
+        kind="secondary"
+        onClick={() => document.getElementById(PASSWORD_ANCHOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      >
+        {t('settings.setPassword')}
       </Button>
     </div>
   );
@@ -394,8 +410,9 @@ export function PhraseCard({
       kind="secondary"
       icon={<IconEye />}
       shake={askPassword ? 0 : shake}
-      onClick={() => setAskPassword(true)}
-      disabled={busy || locked || askPassword}
+      // Without a password there is nothing to enter first.
+      onClick={() => (group.passwordSet ? setAskPassword(true) : void show())}
+      disabled={busy || askPassword}
     >
       {t('pairing.show')}
     </Button>
@@ -423,7 +440,7 @@ export function PhraseCard({
   );
 
   const enterTip = t('pairing.enterTip', {
-    path: [t('instances.title'), t('pairing.title'), t('pairing.show')].join(', '),
+    path: [t('settings.title'), t('settings.nav.access'), t('pairing.show')].join(', '),
   });
 
   const foot = (buttons: boolean) => (
@@ -476,7 +493,7 @@ export function PhraseCard({
               label={t('pairing.enterLabelOther')}
               tip={enterTip}
               bare
-              disabled={!left || locked}
+              disabled={!left}
               busy={busy}
               onPair={join}
             />
@@ -497,7 +514,7 @@ export function PhraseCard({
         {group.relayMode === 'off' && (
           <>
             <Rule />
-            <Lead title={t('pairing.noRelayTitle')}>{t('pairing.noRelayBody')}</Lead>
+            <Lead title={t('pairing.otherNetTitle')}>{t('pairing.otherNetBody')}</Lead>
           </>
         )}
       </Hint>
@@ -513,14 +530,14 @@ export function PhraseCard({
     body = (
       <>
         {stateRow(t('pairing.stateNotPaired'), 'neutral', false)}
-        {lockedNote}
+        {noPasswordNote}
         {aloneHint(true)}
       </>
     );
   } else if (stage === 'unpaired') {
     body = (
       <>
-        {lockedNote}
+        {noPasswordNote}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Choice
             glyph={<IconPlus />}
@@ -528,7 +545,7 @@ export function PhraseCard({
             sub={t('pairing.createSub')}
             pressed={false}
             dim={entering}
-            disabled={busy || locked}
+            disabled={busy}
             shake={shake}
             onClick={() => void create()}
           />
@@ -538,7 +555,6 @@ export function PhraseCard({
             sub={t('pairing.enterSub')}
             pressed={entering}
             dim={false}
-            disabled={locked}
             onClick={() => setEntering(true)}
           />
         </div>
@@ -547,7 +563,6 @@ export function PhraseCard({
             id="pairing-phrase"
             label={t('pairing.enterLabel')}
             tip={enterTip}
-            disabled={locked}
             busy={busy}
             onPair={join}
             onCancel={() => setEntering(false)}
@@ -559,7 +574,7 @@ export function PhraseCard({
     body = (
       <>
         {stateRow(t(STAGE_BADGE.alone.key), STAGE_BADGE.alone.tone)}
-        {lockedNote}
+        {noPasswordNote}
         {relayHint}
         {aloneHint(false)}
         {foot(false)}
@@ -570,7 +585,7 @@ export function PhraseCard({
     body = (
       <>
         {stateRow(t(badge.key), badge.tone)}
-        {lockedNote}
+        {noPasswordNote}
         {relayHint}
         {revealed}
         {stage === 'new' && (
@@ -603,6 +618,11 @@ export function PhraseCard({
               {group.members.map((m) => (
                 <MemberRow key={m.id} m={m} t={t} />
               ))}
+              {group.apps
+                .filter((a) => a.connected)
+                .map((a) => (
+                  <AppRow key={a.id} app={a} />
+                ))}
             </ul>
           ) : stage === 'new' ? (
             <WaitRow text={t('pairing.waitNext')} />
@@ -633,7 +653,7 @@ function Choice({
   sub,
   pressed,
   dim,
-  disabled,
+  disabled = false,
   shake = 0,
   onClick,
 }: {
@@ -642,7 +662,7 @@ function Choice({
   sub: string;
   pressed: boolean;
   dim: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   shake?: number;
   onClick: () => void;
 }) {
@@ -678,7 +698,7 @@ function Choice({
 /** NextStep points at the button to press on the other instance, along the
  *  path to it. */
 function NextStep({ t }: { t: T }) {
-  const path = [t('instances.title'), t('pairing.title'), t('pairing.enter')];
+  const path = [t('settings.title'), t('settings.nav.access'), t('pairing.enter')];
   return (
     <div className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[var(--radius-control)] bg-accentSoft px-4 py-3.5">
       <span className="row-span-2 grid h-7 w-7 place-items-center rounded-full bg-accent text-accentContrast">

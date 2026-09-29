@@ -3726,8 +3726,8 @@ export interface ConnectInfo {
   /** Whether the relay socket is up; a stored phrase with an unreachable
    *  relay is active but not connected. */
   connected: boolean;
-  /** Whether a login password is set. Without one the phrase can be neither
-   *  generated, entered nor shown. */
+  /** Whether a login password is set. Without one anybody who opens this web
+   *  interface can show the phrase, which the phrase card says. */
   passwordSet: boolean;
   /** Which relay this instance is pointed at. */
   relayUrl: string;
@@ -3741,6 +3741,8 @@ export interface ConnectInfo {
   name: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
+  /** Every phone that joined the group with the phrase. */
+  apps: GroupApp[];
   /** Seconds since this instance generated or entered its phrase, 0 outside
    *  a group. */
   joinedAgo: number;
@@ -3751,6 +3753,18 @@ export interface ConnectInfo {
 export interface GroupMember {
   id: string;
   name: string;
+  /** On this network, and on the same relay; a member can be both. */
+  direct: boolean;
+  relay: boolean;
+}
+
+/** A phone of the group. */
+export interface GroupApp {
+  id: string;
+  name: string;
+  connected: boolean;
+  /** Unix seconds. */
+  lastSeen: number;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {

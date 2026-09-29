@@ -95,13 +95,6 @@ interface Common {
    * height so a long list scrolls instead of shrinking to slivers.
    */
   fill?: boolean;
-  /**
-   * Keeps a page's tabs on one row. They share it evenly while the widest name
-   * fits a share, then size to their names, and once the names do not fit side
-   * by side every tab shows its glyph alone, with the name as its accessible
-   * name and tooltip.
-   */
-  fit?: boolean;
   /** How much of each tab is drawn; see lib/navLabels.ts. */
   display?: NavLabelMode;
   /**
@@ -222,7 +215,6 @@ export function Tabs(props: TabsProps) {
     orientation = 'horizontal',
     inline = false,
     fill = false,
-    fit = false,
     display: asked,
     labelled = false,
     folded,
@@ -326,39 +318,6 @@ export function Tabs(props: TabsProps) {
     return () => watch.disconnect();
   }, [pinned, bigWell, pinUnits, glyphRem, labels]);
 
-  // How a strip that keeps to one row holds its names: in even shares while
-  // the widest fits one, at each name's own width while they fit together, and
-  // as glyphs alone after that. Hidden names are put back on screen for the
-  // measurement, so a strip that has dropped them sees when they fit again.
-  const canSqueeze = fit && display === 'both' && items.every((i) => !!i.icon);
-  const [fitMode, setFitMode] = useState<'even' | 'content' | 'squeezed'>('even');
-  const squeezed = canSqueeze && fitMode === 'squeezed';
-  useLayoutEffect(() => {
-    const el = strip.current;
-    if (!fit || vertical || !el) return;
-    function measure() {
-      if (!el) return;
-      const segs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-tab-id]'));
-      const own = getComputedStyle(el);
-      const room = el.clientWidth - parseFloat(own.paddingLeft) - parseFloat(own.paddingRight);
-      if (room <= 0 || segs.length === 0) return;
-      const hidden = Array.from(el.querySelectorAll('[data-tab-label].sr-only'));
-      for (const l of hidden) l.classList.remove('sr-only');
-      const widths = segmentWidths(segs).map((w) => w.oneLine);
-      for (const l of hidden) l.classList.add('sr-only');
-      const free = room - (parseFloat(own.columnGap) || 0) * (segs.length - 1);
-      const needed = widths.reduce((sum, w) => sum + w, 0);
-      setFitMode(
-        Math.max(...widths) <= free / segs.length ? 'even' : needed <= free || !canSqueeze ? 'content' : 'squeezed',
-      );
-    }
-    measure();
-    const watch = new ResizeObserver(measure);
-    watch.observe(el);
-    void document.fonts?.ready.then(measure);
-    return () => watch.disconnect();
-  }, [fit, vertical, canSqueeze, labels]);
-
   // A pinned segment keeps the pinned width as its floor and grows into its
   // share of the row, so a spanning strip fills every row to its end. The
   // basis leaves one gap of slack against sub-pixel rounding, and the growth
@@ -371,9 +330,7 @@ export function Tabs(props: TabsProps) {
   const contentRow = pinned !== undefined && byContent;
   const segmentFlex: CSSProperties = vertical
     ? {}
-    : fit
-      ? { flex: fitMode === 'content' ? '1 1 auto' : '1 1 0', minWidth: 0, maxWidth: `${WELL_CEIL_REM}rem` }
-      : pinned === undefined || contentRow
+    : pinned === undefined || contentRow
       ? { flex: '1 0 auto' }
       : {
           minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
@@ -505,7 +462,7 @@ export function Tabs(props: TabsProps) {
               p-[0.2rem] ${className}`
             : `flex ${span} flex-wrap items-center ${reorderable ? 'relative' : ''} ${armed} ${className}`
       }
-      style={vertical ? undefined : contentRow || fit ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
+      style={vertical ? undefined : contentRow ? { gap, width: '100%', flexWrap: 'nowrap' } : { gap }}
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
@@ -564,15 +521,12 @@ export function Tabs(props: TabsProps) {
               // Devanagari set outside the line. Elsewhere the row height is
               // fixed, so the label truncates.
               <span
-                data-tab-label
                 className={`${
-                  squeezed
-                    ? 'sr-only'
-                    : isWell
-                      ? 'text-pretty break-words'
-                      : vertical && !stacked
-                        ? 'line-clamp-2 overflow-clip [overflow-clip-margin:3px] break-words text-balance leading-5'
-                        : 'truncate'
+                  isWell
+                    ? 'text-pretty break-words'
+                    : vertical && !stacked
+                      ? 'line-clamp-2 overflow-clip [overflow-clip-margin:3px] break-words text-balance leading-5'
+                      : 'truncate'
                 } ${labelOnHover ? hiddenLabel : ''} ${captioned ? 'text-xs' : ''}`}
               >
                 {item.label}
@@ -613,7 +567,7 @@ export function Tabs(props: TabsProps) {
             href={item.href}
             many={many}
             on={on}
-            tip={item.title ?? (nameOnly || squeezed ? item.label : undefined)}
+            tip={item.title ?? (nameOnly ? item.label : undefined)}
             shared={shared}
           >
             {inner}

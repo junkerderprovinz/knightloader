@@ -55,6 +55,8 @@ import {
   type TokenPreset,
 } from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
+import { PairingSection } from './pairing/PairingSection';
+import { PASSWORD_ANCHOR } from './pairing/PhraseCard';
 
 export function Access() {
   /**
@@ -73,6 +75,10 @@ export function Access() {
       {/* The second factor and passkeys, two cards because somebody can want
           one without the other. */}
       <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
+
+      {/* Pairing after the ways in, since without a password anybody who
+          opens this interface can read the words that reach every member. */}
+      <PairingSection key={authVersion} />
 
       <TokensSection />
     </div>
@@ -126,7 +132,7 @@ function PasswordCard({
   const locked = auth?.enabled ?? false;
 
   return (
-      <Card hue={0} className="flex flex-col gap-5">
+      <Card hue={0} id={PASSWORD_ANCHOR} className="flex scroll-mt-6 flex-col gap-5">
         {/* The status stays visible; why a password matters is in the title's hint. */}
         <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}

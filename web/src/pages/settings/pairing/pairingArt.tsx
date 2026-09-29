@@ -3,7 +3,7 @@
 // tokens, so they follow dark and light and take the hue of the card they sit
 // in through --accent.
 import { useId, type ReactNode } from 'react';
-import type { RelayMode } from '../../lib/api';
+import type { RelayMode } from '../../../lib/api';
 
 const NODE = 'var(--carbon-surface2)';
 const RELAY = 'var(--carbon-surface3)';
