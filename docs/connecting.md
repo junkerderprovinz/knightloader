@@ -56,10 +56,11 @@ before. The relay only carries what cannot go directly. They do not show under
 ## Across networks: the connection phrase
 
 **Settings → Pairing → Generate phrase** on the first instance. Twelve
-words come back. On every other KnightLoader you run, press **Enter phrase** in
-the same place and paste them, and they find each other on one network and,
-through the relay, across networks and behind NAT, with no port forward, no
-domain and no account. The **Pairing** button on the Instances page leads
+words come back, in a window beside the QR code for the Android app, with Copy
+next to Close. On every other KnightLoader you run, press **Enter phrase** in
+the same place and paste them into the window it opens, and they find each
+other on one network and, through the relay, across networks and behind NAT,
+with no port forward, no domain and no account. The **Pairing** button on the Instances page leads
 there, and stands in the middle of that page while there is no group yet.
 
 The section opens with the same three steps as numbered cards. The field for the
@@ -68,7 +69,8 @@ commas. Twelve numbered slots fill as you type, a word that is not on the list
 is named with its position straight away, and **Pair** stays off until all
 twelve are known words.
 
-A badge on the phrase card says where the instance stands:
+A badge at the end of the phrase card's first line says where the instance
+stands. How the relay is doing is on the relay card, not here.
 
 | Badge | When |
 | --- | --- |
@@ -77,19 +79,21 @@ A badge on the phrase card says where the instance stands:
 | Still alone | a minute has passed and no other instance or phone has shown up |
 | Paired | another instance of the group, or the Android app, is there right now |
 
-Below the badge the card lists the group, one row each: this instance, the
-other instances with Direct or Via relay, and the phones that are connected.
+Below the badge the card lists the group, one row each and all of one height:
+this instance, the other instances with Direct or Via relay, and the phones
+that are connected. **Show phrase** opens the words in the same window
+**Generate phrase** does, after the login password if one is set.
 
 The server keeps when the instance joined its group and whether anyone has
 come since, so the minute counts on its clock and survives a reload. A group
 from a build before this counts as joined when the instance starts.
 
 **Still alone** comes with what to do, in two tiles side by side. **Nothing
-entered over there yet?** opens a window with the twelve words beside the QR
-code for the Android app, and Copy next to Close. **Generated a phrase over there too?** is
-the usual cause, two instances that each started a group of their own: **Enter
-its words** opens a window with the word field, and **Pair** there joins the
-other group in one step, since nobody is in this one. Without a relay the card
+entered over there yet?** opens the window with the twelve words. **Generated
+a phrase over there too?** is the usual cause, two instances that each
+started a group of their own: it opens the window **Enter phrase** opens, and
+**Pair** there joins the other group in one step, since nobody is in this
+one. Without a relay the card
 adds that an instance on another network cannot find this one. With a relay
 that cannot be reached, one line says so and **What to check** lists it:
 outgoing HTTPS on port 443 to `relay.halleluja.design`, a firewall or DNS
@@ -99,7 +103,14 @@ Before the instance has a phrase it dials no relay, since the relay key comes
 from the words, so the relay card says **No group yet** rather than Not
 connected. **Generate phrase** pressed by mistake is undone with **Enter
 phrase** under "Already have a phrase?", which leaves the empty group and
-opens the field.
+opens the window for the words.
+
+Every instance tells its group where its web interface is: its first known
+domain (the addresses under **Settings → Pairing**), else its address on its
+network, such as `192.168.20.86:8749`. The address travels in the announce
+members already send, sealed on the relay and signed on the network. An
+instance drops it from an announce that comes from outside the group. The Instances page shows it under each
+instance's name and **Open** goes there. A phone shows no address.
 
 The words *are* the credential. Whoever has them reaches every instance in the
 group, so keep that in mind before you read them out over the phone.
@@ -206,6 +217,12 @@ need it: moving a relay to a new address. Old clients keep dialling the old
 name, and a whitelist of one would stop issuing a certificate for it the moment
 you switch, so those clients fail in the handshake instead of moving across.
 Run both names for as long as anything still dials the old one, then drop it.
+
+The relay takes all of its settings from the environment. Its one flag,
+`-version`, prints the version and the commit it was built from and exits
+without opening a port. Any other flag or argument is refused, so a mistyped
+flag cannot start a relay. `knightloader -version` does the same
+for the server.
 
 ### Or let one instance be the relay
 
