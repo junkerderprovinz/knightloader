@@ -468,6 +468,7 @@ func featurePages() []FeaturePage {
 		{ID: "look", Modules: []string{"updater"}},
 		{ID: "appearance"},
 		{ID: "modules"},
+		{ID: "accounts"},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -477,8 +478,12 @@ func featurePages() []FeaturePage {
 		// naming a missing category is refused and the table should be in reach.
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
 		{ID: "network", Modules: []string{"connections", "reconnect"}},
-		{ID: "accounts"},
+		// Pairing forms the group the Instances page shows, and the page after
+		// them holds what guards this instance. Its id stays "access" so
+		// bookmarks resolve.
+		{ID: "pairing"},
 		{ID: "instances", Modules: []string{"federation"}},
+		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
@@ -487,17 +492,13 @@ func featurePages() []FeaturePage {
 		// download.
 		{ID: "automation", Modules: []string{"scheduler", "keepawake", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
-		// Pairing forms the group and picks its relay; the page after it holds
-		// what guards this instance. Its id stays "access" so bookmarks resolve.
-		{ID: "pairing"},
-		{ID: "access", Modules: []string{"downloadclient"}},
+		{ID: "browsertools"},
 		{ID: "advanced"},
 		// Health comes before diagnostics: one says whether the instance works
 		// now, the other hands over a bundle for a report about why it did not.
 		{ID: "health", Modules: []string{"metrics"}},
 		{ID: "diagnostics"},
 		{ID: "help"},
-		{ID: "browsertools"},
 	}
 }
 

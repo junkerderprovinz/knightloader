@@ -10,28 +10,28 @@ import type { Command } from './types';
  * settings.nav.<id> key.
  */
 const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
+  { id: 'look', labelKey: 'settings.nav.look' },
+  { id: 'appearance', labelKey: 'settings.nav.appearance' },
   { id: 'modules', labelKey: 'settings.nav.modules' },
+  { id: 'accounts', labelKey: 'settings.nav.accounts' },
   { id: 'collector', labelKey: 'settings.nav.collector' },
   { id: 'downloads', labelKey: 'settings.nav.downloads' },
   { id: 'archives', labelKey: 'settings.nav.archives' },
-  { id: 'look', labelKey: 'settings.nav.look' },
-  { id: 'appearance', labelKey: 'settings.nav.appearance' },
-  { id: 'accounts', labelKey: 'settings.nav.accounts' },
-  { id: 'instances', labelKey: 'settings.nav.instances' },
-  { id: 'pairing', labelKey: 'settings.nav.pairing' },
-  { id: 'access', labelKey: 'settings.nav.access' },
-  { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'rules', labelKey: 'settings.nav.rules' },
   { id: 'network', labelKey: 'settings.nav.network' },
+  { id: 'pairing', labelKey: 'settings.nav.pairing' },
+  { id: 'instances', labelKey: 'settings.nav.instances' },
+  { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'resolvers', labelKey: 'settings.nav.resolvers' },
   { id: 'torrents', labelKey: 'settings.nav.torrents' },
   { id: 'captcha', labelKey: 'settings.nav.captcha' },
   { id: 'automation', labelKey: 'settings.nav.automation' },
+  { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
+  { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
+  { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'health', labelKey: 'settings.nav.health' },
   { id: 'diagnostics', labelKey: 'settings.nav.diagnostics' },
   { id: 'help', labelKey: 'settings.nav.help' },
-  { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
-  { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
 ];
 
 export const settingsCommands: Command[] = [
