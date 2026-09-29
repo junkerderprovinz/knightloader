@@ -297,16 +297,18 @@ export function LabelBadge({
   label: string;
   tip?: ReactNode;
   hue?: number;
-  tone?: 'ok' | 'fail';
+  tone?: 'ok' | 'warn' | 'fail';
   onClick?: () => void;
 }) {
   const hued = hue !== undefined && !tone;
   const toneClass =
     tone === 'ok'
       ? 'bg-statusOkBg text-statusOk'
-      : tone === 'fail'
-        ? 'bg-statusFailBg text-statusFail'
-        : 'bg-carbon-surface2 text-carbon-textSub';
+      : tone === 'warn'
+        ? 'bg-statusWarnBg text-statusWarn'
+        : tone === 'fail'
+          ? 'bg-statusFailBg text-statusFail'
+          : 'bg-carbon-surface2 text-carbon-textSub';
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
