@@ -156,8 +156,8 @@ homepage. It is in `extension/README.md`, which the homepage README links to, an
 not in the privacy policy, which Edge wants to be about its own browser rather
 than another one.
 
-**Graphics** (in this folder: `gen-store-assets.mjs` makes the icons and promo
-tiles, `gen-screenshots.mjs` the screenshots in `screenshots/`)
+**Graphics** (in this folder: `gen-store-assets.mjs` makes the icons,
+`gen-screenshots.mjs` the screenshots in `screenshots/` and the promo tiles)
 
 | File | Chrome Web Store | Edge Add-ons | AMO |
 | --- | --- | --- | --- |
