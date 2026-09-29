@@ -156,6 +156,8 @@ export const fi: Dict = {
   'pairing.enterLabelOther': 'Kaksitoista sanaa toiselta instanssilta',
   'pairing.enterTip': 'Löydät ne sieltä kohdasta {path}.',
   'pairing.enterPlaceholder': 'Liitä tai kirjoita sanat, välilyönnein erotettuna',
+  'pairing.paste': 'Liitä',
+  'pairing.pasteRefused': 'Selain ei sallinut leikepöydän lukemista, joten liitä sanat kenttään näppäimillä Ctrl+V tai pitkällä painalluksella.',
   'pairing.wordCount': '{n}/12 sanaa',
   'pairing.join': 'Pariuta',
   'pairing.joined': 'Pariutettu',

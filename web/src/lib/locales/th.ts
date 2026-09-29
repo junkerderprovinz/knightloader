@@ -156,6 +156,8 @@ export const th: Dict = {
   'pairing.enterLabelOther': 'สิบสองคำจากอินสแตนซ์อีกเครื่อง',
   'pairing.enterTip': 'คุณจะพบคำเหล่านั้นที่นั่น ใต้ {path}',
   'pairing.enterPlaceholder': 'วางหรือพิมพ์คำ คั่นด้วยช่องว่าง',
+  'pairing.paste': 'วาง',
+  'pairing.pasteRefused': 'เบราว์เซอร์ไม่อนุญาตให้อ่านคลิปบอร์ด จึงให้วางคำลงในช่องด้วย Ctrl+V หรือกดค้างไว้',
   'pairing.wordCount': '{n} จาก 12 คำ',
   'pairing.join': 'จับคู่',
   'pairing.joined': 'จับคู่แล้ว',

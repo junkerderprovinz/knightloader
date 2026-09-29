@@ -158,6 +158,8 @@ export const he: Dict = {
   'pairing.enterLabelOther': 'שתים עשרה המילים מהמופע האחר',
   'pairing.enterTip': 'תמצא אותן שם תחת {path}.',
   'pairing.enterPlaceholder': 'הדבק או הקלד את המילים, מופרדות ברווחים',
+  'pairing.paste': 'הדבקה',
+  'pairing.pasteRefused': 'הדפדפן לא איפשר לקרוא את הלוח, לכן הדבק את המילים בשדה עם Ctrl+V או בלחיצה ארוכה.',
   'pairing.wordCount': '{n} מתוך 12 מילים',
   'pairing.join': 'צמד',
   'pairing.joined': 'צומד',

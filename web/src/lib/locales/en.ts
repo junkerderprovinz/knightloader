@@ -187,6 +187,8 @@ export const en = {
   'pairing.enterLabelOther': 'The twelve words from the other instance',
   'pairing.enterTip': 'You find them there under {path}.',
   'pairing.enterPlaceholder': 'Paste or type the words, separated by spaces',
+  'pairing.paste': 'Paste',
+  'pairing.pasteRefused': 'The browser did not allow reading the clipboard, so paste the words into the field with Ctrl+V or a long press.',
   'pairing.wordCount': '{n} of 12 words',
   'pairing.join': 'Pair',
   'pairing.joined': 'Paired',

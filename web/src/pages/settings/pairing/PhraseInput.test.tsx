@@ -22,13 +22,19 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   host.remove();
+  Reflect.deleteProperty(navigator, 'clipboard');
 });
 
+function clipboard(readText: () => Promise<string>) {
+  Object.defineProperty(navigator, 'clipboard', { value: { readText }, configurable: true });
+}
+
 function Entry({ onPair }: { onPair: (phrase: string) => Promise<string | null> }) {
-  const { field, pair } = usePhraseEntry({ id: 'phrase', label: 'Words', tip: 'Tip', busy: false, onPair });
+  const { field, paste, pair } = usePhraseEntry({ id: 'phrase', label: 'Words', tip: 'Tip', busy: false, onPair });
   return (
     <>
       {field}
+      {paste}
       {pair}
     </>
   );
@@ -56,6 +62,7 @@ function type(text: string) {
 }
 
 const pair = () => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Pair')!;
+const paste = () => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Paste')!;
 const slots = () => [...host.querySelectorAll('li[data-slot]')];
 const alert = () => host.querySelector('[role="alert"]')!.textContent ?? '';
 
@@ -99,6 +106,33 @@ describe('usePhraseEntry', () => {
     type([...WORDS, 'orbit'].join(' '));
     expect(alert()).toContain('13 words');
     expect(pair().disabled).toBe(true);
+  });
+
+  it('fills the slots from the clipboard and names an unknown word, as a paste does', async () => {
+    const words = [...WORDS];
+    words[2] = 'lemno';
+    clipboard(async () => words.map((w, i) => `${i + 1}. ${w}`).join('\n'));
+    draw();
+    await act(async () => paste().click());
+    expect(slots().map((s) => s.textContent)).toEqual(words.map((w, i) => `${i + 1}${w}`));
+    expect(alert()).toContain('Word 3');
+    expect(alert()).toContain('lemno');
+    expect(host.querySelector('textarea')!.value).toContain('lemno');
+  });
+
+  it('says to paste by hand when the browser refuses the clipboard, and keeps the field focused', async () => {
+    clipboard(() => Promise.reject(new DOMException('Read permission denied.', 'NotAllowedError')));
+    draw();
+    await act(async () => paste().click());
+    expect(alert()).toContain('Ctrl+V');
+    expect(document.activeElement).toBe(host.querySelector('textarea'));
+    expect(slots().every((s) => s.textContent?.endsWith('·'))).toBe(true);
+  });
+
+  it('says the same where there is no clipboard at all', async () => {
+    draw();
+    await act(async () => paste().click());
+    expect(alert()).toContain('Ctrl+V');
   });
 
   it('sends the words one space apart and shows what the server refused', async () => {

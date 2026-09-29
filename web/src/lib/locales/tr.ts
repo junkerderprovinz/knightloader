@@ -156,6 +156,8 @@ export const tr: Dict = {
   'pairing.enterLabelOther': 'Diğer örnekten on iki kelime',
   'pairing.enterTip': 'Onları orada {path} altında bulursun.',
   'pairing.enterPlaceholder': 'Kelimeleri boşlukla ayırarak yapıştır veya yaz',
+  'pairing.paste': 'Yapıştır',
+  'pairing.pasteRefused': 'Tarayıcı panoyu okumaya izin vermedi, bu yüzden kelimeleri Ctrl+V ile ya da uzun basarak alana yapıştır.',
   'pairing.wordCount': '12 kelimeden {n}',
   'pairing.join': 'Eşleştir',
   'pairing.joined': 'Eşleştirildi',

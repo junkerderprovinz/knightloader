@@ -156,6 +156,8 @@ export const bg: Dict = {
   'pairing.enterLabelOther': 'Дванайсетте думи от другата инстанция',
   'pairing.enterTip': 'Ще ги намериш там под {path}.',
   'pairing.enterPlaceholder': 'Постави или въведи думите, разделени с интервали',
+  'pairing.paste': 'Постави',
+  'pairing.pasteRefused': 'Браузърът не позволи четене на клипборда, затова постави думите в полето с Ctrl+V или с продължително натискане.',
   'pairing.wordCount': '{n} от 12 думи',
   'pairing.join': 'Сдвои',
   'pairing.joined': 'Сдвоена',

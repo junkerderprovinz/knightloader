@@ -156,6 +156,8 @@ export const ro: Dict = {
   'pairing.enterLabelOther': 'Cele douăsprezece cuvinte de la cealaltă instanță',
   'pairing.enterTip': 'Le găsești acolo la {path}.',
   'pairing.enterPlaceholder': 'Lipește sau scrie cuvintele, separate prin spații',
+  'pairing.paste': 'Lipește',
+  'pairing.pasteRefused': 'Browserul nu a permis citirea clipboardului, așa că lipește cuvintele în câmp cu Ctrl+V sau cu o apăsare lungă.',
   'pairing.wordCount': '{n} din 12 cuvinte',
   'pairing.join': 'Împerechează',
   'pairing.joined': 'Împerecheat',

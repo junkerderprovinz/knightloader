@@ -158,6 +158,8 @@ export const no: Dict = {
   'pairing.enterLabelOther': 'De tolv ordene fra den andre instansen',
   'pairing.enterTip': 'Du finner dem der under {path}.',
   'pairing.enterPlaceholder': 'Lim inn eller skriv ordene, adskilt med mellomrom',
+  'pairing.paste': 'Lim inn',
+  'pairing.pasteRefused': 'Nettleseren tillot ikke å lese utklippstavlen, så lim inn ordene i feltet med Ctrl+V eller et langt trykk.',
   'pairing.wordCount': '{n} av 12 ord',
   'pairing.join': 'Par',
   'pairing.joined': 'Paret',

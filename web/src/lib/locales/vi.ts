@@ -156,6 +156,8 @@ export const vi: Dict = {
   'pairing.enterLabelOther': 'Mười hai từ từ phiên bản kia',
   'pairing.enterTip': 'Bạn tìm thấy chúng ở đó, dưới {path}.',
   'pairing.enterPlaceholder': 'Dán hoặc gõ các từ, cách nhau bằng dấu cách',
+  'pairing.paste': 'Dán',
+  'pairing.pasteRefused': 'Trình duyệt không cho phép đọc khay nhớ tạm, vì vậy hãy dán các từ vào ô bằng Ctrl+V hoặc nhấn giữ.',
   'pairing.wordCount': '{n} trong 12 từ',
   'pairing.join': 'Ghép nối',
   'pairing.joined': 'Đã ghép nối',

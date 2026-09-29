@@ -156,6 +156,8 @@ export const et: Dict = {
   'pairing.enterLabelOther': 'Kaksteist sõna teisest eksemplarist',
   'pairing.enterTip': 'Leiad need sealt {path} alt.',
   'pairing.enterPlaceholder': 'Kleebi või kirjuta sõnad, tühikutega eraldatud',
+  'pairing.paste': 'Kleebi',
+  'pairing.pasteRefused': 'Brauser ei lubanud lõikelauda lugeda, seega kleebi sõnad välja klahvidega Ctrl+V või pika vajutusega.',
   'pairing.wordCount': '{n}/12 sõna',
   'pairing.join': 'Seo',
   'pairing.joined': 'Seotud',

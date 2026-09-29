@@ -156,6 +156,8 @@ export const ko: Dict = {
   'pairing.enterLabelOther': '다른 인스턴스의 12개의 단어',
   'pairing.enterTip': '그곳의 {path}에서 찾을 수 있습니다.',
   'pairing.enterPlaceholder': '단어를 공백으로 구분하여 붙여넣거나 입력하세요',
+  'pairing.paste': '붙여넣기',
+  'pairing.pasteRefused': '브라우저가 클립보드 읽기를 허용하지 않았으므로 Ctrl+V 또는 길게 눌러 단어를 입력란에 붙여넣으세요.',
   'pairing.wordCount': '12개 중 {n}개',
   'pairing.join': '페어링',
   'pairing.joined': '페어링됨',

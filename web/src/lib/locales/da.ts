@@ -156,6 +156,8 @@ export const da: Dict = {
   'pairing.enterLabelOther': 'De tolv ord fra den anden instans',
   'pairing.enterTip': 'Du finder dem der under {path}.',
   'pairing.enterPlaceholder': 'Indsæt eller skriv ordene, adskilt af mellemrum',
+  'pairing.paste': 'Indsæt',
+  'pairing.pasteRefused': 'Browseren tillod ikke at læse udklipsholderen, så indsæt ordene i feltet med Ctrl+V eller et langt tryk.',
   'pairing.wordCount': '{n} af 12 ord',
   'pairing.join': 'Par',
   'pairing.joined': 'Parret',

@@ -156,6 +156,8 @@ export const hi: Dict = {
   'pairing.enterLabelOther': 'दूसरे इंस्टेंस के बारह शब्द',
   'pairing.enterTip': 'आपको वे वहाँ {path} के अंतर्गत मिलेंगे।',
   'pairing.enterPlaceholder': 'शब्द पेस्ट करें या टाइप करें, स्पेस से अलग किए हुए',
+  'pairing.paste': 'पेस्ट करें',
+  'pairing.pasteRefused': 'ब्राउज़र ने क्लिपबोर्ड पढ़ने की अनुमति नहीं दी, इसलिए शब्दों को Ctrl+V या देर तक दबाकर फ़ील्ड में पेस्ट करें।',
   'pairing.wordCount': '12 में से {n} शब्द',
   'pairing.join': 'पेयर करें',
   'pairing.joined': 'पेयर हो गया',

@@ -156,6 +156,8 @@ export const ca: Dict = {
   'pairing.enterLabelOther': "Les dotze paraules de l'altra instància",
   'pairing.enterTip': 'Les trobaràs allà sota {path}.',
   'pairing.enterPlaceholder': 'Enganxa o escriu les paraules, separades per espais',
+  'pairing.paste': 'Enganxa',
+  'pairing.pasteRefused': 'El navegador no ha permès llegir el porta-retalls, així que enganxa les paraules al camp amb Ctrl+V o amb una pulsació llarga.',
   'pairing.wordCount': '{n} de 12 paraules',
   'pairing.join': 'Aparella',
   'pairing.joined': 'Aparellada',

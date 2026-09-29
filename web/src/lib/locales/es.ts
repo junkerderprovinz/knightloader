@@ -150,6 +150,8 @@ export const es: Dict = {
   'pairing.enterLabelOther': 'Las doce palabras de la otra instancia',
   'pairing.enterTip': 'Las encontrarás allí en {path}.',
   'pairing.enterPlaceholder': 'Pega o escribe las palabras, separadas por espacios',
+  'pairing.paste': 'Pegar',
+  'pairing.pasteRefused': 'El navegador no ha permitido leer el portapapeles, así que pega las palabras en el campo con Ctrl+V o con una pulsación larga.',
   'pairing.wordCount': '{n} de 12 palabras',
   'pairing.join': 'Emparejar',
   'pairing.joined': 'Emparejada',

@@ -156,6 +156,8 @@ export const lv: Dict = {
   'pairing.enterLabelOther': 'Divpadsmit vārdi no otras instances',
   'pairing.enterTip': 'Tos atradīsiet tur sadaļā {path}.',
   'pairing.enterPlaceholder': 'Ielīmējiet vai ierakstiet vārdus, atdalītus ar atstarpēm',
+  'pairing.paste': 'Ielīmēt',
+  'pairing.pasteRefused': 'Pārlūks neļāva nolasīt starpliktuvi, tāpēc ielīmējiet vārdus laukā ar Ctrl+V vai ilgi nospiežot.',
   'pairing.wordCount': '{n} no 12 vārdiem',
   'pairing.join': 'Sapārot',
   'pairing.joined': 'Sapārota',

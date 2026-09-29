@@ -156,6 +156,8 @@ export const sk: Dict = {
   'pairing.enterLabelOther': 'Dvanásť slov z druhej inštancie',
   'pairing.enterTip': 'Nájdete ich tam pod {path}.',
   'pairing.enterPlaceholder': 'Vložte alebo napíšte slová oddelené medzerami',
+  'pairing.paste': 'Vložiť',
+  'pairing.pasteRefused': 'Prehliadač nepovolil čítanie schránky, preto vložte slová do poľa pomocou Ctrl+V alebo dlhým stlačením.',
   'pairing.wordCount': '{n} z 12 slov',
   'pairing.join': 'Spárovať',
   'pairing.joined': 'Spárované',

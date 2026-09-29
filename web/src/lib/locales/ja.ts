@@ -156,6 +156,8 @@ export const ja: Dict = {
   'pairing.enterLabelOther': 'もう一方のインスタンスの12個の単語',
   'pairing.enterTip': 'そちらの{path}にあります。',
   'pairing.enterPlaceholder': '単語をスペースで区切って貼り付けるか入力してください',
+  'pairing.paste': '貼り付け',
+  'pairing.pasteRefused': 'ブラウザーがクリップボードの読み取りを許可しなかったため、Ctrl+V または長押しで単語を欄に貼り付けてください。',
   'pairing.wordCount': '12語中{n}語',
   'pairing.join': 'ペアリング',
   'pairing.joined': 'ペアリング済み',

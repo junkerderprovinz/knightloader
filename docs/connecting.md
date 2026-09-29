@@ -67,7 +67,10 @@ The section opens with the same three steps as numbered cards. The field for the
 words takes a paste as it comes: one word per line, numbered, or separated by
 commas. Twelve numbered slots fill as you type, a word that is not on the list
 is named with its position straight away, and **Pair** stays off until all
-twelve are known words.
+twelve are known words. **Paste** beside it reads the clipboard into the field
+the same way. A browser that will not hand the clipboard to the page, outside
+HTTPS or with the permission refused, gets one line asking to paste with
+Ctrl+V or a long press instead.
 
 A badge at the end of the phrase card's first line says where the instance
 stands. How the relay is doing is on the relay card, not here.

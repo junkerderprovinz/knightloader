@@ -156,6 +156,8 @@ export const hr: Dict = {
   'pairing.enterLabelOther': 'Dvanaest riječi s druge instance',
   'pairing.enterTip': 'Ondje ih pronalazite pod {path}.',
   'pairing.enterPlaceholder': 'Zalijepite ili upišite riječi, odvojene razmacima',
+  'pairing.paste': 'Zalijepi',
+  'pairing.pasteRefused': 'Preglednik nije dopustio čitanje međuspremnika, stoga zalijepite riječi u polje pomoću Ctrl+V ili dugim pritiskom.',
   'pairing.wordCount': '{n} od 12 riječi',
   'pairing.join': 'Upari',
   'pairing.joined': 'Upareno',

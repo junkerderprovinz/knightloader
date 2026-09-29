@@ -150,6 +150,8 @@ export const pl: Dict = {
   'pairing.enterLabelOther': 'Dwanaście słów z drugiej instancji',
   'pairing.enterTip': 'Znajdziesz je tam pod {path}.',
   'pairing.enterPlaceholder': 'Wklej lub wpisz słowa, oddzielone spacjami',
+  'pairing.paste': 'Wklej',
+  'pairing.pasteRefused': 'Przeglądarka nie pozwoliła odczytać schowka, więc wklej słowa do pola za pomocą Ctrl+V lub długiego przytrzymania.',
   'pairing.wordCount': '{n} z 12 słów',
   'pairing.join': 'Paruj',
   'pairing.joined': 'Sparowano',

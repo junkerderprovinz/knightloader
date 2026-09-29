@@ -150,6 +150,8 @@ export const nl: Dict = {
   'pairing.enterLabelOther': 'De twaalf woorden van de andere instantie',
   'pairing.enterTip': 'Je vindt ze daar onder {path}.',
   'pairing.enterPlaceholder': 'Plak of typ de woorden, gescheiden door spaties',
+  'pairing.paste': 'Plakken',
+  'pairing.pasteRefused': 'De browser stond het lezen van het klembord niet toe, dus plak de woorden in het veld met Ctrl+V of lang indrukken.',
   'pairing.wordCount': '{n} van de 12 woorden',
   'pairing.join': 'Koppelen',
   'pairing.joined': 'Gekoppeld',

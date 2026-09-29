@@ -63,7 +63,9 @@ release's tag.
   numbered, or separated by commas. Twelve numbered slots fill as you type, a
   word that is not on the list is named with its position right away, and
   Pair stays off until all twelve are known words. The checksum still catches
-  a mistyped or swapped word that is on the list. The Android app's phrase
+  a mistyped or swapped word that is on the list. **Paste** beside Pair reads
+  the clipboard into the field the same way; where the browser refuses, a
+  line says to paste with Ctrl+V or a long press. The Android app's phrase
   field works the same way.
 - **The badge says Paired only once somebody else is there**, another
   instance or the Android app. Before that it says New group right after

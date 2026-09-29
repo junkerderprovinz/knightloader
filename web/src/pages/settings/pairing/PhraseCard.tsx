@@ -233,7 +233,7 @@ function JoinWindow({
   onClose: () => void;
   t: T;
 }) {
-  const { field, pair } = usePhraseEntry({ id, label, tip, bare: true, busy, onPair });
+  const { field, paste, pair } = usePhraseEntry({ id, label, tip, bare: true, busy, onPair });
   return (
     <Modal
       title={title}
@@ -243,6 +243,7 @@ function JoinWindow({
       footer={
         <>
           <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />
+          {paste}
           {pair}
         </>
       }
