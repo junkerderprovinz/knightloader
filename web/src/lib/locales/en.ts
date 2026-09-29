@@ -1962,6 +1962,11 @@ export const en = {
   'settings.browsertools.installFirefoxStep1': 'For a permanent install, open about:addons and click the gear icon in the top-right.',
   'settings.browsertools.installFirefoxStep2': 'Choose “Install Add-on From File…” and pick this file.',
   'settings.browsertools.installFirefoxStep3': 'For a quick trial instead, open about:debugging#/runtime/this-firefox and choose “Load Temporary Add-on”. The add-on disappears when Firefox restarts.',
+  'settings.browsertools.installStoreOpenChrome': 'Press the button. KnightLoader opens in the Chrome Web Store.',
+  'settings.browsertools.installStoreOpenEdge': 'Press the button. KnightLoader opens in Edge Add-ons.',
+  'settings.browsertools.installStoreAddChrome': 'Press “Add to {browser}” there and confirm.',
+  'settings.browsertools.installStoreGetEdge': 'Press “Get” there and confirm.',
+  'settings.browsertools.installStoreOpera': 'If Opera first asks for “Install Chrome Extensions”, add it. Then press “Add to Opera” and confirm.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.extensionTitle': 'Browser extension',
 

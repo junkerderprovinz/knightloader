@@ -190,7 +190,7 @@ export const cs: Dict = {
   'settings.appsSource': 'Zdrojový kód',
   'settings.appsZip': 'Archiv ZIP',
   'settings.appsExtension': 'Rozšíření prohlížeče',
-  'settings.appsExtensionHint': 'Rozšíření posílá odkaz, výběr nebo otevřenou stránku do tvého KnightLoaderu, z nabídky pravého tlačítka nebo ze svého tlačítka na panelu nástrojů. Balíček pro Chrome funguje i v Edge, Brave, Opeře a Vivaldi.',
+  'settings.appsExtensionHint': 'Rozšíření posílá odkaz, výběr nebo otevřenou stránku do tvého KnightLoaderu, z nabídky pravého tlačítka nebo ze svého tlačítka na panelu nástrojů. Chrome, Brave, Opera a Vivaldi ho instalují z Chrome Web Store, Edge z Edge Add-ons.',
   'settings.appsSoon': 'Brzy',
   'settings.privacyPolicy': 'Zásady ochrany osobních údajů',
   'settings.removeAllConnections': 'Odebrat všechna připojení',

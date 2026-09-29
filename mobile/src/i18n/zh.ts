@@ -190,7 +190,7 @@ export const zh: Dict = {
   'settings.appsSource': '源代码',
   'settings.appsZip': 'ZIP 压缩包',
   'settings.appsExtension': '浏览器扩展',
-  'settings.appsExtensionHint': '扩展可以通过右键菜单或工具栏按钮，把链接、选中的文字或当前页面发送到你的 KnightLoader。Chrome 版的安装包也能在 Edge、Brave、Opera 和 Vivaldi 中使用。',
+  'settings.appsExtensionHint': '扩展可以通过右键菜单或工具栏按钮，把链接、选中的文字或当前页面发送到你的 KnightLoader。Chrome、Brave、Opera 和 Vivaldi 从 Chrome Web Store 安装它，Edge 从 Edge Add-ons 安装。',
   'settings.appsSoon': '即将推出',
   'settings.privacyPolicy': '隐私政策',
   'settings.removeAllConnections': '移除所有连接',

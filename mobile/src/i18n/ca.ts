@@ -190,7 +190,7 @@ export const ca: Dict = {
   'settings.appsSource': 'Codi font',
   'settings.appsZip': 'Arxiu ZIP',
   'settings.appsExtension': 'Extensió de navegador',
-  'settings.appsExtensionHint': 'L’extensió envia un enllaç, una selecció o la pàgina oberta al teu KnightLoader, des del menú del clic dret o des del seu botó a la barra d’eines. La baixada per a Chrome també funciona a Edge, Brave, Opera i Vivaldi.',
+  'settings.appsExtensionHint': 'L’extensió envia un enllaç, una selecció o la pàgina oberta al teu KnightLoader, des del menú del clic dret o des del seu botó a la barra d’eines. Chrome, Brave, Opera i Vivaldi la instal·len des de Chrome Web Store, i Edge des d’Edge Add-ons.',
   'settings.appsSoon': 'Aviat',
   'settings.privacyPolicy': 'Política de privadesa',
   'settings.removeAllConnections': 'Elimina totes les connexions',

@@ -190,7 +190,7 @@ export const ru: Dict = {
   'settings.appsSource': 'Исходный код',
   'settings.appsZip': 'Архив ZIP',
   'settings.appsExtension': 'Расширение браузера',
-  'settings.appsExtensionHint': 'Расширение отправляет ссылку, выделенный текст или открытую страницу в ваш KnightLoader из контекстного меню или по кнопке на панели инструментов. Пакет для Chrome работает и в Edge, Brave, Opera и Vivaldi.',
+  'settings.appsExtensionHint': 'Расширение отправляет ссылку, выделенный текст или открытую страницу в ваш KnightLoader из контекстного меню или по кнопке на панели инструментов. Chrome, Brave, Opera и Vivaldi устанавливают его из Chrome Web Store, а Edge из Edge Add-ons.',
   'settings.appsSoon': 'Скоро',
   'settings.privacyPolicy': 'Политика конфиденциальности',
   'settings.removeAllConnections': 'Удалить все подключения',

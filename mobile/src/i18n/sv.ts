@@ -190,7 +190,7 @@ export const sv: Dict = {
   'settings.appsSource': 'Källkod',
   'settings.appsZip': 'ZIP-arkiv',
   'settings.appsExtension': 'Webbläsartillägg',
-  'settings.appsExtensionHint': 'Tillägget skickar en länk, en markering eller den öppna sidan till din KnightLoader, från högerklicksmenyn eller sin knapp i verktygsfältet. Chrome-paketet fungerar även i Edge, Brave, Opera och Vivaldi.',
+  'settings.appsExtensionHint': 'Tillägget skickar en länk, en markering eller den öppna sidan till din KnightLoader, från högerklicksmenyn eller sin knapp i verktygsfältet. Chrome, Brave, Opera och Vivaldi installerar det från Chrome Web Store, Edge från Edge Add-ons.',
   'settings.appsSoon': 'Snart',
   'settings.privacyPolicy': 'Integritetspolicy',
   'settings.removeAllConnections': 'Ta bort alla anslutningar',

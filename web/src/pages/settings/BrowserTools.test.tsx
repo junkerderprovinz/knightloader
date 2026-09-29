@@ -69,4 +69,26 @@ describe('BrowserTools', () => {
     await act(async () => copy.click());
     expect(writeText).toHaveBeenCalledWith(buildBookmarklet(window.location.origin));
   });
+
+  it('opens the store listing for each Chromium browser, Edge its own', async () => {
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    await act(async () => root.render(<BrowserTools />));
+    const button = (name: string) => host.querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`)!;
+    for (const name of ['Chrome', 'Brave', 'Opera', 'Vivaldi']) {
+      await act(async () => button(name).click());
+      expect(open).toHaveBeenLastCalledWith(
+        expect.stringContaining('chromewebstore.google.com/detail/knightloader/'),
+        '_blank',
+        'noopener,noreferrer',
+      );
+    }
+    await act(async () => button('Edge').click());
+    expect(open).toHaveBeenLastCalledWith(
+      expect.stringContaining('microsoftedge.microsoft.com/addons/detail/knightloader/'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(open).toHaveBeenCalledTimes(5);
+  });
 });

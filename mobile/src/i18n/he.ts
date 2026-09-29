@@ -190,7 +190,7 @@ export const he: Dict = {
   'settings.appsSource': 'קוד מקור',
   'settings.appsZip': 'ארכיון ZIP',
   'settings.appsExtension': 'הרחבת דפדפן',
-  'settings.appsExtensionHint': 'ההרחבה שולחת קישור, בחירה או את הדף הפתוח ל-KnightLoader שלכם, מתפריט הלחיצה הימנית או מהכפתור שלה בסרגל הכלים. חבילת Chrome עובדת גם ב-Edge, Brave, Opera ו-Vivaldi.',
+  'settings.appsExtensionHint': 'ההרחבה שולחת קישור, בחירה או את הדף הפתוח ל-KnightLoader שלכם, מתפריט הלחיצה הימנית או מהכפתור שלה בסרגל הכלים. Chrome, Brave, Opera ו-Vivaldi מתקינים אותה מ-Chrome Web Store, ו-Edge מ-Edge Add-ons.',
   'settings.appsSoon': 'בקרוב',
   'settings.privacyPolicy': 'מדיניות פרטיות',
   'settings.removeAllConnections': 'הסרת כל החיבורים',
