@@ -40,11 +40,23 @@ type Instance struct {
 	// DisplayName is what a relay peer calls itself, set only when it differs
 	// from Name. The UI shows it; nothing addresses a peer by it.
 	DisplayName string `json:"displayName,omitempty"`
-	// RelayID is the instance ID to address when the peer is only reachable
-	// through the relay, and empty for stored peers. It is never persisted,
-	// since it is only true while the relay connection lasts.
+	// RelayID is the instance ID of a member of this instance's phrase group,
+	// reached directly on this network or through the relay, and empty for
+	// stored peers. It is never persisted, since it is only true while the
+	// member is reachable.
 	RelayID string `json:"relayId,omitempty"`
+
+	// directURL is where a member on this network takes direct calls, and
+	// viaRelay whether the relay reaches it too.
+	directURL string
+	viaRelay  bool
 }
+
+// Direct reports whether the member announced itself on this network.
+func (in Instance) Direct() bool { return in.directURL != "" }
+
+// ViaRelay reports whether the member is connected to the same relay.
+func (in Instance) ViaRelay() bool { return in.viaRelay }
 
 // RelayTransport is the relay client as this package uses it. It is an
 // interface so tests can run relay peers without a socket; *relay.Client
@@ -80,17 +92,25 @@ type Manager struct {
 	rt   RelayTransport      // nil while no relay is configured
 	pt   PeerTokens          // nil means peers are called unauthenticated
 
-	group *groupFile
+	local  LocalNetwork // nil where discovery does not run
+	keys   *groupKeys   // nil outside a phrase group
+	selfID string
+
+	group  *groupFile
+	replay *relay.ReplayGuard
+	slots  chan struct{}
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
 // empty list and no group.
 func Load(dir string) (*Manager, error) {
 	m := &Manager{
-		path:  filepath.Join(dir, "instances.json"),
-		hc:    httpx.New(httpx.Options{Timeout: peerTimeout}),
-		list:  map[string]Instance{},
-		group: loadGroupFile(filepath.Join(dir, "group.json")),
+		path:   filepath.Join(dir, "instances.json"),
+		hc:     httpx.New(httpx.Options{Timeout: peerTimeout}),
+		list:   map[string]Instance{},
+		group:  loadGroupFile(filepath.Join(dir, "group.json")),
+		replay: relay.NewReplayGuard(),
+		slots:  make(chan struct{}, maxDirectCalls),
 	}
 	if b, err := os.ReadFile(m.path); err == nil {
 		var arr []Instance
@@ -175,6 +195,7 @@ func (m *Manager) List() []Instance {
 // when other peers come and go. Stored names are at most 32 characters and
 // InstanceIDs are 40 hex characters, so the two cannot collide.
 func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
+	local := m.localMembers()
 	m.mu.Lock()
 	rt := m.rt
 	out := make(map[string]Instance, len(m.list))
@@ -182,6 +203,18 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		out[name] = in
 	}
 	m.mu.Unlock()
+	member := func(id, name string) Instance {
+		in := Instance{Name: id, RelayID: id}
+		if name != "" && name != id {
+			in.DisplayName = name
+		}
+		return in
+	}
+	for _, p := range local {
+		in := member(p.ID, p.Name)
+		in.directURL = p.URL
+		out[p.ID] = in
+	}
 	if rt == nil {
 		return out, nil
 	}
@@ -191,10 +224,11 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		if sib.Client {
 			continue
 		}
-		in := Instance{Name: sib.InstanceID, RelayID: sib.InstanceID}
-		if sib.Name != "" && sib.Name != sib.InstanceID {
-			in.DisplayName = sib.Name
+		in, ok := out[sib.InstanceID]
+		if !ok || in.RelayID == "" {
+			in = member(sib.InstanceID, sib.Name)
 		}
+		in.viaRelay = true
 		out[sib.InstanceID] = in
 	}
 	return out, rt
@@ -261,7 +295,15 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 		auth = "Bearer " + tok
 	}
 	if in.RelayID != "" {
-		// rt is set, since this entry came from it in the same snapshot.
+		// A member on this network is asked directly, and the relay carries
+		// the call when that fails or the member is elsewhere. rt is set
+		// whenever viaRelay is, since both came from the same snapshot.
+		if in.directURL != "" {
+			out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body, auth)
+			if err == nil || !in.viaRelay {
+				return out, code, err
+			}
+		}
 		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
 	}
 	var rd io.Reader

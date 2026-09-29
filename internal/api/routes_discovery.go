@@ -39,6 +39,7 @@ func registerDiscovery(reg *Registry, a *app.App) {
 	svc := startDiscovery(a)
 	if svc != nil {
 		a.SetDiscovery(svc)
+		a.Federation.SetDiscovery(svc)
 		// Rebuilt on a settings save, so renaming an instance reaches the
 		// network on the next announce rather than after a restart. Same shape
 		// as applyRelay in routes_settings.go.
