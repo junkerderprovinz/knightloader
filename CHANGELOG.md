@@ -51,11 +51,14 @@ release's tag.
   phrase, and three numbered cards: generate a phrase once on one instance,
   press Enter phrase on every other one, done. Below them the phrase card
   offers two large tiles, **Generate phrase** and **Enter phrase**, each with a
-  line saying what it does. Generate phrase shows the twelve words with a Copy
-  button, the QR code for the Android app and what to do on the next instance.
-  Pressed by mistake, **Enter phrase** under "Already have a phrase?" leaves
-  the empty group and opens the field. The name this instance goes by in the
-  group is set on the same page.
+  line saying what it does. Generate phrase shows the twelve words in a
+  window beside the QR code for the Android app, with Copy next to Close, and
+  the card says what to do on the next instance. Enter phrase opens a window
+  with the word field, Close and Pair; its tile shows a pencil. Pressed by
+  mistake, **Enter phrase** under "Already have a phrase?" leaves the empty
+  group and opens that window. **Show phrase** opens the words in the same
+  window as Generate phrase. The name this instance goes by in the group is
+  set on the same page.
 - **The field for the words takes a paste as it comes**: one word per line,
   numbered, or separated by commas. Twelve numbered slots fill as you type, a
   word that is not on the list is named with its position right away, and
@@ -69,19 +72,27 @@ release's tag.
   and whether anyone came, and `GET /api/connect` reports both along with the
   members and the phones.
 - **Still alone after a minute, the card says what to do** in two tiles side
-  by side. **Nothing entered over there yet?** opens a window with the twelve
-  words beside the QR code for the Android app, with Copy next to Close.
-  **Generated a phrase over there too?** opens a window with the word field in
-  the same layout, and Pair there joins the other group in one step. Without a
+  by side. **Nothing entered over there yet?** opens the window with the
+  twelve words. **Generated a phrase over there too?** opens the window Enter
+  phrase opens, and Pair there joins the other group in one step. Without a
   relay the card points out that the other instance may be on another
-  network. A badge beside the state shows the relay: Connected, Not connected
-  or No relay. If the relay cannot be reached and nobody has joined, one line
-  says so and **What to check** lists it: outgoing HTTPS on port 443 to
-  relay.halleluja.design, a firewall or DNS filter, or for your own relay
-  whether it runs and its address is right.
-- **The phrase card lists the whole group**, one row each: this instance,
-  marked This instance, the other instances with Direct or Via relay, and the
-  connected phones.
+  network. The state badge ends the card's first line; how the relay is doing
+  stays on the relay card. If the relay cannot be reached and nobody has
+  joined, one line says so and **What to check** lists it: outgoing HTTPS on
+  port 443 to relay.halleluja.design, a firewall or DNS filter, or for your
+  own relay whether it runs and its address is right.
+- **The phrase card lists the whole group**, one row each and all of one
+  height: this instance, marked This instance, the other instances with
+  Direct or Via relay, and the connected phones.
+- **Every instance shows its address on the Instances page**, and Open goes
+  there. An instance tells its group its first known domain, else its address
+  on its network, in the announce members already send: sealed on the relay,
+  signed on the local network and kept only from a member. A phone shows no
+  address.
+- **`-version` on the server and the relay** prints the version and the
+  commit and exits without starting anything. The relay refuses any other
+  flag or argument instead of starting with them, and its image is stamped
+  with its commit as the server's is.
 - **Instances of a group find each other on the local network without the
   relay.** A member tags its network announce with a MAC keyed from the
   phrase, which tells the others it belongs and tells nobody else anything.
@@ -96,9 +107,9 @@ release's tag.
 ### Changed
 
 - **The Instances page shows the cards directly**, this one first and marked
-  This instance, each Connected or Not connected with its live figures. A
-  member of the group shows no address. While the page is open it asks every
-  20 seconds who is there. A **Pairing** button opens the Pairing page, and
+  This instance, each Connected or Not connected with its live figures. While
+  the page is open it asks every 20 seconds who is there. A **Pairing** button
+  without an info bubble opens the Pairing page, and
   before there is a group it stands in the middle of the page with one line
   saying what pairing does. The module switch for the page is called
   Instances.
@@ -127,6 +138,8 @@ release's tag.
   `ws://` or `http://` is allowed, with a warning. **How does it work?** opens
   the route picture, what the relay sees next to what it never sees, and how
   the traffic is encrypted.
+- **The quick settings window has a Close button** at its foot, like every
+  other window, which hands the focus back to its square.
 - **Existing groups keep working.** An instance that is already in a group
   counts as having joined at the update. If nobody else is reachable then, it
   shows Still alone after a minute.
