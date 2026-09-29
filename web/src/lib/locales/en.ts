@@ -147,7 +147,7 @@ export const en = {
   'instances.open': 'Open',
   'instances.connected': 'Connected',
   'instances.refused': 'Refused',
-  'instances.refusedByPassword': 'Reached, but it refused this instance because it has a password set. Pair the two with the same phrase under Settings, Remote access, and it shows up here as a member of the group.',
+  'instances.refusedByPassword': 'Reached, but it refused this instance because it has a password set. Pair the two with the same phrase under Settings, Pairing, and it shows up here as a member of the group.',
   'instances.notConnected': 'Not connected',
   'instances.metricActive': 'Active',
   'instances.metricTasks': 'Tasks',
@@ -157,12 +157,16 @@ export const en = {
   'instances.pairLead': 'Connect your instances and the Android app with a 12-word phrase, so each one shows and controls the others.',
   'instances.lastSeen': 'Last seen {time}',
 
-  // Pairing on the Remote access page (pages/settings/pairing/): the step
-  // cards, the twelve words with the members of the group, and the relay.
+  // The Pairing page (pages/settings/pairing/): the step cards, the twelve
+  // words with the members of the group, and the relay.
   'pairing.noPasswordHint': 'This instance has no login password. Anyone who can open this web interface can see the twelve words and control every instance in the group.',
   'pairing.direct': 'Direct',
   'pairing.otherNetTitle': 'Is the other instance on another network?',
   'pairing.otherNetBody': "Without a relay it can't find this one. Pick a relay below.",
+  'pairing.enterIts': 'Enter its words',
+  'pairing.relayCheckOpen': 'What to check',
+  'relay.noGroup': 'No group yet',
+  'relay.noGroupLine': 'The relay connects as soon as this instance has a phrase.',
   'pairing.title': 'Pairing',
   'pairing.howTitle': 'How to pair',
   'pairing.lead': 'Connect all your instances with a 12-word phrase.',
@@ -215,15 +219,11 @@ export const en = {
   'pairing.nextTail': 'and paste these words there.',
   'pairing.waitNext': 'Waiting for the next instance',
   'pairing.searching': 'Looking for other instances',
-  'pairing.aloneTitle': 'Nobody in this group yet',
   'pairing.aloneLead': 'No other instance has shown up for more than a minute.',
-  'pairing.twoTitle': 'Generated a phrase on both instances?',
-  'pairing.twoBody': "Then you have two separate groups. Keep the other instance's group and join it here. Leave the other instance as it is.",
-  'pairing.fixLeave': 'Leave this group',
-  'pairing.fixLeft': 'Left',
-  'pairing.fixEnter': 'Enter the words from the other instance',
+  'pairing.twoTitle': 'Generated a phrase over there too?',
+  'pairing.twoBody': 'Join its group instead.',
   'pairing.notYetTitle': 'Nothing entered over there yet?',
-  'pairing.notYetBody': 'Then enter the words there now.',
+  'pairing.notYetBody': 'Enter these words on the other instance.',
   'pairing.relayProject': 'Connected through the project relay',
   'pairing.relayOwn': 'Connected through your relay',
   'pairing.relayProjectDown': 'Project relay not reachable',
@@ -657,7 +657,8 @@ export const en = {
   'settings.nav.automation': 'Automation',
   'settings.nav.look': 'General',
   'settings.nav.appearance': 'Appearance',
-  'settings.nav.access': 'Remote access',
+  'settings.nav.pairing': 'Pairing',
+  'settings.nav.access': 'Security',
   'settings.nav.advanced': 'Advanced',
 
   'settings.railLabel': 'Settings sections',
@@ -735,12 +736,12 @@ export const en = {
   'settings.modules.detail.challenges': '{n} captchas waiting right now',
   'settings.modules.detail.challengesOne': '1 captcha waiting right now',
   'settings.modules.detail.downloadclientOff': 'Off. Sonarr and Radarr get a 404 from it, as from an address that does not exist.',
-  'settings.modules.detail.downloadclientNoToken': 'No API token exists yet, so every call is refused. Create one on the Remote access page.',
-  'settings.modules.detail.downloadclientNoAddReadToken': 'No API token can add and read, so Sonarr and Radarr are refused. Create one with "Add and read" on the Remote access page.',
+  'settings.modules.detail.downloadclientNoToken': 'No API token exists yet, so every call is refused. Create one on the Security page.',
+  'settings.modules.detail.downloadclientNoAddReadToken': 'No API token can add and read, so Sonarr and Radarr are refused. Create one with "Add and read" on the Security page.',
   'settings.modules.detail.downloadclientReadyBoth': "Reachable as SABnzbd at {sabnzbd} and as qBittorrent at {qbittorrent}. In Sonarr or Radarr, set URL Base to \"{sabnzbdBase}\" or \"{qbittorrentBase}\" and use one of this instance's API tokens as the API key or the qBittorrent password.",
   'settings.modules.detail.metricsOff': 'Off. {path} answers 404, as an address that does not exist.',
-  'settings.modules.detail.metricsNoToken': 'This instance has a password but no API token yet, so a monitoring system has nothing to sign in with. Create one on the Remote access page.',
-  'settings.modules.detail.metricsNoReadToken': 'This instance has a password but no API token that can read, so a monitoring system is refused. Create one with "Read only" on the Remote access page.',
+  'settings.modules.detail.metricsNoToken': 'This instance has a password but no API token yet, so a monitoring system has nothing to sign in with. Create one on the Security page.',
+  'settings.modules.detail.metricsNoReadToken': 'This instance has a password but no API token that can read, so a monitoring system is refused. Create one with "Read only" on the Security page.',
   'settings.modules.detail.metricsReady': 'Reachable at {path}. On an instance with a password, the monitoring system sends one of its API tokens as a Bearer header.',
   'settings.modules.detail.scriptingOff': 'Off. No event starts a script, and a script already running finishes.',
   'settings.modules.detail.scriptsEnabled': '{n} scripts switched on',
@@ -1787,9 +1788,8 @@ export const en = {
   'settings.help.instances.link': 'Open Instances',
 
   'settings.help.access.title': 'Access and troubleshooting',
-  'settings.help.access.body':
-    'A password locks the whole interface down to a session cookie. The Remote access page also lists the intake ports and access methods this build has and why each exists, so you can look up any open port you did not expect. The Diagnostics page builds a file to attach to a bug report: version and build info, the current settings with every password removed, this process’s own recent log lines, and how many goroutines are running.',
-  'settings.help.access.link1': 'Open Remote access',
+  'settings.help.access.body': 'A password locks the whole interface down to a session cookie. The Security page holds it together with the second factor, passkeys and API tokens. The Diagnostics page builds a file to attach to a bug report: version and build info, the current settings with every password removed, this process’s own recent log lines, and how many goroutines are running.',
+  'settings.help.access.link1': 'Open Security',
   'settings.help.access.link2': 'Open Diagnostics',
 
   'settings.help.advanced.title': 'Everything else',
@@ -1875,8 +1875,9 @@ export const en = {
   'task.runScriptDone': 'Ran “{name}”',
   'task.runScriptFailed': '“{name}” failed: {error}',
 
-  // The Remote access page (pages/settings/Access.tsx): API tokens that can be
-  // revoked one by one, and the identity this instance shows to others.
+  // API tokens on the Security page (pages/settings/Access.tsx), which can be
+  // revoked one by one, and the identity this instance shows to others on the
+  // Pairing page.
   'settings.access.tokens.title': 'API tokens',
   'settings.access.tokens.intro':
     'Named credentials for Sonarr, Radarr, a monitoring system or a script. Each one can be revoked on its own, without changing the shared password every other client uses.',
@@ -3315,7 +3316,7 @@ export const en = {
   'settings.selftest.accounts.readOnlyHint': 'This check changes nothing about routing. A login that fails here is reported, not set aside: a self-test run while your line is down must not stop every account for the next quarter of an hour.',
   'settings.selftest.relay': 'Relay',
   'settings.selftest.relay.off': 'You have switched the relay off, so nothing was dialled.',
-  'settings.selftest.relay.notSetUp': 'Remote access has never been set up here, so no relay is dialled.',
+  'settings.selftest.relay.notSetUp': 'Pairing has never been set up here, so no relay is dialled.',
   'settings.selftest.relay.ownNoAddress': 'Your own relay is selected and no address is set, so nothing is dialled.',
   'settings.selftest.relay.badSecret': 'The stored connection secret cannot be read. Enter the connection phrase again.',
   'settings.selftest.relay.connected': 'Connected to {address}.',
@@ -3344,7 +3345,7 @@ export const en = {
   'settings.selftest.proxy.proto.ok': 'The proxy says https, which is what your browser is on.',
   'settings.selftest.proxy.proto.direct': 'You reached this instance directly, so there is no proxy that would have to declare anything.',
   'settings.selftest.proxy.proto.missing': 'Your browser is on https and the proxy did not pass that on.',
-  'settings.selftest.proxy.proto.missingAdvice': 'Without X-Forwarded-Proto this instance believes it was reached over plain http. The QR code and the pairing addresses on the Remote access page then offer http:// links, and a container handed to JDownloader is fetched over http. In nginx use proxy_set_header X-Forwarded-Proto $scheme; Traefik and Caddy set it themselves.',
+  'settings.selftest.proxy.proto.missingAdvice': 'Without X-Forwarded-Proto this instance believes it was reached over plain http. The QR code and the pairing addresses on the Pairing page then offer http:// links, and a container handed to JDownloader is fetched over http. In nginx use proxy_set_header X-Forwarded-Proto $scheme; Traefik and Caddy set it themselves.',
   'settings.selftest.proxy.prefix': 'Path prefix',
   'settings.selftest.proxy.prefix.root': 'This instance is served at the root of {host}.',
   'settings.selftest.proxy.prefix.underPath': 'This instance is served under {path}.',

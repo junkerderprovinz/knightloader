@@ -1,7 +1,7 @@
 // Instances shows every instance of the group as a card, this one first, the
 // phones of the group after them, and below them the instances announcing
 // themselves on this network, which can be added by address. Pairing itself
-// happens on the Remote access page, which the Pairing button opens.
+// happens on the Pairing page in Settings, which the Pairing button opens.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -23,7 +23,6 @@ import { IconLink } from '../lib/icons';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
 import { ModulesPageBadge } from './settings/ModuleToggle';
-import { PAIRING_ANCHOR } from './settings/pairing/PairingSection';
 import { Button, Card, PageHeader, SectionTitle } from '../components/ui';
 import { AppCard, InstanceCard } from '../components/InstanceCard';
 
@@ -122,7 +121,7 @@ export function Instances() {
     load();
   }
 
-  const openPairing = () => navigate(`/settings/access#${PAIRING_ANCHOR}`);
+  const openPairing = () => navigate('/settings/pairing');
   const apps = group?.apps ?? [];
   // Nothing to show but this instance: the page is the way into pairing.
   const empty = !off && group !== null && peers !== null && !group.active && peers.length === 0 && apps.length === 0;

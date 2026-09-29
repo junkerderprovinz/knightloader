@@ -18,6 +18,7 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'appearance', labelKey: 'settings.nav.appearance' },
   { id: 'accounts', labelKey: 'settings.nav.accounts' },
   { id: 'instances', labelKey: 'settings.nav.instances' },
+  { id: 'pairing', labelKey: 'settings.nav.pairing' },
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'rules', labelKey: 'settings.nav.rules' },

@@ -1514,12 +1514,9 @@ export function Card({
   hover = false,
   padding = 'normal',
   hue,
-  id,
 }: {
   children: ReactNode;
   className?: string;
-  /** For a link or a button elsewhere on the page to scroll to. */
-  id?: string;
   hover?: boolean;
   /**
    * This card's place in the palette (GlimStone 1.4.0: the position belongs on
@@ -1540,7 +1537,6 @@ export function Card({
 }) {
   return (
     <div
-      id={id}
       // The trailing space lives inside the string, never after the
       // interpolation: an expression glued to the class before it fuses into
       // one nonsense name and drops both.

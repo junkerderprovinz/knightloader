@@ -349,7 +349,40 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  access: [
+  pairing: [
+    {
+      title: 'pairing.phraseTitle',
+      hint: 'pairing.phraseHint',
+      rows: [],
+      // The two tiles, the word fields and a member's badges.
+      also: [
+        'pairing.create',
+        'pairing.enter',
+        'pairing.enterLabel',
+        'pairing.enterLabelOther',
+        'pairing.direct',
+        'pairing.viaRelay',
+      ],
+      // The sentence above the step cards and its (i), and the (i) of the two
+      // windows a group nobody has come to opens.
+      body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
+      // The route picker, the state badge in the header and the facts line.
+      also: [
+        'relay.project',
+        'relay.own',
+        'relay.off',
+        'relay.noGroup',
+        'instances.connected',
+        'instances.notConnected',
+        'relay.needLabel',
+      ],
+      body: ['relay.lead'],
+    },
     {
       title: 'settings.access.identity.title',
       rows: [
@@ -357,6 +390,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.access.identity.domainsLabel', hint: 'settings.access.identity.domainsHint' },
       ],
     },
+  ],
+
+  access: [
     {
       title: 'auth.password',
       hint: 'settings.lockHint',
@@ -382,30 +418,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'auth.passkey.hint',
       rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
       also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
-    },
-    {
-      title: 'pairing.phraseTitle',
-      hint: 'pairing.phraseHint',
-      rows: [],
-      // The two tiles, the word fields and a member's badges.
-      also: [
-        'pairing.create',
-        'pairing.enter',
-        'pairing.enterLabel',
-        'pairing.enterLabelOther',
-        'pairing.direct',
-        'pairing.viaRelay',
-      ],
-      // The sentence above the step cards and its (i).
-      body: ['pairing.lead', 'pairing.keyNote'],
-    },
-    {
-      title: 'relay.title',
-      hint: 'relay.hint',
-      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
-      // The route picker, the state badge in the header and the facts line.
-      also: ['relay.project', 'relay.own', 'relay.off', 'instances.connected', 'instances.notConnected', 'relay.needLabel'],
-      body: ['relay.lead'],
     },
     {
       title: 'settings.access.tokens.title',

@@ -55,7 +55,8 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
   { file: 'src/pages/settings/access/', pages: ['access'] },
-  { file: 'src/pages/settings/pairing/', pages: ['access'] },
+  { file: 'src/pages/settings/Pairing.tsx', pages: ['pairing'] },
+  { file: 'src/pages/settings/pairing/', pages: ['pairing'] },
   // The Instances page, which the Instances tab draws below its own card.
   { file: 'src/pages/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Advanced.tsx', pages: ['advanced'] },
