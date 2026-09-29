@@ -223,8 +223,8 @@ body { width: ${width}px; height: ${height}px; overflow: hidden; position: relat
 .backdrop, .backdrop * { position: absolute; }
 .backdrop { inset: 0; overflow: hidden; }
 .wall { inset: 0; background: radial-gradient(55% 60% at 62% 35%, #26231d, #0f0e0c 72%); }
-.mark { left: -9%; top: -4%; width: 46%; transform: rotate(-10deg); opacity: .45;
-  filter: grayscale(1) brightness(.42) contrast(1.2) drop-shadow(-2px -2px 0 rgba(255,255,255,.22)) drop-shadow(12px 18px 26px rgba(0,0,0,.85)); }
+.mark { left: -9%; top: -4%; width: 46%; transform: rotate(-10deg); opacity: .32;
+  filter: grayscale(1) brightness(.36) contrast(1.2) drop-shadow(-2px -2px 0 rgba(255,255,255,.16)) drop-shadow(12px 18px 26px rgba(0,0,0,.85)); }
 .vignette { inset: 0; box-shadow: inset 0 0 200px rgba(0,0,0,.6); }
 .copy { position: absolute; left: 64px; top: 0; bottom: 0; width: 290px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
 .copy img { width: 58px; }
