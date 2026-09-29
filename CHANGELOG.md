@@ -1004,6 +1004,12 @@ release's tag.
 - **A relay reads at most 4 KiB from a connection until its hello passes**,
   instead of 8 MiB. A name in a hello is cut to 200 bytes, so every real
   hello fits.
+### Fixed
+
+- **The extension says "1 file", not "1 files".** The status line on an
+  instance card used the plural for every count, and in languages with more
+  plural forms, such as Russian, Polish or Arabic, the same form stood after 2
+  and after 5. It now uses the form each language's plural rules ask for.
 
 ## [1.5.0] - 2026-09-29
 
