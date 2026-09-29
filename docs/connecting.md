@@ -16,8 +16,8 @@ An instance announces itself every five seconds over UDP multicast, to an
 administratively-scoped group that routers do not forward off the local network.
 Every other instance listening picks it up.
 
-The Instances page shows what it heard under **Found on your network**, with an
-**Add** button on each row.
+The **Fleet** tab of the Instances page shows what it heard under **Found on
+your network**, with an **Add** button on each row.
 
 Being on the same network is *not* consent, so nothing is connected until that
 button is pressed. A guest laptop and an IoT device sit on that network too.
@@ -42,10 +42,40 @@ still works.
 
 ## Across networks: the connection phrase
 
-**Settings → Access → Connect instances and remote access → Create a phrase.** Twelve words
-come back. Type them into every other KnightLoader you run, and they find each
-other across networks and behind NAT, with no port forward, no domain, no
-account and nothing to log into.
+**Instances → Pairing → Generate phrase** on the first instance. Twelve words
+come back. On every other KnightLoader you run, press **Enter phrase** on the
+same tab and paste them, and they find each other across networks and behind
+NAT, with no port forward, no domain and no account.
+
+The tab opens with the same three steps as numbered cards. The field for the
+words takes a paste as it comes: one word per line, numbered, or separated by
+commas. Twelve numbered slots fill as you type, a word that is not on the list
+is named with its position straight away, and **Pair** stays off until all
+twelve are known words.
+
+A badge on the phrase card says where the instance stands:
+
+| Badge | When |
+| --- | --- |
+| New group | right after **Generate phrase**, while the next instance has not come |
+| Searching | the first minute after entering the phrase, or while members that came are out of reach |
+| Still alone | a minute has passed and no other instance has shown up |
+| Paired | another instance of the group is there right now |
+
+The server keeps when the instance joined its group and whether anyone has
+come since, so the minute counts on its clock and survives a reload. A group
+from a build before this counts as joined when the instance starts.
+
+**Still alone** comes with what to do. The usual cause is two instances that
+both pressed **Generate phrase** and so started two groups: leave this group,
+then enter the other instance's words. The card also offers to show the words
+again, in case nothing was entered over there yet. Without a relay it says that
+the group cannot connect at all. With a relay that cannot be reached it lists
+what to check: outgoing HTTPS on port 443 to `relay.halleluja.design`, a
+firewall or DNS filter, and for your own relay whether it runs and its address
+is right. **Generate phrase** pressed by mistake is undone with **Enter
+phrase** under "Already have a phrase?", which leaves the empty group and
+opens the field.
 
 The words *are* the credential. Whoever has them reaches every instance in the
 group, so keep that in mind before you read them out over the phone.
@@ -95,23 +125,33 @@ still seals the traffic against anything sitting *between* you and the relay
 operator, who is handed that key. That trade fits the case it exists for:
 somebody hosting the relay themselves.
 
-To run your own, put its address in `relayUrl` under **Settings → Advanced**
-on every instance in the group; the same phrase then works against it, because
-the phrase carries the secret and not the address. That page lists every
-setting this instance has, so the self-hosting knobs live there and not on the
-card. The card is for the twelve words, which is what almost everybody needs.
-`relayServe` is on the same page, for the case where one instance *is* the
-relay.
+The **Relay** card under the phrase card picks the relay: **Project relay**,
+**Own relay** or **No relay**, with a badge that says Connected, Not connected
+or No relay. A line in the phrase card says the same. For your own relay the
+card names the two ways to run one, the KnightLoader Relay container or any
+instance of the group that can be reached from outside with **Serve as relay**
+switched on, and takes its address, which every instance in the group needs;
+the same phrase then works against it, because the phrase carries the secret
+and not the address. An address starting with `ws://` or `http://` is allowed,
+for a relay on your own network, with a warning that the relay key then
+crosses the network unencrypted. **How does it work?** opens the route
+picture, what the relay sees next to what it never sees, and how the traffic
+is encrypted. The same fields are `relayMode`, `relayUrl` and `relayServe`
+under **Settings → Advanced**.
 
-**Showing the phrase again** needs the instance password re-entered, when one
-is set. A live session is not enough: it may have been opened hours ago on a
-screen nobody is sitting at, and what is behind that button is not this
-instance's password but the key to every instance in the group.
+Without a relay the instances of a group cannot reach each other at all, not
+even on one network. There an instance can still be added by its address, as
+described above.
 
-An instance with **no** password says so, loudly, before it mints anything, and
-then mints it anyway if you tell it to. The phrase reaches every instance you
-connect with it, so an unprotected one is a door into all of them. That is your
-call to make about your own network, so it is not refused on your behalf.
+**Pairing needs a login password.** The twelve words open every instance in
+the group, so generating, entering and showing them is refused until a
+password is set under **Settings → Remote access**, and only somebody signed
+in reaches the buttons. **Showing the phrase again** always asks for the
+password once more. A live session is not enough: it may have been opened
+hours ago on a screen nobody is sitting at, and what is behind that button is
+not this instance's password but the key to every instance in the group. An
+instance that was in a group before the password became a condition stays in
+it.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
@@ -146,10 +186,10 @@ Run both names for as long as anything still dials the old one, then drop it.
 
 ### Or let one instance be the relay
 
-**Settings → Advanced → `relayServe`.** The relay then answers under
-`/relay/connect` on the address that instance already uses, behind the same
-reverse proxy and the same certificate, and the other instances put that
-address in their own `relayUrl`. It needs no second container, no second port
+**Instances → Pairing → Relay → Own relay → Serve as relay** (`relayServe`).
+The relay then answers under `/relay/connect` on the address that instance
+already uses, behind the same reverse proxy and the same certificate, and the
+other instances put that address in their own relay address field. It needs no second container, no second port
 and no second certificate.
 
 For an instance a proxy serves under a path, enter the address with the path,
@@ -202,7 +242,9 @@ and cannot be explained.
   instance in the group appears at once, with no address, no token and nothing
   to look up. The phone derives the same key its siblings do and dials the same
   relay, which is what authenticates it, so a password on an instance costs
-  nothing extra here.
+  nothing extra here. The field reads a paste the way the web UI's does: twelve
+  numbered slots fill as the words arrive, a word not on the list is named with
+  its position, and **Connect** stays off until all twelve are known words.
 - **A connection saved by address** in an earlier build of the app keeps
   working, but the app no longer makes one. Those builds took the address
   typed in, scanned from the Access tab's QR or found with **Find on this
