@@ -364,7 +364,7 @@ func featureList(a *app.App, base string) []Feature {
 			ID: "federation", Verdict: VerdictShipped, Page: "instances",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("federation"),
 		}, offDetail(s.ModuleOff("federation"),
-			line{text: "off; peers stay saved, but this instance neither lists nor contacts them", code: "federationOff"},
+			line{text: "off; added instances stay saved, but this instance neither lists nor contacts them", code: "federationOff"},
 			countDetail(len(a.Federation.List()), "peers", "peer", "peers"))),
 		jdFeature(a, s),
 		ytdlpFeature(a, s),

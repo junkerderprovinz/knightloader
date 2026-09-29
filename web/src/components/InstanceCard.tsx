@@ -81,11 +81,11 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   );
 }
 
-// InstanceCard shows one instance: its state, its address and three live figures.
+// InstanceCard shows one instance: its state, its address where it has one, and
+// three live figures.
 export function InstanceCard({
   name,
-  url,
-  relayId,
+  address,
   base,
   onOpen,
   onRemove,
@@ -94,9 +94,8 @@ export function InstanceCard({
 }: {
   /** A peer's displayName or name, never the raw relay address. */
   name: string;
-  url: string;
-  /** Set for a peer reached through the relay, whose url is empty. */
-  relayId?: string;
+  /** Where the instance is reached, empty for a group member. */
+  address: string;
   base: string;
   onOpen?: () => void;
   onRemove?: () => void;
@@ -156,7 +155,7 @@ export function InstanceCard({
               </span>
             </div>
 
-            <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+            {address && <div className="truncate text-xs text-carbon-textMuted">{address}</div>}
           </div>
 
           {/* A figure that does not fit moves to the next line rather than
