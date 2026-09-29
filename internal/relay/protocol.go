@@ -13,6 +13,7 @@ package relay
 import (
 	"encoding/json"
 	"time"
+	"unicode/utf8"
 )
 
 // The frame types. Anything else on the socket is ignored rather than treated
@@ -137,7 +138,7 @@ func OpenIdentity(key []byte, instanceID string, sealed []byte) (Identity, error
 // unnamed instance until it updates.
 func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 	sealed, err := SealIdentity(frameKey, a.InstanceID, Identity{
-		Name:       a.Name,
+		Name:       ClipName(a.Name),
 		Deployment: a.Deployment,
 		Client:     a.Client,
 	})
@@ -165,6 +166,22 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 		Deployment: id.Deployment,
 		Client:     id.Client,
 	}
+}
+
+// MaxNameBytes keeps the name an instance or an app goes by small enough that
+// every hello fits in helloLimit.
+const MaxNameBytes = 200
+
+// ClipName cuts name to MaxNameBytes at a whole UTF-8 character.
+func ClipName(name string) string {
+	if len(name) <= MaxNameBytes {
+		return name
+	}
+	cut := MaxNameBytes
+	for cut > 0 && !utf8.RuneStart(name[cut]) {
+		cut--
+	}
+	return name[:cut]
 }
 
 // Presence reports that a sibling's connection state changed. The relay only
