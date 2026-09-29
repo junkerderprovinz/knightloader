@@ -55,7 +55,7 @@ before. The relay only carries what cannot go directly. They do not show under
 
 ## Across networks: the connection phrase
 
-**Settings → Remote access → Generate phrase** on the first instance. Twelve
+**Settings → Pairing → Generate phrase** on the first instance. Twelve
 words come back. On every other KnightLoader you run, press **Enter phrase** in
 the same place and paste them, and they find each other on one network and,
 through the relay, across networks and behind NAT, with no port forward, no
@@ -81,15 +81,20 @@ The server keeps when the instance joined its group and whether anyone has
 come since, so the minute counts on its clock and survives a reload. A group
 from a build before this counts as joined when the instance starts.
 
-**Still alone** comes with what to do. The usual cause is two instances that
-both pressed **Generate phrase** and so started two groups: leave this group,
-then enter the other instance's words. The card also offers to show the words
-again, in case nothing was entered over there yet. Without a relay it says that
-an instance on another network cannot find this one. With a relay that cannot
-be reached it lists
-what to check: outgoing HTTPS on port 443 to `relay.halleluja.design`, a
-firewall or DNS filter, and for your own relay whether it runs and its address
-is right. **Generate phrase** pressed by mistake is undone with **Enter
+**Still alone** comes with what to do, in two cards side by side. **Nothing
+entered over there yet?** opens a window with the twelve words, a Copy button
+and the QR code for the Android app. **Generated a phrase over there too?** is
+the usual cause, two instances that each started a group of their own: **Enter
+its words** opens a window with the word field, and **Pair** there joins the
+other group in one step, since nobody is in this one. Without a relay the card
+adds that an instance on another network cannot find this one. With a relay
+that cannot be reached, one line says so and **What to check** lists it:
+outgoing HTTPS on port 443 to `relay.halleluja.design`, a firewall or DNS
+filter, and for your own relay whether it runs and its address is right.
+
+Before the instance has a phrase it dials no relay, since the relay key comes
+from the words, so the relay card says **No group yet** rather than Not
+connected. **Generate phrase** pressed by mistake is undone with **Enter
 phrase** under "Already have a phrase?", which leaves the empty group and
 opens the field.
 
@@ -162,7 +167,8 @@ the browser extension always come through a relay, so they need one.
 **A login password is recommended, not required.** Without one the phrase
 card says that anyone who can open this web interface can see the twelve
 words and so control every instance in the group, with a button to the
-password card above it. With a password set, **showing the phrase again**
+Security page, where the password is set. The note can be closed, and stays
+closed in that browser. With a password set, **showing the phrase again**
 asks for it once more. A live session is not enough: it may have been opened
 hours ago on a screen nobody is sitting at, and what is behind that button is
 not this instance's password but the key to every instance in the group.
@@ -200,7 +206,7 @@ Run both names for as long as anything still dials the old one, then drop it.
 
 ### Or let one instance be the relay
 
-**Settings → Remote access → Relay → Own relay → Serve as relay**
+**Settings → Pairing → Relay → Own relay → Serve as relay**
 (`relayServe`). The relay then answers under `/relay/connect` on the address
 that instance already uses, behind the same reverse proxy and the same
 certificate, and the other instances put that address in their own relay
@@ -347,7 +353,7 @@ for nothing else; see `docs/browser-tools.md`.
 ## API tokens and their rights
 
 A script, Sonarr, a dashboard, or the phone app connected by address rather
-than by phrase signs in with an API token: **Settings → Remote access → API
+than by phrase signs in with an API token: **Settings → Security → API
 tokens → New token**. Every token has a name, can be revoked on its own, and
 carries some of four rights:
 
