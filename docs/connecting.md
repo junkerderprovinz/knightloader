@@ -77,13 +77,16 @@ A badge on the phrase card says where the instance stands:
 | Still alone | a minute has passed and no other instance or phone has shown up |
 | Paired | another instance of the group, or the Android app, is there right now |
 
+Below the badge the card lists the group, one row each: this instance, the
+other instances with Direct or Via relay, and the phones that are connected.
+
 The server keeps when the instance joined its group and whether anyone has
 come since, so the minute counts on its clock and survives a reload. A group
 from a build before this counts as joined when the instance starts.
 
-**Still alone** comes with what to do, in two cards side by side. **Nothing
-entered over there yet?** opens a window with the twelve words, a Copy button
-and the QR code for the Android app. **Generated a phrase over there too?** is
+**Still alone** comes with what to do, in two tiles side by side. **Nothing
+entered over there yet?** opens a window with the twelve words beside the QR
+code for the Android app, and Copy next to Close. **Generated a phrase over there too?** is
 the usual cause, two instances that each started a group of their own: **Enter
 its words** opens a window with the word field, and **Pair** there joins the
 other group in one step, since nobody is in this one. Without a relay the card
@@ -148,7 +151,7 @@ somebody hosting the relay themselves.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay** or **No relay**, with a badge that says Connected, Not connected
-or No relay. A line in the phrase card says the same. For your own relay the
+or No relay. The phrase card shows the same badge beside its state. For your own relay the
 card names the two ways to run one, the KnightLoader Relay container or any
 instance of the group that can be reached from outside with **Serve as relay**
 switched on, and takes its address, which every instance in the group needs;
