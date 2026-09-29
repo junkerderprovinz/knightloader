@@ -190,7 +190,7 @@ export const no: Dict = {
   'settings.appsSource': 'Kildekode',
   'settings.appsZip': 'ZIP-arkiv',
   'settings.appsExtension': 'Nettleserutvidelse',
-  'settings.appsExtensionHint': 'Utvidelsen sender en lenke, et utvalg eller den åpne siden til KnightLoaderen din, fra høyreklikkmenyen eller knappen sin på verktøylinjen. Chrome-pakken virker også i Edge, Brave, Opera og Vivaldi.',
+  'settings.appsExtensionHint': 'Utvidelsen sender en lenke, et utvalg eller den åpne siden til KnightLoaderen din, fra høyreklikkmenyen eller knappen sin på verktøylinjen. Chrome, Brave, Opera og Vivaldi installerer den fra Chrome Web Store, Edge fra Edge Add-ons.',
   'settings.appsSoon': 'Snart',
   'settings.privacyPolicy': 'Personvernerklæring',
   'settings.removeAllConnections': 'Fjern alle tilkoblinger',

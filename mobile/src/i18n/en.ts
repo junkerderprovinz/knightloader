@@ -279,7 +279,7 @@ export const en = {
   'settings.appsSource': 'Source code',
   'settings.appsZip': 'ZIP archive',
   'settings.appsExtension': 'Browser extension',
-  'settings.appsExtensionHint': 'The extension sends a link, a selection or the page you are on to your KnightLoader, from the right-click menu or its toolbar button. The Chrome download also works in Edge, Brave, Opera and Vivaldi.',
+  'settings.appsExtensionHint': 'The extension sends a link, a selection or the page you are on to your KnightLoader, from the right-click menu or its toolbar button. Chrome, Brave, Opera and Vivaldi install it from the Chrome Web Store, Edge from Edge Add-ons.',
   'settings.appsSoon': 'Soon',
   'settings.privacyPolicy': 'Privacy policy',
   'settings.removeAllConnections': 'Remove all connections',

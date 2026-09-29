@@ -190,7 +190,7 @@ export const ko: Dict = {
   'settings.appsSource': '소스 코드',
   'settings.appsZip': 'ZIP 압축 파일',
   'settings.appsExtension': '브라우저 확장 프로그램',
-  'settings.appsExtensionHint': '확장 프로그램은 오른쪽 클릭 메뉴나 도구 모음의 버튼으로 링크, 선택한 텍스트 또는 열려 있는 페이지를 KnightLoader로 보냅니다. Chrome용 패키지는 Edge, Brave, Opera, Vivaldi에서도 작동합니다.',
+  'settings.appsExtensionHint': '확장 프로그램은 오른쪽 클릭 메뉴나 도구 모음의 버튼으로 링크, 선택한 텍스트 또는 열려 있는 페이지를 KnightLoader로 보냅니다. Chrome, Brave, Opera, Vivaldi는 Chrome Web Store에서, Edge는 Edge Add-ons에서 설치합니다.',
   'settings.appsSoon': '곧 제공',
   'settings.privacyPolicy': '개인정보 처리방침',
   'settings.removeAllConnections': '모든 연결 제거',

@@ -190,7 +190,7 @@ export const hr: Dict = {
   'settings.appsSource': 'Izvorni kod',
   'settings.appsZip': 'ZIP arhiva',
   'settings.appsExtension': 'Proširenje preglednika',
-  'settings.appsExtensionHint': 'Proširenje šalje poveznicu, odabir ili otvorenu stranicu tvom KnightLoaderu, iz izbornika desnog klika ili sa svog gumba na alatnoj traci. Paket za Chrome radi i u Edgeu, Braveu, Operi i Vivaldiju.',
+  'settings.appsExtensionHint': 'Proširenje šalje poveznicu, odabir ili otvorenu stranicu tvom KnightLoaderu, iz izbornika desnog klika ili sa svog gumba na alatnoj traci. Chrome, Brave, Opera i Vivaldi instaliraju ga iz trgovine Chrome Web Store, a Edge iz trgovine Edge Add-ons.',
   'settings.appsSoon': 'Uskoro',
   'settings.privacyPolicy': 'Pravila o privatnosti',
   'settings.removeAllConnections': 'Ukloni sve veze',

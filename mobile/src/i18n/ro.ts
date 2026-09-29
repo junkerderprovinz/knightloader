@@ -190,7 +190,7 @@ export const ro: Dict = {
   'settings.appsSource': 'Cod sursă',
   'settings.appsZip': 'Arhivă ZIP',
   'settings.appsExtension': 'Extensie de browser',
-  'settings.appsExtensionHint': 'Extensia trimite un link, o selecție sau pagina deschisă către KnightLoader-ul tău, din meniul de clic dreapta sau din butonul ei din bara de instrumente. Pachetul pentru Chrome merge și în Edge, Brave, Opera și Vivaldi.',
+  'settings.appsExtensionHint': 'Extensia trimite un link, o selecție sau pagina deschisă către KnightLoader-ul tău, din meniul de clic dreapta sau din butonul ei din bara de instrumente. Chrome, Brave, Opera și Vivaldi o instalează din Chrome Web Store, Edge din Edge Add-ons.',
   'settings.appsSoon': 'În curând',
   'settings.privacyPolicy': 'Politica de confidențialitate',
   'settings.removeAllConnections': 'Elimină toate conexiunile',

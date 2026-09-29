@@ -278,7 +278,7 @@ export const de: Dict = {
   'settings.appsSource': 'Quellcode',
   'settings.appsZip': 'ZIP-Archiv',
   'settings.appsExtension': 'Browsererweiterung',
-  'settings.appsExtensionHint': 'Die Erweiterung schickt einen Link, eine Auswahl oder die offene Seite an dein KnightLoader, per Rechtsklick oder über ihren Knopf in der Symbolleiste. Der Chrome-Download läuft auch in Edge, Brave, Opera und Vivaldi.',
+  'settings.appsExtensionHint': 'Die Erweiterung schickt einen Link, eine Auswahl oder die offene Seite an dein KnightLoader, per Rechtsklick oder über ihren Knopf in der Symbolleiste. Chrome, Brave, Opera und Vivaldi installieren sie aus dem Chrome Web Store, Edge aus Edge Add-ons.',
   'settings.appsSoon': 'Bald',
   'settings.privacyPolicy': 'Datenschutzerklärung',
   'settings.removeAllConnections': 'Alle Verbindungen entfernen',

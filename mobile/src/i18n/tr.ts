@@ -190,7 +190,7 @@ export const tr: Dict = {
   'settings.appsSource': 'Kaynak kodu',
   'settings.appsZip': 'ZIP arşivi',
   'settings.appsExtension': 'Tarayıcı uzantısı',
-  'settings.appsExtensionHint': 'Uzantı bir bağlantıyı, seçimi ya da açık sayfayı sağ tık menüsünden veya araç çubuğundaki düğmesinden KnightLoader’ına gönderir. Chrome paketi Edge, Brave, Opera ve Vivaldi’de de çalışır.',
+  'settings.appsExtensionHint': 'Uzantı bir bağlantıyı, seçimi ya da açık sayfayı sağ tık menüsünden veya araç çubuğundaki düğmesinden KnightLoader’ına gönderir. Chrome, Brave, Opera ve Vivaldi onu Chrome Web Store’dan, Edge ise Edge Add-ons’tan yükler.',
   'settings.appsSoon': 'Yakında',
   'settings.privacyPolicy': 'Gizlilik politikası',
   'settings.removeAllConnections': 'Tüm bağlantıları kaldır',

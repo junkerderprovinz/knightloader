@@ -190,7 +190,7 @@ export const pl: Dict = {
   'settings.appsSource': 'Kod źródłowy',
   'settings.appsZip': 'Archiwum ZIP',
   'settings.appsExtension': 'Rozszerzenie przeglądarki',
-  'settings.appsExtensionHint': 'Rozszerzenie wysyła link, zaznaczenie albo otwartą stronę do twojego KnightLoadera, z menu prawego przycisku myszy albo swoim przyciskiem na pasku narzędzi. Paczka dla Chrome działa też w Edge, Brave, Operze i Vivaldi.',
+  'settings.appsExtensionHint': 'Rozszerzenie wysyła link, zaznaczenie albo otwartą stronę do twojego KnightLoadera, z menu prawego przycisku myszy albo swoim przyciskiem na pasku narzędzi. Chrome, Brave, Opera i Vivaldi instalują je z Chrome Web Store, Edge z Edge Add-ons.',
   'settings.appsSoon': 'Wkrótce',
   'settings.privacyPolicy': 'Polityka prywatności',
   'settings.removeAllConnections': 'Usuń wszystkie połączenia',

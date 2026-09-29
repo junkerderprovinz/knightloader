@@ -190,7 +190,7 @@ export const el: Dict = {
   'settings.appsSource': 'Πηγαίος κώδικας',
   'settings.appsZip': 'Αρχείο ZIP',
   'settings.appsExtension': 'Επέκταση περιηγητή',
-  'settings.appsExtensionHint': 'Η επέκταση στέλνει έναν σύνδεσμο, μια επιλογή ή την ανοιχτή σελίδα στο KnightLoader σου, από το μενού του δεξιού κλικ ή από το κουμπί της στη γραμμή εργαλείων. Το πακέτο για Chrome λειτουργεί και σε Edge, Brave, Opera και Vivaldi.',
+  'settings.appsExtensionHint': 'Η επέκταση στέλνει έναν σύνδεσμο, μια επιλογή ή την ανοιχτή σελίδα στο KnightLoader σου, από το μενού του δεξιού κλικ ή από το κουμπί της στη γραμμή εργαλείων. Τα Chrome, Brave, Opera και Vivaldi την εγκαθιστούν από το Chrome Web Store, το Edge από το Edge Add-ons.',
   'settings.appsSoon': 'Σύντομα',
   'settings.privacyPolicy': 'Πολιτική απορρήτου',
   'settings.removeAllConnections': 'Αφαίρεση όλων των συνδέσεων',

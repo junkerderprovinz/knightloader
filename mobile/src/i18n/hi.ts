@@ -190,7 +190,7 @@ export const hi: Dict = {
   'settings.appsSource': 'सोर्स कोड',
   'settings.appsZip': 'ZIP आर्काइव',
   'settings.appsExtension': 'ब्राउज़र एक्सटेंशन',
-  'settings.appsExtensionHint': 'एक्सटेंशन राइट-क्लिक मेनू या टूलबार पर अपने बटन से कोई लिंक, चुना हुआ टेक्स्ट या खुला पेज आपके KnightLoader को भेजता है। Chrome वाला पैकेज Edge, Brave, Opera और Vivaldi में भी चलता है।',
+  'settings.appsExtensionHint': 'एक्सटेंशन राइट-क्लिक मेनू या टूलबार पर अपने बटन से कोई लिंक, चुना हुआ टेक्स्ट या खुला पेज आपके KnightLoader को भेजता है। Chrome, Brave, Opera और Vivaldi इसे Chrome Web Store से इंस्टॉल करते हैं, Edge इसे Edge Add-ons से।',
   'settings.appsSoon': 'जल्द ही',
   'settings.privacyPolicy': 'गोपनीयता नीति',
   'settings.removeAllConnections': 'सभी कनेक्शन हटाएं',
