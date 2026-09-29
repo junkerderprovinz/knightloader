@@ -54,7 +54,7 @@ Hosters, debrid services, torrents, Usenet, videos and streams: one download man
   &nbsp;
   <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-android.apk"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(7892,0,841.9,245.3))" alt="Download the Android app" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-extension.zip"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8758,0,841.9,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="160" height="46.618"></a>
+  <a href="https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(8758,0,841.9,245.3))" alt="Download the extension for Chrome, Edge, Brave and Opera" width="160" height="46.618"></a>
   &nbsp;
   <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(9624,0,841.9,245.3))" alt="The Firefox add-on, soon" width="160" height="46.618">
   <br><sub>Always downloads the latest build</sub>
