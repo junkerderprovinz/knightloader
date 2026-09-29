@@ -8,10 +8,10 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.junkerderprovinz.knightloader"
+      "bundleIdentifier": "knightloader.halleluja.design"
     },
     "android": {
-      "package": "com.junkerderprovinz.knightloader",
+      "package": "knightloader.halleluja.design",
       "adaptiveIcon": {
         "backgroundImage": "./assets/android-icon-background.png",
         "backgroundColor": "#ffffff",
