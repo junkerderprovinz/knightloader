@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../../../lib/i18n';
-import { PhraseInput } from './PhraseInput';
+import { usePhraseEntry } from './PhraseInput';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -24,11 +24,21 @@ afterEach(() => {
   host.remove();
 });
 
+function Entry({ onPair }: { onPair: (phrase: string) => Promise<string | null> }) {
+  const { field, pair } = usePhraseEntry({ id: 'phrase', label: 'Words', tip: 'Tip', busy: false, onPair });
+  return (
+    <>
+      {field}
+      {pair}
+    </>
+  );
+}
+
 function draw(onPair: (phrase: string) => Promise<string | null> = async () => null) {
   act(() =>
     root.render(
       <I18nProvider>
-        <PhraseInput id="phrase" label="Words" tip="Tip" busy={false} onPair={onPair} />
+        <Entry onPair={onPair} />
       </I18nProvider>,
     ),
   );
@@ -49,7 +59,7 @@ const pair = () => [...host.querySelectorAll('button')].find((b) => b.textConten
 const slots = () => [...host.querySelectorAll('li[data-slot]')];
 const alert = () => host.querySelector('[role="alert"]')!.textContent ?? '';
 
-describe('PhraseInput', () => {
+describe('usePhraseEntry', () => {
   it('fills twelve numbered slots from a numbered paste, one word per line', () => {
     draw();
     type(WORDS.map((w, i) => `${i + 1}. ${w}`).join('\n'));

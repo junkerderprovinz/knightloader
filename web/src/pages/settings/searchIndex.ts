@@ -358,6 +358,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: [
         'pairing.create',
         'pairing.enter',
+        'pairing.enterSub',
         'pairing.enterLabel',
         'pairing.enterLabelOther',
         'pairing.wordsLabel',
