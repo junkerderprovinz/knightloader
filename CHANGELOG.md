@@ -35,6 +35,15 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
+## [Unreleased]
+
+### Fixed
+
+- **The extension says "1 file", not "1 files".** The status line on an
+  instance card used the plural for every count, and in languages with more
+  plural forms, such as Russian, Polish or Arabic, the same form stood after 2
+  and after 5. It now uses the form each language's plural rules ask for.
+
 ## [1.5.0] - 2026-09-29
 
 ### Added

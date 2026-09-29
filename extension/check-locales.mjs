@@ -33,6 +33,18 @@ for (const loc of locales) {
   for (const k of keys) {
     if (!english.includes(k)) problems.push(`${loc}: stray ${k} (not in en)`);
   }
+  // A counted word needs every form the language's plural rules can ask for.
+  for (const k of english) {
+    const dst = MESSAGES[loc][k];
+    if (typeof MESSAGES.en[k] !== 'object' || !dst) continue;
+    if (typeof dst !== 'object') {
+      problems.push(`${loc}: ${k} needs plural forms`);
+      continue;
+    }
+    for (const cat of new Intl.PluralRules(loc).resolvedOptions().pluralCategories) {
+      if (!dst[cat]) problems.push(`${loc}: ${k} has no "${cat}" form`);
+    }
+  }
   for (const k of english) {
     const src = MESSAGES.en[k];
     const dst = MESSAGES[loc][k];
