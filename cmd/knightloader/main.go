@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -43,7 +44,13 @@ func main() {
 	// Also needs the bridgeclipboard build tag; see internal/bridge/clipboard.go.
 	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
 	resetTwoFactor := flag.Bool("reset-2fa", false, "turn the second login factor off and exit; the password is untouched. For an operator who has lost both the phone and the recovery codes")
+	version := flag.Bool("version", false, "print the version and commit, then exit")
 	flag.Parse()
+
+	if *version {
+		fmt.Println(buildinfo.Describe("knightloader"))
+		return
+	}
 
 	// Before anything creates a file or starts JDownloader, which inherits
 	// the mask. PUID and PGID are not applied here: switching uid
