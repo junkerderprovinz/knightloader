@@ -60,16 +60,20 @@ release's tag.
   Still alone after that. The server keeps when the instance joined its group
   and whether anyone came, and `GET /api/connect` reports both along with the
   members and the phones.
-- **Still alone after a minute, the card says what to do** in two cards side
+- **Still alone after a minute, the card says what to do** in two tiles side
   by side. **Nothing entered over there yet?** opens a window with the twelve
-  words, a Copy button and the QR code for the Android app. **Generated a
-  phrase over there too?** opens a window with the word field, and Pair there
-  joins the other group in one step. Without a relay the card points out that
-  the other instance may be on another network. A line in the card shows the
-  relay: connected, not reachable, or no relay. If the relay cannot be reached
-  and nobody has joined, one line says so and **What to check** lists it:
-  outgoing HTTPS on port 443 to relay.halleluja.design, a firewall or DNS
-  filter, or for your own relay whether it runs and its address is right.
+  words beside the QR code for the Android app, with Copy next to Close.
+  **Generated a phrase over there too?** opens a window with the word field in
+  the same layout, and Pair there joins the other group in one step. Without a
+  relay the card points out that the other instance may be on another
+  network. A badge beside the state shows the relay: Connected, Not connected
+  or No relay. If the relay cannot be reached and nobody has joined, one line
+  says so and **What to check** lists it: outgoing HTTPS on port 443 to
+  relay.halleluja.design, a firewall or DNS filter, or for your own relay
+  whether it runs and its address is right.
+- **The phrase card lists the whole group**, one row each: this instance,
+  marked This instance, the other instances with Direct or Via relay, and the
+  connected phones.
 - **Instances of a group find each other on the local network without the
   relay.** A member tags its network announce with a MAC keyed from the
   phrase, which tells the others it belongs and tells nobody else anything.
@@ -90,6 +94,11 @@ release's tag.
   before there is a group it stands in the middle of the page with one line
   saying what pairing does. The module switch for the page is called
   Instances.
+- **The Settings pages come in a new order**: General, Appearance, Modules,
+  Accounts, Link collector, Downloads, Archives, Rules & categories, Network,
+  then Pairing, Instances and Security, Resolvers, Torrents, Captcha,
+  Automation, Shortcuts, Apps, Advanced, Health, Diagnostics and Help. An
+  order you dragged yourself stays as it is.
 - **Remote access is split into Pairing and Security.** Security holds the
   login password, the second factor, passkeys and API tokens. An old link to
   the pairing section on Remote access lands on the Pairing page.
