@@ -20,6 +20,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -41,6 +44,16 @@ import (
 const shutdownGrace = 5 * time.Second
 
 func main() {
+	versionOnly, err := parseArgs(os.Args[1:], os.Stdout, os.Stderr)
+	switch {
+	case errors.Is(err, flag.ErrHelp):
+		return
+	case err != nil:
+		os.Exit(2)
+	case versionOnly:
+		return
+	}
+
 	// The privacy policy promises no record of who connects, but net/http logs
 	// the client address on failed TLS handshakes, some HTTP/2 errors and
 	// panics. Both the standard logger and the server's ErrorLog are redacted.
@@ -136,6 +149,29 @@ func main() {
 		log.Printf("shutdown: not every connection closed within %s: %v", shutdownGrace, err)
 	}
 	cancel()
+}
+
+// parseArgs reads the command line and reports whether it only asked for the
+// version, which it has then printed. The relay is configured through the
+// environment, so any other flag or argument is refused rather than ignored
+// on the way to opening a public listener.
+func parseArgs(args []string, stdout, stderr io.Writer) (versionOnly bool, err error) {
+	fs := flag.NewFlagSet("knightloader-relay", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	version := fs.Bool("version", false, "print the version and commit, then exit")
+	if err := fs.Parse(args); err != nil {
+		return false, err
+	}
+	if fs.NArg() > 0 {
+		err := fmt.Errorf("unexpected argument %q", fs.Arg(0))
+		fmt.Fprintln(stderr, err)
+		fs.Usage()
+		return false, err
+	}
+	if *version {
+		fmt.Fprintln(stdout, buildinfo.Describe("knightloader-relay"))
+	}
+	return *version, nil
 }
 
 // splitNames turns the comma-separated KL_RELAY_DOMAIN into the names the

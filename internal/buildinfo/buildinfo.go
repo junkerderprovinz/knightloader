@@ -31,6 +31,16 @@ func Revision() string {
 	return ""
 }
 
+// Describe is the line a -version flag prints: the program, Version and, when
+// it is known, the Revision.
+func Describe(program string) string {
+	s := program + " " + Version
+	if r := Revision(); r != "" {
+		s += " (commit " + r + ")"
+	}
+	return s
+}
+
 // Deployment says which binary this build is: "container" for
 // cmd/knightloader or "desktop" for the Wails app. Both share api.Handler, so
 // the main package sets it before serving rather than anything inferring it.
