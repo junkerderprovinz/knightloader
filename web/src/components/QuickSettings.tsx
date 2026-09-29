@@ -13,7 +13,7 @@ import {
   type Settings,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconMenu, IconRetry } from '../lib/icons';
+import { IconClose, IconMenu, IconRetry } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
 import { openWindow } from '../lib/windowStack';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
@@ -629,6 +629,20 @@ export function QuickSettings() {
                 ))}
               </div>
             )}
+            {/* The way out every window has, below the rows so it stays in view
+                while they scroll. */}
+            <div className="flex justify-end">
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconClose />}
+                title={t('common.close')}
+                onClick={() => {
+                  close();
+                  wrap.current?.querySelector('button')?.focus();
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
