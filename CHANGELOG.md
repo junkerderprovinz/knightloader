@@ -39,15 +39,15 @@ release's tag.
 
 ### Added
 
-- **Pairing under Settings, Remote access**, next to the password that guards
-  it. It opens with one sentence, connect all your instances with a 12-word
+- **A Pairing page in Settings.** It opens with one sentence, connect all your instances with a 12-word
   phrase, and three numbered cards: generate a phrase once on one instance,
   press Enter phrase on every other one, done. Below them the phrase card
   offers two large tiles, **Generate phrase** and **Enter phrase**, each with a
   line saying what it does. Generate phrase shows the twelve words with a Copy
   button, the QR code for the Android app and what to do on the next instance.
   Pressed by mistake, **Enter phrase** under "Already have a phrase?" leaves
-  the empty group and opens the field.
+  the empty group and opens the field. The name this instance goes by in the
+  group is set on the same page.
 - **The field for the words takes a paste as it comes**: one word per line,
   numbered, or separated by commas. Twelve numbered slots fill as you type, a
   word that is not on the list is named with its position right away, and
@@ -60,15 +60,16 @@ release's tag.
   Still alone after that. The server keeps when the instance joined its group
   and whether anyone came, and `GET /api/connect` reports both along with the
   members and the phones.
-- **Still alone after a minute, the card says what to do.** If both instances
-  generated a phrase, it shows two steps: leave this group, then enter the
-  other instance's words. It also offers to show the phrase, in case nothing
-  was entered over there yet, and without a relay it points out that the other
-  instance may be on another network. A line in the card shows the relay:
-  connected, not reachable, or no relay. If the relay cannot be reached and
-  nobody has joined, the card lists what to check: outgoing HTTPS on port 443
-  to relay.halleluja.design, a firewall or DNS filter, or for your own relay
-  whether it runs and its address is right.
+- **Still alone after a minute, the card says what to do** in two cards side
+  by side. **Nothing entered over there yet?** opens a window with the twelve
+  words, a Copy button and the QR code for the Android app. **Generated a
+  phrase over there too?** opens a window with the word field, and Pair there
+  joins the other group in one step. Without a relay the card points out that
+  the other instance may be on another network. A line in the card shows the
+  relay: connected, not reachable, or no relay. If the relay cannot be reached
+  and nobody has joined, one line says so and **What to check** lists it:
+  outgoing HTTPS on port 443 to relay.halleluja.design, a firewall or DNS
+  filter, or for your own relay whether it runs and its address is right.
 - **Instances of a group find each other on the local network without the
   relay.** A member tags its network announce with a MAC keyed from the
   phrase, which tells the others it belongs and tells nobody else anything.
@@ -85,14 +86,21 @@ release's tag.
 - **The Instances page shows the cards directly**, this one first and marked
   This instance, each Connected or Not connected with its live figures. A
   member of the group shows no address. While the page is open it asks every
-  20 seconds who is there. A **Pairing** button opens the pairing section, and
+  20 seconds who is there. A **Pairing** button opens the Pairing page, and
   before there is a group it stands in the middle of the page with one line
   saying what pairing does. The module switch for the page is called
   Instances.
+- **Remote access is split into Pairing and Security.** Security holds the
+  login password, the second factor, passkeys and API tokens. An old link to
+  the pairing section on Remote access lands on the Pairing page.
 - **Pairing works without a login password.** Without one, the phrase card
   says that anyone who can open this web interface can see the words and
-  control every instance in the group, with a button to the password card.
-  With a password set, showing the words again asks for it.
+  control every instance in the group, with a button to the Security page.
+  The note can be closed and stays closed in that browser. With a password
+  set, showing the words again asks for it.
+- **Before there is a phrase the relay card says No group yet**, not Not
+  connected, and adds that the relay connects as soon as this instance has a
+  phrase: the relay key comes from the words.
 - **The relay card starts with what a relay is for** and has a badge in its
   header: Connected, Not connected or No relay. The route picker uses filled
   glyphs, a cloud for the project relay, a house for your own relay and a
