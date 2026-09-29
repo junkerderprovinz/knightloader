@@ -9,8 +9,12 @@
 //
 // Discovery only makes an instance visible. Being on the same network is not
 // consent, so adding a discovered instance stores an address and nothing
-// else, and no credential travels either way. A peer with a password refuses
-// calls until the two are paired with a code (internal/api/routes_pairing.go).
+// else, and no credential travels either way.
+//
+// An instance in a phrase group also tags its announce with a MAC only
+// members can compute. A member that recognises the tag files the announcer
+// as a member it can call directly (internal/federation's direct transport);
+// the tag says nothing about the phrase to anyone else.
 package discovery
 
 import (
@@ -59,6 +63,11 @@ type Peer struct {
 	URL string `json:"url"`
 	// Deployment is "container" or "desktop" (buildinfo.Deployment).
 	Deployment string `json:"deployment"`
+	// Sent is the Unix time the announce went out, and Tag the group MAC over
+	// it and the fields above, empty outside a group. The tag covers the time,
+	// so a captured announce stops passing once it is old.
+	Sent int64  `json:"sent,omitempty"`
+	Tag  string `json:"tag,omitempty"`
 	// LastSeen is set by the receiver, never sent.
 	LastSeen time.Time `json:"lastSeen"`
 }
@@ -71,6 +80,11 @@ type Service struct {
 
 	mu    sync.Mutex
 	peers map[string]Peer
+	// members holds the announces that passed isMember, apart from peers, so
+	// a stranger announcing a member's id cannot replace its address.
+	members  map[string]Peer
+	sign     func(Peer) string
+	isMember func(Peer) bool
 
 	conn *ipv4.PacketConn
 	// started means somebody will close done: Start either closes it or
@@ -93,20 +107,31 @@ func (s *Service) SetSelf(self Peer) {
 	s.mu.Unlock()
 }
 
-func (s *Service) currentSelf() Peer {
+// SetGroup makes every announce carry the tag sign computes for it, and
+// files an announce that isMember accepts as a member. nil for both leaves
+// the group, which forgets every member at once.
+func (s *Service) SetGroup(sign func(Peer) string, isMember func(Peer) bool) {
+	s.mu.Lock()
+	s.sign, s.isMember = sign, isMember
+	s.members = map[string]Peer{}
+	s.mu.Unlock()
+}
+
+func (s *Service) currentSelf() (Peer, func(Peer) string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.self
+	return s.self, s.sign
 }
 
 // New builds a Service that will announce self. With an empty URL, as on the
 // desktop build, it listens without announcing.
 func New(self Peer) *Service {
 	return &Service{
-		self:  self,
-		peers: map[string]Peer{},
-		quit:  make(chan struct{}),
-		done:  make(chan struct{}),
+		self:    self,
+		peers:   map[string]Peer{},
+		members: map[string]Peer{},
+		quit:    make(chan struct{}),
+		done:    make(chan struct{}),
 	}
 }
 
@@ -204,16 +229,32 @@ func (s *Service) isClosing() bool {
 	return s.closing
 }
 
-// Peers is every instance seen recently, this one excluded, sorted by name so
-// a UI does not reshuffle on every poll.
+// Peers is every instance seen recently that is not a member of this
+// instance's group, this one excluded, sorted by name so a UI does not
+// reshuffle on every poll.
 func (s *Service) Peers() []Peer {
 	s.mu.Lock()
 	s.pruneLocked(time.Now().Add(-peerTTL))
-	out := make([]Peer, 0, len(s.peers))
-	for _, p := range s.peers {
+	out := sorted(s.peers)
+	s.mu.Unlock()
+	return out
+}
+
+// Members is every member of this instance's group announcing on this
+// network, sorted like Peers.
+func (s *Service) Members() []Peer {
+	s.mu.Lock()
+	s.pruneLocked(time.Now().Add(-peerTTL))
+	out := sorted(s.members)
+	s.mu.Unlock()
+	return out
+}
+
+func sorted(m map[string]Peer) []Peer {
+	out := make([]Peer, 0, len(m))
+	for _, p := range m {
 		out = append(out, p)
 	}
-	s.mu.Unlock()
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Name != out[j].Name {
 			return out[i].Name < out[j].Name
@@ -224,9 +265,11 @@ func (s *Service) Peers() []Peer {
 }
 
 func (s *Service) pruneLocked(cutoff time.Time) {
-	for id, p := range s.peers {
-		if p.LastSeen.Before(cutoff) {
-			delete(s.peers, id)
+	for _, m := range []map[string]Peer{s.peers, s.members} {
+		for id, p := range m {
+			if p.LastSeen.Before(cutoff) {
+				delete(m, id)
+			}
 		}
 	}
 }
@@ -237,9 +280,13 @@ func (s *Service) announceLoop(conn *ipv4.PacketConn, addr *net.UDPAddr) {
 	// The announce is rebuilt every tick, since the name and address can
 	// change, and an instance that gains an address starts announcing.
 	send := func() {
-		self := s.currentSelf()
+		self, sign := s.currentSelf()
 		if self.URL == "" || self.ID == "" {
 			return
+		}
+		self.Sent = time.Now().Unix()
+		if sign != nil {
+			self.Tag = sign(self)
 		}
 		payload, err := json.Marshal(self)
 		if err != nil {
@@ -293,7 +340,7 @@ func (s *Service) readLoop(conn *ipv4.PacketConn) {
 			continue // anything may share a multicast group
 		}
 		// Skip our own looped-back announce and anything unidentified.
-		if p.ID == "" || p.ID == s.currentSelf().ID || p.URL == "" {
+		if self, _ := s.currentSelf(); p.ID == "" || p.ID == self.ID || p.URL == "" {
 			continue
 		}
 		s.absorb(p)
@@ -307,6 +354,7 @@ func (s *Service) absorb(p Peer) {
 	p.Name = clip(p.Name)
 	p.URL = clip(p.URL)
 	p.Deployment = clip(p.Deployment)
+	p.Tag = clip(p.Tag)
 	if p.Name == "" {
 		p.Name = p.ID
 	}
@@ -314,15 +362,25 @@ func (s *Service) absorb(p Peer) {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if _, known := s.peers[p.ID]; !known && len(s.peers) >= maxPeers {
+	into := s.peers
+	if s.isMember != nil && p.Tag != "" && s.isMember(p) {
+		into = s.members
+		// Datagrams can arrive out of order, and an older announce played
+		// back must not bring back an address the member has since left.
+		if known, ok := into[p.ID]; ok && p.Sent < known.Sent {
+			return
+		}
+		delete(s.peers, p.ID)
+	}
+	if _, known := into[p.ID]; !known && len(into) >= maxPeers {
 		// Sweep expired peers first, so the cap does not freeze the list at
 		// whatever was seen first.
 		s.pruneLocked(time.Now().Add(-peerTTL))
-		if len(s.peers) >= maxPeers {
+		if len(into) >= maxPeers {
 			return
 		}
 	}
-	s.peers[p.ID] = p
+	into[p.ID] = p
 }
 
 func clip(s string) string {

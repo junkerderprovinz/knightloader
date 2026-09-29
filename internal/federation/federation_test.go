@@ -285,7 +285,7 @@ func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
 
 	list := m.List()
 	if len(list) != 1 || list[0].Name != addressBefore {
-		t.Fatalf("relay peer's address is %q after unrelated churn, want it unchanged at %q", list, addressBefore)
+		t.Fatalf("relay peer's address is %+v after unrelated churn, want it unchanged at %q", list, addressBefore)
 	}
 	if _, code, _ := m.Proxy(context.Background(), addressBefore, http.MethodGet, "/api/tasks", nil); code == http.StatusNotFound {
 		t.Errorf("the original address no longer resolves after unrelated churn")

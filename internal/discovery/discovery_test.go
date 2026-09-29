@@ -215,3 +215,30 @@ func TestARenameReachesTheNetwork(t *testing.T) {
 		t.Error("the rename never reached the network; peers keep showing the old name until this process restarts")
 	}
 }
+
+func TestAnAnnounceWithTheGroupTagIsAMember(t *testing.T) {
+	s := New(Peer{ID: "id-self", URL: "http://192.168.1.2:8749"})
+	tag := func(p Peer) string { return "tag:" + p.ID + ":" + p.URL }
+	s.SetGroup(tag, func(p Peer) bool { return p.Tag == tag(p) })
+
+	s.absorb(Peer{ID: "id-member", URL: "http://192.168.1.3:8749", Sent: 10, Tag: "tag:id-member:http://192.168.1.3:8749"})
+	s.absorb(Peer{ID: "id-stranger", URL: "http://192.168.1.4:8749"})
+	// A stranger announcing the member's id with a forged tag stays a
+	// stranger and leaves the member's address alone.
+	s.absorb(Peer{ID: "id-member", URL: "http://192.168.1.66:8749", Sent: 11, Tag: "forged"})
+	// An older announce played back does not move the member either.
+	s.absorb(Peer{ID: "id-member", URL: "http://192.168.1.5:8749", Sent: 9, Tag: "tag:id-member:http://192.168.1.5:8749"})
+
+	members := s.Members()
+	if len(members) != 1 || members[0].URL != "http://192.168.1.3:8749" {
+		t.Fatalf("members = %+v, want the tagged announce at its own address", members)
+	}
+	if got := s.Peers(); len(got) != 2 {
+		t.Fatalf("peers = %+v, want the stranger and the forged announce", got)
+	}
+
+	s.SetGroup(nil, nil)
+	if got := s.Members(); len(got) != 0 {
+		t.Fatalf("members after leaving = %+v, want none", got)
+	}
+}

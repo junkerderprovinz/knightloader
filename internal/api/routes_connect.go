@@ -60,6 +60,10 @@ type ConnectInfo struct {
 type groupMember struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	// Direct is true for a member on this network, Relay for one on the same
+	// relay; a member can be both.
+	Direct bool `json:"direct"`
+	Relay  bool `json:"relay"`
 }
 
 func registerConnect(reg *Registry, a *app.App) {
@@ -249,7 +253,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		if name == "" {
 			name = p.Name
 		}
-		members = append(members, groupMember{ID: p.RelayID, Name: name})
+		members = append(members, groupMember{ID: p.RelayID, Name: name, Direct: p.Direct(), Relay: p.ViaRelay()})
 	}
 	st, err := a.Federation.Group(peers, now)
 	if err != nil {
