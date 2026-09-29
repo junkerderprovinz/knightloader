@@ -1820,6 +1820,7 @@ export function Modal({
   mute,
   hue,
   height = 'content',
+  wide = false,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
@@ -1856,6 +1857,9 @@ export function Modal({
    * since what they hold was laid out by another site.
    */
   height?: 'content' | 'screen' | 'capped';
+  /** Room for a grid beside a picture, such as the twelve words and their QR
+   *  code. It goes with the content height. */
+  wide?: boolean;
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1886,7 +1890,7 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${MODAL_SIZE[height]}`}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_SIZE[height]}`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"

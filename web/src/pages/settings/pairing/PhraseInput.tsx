@@ -3,35 +3,35 @@
 // the words arrive and names an unknown word with its place before anything
 // is sent. Pair stays off until twelve known words are there; whether they
 // belong together only the server can say, from the checksum.
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button, InfoBubble, TextArea } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { IconLink } from '../../../lib/icons';
 import { PHRASE_WORDS, checkPhrase } from '../../../lib/phraseWords';
+import { WordSlots } from './WordSlots';
 
-export function PhraseInput({
-  id,
-  label,
-  tip,
-  bare = false,
-  disabled = false,
-  busy,
-  onPair,
-  onCancel,
-}: {
+interface PhraseEntryOptions {
   id: string;
   label: string;
   tip: string;
-  /** Inside a numbered step that already says what goes here, the label is
-   *  only read out, not shown. */
+  /** Where a title already says what goes here, the label is only read out,
+   *  not shown. */
   bare?: boolean;
   disabled?: boolean;
   busy: boolean;
   /** Sends the words, one space apart, and resolves to the refusal to show,
    *  or null once paired. */
   onPair: (phrase: string) => Promise<string | null>;
-  onCancel?: () => void;
-}) {
+}
+
+/**
+ * usePhraseEntry is the word field and its Pair button apart, for a window
+ * that puts the button in its own row at the bottom.
+ */
+export function usePhraseEntry({ id, label, tip, bare = false, disabled = false, busy, onPair }: PhraseEntryOptions): {
+  field: ReactNode;
+  pair: ReactNode;
+} {
   const { t } = useT();
   const [text, setText] = useState('');
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -56,8 +56,7 @@ export function PhraseInput({
     setShake((n) => n + 1);
   }
 
-  const bad = new Set(unknown);
-  return (
+  const field = (
     <div className={`flex flex-col gap-2 ${disabled ? 'opacity-50' : ''}`} data-testid={id}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {!bare && (
@@ -80,7 +79,7 @@ export function PhraseInput({
           setText(e.target.value);
           setRefusal(null);
         }}
-        rows={3}
+        rows={2}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="none"
@@ -90,47 +89,33 @@ export function PhraseInput({
         aria-invalid={problem ? true : undefined}
         placeholder={t('pairing.enterPlaceholder')}
       />
-      <ol className="grid grid-cols-3 gap-1 sm:grid-cols-6 sm:gap-1.5" aria-hidden="true">
-        {Array.from({ length: PHRASE_WORDS }, (_, i) => {
-          const w = words[i];
-          const tone =
-            w === undefined
-              ? 'ring-1 ring-inset ring-carbon-border text-carbon-textMuted'
-              : bad.has(i)
-                ? 'bg-statusFailBg text-statusFail'
-                : 'bg-carbon-surface2 text-carbon-text';
-          return (
-            <li
-              key={i}
-              data-slot={i + 1}
-              data-unknown={bad.has(i) ? '' : undefined}
-              className={`flex min-w-0 items-baseline gap-1.5 rounded-[var(--radius-control)] px-2 py-0.5 text-xs ${tone}`}
-            >
-              <span className={`glim-num shrink-0 text-end ${bad.has(i) ? '' : 'text-carbon-textMuted'}`}>{i + 1}</span>
-              <span dir="ltr" className="truncate font-mono">
-                {w ?? '·'}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      <WordSlots words={words} unknown={unknown} />
       <p role="alert" className="text-sm text-statusFail empty:hidden">
         {problem ?? ''}
       </p>
+    </div>
+  );
+  const pairButton = (
+    <Button icon={<IconLink />} shake={shake} onClick={() => void pair()} disabled={disabled || busy || !complete}>
+      {t('pairing.join')}
+    </Button>
+  );
+  return { field, pair: pairButton };
+}
+
+export function PhraseInput({ onCancel, ...options }: PhraseEntryOptions & { onCancel?: () => void }) {
+  const { t } = useT();
+  const { field, pair } = usePhraseEntry(options);
+  return (
+    <div className="flex flex-col gap-2">
+      {field}
       <div className="flex flex-wrap items-center justify-end gap-2">
         {onCancel && (
-          <Button kind="secondary" onClick={onCancel} disabled={busy}>
+          <Button kind="secondary" onClick={onCancel} disabled={options.busy}>
             {t('common.cancel')}
           </Button>
         )}
-        <Button
-          icon={<IconLink />}
-          shake={shake}
-          onClick={() => void pair()}
-          disabled={disabled || busy || !complete}
-        >
-          {t('pairing.join')}
-        </Button>
+        {pair}
       </div>
     </div>
   );

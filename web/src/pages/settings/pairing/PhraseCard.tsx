@@ -5,7 +5,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, IconBadge, InfoBubble, LabelBadge, Modal, PasswordInput, SectionTitle } from '../../../components/ui';
-import { QRCode } from '../../../components/QRCode';
 import {
   ApiError,
   PhraseRejected,
@@ -28,6 +27,7 @@ import {
   IconClose,
   IconEye,
   IconEyeOff,
+  IconInstances,
   IconKeyboard,
   IconPhone,
   IconPlus,
@@ -37,9 +37,9 @@ import {
 } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
 import { useToast } from '../../../lib/toast';
-import { PhraseInput } from './PhraseInput';
+import { PhraseInput, usePhraseEntry } from './PhraseInput';
+import { WordSlots } from './WordSlots';
 import { STAGE_BADGE, clock, pairStage } from './pairStage';
-import { RouteGlyph } from './pairingArt';
 
 type T = ReturnType<typeof useT>['t'];
 
@@ -105,61 +105,66 @@ function useJoinedAgo(group: ConnectInfo): number {
   return base.ago + Math.max(0, Math.floor((now - base.at) / 1000));
 }
 
-function Caption({ children }: { children: ReactNode }) {
-  return <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">{children}</p>;
+/** WordGrid shows the twelve words with the QR code for the Android app. A
+ *  window's title already names them, so there it goes without the caption. */
+function WordGrid({ phrase, qr, bare = false, t }: { phrase: string; qr: QRMatrix | null; bare?: boolean; t: T }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {!bare && (
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
+          {t('pairing.wordsLabel')} <InfoBubble tip={t('pairing.wordsTip')} />
+        </p>
+      )}
+      <WordSlots words={phrase.split(/\s+/)} label={t('pairing.wordsLabel')} qr={qr} />
+      {qr && <p className="text-end text-[11px] text-carbon-textMuted">{t('pairing.qrCaption')}</p>}
+    </div>
+  );
 }
 
-function WordGrid({ phrase, qr, t }: { phrase: string; qr: QRMatrix | null; t: T }) {
+/** Row is one member of the group: a glyph, its name and what to say about it. */
+function Row({ glyph, name, mark, badge }: { glyph: ReactNode; name: string; mark?: string; badge?: ReactNode }) {
   return (
-    <div>
-      <Caption>
-        {t('pairing.wordsLabel')} <InfoBubble tip={t('pairing.wordsTip')} />
-      </Caption>
-      <div className="flex flex-col items-start gap-4 sm:flex-row">
-        <ol className="grid w-full max-w-[52rem] flex-1 grid-cols-2 gap-2 md:grid-cols-4" aria-label={t('pairing.wordsLabel')}>
-          {phrase.split(/\s+/).map((w, i) => (
-            <li
-              key={i}
-              className="flex min-w-0 items-baseline gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-1.5 text-sm"
-            >
-              <span className="glim-num w-4.5 shrink-0 text-end text-xs text-carbon-textMuted">{i + 1}</span>
-              <span dir="ltr" className="truncate font-mono text-carbon-text">
-                {w}
-              </span>
-            </li>
-          ))}
-        </ol>
-        {/* The phone app scans the words instead of taking them typed. */}
-        {qr && (
-          <figure className="flex shrink-0 flex-col items-center gap-1.5">
-            <QRCode matrix={qr} label={phrase} size={128} />
-            <figcaption className="text-[11px] text-carbon-textMuted">{t('pairing.qrCaption')}</figcaption>
-          </figure>
-        )}
-      </div>
-    </div>
+    <li className="flex flex-wrap items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+      <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
+      <span className="min-w-0 break-words text-sm font-semibold text-carbon-text">{name}</span>
+      {mark && <span className="glim-eyebrow shrink-0">{mark}</span>}
+      {badge && <span className="ms-auto">{badge}</span>}
+    </li>
   );
 }
 
 function MemberRow({ m, t }: { m: GroupMember; t: T }) {
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-      <span className="min-w-0 break-words text-sm font-semibold text-carbon-text">{m.name || m.id}</span>
-      <span className="ms-auto">
-        <LabelBadge label={m.direct ? t('pairing.direct') : t('pairing.viaRelay')} tone={m.direct ? 'ok' : undefined} />
-      </span>
-    </li>
+    <Row
+      glyph={<IconInstances />}
+      name={m.name || m.id}
+      badge={<LabelBadge label={m.direct ? t('pairing.direct') : t('pairing.viaRelay')} tone={m.direct ? 'ok' : undefined} />}
+    />
   );
 }
 
 function AppRow({ app }: { app: GroupApp }) {
+  return <Row glyph={<IconPhone />} name={app.name || app.id} />;
+}
+
+/** RelayBadge says how this instance reaches the rest of its group, as the
+ *  relay card's header does. */
+function RelayBadge({ group, t }: { group: ConnectInfo; t: T }) {
+  const own = group.relayMode === 'own';
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-      <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">
-        <IconPhone />
-      </span>
-      <span className="min-w-0 break-words text-sm font-semibold text-carbon-text">{app.name || app.id}</span>
-    </li>
+    <span className="ms-auto" data-testid="relay-line">
+      {group.relayMode === 'off' ? (
+        <LabelBadge label={t('relay.off')} tip={t('pairing.relayOffTip')} />
+      ) : group.connected ? (
+        <LabelBadge label={t('instances.connected')} tip={t(own ? 'pairing.relayOwn' : 'pairing.relayProject')} tone="ok" />
+      ) : (
+        <LabelBadge
+          label={t('instances.notConnected')}
+          tip={`${t(own ? 'pairing.relayOwnDown' : 'pairing.relayProjectDown')}. ${t('pairing.relayDownTip')}`}
+          tone="fail"
+        />
+      )}
+    </span>
   );
 }
 
@@ -174,33 +179,6 @@ function WaitRow({ text, seconds }: { text: string; seconds?: number }) {
       <span className="text-sm">{text}</span>
       {seconds !== undefined && <span className="glim-num ms-auto text-xs text-carbon-textMuted">{clock(seconds)}</span>}
     </div>
-  );
-}
-
-/** RelayLine says in one line how this instance reaches the rest of its group. */
-function RelayLine({ group, t }: { group: ConnectInfo; t: T }) {
-  const mode = group.relayMode;
-  let dot = 'bg-statusOkSolid';
-  let text = t(mode === 'own' ? 'pairing.relayOwn' : 'pairing.relayProject');
-  let tip: string | null = null;
-  if (mode === 'off') {
-    dot = 'bg-carbon-textMuted';
-    text = t('pairing.relayOff');
-    tip = t('pairing.relayOffTip');
-  } else if (!group.connected) {
-    dot = 'bg-statusWarnSolid';
-    text = t(mode === 'own' ? 'pairing.relayOwnDown' : 'pairing.relayProjectDown');
-    tip = t('pairing.relayDownTip');
-  }
-  return (
-    <span className="inline-flex min-w-0 items-center gap-2 text-sm text-carbon-textSub" data-testid="relay-line">
-      <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">
-        <RouteGlyph kind={mode} />
-      </span>
-      <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
-      <span>{text}</span>
-      {tip && <InfoBubble tip={tip} />}
-    </span>
   );
 }
 
@@ -252,20 +230,45 @@ function RelayDownLine({ group, onRefresh, t }: { group: ConnectInfo; onRefresh:
   );
 }
 
-/** WayOut is one of the two things to try while nobody has come: a glyph, a
- *  short question, one sentence and the one button that does it. */
-function WayOut({ glyph, title, text, action }: { glyph: ReactNode; title: string; text: string; action: ReactNode }) {
+/** JoinWindow takes the words of the group an instance on the other side
+ *  started. Joining replaces this instance's group in one step, which is
+ *  right while nobody else is in it. */
+function JoinWindow({
+  tip,
+  busy,
+  onPair,
+  onClose,
+  t,
+}: {
+  tip: string;
+  busy: boolean;
+  onPair: (phrase: string) => Promise<string | null>;
+  onClose: () => void;
+  t: T;
+}) {
+  const { field, pair } = usePhraseEntry({
+    id: 'pairing-phrase-other',
+    label: t('pairing.enterLabelOther'),
+    tip,
+    bare: true,
+    busy,
+    onPair,
+  });
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--radius-control)] bg-carbon-surface2 p-4">
-      <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-control)] bg-accent text-accentContrast [&>svg]:h-4.5 [&>svg]:w-4.5">
-          {glyph}
-        </span>
-        <span className="text-[15px] font-semibold leading-snug text-carbon-text">{title}</span>
-      </div>
-      <p className="text-sm text-carbon-textSub">{text}</p>
-      <div className="mt-auto flex justify-end">{action}</div>
-    </div>
+    <Modal
+      title={t('pairing.enterIts')}
+      hint={t('pairing.twoBody')}
+      onClose={onClose}
+      wide
+      footer={
+        <>
+          <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />
+          {pair}
+        </>
+      }
+    >
+      {field}
+    </Modal>
   );
 }
 
@@ -446,14 +449,16 @@ export function PhraseCard({
     </Button>
   );
 
-  const stateRow = (label: string, tone: 'hue' | 'neutral' | 'warn' | 'ok', withName = true) => (
-    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5" data-testid="pair-state">
-      <LabelBadge
-        label={label}
-        hue={tone === 'hue' ? hue : undefined}
-        tone={tone === 'ok' || tone === 'warn' ? tone : undefined}
-      />
-      {withName && <span className="text-xs text-carbon-textMuted">{t('pairing.thisInstance', { name: group.name })}</span>}
+  const stateRow = (label: string, tone: 'hue' | 'neutral' | 'warn' | 'ok') => (
+    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+      <span data-testid="pair-state">
+        <LabelBadge
+          label={label}
+          hue={tone === 'hue' ? hue : undefined}
+          tone={tone === 'ok' || tone === 'warn' ? tone : undefined}
+        />
+      </span>
+      <RelayBadge group={group} t={t} />
     </div>
   );
 
@@ -461,15 +466,10 @@ export function PhraseCard({
     path: [t('settings.title'), t('settings.nav.pairing'), t('pairing.show')].join(', '),
   });
 
-  const foot = (buttons: boolean) => (
-    <div className="flex flex-wrap items-center gap-3 border-t border-carbon-border pt-4">
-      <RelayLine group={group} t={t} />
-      {buttons && (
-        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:ms-auto sm:w-auto">
-          {showToggle}
-          {leaveButton}
-        </div>
-      )}
+  const foot = (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {showToggle}
+      {leaveButton}
     </div>
   );
 
@@ -487,37 +487,35 @@ export function PhraseCard({
     setAskPassword(false);
     setPassword('');
   };
-  const closeButton = (
-    <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={closeShown} />
+  const copyButton = (
+    <Button
+      kind="secondary"
+      icon={copies > 0 ? <IconCheckDrawn /> : <IconClipboard />}
+      confirm={copies}
+      onClick={() => void copy()}
+    >
+      {copies > 0 ? t('common.copied') : t('common.copy')}
+    </Button>
   );
 
   const windows =
     shown === 'words' ? (
-      <Modal title={t('pairing.wordsLabel')} hint={t('pairing.wordsTip')} onClose={closeShown} footer={closeButton}>
-        {phrase ? (
-          <div className="flex flex-col gap-3">
-            <WordGrid phrase={phrase} qr={qr} t={t} />
-            <div>
-              <Button
-                kind="secondary"
-                icon={copies > 0 ? <IconCheckDrawn /> : <IconClipboard />}
-                confirm={copies}
-                onClick={() => void copy()}
-              >
-                {copies > 0 ? t('common.copied') : t('common.copy')}
-              </Button>
-            </div>
-          </div>
-        ) : group.passwordSet ? (
-          passwordPrompt
-        ) : null}
+      <Modal
+        title={t('pairing.wordsLabel')}
+        hint={t('pairing.wordsTip')}
+        onClose={closeShown}
+        wide
+        footer={
+          <>
+            <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={closeShown} />
+            {phrase && copyButton}
+          </>
+        }
+      >
+        {phrase ? <WordGrid phrase={phrase} qr={qr} bare t={t} /> : group.passwordSet ? passwordPrompt : null}
       </Modal>
     ) : shown === 'join' ? (
-      <Modal title={t('pairing.enterIts')} hint={t('pairing.twoBody')} onClose={closeShown} footer={closeButton}>
-        {/* Joining replaces this instance's group in one step, which is right
-            while nobody else is in it. */}
-        <PhraseInput id="pairing-phrase-other" label={t('pairing.enterLabelOther')} tip={enterTip} busy={busy} onPair={join} />
-      </Modal>
+      <JoinWindow tip={enterTip} busy={busy} onPair={join} onClose={closeShown} t={t} />
     ) : null;
 
   let body: ReactNode;
@@ -560,34 +558,24 @@ export function PhraseCard({
   } else if (stage === 'alone') {
     body = (
       <>
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-carbon-textSub" data-testid="pair-state">
-          <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
-            <IconWarning />
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-carbon-textSub">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="pair-state">
+            <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
+              <IconWarning />
+            </span>
+            <strong className="font-semibold text-carbon-text">{t(STAGE_BADGE.alone.key)}</strong>
+            {t('pairing.aloneLead')}
           </span>
-          <strong className="font-semibold text-carbon-text">{t(STAGE_BADGE.alone.key)}</strong>
-          {t('pairing.aloneLead')}
-        </p>
+          <RelayBadge group={group} t={t} />
+        </div>
         {noPasswordNote}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <WayOut
-            glyph={<IconEye />}
-            title={t('pairing.notYetTitle')}
-            text={t('pairing.notYetBody')}
-            action={
-              <Button kind="secondary" icon={<IconEye />} onClick={openWords}>
-                {t('pairing.show')}
-              </Button>
-            }
-          />
-          <WayOut
+          <Choice glyph={<IconEye />} title={t('pairing.notYetTitle')} sub={t('pairing.notYetBody')} onClick={openWords} />
+          <Choice
             glyph={<IconKeyboard />}
             title={t('pairing.twoTitle')}
-            text={t('pairing.twoBody')}
-            action={
-              <Button kind="secondary" icon={<IconKeyboard />} onClick={() => setShown('join')}>
-                {t('pairing.enterIts')}
-              </Button>
-            }
+            sub={t('pairing.twoBody')}
+            onClick={() => setShown('join')}
           />
         </div>
         {group.relayMode === 'off' && (
@@ -596,7 +584,6 @@ export function PhraseCard({
           </p>
         )}
         {relayHint}
-        {foot(false)}
         {windows}
       </>
     );
@@ -631,26 +618,26 @@ export function PhraseCard({
             <NextStep t={t} />
           </>
         )}
-        <div>
-          <Caption>{t('pairing.membersTitle')}</Caption>
-          {stage === 'paired' ? (
-            <ul className="flex flex-col gap-2">
-              {group.members.map((m) => (
-                <MemberRow key={m.id} m={m} t={t} />
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold text-carbon-textSub">{t('pairing.membersTitle')}</p>
+          <ul className="flex flex-col gap-2" data-testid="members">
+            <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} />
+            {group.members.map((m) => (
+              <MemberRow key={m.id} m={m} t={t} />
+            ))}
+            {group.apps
+              .filter((a) => a.connected)
+              .map((a) => (
+                <AppRow key={a.id} app={a} />
               ))}
-              {group.apps
-                .filter((a) => a.connected)
-                .map((a) => (
-                  <AppRow key={a.id} app={a} />
-                ))}
-            </ul>
-          ) : stage === 'new' ? (
+          </ul>
+          {stage === 'new' ? (
             <WaitRow text={t('pairing.waitNext')} />
-          ) : (
+          ) : stage !== 'paired' ? (
             <WaitRow text={t('pairing.searching')} seconds={stage === 'searching' ? joinedAgo : undefined} />
-          )}
+          ) : null}
         </div>
-        {foot(true)}
+        {foot}
       </>
     );
   }
@@ -665,14 +652,14 @@ export function PhraseCard({
   );
 }
 
-/** Choice is one of the two ways into a group, as a tile large enough to say
- *  what happens after it. */
+/** Choice is one of two ways forward, as a tile large enough to say what
+ *  happens after it. */
 function Choice({
   glyph,
   title,
   sub,
-  pressed,
-  dim,
+  pressed = false,
+  dim = false,
   disabled = false,
   shake = 0,
   onClick,
@@ -680,8 +667,8 @@ function Choice({
   glyph: ReactNode;
   title: string;
   sub: string;
-  pressed: boolean;
-  dim: boolean;
+  pressed?: boolean;
+  dim?: boolean;
   disabled?: boolean;
   shake?: number;
   onClick: () => void;
