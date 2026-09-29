@@ -35,6 +35,70 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
+## [Unreleased]
+
+### Added
+
+- **A Pairing tab under Instances.** It opens with one sentence, connect all
+  your instances with a 12-word phrase, and three numbered cards: generate a
+  phrase once on one instance, press Enter phrase on every other one, done.
+  Below them the phrase card offers two large tiles, **Generate phrase** and
+  **Enter phrase**, each with a line saying what it does. Generate phrase shows
+  the twelve words with a Copy button, the QR code for the Android app and
+  what to do on the next instance. Pressed by mistake, **Enter phrase** under
+  "Already have a phrase?" leaves the empty group and opens the field.
+- **The field for the words takes a paste as it comes**: one word per line,
+  numbered, or separated by commas. Twelve numbered slots fill as you type, a
+  word that is not on the list is named with its position right away, and
+  Pair stays off until all twelve are known words. The checksum still catches
+  a mistyped or swapped word that is on the list. The Android app's phrase
+  field works the same way.
+- **The badge says Paired only once another instance is there.** Before that
+  it says New group right after generating the phrase, Searching in the first
+  minute after joining, and Still alone after that. The server keeps when the
+  instance joined its group and whether anyone came, and `GET /api/connect`
+  reports both along with the members.
+- **Still alone after a minute, the card says what to do.** If both instances
+  generated a phrase, it shows two steps: leave this group, then enter the
+  other instance's words. It also offers to show the phrase, in case nothing
+  was entered over there yet, and without a relay it says the group cannot
+  connect. A line in the card shows the relay: connected, not reachable, or no
+  relay. If the relay cannot be reached and nobody has joined, the card lists
+  what to check: outgoing HTTPS on port 443 to relay.halleluja.design, a
+  firewall or DNS filter, or for your own relay whether it runs and its
+  address is right.
+
+### Changed
+
+- **The phrase and the relay moved from Settings, Remote access to the
+  Pairing tab.** The Instances page has two tabs, Pairing and Fleet, in one
+  row. They share the row evenly while every name fits, a long name gets the
+  room it needs, and where the names do not fit side by side each tab shows
+  its glyph with the name as its tooltip.
+- **Pairing needs a login password.** The twelve words open every instance in
+  the group, so generating, entering and showing them is refused until a
+  password is set, and showing them again always asks for it. An instance
+  already in a group stays in it.
+- **The relay card starts with what a relay is for** and has a badge in its
+  header: Connected, Not connected or No relay. The route picker uses filled
+  glyphs, a cloud for the project relay, a house for your own relay and a
+  crossed-out cloud for no relay. **Your own relay** names the two ways to run
+  one, the KnightLoader Relay container or any instance of the group that can
+  be reached from outside with **Serve as relay**. An address over plain
+  `ws://` or `http://` is allowed, with a warning. **How does it work?** opens
+  the route picture, what the relay sees next to what it never sees, and how
+  the traffic is encrypted.
+- **The Fleet tab shows every instance with the KnightLoader mark**, this one
+  first and marked This instance, each Connected or Not connected with its
+  live figures. A member of the group no longer shows that it is reached
+  through the relay. While the tab is open it asks every 20 seconds who is
+  there.
+- **The module switch for the Fleet tab is called Instances.**
+- **Existing groups keep working.** An instance that is already in a group
+  counts as having joined at the update. If no other instance is reachable
+  then, it shows Still alone after a minute. To enter or show the phrase
+  again, set a login password under Settings, Remote access first.
+
 ## [1.5.0] - 2026-09-29
 
 ### Added

@@ -87,9 +87,9 @@ Once the path is known, the instance uses it everywhere: the session cookie,
 the addresses and QR code on the Remote access page, the installed web app, its
 share target and the bookmarklet all include it. Where you name the instance
 yourself, include the path too: for the Click'n'Load bridge
-(`-bridge https://example.com/kl`), for another instance on the Instances page,
-and as the relay address on the others when this one is switched to "Use this
-instance as the relay". The phone app and the browser extension reach the
+(`-bridge https://example.com/kl`), for another instance added by address on
+the Fleet tab, and as the relay address on the others when this one has
+"Serve as relay" switched on in the relay card of the Pairing tab. The phone app and the browser extension reach the
 instance through the relay with the twelve words and need no address.
 
 The path does not separate the instance from the other applications on the
