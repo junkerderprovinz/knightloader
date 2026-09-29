@@ -89,6 +89,10 @@ type Announce struct {
 	// and without this flag a phone would show up in every sibling's instance
 	// list as a target that answers 501 to everything.
 	Client bool `json:"client,omitempty"`
+	// Address is where the instance's web interface is, which the Instances
+	// page shows and opens: its first known domain, else its address on its
+	// network. Sealed, because a domain says whose instance it is.
+	Address string `json:"address,omitempty"`
 }
 
 // Identity is the part of an announce the relay server never reads: it routes
@@ -99,6 +103,7 @@ type Identity struct {
 	Name       string `json:"name,omitempty"`
 	Deployment string `json:"deployment,omitempty"`
 	Client     bool   `json:"client,omitempty"`
+	Address    string `json:"address,omitempty"`
 }
 
 // announceAAD binds an announce's seal to its instance id. Its label differs
@@ -141,6 +146,7 @@ func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 		Name:       ClipName(a.Name),
 		Deployment: a.Deployment,
 		Client:     a.Client,
+		Address:    FitAddress(a.Address),
 	})
 	if err != nil {
 		return Announce{}, err
@@ -165,6 +171,7 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 		Name:       id.Name,
 		Deployment: id.Deployment,
 		Client:     id.Client,
+		Address:    FitAddress(id.Address),
 	}
 }
 
@@ -182,6 +189,19 @@ func ClipName(name string) string {
 		cut--
 	}
 	return name[:cut]
+}
+
+// MaxAddressBytes bounds an announced address for the same reason as
+// MaxNameBytes.
+const MaxAddressBytes = 200
+
+// FitAddress is address, or "" when it is longer than MaxAddressBytes. A cut
+// address would lead somewhere else, so it is left out instead.
+func FitAddress(address string) string {
+	if len(address) > MaxAddressBytes {
+		return ""
+	}
+	return address
 }
 
 // Presence reports that a sibling's connection state changed. The relay only

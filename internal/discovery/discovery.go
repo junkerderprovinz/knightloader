@@ -46,6 +46,9 @@ const (
 	// fieldLimit bounds one announced string. Anything on the network can
 	// send to the group, so what is kept stays proportional to what is shown.
 	fieldLimit = 128
+	// addressLimit is relay.MaxAddressBytes, so a member announces the same
+	// address on both paths.
+	addressLimit = 200
 	// maxPeers bounds how many instances are tracked. Ids are chosen by the
 	// sender, and an instance nobody looks at never prunes on read, so a
 	// device announcing fresh ids would otherwise grow the map without limit.
@@ -63,6 +66,10 @@ type Peer struct {
 	URL string `json:"url"`
 	// Deployment is "container" or "desktop" (buildinfo.Deployment).
 	Deployment string `json:"deployment"`
+	// Address is where a group member's web interface is, as
+	// relay.Announce.Address. Only a tagged announce carries it, since a
+	// known domain is nothing to tell every device on the network.
+	Address string `json:"address,omitempty"`
 	// Sent is the Unix time the announce went out, and Tag the group MAC over
 	// it and the fields above, empty outside a group. The tag covers the time,
 	// so a captured announce stops passing once it is old.
@@ -287,6 +294,8 @@ func (s *Service) announceLoop(conn *ipv4.PacketConn, addr *net.UDPAddr) {
 		self.Sent = time.Now().Unix()
 		if sign != nil {
 			self.Tag = sign(self)
+		} else {
+			self.Address = ""
 		}
 		payload, err := json.Marshal(self)
 		if err != nil {
@@ -355,15 +364,22 @@ func (s *Service) absorb(p Peer) {
 	p.URL = clip(p.URL)
 	p.Deployment = clip(p.Deployment)
 	p.Tag = clip(p.Tag)
-	if p.Name == "" {
-		p.Name = p.ID
-	}
 	p.LastSeen = time.Now()
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// The tag covers the address as sent, so it is checked first. Only a
+	// member's address is kept, and a long one is dropped rather than clipped,
+	// since a clipped address leads somewhere else.
+	member := s.isMember != nil && p.Tag != "" && s.isMember(p)
+	if !member || len(p.Address) > addressLimit {
+		p.Address = ""
+	}
+	if p.Name == "" {
+		p.Name = p.ID
+	}
 	into := s.peers
-	if s.isMember != nil && p.Tag != "" && s.isMember(p) {
+	if member {
 		into = s.members
 		// Datagrams can arrive out of order, and an older announce played
 		// back must not bring back an address the member has since left.

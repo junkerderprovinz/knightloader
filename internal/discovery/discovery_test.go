@@ -242,3 +242,28 @@ func TestAnAnnounceWithTheGroupTagIsAMember(t *testing.T) {
 		t.Fatalf("members after leaving = %+v, want none", got)
 	}
 }
+
+func TestOnlyAMemberKeepsItsAddress(t *testing.T) {
+	s := New(Peer{ID: "id-self", URL: "http://192.168.1.2:8749"})
+	tag := func(p Peer) string { return "tag:" + p.ID + ":" + p.Address }
+	s.SetGroup(tag, func(p Peer) bool { return p.Tag == tag(p) })
+
+	s.absorb(Peer{ID: "id-member", URL: "http://192.168.1.3:8749", Address: "https://kl.example.org", Sent: 10, Tag: "tag:id-member:https://kl.example.org"})
+	s.absorb(Peer{ID: "id-stranger", URL: "http://192.168.1.4:8749", Address: "https://elsewhere.example.org"})
+	long := "https://" + strings.Repeat("a", addressLimit)
+	s.absorb(Peer{ID: "id-long", URL: "http://192.168.1.5:8749", Address: long, Sent: 10, Tag: "tag:id-long:" + long})
+
+	byID := map[string]Peer{}
+	for _, p := range append(s.Members(), s.Peers()...) {
+		byID[p.ID] = p
+	}
+	if got := byID["id-member"].Address; got != "https://kl.example.org" {
+		t.Errorf("the member's address = %q", got)
+	}
+	if got := byID["id-stranger"].Address; got != "" {
+		t.Errorf("a stranger's address was kept: %q", got)
+	}
+	if p, ok := byID["id-long"]; !ok || p.Address != "" {
+		t.Errorf("a member with a long address = %+v, want it listed without the address", p)
+	}
+}

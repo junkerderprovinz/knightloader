@@ -94,7 +94,7 @@ export function InstanceCard({
 }: {
   /** A peer's displayName or name, never the raw relay address. */
   name: string;
-  /** Where the instance is reached, empty for a group member. */
+  /** Where the instance is reached, empty when it has no address. */
   address: string;
   base: string;
   onOpen?: () => void;

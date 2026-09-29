@@ -46,8 +46,10 @@ type ConnectInfo struct {
 	// ProjectRelayURL is the compiled-in default in every mode, so the page
 	// can say where the project relay is before anybody switches to it.
 	ProjectRelayURL string `json:"projectRelayUrl"`
-	// Name is what the other instances of the group see this one as.
-	Name string `json:"name"`
+	// Name is what the other instances of the group see this one as, and
+	// Address where they open it (groupAddress), "" when there is none.
+	Name    string `json:"name"`
+	Address string `json:"address"`
 	// Members is the other instances of the group reachable now, and Apps
 	// every phone that joined it with the phrase.
 	Members []groupMember `json:"members"`
@@ -274,6 +276,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		RelayMode:       mode,
 		ProjectRelayURL: relay.DefaultRelayURL,
 		Name:            instanceDisplayName(a),
+		Address:         groupAddress(a),
 		Members:         members,
 		Apps:            apps,
 		JoinedAgo:       joinedAgo,

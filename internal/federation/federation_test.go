@@ -158,6 +158,31 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	}
 }
 
+func TestAMemberCarriesTheAddressItAnnounced(t *testing.T) {
+	m := newManager(t)
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
+		{InstanceID: "id-nas", Name: "NAS", Address: "https://kl.example.org"},
+		{InstanceID: "id-laptop", Name: "Laptop"},
+	}})
+	got := map[string]string{}
+	for _, in := range m.List() {
+		got[in.Name] = in.Address
+	}
+	if got["id-nas"] != "https://kl.example.org" || got["id-laptop"] != "" {
+		t.Fatalf("addresses = %v, want the NAS at its domain and the laptop without one", got)
+	}
+}
+
+func TestAddedPeerCannotClaimAnAddress(t *testing.T) {
+	m := newManager(t)
+	if err := m.Add(Instance{Name: "cellar", URL: "http://192.168.1.9:8749", Address: "https://evil.example"}); err != nil {
+		t.Fatalf("add: %v", err)
+	}
+	if list := m.List(); len(list) != 1 || list[0].Address != "" {
+		t.Fatalf("got %+v, want the stored peer without an address of its own", list)
+	}
+}
+
 func TestSetRelayClosesTheTransportItReplaces(t *testing.T) {
 	m := newManager(t)
 	first := &fakeRelay{}

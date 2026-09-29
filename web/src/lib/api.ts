@@ -787,6 +787,9 @@ export interface Instance {
    * `url` because it has no address of its own.
    */
   relayId?: string;
+  /** Where a group member's web interface is, as it told the group: its
+   *  first known domain, else its address on its network. */
+  address?: string;
 }
 
 /**
@@ -3739,6 +3742,8 @@ export interface ConnectInfo {
   projectRelayUrl: string;
   /** What the other instances of the group see this one as. */
   name: string;
+  /** Where they open it, '' when it has no address anybody else can reach. */
+  address: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */

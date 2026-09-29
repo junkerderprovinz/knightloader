@@ -19,6 +19,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
+import { openExternal } from '../lib/external';
 import { IconLink } from '../lib/icons';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
@@ -30,6 +31,11 @@ import { AppCard, InstanceCard } from '../components/InstanceCard';
  *  view of the group and of its stored peers, so asking costs nothing on the
  *  network; each card reads its own figures. */
 export const INSTANCES_REFRESH_MS = 20_000;
+
+/** The address as a card shows it, the way it would be typed. */
+function withoutScheme(url: string): string {
+  return url.replace(/^https?:\/\//, '');
+}
 
 export function Instances() {
   const { t } = useT();
@@ -161,32 +167,41 @@ export function Instances() {
               settings tab, sized so the name with its status and the three
               figures each keep one line. A narrow window shows fewer cards. */}
           <div className="grid grid-cols-[repeat(auto-fill,min(100%,28rem))] gap-4">
-            {/* Open goes to the local download list, with no ?instance=. */}
+            {/* This instance shows the address the group is told, and Open
+                stays here on the local download list. */}
             <InstanceCard
               name={ownName || t('instances.thisInstance')}
-              address={location.host + basePath()}
+              address={withoutScheme(group?.address || location.host + basePath())}
               base="/api"
               // Without a configured name the title already says "this instance".
               isSelf={ownName !== ''}
               onOpen={() => navigate('/downloads')}
               hue={0}
             />
-            {(peers ?? []).map((p, i) => (
-              <InstanceCard
-                key={p.name}
-                name={p.displayName ?? p.name}
-                // A group member is reached however the group reaches it, so
-                // it shows no address.
-                address={p.relayId ? '' : p.url}
-                base={`/api/instances/${encodeURIComponent(p.name)}`}
-                onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)}
-                // A group member is built per request from the group's
-                // connections and is not stored, so there is nothing to remove.
-                onRemove={p.relayId ? undefined : () => onRemove(p.name)}
-                // The own card above is position 0.
-                hue={i + 1}
-              />
-            ))}
+            {(peers ?? []).map((p, i) => {
+              // A group member's own announced address, a stored peer's the
+              // one it was added with. Without one, Open shows its downloads
+              // here.
+              const address = (p.relayId ? p.address : p.url) ?? '';
+              return (
+                <InstanceCard
+                  key={p.name}
+                  name={p.displayName ?? p.name}
+                  address={withoutScheme(address)}
+                  base={`/api/instances/${encodeURIComponent(p.name)}`}
+                  onOpen={
+                    address
+                      ? () => openExternal(address)
+                      : () => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)
+                  }
+                  // A group member is built per request from the group's
+                  // connections and is not stored, so there is nothing to remove.
+                  onRemove={p.relayId ? undefined : () => onRemove(p.name)}
+                  // The own card above is position 0.
+                  hue={i + 1}
+                />
+              );
+            })}
             {apps.map((a, i) => (
               <AppCard
                 key={a.id}
@@ -198,7 +213,7 @@ export function Instances() {
             ))}
           </div>
           <div>
-            <Button kind="secondary" icon={<IconLink />} hint={t('instances.pairLead')} onClick={openPairing}>
+            <Button kind="secondary" icon={<IconLink />} onClick={openPairing}>
               {t('pairing.title')}
             </Button>
           </div>

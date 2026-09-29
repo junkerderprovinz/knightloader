@@ -68,11 +68,19 @@ func registerRemoteAccess(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/remote-access",
 		"the addresses this instance actually answers requests on, whether a password protects them, and a QR code for the LAN case",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, remoteAccessInfo(a, r))
+			info, learned := remoteAccessInfo(a, r)
+			// A newly remembered domain can be the one the group is told.
+			if learned {
+				applyRelay(a)
+				reg.refreshDiscovery()
+			}
+			writeJSON(w, info)
 		})
 }
 
-func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
+// remoteAccessInfo also reports whether it remembered the domain the request
+// arrived on.
+func remoteAccessInfo(a *app.App, r *http.Request) (RemoteAccessInfo, bool) {
 	info := RemoteAccessInfo{
 		Deployment:  buildinfo.Deployment,
 		PasswordSet: a.Auth.Enabled(),
@@ -80,18 +88,18 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	// The desktop build serves the handler through Wails' asset server and is
 	// reachable only over the relay.
 	if buildinfo.Deployment == "desktop" {
-		return info
+		return info, false
 	}
 	known := a.Settings.Get().KnownDomains
 	info.Addresses = remoteAddresses(r, known)
 	info.Exposed = !info.PasswordSet && (requestIsNonLoopback(r) || buildinfo.ListensWidely)
-	rememberDomain(a, info.Addresses, known)
+	learned := rememberDomain(a, info.Addresses, known)
 	// Not simply Addresses[0], which is loopback whenever the admin views the
 	// page locally; a phone scanning that would reach its own loopback.
 	if addr, ok := preferredAddress(info.Addresses); ok {
 		info.QR = renderQR(addr)
 	}
-	return info
+	return info, learned
 }
 
 // preferredAddress is the address worth putting into a QR code or pairing
@@ -165,10 +173,10 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 // Settings.KnownDomains, so it stays listed when later requests come in over
 // the LAN IP. It replaces an entry for the same scheme and host, which a new
 // base path has made stale and remoteAddresses would list in its place. addrs
-// is what remoteAddresses just built.
-func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) {
+// is what remoteAddresses just built. It reports whether the list changed.
+func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) bool {
 	if len(addrs) == 0 || addrs[0].Label != "this connection" || addrs[0].Loopback || !addrs[0].Domain {
-		return
+		return false
 	}
 	current := addrs[0].URL
 	origin := originOf(current)
@@ -185,13 +193,14 @@ func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) {
 		next = append(next, current)
 	}
 	if slices.Equal(next, known) {
-		return
+		return false
 	}
 	patch, err := json.Marshal(next)
 	if err != nil {
-		return
+		return false
 	}
-	_, _ = a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
+	_, err = a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
+	return err == nil
 }
 
 // originOf is a known domain without its path, "" for one without a scheme.
