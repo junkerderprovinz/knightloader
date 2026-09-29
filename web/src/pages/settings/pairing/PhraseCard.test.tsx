@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
@@ -22,6 +22,8 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   host.remove();
+  vi.unstubAllGlobals();
+  localStorage.clear();
 });
 
 const base: ConnectInfo = {
@@ -39,12 +41,12 @@ const base: ConnectInfo = {
   memberSeen: false,
 };
 
-function draw(group: Partial<ConnectInfo>) {
+function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}) {
   act(() =>
     root.render(
       <MemoryRouter>
         <I18nProvider>
-          <PhraseCard group={{ ...base, ...group }} onGroup={() => {}} onRefresh={() => {}} />
+          <PhraseCard group={{ ...base, ...group }} onGroup={onGroup} onRefresh={() => {}} />
         </I18nProvider>
       </MemoryRouter>,
     ),
@@ -81,18 +83,66 @@ describe('PhraseCard', () => {
     expect(host.textContent).toContain('0:12');
   });
 
-  it('says Still alone after a minute and what to do', () => {
+  it('says Still alone after a minute and offers the two ways out, with nothing open', () => {
     draw({ joinedAgo: 75 });
     expect(stage()).toBe('alone');
     expect(badge()).toContain('Still alone');
-    expect(host.textContent).toContain('Nobody in this group yet');
-    expect(host.textContent).toContain('Leave this group');
+    expect(host.textContent).toContain('Nothing entered over there yet?');
+    expect(host.textContent).toContain('Generated a phrase over there too?');
+    expect(host.querySelector('textarea')).toBeNull();
+    expect(host.querySelector('ol')).toBeNull();
     expect(host.textContent).not.toContain('Relay not reachable');
+  });
+
+  it('joins the other group in one step, without leaving this one first', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        calls.push(`${init?.method ?? 'GET'} ${url}`);
+        return Promise.resolve(
+          new Response(JSON.stringify({ ...base, members: [{ id: 'b', name: 'office', direct: true, relay: false }] }), {
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        );
+      }),
+    );
+    const onGroup = vi.fn();
+    draw({ joinedAgo: 75 }, onGroup);
+    const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Enter its words')!;
+    act(() => open.click());
+
+    const area = host.querySelector('textarea')!;
+    const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
+    act(() => {
+      set.call(area, 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow');
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const pair = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Pair')!;
+    await act(async () => pair.click());
+
+    expect(calls.filter((c) => c.includes('/api/connect'))).toEqual(['POST /api/connect/join']);
+    expect(onGroup).toHaveBeenCalledWith(expect.objectContaining({ members: [expect.objectContaining({ id: 'b' })] }));
+    expect(host.querySelector('textarea')).toBeNull();
+  });
+
+  it('puts the note about a missing password away for good in this browser', () => {
+    draw({ active: false, passwordSet: false });
+    const dismiss = host.querySelector<HTMLButtonElement>('button[aria-label="Dismiss"]')!;
+    act(() => dismiss.click());
+    expect(host.textContent).not.toContain('Anyone who can open this web interface');
+
+    act(() => root.unmount());
+    root = createRoot(host);
+    draw({ active: false, passwordSet: false });
+    expect(host.textContent).not.toContain('Anyone who can open this web interface');
   });
 
   it('lists what to check when the relay cannot be reached and nobody came', () => {
     draw({ joinedAgo: 75, connected: false });
     expect(host.textContent).toContain('Relay not reachable');
+    const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'What to check')!;
+    act(() => open.click());
     expect(host.textContent).toContain('relay.halleluja.design');
   });
 

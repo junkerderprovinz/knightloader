@@ -14,6 +14,7 @@ import {
   IconHelp,
   IconInstances,
   IconKeyboard,
+  IconLink,
   IconLock,
   IconLook,
   IconModules,
@@ -46,10 +47,11 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   torrents: IconUpload,
   captcha: IconCaptcha,
   automation: IconClock,
-  // General, Look, App, Remote access and Advanced wear the glyphs GlimStone
+  // General, Look, App, Security and Advanced wear the glyphs GlimStone
   // gives those tabs in every app; the cog is Settings itself and no tab in it.
   look: IconTabGeneral,
   appearance: IconLook,
+  pairing: IconLink,
   access: IconLock,
   advanced: IconTabAdvanced,
   // A pulse, apart from the diagnostics bundle next to it.

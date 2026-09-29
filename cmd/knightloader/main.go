@@ -245,7 +245,7 @@ func runResetTwoFactor(dataDir string) {
 		log.Fatalf("reset-2fa: %v", err)
 	}
 	log.Printf("reset-2fa: the second factor is off. The password is unchanged. "+
-		"Restart KnightLoader if it is running, sign in with the password, and set the factor up again from Settings > Remote access (%s)", dataDir)
+		"Restart KnightLoader if it is running, sign in with the password, and set the factor up again from Settings > Security (%s)", dataDir)
 }
 
 // runBridge serves Click'n'Load locally and forwards everything it receives to

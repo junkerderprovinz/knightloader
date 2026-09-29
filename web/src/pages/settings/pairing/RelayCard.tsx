@@ -222,15 +222,17 @@ export function RelayCard({
   }
 
   const copy = COPY[mode];
-  // The relay is only dialled inside a group, so outside one a missing
-  // connection is the expected state rather than a fault.
+  // The relay key comes from the twelve words, so the relay is only dialled
+  // inside a group; before that there is nothing to be connected.
   const state =
     mode === 'off' ? (
       <LabelBadge label={t('relay.off')} />
+    ) : !group.active ? (
+      <LabelBadge label={t('relay.noGroup')} />
     ) : relay.connected ? (
       <LabelBadge label={t('instances.connected')} tone="ok" />
     ) : (
-      <LabelBadge label={t('instances.notConnected')} tone={group.active ? 'fail' : undefined} />
+      <LabelBadge label={t('instances.notConnected')} tone="fail" />
     );
 
   return (
@@ -240,6 +242,7 @@ export function RelayCard({
         <p className="min-w-0 flex-[1_1_16rem] text-[15px] text-carbon-text">{t('relay.lead')}</p>
         <span data-testid="relay-state">{state}</span>
       </div>
+      {mode !== 'off' && !group.active && <p className="text-sm text-carbon-textSub">{t('relay.noGroupLine')}</p>}
 
       <Tabs
         variant="well"

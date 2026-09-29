@@ -65,13 +65,13 @@ func metricsDetail(a *app.App, s settings.Settings, base string) line {
 		tokens := a.APITokens.List()
 		if len(tokens) == 0 {
 			return line{
-				text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Remote access page",
+				text: "this instance has a password and no API token yet, so a collector has nothing to authenticate with; create one on the Security page",
 				code: "metricsNoToken",
 			}
 		}
 		if !someTokenHolds(tokens, apitoken.ScopeRead) {
 			return line{
-				text: "this instance has a password and no API token that can read, so a collector is refused; create one with \"Read only\" on the Remote access page",
+				text: "this instance has a password and no API token that can read, so a collector is refused; create one with \"Read only\" on the Security page",
 				code: "metricsNoReadToken",
 			}
 		}

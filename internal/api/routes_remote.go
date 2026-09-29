@@ -1,7 +1,7 @@
 package api
 
-// The Remote access page's data source: which addresses this instance answers
-// on, whether anything protects them, and a QR code for the LAN case. Nothing
+// Which addresses this instance answers on, whether anything protects them,
+// and a QR code for the LAN case. Nothing
 // here pairs, issues a relay identity or reaches off the LAN (see
 // routes_help.go); the tokens the page writes live in routes_tokens.go.
 

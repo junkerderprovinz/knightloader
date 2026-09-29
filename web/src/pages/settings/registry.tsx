@@ -17,6 +17,7 @@ import { InstancesTab } from './Instances';
 import { Look } from './Look';
 import { Modules } from './Modules';
 import { Network } from './Network';
+import { Pairing } from './Pairing';
 import { Resolvers } from './Resolvers';
 import { Rules } from './Rules';
 import { Shortcuts } from './Shortcuts';
@@ -35,6 +36,7 @@ const PAGES: Record<string, () => ReactNode> = {
   look: () => <Look />,
   // The theming half of Look, as its own page.
   appearance: () => <Appearance />,
+  pairing: () => <Pairing />,
   access: () => <Access />,
   advanced: () => <Advanced />,
   rules: () => <Rules />,

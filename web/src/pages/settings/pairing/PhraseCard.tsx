@@ -1,9 +1,10 @@
 // PhraseCard is where an instance joins a group. Outside one it offers two
 // tiles: generate a phrase, or enter one that already exists. Inside one it
-// shows who else is there, and when nobody has come after a minute it says
-// the likely reasons with the steps that fix them.
+// shows who else is there, and when nobody has come after a minute it offers
+// the two ways out, each in a window of its own.
 import { useEffect, useState, type ReactNode } from 'react';
-import { Button, Card, InfoBubble, LabelBadge, PasswordInput, SectionTitle } from '../../../components/ui';
+import { useNavigate } from 'react-router-dom';
+import { Button, Card, IconBadge, InfoBubble, LabelBadge, Modal, PasswordInput, SectionTitle } from '../../../components/ui';
 import { QRCode } from '../../../components/QRCode';
 import {
   ApiError,
@@ -17,13 +18,14 @@ import {
   type GroupMember,
   type QRMatrix,
 } from '../../../lib/api';
+import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import {
-  IconCheck,
   IconCheckDrawn,
   IconChevronEnd,
   IconClipboard,
+  IconClose,
   IconEye,
   IconEyeOff,
   IconKeyboard,
@@ -41,8 +43,25 @@ import { RouteGlyph } from './pairingArt';
 
 type T = ReturnType<typeof useT>['t'];
 
-/** The id of the login password's card on the same page. */
-export const PASSWORD_ANCHOR = 'login-password';
+// The note about a missing password is put away per browser. Several
+// instances can share an origin behind one proxy, so the key carries the path.
+const NO_PASSWORD_DISMISSED = `kl.pairing.noPasswordHint.dismissed:${basePath()}`;
+
+function noPasswordDismissed(): boolean {
+  try {
+    return localStorage.getItem(NO_PASSWORD_DISMISSED) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function dismissNoPassword() {
+  try {
+    localStorage.setItem(NO_PASSWORD_DISMISSED, '1');
+  } catch {
+    // Private mode or storage switched off: it is put away for this visit.
+  }
+}
 
 /** refusalText says what is wrong with a phrase or a request the server
  *  turned down, in the reader's language. */
@@ -185,77 +204,68 @@ function RelayLine({ group, t }: { group: ConnectInfo; t: T }) {
   );
 }
 
-/** Hint is the warning panel for something the reader has to act on. */
-function Hint({ title, tip, children }: { title: string; tip?: string; children: ReactNode }) {
+/** RelayDownLine says in one line that the relay cannot be reached, and opens
+ *  what to check on this instance. */
+function RelayDownLine({ group, onRefresh, t }: { group: ConnectInfo; onRefresh: () => void; t: T }) {
+  const [open, setOpen] = useState(false);
+  const own = group.relayMode === 'own';
+  const [before, after] = t('pairing.relayCheckProject').split('{host}');
   return (
-    <section className="flex flex-col gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft p-4 text-sm text-carbon-textSub">
-      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-carbon-text">
+    <section className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5 text-sm text-carbon-textSub">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
           <IconWarning />
         </span>
-        {title}
-        {tip && <InfoBubble tip={tip} />}
-      </h3>
-      {children}
+        <span className="font-semibold text-carbon-text">{t('relay.notConnected')}</span>
+        <InfoBubble tip={t('pairing.relayCheckTip')} />
+        <span className="ms-auto flex flex-wrap gap-2">
+          <Button kind="ghost" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+            {t('pairing.relayCheckOpen')}
+          </Button>
+          <Button kind="secondary" icon={<IconRetry />} onClick={onRefresh}>
+            {t('pairing.checkAgain')}
+          </Button>
+        </span>
+      </div>
+      {open && (
+        <>
+          <p>{t('pairing.relayCheckLead')}</p>
+          <ul className="flex list-disc flex-col gap-1 ps-5">
+            <li>
+              {own ? (
+                t('pairing.relayCheckOwn')
+              ) : (
+                <>
+                  {before}
+                  <span dir="ltr" className="font-mono text-[0.92em] text-carbon-text">
+                    {hostOf(group.projectRelayUrl)}
+                  </span>
+                  {after}
+                </>
+              )}
+            </li>
+            <li>{t('pairing.relayCheckFilter')}</li>
+          </ul>
+        </>
+      )}
     </section>
   );
 }
 
-function Rule() {
-  return <hr className="w-full border-0 border-t border-carbon-border" />;
-}
-
-function Lead({ title, children }: { title: string; children: ReactNode }) {
+/** WayOut is one of the two things to try while nobody has come: a glyph, a
+ *  short question, one sentence and the one button that does it. */
+function WayOut({ glyph, title, text, action }: { glyph: ReactNode; title: string; text: string; action: ReactNode }) {
   return (
-    <p className="min-w-0">
-      <strong className="font-semibold text-carbon-text">{title}</strong> {children}
-    </p>
-  );
-}
-
-/** StepNumber is the round mark of one fix step: its number, a check once
- *  done, or muted while it has to wait for the step before. */
-function StepNumber({ n, done = false, waiting = false }: { n: number; done?: boolean; waiting?: boolean }) {
-  const tone = done
-    ? 'bg-statusOkSolid text-carbon-background'
-    : waiting
-      ? 'bg-carbon-surface3 text-carbon-textSub'
-      : 'bg-accent text-accentContrast';
-  return (
-    <span className={`mt-1 grid h-6 w-6 place-items-center rounded-full text-xs font-bold ${tone}`}>
-      {done ? <IconCheck width={14} height={14} /> : n}
-    </span>
-  );
-}
-
-function RelayDownHint({ group, onRefresh, t }: { group: ConnectInfo; onRefresh: () => void; t: T }) {
-  const own = group.relayMode === 'own';
-  const [before, after] = t('pairing.relayCheckProject').split('{host}');
-  return (
-    <Hint title={t('relay.notConnected')} tip={t('pairing.relayCheckTip')}>
-      <p>{t('pairing.relayCheckLead')}</p>
-      <ul className="flex list-disc flex-col gap-1 ps-5">
-        <li>
-          {own ? (
-            t('pairing.relayCheckOwn')
-          ) : (
-            <>
-              {before}
-              <span dir="ltr" className="font-mono text-[0.92em] text-carbon-text">
-                {hostOf(group.projectRelayUrl)}
-              </span>
-              {after}
-            </>
-          )}
-        </li>
-        <li>{t('pairing.relayCheckFilter')}</li>
-      </ul>
-      <div className="flex justify-end">
-        <Button kind="secondary" icon={<IconRetry />} onClick={onRefresh}>
-          {t('pairing.checkAgain')}
-        </Button>
+    <div className="flex flex-col gap-3 rounded-[var(--radius-control)] bg-carbon-surface2 p-4">
+      <div className="flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-control)] bg-accent text-accentContrast [&>svg]:h-4.5 [&>svg]:w-4.5">
+          {glyph}
+        </span>
+        <span className="text-[15px] font-semibold leading-snug text-carbon-text">{title}</span>
       </div>
-    </Hint>
+      <p className="text-sm text-carbon-textSub">{text}</p>
+      <div className="mt-auto flex justify-end">{action}</div>
+    </div>
   );
 }
 
@@ -277,9 +287,11 @@ export function PhraseCard({
   const [qr, setQr] = useState<QRMatrix | null>(null);
   const [createdHere, setCreatedHere] = useState(false);
   const [entering, setEntering] = useState(false);
-  // Set once "Leave group" in the hint is pressed, so the hint stays up with
-  // its second step instead of turning back into the two tiles.
-  const [fixing, setFixing] = useState(false);
+  // The window shown over a group nobody has come to: the words to read out,
+  // or the field for the other group's words.
+  const [shown, setShown] = useState<'words' | 'join' | null>(null);
+  const [noteGone, setNoteGone] = useState(noPasswordDismissed);
+  const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [askPassword, setAskPassword] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -325,7 +337,7 @@ export function PhraseCard({
       const g = await joinConnect(words);
       forget();
       setEntering(false);
-      setFixing(false);
+      setShown(null);
       onGroup(g);
       toast(t('pairing.joined'), 'ok');
       return null;
@@ -362,16 +374,22 @@ export function PhraseCard({
     else setShake((n) => n + 1);
   }
 
-  // The password card sits above this one on the same page.
-  const noPasswordNote = !group.passwordSet && (
+  const noPasswordNote = !group.passwordSet && !noteGone && (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
       <p className="min-w-0 flex-[1_1_16rem] text-sm leading-relaxed text-carbon-text">{t('pairing.noPasswordHint')}</p>
-      <Button
-        kind="secondary"
-        onClick={() => document.getElementById(PASSWORD_ANCHOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-      >
-        {t('settings.setPassword')}
-      </Button>
+      <span className="flex items-center gap-2">
+        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+          {t('settings.setPassword')}
+        </Button>
+        <IconBadge
+          icon={<IconClose width={16} height={16} />}
+          title={t('common.dismiss')}
+          onClick={() => {
+            dismissNoPassword();
+            setNoteGone(true);
+          }}
+        />
+      </span>
     </div>
   );
 
@@ -440,7 +458,7 @@ export function PhraseCard({
   );
 
   const enterTip = t('pairing.enterTip', {
-    path: [t('settings.title'), t('settings.nav.access'), t('pairing.show')].join(', '),
+    path: [t('settings.title'), t('settings.nav.pairing'), t('pairing.show')].join(', '),
   });
 
   const foot = (buttons: boolean) => (
@@ -455,86 +473,55 @@ export function PhraseCard({
     </div>
   );
 
-  function aloneHint(left: boolean) {
-    return (
-      <Hint title={t('pairing.aloneTitle')}>
-        {!left && <p>{t('pairing.aloneLead')}</p>}
-        {!left && <Rule />}
-        <Lead title={t('pairing.twoTitle')}>{t('pairing.twoBody')}</Lead>
-        <div className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3 gap-y-2.5">
-          <StepNumber n={1} done={left} />
-          <div className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="font-medium text-carbon-text">{t('pairing.fixLeave')}</span>
-            {left ? (
-              <span className="ms-auto text-sm text-statusOk">{t('pairing.fixLeft')}</span>
-            ) : (
-              <span className="sm:ms-auto">
-                <Button
-                  kind="secondary"
-                  icon={<IconSignOut />}
-                  shake={shake}
-                  onClick={() => void leave(() => setFixing(true))}
-                  disabled={busy}
-                >
-                  {t('pairing.leave')}
-                </Button>
-              </span>
-            )}
-          </div>
-          <StepNumber n={2} waiting={!left} />
-          <div className="flex min-h-8 items-center">
-            <span className="inline-flex items-center gap-1.5 font-medium text-carbon-text">
-              {t('pairing.fixEnter')} <InfoBubble tip={enterTip} />
-            </span>
-          </div>
-          <div className="col-start-2">
-            <PhraseInput
-              id="pairing-phrase-other"
-              label={t('pairing.enterLabelOther')}
-              tip={enterTip}
-              bare
-              disabled={!left}
-              busy={busy}
-              onPair={join}
-            />
-          </div>
-        </div>
-        {!left && (
-          <>
-            <Rule />
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <div className="min-w-0 flex-[1_1_16rem]">
-                <Lead title={t('pairing.notYetTitle')}>{t('pairing.notYetBody')}</Lead>
-              </div>
-              {showToggle}
-            </div>
-            {revealed}
-          </>
-        )}
-        {group.relayMode === 'off' && (
-          <>
-            <Rule />
-            <Lead title={t('pairing.otherNetTitle')}>{t('pairing.otherNetBody')}</Lead>
-          </>
-        )}
-      </Hint>
-    );
-  }
-
   const relayHint = (stage === 'alone' || stage === 'gone') && group.relayMode !== 'off' && !group.connected && (
-    <RelayDownHint group={group} onRefresh={onRefresh} t={t} />
+    <RelayDownLine group={group} onRefresh={onRefresh} t={t} />
   );
 
+  const openWords = () => {
+    setShown('words');
+    // Without a password there is nothing to enter before the words show.
+    if (!phrase && !group.passwordSet) void show();
+  };
+  const closeShown = () => {
+    setShown(null);
+    setAskPassword(false);
+    setPassword('');
+  };
+  const closeButton = (
+    <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={closeShown} />
+  );
+
+  const windows =
+    shown === 'words' ? (
+      <Modal title={t('pairing.wordsLabel')} hint={t('pairing.wordsTip')} onClose={closeShown} footer={closeButton}>
+        {phrase ? (
+          <div className="flex flex-col gap-3">
+            <WordGrid phrase={phrase} qr={qr} t={t} />
+            <div>
+              <Button
+                kind="secondary"
+                icon={copies > 0 ? <IconCheckDrawn /> : <IconClipboard />}
+                confirm={copies}
+                onClick={() => void copy()}
+              >
+                {copies > 0 ? t('common.copied') : t('common.copy')}
+              </Button>
+            </div>
+          </div>
+        ) : group.passwordSet ? (
+          passwordPrompt
+        ) : null}
+      </Modal>
+    ) : shown === 'join' ? (
+      <Modal title={t('pairing.enterIts')} hint={t('pairing.twoBody')} onClose={closeShown} footer={closeButton}>
+        {/* Joining replaces this instance's group in one step, which is right
+            while nobody else is in it. */}
+        <PhraseInput id="pairing-phrase-other" label={t('pairing.enterLabelOther')} tip={enterTip} busy={busy} onPair={join} />
+      </Modal>
+    ) : null;
+
   let body: ReactNode;
-  if (stage === 'unpaired' && fixing) {
-    body = (
-      <>
-        {stateRow(t('pairing.stateNotPaired'), 'neutral', false)}
-        {noPasswordNote}
-        {aloneHint(true)}
-      </>
-    );
-  } else if (stage === 'unpaired') {
+  if (stage === 'unpaired') {
     body = (
       <>
         {noPasswordNote}
@@ -573,11 +560,44 @@ export function PhraseCard({
   } else if (stage === 'alone') {
     body = (
       <>
-        {stateRow(t(STAGE_BADGE.alone.key), STAGE_BADGE.alone.tone)}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-carbon-textSub" data-testid="pair-state">
+          <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
+            <IconWarning />
+          </span>
+          <strong className="font-semibold text-carbon-text">{t(STAGE_BADGE.alone.key)}</strong>
+          {t('pairing.aloneLead')}
+        </p>
         {noPasswordNote}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <WayOut
+            glyph={<IconEye />}
+            title={t('pairing.notYetTitle')}
+            text={t('pairing.notYetBody')}
+            action={
+              <Button kind="secondary" icon={<IconEye />} onClick={openWords}>
+                {t('pairing.show')}
+              </Button>
+            }
+          />
+          <WayOut
+            glyph={<IconKeyboard />}
+            title={t('pairing.twoTitle')}
+            text={t('pairing.twoBody')}
+            action={
+              <Button kind="secondary" icon={<IconKeyboard />} onClick={() => setShown('join')}>
+                {t('pairing.enterIts')}
+              </Button>
+            }
+          />
+        </div>
+        {group.relayMode === 'off' && (
+          <p className="text-sm text-carbon-textSub">
+            <strong className="font-semibold text-carbon-text">{t('pairing.otherNetTitle')}</strong> {t('pairing.otherNetBody')}
+          </p>
+        )}
         {relayHint}
-        {aloneHint(false)}
         {foot(false)}
+        {windows}
       </>
     );
   } else {
@@ -638,7 +658,7 @@ export function PhraseCard({
   return (
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('pairing.phraseHint')}>{t('pairing.phraseTitle')}</SectionTitle>
-      <div className="flex flex-col gap-4.5" data-stage={fixing && stage === 'unpaired' ? 'fixing' : stage}>
+      <div className="flex flex-col gap-4.5" data-stage={stage}>
         {body}
       </div>
     </Card>
@@ -681,9 +701,7 @@ function Choice({
         } ${dim ? 'opacity-60 hover:opacity-100' : ''}`}
     >
       <span
-        className={`grid h-11 w-11 place-items-center rounded-[var(--radius-control)] ${
-          pressed ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3 text-carbon-text group-enabled:group-hover:bg-carbon-hoverRaised'
-        }`}
+        className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] bg-accent text-accentContrast"
       >
         {glyph}
       </span>
@@ -698,7 +716,7 @@ function Choice({
 /** NextStep points at the button to press on the other instance, along the
  *  path to it. */
 function NextStep({ t }: { t: T }) {
-  const path = [t('settings.title'), t('settings.nav.access'), t('pairing.enter')];
+  const path = [t('settings.title'), t('settings.nav.pairing'), t('pairing.enter')];
   return (
     <div className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[var(--radius-control)] bg-accentSoft px-4 py-3.5">
       <span className="row-span-2 grid h-7 w-7 place-items-center rounded-full bg-accent text-accentContrast">

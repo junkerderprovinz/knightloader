@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -40,8 +41,6 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
-import { useDraft } from './context';
-import { ListArea } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
@@ -55,8 +54,6 @@ import {
   type TokenPreset,
 } from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
-import { PairingSection } from './pairing/PairingSection';
-import { PASSWORD_ANCHOR } from './pairing/PhraseCard';
 
 export function Access() {
   /**
@@ -66,19 +63,17 @@ export function Access() {
    */
   const [authVersion, setAuthVersion] = useState(0);
 
+  // The pairing section lived on this page, so an old link to it lands
+  // on the page it has moved to.
+  if (useLocation().hash === '#pairing') return <Navigate to="/settings/pairing" replace />;
+
   return (
     <div className="flex flex-col gap-10">
-      {/* Identity first: a plain settings field that depends on no fetch. */}
-      <IdentityCard />
       <PasswordCard onAuthChanged={() => setAuthVersion((n) => n + 1)} />
 
       {/* The second factor and passkeys, two cards because somebody can want
           one without the other. */}
       <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
-
-      {/* Pairing after the ways in, since without a password anybody who
-          opens this interface can read the words that reach every member. */}
-      <PairingSection key={authVersion} />
 
       <TokensSection />
     </div>
@@ -132,7 +127,7 @@ function PasswordCard({
   const locked = auth?.enabled ?? false;
 
   return (
-      <Card hue={0} id={PASSWORD_ANCHOR} className="flex scroll-mt-6 flex-col gap-5">
+      <Card hue={0} className="flex flex-col gap-5">
         {/* The status stays visible; why a password matters is in the title's hint. */}
         <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}
@@ -206,31 +201,6 @@ function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () =
       />
       <PasskeyCard hue={6} passwordSet={auth.enabled} />
     </>
-  );
-}
-
-// IdentityCard holds an optional name and the domains this instance is known
-// by, both ordinary settings fields. Domains are recorded automatically when a
-// request arrives on one (routes_remote.go's rememberDomain); the box covers a
-// domain that has not been visited yet.
-function IdentityCard() {
-  const { t } = useT();
-  const { cfg, patch } = useDraft();
-
-  return (
-    <Card hue={2} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.access.identity.title')}</SectionTitle>
-      <Field label={t('settings.access.identity.nameLabel')} hint={t('settings.access.identity.nameHint')}>
-        <TextInput
-          placeholder={t('settings.access.identity.namePlaceholder')}
-          value={cfg.instanceName}
-          onChange={(e) => patch({ instanceName: e.target.value })}
-        />
-      </Field>
-      <Field label={t('settings.access.identity.domainsLabel')} hint={t('settings.access.identity.domainsHint')}>
-        <ListArea rows={3} dir="ltr" lines={cfg.knownDomains} onLines={(knownDomains) => patch({ knownDomains })} />
-      </Field>
-    </Card>
   );
 }
 

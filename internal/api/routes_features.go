@@ -374,7 +374,7 @@ func featureList(a *app.App, base string) []Feature {
 		}, offDetail(s.ModuleOff("torrents"), torrentsOffDetail(a), torrentsDetail(a))),
 		captchaFeature(a, s),
 		withDetail(Feature{
-			// On the Remote access page: it decides who may reach in and
+			// On the Security page: it decides who may reach in and
 			// create downloads, not how downloads behave.
 			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
@@ -487,6 +487,9 @@ func featurePages() []FeaturePage {
 		// download.
 		{ID: "automation", Modules: []string{"scheduler", "keepawake", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
+		// Pairing forms the group and picks its relay; the page after it holds
+		// what guards this instance. Its id stays "access" so bookmarks resolve.
+		{ID: "pairing"},
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "advanced"},
 		// Health comes before diagnostics: one says whether the instance works
@@ -809,12 +812,12 @@ func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	switch {
 	case len(tokens) == 0:
 		return line{
-			text: "no API token exists yet, so every call is refused; create one on the Remote access page",
+			text: "no API token exists yet, so every call is refused; create one on the Security page",
 			code: "downloadclientNoToken",
 		}
 	case !someTokenHolds(tokens, apitoken.ScopeRead, apitoken.ScopeAdd):
 		return line{
-			text: "no API token can add and read, so Sonarr and Radarr are refused; create one with \"Add and read\" on the Remote access page",
+			text: "no API token can add and read, so Sonarr and Radarr are refused; create one with \"Add and read\" on the Security page",
 			code: "downloadclientNoAddReadToken",
 		}
 	}
@@ -1038,7 +1041,7 @@ func captchaDetail(a *app.App) line {
 // listener nobody opened.
 func cnlFeature(a *app.App) Feature {
 	// On the Link collector page: Click'n'Load is how links get in, while the
-	// Remote access page is about who gets in.
+	// Security page is about who gets in.
 	f := Feature{ID: "cnl", Verdict: VerdictShipped, Page: "collector", Switch: SwitchNone}
 	l := a.CnL
 	if l == nil {
