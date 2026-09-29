@@ -1,4 +1,4 @@
-// PhraseInput takes the twelve words of another instance. It reads a paste
+// usePhraseEntry takes the twelve words of another instance. It reads a paste
 // with line breaks, list numbers and commas, fills twelve numbered slots as
 // the words arrive and names an unknown word with its place before anything
 // is sent. Pair stays off until twelve known words are there; whether they
@@ -26,7 +26,7 @@ interface PhraseEntryOptions {
 
 /**
  * usePhraseEntry is the word field and its Pair button apart, for a window
- * that puts the button in its own row at the bottom.
+ * that puts the button in its footer.
  */
 export function usePhraseEntry({ id, label, tip, bare = false, disabled = false, busy, onPair }: PhraseEntryOptions): {
   field: ReactNode;
@@ -101,22 +101,4 @@ export function usePhraseEntry({ id, label, tip, bare = false, disabled = false,
     </Button>
   );
   return { field, pair: pairButton };
-}
-
-export function PhraseInput({ onCancel, ...options }: PhraseEntryOptions & { onCancel?: () => void }) {
-  const { t } = useT();
-  const { field, pair } = usePhraseEntry(options);
-  return (
-    <div className="flex flex-col gap-2">
-      {field}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {onCancel && (
-          <Button kind="secondary" onClick={onCancel} disabled={options.busy}>
-            {t('common.cancel')}
-          </Button>
-        )}
-        {pair}
-      </div>
-    </div>
-  );
 }

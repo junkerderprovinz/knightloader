@@ -55,8 +55,9 @@ function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = (
 }
 
 const stage = () => host.querySelector('[data-stage]')!.getAttribute('data-stage');
-const tile = (title: string) =>
-  [...host.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')].find((b) => b.textContent?.startsWith(title))!;
+const tiles = () => [...host.querySelectorAll<HTMLButtonElement>('button[data-choice]')];
+const tile = (title: string) => tiles().find((b) => b.textContent?.startsWith(title))!;
+const dialog = () => document.body.querySelector('[role="dialog"]');
 const button = (text: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === text)!;
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 
@@ -77,15 +78,36 @@ describe('PhraseCard', () => {
   it('offers the two tiles outside a group', () => {
     draw({ active: false });
     expect(stage()).toBe('unpaired');
-    const tiles = [...host.querySelectorAll('button[aria-pressed]')].map((b) => b.textContent);
-    expect(tiles[0]).toContain('Generate phrase');
-    expect(tiles[1]).toContain('Enter phrase');
+    const titles = tiles().map((b) => b.textContent);
+    expect(titles[0]).toContain('Generate phrase');
+    expect(titles[1]).toContain('Enter phrase');
+    expect(dialog()).toBeNull();
+  });
+
+  it('shows a generated phrase in the words window', async () => {
+    const calls = answer({ phrase: WORDS, info: { ...base, joinedAgo: 0 } });
+    draw({ active: false });
+    await act(async () => tile('Generate phrase').click());
+    expect(calls).toContain('POST /api/connect/activate');
+    const slots = [...dialog()!.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
+    expect(slots).toEqual(WORDS.split(' ').map((w, i) => `${i + 1}${w}`));
+    const row = [...dialog()!.querySelectorAll('button')].map((b) => b.textContent);
+    expect(row.slice(-2)).toEqual(['Close', 'Copy']);
+  });
+
+  it('takes a first instance\'s words in a window with Close and Pair', () => {
+    draw({ active: false });
+    act(() => tile('Enter phrase').click());
+    expect([...dialog()!.querySelectorAll('h2')].map((h) => h.textContent)).toContain('Enter phrase');
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
+    const row = [...dialog()!.querySelectorAll('button')].map((b) => b.textContent);
+    expect(row.slice(-2)).toEqual(['Close', 'Pair']);
   });
 
   it('offers both tiles without a login password and says what that means', () => {
     draw({ active: false, passwordSet: false });
     expect(host.textContent).toContain('Anyone who can open this web interface');
-    for (const tile of host.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')) expect(tile.disabled).toBe(false);
+    for (const tile of tiles()) expect(tile.disabled).toBe(false);
   });
 
   it('says nothing about a password once one is set', () => {
@@ -168,7 +190,6 @@ describe('PhraseCard', () => {
   it('points at the relay card when there is no relay', () => {
     draw({ joinedAgo: 75, relayMode: 'off', connected: false });
     expect(host.textContent).toContain('Is the other instance on another network?');
-    expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toContain('No relay');
   });
 
   it('shows all twelve words in a window with Copy beside Close', async () => {
@@ -176,12 +197,11 @@ describe('PhraseCard', () => {
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
 
-    const dialog = document.body.querySelector('[role="dialog"]')!;
-    const slots = [...dialog.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
+    const slots = [...dialog()!.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
     expect(slots).toEqual(WORDS.split(' ').map((w, i) => `${i + 1}${w}`));
     // The title names the words once; nothing inside repeats it.
-    expect(dialog.textContent!.split('The twelve words').length - 1).toBe(1);
-    const row = [...dialog.querySelectorAll('button')].map((b) => b.textContent);
+    expect(dialog()!.textContent!.split('The twelve words').length - 1).toBe(1);
+    const row = [...dialog()!.querySelectorAll('button')].map((b) => b.textContent);
     expect(row.slice(-2)).toEqual(['Close', 'Copy']);
   });
 
@@ -198,13 +218,23 @@ describe('PhraseCard', () => {
     const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
     expect(rows).toEqual(['nasThis instance', 'officeVia relay', 'Pixel 8']);
     expect(host.textContent).not.toContain('This instance appears as');
+    expect(host.textContent).not.toContain('In the group');
+    // The row without a badge is as high as those with one.
+    const heights = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.classList.contains('h-11'));
+    expect(heights).toEqual([true, true, true]);
   });
 
-  it('shows the relay as a badge beside the state', () => {
-    draw({ joinedAgo: 12 });
-    expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toBe('Connected');
-    draw({ joinedAgo: 12, connected: false });
-    expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toBe('Not connected');
+  it('leaves the relay to the relay card and ends the first line with the state', () => {
+    for (const connected of [true, false]) {
+      draw({ joinedAgo: 12, connected });
+      expect(host.textContent).not.toMatch(/Connected|Not connected|No relay/);
+      const state = host.querySelector('[data-testid="pair-state"]')!;
+      expect(state.parentElement!.lastElementChild).toBe(state);
+    }
+    draw({ joinedAgo: 75 });
+    const state = host.querySelector('[data-testid="pair-state"]')!;
+    expect(state.textContent).toBe('Still alone');
+    expect(state.parentElement!.lastElementChild).toBe(state);
   });
 
   it('says Paired only while another instance is there', () => {
