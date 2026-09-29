@@ -85,6 +85,10 @@ type ClientOptions struct {
 	// Serve answers calls siblings make to this instance. With a nil Serve
 	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
+	// Replay admits the calls Serve gets. nil gives the client a guard of its
+	// own; an instance that also takes direct calls passes the guard those go
+	// through.
+	Replay *ReplayGuard
 	// OnChange fires when a sibling arrives or leaves and when the connection
 	// comes up or goes down. It runs on the client's goroutine and must not
 	// block.
@@ -105,6 +109,7 @@ type Client struct {
 	frameKey []byte
 	self     Announce
 	serve    ProxyHandler
+	replay   *ReplayGuard
 	onChange func()
 
 	// minBackoff and maxBackoff default to the package constants; tests
@@ -142,12 +147,17 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	if len(opts.FrameKey) != 32 {
 		return nil, fmt.Errorf("relay: frame key is %d bytes, want 32", len(opts.FrameKey))
 	}
+	replay := opts.Replay
+	if replay == nil {
+		replay = NewReplayGuard()
+	}
 	return &Client{
 		url:        connect,
 		key:        opts.Key,
 		frameKey:   opts.FrameKey,
 		self:       opts.Self,
 		serve:      opts.Serve,
+		replay:     replay,
 		onChange:   opts.OnChange,
 		minBackoff: minBackoff,
 		maxBackoff: maxBackoff,
@@ -438,10 +448,11 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 // answer runs one inbound call and sends the result back. A frame that does
 // not open is dropped without a reply: its sender is on this relay key without
 // this group's secret, or the frame was rewritten, and an error reply would
-// only confirm that the key was accepted.
+// only confirm that the key was accepted. Nor does one that is old or ran
+// before get a reply, which is a relay sending a captured frame again.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
 	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
-	if err != nil {
+	if err != nil || !c.replay.Admit(call) {
 		return
 	}
 	result := ProxyResult{Status: http.StatusNotImplemented}

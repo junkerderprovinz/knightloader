@@ -104,10 +104,31 @@ async function relayOpen(frameKey, aad, sealedB64) {
   }
 }
 
-/** A random id for one call. Only has to be unique within this socket. */
+/** A random id for one call. The target runs each id once, so it is random
+ *  rather than counted per socket. */
 function relayRequestId() {
   const b = crypto.getRandomValues(new Uint8Array(8));
   return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * relaySealCall seals one call as relay.SealCall does, stamped with its request
+ * id and the time, which the target checks so a relay cannot send it again.
+ */
+function relaySealCall(frameKey, requestId, target, method, path, body) {
+  return relaySeal(
+    frameKey,
+    relayRequestAAD(requestId, target),
+    relayUtf8(
+      JSON.stringify({
+        method,
+        path,
+        ...(body ? { body: relayToBase64(relayUtf8(body)) } : {}),
+        id: requestId,
+        sent: Math.floor(Date.now() / 1000),
+      }),
+    ),
+  );
 }
 
 /**
@@ -287,17 +308,7 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
         requestId,
         target,
         // The relay sees only the two routing fields, not what is asked.
-        sealed: await relaySeal(
-          frameKey,
-          relayRequestAAD(requestId, target),
-          relayUtf8(
-            JSON.stringify({
-              method,
-              path,
-              ...(body ? { body: relayToBase64(relayUtf8(body)) } : {}),
-            }),
-          ),
-        ),
+        sealed: await relaySealCall(frameKey, requestId, target, method, path, body),
       });
       return answer;
     };
