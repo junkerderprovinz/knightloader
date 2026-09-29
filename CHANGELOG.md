@@ -39,46 +39,60 @@ release's tag.
 
 ### Added
 
-- **A Pairing tab under Instances.** It opens with one sentence, connect all
-  your instances with a 12-word phrase, and three numbered cards: generate a
-  phrase once on one instance, press Enter phrase on every other one, done.
-  Below them the phrase card offers two large tiles, **Generate phrase** and
-  **Enter phrase**, each with a line saying what it does. Generate phrase shows
-  the twelve words with a Copy button, the QR code for the Android app and
-  what to do on the next instance. Pressed by mistake, **Enter phrase** under
-  "Already have a phrase?" leaves the empty group and opens the field.
+- **Pairing under Settings, Remote access**, next to the password that guards
+  it. It opens with one sentence, connect all your instances with a 12-word
+  phrase, and three numbered cards: generate a phrase once on one instance,
+  press Enter phrase on every other one, done. Below them the phrase card
+  offers two large tiles, **Generate phrase** and **Enter phrase**, each with a
+  line saying what it does. Generate phrase shows the twelve words with a Copy
+  button, the QR code for the Android app and what to do on the next instance.
+  Pressed by mistake, **Enter phrase** under "Already have a phrase?" leaves
+  the empty group and opens the field.
 - **The field for the words takes a paste as it comes**: one word per line,
   numbered, or separated by commas. Twelve numbered slots fill as you type, a
   word that is not on the list is named with its position right away, and
   Pair stays off until all twelve are known words. The checksum still catches
   a mistyped or swapped word that is on the list. The Android app's phrase
   field works the same way.
-- **The badge says Paired only once another instance is there.** Before that
-  it says New group right after generating the phrase, Searching in the first
-  minute after joining, and Still alone after that. The server keeps when the
-  instance joined its group and whether anyone came, and `GET /api/connect`
-  reports both along with the members.
+- **The badge says Paired only once somebody else is there**, another
+  instance or the Android app. Before that it says New group right after
+  generating the phrase, Searching in the first minute after joining, and
+  Still alone after that. The server keeps when the instance joined its group
+  and whether anyone came, and `GET /api/connect` reports both along with the
+  members and the phones.
 - **Still alone after a minute, the card says what to do.** If both instances
   generated a phrase, it shows two steps: leave this group, then enter the
   other instance's words. It also offers to show the phrase, in case nothing
-  was entered over there yet, and without a relay it says the group cannot
-  connect. A line in the card shows the relay: connected, not reachable, or no
-  relay. If the relay cannot be reached and nobody has joined, the card lists
-  what to check: outgoing HTTPS on port 443 to relay.halleluja.design, a
-  firewall or DNS filter, or for your own relay whether it runs and its
-  address is right.
+  was entered over there yet, and without a relay it points out that the other
+  instance may be on another network. A line in the card shows the relay:
+  connected, not reachable, or no relay. If the relay cannot be reached and
+  nobody has joined, the card lists what to check: outgoing HTTPS on port 443
+  to relay.halleluja.design, a firewall or DNS filter, or for your own relay
+  whether it runs and its address is right.
+- **Instances of a group find each other on the local network without the
+  relay.** A member tags its network announce with a MAC keyed from the
+  phrase, which tells the others it belongs and tells nobody else anything.
+  Members on one network call each other directly, sealed with the same key
+  as over the relay, and the relay only carries what has to cross networks.
+  **No relay** therefore means "only on this network".
+- **The phone is on the Instances page.** Every Android app that joined with
+  the phrase gets a card with its device name, Connected or Not connected and
+  when it was last seen. A connected phone counts for the badge, so an
+  instance whose only partner is the phone shows Paired.
 
 ### Changed
 
-- **The phrase and the relay moved from Settings, Remote access to the
-  Pairing tab.** The Instances page has two tabs, Pairing and Fleet, in one
-  row. They share the row evenly while every name fits, a long name gets the
-  room it needs, and where the names do not fit side by side each tab shows
-  its glyph with the name as its tooltip.
-- **Pairing needs a login password.** The twelve words open every instance in
-  the group, so generating, entering and showing them is refused until a
-  password is set, and showing them again always asks for it. An instance
-  already in a group stays in it.
+- **The Instances page shows the cards directly**, this one first and marked
+  This instance, each Connected or Not connected with its live figures. A
+  member of the group shows no address. While the page is open it asks every
+  20 seconds who is there. A **Pairing** button opens the pairing section, and
+  before there is a group it stands in the middle of the page with one line
+  saying what pairing does. The module switch for the page is called
+  Instances.
+- **Pairing works without a login password.** Without one, the phrase card
+  says that anyone who can open this web interface can see the words and
+  control every instance in the group, with a button to the password card.
+  With a password set, showing the words again asks for it.
 - **The relay card starts with what a relay is for** and has a badge in its
   header: Connected, Not connected or No relay. The route picker uses filled
   glyphs, a cloud for the project relay, a house for your own relay and a
@@ -88,16 +102,22 @@ release's tag.
   `ws://` or `http://` is allowed, with a warning. **How does it work?** opens
   the route picture, what the relay sees next to what it never sees, and how
   the traffic is encrypted.
-- **The Fleet tab shows every instance with the KnightLoader mark**, this one
-  first and marked This instance, each Connected or Not connected with its
-  live figures. A member of the group no longer shows that it is reached
-  through the relay. While the tab is open it asks every 20 seconds who is
-  there.
-- **The module switch for the Fleet tab is called Instances.**
 - **Existing groups keep working.** An instance that is already in a group
-  counts as having joined at the update. If no other instance is reachable
-  then, it shows Still alone after a minute. To enter or show the phrase
-  again, set a login password under Settings, Remote access first.
+  counts as having joined at the update. If nobody else is reachable then, it
+  shows Still alone after a minute.
+
+### Security
+
+- **A relay cannot deliver a call again.** Every sealed call carries its
+  request id and the time it was sealed, inside the seal. An instance runs
+  each call once and only within two minutes of its own clock, over the relay
+  and directly alike, and gives no answer to one it refuses. The Android app
+  and the browser extension stamp their calls the same way, and a call
+  without the stamp is refused, so the app, the extension and the instances
+  have to be updated together.
+- **A relay reads at most 4 KiB from a connection until its hello passes**,
+  instead of 8 MiB. A name in a hello is cut to 200 bytes, so every real
+  hello fits.
 
 ## [1.5.0] - 2026-09-29
 

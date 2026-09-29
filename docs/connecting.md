@@ -16,8 +16,8 @@ An instance announces itself every five seconds over UDP multicast, to an
 administratively-scoped group that routers do not forward off the local network.
 Every other instance listening picks it up.
 
-The **Fleet** tab of the Instances page shows what it heard under **Found on
-your network**, with an **Add** button on each row.
+The Instances page shows what it heard under **Found on your network**, with
+an **Add** button on each row.
 
 Being on the same network is *not* consent, so nothing is connected until that
 button is pressed. A guest laptop and an IoT device sit on that network too.
@@ -40,14 +40,29 @@ why nothing is added until you decide to add it.
 Multicast blocked, or no network at all, means an empty list. Everything below
 still works.
 
+Instances in the same phrase group use the same announce to find each other.
+A member tags its announce with a MAC over everything in it, its time
+included, under a key derived from the phrase
+(`SHA-256("knightloader/peer-auth/v1" || secret)`). Another member recognises
+the tag and files the announcer as a member it can call directly; to anyone
+else the tag is noise and says nothing about the phrase. An announce older
+than two minutes does not pass, so one played back later does not bring a
+departed member back. Members on one network call each other over plain HTTP
+at `/api/group/call`: every call is sealed under the frame key, as over the
+relay, signed with the peer-auth key and refused when it is stale or has run
+before. The relay only carries what cannot go directly. They do not show under
+**Found on your network**, because they are already on the page as cards.
+
 ## Across networks: the connection phrase
 
-**Instances → Pairing → Generate phrase** on the first instance. Twelve words
-come back. On every other KnightLoader you run, press **Enter phrase** on the
-same tab and paste them, and they find each other across networks and behind
-NAT, with no port forward, no domain and no account.
+**Settings → Remote access → Generate phrase** on the first instance. Twelve
+words come back. On every other KnightLoader you run, press **Enter phrase** in
+the same place and paste them, and they find each other on one network and,
+through the relay, across networks and behind NAT, with no port forward, no
+domain and no account. The **Pairing** button on the Instances page leads
+there, and stands in the middle of that page while there is no group yet.
 
-The tab opens with the same three steps as numbered cards. The field for the
+The section opens with the same three steps as numbered cards. The field for the
 words takes a paste as it comes: one word per line, numbered, or separated by
 commas. Twelve numbered slots fill as you type, a word that is not on the list
 is named with its position straight away, and **Pair** stays off until all
@@ -59,8 +74,8 @@ A badge on the phrase card says where the instance stands:
 | --- | --- |
 | New group | right after **Generate phrase**, while the next instance has not come |
 | Searching | the first minute after entering the phrase, or while members that came are out of reach |
-| Still alone | a minute has passed and no other instance has shown up |
-| Paired | another instance of the group is there right now |
+| Still alone | a minute has passed and no other instance or phone has shown up |
+| Paired | another instance of the group, or the Android app, is there right now |
 
 The server keeps when the instance joined its group and whether anyone has
 come since, so the minute counts on its clock and survives a reload. A group
@@ -70,7 +85,8 @@ from a build before this counts as joined when the instance starts.
 both pressed **Generate phrase** and so started two groups: leave this group,
 then enter the other instance's words. The card also offers to show the words
 again, in case nothing was entered over there yet. Without a relay it says that
-the group cannot connect at all. With a relay that cannot be reached it lists
+an instance on another network cannot find this one. With a relay that cannot
+be reached it lists
 what to check: outgoing HTTPS on port 443 to `relay.halleluja.design`, a
 firewall or DNS filter, and for your own relay whether it runs and its address
 is right. **Generate phrase** pressed by mistake is undone with **Enter
@@ -139,19 +155,17 @@ picture, what the relay sees next to what it never sees, and how the traffic
 is encrypted. The same fields are `relayMode`, `relayUrl` and `relayServe`
 under **Settings → Advanced**.
 
-Without a relay the instances of a group cannot reach each other at all, not
-even on one network. There an instance can still be added by its address, as
-described above.
+**No relay** keeps the group to one network: its members still find and call
+each other there, but nothing outside it reaches them. The Android app and
+the browser extension always come through a relay, so they need one.
 
-**Pairing needs a login password.** The twelve words open every instance in
-the group, so generating, entering and showing them is refused until a
-password is set under **Settings → Remote access**, and only somebody signed
-in reaches the buttons. **Showing the phrase again** always asks for the
-password once more. A live session is not enough: it may have been opened
+**A login password is recommended, not required.** Without one the phrase
+card says that anyone who can open this web interface can see the twelve
+words and so control every instance in the group, with a button to the
+password card above it. With a password set, **showing the phrase again**
+asks for it once more. A live session is not enough: it may have been opened
 hours ago on a screen nobody is sitting at, and what is behind that button is
-not this instance's password but the key to every instance in the group. An
-instance that was in a group before the password became a condition stays in
-it.
+not this instance's password but the key to every instance in the group.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
@@ -186,11 +200,12 @@ Run both names for as long as anything still dials the old one, then drop it.
 
 ### Or let one instance be the relay
 
-**Instances → Pairing → Relay → Own relay → Serve as relay** (`relayServe`).
-The relay then answers under `/relay/connect` on the address that instance
-already uses, behind the same reverse proxy and the same certificate, and the
-other instances put that address in their own relay address field. It needs no second container, no second port
-and no second certificate.
+**Settings → Remote access → Relay → Own relay → Serve as relay**
+(`relayServe`). The relay then answers under `/relay/connect` on the address
+that instance already uses, behind the same reverse proxy and the same
+certificate, and the other instances put that address in their own relay
+address field. It needs no second container, no second port and no second
+certificate.
 
 For an instance a proxy serves under a path, enter the address with the path,
 such as `https://example.com/kl`, and the others dial `/relay/connect` below
@@ -245,6 +260,12 @@ and cannot be explained.
   nothing extra here. The field reads a paste the way the web UI's does: twelve
   numbered slots fill as the words arrive, a word not on the list is named with
   its position, and **Connect** stays off until all twelve are known words.
+- **The phone has a card of its own** on the Instances page of every instance
+  in the group: the device name Android reports, Connected or Not connected,
+  and when it was last seen. It announces itself on the relay with that name
+  and the kind `mobile`, which keeps it apart from the instances and from the
+  browser extension. A connected phone counts as somebody in the group, so an
+  instance whose only partner is a phone shows Paired.
 - **A connection saved by address** in an earlier build of the app keeps
   working, but the app no longer makes one. Those builds took the address
   typed in, scanned from the Access tab's QR or found with **Find on this
