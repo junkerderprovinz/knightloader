@@ -79,14 +79,18 @@ type Manager struct {
 	list map[string]Instance // by name
 	rt   RelayTransport      // nil while no relay is configured
 	pt   PeerTokens          // nil means peers are called unauthenticated
+
+	group *groupFile
 }
 
-// Load reads instances.json from dir (missing file = empty list).
+// Load reads instances.json and group.json from dir; a missing file is an
+// empty list and no group.
 func Load(dir string) (*Manager, error) {
 	m := &Manager{
-		path: filepath.Join(dir, "instances.json"),
-		hc:   httpx.New(httpx.Options{Timeout: peerTimeout}),
-		list: map[string]Instance{},
+		path:  filepath.Join(dir, "instances.json"),
+		hc:    httpx.New(httpx.Options{Timeout: peerTimeout}),
+		list:  map[string]Instance{},
+		group: loadGroupFile(filepath.Join(dir, "group.json")),
 	}
 	if b, err := os.ReadFile(m.path); err == nil {
 		var arr []Instance

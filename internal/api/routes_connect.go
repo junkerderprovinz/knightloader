@@ -1,9 +1,9 @@
 package api
 
-// The connection phrase: activating remote access, showing the phrase again,
-// and joining a group another instance already started. There is no account
-// or login: the relay address is compiled in (relay.DefaultRelayURL) and
-// holding the secret is the whole authorization.
+// The connection phrase: generating one, showing it again, and joining a
+// group another instance already started. There is no account: the relay
+// address is compiled in (relay.DefaultRelayURL) and holding the secret is the
+// whole authorization.
 //
 // The secret is stored and the phrase handed out; the relay only ever sees
 // relay.DeriveKey of the secret, so neither its operator nor its memory can
@@ -12,7 +12,9 @@ package api
 import (
 	"encoding/hex"
 	"errors"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
@@ -28,8 +30,8 @@ type ConnectInfo struct {
 	// Connected is whether the relay socket is up right now; a stored secret
 	// with an unreachable relay is configured but not working.
 	Connected bool `json:"connected"`
-	// PasswordSet lets the page warn, before a phrase is generated, that the
-	// phrase reaches every instance in the group and this one is unprotected.
+	// PasswordSet is whether a login password is set. Without one the phrase
+	// can be neither generated, entered nor shown.
 	PasswordSet bool `json:"passwordSet"`
 	// RelayURL is the relay this instance dials: the compiled-in default or an
 	// override.
@@ -43,18 +45,46 @@ type ConnectInfo struct {
 	// ProjectRelayURL is the compiled-in default in every mode, so the page
 	// can say where the project relay is before anybody switches to it.
 	ProjectRelayURL string `json:"projectRelayUrl"`
+	// Name is what the other instances of the group see this one as.
+	Name string `json:"name"`
+	// Members is the other instances of the group reachable now.
+	Members []groupMember `json:"members"`
+	// JoinedAgo is how many seconds ago this instance generated or entered
+	// its phrase, and MemberSeen whether another instance has shown up since.
+	// Together they tell a group waiting for its second instance from one
+	// that never forms.
+	JoinedAgo  int64 `json:"joinedAgo"`
+	MemberSeen bool  `json:"memberSeen"`
+}
+
+type groupMember struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func registerConnect(reg *Registry, a *app.App) {
+	// A stored secret without a joining time counts as joined at start, so
+	// the page waits a minute before it says nobody came.
+	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
+		if st, err := a.Federation.Group(nil, time.Now()); err == nil && st.JoinedAt.IsZero() {
+			if err := a.Federation.SetJoined(time.Now()); err != nil {
+				log.Printf("connect: could not record when this instance joined its group: %v", err)
+			}
+		}
+	}
+
 	reg.Add(http.MethodGet, "/api/connect",
-		"whether this instance has a connection phrase, whether its relay socket is up, and which relay it uses",
+		"whether this instance has a connection phrase, who else is in its group, whether its relay socket is up, and which relay it uses",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, connectInfo(a))
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/activate",
-		"mint a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
+		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password; needs a login password",
 		func(w http.ResponseWriter, r *http.Request) {
+			if refuseWithoutPassword(w, a) {
+				return
+			}
 			// Replacing an existing secret would orphan every instance joined
 			// to the old phrase; leaving is an explicit DELETE.
 			if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
@@ -67,20 +97,19 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+			if err := enterGroup(a, secret); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// No relay mode is written: an unset mode already resolves to the
-			// project relay, and writing one would stop RelayModeOf from
-			// inferring "own" from a typed address.
-			applyRelay(a)
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase), "info": connectInfo(a)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
-		"join the group a phrase belongs to - the other half of activate, for every instance after the first",
+		"join the group a phrase belongs to - the other half of activate, for every instance after the first; needs a login password",
 		func(w http.ResponseWriter, r *http.Request) {
+			if refuseWithoutPassword(w, a) {
+				return
+			}
 			var body struct {
 				Phrase string `json:"phrase"`
 			}
@@ -106,28 +135,29 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+			if err := enterGroup(a, secret); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			applyRelay(a)
 			writeJSON(w, connectInfo(a))
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/reveal",
-		"show this instance's connection phrase again - requires the password to be re-entered when one is set, because the phrase reaches every instance in the group",
+		"show this instance's connection phrase again - requires the login password to be entered again, because the phrase reaches every instance in the group",
 		func(w http.ResponseWriter, r *http.Request) {
+			if refuseWithoutPassword(w, a) {
+				return
+			}
 			var body struct {
 				Password string `json:"password"`
 			}
-			// The body is optional; without a password there is nothing to
-			// re-enter.
+			// Without a body the password is empty and refused below.
 			_ = decodeBody(r, &body)
 
 			// A session is not enough: it may have been left open on an
 			// unattended screen, and the phrase unlocks every instance in the
 			// group.
-			if a.Auth.Enabled() && !a.Auth.Check(body.Password) {
+			if !a.Auth.Check(body.Password) {
 				writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
 				return
 			}
@@ -156,13 +186,44 @@ func registerConnect(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			// Idempotent: setting an empty secret deletes it, whether or not
 			// one was stored.
-			if err := a.Accounts.Set(relay.SeedAccountService, ""); err != nil {
+			if err := enterGroup(a, nil); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			applyRelay(a)
 			w.WriteHeader(http.StatusNoContent)
 		})
+}
+
+// refuseWithoutPassword answers 403 while no login password is set and
+// reports whether it did. The phrase opens every instance in the group, so
+// only somebody who has to sign in here may generate, enter or show it.
+func refuseWithoutPassword(w http.ResponseWriter, a *app.App) bool {
+	if a.Auth.Enabled() {
+		return false
+	}
+	writeRefusal(w, http.StatusForbidden, "needsPassword",
+		"set a login password on the Remote access page before pairing this instance", nil)
+	return true
+}
+
+// enterGroup stores secret as this instance's group, or leaves the group with
+// nil, and redials the relay. Either way the group starts over with nobody
+// seen in it.
+func enterGroup(a *app.App, secret []byte) error {
+	stored := ""
+	joined := time.Time{}
+	if secret != nil {
+		stored = hex.EncodeToString(secret)
+		joined = time.Now()
+	}
+	if err := a.Accounts.Set(relay.SeedAccountService, stored); err != nil {
+		return err
+	}
+	// No relay mode is written: an unset mode already resolves to the
+	// project relay, and writing one would stop RelayModeOf from inferring
+	// "own" from a typed address.
+	applyRelay(a)
+	return a.Federation.SetJoined(joined)
 }
 
 func connectInfo(a *app.App) ConnectInfo {
@@ -179,6 +240,26 @@ func connectInfo(a *app.App) ConnectInfo {
 	if mode == settings.RelayModeOff {
 		url = ""
 	}
+
+	now := time.Now()
+	peers := a.Federation.Members()
+	members := make([]groupMember, 0, len(peers))
+	for _, p := range peers {
+		name := p.DisplayName
+		if name == "" {
+			name = p.Name
+		}
+		members = append(members, groupMember{ID: p.RelayID, Name: name})
+	}
+	st, err := a.Federation.Group(peers, now)
+	if err != nil {
+		log.Printf("connect: could not record the first member of the group: %v", err)
+	}
+	var joinedAgo int64
+	if !st.JoinedAt.IsZero() {
+		joinedAgo = max(int64(now.Sub(st.JoinedAt).Seconds()), 0)
+	}
+
 	return ConnectInfo{
 		Active:          secretHex != "",
 		Connected:       a.Federation.RelayConnected(),
@@ -187,5 +268,9 @@ func connectInfo(a *app.App) ConnectInfo {
 		SelfHosted:      selfHosted,
 		RelayMode:       mode,
 		ProjectRelayURL: relay.DefaultRelayURL,
+		Name:            instanceDisplayName(a),
+		Members:         members,
+		JoinedAgo:       joinedAgo,
+		MemberSeen:      !st.MemberSeenAt.IsZero(),
 	}
 }
