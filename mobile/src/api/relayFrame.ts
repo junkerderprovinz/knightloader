@@ -27,6 +27,10 @@ export interface ProxyCall {
   /** Base64, as the Go side's []byte field is on the wire. */
   body?: string;
   authorization?: string;
+  /** The request id and the Unix time the call was sealed at, inside the seal
+   *  so a relay cannot send a captured call again later. sealCall sets both. */
+  id?: string;
+  sent?: number;
 }
 
 /** Mirrors relay.ProxyResult. */
@@ -174,9 +178,11 @@ function open(key: Uint8Array, aad: Uint8Array, sealedB64: string): Uint8Array |
   }
 }
 
-/** sealCall seals one outbound call. Mirrors relay.SealCall. */
+/** sealCall seals one outbound call, stamped with its request id and, unless
+ *  it carries one, the current time. Mirrors relay.SealCall. */
 export function sealCall(key: Uint8Array, requestId: string, target: string, call: ProxyCall): string {
-  return seal(key, requestAAD(requestId, target), utf8(JSON.stringify(call)));
+  const stamped = { ...call, id: requestId, sent: call.sent ?? Math.floor(Date.now() / 1000) };
+  return seal(key, requestAAD(requestId, target), utf8(JSON.stringify(stamped)));
 }
 
 /** openCall opens an inbound call. Mirrors relay.OpenCall. */
@@ -189,7 +195,8 @@ export function openCall(
   const plain = open(key, requestAAD(requestId, target), sealedB64);
   if (!plain) return null;
   try {
-    return JSON.parse(fromUtf8(plain)) as ProxyCall;
+    const call = JSON.parse(fromUtf8(plain)) as ProxyCall;
+    return call.id === requestId ? call : null;
   } catch {
     return null;
   }

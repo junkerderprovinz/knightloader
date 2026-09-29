@@ -10,7 +10,10 @@ package relay
 // (GET /api/tasks/{id}/file) pass through here too: sealed, but base64 in a
 // single frame whose length the relay can see, not a stream.
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 // The frame types. Anything else on the socket is ignored rather than treated
 // as an error, see Server.Route.
@@ -201,6 +204,11 @@ type ProxyCall struct {
 	// own handler. Being a reusable credential, it is the main reason calls
 	// are sealed.
 	Authorization string `json:"authorization,omitempty"`
+	// ID and Sent are the request id and the Unix time the call was sealed
+	// at. They travel inside the seal, where a relay cannot change them, so
+	// the receiver can refuse a frame it has run before or one that is old.
+	ID   string `json:"id"`
+	Sent int64  `json:"sent"`
 }
 
 // ProxyResponse is the wire form of the answer to one ProxyRequest.
@@ -237,9 +245,14 @@ func responseAAD(requestID string) string {
 	return "proxy-response\x00" + requestID
 }
 
-// SealCall seals one call for the wire. It is exported so the mobile app's
+// SealCall seals one call for the wire, stamped with requestID and, unless
+// Sent is set, the current time. It is exported so the mobile app's
 // TypeScript port can be tested against it.
 func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	call.ID = requestID
+	if call.Sent == 0 {
+		call.Sent = time.Now().Unix()
+	}
 	plain, err := json.Marshal(call)
 	if err != nil {
 		return nil, err
@@ -254,9 +267,10 @@ func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, e
 		return ProxyCall{}, err
 	}
 	var call ProxyCall
-	if err := json.Unmarshal(plain, &call); err != nil {
-		// No honest sender seals something unparseable, so the caller treats
-		// it like any other blob that fails to open.
+	if err := json.Unmarshal(plain, &call); err != nil || call.ID != requestID {
+		// No honest sender seals something unparseable or stamped with
+		// another id, so the caller treats it like any other blob that fails
+		// to open.
 		return ProxyCall{}, ErrSealed
 	}
 	return call, nil
