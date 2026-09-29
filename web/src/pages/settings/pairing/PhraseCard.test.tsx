@@ -54,6 +54,22 @@ function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = (
 }
 
 const stage = () => host.querySelector('[data-stage]')!.getAttribute('data-stage');
+const tile = (title: string) =>
+  [...host.querySelectorAll<HTMLButtonElement>('button[aria-pressed]')].find((b) => b.textContent?.startsWith(title))!;
+const button = (text: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === text)!;
+const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
+
+function answer(body: object) {
+  const calls: string[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url}`);
+      return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
+    }),
+  );
+  return calls;
+}
 const badge = () => host.querySelector('[data-testid="pair-state"]')?.textContent ?? '';
 
 describe('PhraseCard', () => {
@@ -109,8 +125,10 @@ describe('PhraseCard', () => {
     );
     const onGroup = vi.fn();
     draw({ joinedAgo: 75 }, onGroup);
-    const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Enter its words')!;
-    act(() => open.click());
+    act(() => tile('Generated a phrase over there too?').click());
+    // One title with one (i), the twelve slots and the buttons in one row.
+    expect([...host.querySelectorAll('h2')].map((h) => h.textContent)).toContain('Enter its words');
+    expect(host.querySelectorAll('li[data-slot]')).toHaveLength(12);
 
     const area = host.querySelector('textarea')!;
     const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
@@ -150,6 +168,42 @@ describe('PhraseCard', () => {
     draw({ joinedAgo: 75, relayMode: 'off', connected: false });
     expect(host.textContent).toContain('Is the other instance on another network?');
     expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toContain('No relay');
+  });
+
+  it('shows all twelve words in a window with Copy beside Close', async () => {
+    answer({ phrase: WORDS });
+    draw({ joinedAgo: 75, passwordSet: false });
+    await act(async () => tile('Nothing entered over there yet?').click());
+
+    const dialog = document.body.querySelector('[role="dialog"]')!;
+    const slots = [...dialog.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
+    expect(slots).toEqual(WORDS.split(' ').map((w, i) => `${i + 1}${w}`));
+    // The title names the words once; nothing inside repeats it.
+    expect(dialog.textContent!.split('The twelve words').length - 1).toBe(1);
+    const row = [...dialog.querySelectorAll('button')].map((b) => b.textContent);
+    expect(row.slice(-2)).toEqual(['Close', 'Copy']);
+  });
+
+  it('lists this instance, the other instances and the phones, one row each', () => {
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      members: [{ id: 'b', name: 'office', direct: false, relay: true }],
+      apps: [
+        { id: 'p', name: 'Pixel 8', connected: true, lastSeen: 1 },
+        { id: 'q', name: 'Old phone', connected: false, lastSeen: 1 },
+      ],
+    });
+    const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
+    expect(rows).toEqual(['nasThis instance', 'officeVia relay', 'Pixel 8']);
+    expect(host.textContent).not.toContain('This instance appears as');
+  });
+
+  it('shows the relay as a badge beside the state', () => {
+    draw({ joinedAgo: 12 });
+    expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toBe('Connected');
+    draw({ joinedAgo: 12, connected: false });
+    expect(host.querySelector('[data-testid="relay-line"]')!.textContent).toBe('Not connected');
   });
 
   it('says Paired only while another instance is there', () => {

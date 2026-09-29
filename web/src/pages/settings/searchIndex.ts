@@ -354,12 +354,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'pairing.phraseTitle',
       hint: 'pairing.phraseHint',
       rows: [],
-      // The two tiles, the word fields and a member's badges.
+      // The two tiles, the word fields, the words' window and a member's badges.
       also: [
         'pairing.create',
         'pairing.enter',
         'pairing.enterLabel',
         'pairing.enterLabelOther',
+        'pairing.wordsLabel',
         'pairing.direct',
         'pairing.viaRelay',
       ],
