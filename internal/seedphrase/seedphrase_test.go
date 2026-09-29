@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -225,6 +227,18 @@ func TestWordlistIsTheOfficialOne(t *testing.T) {
 	}
 	if words[0] != "abandon" || words[len(words)-1] != "zoo" {
 		t.Fatalf("wordlist bounds = %q..%q, want abandon..zoo", words[0], words[len(words)-1])
+	}
+}
+
+// The Pairing tab names a mistyped word before anything is sent, from its own
+// copy of the list, so a word it lets through has to be one Decode takes.
+func TestTheWebUIChecksWordsAgainstThisList(t *testing.T) {
+	web, err := os.ReadFile(filepath.Join("..", "..", "web", "src", "lib", "bip39-english.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(web, []byte(wordlistFile)) {
+		t.Fatal("web/src/lib/bip39-english.txt differs from english.txt; copy the file across")
 	}
 }
 
