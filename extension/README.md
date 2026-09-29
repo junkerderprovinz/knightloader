@@ -41,10 +41,13 @@ Chromium browsers, and `knightloader-vX.Y.Z-extension-firefox.zip` and
 release workflow refuses a tag the manifest does not match. See the Versioning
 section of the root `CHANGELOG.md`.
 
-The copy most people run does not come from the release. The zip served by
-Settings > App is built from the copy embedded in whatever server binary is
-running (`embed.go`), so that one matches the server. The release zip is for a
-browser store submission and for anyone who wants a fixed download.
+Chrome, Brave, Opera and Vivaldi install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
+Edge from
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl);
+the store packages are the release's Chromium zip. The zip served by Settings > App is built from the copy embedded
+in whatever server binary is running (`embed.go`), so that one matches the
+server. The zips are for a browser without a listing and for testing a build.
 
 The download and the Firefox zip are byte-identical to `src/`, which loads in
 Firefox and, unpacked, in Chromium browsers too. The Chromium zip differs only
@@ -55,8 +58,16 @@ addresses, so a store build is reproducible from a checkout.
 
 ## Loading it
 
-**From a running instance:** Settings > App, your browser's tile on the
+**From a store:** the
+[Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf)
+for Chrome, Brave, Opera and Vivaldi,
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl)
+for Edge. Settings > App links your browser's listing from its tile on the
 Browser extension card.
+
+**From a zip:** the release's `knightloader-extension.zip`, unpacked and
+loaded like the checkout below, for a browser without a listing or a build
+under test.
 
 **From this checkout (for development):**
 

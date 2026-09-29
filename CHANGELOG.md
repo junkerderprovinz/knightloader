@@ -39,6 +39,14 @@ release's tag.
 
 ### Added
 
+- **The browser extension in the Chrome Web Store and Edge Add-ons.** Chrome,
+  Brave, Opera and Vivaldi install it from the
+  [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
+  Edge from
+  [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl).
+  The README button, the buttons on Settings > Apps and the Android app open
+  the listing, and the steps beside each button say what to press there.
+  Firefox installs the downloaded add-on until its listing is up.
 - **A Pairing page in Settings.** It opens with one sentence, connect all your instances with a 12-word
   phrase, and three numbered cards: generate a phrase once on one instance,
   press Enter phrase on every other one, done. Below them the phrase card

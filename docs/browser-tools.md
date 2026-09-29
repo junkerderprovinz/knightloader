@@ -56,6 +56,14 @@ Source lives in `extension/src`, embedded into the Go binary
 It is built against MV3 because MV2 is being retired across browsers; there
 is no MV2 fallback.
 
+Chrome, Brave, Opera and Vivaldi install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
+Edge from
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl),
+and the buttons on Settings > Apps open those listings. Firefox has no listing
+yet, so its button downloads the add-on. The zip stays for a browser without a
+listing and for testing a build.
+
 The zip a running instance serves is **byte-identical** to `extension/src` in
 the repository. It used to bake that instance's address into a
 `config.default.json`; the file is gone, because the extension holds no
