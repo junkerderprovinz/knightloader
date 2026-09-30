@@ -3268,4 +3268,5 @@ export const sv: Dict = {
   'rename.packageHint': 'Om nedladdningsmappen har paketets namn får den det nya namnet tillsammans med filerna som redan ligger i den, och nedladdningar som fortfarande pågår fortsätter där. En mapp med uppackade filer som har paketets namn flyttar också med. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',
   'rename.busy': 'En del av det här paketet packas upp, flyttas till sin mapp eller spelas in från en livesändning. Försök igen när det är klart.',
   'rename.notMoved': 'Det gick inte att byta namn på mappen ”{name}”, så ingenting ändrades. Ett annat program kanske har en fil i den öppen. Stäng filen och försök igen.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

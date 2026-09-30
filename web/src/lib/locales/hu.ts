@@ -3267,4 +3267,5 @@ export const hu: Dict = {
   'rename.packageHint': 'Ha a letöltési mappa a csomagról kapta a nevét, a benne lévő fájlokkal együtt megkapja az új nevet, és a még futó letöltések ott folytatódnak. A csomagról elnevezett, kibontott fájlokat tartalmazó mappa is vele költözik. A név nem elérési út, ezért a / és a \\ nem megengedett.',
   'rename.busy': 'A csomag egy részét éppen kibontják, a mappájába helyezik át vagy egy livestreamből rögzítik. Próbáld újra, ha ez befejeződött.',
   'rename.notMoved': 'A(z) „{name}” mappát nem sikerült átnevezni, így semmi nem változott. Lehet, hogy egy másik program nyitva tart benne egy fájlt. Zárd be azt a fájlt, és próbáld újra.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

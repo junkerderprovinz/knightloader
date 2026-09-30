@@ -15,18 +15,26 @@ const KINDS: Record<string, { Glyph: typeof IconPhone; label: TranslationKey }> 
 };
 
 /**
- * KindGlyph says in front of a card's name what the instance is: the Android
- * app, the desktop app or the container. It is as tall as the name's capitals,
- * and a kind this build does not know, or a peer that never said, has none.
+ * KindBadge says beside the state badge what the instance is: the Android app,
+ * the desktop app or the container. A kind this build does not know, or a peer
+ * that never said, has none.
  */
-function KindGlyph({ deployment }: { deployment?: string }) {
+function KindBadge({ deployment }: { deployment?: string }) {
   const { t } = useT();
   const kind = deployment ? KINDS[deployment] : undefined;
   if (!kind) return null;
   const { Glyph } = kind;
+  const label = t(kind.label);
   return (
-    <span role="img" aria-label={t(kind.label)} data-kind={deployment} className="inline-flex shrink-0 text-carbon-textMuted">
-      <Glyph width="0.95em" height="0.95em" />
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      data-kind={deployment}
+      className="inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 items-center justify-center rounded-[var(--radius-pill)]
+        bg-carbon-surface2 text-carbon-textSub"
+    >
+      <Glyph width={16} height={16} />
     </span>
   );
 }
@@ -167,12 +175,10 @@ export function InstanceCard({
           <div className="flex flex-col gap-0.5">
             {/* The badges move under the name when both do not fit on one line. */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
-                <KindGlyph deployment={deployment} />
-                <span className="truncate">{name}</span>
-              </span>
+              <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
               {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
               <span className="ms-auto flex items-center gap-2">
+                <KindBadge deployment={deployment} />
                 <LabelBadge
                   label={state}
                   tip={refused ? t('instances.refusedByPassword') : undefined}
@@ -224,12 +230,15 @@ export function AppCard({
   connected,
   lastSeen,
   hue,
+  onRemove,
 }: {
   name: string;
   connected: boolean;
   /** Unix seconds. */
   lastSeen: number;
   hue?: number;
+  /** Offered while the phone is away; a connected one would be back at once. */
+  onRemove?: () => void;
 }) {
   const { t } = useT();
   return (
@@ -238,15 +247,24 @@ export function AppCard({
         <CardLogo />
         <div className="flex min-w-0 flex-1 flex-col gap-1 p-7">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
-              <KindGlyph deployment="mobile" />
-              <span className="truncate">{name}</span>
-            </span>
+            <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
             <span className="ms-auto flex items-center gap-2">
+              <KindBadge deployment="mobile" />
               <LabelBadge
                 label={connected ? t('instances.connected') : t('instances.notConnected')}
                 tone={connected ? 'ok' : 'fail'}
               />
+              {onRemove && !connected && (
+                <IconBadge
+                  labelled
+                  hue={hue}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('instances.removeTitle', { name })}
+                  aria-label={t('instances.removeTitle', { name })}
+                  hint={t('instances.removeAppHint')}
+                  onClick={onRemove}
+                />
+              )}
             </span>
           </div>
           <div className="truncate text-xs text-carbon-textMuted">

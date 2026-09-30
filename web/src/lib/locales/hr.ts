@@ -3282,4 +3282,5 @@ export const hr: Dict = {
   'rename.packageHint': 'Ako je mapa za preuzimanja nazvana po paketu, dobiva novi naziv zajedno s datotekama koje su već u njoj, a preuzimanja koja još traju nastavljaju se ondje. Mapa s raspakiranim datotekama nazvana po paketu također se premješta. Naziv nije putanja, pa / i \\ nisu dopušteni.',
   'rename.busy': 'Dio ovog paketa upravo se raspakira, premješta u svoju mapu ili snima iz streama uživo. Pokušaj ponovno kad to završi.',
   'rename.notMoved': 'Mapu „{name}” nije bilo moguće preimenovati, pa se ništa nije promijenilo. Možda neki drugi program ima otvorenu datoteku u njoj. Zatvori tu datoteku i pokušaj ponovno.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

@@ -3268,4 +3268,5 @@ export const lt: Dict = {
   'rename.packageHint': 'Jei atsisiuntimų aplankas pavadintas pagal paketą, jis gauna naują pavadinimą kartu su jame jau esančiais failais, o dar vykstantys atsisiuntimai ten tęsiami. Pagal paketą pavadintas išpakuotų failų aplankas taip pat perkeliamas. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
   'rename.busy': 'Dalis šio paketo šiuo metu išpakuojama, perkeliama į savo aplanką arba įrašoma iš tiesioginės transliacijos. Bandyk dar kartą, kai tai baigsis.',
   'rename.notMoved': 'Aplanko „{name}“ nepavyko pervadinti, todėl niekas nepasikeitė. Galbūt kita programa laiko jame atidarytą failą. Uždaryk tą failą ir bandyk dar kartą.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

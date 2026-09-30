@@ -1,6 +1,127 @@
 {
   "note": "Keys carrying the ENGLISH text in a non-English catalogue, because the translation wave for them has not run yet. Identical on screen to the fallback lib/i18n.tsx already makes for a missing key; listed here so a later sweep can find them, since a seeded string is otherwise indistinguishable from a translated one. check-untranslated.mjs holds this file and the catalogues together: translate a key and its entry must go, or the check fails. de.ts is never listed: it is the hand-written reference the English is written FROM, so a German value that equals the English one (Downloads, Captcha, Status, yt-dlp) is the same word in both languages rather than an untranslated one. For the other catalogues that same over-reporting is accepted on purpose: a debt too many shows up at the next sweep, a debt too few never does.",
-  "locales": {},
+  "locales": {
+    "ar": [
+      "instances.removeAppHint"
+    ],
+    "bg": [
+      "instances.removeAppHint"
+    ],
+    "ca": [
+      "instances.removeAppHint"
+    ],
+    "cs": [
+      "instances.removeAppHint"
+    ],
+    "da": [
+      "instances.removeAppHint"
+    ],
+    "el": [
+      "instances.removeAppHint"
+    ],
+    "es": [
+      "instances.removeAppHint"
+    ],
+    "et": [
+      "instances.removeAppHint"
+    ],
+    "eu": [
+      "instances.removeAppHint"
+    ],
+    "fa": [
+      "instances.removeAppHint"
+    ],
+    "fi": [
+      "instances.removeAppHint"
+    ],
+    "fr": [
+      "instances.removeAppHint"
+    ],
+    "gl": [
+      "instances.removeAppHint"
+    ],
+    "he": [
+      "instances.removeAppHint"
+    ],
+    "hi": [
+      "instances.removeAppHint"
+    ],
+    "hr": [
+      "instances.removeAppHint"
+    ],
+    "hu": [
+      "instances.removeAppHint"
+    ],
+    "id": [
+      "instances.removeAppHint"
+    ],
+    "is": [
+      "instances.removeAppHint"
+    ],
+    "it": [
+      "instances.removeAppHint"
+    ],
+    "ja": [
+      "instances.removeAppHint"
+    ],
+    "ko": [
+      "instances.removeAppHint"
+    ],
+    "lt": [
+      "instances.removeAppHint"
+    ],
+    "lv": [
+      "instances.removeAppHint"
+    ],
+    "ms": [
+      "instances.removeAppHint"
+    ],
+    "nl": [
+      "instances.removeAppHint"
+    ],
+    "no": [
+      "instances.removeAppHint"
+    ],
+    "pl": [
+      "instances.removeAppHint"
+    ],
+    "pt": [
+      "instances.removeAppHint"
+    ],
+    "ro": [
+      "instances.removeAppHint"
+    ],
+    "ru": [
+      "instances.removeAppHint"
+    ],
+    "sk": [
+      "instances.removeAppHint"
+    ],
+    "sl": [
+      "instances.removeAppHint"
+    ],
+    "sr": [
+      "instances.removeAppHint"
+    ],
+    "sv": [
+      "instances.removeAppHint"
+    ],
+    "th": [
+      "instances.removeAppHint"
+    ],
+    "tr": [
+      "instances.removeAppHint"
+    ],
+    "uk": [
+      "instances.removeAppHint"
+    ],
+    "vi": [
+      "instances.removeAppHint"
+    ],
+    "zh": [
+      "instances.removeAppHint"
+    ]
+  },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",
   "identical": {
     "ar": [

@@ -172,6 +172,7 @@ export const en = {
   'instances.metricTasks': 'Tasks',
   'instances.metricSpeed': 'Speed',
   'instances.removeTitle': 'Remove {name}',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
   'instances.moduleOff': 'Instances is switched off on the Modules page, so this instance neither lists nor contacts the others.',
   'instances.pairLead': 'Connect your instances and the Android app with a 12-word phrase, so each one shows and controls the others.',
   'instances.lastSeen': 'Last seen {time}',

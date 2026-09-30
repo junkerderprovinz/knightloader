@@ -16,6 +16,7 @@ import {
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
+  forgetApp,
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
@@ -133,6 +134,15 @@ export function Instances() {
     load();
   }
 
+  async function onForgetApp(id: string) {
+    try {
+      await forgetApp(id);
+    } catch (e: unknown) {
+      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
+    }
+    load();
+  }
+
   const openPairing = () => navigate('/settings/pairing');
   const apps = group?.apps ?? [];
   // Nothing to show but this instance: the page is the way into pairing.
@@ -217,6 +227,7 @@ export function Instances() {
                 connected={a.connected}
                 lastSeen={a.lastSeen}
                 hue={(peers?.length ?? 0) + i + 1}
+                onRemove={() => void onForgetApp(a.id)}
               />
             ))}
           </div>

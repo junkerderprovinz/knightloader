@@ -3878,6 +3878,13 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
   return json(r);
 }
 
+/** forgetApp removes a phone's card; one that still knows the phrase is back
+ *  on its next connection. */
+export async function forgetApp(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
 /** leaveConnect forgets the secret and stops dialling the relay. */
 export async function leaveConnect(): Promise<void> {
   const r = await fetch('/api/connect', { method: 'DELETE' });

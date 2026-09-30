@@ -3268,4 +3268,5 @@ export const vi: Dict = {
   'rename.packageHint': 'Nếu thư mục tải về được đặt theo tên gói, thư mục đó sẽ nhận tên mới cùng với các tệp đã có trong đó, và các lượt tải còn đang chạy sẽ tiếp tục ở đó. Thư mục chứa các tệp đã giải nén được đặt theo tên gói cũng được chuyển theo. Tên không phải đường dẫn, nên không được dùng / và \\.',
   'rename.busy': 'Một phần của gói này đang được giải nén, chuyển vào thư mục của nó hoặc ghi lại từ một livestream. Hãy thử lại khi việc đó xong.',
   'rename.notMoved': 'Không thể đổi tên thư mục “{name}”, nên không có gì thay đổi. Có thể một chương trình khác đang mở một tệp trong đó. Hãy đóng tệp đó rồi thử lại.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };
