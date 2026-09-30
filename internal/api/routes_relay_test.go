@@ -740,3 +740,29 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 		t.Fatal("the removal passed on by a sibling was not recorded")
 	}
 }
+
+func TestASiblingCanTakeThisInstanceOutOfTheGroup(t *testing.T) {
+	t.Parallel()
+	_, a := testServer(t)
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	if err := a.Accounts.Set(relay.SeedAccountService, strings.Repeat("ab", 16)); err != nil {
+		t.Fatal(err)
+	}
+	self := a.Settings.Get().InstanceID
+
+	if status, _ := serve(context.Background(), relay.ProxyCall{
+		Method: http.MethodDelete, Path: "/api/connect/members/" + self,
+	}); status != http.StatusNoContent {
+		t.Fatalf("a sibling removing this instance = %d, want 204", status)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret == "" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the instance kept its phrase after a sibling took it out of the group")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}

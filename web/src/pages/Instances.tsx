@@ -209,7 +209,6 @@ export function Instances() {
                 connected={a.connected}
                 lastSeen={a.lastSeen}
                 hue={(peers?.length ?? 0) + i + 1}
-                onOpen={openPairing}
               />
             ))}
           </div>

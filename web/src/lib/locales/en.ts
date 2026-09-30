@@ -175,6 +175,7 @@ export const en = {
   'instances.removeTitle': 'Remove {name}',
   'instances.remove': 'Remove',
   'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removeMemberConfirm': '{name} leaves the group and forgets the twelve words. Entering them there again pairs it at any time.',
   'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
   'instances.moduleOff': 'Instances is switched off on the Modules page, so this instance neither lists nor contacts the others.',
   'instances.pairLead': 'Connect your instances and the Android app with a 12-word phrase, so each one shows and controls the others.',

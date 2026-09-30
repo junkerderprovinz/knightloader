@@ -3887,6 +3887,13 @@ export async function removeApp(id: string): Promise<void> {
   if (!r.ok) throw new Error(await r.text());
 }
 
+/** removeMember takes another instance out of the group: it forgets the
+ *  phrase and comes back when the phrase is entered there again. */
+export async function removeMember(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
 /** leaveConnect forgets the secret and stops dialling the relay. */
 export async function leaveConnect(): Promise<void> {
   const r = await fetch('/api/connect', { method: 'DELETE' });

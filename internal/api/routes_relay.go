@@ -364,9 +364,10 @@ func relayForwardable(method, path string) bool {
 	if relayCaptchaRoute(method, rest) {
 		return true
 	}
-	// Taking a phone out of the group reaches every instance of it; the
-	// instance the removal started on passes it on.
-	if method == http.MethodDelete && strings.HasPrefix(rest, "connect/apps/") {
+	// Taking a phone out of the group reaches every instance of it, passed on
+	// by the instance the removal started on; taking an instance out reaches
+	// that instance, which then leaves.
+	if method == http.MethodDelete && (strings.HasPrefix(rest, "connect/apps/") || strings.HasPrefix(rest, "connect/members/")) {
 		return true
 	}
 	// Setting the appearance fields is less than a phrase holder can

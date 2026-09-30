@@ -92,14 +92,15 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/collector/skipped":        apitoken.ScopeControl,
 	"GET /api/collector/skipped":           apitoken.ScopeRead,
 
-	"DELETE /api/connect":           apitoken.ScopeAdmin,
-	"DELETE /api/connect/apps/{id}": apitoken.ScopeAdmin,
-	"GET /api/connect":              apitoken.ScopeAdmin,
-	"POST /api/connect/activate":    apitoken.ScopeAdmin,
-	"POST /api/connect/join":        apitoken.ScopeAdmin,
-	"POST /api/connect/reveal":      apitoken.ScopeAdmin,
-	"POST /api/connections/import":  apitoken.ScopeAdmin,
-	"POST /api/connections/test":    apitoken.ScopeAdmin,
+	"DELETE /api/connect":              apitoken.ScopeAdmin,
+	"DELETE /api/connect/apps/{id}":    apitoken.ScopeAdmin,
+	"DELETE /api/connect/members/{id}": apitoken.ScopeAdmin,
+	"GET /api/connect":                 apitoken.ScopeAdmin,
+	"POST /api/connect/activate":       apitoken.ScopeAdmin,
+	"POST /api/connect/join":           apitoken.ScopeAdmin,
+	"POST /api/connect/reveal":         apitoken.ScopeAdmin,
+	"POST /api/connections/import":     apitoken.ScopeAdmin,
+	"POST /api/connections/test":       apitoken.ScopeAdmin,
 
 	"POST /api/containers": apitoken.ScopeAdd,
 
