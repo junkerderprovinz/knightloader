@@ -104,7 +104,10 @@ release's tag.
 - **The phone is on the Instances page.** Every Android app that joined with
   the phrase gets a card with its device name, Connected or Not connected and
   when it was last seen. A connected phone counts for the badge, so an
-  instance whose only partner is the phone shows Paired.
+  instance whose only partner is the phone shows Paired. Every card carries
+  the KnightLoader logo, and a small glyph before the name says what it is: a
+  phone for the Android app, a monitor for the desktop app, a container for
+  the container. A peer added by address that never said has none.
 - **A Torrents card on the Overview.** It shows how many torrents are leeching
   and how many seeding, the download and upload speed, what came in and went
   out today and in all, the overall ratio, and the three torrents uploading
@@ -168,7 +171,14 @@ release's tag.
 - **The rows in Downloads and the link collector are as dense as
   JDownloader's.** A link or package row is 28 pixels tall instead of 48, so
   about 70 percent more of them fit on the screen. The badges, switches and
-  twisties in a row are 24 pixels, and the font stays the same.
+  twisties in a row are 24 pixels, and the font stays the same. **Row height**
+  under Settings, Appearance switches between Compact, Medium (38 pixels) and
+  Comfortable, the 48 pixels from before, and each browser keeps its own
+  choice.
+- **The Stop and Start badges on the Torrents card say why they are dimmed.**
+  Stop is dimmed while no torrent in the card seeds or waits to seed, for
+  example once all of them reached their seed target, and its bubble now says
+  so; Start likewise while every torrent still seeds.
 - **A package row has the same background as its links**, in every colour
   mode. The folder glyph and the bold name set it apart.
 - **A torrent that is the only link in a package of its own name is drawn as
