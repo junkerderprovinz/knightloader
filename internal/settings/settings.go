@@ -583,7 +583,7 @@ type Settings struct {
 	LogFile LogFile `json:"logFile"`
 
 	// CaptchaSolverOrder is which automatic captcha-solving services
-	// (internal/accounts.Catalogue ids "2captcha"/"anticaptcha") to try, and in
+	// (internal/accounts.Catalogue ids, see captchaSolverIDs) to try, and in
 	// what order, before a captcha is shown to a human. Membership and order
 	// live in the one list, the way the accounts page's resolver priority does:
 	// an id absent from it is not tried, rather than a separate bool per
@@ -592,7 +592,8 @@ type Settings struct {
 	//
 	// An id here with no matching credential is skipped when tried, and neither
 	// half implies the other, see sanitizeCaptcha. This is the non-secret half:
-	// the API key is a credential (internal/accounts), never a settings field.
+	// the key or login is a credential (internal/accounts), never a settings
+	// field.
 	//
 	// No omitempty, see CrawlInclude. The frontend types it `string[] | null`.
 	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
