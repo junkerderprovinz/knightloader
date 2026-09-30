@@ -155,6 +155,7 @@ export const de: Dict = {
   'instances.removeTitle': '{name} entfernen',
   'instances.remove': 'Entfernen',
   'instances.removeAppConfirm': '{name} wird auf allen Instanzen der Gruppe abgemeldet. Mit den zwölf Wörtern lässt es sich jederzeit wieder verbinden.',
+  'instances.removeMemberConfirm': '{name} verlässt die Gruppe und vergisst die zwölf Wörter. Gibst du sie dort wieder ein, ist sie jederzeit wieder gekoppelt.',
   'instances.removePeerConfirm': 'Die Verbindung zu {name} wird hier gelöscht. Über die Adresse lässt sie sich wieder hinzufügen.',
   'instances.moduleOff': 'Instanzen ist auf der Seite Module ausgeschaltet, deshalb zeigt diese Instanz die anderen nicht an und nimmt keinen Kontakt zu ihnen auf.',
   'instances.pairLead': 'Verbinde deine Instanzen und die Android-App mit einer 12-Wörter-Phrase, dann zeigt und steuert jede die anderen.',

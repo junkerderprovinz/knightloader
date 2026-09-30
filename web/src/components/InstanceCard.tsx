@@ -65,7 +65,7 @@ interface Stats {
 }
 
 // usePeerStats polls one instance for its live figures.
-function usePeerStats(base: string): Stats | null {
+export function usePeerStats(base: string): Stats | null {
   const [stats, setStats] = useState<Stats | null>(null);
   useEffect(() => {
     let alive = true;
@@ -212,15 +212,14 @@ export function InstanceCard({
 
 // AppCard shows a phone or browser extension that joined the group with the
 // phrase: its name, whether it is there now and when it last was. It serves no
-// downloads, so it has no figures; Open leads to the pairing list, where the
-// group's members are managed.
+// downloads, so it has no figures and nothing to open; the pairing list is
+// where members are managed.
 export function AppCard({
   name,
   deployment,
   connected,
   lastSeen,
   hue,
-  onOpen,
 }: {
   name: string;
   /** "mobile" or "extension". */
@@ -229,7 +228,6 @@ export function AppCard({
   /** Unix seconds. */
   lastSeen: number;
   hue?: number;
-  onOpen: () => void;
 }) {
   const { t } = useT();
   return (
@@ -252,9 +250,6 @@ export function AppCard({
           </div>
         </div>
       </div>
-      <Button kind="secondary" onClick={onOpen} className="mx-5 mb-5 justify-center">
-        {t('instances.open')}
-      </Button>
     </Card>
   );
 }

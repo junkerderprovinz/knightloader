@@ -209,6 +209,41 @@ func registerConnect(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
+	reg.Add(http.MethodDelete, "/api/connect/members/{id}",
+		"take another instance out of the group - it forgets the phrase and comes back when the phrase is entered there again",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			if id == a.Settings.Get().InstanceID {
+				// Only a sibling asks this of this instance; the own page leaves
+				// through DELETE /api/connect.
+				if !fromRelayGroup(r) {
+					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
+					return
+				}
+				// Answered before the relay socket closes under this request.
+				w.WriteHeader(http.StatusNoContent)
+				go func() {
+					if err := enterGroup(a, nil); err != nil {
+						log.Printf("connect: could not leave the group after a sibling removed this instance: %v", err)
+					}
+				}()
+				return
+			}
+			for _, m := range a.Federation.Members() {
+				if m.RelayID != id {
+					continue
+				}
+				_, status, err := a.Federation.Proxy(r.Context(), m.Name, http.MethodDelete, "/api/connect/members/"+url.PathEscape(id), nil)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadGateway)
+					return
+				}
+				w.WriteHeader(status)
+				return
+			}
+			http.Error(w, "no instance "+id+" is reachable in this group", http.StatusNotFound)
+		})
+
 	reg.Add(http.MethodDelete, "/api/connect",
 		"leave the group: forget this instance's connection secret and stop dialling the relay",
 		func(w http.ResponseWriter, r *http.Request) {

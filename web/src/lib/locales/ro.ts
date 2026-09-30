@@ -3280,4 +3280,5 @@ export const ro: Dict = {
   'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
   'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
   'pairing.byAddress': 'By address',
+  'instances.removeMemberConfirm': '{name} leaves the group and forgets the twelve words. Entering them there again pairs it at any time.',
 };
