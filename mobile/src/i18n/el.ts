@@ -119,6 +119,7 @@ export const el: Dict = {
 
   'status.queued': 'σε αναμονή',
   'status.running': 'εκτελείται',
+  'status.leeching': 'κάνει leeching',
   'status.paused': 'σε παύση',
   'status.finished': 'ολοκληρώθηκε',
   'status.failed': 'απέτυχε',

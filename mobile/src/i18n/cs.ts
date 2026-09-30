@@ -119,6 +119,7 @@ export const cs: Dict = {
 
   'status.queued': 've frontě',
   'status.running': 'probíhá',
+  'status.leeching': 'leechuje',
   'status.paused': 'pozastaveno',
   'status.finished': 'dokončeno',
   'status.failed': 'selhalo',

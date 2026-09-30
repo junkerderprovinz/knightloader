@@ -119,6 +119,7 @@ export const hi: Dict = {
 
   'status.queued': 'कतार में',
   'status.running': 'चल रहा है',
+  'status.leeching': 'लीच कर रहा',
   'status.paused': 'रोका गया',
   'status.finished': 'पूर्ण',
   'status.failed': 'विफल',

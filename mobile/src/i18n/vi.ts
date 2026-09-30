@@ -119,6 +119,7 @@ export const vi: Dict = {
 
   'status.queued': 'đang chờ',
   'status.running': 'đang chạy',
+  'status.leeching': 'đang leech',
   'status.paused': 'tạm dừng',
   'status.finished': 'đã hoàn tất',
   'status.failed': 'thất bại',

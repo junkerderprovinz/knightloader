@@ -119,6 +119,7 @@ export const fa: Dict = {
 
   'status.queued': 'در صف',
   'status.running': 'در حال اجرا',
+  'status.leeching': 'در حال لیچ',
   'status.paused': 'متوقف‌شده موقت',
   'status.finished': 'تمام‌شده',
   'status.failed': 'ناموفق',

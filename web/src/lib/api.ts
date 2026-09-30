@@ -1672,6 +1672,37 @@ export async function fetchVolumeUsage(): Promise<VolumeUsage> {
   return json<VolumeUsage>(await fetch('/api/stats/volume/usage'));
 }
 
+/** One of the torrents sending most right now (app.TorrentUploader). */
+export interface TorrentUploader {
+  id: string;
+  name: string;
+  uploadSpeed: number;
+  ratio: number;
+  /** Seconds until its first seeding target at this rate, -1 with no target. */
+  secondsLeft: number;
+}
+
+/** What the built-in torrent client is doing and has moved (app.TorrentOverview). */
+export interface TorrentOverview {
+  /** Whether there is or ever was a torrent here; without one the card is left out. */
+  any: boolean;
+  leeching: number;
+  seeding: number;
+  downloadSpeed: number;
+  uploadSpeed: number;
+  downloadedToday: number;
+  uploadedToday: number;
+  downloaded: number;
+  uploaded: number;
+  ratio: number;
+  /** Go marshals an empty slice as null. */
+  top: TorrentUploader[] | null;
+}
+
+export async function fetchTorrentOverview(): Promise<TorrentOverview> {
+  return json<TorrentOverview>(await fetch('/api/stats/torrents'));
+}
+
 export async function fetchQueue(base = '/api'): Promise<QueueState> {
   return json<QueueState>(await fetch(`${base}/queue`));
 }

@@ -119,6 +119,7 @@ export const uk: Dict = {
 
   'status.queued': 'у черзі',
   'status.running': 'виконується',
+  'status.leeching': 'качається',
   'status.paused': 'призупинено',
   'status.finished': 'завершено',
   'status.failed': 'помилка',

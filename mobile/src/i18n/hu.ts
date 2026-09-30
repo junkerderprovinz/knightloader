@@ -119,6 +119,7 @@ export const hu: Dict = {
 
   'status.queued': 'sorban áll',
   'status.running': 'fut',
+  'status.leeching': 'leechel',
   'status.paused': 'szüneteltetve',
   'status.finished': 'befejezve',
   'status.failed': 'sikertelen',

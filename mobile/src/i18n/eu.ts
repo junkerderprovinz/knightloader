@@ -119,6 +119,7 @@ export const eu: Dict = {
 
   'status.queued': 'ilaran',
   'status.running': 'abian',
+  'status.leeching': 'leech egiten',
   'status.paused': 'pausatuta',
   'status.finished': 'amaituta',
   'status.failed': 'huts egin du',

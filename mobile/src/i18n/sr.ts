@@ -119,6 +119,7 @@ export const sr: Dict = {
 
   'status.queued': 'на чекању',
   'status.running': 'у току',
+  'status.leeching': 'личује',
   'status.paused': 'паузирано',
   'status.finished': 'завршено',
   'status.failed': 'неуспело',

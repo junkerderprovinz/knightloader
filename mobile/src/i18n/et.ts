@@ -119,6 +119,7 @@ export const et: Dict = {
 
   'status.queued': 'järjekorras',
   'status.running': 'käib',
+  'status.leeching': 'leechib',
   'status.paused': 'peatatud',
   'status.finished': 'lõpetatud',
   'status.failed': 'ebaõnnestus',

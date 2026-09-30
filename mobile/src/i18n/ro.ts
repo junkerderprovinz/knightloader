@@ -119,6 +119,7 @@ export const ro: Dict = {
 
   'status.queued': 'în așteptare',
   'status.running': 'în curs',
+  'status.leeching': 'face leech',
   'status.paused': 'pauzată',
   'status.finished': 'finalizată',
   'status.failed': 'eșuată',
