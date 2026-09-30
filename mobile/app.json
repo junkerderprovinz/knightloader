@@ -40,7 +40,8 @@
             "ndkVersion": "26.1.10909125",
             "usesCleartextTraffic": true,
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-dontwarn com.google.mlkit.vision.**\n-dontwarn com.google.android.gms.tasks.**"
           }
         }
       ],
