@@ -68,11 +68,6 @@ const VIRTUALIZE_ABOVE = 150;
 // mounted row.
 const OVERSCAN = 12;
 
-// Used only for rows never measured; every drawn row keeps its measured height.
-// A row is its 24px controls (--btn-h inside the table) and 2px above and
-// below; a package header adds the 1px rule over it.
-const ROW_ESTIMATE = { package: 29, task: 28 };
-
 /** The first index whose row ends after y: the first row still on screen. */
 function firstAfter(offsets: Float64Array, y: number): number {
   let lo = 0;
@@ -110,10 +105,23 @@ export interface RowWindow {
  *
  * Heights are measured and kept per row, since package headers and failed rows
  * differ, and an average would put the scrollbar off by thousands of pixels.
+ * `unmeasured` is the height of a row never measured, the row height setting's
+ * (ROW_ESTIMATES). A new setting drops every measurement, since each was taken
+ * at the old height.
  */
-export function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement | null>): RowWindow {
+export function useRowWindow(
+  rows: ListRow[],
+  stripRef: RefObject<HTMLDivElement | null>,
+  unmeasured: { package: number; task: number },
+): RowWindow {
   const heights = useRef(new Map<string, number>());
-  const estimate = useRef({ ...ROW_ESTIMATE });
+  const estimate = useRef({ ...unmeasured });
+  const measuredAt = useRef(unmeasured);
+  if (measuredAt.current !== unmeasured) {
+    measuredAt.current = unmeasured;
+    heights.current = new Map();
+    estimate.current = { ...unmeasured };
+  }
   // Bumped only when a measurement moved, which ends the measure-render loop.
   const [measured, setMeasured] = useState(0);
   // Seeded to the top of the strip so the first render is already windowed; a
@@ -149,7 +157,7 @@ export function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement
     return out;
     // `measured` signals changes to the heights and estimate refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, measured]);
+  }, [rows, measured, unmeasured]);
 
   // After every commit, since the strip can move without a scroll, for example
   // when the toolbar above it wraps.

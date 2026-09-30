@@ -4,7 +4,7 @@
 |---|---|
 | **Collector** | Links are analysed and staged before anything downloads: name, size, availability, which backend will take them. Nothing is ever dropped in silence, and a link that no backend handles is still shown, with the reason on it. |
 | **Rules** | A Packagizer and a link filter, one engine used twice: match on filename, URL, hoster, source, type or size, then set the package, folder, filename, priority or comment, or refuse the link, with the rule's name attached. A test box shows what a rule would do before it does it. |
-| **Download list** | A real table: choose your columns, resize and reorder them, sort by any of them, fold packages away. The layout is remembered per instance, and sorting is a view: the queue keeps its own order. |
+| **Download list** | A real table: choose your columns, resize and reorder them, sort by any of them, fold packages away. The layout is remembered per instance, and sorting is a view: the queue keeps its own order. Rows are as dense as JDownloader's unless Row height under Settings, Appearance is set to Medium or Comfortable, which each browser keeps for itself. |
 | **Crawling** | Paste a page and each file it links to is staged as its own task. |
 | **Containers** | `.txt` link lists are read here. `.dlc`, `.ccf` and `.rsdf` are handed to the JDownloader backend, which holds the key that opens them. Their contents then come back through the ordinary path, so the filter and the Packagizer apply to them like anything else. |
 | **Queue** | Global and per-host concurrency, priorities, manual order, a stop mark, automatic retries with a growing delay, and a timetable that pauses or throttles by the clock. |

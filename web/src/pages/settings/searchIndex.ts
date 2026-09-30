@@ -295,6 +295,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
     { title: 'settings.bottomBarLabels.title', hint: 'settings.bottomBarLabels.titleHint', rows: [] },
     { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
+    { title: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint', rows: [] },
     {
       title: 'settings.colours',
       rows: [],

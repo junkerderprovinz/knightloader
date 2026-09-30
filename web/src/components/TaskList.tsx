@@ -49,6 +49,7 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
+import { ROW_ESTIMATES, ROW_METRICS, useRowHeight } from '../lib/rowHeight';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import {
@@ -446,7 +447,7 @@ function TaskRow({
       // arrive with it.
       className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } relative grid items-center px-3 py-0.5 transition-colors
+      } relative grid items-center px-3 py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
@@ -1016,7 +1017,7 @@ function PackageRow({
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
         divider ? 'border-t border-carbon-border/60' : ''
-      } px-3 py-0.5 transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
+      } px-3 py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
@@ -3105,7 +3106,9 @@ export function TaskListCard({
   // Which slice of `rows` is worth drawing, and how much empty space stands in
   // for the rest. Whole list, no spacers, for anything short enough not to need
   // it (see VIRTUALIZE_ABOVE).
-  const win = useRowWindow(rows, stripRef);
+  const rowHeight = useRowHeight();
+  const metrics = ROW_METRICS[rowHeight];
+  const win = useRowWindow(rows, stripRef, ROW_ESTIMATES[rowHeight]);
 
   // The list from the keyboard; see listKeyboard.ts for why a windowed list
   // needs a file of its own for it. selectUnit goes in whole rather than being
@@ -3279,15 +3282,21 @@ export function TaskListCard({
               min-content the columns give way to their minimums first (see
               gridTemplate), and only then does the table scroll. */}
           <div className="overflow-x-auto">
-            {/* The rows are as dense as JDownloader's: every control in them,
-                badges, switches and the tree's twisties, is 24px tall, so a
-                row is that and 2px either side. --btn-h is redefined here and
-                not on the rows because the actions track in --kl-cols is
-                counted from it. */}
+            {/* The row height setting (lib/rowHeight.ts) sets how tall every
+                control in a row is and the padding around it, and the window's
+                estimate above is made of the same two numbers. --btn-h is
+                redefined here and not on the rows because the actions track
+                in --kl-cols is counted from it. */}
             <div
               ref={tableRef}
-              className="min-w-min [--btn-h:1.5rem]"
-              style={{ ['--kl-cols' as string]: template } as CSSProperties}
+              className="min-w-min"
+              style={
+                {
+                  ['--kl-cols' as string]: template,
+                  ['--btn-h' as string]: `${metrics.control}px`,
+                  ['--row-pad' as string]: `${metrics.pad}px`,
+                } as CSSProperties
+              }
             >
               <Header
                 layout={layout}
