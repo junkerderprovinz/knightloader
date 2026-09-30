@@ -356,18 +356,20 @@ type Settings struct {
 	// typo in, and two entries are not a family worth that.
 	HideInstancesFromSidebar bool `json:"hideInstancesFromSidebar"`
 
-	// NavLabels is how much of a navigation entry is drawn: "both", "glyph",
-	// "text" or "hover". It governs the sidebar and the settings rail together,
-	// from one control. Stored with the instance rather than in the browser,
+	// The label modes say how much of a control is drawn, one of the Labels*
+	// words, with one setting per kind of control because the right answer
+	// differs: a sidebar reduced to glyphs narrows the page, a button reduced to
+	// one is only denser. Stored with the instance rather than in the browser,
 	// alongside Shape and Accent, so the look follows the instance from one
 	// machine to the next. See settings_appearance.go for what "hover" does,
 	// which is not what the word suggests.
-	NavLabels string `json:"navLabels"`
-
-	// BottomBarLabels is how much of an entry the bar along the bottom of the
-	// phone layout draws: "follow", the default, draws it the way NavLabels
-	// says, and NavLabels' own four values set it apart from the sidebar. It
-	// changes nothing on a wider screen, where there is no bar.
+	//
+	// TabLabels covers the settings rail and the strips of filter chips, and
+	// BottomBarLabels the bar that stands in for the sidebar in the phone
+	// layout, which changes nothing on a wider screen.
+	ButtonLabels    string `json:"buttonLabels"`
+	SidebarLabels   string `json:"sidebarLabels"`
+	TabLabels       string `json:"tabLabels"`
 	BottomBarLabels string `json:"bottomBarLabels"`
 
 	// TorrentCard takes a package holding a torrent out of the download list
@@ -767,8 +769,10 @@ func Defaults() Settings {
 		OnDupes:         string(confirm.DefaultPolicy),
 		OnOffline:       string(confirm.DefaultPolicy),
 		Shape:           DefaultShape,
-		NavLabels:       NavLabelsBoth,
-		BottomBarLabels: BottomBarFollowsNav,
+		ButtonLabels:    LabelsBoth,
+		SidebarLabels:   LabelsBoth,
+		TabLabels:       LabelsBoth,
+		BottomBarLabels: LabelsBoth,
 		TorrentCard:     true,
 		FinishedCard:    true,
 		// Keep the archive, unpack beside it, and write into the folder that is
@@ -867,6 +871,7 @@ func migrate(raw []byte, n Settings) Settings {
 	n = migrateArchiveDisposal(raw, n)
 	n = migrateAutoStart(raw, n)
 	n = migrateStall(raw, n)
+	n = migrateLabels(raw, n)
 	return n
 }
 

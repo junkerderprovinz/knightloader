@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { IconChevronEnd } from '../../lib/icons';
-import { useNavLabels } from '../../lib/navLabels';
+import { useLabelMode } from '../../lib/labelModes';
 import { useShake } from '../../lib/useShake';
 import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
@@ -145,7 +145,7 @@ export function ModulesPageBadge({ m, title, onFollow }: { m: Feature; title?: s
  * row to land on.
  */
 export function PageBadge({ page, title, onFollow }: { page: string; title: string; onFollow?: () => void }) {
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
   // The server may name a page this build has no glyph for.
   const Glyph = pageGlyph(page);

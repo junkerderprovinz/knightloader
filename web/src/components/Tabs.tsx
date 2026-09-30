@@ -15,7 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { useLabelMode, type LabelMode } from '../lib/labelModes';
 import { IconChevronDown } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
 import { useReorder } from './dragLift';
@@ -80,6 +80,11 @@ interface Common {
    */
   variant?: 'default' | 'well';
   /**
+   * How far along the rainbow the first tab starts, for strips stacked in one
+   * card, so no two of them open on the same colour.
+   */
+  hueOffset?: number;
+  /**
    * `vertical` is the settings rail. It is a mode of this component so the
    * rail shares the reorder gesture, roving tabindex and rainbow wiring.
    */
@@ -100,10 +105,10 @@ interface Common {
    * a rail that reads as part of the navigation beside it.
    */
   sidebarGround?: boolean;
-  /** How much of each tab is drawn; see lib/navLabels.ts. */
-  display?: NavLabelMode;
+  /** How much of each tab is drawn; see lib/labelModes.ts. */
+  display?: LabelMode;
   /**
-   * Opts a strip of glyphs into the Beschriftung setting, as IconBadge's own
+   * Opts a strip of glyphs into the tabs' label setting, as IconBadge's own
    * `labelled` does for a badge: the setting's glyph and hover modes show each
    * glyph alone with its name in the bubble. `display` wins where both are set.
    */
@@ -113,7 +118,7 @@ interface Common {
    * out of room for its chips (lib/rowFit.ts). Its menu holds the tabs, each
    * with its badge, and picking one selects it as a click on the tab would.
    * `more` follows them, in place of what `after` shows beside the strip. The
-   * chip follows Beschriftung as a strip of glyphs does, `labelled` included.
+   * chip follows the label setting as a strip of glyphs does, `labelled` included.
    */
   folded?: { icon: ReactNode; glyph?: boolean; more?: MenuItem[] };
 }
@@ -221,6 +226,7 @@ export function Tabs(props: TabsProps) {
     onReorder,
     equalWidth = false,
     variant = 'default',
+    hueOffset = 0,
     orientation = 'horizontal',
     inline = false,
     fill = false,
@@ -229,8 +235,8 @@ export function Tabs(props: TabsProps) {
     labelled = false,
     folded,
   } = props;
-  const labelMode = useNavLabels();
-  const display: NavLabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
+  const labelMode = useLabelMode('tabs');
+  const display: LabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
   const vertical = orientation === 'vertical';
 
@@ -562,8 +568,8 @@ export function Tabs(props: TabsProps) {
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
-              { ...hueStyle(i), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
-            : { ...hueStyle(i), ...segmentFlex },
+              { ...hueStyle(i + hueOffset), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
+            : { ...hueStyle(i + hueOffset), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
           draggable: reorderable ? false : undefined,

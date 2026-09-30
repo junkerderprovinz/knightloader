@@ -4,6 +4,7 @@ package settings
 // rainbow palette that stands in for it.
 
 import (
+	"encoding/json"
 	"regexp"
 	"strings"
 )
@@ -23,28 +24,70 @@ const (
 // round included, keeps its shape.
 const DefaultShape = ShapeSoft
 
-// How much of a navigation entry is drawn, in the sidebar and in the settings
-// rail, the app's two sets of tabs.
+// How much of a control is drawn, the value of each of the four label
+// settings.
 //
-// NavLabelsHover is not the collapsing rail it sounds like: nothing resizes.
-// The tile and the sidebar row keep the size they have in NavLabelsBoth; at
-// rest the glyph sits centred in that space, and on hover it moves aside, up in
-// a settings tile and left in a sidebar row, with the label appearing in the
-// room it leaves. A rail that grows or overlays on hover moves the page under
-// the pointer, and this one cannot.
+// LabelsHover is not the collapsing rail it sounds like: nothing resizes. The
+// tile and the sidebar row keep the size they have in LabelsBoth; at rest the
+// glyph sits centred in that space, and on hover it moves aside, up in a
+// settings tile and left in a sidebar row, with the label appearing in the room
+// it leaves. A rail that grows or overlays on hover moves the page under the
+// pointer, and this one cannot.
 const (
-	NavLabelsBoth  = "both"
-	NavLabelsGlyph = "glyph"
-	NavLabelsText  = "text"
-	NavLabelsHover = "hover"
+	LabelsBoth  = "both"
+	LabelsGlyph = "glyph"
+	LabelsText  = "text"
+	LabelsHover = "hover"
 )
 
-// BottomBarFollowsNav is the bottom bar's default: it draws its entries the
-// way NavLabels draws the sidebar's, so nothing moves for somebody who never
-// opens the setting. The bar gets a setting of its own because it is always on
-// screen and puts all its words side by side at phone width (GlimStone, "The
-// bottom bar").
-const BottomBarFollowsNav = "follow"
+func isLabelMode(m string) bool {
+	switch m {
+	case LabelsBoth, LabelsGlyph, LabelsText, LabelsHover:
+		return true
+	}
+	return false
+}
+
+// labelMode keeps a known mode and turns anything else into LabelsBoth, the
+// empty string of a settings.json older than the field included, since both is
+// what every control drew before it had a setting.
+func labelMode(m string) string {
+	if isLabelMode(m) {
+		return m
+	}
+	return LabelsBoth
+}
+
+// migrateLabels splits the one navLabels setting of an earlier build into the
+// four label settings. Each of them that the file does not carry yet takes its
+// value, since that is how those controls were drawn, and so does a bottom bar
+// set to "follow", which drew the bar the way navLabels drew the sidebar.
+func migrateLabels(raw []byte, n Settings) Settings {
+	var old struct {
+		NavLabels       string  `json:"navLabels"`
+		ButtonLabels    *string `json:"buttonLabels"`
+		SidebarLabels   *string `json:"sidebarLabels"`
+		TabLabels       *string `json:"tabLabels"`
+		BottomBarLabels *string `json:"bottomBarLabels"`
+	}
+	if err := json.Unmarshal(raw, &old); err != nil || !isLabelMode(old.NavLabels) {
+		return n
+	}
+	unset := func(v *string) bool { return v == nil || *v == "" }
+	if unset(old.ButtonLabels) {
+		n.ButtonLabels = old.NavLabels
+	}
+	if unset(old.SidebarLabels) {
+		n.SidebarLabels = old.NavLabels
+	}
+	if unset(old.TabLabels) {
+		n.TabLabels = old.NavLabels
+	}
+	if unset(old.BottomBarLabels) || *old.BottomBarLabels == "follow" {
+		n.BottomBarLabels = old.NavLabels
+	}
+	return n
+}
 
 // accentPattern is a plain six-digit hex colour. Accepting anything else would
 // put attacker-chosen text straight into a CSS custom property.
@@ -80,21 +123,10 @@ func sanitizeAppearance(n Settings) Settings {
 	default:
 		n.Shape = DefaultShape
 	}
-	switch n.NavLabels {
-	case NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover:
-	default:
-		// Including the empty string, which is what every settings.json
-		// written before this field existed carries. Both is the behaviour
-		// those files already had, so an upgrade changes nothing on screen.
-		n.NavLabels = NavLabelsBoth
-	}
-	switch n.BottomBarLabels {
-	case BottomBarFollowsNav, NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover:
-	default:
-		// Including the empty string of an older settings.json, since
-		// following the sidebar is what the bar did before the field existed.
-		n.BottomBarLabels = BottomBarFollowsNav
-	}
+	n.ButtonLabels = labelMode(n.ButtonLabels)
+	n.SidebarLabels = labelMode(n.SidebarLabels)
+	n.TabLabels = labelMode(n.TabLabels)
+	n.BottomBarLabels = labelMode(n.BottomBarLabels)
 	n.Accent = strings.TrimSpace(n.Accent)
 	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {
 		n.Accent = ""

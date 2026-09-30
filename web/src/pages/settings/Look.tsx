@@ -16,7 +16,8 @@ import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
-import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabelSetting, useNavLabels } from '../../lib/navLabels';
+import { isDesktop } from '../../lib/desktop';
+import { LABEL_AXES, LABEL_MODES, LABEL_SETTING, asLabelMode, setLabelMode, useLabelMode, type LabelAxis, type LabelMode } from '../../lib/labelModes';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { ROW_HEIGHTS, setRowHeight, useRowHeight, type RowHeight } from '../../lib/rowHeight';
 import { useResource } from '../../lib/useResource';
@@ -94,6 +95,20 @@ const SHAPE_LABELS: Record<Shape, TranslationKey> = {
   soft: 'settings.shape.slightlyRounded',
   square: 'settings.shape.square',
   leaf: 'settings.shape.leaf',
+};
+
+const LABEL_AXIS_NAMES: Record<LabelAxis, TranslationKey> = {
+  buttons: 'settings.labels.buttons',
+  sidebar: 'settings.labels.sidebar',
+  tabs: 'settings.labels.tabs',
+  bottombar: 'settings.labels.bottombar',
+};
+
+const LABEL_MODE_NAMES: Record<LabelMode, TranslationKey> = {
+  text: 'settings.labels.mode.text',
+  both: 'settings.labels.mode.textGlyph',
+  glyph: 'settings.labels.mode.glyph',
+  hover: 'settings.labels.mode.reactive',
 };
 
 interface SlotMemory {
@@ -252,9 +267,17 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
 
-  // From the store, so the selector shows what the rails draw.
-  const navLabels = useNavLabels();
-  const barLabels = useBarLabelSetting();
+  // From the store, so each selector shows what its controls draw.
+  const labelModes: Record<LabelAxis, LabelMode> = {
+    buttons: useLabelMode('buttons'),
+    sidebar: useLabelMode('sidebar'),
+    tabs: useLabelMode('tabs'),
+    bottombar: useLabelMode('bottombar'),
+  };
+  // The desktop app's window is never narrow enough for the phone layout
+  // (desktop/main.go), so the bottom bar's row would set something it never
+  // draws there.
+  const labelAxes = isDesktop() ? LABEL_AXES.filter((a) => a !== 'bottombar') : LABEL_AXES;
 
   // Motion intensity is per-browser too, and so is the list's row height.
   const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
@@ -454,58 +477,42 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
-      {/* How navigation entries are drawn, for the sidebar and the settings rail
-          at once. It writes through the store as well as the draft, since the
-          sidebar renders outside this page's provider (lib/navLabels.ts). */}
+      {/* How much of each kind of control is drawn, one selector per kind. It
+          writes through the store as well as the draft, since the sidebar
+          renders outside this page's provider (lib/labelModes.ts). */}
       {appearance && (
       <Card hue={9} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.navLabels.titleHint')}>
-          {t('settings.navLabels.title')}
+        <SectionTitle hint={t('settings.labelsHint')}>
+          {t('settings.labels')}
         </SectionTitle>
-        <Tabs
-          label={t('settings.navLabels.title')}
-          variant="well"
-          active={navLabels}
-          onSelect={(id) => {
-            const next = asNavLabelMode(id);
-            setNavLabels(next);
-            patch({ navLabels: next });
-          }}
-          items={[
-            { id: 'both', label: t('settings.navLabels.both') },
-            { id: 'glyph', label: t('settings.navLabels.glyph') },
-            { id: 'text', label: t('settings.navLabels.text') },
-            { id: 'hover', label: t('settings.navLabels.hover') },
-          ]}
-        />
-      </Card>
-      )}
-
-      {/* The phone layout's bottom bar has a setting of its own, which follows
-          the one above until somebody sets it apart. Written through the
-          store as well, for the same reason. */}
-      {appearance && (
-      <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.bottomBarLabels.titleHint')}>
-          {t('settings.bottomBarLabels.title')}
-        </SectionTitle>
-        <Tabs
-          label={t('settings.bottomBarLabels.title')}
-          variant="well"
-          active={barLabels}
-          onSelect={(id) => {
-            const next = asBarLabelMode(id);
-            setBarLabels(next);
-            patch({ bottomBarLabels: next });
-          }}
-          items={[
-            { id: 'follow', label: t('settings.bottomBarLabels.follow') },
-            { id: 'both', label: t('settings.navLabels.both') },
-            { id: 'glyph', label: t('settings.navLabels.glyph') },
-            { id: 'text', label: t('settings.navLabels.text') },
-            { id: 'hover', label: t('settings.navLabels.hover') },
-          ]}
-        />
+        <div className="flex flex-col gap-4">
+          {labelAxes.map((axis, i) => (
+            <div key={axis} className="flex flex-col gap-1">
+              <span className="flex items-center gap-1 text-xs text-carbon-textSub">
+                {t(LABEL_AXIS_NAMES[axis])}
+                {/* The sidebar draws as the rail or as the bar, never both, so
+                    each of those two rows does nothing at the other width and
+                    says so. */}
+                {axis === 'sidebar' && <InfoBubble tip={t('settings.axisSidebarHint')} />}
+                {axis === 'bottombar' && <InfoBubble tip={t('settings.axisBottombarHint')} />}
+              </span>
+              <Tabs
+                label={t(LABEL_AXIS_NAMES[axis])}
+                variant="well"
+                // One colour further along per row, so no two rows open on
+                // the same colour and the card still reads as one group.
+                hueOffset={i}
+                active={labelModes[axis]}
+                onSelect={(id) => {
+                  const next = asLabelMode(id);
+                  setLabelMode(axis, next);
+                  patch({ [LABEL_SETTING[axis]]: next });
+                }}
+                items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
+              />
+            </div>
+          ))}
+        </div>
       </Card>
       )}
 

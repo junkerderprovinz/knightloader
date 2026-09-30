@@ -5,7 +5,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useRowFit } from '../lib/rowFit';
 import { splitByCard, useListCards, type ListCard } from '../lib/listCards';
 import { useUIState } from '../lib/uistate';
@@ -385,10 +385,12 @@ export function Downloads() {
   const causes = useErrorCauses(list);
 
   // What the action row holds, so it measures itself again when that changes.
-  const labels = useNavLabels();
+  const buttonLabels = useLabelMode('buttons');
+  const tabLabels = useLabelMode('tabs');
   const { views } = useSavedViews('downloads', DOWNLOAD_FILTERS);
   const rowContent = [
-    labels,
+    buttonLabels,
+    tabLabels,
     t('downloads.retryFailed'),
     selected.size,
     narrowed ? `${filtered.length}/${list.length}` : '',

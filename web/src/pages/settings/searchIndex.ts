@@ -292,8 +292,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   appearance: [
     { title: 'lang.label', rows: [] },
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
-    { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
-    { title: 'settings.bottomBarLabels.title', hint: 'settings.bottomBarLabels.titleHint', rows: [] },
+    {
+      title: 'settings.labels',
+      hint: 'settings.labelsHint',
+      rows: [],
+      // Each row's caption sits over a bare selector, with no anchor.
+      also: ['settings.labels.buttons', 'settings.labels.sidebar', 'settings.labels.tabs', 'settings.labels.bottombar'],
+      body: ['settings.axisSidebarHint', 'settings.axisBottombarHint'],
+    },
     { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
     { title: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint', rows: [] },
     {
