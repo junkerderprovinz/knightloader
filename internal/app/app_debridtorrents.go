@@ -204,6 +204,22 @@ func (a *App) restoreServiceJob(t *core.Task) {
 	}
 }
 
+// dropProbes has every account drop the probes nothing reads, such as the
+// ones the restart restored (see debrid.TorrentBackend.DropProbes).
+func (a *App) dropProbes() {
+	a.bmu.RLock()
+	var backends []*debrid.TorrentBackend
+	for _, be := range a.debrid {
+		if tb, ok := be.(*debrid.TorrentBackend); ok {
+			backends = append(backends, tb)
+		}
+	}
+	a.bmu.RUnlock()
+	for _, tb := range backends {
+		tb.DropProbes()
+	}
+}
+
 // applyServiceJobLocked records the job a debrid service holds for t, as the
 // backend reported it. Caller holds a.mu.
 func applyServiceJobLocked(t *core.Task, j *core.ServiceJob) {
@@ -239,7 +255,10 @@ func (a *App) torrentsVia(slot string, svc debrid.TorrentService, links backend,
 	tb.Rules = a.torrentRules
 	tb.Keep = func() bool { return a.Settings.Get().Torrent.KeepOnService }
 	tb.CachedOnly = a.cachedOnly
+	tb.StallMinutes = a.stallMinutes
 	tb.Added = func(job string) { a.claimImported(slot, job) }
+	// An account set up again after the restart finds the probes it left.
+	a.spawn(tb.DropProbes)
 	return tb
 }
 
@@ -254,6 +273,19 @@ func (a *App) cachedOnly(taskID string) bool {
 	defer a.mu.Unlock()
 	t := a.tasks[taskID]
 	return t != nil && t.ResolverPin == ""
+}
+
+// stallMinutes is how long a debrid service may make no progress on a task's
+// torrent before it goes on to the next backend. A task pinned to the service
+// waits however long it takes, as it goes there cached or not.
+func (a *App) stallMinutes(taskID string) int {
+	n := a.Settings.Get().Torrent.DebridStallMinutes
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if t := a.tasks[taskID]; t == nil || t.ResolverPin != "" {
+		return 0
+	}
+	return n
 }
 
 // torrentRules is the file rules of a torrent's category, which choose its

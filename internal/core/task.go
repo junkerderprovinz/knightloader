@@ -284,6 +284,9 @@ type ServiceJob struct {
 	// Partial is where the next file was being written, so a restart can tell
 	// what is left of it from somebody else's file.
 	Partial string `json:"partial,omitempty"`
+	// Probe says the job was added only to see whether the service has the
+	// torrent cached, and is deleted unless the service has it ready at once.
+	Probe bool `json:"probe,omitempty"`
 }
 
 // SeedMark is a torrent's ratio and seeding time at the moment its seeding
