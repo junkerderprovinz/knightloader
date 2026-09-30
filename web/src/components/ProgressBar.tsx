@@ -1,6 +1,6 @@
 // A progress track at --radius-pill, so it follows the shape setting like
-// badges and buttons. At h-5 it stays below an IconBadge's 32px, which would
-// otherwise set every row's height.
+// badges and buttons. At h-5 it stays below an IconBadge, 24px in a list row,
+// so the badges and not the bar set the row's height.
 export function ProgressBar({
   percent,
   active,

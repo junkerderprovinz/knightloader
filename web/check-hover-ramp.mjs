@@ -82,13 +82,13 @@ function classLists(text) {
 }
 
 // The second shape: a row that publishes its own ground as a custom property
-// names no `bg-carbon-*` class, so everything above is blind to it. The
-// download list's folder header is written that way,
+// names no `bg-carbon-*` class, so everything above is blind to it. A row
+// written like this,
 //
 //   [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
 //   hover:[--row-ground:var(--carbon-surface2)]
 //
-// and that is rule 21 broken where its own guard cannot see: a row resting on
+// is rule 21 broken where its own guard cannot see: a row resting on
 // the surface2 tier and hovering to surface2 flat, a step of 4/255 in the dark
 // theme, rgb(53,53,53) at rest against rgb(57,57,57) under the pointer, which
 // reads as no hover at all.
@@ -106,9 +106,8 @@ const TIERS = [
 /** The ramp tier a ground expression sits on. 0 is "the card, or nothing". */
 function tierOf(value, lists) {
   // One level of indirection: a row may hover to `var(--row-hover)` and define
-  // `--row-hover` in the same class list, as the folder header does with
-  // `--row-raised`. Following it reads such a row as the tier it paints rather
-  // than as tier 0.
+  // `--row-hover` in the same class list. Following it reads such a row as the
+  // tier it paints rather than as tier 0.
   const seen = new Set();
   let v = value;
   for (let i = 0; i < 4; i++) {
