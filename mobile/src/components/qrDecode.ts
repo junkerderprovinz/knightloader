@@ -13,8 +13,9 @@ const CROP = 0.7;
 export function qrFromJpeg(base64: string): string | null {
   const image = jpeg.decode(Uint8Array.from(base64Decode(base64)), { useTArray: true, formatAsRGBA: true });
   const { pixels, side } = middleSquare(image.data, image.width, image.height);
-  // Both polarities, since a dark theme can draw the code light on dark.
-  const code = jsQR(pixels, side, side, { inversionAttempts: 'attemptBoth' });
+  // Dark on light only: every KnightLoader draws its code black on white in
+  // each theme, and trying the inverse as well doubles every miss.
+  const code = jsQR(pixels, side, side, { inversionAttempts: 'dontInvert' });
   if (code) return code.data;
   const bright = brightStretched(pixels);
   return bright ? (jsQR(bright, side, side, { inversionAttempts: 'dontInvert' })?.data ?? null) : null;

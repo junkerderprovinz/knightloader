@@ -10,6 +10,10 @@ import { GlimButton } from './glim';
 import { Cross } from './IconBadge';
 import { Text } from './Text';
 
+// The picture size chosen the first time the camera opened, so the next
+// opening starts on it instead of switching once the camera is up.
+let chosenSize: string | undefined;
+
 // A full-screen modal scanner rather than a screen of its own: a caller that
 // wants a QR code needs one decoded string back rather than a spot in the
 // navigation stack.
@@ -20,7 +24,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
   const [ready, setReady] = useState(false);
-  const [size, setSize] = useState<string>();
+  const [size, setSize] = useState<string | undefined>(chosenSize);
   const camera = useRef<CameraView>(null);
   const report = useRef(onScanned);
   report.current = onScanned;
@@ -44,20 +48,32 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   useEffect(() => {
     if (!visible || !ready || locked) return;
     let stopped = false;
+    const snap = () =>
+      camera.current
+        ?.takePictureAsync({ base64: true, quality: 0.4, skipProcessing: true, shutterSound: false })
+        .then((shot) => shot?.base64 ?? null)
+        // A frame the camera could not take; the next one tries.
+        .catch(() => null) ?? Promise.resolve(null);
     (async () => {
+      // The camera takes the next photo while this one is decoded: taking one
+      // costs the camera longer than reading it costs the phone.
+      let next = snap();
       while (!stopped && !closing.current) {
+        const shot = await next;
+        next = snap();
+        let data: string | null = null;
         try {
-          const shot = await camera.current?.takePictureAsync({ base64: true, quality: 0.5, skipProcessing: true, shutterSound: false });
-          const data = shot?.base64 ? qrFromJpeg(shot.base64) : null;
-          if (data && !stopped && !closing.current) {
-            setLocked(true);
-            report.current(data);
-            return;
-          }
+          data = shot ? qrFromJpeg(shot) : null;
         } catch {
-          // A frame the camera could not take or decode; the next one tries.
+          // A photo that did not decode; the next one tries.
         }
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        if (data && !stopped && !closing.current) {
+          setLocked(true);
+          report.current(data);
+          return;
+        }
+        // Lets a tap on Cancel in between two photos.
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
     })();
     return () => {
@@ -69,11 +85,18 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   // decode holds up the taps on this window. The smallest size with 480 lines
   // still resolves a code in the frame at five pixels a module.
   const onCameraReady = async () => {
+    if (chosenSize) {
+      setReady(true);
+      return;
+    }
     try {
       const sizes = (await camera.current?.getAvailablePictureSizesAsync()) ?? [];
       const lines = (s: string) => Math.min(...s.split('x').map(Number));
       const usable = sizes.filter((s) => lines(s) >= 480).sort((a, b) => lines(a) - lines(b));
-      if (usable[0]) setSize(usable[0]);
+      if (usable[0]) {
+        chosenSize = usable[0];
+        setSize(usable[0]);
+      }
     } catch {
       // Without the list the camera keeps its default size, only slower.
     }
