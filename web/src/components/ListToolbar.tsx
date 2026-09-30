@@ -1457,18 +1457,22 @@ export function SeedingBadges({ tasks, base }: { tasks: Task[]; base: string }) 
   const fail = (e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail');
   const seeds = tasks.filter(seedingOn).map((x) => x.id);
   const stopped = tasks.filter(seedingOff).map((x) => x.id);
+  // A badge with nothing to act on stays, dimmed, and its bubble says why, or
+  // Stop looks broken on a card whose torrents have all reached their target.
   return (
     <>
       <IconBadge
         icon={<IconStop width={16} height={16} />}
         title={t('task.stopSeedingAll')}
         disabled={seeds.length === 0}
+        hint={seeds.length === 0 ? t('task.stopSeedingAllNone') : undefined}
         onClick={() => void stopSeeding(seeds, base).catch(fail)}
       />
       <IconBadge
         icon={<IconUpload width={16} height={16} />}
         title={t('task.startSeedingAll')}
         disabled={stopped.length === 0}
+        hint={stopped.length === 0 ? t('task.startSeedingAllNone') : undefined}
         onClick={() => void startSeeding(stopped, base).catch(fail)}
       />
     </>
