@@ -38,4 +38,8 @@ yarn-error.*
 
 # generated native folders
 /ios
-/android
+/android/*
+!/android/app/
+/android/app/*
+# F-Droid checks that the build directory exists before it runs prebuild.
+!/android/app/.gitkeep
