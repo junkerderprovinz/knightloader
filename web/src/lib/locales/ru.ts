@@ -3247,5 +3247,9 @@ export const ru: Dict = {
   'rename.packageHint': 'Если папка загрузок названа по пакету, она получает новое имя вместе с файлами, которые в ней уже лежат, а загрузки, которые ещё идут, продолжаются там. Папка с распакованными файлами, названная по пакету, тоже перемещается. Имя не путь, поэтому / и \\ не допускаются.',
   'rename.busy': 'Часть этого пакета сейчас распаковывается, перемещается в свою папку или записывается с прямой трансляции. Попробуйте снова, когда это закончится.',
   'rename.notMoved': 'Папку «{name}» не удалось переименовать, поэтому ничего не изменилось. Возможно, другая программа держит открытым файл в ней. Закройте этот файл и попробуйте снова.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

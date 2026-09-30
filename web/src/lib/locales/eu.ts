@@ -3262,5 +3262,9 @@ export const eu: Dict = {
   'rename.packageHint': 'Deskargen karpetak paketearen izena badu, izen berria hartzen du barruan dituen fitxategiekin batera, eta oraindik abian diren deskargek bertan jarraitzen dute. Paketearen izena duen erauzitako fitxategien karpeta ere lekuz aldatzen da. Izen bat ez da bide bat, beraz / eta \\ ez dira onartzen.',
   'rename.busy': 'Pakete honen zati bat erauzten, bere karpetara eramaten edo zuzeneko emanaldi batetik grabatzen ari da. Saiatu berriro hori amaitzen denean.',
   'rename.notMoved': 'Ezin izan zaio «{name}» karpetari izena aldatu, beraz ez da ezer aldatu. Baliteke beste programa batek fitxategi bat irekita izatea bertan. Itxi fitxategi hori eta saiatu berriro.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

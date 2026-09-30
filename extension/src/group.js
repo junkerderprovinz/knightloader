@@ -86,6 +86,9 @@ async function withGroup(work) {
       selfId: await selfInstanceId(),
       // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
+      // An instance took this browser out of the group. It starts over like a
+      // fresh install: the phrase entered again joins it as a new member.
+      onRemoved: forgetGroup,
     },
     work,
   );

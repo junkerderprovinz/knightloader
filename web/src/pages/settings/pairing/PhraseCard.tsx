@@ -9,18 +9,23 @@ import {
   ApiError,
   PhraseRejected,
   activateConnect,
+  fetchInstances,
   joinConnect,
   leaveConnect,
+  removeApp,
+  removeInstance,
   revealConnect,
   type ConnectInfo,
   type GroupApp,
   type GroupMember,
+  type Instance,
   type QRMatrix,
 } from '../../../lib/api';
 import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import {
+  IconBrowser,
   IconCheckDrawn,
   IconChevronEnd,
   IconClipboard,
@@ -32,6 +37,7 @@ import {
   IconPlus,
   IconRetry,
   IconSignOut,
+  IconTrash,
   IconWarning,
 } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
@@ -120,15 +126,33 @@ function WordGrid({ phrase, qr, bare = false, t }: { phrase: string; qr: QRMatri
   );
 }
 
-/** Row is one member of the group: a glyph, its name and what to say about it.
- *  Rows share one height, so one without a badge lines up with the rest. */
-function Row({ glyph, name, mark, badge }: { glyph: ReactNode; name: string; mark?: string; badge?: ReactNode }) {
+/** Row is one member of the group: a glyph, its name, what to say about it
+ *  and, for one that can be taken out here, the badge that does it. Rows share
+ *  one height, so one without a badge lines up with the rest. */
+function Row({
+  glyph,
+  name,
+  mark,
+  badge,
+  action,
+}: {
+  glyph: ReactNode;
+  name: string;
+  mark?: string;
+  badge?: ReactNode;
+  action?: ReactNode;
+}) {
   return (
     <li className="flex h-11 items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface2 px-3">
       <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
       <span className="min-w-0 truncate text-sm font-semibold text-carbon-text">{name}</span>
       {mark && <span className="glim-eyebrow shrink-0">{mark}</span>}
-      {badge && <span className="ms-auto shrink-0">{badge}</span>}
+      {(badge || action) && (
+        <span className="ms-auto flex shrink-0 items-center gap-2">
+          {badge}
+          {action}
+        </span>
+      )}
     </li>
   );
 }
@@ -143,9 +167,25 @@ function MemberRow({ m, t }: { m: GroupMember; t: T }) {
   );
 }
 
-function AppRow({ app }: { app: GroupApp }) {
-  return <Row glyph={<IconPhone />} name={app.name || app.id} />;
+function AppRow({ app, action, t }: { app: GroupApp; action: ReactNode; t: T }) {
+  return (
+    <Row
+      glyph={app.deployment === 'extension' ? <IconBrowser /> : <IconPhone />}
+      name={app.name || app.id}
+      badge={
+        <LabelBadge
+          label={app.connected ? t('instances.connected') : t('instances.notConnected')}
+          tone={app.connected ? 'ok' : 'fail'}
+        />
+      }
+      action={action}
+    />
+  );
 }
+
+/** What the removal window is about: a phone or extension of the group, or an
+ *  instance added by its address. */
+type Removal = { kind: 'app' | 'peer'; id: string; name: string };
 
 function WaitRow({ text, seconds }: { text: string; seconds?: number }) {
   return (
@@ -281,6 +321,39 @@ export function PhraseCard({
   const [shake, setShake] = useState(0);
   const [copies, setCopies] = useState(0);
   const joinedAgo = useJoinedAgo(group);
+  // Instances added by address rather than by the phrase, listed with the
+  // group so every connection can be taken out in one place.
+  const [peers, setPeers] = useState<Instance[]>([]);
+  const [removing, setRemoving] = useState<Removal | null>(null);
+
+  useEffect(() => {
+    fetchInstances()
+      .then((list) => setPeers(list.filter((p) => !p.relayId)))
+      .catch(() => {});
+  }, [group]);
+
+  const removeBadge = (r: Removal) => (
+    <IconBadge
+      quiet
+      icon={<IconTrash width={16} height={16} />}
+      title={t('instances.remove')}
+      aria-label={t('instances.removeTitle', { name: r.name })}
+      onClick={() => setRemoving(r)}
+    />
+  );
+
+  async function remove(r: Removal) {
+    await run(async () => {
+      if (r.kind === 'app') {
+        await removeApp(r.id);
+      } else {
+        const res = await removeInstance(r.id);
+        if (!res.ok) throw new Error(await res.text());
+      }
+      setRemoving(null);
+      onRefresh();
+    });
+  }
 
   const stage = pairStage(group, joinedAgo, createdHere);
 
@@ -558,11 +631,23 @@ export function PhraseCard({
             {group.members.map((m) => (
               <MemberRow key={m.id} m={m} t={t} />
             ))}
-            {group.apps
-              .filter((a) => a.connected)
-              .map((a) => (
-                <AppRow key={a.id} app={a} />
-              ))}
+            {peers.map((p) => (
+              <Row
+                key={p.name}
+                glyph={<IconInstances />}
+                name={p.displayName ?? p.name}
+                badge={<LabelBadge label={t('pairing.byAddress')} />}
+                action={removeBadge({ kind: 'peer', id: p.name, name: p.displayName ?? p.name })}
+              />
+            ))}
+            {group.apps.map((a) => (
+              <AppRow
+                key={a.id}
+                app={a}
+                t={t}
+                action={removeBadge({ kind: 'app', id: a.id, name: a.name || a.id })}
+              />
+            ))}
           </ul>
           {stage === 'new' ? (
             <WaitRow text={t('pairing.waitNext')} />
@@ -582,6 +667,32 @@ export function PhraseCard({
         {body}
       </div>
       {windows}
+      {removing && (
+        <Modal
+          title={t('instances.removeTitle', { name: removing.name })}
+          onClose={() => setRemoving(null)}
+          footer={
+            <>
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
+              <Button
+                kind="primary"
+                labelled
+                icon={<IconTrash />}
+                title={t('instances.remove')}
+                disabled={busy}
+                shake={shake}
+                onClick={() => void remove(removing)}
+              />
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-textSub">
+            {removing.kind === 'app'
+              ? t('instances.removeAppConfirm', { name: removing.name })
+              : t('instances.removePeerConfirm', { name: removing.name })}
+          </p>
+        </Modal>
+      )}
     </Card>
   );
 }

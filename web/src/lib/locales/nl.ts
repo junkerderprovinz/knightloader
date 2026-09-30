@@ -3251,5 +3251,9 @@ export const nl: Dict = {
   'rename.packageHint': 'Als de downloadmap naar het pakket is genoemd, krijgt hij de nieuwe naam mee, samen met de bestanden die er al in staan, en downloads die nog lopen gaan daar verder. Een map met uitgepakte bestanden die naar het pakket is genoemd, verhuist ook mee. Een naam is geen pad, dus / en \\ zijn niet toegestaan.',
   'rename.busy': 'Een deel van dit pakket wordt uitgepakt, naar zijn map verplaatst of opgenomen van een livestream. Probeer het opnieuw zodra dat klaar is.',
   'rename.notMoved': 'De map “{name}” kon niet worden hernoemd, dus er is niets veranderd. Misschien heeft een ander programma een bestand in die map open. Sluit dat bestand en probeer het opnieuw.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

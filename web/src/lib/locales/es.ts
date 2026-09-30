@@ -3259,5 +3259,9 @@ export const es: Dict = {
   'rename.packageHint': 'Si la carpeta de descargas lleva el nombre del paquete, adopta el nuevo nombre junto con los archivos que ya contiene, y las descargas en curso siguen ahí. Una carpeta de archivos extraídos con el nombre del paquete también se mueve. Un nombre no es una ruta, así que / y \\ no se permiten.',
   'rename.busy': 'Parte de este paquete se está extrayendo, moviendo a su carpeta o grabando de una emisión en directo. Vuelve a intentarlo cuando haya terminado.',
   'rename.notMoved': 'No se pudo cambiar el nombre de la carpeta «{name}», así que no cambió nada. Puede que otro programa tenga abierto un archivo de ella. Cierra ese archivo y vuelve a intentarlo.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

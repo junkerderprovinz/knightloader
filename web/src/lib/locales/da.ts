@@ -3254,5 +3254,9 @@ export const da: Dict = {
   'rename.packageHint': 'Hvis downloadmappen er opkaldt efter pakken, får den det nye navn sammen med de filer, der allerede ligger i den, og downloads, der stadig kører, fortsætter dér. En mappe med udpakkede filer, der er opkaldt efter pakken, flytter også med. Et navn er ikke en sti, så / og \\ er ikke tilladt.',
   'rename.busy': 'En del af denne pakke er ved at blive pakket ud, flyttet til sin mappe eller optaget fra en livestream. Prøv igen, når det er færdigt.',
   'rename.notMoved': 'Mappen „{name}“ kunne ikke omdøbes, så intet er ændret. Måske har et andet program en fil i den åben. Luk filen, og prøv igen.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

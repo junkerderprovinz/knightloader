@@ -84,7 +84,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, "not ready", http.StatusServiceUnavailable)
 				return
 			}
-			a.Federation.ServeDirect(w, r, relayProxyHandler(serve))
+			a.Federation.ServeDirect(w, r, relayProxyHandler(serve, a.Federation.Removed))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -255,7 +255,7 @@ func applyRelay(a *app.App) {
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
 		},
-		Serve:  relayProxyHandler(serve),
+		Serve:  relayProxyHandler(serve, a.Federation.Removed),
 		Replay: a.Federation.Replay(),
 	})
 	if err != nil {
@@ -289,8 +289,13 @@ func applyGroup(a *app.App) {
 // In return the reachable surface is limited here by relayForwardable, so a
 // sibling cannot read accounts, change the password, mint a token or ask for
 // the phrase.
-func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
+func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
+		// A phone taken out of the group learns it from this answer and drops
+		// its connections to the group.
+		if call.From != "" && removed(call.From) {
+			return http.StatusGone, []byte("removed")
+		}
 		if !relayForwardable(call.Method, call.Path) {
 			// An allowlist, so a route added later is not exposed to peers
 			// until somebody adds it.
@@ -357,6 +362,11 @@ func relayForwardable(method, path string) bool {
 		return true
 	}
 	if relayCaptchaRoute(method, rest) {
+		return true
+	}
+	// Taking a phone out of the group reaches every instance of it; the
+	// instance the removal started on passes it on.
+	if method == http.MethodDelete && strings.HasPrefix(rest, "connect/apps/") {
 		return true
 	}
 	// Setting the appearance fields is less than a phrase holder can

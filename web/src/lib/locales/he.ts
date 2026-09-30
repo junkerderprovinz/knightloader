@@ -3286,5 +3286,9 @@ export const he: Dict = {
   'rename.packageHint': 'אם תיקיית ההורדות נקראת על שם החבילה, היא מקבלת את השם החדש יחד עם הקבצים שכבר נמצאים בה, והורדות שעדיין פועלות ממשיכות שם. גם תיקייה של קבצים מחולצים שנקראת על שם החבילה מועברת יחד איתה. שם אינו נתיב, ולכן / ו־\\ אינם מותרים.',
   'rename.busy': 'חלק מהחבילה הזו נמצא בחילוץ, בהעברה לתיקייה שלו או בהקלטה משידור חי. נסה שוב כשזה יסתיים.',
   'rename.notMoved': 'לא ניתן היה לשנות את שם התיקייה „{name}”, ולכן שום דבר לא השתנה. ייתכן שתוכנה אחרת מחזיקה קובץ פתוח בתוכה. סגור את הקובץ ונסה שוב.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

@@ -2,124 +2,284 @@
   "note": "Keys carrying the ENGLISH text in a non-English catalogue, because the translation wave for them has not run yet. Identical on screen to the fallback lib/i18n.tsx already makes for a missing key; listed here so a later sweep can find them, since a seeded string is otherwise indistinguishable from a translated one. check-untranslated.mjs holds this file and the catalogues together: translate a key and its entry must go, or the check fails. de.ts is never listed: it is the hand-written reference the English is written FROM, so a German value that equals the English one (Downloads, Captcha, Status, yt-dlp) is the same word in both languages rather than an untranslated one. For the other catalogues that same over-reporting is accepted on purpose: a debt too many shows up at the next sweep, a debt too few never does.",
   "locales": {
     "ar": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "bg": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ca": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "cs": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "da": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "el": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "es": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "et": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "eu": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "fa": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "fi": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "fr": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "gl": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "he": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "hi": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "hr": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "hu": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "id": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "is": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "it": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ja": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ko": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "lt": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "lv": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ms": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "nl": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "no": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "pl": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "pt": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ro": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "ru": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "sk": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "sl": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "sr": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "sv": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "th": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "tr": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "uk": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "vi": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ],
     "zh": [
-      "instances.removeAppHint"
+      "instances.kind.extension",
+      "instances.remove",
+      "instances.removeAppConfirm",
+      "instances.removePeerConfirm",
+      "pairing.byAddress"
     ]
   },
   "identicalNote": "Keys whose value in a non-English catalogue IS the English one, ON PURPOSE, checked one at a time by a pass working in that language. Four kinds live here: program and file names (yt-dlp, ffmpeg, ffprobe, Java, settings.json, KL_YTDLP, Umask), format strings holding no words at all ({n}/{max} - {countdown}), the legends printed on keys (Home, End, Del) in the languages whose keyboards carry the Latin ones, and loanwords that language has taken over unchanged (Captcha, Relay, Status, Cookies). They sit apart from \"locales\" because the two mean opposite things: a key listed there is WAITING for a translation, a key listed here has HAD one and the answer was to leave it. Without the split the next sweep re-opens all of them and forty translators redo the same judgement. check-untranslated.mjs holds both lists against the catalogues: an entry here that stops being identical is somebody improving it, and the entry then has to go.",

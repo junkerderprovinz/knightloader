@@ -3256,5 +3256,9 @@ export const fr: Dict = {
   'rename.packageHint': 'Si le dossier de téléchargement porte le nom du paquet, il prend le nouveau nom avec les fichiers qu’il contient déjà, et les téléchargements encore en cours s’y poursuivent. Un dossier de fichiers extraits portant le nom du paquet est déplacé lui aussi. Un nom n’est pas un chemin, donc / et \\ ne sont pas permis.',
   'rename.busy': 'Une partie de ce paquet est en cours d’extraction, de déplacement vers son dossier ou d’enregistrement depuis un livestream. Réessayez une fois que c’est terminé.',
   'rename.notMoved': 'Le dossier « {name} » n’a pas pu être renommé, donc rien n’a changé. Un autre programme garde peut-être un fichier de ce dossier ouvert. Fermez ce fichier et réessayez.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

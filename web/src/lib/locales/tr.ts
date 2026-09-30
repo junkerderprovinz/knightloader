@@ -3267,5 +3267,9 @@ export const tr: Dict = {
   'rename.packageHint': 'İndirme klasörü paketin adını taşıyorsa, içindeki dosyalarla birlikte yeni adı alır ve hâlâ süren indirmeler orada devam eder. Paketin adını taşıyan, ayıklanmış dosyaların bulunduğu bir klasör de onunla birlikte taşınır. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',
   'rename.busy': 'Bu paketin bir kısmı şu anda ayıklanıyor, klasörüne taşınıyor ya da bir canlı yayından kaydediliyor. Bu bittikten sonra yeniden dene.',
   'rename.notMoved': '“{name}” klasörü yeniden adlandırılamadı, bu yüzden hiçbir şey değişmedi. Başka bir program içindeki bir dosyayı açık tutuyor olabilir. O dosyayı kapat ve yeniden dene.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

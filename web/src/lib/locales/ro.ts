@@ -3275,5 +3275,9 @@ export const ro: Dict = {
   'rename.packageHint': 'Dacă dosarul de descărcare poartă numele pachetului, primește noul nume împreună cu fișierele care sunt deja în el, iar descărcările care încă rulează continuă acolo. Un dosar cu fișiere dezarhivate care poartă numele pachetului se mută și el. Un nume nu este o cale, așa că / și \\ nu sunt permise.',
   'rename.busy': 'O parte din acest pachet se dezarhivează, se mută în dosarul său sau se înregistrează dintr-o transmisiune live. Încearcă din nou după ce se termină.',
   'rename.notMoved': 'Dosarul „{name}” nu a putut fi redenumit, așa că nu s-a schimbat nimic. Poate că alt program ține deschis un fișier din el. Închide acel fișier și încearcă din nou.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

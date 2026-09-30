@@ -3282,5 +3282,9 @@ export const sr: Dict = {
   'rename.packageHint': 'Ако је фасцикла за преузимања названа по пакету, она добија нови назив заједно са датотекама које су већ у њој, а преузимања која још трају настављају се тамо. Фасцикла са распакованим датотекама названа по пакету такође се премешта. Назив није путања, па / и \\ нису дозвољени.',
   'rename.busy': 'Део овог пакета се управо распакује, премешта у своју фасциклу или снима из преноса уживо. Покушај поново када се то заврши.',
   'rename.notMoved': 'Фасциклу „{name}“ није било могуће преименовати, па се ништа није променило. Можда неки други програм има отворену датотеку у њој. Затвори ту датотеку и покушај поново.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

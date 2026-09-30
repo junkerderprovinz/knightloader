@@ -100,12 +100,15 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
-  it('marks every card with the glyph of its kind and gives the phone the logo', async () => {
+  it('marks every card with the glyph of its kind and gives the phone and the extension the logo', async () => {
     serve(
       {
         ...noGroup,
         active: true,
-        apps: [{ id: 'p1', name: 'Pixel 8', connected: true, lastSeen: 1_800_000_000 }],
+        apps: [
+          { id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1_800_000_000 },
+          { id: 'b1', name: 'Browser', deployment: 'extension', connected: false, lastSeen: 1_800_000_000 },
+        ],
       },
       [
         { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' },
@@ -117,6 +120,7 @@ describe('Instances', () => {
     const card = (name: string) => [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes(name))!;
     const kind = (name: string) => card(name).querySelector('[data-kind]')?.getAttribute('data-kind') ?? null;
     expect(kind('Pixel 8')).toBe('mobile');
+    expect(kind('Browser')).toBe('extension');
     expect(kind('Laptop')).toBe('desktop');
     expect(kind('NAS')).toBe('container');
     expect(kind('cellar')).toBeNull();

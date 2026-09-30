@@ -3269,5 +3269,9 @@ export const fi: Dict = {
   'rename.packageHint': 'Jos latauskansio on nimetty paketin mukaan, se saa uuden nimen yhdessä siinä jo olevien tiedostojen kanssa, ja vielä käynnissä olevat lataukset jatkuvat siellä. Myös paketin mukaan nimetty purettujen tiedostojen kansio siirtyy mukana. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',
   'rename.busy': 'Osaa tästä paketista puretaan, siirretään sen kansioon tai tallennetaan livelähetyksestä. Yritä uudelleen, kun se on valmis.',
   'rename.notMoved': 'Kansiota ”{name}” ei voitu nimetä uudelleen, joten mitään ei muuttunut. Jokin toinen ohjelma saattaa pitää siinä olevaa tiedostoa auki. Sulje se tiedosto ja yritä uudelleen.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };
