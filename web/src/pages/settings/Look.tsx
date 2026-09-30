@@ -18,6 +18,7 @@ import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabelSetting, useNavLabels } from '../../lib/navLabels';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { ROW_HEIGHTS, setRowHeight, useRowHeight, type RowHeight } from '../../lib/rowHeight';
 import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
@@ -255,8 +256,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const navLabels = useNavLabels();
   const barLabels = useBarLabelSetting();
 
-  // Motion intensity is per-browser too.
+  // Motion intensity is per-browser too, and so is the list's row height.
   const [motion, setMotion] = useState<Motion>(readCachedMotionIntensity);
+  const rowHeight = useRowHeight();
 
   // The hidden fourth level (lib/appearance.ts's stormTap). Finding it is state
   // of this screen and never stored, so leaving with another level selected
@@ -533,6 +535,23 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             id: m,
             label: t(`settings.motion.${m}` as never),
           }))}
+        />
+      </Card>
+      )}
+
+      {/* How tall a row of the download and collector lists is, per browser
+          like the motion level (lib/rowHeight.ts). */}
+      {appearance && (
+      <Card hue={5} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.rowHeight.hint')}>
+          {t('settings.rowHeight.title')}
+        </SectionTitle>
+        <Tabs
+          label={t('settings.rowHeight.title')}
+          variant="well"
+          active={rowHeight}
+          onSelect={(id) => setRowHeight(id as RowHeight)}
+          items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
         />
       </Card>
       )}

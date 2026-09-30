@@ -207,7 +207,7 @@ export function TorrentFileRow({
       aria-setsize={row.setsize}
       onKeyDown={onKeyDown}
       style={{ ...hueVars(row.index), gridTemplateColumns: 'var(--kl-cols)', ...slide } as CSSProperties}
-      className={`glim-hue glim-tint select-none ${look} relative grid items-center px-3 py-0.5 transition-colors
+      className={`glim-hue glim-tint select-none ${look} relative grid items-center px-3 py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
