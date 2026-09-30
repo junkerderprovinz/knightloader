@@ -303,4 +303,7 @@ export const ko: Dict = {
   'failure.archiveFolderExists.next': '그 폴더를 옮기거나 이름을 바꾸거나, 웹 UI의 압축 파일 설정에서 “같은 이름의 파일이 이미 있으면”을 바꾼 다음 다시 압축을 푸세요.',
   'failure.unsupportedPlayer.line': '이 페이지는 여기 있는 어떤 백엔드도 읽지 못하는 플레이어로 동영상을 재생합니다.',
   'failure.unsupportedPlayer.next': '동영상 자체의 주소를 찾을 수 있다면 대신 그것을 붙여넣으세요.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

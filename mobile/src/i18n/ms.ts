@@ -303,4 +303,7 @@ export const ms: Dict = {
   'failure.archiveFolderExists.next': 'Alihkan atau namakan semula folder itu, atau ubah “Jika fail sudah ada di situ” dalam tetapan Arkib antara muka web, kemudian ekstrak sekali lagi.',
   'failure.unsupportedPlayer.line': 'Halaman ini memainkan videonya dalam pemain yang tidak dapat dibaca oleh mana-mana backend di sini.',
   'failure.unsupportedPlayer.next': 'Jika anda dapat mencari alamat video itu sendiri, tampal alamat itu sebagai gantinya.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

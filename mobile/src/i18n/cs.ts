@@ -303,4 +303,7 @@ export const cs: Dict = {
   'failure.archiveFolderExists.next': 'Přesuň nebo přejmenuj tu složku, nebo změň „Když už tam soubor je“ v nastavení archivů ve webovém rozhraní, a pak archiv znovu rozbal.',
   'failure.unsupportedPlayer.line': 'Stránka přehrává video v přehrávači, který tu žádný backend neumí přečíst.',
   'failure.unsupportedPlayer.next': 'Když najdeš vlastní adresu videa, vlož místo toho ji.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

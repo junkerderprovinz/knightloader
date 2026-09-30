@@ -303,4 +303,7 @@ export const nl: Dict = {
   'failure.archiveFolderExists.next': 'Verplaats of hernoem die map, of wijzig “Als er al een bestand staat” in de archiefinstellingen van de webinterface, en pak het archief dan opnieuw uit.',
   'failure.unsupportedPlayer.line': 'De pagina speelt haar video af in een speler die geen enkele backend hier kan lezen.',
   'failure.unsupportedPlayer.next': 'Als je het eigen adres van de video kunt vinden, plak dat dan in plaats hiervan.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

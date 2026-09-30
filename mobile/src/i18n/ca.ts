@@ -303,4 +303,7 @@ export const ca: Dict = {
   'failure.archiveFolderExists.next': 'Mou o canvia el nom d’aquesta carpeta, o canvia «Si ja hi ha un fitxer» a la configuració d’Arxius de la interfície web, i després torna a extreure l’arxiu.',
   'failure.unsupportedPlayer.line': 'La pàgina reprodueix el seu vídeo en un reproductor que cap rerefons d’aquí no sap llegir.',
   'failure.unsupportedPlayer.next': 'Si trobes l’adreça pròpia del vídeo, enganxa aquella en lloc d’aquesta.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

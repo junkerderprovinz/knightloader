@@ -303,4 +303,7 @@ export const ja: Dict = {
   'failure.archiveFolderExists.next': 'そのフォルダーを移動するか名前を変えるか、Web UI のアーカイブの設定で「同名のファイルがある場合」を変えてから、もう一度展開してください。',
   'failure.unsupportedPlayer.line': 'このページは、ここのどのバックエンドも読めないプレーヤーで動画を再生しています。',
   'failure.unsupportedPlayer.next': '動画そのもののアドレスが見つかれば、代わりにそれを貼り付けてください。',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

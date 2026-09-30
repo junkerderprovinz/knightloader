@@ -303,4 +303,7 @@ export const zh: Dict = {
   'failure.archiveFolderExists.next': '移走或重命名那个文件夹，或者在网页界面的“压缩包”设置里修改“如果同名文件已存在”，然后再解压一次。',
   'failure.unsupportedPlayer.line': '这个页面用一个播放器播放视频，而这里没有哪个后端能读懂它。',
   'failure.unsupportedPlayer.next': '如果你能找到视频自己的地址，就把那个地址粘贴进来。',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

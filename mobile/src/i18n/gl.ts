@@ -303,4 +303,7 @@ export const gl: Dict = {
   'failure.archiveFolderExists.next': 'Move ou renomea ese cartafol, ou cambia «Se xa hai un ficheiro» nos axustes de Arquivos da interface web, e despois extrae o arquivo de novo.',
   'failure.unsupportedPlayer.line': 'A páxina reproduce o seu vídeo nun reprodutor que ningún backend de aquí sabe ler.',
   'failure.unsupportedPlayer.next': 'Se atopas o enderezo propio do vídeo, pega ese no seu lugar.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

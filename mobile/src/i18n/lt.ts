@@ -303,4 +303,7 @@ export const lt: Dict = {
   'failure.archiveFolderExists.next': 'Perkelk ar pervadink tą aplanką arba žiniatinklio sąsajos archyvų nustatymuose pakeisk „Jei failas jau yra“, tada išpakuok archyvą dar kartą.',
   'failure.unsupportedPlayer.line': 'Puslapis leidžia vaizdo įrašą grotuve, kurio čia negali perskaityti jokia posistemė.',
   'failure.unsupportedPlayer.next': 'Jei rasi paties vaizdo įrašo adresą, geriau įklijuok jį.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

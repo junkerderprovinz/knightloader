@@ -303,4 +303,7 @@ export const sr: Dict = {
   'failure.archiveFolderExists.next': 'Премести или преименуј ту фасциклу, или у подешавањима архива у веб интерфејсу промени „Ако датотека већ постоји“, па поново распакуј архиву.',
   'failure.unsupportedPlayer.line': 'Сајт пушта видео у плејеру који ниједна позадина овде не уме да прочита.',
   'failure.unsupportedPlayer.next': 'Ако пронађеш сопствену адресу видеа, налепи њу уместо ове.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

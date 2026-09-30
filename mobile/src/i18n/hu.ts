@@ -303,4 +303,7 @@ export const hu: Dict = {
   'failure.archiveFolderExists.next': 'Helyezd át vagy nevezd át azt a mappát, vagy módosítsd a „Ha már van ott fájl” beállítást a webes felület archívumbeállításaiban, aztán bontsd ki újra.',
   'failure.unsupportedPlayer.line': 'Az oldal olyan lejátszóban játssza le a videót, amelyet itt egyik backend sem tud olvasni.',
   'failure.unsupportedPlayer.next': 'Ha megtalálod a videó saját címét, azt illeszd be helyette.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

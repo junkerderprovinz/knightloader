@@ -303,4 +303,7 @@ export const tr: Dict = {
   'failure.archiveFolderExists.next': 'O klasörü taşı ya da yeniden adlandır veya web arayüzünün arşiv ayarlarında “Aynı adlı bir dosya zaten varsa” seçeneğini değiştir, sonra yeniden ayıkla.',
   'failure.unsupportedPlayer.line': 'Sayfa videosunu, buradaki hiçbir arka ucun okuyamadığı bir oynatıcıda oynatıyor.',
   'failure.unsupportedPlayer.next': 'Videonun kendi adresini bulabilirsen bağlantı yerine onu yapıştır.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

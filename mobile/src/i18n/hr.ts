@@ -303,4 +303,7 @@ export const hr: Dict = {
   'failure.archiveFolderExists.next': 'Premjesti ili preimenuj tu mapu, ili u postavkama arhiva u web sučelju promijeni „Ako datoteka već postoji”, pa arhivu ponovno raspakiraj.',
   'failure.unsupportedPlayer.line': 'Stranica reproducira video u playeru koji nijedna pozadina ovdje ne može pročitati.',
   'failure.unsupportedPlayer.next': 'Ako pronađeš vlastitu adresu videa, zalijepi nju umjesto ove.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

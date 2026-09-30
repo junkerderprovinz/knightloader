@@ -303,4 +303,7 @@ export const fa: Dict = {
   'failure.archiveFolderExists.next': 'آن پوشه را جابه‌جا کنید یا نامش را عوض کنید، یا «اگر فایلی از پیش آنجا باشد» را در تنظیمات آرشیو رابط وب عوض کنید، بعد آرشیو را دوباره استخراج کنید.',
   'failure.unsupportedPlayer.line': 'صفحه ویدیویش را در پخش‌کننده‌ای پخش می‌کند که هیچ بک‌اندی در اینجا نمی‌تواند بخواندش.',
   'failure.unsupportedPlayer.next': 'اگر نشانی خود ویدیو را پیدا کنید، همان را بچسبانید.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

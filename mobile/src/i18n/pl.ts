@@ -303,4 +303,7 @@ export const pl: Dict = {
   'failure.archiveFolderExists.next': 'Przenieś ten folder albo zmień jego nazwę lub zmień „Gdy plik już tam jest” w ustawieniach archiwów w interfejsie webowym, a potem rozpakuj archiwum ponownie.',
   'failure.unsupportedPlayer.line': 'Strona odtwarza wideo w odtwarzaczu, którego żaden backend tutaj nie potrafi odczytać.',
   'failure.unsupportedPlayer.next': 'Jeśli znajdziesz własny adres wideo, wklej zamiast tego ten adres.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

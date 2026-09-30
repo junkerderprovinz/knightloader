@@ -303,4 +303,7 @@ export const is: Dict = {
   'failure.archiveFolderExists.next': 'Færðu eða endurnefndu þá möppu, eða breyttu „Ef skrá er þegar til staðar“ í stillingum safnskráa í vefviðmótinu, og afþjappaðu svo safnskrána aftur.',
   'failure.unsupportedPlayer.line': 'Síðan spilar myndbandið sitt í spilara sem enginn bakendi hér getur lesið.',
   'failure.unsupportedPlayer.next': 'Ef þú finnur eigið vistfang myndbandsins, límdu það þá inn í staðinn.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

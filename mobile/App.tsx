@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { loadActiveConnection, removeConnection, setActiveConnectionId } from './src/storage/connections';
+import { loadDeviceName } from './src/api/deviceName';
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import RelayConnectScreen from './src/screens/RelayConnectScreen';
@@ -74,7 +75,7 @@ function Shell() {
 
   useEffect(() => {
     (async () => {
-      const active = await loadActiveConnection();
+      const [active] = await Promise.all([loadActiveConnection(), loadDeviceName()]);
       if (active) {
         setConn(active);
         setInitialRoute('Downloads');
