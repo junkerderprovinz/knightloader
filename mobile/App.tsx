@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { loadActiveConnection, removeConnection, setActiveConnectionId } from './src/storage/connections';
+import {
+  loadActiveConnection,
+  loadDefaultConnection,
+  removeConnection,
+  setActiveConnectionId,
+  setDefaultConnectionId,
+} from './src/storage/connections';
 import { loadDeviceName } from './src/api/deviceName';
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
@@ -15,10 +21,12 @@ import CaptchasScreen from './src/screens/CaptchasScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import { CaptchaWatch } from './src/components/CaptchaWatch';
-import { fetchAppearance, setRainbowPalette } from './src/api/client';
+import { fetchAppearance, onRemovedFromGroup, setRainbowPalette } from './src/api/client';
+import { ConfirmDialog } from './src/components/ConfirmDialog';
+import { Scan } from './src/components/IconBadge';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { MotionProvider } from './src/theme/MotionContext';
-import { I18nProvider } from './src/i18n/I18nContext';
+import { I18nProvider, useT } from './src/i18n/I18nContext';
 import { HouseFontReady } from './src/components/Text';
 import { HOUSE_FONTS, familyFor } from './src/theme/font';
 
@@ -59,6 +67,10 @@ export default function App() {
 function Shell() {
   const { c, accent, accentInk, dark, setInstanceAppearance } = useAppearance();
   const [conn, setConn] = useState<ServerConnection | null>(null);
+  // The instance marked with the star: the app opens on it and takes its look
+  // from it, whichever instance is open at the moment.
+  const [standard, setStandard] = useState<ServerConnection | null>(null);
+  const refreshStandard = useCallback(() => void loadDefaultConnection().then(setStandard), []);
   const [loading, setLoading] = useState(true);
   // The first screen waits for the house font as it waits for the saved
   // connection, so no label is drawn in the system font and then redrawn.
@@ -72,34 +84,48 @@ function Shell() {
   // them, and it steps aside while the list is the screen in front.
   const nav = useNavigationContainerRef<RootStackParamList>();
   const [screen, setScreen] = useState<string | undefined>();
+  const { t } = useT();
+  // Set when an instance has taken this phone out of its group.
+  const [removed, setRemoved] = useState(false);
+
+  useEffect(() => {
+    onRemovedFromGroup(() => {
+      setConn(null);
+      refreshStandard();
+      setRemoved(true);
+      if (nav.isReady()) nav.reset({ index: 0, routes: [{ name: 'Connections' }] });
+    });
+  }, [nav, refreshStandard]);
 
   useEffect(() => {
     (async () => {
-      const [active] = await Promise.all([loadActiveConnection(), loadDeviceName()]);
-      if (active) {
-        setConn(active);
+      const [active, standardConn] = await Promise.all([loadActiveConnection(), loadDefaultConnection(), loadDeviceName()]);
+      setStandard(standardConn);
+      const opening = standardConn ?? active;
+      if (opening) {
+        setConn(opening);
         setInitialRoute('Downloads');
       }
       setLoading(false);
     })();
   }, []);
 
-  // Adopt the look of whichever instance is active. Cleared when there is none,
-  // so switching to a connection that cannot be reached falls back to the
-  // family default rather than keeping the previous instance's colour.
+  // Adopt the look of the default instance. Cleared when there is none, so a
+  // default that cannot be reached falls back to the family default rather
+  // than keeping the previous instance's colour.
   useEffect(() => {
     let alive = true;
-    if (!conn) {
+    if (!standard) {
       setInstanceAppearance(undefined);
       return;
     }
-    fetchAppearance(conn).then((a) => {
+    fetchAppearance(standard).then((a) => {
       if (alive) setInstanceAppearance(a);
     });
     return () => {
       alive = false;
     };
-  }, [conn, setInstanceAppearance]);
+  }, [standard, setInstanceAppearance]);
 
   if (loading || (!fontLoaded && !fontError)) {
     return (
@@ -114,6 +140,19 @@ function Shell() {
 
   return (
     <HouseFontReady value={fontLoaded}>
+      <ConfirmDialog
+        visible={removed}
+        title={t('group.removedTitle')}
+        message={t('group.removedBody')}
+        cancelLabel={t('group.removedLater')}
+        confirmLabel={t('group.removedRescan')}
+        confirmIcon={(ink) => <Scan color={ink} />}
+        onCancel={() => setRemoved(false)}
+        onConfirm={() => {
+          setRemoved(false);
+          nav.navigate('RelayConnect');
+        }}
+      />
       <CaptchaWatch
         conn={conn}
         bannerHidden={screen === 'Captchas'}
@@ -167,6 +206,7 @@ function Shell() {
                 <RelayConnectScreen
                   onConnected={(c) => {
                     setConn(c);
+                    refreshStandard();
                     navigation.navigate('Downloads', {});
                   }}
                   // goBack rather than navigate('Connections'): this screen is
@@ -189,6 +229,15 @@ function Shell() {
                       navigation.navigate('Connections');
                     }}
                     onOpenCaptchas={() => navigation.navigate('Captchas')}
+                    isDefault={standard?.id === conn.id}
+                    onMakeDefault={
+                      route.params?.peer
+                        ? undefined
+                        : async () => {
+                            await setDefaultConnectionId(conn.id);
+                            setStandard(conn);
+                          }
+                    }
                       onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
                     // Removing the connection this screen is about leaves it as
                     // well, back to the overview, where the list of what is left
@@ -200,6 +249,7 @@ function Shell() {
                             await removeConnection(conn.id);
                             await setActiveConnectionId(null);
                             setConn(null);
+                            refreshStandard();
                             navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
                           }
                     }
@@ -233,13 +283,14 @@ function Shell() {
                   onOpenLanguagePicker={() => navigation.navigate('LanguagePicker')}
                   onRemovedAllConnections={() => {
                     setConn(null);
+                    setStandard(null);
                     navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
                   }}
                   onRefreshAppearance={() => {
                     // "Follow the instance" has just cleared the local
                     // overrides, so the instance is asked again rather than the
                     // screen falling back to the look fetched at startup.
-                    if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
+                    if (standard) void fetchAppearance(standard).then(setInstanceAppearance);
                   }}
                   // The rainbow palette belongs to the instance, so editing one
                   // is a write over the wire rather than a local preference (see
@@ -247,8 +298,8 @@ function Shell() {
                   // which is what makes the settings screen drop the row and say
                   // why instead of drawing eight swatches no press can reach.
                   onSetPalette={
-                    conn
-                      ? async (palette) => setInstanceAppearance(await setRainbowPalette(conn, palette))
+                    standard
+                      ? async (palette) => setInstanceAppearance(await setRainbowPalette(standard, palette))
                       : undefined
                   }
                 />

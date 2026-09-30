@@ -16,7 +16,8 @@ import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
-import { relayIdentity } from '../storage/relayIdentity';
+import { relayIdentity, resetRelayIdentity } from '../storage/relayIdentity';
+import { removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
 
@@ -98,6 +99,14 @@ async function httpRequest(conn: ServerConnection, path: string, init?: RequestI
   return { status: res.status, body: await res.text().catch(() => ''), statusText: res.statusText };
 }
 
+let removedHandler: (() => void) | null = null;
+
+/** onRemovedFromGroup registers what the app does once an instance says this
+ *  phone was taken out of its group. */
+export function onRemovedFromGroup(handler: () => void): void {
+  removedHandler = handler;
+}
+
 // A relay call is the same request, addressed to an instance id instead of a
 // host. The token travels in the frame's own authorization field rather than a
 // header, because the frame is all there is - see relay.ProxyRequest.
@@ -127,6 +136,13 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
   );
   // A transport failure throws out of proxy() and never reaches here, so
   // anything with a status is genuinely the instance's own answer.
+  if (r.status === 410 && r.body === 'removed') {
+    // Every connection into the group goes, and a new relay id makes the
+    // next scan of the phrase a new phone rather than the removed one.
+    await removeGroupConnections(conn.relayUrl, conn.relayKey);
+    await resetRelayIdentity();
+    removedHandler?.();
+  }
   return { status: r.status, body: r.body, statusText: `relay ${r.status}` };
 }
 

@@ -4,202 +4,442 @@
     "ar": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "bg": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ca": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "cs": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "da": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "el": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "es": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "et": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "eu": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "fa": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "fi": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "fr": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "gl": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "he": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "hi": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "hr": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "hu": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "id": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "is": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "it": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ja": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ko": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "lt": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "lv": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ms": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "nl": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "no": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "pl": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "pt": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ro": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "ru": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "sk": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "sl": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "sr": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "sv": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "th": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "tr": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "uk": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "vi": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ],
     "zh": [
       "settings.device",
       "settings.deviceName",
-      "settings.deviceHint"
+      "settings.deviceHint",
+      "group.removedTitle",
+      "group.removedBody",
+      "group.removedLater",
+      "group.removedRescan",
+      "connections.default",
+      "connections.makeDefault"
     ]
   },
   "identicalNote": "Keys whose value in a catalogue is the English one because English is right in that language, checked one language at a time: brand names (PayPal, GitHub), values without words (https://…), and words the language shares with English or took over unchanged (Premium, Server, Online, Version, Storm, Accent). They are kept apart from \"locales\" because the two lists mean opposite things. A key listed there is waiting for a translation; a key listed here has had one, and the answer was to keep the English. check-untranslated.mjs holds both lists against the catalogues. If an entry here stops being identical, somebody chose a word of their own, and the entry has to go.",

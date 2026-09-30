@@ -306,4 +306,10 @@ export const id: Dict = {
   'settings.device': 'This device',
   'settings.deviceName': 'Device name',
   'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
+  'group.removedTitle': 'Removed from the group',
+  'group.removedBody': 'An instance took this device out of the group. Scan the phrase again to connect it.',
+  'group.removedLater': 'Later',
+  'group.removedRescan': 'Scan the phrase',
+  'connections.default': 'Default instance',
+  'connections.makeDefault': 'Make default',
 };
