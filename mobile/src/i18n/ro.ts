@@ -303,4 +303,7 @@ export const ro: Dict = {
   'failure.archiveFolderExists.next': 'Mută sau redenumește acel dosar, ori schimbă „Dacă există deja un fișier” în setările pentru arhive din interfața web, apoi dezarhivează din nou arhiva.',
   'failure.unsupportedPlayer.line': 'Pagina își redă videoclipul într-un player pe care niciun backend de aici nu îl poate citi.',
   'failure.unsupportedPlayer.next': 'Dacă poți găsi adresa proprie a videoclipului, lipește-o pe aceea în loc.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

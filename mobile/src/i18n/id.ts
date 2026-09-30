@@ -303,4 +303,7 @@ export const id: Dict = {
   'failure.archiveFolderExists.next': 'Pindahkan atau ganti nama folder itu, atau ubah “Jika berkas sudah ada” di pengaturan Arsip pada antarmuka web, lalu ekstrak lagi.',
   'failure.unsupportedPlayer.line': 'Halaman ini memutar videonya di pemutar yang tidak bisa dibaca backend mana pun di sini.',
   'failure.unsupportedPlayer.next': 'Kalau kamu bisa menemukan alamat video itu sendiri, tempelkan itu sebagai gantinya.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

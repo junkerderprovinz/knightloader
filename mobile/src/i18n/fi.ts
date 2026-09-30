@@ -303,4 +303,7 @@ export const fi: Dict = {
   'failure.archiveFolderExists.next': 'Siirrä kansio tai nimeä se uudelleen, tai muuta kohtaa ”Jos tiedosto on jo siellä” verkkokäyttöliittymän arkistoasetuksissa, ja pura arkisto sitten uudelleen.',
   'failure.unsupportedPlayer.line': 'Sivu toistaa videonsa soittimessa, jota mikään taustaosa täällä ei osaa lukea.',
   'failure.unsupportedPlayer.next': 'Jos löydät videon oman osoitteen, liitä se tilalle.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

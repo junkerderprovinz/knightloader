@@ -303,4 +303,7 @@ export const da: Dict = {
   'failure.archiveFolderExists.next': 'Flyt eller omdøb den mappe, eller ændr „Hvis en fil allerede er der“ i webgrænsefladens arkivindstillinger, og pak så arkivet ud igen.',
   'failure.unsupportedPlayer.line': 'Siden afspiller sin video i en afspiller, som ingen backend her kan læse.',
   'failure.unsupportedPlayer.next': 'Kan du finde videoens egen adresse, så indsæt den i stedet.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -303,4 +303,7 @@ export const et: Dict = {
   'failure.archiveFolderExists.next': 'Teisalda see kaust või nimeta see ümber, või muuda veebiliidese arhiiviseadetes valikut „Kui fail on juba olemas“, ja paki siis arhiiv uuesti lahti.',
   'failure.unsupportedPlayer.line': 'Leht esitab oma videot mängijas, mida ükski siinne taustsüsteem lugeda ei oska.',
   'failure.unsupportedPlayer.next': 'Kui leiad video enda aadressi, kleebi hoopis see.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -303,4 +303,7 @@ export const pt: Dict = {
   'failure.archiveFolderExists.next': 'Move ou muda o nome dessa pasta, ou altera «Se já lá estiver um ficheiro» nas definições de Arquivos da interface web, e depois extrai o arquivo de novo.',
   'failure.unsupportedPlayer.line': 'A página reproduz o seu vídeo num leitor que nenhum backend daqui consegue ler.',
   'failure.unsupportedPlayer.next': 'Se encontrares o endereço próprio do vídeo, cola esse em vez disto.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

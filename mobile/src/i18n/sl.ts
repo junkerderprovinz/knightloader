@@ -303,4 +303,7 @@ export const sl: Dict = {
   'failure.archiveFolderExists.next': 'Premakni ali preimenuj to mapo ali v nastavitvah arhivov v spletnem vmesniku spremeni »Če je datoteka že tam«, nato arhiv znova razpakiraj.',
   'failure.unsupportedPlayer.line': 'Stran predvaja video v predvajalniku, ki ga nobeno zaledje tukaj ne zna prebrati.',
   'failure.unsupportedPlayer.next': 'Če najdeš lastni naslov videa, prilepi raje tega.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

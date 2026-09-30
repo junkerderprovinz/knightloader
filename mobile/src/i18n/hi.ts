@@ -303,4 +303,7 @@ export const hi: Dict = {
   'failure.archiveFolderExists.next': 'उस फ़ोल्डर को कहीं और ले जाएँ या उसका नाम बदलें, या वेब यूज़र इंटरफ़ेस की आर्काइव सेटिंग्स में “अगर वहाँ पहले से फ़ाइल हो” बदलें, फिर आर्काइव दोबारा निकालें।',
   'failure.unsupportedPlayer.line': 'पेज अपना वीडियो ऐसे प्लेयर में चलाता है जिसे यहाँ का कोई बैकएंड नहीं पढ़ सकता।',
   'failure.unsupportedPlayer.next': 'अगर आपको वीडियो का अपना पता मिल जाए, तो उसके बजाय वही चिपकाएँ।',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

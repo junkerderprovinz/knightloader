@@ -303,4 +303,7 @@ export const bg: Dict = {
   'failure.archiveFolderExists.next': 'Премести или преименувай тази папка или промени „Ако вече има такъв файл“ в настройките за архиви на уеб интерфейса, после разархивирай отново.',
   'failure.unsupportedPlayer.line': 'Страницата пуска видеото си в плеър, който никой бекенд тук не може да прочете.',
   'failure.unsupportedPlayer.next': 'Ако намериш собствения адрес на видеото, постави него вместо този.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

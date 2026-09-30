@@ -303,4 +303,7 @@ export const el: Dict = {
   'failure.archiveFolderExists.next': 'Μετακίνησε ή μετονόμασε εκείνον τον φάκελο, ή άλλαξε το «Αν υπάρχει ήδη αρχείο» στις ρυθμίσεις συμπιεσμένων αρχείων της διεπαφής web, και μετά αποσυμπίεσέ το ξανά.',
   'failure.unsupportedPlayer.line': 'Η σελίδα παίζει το βίντεό της σε έναν player που κανένα backend εδώ δεν μπορεί να διαβάσει.',
   'failure.unsupportedPlayer.next': 'Αν βρεις την ίδια τη διεύθυνση του βίντεο, επικόλλησε αυτή στη θέση του.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -7,6 +7,7 @@ import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
+import { chosenDeviceName, modelName, setDeviceName } from '../api/deviceName';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useConfirm, useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
@@ -47,7 +48,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CoffeeDonate } from '../components/CoffeeDonate';
 import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
-import { Text } from '../components/Text';
+import { Text, TextInput } from '../components/Text';
 import { MovingScroll } from '../components/Moving';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
@@ -154,6 +155,8 @@ export default function SettingsScreen({
   const systemInCharge = motionReduced && motion !== 'storm';
   const [override, setOverride] = useState<string | null>(null);
   const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
+  const following = !anyOverride;
+  const [nameDraft, setNameDraft] = useState(chosenDeviceName);
 
   /**
    * The hidden fourth motion level (GlimStone 1.17.0; theme/motion.ts's
@@ -336,6 +339,21 @@ export default function SettingsScreen({
         </TouchableOpacity>
       </NotchCard>
 
+      {/* hue={4} is the free position; the cards below keep their colours. */}
+      <NotchCard title={t('settings.device')} hue={4} info={t('settings.deviceHint')}>
+        <TextInput
+          style={[styles.input, { backgroundColor: c.surface2, color: c.text, ...corners.control }]}
+          value={nameDraft}
+          onChangeText={setNameDraft}
+          onEndEditing={() => void setDeviceName(nameDraft)}
+          placeholder={modelName()}
+          placeholderTextColor={c.textMuted}
+          accessibilityLabel={t('settings.deviceName')}
+          autoCorrect={false}
+          returnKeyType="done"
+        />
+      </NotchCard>
+
       <NotchCard title={t('settings.appearance')} hue={1}>
         {/* A switch rather than a link that appears once something is
             overridden: following the instance is a state, and a state gets the
@@ -362,244 +380,249 @@ export default function SettingsScreen({
           }
         />
 
-        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
-        <WellSelector
-          options={[
-            { value: 'light', label: t('settings.theme.light') },
-            { value: 'dark', label: t('settings.theme.dark') },
-          ]}
-          value={dark ? 'dark' : 'light'}
-          onPick={(v) => setTheme(v)}
-        />
-
-        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>
-        <WellSelector
-          options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
-            value: s,
-            label: t(SHAPE_LABELS[s]),
-          }))}
-          value={shape}
-          onPick={(v) => {
-            // Taps on a chosen square count toward the hidden shape.
-            const found = leafTap(leafTaps.current, v, shape);
-            if (found) setLeafFound(true);
-            setShape(found ?? v);
-          }}
-        />
-
-        {/* Label left, swatches right, one row, the shape the web interface's
-            Farben card takes and the shape every GlimRow on this page has. A
-            caption on its own line above a left-aligned row reads as a heading
-            over a group rather than as one setting with its answer beside it. */}
-        <View style={styles.axisRow}>
-          {/* Normal row text rather than the small axis caption: a label beside
-              its control is a row label, and every other row label on this page
-              is body text in the ordinary ink.
-
-              The other half of 1.16.0's answer below: dim it and say who is in
-              charge, or a row that goes pale reads as broken. The saying is an
-              (i) that exists exactly while the rainbow owns the colours
-              (GlimStone 1.9.0), with the web UI's own accentRainbowOwns, so the
-              same state reads the same way in a browser. It sits beside the
-              label and outside the dimmed circles: the one element that still
-              has something to say must not fade with the ones gone quiet. */}
-          <View style={styles.axisLabelGroup}>
-            <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
-            {rainbow.on && <InfoTip text={t('settings.accentRainbowOwns')} />}
-          </View>
-          {/* The row rainbow mode takes over, and the case GlimStone 1.16.0
-              answers: does the control still do anything?
-
-              The rainbow recolours only what is one member of a set, cards,
-              rows and the segments of a selector, because those are the things
-              that ask hueAt for a position. Anything that is the only one of
-              its kind reads `accent` straight: DownloadsScreen's floating
-              action button, SpeedGraph's curve, the Add screen and the QR
-              scanner's frame all still paint the picked colour while the mode
-              is on. The value is still doing work, so removing the row would
-              hide a setting that is in effect.
-
-              So it dims and stays pressable. Making it inert as well would take
-              away the ability to change the colour of the controls it still
-              paints without switching the whole mode off first. The dimming
-              carries the signal and the (i) beside the label carries the
-              reason. pointerEvents is also worse here than on the web: on
-              Android it takes the subtree out of TalkBack's reach along with
-              the finger's.
-
-              If the rainbow is ever made total, with every control taking its
-              colour from a position, this value stops acting and the absence
-              rule takes over.
-
-              The dimming sits on the circles and never on the row: opacity
-              composites the whole subtree in React Native as it does in CSS, so
-              on the row the label would fade with the swatches. */}
-          <View style={[styles.swatches, rainbow.on && styles.dimmed]}>
-            {ACCENTS.map((a, i) => {
-              // Each slot wears whatever it was last mixed to and keeps it. The
-              // live accent drawn over its nearest preset would let the row
-              // hold one mixed colour at a time. The remembered colour lives in
-              // the override layer, so it survives the app being closed as well
-              // as the next swatch being pressed.
-              const shown = accentCustoms[String(i)] ?? a.hex;
-              // Which slot is chosen is a stored fact rather than arithmetic on
-              // the colour. Nearest preset works only while every swatch holds
-              // a different colour: mix two of them to the same red and both
-              // match, so two swatches light up and a press on either opens the
-              // picker instead of choosing.
-              //
-              // The arithmetic stays as the fallback for a fresh install, where
-              // nobody has chosen anything yet.
-              const mine = accentSlotChosen !== undefined ? accentSlotChosen === i : i === accentSlot(accent);
-              return (
-                <Swatch
-                  key={a.hex}
-                  hex={shown}
-                  label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
-                  selected={mine}
-                  // One press chooses; a second press on the one already chosen
-                  // opens the picker on it. The pairing is what lets every
-                  // colour be editable without a ninth control beside the
-                  // eight, as in the extension's own row.
-                  onPress={() =>
-                    mine ? setPicking({ kind: 'accent', slot: i, hex: shown }) : chooseAccentSlot(i, shown)
-                  }
-                />
-              );
-            })}
-            {/* Always rendered rather than only once the accent has moved. A
-                control that is sometimes there is one nobody learns the
-                position of, and somebody checks whether a reset exists before
-                deciding to experiment. Same rule and same place as the
-                extension's own row. */}
-            <SwatchReset onPress={clearAccentCustoms} label={t('settings.accentReset')} />
-          </View>
-        </View>
-
-        {/* A switch rather than a read-only line. Only on and off are local:
-            the palette and the seed come from the instance either way, so two
-            clients never disagree about which colour a position is. hue={1}
-            puts this switch second in this card's set, after "follow the
-            instance".
-
-            No caption of its own, because the switch at the top of this card
-            already says whether the look is following the instance or set here,
-            and flipping this one flips that one.
-
-            The fifth quick turn-on unlocks disco and switches it on, so the
-            gesture ends on a palette that is already walking. */}
-        <GlimRow
-          label={t('settings.rainbow')}
-          control={
-            <GlimToggle
-              hue={1}
-              value={rainbow.on}
-              onChange={(on) => {
-                setRainbow(on);
-                if (discoTap(discoTaps.current, on, Date.now())) {
-                  setDisco(true);
-                  setDiscoFound(true);
-                }
-              }}
-            />
-          }
-        />
-
-        {/* Disco hangs off the rainbow, so it is absent while the rainbow is
-            off (GlimStone 1.10.0), and hidden until found. Its value is this
-            phone's own, like the motion level: following the instance leaves
-            it alone. */}
-        {rainbow.on && discoFound && (
-          <GlimRow
-            label={t('settings.disco')}
-            info={t('settings.discoGlideHint')}
-            control={<GlimToggle hue={2} value={disco} onChange={setDisco} />}
+        {/* Dimmed while the look follows the instance: the options show the
+            instance's look, and a press takes it over on this phone, which
+            flips the switch above off. */}
+        <View style={[styles.options, following && styles.dimmed]}>
+          <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
+          <WellSelector
+            options={[
+              { value: 'light', label: t('settings.theme.light') },
+              { value: 'dark', label: t('settings.theme.dark') },
+            ]}
+            value={dark ? 'dark' : 'light'}
+            onPick={(v) => setTheme(v)}
           />
-        )}
 
-        {/* The mode is on and there is no instance to write a palette to.
-            GlimStone 1.16.0's test: a grey state says something about the thing
-            the control touches (dim it), about a decision taken elsewhere on
-            the page (leave it out), or about the environment not permitting the
-            thing at all, and only that third case is left out and owes prose.
+          <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>
+          <WellSelector
+            options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
+              value: s,
+              label: t(SHAPE_LABELS[s]),
+            }))}
+            value={shape}
+            onPick={(v) => {
+              // Taps on a chosen square count toward the hidden shape.
+              const found = leafTap(leafTaps.current, v, shape);
+              if (found) setLeafFound(true);
+              setShape(found ?? v);
+            }}
+          />
 
-            This is the third. The palette lives on the instance and there is
-            none, so nothing a finger does here reaches anything. The eight
-            colours in force are still worth knowing, which is what the notice
-            says instead of a row that lies about being editable, under the
-            row's own name so it is plain which setting it stands for.
-
-            The mode's own switch stays: a mode whose switch disappears when it
-            cannot be configured is a mode nobody can turn back on. */}
-        {rainbow.on && !onSetPalette && (
-          <UnavailableNotice title={t('settings.rainbowPalette')} reason={t('settings.rainbowPaletteNoInstance')} />
-        )}
-
-        {/* The eight colours the mode hands out by position, shown only where a
-            press can land. They belong to the instance rather than to this
-            phone, and editing one writes it back (POST /api/appearance),
-            because colours are handed out by position and a palette kept
-            locally would make the same card teal in a browser and pink here.
-
-            Absent while the mode is off rather than dimmed (GlimStone 1.10.0):
-            a palette editor under a rainbow that is not running is eight
-            swatches nobody can open beside a reset nobody can press, with the
-            reason one row up, where nobody looks.
-
-            The accent row above does not go with it. That one stays pressable
-            while the rainbow is on, because it is still in force on everything
-            that owns no position. */}
-        {rainbow.on && onSetPalette && (
+          {/* Label left, swatches right, one row, the shape the web interface's
+              Farben card takes and the shape every GlimRow on this page has. A
+              caption on its own line above a left-aligned row reads as a heading
+              over a group rather than as one setting with its answer beside it. */}
           <View style={styles.axisRow}>
-            <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.rainbowPalette')}</Text>
-            {/* Nothing here is dimmed or inert: the row exists only in the
-                state where every swatch on it works. The container carries the
-                refusal shake, which belongs to the group rather than to one
-                swatch, since editing a position and resetting all eight are one
-                write of one object to one instance. */}
-            <Animated.View
-              style={[
-                styles.swatches,
-                paletteZitterStil,
-                { transform: [...paletteZitterStil.transform, ...paletteBestaetigtStil.transform] },
-              ]}
-            >
-              {rainbow.palette.map((hex, i) => (
-                <Swatch
-                  key={i}
-                  hex={hex}
-                  // Every position is editable and none is selected: all eight
-                  // are in force at once, so a press can only mean "change this
-                  // one".
-                  selected={false}
-                  label={t('settings.rainbowPalettePosition', { position: i + 1 })}
-                  onPress={() => setPicking({ kind: 'palette', index: i })}
-                />
-              ))}
-              {/* Back to the eight the language ships with. `null` is the reset
-                  the instance understands: it clears the stored list rather
-                  than writing the defaults as if somebody had chosen them. */}
-              <SwatchReset
-                onPress={() => {
-                  setPaletteError('');
-                  if (onSetPalette) {
-                    void onSetPalette(null).then(paletteBestaetigen, (e: unknown) => {
-                      setPaletteError(e instanceof Error ? e.message : String(e));
-                      paletteZittern();
-                    });
+            {/* Normal row text rather than the small axis caption: a label beside
+                its control is a row label, and every other row label on this page
+                is body text in the ordinary ink.
+
+                The other half of 1.16.0's answer below: dim it and say who is in
+                charge, or a row that goes pale reads as broken. The saying is an
+                (i) that exists exactly while the rainbow owns the colours
+                (GlimStone 1.9.0), with the web UI's own accentRainbowOwns, so the
+                same state reads the same way in a browser. It sits beside the
+                label and outside the dimmed circles: the one element that still
+                has something to say must not fade with the ones gone quiet. */}
+            <View style={styles.axisLabelGroup}>
+              <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
+              {rainbow.on && <InfoTip text={t('settings.accentRainbowOwns')} />}
+            </View>
+            {/* The row rainbow mode takes over, and the case GlimStone 1.16.0
+                answers: does the control still do anything?
+
+                The rainbow recolours only what is one member of a set, cards,
+                rows and the segments of a selector, because those are the things
+                that ask hueAt for a position. Anything that is the only one of
+                its kind reads `accent` straight: DownloadsScreen's floating
+                action button, SpeedGraph's curve, the Add screen and the QR
+                scanner's frame all still paint the picked colour while the mode
+                is on. The value is still doing work, so removing the row would
+                hide a setting that is in effect.
+
+                So it dims and stays pressable. Making it inert as well would take
+                away the ability to change the colour of the controls it still
+                paints without switching the whole mode off first. The dimming
+                carries the signal and the (i) beside the label carries the
+                reason. pointerEvents is also worse here than on the web: on
+                Android it takes the subtree out of TalkBack's reach along with
+                the finger's.
+
+                If the rainbow is ever made total, with every control taking its
+                colour from a position, this value stops acting and the absence
+                rule takes over.
+
+                The dimming sits on the circles and never on the row: opacity
+                composites the whole subtree in React Native as it does in CSS, so
+                on the row the label would fade with the swatches. */}
+            <View style={[styles.swatches, rainbow.on && styles.dimmed]}>
+              {ACCENTS.map((a, i) => {
+                // Each slot wears whatever it was last mixed to and keeps it. The
+                // live accent drawn over its nearest preset would let the row
+                // hold one mixed colour at a time. The remembered colour lives in
+                // the override layer, so it survives the app being closed as well
+                // as the next swatch being pressed.
+                const shown = accentCustoms[String(i)] ?? a.hex;
+                // Which slot is chosen is a stored fact rather than arithmetic on
+                // the colour. Nearest preset works only while every swatch holds
+                // a different colour: mix two of them to the same red and both
+                // match, so two swatches light up and a press on either opens the
+                // picker instead of choosing.
+                //
+                // The arithmetic stays as the fallback for a fresh install, where
+                // nobody has chosen anything yet.
+                const mine = accentSlotChosen !== undefined ? accentSlotChosen === i : i === accentSlot(accent);
+                return (
+                  <Swatch
+                    key={a.hex}
+                    hex={shown}
+                    label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+                    selected={mine}
+                    // One press chooses; a second press on the one already chosen
+                    // opens the picker on it. The pairing is what lets every
+                    // colour be editable without a ninth control beside the
+                    // eight, as in the extension's own row.
+                    onPress={() =>
+                      mine ? setPicking({ kind: 'accent', slot: i, hex: shown }) : chooseAccentSlot(i, shown)
+                    }
+                  />
+                );
+              })}
+              {/* Always rendered rather than only once the accent has moved. A
+                  control that is sometimes there is one nobody learns the
+                  position of, and somebody checks whether a reset exists before
+                  deciding to experiment. Same rule and same place as the
+                  extension's own row. */}
+              <SwatchReset onPress={clearAccentCustoms} label={t('settings.accentReset')} />
+            </View>
+          </View>
+
+          {/* A switch rather than a read-only line. Only on and off are local:
+              the palette and the seed come from the instance either way, so two
+              clients never disagree about which colour a position is. hue={1}
+              puts this switch second in this card's set, after "follow the
+              instance".
+
+              No caption of its own, because the switch at the top of this card
+              already says whether the look is following the instance or set here,
+              and flipping this one flips that one.
+
+              The fifth quick turn-on unlocks disco and switches it on, so the
+              gesture ends on a palette that is already walking. */}
+          <GlimRow
+            label={t('settings.rainbow')}
+            control={
+              <GlimToggle
+                hue={1}
+                value={rainbow.on}
+                onChange={(on) => {
+                  setRainbow(on);
+                  if (discoTap(discoTaps.current, on, Date.now())) {
+                    setDisco(true);
+                    setDiscoFound(true);
                   }
                 }}
-                label={t('settings.accentReset')}
               />
-            </Animated.View>
-          </View>
-        )}
-        {/* Goes with the row it belongs to: a failure message left standing
-            under a row that is no longer there explains a control nobody can
-            see. */}
-        {rainbow.on && onSetPalette && paletteError !== '' && (
-          <Text style={[styles.hint, { color: c.statusFailSolid }]}>{paletteError}</Text>
-        )}
+            }
+          />
+
+          {/* Disco hangs off the rainbow, so it is absent while the rainbow is
+              off (GlimStone 1.10.0), and hidden until found. Its value is this
+              phone's own, like the motion level: following the instance leaves
+              it alone. */}
+          {rainbow.on && discoFound && (
+            <GlimRow
+              label={t('settings.disco')}
+              info={t('settings.discoGlideHint')}
+              control={<GlimToggle hue={2} value={disco} onChange={setDisco} />}
+            />
+          )}
+
+          {/* The mode is on and there is no instance to write a palette to.
+              GlimStone 1.16.0's test: a grey state says something about the thing
+              the control touches (dim it), about a decision taken elsewhere on
+              the page (leave it out), or about the environment not permitting the
+              thing at all, and only that third case is left out and owes prose.
+
+              This is the third. The palette lives on the instance and there is
+              none, so nothing a finger does here reaches anything. The eight
+              colours in force are still worth knowing, which is what the notice
+              says instead of a row that lies about being editable, under the
+              row's own name so it is plain which setting it stands for.
+
+              The mode's own switch stays: a mode whose switch disappears when it
+              cannot be configured is a mode nobody can turn back on. */}
+          {rainbow.on && !onSetPalette && (
+            <UnavailableNotice title={t('settings.rainbowPalette')} reason={t('settings.rainbowPaletteNoInstance')} />
+          )}
+
+          {/* The eight colours the mode hands out by position, shown only where a
+              press can land. They belong to the instance rather than to this
+              phone, and editing one writes it back (POST /api/appearance),
+              because colours are handed out by position and a palette kept
+              locally would make the same card teal in a browser and pink here.
+
+              Absent while the mode is off rather than dimmed (GlimStone 1.10.0):
+              a palette editor under a rainbow that is not running is eight
+              swatches nobody can open beside a reset nobody can press, with the
+              reason one row up, where nobody looks.
+
+              The accent row above does not go with it. That one stays pressable
+              while the rainbow is on, because it is still in force on everything
+              that owns no position. */}
+          {rainbow.on && onSetPalette && (
+            <View style={styles.axisRow}>
+              <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.rainbowPalette')}</Text>
+              {/* Nothing here is dimmed or inert: the row exists only in the
+                  state where every swatch on it works. The container carries the
+                  refusal shake, which belongs to the group rather than to one
+                  swatch, since editing a position and resetting all eight are one
+                  write of one object to one instance. */}
+              <Animated.View
+                style={[
+                  styles.swatches,
+                  paletteZitterStil,
+                  { transform: [...paletteZitterStil.transform, ...paletteBestaetigtStil.transform] },
+                ]}
+              >
+                {rainbow.palette.map((hex, i) => (
+                  <Swatch
+                    key={i}
+                    hex={hex}
+                    // Every position is editable and none is selected: all eight
+                    // are in force at once, so a press can only mean "change this
+                    // one".
+                    selected={false}
+                    label={t('settings.rainbowPalettePosition', { position: i + 1 })}
+                    onPress={() => setPicking({ kind: 'palette', index: i })}
+                  />
+                ))}
+                {/* Back to the eight the language ships with. `null` is the reset
+                    the instance understands: it clears the stored list rather
+                    than writing the defaults as if somebody had chosen them. */}
+                <SwatchReset
+                  onPress={() => {
+                    setPaletteError('');
+                    if (onSetPalette) {
+                      void onSetPalette(null).then(paletteBestaetigen, (e: unknown) => {
+                        setPaletteError(e instanceof Error ? e.message : String(e));
+                        paletteZittern();
+                      });
+                    }
+                  }}
+                  label={t('settings.accentReset')}
+                />
+              </Animated.View>
+            </View>
+          )}
+          {/* Goes with the row it belongs to: a failure message left standing
+              under a row that is no longer there explains a control nobody can
+              see. */}
+          {rainbow.on && onSetPalette && paletteError !== '' && (
+            <Text style={[styles.hint, { color: c.statusFailSolid }]}>{paletteError}</Text>
+          )}
+        </View>
       </NotchCard>
 
       {/* Motion gets a card of its own rather than a fourth axis inside
@@ -645,54 +668,6 @@ export default function SettingsScreen({
             setMotion(gefunden ?? v);
           }}
         />
-      </NotchCard>
-
-      <NotchCard title={t('settings.problems')} hue={2} info={t('settings.problemsHint')}>
-        <View style={[styles.report, { backgroundColor: c.surface2, ...corners.control }]}>
-          <Text style={[styles.reportText, { color: c.textSub }]} selectable>
-            {report}
-          </Text>
-        </View>
-        {/* One button, and it copies. Share.share opens the system share sheet
-            and asks the person to pick a target app for a block of plain text
-            they are about to paste into a GitHub issue or a mail anyway; the
-            clipboard is that target. The extension has copied since it shipped,
-            so the three surfaces agree on the verb, the label and the glyph.
-
-            The About card below carries both routes to reporting, so a third
-            door here hard-wired to one of them would be a second answer to a
-            question that card answers. What this card is for is the report.
-
-            Paste, the clipboard glyph, rather than a pair of offset sheets:
-            this family already draws the clipboard for the relay screen's paste
-            button, and a near-identical mark for the opposite direction would
-            be two glyphs for one idea. */}
-        <View style={styles.buttonRow}>
-          <Animated.View style={kopiertStil}>
-            <GlimButton
-              hue={0}
-              label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
-              icon={(ink) => <Paste color={ink} />}
-              onPress={() => {
-                // Confirm only once the write has landed, so the label never
-                // claims a copy that did not happen.
-                void Clipboard.setStringAsync(report)
-                  .then(() => {
-                    setCopied(true);
-                    kopiertBestaetigen();
-                    if (copiedTimer.current) clearTimeout(copiedTimer.current);
-                    copiedTimer.current = setTimeout(() => setCopied(false), 2000);
-                  })
-                  // Swallowed, and the label stays as it was: the report sits
-                  // selectable in the box above this button, so a failed
-                  // clipboard write leaves the person where an error message
-                  // would have sent them. Left unhandled it would be a red
-                  // unhandled-rejection warning over the screen.
-                  .catch(() => undefined);
-              }}
-            />
-          </Animated.View>
-        </View>
       </NotchCard>
 
       {/* The other ways to run KnightLoader, as the web interface's Apps page
@@ -786,6 +761,54 @@ export default function SettingsScreen({
             onPress={() => Linking.openURL(APP_URLS.extension)}
           />
           <ReadmeButton brand="firefox" label="Firefox" soon={t('settings.appsSoon')} mark={() => <FirefoxMark />} />
+        </View>
+      </NotchCard>
+
+      <NotchCard title={t('settings.problems')} hue={2} info={t('settings.problemsHint')}>
+        <View style={[styles.report, { backgroundColor: c.surface2, ...corners.control }]}>
+          <Text style={[styles.reportText, { color: c.textSub }]} selectable>
+            {report}
+          </Text>
+        </View>
+        {/* One button, and it copies. Share.share opens the system share sheet
+            and asks the person to pick a target app for a block of plain text
+            they are about to paste into a GitHub issue or a mail anyway; the
+            clipboard is that target. The extension has copied since it shipped,
+            so the three surfaces agree on the verb, the label and the glyph.
+
+            The About card below carries both routes to reporting, so a third
+            door here hard-wired to one of them would be a second answer to a
+            question that card answers. What this card is for is the report.
+
+            Paste, the clipboard glyph, rather than a pair of offset sheets:
+            this family already draws the clipboard for the relay screen's paste
+            button, and a near-identical mark for the opposite direction would
+            be two glyphs for one idea. */}
+        <View style={styles.buttonRow}>
+          <Animated.View style={kopiertStil}>
+            <GlimButton
+              hue={0}
+              label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
+              icon={(ink) => <Paste color={ink} />}
+              onPress={() => {
+                // Confirm only once the write has landed, so the label never
+                // claims a copy that did not happen.
+                void Clipboard.setStringAsync(report)
+                  .then(() => {
+                    setCopied(true);
+                    kopiertBestaetigen();
+                    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                    copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+                  })
+                  // Swallowed, and the label stays as it was: the report sits
+                  // selectable in the box above this button, so a failed
+                  // clipboard write leaves the person where an error message
+                  // would have sent them. Left unhandled it would be a red
+                  // unhandled-rejection warning over the screen.
+                  .catch(() => undefined);
+              }}
+            />
+          </Animated.View>
         </View>
       </NotchCard>
 
@@ -1043,6 +1066,8 @@ const styles = StyleSheet.create({
   // job it was written for. It stands on a CONTROL GROUP and never on a row
   // that also carries a label, because opacity composites the subtree.
   dimmed: { opacity: 0.4 },
+  options: { gap: 4 },
+  input: { paddingHorizontal: 14, paddingVertical: 12, fontSize: TYPE.body },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },

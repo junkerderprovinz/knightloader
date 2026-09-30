@@ -303,4 +303,7 @@ export const th: Dict = {
   'failure.archiveFolderExists.next': 'ย้ายหรือเปลี่ยนชื่อโฟลเดอร์นั้น หรือเปลี่ยน “ถ้ามีไฟล์อยู่ก่อนแล้ว” ในการตั้งค่าไฟล์บีบอัดของเว็บอินเทอร์เฟซ แล้วแตกไฟล์บีบอัดอีกครั้ง',
   'failure.unsupportedPlayer.line': 'หน้านี้เล่นวิดีโอในตัวเล่นที่ไม่มีแบ็กเอนด์ใดที่นี่อ่านได้',
   'failure.unsupportedPlayer.next': 'ถ้าคุณหาที่อยู่ของตัววิดีโอเองเจอ ให้วางที่อยู่นั้นแทน',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -303,4 +303,7 @@ export const vi: Dict = {
   'failure.archiveFolderExists.next': 'Di chuyển hoặc đổi tên thư mục đó, hoặc đổi “Nếu đã có tệp ở đó” trong cài đặt tệp nén của giao diện web, rồi giải nén lại tệp nén.',
   'failure.unsupportedPlayer.line': 'Trang này phát video trong một trình phát mà không backend nào ở đây đọc được.',
   'failure.unsupportedPlayer.next': 'Nếu bạn tìm được địa chỉ riêng của video, hãy dán địa chỉ đó vào thay thế.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

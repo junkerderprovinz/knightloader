@@ -303,4 +303,7 @@ export const lv: Dict = {
   'failure.archiveFolderExists.next': 'Pārvieto vai pārdēvē šo mapi vai tīmekļa saskarnes arhīvu iestatījumos maini „Ja fails jau ir turpat“, tad izpako arhīvu vēlreiz.',
   'failure.unsupportedPlayer.line': 'Lapa atskaņo video atskaņotājā, ko neviena aizmugure šeit nespēj nolasīt.',
   'failure.unsupportedPlayer.next': 'Ja atrodi paša video adresi, ielīmē labāk to.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

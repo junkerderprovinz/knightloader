@@ -303,4 +303,7 @@ export const uk: Dict = {
   'failure.archiveFolderExists.next': 'Перемістіть або перейменуйте цю теку чи змініть «Якщо файл уже там» у налаштуваннях архівів у вебінтерфейсі, потім розпакуйте архів знову.',
   'failure.unsupportedPlayer.line': 'Сторінка відтворює відео у програвачі, який жоден бекенд тут не вміє прочитати.',
   'failure.unsupportedPlayer.next': 'Якщо ви знайдете власну адресу відео, вставте краще її.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

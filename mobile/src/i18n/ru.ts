@@ -303,4 +303,7 @@ export const ru: Dict = {
   'failure.archiveFolderExists.next': 'Переместите или переименуйте эту папку либо измените «Если файл уже есть» в настройках архивов веб-интерфейса, затем распакуйте снова.',
   'failure.unsupportedPlayer.line': 'Страница показывает видео в плеере, который не может прочитать ни один бэкенд здесь.',
   'failure.unsupportedPlayer.next': 'Если найдёте собственный адрес видео, вставьте вместо ссылки его.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -303,4 +303,7 @@ export const ar: Dict = {
   'failure.archiveFolderExists.next': 'انقل ذلك المجلد أو أعد تسميته، أو غيّر «إذا كان الملف موجودًا سلفًا» في إعدادات الأرشيفات في واجهة الويب، ثم فكّ ضغط الأرشيف من جديد.',
   'failure.unsupportedPlayer.line': 'تعرض الصفحة الفيديو في مشغّل لا تستطيع أي خلفية هنا قراءته.',
   'failure.unsupportedPlayer.next': 'إن وجدت عنوان الفيديو نفسه، فألصقه بدلًا من ذلك.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

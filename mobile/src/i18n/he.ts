@@ -303,4 +303,7 @@ export const he: Dict = {
   'failure.archiveFolderExists.next': 'העבר את התיקייה הזו או שנה את שמה, או שנה את „אם כבר יש שם קובץ” בהגדרות הארכיונים של ממשק האינטרנט, ואז חלץ את הארכיון שוב.',
   'failure.unsupportedPlayer.line': 'הדף מנגן את הווידאו שלו בנגן שאף מנוע כאן לא יודע לקרוא.',
   'failure.unsupportedPlayer.next': 'אם אתה מוצא את הכתובת של הווידאו עצמו, הדבק אותה במקום.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };

@@ -303,4 +303,7 @@ export const eu: Dict = {
   'failure.archiveFolderExists.next': 'Mugitu karpeta hori edo aldatu haren izena, edo aldatu «Fitxategia jada badago» web-interfazeko Artxiboak ezarpenetan, eta gero erauzi artxiboa berriro.',
   'failure.unsupportedPlayer.line': 'Orriak hemengo backend batek ere irakurri ezin duen erreproduzigailu batean erreproduzitzen du bere bideoa.',
   'failure.unsupportedPlayer.next': 'Bideoaren helbide propioa aurkitzen baduzu, itsatsi hori horren ordez.',
+  'settings.device': 'This device',
+  'settings.deviceName': 'Device name',
+  'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
 };
