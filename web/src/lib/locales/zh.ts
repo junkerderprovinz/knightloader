@@ -3254,4 +3254,5 @@ export const zh: Dict = {
   'rename.packageHint': '如果下载文件夹是按包命名的，它会连同里面已有的文件一起改用新名字，仍在进行的下载也会在那里继续。按包命名的、存放解压文件的文件夹也会跟着移动。名字不是路径，所以不能用 / 和 \\。',
   'rename.busy': '这个包有一部分正在解压、移入它的文件夹，或正在从直播流录制。等这些完成后再试一次。',
   'rename.notMoved': '文件夹“{name}”无法重命名，所以什么都没有改变。可能有别的程序打开了其中的某个文件。关闭那个文件后再试一次。',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

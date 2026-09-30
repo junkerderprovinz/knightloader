@@ -3252,4 +3252,5 @@ export const it: Dict = {
   'rename.packageHint': 'Se la cartella di download ha il nome del pacchetto, prende il nuovo nome insieme ai file che contiene già, e i download ancora in corso proseguono lì. Anche una cartella di file estratti con il nome del pacchetto si sposta. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
   'rename.busy': 'Una parte di questo pacchetto è in estrazione, in spostamento nella sua cartella o in registrazione da un livestream. Riprova quando avrà finito.',
   'rename.notMoved': 'Non è stato possibile rinominare la cartella «{name}», quindi non è cambiato nulla. Forse un altro programma ha aperto un file al suo interno. Chiudi quel file e riprova.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

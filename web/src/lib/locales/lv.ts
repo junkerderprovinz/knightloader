@@ -3258,4 +3258,5 @@ export const lv: Dict = {
   'rename.packageHint': 'Ja lejupielāžu mape nosaukta pakotnes vārdā, tā saņem jauno nosaukumu kopā ar failiem, kas tajā jau ir, un vēl notiekošās lejupielādes turpinās tur. Arī pakotnes vārdā nosaukta izpakoto failu mape tiek pārvietota līdzi. Nosaukums nav ceļš, tāpēc / un \\ nav atļauti.',
   'rename.busy': 'Daļa šīs pakotnes pašlaik tiek izpakota, pārvietota uz savu mapi vai ierakstīta no tiešraides. Mēģini vēlreiz, kad tas būs beidzies.',
   'rename.notMoved': 'Mapi „{name}“ neizdevās pārdēvēt, tāpēc nekas nemainījās. Iespējams, cita programma tajā tur atvērtu failu. Aizver šo failu un mēģini vēlreiz.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

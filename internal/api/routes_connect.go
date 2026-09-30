@@ -190,6 +190,16 @@ func registerConnect(reg *Registry, a *app.App) {
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase)})
 		})
 
+	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
+		"remove a phone's card from the Instances page - a phone that still knows the phrase is back on its next connection",
+		func(w http.ResponseWriter, r *http.Request) {
+			if err := a.Federation.ForgetApp(r.PathValue("id")); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 	reg.Add(http.MethodDelete, "/api/connect",
 		"leave the group: forget this instance's connection secret and stop dialling the relay",
 		func(w http.ResponseWriter, r *http.Request) {

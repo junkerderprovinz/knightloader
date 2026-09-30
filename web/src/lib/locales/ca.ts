@@ -3254,4 +3254,5 @@ export const ca: Dict = {
   'rename.packageHint': 'Si la carpeta de baixades porta el nom del paquet, pren el nom nou juntament amb els fitxers que ja hi ha, i les baixades en curs hi continuen. Una carpeta de fitxers extrets que porti el nom del paquet també es mou. Un nom no és un camí, així que / i \\ no s’admeten.',
   'rename.busy': 'Una part d’aquest paquet s’està extraient, movent a la seva carpeta o gravant d’una emissió en directe. Torna-ho a provar quan hagi acabat.',
   'rename.notMoved': 'No s’ha pogut canviar el nom de la carpeta «{name}», així que no ha canviat res. Potser un altre programa hi té un fitxer obert. Tanca aquest fitxer i torna-ho a provar.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

@@ -3268,4 +3268,5 @@ export const ja: Dict = {
   'rename.packageHint': '保存先フォルダーがパッケージ名になっている場合、そのフォルダーは中にあるファイルごと新しい名前になり、実行中のダウンロードもそこで続きます。パッケージ名の付いた、展開済みファイルのフォルダーも一緒に移動します。名前はパスではないので、/ と \\ は使えません。',
   'rename.busy': 'このパッケージの一部が展開中、フォルダーへの移動中、またはライブ配信からの録画中です。それが終わってから、もう一度試してください。',
   'rename.notMoved': 'フォルダー「{name}」の名前を変更できなかったため、何も変わっていません。別のプログラムがその中のファイルを開いている可能性があります。そのファイルを閉じて、もう一度試してください。',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

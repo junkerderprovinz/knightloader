@@ -152,6 +152,7 @@ export const de: Dict = {
   'instances.metricTasks': 'Aufgaben',
   'instances.metricSpeed': 'Tempo',
   'instances.removeTitle': '{name} entfernen',
+  'instances.removeAppHint': 'Nur die Karte verschwindet. Kennt das Handy die zwölf Wörter noch, ist es beim nächsten Verbinden wieder da.',
   'instances.moduleOff': 'Instanzen ist auf der Seite Module ausgeschaltet, deshalb zeigt diese Instanz die anderen nicht an und nimmt keinen Kontakt zu ihnen auf.',
   'instances.pairLead': 'Verbinde deine Instanzen und die Android-App mit einer 12-Wörter-Phrase, dann zeigt und steuert jede die anderen.',
   'instances.lastSeen': 'Zuletzt gesehen {time}',

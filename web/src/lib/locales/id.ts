@@ -3268,4 +3268,5 @@ export const id: Dict = {
   'rename.packageHint': 'Jika folder unduhan dinamai sesuai paket, folder itu ikut mendapat nama baru beserta berkas yang sudah ada di dalamnya, dan unduhan yang masih berjalan dilanjutkan di sana. Folder berisi berkas hasil ekstrak yang dinamai sesuai paket juga ikut pindah. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',
   'rename.busy': 'Sebagian paket ini sedang diekstrak, dipindahkan ke foldernya, atau direkam dari livestream. Coba lagi setelah itu selesai.',
   'rename.notMoved': 'Folder “{name}” tidak bisa diganti namanya, jadi tidak ada yang berubah. Mungkin program lain sedang membuka berkas di dalamnya. Tutup berkas itu dan coba lagi.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

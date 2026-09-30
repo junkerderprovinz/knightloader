@@ -130,3 +130,34 @@ func TestAPhoneThatWentAwayKeepsItsCard(t *testing.T) {
 		t.Fatalf("apps after leaving = %+v, want none", apps)
 	}
 }
+
+func TestAForgottenPhoneLosesItsCardUntilItComesBack(t *testing.T) {
+	m := newManager(t)
+	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
+	if err := m.SetJoined(joined); err != nil {
+		t.Fatal(err)
+	}
+	phone := relay.Announce{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}
+	rt := &fakeRelay{sibs: []relay.Announce{phone}}
+	m.SetRelay(rt)
+	seen := joined.Add(time.Minute)
+	if _, err := m.Apps(seen); err != nil {
+		t.Fatal(err)
+	}
+
+	rt.sibs = nil
+	if err := m.ForgetApp("phone-1"); err != nil {
+		t.Fatal(err)
+	}
+	if apps, _ := m.Apps(seen.Add(time.Hour)); len(apps) != 0 {
+		t.Fatalf("apps after forgetting = %+v, want none", apps)
+	}
+	if err := m.ForgetApp("phone-unknown"); err != nil {
+		t.Fatalf("forgetting a phone never seen: %v", err)
+	}
+
+	rt.sibs = []relay.Announce{phone}
+	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || !apps[0].Connected {
+		t.Fatalf("apps after the phone came back = %+v, want its card again", apps)
+	}
+}

@@ -3257,4 +3257,5 @@ export const pt: Dict = {
   'rename.packageHint': 'Se a pasta de transferências tiver o nome do pacote, recebe o novo nome juntamente com os ficheiros que já lá estão, e as transferências ainda em curso continuam lá. Uma pasta de ficheiros extraídos com o nome do pacote também muda de sítio. Um nome não é um caminho, por isso / e \\ não são permitidos.',
   'rename.busy': 'Parte deste pacote está a ser extraída, movida para a sua pasta ou gravada a partir de um livestream. Tenta outra vez quando isso terminar.',
   'rename.notMoved': 'Não foi possível mudar o nome da pasta «{name}», por isso nada mudou. Talvez outro programa tenha um ficheiro aberto dentro dela. Fecha esse ficheiro e tenta outra vez.',
+  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
 };

@@ -146,6 +146,18 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	return out, err
 }
 
+// ForgetApp drops the card of phone id. A phone that still knows the phrase
+// is back on its next connection; only a new phrase shuts it out.
+func (m *Manager) ForgetApp(id string) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if _, ok := m.group.state.Apps[id]; !ok {
+		return nil
+	}
+	delete(m.group.state.Apps, id)
+	return m.group.flushLocked()
+}
+
 // Group reports where this instance stands in its group. anyone is whether
 // another instance or a phone is there at now, and the first time one is,
 // is kept as MemberSeenAt.
