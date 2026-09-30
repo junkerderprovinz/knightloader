@@ -10,6 +10,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
+import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
 import {
@@ -186,14 +187,20 @@ export default function DownloadsScreen({
           {/* Filled while this is the default, so the badge says what the
               instance is and a press on it changes nothing. */}
           {!peer && onMakeDefault && (
-            <IconBadge
-              symbol={isDefault ? '★' : '☆'}
-              accent={isDefault}
+            <Tip
+              text={t('connections.default')}
+              label={isDefault ? undefined : t('connections.makeDefault')}
               onPress={() => {
                 if (!isDefault) onMakeDefault();
               }}
-              accessibilityLabel={isDefault ? t('connections.default') : t('connections.makeDefault')}
-            />
+            >
+              <IconBadge
+                symbol={isDefault ? '★' : '☆'}
+                accent={isDefault}
+                onPress={() => {}}
+                accessibilityLabel=""
+              />
+            </Tip>
           )}
           {!peer && onRemoveConnection && (
             <IconBadge

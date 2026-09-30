@@ -524,6 +524,7 @@ const styles = StyleSheet.create({
   // the thing inside it cannot change independently.
   symbol: { fontWeight: '700' },
   fill: { width: '100%', height: '100%' },
+  mailClosed: { top: '-8.5%' },
   // A size of its own although the insets would give one: a bundled image
   // brings its pixel size as a default, and that wins over the insets.
   layer: { position: 'absolute', top: 0, start: 0, width: '100%', height: '100%' },
@@ -588,7 +589,9 @@ export function MailMark({ open, color }: { open: boolean; color: string }) {
     <Tinted
       source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
       color={color}
-      style={styles.fill}
+      // The closed envelope leaves the flap's room above it empty (21 of 124
+      // rows), so it is lifted by half of that to sit centred like the others.
+      style={open ? styles.fill : [styles.fill, styles.mailClosed]}
     />
   );
 }

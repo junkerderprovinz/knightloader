@@ -362,8 +362,10 @@ export default function ConnectionsScreen({
                         nothing to somebody who cannot tell the green from the
                         red. The word carries the meaning and the colour carries
                         the urgency. */}
-                    {item.id === defaultId && <DefaultBadge />}
-                    <StatusBadge status={s} />
+                    <View style={styles.rowBadges}>
+                      {item.id === defaultId && <DefaultBadge />}
+                      <StatusBadge status={s} />
+                    </View>
                   </View>
                   {/* What the instance is doing rather than where the connection
                       goes. The relay address is the same for every card in the
@@ -497,6 +499,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  rowBadges: { marginStart: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 },
   // File counts, bytes left and a speed, refreshed every five seconds down a
   // stacked list: both halves of the tabular-numerals rule.
   rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },
