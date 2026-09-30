@@ -95,6 +95,11 @@ interface Common {
    * height so a long list scrolls instead of shrinking to slivers.
    */
   fill?: boolean;
+  /**
+   * Vertical only: idle tabs take the sidebar's ground and its row hover, for
+   * a rail that reads as part of the navigation beside it.
+   */
+  sidebarGround?: boolean;
   /** How much of each tab is drawn; see lib/navLabels.ts. */
   display?: NavLabelMode;
   /**
@@ -122,6 +127,10 @@ const SIZE = {
   sm: 'gap-1.5 px-2.5 py-1 text-xs',
   md: 'gap-2 px-3 py-2 text-sm',
 } as const;
+
+// An idle tab on the sidebar's ground hovers as a sidebar row does, one step up
+// the ramp from that ground in both themes.
+const SIDEBAR_OFF = 'bg-carbon-sidebar text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
 
 // A well segment reads bigger than a chip at the same stage, so it has its own
 // padding; `sm` suits TaskProperties' smaller selectors.
@@ -215,6 +224,7 @@ export function Tabs(props: TabsProps) {
     orientation = 'horizontal',
     inline = false,
     fill = false,
+    sidebarGround = false,
     display: asked,
     labelled = false,
     folded,
@@ -485,7 +495,7 @@ export function Tabs(props: TabsProps) {
         // label on two lines does not make its tile taller than the rest.
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
-            `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
+            `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : sidebarGround ? SIDEBAR_OFF : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
