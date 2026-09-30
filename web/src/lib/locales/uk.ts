@@ -3268,5 +3268,9 @@ export const uk: Dict = {
   'rename.packageHint': 'Якщо теку завантажень названо за пакетом, вона отримує нове ім’я разом із файлами, які вже в ній лежать, а завантаження, що ще тривають, продовжуються там. Тека з розпакованими файлами, названа за пакетом, теж переміщується. Ім’я не є шляхом, тому / і \\ не дозволені.',
   'rename.busy': 'Частина цього пакета зараз розпаковується, переміщується до своєї теки або записується з прямої трансляції. Спробуйте ще раз, коли це завершиться.',
   'rename.notMoved': 'Теку «{name}» не вдалося перейменувати, тому нічого не змінилося. Можливо, інша програма тримає відкритим файл у ній. Закрийте цей файл і спробуйте ще раз.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

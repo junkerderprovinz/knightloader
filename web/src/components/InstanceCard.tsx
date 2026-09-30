@@ -3,15 +3,16 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Card, Button, IconBadge, LabelBadge } from './ui';
-import { IconContainer, IconDesktop, IconPhone, IconTrash } from '../lib/icons';
+import { Card, Button, LabelBadge } from './ui';
+import { IconBrowser, IconContainer, IconDesktop, IconPhone } from '../lib/icons';
 
 // What each kind of instance is drawn as, keyed by buildinfo.Deployment and by
-// "mobile", which the Android app announces itself as.
+// what the two clients announce themselves as, "mobile" and "extension".
 const KINDS: Record<string, { Glyph: typeof IconPhone; label: TranslationKey }> = {
   mobile: { Glyph: IconPhone, label: 'instances.kind.mobile' },
   desktop: { Glyph: IconDesktop, label: 'instances.kind.desktop' },
   container: { Glyph: IconContainer, label: 'instances.kind.container' },
+  extension: { Glyph: IconBrowser, label: 'instances.kind.extension' },
 };
 
 /**
@@ -133,7 +134,6 @@ export function InstanceCard({
   address,
   base,
   onOpen,
-  onRemove,
   hue,
   isSelf = false,
   deployment,
@@ -146,7 +146,6 @@ export function InstanceCard({
   address: string;
   base: string;
   onOpen?: () => void;
-  onRemove?: () => void;
   /** The card's palette position; .glim-hue colours the whole subtree. */
   hue?: number;
   /** Marks the card of the instance being viewed. */
@@ -185,17 +184,6 @@ export function InstanceCard({
                   tone={online ? 'ok' : refused ? undefined : 'fail'}
                   hue={refused ? 3 : undefined}
                 />
-                {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
-                {onRemove && (
-                  <IconBadge
-                    labelled
-                    hue={hue}
-                    icon={<IconTrash width={16} height={16} />}
-                    title={t('instances.removeTitle', { name })}
-                    aria-label={t('instances.removeTitle', { name })}
-                    onClick={onRemove}
-                  />
-                )}
               </span>
             </div>
 
@@ -222,23 +210,26 @@ export function InstanceCard({
   );
 }
 
-// AppCard shows a phone that joined the group with the phrase: the device
-// name, whether it is there now and when it last was. A phone serves no
-// downloads, so it has no figures and nothing to open.
+// AppCard shows a phone or browser extension that joined the group with the
+// phrase: its name, whether it is there now and when it last was. It serves no
+// downloads, so it has no figures; Open leads to the pairing list, where the
+// group's members are managed.
 export function AppCard({
   name,
+  deployment,
   connected,
   lastSeen,
   hue,
-  onRemove,
+  onOpen,
 }: {
   name: string;
+  /** "mobile" or "extension". */
+  deployment: string;
   connected: boolean;
   /** Unix seconds. */
   lastSeen: number;
   hue?: number;
-  /** Offered while the phone is away; a connected one would be back at once. */
-  onRemove?: () => void;
+  onOpen: () => void;
 }) {
   const { t } = useT();
   return (
@@ -249,22 +240,11 @@ export function AppCard({
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
             <span className="ms-auto flex items-center gap-2">
-              <KindBadge deployment="mobile" />
+              <KindBadge deployment={deployment} />
               <LabelBadge
                 label={connected ? t('instances.connected') : t('instances.notConnected')}
                 tone={connected ? 'ok' : 'fail'}
               />
-              {onRemove && !connected && (
-                <IconBadge
-                  labelled
-                  hue={hue}
-                  icon={<IconTrash width={16} height={16} />}
-                  title={t('instances.removeTitle', { name })}
-                  aria-label={t('instances.removeTitle', { name })}
-                  hint={t('instances.removeAppHint')}
-                  onClick={onRemove}
-                />
-              )}
             </span>
           </div>
           <div className="truncate text-xs text-carbon-textMuted">
@@ -272,6 +252,9 @@ export function AppCard({
           </div>
         </div>
       </div>
+      <Button kind="secondary" onClick={onOpen} className="mx-5 mb-5 justify-center">
+        {t('instances.open')}
+      </Button>
     </Card>
   );
 }

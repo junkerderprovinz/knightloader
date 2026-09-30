@@ -3264,5 +3264,9 @@ export const is: Dict = {
   'rename.packageHint': 'Ef niðurhalsmappan heitir eftir pakkanum fær hún nýja heitið ásamt skránum sem þegar eru í henni, og niðurhöl sem enn eru í gangi halda áfram þar. Mappa með afþjöppuðum skrám sem heitir eftir pakkanum flyst líka með. Heiti er ekki slóð, svo / og \\ eru ekki leyfð.',
   'rename.busy': 'Verið er að afþjappa hluta af þessum pakka, færa hann í möppuna sína eða taka hann upp úr beinni útsendingu. Reyndu aftur þegar því er lokið.',
   'rename.notMoved': 'Ekki tókst að endurnefna möppuna „{name}“, svo ekkert breyttist. Kannski er annað forrit með skrá í henni opna. Lokaðu þeirri skrá og reyndu aftur.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

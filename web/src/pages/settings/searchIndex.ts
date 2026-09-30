@@ -370,6 +370,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'pairing.enterLabelOther',
         'pairing.wordsLabel',
         'pairing.direct',
+        'pairing.byAddress',
         'pairing.viaRelay',
       ],
       // The sentence above the step cards and its (i), and the (i) of the two

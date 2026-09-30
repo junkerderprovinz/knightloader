@@ -95,7 +95,7 @@ func TestMembersAreTheInstancesOnTheRelay(t *testing.T) {
 	}
 }
 
-func TestAPhoneThatWentAwayKeepsItsCard(t *testing.T) {
+func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
 	if err := m.SetJoined(joined); err != nil {
@@ -113,14 +113,16 @@ func TestAPhoneThatWentAwayKeepsItsCard(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(apps) != 1 || apps[0].ID != "phone-1" || apps[0].Name != "Pixel 8" || !apps[0].Connected {
-		t.Fatalf("apps = %+v, want the phone connected and neither the browser nor the instance", apps)
+	// Connected ones first, then by name.
+	if len(apps) != 2 || apps[0].ID != "browser-1" || apps[0].Deployment != "extension" || !apps[0].Connected ||
+		apps[1].ID != "phone-1" || apps[1].Deployment != "mobile" || !apps[1].Connected {
+		t.Fatalf("apps = %+v, want the extension and the phone connected and not the instance", apps)
 	}
 
 	rt.sibs = rt.sibs[2:]
 	apps, _ = m.Apps(seen.Add(time.Hour))
-	if len(apps) != 1 || apps[0].Connected || !apps[0].LastSeen.Equal(seen) {
-		t.Fatalf("apps after the phone left = %+v, want it not connected, last seen %v", apps, seen)
+	if len(apps) != 2 || apps[0].Connected || apps[1].Connected || !apps[1].LastSeen.Equal(seen) {
+		t.Fatalf("apps after both left = %+v, want them not connected, last seen %v", apps, seen)
 	}
 
 	if err := m.SetJoined(time.Time{}); err != nil {
@@ -131,7 +133,7 @@ func TestAPhoneThatWentAwayKeepsItsCard(t *testing.T) {
 	}
 }
 
-func TestAForgottenPhoneLosesItsCardUntilItComesBack(t *testing.T) {
+func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
 	if err := m.SetJoined(joined); err != nil {
@@ -145,19 +147,26 @@ func TestAForgottenPhoneLosesItsCardUntilItComesBack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rt.sibs = nil
-	if err := m.ForgetApp("phone-1"); err != nil {
+	if err := m.RemoveApp("phone-1", seen); err != nil {
 		t.Fatal(err)
 	}
-	if apps, _ := m.Apps(seen.Add(time.Hour)); len(apps) != 0 {
-		t.Fatalf("apps after forgetting = %+v, want none", apps)
+	if !m.Removed("phone-1") {
+		t.Fatal("the removed phone is not listed as removed")
 	}
-	if err := m.ForgetApp("phone-unknown"); err != nil {
-		t.Fatalf("forgetting a phone never seen: %v", err)
+	if apps, _ := m.Apps(seen.Add(time.Hour)); len(apps) != 0 {
+		t.Fatalf("apps while the removed phone is still connected = %+v, want none", apps)
 	}
 
-	rt.sibs = []relay.Announce{phone}
-	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || !apps[0].Connected {
-		t.Fatalf("apps after the phone came back = %+v, want its card again", apps)
+	rescanned := relay.Announce{InstanceID: "phone-2", Name: "Pixel 8", Deployment: "mobile", Client: true}
+	rt.sibs = []relay.Announce{rescanned}
+	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || apps[0].ID != "phone-2" {
+		t.Fatalf("apps after scanning the phrase again = %+v, want the new id", apps)
+	}
+
+	if err := m.SetJoined(time.Time{}); err != nil {
+		t.Fatal(err)
+	}
+	if m.Removed("phone-1") {
+		t.Fatal("a new group still turns away a phone removed from the old one")
 	}
 }

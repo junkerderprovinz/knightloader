@@ -3278,5 +3278,9 @@ export const sk: Dict = {
   'rename.packageHint': 'Ak je priečinok na sťahovanie pomenovaný podľa balíka, dostane nový názov aj so súbormi, ktoré v ňom už sú, a sťahovania, ktoré ešte bežia, v ňom pokračujú. Priečinok s rozbalenými súbormi pomenovaný podľa balíka sa presunie tiež. Názov nie je cesta, takže / a \\ nie sú povolené.',
   'rename.busy': 'Časť tohto balíka sa práve rozbaľuje, presúva do svojho priečinka alebo nahráva z livestreamu. Skús to znova, keď to skončí.',
   'rename.notMoved': 'Priečinok „{name}“ sa nepodarilo premenovať, takže sa nič nezmenilo. Možno má v ňom iný program otvorený súbor. Zatvor ten súbor a skús to znova.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

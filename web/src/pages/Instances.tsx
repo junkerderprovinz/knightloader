@@ -16,8 +16,6 @@ import {
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
-  forgetApp,
-  removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
@@ -129,20 +127,6 @@ export function Instances() {
     }
   }
 
-  async function onRemove(n: string) {
-    await removeInstance(n);
-    load();
-  }
-
-  async function onForgetApp(id: string) {
-    try {
-      await forgetApp(id);
-    } catch (e: unknown) {
-      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
-    }
-    load();
-  }
-
   const openPairing = () => navigate('/settings/pairing');
   const apps = group?.apps ?? [];
   // Nothing to show but this instance: the page is the way into pairing.
@@ -212,9 +196,6 @@ export function Instances() {
                       ? () => openExternal(address)
                       : () => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)
                   }
-                  // A group member is built per request from the group's
-                  // connections and is not stored, so there is nothing to remove.
-                  onRemove={p.relayId ? undefined : () => onRemove(p.name)}
                   // The own card above is position 0.
                   hue={i + 1}
                 />
@@ -224,10 +205,11 @@ export function Instances() {
               <AppCard
                 key={a.id}
                 name={a.name || a.id}
+                deployment={a.deployment}
                 connected={a.connected}
                 lastSeen={a.lastSeen}
                 hue={(peers?.length ?? 0) + i + 1}
-                onRemove={() => void onForgetApp(a.id)}
+                onOpen={openPairing}
               />
             ))}
           </div>

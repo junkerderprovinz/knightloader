@@ -3257,5 +3257,9 @@ export const fa: Dict = {
   'rename.packageHint': 'اگر پوشه دانلود به نام بسته باشد، نام تازه را همراه با فایل‌هایی که از قبل در آن هستند می‌گیرد و دانلودهایی که هنوز در جریان‌اند همان‌جا ادامه می‌یابند. پوشه‌ای از فایل‌های استخراج‌شده که به نام بسته است هم جابه‌جا می‌شود. نام یک مسیر نیست، پس / و \\ مجاز نیستند.',
   'rename.busy': 'بخشی از این بسته در حال استخراج، انتقال به پوشه‌اش یا ضبط از یک پخش زنده است. وقتی تمام شد دوباره امتحان کن.',
   'rename.notMoved': 'تغییر نام پوشه «{name}» ممکن نشد، پس چیزی عوض نشد. شاید برنامهٔ دیگری فایلی از آن را باز نگه داشته باشد. آن فایل را ببند و دوباره امتحان کن.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

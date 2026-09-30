@@ -3267,5 +3267,9 @@ export const ar: Dict = {
   'rename.packageHint': 'إذا كان مجلد التنزيل يحمل اسم الحزمة، فإنه يأخذ الاسم الجديد مع الملفات الموجودة فيه، وتستمر التنزيلات الجارية فيه. وينتقل كذلك مجلد الملفات المفكوكة الذي يحمل اسم الحزمة. الاسم ليس مسارًا، لذا لا يُسمح بـ / و \\.',
   'rename.busy': 'جزء من هذه الحزمة قيد فك الضغط أو النقل إلى مجلده أو التسجيل من بث مباشر. حاول مرة أخرى بعد انتهاء ذلك.',
   'rename.notMoved': 'تعذّرت إعادة تسمية المجلد «{name}»، لذا لم يتغير شيء. ربما يفتح برنامج آخر ملفًا فيه. أغلق ذلك الملف وحاول مرة أخرى.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };

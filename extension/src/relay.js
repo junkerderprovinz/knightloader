@@ -113,9 +113,11 @@ function relayRequestId() {
 
 /**
  * relaySealCall seals one call as relay.SealCall does, stamped with its request
- * id and the time, which the target checks so a relay cannot send it again.
+ * id and the time, which the target checks so a relay cannot send it again, and
+ * with this browser's member id, so an instance can turn away a browser taken
+ * out of the group.
  */
-function relaySealCall(frameKey, requestId, target, method, path, body) {
+function relaySealCall(frameKey, requestId, target, method, path, body, from) {
   return relaySeal(
     frameKey,
     relayRequestAAD(requestId, target),
@@ -126,6 +128,7 @@ function relaySealCall(frameKey, requestId, target, method, path, body) {
         ...(body ? { body: relayToBase64(relayUtf8(body)) } : {}),
         id: requestId,
         sent: Math.floor(Date.now() / 1000),
+        ...(from ? { from } : {}),
       }),
     ),
   );
@@ -137,7 +140,7 @@ function relaySealCall(frameKey, requestId, target, method, path, body) {
  * `siblings` leaves out clients such as phones and browsers, which cannot take
  * a download.
  */
-async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
+async function relaySession({ url, key, frameKey, selfId, selfName, onRemoved }, work) {
   const socket = await new Promise((resolve, reject) => {
     let ws;
     try {
@@ -308,9 +311,11 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
         requestId,
         target,
         // The relay sees only the two routing fields, not what is asked.
-        sealed: await relaySealCall(frameKey, requestId, target, method, path, body),
+        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, selfId),
       });
-      return answer;
+      const res = await answer;
+      if (res.status === 410 && res.body === 'removed') await onRemoved?.();
+      return res;
     };
 
     return await work({

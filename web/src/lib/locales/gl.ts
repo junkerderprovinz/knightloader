@@ -3265,5 +3265,9 @@ export const gl: Dict = {
   'rename.packageHint': 'Se o cartafol de descargas leva o nome do paquete, colle o novo nome xunto cos ficheiros que xa contén, e as descargas en curso seguen alí. Un cartafol de ficheiros extraídos co nome do paquete tamén se move. Un nome non é unha ruta, así que / e \\ non se permiten.',
   'rename.busy': 'Parte deste paquete estase a extraer, a mover ao seu cartafol ou a gravar dunha emisión en directo. Téntao de novo cando remate.',
   'rename.notMoved': 'Non se puido cambiar o nome do cartafol «{name}», así que non cambiou nada. Pode que outro programa teña aberto un ficheiro del. Pecha ese ficheiro e téntao de novo.',
-  'instances.removeAppHint': 'Only the card goes. A phone that still knows the twelve words is back the next time it connects.',
+  'instances.kind.extension': 'Browser extension',
+  'instances.remove': 'Remove',
+  'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again at any time with the twelve words.',
+  'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
+  'pairing.byAddress': 'By address',
 };
