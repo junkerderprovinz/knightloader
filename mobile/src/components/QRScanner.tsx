@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import { qrFromJpeg } from './qrDecode';
+import { useCameraPermissions } from 'expo-camera';
+import { QrScannerView } from '../../modules/qr-scanner';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
@@ -10,108 +10,29 @@ import { GlimButton } from './glim';
 import { Cross } from './IconBadge';
 import { Text } from './Text';
 
-// The picture size chosen the first time the camera opened, so the next
-// opening starts on it instead of switching once the camera is up.
-let chosenSize: string | undefined;
-
 // A full-screen modal scanner rather than a screen of its own: a caller that
 // wants a QR code needs one decoded string back rather than a spot in the
 // navigation stack.
+//
+// The camera's own barcode scanner is Google's ML Kit, which is not free
+// software and keeps the app out of F-Droid. modules/qr-scanner reads the live
+// frames with ZXing instead.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
   const { c, accent, corners } = useAppearance();
   const { motion } = useMotion();
   const [permission, requestPermission] = useCameraPermissions();
-  const [locked, setLocked] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [size, setSize] = useState<string | undefined>(chosenSize);
-  const camera = useRef<CameraView>(null);
-  const report = useRef(onScanned);
-  report.current = onScanned;
-  // Set by Cancel, so a frame already being decoded is thrown away and the
-  // loop takes no further one.
-  const closing = useRef(false);
-
-  // The component stays mounted across opens and closes, rendering null, so
-  // `locked` from an earlier scan would still be true the next time it opens
-  // and every scan after the first would do nothing.
+  // The component stays mounted across opens and closes, rendering null, so a
+  // code reported once must not lock out the next opening.
+  const reported = useRef(false);
   useEffect(() => {
-    if (visible) {
-      closing.current = false;
-      setLocked(false);
-    } else setReady(false);
+    if (visible) reported.current = false;
   }, [visible]);
-
-  // The camera's own barcode scanner is Google's ML Kit, which is not free
-  // software and keeps the app out of F-Droid, so the frame is photographed
-  // small, several times a second, and decoded here.
-  useEffect(() => {
-    if (!visible || !ready || locked) return;
-    let stopped = false;
-    const snap = () =>
-      camera.current
-        ?.takePictureAsync({ base64: true, quality: 0.4, skipProcessing: true, shutterSound: false })
-        .then((shot) => shot?.base64 ?? null)
-        // A frame the camera could not take; the next one tries.
-        .catch(() => null) ?? Promise.resolve(null);
-    (async () => {
-      // The camera takes the next photo while this one is decoded: taking one
-      // costs the camera longer than reading it costs the phone.
-      let next = snap();
-      while (!stopped && !closing.current) {
-        const shot = await next;
-        next = snap();
-        let data: string | null = null;
-        try {
-          data = shot ? qrFromJpeg(shot) : null;
-        } catch {
-          // A photo that did not decode; the next one tries.
-        }
-        if (data && !stopped && !closing.current) {
-          setLocked(true);
-          report.current(data);
-          return;
-        }
-        // Lets a tap on Cancel in between two photos.
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-    })();
-    return () => {
-      stopped = true;
-    };
-  }, [visible, ready, locked]);
-
-  // A full-resolution photo takes seconds to decode in JavaScript, and every
-  // decode holds up the taps on this window. The smallest size with 480 lines
-  // still resolves a code in the frame at five pixels a module.
-  const onCameraReady = async () => {
-    if (chosenSize) {
-      setReady(true);
-      return;
-    }
-    try {
-      const sizes = (await camera.current?.getAvailablePictureSizesAsync()) ?? [];
-      const lines = (s: string) => Math.min(...s.split('x').map(Number));
-      const usable = sizes.filter((s) => lines(s) >= 480).sort((a, b) => lines(a) - lines(b));
-      if (usable[0]) {
-        chosenSize = usable[0];
-        setSize(usable[0]);
-      }
-    } catch {
-      // Without the list the camera keeps its default size, only slower.
-    }
-    setReady(true);
-  };
-
-  const cancel = () => {
-    closing.current = true;
-    onClose();
-  };
 
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={cancel}>
+    <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: c.bg }]}>
         {!permission ? (
           <View style={styles.center} />
@@ -122,13 +43,13 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
           </View>
         ) : (
           <>
-            <CameraView
-              ref={camera}
+            <QrScannerView
               style={StyleSheet.absoluteFill}
-              facing="back"
-              animateShutter={false}
-              pictureSize={size}
-              onCameraReady={onCameraReady}
+              onCode={({ nativeEvent }) => {
+                if (reported.current) return;
+                reported.current = true;
+                onScanned(nativeEvent.data);
+              }}
             />
             <View style={styles.overlay} pointerEvents="none">
               <View style={[styles.frame, { borderColor: accent, ...corners.card }]} />
@@ -141,7 +62,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
             than a pill in the corner. Quiet, because leaving is not what this
             window is for. */}
         <View style={styles.footer}>
-          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={cancel} />
+          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
         </View>
       </View>
     </Modal>

@@ -1,0 +1,21 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'design.halleluja.knightloader'
+version = '1.0.0'
+
+android {
+  namespace "design.halleluja.knightloader.qrscanner"
+}
+
+dependencies {
+  // The version expo-camera builds against, so both share one CameraX.
+  def camerax = "1.6.0"
+  implementation "androidx.camera:camera-core:${camerax}"
+  implementation "androidx.camera:camera-camera2:${camerax}"
+  implementation "androidx.camera:camera-lifecycle:${camerax}"
+  implementation "androidx.camera:camera-view:${camerax}"
+  implementation "com.google.zxing:core:3.5.3"
+}
