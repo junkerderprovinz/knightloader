@@ -21,6 +21,12 @@ export type ListRow =
       items: Task[];
       collapsed: boolean;
       divider: boolean;
+      /** The one torrent of a package that holds nothing else and bears its
+       *  name. The header then is that torrent's row, and its twisty opens
+       *  the torrent's files rather than a folder holding one folder. */
+      torrent?: Task;
+      /** The torrent's rainbow position, beside `torrent`. */
+      index?: number;
       level: 1;
       posinset: number;
       setsize: number;
@@ -44,7 +50,11 @@ export type ListRow =
       file: TorrentFileView;
       /** The torrent's hue position, so its files wear its colour. */
       index: number;
-      level: 3;
+      /** 2 under a package header that is its torrent, else 3. */
+      level: 2 | 3;
+      /** The package whose header is this file's torrent (see the package
+       *  row's `torrent`), which the file travels and sweeps with. */
+      under?: string;
       posinset: number;
       setsize: number;
     };
@@ -57,9 +67,6 @@ const VIRTUALIZE_ABOVE = 150;
 // Rows drawn beyond the viewport, so a single arrow step always lands on a
 // mounted row.
 const OVERSCAN = 12;
-
-// Used only for rows never measured; every drawn row keeps its measured height.
-const ROW_ESTIMATE = { package: 45, task: 37 };
 
 /** The first index whose row ends after y: the first row still on screen. */
 function firstAfter(offsets: Float64Array, y: number): number {
@@ -98,10 +105,23 @@ export interface RowWindow {
  *
  * Heights are measured and kept per row, since package headers and failed rows
  * differ, and an average would put the scrollbar off by thousands of pixels.
+ * `unmeasured` is the height of a row never measured, the row height setting's
+ * (ROW_ESTIMATES). A new setting drops every measurement, since each was taken
+ * at the old height.
  */
-export function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement | null>): RowWindow {
+export function useRowWindow(
+  rows: ListRow[],
+  stripRef: RefObject<HTMLDivElement | null>,
+  unmeasured: { package: number; task: number },
+): RowWindow {
   const heights = useRef(new Map<string, number>());
-  const estimate = useRef({ ...ROW_ESTIMATE });
+  const estimate = useRef({ ...unmeasured });
+  const measuredAt = useRef(unmeasured);
+  if (measuredAt.current !== unmeasured) {
+    measuredAt.current = unmeasured;
+    heights.current = new Map();
+    estimate.current = { ...unmeasured };
+  }
   // Bumped only when a measurement moved, which ends the measure-render loop.
   const [measured, setMeasured] = useState(0);
   // Seeded to the top of the strip so the first render is already windowed; a
@@ -137,7 +157,7 @@ export function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement
     return out;
     // `measured` signals changes to the heights and estimate refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, measured]);
+  }, [rows, measured, unmeasured]);
 
   // After every commit, since the strip can move without a scroll, for example
   // when the toolbar above it wraps.

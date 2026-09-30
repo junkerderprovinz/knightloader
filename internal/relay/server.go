@@ -37,7 +37,12 @@ const writeTimeout = 5 * time.Second
 // who it is, so a socket that goes quiet cannot hold a goroutine forever.
 const helloTimeout = 10 * time.Second
 
-// readLimit caps one inbound frame. The default 32 KiB is too small for a task
+// helloLimit caps what a connection may send before its hello is checked. A
+// hello is a key, an instance id and a short sealed identity, so a larger
+// first frame only costs the relay memory on behalf of nobody.
+const helloLimit = 4 << 10
+
+// readLimit caps one inbound frame once the hello has passed. The default 32 KiB is too small for a task
 // list from a busy instance; a few megabytes still keeps one client from
 // pinning unbounded memory.
 const readLimit = 8 << 20
@@ -500,7 +505,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	c.SetReadLimit(readLimit)
+	c.SetReadLimit(helloLimit)
 
 	hello, err := readHello(r.Context(), c)
 	if err != nil {
@@ -520,6 +525,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Close(websocket.StatusPolicyViolation, "too many instances are already connected with this relay key")
 		return
 	}
+	c.SetReadLimit(readLimit)
 	// Leave stops the writer, which closes the socket, so this is the whole
 	// teardown.
 	defer s.Leave(c)

@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // discovered is one instance seen on the network, as the Instances page wants
@@ -39,6 +40,7 @@ func registerDiscovery(reg *Registry, a *app.App) {
 	svc := startDiscovery(a)
 	if svc != nil {
 		a.SetDiscovery(svc)
+		a.Federation.SetDiscovery(svc)
 		// Rebuilt on a settings save, so renaming an instance reaches the
 		// network on the next announce rather than after a restart. Same shape
 		// as applyRelay in routes_settings.go.
@@ -98,27 +100,47 @@ func discoverySelf(a *app.App) discovery.Peer {
 	if name == "" {
 		name = a.Settings.Get().InstanceID
 	}
-	self := discovery.Peer{
+	return discovery.Peer{
 		ID:         a.Settings.Get().InstanceID,
 		Name:       name,
+		URL:        networkAddress(),
 		Deployment: buildinfo.Deployment,
+		Address:    groupAddress(a),
 	}
-	// ListensWidely and not just a port: an instance started with
-	// KL_ADDR=127.0.0.1:8749, the documented way to run behind a local reverse
-	// proxy, has a port that nothing outside the box can reach. The multicast
-	// socket is separate from that listener, so without this check it
-	// announces a LAN address it does not serve and every other instance
-	// offers an Add button for a peer that is always offline.
-	if buildinfo.Deployment != "desktop" && buildinfo.ListensWidely && buildinfo.ListenPort > 0 {
-		if ip := discovery.LocalIPv4(); ip != "" {
-			// http:// because that is what this process serves. An instance
-			// behind a proxy terminating TLS is reachable on its domain too,
-			// which is what KnownDomains carries; this announces the direct
-			// on-network address.
-			self.URL = "http://" + ip + ":" + strconv.Itoa(buildinfo.ListenPort) + buildinfo.BasePath
+}
+
+// networkAddress is where this instance answers on its network, or "" where
+// nothing outside the machine can reach it.
+//
+// ListensWidely and not just a port: an instance started with
+// KL_ADDR=127.0.0.1:8749, the documented way to run behind a local reverse
+// proxy, has a port that nothing outside the box can reach. The multicast
+// socket is separate from that listener, so without this check it would
+// announce a LAN address it does not serve and every other instance would
+// offer an Add button for a peer that is always offline.
+func networkAddress() string {
+	if buildinfo.Deployment == "desktop" || !buildinfo.ListensWidely || buildinfo.ListenPort <= 0 {
+		return ""
+	}
+	ip := discovery.LocalIPv4()
+	if ip == "" {
+		return ""
+	}
+	// http:// because that is what this process serves; a proxy terminating
+	// TLS in front of it is what KnownDomains records.
+	return "http://" + ip + ":" + strconv.Itoa(buildinfo.ListenPort) + buildinfo.BasePath
+}
+
+// groupAddress is the address this instance tells its group, which the
+// Instances page shows and opens: the first known domain, since that works
+// away from this network too, else its address on the network.
+func groupAddress(a *app.App) string {
+	for _, d := range a.Settings.Get().KnownDomains {
+		if d = relay.FitAddress(d); d != "" {
+			return d
 		}
 	}
-	return self
+	return networkAddress()
 }
 
 // startDiscovery builds the announce this instance sends, and starts listening

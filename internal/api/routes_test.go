@@ -118,6 +118,10 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +
 			"instance stores, and the route answers 404 while the switch is off, so an open route is " +
 			"not an open relay",
+		"POST /api/group/call": "a direct call from another member of the phrase group on the same " +
+			"network, which has no session here either. It is signed and sealed with keys derived " +
+			"from the phrase, refused when stale or replayed, answers 404 outside a group and reaches " +
+			"only what relayForwardable allows",
 	}
 	got := map[string]bool{}
 	for _, r := range buildRegistry(t).Routes() {

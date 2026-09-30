@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { type Instance, type Task, pause, resume, restartTasks, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useRowFit } from '../lib/rowFit';
 import { splitByCard, useListCards, type ListCard } from '../lib/listCards';
 import { useUIState } from '../lib/uistate';
@@ -116,6 +117,26 @@ export function Downloads() {
     finished: { folded: finishedFolded, onToggle: () => setFinishedFolded(!finishedFolded) },
     torrents: { folded: torrentsFolded, onToggle: () => setTorrentsFolded(!torrentsFolded) },
   };
+  // ?card=torrents, from the overview's torrent card: the Torrents card is
+  // opened and scrolled to once it is drawn, which after a page load is a
+  // moment later, when the list arrives. The parameter goes at once, so a
+  // reload or a fold later does not do it again.
+  const [params, setParams] = useSearchParams();
+  const torrentsRef = useRef<HTMLDivElement>(null);
+  const toTorrents = useRef(false);
+  useEffect(() => {
+    if (params.get('card') !== 'torrents') return;
+    toTorrents.current = true;
+    setTorrentsFolded(false);
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        next.delete('card');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [params, setParams, setTorrentsFolded]);
   // The same folded set the list card reads; folding is also a menu entry.
   const folds = useCollapsedPackages('downloads');
   const tasks = useTasks(instance);
@@ -150,6 +171,14 @@ export function Downloads() {
         }),
     [all],
   );
+
+  // The scroll the overview asked for, once the list is there. Without a
+  // finished torrent there is no Torrents card, and the page stays at the top.
+  useEffect(() => {
+    if (!toTorrents.current || list.length === 0) return;
+    toTorrents.current = false;
+    torrentsRef.current?.scrollIntoView({ block: 'start' });
+  });
 
   // Split before the search and the quick filters narrow it, because a
   // package's card follows all of its links. The narrowing then applies to all
@@ -356,10 +385,12 @@ export function Downloads() {
   const causes = useErrorCauses(list);
 
   // What the action row holds, so it measures itself again when that changes.
-  const labels = useNavLabels();
+  const buttonLabels = useLabelMode('buttons');
+  const tabLabels = useLabelMode('tabs');
   const { views } = useSavedViews('downloads', DOWNLOAD_FILTERS);
   const rowContent = [
-    labels,
+    buttonLabels,
+    tabLabels,
     t('downloads.retryFailed'),
     selected.size,
     narrowed ? `${filtered.length}/${list.length}` : '',
@@ -718,6 +749,7 @@ export function Downloads() {
                 shown[card].length > 0 && (
                   <div
                     key={card}
+                    ref={card === 'torrents' ? torrentsRef : undefined}
                     className={`flex min-h-0 flex-initial flex-col overflow-y-auto pt-[calc(var(--btn-h)/2_+_4px)] ${groups.length > 0 ? 'max-h-[35vh]' : ''} ${cardFold[card].folded ? 'shrink-0' : ''}`}
                     onContextMenu={(e) => onContextMenu(e, card)}
                   >

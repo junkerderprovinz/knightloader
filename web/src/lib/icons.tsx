@@ -132,6 +132,51 @@ export const IconInstances = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A phone, for the Android app in a group. */
+/** A monitor on its foot, for an instance that is the desktop app. */
+export const IconDesktop = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M3.5 2.5A1.5 1.5 0 0 0 2 4v8.5A1.5 1.5 0 0 0 3.5 14h5v1.5H6v2h8v-2h-2.5V14h5a1.5 1.5 0 0 0 1.5-1.5V4a1.5 1.5 0 0 0-1.5-1.5h-13ZM4 4.5h12V12H4V4.5Z"
+    />
+  </svg>
+);
+
+/** A shipping container, for an instance that runs as the container image. */
+export const IconContainer = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M2.5 4.5A1.5 1.5 0 0 1 4 3h12a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 16 17H4a1.5 1.5 0 0 1-1.5-1.5v-11ZM5 5.5v9h1.5v-9H5Zm3 0v9h1.5v-9H8Zm3 0v9h1.5v-9H11Zm3 0v9h1v-9h-1Z"
+    />
+  </svg>
+);
+
+export const IconPhone = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M7 1.5A2 2 0 0 0 5 3.5v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-13a2 2 0 0 0-2-2H7Zm0 2.5h6v10.5H7V4Zm3 11.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Z"
+    />
+  </svg>
+);
+
+/** Two chain links, for pairing instances into one group. */
+export const IconLink = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M6 6h4.5a4 4 0 0 1 0 8H9v-2h1.5a2 2 0 0 0 0-4H6a2 2 0 0 0 0 4h.2v2H6a4 4 0 0 1 0-8Z"
+    />
+    <path
+      fillRule="evenodd"
+      d="M14 14H9.5a4 4 0 0 1 0-8H11v2H9.5a2 2 0 0 0 0 4H14a2 2 0 0 0 0-4h-.2V6h.2a4 4 0 0 1 0 8Z"
+      opacity=".7"
+    />
+  </svg>
+);
+
 export const IconAccounts = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <circle cx="10" cy="6.5" r="3.2" />

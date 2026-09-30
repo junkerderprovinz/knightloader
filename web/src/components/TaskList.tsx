@@ -49,6 +49,7 @@ import {
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
+import { ROW_ESTIMATES, ROW_METRICS, useRowHeight } from '../lib/rowHeight';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import {
@@ -114,7 +115,7 @@ import { rowState } from './StatusPill';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import { useListKeyboard } from './listKeyboard';
 import { fileRowKey, rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
-import { TorrentFileRow, hasTorrentFiles, useTorrentFiles } from './TorrentFileRow';
+import { TorrentFileRow, hasTorrentFiles, loneTorrent, useTorrentFiles } from './TorrentFileRow';
 import {
   aimAt,
   carriedOffsets,
@@ -203,8 +204,15 @@ function inOrder(groups: [string, Task[]][], order: readonly string[]): [string,
 /** The row key a drawn row moves under: its own, or for a torrent's file its
  *  torrent's, whose place it keeps during a move. */
 function dragKeyOf(node: HTMLElement): string {
+  const under = node.dataset.fileUnder;
+  if (under !== undefined) return rowKey({ kind: 'package', name: under });
   const of = node.dataset.fileOf;
   return of !== undefined ? rowKey({ kind: 'task', id: of }) : (node.dataset.rowKey ?? '');
+}
+
+/** The unit a torrent's file row moves and lifts with; see dragKeyOf. */
+function fileUnit(row: Extract<ListRow, { kind: 'file' }>): RowDragKey {
+  return row.under !== undefined ? { kind: 'package', name: row.under } : { kind: 'task', id: row.task.id };
 }
 
 /** The drawn rows of a strip: the two window spacers and the probes carry no key. */
@@ -373,9 +381,6 @@ function TaskRow({
    *  twisty that shows and hides them. Absent for every other row. */
   files?: { open: boolean; onToggle: () => void };
 }) {
-  const { t } = useT();
-  const collected = task.status === 'collected';
-  const settled = task.status === 'done' || task.status === 'error';
   const parked = isParked([task]);
   const unit: RowDragKey = { kind: 'task', id: task.id };
 
@@ -442,7 +447,7 @@ function TaskRow({
       // arrive with it.
       className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } relative grid items-center px-3 py-2 transition-colors
+      } relative grid items-center px-3 py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
@@ -484,22 +489,10 @@ function TaskRow({
             {col.id === 'name' && files ? (
               <div className="flex min-w-0 items-center gap-1.5">
                 <FilesTwisty open={files.open} onToggle={files.onToggle} focusable={current} />
-                <div className="min-w-0 flex-1">
-                  {typeof node === 'string' ? (
-                    <Tip tip={node} className="block truncate">
-                      {node}
-                    </Tip>
-                  ) : (
-                    node
-                  )}
-                </div>
+                <div className="min-w-0 flex-1">{cellText(node)}</div>
               </div>
-            ) : typeof node === 'string' ? (
-              <Tip tip={node} className="block truncate">
-                {node}
-              </Tip>
             ) : (
-              node
+              cellText(node)
             )}
           </div>
         );
@@ -518,84 +511,130 @@ function TaskRow({
           app follows. A hash of the task id would repaint a badge a different
           colour every time its row moved. Trash takes a hue as well: a badge in
           solid red beside neutral siblings reads as the inconsistency. */}
-      <div className={ACTIONS_CELL}>
+      <TaskActions task={task} base={base} current={current} />
+    </div>
+  );
+}
+
+/** A link row's badges in the trailing track; see TaskRow for why they show at rest. */
+function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
+  const { t } = useT();
+  const collected = task.status === 'collected';
+  const settled = task.status === 'done' || task.status === 'error';
+  return (
+    <div className={ACTIONS_CELL}>
+      {collected && (
+        <IconBadge
+          quiet
+          hue={0}
+          // Roving tabindex reaches inside the row too: without it Tab walks
+          // every badge of every drawn row and the one-stop list is decorative.
+          tabIndex={current ? 0 : -1}
+          icon={<IconPlay width={16} height={16} />}
+          title={t('task.start')}
+          aria-label={t('task.start')}
+          onClick={() => startTasks([task.id], base)}
+        />
+      )}
+      {task.status === 'running' && (
+        <IconBadge
+          quiet
+          hue={0}
+          tabIndex={current ? 0 : -1}
+          icon={<IconPause width={16} height={16} />}
+          title={t('task.pause')}
+          aria-label={t('task.pause')}
+          onClick={() => pause(task.id, base)}
+        />
+      )}
+      {task.status === 'paused' && (
+        <IconBadge
+          quiet
+          hue={0}
+          tabIndex={current ? 0 : -1}
+          icon={<IconPlay width={16} height={16} />}
+          title={t('task.resume')}
+          aria-label={t('task.resume')}
+          onClick={() => resume(task.id, base)}
+        />
+      )}
+      <div className="flex items-center gap-1">
         {collected && (
           <IconBadge
             quiet
-            hue={0}
-            // Roving tabindex reaches inside the row too: without it Tab walks
-            // every badge of every drawn row and the one-stop list is decorative.
+            hue={1}
             tabIndex={current ? 0 : -1}
-            icon={<IconPlay width={16} height={16} />}
-            title={t('task.start')}
-            aria-label={t('task.start')}
-            onClick={() => startTasks([task.id], base)}
+            icon={<IconSearch width={16} height={16} />}
+            title={t('task.recheck')}
+            aria-label={t('task.recheck')}
+            onClick={() => recheckTasks([task.id], base)}
           />
         )}
-        {task.status === 'running' && (
+        {/* Before Restart and never instead of it. This one appears only
+            while a wait is running, and it spends the retry that was already
+            scheduled rather than granting a new one; Restart beside it is the
+            plain "run this again" for a row that is finished or done waiting.
+            No guard at the call site: RetrySkipBadge draws nothing unless a
+            retry is pending, which is narrower than `settled`. */}
+        <RetrySkipBadge task={task} base={base} focusable={current} />
+        {settled && (
           <IconBadge
             quiet
-            hue={0}
+            hue={3}
             tabIndex={current ? 0 : -1}
-            icon={<IconPause width={16} height={16} />}
-            title={t('task.pause')}
-            aria-label={t('task.pause')}
-            onClick={() => pause(task.id, base)}
+            icon={<IconRetry width={16} height={16} />}
+            title={t('task.restart')}
+            aria-label={t('task.restart')}
+            onClick={() => restartTasks([task.id], base)}
           />
         )}
-        {task.status === 'paused' && (
-          <IconBadge
-            quiet
-            hue={0}
-            tabIndex={current ? 0 : -1}
-            icon={<IconPlay width={16} height={16} />}
-            title={t('task.resume')}
-            aria-label={t('task.resume')}
-            onClick={() => resume(task.id, base)}
-          />
-        )}
-        <div className="flex items-center gap-1">
-          {collected && (
-            <IconBadge
-              quiet
-              hue={1}
-              tabIndex={current ? 0 : -1}
-              icon={<IconSearch width={16} height={16} />}
-              title={t('task.recheck')}
-              aria-label={t('task.recheck')}
-              onClick={() => recheckTasks([task.id], base)}
-            />
-          )}
-          {/* Before Restart and never instead of it. This one appears only
-              while a wait is running, and it spends the retry that was already
-              scheduled rather than granting a new one; Restart beside it is the
-              plain "run this again" for a row that is finished or done waiting.
-              No guard at the call site: RetrySkipBadge draws nothing unless a
-              retry is pending, which is narrower than `settled`. */}
-          <RetrySkipBadge task={task} base={base} focusable={current} />
-          {settled && (
-            <IconBadge
-              quiet
-              hue={3}
-              tabIndex={current ? 0 : -1}
-              icon={<IconRetry width={16} height={16} />}
-              title={t('task.restart')}
-              aria-label={t('task.restart')}
-              onClick={() => restartTasks([task.id], base)}
-            />
-          )}
-          <IconBadge
-            quiet
-            hue={4}
-            tabIndex={current ? 0 : -1}
-            icon={<IconTrash width={16} height={16} />}
-            title={t('task.remove')}
-            aria-label={t('task.remove')}
-            onClick={() => remove(task.id, base)}
-          />
-        </div>
+        <IconBadge
+          quiet
+          hue={4}
+          tabIndex={current ? 0 : -1}
+          icon={<IconTrash width={16} height={16} />}
+          title={t('task.remove')}
+          aria-label={t('task.remove')}
+          onClick={() => remove(task.id, base)}
+        />
       </div>
+    </div>
+  );
+}
 
+/** A cell's content, with plain text in the house bubble; see TaskRow. */
+function cellText(node: ReactNode): ReactNode {
+  return typeof node === 'string' ? (
+    <Tip tip={node} className="block truncate">
+      {node}
+    </Tip>
+  ) : (
+    node
+  );
+}
+
+/**
+ * The name cell of a package header that is its one torrent (see loneTorrent):
+ * the tree control, which shows the torrent's files, the folder and the
+ * torrent's own name cell in bold, so it reads as the package it stands for.
+ */
+function TorrentHeadName({
+  name,
+  open,
+  onToggle,
+  focusable,
+}: {
+  name: ReactNode;
+  open: boolean;
+  onToggle: () => void;
+  focusable: boolean;
+}) {
+  const Folder = open ? IconFolderOpen : IconFolder;
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <FilesTwisty open={open} onToggle={onToggle} focusable={focusable} />
+      <Folder width={FOLDER_GLYPH} height={FOLDER_GLYPH} className="shrink-0 text-carbon-textMuted" />
+      <div className="min-w-0 flex-1 font-semibold">{cellText(name)}</div>
     </div>
   );
 }
@@ -894,6 +933,8 @@ function PackageRow({
   level,
   posinset,
   setsize,
+  torrent,
+  index,
 }: {
   name: string;
   items: Task[];
@@ -919,11 +960,18 @@ function PackageRow({
   level: number;
   posinset: number;
   setsize: number;
+  /** The package's one torrent, when the header is that torrent's row (see
+   *  loneTorrent): its cells and badges replace the package's totals, and
+   *  `collapsed` and the twisty are about its files. */
+  torrent?: Task;
+  /** The torrent's rainbow position, as a link row's `index`. */
+  index?: number;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const parked = isParked(items);
   const unit: RowDragKey = { kind: 'package', name };
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
+  const hued = torrent !== undefined && index !== undefined;
 
   return (
     <div
@@ -946,10 +994,13 @@ function PackageRow({
       // TaskRow's identical style above and previewOffsets for the arithmetic.
       // A folder header is a row like any other here, so the folders a drag
       // passes step aside while the pointer is still down.
-      style={{
-        ...ROW_GRID,
-        ...dnd.slide(unit),
-      }}
+      style={
+        {
+          ...(hued ? hueVars(index) : undefined),
+          ...ROW_GRID,
+          ...dnd.slide(unit),
+        } as CSSProperties
+      }
       // See TaskRow's identical pair. A press on a folder header selects the
       // whole folder; the twisty button beside the name matches CONTROL, so it
       // keeps folding and unfolding on its own click.
@@ -958,38 +1009,36 @@ function PackageRow({
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onOpenProperties?.();
       }}
-      // A colour step, not a rule: the header sits on the quiet surface and the
-      // links inside it sit on the card, which is the whole of the weight
-      // difference between a container and its contents. The resting ground is
-      // surface2 at 80% over the card, and the selected state paints over it
-      // with .glim-row-selected.
-      //
-      // The hover goes up the ramp (rule 21), and both the flat tones fail it.
-      // --carbon-surface2 is the tone the resting mix is made of and moves
-      // ΔL* 1.8 against the link row's 3.8, which is not a hover anybody sees.
-      // Flat --carbon-surface3 is what the Aktiv switch's on track and the
-      // hoster badge are filled with, so a row painted with it swallows them
-      // whole. Moving the same 80% plane one step keeps a step under everything
-      // standing on the row. Both are named as custom properties so that
-      // web/check-hover-ramp.mjs can compare them, which it cannot do with two
-      // arbitrary `bg-[...]` values.
+      // The header wears the links' own ground, as in JDownloader: the folder
+      // glyph and the bold name set it apart, and a tinted band on every
+      // package would make a long list striped. The selected state paints over
+      // it with .glim-row-selected.
       className={`relative grid cursor-pointer select-none items-center ${
-        allSelected ? 'glim-row-selected' : ''
-      } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
-        bg-[var(--row-ground)]
-        [--row-ground:color-mix(in_srgb,var(--carbon-surface2)_80%,var(--carbon-surface))]
-        [--row-raised:color-mix(in_srgb,var(--carbon-surface3)_80%,var(--carbon-surface))]
-        hover:[--row-ground:var(--row-raised)]
-        has-[:focus-visible]:[--row-ground:var(--row-raised)] ${dnd.look(unit)}`}
+        hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
+      } ${allSelected ? 'glim-row-selected' : ''} ${
+        divider ? 'border-t border-carbon-border/60' : ''
+      } px-3 py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
           key={col.id}
-          className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
+          dir={torrent && col.ltr ? 'ltr' : undefined}
+          className={`min-w-0 truncate px-2 text-xs text-carbon-textSub ${
             col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
           } ${col.numeric ? 'glim-num' : ''} ${parked && parksCell(col.id, ctx.profile) ? PARKED : ''}`}
         >
-          {col.id === 'name' ? (
+          {torrent ? (
+            col.id === 'name' ? (
+              <TorrentHeadName
+                name={col.render(torrent, ctx)}
+                open={!collapsed}
+                onToggle={onToggleCollapsed}
+                focusable={current}
+              />
+            ) : (
+              cellText(col.render(torrent, ctx))
+            )
+          ) : col.id === 'name' ? (
             <PackageName
               name={name}
               items={items}
@@ -1005,13 +1054,16 @@ function PackageRow({
       ))}
 
       {/* The folder row's actions, in the same trailing track as a link row's
-          and visible at rest for the same reason.
+          and visible at rest for the same reason. A header that is its torrent
+          carries the torrent's own.
 
           The gear is for a package whose variant rows share a host
           (variantKindOf is '' for anything not yt-dlp-routed) and collector
           only: what it opens is which variants to keep and at what quality,
           which is a decision about a link before it is fetched. */}
-      {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
+      {torrent ? (
+        <TaskActions task={torrent} base={base} current={current} />
+      ) : (ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
         <div className={ACTIONS_CELL}>
           {ytdlpHost && ctx.profile === 'collector' && (
             <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
@@ -1121,7 +1173,9 @@ interface Gesture {
  *  not a row (the two window spacers, the keyboard's own probe). */
 function unitOfRow(el: HTMLElement): RowDragKey | null {
   if (el.dataset.taskId !== undefined) return { kind: 'task', id: el.dataset.taskId };
-  // A torrent's file is no unit of its own; a sweep over it is over the torrent.
+  // A torrent's file is no unit of its own; a sweep over it is over the torrent,
+  // or over the package header that is the torrent.
+  if (el.dataset.fileUnder !== undefined) return { kind: 'package', name: el.dataset.fileUnder };
   if (el.dataset.fileOf !== undefined) return { kind: 'task', id: el.dataset.fileOf };
   if (el.dataset.packageRow !== undefined) return { kind: 'package', name: el.dataset.packageRow };
   return null;
@@ -1789,6 +1843,41 @@ export function TaskListCard({
     const packages = view.length;
     let pkgAt = 0;
     for (const [name, items] of view) {
+      const torrent = loneTorrent(name, items);
+      if (torrent) {
+        // The package is the torrent's own folder, so its header is the
+        // torrent's row and its files hang straight under it.
+        const index = hue++;
+        const open = openTorrents.has(torrent.id);
+        out.push({
+          kind: 'package',
+          key: rowKey({ kind: 'package', name }),
+          name,
+          items,
+          collapsed: !open,
+          divider: out.length > 0,
+          torrent,
+          index,
+          level: 1,
+          posinset: ++pkgAt,
+          setsize: packages,
+        });
+        const files = open ? fileLists.get(torrent.id) : undefined;
+        files?.forEach((file, at) =>
+          out.push({
+            kind: 'file',
+            key: fileRowKey(torrent.id, at),
+            task: torrent,
+            file,
+            index,
+            level: 2,
+            under: name,
+            posinset: at + 1,
+            setsize: files.length,
+          }),
+        );
+        continue;
+      }
       const folded = collapsed.has(name);
       out.push({
         kind: 'package',
@@ -1992,13 +2081,13 @@ export function TaskListCard({
     // still in flight. The strip is every row's offsetParent.
     const slots: RowSlot[] = [];
     root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row],[data-file-of]').forEach((el) => {
-      // An open torrent's files are part of its box: they travel with it and
-      // make room with it.
+      // An open torrent's files are part of its box, the torrent's row or the
+      // package header that is the torrent: they travel with it and make room
+      // with it.
       if (el.dataset.fileOf !== undefined) {
         const last = slots[slots.length - 1];
-        if (last?.unit.kind === 'task' && last.unit.id === el.dataset.fileOf) {
-          last.bottom = el.offsetTop + el.offsetHeight;
-        }
+        const unit = unitOfRow(el);
+        if (last && unit && sameUnit(last.unit, unit)) last.bottom = el.offsetTop + el.offsetHeight;
         return;
       }
       const unit = unitOfRow(el);
@@ -3017,7 +3106,9 @@ export function TaskListCard({
   // Which slice of `rows` is worth drawing, and how much empty space stands in
   // for the rest. Whole list, no spacers, for anything short enough not to need
   // it (see VIRTUALIZE_ABOVE).
-  const win = useRowWindow(rows, stripRef);
+  const rowHeight = useRowHeight();
+  const metrics = ROW_METRICS[rowHeight];
+  const win = useRowWindow(rows, stripRef, ROW_ESTIMATES[rowHeight]);
 
   // The list from the keyboard; see listKeyboard.ts for why a windowed list
   // needs a file of its own for it. selectUnit goes in whole rather than being
@@ -3067,9 +3158,13 @@ export function TaskListCard({
     if (!revealKey || revealed.current === revealKey) return;
     const strip = stripRef.current;
     if (!strip) return;
-    const key = revealKey.split('#')[0];
-    const index = rows.findIndex((r) => r.key === key);
+    const asked = revealKey.split('#')[0];
+    // A torrent that is its package's header is found under the header's key.
+    const index = rows.findIndex(
+      (r) => r.key === asked || (r.kind === 'package' && !!r.torrent && rowKey({ kind: 'task', id: r.torrent.id }) === asked),
+    );
     if (index < 0) return;
+    const key = rows[index].key;
     revealed.current = revealKey;
 
     // Walked rather than matched with a selector: a package name is whatever
@@ -3187,7 +3282,22 @@ export function TaskListCard({
               min-content the columns give way to their minimums first (see
               gridTemplate), and only then does the table scroll. */}
           <div className="overflow-x-auto">
-            <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
+            {/* The row height setting (lib/rowHeight.ts) sets how tall every
+                control in a row is and the padding around it, and the window's
+                estimate above is made of the same two numbers. --btn-h is
+                redefined here and not on the rows because the actions track
+                in --kl-cols is counted from it. */}
+            <div
+              ref={tableRef}
+              className="min-w-min"
+              style={
+                {
+                  ['--kl-cols' as string]: template,
+                  ['--btn-h' as string]: `${metrics.control}px`,
+                  ['--row-pad' as string]: `${metrics.pad}px`,
+                } as CSSProperties
+              }
+            >
               <Header
                 layout={layout}
                 profile={profile}
@@ -3295,8 +3405,8 @@ export function TaskListCard({
                       current={keys.currentKey === row.key}
                       onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
                       onChanged={(files) => putFiles(row.task.id, files)}
-                      look={dnd.look({ kind: 'task', id: row.task.id })}
-                      slide={dnd.slide({ kind: 'task', id: row.task.id })}
+                      look={dnd.look(fileUnit(row))}
+                      slide={dnd.slide(fileUnit(row))}
                     />
                   ) : row.kind === 'package' ? (
                     <PackageRow
@@ -3309,7 +3419,11 @@ export function TaskListCard({
                       selection={selection}
                       collapsed={row.collapsed}
                       divider={row.divider}
-                      onToggleCollapsed={() => toggle(row.name)}
+                      torrent={row.torrent}
+                      index={row.index}
+                      onToggleCollapsed={() =>
+                        row.torrent ? showFiles(row.torrent.id, row.collapsed) : toggle(row.name)
+                      }
                       dnd={dnd}
                       level={row.level}
                       posinset={row.posinset}

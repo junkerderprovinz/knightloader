@@ -58,39 +58,70 @@ export function BrowserTools() {
       .catch(() => {});
   }, []);
 
-  // The Chromium browsers share the package and the load step. Each has its
-  // own extensions page, puts the developer mode switch in its own place and
-  // gets a new extension onto the toolbar its own way; a freshly loaded one
-  // that stays off the toolbar otherwise reads as a failed install. Brave's
-  // help does not say where its switch is, so its step does not either.
-  const chromiumHint = (page: string, devMode: ReactNode, pin: ReactNode) => (
-    <ol className="list-decimal space-y-1 ps-4">
-      <li>{t('settings.browsertools.installChromiumStep1')}</li>
-      <li>{t('settings.browsertools.installOpenPage', { page })}</li>
-      <li>{devMode}</li>
-      <li>{t('settings.browsertools.installChromiumStep4')}</li>
-      <li>{pin}</li>
-    </ol>
-  );
+  // A Chromium browser installs from its store listing where there is one,
+  // else from the package, which each loads on its own extensions page with
+  // the developer mode switch in its own place. Either way each gets a new
+  // extension onto the toolbar its own way; one that stays off the toolbar
+  // otherwise reads as a failed install. Brave's help does not say where its
+  // switch is, so its step does not either.
+  const chromiumHint = (store: Store, add: ReactNode, page: string, devMode: ReactNode, pin: ReactNode) =>
+    STORE_URLS[store] ? (
+      <ol className="list-decimal space-y-1 ps-4">
+        <li>
+          {store === 'Edge'
+            ? t('settings.browsertools.installStoreOpenEdge')
+            : t('settings.browsertools.installStoreOpenChrome')}
+        </li>
+        <li>{add}</li>
+        <li>{pin}</li>
+      </ol>
+    ) : (
+      <ol className="list-decimal space-y-1 ps-4">
+        <li>{t('settings.browsertools.installChromiumStep1')}</li>
+        <li>{t('settings.browsertools.installOpenPage', { page })}</li>
+        <li>{devMode}</li>
+        <li>{t('settings.browsertools.installChromiumStep4')}</li>
+        <li>{pin}</li>
+      </ol>
+    );
   const topRight = t('settings.browsertools.installDevModeTopRight');
+  const addTo = (browser: string) => t('settings.browsertools.installStoreAddChrome', { browser });
   const hints = {
     chrome: chromiumHint(
+      'Chrome',
+      addTo('Chrome'),
       'chrome://extensions',
       topRight,
       t('settings.browsertools.installPinPuzzle', { browser: 'Chrome' }),
     ),
     edge: chromiumHint(
+      'Edge',
+      t('settings.browsertools.installStoreGetEdge'),
       'edge://extensions',
       t('settings.browsertools.installDevModeLeft'),
       t('settings.browsertools.installPinEdge'),
     ),
     brave: chromiumHint(
+      'Chrome',
+      addTo('Brave'),
       'brave://extensions',
       t('settings.browsertools.installChromiumStep3'),
       t('settings.browsertools.installPinPuzzle', { browser: 'Brave' }),
     ),
-    opera: chromiumHint('opera://extensions', topRight, t('settings.browsertools.installPinOpera')),
-    vivaldi: chromiumHint('vivaldi://extensions', topRight, t('settings.browsertools.installPinVivaldi')),
+    opera: chromiumHint(
+      'Chrome',
+      t('settings.browsertools.installStoreOpera'),
+      'opera://extensions',
+      topRight,
+      t('settings.browsertools.installPinOpera'),
+    ),
+    vivaldi: chromiumHint(
+      'Chrome',
+      addTo('Vivaldi'),
+      'vivaldi://extensions',
+      topRight,
+      t('settings.browsertools.installPinVivaldi'),
+    ),
   };
   const firefoxHint = (
     <ol className="list-decimal space-y-1 ps-4">
@@ -149,8 +180,8 @@ export function BrowserTools() {
       <Card hue={3} className="flex flex-col gap-4">
         {extensionVersion && <ReleaseVersion version={extensionVersion} />}
         <SectionTitle>{t('settings.browsertools.extensionTitle')}</SectionTitle>
-        {/* A button for every browser, though the Chromium ones share one
-            package. Each (i) holds the steps that install it. */}
+        {/* A button for every browser, though Brave, Opera and Vivaldi share
+            Chrome's listing. Each (i) holds the steps that install it. */}
         <div className="glim-readme-btn-rows">
           <ReadmeButton
             brand="chrome"
@@ -543,13 +574,12 @@ function ReleaseVersion({ version }: { version: string }) {
 type Store = 'Chrome' | 'Edge' | 'Firefox';
 
 /**
- * Store listings, empty until each goes live. Brave, Opera and Vivaldi install
- * from the Chrome Web Store; until a URL is set the button downloads the
- * packaged extension instead.
+ * Store listings. Brave, Opera and Vivaldi install from the Chrome Web Store.
+ * Firefox has no listing yet, so its button downloads the packaged add-on.
  */
 const STORE_URLS: Record<Store, string> = {
-  Chrome: '',
-  Edge: '',
+  Chrome: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
+  Edge: 'https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl',
   Firefox: '',
 };
 

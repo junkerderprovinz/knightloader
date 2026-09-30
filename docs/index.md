@@ -21,8 +21,8 @@ yours, stored encrypted on your own machine.
 
 It reaches you **from other networks with twelve words**. Read a phrase off one
 instance and type it into the phone app, the browser extension or another
-instance, and they find each other without an account, a login, a port forward
-or a domain.
+instance, and they find each other without an account, a port forward or a
+domain.
 
 ## Where to go next
 

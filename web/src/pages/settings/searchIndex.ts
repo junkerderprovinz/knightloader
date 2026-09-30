@@ -292,9 +292,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   appearance: [
     { title: 'lang.label', rows: [] },
     { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
-    { title: 'settings.navLabels.title', hint: 'settings.navLabels.titleHint', rows: [] },
-    { title: 'settings.bottomBarLabels.title', hint: 'settings.bottomBarLabels.titleHint', rows: [] },
+    {
+      title: 'settings.labels',
+      hint: 'settings.labelsHint',
+      rows: [],
+      // Each row's caption sits over a bare selector, with no anchor.
+      also: ['settings.labels.buttons', 'settings.labels.sidebar', 'settings.labels.tabs', 'settings.labels.bottombar'],
+      body: ['settings.axisSidebarHint', 'settings.axisBottombarHint'],
+    },
     { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
+    { title: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint', rows: [] },
     {
       title: 'settings.colours',
       rows: [],
@@ -340,9 +347,51 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
       ],
     },
+    // The page drawn below that card.
+    {
+      title: 'instances.foundTitle',
+      hint: 'instances.foundHint',
+      rows: [],
+      body: ['instances.pairLead'],
+    },
   ],
 
-  access: [
+  pairing: [
+    {
+      title: 'pairing.phraseTitle',
+      hint: 'pairing.phraseHint',
+      rows: [],
+      // The two tiles, the word fields, the words' window and a member's badges.
+      also: [
+        'pairing.create',
+        'pairing.enter',
+        'pairing.enterSub',
+        'pairing.enterLabel',
+        'pairing.enterLabelOther',
+        'pairing.wordsLabel',
+        'pairing.direct',
+        'pairing.viaRelay',
+      ],
+      // The sentence above the step cards and its (i), and the (i) of the two
+      // windows a group nobody has come to opens.
+      body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
+      // The route picker, the state badge in the header and the facts line.
+      also: [
+        'relay.project',
+        'relay.own',
+        'relay.off',
+        'relay.noGroup',
+        'instances.connected',
+        'instances.notConnected',
+        'relay.needLabel',
+      ],
+      body: ['relay.lead'],
+    },
     {
       title: 'settings.access.identity.title',
       rows: [
@@ -350,6 +399,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.access.identity.domainsLabel', hint: 'settings.access.identity.domainsHint' },
       ],
     },
+  ],
+
+  access: [
     {
       title: 'auth.password',
       hint: 'settings.lockHint',
@@ -375,36 +427,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'auth.passkey.hint',
       rows: [{ key: 'auth.passkey.nameLabel', hint: 'auth.passkey.nameHint' }],
       also: ['auth.passkey.add', 'auth.passkey.unavailableTitle', 'auth.passkey.rename'],
-    },
-    {
-      title: 'settings.access.cardTitle',
-      hint: 'settings.access.phrase.body',
-      rows: [],
-      // The three badges in the card's header.
-      also: [
-        'settings.access.phrase.howButton',
-        'settings.access.phrase.statusConnected',
-        'settings.access.phrase.statusDisconnected',
-        'settings.access.relay.none',
-        'settings.access.relay.own',
-        'settings.access.relay.project',
-      ],
-      // The phrase's own (i), shown once the phrase is on screen.
-      body: ['settings.access.phrase.pasteHint'],
-    },
-    {
-      title: 'settings.access.relay.title',
-      hint: 'settings.access.relay.body',
-      rows: [{ key: 'settings.access.relay.use', hint: 'settings.access.relay.leadProject' }],
-      also: ['settings.access.relay.seesButton'],
-    },
-    {
-      title: 'settings.access.ownRelay.title',
-      hint: 'settings.access.ownRelay.body',
-      rows: [
-        { key: 'settings.access.ownRelay.use', hint: 'settings.access.ownRelay.lead' },
-        { key: 'settings.access.ownRelay.serveLabel', hint: 'settings.access.ownRelay.serveHint' },
-      ],
     },
     {
       title: 'settings.access.tokens.title',
@@ -1183,11 +1205,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [],
       also: ['settings.browsertools.installLabel'],
       body: [
-        'settings.browsertools.installChromiumStep1',
-        'settings.browsertools.installChromiumStep3',
-        'settings.browsertools.installDevModeTopRight',
-        'settings.browsertools.installDevModeLeft',
-        'settings.browsertools.installChromiumStep4',
+        'settings.browsertools.installStoreOpenChrome',
+        'settings.browsertools.installStoreOpenEdge',
+        'settings.browsertools.installStoreAddChrome',
+        'settings.browsertools.installStoreGetEdge',
+        'settings.browsertools.installStoreOpera',
         'settings.browsertools.installPinPuzzle',
         'settings.browsertools.installPinEdge',
         'settings.browsertools.installPinOpera',

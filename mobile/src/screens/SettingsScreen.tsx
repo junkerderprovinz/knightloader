@@ -60,7 +60,9 @@ const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTU
 const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
 
 // The README's download links (scripts/download_buttons.py). A file under
-// /releases/latest/download/ is always the newest release's.
+// /releases/latest/download/ is always the newest release's. The extension
+// links to its Chrome Web Store listing, which Brave, Opera and Vivaldi
+// install from too.
 const RELEASE = `${REPO_URL}/releases/latest/download/knightloader-`;
 const APP_URLS = {
   windows: `${RELEASE}windows-amd64-installer.exe`,
@@ -68,7 +70,7 @@ const APP_URLS = {
   macos: `${RELEASE}macos-universal.zip`,
   linux: `${RELEASE}linux-amd64.zip`,
   linuxArm: `${RELEASE}linux-arm64.zip`,
-  extension: `${RELEASE}extension.zip`,
+  extension: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
 };
 
 /** The source of this app's version where it is a release, the newest
@@ -772,9 +774,8 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
-      {/* One package for every Chromium browser, as on the README. Firefox
-          takes only an add-on Mozilla has signed, which comes with the
-          listing. */}
+      {/* The Chrome Web Store listing, as on the README. Firefox takes only an
+          add-on Mozilla has signed, which comes with its listing. */}
       <NotchCard title={t('settings.appsExtension')} hue={8} info={t('settings.appsExtensionHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton

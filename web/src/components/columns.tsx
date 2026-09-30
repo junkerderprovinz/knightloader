@@ -1250,6 +1250,7 @@ export { hostOf } from '../lib/searchQuery';
 // file queued is not finished because another one is uploading.
 const STATUS_RANK: Record<RowState, number> = {
   running: 0,
+  leeching: 0,
   extracting: 1,
   queued: 2,
   paused: 3,

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestSealedCallRoundTrips(t *testing.T) {
@@ -29,6 +30,9 @@ func TestSealedCallRoundTrips(t *testing.T) {
 	}
 	if !bytes.Equal(got.Body, want.Body) {
 		t.Errorf("body opened as %s, want it byte for byte", got.Body)
+	}
+	if got.ID != "r1" || time.Since(time.Unix(got.Sent, 0)) > time.Minute {
+		t.Errorf("opened id %q sent at %d, want r1 stamped now", got.ID, got.Sent)
 	}
 }
 
@@ -166,7 +170,7 @@ func TestNonceIsNotReused(t *testing.T) {
 func TestOpensAFrameSealedByTheMobilePort(t *testing.T) {
 	key := DeriveFrameKey([]byte("cross-implementation vector"))
 	sealed, err := base64.StdEncoding.DecodeString(
-		"AwMDAwMDAwMDAwMDAXqxEhwJlzwnjSCTaEIl6yMvi98geuQjUvrQqyH8fBq7GmJaDPGtnxmikd1OKaYoB82eYg==")
+		"AwMDAwMDAwMDAwMDAXqxEhwJlzwnjSCTaEIl6yMvi98geuQjUvrQqyH8fBq7GmILoC34oL2V8ZfcU3G2JuI/liRh+cyXI7fOVBKffbJbA+V7b5nzgkzepCne/45/VHY=")
 	if err != nil {
 		t.Fatalf("the vector itself is not valid base64: %v", err)
 	}
@@ -175,8 +179,8 @@ func TestOpensAFrameSealedByTheMobilePort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not open a frame the mobile port sealed: %v", err)
 	}
-	if call.Method != "GET" || call.Path != "/api/tasks" {
-		t.Errorf("opened %+v, want the GET /api/tasks the phone sealed", call)
+	if call.Method != "GET" || call.Path != "/api/tasks" || call.ID != "req-2" || call.Sent != 1_800_000_000 {
+		t.Errorf("opened %+v, want the GET /api/tasks the phone sealed as req-2 at 1800000000", call)
 	}
 
 	if _, err := OpenCall(key, "req-2", "charlie", sealed); err == nil {

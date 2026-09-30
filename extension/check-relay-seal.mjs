@@ -97,7 +97,26 @@ if (r.movedOpens) {
   failures.push('an identity opened under an instance id it was not bound to - the seal is not bound to its routing');
 }
 
-// 4. What the real hello frame puts on the wire. The checks above would pass
+// 4. A call carries its request id and the time inside the seal, or every
+//    instance refuses it as a possible replay (relay.OpenCall, ReplayGuard).
+const call = await vm.runInContext(
+  `(async (key) => {
+     const sealed = await relaySealCall(key, 'req-9', 'alpha', 'POST', '/api/links', '{"urls":[]}');
+     const plain = await relayOpen(key, relayRequestAAD('req-9', 'alpha'), sealed);
+     return plain ? JSON.parse(relayFromUtf8(plain)) : null;
+   })`,
+  ctx,
+)(frameKey);
+if (!call) {
+  failures.push('a call this port sealed could not be opened again');
+} else {
+  if (call.id !== 'req-9') failures.push(`a sealed call carries the id ${JSON.stringify(call.id)}, want its request id`);
+  if (typeof call.sent !== 'number' || Math.abs(Date.now() / 1000 - call.sent) > 60) {
+    failures.push(`a sealed call carries the time ${JSON.stringify(call.sent)}, want now in Unix seconds`);
+  }
+}
+
+// 5. What the real hello frame puts on the wire. The checks above would pass
 //    even if the session still sent the name in the clear beside the seal.
 const session = vm.runInContext(
   `((opts) => relaySession(opts, async () => 'done'))`,

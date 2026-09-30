@@ -127,3 +127,74 @@ func TestATemplateDestinationSurvives(t *testing.T) {
 		t.Errorf("extractTo = %q, want the template kept", got)
 	}
 }
+
+// The one navLabels setting an earlier build stored becomes the four label
+// settings, so an upgrade draws every control the way it was drawn before.
+func TestNavLabelsSplitsIntoTheFourLabelSettings(t *testing.T) {
+	for _, c := range []struct {
+		doc  string
+		want [4]string
+	}{
+		// The bar's own default was to follow the sidebar.
+		{`{"navLabels":"glyph"}`, [4]string{LabelsGlyph, LabelsGlyph, LabelsGlyph, LabelsGlyph}},
+		{`{"navLabels":"hover","bottomBarLabels":"follow"}`, [4]string{LabelsHover, LabelsHover, LabelsHover, LabelsHover}},
+		// A bar somebody had set apart keeps its own mode.
+		{`{"navLabels":"text","bottomBarLabels":"glyph"}`, [4]string{LabelsText, LabelsText, LabelsText, LabelsGlyph}},
+		// A field a later build already wrote is left as it is.
+		{`{"navLabels":"text","sidebarLabels":"hover","tabLabels":""}`, [4]string{LabelsText, LabelsHover, LabelsText, LabelsText}},
+		// Nothing to carry over.
+		{`{"bottomBarLabels":"follow"}`, [4]string{LabelsBoth, LabelsBoth, LabelsBoth, LabelsBoth}},
+		{`{"navLabels":"sideways","bottomBarLabels":"follow"}`, [4]string{LabelsBoth, LabelsBoth, LabelsBoth, LabelsBoth}},
+	} {
+		if got := labelAxes(loadFrom(t, c.doc)); got != c.want {
+			t.Errorf("%s loaded as %v, want %v", c.doc, got, c.want)
+		}
+	}
+}
+
+// After one save the file holds the four settings and neither navLabels nor a
+// bar that follows, so a later load has nothing left to migrate.
+func TestNavLabelsIsNotWrittenBack(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "settings.json")
+	if err := os.WriteFile(path, []byte(`{"navLabels":"glyph","bottomBarLabels":"follow"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Set(s.Get()); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(b, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if _, still := doc["navLabels"]; still {
+		t.Error("the saved document still carries navLabels")
+	}
+	for _, key := range []string{"buttonLabels", "sidebarLabels", "tabLabels", "bottomBarLabels"} {
+		if doc[key] != LabelsGlyph {
+			t.Errorf("%s = %v, want the migrated glyph", key, doc[key])
+		}
+	}
+}
+
+// An export from an earlier build carries a bar that follows the sidebar, and
+// importing it has to arrive as the mode the sidebar had in that file.
+func TestAnImportedBarThatFollowsTakesTheSidebarsMode(t *testing.T) {
+	doc := PortableDoc{Kind: PortableKind, Settings: map[string]json.RawMessage{
+		"navLabels":       json.RawMessage(`"hover"`),
+		"bottomBarLabels": json.RawMessage(`"follow"`),
+	}}
+	got := doc.Migrated(map[string]json.RawMessage{"bottomBarLabels": doc.Settings["bottomBarLabels"]})
+	if s := string(got["bottomBarLabels"]); s != `"hover"` {
+		t.Errorf("bottomBarLabels = %s, want the sidebar's hover", s)
+	}
+}

@@ -3,7 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { setNavLabels } from '../lib/navLabels';
+import { setLabelMode } from '../lib/labelModes';
 import { Tabs } from './Tabs';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -87,18 +87,18 @@ describe('a folded chip strip', () => {
         ),
       );
     try {
-      setNavLabels('glyph');
+      setLabelMode('tabs', 'glyph');
       drawWith();
       expect(chip().textContent).toBe('');
       expect(chip().getAttribute('aria-label')).toBe('Quick filters');
       expect(chip().querySelector('[data-glyph]')).not.toBeNull();
 
-      setNavLabels('text');
+      setLabelMode('tabs', 'text');
       drawWith();
       expect(chip().textContent).toBe('Quick filters');
       expect(chip().querySelector('[data-glyph]')).toBeNull();
     } finally {
-      setNavLabels('both');
+      setLabelMode('tabs', 'both');
     }
   });
 
@@ -117,5 +117,41 @@ describe('a folded chip strip', () => {
     )!;
     act(() => clear.click());
     expect(onClear).toHaveBeenCalled();
+  });
+});
+
+describe('a rail on the sidebar ground', () => {
+  function rail(sidebarGround: boolean) {
+    act(() =>
+      root.render(
+        <Tabs
+          orientation="vertical"
+          fill
+          sidebarGround={sidebarGround}
+          label="Pages"
+          active="general"
+          onSelect={() => {}}
+          items={[
+            { id: 'general', label: 'General' },
+            { id: 'pairing', label: 'Pairing' },
+          ]}
+        />,
+      ),
+    );
+    const tab = (name: string) => [...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === name)!;
+    return { on: tab('General').className, off: tab('Pairing').className };
+  }
+
+  it('gives idle tabs the sidebar colour and its row hover, and keeps the lit one the accent', () => {
+    const { on, off } = rail(true);
+    expect(off).toContain('bg-carbon-sidebar');
+    expect(off).toContain('hover:bg-carbon-hover');
+    expect(off).not.toContain('bg-carbon-surface2');
+    expect(on).toContain('bg-accent');
+    expect(on).not.toContain('bg-carbon-sidebar');
+  });
+
+  it('leaves other strips on their own ground', () => {
+    expect(rail(false).off).toContain('bg-carbon-surface2');
   });
 });

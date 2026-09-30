@@ -223,6 +223,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/settings/import":  apitoken.ScopeAdmin,
 
 	"GET /api/stats/speed":        apitoken.ScopeRead,
+	"GET /api/stats/torrents":     apitoken.ScopeRead,
 	"GET /api/stats/volume":       apitoken.ScopeRead,
 	"GET /api/stats/volume/usage": apitoken.ScopeRead,
 

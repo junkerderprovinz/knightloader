@@ -1,10 +1,47 @@
 import { useEffect, useState } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
-import { fmtSpeed } from '../lib/format';
-import { useT } from '../lib/i18n';
+import { fmtDate, fmtSpeed } from '../lib/format';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { Card, Button, IconBadge, LabelBadge } from './ui';
-import { IconTrash } from '../lib/icons';
+import { IconContainer, IconDesktop, IconPhone, IconTrash } from '../lib/icons';
+
+// What each kind of instance is drawn as, keyed by buildinfo.Deployment and by
+// "mobile", which the Android app announces itself as.
+const KINDS: Record<string, { Glyph: typeof IconPhone; label: TranslationKey }> = {
+  mobile: { Glyph: IconPhone, label: 'instances.kind.mobile' },
+  desktop: { Glyph: IconDesktop, label: 'instances.kind.desktop' },
+  container: { Glyph: IconContainer, label: 'instances.kind.container' },
+};
+
+/**
+ * KindGlyph says in front of a card's name what the instance is: the Android
+ * app, the desktop app or the container. It is as tall as the name's capitals,
+ * and a kind this build does not know, or a peer that never said, has none.
+ */
+function KindGlyph({ deployment }: { deployment?: string }) {
+  const { t } = useT();
+  const kind = deployment ? KINDS[deployment] : undefined;
+  if (!kind) return null;
+  const { Glyph } = kind;
+  return (
+    <span role="img" aria-label={t(kind.label)} data-kind={deployment} className="inline-flex shrink-0 text-carbon-textMuted">
+      <Glyph width="0.95em" height="0.95em" />
+    </span>
+  );
+}
+
+/** The KnightLoader mark at the card's start edge, the same on every card of the page. */
+function CardLogo() {
+  // h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
+  // mark squeezes the metric labels together. max-h-full keeps the text
+  // column in charge of the card's height.
+  return (
+    <div className="flex shrink-0 items-center self-stretch ps-4">
+      <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />
+    </div>
+  );
+}
 
 interface Stats {
   online: boolean;
@@ -81,22 +118,24 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   );
 }
 
-// InstanceCard shows one instance: its state, its address and three live figures.
+// InstanceCard shows one instance: its state, its address where it has one, and
+// three live figures.
 export function InstanceCard({
   name,
-  url,
-  relayId,
+  address,
   base,
   onOpen,
   onRemove,
   hue,
   isSelf = false,
+  deployment,
 }: {
   /** A peer's displayName or name, never the raw relay address. */
   name: string;
-  url: string;
-  /** Set for a peer reached through the relay, whose url is empty. */
-  relayId?: string;
+  /** What the instance is, "container" or "desktop", when it is known. */
+  deployment?: string;
+  /** Where the instance is reached, empty when it has no address. */
+  address: string;
   base: string;
   onOpen?: () => void;
   onRemove?: () => void;
@@ -121,19 +160,17 @@ export function InstanceCard({
       {/* The two columns form one row and the Open button a second, so the
           button can never overlap the text. */}
       <div className="flex min-h-0 flex-1 items-stretch">
-        {/* h-26 matches the sidebar's brand mark (check-mark-scale.mjs); a larger
-            mark squeezes the metric labels together. max-h-full keeps the text
-            column in charge of the card's height. */}
-        <div className="flex shrink-0 items-center self-stretch ps-4">
-          <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />
-        </div>
+        <CardLogo />
 
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-7">
           {/* Name and address as one block. */}
           <div className="flex flex-col gap-0.5">
             {/* The badges move under the name when both do not fit on one line. */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
+              <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
+                <KindGlyph deployment={deployment} />
+                <span className="truncate">{name}</span>
+              </span>
               {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
               <span className="ms-auto flex items-center gap-2">
                 <LabelBadge
@@ -156,7 +193,7 @@ export function InstanceCard({
               </span>
             </div>
 
-            <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+            {address && <div className="truncate text-xs text-carbon-textMuted">{address}</div>}
           </div>
 
           {/* A figure that does not fit moves to the next line rather than
@@ -175,6 +212,48 @@ export function InstanceCard({
           {t('instances.open')}
         </Button>
       )}
+    </Card>
+  );
+}
+
+// AppCard shows a phone that joined the group with the phrase: the device
+// name, whether it is there now and when it last was. A phone serves no
+// downloads, so it has no figures and nothing to open.
+export function AppCard({
+  name,
+  connected,
+  lastSeen,
+  hue,
+}: {
+  name: string;
+  connected: boolean;
+  /** Unix seconds. */
+  lastSeen: number;
+  hue?: number;
+}) {
+  const { t } = useT();
+  return (
+    <Card padding="none" hue={hue} className="flex h-full flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 items-stretch">
+        <CardLogo />
+        <div className="flex min-w-0 flex-1 flex-col gap-1 p-7">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
+              <KindGlyph deployment="mobile" />
+              <span className="truncate">{name}</span>
+            </span>
+            <span className="ms-auto flex items-center gap-2">
+              <LabelBadge
+                label={connected ? t('instances.connected') : t('instances.notConnected')}
+                tone={connected ? 'ok' : 'fail'}
+              />
+            </span>
+          </div>
+          <div className="truncate text-xs text-carbon-textMuted">
+            {t('instances.lastSeen', { time: fmtDate(new Date(lastSeen * 1000).toISOString()) })}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

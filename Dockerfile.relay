@@ -10,8 +10,10 @@ RUN go mod download
 
 COPY . .
 ARG VERSION=dev
+# .dockerignore keeps .git out, so -version knows the commit only from here.
+ARG COMMIT=
 RUN CGO_ENABLED=0 go build \
-      -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION}" \
+      -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader-relay ./cmd/knightloader-relay
 
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6

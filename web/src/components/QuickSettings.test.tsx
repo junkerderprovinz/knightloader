@@ -96,6 +96,17 @@ function type(input: HTMLInputElement, text: string) {
   act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
 }
 
+describe('the quick settings window', () => {
+  it('closes with its Close button and gives the focus back to its square', async () => {
+    await openPanel();
+    const dialog = host.querySelector('[role="dialog"]')!;
+    const close = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Close')!;
+    await act(async () => close.click());
+    expect(host.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(host.querySelector('button[aria-haspopup="dialog"]'));
+  });
+});
+
 describe('the upload limit in the quick settings', () => {
   it('sits right below the download speed limit', async () => {
     await openPanel();

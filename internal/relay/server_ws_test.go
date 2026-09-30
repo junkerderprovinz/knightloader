@@ -6,9 +6,75 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/coder/websocket"
 )
+
+func TestAnOversizedFrameBeforeTheHelloIsRefused(t *testing.T) {
+	relaySrv := New()
+	srv := httptest.NewServer(relaySrv)
+	t.Cleanup(srv.Close)
+	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+
+	ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+	defer cancel()
+	c, _, err := websocket.Dial(ctx, url, nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	t.Cleanup(func() { _ = c.CloseNow() })
+
+	frame, _ := Encode(TypeHello, Hello{Key: strings.Repeat("k", 5<<10), Announce: Announce{InstanceID: "alpha"}})
+	_ = c.Write(ctx, websocket.MessageText, frame)
+	if _, _, err := c.Read(ctx); websocket.CloseStatus(err) != websocket.StatusMessageTooBig {
+		t.Fatalf("a 5 KiB first frame got %v, want the connection closed as too big", err)
+	}
+	if relaySrv.Len() != 0 {
+		t.Errorf("%d connections registered, want none", relaySrv.Len())
+	}
+}
+
+func TestFramesAfterTheHelloMayBeLarge(t *testing.T) {
+	srv := httptest.NewServer(New())
+	t.Cleanup(srv.Close)
+	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "alpha")
+	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "bravo")
+	bravo.SetReadLimit(readLimit)
+	readFrame(t, alpha, TypeAnnounce)
+	readFrame(t, bravo, TypeAnnounce)
+
+	big := ProxyRequest{RequestID: "r1", Target: "bravo", Sealed: make([]byte, 64<<10)}
+	writeFrame(t, alpha, TypeProxyRequest, big)
+	var got ProxyRequest
+	if err := readFrame(t, bravo, TypeProxyRequest).Into(&got); err != nil || len(got.Sealed) != len(big.Sealed) {
+		t.Fatalf("bravo got %d sealed bytes (%v), want the whole 64 KiB call", len(got.Sealed), err)
+	}
+}
+
+func TestAVeryLongNameStillFitsTheHello(t *testing.T) {
+	addr, _ := relayOn(t, "127.0.0.1:0")
+	c, err := NewClient(ClientOptions{
+		URL:      "http://" + addr,
+		Key:      "shared-relay-test-key-0123456789ab",
+		FrameKey: testFrameKey,
+		Self:     Announce{InstanceID: "alpha", Name: strings.Repeat("é", 5000)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.minBackoff, c.maxBackoff = testBackoff, 4*testBackoff
+	c.Start()
+	t.Cleanup(func() { _ = c.Close() })
+	bravo := startClient(t, addr, "shared-relay-test-key-0123456789ab", "bravo", nil)
+
+	waitFor(t, "bravo to see alpha", func() bool { return len(bravo.Siblings()) == 1 })
+	name := bravo.Siblings()[0].Name
+	if name == "" || len(name) > MaxNameBytes || !utf8.ValidString(name) {
+		t.Fatalf("alpha arrived as %q, want its name cut to whole characters within %d bytes", name, MaxNameBytes)
+	}
+}
 
 // wsTimeout bounds every step of the end-to-end test, so a protocol mistake
 // fails the run instead of hanging it.

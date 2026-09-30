@@ -642,8 +642,8 @@ body {
    paints the card's ground under its see-through mark. In rainbow mode the
    wash and the mark are inset shadows, which would take the lift's shadow's
    place, so the lift's shadow is listed beside them. */
-[data-row-kind='task'].glim-drag-lift,
-[data-row-kind='task'].glim-drag-settle {
+[data-row-kind].glim-drag-lift,
+[data-row-kind].glim-drag-settle {
   background-color: var(--carbon-surface);
 }
 .glim-row-selected.glim-drag-lift,

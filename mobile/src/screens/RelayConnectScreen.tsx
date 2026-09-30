@@ -2,14 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, FlatList, StyleSheet, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
-import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
+import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
+import { checkPhrase, splitPhrase } from '../api/phraseWords';
+import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useShake } from '../theme/MotionContext';
-import { TYPE } from '../theme/tokens';
+import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
 import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
@@ -58,15 +60,9 @@ export default function RelayConnectScreen({
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * The refusal signal: the button shakes and no sentence appears under it.
-   *
-   * That is the design language's rule for a failed action. A written message
-   * never clears itself, so a refusal from ten minutes ago looks as current as
-   * one from a second ago, while a shake is over when it is over.
-   *
-   * A sentence is kept for the failures a shake cannot express, a word that is
-   * not in the list or a checksum that does not add up, because which of the
-   * twelve words is wrong is information. An empty field carries none.
+   * The refusal signal: the button shakes. A sentence comes with it only where
+   * it says which word is wrong or that the twelve do not fit together, and it
+   * goes as soon as the words are edited.
    *
    * The geometry is the house's: `glim-shake` is a translateX oscillation
    * decaying +-4, -+4, +-2, -+2 over 360ms, and the web UI (index.css) and the
@@ -113,15 +109,8 @@ export default function RelayConnectScreen({
   // render does not see yet, so it passes the scanned words in directly; the
   // button path passes nothing and reads state.
   const join = async (entered?: string) => {
-    const words = (entered ?? phrase).trim();
+    const words = splitPhrase(entered ?? phrase).join(' ');
     setError(null);
-    // An empty field is the one refusal that carries no information beyond
-    // "not yet", so it gets the shake and nothing else. Everything below has
-    // something to say, which is worth a line of text.
-    if (words === '') {
-      zittern();
-      return;
-    }
     let key: string;
     // Both keys come out of the phrase here, in the one place it exists, and
     // the words are then gone. The frame key travels alongside the relay key
@@ -137,10 +126,11 @@ export default function RelayConnectScreen({
           ? e.problem.reason === 'unknown_word'
             ? t('phrase.errUnknownWord', { position: e.problem.position, word: e.problem.word })
             : e.problem.reason === 'word_count'
-              ? t('phrase.errWordCount', { count: e.problem.count, need: 12 })
+              ? t('phrase.errWordCount', { count: e.problem.count })
               : t('phrase.errChecksum')
           : String(e),
       );
+      zittern();
       return;
     }
 
@@ -152,7 +142,7 @@ export default function RelayConnectScreen({
       key,
       frameKey,
       selfId: await relayIdentity(),
-      selfName: 'KnightLoader app',
+      selfName: deviceName(),
     });
     // Subscribed rather than passed in as an option: this client may already
     // exist for a saved connection, where constructor options are never
@@ -205,6 +195,13 @@ export default function RelayConnectScreen({
     onConnected(first);
   };
 
+  const check = checkPhrase(phrase);
+  let problem = error;
+  if (!problem && check.unknown.length > 0) {
+    problem = t('phrase.errUnknownWord', { position: check.unknown[0] + 1, word: check.words[check.unknown[0]] });
+  }
+  if (!problem && check.words.length > WORD_COUNT) problem = t('phrase.errWordCount', { count: check.words.length });
+
   // Filled and borderless, as every field in the family is: a surface is told
   // apart by its shade, never by a drawn line.
   const inputStyle = {
@@ -224,18 +221,55 @@ export default function RelayConnectScreen({
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
         <InfoTip text={t('relay.hint')} />
       </View>
-      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
+      {/* The field takes a paste as it comes, one word per line, numbered or
+          separated by commas. Twelve numbered slots fill as the words arrive,
+          and a word not on the list is named with its place before anything
+          is dialled. Whether the twelve fit together only the checksum says,
+          when Connect is pressed. */}
+      <View style={styles.labelRow}>
+        <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
+        <Text style={[styles.count, NUM, { color: check.complete ? c.statusOkText : c.textMuted }]}>
+          {t('phrase.wordCount', { n: check.words.length })}
+        </Text>
+      </View>
       <TextInput
         style={[styles.input, styles.phraseInput, inputStyle]}
         placeholder={t('relay.phrasePlaceholder')}
         placeholderTextColor={c.textMuted}
         value={phrase}
-        onChangeText={setPhrase}
+        onChangeText={(text) => {
+          setPhrase(text);
+          setError(null);
+        }}
         autoCapitalize="none"
         autoCorrect={false}
         autoComplete="off"
         multiline
       />
+      <View style={styles.slots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {Array.from({ length: WORD_COUNT }, (_, i) => {
+          const w = check.words[i];
+          const bad = check.unknown.includes(i);
+          return (
+            <View
+              key={i}
+              style={[
+                styles.slot,
+                corners.control,
+                w === undefined
+                  ? { backgroundColor: c.surface, opacity: 0.5 }
+                  : { backgroundColor: bad ? c.statusFailBg : c.surface },
+              ]}
+            >
+              <Text style={[styles.slotNumber, NUM, { color: bad ? c.statusFailText : c.textMuted }]}>{i + 1}</Text>
+              <Text numberOfLines={1} style={[styles.slotWord, { color: bad ? c.statusFailText : w ? c.text : c.textMuted }]}>
+                {w ?? '·'}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+      {problem && <Text style={[styles.error, { color: c.statusFailSolid }]}>{problem}</Text>}
 
       {/* Paste, because twelve words is the input a phone keyboard is worst at
           and the phrase usually arrives in a message somebody already copied.
@@ -265,6 +299,7 @@ export default function RelayConnectScreen({
         label={t('relay.joinButton')}
         icon={(ink) => <Connect color={ink} />}
         busy={searching}
+        disabled={!check.complete}
         // Wrapped rather than passed directly: onPress hands its handler the
         // touch event, which join() would read as the scanned phrase.
         onPress={() => void join()}
@@ -284,7 +319,6 @@ export default function RelayConnectScreen({
       />
       </View>
 
-      {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
       {live && (
         <>
@@ -363,7 +397,15 @@ const styles = StyleSheet.create({
   // screen's title is the same object as Downloads' and Settings' and has to
   // measure the same.
   title: { fontSize: TYPE.heading, fontWeight: '600', flexShrink: 1 },
-  label: { fontSize: TYPE.dense, marginBottom: 6, marginTop: 12 },
+  labelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 6 },
+  label: { fontSize: TYPE.dense, flexShrink: 1 },
+  count: { fontSize: TYPE.dense },
+  // Three to a row, so a word of eight letters still fits its slot on a
+  // narrow phone.
+  slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
+  slot: { flexDirection: 'row', alignItems: 'baseline', gap: 6, paddingHorizontal: 8, paddingVertical: 3, width: '32%' },
+  slotNumber: { fontSize: TYPE.caption },
+  slotWord: { fontSize: TYPE.dense, flexShrink: 1 },
   input: {
     paddingHorizontal: 14,
     paddingVertical: 12,

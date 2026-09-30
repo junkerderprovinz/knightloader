@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { LOGO_SCOPE_ID, logoInline } from '../lib/logoInline';
 import { hueVars } from '../lib/appearance';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
-import { asBarLabelMode, asNavLabelMode, setBarLabels, setNavLabels, useBarLabels, useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { seedLabelModes, useLabelMode, type LabelMode } from '../lib/labelModes';
 import { useTooltip } from './ui';
 import { usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
@@ -115,7 +115,7 @@ export const navHued = 'glim-hue glim-hue-icon';
  * padding away. The reveal runs on the motion level's label dials
  * (.glim-label-reactive).
  */
-export function NavLabel({ label, mode }: { label: string; mode: NavLabelMode }) {
+export function NavLabel({ label, mode }: { label: string; mode: LabelMode }) {
   if (mode === 'glyph') return null;
   if (mode !== 'hover') return <span className="flex-1">{label}</span>;
   return (
@@ -144,7 +144,7 @@ function Item({
   end?: boolean;
   badge?: number;
   hue: number;
-  mode: NavLabelMode;
+  mode: LabelMode;
 }) {
   const centred = mode === 'glyph' || mode === 'hover';
   // Only glyph mode gets a tooltip; hover mode reveals the label itself.
@@ -201,16 +201,15 @@ export function Sidebar() {
   // seeds them after a reload.
   const hideAccounts = useHidden('accounts');
   const hideInstances = useHidden('instances');
-  const mode = useNavLabels();
-  const barMode = useBarLabels();
+  const mode = useLabelMode('sidebar');
+  const barMode = useLabelMode('bottombar');
   const egg = useDrawAndStrike();
   useEffect(() => {
     fetchSettings()
       .then((s) => {
         setHidden('accounts', s.hideAccountsFromSidebar);
         setHidden('instances', s.hideInstancesFromSidebar);
-        setNavLabels(asNavLabelMode(s.navLabels));
-        setBarLabels(asBarLabelMode(s.bottomBarLabels));
+        seedLabelModes(s);
       })
       .catch(() => {});
   }, []);
@@ -356,7 +355,7 @@ export function BarBody({
 }: {
   icon: ReactNode;
   label: string;
-  mode: NavLabelMode;
+  mode: LabelMode;
   current?: boolean;
   badge?: number;
 }) {
@@ -403,7 +402,7 @@ function BarItem({
   icon: ReactNode;
   badge?: number;
   hue: number;
-  mode: NavLabelMode;
+  mode: LabelMode;
 }) {
   // Named when a segment may show no word: always in glyph mode, and all but
   // the current one in hover mode.
@@ -427,7 +426,7 @@ function BarItem({
   );
 }
 
-function BarSignOut({ hue, mode }: { hue: number; mode: NavLabelMode }) {
+function BarSignOut({ hue, mode }: { hue: number; mode: LabelMode }) {
   const { t } = useT();
   const label = t('auth.signOut');
   const named = mode === 'glyph' || mode === 'hover';
@@ -464,7 +463,7 @@ function PhoneBar({
   active,
   collected,
 }: {
-  mode: NavLabelMode;
+  mode: LabelMode;
   locked: boolean;
   showInstances: boolean;
   showAccounts: boolean;

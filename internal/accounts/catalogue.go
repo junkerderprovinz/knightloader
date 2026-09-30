@@ -21,8 +21,9 @@ const (
 	// page builds that section from internal/hosterauth, not from Catalogue.
 	GroupHoster Group = "hoster"
 	// GroupCaptchaSolver is a paid captcha-solving API, tried before a person
-	// is asked. Its key unlocks no link, and it is configured on the captcha
-	// settings page rather than the accounts page.
+	// is asked. Its key unlocks no link. The key is stored on the accounts
+	// page like any other; the order the solvers are tried in stays on the
+	// captcha settings page.
 	GroupCaptchaSolver Group = "captchaSolver"
 	// GroupRemoteServer is a login to a server the user owns, such as a
 	// seedbox over FTP or a NAS over SFTP (see internal/resolver/remotefs).
@@ -94,6 +95,12 @@ var Catalogue = []Service{
 	{ID: "zevera", Label: "Zevera", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://www.zevera.com/account"},
 	{ID: "2captcha", Label: "2Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://2captcha.com/enterpage"},
 	{ID: "anticaptcha", Label: "Anti-Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://anti-captcha.com/clients/settings/apisetup"},
+	{ID: "capmonster", Label: "CapMonster Cloud", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://dash.capmonster.cloud/"},
+	{ID: "capsolver", Label: "CapSolver", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://dashboard.capsolver.com/"},
+	{ID: "9kw", Label: "9kw.eu", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://www.9kw.eu/userapi.html"},
+	// Death By Captcha logs in with the account itself. An authtoken from its
+	// panel goes in the password field under the username "authtoken".
+	{ID: "deathbycaptcha", Label: "DeathByCaptcha", Kind: KindUsernamePassword, Group: GroupCaptchaSolver, WhereURL: "https://deathbycaptcha.com/user-pay"},
 	// There is no vendor page for a server the user owns, so WhereURL points
 	// at the documentation of the hostname convention. There is no Env either,
 	// since one variable could not say which of several servers it means.
