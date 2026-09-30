@@ -10,6 +10,8 @@ export const de: Dict = {
   'connections.empty': 'Noch keine Verbindung gespeichert.',
   'connections.emptyButton': 'Erste Verbindung hinzufügen',
   'connections.remove': 'Entfernen',
+  'connections.default': 'Standardinstanz',
+  'connections.makeDefault': 'Als Standard festlegen',
 
   'relay.title': 'Mit Phrase verbinden',
   'relay.hint':
@@ -154,6 +156,10 @@ export const de: Dict = {
   'settings.device': 'Dieses Gerät',
   'settings.deviceName': 'Gerätename',
   'settings.deviceHint': 'So heißt dieses Handy auf der Seite „Instanzen“ jeder Instanz deiner Gruppe. Bleibt das Feld leer, steht dort das Gerätemodell.',
+  'group.removedTitle': 'Aus der Gruppe entfernt',
+  'group.removedBody': 'Eine Instanz hat dieses Gerät aus der Gruppe entfernt. Scanne die Phrase erneut, um es wieder zu verbinden.',
+  'group.removedLater': 'Später',
+  'group.removedRescan': 'Phrase scannen',
   'settings.appearance': 'Aussehen',
   'settings.appearanceFollows': 'Aussehen der App folgt der Standardinstanz',
   'settings.appearanceOverridden': 'Hier eingestellt, richtet sich also nicht mehr nach der Instanz.',

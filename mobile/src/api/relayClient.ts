@@ -196,6 +196,7 @@ export class RelayClient {
             path,
             ...(body ? { body: encodeBody(body) } : {}),
             ...(authorization ? { authorization } : {}),
+            from: this.opts.selfId,
           }),
         });
       } catch (err) {

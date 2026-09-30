@@ -41,6 +41,8 @@ export default function DownloadsScreen({
   onBackToOwn,
   onRemoveConnection,
   onOpenCaptchas,
+  isDefault = false,
+  onMakeDefault,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -51,6 +53,10 @@ export default function DownloadsScreen({
    *  there is nothing here to remove. */
   onRemoveConnection?: () => void;
   onOpenCaptchas: () => void;
+  /** Whether this is the instance the app opens on and takes its look from. */
+  isDefault?: boolean;
+  /** Undefined for a federation peer, for the same reason as above. */
+  onMakeDefault?: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, corners } = useAppearance();
@@ -175,8 +181,20 @@ export default function DownloadsScreen({
               On the overview it would sit on every row of a list somebody taps
               to open, which is a mis-tap waiting to happen.
 
-              It is the only badge on this side. Settings are not a property of
-              one instance, so the gear lives on the overview alone. */}
+              Settings are not a property of one instance, so the gear lives
+              on the overview alone. */}
+          {/* Filled while this is the default, so the badge says what the
+              instance is and a press on it changes nothing. */}
+          {!peer && onMakeDefault && (
+            <IconBadge
+              symbol={isDefault ? '★' : '☆'}
+              accent={isDefault}
+              onPress={() => {
+                if (!isDefault) onMakeDefault();
+              }}
+              accessibilityLabel={isDefault ? t('connections.default') : t('connections.makeDefault')}
+            />
+          )}
           {!peer && onRemoveConnection && (
             <IconBadge
               icon={<Trash color={c.textSub} />}

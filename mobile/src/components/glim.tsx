@@ -470,6 +470,22 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
   );
 }
 
+/** The small star on the card of the instance the app opens on and takes its
+ *  look from. */
+export function DefaultBadge() {
+  const { c, corners, accentInk } = useAppearance();
+  const { t } = useT();
+  return (
+    <View
+      style={[styles.statusBadge, { backgroundColor: c.surface2, ...corners.pill }]}
+      accessible
+      accessibilityLabel={t('connections.default')}
+    >
+      <Text style={[styles.statusText, { color: accentInk }]}>★</Text>
+    </View>
+  );
+}
+
 /**
  * Every labelled button in this app.
  *

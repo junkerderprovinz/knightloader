@@ -50,3 +50,18 @@ export function relayIdentity(): Promise<string> {
   });
   return inFlight;
 }
+
+/**
+ * Forgets this device's relay id, for a phone taken out of its group: scanning
+ * the phrase again then brings it back as a new phone rather than the removed
+ * one.
+ */
+export async function resetRelayIdentity(): Promise<void> {
+  cached = null;
+  try {
+    await AsyncStorage.removeItem(KEY);
+  } catch {
+    // An id that could not be forgotten is replaced on the next launch at the
+    // latest; the phone is out of the group either way.
+  }
+}
