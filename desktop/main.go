@@ -147,12 +147,15 @@ func main() {
 		Windows: application.WindowsOptions{DisableQuitOnLastWindowClosed: true},
 		Linux:   application.LinuxOptions{DisableQuitOnLastWindowClosed: true, ProgramName: "KnightLoader"},
 	})
+	// MinWidth leaves the page the 768px that keep it out of the phone layout
+	// (web/src/lib/phoneLayout.ts), since the settings here have no row for its
+	// bottom bar. On Windows the minimum also counts the 8px frame on either side.
 	window := wails.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:             "main",
 		Title:            "KnightLoader",
 		Width:            1100,
 		Height:           780,
-		MinWidth:         720,
+		MinWidth:         784,
 		MinHeight:        480,
 		BackgroundColour: application.NewRGB(22, 22, 22),
 		URL:              "/",

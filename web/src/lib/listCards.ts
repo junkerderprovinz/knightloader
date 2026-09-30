@@ -2,7 +2,7 @@
 // cards beside the download list are switched on. The rule has a twin in the
 // app (packageCard in mobile/src/api/taskState.ts), and the two must agree.
 //
-// The switches are a module-level store like navLabels.ts: Layout seeds it from
+// The switches are a module-level store like labelModes.ts: Layout seeds it from
 // the settings, the settings page writes it the moment a toggle moves, and a
 // copy in localStorage keeps the first paint after a reload from drawing the
 // cards somebody switched off.

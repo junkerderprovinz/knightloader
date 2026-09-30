@@ -3,7 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { setNavLabels } from '../lib/navLabels';
+import { setLabelMode } from '../lib/labelModes';
 import { Tabs } from './Tabs';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -87,18 +87,18 @@ describe('a folded chip strip', () => {
         ),
       );
     try {
-      setNavLabels('glyph');
+      setLabelMode('tabs', 'glyph');
       drawWith();
       expect(chip().textContent).toBe('');
       expect(chip().getAttribute('aria-label')).toBe('Quick filters');
       expect(chip().querySelector('[data-glyph]')).not.toBeNull();
 
-      setNavLabels('text');
+      setLabelMode('tabs', 'text');
       drawWith();
       expect(chip().textContent).toBe('Quick filters');
       expect(chip().querySelector('[data-glyph]')).toBeNull();
     } finally {
-      setNavLabels('both');
+      setLabelMode('tabs', 'both');
     }
   });
 

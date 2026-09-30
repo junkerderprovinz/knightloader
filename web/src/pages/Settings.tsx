@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useMatch, useNavigate, useParams 
 import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
@@ -423,11 +423,11 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
   const navigate = useNavigate();
   const here = useMatch('/settings/:page');
   // Live, since the selector that changes it sits in this page's own column
-  // (lib/navLabels.ts). Below `lg` the width goes to the page and the rail
+  // (lib/labelModes.ts). Below `lg` the width goes to the page and the rail
   // shows the glyphs alone, with each name in its bubble: beside the full
   // sidebar, a rail with words would leave a card about 220px at 800px.
   const narrow = useTabletLayout();
-  const chosen = useNavLabels();
+  const chosen = useLabelMode('tabs');
   const display = narrow ? 'glyph' : chosen;
   // The drag order is a per-browser preference, like the remembered page.
   const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);

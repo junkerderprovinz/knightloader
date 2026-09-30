@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, RefObject } from 'react';
 import { hueVars } from '../lib/appearance';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
@@ -102,7 +102,7 @@ export function Button({
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const shakeRef = useShake<HTMLButtonElement>(shake);
   const confirmRef = useConfirm<HTMLButtonElement>(confirm);
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
   const fallback =
@@ -363,8 +363,8 @@ export function IconBadge({
    */
   active?: boolean;
   /**
-   * Opts this badge into the Beschriftung setting (lib/navLabels.ts), the same
-   * one the sidebar and the settings rail follow. Opt-in is on its way out, not
+   * Opts this badge into the buttons' label setting (lib/labelModes.ts), the
+   * one Button's own `labelled` follows. Opt-in is on its way out, not
    * a rule: from outside, a documented exemption and a control that ignores the
    * setting look identical. The end state is no prop at all, which first needs
    * the row layouts under the 45 call sites to hold three verbs per line. The
@@ -394,7 +394,7 @@ export function IconBadge({
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
   const toggle = active !== undefined;
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   const showText = labelled && !!title && (labelMode === 'text' || labelMode === 'both');
   // The glyph is only dropped where words arrive in its place. A badge that
   // opted in and carries no title would otherwise render as an empty box with
@@ -480,7 +480,7 @@ export function linkBadgeClass(showText: boolean): string {
  * link is clickable and everything clickable is a badge (GlimStone rule 13).
  */
 export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
   const tip = useTooltip<HTMLAnchorElement>(title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;

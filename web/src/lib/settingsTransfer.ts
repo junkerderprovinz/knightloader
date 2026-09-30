@@ -151,8 +151,8 @@ export function diffRows(
  * asImported is the file's settings as the import writes them. The server reads
  * a value an earlier build wrote the way a restart reads that build's own
  * settings file (settings.PortableDoc.Migrated). This mirrors the migrations
- * that change a key such a file carries, migrateStall and migrateAutoStart.
- * `defaults` is /api/settings/defaults' values.
+ * that change a key such a file carries, migrateStall, migrateAutoStart and
+ * migrateLabels. `defaults` is /api/settings/defaults' values.
  */
 function asImported(s: Record<string, unknown>, defaults: Record<string, unknown>): Record<string, unknown> {
   const out = { ...s };
@@ -161,6 +161,8 @@ function asImported(s: Record<string, unknown>, defaults: Record<string, unknown
   if (s.stallReconnect == null && s.stallTimeout === 0) out.stallTimeout = defaults.stallTimeout;
   // A build without autoConfirm always started a batch that was confirmed.
   if (s.autoConfirm == null && typeof s.autoStart === 'boolean') out.autoStart = true;
+  // A bottom bar that followed the sidebar takes the mode the sidebar had.
+  if (s.bottomBarLabels === 'follow') out.bottomBarLabels = s.navLabels ?? defaults.bottomBarLabels;
   return out;
 }
 
@@ -312,7 +314,9 @@ const GROUPS: Record<string, TransferGroup> = {
   rainbowRotate: 'look',
   rainbowSeed: 'look',
   rainbowPalette: 'look',
-  navLabels: 'look',
+  buttonLabels: 'look',
+  sidebarLabels: 'look',
+  tabLabels: 'look',
   bottomBarLabels: 'look',
   torrentCard: 'look',
   finishedCard: 'look',

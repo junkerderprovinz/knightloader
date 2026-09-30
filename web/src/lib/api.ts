@@ -1,6 +1,6 @@
 // Type-only imports: these types belong to the modules that own their data, so
 // they are named here rather than restated.
-import type { BarLabelMode, NavLabelMode } from './navLabels';
+import type { LabelMode } from './labelModes';
 import type { EventProgramRow } from './eventprograms';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
@@ -591,10 +591,11 @@ export interface Settings {
   hideAccountsFromSidebar: boolean;
   /** Hides the sidebar's "Instanzen" entry in the same way. */
   hideInstancesFromSidebar: boolean;
-  /** How much of a navigation entry is drawn, in the sidebar and the settings rail. */
-  navLabels: NavLabelMode;
-  /** How much of an entry the phone layout's bottom bar draws, or 'follow' for navLabels'. */
-  bottomBarLabels: BarLabelMode;
+  /** How much of each kind of control is drawn (lib/labelModes.ts). */
+  buttonLabels: LabelMode;
+  sidebarLabels: LabelMode;
+  tabLabels: LabelMode;
+  bottomBarLabels: LabelMode;
   /** Whether finished packages and torrents leave the download list for cards
    *  of their own (lib/listCards.ts). The app reads them too. */
   torrentCard: boolean;
