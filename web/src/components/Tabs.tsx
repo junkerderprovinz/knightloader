@@ -15,7 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { useNavLabels, type NavLabelMode } from '../lib/navLabels';
+import { useLabelMode, type LabelMode } from '../lib/labelModes';
 import { IconChevronDown } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
 import { useReorder } from './dragLift';
@@ -80,6 +80,11 @@ interface Common {
    */
   variant?: 'default' | 'well';
   /**
+   * How far along the rainbow the first tab starts, for strips stacked in one
+   * card, so no two of them open on the same colour.
+   */
+  hueOffset?: number;
+  /**
    * `vertical` is the settings rail. It is a mode of this component so the
    * rail shares the reorder gesture, roving tabindex and rainbow wiring.
    */
@@ -95,10 +100,15 @@ interface Common {
    * height so a long list scrolls instead of shrinking to slivers.
    */
   fill?: boolean;
-  /** How much of each tab is drawn; see lib/navLabels.ts. */
-  display?: NavLabelMode;
   /**
-   * Opts a strip of glyphs into the Beschriftung setting, as IconBadge's own
+   * Vertical only: idle tabs take the sidebar's ground and its row hover, for
+   * a rail that reads as part of the navigation beside it.
+   */
+  sidebarGround?: boolean;
+  /** How much of each tab is drawn; see lib/labelModes.ts. */
+  display?: LabelMode;
+  /**
+   * Opts a strip of glyphs into the tabs' label setting, as IconBadge's own
    * `labelled` does for a badge: the setting's glyph and hover modes show each
    * glyph alone with its name in the bubble. `display` wins where both are set.
    */
@@ -108,7 +118,7 @@ interface Common {
    * out of room for its chips (lib/rowFit.ts). Its menu holds the tabs, each
    * with its badge, and picking one selects it as a click on the tab would.
    * `more` follows them, in place of what `after` shows beside the strip. The
-   * chip follows Beschriftung as a strip of glyphs does, `labelled` included.
+   * chip follows the label setting as a strip of glyphs does, `labelled` included.
    */
   folded?: { icon: ReactNode; glyph?: boolean; more?: MenuItem[] };
 }
@@ -122,6 +132,10 @@ const SIZE = {
   sm: 'gap-1.5 px-2.5 py-1 text-xs',
   md: 'gap-2 px-3 py-2 text-sm',
 } as const;
+
+// An idle tab on the sidebar's ground hovers as a sidebar row does, one step up
+// the ramp from that ground in both themes.
+const SIDEBAR_OFF = 'bg-carbon-sidebar text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
 
 // A well segment reads bigger than a chip at the same stage, so it has its own
 // padding; `sm` suits TaskProperties' smaller selectors.
@@ -212,15 +226,17 @@ export function Tabs(props: TabsProps) {
     onReorder,
     equalWidth = false,
     variant = 'default',
+    hueOffset = 0,
     orientation = 'horizontal',
     inline = false,
     fill = false,
+    sidebarGround = false,
     display: asked,
     labelled = false,
     folded,
   } = props;
-  const labelMode = useNavLabels();
-  const display: NavLabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
+  const labelMode = useLabelMode('tabs');
+  const display: LabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
   const vertical = orientation === 'vertical';
 
@@ -485,7 +501,7 @@ export function Tabs(props: TabsProps) {
         // label on two lines does not make its tile taller than the rest.
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
-            `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
+            `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : sidebarGround ? SIDEBAR_OFF : segOff}
               flex w-full min-w-0 overflow-hidden text-[15px]
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
@@ -552,8 +568,8 @@ export function Tabs(props: TabsProps) {
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
-              { ...hueStyle(i), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
-            : { ...hueStyle(i), ...segmentFlex },
+              { ...hueStyle(i + hueOffset), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
+            : { ...hueStyle(i + hueOffset), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
           draggable: reorderable ? false : undefined,

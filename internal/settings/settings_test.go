@@ -99,23 +99,31 @@ func TestSanitizeKeepsLimitsUsable(t *testing.T) {
 	}
 }
 
-// The bottom bar follows the sidebar's labels until somebody sets it apart,
-// and a value the bar cannot draw falls back to following.
-func TestBottomBarLabelsFollowTheSidebarUnlessSetApart(t *testing.T) {
-	if got := Defaults().BottomBarLabels; got != BottomBarFollowsNav {
-		t.Errorf("a fresh install's bar draws %q, want it to follow the sidebar", got)
+// labelAxes reads the four label settings in a fixed order, so a test can
+// compare them in one go.
+func labelAxes(s Settings) [4]string {
+	return [4]string{s.ButtonLabels, s.SidebarLabels, s.TabLabels, s.BottomBarLabels}
+}
+
+// Every control draws glyph and word until somebody chooses otherwise, and a
+// value no control can draw falls back to that rather than to neither.
+func TestEachLabelSettingKeepsItsModeAndFoldsTheRest(t *testing.T) {
+	both := [4]string{LabelsBoth, LabelsBoth, LabelsBoth, LabelsBoth}
+	if got := labelAxes(Defaults()); got != both {
+		t.Errorf("a fresh install draws %v, want both everywhere", got)
 	}
-	// A settings.json from before the field existed carries the empty string.
-	if got := sanitize(Settings{}).BottomBarLabels; got != BottomBarFollowsNav {
-		t.Errorf("a settings file without the field gave the bar %q, want it to follow the sidebar", got)
+	if got := labelAxes(sanitize(Settings{})); got != both {
+		t.Errorf("a settings file without the fields gave %v, want both everywhere", got)
 	}
-	for _, mode := range []string{NavLabelsBoth, NavLabelsGlyph, NavLabelsText, NavLabelsHover} {
-		if got := sanitize(Settings{NavLabels: NavLabelsBoth, BottomBarLabels: mode}).BottomBarLabels; got != mode {
-			t.Errorf("the bar set to %q came back as %q", mode, got)
+	for _, mode := range []string{LabelsBoth, LabelsGlyph, LabelsText, LabelsHover} {
+		s := sanitize(Settings{ButtonLabels: mode, SidebarLabels: mode, TabLabels: mode, BottomBarLabels: mode})
+		if got := labelAxes(s); got != [4]string{mode, mode, mode, mode} {
+			t.Errorf("%q came back as %v", mode, got)
 		}
 	}
-	if got := sanitize(Settings{BottomBarLabels: "sideways"}).BottomBarLabels; got != BottomBarFollowsNav {
-		t.Errorf("an unknown mode survived as %q, which would draw a bar with neither glyph nor word", got)
+	odd := sanitize(Settings{ButtonLabels: "sideways", SidebarLabels: "follow", TabLabels: "Glyph", BottomBarLabels: "follow"})
+	if got := labelAxes(odd); got != both {
+		t.Errorf("unknown modes survived as %v", got)
 	}
 }
 

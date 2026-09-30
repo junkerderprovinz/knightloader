@@ -1,15 +1,14 @@
 package captcha
 
-// The 2Captcha client, plus the solver machinery it shares with
-// solver_anticaptcha.go: the Solver contract, the errors a caller decides the
-// next step by, the click-answer encoder and the HTTP and poll helpers neither
-// provider's wire format owns. The token tasks for widget challenges are in
-// solver_token.go.
+// The 2Captcha client, plus the solver machinery it shares with the other
+// providers' clients: the Solver contract, the errors a caller decides the next
+// step by, the click-answer encoder and the HTTP, poll and balance helpers no
+// single provider's wire format owns. The token tasks for widget challenges
+// are in solver_token.go.
 //
-// Each configured solver is tried in the order the user chose. Both handle
-// image and click challenges, and reCAPTCHA and Turnstile widgets through the
-// provider's own browsers. Neither takes hCaptcha, so an hCaptcha is refused
-// before anything is sent and stays with the person at the prompt.
+// Each configured solver is tried in the order the user chose. The providers
+// differ in what they take, and Takes says so before anything is sent, so a
+// captcha none of them takes stays with the person at the prompt.
 
 import (
 	"bytes"
@@ -19,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptrace"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -28,9 +29,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
-// Solver is an automatic captcha-solving backend. Both TwoCaptchaSolver and
-// AntiCaptchaSolver implement it, so a caller working through the configured
-// order needs no type switch.
+// Solver is an automatic captcha-solving backend. Every provider's client
+// implements it, so a caller working through the configured order needs no
+// type switch.
 type Solver interface {
 	// Takes reports whether the provider solves c's kind, without a network
 	// call: nil if it does, a *Refusal with RefusalUnsupported if it does not.
@@ -58,11 +59,19 @@ type Refusal struct {
 	Detail string
 }
 
-func (r *Refusal) Error() string {
+func (r *Refusal) Error() string { return "captcha: solver refused: " + r.reason() }
+
+func (r *Refusal) reason() string {
 	if r.Detail != "" {
-		return fmt.Sprintf("captcha: solver refused: %s (%s)", r.Detail, r.Code)
+		return fmt.Sprintf("%s (%s)", r.Detail, r.Code)
 	}
-	return "captcha: solver refused: " + r.Code
+	return r.Code
+}
+
+// keyRefused words a refusal of a balance check. Nothing but the account can
+// fail that call, so the provider's code is about the key or its owner.
+func keyRefused(provider string, r *Refusal) error {
+	return fmt.Errorf("captcha: %s refused the key: %s", provider, r.reason())
 }
 
 // ErrTaskTaken is wrapped by every failure once the provider may hold the
@@ -93,9 +102,10 @@ func unsupported(what string) *Refusal {
 
 // Both are var rather than const so the tests can shorten them.
 var (
-	// solverPollInterval is how long a Solve call waits between getTaskResult
-	// polls. 2Captcha's documentation asks for at least five seconds;
-	// Anti-Captcha states no interval, so it gets the same one.
+	// solverPollInterval is how long a Solve call waits between polls for a
+	// result. 2Captcha's documentation asks for at least five seconds, and
+	// 9kw's for five to ten before the first poll; the others ask for less or
+	// state no interval.
 	solverPollInterval = 5 * time.Second
 
 	// solverMaxWait bounds one Solve call's poll loop for a caller that passes
@@ -193,7 +203,7 @@ func challengeImage(c Challenge) (string, error) {
 }
 
 // decodeSolverImage turns a data URL or a bare base64 string into the
-// standard-padded base64 both providers document. It decodes tolerantly and
+// standard-padded base64 the providers document. It decodes tolerantly and
 // re-encodes rather than forwarding whatever followed "base64,", so a URL-safe
 // or unpadded variant does not surface as an opaque provider-side error.
 func decodeSolverImage(image string) (string, error) {
@@ -226,44 +236,66 @@ func solverSleep(ctx context.Context, d time.Duration) error {
 	}
 }
 
-// postJSON POSTs in as a JSON body to url and decodes the response into out,
-// the one HTTP shape both providers' APIs share. What the response holds
-// differs per provider and is decoded by the types below.
-//
-// sent reports whether the whole request went out. From then on the provider
-// may have acted on it, even when no answer, or no answer this can read, came
-// back.
-func postJSON(ctx context.Context, hc *http.Client, url string, in, out any) (sent bool, err error) {
-	b, err := json.Marshal(in)
-	if err != nil {
-		return false, err
-	}
+// roundTrip sends req and reads the reply, up to a megabyte. sent reports
+// whether the whole request went out. From then on the provider may have acted
+// on it, even when no answer, or no answer this can read, came back.
+func roundTrip(hc *http.Client, req *http.Request) (status int, body []byte, sent bool, err error) {
 	var wrote atomic.Bool
-	ctx = httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), &httptrace.ClientTrace{
 		WroteRequest: func(i httptrace.WroteRequestInfo) {
 			if i.Err == nil {
 				wrote.Store(true)
 			}
 		},
-	})
+	}))
+	resp, err := hc.Do(req)
+	if err != nil {
+		return 0, nil, wrote.Load(), err
+	}
+	defer resp.Body.Close()
+	body, err = io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	return resp.StatusCode, body, true, err
+}
+
+// postJSON POSTs in as a JSON body to url and decodes the response into out,
+// the HTTP shape of every createTask-style API. What the response holds
+// differs per provider and is decoded by the types below. sent is roundTrip's.
+func postJSON(ctx context.Context, hc *http.Client, url string, in, out any) (sent bool, err error) {
+	b, err := json.Marshal(in)
+	if err != nil {
+		return false, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
 	if err != nil {
 		return false, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := hc.Do(req)
+	status, raw, sent, err := roundTrip(hc, req)
 	if err != nil {
-		return wrote.Load(), err
-	}
-	defer resp.Body.Close()
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	if err != nil {
-		return true, err
+		return sent, err
 	}
 	if err := json.Unmarshal(raw, out); err != nil {
-		return true, fmt.Errorf("%s: HTTP %s: %w", url, resp.Status, err)
+		return true, fmt.Errorf("%s: HTTP %d: %w", url, status, err)
 	}
 	return true, nil
+}
+
+// multipartBody encodes fields as multipart/form-data, which 9kw and Death By
+// Captcha take their uploads as, and returns the body with its content type.
+func multipartBody(fields url.Values) (*bytes.Buffer, string, error) {
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	for name, values := range fields {
+		for _, v := range values {
+			if err := w.WriteField(name, v); err != nil {
+				return nil, "", err
+			}
+		}
+	}
+	if err := w.Close(); err != nil {
+		return nil, "", err
+	}
+	return &buf, w.FormDataContentType(), nil
 }
 
 // createTaskFailed wraps a createTask call that brought back no answer. Once
@@ -277,7 +309,7 @@ func createTaskFailed(provider string, sent bool, err error) error {
 }
 
 // solverEnvelope is the {errorId, errorCode, errorDescription} prefix every
-// response of both providers carries, embedded in their response types.
+// response of a createTask-style API carries, embedded in its response types.
 type solverEnvelope struct {
 	ErrorID          int    `json:"errorId"`
 	ErrorCode        string `json:"errorCode,omitempty"`
@@ -299,7 +331,8 @@ func (e solverEnvelope) refusal() error {
 
 // solverTokenSolution is the part of a solution a token task fills. 2Captcha
 // writes the token under both names for reCAPTCHA and only as token for
-// Turnstile; Anti-Captcha uses gRecaptchaResponse for reCAPTCHA and token for
+// Turnstile; Anti-Captcha, CapMonster Cloud and CapSolver use
+// gRecaptchaResponse for reCAPTCHA (and CapMonster for hCaptcha) and token for
 // Turnstile.
 type solverTokenSolution struct {
 	Token              string `json:"token,omitempty"`
@@ -311,6 +344,27 @@ func (s solverTokenSolution) value() string {
 		return s.Token
 	}
 	return s.GRecaptchaResponse
+}
+
+// getBalance asks the createTask-style API at base what the account holds, in
+// the provider's own unit, with the one request 2Captcha, Anti-Captcha,
+// CapMonster Cloud and CapSolver all document.
+func getBalance(ctx context.Context, hc *http.Client, base, key, provider string) (float64, error) {
+	var resp struct {
+		solverEnvelope
+		Balance float64 `json:"balance"`
+	}
+	req := struct {
+		ClientKey string `json:"clientKey"`
+	}{key}
+	if _, err := postJSON(ctx, hc, base+"/getBalance", req, &resp); err != nil {
+		return 0, fmt.Errorf("%s getBalance: %w", provider, err)
+	}
+	var r *Refusal
+	if errors.As(resp.refusal(), &r) {
+		return 0, keyRefused(provider, r)
+	}
+	return resp.Balance, nil
 }
 
 // The 2Captcha JSON API: createTask answers a task id, getTaskResult is polled
@@ -326,6 +380,7 @@ func (s solverTokenSolution) value() string {
 //	https://2captcha.com/api-docs/recaptcha-v3
 //	https://2captcha.com/api-docs/cloudflare-turnstile
 //	https://2captcha.com/api-docs/get-task-result
+//	https://2captcha.com/api-docs/get-balance
 
 const twoCaptchaBase = "https://api.2captcha.com"
 
@@ -452,6 +507,12 @@ func (s *TwoCaptchaSolver) Solve(ctx context.Context, c Challenge) (string, erro
 		return "", err
 	}
 	return solverAnswerFor(c.Kind, res)
+}
+
+// Balance returns what the account holds in US dollars, and is how a key is
+// checked without paying for a captcha.
+func (s *TwoCaptchaSolver) Balance(ctx context.Context) (float64, error) {
+	return getBalance(ctx, s.hc, s.base, s.key, "2captcha")
 }
 
 func (s *TwoCaptchaSolver) createTask(ctx context.Context, task twoCaptchaTask) (int64, error) {

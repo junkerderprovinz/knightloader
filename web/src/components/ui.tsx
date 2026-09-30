@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, RefObject } from 'react';
 import { hueVars } from '../lib/appearance';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { followExternal } from '../lib/external';
 import { useT } from '../lib/i18n';
@@ -102,7 +102,7 @@ export function Button({
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const shakeRef = useShake<HTMLButtonElement>(shake);
   const confirmRef = useConfirm<HTMLButtonElement>(confirm);
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   // Only fills in for a button that has no children of its own: a labelled
   // button already says what it does.
   const fallback =
@@ -297,16 +297,18 @@ export function LabelBadge({
   label: string;
   tip?: ReactNode;
   hue?: number;
-  tone?: 'ok' | 'fail';
+  tone?: 'ok' | 'warn' | 'fail';
   onClick?: () => void;
 }) {
   const hued = hue !== undefined && !tone;
   const toneClass =
     tone === 'ok'
       ? 'bg-statusOkBg text-statusOk'
-      : tone === 'fail'
-        ? 'bg-statusFailBg text-statusFail'
-        : 'bg-carbon-surface2 text-carbon-textSub';
+      : tone === 'warn'
+        ? 'bg-statusWarnBg text-statusWarn'
+        : tone === 'fail'
+          ? 'bg-statusFailBg text-statusFail'
+          : 'bg-carbon-surface2 text-carbon-textSub';
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
@@ -361,8 +363,8 @@ export function IconBadge({
    */
   active?: boolean;
   /**
-   * Opts this badge into the Beschriftung setting (lib/navLabels.ts), the same
-   * one the sidebar and the settings rail follow. Opt-in is on its way out, not
+   * Opts this badge into the buttons' label setting (lib/labelModes.ts), the
+   * one Button's own `labelled` follows. Opt-in is on its way out, not
    * a rule: from outside, a documented exemption and a control that ignores the
    * setting look identical. The end state is no prop at all, which first needs
    * the row layouts under the 45 call sites to hold three verbs per line. The
@@ -392,7 +394,7 @@ export function IconBadge({
   // Keyed on `active !== undefined` and not on the value, so an idle filter
   // does not wear the one-shot action's wash until it is first pressed.
   const toggle = active !== undefined;
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   const showText = labelled && !!title && (labelMode === 'text' || labelMode === 'both');
   // The glyph is only dropped where words arrive in its place. A badge that
   // opted in and carries no title would otherwise render as an empty box with
@@ -478,7 +480,7 @@ export function linkBadgeClass(showText: boolean): string {
  * link is clickable and everything clickable is a badge (GlimStone rule 13).
  */
 export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
-  const labelMode = useNavLabels();
+  const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
   const tip = useTooltip<HTMLAnchorElement>(title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
@@ -1818,6 +1820,7 @@ export function Modal({
   mute,
   hue,
   height = 'content',
+  wide = false,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
@@ -1854,6 +1857,9 @@ export function Modal({
    * since what they hold was laid out by another site.
    */
   height?: 'content' | 'screen' | 'capped';
+  /** Room for a grid beside a picture, such as the twelve words and their QR
+   *  code. It goes with the content height. */
+  wide?: boolean;
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1884,7 +1890,7 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${MODAL_SIZE[height]}`}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_SIZE[height]}`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"

@@ -17,6 +17,7 @@ import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
 import { relayIdentity } from '../storage/relayIdentity';
+import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
 
 export class ApiError extends Error {
@@ -114,7 +115,7 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
     key: conn.relayKey,
     frameKey: fromHex(conn.relayFrameKey),
     selfId: await relayIdentity(),
-    selfName: 'KnightLoader app',
+    selfName: deviceName(),
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;
   const r = await client.proxy(

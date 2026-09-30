@@ -11,7 +11,7 @@ import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { useBarLabels, useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { IconBell } from '../lib/icons';
 import { fmtClock } from '../lib/format';
 import { useStagger } from '../lib/motion';
@@ -132,8 +132,8 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
   const { toast } = useToast();
   const navigate = useNavigate();
   // The bar's segment follows the bar's own setting, the rail's row the rail's.
-  const railMode = useNavLabels();
-  const barMode = useBarLabels();
+  const railMode = useLabelMode('sidebar');
+  const barMode = useLabelMode('bottombar');
   const mode = bar ? barMode : railMode;
   const events = useEventLog();
   const unread = useUnreadEvents();

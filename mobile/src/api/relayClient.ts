@@ -262,11 +262,11 @@ export class RelayClient {
           announce: {
             instanceId: this.opts.selfId,
             // Everything but the id goes into the seal, under the frame key
-            // the relay does not hold (see relay.Identity). The name, the
-            // 'mobile' marker and the client flag that says "route to me, but
-            // do not list me as somewhere to go" are what siblings need; a
-            // phone without that flag shows up as a browsable instance on every
-            // Instances page and answers 501 to everything asked of it.
+            // the relay does not hold (see relay.Identity). The device name and
+            // the 'mobile' marker give the phone its own card on every
+            // instance's Instances page, and the client flag keeps it off the
+            // list of instances to call, where it would answer 501 to
+            // everything.
             sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
               name: this.opts.selfName,
               deployment: 'mobile',

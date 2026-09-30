@@ -10,7 +10,11 @@ package relay
 // (GET /api/tasks/{id}/file) pass through here too: sealed, but base64 in a
 // single frame whose length the relay can see, not a stream.
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+	"unicode/utf8"
+)
 
 // The frame types. Anything else on the socket is ignored rather than treated
 // as an error, see Server.Route.
@@ -85,6 +89,10 @@ type Announce struct {
 	// and without this flag a phone would show up in every sibling's instance
 	// list as a target that answers 501 to everything.
 	Client bool `json:"client,omitempty"`
+	// Address is where the instance's web interface is, which the Instances
+	// page shows and opens: its first known domain, else its address on its
+	// network. Sealed, because a domain says whose instance it is.
+	Address string `json:"address,omitempty"`
 }
 
 // Identity is the part of an announce the relay server never reads: it routes
@@ -95,6 +103,7 @@ type Identity struct {
 	Name       string `json:"name,omitempty"`
 	Deployment string `json:"deployment,omitempty"`
 	Client     bool   `json:"client,omitempty"`
+	Address    string `json:"address,omitempty"`
 }
 
 // announceAAD binds an announce's seal to its instance id. Its label differs
@@ -134,9 +143,10 @@ func OpenIdentity(key []byte, instanceID string, sealed []byte) (Identity, error
 // unnamed instance until it updates.
 func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 	sealed, err := SealIdentity(frameKey, a.InstanceID, Identity{
-		Name:       a.Name,
+		Name:       ClipName(a.Name),
 		Deployment: a.Deployment,
 		Client:     a.Client,
+		Address:    FitAddress(a.Address),
 	})
 	if err != nil {
 		return Announce{}, err
@@ -161,7 +171,37 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 		Name:       id.Name,
 		Deployment: id.Deployment,
 		Client:     id.Client,
+		Address:    FitAddress(id.Address),
 	}
+}
+
+// MaxNameBytes keeps the name an instance or an app goes by small enough that
+// every hello fits in helloLimit.
+const MaxNameBytes = 200
+
+// ClipName cuts name to MaxNameBytes at a whole UTF-8 character.
+func ClipName(name string) string {
+	if len(name) <= MaxNameBytes {
+		return name
+	}
+	cut := MaxNameBytes
+	for cut > 0 && !utf8.RuneStart(name[cut]) {
+		cut--
+	}
+	return name[:cut]
+}
+
+// MaxAddressBytes bounds an announced address for the same reason as
+// MaxNameBytes.
+const MaxAddressBytes = 200
+
+// FitAddress is address, or "" when it is longer than MaxAddressBytes. A cut
+// address would lead somewhere else, so it is left out instead.
+func FitAddress(address string) string {
+	if len(address) > MaxAddressBytes {
+		return ""
+	}
+	return address
 }
 
 // Presence reports that a sibling's connection state changed. The relay only
@@ -201,6 +241,11 @@ type ProxyCall struct {
 	// own handler. Being a reusable credential, it is the main reason calls
 	// are sealed.
 	Authorization string `json:"authorization,omitempty"`
+	// ID and Sent are the request id and the Unix time the call was sealed
+	// at. They travel inside the seal, where a relay cannot change them, so
+	// the receiver can refuse a frame it has run before or one that is old.
+	ID   string `json:"id"`
+	Sent int64  `json:"sent"`
 }
 
 // ProxyResponse is the wire form of the answer to one ProxyRequest.
@@ -237,9 +282,14 @@ func responseAAD(requestID string) string {
 	return "proxy-response\x00" + requestID
 }
 
-// SealCall seals one call for the wire. It is exported so the mobile app's
+// SealCall seals one call for the wire, stamped with requestID and, unless
+// Sent is set, the current time. It is exported so the mobile app's
 // TypeScript port can be tested against it.
 func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	call.ID = requestID
+	if call.Sent == 0 {
+		call.Sent = time.Now().Unix()
+	}
 	plain, err := json.Marshal(call)
 	if err != nil {
 		return nil, err
@@ -254,9 +304,10 @@ func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, e
 		return ProxyCall{}, err
 	}
 	var call ProxyCall
-	if err := json.Unmarshal(plain, &call); err != nil {
-		// No honest sender seals something unparseable, so the caller treats
-		// it like any other blob that fails to open.
+	if err := json.Unmarshal(plain, &call); err != nil || call.ID != requestID {
+		// No honest sender seals something unparseable or stamped with
+		// another id, so the caller treats it like any other blob that fails
+		// to open.
 		return ProxyCall{}, ErrSealed
 	}
 	return call, nil

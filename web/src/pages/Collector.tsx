@@ -38,7 +38,7 @@ import { matchesSearch, SearchField } from '../components/SearchField';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing, type Narrowing } from '../lib/listNarrowing';
 import { useSavedViews } from '../lib/savedViews';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 import { useRowFit } from '../lib/rowFit';
 import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
 import { CollectorFacetSidebar, matchesFacets } from '../components/CollectorFacets';
@@ -152,10 +152,12 @@ export function Collector() {
   const allOffered = useMemo(() => offeredQuickFilters(COLLECTOR_FILTERS, collected, filters), [collected, filters]);
 
   // What the action row holds, so it measures itself again when that changes.
-  const labels = useNavLabels();
+  const buttonLabels = useLabelMode('buttons');
+  const tabLabels = useLabelMode('tabs');
   const { views } = useSavedViews('collector', COLLECTOR_FILTERS);
   const rowContent = [
-    labels,
+    buttonLabels,
+    tabLabels,
     selected.size,
     narrowed ? `${filtered.length}/${collected.length}` : '',
     anyNarrowing,

@@ -11,6 +11,7 @@ export type StateWord =
   | 'collected'
   | 'queued'
   | 'running'
+  | 'leeching'
   | 'paused'
   | 'extracting'
   | 'seeding'
@@ -34,6 +35,9 @@ const RANK: Record<string, number> = {
 
 const seeds = (t: Task): boolean => t.status === 'done' && t.seeding === true;
 
+// A torrent a debrid service fetched comes down over HTTP and is not one.
+const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
+
 // A status from a newer instance sorts with the settled ones.
 const rank = (t: Task): number => (seeds(t) ? RANK.seeding : (RANK[t.status] ?? RANK.error));
 
@@ -48,9 +52,11 @@ export function rowWord(t: Task): StateWord | null {
     return 'disabled';
   }
   switch (t.status) {
+    case 'running':
+      // A torrent still downloading is leeching, the counterpart of seeding.
+      return isTorrent(t) ? 'leeching' : 'running';
     case 'collected':
     case 'queued':
-    case 'running':
     case 'paused':
     case 'extracting':
       return t.status;
@@ -101,9 +107,6 @@ export function packageState(tasks: Task[]): PackageState {
 
 /** Which part of the Downloads screen a package is listed in. */
 export type ListCard = 'downloads' | 'finished' | 'torrents';
-
-// A torrent a debrid service fetched comes down over HTTP and is not one.
-const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
 // The web's twins are in web/src/lib/listCards.ts.
 /** A finished torrent that seeds or is about to, which stopping the seeding ends. */

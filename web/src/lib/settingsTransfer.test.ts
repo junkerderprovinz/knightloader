@@ -37,6 +37,12 @@ describe('the import preview', () => {
     expect(row({ autoStart: false, autoConfirm: false }, { autoStart: true }, 'autoStart').arrives).toBe(false);
   });
 
+  it('takes over a bottom bar that followed the sidebar as the sidebar’s mode', () => {
+    const settings = { navLabels: 'hover', bottomBarLabels: 'follow' };
+    expect(row(settings, { bottomBarLabels: 'hover' }, 'bottomBarLabels').same).toBe(true);
+    expect(row({ bottomBarLabels: 'glyph' }, { bottomBarLabels: 'both' }, 'bottomBarLabels').arrives).toBe('glyph');
+  });
+
   it('marks event programs whose command line stayed behind', () => {
     const program = (value: string) => ({ eventPrograms: [{ id: 'a1', command: { program: value } }] });
     expect(row(program('********'), {}, 'eventPrograms').secretless).toBe(true);

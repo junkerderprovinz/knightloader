@@ -8,7 +8,7 @@ import { qrMatrix } from '../lib/qrmatrix';
 import { IconClose } from '../lib/icons';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
-import { useNavLabels } from '../lib/navLabels';
+import { useLabelMode } from '../lib/labelModes';
 
 /**
  * CryptoDonateDialog shows a QR code and address for the chosen coin and
@@ -24,7 +24,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
 
   // In `hover` mode the ticker shows under the pointer, and the selected coin
   // always keeps its word.
-  const labels = useNavLabels();
+  const labels = useLabelMode('buttons');
   const showMark = labels !== 'text';
   const showTicker = labels !== 'glyph';
   const tickerOnHover = labels === 'hover';

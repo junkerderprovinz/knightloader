@@ -1007,6 +1007,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	delete(a.started, id)
 	delete(a.fellBack, id)
 	delete(a.seedSaved, id)
+	a.tally.forget(id)
 	a.dequeueLocked(id)
 	a.dispatchLocked()
 	a.mu.Unlock()

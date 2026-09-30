@@ -1205,8 +1205,15 @@ func (a *App) SetAccountCredential(service, account string, cred accounts.Creden
 }
 
 // checkCredential asks a service whether cred works, storing nothing. It backs
-// both VerifyCredential and TestAccount.
+// both VerifyCredential and TestAccount. A captcha solver is asked for its
+// balance, which costs nothing, and unlocks no hosts.
 func checkCredential(ctx context.Context, service string, cred accounts.Credential) (ok bool, hosts int, err error) {
+	if s := captchaSolverFor(service, cred); s != nil {
+		if _, err := s.Balance(ctx); err != nil {
+			return false, 0, err
+		}
+		return true, 0, nil
+	}
 	switch service {
 	case "torbox":
 		list, err := torbox.NewClient(cred.APIKey).Hosters(ctx)

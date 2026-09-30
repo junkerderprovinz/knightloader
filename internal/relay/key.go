@@ -52,6 +52,19 @@ func DeriveFrameKey(secret []byte) []byte {
 	return h.Sum(nil)
 }
 
+// peerAuthDomain separates the key that tags local-network announces and
+// signs direct calls between members from the relay and frame keys.
+const peerAuthDomain = "knightloader/peer-auth/v1"
+
+// DerivePeerAuthKey returns the HMAC key members sign their announces and
+// direct calls with. Like the frame key it never leaves an instance.
+func DerivePeerAuthKey(secret []byte) []byte {
+	h := sha256.New()
+	h.Write([]byte(peerAuthDomain))
+	h.Write(secret)
+	return h.Sum(nil)
+}
+
 // manualFrameDomain is the domain for a hand-entered relay key, which has no
 // secret to derive from.
 const manualFrameDomain = "knightloader/relay/frame-key-manual/v1"

@@ -45,16 +45,29 @@ func TestLookup(t *testing.T) {
 // TestCaptchaSolverEntries pins the solver ids, which internal/captcha and
 // internal/settings match by literal string.
 func TestCaptchaSolverEntries(t *testing.T) {
-	for _, id := range []string{"2captcha", "anticaptcha"} {
+	want := map[string]Kind{
+		"2captcha":       KindAPIKey,
+		"anticaptcha":    KindAPIKey,
+		"capmonster":     KindAPIKey,
+		"capsolver":      KindAPIKey,
+		"9kw":            KindAPIKey,
+		"deathbycaptcha": KindUsernamePassword,
+	}
+	for id, kind := range want {
 		svc, ok := Lookup(id)
 		if !ok {
 			t.Fatalf("Lookup(%q) not found", id)
 		}
-		if svc.Kind != KindAPIKey {
-			t.Errorf("%s: kind = %q, want apiKey", id, svc.Kind)
+		if svc.Kind != kind {
+			t.Errorf("%s: kind = %q, want %q", id, svc.Kind, kind)
 		}
 		if svc.Group != GroupCaptchaSolver {
 			t.Errorf("%s: group = %q, want captchaSolver", id, svc.Group)
+		}
+	}
+	for _, svc := range Catalogue {
+		if _, ok := want[svc.ID]; svc.Group == GroupCaptchaSolver && !ok {
+			t.Errorf("%s is a captcha solver this test does not pin", svc.ID)
 		}
 	}
 }

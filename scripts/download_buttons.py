@@ -29,8 +29,9 @@ BUTTONS = {
     # address goes here once it exists.
     "google-play": None,
     "apk": RELEASE + "knightloader-android.apk",
-    # One zip for every Chromium browser.
-    "chrome": RELEASE + "knightloader-extension.zip",
+    # The Chrome Web Store listing, which Brave, Opera and Vivaldi install from
+    # too. Edge has a listing of its own, which the generator has no button for.
+    "chrome": "https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf",
     # Firefox takes only an add-on Mozilla has signed, and the signed builds
     # come from the Firefox Add-ons listing. Its address goes here once the
     # listing is live.

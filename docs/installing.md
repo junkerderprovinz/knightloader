@@ -84,13 +84,13 @@ example.com {
 ```
 
 Once the path is known, the instance uses it everywhere: the session cookie,
-the addresses and QR code on the Remote access page, the installed web app, its
-share target and the bookmarklet all include it. Where you name the instance
-yourself, include the path too: for the Click'n'Load bridge
-(`-bridge https://example.com/kl`), for another instance on the Instances page,
-and as the relay address on the others when this one is switched to "Use this
-instance as the relay". The phone app and the browser extension reach the
-instance through the relay with the twelve words and need no address.
+the installed web app, its share target and the bookmarklet all include it.
+Where you name the instance yourself, include the path too: for the
+Click'n'Load bridge (`-bridge https://example.com/kl`), for another instance
+added by address on the Instances page, and as the relay address on the
+others when this one has "Serve as relay" switched on in the relay card under
+Settings, Pairing. The phone app and the browser extension reach the instance
+through the relay with the twelve words and need no address.
 
 The path does not separate the instance from the other applications on the
 host. They share one origin with it, so a page served by any of them can call
@@ -240,20 +240,25 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 
 ## The browser extension
 
-A running instance offers it under Settings, Apps: Chrome, Edge, Brave, Opera and
-Vivaldi each have a button for the same ZIP, and the Firefox button gives the
-add-on. The same ZIP is on the
-[latest release](https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-extension.zip),
-one file for Chrome, Edge, Brave, Opera and Vivaldi:
+Chrome, Brave, Opera and Vivaldi install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
+Edge from
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl).
+Settings, Apps on a running instance has a button for each browser that opens
+its listing, with the steps beside it:
 
-1. Unpack the ZIP.
-2. Open `chrome://extensions` (in Edge `edge://extensions`) and switch on
-   Developer mode.
-3. Choose **Load unpacked** and pick the unpacked folder.
-4. Pin it. Chrome does not put a newly loaded extension on the toolbar; it
-   waits behind the puzzle-piece button at the right of the address bar.
-5. Paste your connection phrase into the Remote access card on the options
+1. Press **Add to Chrome** (in Edge **Get**) and confirm. Opera first asks
+   for its Install Chrome Extensions add-on.
+2. Pin it. Chrome does not put a new extension on the toolbar; it waits
+   behind the puzzle-piece button at the right of the address bar.
+3. Paste your connection phrase into the Remote access card on the options
    page, which opens by itself on a fresh install.
+
+A Chromium browser without a store, or a build you want to test, takes the
+ZIP from the
+[latest release](https://github.com/junkerderprovinz/knightloader/releases/latest/download/knightloader-extension.zip):
+unpack it, open `chrome://extensions`, switch on Developer mode and choose
+**Load unpacked** with the unpacked folder.
 
 Firefox installs only add-ons Mozilla has signed. Those come from the
 add-on's page on Firefox Add-ons, which is not listed yet. Until it is,

@@ -18,12 +18,17 @@ import {
 /**
  * RowState is what a row's status column says. Seeding is a flag beside
  * 'done' on the wire (core.Task.Seeding), but a torrent still uploading is
- * doing something, and "Done" beside it reads as if it had stopped.
+ * doing something, and "Done" beside it reads as if it had stopped. A torrent
+ * of the built-in client that is still downloading is leeching, the word a
+ * torrent client uses for it; a torrent a debrid service fetches comes down
+ * over HTTP and downloads like any link.
  */
-export type RowState = TaskStatus | 'seeding';
+export type RowState = TaskStatus | 'seeding' | 'leeching';
 
-export function rowState(task: Pick<Task, 'status' | 'seeding'>): RowState {
-  return task.status === 'done' && task.seeding ? 'seeding' : task.status;
+export function rowState(task: Pick<Task, 'status' | 'seeding' | 'resolver'>): RowState {
+  if (task.status === 'done' && task.seeding) return 'seeding';
+  if (task.status === 'running' && task.resolver === 'torrent') return 'leeching';
+  return task.status;
 }
 
 // Paused shares the neutral tone; the glyph and label tell it apart.
@@ -35,6 +40,7 @@ const statusTone: Record<RowState, { tone: Tone; key: TranslationKey }> = {
   collected: { tone: 'neutral', key: 'status.collected' },
   queued: { tone: 'neutral', key: 'status.queued' },
   running: { tone: 'info', key: 'status.running' },
+  leeching: { tone: 'info', key: 'status.leeching' },
   paused: { tone: 'neutral', key: 'status.paused' },
   extracting: { tone: 'info', key: 'status.extracting' },
   seeding: { tone: 'info', key: 'status.seeding' },
@@ -49,11 +55,13 @@ const toneText: Record<Tone, string> = {
   neutral: 'text-statusNeutral',
 };
 
-// Eight states share four tones, so the glyph is what tells them apart.
+// Nine states share four tones, so the glyph is what tells them apart, and
+// leeching shares downloading's, since it is a download.
 const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
   queued: IconClock,
   running: IconDownloads,
+  leeching: IconDownloads,
   paused: IconPause,
   extracting: IconArchive,
   seeding: IconUpload,

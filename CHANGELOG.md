@@ -35,6 +35,175 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
+## [Unreleased]
+
+### Added
+
+- **The browser extension in the Chrome Web Store and Edge Add-ons.** Chrome,
+  Brave, Opera and Vivaldi install it from the
+  [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
+  Edge from
+  [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl).
+  The README button, the buttons on Settings > Apps and the Android app open
+  the listing, and the steps beside each button say what to press there.
+  Firefox installs the downloaded add-on until its listing is up.
+- **A Pairing page in Settings.** It opens with one sentence, connect all your instances with a 12-word
+  phrase, and three numbered cards: generate a phrase once on one instance,
+  press Enter phrase on every other one, done. Below them the phrase card
+  offers two large tiles, **Generate phrase** and **Enter phrase**, each with a
+  line saying what it does. Generate phrase shows the twelve words in a
+  window beside the QR code for the Android app, with Copy next to Close, and
+  the card says what to do on the next instance. Enter phrase opens a window
+  with the word field, Close and Pair; its tile shows a pencil. Pressed by
+  mistake, **Enter phrase** under "Already have a phrase?" leaves the empty
+  group and opens that window. **Show phrase** opens the words in the same
+  window as Generate phrase. The name this instance goes by in the group is
+  set on the same page.
+- **The field for the words takes a paste as it comes**: one word per line,
+  numbered, or separated by commas. Twelve numbered slots fill as you type, a
+  word that is not on the list is named with its position right away, and
+  Pair stays off until all twelve are known words. The checksum still catches
+  a mistyped or swapped word that is on the list. **Paste** beside Pair reads
+  the clipboard into the field the same way; where the browser refuses, a
+  line says to paste with Ctrl+V or a long press. The Android app's phrase
+  field works the same way.
+- **The badge says Paired only once somebody else is there**, another
+  instance or the Android app. Before that it says New group right after
+  generating the phrase, Searching in the first minute after joining, and
+  Still alone after that. The server keeps when the instance joined its group
+  and whether anyone came, and `GET /api/connect` reports both along with the
+  members and the phones.
+- **Still alone after a minute, the card says what to do** in two tiles side
+  by side. **Nothing entered over there yet?** opens the window with the
+  twelve words. **Generated a phrase over there too?** opens the window Enter
+  phrase opens, and Pair there joins the other group in one step. Without a
+  relay the card points out that the other instance may be on another
+  network. The state badge ends the card's first line; how the relay is doing
+  stays on the relay card. If the relay cannot be reached and nobody has
+  joined, one line says so and **What to check** lists it: outgoing HTTPS on
+  port 443 to relay.halleluja.design, a firewall or DNS filter, or for your
+  own relay whether it runs and its address is right.
+- **The phrase card lists the whole group**, one row each and all of one
+  height: this instance, marked This instance, the other instances with
+  Direct or Via relay, and the connected phones.
+- **Every instance shows its address on the Instances page**, and Open goes
+  there. An instance tells its group its first known domain, else its address
+  on its network, in the announce members already send: sealed on the relay,
+  signed on the local network and kept only from a member. A phone shows no
+  address.
+- **`-version` on the server and the relay** prints the version and the
+  commit and exits without starting anything. The relay refuses any other
+  flag or argument instead of starting with them, and its image is stamped
+  with its commit as the server's is.
+- **Instances of a group find each other on the local network without the
+  relay.** A member tags its network announce with a MAC keyed from the
+  phrase, which tells the others it belongs and tells nobody else anything.
+  Members on one network call each other directly, sealed with the same key
+  as over the relay, and the relay only carries what has to cross networks.
+  **No relay** therefore means "only on this network".
+- **The phone is on the Instances page.** Every Android app that joined with
+  the phrase gets a card with its device name, Connected or Not connected and
+  when it was last seen. A connected phone counts for the badge, so an
+  instance whose only partner is the phone shows Paired. Every card carries
+  the KnightLoader logo, and a small glyph before the name says what it is: a
+  phone for the Android app, a monitor for the desktop app, a container for
+  the container. A peer added by address that never said has none.
+- **A Torrents card on the Overview.** It shows how many torrents are leeching
+  and how many seeding, the download and upload speed, what came in and went
+  out today and in all, the overall ratio, and the three torrents uploading
+  fastest with their ratio and the time left to the seed target. A click opens
+  the Torrents card under Downloads. The card stays away while there is no
+  torrent and while the torrent module is off. The totals are kept in
+  `torrent-totals.json` in the data folder, so a restart keeps them, and an
+  existing install starts from what its torrents on the list have already
+  moved.
+- **Four more captcha solvers: CapMonster Cloud, CapSolver, 9kw.eu and
+  DeathByCaptcha.** CapMonster Cloud and CapSolver speak the Anti-Captcha API
+  with their own task lists; 9kw.eu takes an API key and DeathByCaptcha its
+  login. Every solver's key is checked against the service's balance before it
+  is saved. What each one solves is listed under Captchas in the docs.
+- **A torrent still downloading reads Leeching** (Leecht in German), the
+  counterpart of Seeding, in its row, in the package header and in the Android
+  app, and has a quick filter of its own. A plain download still reads
+  Downloading, and so does a torrent a debrid service fetches.
+
+### Changed
+
+- **The Instances page shows the cards directly**, this one first and marked
+  This instance, each Connected or Not connected with its live figures. While
+  the page is open it asks every 20 seconds who is there. A **Pairing** button
+  without an info bubble opens the Pairing page, and
+  before there is a group it stands in the middle of the page with one line
+  saying what pairing does. The module switch for the page is called
+  Instances.
+- **The Settings pages come in a new order**: General, Appearance, Modules,
+  Accounts, Link collector, Downloads, Archives, Rules & categories, Network,
+  then Pairing, Instances and Security, Resolvers, Torrents, Captcha,
+  Automation, Shortcuts, Apps, Advanced, Health, Diagnostics and Help. An
+  order you dragged yourself stays as it is.
+- **Remote access is split into Pairing and Security.** Security holds the
+  login password, the second factor, passkeys and API tokens. An old link to
+  the pairing section on Remote access lands on the Pairing page.
+- **Pairing works without a login password.** Without one, the phrase card
+  says that anyone who can open this web interface can see the words and
+  control every instance in the group, with a button to the Security page.
+  The note can be closed and stays closed in that browser. With a password
+  set, showing the words again asks for it.
+- **Before there is a phrase the relay card says No group yet**, not Not
+  connected, and adds that the relay connects as soon as this instance has a
+  phrase: the relay key comes from the words.
+- **The relay card starts with what a relay is for** and has a badge in its
+  header: Connected, Not connected or No relay. The route picker uses filled
+  glyphs, a cloud for the project relay, a house for your own relay and a
+  crossed-out cloud for no relay. **Your own relay** names the two ways to run
+  one, the KnightLoader Relay container or any instance of the group that can
+  be reached from outside with **Serve as relay**. An address over plain
+  `ws://` or `http://` is allowed, with a warning. **How does it work?** opens
+  the route picture, what the relay sees next to what it never sees, and how
+  the traffic is encrypted.
+- **The Settings page tiles take the sidebar's colour** in light and dark,
+  and hover as its rows do; the open page keeps the accent.
+- **The quick settings window has a Close button** at its foot, like every
+  other window, which hands the focus back to its square.
+- **Existing groups keep working.** An instance that is already in a group
+  counts as having joined at the update. If nobody else is reachable then, it
+  shows Still alone after a minute.
+- **The rows in Downloads and the link collector are as dense as
+  JDownloader's.** A link or package row is 28 pixels tall instead of 48, so
+  about 70 percent more of them fit on the screen. The badges, switches and
+  twisties in a row are 24 pixels, and the font stays the same. **Row height**
+  under Settings, Appearance switches between Compact, Medium (38 pixels) and
+  Comfortable, the 48 pixels from before, and each browser keeps its own
+  choice.
+- **The Stop and Start badges on the Torrents card say why they are dimmed.**
+  Stop is dimmed while no torrent in the card seeds or waits to seed, for
+  example once all of them reached their seed target, and its bubble now says
+  so; Start likewise while every torrent still seeds.
+- **A package row has the same background as its links**, in every colour
+  mode. The folder glyph and the bold name set it apart.
+- **A torrent that is the only link in a package of its own name is drawn as
+  the package header**, so one click on its twisty shows its files. Before,
+  the package and the torrent were two folders of the same name, one inside
+  the other. A package with more links keeps the torrent as a row inside it.
+- **Captcha solver keys are on the Accounts page**, in a section of their own
+  next to the debrid and hoster accounts, where a key is added, checked,
+  changed, switched off or removed. Settings, Captcha keeps the order the
+  solvers are tried in and when they start. Keys stored before stay where
+  they are and keep working.
+
+### Security
+
+- **A relay cannot deliver a call again.** Every sealed call carries its
+  request id and the time it was sealed, inside the seal. An instance runs
+  each call once and only within two minutes of its own clock, over the relay
+  and directly alike, and gives no answer to one it refuses. The Android app
+  and the browser extension stamp their calls the same way, and a call
+  without the stamp is refused, so the app, the extension and the instances
+  have to be updated together.
+- **A relay reads at most 4 KiB from a connection until its hello passes**,
+  instead of 8 MiB. A name in a hello is cut to 200 bytes, so every real
+  hello fits.
+
 ## [1.5.0] - 2026-09-29
 
 ### Added

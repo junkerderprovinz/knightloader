@@ -20,6 +20,19 @@ export function hasTorrentFiles(task: Task): boolean {
   return (task.torrentFileCount ?? 0) > 1;
 }
 
+/**
+ * loneTorrent is the torrent a package consists of when the package holds that
+ * one link and bears its name, or the package is the unnamed one. Such a
+ * package is the torrent's own folder a second time, so the list draws the
+ * torrent as the package header and its files straight under it.
+ */
+export function loneTorrent(name: string, items: readonly Task[]): Task | undefined {
+  if (items.length !== 1 || !hasTorrentFiles(items[0])) return undefined;
+  const task = items[0];
+  const same = name === '' || name.trim().toLowerCase() === (task.name || '').trim().toLowerCase();
+  return same ? task : undefined;
+}
+
 /** A finished torrent, whose files can only be read. */
 export function torrentFinished(task: Task): boolean {
   return task.status === 'done' || task.status === 'extracting' || !!task.seeding;
@@ -186,6 +199,7 @@ export function TorrentFileRow({
       data-row-key={row.key}
       data-row-kind="file"
       data-file-of={task.id}
+      data-file-under={row.under}
       role="treeitem"
       tabIndex={current ? 0 : -1}
       aria-level={row.level}
@@ -193,7 +207,7 @@ export function TorrentFileRow({
       aria-setsize={row.setsize}
       onKeyDown={onKeyDown}
       style={{ ...hueVars(row.index), gridTemplateColumns: 'var(--kl-cols)', ...slide } as CSSProperties}
-      className={`glim-hue glim-tint select-none ${look} relative grid items-center px-3 py-2 transition-colors
+      className={`glim-hue glim-tint select-none ${look} relative grid items-center px-3 py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
@@ -204,8 +218,13 @@ export function TorrentFileRow({
             dir={col.ltr ? 'ltr' : undefined}
             // One level below its torrent: the torrent's twisty hangs in front
             // of the torrent's name, and the files start where the name does
-            // plus that step.
-            style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT + TWISTY_STEP}px` } : undefined}
+            // plus that step. Under a torrent that is its package's header they
+            // start where a link inside a package does.
+            style={
+              col.id === 'name'
+                ? { paddingInlineStart: `${row.level === 2 ? TREE_INDENT : TREE_INDENT + TWISTY_STEP}px` }
+                : undefined
+            }
             className={`min-w-0 truncate text-xs text-carbon-textSub ${col.id === 'name' ? 'pe-2' : 'px-2'} ${
               col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
             } ${col.numeric ? 'glim-num' : ''}`}

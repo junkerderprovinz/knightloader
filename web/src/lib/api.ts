@@ -1,6 +1,6 @@
 // Type-only imports: these types belong to the modules that own their data, so
 // they are named here rather than restated.
-import type { BarLabelMode, NavLabelMode } from './navLabels';
+import type { LabelMode } from './labelModes';
 import type { EventProgramRow } from './eventprograms';
 import type { EventTargetRow } from './eventtargets';
 import type { Shape } from './appearance';
@@ -591,10 +591,11 @@ export interface Settings {
   hideAccountsFromSidebar: boolean;
   /** Hides the sidebar's "Instanzen" entry in the same way. */
   hideInstancesFromSidebar: boolean;
-  /** How much of a navigation entry is drawn, in the sidebar and the settings rail. */
-  navLabels: NavLabelMode;
-  /** How much of an entry the phone layout's bottom bar draws, or 'follow' for navLabels'. */
-  bottomBarLabels: BarLabelMode;
+  /** How much of each kind of control is drawn (lib/labelModes.ts). */
+  buttonLabels: LabelMode;
+  sidebarLabels: LabelMode;
+  tabLabels: LabelMode;
+  bottomBarLabels: LabelMode;
   /** Whether finished packages and torrents leave the download list for cards
    *  of their own (lib/listCards.ts). The app reads them too. */
   torrentCard: boolean;
@@ -787,6 +788,12 @@ export interface Instance {
    * `url` because it has no address of its own.
    */
   relayId?: string;
+  /** Where a group member's web interface is, as it told the group: its
+   *  first known domain, else its address on its network. */
+  address?: string;
+  /** What a group member announced itself as, "container" or "desktop";
+   *  absent for a stored peer. */
+  deployment?: string;
 }
 
 /**
@@ -1670,6 +1677,37 @@ export async function fetchVolumeCurve(span: string): Promise<VolumeCurve> {
 
 export async function fetchVolumeUsage(): Promise<VolumeUsage> {
   return json<VolumeUsage>(await fetch('/api/stats/volume/usage'));
+}
+
+/** One of the torrents sending most right now (app.TorrentUploader). */
+export interface TorrentUploader {
+  id: string;
+  name: string;
+  uploadSpeed: number;
+  ratio: number;
+  /** Seconds until its first seeding target at this rate, -1 with no target. */
+  secondsLeft: number;
+}
+
+/** What the built-in torrent client is doing and has moved (app.TorrentOverview). */
+export interface TorrentOverview {
+  /** Whether there is or ever was a torrent here; without one the card is left out. */
+  any: boolean;
+  leeching: number;
+  seeding: number;
+  downloadSpeed: number;
+  uploadSpeed: number;
+  downloadedToday: number;
+  uploadedToday: number;
+  downloaded: number;
+  uploaded: number;
+  ratio: number;
+  /** Go marshals an empty slice as null. */
+  top: TorrentUploader[] | null;
+}
+
+export async function fetchTorrentOverview(): Promise<TorrentOverview> {
+  return json<TorrentOverview>(await fetch('/api/stats/torrents'));
 }
 
 export async function fetchQueue(base = '/api'): Promise<QueueState> {
@@ -3726,8 +3764,8 @@ export interface ConnectInfo {
   /** Whether the relay socket is up; a stored phrase with an unreachable
    *  relay is active but not connected. */
   connected: boolean;
-  /** Mirrors GET /api/auth, so the page can warn before minting a phrase
-   *  that reaches every instance in the group. */
+  /** Whether a login password is set. Without one anybody who opens this web
+   *  interface can show the phrase, which the phrase card says. */
   passwordSet: boolean;
   /** Which relay this instance is pointed at. */
   relayUrl: string;
@@ -3737,6 +3775,36 @@ export interface ConnectInfo {
   relayMode: RelayMode;
   /** Where the project relay is, whichever relay this instance uses. */
   projectRelayUrl: string;
+  /** What the other instances of the group see this one as. */
+  name: string;
+  /** Where they open it, '' when it has no address anybody else can reach. */
+  address: string;
+  /** The other instances of the group reachable now. */
+  members: GroupMember[];
+  /** Every phone that joined the group with the phrase. */
+  apps: GroupApp[];
+  /** Seconds since this instance generated or entered its phrase, 0 outside
+   *  a group. */
+  joinedAgo: number;
+  /** Whether another instance has shown up in the group since. */
+  memberSeen: boolean;
+}
+
+export interface GroupMember {
+  id: string;
+  name: string;
+  /** On this network, and on the same relay; a member can be both. */
+  direct: boolean;
+  relay: boolean;
+}
+
+/** A phone of the group. */
+export interface GroupApp {
+  id: string;
+  name: string;
+  connected: boolean;
+  /** Unix seconds. */
+  lastSeen: number;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {
@@ -3782,14 +3850,17 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
   });
   if (!r.ok) {
     const raw = await r.text();
-    // A rejected phrase answers with JSON; other failures (an expired session,
-    // a proxy) answer with text.
+    // A rejected phrase answers with a reason, a refusal such as a missing
+    // password with a code, and other failures (an expired session, a proxy)
+    // with text.
+    let body: { error?: string; code?: string; reason?: string } | null = null;
     try {
-      throw new PhraseRejected(JSON.parse(raw));
-    } catch (e) {
-      if (e instanceof PhraseRejected) throw e;
+      body = JSON.parse(raw);
+    } catch {
       throw new Error(raw.trim() || `${r.status}`);
     }
+    if (body?.reason) throw new PhraseRejected(body);
+    throw new ApiError(body?.error ?? `${r.status}`, body?.code, undefined, r.status);
   }
   return json(r);
 }

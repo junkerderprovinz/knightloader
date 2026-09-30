@@ -19,6 +19,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -70,6 +71,20 @@ func registerRelay(reg *Registry, a *app.App) {
 				return
 			}
 			srv.ServeHTTP(w, r)
+		})
+
+	// A member on the same network calls here instead of over the relay. The
+	// route is open like the relay socket: the call is signed and sealed with
+	// keys only members hold, and answers 404 outside a group.
+	reg.AddOpen(http.MethodPost, federation.DirectPath,
+		"a call from another member of this instance's phrase group on the same network - authorised by the group's keys, never by a session",
+		func(w http.ResponseWriter, r *http.Request) {
+			serve := a.SelfServeHandler()
+			if serve == nil {
+				http.Error(w, "not ready", http.StatusServiceUnavailable)
+				return
+			}
+			a.Federation.ServeDirect(w, r, relayProxyHandler(serve))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -221,6 +236,7 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 // relay or name change. A relay that cannot be reached is not an error for the
 // caller; the client keeps retrying in the background.
 func applyRelay(a *app.App) {
+	applyGroup(a)
 	relayURL, key, frameKey := relayTarget(a)
 	serve := a.SelfServeHandler()
 	if relayURL == "" || key == "" || serve == nil {
@@ -237,8 +253,10 @@ func applyRelay(a *app.App) {
 			InstanceID: cfg.InstanceID,
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
+			Address:    groupAddress(a),
 		},
-		Serve: relayProxyHandler(serve),
+		Serve:  relayProxyHandler(serve),
+		Replay: a.Federation.Replay(),
 	})
 	if err != nil {
 		log.Printf("relay: could not configure the client: %v", err)
@@ -247,6 +265,19 @@ func applyRelay(a *app.App) {
 	}
 	c.Start()
 	a.Federation.SetRelay(c)
+}
+
+// applyGroup hands the stored group secret to the direct transport, which
+// works whichever relay is chosen, none included.
+func applyGroup(a *app.App) {
+	secretHex, err := a.Accounts.Get(relay.SeedAccountService)
+	var secret []byte
+	if err == nil && secretHex != "" {
+		if s, err := hex.DecodeString(secretHex); err == nil && len(s) == seedphrase.SecretLen {
+			secret = s
+		}
+	}
+	a.Federation.SetGroup(secret, a.Settings.Get().InstanceID)
 }
 
 // relayProxyHandler turns one inbound relay call into a request against serve,
