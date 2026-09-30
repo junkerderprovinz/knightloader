@@ -530,3 +530,42 @@ func TestOnlyAnUnpinnedTorrentWaitsForTheServiceToHaveItCached(t *testing.T) {
 		t.Error("a torrent pinned to the service was held to its cache")
 	}
 }
+
+// A shutdown while the service shows whether it has the torrent cached leaves
+// the job on the task, and the next start deletes it there rather than let it
+// fetch while the queue is stopped.
+func TestAProbeAShutdownCutShortIsDeletedAtTheNextStart(t *testing.T) {
+	dir := t.TempDir()
+	site := &websiteAccount{}
+	first, stop := appBeforeRestart(t, dir, site)
+	s := first.Settings.Get()
+	s.Torrent.DebridCachedOnly = true
+	if _, err := first.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	queueTorrent(first, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
+	waitFor(t, "the probe noted on the task", func() bool {
+		j := liveTask(first, "m1").ServiceJob
+		return j != nil && j.Probe
+	})
+	stop()
+
+	second := openImportApp(t, dir, site, false)
+	t.Cleanup(func() { second.Close() })
+	waitFor(t, "the probe deleted on the service", func() bool { return slices.Contains(site.deletedJobs(), "OWN1") })
+	waitFor(t, "the probe gone from the task", func() bool { return liveTask(second, "m1").ServiceJob == nil })
+}
+
+// A task pinned to a service waits there however long it takes, as it goes
+// there cached or not.
+func TestOnlyAnUnpinnedTorrentGivesUpOnAServiceThatStandsStill(t *testing.T) {
+	a, _ := torrentOrderApp(t, []string{"realdebrid", "torrent"})
+	putTask(t, a, core.Task{ID: "free", URL: debridMagnet, Status: core.StatusCollected})
+	putTask(t, a, core.Task{ID: "pinned", URL: debridMagnet, ResolverPin: "realdebrid", Status: core.StatusCollected})
+	if got := a.stallMinutes("free"); got != 10 {
+		t.Errorf("an unpinned torrent gives up after %d minutes, want the default 10", got)
+	}
+	if got := a.stallMinutes("pinned"); got != 0 {
+		t.Errorf("a torrent pinned to the service gives up after %d minutes, want never", got)
+	}
+}

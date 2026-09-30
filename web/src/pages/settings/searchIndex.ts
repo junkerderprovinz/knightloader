@@ -717,6 +717,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.torrents.keepOnService', hint: 'settings.torrents.keepOnServiceHint' },
         { key: 'settings.torrents.cachedOnly', hint: 'settings.torrents.cachedOnlyHint' },
+        { key: 'settings.torrents.debridStall', hint: 'settings.torrents.debridStallHint' },
         { key: 'settings.torrents.seedAfterDebrid', hint: 'settings.torrents.seedAfterDebridHint' },
         { key: 'settings.torrents.seedIn', hint: 'settings.torrents.seedInHint' },
         { key: 'settings.torrents.qbitUrl', hint: 'settings.torrents.qbitUrlHint' },

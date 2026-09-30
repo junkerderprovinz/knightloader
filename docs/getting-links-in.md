@@ -84,6 +84,13 @@ passkey would go to the service with it. A `.torrent` says whether it is
 private. A magnet link counts as private when its own tracker address carries
 a passkey, the same test the extra trackers below use.
 
+A service that makes no progress on a torrent for 10 minutes, whether the
+torrent waits in its queue or the service is still reading the magnet link,
+has the torrent deleted there, and it goes to the next service or the
+built-in torrent client. "Give up on a debrid service after" under Settings,
+Torrents sets the minutes, and 0 turns it off. A download imported from the
+account and a torrent pinned to the service are left alone.
+
 **Seeding what a debrid service fetched**: with "Seed what the debrid service
 fetched" on under Settings, Torrents, a torrent the service fetched is seeded
 once all its files are here, which helps with cross-seeding. Nothing is

@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -48,6 +50,35 @@ func TestTheDebridTorrentOptionsStartOff(t *testing.T) {
 	}
 	if tr.SeedAfterDebrid {
 		t.Error("SeedAfterDebrid defaults to true, want nothing a debrid service fetched to seed from here")
+	}
+}
+
+// A debrid service that stands still hands the torrent on after ten minutes,
+// on a fresh install and on one whose settings.json was written before the
+// field existed.
+func TestAStalledDebridTorrentMovesOnAfterTenMinutesByDefault(t *testing.T) {
+	if got := Defaults().Torrent.DebridStallMinutes; got != 10 {
+		t.Errorf("a fresh install gives up after %d minutes, want 10", got)
+	}
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"torrent":{"keepOnService":true}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := st.Get().Torrent
+	if tr.DebridStallMinutes != 10 || !tr.KeepOnService {
+		t.Errorf("an older settings file reads as %d minutes, keep %v; want 10 and the stored keep", tr.DebridStallMinutes, tr.KeepOnService)
+	}
+}
+
+func TestSanitizeKeepsTheDebridStallBetweenOffAndADay(t *testing.T) {
+	for in, want := range map[int]int{-3: 0, 0: 0, 25: 25, 100000: 24 * 60} {
+		if got := sanitizeTorrent(Settings{Torrent: Torrent{DebridStallMinutes: in}}).Torrent.DebridStallMinutes; got != want {
+			t.Errorf("%d minutes came out as %d, want %d", in, got, want)
+		}
 	}
 }
 

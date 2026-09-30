@@ -35,7 +35,7 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
-## [1.5.0] - 2026-09-28
+## [1.5.0] - 2026-09-29
 
 ### Added
 
@@ -56,9 +56,18 @@ release's tag.
   cached torrents to the debrid service" on under Settings, Torrents,
   KnightLoader asks the service first whether it has a torrent cached. One it
   has not goes on to the next service or the built-in torrent client, so a slow
-  uncached torrent does not wait on the service. TorBox and Premiumize.me can
-  be asked. Real-Debrid, AllDebrid and Debrid-Link cannot, so with the switch on
-  they get no torrents. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+  uncached torrent does not wait on the service. TorBox and Premiumize.me are
+  asked directly. Real-Debrid, AllDebrid and Debrid-Link cannot be asked, so
+  KnightLoader adds the torrent there, keeps it when the service has it ready
+  within a few seconds, and otherwise deletes it there and moves on, with the
+  reason in the task's log. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
+- **A debrid service that stands still hands the torrent on.** "Give up on a
+  debrid service after" under Settings, Torrents deletes a torrent on the
+  service once it has made no progress on it for that many minutes, 10 by
+  default, and hands it to the next service or the built-in torrent client.
+  Time in the service's queue and reading the magnet link count too. A
+  download imported from the account and a torrent pinned to the service are
+  left alone, and 0 turns it off. ([#59](https://github.com/junkerderprovinz/knightloader/issues/59))
 - **Releases go to the stores on their own.** Once a release is out, the
   Stores workflow submits the extension to the Chrome Web Store, Edge Add-ons
   and Firefox Add-ons, and the Android app to Google Play. The extension goes
