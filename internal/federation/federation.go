@@ -48,6 +48,10 @@ type Instance struct {
 	// Address is where a member's web interface is, as it announced it: its
 	// first known domain, else its address on its network.
 	Address string `json:"address,omitempty"`
+	// Deployment is what a member announced itself as, "container" or
+	// "desktop" (buildinfo.Deployment), so its card can say which it is. A
+	// stored peer never announced anything and leaves it empty.
+	Deployment string `json:"deployment,omitempty"`
 
 	// directURL is where a member on this network takes direct calls, and
 	// viaRelay whether the relay reaches it too.
@@ -217,6 +221,7 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		in := member(p.ID, p.Name)
 		in.directURL = p.URL
 		in.Address = p.Address
+		in.Deployment = p.Deployment
 		out[p.ID] = in
 	}
 	if rt == nil {
@@ -235,6 +240,9 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		if in.Address == "" {
 			in.Address = sib.Address
 		}
+		if in.Deployment == "" {
+			in.Deployment = sib.Deployment
+		}
 		in.viaRelay = true
 		out[sib.InstanceID] = in
 	}
@@ -250,6 +258,7 @@ func (m *Manager) Add(in Instance) error {
 	in.RelayID = ""
 	in.DisplayName = ""
 	in.Address = ""
+	in.Deployment = ""
 	if !nameRe.MatchString(in.Name) {
 		return errors.New("federation: invalid instance name")
 	}

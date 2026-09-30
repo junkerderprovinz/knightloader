@@ -3,6 +3,7 @@ package federation
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -170,6 +171,25 @@ func TestAMemberCarriesTheAddressItAnnounced(t *testing.T) {
 	}
 	if got["id-nas"] != "https://kl.example.org" || got["id-laptop"] != "" {
 		t.Fatalf("addresses = %v, want the NAS at its domain and the laptop without one", got)
+	}
+}
+
+func TestAMemberCarriesTheDeploymentItAnnounced(t *testing.T) {
+	m := newManager(t)
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
+		{InstanceID: "id-nas", Name: "NAS", Deployment: "container"},
+		{InstanceID: "id-laptop", Name: "Laptop", Deployment: "desktop"},
+	}})
+	if err := m.Add(Instance{Name: "cellar", URL: "http://192.168.1.9:8749", Deployment: "desktop"}); err != nil {
+		t.Fatalf("add: %v", err)
+	}
+	got := map[string]string{}
+	for _, in := range m.List() {
+		got[in.Name] = in.Deployment
+	}
+	want := map[string]string{"id-nas": "container", "id-laptop": "desktop", "cellar": ""}
+	if !maps.Equal(got, want) {
+		t.Fatalf("deployments = %v, want %v", got, want)
 	}
 }
 

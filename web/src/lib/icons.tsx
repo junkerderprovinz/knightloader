@@ -133,6 +133,26 @@ export const IconInstances = (p: SVGProps<SVGSVGElement>) => (
 );
 
 /** A phone, for the Android app in a group. */
+/** A monitor on its foot, for an instance that is the desktop app. */
+export const IconDesktop = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M3.5 2.5A1.5 1.5 0 0 0 2 4v8.5A1.5 1.5 0 0 0 3.5 14h5v1.5H6v2h8v-2h-2.5V14h5a1.5 1.5 0 0 0 1.5-1.5V4a1.5 1.5 0 0 0-1.5-1.5h-13ZM4 4.5h12V12H4V4.5Z"
+    />
+  </svg>
+);
+
+/** A shipping container, for an instance that runs as the container image. */
+export const IconContainer = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      d="M2.5 4.5A1.5 1.5 0 0 1 4 3h12a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 16 17H4a1.5 1.5 0 0 1-1.5-1.5v-11ZM5 5.5v9h1.5v-9H5Zm3 0v9h1.5v-9H8Zm3 0v9h1.5v-9H11Zm3 0v9h1v-9h-1Z"
+    />
+  </svg>
+);
+
 export const IconPhone = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path

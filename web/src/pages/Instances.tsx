@@ -12,6 +12,7 @@ import {
   addInstance,
   connectWS,
   fetchConnect,
+  fetchDeploymentInfo,
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
@@ -45,8 +46,10 @@ export function Instances() {
   const [group, setGroup] = useState<ConnectInfo | null>(null);
   // One failure counter per discovered row, so a refusal shakes that row's button.
   const [shakes, setShakes] = useState<Record<string, number>>({});
-  // The name set in settings/Access.tsx, so this instance shows like a peer.
+  // The name set in settings/Access.tsx, so this instance shows like a peer,
+  // and which build it is, for the glyph before that name.
   const [ownName, setOwnName] = useState('');
+  const [ownKind, setOwnKind] = useState('');
   // Instances announcing themselves on this network (internal/discovery),
   // polled so an open page follows them coming and going.
   const [found, setFound] = useState<DiscoveredInstance[]>([]);
@@ -73,6 +76,9 @@ export function Instances() {
     loadOff();
     fetchSettings()
       .then((s: Settings) => setOwnName(s.instanceName))
+      .catch(() => {});
+    fetchDeploymentInfo()
+      .then((d) => setOwnKind(d.deployment))
       .catch(() => {});
     const everyFew = window.setInterval(loadFound, 5000);
     const refresh = () => {
@@ -171,6 +177,7 @@ export function Instances() {
                 stays here on the local download list. */}
             <InstanceCard
               name={ownName || t('instances.thisInstance')}
+              deployment={ownKind}
               address={withoutScheme(group?.address || location.host + basePath())}
               base="/api"
               // Without a configured name the title already says "this instance".
@@ -187,6 +194,7 @@ export function Instances() {
                 <InstanceCard
                   key={p.name}
                   name={p.displayName ?? p.name}
+                  deployment={p.deployment}
                   address={withoutScheme(address)}
                   base={`/api/instances/${encodeURIComponent(p.name)}`}
                   onOpen={
