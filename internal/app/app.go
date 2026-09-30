@@ -359,6 +359,8 @@ type App struct {
 	// the store, which a poll does only once in seedSaveEvery. Built on first
 	// use.
 	seedSaved map[string]time.Time
+	// tally counts what the built-in torrent client moves, for the overview.
+	tally *torrentTally
 	// siteBench is when a service may be asked about a site again after it
 	// said it has switched that site off (see benchSiteLocked). Under mu.
 	siteBench map[serviceSite]time.Time
@@ -606,6 +608,7 @@ func New(dataDir string) (*App, error) {
 		}
 	}
 	a.dropProbes()
+	a.tally = openTorrentTally(filepath.Join(dataDir, torrentTotalsFile), a.heldTorrentBytes, time.Now())
 	// Housekeeping runs once now so the list is trimmed when first opened. It
 	// runs before the queue is filled and the scheduler starts, since removing
 	// a task dispatches and could ignore a pause window.
@@ -871,6 +874,7 @@ func (a *App) Close() error {
 	// The engine keeps its transfers in memory only, so seeding ends here,
 	// until the next start takes it up again.
 	a.endSeeding()
+	a.saveTorrentTally(true)
 	if a.Engine != nil {
 		a.Engine.Close()
 	}

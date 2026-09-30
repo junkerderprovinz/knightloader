@@ -1280,6 +1280,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status != "" && !stale {
 		t.Status = u.Status
 	}
+	// A torrent whose seeding is over and that is not started seeds nothing, so
+	// a reading that says it does was taken just before somebody stopped it.
+	if u.Torrent != nil && u.Torrent.Seeding && t.SeedingOver && !a.started[id] {
+		u.Torrent = nil
+	}
+	// Before the update's figures replace the task's, since the tally counts
+	// the difference.
+	a.tallyTorrentLocked(t, u, time.Now())
 	if u.Loaded > 0 {
 		t.Loaded = u.Loaded
 	}
@@ -1295,11 +1303,6 @@ func (a *App) onUpdate(id string, u core.Update) {
 	} else {
 		t.Note = u.Note
 		t.Remote = u.Remote
-	}
-	// Nothing seeds a torrent that is over and no longer started, so a reading
-	// that says it does was taken just before somebody stopped it.
-	if u.Torrent != nil && u.Torrent.Seeding && t.SeedingOver && !a.started[id] {
-		u.Torrent = nil
 	}
 	seedingEnded := u.Torrent != nil && t.Seeding && !u.Torrent.Seeding
 	if seedingEnded {
@@ -1538,6 +1541,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	c := a.copyLocked(t)
 	a.mu.Unlock()
+	a.saveTorrentTally(false)
 	if fallbackTo != nil {
 		// The old backend lets go of the task, its partial file included, before
 		// the task starts anywhere else. Two debrid services both hand their
