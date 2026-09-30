@@ -24,13 +24,18 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   const camera = useRef<CameraView>(null);
   const report = useRef(onScanned);
   report.current = onScanned;
+  // Set by Cancel, so a frame already being decoded is thrown away and the
+  // loop takes no further one.
+  const closing = useRef(false);
 
   // The component stays mounted across opens and closes, rendering null, so
   // `locked` from an earlier scan would still be true the next time it opens
   // and every scan after the first would do nothing.
   useEffect(() => {
-    if (visible) setLocked(false);
-    else setReady(false);
+    if (visible) {
+      closing.current = false;
+      setLocked(false);
+    } else setReady(false);
   }, [visible]);
 
   // The camera's own barcode scanner is Google's ML Kit, which is not free
@@ -40,11 +45,11 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
     if (!visible || !ready || locked) return;
     let stopped = false;
     (async () => {
-      while (!stopped) {
+      while (!stopped && !closing.current) {
         try {
           const shot = await camera.current?.takePictureAsync({ base64: true, quality: 0.5, skipProcessing: true, shutterSound: false });
           const data = shot?.base64 ? qrFromJpeg(shot.base64) : null;
-          if (data && !stopped) {
+          if (data && !stopped && !closing.current) {
             setLocked(true);
             report.current(data);
             return;
@@ -60,13 +65,14 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
     };
   }, [visible, ready, locked]);
 
-  // A full-resolution photo takes seconds to decode in JavaScript; the
-  // smallest size with 720 lines still resolves a code filling the frame.
+  // A full-resolution photo takes seconds to decode in JavaScript, and every
+  // decode holds up the taps on this window. The smallest size with 480 lines
+  // still resolves a code in the frame at five pixels a module.
   const onCameraReady = async () => {
     try {
       const sizes = (await camera.current?.getAvailablePictureSizesAsync()) ?? [];
       const lines = (s: string) => Math.min(...s.split('x').map(Number));
-      const usable = sizes.filter((s) => lines(s) >= 720).sort((a, b) => lines(a) - lines(b));
+      const usable = sizes.filter((s) => lines(s) >= 480).sort((a, b) => lines(a) - lines(b));
       if (usable[0]) setSize(usable[0]);
     } catch {
       // Without the list the camera keeps its default size, only slower.
@@ -74,10 +80,15 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
     setReady(true);
   };
 
+  const cancel = () => {
+    closing.current = true;
+    onClose();
+  };
+
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
+    <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={cancel}>
       <View style={[styles.container, { backgroundColor: c.bg }]}>
         {!permission ? (
           <View style={styles.center} />
@@ -107,7 +118,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
             than a pill in the corner. Quiet, because leaving is not what this
             window is for. */}
         <View style={styles.footer}>
-          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={cancel} />
         </View>
       </View>
     </Modal>

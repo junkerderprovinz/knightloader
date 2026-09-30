@@ -402,10 +402,11 @@ const styles = StyleSheet.create({
   count: { fontSize: TYPE.dense },
   // Three to a row, so a word of eight letters still fits its slot on a
   // narrow phone.
-  slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
-  slot: { flexDirection: 'row', alignItems: 'baseline', gap: 6, paddingHorizontal: 8, paddingVertical: 3, width: '32%' },
-  slotNumber: { fontSize: TYPE.caption },
-  slotWord: { fontSize: TYPE.dense, flexShrink: 1 },
+  // Two to a row, large enough to check a word at arm's length.
+  slots: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 6, marginTop: 10 },
+  slot: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 12, paddingVertical: 8, width: '49%' },
+  slotNumber: { fontSize: TYPE.dense },
+  slotWord: { fontSize: TYPE.body, flexShrink: 1 },
   input: {
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   // Twelve words do not fit on one phone line, and a field that scrolls
   // sideways while somebody checks their typing hides the typo they are looking
   // for.
-  phraseInput: { minHeight: 76, textAlignVertical: 'top' },
+  phraseInput: { minHeight: 140, fontSize: TYPE.heading, lineHeight: 28, textAlignVertical: 'top' },
   // A row rather than a block: every button on this screen carries a glyph
   // beside its label, with one button style for all three and one gap between
   // them. Three heights, three grounds and three margins read as three kinds of
