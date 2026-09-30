@@ -137,8 +137,44 @@ type paidSolver struct {
 	captcha.Solver
 }
 
+// captchaAccount is a paid solver whose credential can be checked without
+// solving anything.
+type captchaAccount interface {
+	captcha.Solver
+	Balance(ctx context.Context) (float64, error)
+}
+
+// captchaSolverFor builds the client for catalogue id with cred, or returns
+// nil for an id that is no solver or a credential missing what it needs. Both
+// the solver walk and checkCredential build their clients here.
+func captchaSolverFor(id string, cred accounts.Credential) captchaAccount {
+	if id == "deathbycaptcha" {
+		if cred.Username == "" || cred.Password == "" {
+			return nil
+		}
+		return captcha.NewDeathByCaptchaSolver(cred.Username, cred.Password)
+	}
+	if cred.APIKey == "" {
+		return nil
+	}
+	switch id {
+	case "2captcha":
+		return captcha.NewTwoCaptchaSolver(cred.APIKey)
+	case "anticaptcha":
+		return captcha.NewAntiCaptchaSolver(cred.APIKey)
+	case "capmonster":
+		return captcha.NewCapMonsterSolver(cred.APIKey)
+	case "capsolver":
+		return captcha.NewCapSolverSolver(cred.APIKey)
+	case "9kw":
+		return captcha.NewNineKWSolver(cred.APIKey)
+	}
+	return nil
+}
+
 // captchaSolvers returns the configured automatic solvers that have a stored
-// credential, in CaptchaSolverOrder. Entries without a credential are skipped.
+// credential, in CaptchaSolverOrder. Entries without a credential, or whose
+// account is switched off on the Accounts page, are skipped.
 func (a *App) captchaSolvers() []paidSolver {
 	order := a.Settings.Get().CaptchaSolverOrder
 	if len(order) == 0 {
@@ -147,18 +183,11 @@ func (a *App) captchaSolvers() []paidSolver {
 	out := make([]paidSolver, 0, len(order))
 	for _, id := range order {
 		svc, ok := accounts.Lookup(id)
-		if !ok || svc.Group != accounts.GroupCaptchaSolver {
+		if !ok || !a.accountEnabled(id, "") {
 			continue
 		}
-		cred := a.credentialFor(svc, "")
-		if cred.IsZero() {
-			continue
-		}
-		switch id {
-		case "2captcha":
-			out = append(out, paidSolver{svc.Label, captcha.NewTwoCaptchaSolver(cred.APIKey)})
-		case "anticaptcha":
-			out = append(out, paidSolver{svc.Label, captcha.NewAntiCaptchaSolver(cred.APIKey)})
+		if s := captchaSolverFor(id, a.credentialFor(svc, "")); s != nil {
+			out = append(out, paidSolver{svc.Label, s})
 		}
 	}
 	return out

@@ -119,6 +119,7 @@ export const pl: Dict = {
 
   'status.queued': 'w kolejce',
   'status.running': 'w trakcie',
+  'status.leeching': 'leechuje',
   'status.paused': 'wstrzymano',
   'status.finished': 'zakończono',
   'status.failed': 'niepowodzenie',

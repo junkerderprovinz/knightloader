@@ -74,16 +74,48 @@ const torrent: Task = {
   torrentFileCount: 3,
 };
 
-async function show(task: Task) {
+// A link beside the torrent, so the package is a folder of its own and the
+// torrent a row inside it.
+const extras: Task = {
+  ...torrent,
+  id: 'x1',
+  url: 'https://files.example/x1',
+  name: 'Extras',
+  resolver: 'direct',
+  torrentFileCount: undefined,
+};
+
+async function show(task: Task, links: Task[] = [task, extras]) {
   const { TaskListCard } = await import('./TaskList');
   await act(async () =>
-    root.render(<TaskListCard groups={[['Show', [task]]]} base="/api" title="Downloads" profile="downloads" />),
+    root.render(<TaskListCard groups={[['Show', links]]} base="/api" title="Downloads" profile="downloads" />),
   );
 }
 
 const fileRows = () => [...host.querySelectorAll<HTMLElement>('[data-row-kind="file"]')];
 const twisty = () =>
   host.querySelector<HTMLButtonElement>('[data-task-id="t1"] button[aria-expanded]')!;
+
+describe('a torrent that is its package', () => {
+  const header = () => host.querySelector<HTMLElement>('[data-package-row="Show"]')!;
+
+  it('is drawn as the package header, whose one click shows the files', async () => {
+    await show(torrent, [torrent]);
+    expect(host.querySelector('[data-task-id="t1"]')).toBeNull();
+    expect(header().textContent).toContain('Show');
+    await act(async () => header().querySelector<HTMLButtonElement>('button[aria-expanded]')!.click());
+    const rows = fileRows();
+    expect(rows).toHaveLength(3);
+    expect(rows.map((r) => r.getAttribute('aria-level'))).toEqual(['2', '2', '2']);
+    expect(rows[0].getAttribute('data-file-under')).toBe('Show');
+  });
+
+  it('is a row inside its folder again once the package holds a second link', async () => {
+    await show(torrent);
+    expect(header().textContent).not.toContain('Season');
+    expect(host.querySelector('[data-task-id="t1"]')?.getAttribute('aria-level')).toBe('2');
+  });
+});
 
 describe('a torrent row', () => {
   it('opens onto one row per file, each with its path and switch', async () => {

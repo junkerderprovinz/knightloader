@@ -52,6 +52,7 @@ import { PackageMoveDialog } from './PackageActions';
 import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
 import { retryPending } from './RetryCountdown';
 import { SelectionReach } from './SelectionReach';
+import { rowState } from './StatusPill';
 import {
   ContextMenu,
   anchorBelow,
@@ -148,6 +149,7 @@ export type QueueVerbs = ReturnType<typeof useQueueVerbs>;
 
 export type QuickFilterId =
   | 'running'
+  | 'leeching'
   | 'queued'
   | 'paused'
   | 'finished'
@@ -167,8 +169,15 @@ export interface QuickFilter {
 }
 
 export const QUICK_FILTERS: QuickFilter[] = [
-  // Extracting counts as running, since the download is not over yet.
-  { id: 'running', label: 'filter.running', match: (t) => t.status === 'running' || t.status === 'extracting' },
+  // Extracting counts as running, since the download is not over yet. A torrent
+  // the built-in client downloads reads Leeching in its row (rowState), so it
+  // has that filter and not this one.
+  {
+    id: 'running',
+    label: 'filter.running',
+    match: (t) => rowState(t) === 'running' || t.status === 'extracting',
+  },
+  { id: 'leeching', label: 'filter.leeching', match: (t) => rowState(t) === 'leeching' },
   { id: 'queued', label: 'filter.queued', match: (t) => t.status === 'queued' },
   { id: 'paused', label: 'filter.paused', match: (t) => t.status === 'paused' },
   // A torrent still uploading reads Seeding in its row and has a card of its
@@ -208,6 +217,7 @@ export function offeredQuickFilters(
 /** The states a download list is actually filtered by. */
 export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'running',
+  'leeching',
   'queued',
   'paused',
   'finished',

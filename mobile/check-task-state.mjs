@@ -27,6 +27,9 @@ expect('a failed download', rowWord(task('error')), 'failed');
 expect('a finished download whose archive did not unpack', rowWord(task('done', { unpack: 'error' })), 'notUnpacked');
 expect('one that wants a password', rowWord(task('done', { unpack: 'password' })), 'notUnpacked');
 expect('a staged link', rowWord(task('collected')), 'collected');
+expect('a download under way', rowWord(task('running', { resolver: 'direct' })), 'running');
+expect('a torrent still downloading', rowWord(task('running', { resolver: 'torrent' })), 'leeching');
+expect('a torrent a debrid service fetches', rowWord(task('running', { resolver: 'realdebrid' })), 'running');
 expect('a status from a newer instance', rowWord(task('somethingNew')), null);
 
 expect(

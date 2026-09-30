@@ -119,6 +119,7 @@ export const no: Dict = {
 
   'status.queued': 'i kø',
   'status.running': 'pågår',
+  'status.leeching': 'leecher',
   'status.paused': 'pauset',
   'status.finished': 'fullført',
   'status.failed': 'mislyktes',

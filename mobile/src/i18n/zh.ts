@@ -119,6 +119,7 @@ export const zh: Dict = {
 
   'status.queued': '排队中',
   'status.running': '进行中',
+  'status.leeching': '种子下载中',
   'status.paused': '已暂停',
   'status.finished': '已完成',
   'status.failed': '失败',

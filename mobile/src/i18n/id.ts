@@ -119,6 +119,7 @@ export const id: Dict = {
 
   'status.queued': 'dalam antrean',
   'status.running': 'berjalan',
+  'status.leeching': 'melakukan leech',
   'status.paused': 'dijeda',
   'status.finished': 'selesai',
   'status.failed': 'gagal',

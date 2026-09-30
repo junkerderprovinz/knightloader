@@ -105,6 +105,24 @@ release's tag.
   the phrase gets a card with its device name, Connected or Not connected and
   when it was last seen. A connected phone counts for the badge, so an
   instance whose only partner is the phone shows Paired.
+- **A Torrents card on the Overview.** It shows how many torrents are leeching
+  and how many seeding, the download and upload speed, what came in and went
+  out today and in all, the overall ratio, and the three torrents uploading
+  fastest with their ratio and the time left to the seed target. A click opens
+  the Torrents card under Downloads. The card stays away while there is no
+  torrent and while the torrent module is off. The totals are kept in
+  `torrent-totals.json` in the data folder, so a restart keeps them, and an
+  existing install starts from what its torrents on the list have already
+  moved.
+- **Four more captcha solvers: CapMonster Cloud, CapSolver, 9kw.eu and
+  DeathByCaptcha.** CapMonster Cloud and CapSolver speak the Anti-Captcha API
+  with their own task lists; 9kw.eu takes an API key and DeathByCaptcha its
+  login. Every solver's key is checked against the service's balance before it
+  is saved. What each one solves is listed under Captchas in the docs.
+- **A torrent still downloading reads Leeching** (Leecht in German), the
+  counterpart of Seeding, in its row, in the package header and in the Android
+  app, and has a quick filter of its own. A plain download still reads
+  Downloading, and so does a torrent a debrid service fetches.
 
 ### Changed
 
@@ -147,6 +165,21 @@ release's tag.
 - **Existing groups keep working.** An instance that is already in a group
   counts as having joined at the update. If nobody else is reachable then, it
   shows Still alone after a minute.
+- **The rows in Downloads and the link collector are as dense as
+  JDownloader's.** A link or package row is 28 pixels tall instead of 48, so
+  about 70 percent more of them fit on the screen. The badges, switches and
+  twisties in a row are 24 pixels, and the font stays the same.
+- **A package row has the same background as its links**, in every colour
+  mode. The folder glyph and the bold name set it apart.
+- **A torrent that is the only link in a package of its own name is drawn as
+  the package header**, so one click on its twisty shows its files. Before,
+  the package and the torrent were two folders of the same name, one inside
+  the other. A package with more links keeps the torrent as a row inside it.
+- **Captcha solver keys are on the Accounts page**, in a section of their own
+  next to the debrid and hoster accounts, where a key is added, checked,
+  changed, switched off or removed. Settings, Captcha keeps the order the
+  solvers are tried in and when they start. Keys stored before stay where
+  they are and keep working.
 
 ### Security
 

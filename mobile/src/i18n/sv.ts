@@ -119,6 +119,7 @@ export const sv: Dict = {
 
   'status.queued': 'i kö',
   'status.running': 'pågår',
+  'status.leeching': 'leechar',
   'status.paused': 'pausad',
   'status.finished': 'klar',
   'status.failed': 'misslyckades',

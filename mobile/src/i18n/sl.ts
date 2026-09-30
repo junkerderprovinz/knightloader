@@ -119,6 +119,7 @@ export const sl: Dict = {
 
   'status.queued': 'v čakalni vrsti',
   'status.running': 'poteka',
+  'status.leeching': 'leecha',
   'status.paused': 'v premoru',
   'status.finished': 'končano',
   'status.failed': 'spodletelo',

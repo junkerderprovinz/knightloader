@@ -139,6 +139,7 @@ export const en = {
 
   'status.queued': 'queued',
   'status.running': 'running',
+  'status.leeching': 'leeching',
   'status.paused': 'paused',
   'status.finished': 'finished',
   'status.failed': 'failed',

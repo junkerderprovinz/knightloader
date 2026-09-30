@@ -115,6 +115,12 @@ func registerStats(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.VolumeUsage())
 		})
+
+	reg.Add(http.MethodGet, "/api/stats/torrents",
+		"the built-in torrent client at a glance: how many torrents leech and seed, both speeds, what came in and went out today and in all, the ratio of the two, and the three torrents sending most",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, a.TorrentOverview())
+		})
 }
 
 // volumeCurves builds both curves against one reading of the clock, so the two

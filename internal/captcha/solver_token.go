@@ -7,8 +7,9 @@ package captcha
 //
 // 2Captcha and Anti-Captcha name these task types and their fields the same
 // way, so one builder serves both, and each provider keeps its own list of the
-// types it takes. Every type is the proxyless one, solved from the provider's
-// own network, since this app has no proxy to hand over.
+// types it takes. The other providers translate what it builds into their own
+// names and fields. Every type is the proxyless one, solved from the
+// provider's own network, since this app has no proxy to hand over.
 //
 //	https://anti-captcha.com/apidoc/task-types/RecaptchaV2TaskProxyless
 //	https://anti-captcha.com/apidoc/task-types/RecaptchaV2EnterpriseTaskProxyless
@@ -25,8 +26,8 @@ const (
 	taskTurnstile             = "TurnstileTaskProxyless"
 )
 
-// recaptchaV3MinScore is the worker score a v3 task asks for. Both providers
-// require one and the payload does not say what the hoster checks against, so
+// recaptchaV3MinScore is the worker score a v3 task asks for. 2Captcha and
+// Anti-Captcha require one and the payload does not say what the hoster checks against, so
 // it is 0.3, the lowest Anti-Captcha accepts and what JD's own Anti-Captcha
 // solver sends.
 const recaptchaV3MinScore = 0.3
@@ -43,7 +44,7 @@ type tokenFields struct {
 
 // tokenTask names the task type for a KindWidget challenge and fills its
 // fields. The type is empty for a payload that names no vendor this package
-// knows, which neither provider's list contains. A reCAPTCHA v3 without an
+// knows, which no provider takes. A reCAPTCHA v3 without an
 // action the hoster would take a token for is refused before it is paid for,
 // by the rule the widget page applies.
 func tokenTask(c Challenge) (string, tokenFields, error) {
@@ -52,8 +53,8 @@ func tokenTask(c Challenge) (string, tokenFields, error) {
 		return "", tokenFields{}, nil
 	}
 	f := tokenFields{WebsiteURL: p.SiteURL, WebsiteKey: p.SiteKey}
-	// JD's contextUrl is only the scheme and host of the page, which both
-	// providers accept when the full address is missing.
+	// JD's contextUrl is only the scheme and host of the page, which 2Captcha
+	// and Anti-Captcha accept when the full address is missing.
 	if f.WebsiteURL == "" {
 		f.WebsiteURL = p.ContextURL
 	}

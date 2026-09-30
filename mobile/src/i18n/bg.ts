@@ -119,6 +119,7 @@ export const bg: Dict = {
 
   'status.queued': 'на опашка',
   'status.running': 'изпълнява се',
+  'status.leeching': 'лийчва',
   'status.paused': 'на пауза',
   'status.finished': 'завършено',
   'status.failed': 'неуспешно',

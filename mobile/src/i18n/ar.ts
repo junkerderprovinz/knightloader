@@ -119,6 +119,7 @@ export const ar: Dict = {
 
   'status.queued': 'في الانتظار',
   'status.running': 'قيد التشغيل',
+  'status.leeching': 'قيد السحب',
   'status.paused': 'موقّف مؤقتًا',
   'status.finished': 'مكتمل',
   'status.failed': 'فشل',

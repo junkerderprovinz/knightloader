@@ -52,6 +52,49 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it('lists a stored captcha solver key in its own section, apart from the debrid accounts', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/accounts/catalogue') {
+        return reply([
+          { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: 'https://torbox.app/settings' },
+          {
+            id: 'capsolver',
+            label: 'CapSolver',
+            kind: 'apiKey',
+            group: 'captchaSolver',
+            whereUrl: 'https://dashboard.capsolver.com/',
+          },
+        ]);
+      }
+      if (url === '/api/accounts') {
+        return reply([
+          { id: 'capsolver', service: 'capsolver', account: '', label: '', enabled: true, configured: true, fromEnv: false, ok: false, detail: '', hosts: 0, tier: 'unknown' },
+        ]);
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <MemoryRouter>
+            <Accounts />
+          </MemoryRouter>
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  const solvers = host.querySelector('[aria-label="Captcha solvers"]');
+  expect(solvers?.textContent).toContain('CapSolver');
+  const debrid = host.querySelector('[aria-label="Debrid accounts"]');
+  expect(debrid).toBeNull();
+  expect(host.textContent).toContain('No debrid accounts yet');
+});
+
 it('offers Allow free downloads on the Accounts page itself, not only on its settings tab', async () => {
   await act(async () =>
     root.render(
