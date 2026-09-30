@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -46,6 +46,44 @@ export function InfoTip({ text, color, size = 15 }: { text: string; color?: stri
         style={({ pressed }) => ({ opacity: pressed ? 1 : 0.8 })}
       >
         <InfoGlyph color={color ?? c.textMuted} size={size} />
+      </Pressable>
+      {at && <Bubble text={text} at={at} onClose={() => setAt(null)} />}
+    </>
+  );
+}
+
+/**
+ * Tip opens the same bubble from a badge whose meaning is one word, such as
+ * the default instance's star, and runs `onPress` with it. The badge is drawn
+ * inside without a press of its own, so the touch lands here.
+ */
+export function Tip({
+  text,
+  label,
+  onPress,
+  children,
+}: {
+  text: string;
+  /** What a screen reader says when the press does more than explain. */
+  label?: string;
+  onPress?: () => void;
+  children: ReactNode;
+}) {
+  const trigger = useRef<View>(null);
+  const [at, setAt] = useState<Rect | null>(null);
+  return (
+    <>
+      <Pressable
+        ref={trigger}
+        onPress={() => {
+          onPress?.();
+          trigger.current?.measureInWindow((x, y, w, h) => setAt({ x, y, w, h }));
+        }}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={label ?? text}
+      >
+        <View pointerEvents="none">{children}</View>
       </Pressable>
       {at && <Bubble text={text} at={at} onClose={() => setAt(null)} />}
     </>

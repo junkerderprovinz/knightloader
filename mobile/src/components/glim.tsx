@@ -4,7 +4,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import { InfoTip } from './InfoTip';
+import { InfoTip, Tip } from './InfoTip';
 import { Arrive } from './Moving';
 import { Text } from './Text';
 
@@ -471,18 +471,16 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
 }
 
 /** The small star on the card of the instance the app opens on and takes its
- *  look from. */
+ *  look from, filled like a badge so it reads as one; a tap says what it means. */
 export function DefaultBadge() {
-  const { c, corners, accentInk } = useAppearance();
+  const { corners, accent, accentContrast } = useAppearance();
   const { t } = useT();
   return (
-    <View
-      style={[styles.statusBadge, { backgroundColor: c.surface2, ...corners.pill }]}
-      accessible
-      accessibilityLabel={t('connections.default')}
-    >
-      <Text style={[styles.statusText, { color: accentInk }]}>★</Text>
-    </View>
+    <Tip text={t('connections.default')}>
+      <View style={[styles.statusBadge, { backgroundColor: accent, ...corners.pill }]}>
+        <Text style={[styles.statusText, { color: accentContrast }]}>★</Text>
+      </View>
+    </Tip>
   );
 }
 
