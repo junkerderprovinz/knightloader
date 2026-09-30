@@ -55,7 +55,8 @@
       ],
       "expo-localization",
       "./plugins/withReleaseSigning",
-      "./plugins/withKeptAppDir"
+      "./plugins/withKeptAppDir",
+      "./plugins/withGradleMemory"
     ]
   }
 }
