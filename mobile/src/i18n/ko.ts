@@ -119,6 +119,7 @@ export const ko: Dict = {
 
   'status.queued': '대기 중',
   'status.running': '실행 중',
+  'status.leeching': '리칭 중',
   'status.paused': '일시중지',
   'status.finished': '완료',
   'status.failed': '실패',

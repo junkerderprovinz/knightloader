@@ -119,6 +119,7 @@ export const he: Dict = {
 
   'status.queued': 'בתור',
   'status.running': 'פועל',
+  'status.leeching': 'בליצ׳ינג',
   'status.paused': 'מושהה',
   'status.finished': 'הושלם',
   'status.failed': 'נכשל',

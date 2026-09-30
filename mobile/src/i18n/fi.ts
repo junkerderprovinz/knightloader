@@ -119,6 +119,7 @@ export const fi: Dict = {
 
   'status.queued': 'jonossa',
   'status.running': 'käynnissä',
+  'status.leeching': 'leechaa',
   'status.paused': 'keskeytetty',
   'status.finished': 'valmis',
   'status.failed': 'epäonnistui',

@@ -35,6 +35,7 @@ export const STATE_KEYS: Record<StateWord, TranslationKey> = {
   collected: 'status.collected',
   queued: 'status.queued',
   running: 'status.running',
+  leeching: 'status.leeching',
   paused: 'status.paused',
   extracting: 'status.extracting',
   seeding: 'status.seeding',
@@ -80,6 +81,7 @@ export function statusColor(word: StateWord | null, c: Palette, accentInk: strin
   if (parked) return c.textMuted;
   switch (word) {
     case 'running':
+    case 'leeching':
     case 'seeding':
       return accentInk;
     case 'finished':

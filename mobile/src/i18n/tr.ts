@@ -119,6 +119,7 @@ export const tr: Dict = {
 
   'status.queued': 'sırada',
   'status.running': 'çalışıyor',
+  'status.leeching': 'leech ediliyor',
   'status.paused': 'duraklatıldı',
   'status.finished': 'tamamlandı',
   'status.failed': 'başarısız',

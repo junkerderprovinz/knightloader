@@ -119,6 +119,7 @@ export const hr: Dict = {
 
   'status.queued': 'na čekanju',
   'status.running': 'u tijeku',
+  'status.leeching': 'leecha',
   'status.paused': 'pauzirano',
   'status.finished': 'završeno',
   'status.failed': 'neuspjelo',

@@ -119,6 +119,7 @@ export const gl: Dict = {
 
   'status.queued': 'en cola',
   'status.running': 'en curso',
+  'status.leeching': 'facendo leech',
   'status.paused': 'en pausa',
   'status.finished': 'rematado',
   'status.failed': 'fallido',
