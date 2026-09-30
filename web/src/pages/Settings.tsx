@@ -447,6 +447,7 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
         className="min-h-0 flex-1"
         orientation="vertical"
         fill
+        sidebarGround
         display={display}
         label={tx('settings.railLabel')}
         active={here?.params.page ?? null}

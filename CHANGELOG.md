@@ -140,6 +140,8 @@ release's tag.
   `ws://` or `http://` is allowed, with a warning. **How does it work?** opens
   the route picture, what the relay sees next to what it never sees, and how
   the traffic is encrypted.
+- **The Settings page tiles take the sidebar's colour** in light and dark,
+  and hover as its rows do; the open page keeps the accent.
 - **The quick settings window has a Close button** at its foot, like every
   other window, which hands the focus back to its square.
 - **Existing groups keep working.** An instance that is already in a group
