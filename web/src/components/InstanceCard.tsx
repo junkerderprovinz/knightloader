@@ -250,6 +250,9 @@ export function AppCard({
           </div>
         </div>
       </div>
+      {/* The room an instance card's Open button takes, so the logo sits at
+          the same height on every card of a row. */}
+      <div aria-hidden="true" className="mx-5 mb-5 h-[var(--btn-h)] shrink-0" />
     </Card>
   );
 }
