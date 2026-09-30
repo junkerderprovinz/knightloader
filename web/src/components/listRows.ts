@@ -21,6 +21,12 @@ export type ListRow =
       items: Task[];
       collapsed: boolean;
       divider: boolean;
+      /** The one torrent of a package that holds nothing else and bears its
+       *  name. The header then is that torrent's row, and its twisty opens
+       *  the torrent's files rather than a folder holding one folder. */
+      torrent?: Task;
+      /** The torrent's rainbow position, beside `torrent`. */
+      index?: number;
       level: 1;
       posinset: number;
       setsize: number;
@@ -44,7 +50,11 @@ export type ListRow =
       file: TorrentFileView;
       /** The torrent's hue position, so its files wear its colour. */
       index: number;
-      level: 3;
+      /** 2 under a package header that is its torrent, else 3. */
+      level: 2 | 3;
+      /** The package whose header is this file's torrent (see the package
+       *  row's `torrent`), which the file travels and sweeps with. */
+      under?: string;
       posinset: number;
       setsize: number;
     };
@@ -59,7 +69,9 @@ const VIRTUALIZE_ABOVE = 150;
 const OVERSCAN = 12;
 
 // Used only for rows never measured; every drawn row keeps its measured height.
-const ROW_ESTIMATE = { package: 45, task: 37 };
+// A row is its 24px controls (--btn-h inside the table) and 2px above and
+// below; a package header adds the 1px rule over it.
+const ROW_ESTIMATE = { package: 29, task: 28 };
 
 /** The first index whose row ends after y: the first row still on screen. */
 function firstAfter(offsets: Float64Array, y: number): number {
