@@ -790,6 +790,9 @@ export interface Instance {
   /** Where a group member's web interface is, as it told the group: its
    *  first known domain, else its address on its network. */
   address?: string;
+  /** What a group member announced itself as, "container" or "desktop";
+   *  absent for a stored peer. */
+  deployment?: string;
 }
 
 /**

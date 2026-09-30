@@ -100,6 +100,30 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
+  it('marks every card with the glyph of its kind and gives the phone the logo', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        apps: [{ id: 'p1', name: 'Pixel 8', connected: true, lastSeen: 1_800_000_000 }],
+      },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' },
+        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS', deployment: 'container' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    const card = (name: string) => [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes(name))!;
+    const kind = (name: string) => card(name).querySelector('[data-kind]')?.getAttribute('data-kind') ?? null;
+    expect(kind('Pixel 8')).toBe('mobile');
+    expect(kind('Laptop')).toBe('desktop');
+    expect(kind('NAS')).toBe('container');
+    expect(kind('cellar')).toBeNull();
+    expect(card('Pixel 8').querySelector('[data-kind="mobile"]')?.getAttribute('aria-label')).toBe('Android app');
+    expect(card('Pixel 8').querySelector('img')).not.toBeNull();
+  });
+
   it('shows every instance under its address and opens a member there', async () => {
     const open = vi.fn();
     serve({ ...noGroup, active: true, address: 'https://nas.example.org' }, [
