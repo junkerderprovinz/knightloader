@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
@@ -16,6 +16,7 @@ import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
 import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
+import { MovingScroll } from '../components/Moving';
 import * as Clipboard from 'expo-clipboard';
 import { Text, TextInput } from '../components/Text';
 
@@ -210,8 +211,14 @@ export default function RelayConnectScreen({
     ...corners.control,
   };
 
+  // One scroll for the whole page, so every instance found is on it rather
+  // than in a box of its own at the bottom.
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
+    <MovingScroll
+      style={{ backgroundColor: c.bg }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Same badge, same place as every other screen: left of the heading.
           What the phrase is and where to find it hangs off an (i) on the
           heading, ahead of the field it explains, rather than standing as a
@@ -323,40 +330,33 @@ export default function RelayConnectScreen({
       {live && (
         <>
           <Text style={[styles.sectionTitle, { color: c.textMuted }]}>{t('relay.instancesTitle')}</Text>
-          <FlatList
-            data={sibs}
-            keyExtractor={(s) => s.instanceId}
-            style={styles.list}
-            renderItem={({ item }) => (
-              <View style={[styles.row, { backgroundColor: c.surface, ...corners.card }]}>
-                <View style={styles.rowText}>
-                  <Text style={[styles.rowName, { color: c.text }]}>{item.name || item.instanceId}</Text>
-                  <Text style={[styles.rowSub, { color: c.textMuted }]} numberOfLines={1}>
-                    {item.deployment}
-                  </Text>
-                </View>
+          {sibs.map((item) => (
+            <View key={item.instanceId} style={[styles.row, { backgroundColor: c.surface, ...corners.card }]}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowName, { color: c.text }]}>{item.name || item.instanceId}</Text>
+                <Text style={[styles.rowSub, { color: c.textMuted }]} numberOfLines={1}>
+                  {item.deployment}
+                </Text>
               </View>
-            )}
-            /* The same empty state every other list in the app draws: a card, a
-               muted glyph at reduced opacity, a muted line. A bare sentence on
-               the page ground would be a third shape for one situation, and a
-               list with nothing in it is the moment the page should still look
-               like the page.
+            </View>
+          ))}
+          {/* The same empty state every other list in the app draws: a card, a
+             muted glyph at reduced opacity, a muted line. A bare sentence on
+             the page ground would be a third shape for one situation, and a
+             list with nothing in it is the moment the page should still look
+             like the page.
 
-               The glyph's size is the role's own number, 26 points of ink as an
-               empty state takes in the web UI, converted through boxForInk
-               because a drawn glyph fills less than the box it is handed. */
-            ListEmptyComponent={
-              searching ? null : (
-                <View style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
-                  <View style={styles.emptyIcon}>
-                    <Connect color={c.textMuted} size={boxForInk(26)} />
-                  </View>
-                  <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
-                </View>
-              )
-            }
-          />
+             The glyph's size is the role's own number, 26 points of ink as an
+             empty state takes in the web UI, converted through boxForInk
+             because a drawn glyph fills less than the box it is handed. */}
+          {sibs.length === 0 && !searching && (
+            <View style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
+              <View style={styles.emptyIcon}>
+                <Connect color={c.textMuted} size={boxForInk(26)} />
+              </View>
+              <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
+            </View>
+          )}
           {sibs.length > 0 && (
             <GlimButton
               hue={3}
@@ -384,14 +384,14 @@ export default function RelayConnectScreen({
         }}
         onClose={() => setScanning(false)}
       />
-    </View>
+    </MovingScroll>
   );
 }
 
 // Colours and radii are applied inline from the resolved tokens rather than
 // baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, paddingTop: 56 },
+  container: { flexGrow: 1, padding: 24, paddingTop: 56 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   // Every size on this screen comes off the scale in theme/tokens.ts: this
   // screen's title is the same object as Downloads' and Settings' and has to
@@ -426,8 +426,7 @@ const styles = StyleSheet.create({
   // and never by a line.
   buttonStack: { gap: 12, marginTop: 16 },
   error: { marginTop: 12, fontSize: TYPE.body },
-  sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
-  list: { flexGrow: 0, marginTop: 8 },
+  sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20, marginBottom: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
