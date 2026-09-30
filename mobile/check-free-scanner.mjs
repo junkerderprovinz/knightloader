@@ -2,8 +2,8 @@
 //
 // expo-camera links Google's ML Kit and Play services for its barcode scanner
 // unless the plugin is told otherwise, and either keeps the app out of
-// F-Droid. src/components/QRScanner.tsx decodes photographed frames with jsQR
-// instead, so the plugin must keep the scanner off and no source may bring
+// F-Droid. modules/qr-scanner reads the camera's frames with ZXing instead, so
+// the plugin must keep the scanner off and no source may bring
 // back onBarcodeScanned, which needs it. Expo ships expo-camera precompiled,
 // with ML Kit in its published dependencies, so the switch only takes effect
 // when package.json has the module built from source.
