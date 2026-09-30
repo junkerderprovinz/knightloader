@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -86,6 +87,68 @@ func TestAntiCaptchaSolverMultiPointClick(t *testing.T) {
 	}
 	if got != `{"x":[1,3,5],"y":[2,4,6]}` {
 		t.Errorf("Solve() = %s, want the MultiClickedPoint shape for three resolved points", got)
+	}
+}
+
+// getBalance is the same request at all four createTask-style providers; each
+// words a key it does not know in its own code.
+func TestBalanceChecksTheKeyAtEveryCreateTaskProvider(t *testing.T) {
+	type balancer interface {
+		Balance(context.Context) (float64, error)
+	}
+	cases := []struct {
+		name    string
+		build   func(key, base string) balancer
+		refused string
+	}{
+		{"2Captcha", func(key, base string) balancer {
+			s := NewTwoCaptchaSolver(key)
+			s.base = base
+			return s
+		}, "ERROR_KEY_DOES_NOT_EXIST"},
+		{"Anti-Captcha", func(key, base string) balancer {
+			s := NewAntiCaptchaSolver(key)
+			s.base = base
+			return s
+		}, "ERROR_KEY_DOES_NOT_EXIST"},
+		{"CapMonster Cloud", func(key, base string) balancer {
+			s := NewCapMonsterSolver(key)
+			s.base = base
+			return s
+		}, "ERROR_KEY_DOES_NOT_EXIST"},
+		{"CapSolver", func(key, base string) balancer {
+			s := NewCapSolverSolver(key)
+			s.base = base
+			return s
+		}, "ERROR_KEY_DENIED_ACCESS"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var req struct {
+					ClientKey string `json:"clientKey"`
+				}
+				_ = json.NewDecoder(r.Body).Decode(&req)
+				if r.URL.Path != "/getBalance" {
+					t.Errorf("unexpected path %s", r.URL.Path)
+				}
+				if req.ClientKey != "good-key" {
+					_, _ = w.Write([]byte(`{"errorId":1,"errorCode":"` + c.refused + `","errorDescription":"Wrong account key"}`))
+					return
+				}
+				_, _ = w.Write([]byte(`{"errorId":0,"balance":12.3456}`))
+			}))
+			defer srv.Close()
+
+			got, err := c.build("good-key", srv.URL).Balance(context.Background())
+			if err != nil || got != 12.3456 {
+				t.Errorf("Balance with a good key = %v, %v, want 12.3456", got, err)
+			}
+			_, err = c.build("typo", srv.URL).Balance(context.Background())
+			if err == nil || !strings.Contains(err.Error(), "refused the key") || !strings.Contains(err.Error(), c.refused) {
+				t.Errorf("Balance with a wrong key = %v, want the key refused with %s", err, c.refused)
+			}
+		})
 	}
 }
 

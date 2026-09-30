@@ -119,6 +119,7 @@ export const ms: Dict = {
 
   'status.queued': 'dalam giliran',
   'status.running': 'berjalan',
+  'status.leeching': 'melakukan leech',
   'status.paused': 'dijeda',
   'status.finished': 'selesai',
   'status.failed': 'gagal',

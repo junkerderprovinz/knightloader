@@ -119,6 +119,13 @@ it('shows a finished torrent that still uploads as seeding', () => {
   expect(text).not.toContain(en['status.done']);
 });
 
+it('shows a torrent still downloading as leeching and a plain download as downloading', () => {
+  const leeching = cell(torrent('t', { status: 'running', seeding: false, loaded: 10 }));
+  expect(leeching).toContain(en['status.leeching']);
+  expect(leeching).not.toContain(en['status.running']);
+  expect(cell(row('d', { status: 'running', loaded: 10 }))).toContain(en['status.running']);
+});
+
 it('shows a torrent that stopped seeding as done', () => {
   expect(cell(torrent('t', { seeding: false }))).toContain(en['status.done']);
 });

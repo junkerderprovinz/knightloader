@@ -1,10 +1,10 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
 // accounts and the multihosters reached through JD come first, hoster logins
-// below; the section follows the catalogue's Group field, and both cards draw
-// an AccountTable. The Allow free downloads switch comes under them, since
-// whether a link may be fetched for free is a question of which accounts there
-// are.
+// below them and the captcha solvers' keys after that; the section follows the
+// catalogue's Group field, and every card draws an AccountTable. The Allow free
+// downloads switch comes under them, since whether a link may be fetched for
+// free is a question of which accounts there are.
 import {
   useCallback,
   useEffect,
@@ -68,6 +68,7 @@ import {
 } from '../components/HosterLoginSection';
 import {
   IconAccounts,
+  IconCaptcha,
   IconChevronStart,
   IconClose,
   IconGrip,
@@ -90,7 +91,10 @@ const FIELD_LABELS: Record<CredentialField, TranslationKey> = {
   email: 'accounts.field.email',
 };
 
-type DialogState = { mode: 'new' } | { mode: 'edit'; service: string; account: string };
+/** The catalogue groups this page adds and edits accounts of itself. */
+type AccountGroup = 'debrid' | 'captchaSolver';
+
+type DialogState = { mode: 'new'; group: AccountGroup } | { mode: 'edit'; service: string; account: string };
 
 export function Accounts() {
   const { t } = useT();
@@ -192,6 +196,8 @@ export function Accounts() {
   // catalogue, since any host JDownloader knows can have one.
   const debridIds = new Set(catalogue.filter((s) => s.group === 'debrid').map((s) => s.id));
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
+  const solverIds = new Set(catalogue.filter((s) => s.group === 'captchaSolver').map((s) => s.id));
+  const solverRows = accounts.filter((a) => solverIds.has(a.service));
   const jdLogins = (hoster.logins ?? []).filter((l) => l.multihoster);
   const jdServices = hoster.hosts.filter((h) => h.multihoster && !jdLogins.some((l) => l.host === h.id));
   const jdRows = jdLogins.map((row) =>
@@ -228,13 +234,19 @@ export function Accounts() {
         </SectionTitle>
         {debridRows.length + jdRows.length > 0 ? (
           <>
-            <AccountsTable rows={debridRows} extra={jdRows} {...tableProps} />
+            <AccountsTable
+              label={t('accounts.debrid.title')}
+              rows={debridRows}
+              extra={jdRows}
+              importColumn
+              {...tableProps}
+            />
             <Button
               kind="secondary"
               hue={0}
               icon={<IconPlus width={16} height={16} />}
               className="self-start"
-              onClick={() => setDialog({ mode: 'new' })}
+              onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
             >
               {t('accounts.newAccount')}
             </Button>
@@ -246,7 +258,12 @@ export function Accounts() {
             title={t('accounts.debrid.empty')}
             hint={t('accounts.debrid.emptyHint')}
             action={
-              <Button kind="secondary" hue={0} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
+              <Button
+                kind="secondary"
+                hue={0}
+                icon={<IconPlus width={16} height={16} />}
+                onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
+              >
                 {t('accounts.newAccount')}
               </Button>
             }
@@ -261,7 +278,45 @@ export function Accounts() {
         <HosterLoginSection data={hoster} />
       </Card>
 
-      <FreeDownloadsCard hue={2} />
+      {/* A solver's key unlocks no link, so these rows have no import and
+          nothing to renew; the order they are tried in stays on the captcha
+          settings page, which reads the keys from here. */}
+      <Card hue={2} className="flex flex-col gap-3">
+        <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
+        {solverRows.length > 0 ? (
+          <>
+            <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} extra={[]} {...tableProps} />
+            <Button
+              kind="secondary"
+              hue={2}
+              icon={<IconPlus width={16} height={16} />}
+              className="self-start"
+              onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
+            >
+              {t('accounts.captcha.add')}
+            </Button>
+          </>
+        ) : (
+          <EmptyState
+            nested
+            icon={<IconCaptcha width={26} height={26} />}
+            title={t('accounts.captcha.empty')}
+            hint={t('accounts.captcha.emptyHint')}
+            action={
+              <Button
+                kind="secondary"
+                hue={2}
+                icon={<IconPlus width={16} height={16} />}
+                onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
+              >
+                {t('accounts.captcha.add')}
+              </Button>
+            }
+          />
+        )}
+      </Card>
+
+      <FreeDownloadsCard hue={3} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -270,10 +325,18 @@ export function Accounts() {
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}`}
       />
 
-      {/* The windows below belong to the debrid card, so they wear its colour. */}
+      {/* The windows below belong to the card they were opened from, so they
+          wear its colour. */}
       {dialog && (
         <CredentialDialog
           mode={dialog.mode}
+          group={
+            dialog.mode === 'new'
+              ? dialog.group
+              : byId.get(dialog.service)?.group === 'captchaSolver'
+                ? 'captchaSolver'
+                : 'debrid'
+          }
           initial={dialog.mode === 'edit' ? { service: dialog.service, account: dialog.account } : undefined}
           catalogue={catalogue}
           accounts={accounts}
@@ -357,8 +420,10 @@ interface TableActions {
 }
 
 function AccountsTable({
+  label,
   rows,
   extra,
+  importColumn = false,
   catalogue,
   refreshing,
   onRefresh,
@@ -366,15 +431,17 @@ function AccountsTable({
   onImport,
   onRemove,
   onEdit,
-}: TableActions & { rows: Account[]; extra: AccountRow[] }) {
+}: TableActions & { label: string; rows: Account[]; extra: AccountRow[]; importColumn?: boolean }) {
   const { t } = useT();
   return (
     <AccountTable
-      label={t('accounts.debrid.title')}
-      importColumn
+      label={label}
+      importColumn={importColumn}
       rows={[
         ...rows.map((a): AccountRow => {
           const svc = catalogue.get(a.service);
+          // A solver's key has no plan to renew; its row menu only checks it.
+          const renewable = svc?.group !== 'captchaSolver';
           return {
             key: a.id,
             // The service's icon, from the host of its "where do I get a key" link.
@@ -400,16 +467,20 @@ function AccountsTable({
                     icon: <IconRetry width={16} height={16} />,
                     onSelect: () => onRefresh(a),
                   },
-                  {
-                    id: 'renew',
-                    label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                    icon: <IconExternalLink width={16} height={16} />,
-                    // Only with an expiry and somewhere to renew.
-                    disabled: !a.expiry || !svc?.whereUrl,
-                    onSelect: () => {
-                      if (svc?.whereUrl) openExternal(svc.whereUrl);
-                    },
-                  },
+                  ...(renewable
+                    ? [
+                        {
+                          id: 'renew',
+                          label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                          icon: <IconExternalLink width={16} height={16} />,
+                          // Only with an expiry and somewhere to renew.
+                          disabled: !a.expiry || !svc?.whereUrl,
+                          onSelect: () => {
+                            if (svc?.whereUrl) openExternal(svc.whereUrl);
+                          },
+                        },
+                      ]
+                    : []),
                 ],
               },
             ],
@@ -464,6 +535,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
 
 function CredentialDialog({
   mode,
+  group,
   initial,
   catalogue,
   accounts,
@@ -473,6 +545,8 @@ function CredentialDialog({
   onSaved,
 }: {
   mode: 'new' | 'edit';
+  /** The card the dialog was opened from, which decides what it offers. */
+  group: AccountGroup;
   initial?: { service: string; account: string };
   catalogue: CatalogueService[];
   accounts: Account[];
@@ -500,9 +574,12 @@ function CredentialDialog({
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
-  // Debrid only; the captcha solvers in the catalogue are set on the Captcha
-  // page.
-  const debridServices = catalogue.filter((s) => s.group === 'debrid');
+  const services = catalogue.filter((s) => s.group === group);
+  // A solver has one key, the one the captcha page's order reads, so picking a
+  // solver that has one already changes that key rather than adding a second.
+  const solver = group === 'captchaSolver';
+  const replacing = solver && mode === 'new' && picked !== null && hasDefault(picked.id);
+  const editing = mode === 'edit' || replacing;
 
   function credential(): AccountCredential {
     if (!picked) return {};
@@ -516,7 +593,7 @@ function CredentialDialog({
 
   async function doSave(force: boolean) {
     if (!picked) return;
-    const account = mode === 'new' ? accountId.trim() : (initial?.account ?? '');
+    const account = editing ? (initial?.account ?? '') : accountId.trim();
     setSaving(true);
     try {
       if (!force) {
@@ -542,13 +619,13 @@ function CredentialDialog({
     }
   }
 
-  const accountIdRequired = mode === 'new' && picked !== null && hasDefault(picked.id) && accountId.trim() === '';
+  const accountIdRequired = !editing && picked !== null && hasDefault(picked.id) && accountId.trim() === '';
 
   // Named after the card, its add button and the row's edit action, so every
   // step of the way reads as the same thing.
   const title = !picked
-    ? t('accounts.pickDebridAccount')
-    : mode === 'edit'
+    ? t(solver ? 'accounts.captcha.pick' : 'accounts.pickDebridAccount')
+    : editing
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
 
@@ -583,8 +660,8 @@ function CredentialDialog({
     >
       {!picked ? (
         <ServicePicker
-          services={debridServices}
-          jdServices={jdServices}
+          services={services}
+          jdServices={solver ? [] : jdServices}
           onPickJD={onPickJD}
           hasDefault={hasDefault}
           onPick={(s) => {
@@ -610,7 +687,7 @@ function CredentialDialog({
             <p className="text-sm text-carbon-textSub">{t('accounts.credentialFromEnv', { env: editingRow?.envVar ?? '' })}</p>
           ) : (
             <>
-              {mode === 'new' && hasDefault(picked.id) && (
+              {!editing && hasDefault(picked.id) && (
                 <Field label={t('accounts.accountLabel')} hint={t('accounts.accountLabelHint')}>
                   <TextInput
                     value={accountId}
@@ -654,8 +731,11 @@ function CredentialDialog({
 
               {verifyResult && (
                 <p className={`text-xs ${verifyResult.ok ? 'text-statusOk' : 'text-statusFail'}`} role="status">
+                  {/* A solver unlocks no hoster, so it has no count to add. */}
                   {verifyResult.ok
-                    ? `${t('accounts.ok')} · ${verifyResult.hosts} ${t('accounts.hosts')}`
+                    ? solver
+                      ? t('accounts.ok')
+                      : `${t('accounts.ok')} · ${verifyResult.hosts} ${t('accounts.hosts')}`
                     : t('accounts.verifyFailed', { detail: verifyResult.detail })}
                 </p>
               )}
@@ -771,7 +851,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={3} className="flex flex-col gap-3">
+      <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
@@ -784,7 +864,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={4} className="flex flex-col gap-3">
+      <Card hue={5} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.jdHint')}>
           {t('settings.module.jd')}
         </SectionTitle>

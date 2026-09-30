@@ -119,6 +119,7 @@ export const th: Dict = {
 
   'status.queued': 'อยู่ในคิว',
   'status.running': 'กำลังทำงาน',
+  'status.leeching': 'กำลังลีช',
   'status.paused': 'หยุดชั่วคราว',
   'status.finished': 'เสร็จสิ้น',
   'status.failed': 'ล้มเหลว',

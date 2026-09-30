@@ -119,6 +119,7 @@ export const is: Dict = {
 
   'status.queued': 'í biðröð',
   'status.running': 'í gangi',
+  'status.leeching': 'leechar',
   'status.paused': 'í bið',
   'status.finished': 'lokið',
   'status.failed': 'mistókst',

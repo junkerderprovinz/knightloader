@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Task } from './api';
+import { loneTorrent } from '../components/TorrentFileRow';
 
 // Which selected rows the list is drawing and which it is not. A filter hides
 // rows without deselecting them (see lib/listview.ts), so someone can hold
@@ -29,15 +30,16 @@ export function selectionReach(selected: ReadonlySet<string>, drawn: ReadonlySet
 
 /**
  * useDrawnRows is the set of rows the list card renders: the narrowed
- * grouping minus folded packages. Pass the narrowed groups, not the page's
- * `all`, which also holds the collector's rows. Memoised because callers use
- * it as a hook dependency.
+ * grouping minus folded packages. A package that is one torrent is that
+ * torrent's row and cannot be folded away (see loneTorrent). Pass the narrowed
+ * groups, not the page's `all`, which also holds the collector's rows.
+ * Memoised because callers use it as a hook dependency.
  */
 export function useDrawnRows(groups: [string, Task[]][], collapsed: ReadonlySet<string>): ReadonlySet<string> {
   return useMemo(() => {
     const out = new Set<string>();
     for (const [name, items] of groups) {
-      if (collapsed.has(name)) continue;
+      if (collapsed.has(name) && !loneTorrent(name, items)) continue;
       for (const x of items) out.add(x.id);
     }
     return out;

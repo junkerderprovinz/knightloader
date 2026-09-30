@@ -15,7 +15,14 @@ package settings
 // accounts/catalogue_test.go's TestCaptchaSolverEntries is the other half of
 // that convention: a rename on either side without the matching edit here fails
 // a test rather than orphaning a stored order.
-var captchaSolverIDs = map[string]bool{"2captcha": true, "anticaptcha": true}
+var captchaSolverIDs = map[string]bool{
+	"2captcha":       true,
+	"anticaptcha":    true,
+	"capmonster":     true,
+	"capsolver":      true,
+	"9kw":            true,
+	"deathbycaptcha": true,
+}
 
 // DefaultCaptchaSolverWait is how long the solvers wait for somebody watching,
 // in seconds: a minute to notice the prompt and answer it.

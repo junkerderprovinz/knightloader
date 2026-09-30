@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  type Account,
-  type CatalogueService,
-  fetchAccountCatalogue,
-  fetchAccounts,
-  removeAccountCredential,
-  saveAccountCredential,
-} from '../../lib/api';
+import { type Account, type CatalogueService, fetchAccountCatalogue, fetchAccounts } from '../../lib/api';
 import { useT } from '../../lib/i18n';
-import { useToast } from '../../lib/toast';
 import {
-  Button,
   Card,
   ErrorCard,
   Field,
@@ -20,20 +11,18 @@ import {
   NumberInput,
   PageHeader,
   SectionTitle,
-  TextInput,
   ToggleRow,
 } from '../../components/ui';
 import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleToggle, PageBadge } from './ModuleToggle';
 
-// The captcha page orders the solvers, stores each solver's API key and says
-// whether the solvers wait for somebody watching. The order lives in the
-// settings draft: an id in captchaSolverOrder is tried in that position, an
-// absent one never. Keys go through /api/accounts at once and are write-only,
-// because a credential cannot ride the settings document. They are saved
-// without a live check.
+// The captcha page orders the solvers and says whether they wait for somebody
+// watching. The order lives in the settings draft: an id in captchaSolverOrder
+// is tried in that position, an absent one never. The solvers' keys are
+// accounts and are kept on the Accounts page; this page only reads whether one
+// is set.
 
 // Copies of the bounds in internal/settings/settings_captcha.go, which no route
 // serves.
@@ -47,7 +36,6 @@ export function Captcha() {
   const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [catalogue, setCatalogue] = useState<CatalogueService[]>([]);
   const [loadError, setLoadError] = useState(false);
-  const [editing, setEditing] = useState(''); // catalogue id being edited, '' = none
 
   const load = useCallback(async () => {
     try {
@@ -121,16 +109,15 @@ export function Captcha() {
               position={order.indexOf(svc.id)}
               count={order.length}
               last={i === rows.length - 1}
-              account={accounts.find((a) => a.service === svc.id && a.account === '')}
-              editing={editing === svc.id}
+              configured={accounts.some((a) => a.service === svc.id && a.account === '' && a.configured)}
               onToggle={(on) => setEnabled(svc.id, on)}
               onMove={(by) => move(svc.id, by)}
-              onStartEdit={() => setEditing(svc.id)}
-              onStopEdit={() => setEditing('')}
-              onSaved={load}
             />
           ))}
         </ul>
+        <div className="pt-2">
+          <PageBadge page="accounts" title={t('settings.captcha.keys')} />
+        </div>
       </Card>
 
       {/* Absent while no solver is enabled, since nothing reads these then. */}
@@ -170,13 +157,9 @@ function SolverRow({
   position,
   count,
   last,
-  account,
-  editing,
+  configured,
   onToggle,
   onMove,
-  onStartEdit,
-  onStopEdit,
-  onSaved,
 }: {
   svc: CatalogueService;
   /** Position in the full solver list, for the hue. */
@@ -186,16 +169,12 @@ function SolverRow({
   position: number;
   count: number;
   last: boolean;
-  account?: Account;
-  editing: boolean;
+  /** Whether the solver's key is set on the Accounts page. */
+  configured: boolean;
   onToggle: (on: boolean) => void;
   onMove: (by: number) => void;
-  onStartEdit: () => void;
-  onStopEdit: () => void;
-  onSaved: () => Promise<void>;
 }) {
   const { t } = useT();
-  const configured = account?.configured ?? false;
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
@@ -239,92 +218,8 @@ function SolverRow({
               />
             </>
           )}
-          <Button kind="ghost" onClick={editing ? onStopEdit : onStartEdit}>
-            {configured ? t('settings.captcha.change') : t('settings.captcha.setKey')}
-          </Button>
         </div>
       </div>
-
-      {editing && (
-        <div className="pb-3">
-          <CredentialEditor
-            svc={svc}
-            configured={configured}
-            onCancel={onStopEdit}
-            onSaved={async () => {
-              onStopEdit();
-              await onSaved();
-            }}
-          />
-        </div>
-      )}
     </li>
-  );
-}
-
-function CredentialEditor({
-  svc,
-  configured,
-  onCancel,
-  onSaved,
-}: {
-  svc: CatalogueService;
-  configured: boolean;
-  onCancel: () => void;
-  onSaved: () => Promise<void>;
-}) {
-  const { t } = useT();
-  const { toast } = useToast();
-  const [key, setKey] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  async function save() {
-    setBusy(true);
-    try {
-      await saveAccountCredential(svc.id, '', { apiKey: key });
-      toast(t('settings.captcha.saved'), 'ok');
-      await onSaved();
-    } catch (e) {
-      toast(t('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
-      setBusy(false);
-    }
-  }
-
-  async function remove() {
-    setBusy(true);
-    try {
-      await removeAccountCredential(svc.id, '');
-      toast(t('settings.captcha.removed'), 'info');
-      await onSaved();
-    } catch (e) {
-      toast(t('settings.captcha.saveFailed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
-      <div className="min-w-0 flex-1">
-        <TextInput
-          type="password"
-          autoComplete="off"
-          autoFocus
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder={t('settings.captcha.placeholder')}
-        />
-      </div>
-      <Button kind="ghost" onClick={onCancel} disabled={busy}>
-        {t('settings.captcha.cancel')}
-      </Button>
-      {configured && (
-        <Button kind="ghost" onClick={() => void remove()} disabled={busy}>
-          {t('settings.captcha.remove')}
-        </Button>
-      )}
-      <Button onClick={() => void save()} disabled={busy || key.trim() === ''}>
-        {busy ? t('settings.captcha.saving') : t('settings.captcha.save')}
-      </Button>
-    </div>
   );
 }

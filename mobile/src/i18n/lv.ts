@@ -119,6 +119,7 @@ export const lv: Dict = {
 
   'status.queued': 'rindā',
   'status.running': 'notiek',
+  'status.leeching': 'līčo',
   'status.paused': 'pauzēts',
   'status.finished': 'pabeigts',
   'status.failed': 'neizdevās',

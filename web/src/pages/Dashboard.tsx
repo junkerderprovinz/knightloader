@@ -14,6 +14,7 @@ import { DiskSpaceTile } from '../components/DiskSpaceTile';
 import { ProgressBar } from '../components/ProgressBar';
 import { StatusPill, rowState } from '../components/StatusPill';
 import { InstanceRow } from '../components/InstanceCard';
+import { TorrentCard } from '../components/TorrentCard';
 import { IconDownloads } from '../lib/icons';
 
 export function Dashboard() {
@@ -123,6 +124,11 @@ export function Dashboard() {
             ))}
           </div>
         </Card>
+
+        {/* Draws nothing without a torrent, which leaves the grid no gap. */}
+        <div className="empty:hidden lg:col-span-2">
+          <TorrentCard settings={settings} hue={4} />
+        </div>
 
         <div className="lg:col-span-2">
           <VolumeCard hue={3} />

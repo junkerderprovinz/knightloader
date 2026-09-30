@@ -119,6 +119,7 @@ export const it: Dict = {
 
   'status.queued': 'in coda',
   'status.running': 'in corso',
+  'status.leeching': 'in leech',
   'status.paused': 'in pausa',
   'status.finished': 'completato',
   'status.failed': 'non riuscito',

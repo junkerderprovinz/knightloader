@@ -119,6 +119,7 @@ export const lt: Dict = {
 
   'status.queued': 'eilėje',
   'status.running': 'vykdoma',
+  'status.leeching': 'siurbia',
   'status.paused': 'pristabdyta',
   'status.finished': 'baigta',
   'status.failed': 'nepavyko',

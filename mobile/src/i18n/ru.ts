@@ -119,6 +119,7 @@ export const ru: Dict = {
 
   'status.queued': 'в очереди',
   'status.running': 'выполняется',
+  'status.leeching': 'качается',
   'status.paused': 'на паузе',
   'status.finished': 'завершено',
   'status.failed': 'ошибка',

@@ -252,7 +252,10 @@ export function useListKeyboard({
     if (e.key === forward) {
       take();
       // Opens a shut folder or torrent, or steps onto its first link or file.
-      if (row.kind === 'package') {
+      if (row.kind === 'package' && row.torrent) {
+        if (!files.open.has(row.torrent.id)) files.show(row.torrent.id);
+        else if (rows[index + 1]?.kind === 'file') goTo(index + 1, null);
+      } else if (row.kind === 'package') {
         if (collapsed.has(row.name)) expand([row.name]);
         else if (row.items.length > 0) goTo(index + 1, null);
       } else if (row.kind === 'task' && files.has(row.task)) {
@@ -265,7 +268,13 @@ export function useListKeyboard({
     if (e.key === back) {
       take();
       // Shuts an open folder or torrent, or steps from a file to its torrent
-      // and from a link to its folder's header.
+      // and from a link to its folder's header. A file's torrent is the first
+      // row above it that is not a file, which is a package header when the
+      // torrent is its package.
+      if (row.kind === 'package' && row.torrent) {
+        files.hide(row.torrent.id);
+        return;
+      }
       if (row.kind === 'package') {
         if (!collapsed.has(row.name)) collapse([row.name]);
         return;
@@ -274,9 +283,8 @@ export function useListKeyboard({
         files.hide(row.task.id);
         return;
       }
-      const up = row.kind === 'file' ? 'task' : 'package';
       for (let i = index - 1; i >= 0; i--) {
-        if (rows[i].kind === up) {
+        if (row.kind === 'file' ? rows[i].kind !== 'file' : rows[i].kind === 'package') {
           goTo(i, null);
           return;
         }

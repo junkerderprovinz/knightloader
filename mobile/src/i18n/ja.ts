@@ -119,6 +119,7 @@ export const ja: Dict = {
 
   'status.queued': '待機中',
   'status.running': '実行中',
+  'status.leeching': 'リーチ中',
   'status.paused': '一時停止',
   'status.finished': '完了',
   'status.failed': '失敗',

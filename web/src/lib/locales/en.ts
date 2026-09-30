@@ -30,6 +30,7 @@ export const en = {
   'status.collected': 'Collected',
   'status.queued': 'Queued',
   'status.running': 'Downloading',
+  'status.leeching': 'Leeching',
   'status.paused': 'Paused',
   'status.extracting': 'Unpacking',
   'status.seeding': 'Seeding',
@@ -79,6 +80,19 @@ export const en = {
   'overview.noDownloads': 'No downloads yet.',
   'overview.instances': 'Instances',
   'overview.idle': 'idle',
+  'overview.torrents.title': 'Torrents',
+  'overview.torrents.hint':
+    'The built-in torrent client at a glance. Below each figure for today is the total since this instance started counting. The ratio is everything uploaded divided by everything downloaded. On the right are the three torrents uploading fastest right now, each with how long it needs at that speed to reach a seed target. Click the card to open the torrents in Downloads.',
+  'overview.torrents.open': 'Open the torrents in Downloads',
+  'overview.torrents.down': 'Download speed',
+  'overview.torrents.up': 'Upload speed',
+  'overview.torrents.downloaded': 'Downloaded today',
+  'overview.torrents.uploaded': 'Uploaded today',
+  'overview.torrents.inAll': '{size} in all',
+  'overview.torrents.top': 'Uploading most',
+  'overview.torrents.noneUploading': 'Nothing is uploading right now.',
+  'overview.torrents.left': '{time} to the seed target',
+  'overview.torrents.noTarget': 'No seed target',
   'common.loading': 'Loading…',
   'common.loadFailed': 'Could not load this. Is the server reachable?',
   'common.retry': 'Try again',
@@ -525,6 +539,7 @@ export const en = {
   'filter.label': 'Quick filters',
   'filter.clear': 'Show everything',
   'filter.running': 'Downloading',
+  'filter.leeching': 'Leeching',
   'filter.queued': 'Queued',
   'filter.paused': 'Paused',
   'filter.finished': 'Finished',
@@ -1365,6 +1380,13 @@ export const en = {
   'accounts.trafficUnknown': 'This service reports no allowance.',
   'accounts.credentialFromEnv':
     'Set by the container’s {env} environment variable. Remove it there to change this.',
+  'accounts.captcha.title': 'Captcha solvers',
+  'accounts.captcha.hint':
+    'A captcha solver is a paid service that answers a captcha before you are asked. Each one needs its own key, and none of these keys unlocks a download. Which solvers are tried, in what order and when, is set under Settings, Captcha.',
+  'accounts.captcha.empty': 'No captcha solvers yet',
+  'accounts.captcha.emptyHint': 'Add the key of a solving service here, then switch it on in the solver order under Settings, Captcha.',
+  'accounts.captcha.add': 'Add a solver',
+  'accounts.captcha.pick': 'Choose a captcha solver',
   'accounts.debrid.empty': 'No debrid accounts yet',
   'accounts.debrid.emptyHint': 'Add an account at one of the supported debrid services to unlock hoster links automatically.',
   'accounts.debrid.title': 'Debrid accounts',
@@ -1495,7 +1517,7 @@ export const en = {
   'captcha.solverRefused': '{solver} declined: {reason}',
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
-  // and each solver's own API key.
+  // and when the solvers start. Their keys are on the Accounts page.
   'settings.captcha.title': 'Captcha',
   'settings.captcha.orderTitle': 'Solver order',
   'settings.captcha.orderHint':
@@ -1506,16 +1528,7 @@ export const en = {
   'settings.captcha.moveDown': 'Move down',
   'settings.captcha.set': 'Key set',
   'settings.captcha.notSet': 'No key set',
-  'settings.captcha.setKey': 'Set key',
-  'settings.captcha.change': 'Change',
-  'settings.captcha.remove': 'Remove',
-  'settings.captcha.cancel': 'Cancel',
-  'settings.captcha.save': 'Save',
-  'settings.captcha.saving': 'Saving…',
-  'settings.captcha.placeholder': 'Paste the API key',
-  'settings.captcha.saved': 'API key saved.',
-  'settings.captcha.removed': 'API key removed.',
-  'settings.captcha.saveFailed': 'Could not save the key: {error}',
+  'settings.captcha.keys': 'Keys under Accounts',
   'settings.captcha.whenTitle': 'When solvers start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
   'settings.captcha.onlyUnwatchedHint':

@@ -119,6 +119,7 @@ export const nl: Dict = {
 
   'status.queued': 'in wachtrij',
   'status.running': 'bezig',
+  'status.leeching': 'leecht',
   'status.paused': 'gepauzeerd',
   'status.finished': 'voltooid',
   'status.failed': 'mislukt',
