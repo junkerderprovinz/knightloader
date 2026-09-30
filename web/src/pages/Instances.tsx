@@ -221,7 +221,7 @@ export function Instances() {
             ))}
           </div>
           <div>
-            <Button kind="secondary" icon={<IconLink />} onClick={openPairing}>
+            <Button icon={<IconLink />} onClick={openPairing}>
               {t('pairing.title')}
             </Button>
           </div>
