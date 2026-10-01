@@ -3,6 +3,8 @@ package torbox
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -99,15 +101,22 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	}
 
 	// Poll until TorBox has the file on its CDN, mirroring its own fetch phase.
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(pollEvery)
 	defer ticker.Stop()
 	var ready *WebDownload
+	misses := 0
 	for ready == nil {
 		wd, err := b.c.Get(ctx, id)
-		if err == nil && wd != nil {
+		switch {
+		case err == nil:
+			misses = 0
 			if wd.DownloadPresent && len(wd.Files) > 0 {
 				ready = wd
-				break
+				continue
+			}
+			if state := strings.ToLower(wd.DownloadState); strings.Contains(state, "error") || strings.Contains(state, "fail") {
+				b.fail(ctx, taskID, fmt.Errorf("TorBox reports the download as %s", wd.DownloadState))
+				return
 			}
 			size := wd.Size
 			b.onUpdate(taskID, core.Update{
@@ -117,6 +126,15 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 				Loaded: int64(wd.Progress * float64(size)),
 				Speed:  wd.DownloadSpeed,
 			})
+		case gone(err):
+			// Deleted on the TorBox website: no later read will find it.
+			b.fail(ctx, taskID, err)
+			return
+		default:
+			if misses++; misses >= pollMisses {
+				b.fail(ctx, taskID, err)
+				return
+			}
 		}
 		select {
 		case <-ctx.Done():
@@ -151,6 +169,21 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	b.eng.Handover(taskID, direct, conns, func(ctx context.Context) (string, error) {
 		return b.c.RequestDL(ctx, id, f.ID)
 	})
+}
+
+// pollEvery paces the reads of a job TorBox is still fetching. Tests shorten
+// it.
+var pollEvery = 2 * time.Second
+
+// pollMisses is how many failed reads of a job in a row end the unlock: a
+// minute of them at pollEvery. Without a bound a job TorBox stopped answering
+// for keeps the task running and spends the account's request budget.
+const pollMisses = 30
+
+// gone reports whether the job has disappeared from the TorBox account.
+func gone(err error) bool {
+	var apiErr *APIError
+	return errors.As(err, &apiErr) && apiErr.Code == "ITEM_NOT_FOUND"
 }
 
 // fail reports err on the task, unless the run was cancelled: Pause and Remove

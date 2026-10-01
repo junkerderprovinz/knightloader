@@ -238,7 +238,11 @@ func (c *Client) CreateWebDownload(ctx context.Context, link string) (int64, err
 	if cr.ID != 0 {
 		return cr.ID, nil
 	}
-	return cr.IDAlt, nil
+	if cr.IDAlt != 0 {
+		return cr.IDAlt, nil
+	}
+	// Job 0 is one no later read would ever find.
+	return 0, errors.New("torbox /api/webdl/createwebdownload: the answer named no job")
 }
 
 // Get returns the current state of one web download by id.

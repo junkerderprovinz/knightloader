@@ -146,3 +146,63 @@ func TestTheEngineCanAskTorBoxForAFreshLink(t *testing.T) {
 		t.Errorf("relink = %q, %v; want the second requestdl's link", url, err)
 	}
 }
+
+// A web download TorBox gave up on, deleted, never numbered or stopped
+// answering for ends the task in an error, rather than leaving it running and
+// polling the account's request budget away.
+func TestAWebDownloadThatCannotFinishEndsTheTask(t *testing.T) {
+	every := pollEvery
+	pollEvery = time.Millisecond
+	t.Cleanup(func() { pollEvery = every })
+
+	cases := map[string]struct {
+		created string
+		mylist  func(w http.ResponseWriter)
+	}{
+		"failed": {`{"webdownload_id":42}`, func(w http.ResponseWriter) {
+			writeEnv(w, `{"id":42,"name":"movie.mkv","download_state":"failed (hoster refused)"}`)
+		}},
+		"deleted": {`{"webdownload_id":42}`, func(w http.ResponseWriter) {
+			writeEnv(w, `[]`)
+		}},
+		"no id": {`{"hash":"h"}`, func(w http.ResponseWriter) {
+			writeEnv(w, `[]`)
+		}},
+		"unreadable": {`{"webdownload_id":42}`, func(w http.ResponseWriter) {
+			http.Error(w, "bad gateway", http.StatusBadGateway)
+		}},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			mux := http.NewServeMux()
+			mux.HandleFunc("/api/webdl/createwebdownload", func(w http.ResponseWriter, r *http.Request) {
+				writeEnv(w, tc.created)
+			})
+			mux.HandleFunc("/api/webdl/mylist", func(w http.ResponseWriter, r *http.Request) {
+				tc.mylist(w)
+			})
+			srv := httptest.NewServer(mux)
+			defer srv.Close()
+			c := NewClient("test-key")
+			c.base = srv.URL
+
+			failed := make(chan string, 1)
+			b := NewBackend(c, &fakeEngine{got: make(chan string, 1)}, func(_ string, u core.Update) {
+				if u.Status == core.StatusError {
+					select {
+					case failed <- u.Err:
+					default:
+					}
+				}
+			})
+			b.Download("task1", "https://rapidgator.net/file/abc", nil, 0)
+			defer b.Remove("task1", false)
+
+			select {
+			case <-failed:
+			case <-time.After(10 * time.Second):
+				t.Fatal("the task was never failed")
+			}
+		})
+	}
+}
