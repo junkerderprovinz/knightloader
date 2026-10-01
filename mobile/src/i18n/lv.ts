@@ -167,7 +167,6 @@ export const lv: Dict = {
   'settings.cryptoTitle': 'Ziedot ar kripto',
   'settings.donateAppeal': 'Iemet monētu savam bruņiniekam: tā sedz daļu izmaksu un uztur projektu dzīvu. Viss, ko veidoju, ir bez maksas un bez reklāmām.',
   'settings.cryptoIntro': 'Izvēlies valūtu un tīklu, tad noskenē kodu vai nokopē adresi.',
-  'settings.coffeeIntro': 'Maksājums notiek caur Buy Me a Coffee. Konts tev nav vajadzīgs.',
   'settings.cryptoNetworks': 'Tīkli',
   'settings.cryptoNoTag': 'Destination tag un memo nav vajadzīgi.',
   'settings.cryptoCopy': 'Kopēt',

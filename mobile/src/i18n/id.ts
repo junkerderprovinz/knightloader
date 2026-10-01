@@ -167,7 +167,6 @@ export const id: Dict = {
   'settings.cryptoTitle': 'Donasi dengan kripto',
   'settings.donateAppeal': 'Lemparkan koin untuk ksatria Anda: koin itu menutup sebagian biaya dan menjaga proyek tetap hidup. Semua yang saya buat gratis dan tanpa iklan.',
   'settings.cryptoIntro': 'Pilih mata uang kripto dan jaringan, lalu pindai kode atau salin alamatnya.',
-  'settings.coffeeIntro': 'Pembayaran berjalan melalui Buy Me a Coffee. Kamu tidak perlu akun.',
   'settings.cryptoNetworks': 'Jaringan',
   'settings.cryptoNoTag': 'Tidak perlu destination tag maupun memo.',
   'settings.cryptoCopy': 'Salin',

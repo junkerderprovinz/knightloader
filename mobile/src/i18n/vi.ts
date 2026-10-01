@@ -167,7 +167,6 @@ export const vi: Dict = {
   'settings.cryptoTitle': 'Ủng hộ bằng tiền mã hoá',
   'settings.donateAppeal': 'Tung một đồng xu cho hiệp sĩ của bạn: nó trang trải một phần chi phí và giữ cho dự án tiếp tục sống. Mọi thứ tôi làm đều miễn phí và không có quảng cáo.',
   'settings.cryptoIntro': 'Chọn một loại tiền và một mạng, rồi quét mã hoặc sao chép địa chỉ.',
-  'settings.coffeeIntro': 'Việc thanh toán diễn ra qua Buy Me a Coffee. Bạn không cần tài khoản.',
   'settings.cryptoNetworks': 'Mạng',
   'settings.cryptoNoTag': 'Không cần destination tag hay memo.',
   'settings.cryptoCopy': 'Sao chép',

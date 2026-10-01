@@ -102,10 +102,8 @@ answer goes back to your instance through the relay.
 
 ### When you open a link or donate
 
-- The Buy Me a Coffee window loads `buymeacoffee.com` when you open it, and nothing
-  of it before.
-- The PayPal and GitHub buttons, the version numbers and the mail button open your
-  browser or mail app. The app itself sends nothing there.
+- The Buy Me a Coffee, PayPal and GitHub buttons, the version numbers and the mail
+  button open your browser or mail app. The app itself sends nothing there.
 - The crypto window shows donation addresses and draws their QR codes on the phone.
 
 The "Copy report" button in Settings puts the app version, the Android version,

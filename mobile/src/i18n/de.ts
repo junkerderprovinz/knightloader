@@ -264,7 +264,6 @@ export const de: Dict = {
   'settings.cryptoTitle': 'Mit Krypto spenden',
   'settings.donateAppeal': 'Wirf deinem Ritter eine Münze zu: Sie deckt einen Teil der Kosten und hält das Projekt am Leben. Alles, was ich baue, kostet nichts und zeigt keine Werbung.',
   'settings.cryptoIntro': 'Wähle eine Währung und ein Netzwerk, dann scanne den Code oder kopiere die Adresse.',
-  'settings.coffeeIntro': 'Die Zahlung läuft direkt bei Buy Me a Coffee. Ein Konto brauchst du nicht.',
   'settings.cryptoNetworks': 'Netzwerke',
   'settings.cryptoNoTag': 'Kein Destination Tag und kein Memo nötig.',
   'settings.cryptoCopy': 'Kopieren',

@@ -167,7 +167,6 @@ export const ar: Dict = {
   'settings.cryptoTitle': 'التبرّع بالعملات المشفّرة',
   'settings.donateAppeal': 'ألقِ عملة لفارسك: فهي تغطي جزءًا من التكاليف وتبقي المشروع حيًا. كل ما أصنعه مجاني ولا يعرض إعلانات.',
   'settings.cryptoIntro': 'اختر العملة الرقمية والشبكة، ثم امسح الرمز أو انسخ العنوان.',
-  'settings.coffeeIntro': 'تتم عملية الدفع عبر Buy Me a Coffee. لا تحتاج إلى حساب.',
   'settings.cryptoNetworks': 'الشبكات',
   'settings.cryptoNoTag': 'لا حاجة إلى Destination Tag ولا إلى Memo.',
   'settings.cryptoCopy': 'نسخ',

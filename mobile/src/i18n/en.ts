@@ -265,7 +265,6 @@ export const en = {
   'settings.cryptoTitle': 'Donate with crypto',
   'settings.donateAppeal': 'Toss a coin to your knight: it covers part of the costs and keeps the project alive. Everything I build costs nothing and shows no ads.',
   'settings.cryptoIntro': 'Pick a currency and a network, then scan the code or copy the address.',
-  'settings.coffeeIntro': 'The payment runs through Buy Me a Coffee. You do not need an account.',
   'settings.cryptoNetworks': 'Networks',
   'settings.cryptoNoTag': 'No destination tag and no memo needed.',
   'settings.cryptoCopy': 'Copy',

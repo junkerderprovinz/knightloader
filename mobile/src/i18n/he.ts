@@ -167,7 +167,6 @@ export const he: Dict = {
   'settings.cryptoTitle': 'תרומה בקריפטו',
   'settings.donateAppeal': 'השלך מטבע לאביר שלך: הוא מכסה חלק מהעלויות ושומר על הפרויקט בחיים. כל מה שאני בונה חינמי ובלי פרסומות.',
   'settings.cryptoIntro': 'בחר מטבע דיגיטלי ורשת, ואז סרוק את הקוד או העתק את הכתובת.',
-  'settings.coffeeIntro': 'התשלום מתבצע דרך Buy Me a Coffee. אין צורך בחשבון.',
   'settings.cryptoNetworks': 'רשתות',
   'settings.cryptoNoTag': 'אין צורך ב-destination tag ולא ב-memo.',
   'settings.cryptoCopy': 'העתק',

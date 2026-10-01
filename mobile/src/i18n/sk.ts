@@ -167,7 +167,6 @@ export const sk: Dict = {
   'settings.cryptoTitle': 'Prispieť kryptom',
   'settings.donateAppeal': 'Hoď groš svojmu rytierovi: pokryje časť nákladov a udrží projekt nažive. Všetko, čo robím, je zadarmo a bez reklám.',
   'settings.cryptoIntro': 'Vyber menu a sieť, potom naskenuj kód alebo skopíruj adresu.',
-  'settings.coffeeIntro': 'Platba prebieha cez Buy Me a Coffee. Účet nepotrebuješ.',
   'settings.cryptoNetworks': 'Siete',
   'settings.cryptoNoTag': 'Destination tag ani memo nie sú potrebné.',
   'settings.cryptoCopy': 'Kopírovať',

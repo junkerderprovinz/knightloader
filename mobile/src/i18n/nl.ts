@@ -167,7 +167,6 @@ export const nl: Dict = {
   'settings.cryptoTitle': 'Doneren met crypto',
   'settings.donateAppeal': 'Gooi een munt naar je ridder: daarmee dek je een deel van de kosten en blijft het project in leven. Alles wat ik maak, is gratis en zonder advertenties.',
   'settings.cryptoIntro': 'Kies een valuta en een netwerk en scan dan de code of kopieer het adres.',
-  'settings.coffeeIntro': 'De betaling loopt via Buy Me a Coffee. Je hebt geen account nodig.',
   'settings.cryptoNetworks': 'Netwerken',
   'settings.cryptoNoTag': 'Een destination tag of memo is niet nodig.',
   'settings.cryptoCopy': 'Kopiëren',

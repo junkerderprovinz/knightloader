@@ -167,7 +167,6 @@ export const uk: Dict = {
   'settings.cryptoTitle': 'Підтримати криптовалютою',
   'settings.donateAppeal': 'Кинь монету своєму лицарю: вона покриває частину витрат і тримає проєкт живим. Усе, що я роблю, безкоштовне й без реклами.',
   'settings.cryptoIntro': 'Обери валюту та мережу, потім скануй код або скопіюй адресу.',
-  'settings.coffeeIntro': 'Оплата проходить через Buy Me a Coffee. Обліковий запис не потрібен.',
   'settings.cryptoNetworks': 'Мережі',
   'settings.cryptoNoTag': 'Ані тег призначення, ані мемо не потрібні.',
   'settings.cryptoCopy': 'Копіювати',
