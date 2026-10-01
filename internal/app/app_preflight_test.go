@@ -79,6 +79,28 @@ func TestStartupReportIsNilUntilSomethingStartsOne(t *testing.T) {
 	}
 }
 
+// A settings file that came back unreadable at boot is in the start report,
+// pointing at the copy that was kept, rather than only in the log.
+func TestTheStartReportNamesAnUnreadableSettingsFile(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"speedLimit": 5`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	a, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+
+	got := a.startupInput(false).Settings
+	if got == nil || got.Err == nil {
+		t.Fatalf("Settings = %+v, want the unreadable file", got)
+	}
+	if filepath.Dir(got.Kept) != dir || !strings.HasPrefix(filepath.Base(got.Kept), "settings.json.unreadable-") {
+		t.Errorf("Kept = %q, want the copy beside settings.json", got.Kept)
+	}
+}
+
 // An empty check list alone cannot tell "switched off" from "found nothing".
 func TestMarkStartupCheckOffIsNotAnEmptyPass(t *testing.T) {
 	a, err := New(t.TempDir())
