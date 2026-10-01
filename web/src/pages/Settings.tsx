@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useMatch, useNavigate, useParams 
 import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
-import { useLabelMode } from '../lib/labelModes';
+import { seedLabelModes, useLabelMode } from '../lib/labelModes';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
@@ -16,6 +16,7 @@ import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from '
 import {
   afterRound,
   foldAnswer,
+  foldSent,
   heldAfter,
   noAnswer,
   pendingFields,
@@ -106,6 +107,14 @@ export function SettingsPage() {
     if (draft) setAnswer((a) => settle(a, draft as unknown as Doc));
   }, [draft]);
 
+  // The sidebar, the tabs and every button draw from the label store, and a
+  // settings import or another tab changes these four in the draft without
+  // passing the selectors that write the store.
+  useEffect(() => {
+    if (draft) seedLabelModes(draft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft?.buttonLabels, draft?.sidebarLabels, draft?.tabLabels, draft?.bottomBarLabels]);
+
   // The places a mounted control shows refusals at, so a refusal nobody shows
   // is raised as a toast rather than lost.
   const places = useRef<{ field: string; below: boolean }[]>([]);
@@ -130,7 +139,8 @@ export function SettingsPage() {
     const applied = await patchSettings(fields);
     const keys = Object.keys(fields) as Array<keyof Settings>;
     // Fold back only the fields this call sent, so an unsaved edit on another
-    // page survives.
+    // page survives. A field picked again while the call was out keeps the
+    // newer pick in the draft, and the next save sends it.
     const appliedDoc = applied as unknown as Record<string, unknown>;
     setSaved((s) => {
       if (!s) return s;
@@ -139,13 +149,7 @@ export function SettingsPage() {
       for (const k of keys) merged[k] = appliedDoc[k];
       return merged as unknown as Settings;
     });
-    setDraft((d) => {
-      if (!d) return d;
-      const next = d as unknown as Record<string, unknown>;
-      const merged = { ...next };
-      for (const k of keys) merged[k] = appliedDoc[k];
-      return merged as unknown as Settings;
-    });
+    setDraft((d) => (d ? (foldSent(d as unknown as Doc, appliedDoc, fields as Doc) as unknown as Settings) : d));
   }, []);
 
   /**

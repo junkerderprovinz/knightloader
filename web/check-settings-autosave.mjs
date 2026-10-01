@@ -21,6 +21,7 @@
 import {
   afterRound,
   foldAnswer,
+  foldSent,
   heldAfter,
   noAnswer,
   pendingFields,
@@ -297,6 +298,18 @@ check(
   typedIn({ checkUrl: '', username: 'me ' }, { checkUrl: '', username: 'me' }, ''),
   false,
 );
+
+// The Look page saves a colour the moment it is picked. A second pick while
+// the first is out stays in the draft, so the next save sends it; the draft
+// otherwise takes the server's answer for what was sent, and nothing else.
+{
+  const draft = { accent: 'teal', rainbow: false, watchDir: 'D:\\In' };
+  const answer = { accent: 'blue', rainbow: true, watchDir: 'C:\\Old' };
+  const folded = foldSent(draft, answer, { accent: 'blue', rainbow: false });
+  check('a colour picked while the last pick was saving is kept', folded.accent, 'teal');
+  check('a field the draft still holds as sent takes the answer', folded.rainbow, true);
+  check('a field the save did not send is left alone', folded.watchDir, 'D:\\In');
+}
 
 check('a list row shows a refusal of one of its rows', shownAt('connections.1', 'connections', true), true);
 check('a field shows only its own refusal', shownAt('connections.1', 'connections', false), false);
