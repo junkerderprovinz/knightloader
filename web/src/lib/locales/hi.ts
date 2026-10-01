@@ -1672,6 +1672,7 @@ export const hi: Dict = {
   'quickadd.title': 'KnightLoader में जोड़ें',
   'quickadd.manualLabel': 'लिंक (या कई पेस्ट करें, प्रति पंक्ति एक)',
   'quickadd.manualHint': 'यहाँ हाथ से कोई लिंक चिपकाएँ, या यह पेज बुकमार्कलेट से या अपने डिवाइस के शेयर मेनू से खोलें।',
+  'quickadd.sharedHint': 'जो आया है उसे देख लें, फिर जोड़ें दबाएँ।',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'जोड़ें',
   'quickadd.adding': 'जोड़ रहा है…',

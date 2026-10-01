@@ -1803,6 +1803,7 @@ export const de: Dict = {
   'quickadd.manualLabel': 'Link (oder mehrere einfügen, einer pro Zeile)',
   'quickadd.manualHint':
     'Füg hier einen Link von Hand ein oder öffne diese Seite über das Bookmarklet oder das Teilen-Menü deines Geräts.',
+  'quickadd.sharedHint': 'Prüf, was angekommen ist, und drück dann auf Hinzufügen.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Hinzufügen',
   'quickadd.adding': 'Wird hinzugefügt…',

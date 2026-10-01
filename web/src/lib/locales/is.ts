@@ -1672,6 +1672,7 @@ export const is: Dict = {
   'quickadd.title': 'Bæta við KnightLoader',
   'quickadd.manualLabel': 'Tengill (eða límdu nokkra, einn á línu)',
   'quickadd.manualHint': 'Límdu tengil inn handvirkt hér, eða opnaðu þessa síðu úr bókamerkjaforritinu eða Deila-valmynd tækisins.',
+  'quickadd.sharedHint': 'Athugaðu hvað barst og ýttu svo á Bæta við.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Bæta við',
   'quickadd.adding': 'Bætir við…',

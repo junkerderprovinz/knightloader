@@ -1672,6 +1672,7 @@ export const da: Dict = {
   'quickadd.title': 'Tilføj til KnightLoader',
   'quickadd.manualLabel': 'Link (eller indsæt flere, ét pr. linje)',
   'quickadd.manualHint': 'Indsæt et link manuelt her, eller åbn denne side fra bookmarkletten eller din enheds Del-menu.',
+  'quickadd.sharedHint': 'Tjek hvad der er kommet ind, og tryk så på Tilføj.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Tilføj',
   'quickadd.adding': 'Tilføjer…',
