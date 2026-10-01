@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -19,6 +20,19 @@ func TestVersionFlagPrintsVersionAndCommit(t *testing.T) {
 	}
 	if got := strings.TrimSpace(out.String()); got != "knightloader-relay v1.2.3 (commit 0123abcd)" {
 		t.Fatalf("printed %q", got)
+	}
+}
+
+// TestASilentConnectionIsBoundedButAnOpenSocketIsNot: without a header
+// timeout net/http sets no TLS handshake deadline either, and a read or write
+// timeout would cut every relay socket after that long.
+func TestASilentConnectionIsBoundedButAnOpenSocketIsNot(t *testing.T) {
+	srv := newServer(http.NotFoundHandler(), nil)
+	if srv.ReadHeaderTimeout <= 0 || srv.IdleTimeout <= 0 {
+		t.Errorf("header timeout %v, idle timeout %v; want both set", srv.ReadHeaderTimeout, srv.IdleTimeout)
+	}
+	if srv.ReadTimeout != 0 || srv.WriteTimeout != 0 {
+		t.Errorf("read timeout %v, write timeout %v; want neither, they would cut the relay's sockets", srv.ReadTimeout, srv.WriteTimeout)
 	}
 }
 
