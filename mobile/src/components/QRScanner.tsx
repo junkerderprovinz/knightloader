@@ -32,11 +32,17 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
     PermissionsAndroid.check(CAMERA).then(setGranted);
   }, [visible]);
 
+  // After a second refusal Android stops asking, so only its settings page can
+  // grant the camera. The page opens on the tap after that refusal rather than
+  // with it, which would answer "Don't allow" with a settings screen.
+  const blocked = useRef(false);
   const requestPermission = async () => {
+    if (blocked.current) {
+      Linking.openSettings();
+      return;
+    }
     const result = await PermissionsAndroid.request(CAMERA);
-    // After a second refusal Android stops asking, so only its settings page
-    // can grant the camera.
-    if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) Linking.openSettings();
+    blocked.current = result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
     setGranted(result === PermissionsAndroid.RESULTS.GRANTED);
   };
 
