@@ -469,3 +469,56 @@ func TestAnAliasLoginIsRejectedOnceTheGraceWindowHasPassed(t *testing.T) {
 		t.Errorf("status = %q after the grace window, want %q", got, StatusRejected)
 	}
 }
+
+// A user who corrects a rejected password, or switches to another account,
+// expects JD to use what they typed. JD's account for the host is replaced.
+func TestAChangedLoginReplacesTheAccountJDHolds(t *testing.T) {
+	fake := &fakeJD{}
+	r, store := newTestReconciler(t, fake)
+	ctx := context.Background()
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "alice", Password: "wrong"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Reconcile(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Reconcile(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(fake.added) != 1 || len(fake.removedIDs) != 0 {
+		t.Fatalf("an unchanged login was pushed again: added %d, removed %v", len(fake.added), fake.removedIDs)
+	}
+	first := fake.accounts[0].UUID
+
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "alice", Password: "right"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Reconcile(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(fake.removedIDs) != 1 || fake.removedIDs[0] != first {
+		t.Errorf("removed %v, want the account with the old password (%d)", fake.removedIDs, first)
+	}
+	if last := fake.added[len(fake.added)-1]; last.Password != "right" {
+		t.Errorf("JD was last given %q, want the corrected password", last.Password)
+	}
+}
+
+// After a restart nothing records what was pushed, but a username JD reports
+// that differs from the stored one still tells that the login changed.
+func TestAfterARestartAnotherUsernameOnJDIsReplaced(t *testing.T) {
+	fake := &fakeJD{accounts: []jdAccount{{UUID: 5, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Username: "alice", Valid: true}}}}
+	r, store := newTestReconciler(t, fake)
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "bob", Password: "p"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Reconcile(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(fake.removedIDs) != 1 || fake.removedIDs[0] != 5 {
+		t.Errorf("removed %v, want alice's account", fake.removedIDs)
+	}
+	if len(fake.added) != 1 || fake.added[0].Username != "bob" {
+		t.Errorf("added %+v, want bob's login", fake.added)
+	}
+}
