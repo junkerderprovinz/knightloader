@@ -104,6 +104,51 @@ func (d PortableDoc) Migrated(patch map[string]json.RawMessage) map[string]json.
 	return out
 }
 
+// UnmarshalJSON reads a document written before the label setting was split
+// as if it carried the four keys navLabels became. Migrated rewrites only keys
+// the document holds and the import names, and navLabels is neither a key this
+// build knows nor one the preview can offer, so without this the label choice
+// would not travel.
+func (d *PortableDoc) UnmarshalJSON(b []byte) error {
+	type plain PortableDoc
+	if err := json.Unmarshal(b, (*plain)(d)); err != nil {
+		return err
+	}
+	d.splitNavLabels()
+	return nil
+}
+
+// splitNavLabels puts what migrateLabels makes of navLabels under the four
+// label keys and drops navLabels. A navLabels that names no label mode stays,
+// so the import still reports it as unknown.
+func (d *PortableDoc) splitNavLabels() {
+	if _, ok := d.Settings["navLabels"]; !ok {
+		return
+	}
+	raw, err := json.Marshal(d.Settings)
+	if err != nil {
+		return
+	}
+	n := migrateLabels(raw, Settings{})
+	split := map[string]string{
+		"buttonLabels":    n.ButtonLabels,
+		"sidebarLabels":   n.SidebarLabels,
+		"tabLabels":       n.TabLabels,
+		"bottomBarLabels": n.BottomBarLabels,
+	}
+	changed := false
+	for k, v := range split {
+		if v == "" {
+			continue
+		}
+		d.Settings[k], _ = json.Marshal(v)
+		changed = true
+	}
+	if changed {
+		delete(d.Settings, "navLabels")
+	}
+}
+
 // fieldsOf is s as its top-level JSON keys.
 func fieldsOf(s Settings) (map[string]json.RawMessage, error) {
 	raw, err := json.Marshal(s)

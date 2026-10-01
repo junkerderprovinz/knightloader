@@ -44,6 +44,7 @@ const checkNames: Record<string, TranslationKey> = {
   ffmpeg: 'settings.diagnostics.check.ffmpeg',
   ffprobe: 'settings.diagnostics.check.ffprobe',
   clock: 'settings.diagnostics.check.clock',
+  settings: 'settings.diagnostics.check.settings',
 };
 
 const roleNames: Record<string, TranslationKey> = {

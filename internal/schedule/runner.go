@@ -11,10 +11,8 @@ import (
 type Clock interface {
 	Now() time.Time
 	// After returns a channel that fires once d has passed, together with a
-	// function that releases the timer when the wait is abandoned. Abandoning is
-	// the normal case here, since every saved settings page cuts one short,
-	// and a wait can be a week long, so a timer nobody releases sits in the
-	// runtime for that whole week.
+	// function that releases the timer when the wait is abandoned, which every
+	// saved settings page does.
 	After(d time.Duration) (<-chan time.Time, func())
 }
 
@@ -40,9 +38,9 @@ type Options struct {
 	// Base reports the state to fall back to where no entry applies: the speed
 	// limit and pause switch the user set by hand. It is read again on every pass,
 	// so the timetable never has to be reloaded to pick up a new manual limit.
-	// A change made while the loop is asleep only reaches Apply at the next
-	// boundary, so a caller that wants it reflected at once calls Set. Nil means
-	// the zero state.
+	// A change made while the loop is asleep reaches Apply within a minute
+	// (see recheck), so a caller that wants it reflected at once calls Set. Nil
+	// means the zero state.
 	Base func() State
 
 	// Suspension is the one to start under, such as one carried over a restart.
@@ -199,24 +197,30 @@ func (r *Runner) loop() {
 			r.apply(state)
 		}
 
-		var wait <-chan time.Time
-		var release func()
-		if next, ok := susp.Next(sched, now, base); ok {
-			wait, release = r.clock.After(next.Sub(now))
+		d := recheck
+		if next, ok := susp.Next(sched, now, base); ok && next.Sub(now) < d {
+			d = next.Sub(now)
 		}
+		wait, release := r.clock.After(d)
 		select {
 		case <-r.stop:
-			if release != nil {
-				release()
-			}
+			release()
 			return
 		case <-r.wake:
-			if release != nil {
-				release()
-			}
+			release()
 		case <-wait:
-			// A nil channel blocks forever, which is the right answer when the
-			// timetable has no next change: only Set or Close can matter then.
 		}
 	}
 }
+
+// recheck is the longest the loop sleeps before it reads the clock again,
+// whether or not a boundary is due.
+//
+// A timer runs on the monotonic clock, which stops while macOS or Linux is
+// suspended, so a wait armed for six hours before an eight hour sleep still has
+// six to go on wake and the window it was waiting for starts that much late.
+// The base can also move without waking the loop: a halt or quiet press by
+// hand changes which edges Next reports, and a window that asserted nothing
+// under the old base would be slept straight through. One evaluation a minute
+// catches both, and Apply still sees only real changes.
+const recheck = time.Minute
