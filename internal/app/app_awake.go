@@ -22,9 +22,15 @@ func (a *App) Working() bool {
 		switch {
 		case t.Status == core.StatusRunning, t.Status == core.StatusExtracting:
 			return true
-		case t.Status == core.StatusError && !t.NextTry.IsZero() && t.Enabled && !a.halted:
+		case a.retryPendingLocked(t):
 			return true
 		}
 	}
 	return false
+}
+
+// retryPendingLocked reports whether t failed and an automatic retry of it is
+// still to come. Caller holds a.mu.
+func (a *App) retryPendingLocked(t *core.Task) bool {
+	return t.Status == core.StatusError && !t.NextTry.IsZero() && t.Enabled && !a.halted
 }

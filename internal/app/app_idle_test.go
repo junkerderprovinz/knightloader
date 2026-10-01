@@ -216,6 +216,59 @@ func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
 	}
 }
 
+// A finished file still being checked or moved out of the working folder is
+// work: quitting would cut the move off and leave the file behind.
+func TestADeliveryUnderWayBlocksTheIdleAction(t *testing.T) {
+	a, clock := newIdleApp(t)
+	a.delivering.Add(1)
+
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
+		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	letItPoll()
+	clock.advance(idleTestDelay + time.Second)
+	letItPoll()
+	if a.IdleActionState().Idle || a.Queue().Halted {
+		t.Fatal("the idle action counted the queue idle while a finished file was being moved")
+	}
+
+	a.delivering.Add(-1)
+	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
+		t.Fatal("the idle action never armed once the move was over")
+	}
+}
+
+// A failed download with a retry to come is work, since a boot does not
+// re-arm the retry.
+func TestAPendingRetryBlocksTheIdleAction(t *testing.T) {
+	a, clock := newIdleApp(t)
+	failed := &core.Task{
+		ID: "f1", URL: "https://host.example/flaky.bin", Status: core.StatusError, Enabled: true,
+		Error: "connection reset", NextTry: time.Now().Add(time.Hour),
+	}
+	a.mu.Lock()
+	a.tasks[failed.ID] = failed
+	a.mu.Unlock()
+
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
+		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	letItPoll()
+	clock.advance(idleTestDelay + time.Second)
+	letItPoll()
+	if a.IdleActionState().Idle || a.Queue().Halted {
+		t.Fatal("the idle action counted the queue idle while a retry was due")
+	}
+}
+
 func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) {
 	// With the poll a minute away, arming at all proves the refresh did it, so
 	// the test needs no tight deadline that a loaded runner could miss.
