@@ -244,7 +244,7 @@ export const sv: Dict = {
   'relay.e2eTip': 'Nyckeln kommer från de tolv orden och stannar på dina instanser. Reläet ser bara vilken instans ett meddelande är till, hur stort det är och när det kommer fram. Det går inte att kryptera bort. Stör det dig, driv ett eget relä.',
   'relay.notConnected': 'Reläet går inte att nå',
   'relay.sourcesTitle': 'Var du får ett relä',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container från Unraid Community Apps',
   'relay.containerFind': 'Sök efter {name} i Community Apps och installera den, eller starta den med det här kommandot:',
   'relay.containerCert': 'Med egen domän hämtar den sitt certifikat själv.',

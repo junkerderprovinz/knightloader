@@ -238,7 +238,7 @@ export const nl: Dict = {
   'relay.e2eTip': 'De sleutel komt uit de twaalf woorden en blijft op je instanties. De relay ziet alleen voor welke instantie een bericht bedoeld is, hoe groot het is en wanneer het aankomt. Dat kan niet worden weg-versleuteld. Stoort je dat, draai dan je eigen relay.',
   'relay.notConnected': 'Relay niet bereikbaar',
   'relay.sourcesTitle': 'Waar je een relay vandaan haalt',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container uit de Unraid Community Apps',
   'relay.containerFind': 'Zoek in de Community Apps naar {name} en installeer hem, of start hem met deze opdracht:',
   'relay.containerCert': 'Met een eigen domein haalt hij zijn certificaat zelf op.',

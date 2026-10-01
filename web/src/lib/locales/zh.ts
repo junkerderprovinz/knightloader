@@ -244,7 +244,7 @@ export const zh: Dict = {
   'relay.e2eTip': '密钥由这十二个单词生成，并留在你的实例上。中继只能看到一条消息是发给哪台实例的、有多大，以及什么时候到达，这一点无法用加密掩盖。如果这让你介意，就自己运行一台中继。',
   'relay.notConnected': '无法连接中继',
   'relay.sourcesTitle': '去哪里获取中继',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': '来自 Unraid Community Apps 的容器',
   'relay.containerFind': '在 Community Apps 里搜索 {name} 并安装，或者用这条命令启动它：',
   'relay.containerCert': '有自己的域名时，它会自己获取证书。',

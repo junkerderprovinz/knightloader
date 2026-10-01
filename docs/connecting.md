@@ -166,7 +166,7 @@ somebody hosting the relay themselves.
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay** or **No relay**, with a badge that says Connected, Not connected
 or No relay. The phrase card shows the same badge beside its state. For your own relay the
-card names the two ways to run one, the KnightLoader Relay container or any
+card names the two ways to run one, the [ParleyPort](https://github.com/junkerderprovinz/parleyport) container or any
 instance of the group that can be reached from outside with **Serve as relay**
 switched on, and takes its address, which every instance in the group needs;
 the same phrase then works against it, because the phrase carries the secret
@@ -207,14 +207,14 @@ and the key themselves.
 
 There is an official relay, `wss://relay.halleluja.design/relay/connect`,
 which is what a phrase points at unless you override it, and running your own
-is a first-class option, not a fallback. `docker compose` it anywhere both ends
-can reach, put the same key in both, done. Set `KL_RELAY_DOMAIN` and it
+is a first-class option, not a fallback. Run [ParleyPort](https://github.com/junkerderprovinz/parleyport) anywhere both ends
+can reach, put the same key in both, done. Set `PARLEYPORT_DOMAIN` and it
 terminates TLS itself, getting and renewing its own certificate over
 TLS-ALPN-01: no reverse proxy, no certbot, no renewal cron, and no port 80. The
 challenge completes inside a handshake on 443, so the firewall in front of it
 opens one port.
 
-`KL_RELAY_DOMAIN` takes a comma-separated list, and the certificate covers
+`PARLEYPORT_DOMAIN` takes a comma-separated list, and the certificate covers
 every name in it. That is for one situation and it is worth knowing before you
 need it: moving a relay to a new address. Old clients keep dialling the old
 name, and a whitelist of one would stop issuing a certificate for it the moment

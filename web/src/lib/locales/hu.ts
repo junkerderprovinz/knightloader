@@ -244,7 +244,7 @@ export const hu: Dict = {
   'relay.e2eTip': 'A kulcs a tizenkét szóból származik, és a példányaidon marad. A relay csak azt látja, melyik példánynak szól egy üzenet, mekkora, és mikor érkezik. Ezt nem lehet eltitkosítani. Ha ez zavar, üzemeltess saját relayt.',
   'relay.notConnected': 'A relay nem érhető el',
   'relay.sourcesTitle': 'Honnan szerezhetsz relayt',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Konténer az Unraid Community Appsból',
   'relay.containerFind': 'Keresd meg a(z) {name} nevet a Community Appsban, és telepítsd, vagy indítsd el ezzel a paranccsal:',
   'relay.containerCert': 'Saját domainnel maga szerzi be a tanúsítványát.',

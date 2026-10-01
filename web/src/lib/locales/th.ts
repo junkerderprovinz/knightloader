@@ -244,7 +244,7 @@ export const th: Dict = {
   'relay.e2eTip': 'กุญแจเกิดจากสิบสองคำและอยู่บนอินสแตนซ์ของคุณเท่านั้น รีเลย์เห็นเพียงว่าข้อความนั้นมีปลายทางเป็นอินสแตนซ์ใด ขนาดเท่าไร และมาถึงเมื่อไร สิ่งนี้เข้ารหัสซ่อนไม่ได้ หากกังวลเรื่องนี้ ให้ใช้รีเลย์ของตัวเอง',
   'relay.notConnected': 'เข้าถึงรีเลย์ไม่ได้',
   'relay.sourcesTitle': 'จะหารีเลย์ได้จากที่ไหน',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'คอนเทนเนอร์จาก Unraid Community Apps',
   'relay.containerFind': 'ค้นหา {name} ใน Community Apps แล้วติดตั้ง หรือเริ่มด้วยคำสั่งนี้:',
   'relay.containerCert': 'เมื่อมีโดเมนของตัวเอง มันจะขอใบรับรองให้ตัวเองโดยอัตโนมัติ',

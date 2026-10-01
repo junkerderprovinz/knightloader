@@ -244,7 +244,7 @@ export const ja: Dict = {
   'relay.e2eTip': '鍵は12個の単語から作られ、あなたのインスタンスにとどまります。リレーが見るのは、メッセージがどのインスタンス宛か、サイズ、到着時刻だけです。これは暗号化では隠せません。それが気になる場合は、自分のリレーを運用してください。',
   'relay.notConnected': 'リレーに到達できません',
   'relay.sourcesTitle': 'リレーの入手先',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Unraid Community Appsのコンテナ',
   'relay.containerFind': 'Community Appsで{name}を検索してインストールするか、次のコマンドで起動してください:',
   'relay.containerCert': '独自ドメインがあれば、証明書は自分で取得します。',

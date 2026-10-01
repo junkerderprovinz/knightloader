@@ -244,7 +244,7 @@ export const lt: Dict = {
   'relay.e2eTip': 'Raktas kilęs iš dvylikos žodžių ir lieka jūsų egzemplioriuose. Relay mato tik tai, kuriam egzemplioriui skirtas pranešimas, koks jo dydis ir kada jis atkeliauja. To negalima paslėpti šifravimu. Jei tai jums trukdo, valdykite savo relay.',
   'relay.notConnected': 'Relay nepasiekiamas',
   'relay.sourcesTitle': 'Iš kur gauti relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Konteineris iš Unraid Community Apps',
   'relay.containerFind': 'Community Apps ieškokite {name} ir įdiekite arba paleiskite šia komanda:',
   'relay.containerCert': 'Turėdamas savo domeną, jis pats gauna savo sertifikatą.',

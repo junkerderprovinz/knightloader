@@ -244,7 +244,7 @@ export const sk: Dict = {
   'relay.e2eTip': 'Kľúč vzniká z dvanástich slov a zostáva na vašich inštanciách. Relay vidí iba to, pre ktorú inštanciu je správa určená, aká je veľká a kedy príde. To sa nedá zašifrovať preč. Ak vás to trápi, prevádzkujte vlastný relay.',
   'relay.notConnected': 'Relay nedostupný',
   'relay.sourcesTitle': 'Odkiaľ získať relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Kontajner z Unraid Community Apps',
   'relay.containerFind': 'Vyhľadajte {name} v Community Apps a nainštalujte ho, alebo ho spustite týmto príkazom:',
   'relay.containerCert': 'S vlastnou doménou si certifikát získava sama.',

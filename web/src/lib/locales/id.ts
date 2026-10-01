@@ -244,7 +244,7 @@ export const id: Dict = {
   'relay.e2eTip': 'Kuncinya berasal dari dua belas kata dan tetap berada di instance Anda. Relay hanya melihat untuk instance mana sebuah pesan ditujukan, seberapa besar, dan kapan tiba. Itu tidak bisa dihilangkan dengan enkripsi. Jika ini mengganggu Anda, jalankan relay Anda sendiri.',
   'relay.notConnected': 'Relay tidak dapat dijangkau',
   'relay.sourcesTitle': 'Dari mana Anda mendapatkan relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container dari Unraid Community Apps',
   'relay.containerFind': 'Cari {name} di Community Apps lalu pasang, atau jalankan dengan perintah ini:',
   'relay.containerCert': 'Dengan domain sendiri, ia mengambil sertifikatnya sendiri.',

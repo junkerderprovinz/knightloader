@@ -244,7 +244,7 @@ export const fi: Dict = {
   'relay.e2eTip': 'Avain tulee kahdestatoista sanasta ja pysyy instansseissasi. Rele näkee vain, kenelle viesti on tarkoitettu, kuinka suuri se on ja milloin se saapuu. Sitä ei voi salata pois. Jos tämä häiritsee sinua, ylläpidä omaa relettä.',
   'relay.notConnected': 'Rele ei ole tavoitettavissa',
   'relay.sourcesTitle': 'Mistä saat releen',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Kontti Unraidin Community Appsista',
   'relay.containerFind': 'Etsi {name} Community Appsista ja asenna se, tai käynnistä se tällä komennolla:',
   'relay.containerCert': 'Omalla verkkotunnuksellaan se hakee varmenteensa itse.',

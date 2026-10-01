@@ -244,7 +244,7 @@ export const hi: Dict = {
   'relay.e2eTip': 'कुंजी बारह शब्दों से बनती है और आपके इंस्टेंस पर रहती है। रिले सिर्फ़ यह देखता है कि कोई संदेश किस इंस्टेंस के लिए है, वह कितना बड़ा है और कब पहुँचता है। इसे एन्क्रिप्ट करके नहीं छुपाया जा सकता। अगर यह आपको खलता है, तो अपना रिले चलाएँ।',
   'relay.notConnected': 'रिले तक नहीं पहुँचा जा सका',
   'relay.sourcesTitle': 'रिले कहाँ से मिलता है',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Unraid Community Apps से कंटेनर',
   'relay.containerFind': 'Community Apps में {name} खोजें और इसे इंस्टॉल करें, या इसे इस कमांड से शुरू करें:',
   'relay.containerCert': 'अपने डोमेन के साथ यह ख़ुद अपना सर्टिफ़िकेट ले आता है।',

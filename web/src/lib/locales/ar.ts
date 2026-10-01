@@ -246,7 +246,7 @@ export const ar: Dict = {
   'relay.e2eTip': 'ينشأ المفتاح من الكلمات الاثنتي عشرة ويبقى على مثيلاتك. لا يرى المُرحِّل سوى لأي مثيل الرسالة، وما حجمها، ومتى وصلت. وهذا ما لا يمكن إخفاؤه بالتشفير. إن أزعجك ذلك، شغّل مُرحِّلًا خاصًا بك.',
   'relay.notConnected': 'المُرحِّل غير قابل للوصول',
   'relay.sourcesTitle': 'من أين تحصل على مُرحِّل',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'حاوية من Unraid Community Apps',
   'relay.containerFind': 'ابحث في Community Apps عن {name} وثبّته، أو شغّله بهذا الأمر:',
   'relay.containerCert': 'بنطاقه الخاص، يجلب شهادته بنفسه.',

@@ -244,7 +244,7 @@ export const gl: Dict = {
   'relay.e2eTip': 'A chave sae das doce palabras e queda nas túas instancias. O relé só ve para que instancia é unha mensaxe, canto pesa e cando chega. Iso non se pode cifrar. Se che incomoda, executa o teu propio relé.',
   'relay.notConnected': 'Relé non accesible',
   'relay.sourcesTitle': 'De onde consegues un relé',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Contedor das Unraid Community Apps',
   'relay.containerFind': 'Busca {name} nas Community Apps e instálao, ou iníciao con esta orde:',
   'relay.containerCert': 'Co seu propio dominio, consegue o seu certificado el só.',

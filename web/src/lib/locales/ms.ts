@@ -244,7 +244,7 @@ export const ms: Dict = {
   'relay.e2eTip': 'Kunci itu terhasil daripada dua belas perkataan dan kekal pada instans anda. Relay itu hanya nampak untuk instans mana sesuatu mesej itu ditujukan, saiznya dan bila ia tiba. Itu tidak boleh disulitkan hilang. Jika itu mengganggu anda, jalankan relay anda sendiri.',
   'relay.notConnected': 'Relay tidak dapat dicapai',
   'relay.sourcesTitle': 'Dari mana anda dapatkan relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Bekas daripada Unraid Community Apps',
   'relay.containerFind': 'Cari {name} dalam Community Apps dan pasangnya, atau mulakannya dengan arahan ini:',
   'relay.containerCert': 'Dengan domain sendiri, ia mendapatkan sijilnya sendiri.',

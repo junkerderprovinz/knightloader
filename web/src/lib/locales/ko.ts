@@ -244,7 +244,7 @@ export const ko: Dict = {
   'relay.e2eTip': '키는 12개의 단어에서 만들어지며 인스턴스에만 남아 있습니다. 릴레이는 메시지가 어느 인스턴스로 가는지, 크기가 얼마인지, 언제 도착하는지만 볼 수 있습니다. 이는 암호화로 감출 수 없는 정보입니다. 이것이 신경 쓰인다면 자체 릴레이를 운영하세요.',
   'relay.notConnected': '릴레이에 연결할 수 없음',
   'relay.sourcesTitle': '릴레이를 얻는 방법',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Unraid Community Apps의 컨테이너',
   'relay.containerFind': 'Community Apps에서 {name}을(를) 검색하여 설치하거나, 다음 명령으로 시작하세요:',
   'relay.containerCert': '자체 도메인이 있으면 인증서를 스스로 가져옵니다.',

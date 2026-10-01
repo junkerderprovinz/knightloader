@@ -244,7 +244,7 @@ export const sl: Dict = {
   'relay.e2eTip': 'Ključ nastane iz dvanajstih besed in ostane na tvojih instancah. Relay vidi le, za katero instanco je sporočilo, kako veliko je in kdaj prispe. Tega se ne da zašifrirati stran. Če te to moti, poženi lasten relay.',
   'relay.notConnected': 'Relay ni dosegljiv',
   'relay.sourcesTitle': 'Kje dobiš relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Vsebnik iz Unraid Community Apps',
   'relay.containerFind': 'V Community Apps poišči {name} in ga namesti ali pa ga zaženi s tem ukazom:',
   'relay.containerCert': 'Z lastno domeno si sam pridobi svoje potrdilo.',

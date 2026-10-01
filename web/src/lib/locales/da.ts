@@ -244,7 +244,7 @@ export const da: Dict = {
   'relay.e2eTip': 'Nøglen kommer fra de tolv ord og bliver på dine instanser. Videresenderen ser kun, hvilken instans en besked er til, hvor stor den er, og hvornår den ankommer. Det kan ikke krypteres væk. Hvis det generer dig, så driv din egen videresender.',
   'relay.notConnected': 'Videresenderen er ikke tilgængelig',
   'relay.sourcesTitle': 'Hvor du får en videresender',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container fra Unraid Community Apps',
   'relay.containerFind': 'Søg efter {name} i Community Apps, og installer den, eller start den med denne kommando:',
   'relay.containerCert': 'Med sit eget domæne henter den selv sit certifikat.',

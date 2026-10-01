@@ -238,7 +238,7 @@ export const ru: Dict = {
   'relay.e2eTip': 'Ключ возникает из двенадцати слов и остаётся на ваших экземплярах. Relay видит только, для какого экземпляра предназначено сообщение, насколько оно велико и когда приходит. Это невозможно зашифровать. Если это вас беспокоит, используйте собственный Relay.',
   'relay.notConnected': 'Relay недоступен',
   'relay.sourcesTitle': 'Откуда взять Relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Контейнер из Unraid Community Apps',
   'relay.containerFind': 'Найдите {name} в Community Apps и установите его или запустите этой командой:',
   'relay.containerCert': 'С собственным доменом он сам получает свой сертификат.',

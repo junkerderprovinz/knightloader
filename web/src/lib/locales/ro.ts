@@ -244,7 +244,7 @@ export const ro: Dict = {
   'relay.e2eTip': 'Cheia provine din cele douăsprezece cuvinte și rămâne pe instanțele tale. Relay-ul vede doar pentru ce instanță este un mesaj, cât de mare este și când ajunge. Asta nu poate fi criptat. Dacă te deranjează, rulează propriul relay.',
   'relay.notConnected': 'Relay inaccesibil',
   'relay.sourcesTitle': 'De unde iei un relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container din Unraid Community Apps',
   'relay.containerFind': 'Caută {name} în Community Apps și instalează-l sau pornește-l cu această comandă:',
   'relay.containerCert': 'Cu propriul domeniu, își obține singur certificatul.',

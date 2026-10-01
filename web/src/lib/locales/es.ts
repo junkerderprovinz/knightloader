@@ -238,7 +238,7 @@ export const es: Dict = {
   'relay.e2eTip': 'La clave surge de las doce palabras y se queda en tus instancias. El repetidor solo ve para qué instancia es un mensaje, cuánto pesa y cuándo llega. Eso no se puede cifrar. Si te molesta, gestiona tu propio repetidor.',
   'relay.notConnected': 'Repetidor no accesible',
   'relay.sourcesTitle': 'De dónde sacar un repetidor',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Contenedor de las Unraid Community Apps',
   'relay.containerFind': 'Busca {name} en las Community Apps e instálalo, o inícialo con este comando:',
   'relay.containerCert': 'Con su propio dominio, obtiene su certificado por sí mismo.',

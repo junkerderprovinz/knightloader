@@ -244,7 +244,7 @@ export const uk: Dict = {
   'relay.e2eTip': 'Ключ походить із дванадцяти слів і залишається на ваших екземплярах. Реле бачить лише, для якого екземпляра повідомлення, який у нього розмір і коли воно надходить. Це неможливо приховати шифруванням. Якщо це вас турбує, керуйте власним реле.',
   'relay.notConnected': 'Реле недоступне',
   'relay.sourcesTitle': 'Звідки взяти реле',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Контейнер з Unraid Community Apps',
   'relay.containerFind': 'Знайдіть {name} у Community Apps і встановіть його або запустіть такою командою:',
   'relay.containerCert': 'З власним доменом він сам отримує свій сертифікат.',
