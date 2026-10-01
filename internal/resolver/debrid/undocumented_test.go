@@ -174,3 +174,28 @@ func TestOffcloudRefusedKeyIsAnError(t *testing.T) {
 		t.Fatal("Hosts succeeded against a 401")
 	}
 }
+
+// Both services take the credential in the query string, and a transport
+// error quotes the URL. The error reaches the task row, account_health.json and
+// the log, so the credential has to be gone from it.
+func TestLinksnappyAndOffcloudTransportErrorsCarryNoCredential(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	base := srv.URL
+	srv.Close()
+
+	l := NewLinksnappy("alice", "hunter2-secret")
+	l.base = base
+	if err := l.Authenticate(context.Background()); err == nil {
+		t.Error("Linksnappy authenticated against a closed server")
+	} else if strings.Contains(err.Error(), "hunter2-secret") {
+		t.Errorf("Linksnappy error = %q, which gives the password away", err)
+	}
+
+	o := NewOffcloud("offcloud-secret-key")
+	o.base = base
+	if _, err := o.Hosts(context.Background()); err == nil {
+		t.Error("Offcloud answered from a closed server")
+	} else if strings.Contains(err.Error(), "offcloud-secret-key") {
+		t.Errorf("Offcloud error = %q, which gives the key away", err)
+	}
+}

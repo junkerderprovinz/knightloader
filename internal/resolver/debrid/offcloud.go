@@ -34,8 +34,8 @@ func NewOffcloud(key string) *Offcloud {
 func (*Offcloud) ID() string    { return "offcloud" }
 func (*Offcloud) Label() string { return "Offcloud" }
 
-// post sends a form-encoded call with the key in the query string, as the
-// documentation recommends.
+// post sends a form-encoded call with the key in the query string, the only
+// place the documentation names for it, so errors leave the URL out.
 func (o *Offcloud) post(ctx context.Context, path string, form url.Values) ([]byte, error) {
 	u := o.base + path
 	if o.key != "" {
@@ -44,13 +44,13 @@ func (o *Offcloud) post(ctx context.Context, path string, form url.Values) ([]by
 	body := strings.NewReader(form.Encode())
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("offcloud %s: %w", path, httpx.StripURL(err))
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 	resp, err := o.hc.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("offcloud %s: %w", path, httpx.StripURL(err))
 	}
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))

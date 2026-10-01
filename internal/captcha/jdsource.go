@@ -256,7 +256,8 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 	}
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return nil, err
+		// The URL carries the parameters, a typed captcha answer among them.
+		return nil, fmt.Errorf("jd %s: %w", path, httpx.StripURL(err))
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
