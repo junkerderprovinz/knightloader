@@ -14,6 +14,14 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
+// Member ids in the shape instances mint them, the only one a member is
+// listed under.
+var (
+	siblingID = strings.Repeat("5", 40)
+	officeID  = strings.Repeat("0", 40)
+	desktopID = strings.Repeat("d", 40)
+)
+
 // getRelayConfig and putRelayConfig are this file's request builders. The PUT
 // body is a raw string so an absent key field and an empty one read plainly.
 func getRelayConfig(t *testing.T, base string) (int, relayConfig) {
@@ -199,7 +207,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		URL:      relaySrv.URL,
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
-		Self:     relay.Announce{InstanceID: "sibling-1", Name: "Sibling", Deployment: "container"},
+		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -229,12 +237,12 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	}
 	// A relay peer's Name is its InstanceID; the announced name is
 	// DisplayName.
-	if len(list) != 1 || list[0].Name != "sibling-1" || list[0].DisplayName != "Sibling" || list[0].RelayID != "sibling-1" {
+	if len(list) != 1 || list[0].Name != siblingID || list[0].DisplayName != "Sibling" || list[0].RelayID != siblingID {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
 	// Outbound, addressed by the sibling's InstanceID.
-	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
+	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to sibling: %v", err)
 	}
@@ -571,7 +579,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
 	}
 
-	fixedSibling(t, srv.URL, key, "sibling-1")
+	fixedSibling(t, srv.URL, key, siblingID)
 
 	var list []struct {
 		Name        string `json:"name"`
@@ -589,11 +597,11 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	if len(list) != 1 || list[0].RelayID != "sibling-1" {
+	if len(list) != 1 || list[0].RelayID != siblingID {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
-	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
+	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to the sibling through our own relay: %v", err)
 	}

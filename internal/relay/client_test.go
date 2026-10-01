@@ -20,6 +20,15 @@ const testBackoff = 20 * time.Millisecond
 // through the real DeriveFrameKey so the tests follow any change to it.
 var testFrameKey = DeriveFrameKey([]byte("relay package tests"))
 
+// Instance ids in the shape instances mint them, since a client drops an
+// instance's announce under any other.
+var (
+	alphaID   = strings.Repeat("a", 40)
+	bravoID   = strings.Repeat("b", 40)
+	charlieID = strings.Repeat("c", 40)
+	nasID     = strings.Repeat("d", 40)
+)
+
 // sealFor, sealResultFor, openFrom and openResultFrom seal and open payloads
 // for the hand-rolled peers, keeping the additional data in one place.
 func sealFor(t *testing.T, requestID, target string, call ProxyCall) []byte {
@@ -149,10 +158,10 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 
 func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
 	waitFor(t, "alpha to connect", alpha.Connected)
 
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 
 	// bravo is a raw socket, so it reads the wire form a relay operator sees:
 	// the id in the clear, the name and deployment only sealed.
@@ -160,7 +169,7 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	if err := readFrame(t, bravo, TypeAnnounce).Into(&seen); err != nil {
 		t.Fatalf("announce: %v", err)
 	}
-	if seen.InstanceID != "alpha" {
+	if seen.InstanceID != alphaID {
 		t.Errorf("bravo was introduced to %+v, want alpha's id in the clear", seen)
 	}
 	if seen.Name != "" || seen.Deployment != "" {
@@ -170,13 +179,13 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("the sealed identity did not open: %v", err)
 	}
-	if id.Name != "alpha" || id.Deployment != "desktop" {
+	if id.Name != alphaID || id.Deployment != "desktop" {
 		t.Errorf("sealed identity = %+v, want alpha/desktop", id)
 	}
 
 	waitFor(t, "alpha to see bravo", func() bool {
 		sibs := alpha.Siblings()
-		return len(sibs) == 1 && sibs[0].InstanceID == "bravo"
+		return len(sibs) == 1 && sibs[0].InstanceID == bravoID
 	})
 
 	_ = bravo.CloseNow()
@@ -185,8 +194,8 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 
 func TestClientProxiesToASibling(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	readFrame(t, bravo, TypeAnnounce)
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
@@ -197,7 +206,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	done := make(chan result, 1)
 	go func() {
-		body, status, err := alpha.Proxy(context.Background(), "bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`), "")
+		body, status, err := alpha.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`), "")
 		done <- result{body, status, err}
 	}()
 
@@ -205,10 +214,10 @@ func TestClientProxiesToASibling(t *testing.T) {
 	if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 		t.Fatalf("proxy-request: %v", err)
 	}
-	if req.Target != "bravo" {
+	if req.Target != bravoID {
 		t.Fatalf("bravo received %+v, want alpha's call unchanged", req)
 	}
-	call := openFrom(t, req.RequestID, "bravo", req.Sealed)
+	call := openFrom(t, req.RequestID, bravoID, req.Sealed)
 	if call.Method != http.MethodPost || call.Path != "/api/links" {
 		t.Fatalf("bravo opened %+v, want alpha's call unchanged", call)
 	}
@@ -254,14 +263,14 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			addr, _ := relayOn(t, "127.0.0.1:0")
-			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", tc.serve)
+			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, tc.serve)
 			waitFor(t, "alpha to connect", alpha.Connected)
-			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 			readFrame(t, bravo, TypeAnnounce)
 
 			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{
-				RequestID: "r1", Target: "alpha",
-				Sealed: sealFor(t, "r1", "alpha", ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}),
+				RequestID: "r1", Target: alphaID,
+				Sealed: sealFor(t, "r1", alphaID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}),
 			})
 			var resp ProxyResponse
 			if err := readFrame(t, bravo, TypeProxyResponse).Into(&resp); err != nil {
@@ -282,24 +291,24 @@ func TestACallSentAgainOrLateIsNotRun(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	var mu sync.Mutex
 	var ran []string
-	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", func(_ context.Context, call ProxyCall) (int, []byte) {
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, func(_ context.Context, call ProxyCall) (int, []byte) {
 		mu.Lock()
 		ran = append(ran, call.ID)
 		mu.Unlock()
 		return http.StatusOK, nil
 	})
 	waitFor(t, "alpha to connect", alpha.Connected)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	readFrame(t, bravo, TypeAnnounce)
 
 	call := ProxyCall{Method: http.MethodPost, Path: "/api/queue/pause"}
-	first := ProxyRequest{RequestID: "r1", Target: "alpha", Sealed: sealFor(t, "r1", "alpha", call)}
+	first := ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: sealFor(t, "r1", alphaID, call)}
 	late := call
 	late.Sent = time.Now().Add(-10 * time.Minute).Unix()
 	writeFrame(t, bravo, TypeProxyRequest, first)
 	writeFrame(t, bravo, TypeProxyRequest, first)
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "alpha", Sealed: sealFor(t, "r2", "alpha", late)})
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: "alpha", Sealed: sealFor(t, "r3", "alpha", call)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: alphaID, Sealed: sealFor(t, "r2", alphaID, late)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: alphaID, Sealed: sealFor(t, "r3", alphaID, call)})
 
 	// Each call is answered on its own goroutine, so the answers to r1 and
 	// r3 may come in either order.
@@ -334,11 +343,11 @@ func TestACallWithoutItsIDAndTimeIsRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sealed, err := seal(testFrameKey, requestAAD("r1", "alpha"), plain)
+	sealed, err := seal(testFrameKey, requestAAD("r1", alphaID), plain)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := OpenCall(testFrameKey, "r1", "alpha", sealed); err == nil {
+	if _, err := OpenCall(testFrameKey, "r1", alphaID, sealed); err == nil {
 		t.Fatal("a call sealed without its request id opened")
 	}
 }
@@ -378,7 +387,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 		{
 			name:    "the relay is not connected",
 			connect: false,
-			target:  "bravo",
+			target:  bravoID,
 			wantErr: "not connected",
 		},
 		{
@@ -397,7 +406,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			if !tc.connect {
 				stop()
 			}
-			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
+			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
 			if tc.connect {
 				waitFor(t, "alpha to connect", alpha.Connected)
 			}
@@ -421,8 +430,8 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 // peers, and they come back on their own once the relay does.
 func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
 	stop()
@@ -436,30 +445,30 @@ func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	relayOn(t, addr)
 	waitFor(t, "alpha to reconnect", alpha.Connected)
 
-	charlie := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "charlie")
+	charlie := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", charlieID)
 	var seen Announce
 	if err := readFrame(t, charlie, TypeAnnounce).Into(&seen); err != nil {
 		t.Fatalf("announce after reconnect: %v", err)
 	}
-	if seen.InstanceID != "alpha" {
+	if seen.InstanceID != alphaID {
 		t.Errorf("charlie was introduced to %+v, want the reconnected alpha", seen)
 	}
 	waitFor(t, "alpha to see charlie", func() bool {
 		sibs := alpha.Siblings()
-		return len(sibs) == 1 && sibs[0].InstanceID == "charlie"
+		return len(sibs) == 1 && sibs[0].InstanceID == charlieID
 	})
 }
 
 func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	readFrame(t, bravo, TypeAnnounce)
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
 	failed := make(chan error, 1)
 	go func() {
-		_, _, err := alpha.Proxy(context.Background(), "bravo", http.MethodGet, "/api/tasks", nil, "")
+		_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil, "")
 		failed <- err
 	}()
 	// bravo receives the call and never answers it.
@@ -526,7 +535,7 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 		URL:      "https://relay.example.com",
 		Key:      "shared-relay-test-key-0123456789ab",
 		FrameKey: testFrameKey,
-		Self:     Announce{InstanceID: "alpha"},
+		Self:     Announce{InstanceID: alphaID},
 	}
 	tests := []struct {
 		name   string

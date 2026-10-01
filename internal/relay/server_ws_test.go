@@ -25,7 +25,7 @@ func TestAnOversizedFrameBeforeTheHelloIsRefused(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
 
-	frame, _ := Encode(TypeHello, Hello{Key: strings.Repeat("k", 5<<10), Announce: Announce{InstanceID: "alpha"}})
+	frame, _ := Encode(TypeHello, Hello{Key: strings.Repeat("k", 5<<10), Announce: Announce{InstanceID: alphaID}})
 	_ = c.Write(ctx, websocket.MessageText, frame)
 	if _, _, err := c.Read(ctx); websocket.CloseStatus(err) != websocket.StatusMessageTooBig {
 		t.Fatalf("a 5 KiB first frame got %v, want the connection closed as too big", err)
@@ -39,13 +39,13 @@ func TestFramesAfterTheHelloMayBeLarge(t *testing.T) {
 	srv := httptest.NewServer(New())
 	t.Cleanup(srv.Close)
 	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
-	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "alpha")
-	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "bravo")
+	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", alphaID)
+	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", bravoID)
 	bravo.SetReadLimit(readLimit)
 	readFrame(t, alpha, TypeAnnounce)
 	readFrame(t, bravo, TypeAnnounce)
 
-	big := ProxyRequest{RequestID: "r1", Target: "bravo", Sealed: make([]byte, 64<<10)}
+	big := ProxyRequest{RequestID: "r1", Target: bravoID, Sealed: make([]byte, 64<<10)}
 	writeFrame(t, alpha, TypeProxyRequest, big)
 	var got ProxyRequest
 	if err := readFrame(t, bravo, TypeProxyRequest).Into(&got); err != nil || len(got.Sealed) != len(big.Sealed) {
@@ -59,7 +59,7 @@ func TestAVeryLongNameStillFitsTheHello(t *testing.T) {
 		URL:      "http://" + addr,
 		Key:      "shared-relay-test-key-0123456789ab",
 		FrameKey: testFrameKey,
-		Self:     Announce{InstanceID: "alpha", Name: strings.Repeat("é", 5000)},
+		Self:     Announce{InstanceID: alphaID, Name: strings.Repeat("é", 5000)},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestAVeryLongNameStillFitsTheHello(t *testing.T) {
 	c.minBackoff, c.maxBackoff = testBackoff, 4*testBackoff
 	c.Start()
 	t.Cleanup(func() { _ = c.Close() })
-	bravo := startClient(t, addr, "shared-relay-test-key-0123456789ab", "bravo", nil)
+	bravo := startClient(t, addr, "shared-relay-test-key-0123456789ab", bravoID, nil)
 
 	waitFor(t, "bravo to see alpha", func() bool { return len(bravo.Siblings()) == 1 })
 	name := bravo.Siblings()[0].Name
@@ -138,22 +138,22 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 	t.Cleanup(srv.Close)
 	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
 
-	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "alpha")
-	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "bravo")
+	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", alphaID)
+	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", bravoID)
 
 	// bravo joined last, so it hears about alpha; alpha hears bravo arrive.
 	var sib Announce
 	if err := readFrame(t, bravo, TypeAnnounce).Into(&sib); err != nil {
 		t.Fatalf("sibling announce: %v", err)
 	}
-	if sib.InstanceID != "alpha" || sib.Deployment != "container" {
+	if sib.InstanceID != alphaID || sib.Deployment != "container" {
 		t.Errorf("bravo was introduced to %+v, want alpha", sib)
 	}
 	var arrival Announce
 	if err := readFrame(t, alpha, TypeAnnounce).Into(&arrival); err != nil {
 		t.Fatalf("arrival announce: %v", err)
 	}
-	if arrival.InstanceID != "bravo" {
+	if arrival.InstanceID != bravoID {
 		t.Errorf("alpha was told about %+v, want bravo", arrival)
 	}
 
@@ -164,17 +164,17 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 		Body: []byte(`{"url":"https://example.invalid/file.bin"}`),
 	}
 	writeFrame(t, alpha, TypeProxyRequest, ProxyRequest{
-		RequestID: "r1", Target: "bravo",
-		Sealed: sealFor(t, "r1", "bravo", call),
+		RequestID: "r1", Target: bravoID,
+		Sealed: sealFor(t, "r1", bravoID, call),
 	})
 	var req ProxyRequest
 	if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 		t.Fatalf("proxy-request: %v", err)
 	}
-	if req.RequestID != "r1" || req.Target != "bravo" {
+	if req.RequestID != "r1" || req.Target != bravoID {
 		t.Fatalf("bravo received %+v, want alpha's request unchanged", req)
 	}
-	got := openFrom(t, "r1", "bravo", req.Sealed)
+	got := openFrom(t, "r1", bravoID, req.Sealed)
 	if got.Method != "POST" || got.Path != "/api/links" {
 		t.Fatalf("bravo opened %+v, want alpha's request unchanged", got)
 	}
@@ -205,7 +205,7 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 	if err := readFrame(t, alpha, TypePresence).Into(&gone); err != nil {
 		t.Fatalf("presence: %v", err)
 	}
-	if gone.InstanceID != "bravo" || gone.Online {
+	if gone.InstanceID != bravoID || gone.Online {
 		t.Errorf("got %+v, want bravo offline", gone)
 	}
 }
@@ -224,7 +224,7 @@ func TestConnectionWithoutAKeyIsRejected(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
 
-	writeFrame(t, c, TypeHello, Hello{Announce: Announce{InstanceID: "alpha"}})
+	writeFrame(t, c, TypeHello, Hello{Announce: Announce{InstanceID: alphaID}})
 	if _, _, err := c.Read(ctx); err == nil {
 		t.Fatal("a hello without a relay key was accepted")
 	}
@@ -247,7 +247,7 @@ func TestConnectionWithATooShortKeyIsRejected(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
 
-	writeFrame(t, c, TypeHello, Hello{Key: "too-short", Announce: Announce{InstanceID: "alpha"}})
+	writeFrame(t, c, TypeHello, Hello{Key: "too-short", Announce: Announce{InstanceID: alphaID}})
 	if _, _, err := c.Read(ctx); err == nil {
 		t.Fatal("a hello with a key shorter than minKeyLength was accepted")
 	}
