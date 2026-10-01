@@ -32,11 +32,14 @@ const holdWait = reconnectWait
 // in, for as long as it keeps it.
 func (e *Engine) Hold(taskID string) bool {
 	e.mu.Lock()
-	ready := e.starting[taskID]
+	s := e.starting[taskID]
 	e.mu.Unlock()
-	if ready != nil {
+	if s != nil {
+		if s.torrent {
+			return false
+		}
 		select {
-		case <-ready:
+		case <-s.ready:
 		case <-e.done:
 			return false
 		}
@@ -105,6 +108,10 @@ func (e *Engine) Release(taskID string, moved func(string) string, resume bool) 
 		j.Dir, j.WorkDir = moved(j.Dir), moved(j.WorkDir)
 		e.jobs[taskID] = j
 	}
+	if j, ok := e.parked[taskID]; ok {
+		j.Dir, j.WorkDir = moved(j.Dir), moved(j.WorkDir)
+		e.parked[taskID] = j
+	}
 	m := e.mends[taskID]
 	if m != nil {
 		m.file = moved(m.file)
@@ -129,14 +136,4 @@ func (e *Engine) Release(taskID string, moved func(string) string, resume bool) 
 		return
 	}
 	_ = e.d.Continue(&download.TaskFilter{IDs: []string{gid}})
-}
-
-// startEnded marks an HTTP start as past its resolve, mapped or given up.
-func (e *Engine) startEnded(taskID string, ready chan struct{}) {
-	e.mu.Lock()
-	if e.starting[taskID] == ready {
-		delete(e.starting, taskID)
-	}
-	e.mu.Unlock()
-	close(ready)
 }

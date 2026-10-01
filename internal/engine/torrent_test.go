@@ -10,6 +10,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -175,6 +176,45 @@ func TestAnUploadsFileRulesChooseFromItsOwnFileList(t *testing.T) {
 	}
 	if got := uploadSelect(torrent.Picker{}, uri); got != nil {
 		t.Fatalf("no rules selected %v, want nil, which fetches everything", got)
+	}
+}
+
+// A torrent with every file unticked is refused at the start; the library
+// would read the empty selection as the whole torrent.
+func TestATorrentWithNothingSelectedIsNotStarted(t *testing.T) {
+	files := []metainfo.FileInfo{
+		{Length: 1 << 20, Path: []string{"a.bin"}},
+		{Length: 1 << 20, Path: []string{"b.bin"}},
+	}
+	const pieceLength = 256 << 10
+	info := metainfo.Info{Name: "Pack", Files: files, PieceLength: pieceLength,
+		Pieces: make([]byte, 20*(2<<20)/pieceLength)}
+	ib, err := bencode.Marshal(info)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := bencode.Marshal(metainfo.MetaInfo{InfoBytes: ib})
+	if err != nil {
+		t.Fatal(err)
+	}
+	u := &updates{}
+	e, err := New(t.TempDir(), u.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+
+	e.Start(Job{TaskID: "t1", URL: torrent.EncodeBytes(raw), TorrentSelect: []int{}})
+	waitUntil(t, "the start settling", func() bool {
+		_, ok := u.settled()
+		return ok || u.saw(core.StatusRunning)
+	})
+
+	if got := u.last().Status; got != core.StatusError {
+		t.Errorf("the start reported %q, want an error", got)
+	}
+	if n := len(e.d.GetTasks()); n != 0 {
+		t.Errorf("the library holds %d task(s) for a torrent with nothing selected", n)
 	}
 }
 

@@ -65,9 +65,10 @@ type refusingOrigin struct {
 	data     []byte
 	refusals int
 
-	mu      sync.Mutex
-	refused int
-	pace    time.Duration
+	mu       sync.Mutex
+	refused  int
+	pace     time.Duration
+	modified string
 }
 
 func newRefusingOrigin(t *testing.T, size, refusals int) *refusingOrigin {
@@ -94,11 +95,14 @@ func (o *refusingOrigin) serve(w http.ResponseWriter, r *http.Request) {
 	if refuse {
 		o.refused++
 	}
-	pace := o.pace
+	pace, modified := o.pace, o.modified
 	o.mu.Unlock()
 	if refuse {
 		w.WriteHeader(http.StatusForbidden)
 		return
+	}
+	if modified != "" {
+		w.Header().Set("Last-Modified", modified)
 	}
 	w.Header().Set("Accept-Ranges", "bytes")
 	w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
@@ -234,6 +238,70 @@ func TestMissingRangesTheServerKeepsRefusingFailTheTask(t *testing.T) {
 	}
 	if last.File != file {
 		t.Errorf("the failure names the file %q, want %q", last.File, file)
+	}
+}
+
+// A fresh link to a file of another size is another file, and its bytes are
+// not written into the gaps.
+func TestAFreshLinkToAnotherFileIsNotSplicedIn(t *testing.T) {
+	o := newRefusingOrigin(t, 1<<20, -1)
+	other := newRefusingOrigin(t, 1<<20+4096, 0)
+	e, u := mendingEngine(t, Job{URL: o.srv.URL + "/old", Relink: func(context.Context) (string, error) {
+		return other.srv.URL + "/fresh", nil
+	}})
+	file := holedFile(t, o)
+	half := len(o.data) / 2
+
+	e.startMend("t1", finishedTask(t, len(o.data)), file, []span{{int64(half), int64(len(o.data)) - 1}})
+
+	waitUntil(t, "the task settling", func() bool { _, ok := u.settled(); return ok })
+	last, _ := u.settled()
+	if last.Status != core.StatusError {
+		t.Fatalf("the task ended %q, want a failure", last.Status)
+	}
+	if !strings.Contains(last.Err, "not the 1.0 MiB this download began with") {
+		t.Errorf("the failure reads %q, want the size that did not match", last.Err)
+	}
+	got, _ := os.ReadFile(file)
+	if !bytes.Equal(got[half:], make([]byte, len(got)-half)) {
+		t.Error("bytes of the other file were written into the gaps")
+	}
+}
+
+// The URL the transfer had is held to the date it was first answered with: a
+// file replaced there since is not mended from.
+func TestAFileChangedAtItsURLIsNotSplicedIn(t *testing.T) {
+	was := mendWait
+	mendWait = 10 * time.Millisecond
+	t.Cleanup(func() { mendWait = was })
+	const began = "Mon, 02 Jan 2006 15:04:05 GMT"
+	for _, tc := range []struct {
+		name, served string
+		want         core.Status
+	}{
+		{"unchanged", began, core.StatusDone},
+		{"replaced", "Tue, 03 Jan 2006 15:04:05 GMT", core.StatusError},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			o := newRefusingOrigin(t, 1<<20, 0)
+			o.modified = tc.served
+			e, u := mendingEngine(t, Job{URL: o.srv.URL + "/old"})
+			file := holedFile(t, o)
+			half := int64(len(o.data) / 2)
+			task := finishedTask(t, len(o.data))
+			at, err := time.Parse(time.RFC1123, began)
+			if err != nil {
+				t.Fatal(err)
+			}
+			task.Meta.Res.Files[0].Ctime = &at
+
+			e.startMend("t1", task, file, []span{{half, int64(len(o.data)) - 1}})
+
+			waitUntil(t, "the task settling", func() bool { _, ok := u.settled(); return ok })
+			if last, _ := u.settled(); last.Status != tc.want {
+				t.Fatalf("the task ended %q (%s), want %q", last.Status, last.Err, tc.want)
+			}
+		})
 	}
 }
 

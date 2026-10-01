@@ -4,6 +4,7 @@ package app
 // internal/resolver/torrent's tests do, since its helpers are unexported.
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -53,6 +54,33 @@ func testTorrentURI(t *testing.T, folder string, files []metainfo.FileInfo) stri
 		t.Fatalf("bencoding torrent: %v", err)
 	}
 	return torrent.EncodeBytes(b)
+}
+
+// A file list with nothing ticked is refused rather than staged, since the
+// library would fetch the whole torrent for it.
+func TestAddTorrentRefusesASelectionOfNothing(t *testing.T) {
+	a := newTorrentTestApp(t)
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{
+		{Length: 900, Path: []string{"one.mkv"}},
+		{Length: 12, Path: []string{"two.srt"}},
+	})
+	files := []core.TorrentFile{
+		{Path: "one.mkv", Size: 900},
+		{Path: "two.srt", Size: 12},
+	}
+
+	task, err := a.AddTorrent(uri, files, "TestPack", OriginPaste)
+	if !errors.Is(err, ErrNoFileSelected) {
+		t.Fatalf("AddTorrent error = %v, want ErrNoFileSelected", err)
+	}
+	if task != nil {
+		t.Errorf("a task was staged: %+v", task)
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if n := len(a.tasks); n != 0 {
+		t.Errorf("%d task(s) in the list, want none", n)
+	}
 }
 
 // The selection lands on the task, and Size is the selected subset's total.
