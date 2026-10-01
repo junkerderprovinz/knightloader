@@ -27,22 +27,22 @@ const metadata = join(mobile, 'fastlane', 'metadata', 'android');
 
 const CAPTIONS = {
   'de-DE': {
-    sub: 'KnightLoader für Android',
-    tagline: 'Holt alles.<br>Kniet vor nichts.',
-    connections: 'Alle deine Burgen <em>auf einen Blick</em>',
-    downloads: 'Die Beute rollt <em>live herein</em>',
-    add: 'Ein Link genügt. <em>Der Ritter erledigt den Rest.</em>',
-    connect: 'Zwölf Wörter. <em>Kein Konto.</em>',
-    settings: 'Deine Farben, <em>dein Wappen</em>',
+    sub: 'Die Fernbedienung für deinen Downloadmanager',
+    tagline: 'Die Fernbedienung für deinen<br>eigenen Downloadmanager',
+    connections: 'Alle Downloads deiner Server <em>auf einen Blick</em>',
+    downloads: 'Jede Datei live, <em>mit Tempo und Fortschritt</em>',
+    add: 'Link einfügen, <em>dein Server lädt ihn</em>',
+    connect: 'Verbinden mit zwölf Wörtern. <em>Ohne Konto.</em>',
+    settings: 'Hell, dunkel, <em>deine Farbe</em>',
   },
   'en-US': {
-    sub: 'KnightLoader for Android',
-    tagline: 'Grabs everything.<br>Kneels to nothing.',
-    connections: 'Every castle <em>at a glance</em>',
-    downloads: 'Watch the loot <em>roll in</em>',
-    add: 'Drop a link. <em>The knight does the rest.</em>',
-    connect: 'Twelve words. <em>No account.</em>',
-    settings: 'Your colors, <em>your coat of arms</em>',
+    sub: 'The remote for your download manager',
+    tagline: 'The remote for your<br>own download manager',
+    connections: 'Every download on your servers <em>at a glance</em>',
+    downloads: 'Every file live, <em>with speed and progress</em>',
+    add: 'Paste a link, <em>your server fetches it</em>',
+    connect: 'Connect with twelve words. <em>No account.</em>',
+    settings: 'Light, dark, <em>your color</em>',
   },
 };
 
