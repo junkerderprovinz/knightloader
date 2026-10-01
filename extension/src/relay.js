@@ -178,7 +178,15 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
     closedReason = new Error('relay: the connection failed');
   };
 
-  socket.onmessage = async (event) => {
+  // Frames are handled one after another. Opening a seal awaits WebCrypto, and
+  // a presence frame that overtook its sibling's announce would otherwise be
+  // undone by it, putting an instance that left back on the list.
+  let inbox = Promise.resolve();
+  socket.onmessage = (event) => {
+    inbox = inbox.then(() => handleFrame(event)).catch(() => {});
+  };
+
+  const handleFrame = async (event) => {
     let frame;
     try {
       frame = JSON.parse(String(event.data));

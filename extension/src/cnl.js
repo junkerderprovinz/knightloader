@@ -7,8 +7,8 @@
  * links to the instance the user picks.
  *
  * The decoding happens here because the instance's API rejects requests with a
- * foreign Origin header, which an extension's fetch always carries. The links
- * arrive decoded through the same /quickadd window every other send uses.
+ * foreign Origin header, which an extension's fetch always carries. The decoded
+ * links then go through the relay like every other send.
  */
 
 /** The two spellings of the CnL port. Both appear in the wild. */

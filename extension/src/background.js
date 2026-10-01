@@ -218,8 +218,11 @@ async function deliver(target, payload) {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type === 'knightloader-send-to' && msg.target && msg.payload) {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Only the popup picks a target. A content script runs inside any site's
+  // renderer, so a send it asks for would skip the popup and its countdown.
+  const fromPage = String(sender?.url ?? '').startsWith(chrome.runtime.getURL(''));
+  if (msg?.type === 'knightloader-send-to' && fromPage && msg.target && msg.payload) {
     void deliver(msg.target, msg.payload);
     // Answered before the delivery: the popup only waits for the hand-over
     // (handOver in popup.js), and the badge reports the rest.

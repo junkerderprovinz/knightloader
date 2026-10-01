@@ -5,14 +5,50 @@
  * copy could go stale if the derivation changed; who is online comes from the
  * relay on every connect.
  *
+ * The phrase lives in the extension's own IndexedDB rather than in
+ * storage.local, which the Click'n'Load content scripts on every site can read.
+ * Only the extension's pages and its background share that origin.
+ *
  * `defaultInstance` holds a relay instance id, so renaming a member keeps the
  * choice on the same machine.
  */
 
+const SECRET_DB = 'knightloader';
+const SECRET_STORE = 'secrets';
+
+/** Runs one request against the secret store and resolves with its result once the transaction commits. */
+function secretStore(mode, request) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open(SECRET_DB, 1);
+    open.onupgradeneeded = () => open.result.createObjectStore(SECRET_STORE);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction(SECRET_STORE, mode);
+      const req = request(tx.objectStore(SECRET_STORE));
+      tx.oncomplete = () => {
+        db.close();
+        resolve(req.result);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error);
+      };
+    };
+  });
+}
+
 /** Reads the stored phrase, or '' when this browser has not joined a group. */
 async function readPhrase() {
-  const stored = await chrome.storage.local.get('phrase');
-  return typeof stored.phrase === 'string' ? stored.phrase : '';
+  const kept = await secretStore('readonly', (s) => s.get('phrase'));
+  if (typeof kept === 'string') return kept;
+  // A phrase found in storage.local moves out of the content scripts' reach
+  // the first time it is read.
+  const { phrase } = await chrome.storage.local.get('phrase');
+  if (typeof phrase !== 'string' || !phrase) return '';
+  await secretStore('readwrite', (s) => s.put(phrase, 'phrase'));
+  await chrome.storage.local.remove('phrase');
+  return phrase;
 }
 
 /**
@@ -22,14 +58,14 @@ async function readPhrase() {
 async function writePhrase(phrase) {
   const normalised = String(phrase).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
   await decodePhrase(normalised);
-  await chrome.storage.local.set({ phrase: normalised });
+  await secretStore('readwrite', (s) => s.put(normalised, 'phrase'));
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase, the default target and the random
- *  member id, so the relay cannot link this browser to its next group. */
+/** Leaves the group, dropping the phrase and the default target. */
 async function forgetGroup() {
-  await chrome.storage.local.remove(['phrase', 'defaultInstance', 'selfId']);
+  await secretStore('readwrite', (s) => s.delete('phrase'));
+  await chrome.storage.local.remove(['phrase', 'defaultInstance']);
 }
 
 /** The relay instance id this browser sends to when it is not asked. */
@@ -53,16 +89,14 @@ async function writeDefaultTarget(instanceId) {
 }
 
 /**
- * A stable id for this browser inside the group, generated once, so a
- * reconnect is recognised as the same member.
+ * A fresh relay id for every session. The relay takes a second join under an
+ * id it already holds for a reconnect and drops the first socket, and the
+ * popup, the options page and a send often have sessions open at once. A
+ * browser is a client, so nothing needs to recognise it again later.
  */
-async function selfInstanceId() {
-  const stored = await chrome.storage.local.get('selfId');
-  if (typeof stored.selfId === 'string' && stored.selfId) return stored.selfId;
+function sessionInstanceId() {
   const bytes = crypto.getRandomValues(new Uint8Array(20));
-  const id = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  await chrome.storage.local.set({ selfId: id });
-  return id;
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -83,7 +117,7 @@ async function withGroup(work) {
       url: DEFAULT_RELAY_URL,
       key,
       frameKey,
-      selfId: await selfInstanceId(),
+      selfId: sessionInstanceId(),
       // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
     },
