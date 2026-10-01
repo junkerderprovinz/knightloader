@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
+import { ToastProvider } from '../lib/toast';
 import { Instances } from './Instances';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -138,6 +139,30 @@ describe('Instances', () => {
     const cards = [...host.querySelectorAll('button')].filter((b) => b.textContent === 'Open');
     await act(async () => cards[1].click());
     expect(open).toHaveBeenCalledWith('http://192.168.20.86:8749', '_blank', 'noopener,noreferrer');
+  });
+
+  it('says why a stored instance could not be removed', async () => {
+    serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
+    const answer = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation((url, init) =>
+      init?.method === 'DELETE'
+        ? Promise.resolve(new Response('the peer list could not be saved', { status: 500 }))
+        : answer(url, init),
+    );
+    await act(async () =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <ToastProvider>
+              <Instances />
+            </ToastProvider>
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
+    const badge = host.querySelector<HTMLButtonElement>('button[aria-label="Remove cellar"]')!;
+    await act(async () => badge.click());
+    expect(document.body.textContent).toContain('That did not work: the peer list could not be saved');
   });
 
   it('gives the Pairing button no info bubble', async () => {

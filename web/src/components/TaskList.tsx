@@ -34,7 +34,7 @@ import {
   pause,
   resume,
   remove,
-  startTasks,
+  ok,
   restartTasks,
   recheckTasks,
   setPackage,
@@ -51,6 +51,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
 import { ROW_ESTIMATES, ROW_METRICS, useRowHeight } from '../lib/rowHeight';
 import { useToast } from '../lib/toast';
+import { useStartTasks } from '../lib/useStartTasks';
 import { useUIState } from '../lib/uistate';
 import {
   Button,
@@ -517,10 +518,18 @@ function TaskRow({
 }
 
 /** A link row's badges in the trailing track; see TaskRow for why they show at rest. */
-function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
+export function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
   const { t } = useT();
+  const { toast } = useToast();
+  const start = useStartTasks();
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
+  // These routes answer with a bare status, so a refusal, or a peer that has
+  // gone, only shows if the status is read.
+  const send = (run: () => Promise<Response>) => () =>
+    void run()
+      .then(ok)
+      .catch((e: unknown) => toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail'));
   return (
     <div className={ACTIONS_CELL}>
       {collected && (
@@ -533,7 +542,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
           icon={<IconPlay width={16} height={16} />}
           title={t('task.start')}
           aria-label={t('task.start')}
-          onClick={() => startTasks([task.id], base)}
+          onClick={() => void start([task.id], base)}
         />
       )}
       {task.status === 'running' && (
@@ -544,7 +553,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
           icon={<IconPause width={16} height={16} />}
           title={t('task.pause')}
           aria-label={t('task.pause')}
-          onClick={() => pause(task.id, base)}
+          onClick={send(() => pause(task.id, base))}
         />
       )}
       {task.status === 'paused' && (
@@ -555,7 +564,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
           icon={<IconPlay width={16} height={16} />}
           title={t('task.resume')}
           aria-label={t('task.resume')}
-          onClick={() => resume(task.id, base)}
+          onClick={send(() => resume(task.id, base))}
         />
       )}
       <div className="flex items-center gap-1">
@@ -567,7 +576,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
             icon={<IconSearch width={16} height={16} />}
             title={t('task.recheck')}
             aria-label={t('task.recheck')}
-            onClick={() => recheckTasks([task.id], base)}
+            onClick={send(() => recheckTasks([task.id], base))}
           />
         )}
         {/* Before Restart and never instead of it. This one appears only
@@ -585,7 +594,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
             icon={<IconRetry width={16} height={16} />}
             title={t('task.restart')}
             aria-label={t('task.restart')}
-            onClick={() => restartTasks([task.id], base)}
+            onClick={send(() => restartTasks([task.id], base))}
           />
         )}
         <IconBadge
@@ -595,7 +604,7 @@ function TaskActions({ task, base, current }: { task: Task; base: string; curren
           icon={<IconTrash width={16} height={16} />}
           title={t('task.remove')}
           aria-label={t('task.remove')}
-          onClick={() => remove(task.id, base)}
+          onClick={send(() => remove(task.id, base))}
         />
       </div>
     </div>

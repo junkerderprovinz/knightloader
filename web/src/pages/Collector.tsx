@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { recheckTasks, startTasks, type Task } from '../lib/api';
+import { recheckTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useStartTasks } from '../lib/useStartTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
@@ -312,27 +313,7 @@ export function Collector() {
     );
   }
 
-  /**
-   * runStart reports what the start did, from the route's answer: a schedule
-   * holding the queue, a filter holding the links, disabled links or nothing
-   * matching each get their own sentence.
-   */
-  const runStart = async (ids: string[]) => {
-    try {
-      const r = await startTasks(ids);
-      if (r.blocked) return toast(t('collector.toastStartBlocked'), 'fail');
-      if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartHeld', { n: r.skipped }), 'fail');
-      // A disabled link is not started, and the toast says so.
-      if (r.started === 0 && (r.disabled ?? 0) > 0)
-        return toast(t('collector.toastStartDisabled', { n: r.disabled ?? 0 }), 'fail');
-      if (r.started === 0) return;
-      if ((r.disabled ?? 0) > 0)
-        return toast(t('collector.toastStartedSomeDisabled', { n: r.started, disabled: r.disabled ?? 0 }), 'info');
-      toast(t('collector.toastStarted', { n: r.started }), 'info');
-    } catch {
-      toast(t('list.optionsFailed'), 'fail');
-    }
-  };
+  const runStart = useStartTasks();
   const startSelected = () => {
     if (!selected.size) return;
     void runStart([...selected]);

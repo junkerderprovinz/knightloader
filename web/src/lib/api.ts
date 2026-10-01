@@ -1026,7 +1026,7 @@ export async function json<T>(r: Response): Promise<T> {
 
 // ok throws with the server's own words, for routes whose refusal tells the
 // user what to change.
-async function ok(r: Response): Promise<Response> {
+export async function ok(r: Response): Promise<Response> {
   if (!r.ok) throw await refusal(r);
   return r;
 }
@@ -3699,8 +3699,8 @@ export async function addInstance(
   return json(r);
 }
 
-export const removeInstance = (name: string) =>
-  fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
+export const removeInstance = async (name: string) =>
+  ok(await fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' }));
 
 /** Which relay an instance uses. 'off' suits instances that all sit on one
  *  network and find each other through local discovery. */
