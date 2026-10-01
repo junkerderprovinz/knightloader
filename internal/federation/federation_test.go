@@ -8,8 +8,10 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
@@ -46,6 +48,24 @@ func (f *fakeRelay) Close() error {
 	f.closed = true
 	return nil
 }
+
+// Member ids in the shape instances mint them, the only one a member is
+// listed under.
+var (
+	bravoID  = strings.Repeat("b", 40)
+	nasID    = strings.Repeat("d", 40)
+	laptopID = strings.Repeat("e", 40)
+	firstID  = strings.Repeat("1", 40)
+	secondID = strings.Repeat("2", 40)
+	officeID = strings.Repeat("0", 40)
+)
+
+// fakeLocal stands in for discovery: members announcing on this network.
+type fakeLocal struct{ members []discovery.Peer }
+
+func (f *fakeLocal) Members() []discovery.Peer { return f.members }
+
+func (f *fakeLocal) SetGroup(func(discovery.Peer) string, func(discovery.Peer) bool) {}
 
 func newManager(t *testing.T) *Manager {
 	t.Helper()
@@ -134,12 +154,12 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "id-bravo", Name: "Laptop", Deployment: "desktop"},
+		{InstanceID: bravoID, Name: "Laptop", Deployment: "desktop"},
 	}}
 	m.SetRelay(rt)
 
 	list := m.List()
-	if len(list) != 1 || list[0].Name != "id-bravo" || list[0].DisplayName != "Laptop" || list[0].RelayID != "id-bravo" || list[0].URL != "" {
+	if len(list) != 1 || list[0].Name != bravoID || list[0].DisplayName != "Laptop" || list[0].RelayID != bravoID || list[0].URL != "" {
 		t.Fatalf("got %+v, want one relay peer addressed as id-bravo, displayed as Laptop", list)
 	}
 	if _, err := os.Stat(filepath.Join(dir, "instances.json")); !os.IsNotExist(err) {
@@ -162,14 +182,14 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 func TestAMemberCarriesTheAddressItAnnounced(t *testing.T) {
 	m := newManager(t)
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "id-nas", Name: "NAS", Address: "https://kl.example.org"},
-		{InstanceID: "id-laptop", Name: "Laptop"},
+		{InstanceID: nasID, Name: "NAS", Address: "https://kl.example.org"},
+		{InstanceID: laptopID, Name: "Laptop"},
 	}})
 	got := map[string]string{}
 	for _, in := range m.List() {
 		got[in.Name] = in.Address
 	}
-	if got["id-nas"] != "https://kl.example.org" || got["id-laptop"] != "" {
+	if got[nasID] != "https://kl.example.org" || got[laptopID] != "" {
 		t.Fatalf("addresses = %v, want the NAS at its domain and the laptop without one", got)
 	}
 }
@@ -177,8 +197,8 @@ func TestAMemberCarriesTheAddressItAnnounced(t *testing.T) {
 func TestAMemberCarriesTheDeploymentItAnnounced(t *testing.T) {
 	m := newManager(t)
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "id-nas", Name: "NAS", Deployment: "container"},
-		{InstanceID: "id-laptop", Name: "Laptop", Deployment: "desktop"},
+		{InstanceID: nasID, Name: "NAS", Deployment: "container"},
+		{InstanceID: laptopID, Name: "Laptop", Deployment: "desktop"},
 	}})
 	if err := m.Add(Instance{Name: "cellar", URL: "http://192.168.1.9:8749", Deployment: "desktop"}); err != nil {
 		t.Fatalf("add: %v", err)
@@ -187,7 +207,7 @@ func TestAMemberCarriesTheDeploymentItAnnounced(t *testing.T) {
 	for _, in := range m.List() {
 		got[in.Name] = in.Deployment
 	}
-	want := map[string]string{"id-nas": "container", "id-laptop": "desktop", "cellar": ""}
+	want := map[string]string{nasID: "container", laptopID: "desktop", "cellar": ""}
 	if !maps.Equal(got, want) {
 		t.Fatalf("deployments = %v, want %v", got, want)
 	}
@@ -224,20 +244,20 @@ func TestSetRelayClosesTheTransportItReplaces(t *testing.T) {
 func TestProxyReachesARelayPeerThroughTheTransport(t *testing.T) {
 	m := newManager(t)
 	rt := &fakeRelay{
-		sibs:   []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}},
+		sibs:   []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}},
 		resp:   []byte(`{"added":1}`),
 		status: http.StatusCreated,
 	}
 	m.SetRelay(rt)
 
-	body, code, err := m.Proxy(context.Background(), "id-bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
+	body, code, err := m.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
 	if err != nil {
 		t.Fatalf("proxy: %v", err)
 	}
 	if code != http.StatusCreated || string(body) != `{"added":1}` {
 		t.Errorf("got %d %s, want the peer's own answer", code, body)
 	}
-	if rt.target != "id-bravo" || rt.method != http.MethodPost || rt.path != "/api/links" || string(rt.body) != `{"url":"x"}` {
+	if rt.target != bravoID || rt.method != http.MethodPost || rt.path != "/api/links" || string(rt.body) != `{"url":"x"}` {
 		t.Errorf("the transport was asked for %s %s %s %s, want the call unchanged and addressed by ID",
 			rt.target, rt.method, rt.path, rt.body)
 	}
@@ -261,21 +281,21 @@ func TestPeerNamesCollide(t *testing.T) {
 			// Nothing listens on this port, so the resolve check below fails
 			// fast instead of waiting out peerTimeout.
 			stored: []Instance{{Name: "NAS", URL: "http://127.0.0.1:1"}},
-			sibs:   []relay.Announce{{InstanceID: "id-nas", Name: "NAS"}},
-			want:   map[string]string{"NAS": "", "id-nas": "id-nas"},
+			sibs:   []relay.Announce{{InstanceID: nasID, Name: "NAS"}},
+			want:   map[string]string{"NAS": "", nasID: nasID},
 		},
 		{
 			name: "two relay peers with one hostname",
 			sibs: []relay.Announce{
-				{InstanceID: "id-a", Name: "knightloader"},
-				{InstanceID: "id-b", Name: "knightloader"},
+				{InstanceID: firstID, Name: "knightloader"},
+				{InstanceID: secondID, Name: "knightloader"},
 			},
-			want: map[string]string{"id-a": "id-a", "id-b": "id-b"},
+			want: map[string]string{firstID: firstID, secondID: secondID},
 		},
 		{
 			name: "a peer that announced no name at all",
-			sibs: []relay.Announce{{InstanceID: "id-a"}},
-			want: map[string]string{"id-a": "id-a"},
+			sibs: []relay.Announce{{InstanceID: firstID}},
+			want: map[string]string{firstID: firstID},
 		},
 	}
 	for _, tc := range tests {
@@ -315,14 +335,14 @@ func TestPeerNamesCollide(t *testing.T) {
 // address stays put while other stored peers and siblings come and go.
 func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
 	m := newManager(t)
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-a", Name: "Cellar"}}}
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: firstID, Name: "Cellar"}}}
 	m.SetRelay(rt)
 	addressBefore := m.List()[0].Name
 
 	if err := m.Add(Instance{Name: "Cellar", URL: "http://127.0.0.1:1"}); err != nil {
 		t.Fatalf("add: %v", err)
 	}
-	rt.sibs = append(rt.sibs, relay.Announce{InstanceID: "id-b", Name: "Other"})
+	rt.sibs = append(rt.sibs, relay.Announce{InstanceID: secondID, Name: "Other"})
 	rt.sibs = rt.sibs[:1]
 	if err := m.Remove("Cellar"); err != nil {
 		t.Fatalf("remove: %v", err)
@@ -339,7 +359,7 @@ func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
 
 func TestUnknownInstanceIsStill404(t *testing.T) {
 	m := newManager(t)
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}}}
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}}
 	m.SetRelay(rt)
 
 	_, code, err := m.Proxy(context.Background(), "Nowhere", http.MethodGet, "/api/tasks", nil)
@@ -373,12 +393,12 @@ func TestClientOnlySiblingsAreNotListedAsInstances(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "id-nas", Name: "Cellar", Deployment: "container"},
+		{InstanceID: nasID, Name: "Cellar", Deployment: "container"},
 		{InstanceID: "id-phone", Name: "Pixel", Deployment: "mobile", Client: true},
 	}})
 
 	list := m.List()
-	if len(list) != 1 || list[0].Name != "id-nas" {
+	if len(list) != 1 || list[0].Name != nasID {
 		t.Fatalf("got %+v, want only the real instance; a client-only sibling is not a place to go", list)
 	}
 }
@@ -422,15 +442,15 @@ func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 	// Filed as the pairing exchange files them. The display name entry must
 	// never be used.
 	m.SetPeerTokens(staticTokens{
-		"cellar":   "secret-for-cellar",
-		"id-bravo": "secret-for-the-relay-peer",
-		"Laptop":   "a-display-name-is-not-an-address",
+		"cellar": "secret-for-cellar",
+		bravoID:  "secret-for-the-relay-peer",
+		"Laptop": "a-display-name-is-not-an-address",
 	})
 
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}}}
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}}
 	m.SetRelay(rt)
 
-	if _, _, err := m.Proxy(context.Background(), "id-bravo", http.MethodGet, "/api/tasks", nil); err != nil {
+	if _, _, err := m.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil); err != nil {
 		t.Fatalf("relay proxy: %v", err)
 	}
 	if rt.auth != "Bearer secret-for-the-relay-peer" {
@@ -457,3 +477,86 @@ func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 type staticTokens map[string]string
 
 func (s staticTokens) TokenFor(peer string) string { return s[peer] }
+
+// TestAMemberCannotTakeAStoredPeersName: a member announcing a stored peer's
+// name as its id would otherwise receive that peer's calls and the
+// credential the peer issued, though the peer may be in no group at all.
+func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
+	var seen string
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Get("Authorization")
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer peer.Close()
+
+	m := newManager(t)
+	if err := m.Add(Instance{Name: "nas", URL: peer.URL}); err != nil {
+		t.Fatal(err)
+	}
+	m.SetPeerTokens(staticTokens{"nas": "secret-the-nas-issued"})
+	m.SetGroup(make([]byte, 16), officeID)
+	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: "nas", Name: "nas", URL: "http://192.168.1.66:8749"}}})
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "nas", Name: "nas"}}}
+	m.SetRelay(rt)
+
+	if list := m.List(); len(list) != 1 || list[0].RelayID != "" || list[0].URL != peer.URL {
+		t.Fatalf("got %+v, want only the stored peer", list)
+	}
+	if _, _, err := m.Proxy(context.Background(), "nas", http.MethodGet, "/api/tasks", nil); err != nil {
+		t.Fatalf("proxy: %v", err)
+	}
+	if rt.target != "" {
+		t.Errorf("the call went over the relay to %q", rt.target)
+	}
+	if seen != "Bearer secret-the-nas-issued" {
+		t.Errorf("the stored peer got %q, want its own credential", seen)
+	}
+}
+
+func TestAMemberIsListedOnlyUnderAnInstanceID(t *testing.T) {
+	m := newManager(t)
+	m.SetGroup(make([]byte, 16), officeID)
+	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{
+		{ID: "cellar", Name: "Cellar", URL: "http://192.168.1.66:8749"},
+		{ID: nasID, Name: "NAS", URL: "http://192.168.1.5:8749"},
+	}})
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
+		{InstanceID: "Laptop", Name: "Laptop"},
+		{InstanceID: strings.ToUpper(bravoID), Name: "Laptop"},
+		{InstanceID: bravoID, Name: "Laptop"},
+	}})
+
+	got := map[string]bool{}
+	for _, in := range m.List() {
+		got[in.Name] = true
+	}
+	if len(got) != 2 || !got[nasID] || !got[bravoID] {
+		t.Fatalf("listed %v, want only the two members whose ids are shaped like an InstanceID", got)
+	}
+}
+
+// TestAStoredPeerIsNeverReplacedByAMember covers a stored name that is
+// shaped like an InstanceID, which instances.json can hold when edited by
+// hand.
+func TestAStoredPeerIsNeverReplacedByAMember(t *testing.T) {
+	dir := t.TempDir()
+	stored := []Instance{{Name: bravoID, URL: "http://127.0.0.1:1"}}
+	b, err := json.Marshal(stored)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "instances.json"), b, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.SetGroup(make([]byte, 16), officeID)
+	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, URL: "http://192.168.1.66:8749"}}})
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}})
+
+	if list := m.List(); len(list) != 1 || list[0].RelayID != "" || list[0].URL != "http://127.0.0.1:1" {
+		t.Fatalf("got %+v, want the stored peer as stored", list)
+	}
+}

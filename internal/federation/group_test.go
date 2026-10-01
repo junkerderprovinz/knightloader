@@ -1,11 +1,51 @@
 package federation
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
+
+func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
+	m := newManager(t)
+	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
+	if err := m.SetJoined(joined); err != nil {
+		t.Fatal(err)
+	}
+	rt := &fakeRelay{sibs: []relay.Announce{
+		{InstanceID: "phone-old", Name: strings.Repeat("x", 10000), Deployment: "mobile", Client: true},
+	}}
+	m.SetRelay(rt)
+	apps, err := m.Apps(joined.Add(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(apps) != 1 {
+		t.Fatalf("%d phones, want one", len(apps))
+	}
+	if len(apps[0].Name) != relay.MaxNameBytes {
+		t.Fatalf("its name is %d bytes, want it clipped to %d", len(apps[0].Name), relay.MaxNameBytes)
+	}
+
+	rt.sibs = nil
+	for i := 0; i < maxApps; i++ {
+		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: fmt.Sprintf("phone-%d", i), Deployment: "mobile", Client: true})
+	}
+	if apps, err = m.Apps(joined.Add(time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	if len(apps) != maxApps {
+		t.Fatalf("%d phones remembered, want %d", len(apps), maxApps)
+	}
+	for _, a := range apps {
+		if a.ID == "phone-old" {
+			t.Fatal("the phone seen longest ago was kept over a connected one")
+		}
+	}
+}
 
 func TestGroupKeepsTheFirstTimeAMemberCame(t *testing.T) {
 	dir := t.TempDir()
@@ -85,12 +125,12 @@ func TestMembersAreTheInstancesOnTheRelay(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "aaaa", Name: "office"},
+		{InstanceID: officeID, Name: "office"},
 		{InstanceID: "bbbb", Name: "phone", Client: true},
 	}})
 
 	got := m.Members()
-	if len(got) != 1 || got[0].RelayID != "aaaa" {
+	if len(got) != 1 || got[0].RelayID != officeID {
 		t.Fatalf("Members() = %+v, want only the instance on the relay", got)
 	}
 }
@@ -104,7 +144,7 @@ func TestAPhoneThatWentAwayKeepsItsCard(t *testing.T) {
 	rt := &fakeRelay{sibs: []relay.Announce{
 		{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true},
 		{InstanceID: "browser-1", Name: "Chrome", Deployment: "extension", Client: true},
-		{InstanceID: "id-office", Name: "office"},
+		{InstanceID: officeID, Name: "office"},
 	}}
 	m.SetRelay(rt)
 

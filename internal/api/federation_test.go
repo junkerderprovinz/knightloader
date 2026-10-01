@@ -187,7 +187,7 @@ func (r *relayOnlyPeer) Close() error               { return nil }
 func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte, _ string) ([]byte, int, error) {
 	r.gotPath = path
 	r.gotBody = body
-	r.gotBoth = target == "id-desktop" && method == http.MethodPost
+	r.gotBoth = target == desktopID && method == http.MethodPost
 	return []byte(`[{"id":"t1","name":"file.zip"}]`), http.StatusOK, nil
 }
 
@@ -215,7 +215,7 @@ func TestRelayOnlyPeerIsListedAndReachable(t *testing.T) {
 	// the transport against the saved settings and would drop one installed
 	// ahead of it.
 	rt := &relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: "id-desktop", Name: "Workshop laptop", Deployment: "desktop"},
+		{InstanceID: desktopID, Name: "Workshop laptop", Deployment: "desktop"},
 	}}
 	a.Federation.SetRelay(rt)
 

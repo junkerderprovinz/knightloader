@@ -42,6 +42,10 @@ const (
 	maxDirectCalls = 16
 )
 
+// directReadTimeout bounds how long a call's body may take to arrive. A
+// member on the same network sends it in milliseconds. Tests shorten it.
+var directReadTimeout = 10 * time.Second
+
 // LocalNetwork is the discovery service as the direct transport uses it.
 type LocalNetwork interface {
 	// Members is the members of this instance's group announcing on this
@@ -211,16 +215,20 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
+	// The body is read under its own deadline and checked before a slot is
+	// taken, so a stranger sending slowly holds neither a slot nor the
+	// connection.
+	_ = http.NewResponseController(w).SetReadDeadline(time.Now().Add(directReadTimeout))
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxDirectCall))
+	if err != nil || !hmac.Equal([]byte(r.Header.Get(headerSignature)), []byte(directSignature(keys.peerAuth, sender, unix, body))) {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
 	select {
 	case m.slots <- struct{}{}:
 		defer func() { <-m.slots }()
 	default:
 		http.Error(w, "busy", http.StatusServiceUnavailable)
-		return
-	}
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxDirectCall))
-	if err != nil || !hmac.Equal([]byte(r.Header.Get(headerSignature)), []byte(directSignature(keys.peerAuth, sender, unix, body))) {
-		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 	var req relay.ProxyRequest

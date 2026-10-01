@@ -410,11 +410,22 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 	switch env.Type {
 	case TypeAnnounce:
 		var a Announce
-		if env.Into(&a) != nil || a.InstanceID == "" {
+		if env.Into(&a) != nil {
 			return
 		}
+		a = openAnnounce(c.frameKey, a)
+		if !listable(a) {
+			return
+		}
+		// An honest relay never sends more siblings than it admits on one key,
+		// so the cap only binds a relay inventing them.
 		c.mu.Lock()
-		c.siblings[a.InstanceID] = openAnnounce(c.frameKey, a)
+		_, known := c.siblings[a.InstanceID]
+		if !known && len(c.siblings) >= maxClientsPerKey {
+			c.mu.Unlock()
+			return
+		}
+		c.siblings[a.InstanceID] = a
 		c.mu.Unlock()
 		c.changed()
 	case TypePresence:

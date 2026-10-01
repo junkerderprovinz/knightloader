@@ -1,11 +1,15 @@
 package relay
 
 import (
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/coder/websocket"
 )
 
 // testLimiter returns a limiter whose clock the test drives, so a backoff
@@ -148,6 +152,55 @@ func TestClientAddrDropsThePort(t *testing.T) {
 			t.Errorf("clientAddr(%q) = %q, want %q", c.in, got, c.want)
 		}
 	}
+}
+
+func TestClientAddrTakesTheForwardedAddressOnlyFromAProxy(t *testing.T) {
+	for _, c := range []struct{ remote, forwarded, want string }{
+		{"127.0.0.1:40000", "198.51.100.7", "198.51.100.7"},
+		{"172.18.0.5:40000", "10.0.0.9, 198.51.100.7", "198.51.100.7"},
+		{"[::1]:40000", "2a01:4f8:c014:3544::1", "2a01:4f8:c014:3544::1"},
+		{"127.0.0.1:40000", "not-an-address", "127.0.0.1"},
+		{"203.0.113.9:40000", "198.51.100.7", "203.0.113.9"},
+	} {
+		r := &http.Request{RemoteAddr: c.remote, Header: http.Header{"X-Forwarded-For": {c.forwarded}}}
+		if got := clientAddr(r); got != c.want {
+			t.Errorf("clientAddr(%s, X-Forwarded-For %q) = %q, want %q", c.remote, c.forwarded, got, c.want)
+		}
+	}
+}
+
+// TestBehindAProxyOneCallerCannotLockOutTheOthers: every caller of a relay
+// behind a reverse proxy arrives from the proxy's address.
+func TestBehindAProxyOneCallerCannotLockOutTheOthers(t *testing.T) {
+	srv := httptest.NewServer(New())
+	t.Cleanup(srv.Close)
+	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+	dial := func(from string) (*websocket.Conn, *http.Response, error) {
+		ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+		defer cancel()
+		return websocket.Dial(ctx, url, &websocket.DialOptions{HTTPHeader: http.Header{"X-Forwarded-For": {from}}})
+	}
+
+	for i := 0; i < failsBeforeBlock; i++ {
+		c, _, err := dial("203.0.113.66")
+		if err != nil {
+			t.Fatalf("stranger's dial %d: %v", i, err)
+		}
+		writeFrame(t, c, TypeHello, Hello{Key: "too-short", Announce: Announce{InstanceID: bravoID}})
+		ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+		_, _, _ = c.Read(ctx)
+		cancel()
+		_ = c.CloseNow()
+	}
+	if _, resp, err := dial("203.0.113.66"); err == nil || resp == nil || resp.StatusCode != http.StatusTooManyRequests {
+		t.Fatal("the stranger was not blocked, so this test proves nothing")
+	}
+
+	c, _, err := dial("198.51.100.7")
+	if err != nil {
+		t.Fatalf("a member behind the same proxy was refused: %v", err)
+	}
+	_ = c.CloseNow()
 }
 
 // An address that fails once and never comes back, the usual scanner, is

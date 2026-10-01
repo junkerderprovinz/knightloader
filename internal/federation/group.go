@@ -6,6 +6,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // groupFile keeps when this instance entered its phrase group, when another
@@ -56,6 +58,11 @@ const appDeployment = "mobile"
 // poll.
 const lastSeenStep = time.Minute
 
+// maxApps bounds the phones group.json remembers. Every member can announce
+// a phone, so without it one could grow the file with invented ones; past
+// the cap the phone seen longest ago makes room.
+const maxApps = 32
+
 func loadGroupFile(path string) *groupFile {
 	g := &groupFile{path: path}
 	if b, err := os.ReadFile(path); err == nil {
@@ -104,7 +111,7 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
 			if sib.Client && sib.Deployment == appDeployment {
-				connected[sib.InstanceID] = sib.Name
+				connected[sib.InstanceID] = relay.ClipName(sib.Name)
 			}
 		}
 	}
@@ -120,6 +127,9 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 			if !ok || known.Name != name || now.Sub(known.LastSeen) >= lastSeenStep {
 				if st.Apps == nil {
 					st.Apps = map[string]KnownApp{}
+				}
+				if !ok && len(st.Apps) >= maxApps {
+					forgetStalestApp(st.Apps)
 				}
 				st.Apps[id] = KnownApp{Name: name, LastSeen: now}
 				dirty = true
@@ -144,6 +154,16 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 		return out[i].ID < out[j].ID
 	})
 	return out, err
+}
+
+func forgetStalestApp(apps map[string]KnownApp) {
+	stalest := ""
+	for id, known := range apps {
+		if stalest == "" || known.LastSeen.Before(apps[stalest].LastSeen) {
+			stalest = id
+		}
+	}
+	delete(apps, stalest)
 }
 
 // Group reports where this instance stands in its group. anyone is whether

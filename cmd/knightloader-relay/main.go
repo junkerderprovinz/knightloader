@@ -94,7 +94,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
-	srv := &http.Server{Handler: mux, ErrorLog: log.New(logOut, "", log.LstdFlags)}
+	srv := newServer(mux, log.New(logOut, "", log.LstdFlags))
 
 	if domain != "" {
 		m := &autocert.Manager{
@@ -149,6 +149,22 @@ func main() {
 		log.Printf("shutdown: not every connection closed within %s: %v", shutdownGrace, err)
 	}
 	cancel()
+}
+
+// newServer bounds what a connection may cost before it is a WebSocket: the
+// header timeout also covers the TLS handshake, so a client that connects and
+// stays silent cannot hold a goroutine and a file descriptor for good.
+// ReadTimeout and WriteTimeout stay unset, since they would cut the
+// long-lived sockets the relay exists for; once upgraded, those are bounded
+// by the hello timeout and the clients' pings.
+func newServer(h http.Handler, errLog *log.Logger) *http.Server {
+	return &http.Server{
+		Handler:           h,
+		ErrorLog:          errLog,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       time.Minute,
+		MaxHeaderBytes:    16 << 10,
+	}
 }
 
 // parseArgs reads the command line and reports whether it only asked for the

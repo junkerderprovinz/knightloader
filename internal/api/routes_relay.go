@@ -51,15 +51,7 @@ func registerRelay(reg *Registry, a *app.App) {
 	// unrelated setting does not drop connected siblings.
 	srv := relay.New()
 	srv.Admit = func(key string) bool {
-		if !a.Settings.Get().RelayServe {
-			return false
-		}
-		stored, err := a.Accounts.Get(relay.AccountService)
-		if err != nil || stored == "" {
-			return false
-		}
-		// Constant time, because the caller controls the guess.
-		return subtle.ConstantTimeCompare([]byte(key), []byte(stored)) == 1
+		return a.Settings.Get().RelayServe && servesKey(a, key)
 	}
 	reg.AddOpen(http.MethodGet, "/relay/connect",
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
@@ -154,6 +146,27 @@ func registerRelay(reg *Registry, a *app.App) {
 			applyRelay(a)
 			writeJSON(w, relayConfigOf(a, srv))
 		})
+}
+
+// servesKey reports whether the relay this instance serves admits key: the
+// hand-entered relay key, or the one its phrase group dials with (see
+// relayTarget).
+func servesKey(a *app.App, key string) bool {
+	var served []string
+	if manual, err := a.Accounts.Get(relay.AccountService); err == nil && manual != "" {
+		served = append(served, manual)
+	}
+	if secret := groupSecret(a); secret != nil {
+		served = append(served, relay.DeriveKey(secret))
+	}
+	ok := false
+	for _, s := range served {
+		// Constant time, because the caller controls the guess.
+		if subtle.ConstantTimeCompare([]byte(key), []byte(s)) == 1 {
+			ok = true
+		}
+	}
+	return ok
 }
 
 // relayConfigOf reads the configuration back from the two stores, so PUT
@@ -270,14 +283,21 @@ func applyRelay(a *app.App) {
 // applyGroup hands the stored group secret to the direct transport, which
 // works whichever relay is chosen, none included.
 func applyGroup(a *app.App) {
+	a.Federation.SetGroup(groupSecret(a), a.Settings.Get().InstanceID)
+}
+
+// groupSecret is the stored connection secret of this instance's phrase
+// group, nil outside a group or when the stored value is malformed.
+func groupSecret(a *app.App) []byte {
 	secretHex, err := a.Accounts.Get(relay.SeedAccountService)
-	var secret []byte
-	if err == nil && secretHex != "" {
-		if s, err := hex.DecodeString(secretHex); err == nil && len(s) == seedphrase.SecretLen {
-			secret = s
-		}
+	if err != nil || secretHex == "" {
+		return nil
 	}
-	a.Federation.SetGroup(secret, a.Settings.Get().InstanceID)
+	secret, err := hex.DecodeString(secretHex)
+	if err != nil || len(secret) != seedphrase.SecretLen {
+		return nil
+	}
+	return secret
 }
 
 // relayProxyHandler turns one inbound relay call into a request against serve,
