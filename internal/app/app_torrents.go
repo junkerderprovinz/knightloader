@@ -13,6 +13,8 @@
 package app
 
 import (
+	"slices"
+
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -33,8 +35,12 @@ import (
 // It returns the staged task, or the held task when the filter or a banned
 // tracker parked it (Task.Skipped), or nil when the mirror set folded it into
 // one already listed.
-// The error is always nil; it matches AddLinksWithOptions.
+// The error is ErrNoFileSelected for a file list with nothing ticked, which
+// the library would read as the whole torrent.
 func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origin core.Origin) (*core.Task, error) {
+	if len(files) > 0 && !slices.ContainsFunc(files, func(f core.TorrentFile) bool { return f.Selected }) {
+		return nil, ErrNoFileSelected
+	}
 	now := a.stamps.next()
 	cand := rules.Candidate{URL: uri, Package: pkg, Added: now}
 	if v := a.filter(cand); v.Rejected {

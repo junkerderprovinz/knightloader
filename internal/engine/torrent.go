@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"path"
@@ -19,6 +20,8 @@ import (
 // its metadata before the task fails. Resolve takes no context, so this bounds
 // the wait rather than cancelling the resolve.
 const defaultMetadataTimeout = 2 * time.Minute
+
+var errNothingSelected = errors.New("no file of the torrent is selected")
 
 // torrentStatsInterval is how often a torrent task's swarm numbers are read.
 // Gopeed sends no events after done, while seeding goes on for hours, so
@@ -68,6 +71,11 @@ func (e *Engine) startTorrent(j Job, s *start) {
 			if e.proceed(j) {
 				e.failStart(j, err)
 			}
+		}
+		if sel != nil && len(sel) == 0 {
+			// The library reads an empty selection as every file.
+			fail(errNothingSelected)
+			return
 		}
 		if err := e.placeTorrent(j, opts); err != nil {
 			fail(err)

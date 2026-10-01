@@ -329,7 +329,8 @@ type TorrentFile struct {
 
 // SelectedTorrentIndices returns the selected positions in files, the form
 // gopeed takes. It returns nil both for no list and for everything selected,
-// since gopeed reads an empty selection as "fetch all".
+// since gopeed reads an empty selection as "fetch all", and an empty list when
+// nothing is selected, which a start refuses for the same reason.
 func SelectedTorrentIndices(files []TorrentFile) []int {
 	if len(files) == 0 {
 		return nil
