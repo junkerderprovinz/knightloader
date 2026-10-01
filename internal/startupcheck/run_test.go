@@ -3,6 +3,7 @@ package startupcheck
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -145,6 +146,29 @@ func TestRunNeverAnswersWithANilCheckList(t *testing.T) {
 	}
 	if back.Checks == nil {
 		t.Errorf("an empty report encodes its check list as null: %s", b)
+	}
+}
+
+// A settings file the app could not read is a red row of its own, after the
+// data directory it lives in, and no row at all when it read cleanly.
+func TestRunReportsAnUnreadableSettingsFile(t *testing.T) {
+	data := t.TempDir()
+	kept := filepath.Join(data, "settings.json.unreadable-20261001-120000")
+	rep := Run(context.Background(), Input{
+		Data:      FolderTarget{Dir: data},
+		Settings:  &UnreadableSettings{Kept: kept, Err: errors.New("unexpected end of JSON input")},
+		SkipClock: true,
+	})
+	if got, want := ids(rep), []string{IDData, IDSettings}; !sameStrings(got, want) {
+		t.Fatalf("rows = %v, want %v", got, want)
+	}
+	c := rep.Checks[1]
+	if c.Verdict != VerdictFail || c.Code != CodeUnreadable || c.Subject != kept || c.Err != "unexpected end of JSON input" {
+		t.Errorf("row = %+v, want a failed unreadable row naming the copy and the reason", c)
+	}
+
+	if got := ids(Run(context.Background(), Input{Data: FolderTarget{Dir: data}, SkipClock: true})); !sameStrings(got, []string{IDData}) {
+		t.Errorf("rows = %v without an unreadable file, want the data directory alone", got)
 	}
 }
 

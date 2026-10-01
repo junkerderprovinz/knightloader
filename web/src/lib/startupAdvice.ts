@@ -46,6 +46,9 @@ const startupAdvice: Partial<Record<string, TranslationKey>> = {
   utcFallback: 'settings.diagnostics.fix.utcFallback',
   noZoneDatabase: 'settings.diagnostics.fix.noZoneDatabase',
   tzUnset: 'settings.diagnostics.fix.tzUnset',
+
+  // The settings file, copied aside because it did not read.
+  'settings:unreadable': 'settings.diagnostics.fix.settingsUnreadable',
 };
 
 /** adviceFor returns the remedy for a check's id and code; a row without a
