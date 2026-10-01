@@ -1624,7 +1624,7 @@ export const cs: Dict = {
   'settings.access.identity.namePlaceholder': 'např. Domácí server',
   'settings.access.identity.nameHint': 'Nabídne se jako první při párování a v QR kódu níže, místo názvu, který tomuto stroji zrovna dal operační systém nebo běhové prostředí kontejneru. Volitelné: když to necháš prázdné, zůstane ten název.',
   'settings.access.identity.domainsLabel': 'Známé domény',
-  'settings.access.identity.domainsHint': 'Každá doména se zapamatuje automaticky, jakmile přes ni dorazí první požadavek, a zůstane tu uvedená, i když pozdější požadavky přicházejí přes LAN IP. Doménu, která už je nastavená, ale zatím přes ni žádný požadavek nepřišel, přidej ručně. Jedna celá adresa na řádek, např. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader si doménu zapamatuje, jakmile se přes ni někdo poprvé přihlásí, a nechá ji tu v seznamu, i když pozdější požadavky přicházejí přes IP adresu v LAN. Bez hesla odpovídá jen na své IP adrese, na místních názvech a na doménách z tohoto seznamu, takže svou doménu přidej dřív, než ho přes ni otevřeš. Jedna úplná adresa na řádek, např. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplikace pro telefon',
   'settings.browsertools.phoneHint': 'Aplikace KnightLoader pro telefony s Androidem. Zobrazuje a ovládá stahování na tvých instancích a posílá jim odkazy. APK má verzi uvedenou v rohu.',
   'settings.browsertools.storeAndroid': 'Google Play',

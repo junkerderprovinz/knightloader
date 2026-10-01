@@ -1616,7 +1616,7 @@ export const pl: Dict = {
   'settings.access.identity.namePlaceholder': 'np. Serwer domowy',
   'settings.access.identity.nameHint': 'Proponowana jako pierwsza przy parowaniu i w kodzie QR poniżej, zamiast nazwy, którą system operacyjny lub środowisko kontenera akurat nadaje tej maszynie. Opcjonalne: zostaw puste, aby dalej używać tamtej nazwy.',
   'settings.access.identity.domainsLabel': 'Znane domeny',
-  'settings.access.identity.domainsHint': 'Każda domena jest zapamiętywana automatycznie, gdy przyjdzie przez nią pierwsze żądanie, i zostaje tu na liście, nawet gdy późniejsze żądania przychodzą przez adres IP w sieci LAN. Dodaj domenę ręcznie, jeśli jest już skonfigurowana, ale nie przyszło przez nią jeszcze żadne żądanie. Jeden pełny adres na wiersz, np. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader zapamiętuje domenę, gdy ktoś pierwszy raz zaloguje się przez nią, i zostawia ją na tej liście, nawet gdy kolejne żądania przychodzą przez IP w sieci lokalnej. Bez hasła odpowiada tylko na swoim adresie IP, na nazwach lokalnych i na domenach z tej listy, więc dodaj swoją, zanim otworzysz go przez tę domenę. Jeden pełny adres w wierszu, np. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplikacja na telefon',
   'settings.browsertools.phoneHint': 'Aplikacja KnightLoader na telefony z Androidem. Pokazuje pobierania na twoich instancjach, steruje nimi i wysyła do nich linki. Plik APK ma wersję podaną w rogu.',
   'settings.browsertools.storeAndroid': 'Google Play',

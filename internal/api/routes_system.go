@@ -4,10 +4,12 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -107,26 +109,24 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, out)
 		})
-	// The login throttle lives as long as the handler; routes_twofactor.go says
-	// why a second factor needs one.
-	gate := newLoginGate()
+	// routes_twofactor.go says why a second factor needs a throttle.
+	gate := reg.passwordGate
 	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
 		func(w http.ResponseWriter, r *http.Request) {
+			if !gate.try(r) {
+				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+				return
+			}
 			var body struct {
 				Password string `json:"password"`
 				// Code is an authenticator code or a recovery code, ignored when
 				// no second factor is armed.
 				Code string `json:"code"`
 			}
-			if !decodeJSON(w, r, &body) {
-				return
-			}
-			if gate.blocked(r) {
-				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
 				return
 			}
 			if !a.Auth.Check(body.Password) {
-				gate.fail(r)
 				// The same answer on every instance, so it does not reveal
 				// whether a second factor exists.
 				http.Error(w, "wrong password", http.StatusUnauthorized)
@@ -135,15 +135,15 @@ func registerSystem(reg *Registry, a *app.App) {
 			if a.Auth.TwoFactorEnabled() {
 				if body.Code == "" {
 					// The password was right and the screen now asks for the
-					// code. Not counted by the throttle: every honest login
-					// passes here once, and only with the right password.
+					// code. Not counted: every honest login passes here once,
+					// and only with the right password.
+					gate.release(r)
 					writeJSON(w, map[string]any{
 						"enabled": true, "authenticated": false, "twoFactorRequired": true,
 					})
 					return
 				}
 				if !a.Auth.CheckSecond(body.Code) {
-					gate.fail(r)
 					// codeRejected tells "ask for a code" apart from "the code
 					// was wrong".
 					writeJSONStatus(w, http.StatusUnauthorized, map[string]any{
@@ -155,10 +155,34 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			gate.pass(r)
 			setSession(w, r, a.Auth.Issue())
+			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
-	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session; open because logging out of an expired session must work",
+	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session, or with {\"everywhere\": true} every session; open because logging out of an expired session must work",
 		func(w http.ResponseWriter, r *http.Request) {
+			var req struct {
+				Everywhere bool `json:"everywhere"`
+			}
+			// The body is optional; a bare POST signs out this client.
+			_ = json.NewDecoder(io.LimitReader(body(r), maxAuthBody)).Decode(&req)
+			if req.Everywhere {
+				// Signing everybody else out is administration, not leaving.
+				if !permits(a, r, apitoken.ScopeAdmin) {
+					http.Error(w, "unauthorized", http.StatusUnauthorized)
+					return
+				}
+				if err := a.Auth.RevokeAll(); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else if c, err := r.Cookie(auth.CookieName); err == nil {
+				// Clearing the cookie only empties this browser; a copy taken
+				// earlier would still work.
+				if err := a.Auth.Revoke(c.Value); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
 			clearSession(w, r)
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -171,19 +195,32 @@ func registerSystem(reg *Registry, a *app.App) {
 				Current string `json:"current"`
 				New     string `json:"new"`
 			}
-			if !decodeJSON(w, r, &body) {
+			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
+				return
+			}
+			// The current password is checked here as well, so a session left
+			// open must not be able to guess it any faster than the login can.
+			// Setting the first one checks nothing and needs no throttle.
+			guarded := a.Auth.Enabled()
+			if guarded && !gate.try(r) {
+				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
 			if err := a.Auth.SetPassword(body.Current, body.New); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+			if guarded {
+				gate.pass(r)
+			}
 			// A token minted under the old password state would bypass the new
-			// one. Best effort: a failed revoke must not undo a password change
-			// that is already persisted.
+			// one, as would a session cookie, which SetPassword has already
+			// ended. Best effort: a failed revoke must not undo a password
+			// change that is already persisted.
 			_ = a.APITokens.RevokeAll()
 			if body.New != "" {
 				setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
+				learnDomain(a, reg, r)
 			} else {
 				clearSession(w, r)
 			}

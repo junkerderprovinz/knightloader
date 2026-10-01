@@ -1623,7 +1623,7 @@ export const ca: Dict = {
   'settings.access.identity.namePlaceholder': 'p. ex. Servidor de casa',
   'settings.access.identity.nameHint': 'S’ofereix primer en vincular i al codi QR de sota, en lloc del nom que el sistema operatiu o l’entorn del contenidor doni a aquesta màquina. Opcional: deixa-ho buit per continuar fent servir aquest nom.',
   'settings.access.identity.domainsLabel': 'Dominis coneguts',
-  'settings.access.identity.domainsHint': 'Cada domini es recorda automàticament la primera vegada que hi arriba una petició, i es queda llistat aquí encara que les peticions posteriors arribin per la IP de la LAN. Afegeix un domini a mà si ja està configurat però encara no hi ha arribat cap petició. Una adreça completa per línia, p. ex. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader recorda un domini la primera vegada que algú hi inicia la sessió i el manté llistat aquí, encara que les peticions posteriors arribin per la IP de la xarxa local. Sense contrasenya només respon a la seva adreça IP, als noms locals i als dominis d’aquesta llista, així que afegeix el teu abans d’obrir-lo per aquest domini. Una adreça completa per línia, p. ex. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplicació per al mòbil',
   'settings.browsertools.phoneHint': 'L’aplicació KnightLoader per a mòbils Android. Mostra i controla les baixades de les teves instàncies i els envia enllaços. L’APK és la versió que surt a la cantonada.',
   'settings.browsertools.storeAndroid': 'Google Play',

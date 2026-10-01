@@ -1623,7 +1623,7 @@ export const eu: Dict = {
   'settings.access.identity.namePlaceholder': 'adib. Etxeko zerbitzaria',
   'settings.access.identity.nameHint': 'Parekatzean eta beheko QR kodean lehenik eskaintzen da, sistema eragileak edo edukiontziaren exekuzio-inguruneak makina honi ematen dion izenaren ordez. Aukerakoa: utzi hutsik izen hori erabiltzen jarraitzeko.',
   'settings.access.identity.domainsLabel': 'Ezagutzen diren domeinuak',
-  'settings.access.identity.domainsHint': 'Domeinu bakoitza automatikoki gogoratzen da haren bidez lehen eskaera iristen den unean, eta hemen zerrendatuta jarraitzen du geroagoko eskaerak LANeko IParen bidez iristen direnean ere. Gehitu domeinu bat eskuz jada konfiguratuta badago baina haren bidez eskaerarik iritsi ez bada oraindik. Helbide oso bat lerroko, adib. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoaderrek domeinu bat gogoratzen du norbaitek haren bidez lehen aldiz saioa hasten duenean, eta hemen zerrendatuta uzten du, ondorengo eskaerak sare lokaleko IParen bidez iritsi arren. Pasahitzik gabe bere IP helbidean, izen lokaletan eta zerrenda honetako domeinuetan bakarrik erantzuten du, beraz gehitu zurea domeinu horren bidez ireki aurretik. Helbide oso bat lerro bakoitzeko, adib. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefono-aplikazioa',
   'settings.browsertools.phoneHint': 'Android telefonoetarako KnightLoader aplikazioa. Zure instantzietako deskargak erakusten eta gidatzen ditu, eta estekak bidaltzen dizkie. APKa izkinan agertzen den bertsioa da.',
   'settings.browsertools.storeAndroid': 'Google Play',

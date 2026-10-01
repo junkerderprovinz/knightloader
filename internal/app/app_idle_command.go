@@ -29,9 +29,10 @@ type IdleRun struct {
 	// Output is the program's combined output, or why it did not start,
 	// capped, with the stored command line removed (see CommandSpec.RedactIn).
 	Output string `json:"output,omitempty"`
-	// Program is the configured program, unredacted. It goes to the
-	// authenticated browser API but never into a log line, because the log
-	// ends up in the diagnostics bundle.
+	// Program is the configured program, unredacted. It goes to a session
+	// or an admin token but never into a log line, because the log ends up
+	// in the diagnostics bundle, and never to a narrower token (see
+	// IdleState.Redacted).
 	Program string `json:"program,omitempty"`
 }
 
@@ -40,6 +41,17 @@ type IdleRun struct {
 type IdleState struct {
 	idleaction.State
 	LastRun *IdleRun `json:"lastRun,omitempty"`
+}
+
+// Redacted is the state for a caller that may not read the settings: the
+// settings hide the program, so the last run must not name it either.
+func (s IdleState) Redacted() any {
+	if s.LastRun != nil && s.LastRun.Program != "" {
+		run := *s.LastRun
+		run.Program = idleaction.RedactedCommand
+		s.LastRun = &run
+	}
+	return s
 }
 
 // idleRunLog holds the last run and the runner that produces one. It has its

@@ -1623,7 +1623,7 @@ export const da: Dict = {
   'settings.access.identity.namePlaceholder': 'f.eks. Hjemmeserver',
   'settings.access.identity.nameHint': 'Tilbydes først ved parring og i QR-koden nedenfor i stedet for det navn, operativsystemet eller containerkørselsmiljøet tilfældigvis giver denne maskine. Valgfrit: lad det stå tomt for at blive ved med at bruge det navn.',
   'settings.access.identity.domainsLabel': 'Kendte domæner',
-  'settings.access.identity.domainsHint': 'Hvert domæne huskes automatisk, første gang en forespørgsel kommer ind via det, og bliver stående her, selv når senere forespørgsler i stedet kommer via LAN-IP\'en. Tilføj et domæne i hånden, hvis det allerede er sat op, men der endnu ikke er kommet en forespørgsel via det. Én fuld adresse pr. linje, f.eks. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader husker et domæne, første gang nogen logger ind via det, og lader det stå her, selv når senere forespørgsler kommer via LAN-IP’en. Uden adgangskode svarer den kun på sin IP-adresse, på lokale navne og på domænerne på denne liste, så tilføj dit, før du åbner den via det domæne. Én fuld adresse pr. linje, f.eks. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Mobilapp',
   'settings.browsertools.phoneHint': 'KnightLoader-appen til Android-telefoner. Den viser og styrer downloads på dine instanser og sender dem links. APK-filen har den version, der står i hjørnet.',
   'settings.browsertools.storeAndroid': 'Google Play',

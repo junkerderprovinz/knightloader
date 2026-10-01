@@ -1624,7 +1624,7 @@ export const hr: Dict = {
   'settings.access.identity.namePlaceholder': 'npr. Kućni poslužitelj',
   'settings.access.identity.nameHint': 'Nudi se prvo pri uparivanju i u QR kodu ispod, umjesto naziva koji operacijski sustav ili izvršno okruženje kontejnera slučajno daje ovom računalu. Neobavezno: ostavi prazno ako želiš i dalje koristiti taj naziv.',
   'settings.access.identity.domainsLabel': 'Poznate domene',
-  'settings.access.identity.domainsHint': 'Svaka se domena automatski zapamti kad preko nje stigne prvi zahtjev i ostaje ovdje navedena i kad kasniji zahtjevi stižu preko LAN IP adrese. Domenu dodaj ručno ako je već postavljena, a preko nje još nije stigao nijedan zahtjev. Jedna potpuna adresa po retku, npr. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader zapamti domenu kad se netko prvi put prijavi preko nje i zadrži je ovdje na popisu, čak i kad kasniji zahtjevi stižu preko LAN IP adrese. Bez lozinke odgovara samo na svojoj IP adresi, na lokalnim imenima i na domenama s ovog popisa, pa dodaj svoju prije nego što ga otvoriš preko nje. Jedna puna adresa po retku, npr. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplikacija za mobitel',
   'settings.browsertools.phoneHint': 'Aplikacija KnightLoader za Android mobitele. Prikazuje preuzimanja na tvojim instancama, upravlja njima i šalje im poveznice. APK je verzija prikazana u kutu.',
   'settings.browsertools.storeAndroid': 'Google Play',

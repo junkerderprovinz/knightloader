@@ -278,7 +278,8 @@ var routeScopes = map[string]apitoken.Scope{
 	// of the Torrents settings page.
 	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
 
-	// The interface state also holds the SABnzbd bridge's grabs.
+	// Layout only: the buckets the instance keeps for itself are refused
+	// whatever the scope (serverBuckets).
 	"GET /api/uistate": apitoken.ScopeRead,
 	"PUT /api/uistate": apitoken.ScopeAdmin,
 	"GET /api/ws":      apitoken.ScopeRead,
@@ -435,6 +436,13 @@ func someTokenHolds(tokens []apitoken.Token, scopes ...apitoken.Scope) bool {
 		}
 		return true
 	})
+}
+
+// narrowToken reports whether r was let in on a token that may not administer,
+// which is who a route hands only the redacted form of what the settings hide.
+func narrowToken(r *http.Request) bool {
+	tok, ok := tokenOf(r)
+	return ok && !tok.Has(apitoken.ScopeAdmin)
 }
 
 // permits is requireScope for an open route that looks at its caller itself.

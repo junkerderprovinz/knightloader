@@ -1623,7 +1623,7 @@ export const vi: Dict = {
   'settings.access.identity.namePlaceholder': 'ví dụ: Máy chủ tại nhà',
   'settings.access.identity.nameHint': 'Được đề xuất đầu tiên khi ghép nối và trong mã QR bên dưới, thay cho cái tên mà hệ điều hành hoặc môi trường chạy container tình cờ đặt cho máy này. Không bắt buộc: để trống để tiếp tục dùng tên đó.',
   'settings.access.identity.domainsLabel': 'Miền đã biết',
-  'settings.access.identity.domainsHint': 'Mỗi tên miền được tự động ghi nhớ ngay lần đầu có yêu cầu đến qua nó, và vẫn nằm trong danh sách này kể cả khi các yêu cầu sau đến qua IP mạng LAN. Hãy tự thêm một tên miền nếu nó đã được cấu hình nhưng chưa có yêu cầu nào đến qua nó. Mỗi dòng một địa chỉ đầy đủ, ví dụ https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader ghi nhớ một tên miền ngay lần đầu có người đăng nhập qua nó và giữ nó trong danh sách này, kể cả khi các yêu cầu sau đến qua IP LAN. Khi chưa có mật khẩu, nó chỉ trả lời trên địa chỉ IP của mình, trên tên cục bộ và trên các tên miền trong danh sách này, vì vậy hãy thêm tên miền của bạn trước khi mở nó qua tên miền đó. Mỗi dòng một địa chỉ đầy đủ, ví dụ https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Ứng dụng điện thoại',
   'settings.browsertools.phoneHint': 'Ứng dụng KnightLoader cho điện thoại Android. Nó hiển thị và điều khiển các lượt tải trên các thực thể của bạn, và gửi liên kết cho chúng. Tệp APK có số phiên bản hiển thị ở góc.',
   'settings.browsertools.storeAndroid': 'Google Play',

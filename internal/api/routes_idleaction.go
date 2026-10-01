@@ -20,14 +20,14 @@ func registerIdleAction(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/idle-action",
 		"the end-of-queue action: whether the queue is idle, whether a countdown is running, and when it fires",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, a.IdleActionState())
+			writeJSON(w, idleStateFor(a, r))
 		})
 
 	reg.Add(http.MethodPost, "/api/idle-action/cancel",
 		"call off a countdown in progress, without turning the action off for the next time the queue goes idle",
 		func(w http.ResponseWriter, r *http.Request) {
 			a.CancelIdleAction()
-			writeJSON(w, a.IdleActionState())
+			writeJSON(w, idleStateFor(a, r))
 		})
 
 	// Served rather than compiled into the interface, as /api/queue/priorities
@@ -80,4 +80,13 @@ func registerIdleAction(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, a.RunIdleCommandNow(cfg.Command))
 		})
+}
+
+// idleStateFor is the end-of-queue state as r's caller may see it.
+func idleStateFor(a *app.App, r *http.Request) any {
+	st := a.IdleActionState()
+	if narrowToken(r) {
+		return st.Redacted()
+	}
+	return st
 }

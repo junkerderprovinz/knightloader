@@ -165,10 +165,18 @@ func registerConnect(reg *Registry, a *app.App) {
 
 			// A session is not enough: it may have been left open on an
 			// unattended screen, and the phrase unlocks every instance in the
-			// group.
-			if a.Auth.Enabled() && !a.Auth.Check(body.Password) {
-				writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
-				return
+			// group. The check shares the login's throttle, or whoever sits at
+			// that screen could guess the password here at full speed.
+			if a.Auth.Enabled() {
+				if !reg.passwordGate.try(r) {
+					http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+					return
+				}
+				if !a.Auth.Check(body.Password) {
+					writeRefusal(w, http.StatusForbidden, "passwordWrong", "the password is required to show the phrase again", nil)
+					return
+				}
+				reg.passwordGate.pass(r)
 			}
 			secretHex, err := a.Accounts.Get(relay.SeedAccountService)
 			if err != nil || secretHex == "" {

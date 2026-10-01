@@ -1625,7 +1625,7 @@ export const no: Dict = {
   'settings.access.identity.namePlaceholder': 'f.eks. Hjemmeserver',
   'settings.access.identity.nameHint': 'Tilbys først ved paring og i QR-koden nedenfor, i stedet for det operativsystemet eller container-kjøretiden tilfeldigvis kaller denne maskinen. Valgfritt: la feltet stå tomt for å fortsette med det navnet.',
   'settings.access.identity.domainsLabel': 'Kjente domener',
-  'settings.access.identity.domainsHint': 'Hvert domene huskes automatisk første gang en forespørsel kommer inn via det, og blir stående her selv når senere forespørsler kommer via LAN-IP-en i stedet. Legg til et domene for hånd hvis det allerede er satt opp, men ingen forespørsel har kommet inn via det ennå. Én full adresse per linje, f.eks. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader husker et domene første gang noen logger inn via det, og lar det stå her, selv når senere forespørsler kommer via LAN-IP-en. Uten passord svarer den bare på sin egen IP-adresse, på lokale navn og på domenene i denne listen, så legg til ditt før du åpner den via det domenet. Én fullstendig adresse per linje, f.eks. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Mobilapp',
   'settings.browsertools.phoneHint': 'KnightLoader-appen for Android-telefoner. Den viser og styrer nedlastingene på instansene dine og sender dem lenker. APK-filen har versjonen som står i hjørnet.',
   'settings.browsertools.storeAndroid': 'Google Play',

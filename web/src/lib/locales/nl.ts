@@ -1616,7 +1616,7 @@ export const nl: Dict = {
   'settings.access.identity.namePlaceholder': 'bijv. Thuisserver',
   'settings.access.identity.nameHint': 'Wordt bij het koppelen en in de QR-code hieronder als eerste aangeboden, in plaats van de naam die het besturingssysteem of de containerruntime deze machine toevallig geeft. Optioneel: laat het leeg om die naam te blijven gebruiken.',
   'settings.access.identity.domainsLabel': 'Bekende domeinen',
-  'settings.access.identity.domainsHint': 'Elk domein wordt automatisch onthouden zodra er voor het eerst een verzoek via dat domein binnenkomt, en blijft hier staan, ook als latere verzoeken via het LAN-IP-adres binnenkomen. Voeg een domein met de hand toe als het al is ingesteld, maar er nog geen verzoek via is binnengekomen. Eén volledig adres per regel, bijv. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader onthoudt een domein zodra iemand er voor het eerst via inlogt en laat het hier staan, ook als latere verzoeken via het LAN-IP binnenkomen. Zonder wachtwoord antwoordt het alleen op zijn eigen IP-adres, op lokale namen en op de domeinen in deze lijst, dus voeg het jouwe toe voordat je het via dat domein opent. Eén volledig adres per regel, bijv. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefoonapp',
   'settings.browsertools.phoneHint': 'De KnightLoader-app voor Android-telefoons. De app toont en bestuurt de downloads op je instanties en stuurt ze links. De APK is de versie die in de hoek staat.',
   'settings.browsertools.storeAndroid': 'Google Play',
