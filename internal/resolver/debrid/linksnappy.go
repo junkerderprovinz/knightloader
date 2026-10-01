@@ -59,6 +59,8 @@ func (e lsEnvelope) errText() string {
 	return ""
 }
 
+// get sends one GET. AUTHENTICATE takes the password in the query, the only
+// way the undocumented API is known to accept it, so errors leave the URL out.
 func (l *Linksnappy) get(ctx context.Context, path string, q url.Values) ([]byte, error) {
 	u := l.base + path
 	if len(q) > 0 {
@@ -66,12 +68,12 @@ func (l *Linksnappy) get(ctx context.Context, path string, q url.Values) ([]byte
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("linksnappy %s: %w", path, httpx.StripURL(err))
 	}
 	req.Header.Set("Accept", "application/json")
 	resp, err := l.hc.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("linksnappy %s: %w", path, httpx.StripURL(err))
 	}
 	defer resp.Body.Close()
 	return io.ReadAll(io.LimitReader(resp.Body, 8<<20))
