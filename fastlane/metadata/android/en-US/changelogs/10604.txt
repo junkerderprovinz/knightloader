@@ -1,0 +1,1 @@
+Your server can fetch torrents through Linksnappy, and pairing and sign-in check more closely who is calling.
