@@ -1623,7 +1623,7 @@ export const ja: Dict = {
   'settings.access.identity.namePlaceholder': '例: ホームサーバー',
   'settings.access.identity.nameHint': 'ペアリングのときと下の QR コードで、OS やコンテナランタイムがこのマシンにたまたま付けている名前の代わりに、最初に提示されます。任意です。空欄のままにすると、その名前が引き続き使われます。',
   'settings.access.identity.domainsLabel': '既知のドメイン',
-  'settings.access.identity.domainsHint': '各ドメインは、そのドメイン経由で最初のリクエストが届いた時点で自動的に記憶され、後のリクエストが LAN IP 経由で届くようになっても、ここに表示され続けます。設定済みでも、まだそのドメイン経由でリクエストが届いていない場合は、手動で追加してください。1行に1つの完全なアドレスを書きます（例: https://kl.example.com）。',
+  'settings.access.identity.domainsHint': 'KnightLoader は、誰かがそのドメイン経由で初めてサインインしたときにドメインを記憶し、後のリクエストが LAN IP 経由で届くようになっても、ここに表示し続けます。パスワードが未設定のあいだは、自身の IP アドレス、ローカル名、このリストのドメインでしか応答しないため、そのドメインで開く前にここへ追加してください。1行に1つの完全なアドレスを書きます（例: https://kl.example.com）。',
   'settings.browsertools.phoneTitle': 'スマートフォンアプリ',
   'settings.browsertools.phoneHint': 'Android スマートフォン向けの KnightLoader アプリです。インスタンス上のダウンロードを表示して操作し、インスタンスにリンクを送ります。APK は隅に表示されているバージョンです。',
   'settings.browsertools.storeAndroid': 'Google Play',

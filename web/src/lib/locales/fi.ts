@@ -1623,7 +1623,7 @@ export const fi: Dict = {
   'settings.access.identity.namePlaceholder': 'esim. Kotipalvelin',
   'settings.access.identity.nameHint': 'Tarjotaan ensimmäisenä pariliitoksessa ja alla olevassa QR-koodissa sen nimen sijaan, jonka käyttöjärjestelmä tai kontin ajoympäristö sattuu antamaan tälle koneelle. Valinnainen: jätä tyhjäksi, jos haluat käyttää edelleen sitä nimeä.',
   'settings.access.identity.domainsLabel': 'Tunnetut verkkotunnukset',
-  'settings.access.identity.domainsHint': 'Jokainen verkkotunnus muistetaan automaattisesti, kun ensimmäinen pyyntö saapuu sen kautta, ja se pysyy tässä listassa, vaikka myöhemmät pyynnöt tulisivat lähiverkon IP-osoitteen kautta. Lisää verkkotunnus käsin, jos se on jo määritetty mutta sen kautta ei ole vielä tullut yhtään pyyntöä. Yksi täydellinen osoite riviä kohden, esim. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader muistaa verkkotunnuksen, kun joku kirjautuu sen kautta ensimmäisen kerran, ja pitää sen tässä listassa, vaikka myöhemmät pyynnöt tulisivat lähiverkon IP-osoitteen kautta. Ilman salasanaa se vastaa vain omassa IP-osoitteessaan, paikallisilla nimillä ja tämän listan verkkotunnuksilla, joten lisää omasi ennen kuin avaat sen sen kautta. Yksi täydellinen osoite riviä kohden, esim. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Puhelinsovellus',
   'settings.browsertools.phoneHint': 'KnightLoader-sovellus Android-puhelimille. Se näyttää ja ohjaa instanssiesi latauksia ja lähettää niille linkkejä. APK on se versio, joka näkyy kulmassa.',
   'settings.browsertools.storeAndroid': 'Google Play',

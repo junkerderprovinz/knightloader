@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
@@ -82,8 +85,14 @@ func TestRemoteAccessListsTheConnectionThatAskedFirst(t *testing.T) {
 // terminates TLS and talks plain HTTP to the container.
 func TestRemoteAccessTrustsForwardedProtoForScheme(t *testing.T) {
 	requireContainerDeployment(t)
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
+	// Without a password the instance answers only on names it knows.
+	cfg := a.Settings.Get()
+	cfg.KnownDomains = []string{"knightloader.example.tld"}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
 	if err != nil {
@@ -313,27 +322,99 @@ func TestIsDomainHost(t *testing.T) {
 	}
 }
 
-// TestRemoteAccessRemembersDomainSeenOnARequest checks that a domain a request
-// arrived on is saved, so it stays listed when later requests use the LAN IP.
-func TestRemoteAccessRemembersDomainSeenOnARequest(t *testing.T) {
+const signInPassword = "a-good-password"
+
+// signInOn signs in on host, as a browser behind a TLS-terminating proxy
+// would, setting the password first when none is set. It returns the status.
+func signInOn(t *testing.T, a *app.App, url, host string) int {
+	t.Helper()
+	if !a.Auth.Enabled() {
+		if err := a.Auth.SetPassword("", signInPassword); err != nil {
+			t.Fatal(err)
+		}
+	}
+	req, err := http.NewRequest(http.MethodPost, url+"/api/auth/login", strings.NewReader(`{"password":"`+signInPassword+`"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = host
+	req.Header.Set("X-Forwarded-Proto", "https")
+	return doJSON(t, req, nil)
+}
+
+// unlock removes the password signInOn set, so a test can look at the
+// instance without a session again.
+func unlock(t *testing.T, a *app.App) {
+	t.Helper()
+	if err := a.Auth.SetPassword(signInPassword, ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestSigningInRemembersTheDomain checks that a domain somebody signed in on
+// is saved, so it stays listed when later requests use the LAN IP.
+func TestSigningInRemembersTheDomain(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	req, err := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Host = "knightloader.example.tld"
-	req.Header.Set("X-Forwarded-Proto", "https")
-	if code := doJSON(t, req, nil); code != http.StatusOK {
-		t.Fatalf("GET /api/remote-access answered %d", code)
+	if code := signInOn(t, a, srv.URL, "knightloader.example.tld"); code != http.StatusOK {
+		t.Fatalf("signing in answered %d", code)
 	}
 
 	known := a.Settings.Get().KnownDomains
 	want := "https://knightloader.example.tld"
 	if len(known) != 1 || known[0] != want {
 		t.Fatalf("KnownDomains = %v, want [%q]", known, want)
+	}
+}
+
+// TestReadingRemoteAccessRemembersNothing: the Host of a read is whatever the
+// caller sent, and a read-only token or a page that rebound its own domain must
+// not be able to make this instance announce that name.
+func TestReadingRemoteAccessRemembersNothing(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", signInPassword); err != nil {
+		t.Fatal(err)
+	}
+	_, secret, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
+	req.Host = "phish.example.tld"
+	req.Header.Set("Authorization", "Bearer "+secret)
+	if code := doJSON(t, req, nil); code != http.StatusOK {
+		t.Fatalf("GET /api/remote-access with a read token answered %d", code)
+	}
+	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
+		t.Fatalf("KnownDomains = %v after a read, want none", known)
+	}
+}
+
+// TestAFullDomainListReportsNoChange: once the list is full the settings drop a
+// new entry, and a sign-in on yet another name must not redial the relay for a
+// list that stayed the same.
+func TestAFullDomainListReportsNoChange(t *testing.T) {
+	requireContainerDeployment(t)
+	a := testApp(t)
+	cfg := a.Settings.Get()
+	for i := range 8 {
+		cfg.KnownDomains = append(cfg.KnownDomains, "https://d"+strconv.Itoa(i)+".example.tld")
+	}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	known := a.Settings.Get().KnownDomains
+	if len(known) != 8 {
+		t.Fatalf("set up %d known domains, want 8", len(known))
+	}
+	addr := reachable("this connection", "https", "ninth.example.tld", "", false)
+	if rememberDomain(a, addr, known) {
+		t.Error("rememberDomain reported a change the settings dropped")
 	}
 }
 
@@ -354,12 +435,10 @@ func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 		t.Fatalf("address = %q before any domain is known", got)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
-	req.Host = "kl.example.tld"
-	req.Header.Set("X-Forwarded-Proto", "https")
-	if code := doJSON(t, req, nil); code != http.StatusOK {
-		t.Fatalf("GET /api/remote-access answered %d", code)
+	if code := signInOn(t, a, srv.URL, "kl.example.tld"); code != http.StatusOK {
+		t.Fatalf("signing in answered %d", code)
 	}
+	unlock(t, a)
 	if got := address(); got != "https://kl.example.tld" {
 		t.Fatalf("address = %q, want the domain the instance was reached on", got)
 	}
@@ -374,26 +453,22 @@ func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 	}
 }
 
-func TestRemoteAccessDoesNotRememberLoopbackOrBareIP(t *testing.T) {
+func TestSigningInDoesNotRememberLoopbackOrBareIP(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	if code, _ := getRemoteAccess(t, srv.URL, ""); code != http.StatusOK {
-		t.Fatalf("loopback GET /api/remote-access answered %d", code)
+	for _, host := range []string{strings.TrimPrefix(srv.URL, "http://"), "192.0.2.10:8749", "wails.localhost"} {
+		if code := signInOn(t, a, srv.URL, host); code != http.StatusOK {
+			t.Fatalf("signing in on %s answered %d", host, code)
+		}
 	}
-	if code, info := getRemoteAccess(t, srv.URL, "192.0.2.10:8749"); code != http.StatusOK {
-		t.Fatalf("bare-IP GET /api/remote-access answered %d", code)
-	} else if len(info.Addresses) == 0 {
-		t.Fatal("no addresses reported for the bare-IP request")
-	}
-
 	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
-		t.Fatalf("KnownDomains = %v, want none after only loopback/bare-IP requests", known)
+		t.Fatalf("KnownDomains = %v, want none after signing in on loopback and bare IPs only", known)
 	}
 }
 
-func TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain(t *testing.T) {
+func TestSigningInDoesNotDuplicateAnAlreadyKnownDomain(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -404,13 +479,9 @@ func TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
-	req.Host = "knightloader.example.tld"
-	req.Header.Set("X-Forwarded-Proto", "https")
-	if code := doJSON(t, req, nil); code != http.StatusOK {
-		t.Fatalf("GET /api/remote-access answered %d", code)
+	if code := signInOn(t, a, srv.URL, "knightloader.example.tld"); code != http.StatusOK {
+		t.Fatalf("signing in answered %d", code)
 	}
-
 	if known := a.Settings.Get().KnownDomains; len(known) != 1 {
 		t.Fatalf("KnownDomains = %v, want the same single entry, not a duplicate", known)
 	}

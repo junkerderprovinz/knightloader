@@ -182,28 +182,42 @@ func credentialDescriptors(creds []webauthn.Credential) []protocol.CredentialDes
 type passkeyCeremony struct {
 	session webauthn.SessionData
 	rpID    string
+	client  string
 	expires time.Time
 }
 
 const (
 	passkeyCeremonyTTL = 5 * time.Minute
-	// passkeyCeremonyMax bounds the map, since sign-in can be started without
-	// a session.
+	// passkeyCeremonyMax bounds each map, since sign-in can be started
+	// without a session.
 	passkeyCeremonyMax = 64
+	// passkeySignInsPerClient is how many sign-ins one address may have
+	// started and not finished. A person needs one; a few cover a second tab.
+	passkeySignInsPerClient = 4
 )
 
+// errCeremoniesFull refuses a new sign-in while the map is full.
+var errCeremoniesFull = errors.New("too many passkey sign-ins are in progress; try again in a few minutes")
+
+// passkeyCeremonies holds the ceremonies of one kind. Registration and sign-in
+// get a map each: sign-in is started by anybody, and sharing would let a
+// stranger push the owner's registration out.
 type passkeyCeremonies struct {
 	mu sync.Mutex
 	m  map[string]passkeyCeremony
+	// perClient, when set, bounds what one caller holds and makes a full map
+	// refuse new ceremonies instead of dropping the oldest, which may be the
+	// owner's own, half done.
+	perClient int
 }
 
-func newPasskeyCeremonies() *passkeyCeremonies {
-	return &passkeyCeremonies{m: map[string]passkeyCeremony{}}
+func newPasskeyCeremonies(perClient int) *passkeyCeremonies {
+	return &passkeyCeremonies{m: map[string]passkeyCeremony{}, perClient: perClient}
 }
 
 // begin stores session data and returns the random, single-use handle the
 // finishing call has to present.
-func (c *passkeyCeremonies) begin(s *webauthn.SessionData, rpID string) (string, error) {
+func (c *passkeyCeremonies) begin(s *webauthn.SessionData, rpID, client string) (string, error) {
 	raw := make([]byte, 32)
 	if _, err := rand.Read(raw); err != nil {
 		return "", err
@@ -218,6 +232,14 @@ func (c *passkeyCeremonies) begin(s *webauthn.SessionData, rpID string) (string,
 			delete(c.m, k)
 		}
 	}
+	if c.perClient > 0 {
+		for c.held(client) >= c.perClient {
+			delete(c.m, c.oldest(client))
+		}
+		if len(c.m) >= passkeyCeremonyMax {
+			return "", errCeremoniesFull
+		}
+	}
 	// Still full after the sweep: drop the oldest rather than grow without
 	// bound.
 	for len(c.m) >= passkeyCeremonyMax {
@@ -229,8 +251,31 @@ func (c *passkeyCeremonies) begin(s *webauthn.SessionData, rpID string) (string,
 		}
 		delete(c.m, oldestKey)
 	}
-	c.m[id] = passkeyCeremony{session: *s, rpID: rpID, expires: now.Add(passkeyCeremonyTTL)}
+	c.m[id] = passkeyCeremony{session: *s, rpID: rpID, client: client, expires: now.Add(passkeyCeremonyTTL)}
 	return id, nil
+}
+
+// held is how many ceremonies client has started. Called with mu held.
+func (c *passkeyCeremonies) held(client string) int {
+	n := 0
+	for _, v := range c.m {
+		if v.client == client {
+			n++
+		}
+	}
+	return n
+}
+
+// oldest is the handle of client's ceremony that expires first, "" when it
+// holds none. Called with mu held.
+func (c *passkeyCeremonies) oldest(client string) string {
+	oldestKey, oldest := "", time.Time{}
+	for k, v := range c.m {
+		if v.client == client && (oldest.IsZero() || v.expires.Before(oldest)) {
+			oldestKey, oldest = k, v.expires
+		}
+	}
+	return oldestKey
 }
 
 // take consumes a handle, so a challenge cannot be answered twice.
@@ -277,10 +322,12 @@ func passkeyViews(rows []store.Passkey, hereRPID string) []passkeyView {
 }
 
 func registerPasskeys(reg *Registry, a *app.App) {
-	ceremonies := newPasskeyCeremonies()
+	registrations := newPasskeyCeremonies(0)
+	signIns := newPasskeyCeremonies(passkeySignInsPerClient)
 	// A throttle of its own: the sign-in routes answer without a session and
-	// every started ceremony is stored. Sharing the password's counter would
-	// let somebody hammering the password lock the owner out of this way in too.
+	// every started ceremony is stored, so starting one counts as an attempt
+	// too. Sharing the password's counter would let somebody hammering the
+	// password lock the owner out of this way in too.
 	gate := newLoginGate()
 
 	reg.AddOpen(http.MethodGet, "/api/auth/passkeys",
@@ -349,7 +396,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := ceremonies.begin(session, rpID)
+			handle, err := registrations.begin(session, rpID, loginClientKey(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -368,7 +415,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			cer, ok := ceremonies.take(body.CeremonyID)
+			cer, ok := registrations.take(body.CeremonyID)
 			if !ok {
 				writeRefusal(w, http.StatusBadRequest, "expired", "that registration has expired, start it again", nil)
 				return
@@ -431,7 +478,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, "no password is set on this instance", http.StatusBadRequest)
 				return
 			}
-			if gate.blocked(r) {
+			if !gate.try(r) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
@@ -454,7 +501,11 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := ceremonies.begin(session, rpID)
+			handle, err := signIns.begin(session, rpID, loginClientKey(r))
+			if errors.Is(err, errCeremoniesFull) {
+				http.Error(w, err.Error(), http.StatusServiceUnavailable)
+				return
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -469,7 +520,9 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, "no password is set on this instance", http.StatusBadRequest)
 				return
 			}
-			if gate.blocked(r) {
+			// Every answer counts until it signs somebody in, which wipes the
+			// count; see loginGate.try.
+			if !gate.try(r) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
@@ -477,12 +530,11 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				CeremonyID string          `json:"ceremonyId"`
 				Credential json.RawMessage `json:"credential"`
 			}
-			if !decodeJSON(w, r, &body) {
+			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
 				return
 			}
-			cer, ok := ceremonies.take(body.CeremonyID)
+			cer, ok := signIns.take(body.CeremonyID)
 			if !ok {
-				gate.fail(r)
 				http.Error(w, "that sign-in has expired, try again", http.StatusBadRequest)
 				return
 			}
@@ -492,7 +544,6 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				return
 			}
 			if rpID != cer.rpID {
-				gate.fail(r)
 				http.Error(w, "that sign-in was started on a different address", http.StatusBadRequest)
 				return
 			}
@@ -503,13 +554,11 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			}
 			parsed, err := protocol.ParseCredentialRequestResponseBytes(body.Credential)
 			if err != nil {
-				gate.fail(r)
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 			cred, err := wa.ValidateLogin(user, cer.session, parsed)
 			if err != nil {
-				gate.fail(r)
 				log.Printf("api: passkey sign-in refused: %v", err)
 				http.Error(w, "that passkey was not accepted", http.StatusUnauthorized)
 				return
@@ -518,7 +567,6 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			// library only raises it when both sides are non-zero, since many
 			// authenticators always report 0.
 			if cred.Authenticator.CloneWarning {
-				gate.fail(r)
 				log.Printf("api: passkey sign-in refused: the authenticator's counter went backwards, which is how a copied key looks")
 				http.Error(w, "that passkey was refused: its counter went backwards, which is how a copied key looks. Remove it and register a new one", http.StatusUnauthorized)
 				return
@@ -537,6 +585,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			// the person unlocking it, and the code backs up a password this
 			// sign-in did not use.
 			setSession(w, r, a.Auth.Issue())
+			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 

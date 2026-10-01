@@ -1623,7 +1623,7 @@ export const hi: Dict = {
   'settings.access.identity.namePlaceholder': 'उदाहरण के लिए, होम सर्वर',
   'settings.access.identity.nameHint': 'पेयरिंग के समय और नीचे दिए QR कोड में सबसे पहले यही नाम दिया जाता है, उस नाम के बजाय जो ऑपरेटिंग सिस्टम या कंटेनर रनटाइम इस मशीन को यूँ ही दे देता है। वैकल्पिक: उसी नाम को इस्तेमाल करते रहने के लिए इसे खाली छोड़ दें।',
   'settings.access.identity.domainsLabel': 'ज्ञात डोमेन',
-  'settings.access.identity.domainsHint': 'हर डोमेन उस पर पहला अनुरोध आते ही अपने आप याद रख लिया जाता है, और यहाँ सूची में बना रहता है, भले ही बाद के अनुरोध LAN IP से आएँ। अगर कोई डोमेन पहले से सेट है पर उस पर अभी तक कोई अनुरोध नहीं आया, तो उसे हाथ से जोड़ें। हर पंक्ति में एक पूरा पता, जैसे https://kl.example.com।',
+  'settings.access.identity.domainsHint': 'जब कोई पहली बार किसी डोमेन से साइन इन करता है, तो KnightLoader उस डोमेन को याद रख लेता है और उसे यहाँ सूची में रखता है, भले ही बाद के अनुरोध LAN IP से आएँ। पासवर्ड के बिना यह सिर्फ़ अपने IP पते, लोकल नामों और इस सूची के डोमेन पर जवाब देता है, इसलिए उस डोमेन से खोलने से पहले अपना डोमेन यहाँ जोड़ें। हर पंक्ति में एक पूरा पता, जैसे https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'फ़ोन ऐप',
   'settings.browsertools.phoneHint': 'Android फ़ोन के लिए KnightLoader ऐप। यह आपके इंस्टेंस के डाउनलोड दिखाता है, उन्हें नियंत्रित करता है और इंस्टेंस को लिंक भेजता है। APK वही संस्करण है जो कोने में दिखाया गया है।',
   'settings.browsertools.storeAndroid': 'Google Play',

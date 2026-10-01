@@ -1623,7 +1623,7 @@ export const hu: Dict = {
   'settings.access.identity.namePlaceholder': 'pl. Otthoni szerver',
   'settings.access.identity.nameHint': 'Párosításkor és az alábbi QR-kódban ezt kínáljuk fel először, ahelyett a név helyett, amelyet az operációs rendszer vagy a konténer-futtatókörnyezet éppen ad ennek a gépnek. Nem kötelező: ha üresen hagyod, marad az a név.',
   'settings.access.identity.domainsLabel': 'Ismert domainek',
-  'settings.access.identity.domainsHint': 'Minden domaint automatikusan megjegyzünk, amikor először érkezik rajta kérés, és akkor is itt marad a listán, ha a későbbi kérések a LAN IP-címen jönnek. Kézzel akkor adj hozzá egy domaint, ha már be van állítva, de még nem érkezett rajta kérés. Soronként egy teljes cím, pl. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'A KnightLoader megjegyez egy domaint, amikor valaki először bejelentkezik rajta keresztül, és itt a listán tartja akkor is, ha a későbbi kérések a helyi hálózati IP-n érkeznek. Jelszó nélkül csak a saját IP-címén, helyi neveken és az ebben a listában szereplő domaineken válaszol, ezért add hozzá a sajátodat, mielőtt azon keresztül megnyitnád. Soronként egy teljes cím, pl. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefonos alkalmazás',
   'settings.browsertools.phoneHint': 'A KnightLoader alkalmazás Android telefonokra. Megmutatja és irányítja a példányaidon futó letöltéseket, és linkeket küld nekik. Az APK a sarokban látható verzió.',
   'settings.browsertools.storeAndroid': 'Google Play',

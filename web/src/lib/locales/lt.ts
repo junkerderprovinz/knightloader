@@ -1623,7 +1623,7 @@ export const lt: Dict = {
   'settings.access.identity.namePlaceholder': 'pvz., Namų serveris',
   'settings.access.identity.nameHint': 'Porinant ir žemiau esančiame QR kode siūlomas pirmiausia, vietoj pavadinimo, kurį šiam kompiuteriui atsitiktinai davė OS ar konteinerio vykdymo aplinka. Nebūtina: palik tuščią, ir bus toliau naudojamas tas pavadinimas.',
   'settings.access.identity.domainsLabel': 'Žinomi domenai',
-  'settings.access.identity.domainsHint': 'Kiekvienas domenas įsimenamas automatiškai, kai per jį atkeliauja pirmoji užklausa, ir lieka čia sąraše net tada, kai vėlesnės užklausos ateina per LAN IP. Pridėk domeną ranka, jei jis jau sukonfigūruotas, bet per jį dar neatėjo nė viena užklausa. Po vieną pilną adresą eilutėje, pvz., https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader įsimena domeną, kai kas nors pirmą kartą per jį prisijungia, ir palieka jį šiame sąraše, net kai vėlesnės užklausos ateina per LAN IP. Be slaptažodžio jis atsako tik savo IP adresu, vietiniais vardais ir šiame sąraše esančiais domenais, todėl pridėk savo domeną prieš atidarydamas jį per jį. Vienas pilnas adresas eilutėje, pvz., https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefono programėlė',
   'settings.browsertools.phoneHint': 'KnightLoader programėlė Android telefonams. Ji rodo ir valdo atsisiuntimus tavo egzemplioriuose ir siunčia jiems nuorodas. APK yra ta versija, kuri rodoma kampe.',
   'settings.browsertools.storeAndroid': 'Google Play',

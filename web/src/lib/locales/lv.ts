@@ -1623,7 +1623,7 @@ export const lv: Dict = {
   'settings.access.identity.namePlaceholder': 'piem., Mājas serveris',
   'settings.access.identity.nameHint': 'Pārošanas laikā un QR kodā zemāk tiek piedāvāts vispirms, nevis tas nosaukums, ko šim datoram nejauši devusi OS vai konteinera izpildvide. Neobligāti: atstāj tukšu, lai turpinātu izmantot to nosaukumu.',
   'settings.access.identity.domainsLabel': 'Zināmie domēni',
-  'settings.access.identity.domainsHint': 'Katrs domēns tiek iegaumēts automātiski, kad caur to pienāk pirmais pieprasījums, un paliek šeit sarakstā arī tad, ja vēlākie pieprasījumi nāk caur LAN IP. Pievieno domēnu ar roku, ja tas jau ir konfigurēts, bet caur to vēl nav pienācis neviens pieprasījums. Viena pilna adrese rindiņā, piem., https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader iegaumē domēnu, kad kāds pirmo reizi caur to pieslēdzas, un patur to šajā sarakstā arī tad, ja vēlākie pieprasījumi nāk caur LAN IP. Bez paroles tas atbild tikai savā IP adresē, uz vietējiem nosaukumiem un uz šī saraksta domēniem, tāpēc pievieno savu domēnu, pirms atver to caur šo domēnu. Viena pilna adrese katrā rindā, piem., https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Tālruņa lietotne',
   'settings.browsertools.phoneHint': 'KnightLoader lietotne Android tālruņiem. Tā rāda un vada lejupielādes tavās instancēs un sūta tām saites. APK ir tā versija, kas redzama stūrī.',
   'settings.browsertools.storeAndroid': 'Google Play',

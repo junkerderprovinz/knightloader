@@ -132,6 +132,11 @@ type Registry struct {
 	// then, and on a build without discovery, it does nothing.
 	refreshDiscovery func()
 
+	// passwordGate throttles every route that checks the login password, so
+	// a route that asks for it again cannot serve as an unthrottled way to
+	// guess it.
+	passwordGate *loginGate
+
 	openOnce   sync.Once
 	openExact  map[string]bool
 	openPrefix []string
@@ -141,7 +146,7 @@ type Registry struct {
 }
 
 func newRegistry() *Registry {
-	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}}
+	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate()}
 }
 
 // Add registers a route that needs a session once a password is set.

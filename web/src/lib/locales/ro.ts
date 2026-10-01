@@ -1624,7 +1624,7 @@ export const ro: Dict = {
   'settings.access.identity.namePlaceholder': 'de ex. Server de acasă',
   'settings.access.identity.nameHint': 'Oferit primul la asociere și în codul QR de mai jos, în locul numelui pe care sistemul de operare sau mediul de rulare al containerului îl dă acestui calculator. Opțional: lasă gol ca să folosești în continuare acel nume.',
   'settings.access.identity.domainsLabel': 'Domenii cunoscute',
-  'settings.access.identity.domainsHint': 'Fiecare domeniu este reținut automat prima dată când sosește o cerere prin el și rămâne listat aici chiar și atunci când cererile ulterioare vin prin IP-ul din LAN. Adaugă manual un domeniu dacă e deja configurat, dar încă n-a sosit nicio cerere prin el. O adresă completă pe rând, de ex. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader reține un domeniu prima dată când cineva se conectează prin el și îl păstrează în această listă, chiar și când cererile următoare vin prin IP-ul din rețeaua locală. Fără parolă răspunde doar pe adresa sa IP, pe nume locale și pe domeniile din această listă, așa că adaugă-l pe al tău înainte să-l deschizi prin acel domeniu. O adresă completă pe rând, de ex. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplicația de telefon',
   'settings.browsertools.phoneHint': 'Aplicația KnightLoader pentru telefoane Android. Afișează și controlează descărcările de pe instanțele tale și le trimite linkuri. APK-ul are versiunea afișată în colț.',
   'settings.browsertools.storeAndroid': 'Google Play',
