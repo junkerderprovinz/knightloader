@@ -35,11 +35,13 @@ type Engine struct {
 	// pausing the number of Pause calls under way.
 	reconnecting map[string]*reconnect
 	pausing      map[string]int
-	// holds is every transfer stopped for its folder to be moved, and starting
-	// every HTTP start still resolving its link, both by KL task id (see
-	// hold.go).
+	// holds is every transfer stopped for its folder to be moved (see
+	// hold.go), starting every start not yet handed to the library, and
+	// parked every start paused before it got there, all by KL task id (see
+	// start.go).
 	holds    map[string]*hold
-	starting map[string]chan struct{}
+	starting map[string]*start
+	parked   map[string]Job
 	// files is where each gopeed task writes, keyed by gopeed id because the
 	// start event that carries it can arrive before Start has mapped the id.
 	files map[string]string
@@ -155,7 +157,8 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		reconnecting: map[string]*reconnect{},
 		pausing:      map[string]int{},
 		holds:        map[string]*hold{},
-		starting:     map[string]chan struct{}{},
+		starting:     map[string]*start{},
+		parked:       map[string]Job{},
 		files:        map[string]string{},
 		jobs:         map[string]Job{},
 		mends:        map[string]*mend{},
@@ -412,17 +415,15 @@ func (e *Engine) Start(j Job) {
 	}
 	// The scheme decides the protocol, as it does inside the library, so the
 	// caller does not state it a second time.
-	if torrent.IsURI(j.URL) {
-		e.startTorrent(j)
+	isTorrent := torrent.IsURI(j.URL)
+	s := e.beginStart(j, isTorrent)
+	if isTorrent {
+		e.startTorrent(j, s)
 		return
 	}
-	ready := make(chan struct{})
-	e.mu.Lock()
-	e.starting[j.TaskID] = ready
-	e.mu.Unlock()
 	go func() {
 		defer e.wg.Done()
-		defer e.startEnded(j.TaskID, ready)
+		defer e.startEnded(j.TaskID, s)
 		req := &base.Request{
 			URL:   j.URL,
 			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -431,7 +432,9 @@ func (e *Engine) Start(j Job) {
 		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			if e.proceed(j) {
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			}
 			return
 		}
 		_, size := metaOf(rr.Res)
@@ -440,10 +443,15 @@ func (e *Engine) Start(j Job) {
 		if err != nil {
 			// Report the name with the failure, so the app can pre-empt the
 			// collision on a retry.
-			e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
+			if e.proceed(j) {
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
+			}
 			return
 		}
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		if !e.proceed(j) {
+			return
+		}
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -533,12 +541,13 @@ func requestProxy(r proxycfg.Route) *base.RequestProxy {
 	}
 }
 
-// Pause waits for a Reconnect of the same task to finish first, or the resume
-// half of it would undo this pause. No Reconnect starts while it runs: one that
-// began after the look would pause the task first, leave this pause nothing to
-// do, and then resume it.
+// Pause stops the task, or the start still resolving its link before the
+// library ever runs it. It waits for a Reconnect of the same task to finish
+// first, or the resume half of it would undo this pause. No Reconnect starts
+// while it runs: one that began after the look would pause the task first,
+// leave this pause nothing to do, and then resume it.
 func (e *Engine) Pause(taskID string) {
-	if e.pauseMend(taskID) {
+	if e.pauseMend(taskID) || e.markStart(taskID, func(s *start) { s.paused = true }) {
 		return
 	}
 	e.mu.Lock()
@@ -565,7 +574,7 @@ func (e *Engine) Pause(taskID string) {
 }
 
 func (e *Engine) Resume(taskID string) {
-	if e.resumeMend(taskID) {
+	if e.resumeMend(taskID) || e.unpark(taskID) || e.markStart(taskID, func(s *start) { s.paused = false }) {
 		return
 	}
 	e.filterOp(taskID, e.d.Continue)
@@ -652,7 +661,9 @@ func (e *Engine) Reconnect(taskID string) bool {
 // which a restart needs; tidying the list does not.
 func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.dropMend(taskID)
+	e.markStart(taskID, func(s *start) { s.removed = true })
 	e.mu.Lock()
+	delete(e.parked, taskID)
 	gid := e.toGopeed[taskID]
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
