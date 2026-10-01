@@ -199,8 +199,9 @@ func (m *Manager) List() []Instance {
 // transport.
 //
 // A relay peer is always keyed by its InstanceID, so its address never shifts
-// when other peers come and go. Stored names are at most 32 characters and
-// InstanceIDs are 40 hex characters, so the two cannot collide.
+// when other peers come and go. The announcer chooses that id, so a member is
+// listed only under one shaped like an InstanceID and never in place of a
+// stored peer, whose calls and credential would otherwise go to it.
 func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	local := m.localMembers()
 	m.mu.Lock()
@@ -217,7 +218,14 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		}
 		return in
 	}
+	admit := func(id string) bool {
+		in, taken := out[id]
+		return relay.ValidInstanceID(id) && (!taken || in.RelayID != "")
+	}
 	for _, p := range local {
+		if !admit(p.ID) {
+			continue
+		}
 		in := member(p.ID, p.Name)
 		in.directURL = p.URL
 		in.Address = p.Address
@@ -230,11 +238,11 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	for _, sib := range rt.Siblings() {
 		// A client-only sibling (the mobile app) calls instances but is not
 		// one; see relay.Announce.Client.
-		if sib.Client {
+		if sib.Client || !admit(sib.InstanceID) {
 			continue
 		}
 		in, ok := out[sib.InstanceID]
-		if !ok || in.RelayID == "" {
+		if !ok {
 			in = member(sib.InstanceID, sib.Name)
 		}
 		if in.Address == "" {
@@ -304,14 +312,17 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	if !ok {
 		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
 	}
-	// The token is looked up under the key the peer is addressed by: the
-	// pairing name for a stored peer, the InstanceID for a relay peer. The
-	// pairing exchange files it under the same key (routes_pairing.go).
-	auth := ""
-	if tok := m.tokenFor(name); tok != "" {
-		auth = "Bearer " + tok
+	// The token is looked up under the key of the transport the peer is
+	// reached by, as the pairing exchange files it (routes_pairing.go): the
+	// InstanceID for a member, the stored name for a stored peer.
+	bearer := func(key string) string {
+		if tok := m.tokenFor(key); tok != "" {
+			return "Bearer " + tok
+		}
+		return ""
 	}
 	if in.RelayID != "" {
+		auth := bearer(in.RelayID)
 		// A member on this network is asked directly, and the relay carries
 		// the call when that fails or the member is elsewhere. rt is set
 		// whenever viaRelay is, since both came from the same snapshot.
@@ -323,6 +334,7 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 		}
 		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
 	}
+	auth := bearer(in.Name)
 	var rd io.Reader
 	if len(body) > 0 {
 		rd = bytes.NewReader(body)

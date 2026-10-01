@@ -25,6 +25,8 @@ import (
 	"time"
 
 	"golang.org/x/net/ipv4"
+
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // group is in the administratively scoped 239.255/16 range (RFC 2365), which
@@ -359,7 +361,11 @@ func (s *Service) readLoop(conn *ipv4.PacketConn) {
 // absorb files one announce. It is separate from readLoop so tests can drive
 // it without real datagrams.
 func (s *Service) absorb(p Peer) {
-	p.ID = clip(p.ID)
+	// A member is listed under its id beside stored peers, so an id of any
+	// other shape could take a stored peer's name.
+	if !relay.ValidInstanceID(p.ID) {
+		return
+	}
 	p.Name = clip(p.Name)
 	p.URL = clip(p.URL)
 	p.Deployment = clip(p.Deployment)

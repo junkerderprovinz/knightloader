@@ -428,11 +428,11 @@ func TestConnectRemembersThatAMemberCame(t *testing.T) {
 
 	// After activate, whose applyRelay would replace the transport.
 	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: "id-office", Name: "office"},
+		{InstanceID: officeID, Name: "office"},
 		{InstanceID: "id-phone", Name: "KnightLoader app", Client: true},
 	}})
 	info := connectInfoOf(t, token, srv.URL)
-	if len(info.Members) != 1 || info.Members[0].ID != "id-office" || info.Members[0].Name != "office" {
+	if len(info.Members) != 1 || info.Members[0].ID != officeID || info.Members[0].Name != "office" {
 		t.Fatalf("members = %+v, want the office instance and not the phone", info.Members)
 	}
 	if !info.MemberSeen {

@@ -71,12 +71,12 @@ type Announce struct {
 	InstanceID string `json:"instanceId"`
 	// Sealed carries this instance's Identity, sealed under the frame key with
 	// InstanceID as additional data, so a relay cannot present one instance's
-	// identity as another's. Empty in the in-memory form and from older peers.
+	// identity as another's. Empty in the in-memory form.
 	Sealed []byte `json:"sealed,omitempty"`
 
-	// The identity fields. Current versions send them empty and put them in
-	// Sealed; they keep their json tags so older peers that still send them in
-	// the clear can be read (see openAnnounce).
+	// The identity fields. On the wire they travel only inside Sealed. Sent in
+	// the clear they are ignored (see openAnnounce), since a relay can write
+	// anything there.
 
 	// Name is what the Instances page shows: InstanceName if set, else the
 	// hostname. The hostname fallback is why it is sealed, since it often names
@@ -154,25 +154,56 @@ func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 	return Announce{InstanceID: a.InstanceID, Sealed: sealed}, nil
 }
 
-// openAnnounce converts a wire announce back to the in-memory form. An
-// unsealed announce comes from an older peer and is used as is. One whose seal
-// does not open comes from a peer on a different frame key; it is kept under
-// its bare id rather than dropped, so the key mismatch stays visible.
+// openAnnounce converts a wire announce back to the in-memory form. One whose
+// seal is missing or does not open comes from a peer on a different frame key
+// or from the relay itself, and neither may name a member, give it an address
+// or mark it a client. It is kept under its bare id rather than dropped, so a
+// key mismatch stays visible.
 func openAnnounce(frameKey []byte, a Announce) Announce {
+	bare := Announce{InstanceID: a.InstanceID}
 	if len(a.Sealed) == 0 {
-		return a
+		return bare
 	}
 	id, err := OpenIdentity(frameKey, a.InstanceID, a.Sealed)
 	if err != nil {
-		return Announce{InstanceID: a.InstanceID}
+		return bare
 	}
 	return Announce{
 		InstanceID: a.InstanceID,
-		Name:       id.Name,
-		Deployment: id.Deployment,
+		Name:       ClipName(id.Name),
+		Deployment: ClipName(id.Deployment),
 		Client:     id.Client,
 		Address:    FitAddress(id.Address),
 	}
+}
+
+// ValidInstanceID reports whether id has the shape every instance mints for
+// itself: 20 random bytes as lowercase hex. Stored peer names are at most 32
+// characters, so a member listed under such an id cannot take one.
+func ValidInstanceID(id string) bool {
+	if len(id) != 40 {
+		return false
+	}
+	for i := 0; i < len(id); i++ {
+		if c := id[i]; (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+// maxClientIDBytes bounds the id of a client such as the phone, which mints
+// its own in another shape. It is only used as a map key, so it only has to
+// stay small.
+const maxClientIDBytes = 64
+
+// listable reports whether an opened announce can be kept as a sibling. An
+// instance is addressed by its id, so the id has to be shaped like one.
+func listable(a Announce) bool {
+	if a.Client {
+		return a.InstanceID != "" && len(a.InstanceID) <= maxClientIDBytes
+	}
+	return ValidInstanceID(a.InstanceID)
 }
 
 // MaxNameBytes keeps the name an instance or an app goes by small enough that
