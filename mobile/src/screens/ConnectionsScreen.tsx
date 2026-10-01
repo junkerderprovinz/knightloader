@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { setQueueHalted } from '../api/client';
-import { listConnections, setActiveConnectionId } from '../storage/connections';
+import { listConnections, loadDefaultConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { contentMax, useWide } from '../theme/layout';
@@ -9,7 +9,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
-import { CardButton, GlimButton, StatusBadge } from '../components/glim';
+import { CardButton, DefaultBadge, GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
 import { Text } from '../components/Text';
 import { Arrive, MovingList } from '../components/Moving';
@@ -104,9 +104,12 @@ export default function ConnectionsScreen({
 
   const [queueError, setQueueError] = useState('');
 
+  const [defaultId, setDefaultId] = useState<string | null>(null);
+
   const reload = useCallback(async () => {
-    const list = await listConnections();
+    const [list, standard] = await Promise.all([listConnections(), loadDefaultConnection()]);
     setConnections(list);
+    setDefaultId(standard?.id ?? null);
     setLoaded(true);
   }, []);
 
@@ -121,6 +124,9 @@ export default function ConnectionsScreen({
   // how many captchas are waiting.
   const load = useCallback(async () => {
     const list = await listConnections();
+    // The poll also picks up a star set inside an instance while this screen
+    // stayed mounted underneath.
+    void loadDefaultConnection().then((d) => setDefaultId(d?.id ?? null));
     const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
     setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i].ok ? results[i].stats : null])));
     // The reason, kept rather than dropped: see stats.ts. A swallowed failure
@@ -201,7 +207,7 @@ export default function ConnectionsScreen({
            takes from hueAt and the rainbow is such state: without them a
            palette change, or disco's walk, leaves the rows in their old
            colours. */
-        extraData={[stats, why, hueAt, rainbow.reactive]}
+        extraData={[stats, why, hueAt, rainbow.reactive, defaultId]}
         // The summary, the failure line and the graph travel as the list's own
         // header rather than as siblings above it. As a sibling the card carries
         // its own copy of the list's width cap plus a horizontal margin, and
@@ -356,7 +362,10 @@ export default function ConnectionsScreen({
                         nothing to somebody who cannot tell the green from the
                         red. The word carries the meaning and the colour carries
                         the urgency. */}
-                    <StatusBadge status={s} />
+                    <View style={styles.rowBadges}>
+                      {item.id === defaultId && <DefaultBadge />}
+                      <StatusBadge status={s} />
+                    </View>
                   </View>
                   {/* What the instance is doing rather than where the connection
                       goes. The relay address is the same for every card in the
@@ -490,6 +499,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  rowBadges: { marginStart: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 },
   // File counts, bytes left and a speed, refreshed every five seconds down a
   // stacked list: both halves of the tabular-numerals rule.
   rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },

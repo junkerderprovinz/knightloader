@@ -277,6 +277,9 @@ type ProxyCall struct {
 	// the receiver can refuse a frame it has run before or one that is old.
 	ID   string `json:"id"`
 	Sent int64  `json:"sent"`
+	// From is the phone app's relay id, so an instance can turn away a phone
+	// removed from the group. Instances leave it empty.
+	From string `json:"from,omitempty"`
 }
 
 // ProxyResponse is the wire form of the answer to one ProxyRequest.

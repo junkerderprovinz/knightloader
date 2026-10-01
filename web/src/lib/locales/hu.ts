@@ -3270,4 +3270,10 @@ export const hu: Dict = {
   'rename.packageHint': 'Ha a letöltési mappa a csomagról kapta a nevét, a benne lévő fájlokkal együtt megkapja az új nevet, és a még futó letöltések ott folytatódnak. A csomagról elnevezett, kibontott fájlokat tartalmazó mappa is vele költözik. A név nem elérési út, ezért a / és a \\ nem megengedett.',
   'rename.busy': 'A csomag egy részét éppen kibontják, a mappájába helyezik át vagy egy livestreamből rögzítik. Próbáld újra, ha ez befejeződött.',
   'rename.notMoved': 'A(z) „{name}” mappát nem sikerült átnevezni, így semmi nem változott. Lehet, hogy egy másik program nyitva tart benne egy fájlt. Zárd be azt a fájlt, és próbáld újra.',
+  'instances.kind.extension': 'Böngészőbővítmény',
+  'instances.remove': 'Eltávolítás',
+  'instances.removeAppConfirm': 'A(z) {name} kijelentkezik a csoport minden példányáról. Bármikor újra csatlakozhat a tizenkét szóval.',
+  'instances.removePeerConfirm': 'A(z) {name} eszközre mutató hivatkozás itt törlődik. A címe alapján bármikor újra hozzáadható.',
+  'pairing.byAddress': 'Cím alapján',
+  'instances.removeMemberConfirm': 'A(z) {name} elhagyja a csoportot, és elfelejti a tizenkét szót. Ha ott újra megadod őket, bármikor újra párosodik.',
 };

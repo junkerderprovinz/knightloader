@@ -1,6 +1,14 @@
 // The name this phone goes by on the Instances page of every instance in its
-// group: the device model Android reports, such as "Pixel 8".
+// group: the one set in Settings, or else the device model Android reports,
+// such as "Pixel 8".
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { closeAllRelayClients } from './relayClient';
+
+const KEY = 'knightloader-device-name';
+
+// Read once at startup, so the relay hello can take the name synchronously.
+let chosen = '';
 
 /** relay.MaxNameBytes: every hello has to fit the relay's first-frame limit. */
 const MAX_NAME_BYTES = 200;
@@ -21,6 +29,33 @@ export function clipName(name: string): string {
 }
 
 export function deviceName(): string {
+  return chosen || modelName();
+}
+
+/** The name set in Settings, '' while the model name is in use. */
+export function chosenDeviceName(): string {
+  return chosen;
+}
+
+export async function loadDeviceName(): Promise<void> {
+  chosen = (await AsyncStorage.getItem(KEY)) ?? '';
+}
+
+/**
+ * setDeviceName stores name, or goes back to the model name for ''. The relay
+ * only reads a name from a connection's hello, so the open connections are
+ * closed and the next request opens them again under the new one.
+ */
+export async function setDeviceName(name: string): Promise<void> {
+  const next = clipName(name.trim());
+  if (next === chosen) return;
+  chosen = next;
+  if (next) await AsyncStorage.setItem(KEY, next);
+  else await AsyncStorage.removeItem(KEY);
+  closeAllRelayClients();
+}
+
+export function modelName(): string {
   const { Model, Manufacturer } = Platform.constants as { Model?: string; Manufacturer?: string };
   const model = (Model ?? '').trim();
   // Some makers put the brand into the model name, others leave it out.

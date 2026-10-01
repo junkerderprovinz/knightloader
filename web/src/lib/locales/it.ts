@@ -3255,4 +3255,10 @@ export const it: Dict = {
   'rename.packageHint': 'Se la cartella di download ha il nome del pacchetto, prende il nuovo nome insieme ai file che contiene già, e i download ancora in corso proseguono lì. Anche una cartella di file estratti con il nome del pacchetto si sposta. Un nome non è un percorso, quindi / e \\ non sono ammessi.',
   'rename.busy': 'Una parte di questo pacchetto è in estrazione, in spostamento nella sua cartella o in registrazione da un livestream. Riprova quando avrà finito.',
   'rename.notMoved': 'Non è stato possibile rinominare la cartella «{name}», quindi non è cambiato nulla. Forse un altro programma ha aperto un file al suo interno. Chiudi quel file e riprova.',
+  'instances.kind.extension': 'Estensione del browser',
+  'instances.remove': 'Rimuovi',
+  'instances.removeAppConfirm': '{name} viene disconnesso da ogni istanza del gruppo. Può unirsi di nuovo in qualsiasi momento con le dodici parole.',
+  'instances.removePeerConfirm': 'Il collegamento a {name} viene eliminato qui. Può essere aggiunto di nuovo tramite il suo indirizzo.',
+  'pairing.byAddress': 'Per indirizzo',
+  'instances.removeMemberConfirm': '{name} lascia il gruppo e dimentica le dodici parole. Inserirle di nuovo lì lo riassocia in qualsiasi momento.',
 };

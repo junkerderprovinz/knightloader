@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useEffect, useRef, useState } from 'react';
+import { Linking, Modal, PermissionsAndroid, StyleSheet, View } from 'react-native';
+import { QrScannerView } from '../../modules/qr-scanner';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
@@ -12,45 +12,61 @@ import { Text } from './Text';
 // A full-screen modal scanner rather than a screen of its own: a caller that
 // wants a QR code needs one decoded string back rather than a spot in the
 // navigation stack.
+//
+// modules/qr-scanner reads the live frames with ZXing. expo-camera stays out
+// of the app: even with its scanner switched off its code refers to Google's
+// ML Kit, and F-Droid's scanner rejects the APK for those references.
+const CAMERA = PermissionsAndroid.PERMISSIONS.CAMERA;
+
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
   const { c, accent, corners } = useAppearance();
   const { motion } = useMotion();
-  const [permission, requestPermission] = useCameraPermissions();
-  const [locked, setLocked] = useState(false);
-
-  // The component stays mounted across opens and closes, rendering null, so
-  // `locked` from an earlier scan would still be true the next time it opens
-  // and every scan after the first would do nothing.
+  const [granted, setGranted] = useState<boolean | null>(null);
+  // The component stays mounted across opens and closes, rendering null, so a
+  // code reported once must not lock out the next opening.
+  const reported = useRef(false);
   useEffect(() => {
-    if (visible) setLocked(false);
+    if (!visible) return;
+    reported.current = false;
+    PermissionsAndroid.check(CAMERA).then(setGranted);
   }, [visible]);
 
-  if (!visible) return null;
-
-  const handleScanned = (data: string) => {
-    if (locked) return;
-    setLocked(true);
-    onScanned(data);
+  // After a second refusal Android stops asking, so only its settings page can
+  // grant the camera. The page opens on the tap after that refusal rather than
+  // with it, which would answer "Don't allow" with a settings screen.
+  const blocked = useRef(false);
+  const requestPermission = async () => {
+    if (blocked.current) {
+      Linking.openSettings();
+      return;
+    }
+    const result = await PermissionsAndroid.request(CAMERA);
+    blocked.current = result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+    setGranted(result === PermissionsAndroid.RESULTS.GRANTED);
   };
+
+  if (!visible) return null;
 
   return (
     <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: c.bg }]}>
-        {!permission ? (
+        {granted === null ? (
           <View style={styles.center} />
-        ) : !permission.granted ? (
+        ) : !granted ? (
           <View style={styles.center}>
             <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
             <GlimButton hue={0} label={t('qr.grantAccess')} onPress={requestPermission} />
           </View>
         ) : (
           <>
-            <CameraView
+            <QrScannerView
               style={StyleSheet.absoluteFill}
-              facing="back"
-              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-              onBarcodeScanned={(result) => handleScanned(result.data)}
+              onCode={({ nativeEvent }) => {
+                if (reported.current) return;
+                reported.current = true;
+                onScanned(nativeEvent.data);
+              }}
             />
             <View style={styles.overlay} pointerEvents="none">
               <View style={[styles.frame, { borderColor: accent, ...corners.card }]} />

@@ -9,18 +9,24 @@ import {
   ApiError,
   PhraseRejected,
   activateConnect,
+  fetchInstances,
   joinConnect,
   leaveConnect,
+  removeApp,
+  removeInstance,
+  removeMember,
   revealConnect,
   type ConnectInfo,
   type GroupApp,
   type GroupMember,
+  type Instance,
   type QRMatrix,
 } from '../../../lib/api';
 import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import {
+  IconBrowser,
   IconCheckDrawn,
   IconChevronEnd,
   IconClipboard,
@@ -32,12 +38,14 @@ import {
   IconPlus,
   IconRetry,
   IconSignOut,
+  IconTrash,
   IconWarning,
 } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
 import { useToast } from '../../../lib/toast';
 import { usePhraseEntry } from './PhraseInput';
 import { WordSlots } from './WordSlots';
+import { usePeerStats } from '../../../components/InstanceCard';
 import { STAGE_BADGE, clock, pairStage } from './pairStage';
 
 type T = ReturnType<typeof useT>['t'];
@@ -124,32 +132,83 @@ function WordGrid({ phrase, qr, bare = false, t }: { phrase: string; qr: QRMatri
   );
 }
 
-/** Row is one member of the group: a glyph, its name and what to say about it.
- *  Rows share one height, so one without a badge lines up with the rest. */
-function Row({ glyph, name, mark, badge }: { glyph: ReactNode; name: string; mark?: string; badge?: ReactNode }) {
+/** Row is one member of the group: a glyph, its name, what to say about it
+ *  and, for one that can be taken out here, the badge that does it. Rows share
+ *  one height, so one without a badge lines up with the rest. */
+function Row({
+  glyph,
+  name,
+  mark,
+  badge,
+  action,
+}: {
+  glyph: ReactNode;
+  name: string;
+  mark?: string;
+  badge?: ReactNode;
+  action?: ReactNode;
+}) {
   return (
     <li className="flex h-11 items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface2 px-3">
       <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
       <span className="min-w-0 truncate text-sm font-semibold text-carbon-text">{name}</span>
       {mark && <span className="glim-eyebrow shrink-0">{mark}</span>}
-      {badge && <span className="ms-auto shrink-0">{badge}</span>}
+      {(badge || action) && (
+        <span className="ms-auto flex shrink-0 items-center gap-2">
+          {badge}
+          {action}
+        </span>
+      )}
     </li>
   );
 }
 
-function MemberRow({ m, t }: { m: GroupMember; t: T }) {
+/** StateBadge says whether a row's member is reachable right now. */
+function StateBadge({ on, t }: { on: boolean; t: T }) {
+  return <LabelBadge label={on ? t('instances.connected') : t('instances.notConnected')} tone={on ? 'ok' : 'fail'} />;
+}
+
+// A member is listed only while it is reachable, so it is always connected.
+function MemberRow({ m, action, t }: { m: GroupMember; action: ReactNode; t: T }) {
   return (
     <Row
       glyph={<IconInstances />}
       name={m.name || m.id}
-      badge={<LabelBadge label={m.direct ? t('pairing.direct') : t('pairing.viaRelay')} tone={m.direct ? 'ok' : undefined} />}
+      mark={m.direct ? t('pairing.direct') : t('pairing.viaRelay')}
+      badge={<StateBadge on t={t} />}
+      action={action}
     />
   );
 }
 
-function AppRow({ app }: { app: GroupApp }) {
-  return <Row glyph={<IconPhone />} name={app.name || app.id} />;
+/** PeerRow is an instance added by its address, asked live whether it answers. */
+function PeerRow({ p, action, t }: { p: Instance; action: ReactNode; t: T }) {
+  const stats = usePeerStats(`/api/instances/${encodeURIComponent(p.name)}`);
+  return (
+    <Row
+      glyph={<IconInstances />}
+      name={p.displayName ?? p.name}
+      mark={t('pairing.byAddress')}
+      badge={<StateBadge on={stats?.online ?? false} t={t} />}
+      action={action}
+    />
+  );
 }
+
+function AppRow({ app, action, t }: { app: GroupApp; action: ReactNode; t: T }) {
+  return (
+    <Row
+      glyph={app.deployment === 'extension' ? <IconBrowser /> : <IconPhone />}
+      name={app.name || app.id}
+      badge={<StateBadge on={app.connected} t={t} />}
+      action={action}
+    />
+  );
+}
+
+/** What the removal window is about: a phone or extension of the group, an
+ *  instance of the group, or an instance added by its address. */
+type Removal = { kind: 'app' | 'member' | 'peer'; id: string; name: string };
 
 function WaitRow({ text, seconds }: { text: string; seconds?: number }) {
   return (
@@ -285,6 +344,43 @@ export function PhraseCard({
   const [shake, setShake] = useState(0);
   const [copies, setCopies] = useState(0);
   const joinedAgo = useJoinedAgo(group);
+  // Instances added by address rather than by the phrase, listed with the
+  // group so every connection can be taken out in one place.
+  const [peers, setPeers] = useState<Instance[]>([]);
+  const [removing, setRemoving] = useState<Removal | null>(null);
+
+  useEffect(() => {
+    fetchInstances()
+      .then((list) => setPeers(list.filter((p) => !p.relayId)))
+      .catch(() => {});
+  }, [group]);
+
+  const removeButton = (r: Removal) => (
+    <Button
+      kind="secondary"
+      icon={<IconTrash width={14} height={14} />}
+      className="px-2.5 text-xs"
+      aria-label={t('instances.removeTitle', { name: r.name })}
+      onClick={() => setRemoving(r)}
+    >
+      {t('instances.remove')}
+    </Button>
+  );
+
+  async function remove(r: Removal) {
+    await run(async () => {
+      if (r.kind === 'app') {
+        await removeApp(r.id);
+      } else if (r.kind === 'member') {
+        await removeMember(r.id);
+      } else {
+        const res = await removeInstance(r.id);
+        if (!res.ok) throw new Error(await res.text());
+      }
+      setRemoving(null);
+      onRefresh();
+    });
+  }
 
   const stage = pairStage(group, joinedAgo, createdHere);
 
@@ -555,7 +651,8 @@ export function PhraseCard({
     const badge = STAGE_BADGE[stage];
     body = (
       <>
-        {stateRow(t(badge.key), badge.tone)}
+        {/* Paired says nothing the rows below do not: each carries its own state. */}
+        {stage !== 'paired' && stateRow(t(badge.key), badge.tone)}
         {noPasswordNote}
         {relayHint}
         {stage === 'new' && (
@@ -571,15 +668,31 @@ export function PhraseCard({
         )}
         <div className="flex flex-col gap-2">
           <ul className="flex flex-col gap-2" data-testid="members">
-            <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} />
+            <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} badge={<StateBadge on t={t} />} />
             {group.members.map((m) => (
-              <MemberRow key={m.id} m={m} t={t} />
+              <MemberRow
+                key={m.id}
+                m={m}
+                t={t}
+                action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
+              />
             ))}
-            {group.apps
-              .filter((a) => a.connected)
-              .map((a) => (
-                <AppRow key={a.id} app={a} />
-              ))}
+            {peers.map((p) => (
+              <PeerRow
+                key={p.name}
+                p={p}
+                t={t}
+                action={removeButton({ kind: 'peer', id: p.name, name: p.displayName ?? p.name })}
+              />
+            ))}
+            {group.apps.map((a) => (
+              <AppRow
+                key={a.id}
+                app={a}
+                t={t}
+                action={removeButton({ kind: 'app', id: a.id, name: a.name || a.id })}
+              />
+            ))}
           </ul>
           {stage === 'new' ? (
             <WaitRow text={t('pairing.waitNext')} />
@@ -599,6 +712,34 @@ export function PhraseCard({
         {body}
       </div>
       {windows}
+      {removing && (
+        <Modal
+          title={t('instances.removeTitle', { name: removing.name })}
+          onClose={() => setRemoving(null)}
+          footer={
+            <>
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
+              <Button
+                kind="primary"
+                labelled
+                icon={<IconTrash />}
+                title={t('instances.remove')}
+                disabled={busy}
+                shake={shake}
+                onClick={() => void remove(removing)}
+              />
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-textSub">
+            {removing.kind === 'app'
+              ? t('instances.removeAppConfirm', { name: removing.name })
+              : removing.kind === 'member'
+                ? t('instances.removeMemberConfirm', { name: removing.name })
+                : t('instances.removePeerConfirm', { name: removing.name })}
+          </p>
+        </Modal>
+      )}
     </Card>
   );
 }

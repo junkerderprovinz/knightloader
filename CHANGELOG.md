@@ -37,6 +37,40 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-10-01
+
+### Changed (Android app)
+
+- Buy Me a Coffee opens in the browser instead of an in-app web view, as F-Droid reviewers ask for author and donation pages. `CoffeeDonate.tsx` and its intro text are gone, and `mobile/PRIVACY.md` describes the button with the other links.
+
+### Fixed
+
+- The committed `web/dist` carried version 1.6.0, so the Apps page linked the 1.6.0 APK in 1.6.1 and 1.6.2. The bundle is rebuilt with the version.
+
+## [1.6.2] - 2026-10-01
+
+### Changed (Android app)
+
+- The store listings call the app only KnightLoader, in every language.
+- The fastlane metadata moved from `mobile/fastlane/` to `fastlane/` at the repository root, the only place F-Droid reads it from. `mobile/store/render.mjs` writes its pictures there.
+
+## [1.6.1] - 2026-10-01
+
+### Added
+
+- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
+
+### Changed (Android app)
+
+- expo-camera is removed. With its barcode scanner switched off it still compiled against Google ML Kit and Play services, and F-Droid rejects an APK whose code names those classes. The scanner module declares the camera permission, the app asks through `PermissionsAndroid` and opens the app settings once Android stops asking. The release build fails when the APK names a `com.google.mlkit` or `com.google.android.gms` class, and `check-free-scanner.mjs` checks the lock file for expo-camera and ML Kit wrappers. `mobile/PRIVACY.md` describes the ZXing scanner, which sends nothing to anyone.
+- An announce on the relay names a sibling only through a seal that opens. Without a seal, or with one that does not open, the app lists it under its bare id and ignores the name, deployment and client flag in the clear, as the server and the extension do.
+
+### Fixed
+
+- The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
+
+## [1.6.0] - 2026-10-01
+
 ### Added
 
 - **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
@@ -95,7 +129,16 @@ release's tag.
   own relay whether it runs and its address is right.
 - **The phrase card lists the whole group**, one row each and all of one
   height: this instance, marked This instance, the other instances with
-  Direct or Via relay, and the connected phones.
+  Direct or Via relay, instances added by address, and every phone and
+  browser extension. Each row says Connected or Not connected, and every row
+  but this instance's has a **Remove** button, which asks first.
+- **A phone or browser extension can be taken out of the group.** Removed on
+  one instance, it is removed on every instance of the group, its calls get
+  no answer from then on, and it drops its connections to the group. Entering
+  the phrase there again brings it back as a new member. The app and the
+  extension put their id inside every sealed call for this.
+- **An instance can be taken out of the group** from another one. It leaves
+  and forgets the phrase, and entering the phrase there again brings it back.
 - **Every instance shows its address on the Instances page**, and Open goes
   there. An instance tells its group its first known domain, else its address
   on its network, in the announce members already send: sealed on the relay,
@@ -111,13 +154,24 @@ release's tag.
   Members on one network call each other directly, sealed with the same key
   as over the relay, and the relay only carries what has to cross networks.
   **No relay** therefore means "only on this network".
-- **The phone is on the Instances page.** Every Android app that joined with
-  the phrase gets a card with its device name, Connected or Not connected and
-  when it was last seen. A connected phone counts for the badge, so an
-  instance whose only partner is the phone shows Paired. Every card carries
-  the KnightLoader logo, and a small glyph before the name says what it is: a
-  phone for the Android app, a monitor for the desktop app, a container for
-  the container. A peer added by address that never said has none.
+- **The phone and the browser extension are on the Instances page.** Every
+  Android app and extension that joined with the phrase gets a card with its
+  name, Connected or Not connected and when it was last seen. A connected
+  phone counts for the badge, so an instance whose only partner is the phone
+  shows Paired. Every card carries the KnightLoader logo at the same height,
+  and a badge beside its state says what it is: the Docker whale for the
+  container, a screen for the desktop app, a phone for the Android app and a
+  browser for the extension. A peer added by address that never said has
+  none. Cards have no Remove; the pairing list does that.
+- **A name for the phone.** Settings > This device in the Android app sets
+  the name the phone goes by on every instance of its group. Left empty, it
+  goes by the device model.
+- **A default instance in the Android app**, marked with a star badge on its
+  card. The app opens on it and takes its look and rainbow palette from it,
+  whichever instance is open; the star in an instance makes that one the
+  default, and a tap on a star says Default instance.
+- **The Android app can be built by F-Droid** from source, with nothing of
+  Google's in it.
 - **A Torrents card on the Overview.** It shows how many torrents are leeching
   and how many seeding, the download and upload speed, what came in and went
   out today and in all, the overall ratio, and the three torrents uploading
@@ -200,6 +254,26 @@ release's tag.
   changed, switched off or removed. Settings, Captcha keeps the order the
   solvers are tried in and when they start. Keys stored before stay where
   they are and keep working.
+
+### Changed (Android app)
+
+- **The QR scanner reads the camera's live frames** with ZXing, with focus
+  and exposure measured on the middle of the frame, and finds a code in about
+  a second, also on a bright screen. It replaces Google's ML Kit, which is
+  not free software.
+- **The package is `knightloader.halleluja.design`.** Android installs it
+  next to an older copy; pair the new one, then remove the old one.
+- **The release build runs R8** and the APK is about a fifth smaller.
+- **The look options are dimmed** while the app follows its default
+  instance; a press takes the look over on the phone and turns the following
+  off. Problems sits above About, the star and the state badge sit at the end
+  of each card, the phrase field and the word slots are larger, and the
+  phrase page scrolls as a whole.
+
+### Fixed
+
+- **Cancel leaves the QR scanner with the first tap.**
+- **A phone that has gone away no longer keeps a card nobody can remove.**
 
 ### Security
 

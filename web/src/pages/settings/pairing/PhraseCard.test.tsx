@@ -222,29 +222,55 @@ describe('PhraseCard', () => {
     expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
   });
 
-  it('lists this instance, the other instances and the phones, one row each', () => {
+  it('lists this instance, the other instances and every phone, one row each', () => {
     draw({
       joinedAgo: 500,
       memberSeen: true,
       members: [{ id: 'b', name: 'office', direct: false, relay: true }],
       apps: [
-        { id: 'p', name: 'Pixel 8', connected: true, lastSeen: 1 },
-        { id: 'q', name: 'Old phone', connected: false, lastSeen: 1 },
+        { id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 },
+        { id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 },
       ],
     });
     const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
-    expect(rows).toEqual(['nasThis instance', 'officeVia relay', 'Pixel 8']);
+    expect(rows).toEqual([
+      'nasThis instanceConnected',
+      'officeVia relayConnectedRemove',
+      'Pixel 8ConnectedRemove',
+      'Old phoneNot connectedRemove',
+    ]);
     expect(host.textContent).not.toContain('This instance appears as');
     expect(host.textContent).not.toContain('In the group');
     // The row without a badge is as high as those with one.
     const heights = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.classList.contains('h-11'));
-    expect(heights).toEqual([true, true, true]);
+    expect(heights).toEqual([true, true, true, true]);
+  });
+
+  it('takes a phone out of the group only after the window asks', async () => {
+    const calls = answer([]);
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 }],
+    });
+    const bin = host.querySelector<HTMLButtonElement>('[aria-label="Remove Old phone"]')!;
+    await act(async () => bin.click());
+    expect(dialog()?.textContent).toContain('twelve words');
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('DELETE /api/connect/apps/q');
+    expect(dialog()).toBeNull();
   });
 
   it('leaves the relay to the relay card and ends the first line with the state', () => {
     for (const connected of [true, false]) {
       draw({ joinedAgo: 12, connected });
-      expect(host.textContent).not.toMatch(/Connected|Not connected|No relay/);
+      // The rows say whether each member is there; the relay's own state is
+      // the relay card's.
+      const members = host.querySelector('[data-testid="members"]')!.textContent!;
+      expect(host.textContent!.replace(members, '')).not.toMatch(/Connected|Not connected|No relay/);
       const state = host.querySelector('[data-testid="pair-state"]')!;
       expect(state.parentElement!.lastElementChild).toBe(state);
     }
@@ -254,19 +280,19 @@ describe('PhraseCard', () => {
     expect(state.parentElement!.lastElementChild).toBe(state);
   });
 
-  it('says Paired only while another instance is there', () => {
+  it('drops the state badge once another instance is there, since every row carries its own', () => {
     draw({ joinedAgo: 500, memberSeen: true, members: [{ id: 'b', name: 'office', direct: false, relay: true }] });
     expect(stage()).toBe('paired');
-    expect(badge()).toContain('Paired');
+    expect(badge()).toBe('');
     expect(host.textContent).toContain('office');
 
     draw({ joinedAgo: 500, memberSeen: true, members: [] });
     expect(badge()).toContain('Searching');
   });
 
-  it('says Paired when the only other member is a connected phone', () => {
-    draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', connected: true, lastSeen: 1 }] });
-    expect(badge()).toContain('Paired');
+  it('counts a connected phone as the other member', () => {
+    draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] });
+    expect(stage()).toBe('paired');
     expect(host.textContent).toContain('Pixel 8');
   });
 });

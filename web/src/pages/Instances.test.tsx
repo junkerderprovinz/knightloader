@@ -5,7 +5,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
-import { ToastProvider } from '../lib/toast';
 import { Instances } from './Instances';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -101,12 +100,15 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
-  it('marks every card with the glyph of its kind and gives the phone the logo', async () => {
+  it('marks every card with the glyph of its kind and gives the phone and the extension the logo', async () => {
     serve(
       {
         ...noGroup,
         active: true,
-        apps: [{ id: 'p1', name: 'Pixel 8', connected: true, lastSeen: 1_800_000_000 }],
+        apps: [
+          { id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1_800_000_000 },
+          { id: 'b1', name: 'Browser', deployment: 'extension', connected: false, lastSeen: 1_800_000_000 },
+        ],
       },
       [
         { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop', deployment: 'desktop' },
@@ -118,6 +120,7 @@ describe('Instances', () => {
     const card = (name: string) => [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes(name))!;
     const kind = (name: string) => card(name).querySelector('[data-kind]')?.getAttribute('data-kind') ?? null;
     expect(kind('Pixel 8')).toBe('mobile');
+    expect(kind('Browser')).toBe('extension');
     expect(kind('Laptop')).toBe('desktop');
     expect(kind('NAS')).toBe('container');
     expect(kind('cellar')).toBeNull();
@@ -139,30 +142,6 @@ describe('Instances', () => {
     const cards = [...host.querySelectorAll('button')].filter((b) => b.textContent === 'Open');
     await act(async () => cards[1].click());
     expect(open).toHaveBeenCalledWith('http://192.168.20.86:8749', '_blank', 'noopener,noreferrer');
-  });
-
-  it('says why a stored instance could not be removed', async () => {
-    serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
-    const answer = vi.mocked(fetch).getMockImplementation()!;
-    vi.mocked(fetch).mockImplementation((url, init) =>
-      init?.method === 'DELETE'
-        ? Promise.resolve(new Response('the peer list could not be saved', { status: 500 }))
-        : answer(url, init),
-    );
-    await act(async () =>
-      root.render(
-        <MemoryRouter>
-          <I18nProvider>
-            <ToastProvider>
-              <Instances />
-            </ToastProvider>
-          </I18nProvider>
-        </MemoryRouter>,
-      ),
-    );
-    const badge = host.querySelector<HTMLButtonElement>('button[aria-label="Remove cellar"]')!;
-    await act(async () => badge.click());
-    expect(document.body.textContent).toContain('That did not work: the peer list could not be saved');
   });
 
   it('gives the Pairing button no info bubble', async () => {

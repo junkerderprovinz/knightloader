@@ -3271,4 +3271,10 @@ export const id: Dict = {
   'rename.packageHint': 'Jika folder unduhan dinamai sesuai paket, folder itu ikut mendapat nama baru beserta berkas yang sudah ada di dalamnya, dan unduhan yang masih berjalan dilanjutkan di sana. Folder berisi berkas hasil ekstrak yang dinamai sesuai paket juga ikut pindah. Nama bukan jalur, jadi / dan \\ tidak diizinkan.',
   'rename.busy': 'Sebagian paket ini sedang diekstrak, dipindahkan ke foldernya, atau direkam dari livestream. Coba lagi setelah itu selesai.',
   'rename.notMoved': 'Folder “{name}” tidak bisa diganti namanya, jadi tidak ada yang berubah. Mungkin program lain sedang membuka berkas di dalamnya. Tutup berkas itu dan coba lagi.',
+  'instances.kind.extension': 'Ekstensi browser',
+  'instances.remove': 'Hapus',
+  'instances.removeAppConfirm': '{name} keluar dari setiap instance dalam grup. Instance ini dapat bergabung lagi kapan saja dengan dua belas kata itu.',
+  'instances.removePeerConfirm': 'Tautan ke {name} dihapus di sini. Tautan ini dapat ditambahkan lagi melalui alamatnya.',
+  'pairing.byAddress': 'Dengan alamat',
+  'instances.removeMemberConfirm': '{name} meninggalkan grup dan melupakan dua belas kata itu. Memasukkannya lagi di sana akan memasangkannya kembali kapan saja.',
 };

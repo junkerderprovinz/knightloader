@@ -3255,4 +3255,10 @@ export const pl: Dict = {
   'rename.packageHint': 'Jeśli folder pobierania nazywa się tak jak paczka, dostaje nową nazwę razem z plikami, które już w nim są, a pobierania, które jeszcze trwają, są tam kontynuowane. Folder z rozpakowanymi plikami nazwany tak jak paczka też jest przenoszony. Nazwa nie jest ścieżką, więc / i \\ są niedozwolone.',
   'rename.busy': 'Część tej paczki jest właśnie rozpakowywana, przenoszona do swojego folderu albo nagrywana z transmisji na żywo. Spróbuj ponownie, gdy to się skończy.',
   'rename.notMoved': 'Nie udało się zmienić nazwy folderu „{name}”, więc nic się nie zmieniło. Być może inny program ma otwarty plik w tym folderze. Zamknij ten plik i spróbuj ponownie.',
+  'instances.kind.extension': 'Rozszerzenie przeglądarki',
+  'instances.remove': 'Usuń',
+  'instances.removeAppConfirm': '{name} zostaje wylogowana z każdej instancji w grupie. Może do niej dołączyć ponownie w dowolnym momencie za pomocą dwunastu słów.',
+  'instances.removePeerConfirm': 'Łącze do {name} zostaje tutaj usunięte. Można je dodać ponownie według jego adresu.',
+  'pairing.byAddress': 'Według adresu',
+  'instances.removeMemberConfirm': '{name} opuszcza grupę i zapomina dwanaście słów. Wpisanie ich tam ponownie w dowolnym momencie paruje ją na nowo.',
 };

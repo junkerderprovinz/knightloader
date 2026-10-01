@@ -3257,4 +3257,10 @@ export const ca: Dict = {
   'rename.packageHint': 'Si la carpeta de baixades porta el nom del paquet, pren el nom nou juntament amb els fitxers que ja hi ha, i les baixades en curs hi continuen. Una carpeta de fitxers extrets que porti el nom del paquet també es mou. Un nom no és un camí, així que / i \\ no s’admeten.',
   'rename.busy': 'Una part d’aquest paquet s’està extraient, movent a la seva carpeta o gravant d’una emissió en directe. Torna-ho a provar quan hagi acabat.',
   'rename.notMoved': 'No s’ha pogut canviar el nom de la carpeta «{name}», així que no ha canviat res. Potser un altre programa hi té un fitxer obert. Tanca aquest fitxer i torna-ho a provar.',
+  'instances.kind.extension': 'Extensió del navegador',
+  'instances.remove': 'Elimina',
+  'instances.removeAppConfirm': '{name} es desconnecta de totes les instàncies del grup. Es pot tornar a unir en qualsevol moment amb les dotze paraules.',
+  'instances.removePeerConfirm': 'L\'enllaç a {name} s\'elimina aquí. Es pot tornar a afegir per la seva adreça.',
+  'pairing.byAddress': 'Per adreça',
+  'instances.removeMemberConfirm': '{name} surt del grup i oblida les dotze paraules. Tornar a introduir-les l\'aparella de nou en qualsevol moment.',
 };

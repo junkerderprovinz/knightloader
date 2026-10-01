@@ -3262,4 +3262,10 @@ export const ko: Dict = {
   'rename.packageHint': '저장 폴더 이름이 패키지 이름과 같으면, 그 폴더는 이미 들어 있는 파일과 함께 새 이름을 받고, 아직 진행 중인 다운로드는 그곳에서 계속됩니다. 패키지 이름을 딴, 압축을 푼 파일의 폴더도 함께 옮겨집니다. 이름은 경로가 아니므로 / 와 \\ 는 쓸 수 없습니다.',
   'rename.busy': '이 패키지의 일부가 압축을 푸는 중이거나, 폴더로 옮기는 중이거나, 라이브 스트림에서 녹화하는 중입니다. 끝난 뒤에 다시 시도하세요.',
   'rename.notMoved': '“{name}” 폴더의 이름을 바꾸지 못해서 아무것도 바뀌지 않았습니다. 다른 프로그램이 그 안의 파일을 열고 있을 수 있습니다. 그 파일을 닫고 다시 시도하세요.',
+  'instances.kind.extension': '브라우저 확장 프로그램',
+  'instances.remove': '제거',
+  'instances.removeAppConfirm': '{name}은(는) 그룹의 모든 인스턴스에서 로그아웃됩니다. 12개의 단어로 언제든지 다시 참여할 수 있습니다.',
+  'instances.removePeerConfirm': '{name}에 대한 연결이 여기서 삭제됩니다. 주소로 언제든지 다시 추가할 수 있습니다.',
+  'pairing.byAddress': '주소로',
+  'instances.removeMemberConfirm': '{name}은(는) 그룹을 나가고 12개의 단어를 잊습니다. 그곳에 다시 입력하면 언제든지 다시 페어링됩니다.',
 };

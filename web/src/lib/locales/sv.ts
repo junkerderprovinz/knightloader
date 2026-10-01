@@ -3271,4 +3271,10 @@ export const sv: Dict = {
   'rename.packageHint': 'Om nedladdningsmappen har paketets namn får den det nya namnet tillsammans med filerna som redan ligger i den, och nedladdningar som fortfarande pågår fortsätter där. En mapp med uppackade filer som har paketets namn flyttar också med. Ett namn är ingen sökväg, så / och \\ är inte tillåtna.',
   'rename.busy': 'En del av det här paketet packas upp, flyttas till sin mapp eller spelas in från en livesändning. Försök igen när det är klart.',
   'rename.notMoved': 'Det gick inte att byta namn på mappen ”{name}”, så ingenting ändrades. Ett annat program kanske har en fil i den öppen. Stäng filen och försök igen.',
+  'instances.kind.extension': 'Webbläsartillägg',
+  'instances.remove': 'Ta bort',
+  'instances.removeAppConfirm': '{name} loggas ut från varje instans i gruppen. Den kan gå med igen när som helst med de tolv orden.',
+  'instances.removePeerConfirm': 'Länken till {name} tas bort här. Den kan läggas till igen via sin adress.',
+  'pairing.byAddress': 'Via adress',
+  'instances.removeMemberConfirm': '{name} lämnar gruppen och glömmer de tolv orden. Att ange dem där igen parkopplar den på nytt när som helst.',
 };

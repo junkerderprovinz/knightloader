@@ -3270,4 +3270,10 @@ export const ms: Dict = {
   'rename.packageHint': 'Jika folder muat turun dinamakan sempena pakej, folder itu menerima nama baharu bersama fail yang sudah ada di dalamnya, dan muat turun yang masih berjalan diteruskan di situ. Folder fail yang diekstrak yang dinamakan sempena pakej turut berpindah. Nama bukan laluan, jadi / dan \\ tidak dibenarkan.',
   'rename.busy': 'Sebahagian pakej ini sedang diekstrak, dipindahkan ke foldernya atau dirakam daripada livestream. Cuba lagi selepas itu selesai.',
   'rename.notMoved': 'Folder “{name}” tidak dapat dinamakan semula, jadi tiada apa yang berubah. Mungkin program lain sedang membuka fail di dalamnya. Tutup fail itu dan cuba lagi.',
+  'instances.kind.extension': 'Sambungan pelayar',
+  'instances.remove': 'Buang',
+  'instances.removeAppConfirm': '{name} log keluar daripada setiap instans dalam kumpulan itu. Ia boleh menyertai semula pada bila-bila masa dengan dua belas perkataan itu.',
+  'instances.removePeerConfirm': 'Pautan ke {name} dipadamkan di sini. Ia boleh ditambah semula melalui alamatnya.',
+  'pairing.byAddress': 'Mengikut alamat',
+  'instances.removeMemberConfirm': '{name} meninggalkan kumpulan itu dan melupakan dua belas perkataan itu. Memasukkannya semula di sana akan menggandingkannya semula pada bila-bila masa.',
 };
