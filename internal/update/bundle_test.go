@@ -93,6 +93,44 @@ func TestSwapTradesTheWholeApp(t *testing.T) {
 	}
 }
 
+// A second release can arrive before the restart that would pick up the first.
+// The bundle this run started from is the .old one by then, and it has to stay
+// until the next start.
+func TestASecondSwapInOneRunKeepsTheRunningBundle(t *testing.T) {
+	dir := t.TempDir()
+	app := filepath.Join(dir, "Prog.app")
+	exe := filepath.Join(app, "Contents", "MacOS", "prog")
+	if err := os.MkdirAll(filepath.Dir(exe), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(exe, []byte("running"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	u := &Updater{Path: app, Logf: t.Logf}
+	for _, version := range []string{"1.4.0", "1.5.0"} {
+		archive := filepath.Join(dir, downloadPrefix(app)+"zip")
+		writeZip(t, archive, []zipEntry{
+			{"Prog.app/", "", fs.ModeDir | 0o755},
+			{"Prog.app/Contents/MacOS/prog", version, 0o755},
+		})
+		if err := u.Swap(archive, &Release{Version: version, asset: "prog.zip"}); err != nil {
+			t.Fatal(err)
+		}
+		os.Remove(archive)
+	}
+
+	if got := readFile(t, exe); got != "1.5.0" {
+		t.Errorf("program holds %q, want the newest release", got)
+	}
+	if got := readFile(t, filepath.Join(app+".old", "Contents", "MacOS", "prog")); got != "running" {
+		t.Errorf("the old bundle holds %q, want the one this run started from", got)
+	}
+	if got := dirEntries(t, dir); len(got) != 2 {
+		t.Errorf("folder holds %v, want the app and the old bundle", got)
+	}
+}
+
 func TestSwapKeepsTheAppWhenTheArchiveHasNone(t *testing.T) {
 	dir := t.TempDir()
 	app := filepath.Join(dir, "Prog.app")

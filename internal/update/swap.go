@@ -36,7 +36,7 @@ func (u *Updater) Swap(download string, rel *Release) error {
 		return fmt.Errorf("%s: %w", rel.asset, err)
 	}
 	if bundle {
-		err = replaceBundle(target, fresh)
+		err = replaceBundle(target, fresh, tmp, u.staged != "")
 	} else {
 		err = replaceFile(target, fresh)
 	}
@@ -161,12 +161,16 @@ func rename(from, to string) error {
 	return err
 }
 
-// replaceBundle trades the running bundle for the unpacked one by rename, so
-// the program is never half replaced. The old bundle waits as .old for the
-// next start, since this run still loads from it.
-func replaceBundle(app, fresh string) error {
+// replaceBundle trades the bundle at app for the unpacked one by rename, so
+// the program is never half replaced. The bundle this run started from waits
+// as .old for the next start, since this run still loads from it. After an
+// earlier update in the same run it is already there, and app holds a staged
+// bundle nothing runs, so that one goes into scratch to be removed with it.
+func replaceBundle(app, fresh, scratch string, stagedThisRun bool) error {
 	old := app + ".old"
-	if err := os.RemoveAll(old); err != nil {
+	if stagedThisRun {
+		old = filepath.Join(scratch, ".staged")
+	} else if err := os.RemoveAll(old); err != nil {
 		return err
 	}
 	if err := os.Rename(app, old); err != nil {
