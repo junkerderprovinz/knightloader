@@ -22,9 +22,8 @@ Everything below is kept in the browser's own extension storage, in your browser
 profile. We back none of it up, and removing the extension removes all of it.
 
 - Your connection phrase: the twelve words your KnightLoader instances share.
-- A random browser ID of 40 hexadecimal characters, generated when this browser
-  joins a group. It contains nothing about you or your device. The relay uses it
-  to recognise a reconnect from this browser as the same member of your group.
+  It is kept in the extension's own database, which the scripts the extension
+  runs on websites for Click'n'Load cannot read.
 - Which of your instances is the default target.
 - Settings: interface language, whether Click'n'Load interception is on, the
   Click'n'Load countdown length, and whether the "pin the extension" hint has
@@ -51,8 +50,10 @@ to it carries:
 - A group key derived from your phrase with a one-way hash. It cannot be turned
   back into the words, and the phrase itself never leaves the browser. Whoever
   presents this key joins your group, so it works like a password for the group.
-- Your random browser ID and the ID of the instance a message is for, which the
-  relay needs for routing.
+- A random ID of 40 hexadecimal characters for this connection, and the ID of
+  the instance a message is for, which the relay needs for routing. The browser
+  picks a new ID for every connection and stores none of them, so the ID does
+  not link one connection to the next.
 - Encrypted messages (AES-GCM, with a second key derived from your phrase that the
   relay never receives). The relay cannot read their content, which includes the
   links you send and the names of your instances. An instance still on
@@ -152,10 +153,10 @@ extension settings.
   button), your default instance and every setting.
 - **Switch Click'n'Load off** in the options, as described above.
 - **Leave the group** with the bin button next to the phrase: the phrase, the
-  default instance and the browser ID are deleted.
+  default instance are deleted.
 - **Remove the extension** to delete everything it stored.
 - **Relay data:** while a connection is open, the relay holds what it needs to
-  route it (your IP address, the group key, your browser ID and the encrypted
+  route it (your IP address, the group key, the connection's ID and the encrypted
   messages passing through) and drops all of it when the connection closes.
   Beyond that it holds nothing about you except the rate-limit entry described
   above, which is deleted within 61 minutes of that address's last failed
