@@ -59,6 +59,9 @@ type mend struct {
 	url  string
 	file string
 	size int64
+	// modified is the Last-Modified the transfer's own resolve was answered
+	// with, zero when there was none.
+	modified time.Time
 	// gaps is what is still missing, in file order. It shrinks under e.mu as
 	// bytes land, so a pause keeps what was fetched.
 	gaps []span
@@ -219,6 +222,9 @@ func (e *Engine) startMend(taskID string, t *download.Task, file string, gaps []
 	}
 	j := e.jobs[taskID]
 	m := &mend{job: j, url: j.URL, file: file, size: size, gaps: gaps}
+	if fs := t.Meta.Res.Files; len(fs) > 0 && fs[0] != nil && fs[0].Ctime != nil {
+		m.modified = *fs[0].Ctime
+	}
 	e.mends[taskID] = m
 	log.Printf("%s of %s never arrived (%d ranges); asking for it again (task %s)", mib(m.missing()), file, len(gaps), taskID)
 	e.runMendLocked(taskID, m)
@@ -355,14 +361,28 @@ func (e *Engine) fetch(ctx context.Context, client *http.Client, f *os.File, url
 	defer resp.Body.Close()
 	switch {
 	case resp.StatusCode == http.StatusPartialContent:
-		if start, ok := rangeStart(resp.Header.Get("Content-Range")); !ok || start != g.from {
+		start, total, ok := contentRange(resp.Header.Get("Content-Range"))
+		if !ok || start != g.from {
 			return fmt.Errorf("the server answered with a different part of the file (%s)", resp.Header.Get("Content-Range"))
 		}
+		if total >= 0 && total != m.size {
+			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mib(total), mib(m.size))
+		}
 	case resp.StatusCode == http.StatusOK && g.from == 0:
+		if resp.ContentLength >= 0 && resp.ContentLength != m.size {
+			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mib(resp.ContentLength), mib(m.size))
+		}
 	case resp.StatusCode == http.StatusOK:
 		return errors.New("the server can only send the whole file")
 	default:
 		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+	// Another link may come from another server with its own dates, so only
+	// the URL the transfer was resolved from is held to its date.
+	if url == m.job.URL && !m.modified.IsZero() {
+		if lm, err := http.ParseTime(resp.Header.Get("Last-Modified")); err == nil && !lm.Equal(m.modified) {
+			return errors.New("the file on the server has changed since this download began")
+		}
 	}
 
 	buf := make([]byte, 32<<10)
@@ -421,18 +441,30 @@ func landed(gaps []span, w span) []span {
 	return out
 }
 
-// rangeStart reads where a "bytes a-b/c" Content-Range starts.
-func rangeStart(v string) (int64, bool) {
+// contentRange reads where a "bytes a-b/c" Content-Range starts and the size
+// of the whole file, which is -1 when the server gives it as "*".
+func contentRange(v string) (start, total int64, ok bool) {
 	rest, ok := strings.CutPrefix(strings.TrimSpace(v), "bytes ")
 	if !ok {
-		return 0, false
+		return 0, 0, false
 	}
-	from, _, ok := strings.Cut(rest, "-")
+	rng, size, ok := strings.Cut(rest, "/")
 	if !ok {
-		return 0, false
+		return 0, 0, false
 	}
-	n, err := strconv.ParseInt(from, 10, 64)
-	return n, err == nil
+	from, _, ok := strings.Cut(rng, "-")
+	if !ok {
+		return 0, 0, false
+	}
+	start, err := strconv.ParseInt(from, 10, 64)
+	if err != nil {
+		return 0, 0, false
+	}
+	if size == "*" {
+		return start, -1, true
+	}
+	total, err = strconv.ParseInt(size, 10, 64)
+	return start, total, err == nil
 }
 
 // mendClient goes out the way the library would for this job: over the job's
