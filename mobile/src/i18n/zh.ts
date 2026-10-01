@@ -167,7 +167,6 @@ export const zh: Dict = {
   'settings.cryptoTitle': '用加密货币捐赠',
   'settings.donateAppeal': '给你的骑士扔一枚硬币吧：它能覆盖一部分开销，让项目活下去。我做的东西全部免费，也没有广告。',
   'settings.cryptoIntro': '先选择币种和网络，然后扫码或复制地址。',
-  'settings.coffeeIntro': '付款通过 Buy Me a Coffee 完成，无需账户。',
   'settings.cryptoNetworks': '网络',
   'settings.cryptoNoTag': '无需 destination tag，也无需 memo。',
   'settings.cryptoCopy': '复制',

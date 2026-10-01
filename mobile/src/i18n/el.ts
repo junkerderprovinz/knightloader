@@ -167,7 +167,6 @@ export const el: Dict = {
   'settings.cryptoTitle': 'Δωρεά με κρύπτο',
   'settings.donateAppeal': 'Ρίξε ένα νόμισμα στον ιππότη σου: καλύπτει μέρος των εξόδων και κρατά το έργο ζωντανό. Ό,τι φτιάχνω είναι δωρεάν και χωρίς διαφημίσεις.',
   'settings.cryptoIntro': 'Διάλεξε κρυπτονόμισμα και δίκτυο, μετά σάρωσε τον κωδικό ή αντίγραψε τη διεύθυνση.',
-  'settings.coffeeIntro': 'Η πληρωμή γίνεται μέσω Buy Me a Coffee. Δεν χρειάζεσαι λογαριασμό.',
   'settings.cryptoNetworks': 'Δίκτυα',
   'settings.cryptoNoTag': 'Δεν χρειάζεται destination tag ούτε memo.',
   'settings.cryptoCopy': 'Αντιγραφή',

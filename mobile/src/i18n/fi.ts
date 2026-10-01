@@ -167,7 +167,6 @@ export const fi: Dict = {
   'settings.cryptoTitle': 'Lahjoita kryptolla',
   'settings.donateAppeal': 'Heitä ritarillesi kolikko: se kattaa osan kuluista ja pitää projektin hengissä. Kaikki, mitä teen, on ilmaista ja mainoksetonta.',
   'settings.cryptoIntro': 'Valitse valuutta ja verkko, skannaa sitten koodi tai kopioi osoite.',
-  'settings.coffeeIntro': 'Maksu kulkee Buy Me a Coffeen kautta. Et tarvitse tiliä.',
   'settings.cryptoNetworks': 'Verkot',
   'settings.cryptoNoTag': 'Destination tagia tai memoa ei tarvita.',
   'settings.cryptoCopy': 'Kopioi',

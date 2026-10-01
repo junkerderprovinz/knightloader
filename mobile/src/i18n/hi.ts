@@ -167,7 +167,6 @@ export const hi: Dict = {
   'settings.cryptoTitle': 'क्रिप्टो से दान करें',
   'settings.donateAppeal': 'अपने नाइट को एक सिक्का दीजिए: इससे खर्च का एक हिस्सा निकलता है और परियोजना ज़िंदा रहती है। मेरा बनाया सब कुछ मुफ़्त है और इसमें कोई विज्ञापन नहीं है।',
   'settings.cryptoIntro': 'एक मुद्रा और नेटवर्क चुनें, फिर कोड स्कैन करें या पता कॉपी करें।',
-  'settings.coffeeIntro': 'भुगतान Buy Me a Coffee के ज़रिए होता है। आपको खाते की ज़रूरत नहीं है।',
   'settings.cryptoNetworks': 'नेटवर्क',
   'settings.cryptoNoTag': 'destination tag या memo की ज़रूरत नहीं है।',
   'settings.cryptoCopy': 'कॉपी करें',

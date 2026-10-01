@@ -167,7 +167,6 @@ export const sl: Dict = {
   'settings.cryptoTitle': 'Podpri s kripto',
   'settings.donateAppeal': 'Vrzi kovanec svojemu vitezu: pokrije del stroškov in ohranja projekt pri življenju. Vse, kar naredim, je brezplačno in brez oglasov.',
   'settings.cryptoIntro': 'Izberi valuto in omrežje, nato skeniraj kodo ali kopiraj naslov.',
-  'settings.coffeeIntro': 'Plačilo poteka prek Buy Me a Coffee. Računa ne potrebuješ.',
   'settings.cryptoNetworks': 'Omrežja',
   'settings.cryptoNoTag': 'Destination tag in memo nista potrebna.',
   'settings.cryptoCopy': 'Kopiraj',

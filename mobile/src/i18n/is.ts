@@ -167,7 +167,6 @@ export const is: Dict = {
   'settings.cryptoTitle': 'Styrkja með rafmynt',
   'settings.donateAppeal': 'Kastaðu mynt til riddarans þíns: hún greiðir hluta kostnaðarins og heldur verkefninu lifandi. Allt sem ég bý til er ókeypis og án auglýsinga.',
   'settings.cryptoIntro': 'Veldu gjaldmiðil og netkerfi, skannaðu svo kóðann eða afritaðu vistfangið.',
-  'settings.coffeeIntro': 'Greiðslan fer í gegnum Buy Me a Coffee. Þú þarft ekki aðgang.',
   'settings.cryptoNetworks': 'Netkerfi',
   'settings.cryptoNoTag': 'Hvorki destination tag né memo er nauðsynlegt.',
   'settings.cryptoCopy': 'Afrita',

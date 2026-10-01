@@ -167,7 +167,6 @@ export const ja: Dict = {
   'settings.cryptoTitle': '暗号資産で寄付',
   'settings.donateAppeal': '騎士にコインを一枚。費用の一部をまかない、プロジェクトを生かし続けます。私が作るものはすべて無料で、広告もありません。',
   'settings.cryptoIntro': '通貨とネットワークを選び、コードを読み取るかアドレスをコピーしてください。',
-  'settings.coffeeIntro': '支払いは Buy Me a Coffee で行われます。アカウントは不要です。',
   'settings.cryptoNetworks': 'ネットワーク',
   'settings.cryptoNoTag': 'destination tag も memo も不要です。',
   'settings.cryptoCopy': 'コピー',

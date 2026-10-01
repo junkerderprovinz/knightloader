@@ -167,7 +167,6 @@ export const ko: Dict = {
   'settings.cryptoTitle': '암호화폐로 후원',
   'settings.donateAppeal': '기사에게 동전 한 닢을 던져 주세요. 비용의 일부를 메우고 프로젝트를 살려 둡니다. 제가 만드는 것은 모두 무료이고 광고도 없습니다.',
   'settings.cryptoIntro': '통화와 네트워크를 고른 다음 코드를 스캔하거나 주소를 복사하세요.',
-  'settings.coffeeIntro': '결제는 Buy Me a Coffee를 통해 진행됩니다. 계정은 필요 없습니다.',
   'settings.cryptoNetworks': '네트워크',
   'settings.cryptoNoTag': 'destination tag와 memo는 필요 없습니다.',
   'settings.cryptoCopy': '복사',

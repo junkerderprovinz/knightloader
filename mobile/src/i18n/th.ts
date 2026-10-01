@@ -167,7 +167,6 @@ export const th: Dict = {
   'settings.cryptoTitle': 'บริจาคด้วยคริปโท',
   'settings.donateAppeal': 'โยนเหรียญให้อัศวินของคุณสักเหรียญ เหรียญนี้ช่วยจ่ายค่าใช้จ่ายส่วนหนึ่งและทำให้โครงการอยู่ต่อได้ ทุกอย่างที่สร้างขึ้นใช้ได้ฟรีและไม่มีโฆษณา',
   'settings.cryptoIntro': 'เลือกสกุลเงินและเครือข่าย แล้วสแกนโค้ดหรือคัดลอกที่อยู่',
-  'settings.coffeeIntro': 'การชำระเงินดำเนินการผ่าน Buy Me a Coffee ไม่ต้องมีบัญชี',
   'settings.cryptoNetworks': 'เครือข่าย',
   'settings.cryptoNoTag': 'ไม่ต้องใช้ destination tag และไม่ต้องใช้ memo',
   'settings.cryptoCopy': 'คัดลอก',

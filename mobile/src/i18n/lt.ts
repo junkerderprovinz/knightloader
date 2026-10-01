@@ -167,7 +167,6 @@ export const lt: Dict = {
   'settings.cryptoTitle': 'Paremti kriptovaliuta',
   'settings.donateAppeal': 'Mesk monetą savo riteriui: ji padengia dalį išlaidų ir palaiko projektą gyvą. Viskas, ką kuriu, yra nemokama ir be reklamų.',
   'settings.cryptoIntro': 'Pasirink valiutą ir tinklą, tada nuskaityk kodą arba nukopijuok adresą.',
-  'settings.coffeeIntro': 'Mokėjimas vyksta per Buy Me a Coffee. Paskyros tau nereikia.',
   'settings.cryptoNetworks': 'Tinklai',
   'settings.cryptoNoTag': 'Destination tag ir memo nereikia.',
   'settings.cryptoCopy': 'Kopijuoti',

@@ -167,7 +167,6 @@ export const ca: Dict = {
   'settings.cryptoTitle': 'Donar amb cripto',
   'settings.donateAppeal': 'Llança una moneda al teu cavaller: cobreix part dels costos i manté viu el projecte. Tot el que faig és gratuït i sense anuncis.',
   'settings.cryptoIntro': 'Tria una criptomoneda i una xarxa, després escaneja el codi o copia l\'adreça.',
-  'settings.coffeeIntro': 'El pagament es fa a través de Buy Me a Coffee. No et cal cap compte.',
   'settings.cryptoNetworks': 'Xarxes',
   'settings.cryptoNoTag': 'No calen destination tag ni memo.',
   'settings.cryptoCopy': 'Copia',

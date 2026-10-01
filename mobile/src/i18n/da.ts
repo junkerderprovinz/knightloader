@@ -167,7 +167,6 @@ export const da: Dict = {
   'settings.cryptoTitle': 'Doner med krypto',
   'settings.donateAppeal': 'Kast en mønt til din ridder: den dækker en del af omkostningerne og holder projektet i live. Alt, hvad jeg laver, er gratis og uden reklamer.',
   'settings.cryptoIntro': 'Vælg en valuta og et netværk, og scan så koden eller kopiér adressen.',
-  'settings.coffeeIntro': 'Betalingen foregår hos Buy Me a Coffee. Du behøver ingen konto.',
   'settings.cryptoNetworks': 'Netværk',
   'settings.cryptoNoTag': 'Hverken destination tag eller memo er nødvendigt.',
   'settings.cryptoCopy': 'Kopier',

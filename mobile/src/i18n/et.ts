@@ -167,7 +167,6 @@ export const et: Dict = {
   'settings.cryptoTitle': 'Anneta krüptoga',
   'settings.donateAppeal': 'Viska oma rüütlile münt: see katab osa kuludest ja hoiab projekti elus. Kõik, mida ma teen, on tasuta ja reklaamideta.',
   'settings.cryptoIntro': 'Vali valuuta ja võrk, seejärel skanni kood või kopeeri aadress.',
-  'settings.coffeeIntro': 'Makse käib läbi Buy Me a Coffee. Kontot sul vaja ei ole.',
   'settings.cryptoNetworks': 'Võrgud',
   'settings.cryptoNoTag': 'Destination tag\'i ega memo pole vaja.',
   'settings.cryptoCopy': 'Kopeeri',

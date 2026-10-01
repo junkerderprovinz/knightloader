@@ -167,7 +167,6 @@ export const it: Dict = {
   'settings.cryptoTitle': 'Donare in cripto',
   'settings.donateAppeal': 'Getta una moneta al tuo cavaliere: copre parte dei costi e tiene vivo il progetto. Tutto ciò che creo è gratuito e senza pubblicità.',
   'settings.cryptoIntro': 'Scegli una valuta e una rete, poi scansiona il codice o copia l\'indirizzo.',
-  'settings.coffeeIntro': 'Il pagamento passa da Buy Me a Coffee. Non ti serve un account.',
   'settings.cryptoNetworks': 'Reti',
   'settings.cryptoNoTag': 'Non servono destination tag né memo.',
   'settings.cryptoCopy': 'Copia',

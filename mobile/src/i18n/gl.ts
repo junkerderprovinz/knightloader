@@ -167,7 +167,6 @@ export const gl: Dict = {
   'settings.cryptoTitle': 'Doar con cripto',
   'settings.donateAppeal': 'Bótalle unha moeda ao teu cabaleiro: cobre parte dos custos e mantén vivo o proxecto. Todo o que fago é gratuíto e sen anuncios.',
   'settings.cryptoIntro': 'Escolle unha criptomoeda e unha rede, despois escanea o código ou copia o enderezo.',
-  'settings.coffeeIntro': 'O pagamento faise a través de Buy Me a Coffee. Non necesitas conta.',
   'settings.cryptoNetworks': 'Redes',
   'settings.cryptoNoTag': 'Non fan falta destination tag nin memo.',
   'settings.cryptoCopy': 'Copiar',

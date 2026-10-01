@@ -167,7 +167,6 @@ export const eu: Dict = {
   'settings.cryptoTitle': 'Eman kriptoarekin',
   'settings.donateAppeal': 'Bota txanpon bat zure zaldunari: kostuen zati bat estaltzen du eta proiektua bizirik mantentzen du. Egiten dudan guztia doakoa da eta ez du iragarkirik.',
   'settings.cryptoIntro': 'Aukeratu kriptomoneta bat eta sare bat, gero eskaneatu kodea edo kopiatu helbidea.',
-  'settings.coffeeIntro': 'Ordainketa Buy Me a Coffee bidez egiten da. Ez duzu konturik behar.',
   'settings.cryptoNetworks': 'Sareak',
   'settings.cryptoNoTag': 'Ez da destination tag-ik ez memorik behar.',
   'settings.cryptoCopy': 'Kopiatu',

@@ -45,7 +45,6 @@ import IconBadge, {
 } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { CoffeeDonate } from '../components/CoffeeDonate';
 import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
 import { Text, TextInput } from '../components/Text';
@@ -58,6 +57,7 @@ const CONTACT_MAIL = 'hello@halleluja.design';
 // PayPal's hosted donation button, the address the web UI's About card and the
 // README's donate row use.
 const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS';
+const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
 
 // The README's download links (scripts/download_buttons.py). A file under
@@ -300,7 +300,6 @@ export default function SettingsScreen({
   const [confirmingRemoveAll, setConfirmingRemoveAll] = useState(false);
   /** Whether the crypto window is open. */
   const [donating, setDonating] = useState(false);
-  const [coffee, setCoffee] = useState(false);
   /** True for a moment after the docker run command reached the clipboard,
    *  which the Docker button's second line says. */
   const [dockerCopied, setDockerCopied] = useState(false);
@@ -839,7 +838,7 @@ export default function SettingsScreen({
             art
             label={t('settings.aboutCoffeeButton')}
             mark={({ mark, words }) => <CoffeeArt cup={mark} words={words} />}
-            onPress={() => setCoffee(true)}
+            onPress={() => Linking.openURL(COFFEE_URL)}
           />
           <ReadmeButton
             brand="paypal"
@@ -939,7 +938,6 @@ export default function SettingsScreen({
       </NotchCard>
 
       <CryptoDonate visible={donating} onClose={() => setDonating(false)} />
-      <CoffeeDonate visible={coffee} onClose={() => setCoffee(false)} />
 
       <ConfirmDialog
         visible={confirmingRemoveAll}

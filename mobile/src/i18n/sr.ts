@@ -167,7 +167,6 @@ export const sr: Dict = {
   'settings.cryptoTitle': 'Донирај криптом',
   'settings.donateAppeal': 'Баци новчић свом витезу: покрива део трошкова и одржава пројекат у животу. Све што правим бесплатно је и без реклама.',
   'settings.cryptoIntro': 'Изабери валуту и мрежу, па скенирај код или копирај адресу.',
-  'settings.coffeeIntro': 'Плаћање иде преко Buy Me a Coffee. Налог ти није потребан.',
   'settings.cryptoNetworks': 'Мреже',
   'settings.cryptoNoTag': 'Ни ознака одредишта ни мемо нису потребни.',
   'settings.cryptoCopy': 'Копирај',

@@ -167,7 +167,6 @@ export const ro: Dict = {
   'settings.cryptoTitle': 'Donează în cripto',
   'settings.donateAppeal': 'Aruncă o monedă cavalerului tău: acoperă o parte din costuri și ține proiectul în viață. Tot ce fac este gratuit și fără reclame.',
   'settings.cryptoIntro': 'Alege o criptomonedă și o rețea, apoi scanează codul sau copiază adresa.',
-  'settings.coffeeIntro': 'Plata se face prin Buy Me a Coffee. Nu ai nevoie de cont.',
   'settings.cryptoNetworks': 'Rețele',
   'settings.cryptoNoTag': 'Nu sunt necesare destination tag sau memo.',
   'settings.cryptoCopy': 'Copiază',

@@ -167,7 +167,6 @@ export const ms: Dict = {
   'settings.cryptoTitle': 'Derma dengan kripto',
   'settings.donateAppeal': 'Lemparkan syiling kepada kesateria Anda: ia menampung sebahagian kos dan memastikan projek terus hidup. Semua yang saya bina percuma dan tanpa iklan.',
   'settings.cryptoIntro': 'Pilih mata wang dan rangkaian, kemudian imbas kod atau salin alamat.',
-  'settings.coffeeIntro': 'Pembayaran dibuat melalui Buy Me a Coffee. Anda tidak memerlukan akaun.',
   'settings.cryptoNetworks': 'Rangkaian',
   'settings.cryptoNoTag': 'Destination tag dan memo tidak diperlukan.',
   'settings.cryptoCopy': 'Salin',

@@ -167,7 +167,6 @@ export const hu: Dict = {
   'settings.cryptoTitle': 'Támogatás kriptóval',
   'settings.donateAppeal': 'Dobj egy érmét a lovagodnak: fedezi a költségek egy részét, és életben tartja a projektet. Minden, amit készítek, ingyenes és reklámmentes.',
   'settings.cryptoIntro': 'Válassz pénznemet és hálózatot, majd olvasd be a kódot vagy másold ki a címet.',
-  'settings.coffeeIntro': 'A fizetés a Buy Me a Coffee-n keresztül történik. Nincs szükséged fiókra.',
   'settings.cryptoNetworks': 'Hálózatok',
   'settings.cryptoNoTag': 'Nem kell sem destination tag, sem memo.',
   'settings.cryptoCopy': 'Másolás',
