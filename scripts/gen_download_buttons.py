@@ -5,9 +5,10 @@ download_buttons.py beside it differs. It writes one SVG per button, a sprite
 holding them together with the donation buttons, and every button row in
 README.md.
 
-The rows are always the same three, in this order: the desktop apps, then the
-Unraid template, the container, the source and the manual, then the phone apps
-and the browser extensions. What a repository does not ship is left out.
+The rows are always the same four, in this order: the server (the Unraid
+template, the container, the source and the manual), the desktop apps, the
+phone apps and the browser extensions. What a repository does not ship is left
+out.
 Windows on ARM and the portable build are segments of the Windows button, and
 Linux on ARM one of the Linux button, so the desktop row keeps to the four
 places a row has.
@@ -71,32 +72,32 @@ FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-se
 # thing carries the same words in every README.
 WINDOWS = ("#0078d4", "#ffffff")
 KINDS = {
-    "windows":          (0, "windows", *WINDOWS, "Windows", "x64", "Download for Windows"),
-    "windows-arm":      (0, None, *WINDOWS, "Windows", "ARM64", "Download for Windows on ARM"),
-    "windows-portable": (0, None, *WINDOWS, "Windows", "Portable", "Download the portable Windows app"),
-    "windows-script":   (0, "windows", *WINDOWS, "Windows", "start script", "Download the Windows start script"),
-    # Space grey, since black vanishes against GitHub's dark theme.
-    "macos":            (0, "apple", "#6e6e73", "#ffffff", "macOS", "Universal", "Download for macOS"),
-    # Tux yellow, with dark ink for contrast.
-    "linux":            (0, "linux", "#fcc624", "#1b1b1b", "Linux", "x64", "Download for Linux"),
-    "linux-arm":        (0, None, "#fcc624", "#1b1b1b", "Linux", "ARM64", "Download for Linux on ARM"),
-    "linux-script":     (0, "linux", "#fcc624", "#1b1b1b", "Linux", "start script", "Download the Linux start script"),
     # The middle of the orange in Unraid's logo, where white holds 3.4:1,
     # enough for type this large.
-    "unraid":           (1, "unraid", "#f15a2c", "#ffffff", "Unraid", "Template", "Install from Unraid's Community Applications"),
-    "docker":           (1, "docker", "#1d63ed", "#ffffff", "Docker", "Container", "Run it with Docker"),
-    "compose":          (1, "docker", "#1d63ed", "#ffffff", "Docker", "compose file", "Download the docker-compose file"),
+    "unraid":           (0, "unraid", "#f15a2c", "#ffffff", "Unraid", "Template", "Install from Unraid's Community Applications"),
+    "docker":           (0, "docker", "#1d63ed", "#ffffff", "Docker", "Container", "Run it with Docker"),
+    "compose":          (0, "docker", "#1d63ed", "#ffffff", "Docker", "compose file", "Download the docker-compose file"),
     # Slate, since GitHub's black vanishes in the dark theme.
-    "source":           (1, "zip", "#4d5562", "#ffffff", "Source", "zip archive", "Download the source archive"),
+    "source":           (0, "zip", "#4d5562", "#ffffff", "Source", "zip archive", "Download the source archive"),
     # "Docs" rather than "Documentation": 13 characters at font-size 82 need
     # more than the 510 units left of the right edge. The yellow is the coffee
     # button's #fd0, and white on yellow fails contrast, so the ink is dark.
-    "docs":             (1, "book", "#fd0", "#0d0c23", "Docs", "online manual", "Read the documentation"),
+    "docs":             (0, "book", "#fd0", "#0d0c23", "Docs", "online manual", "Read the documentation"),
+    "windows":          (1, "windows", *WINDOWS, "Windows", "x64", "Download for Windows"),
+    "windows-arm":      (1, None, *WINDOWS, "Windows", "ARM64", "Download for Windows on ARM"),
+    "windows-portable": (1, None, *WINDOWS, "Windows", "Portable", "Download the portable Windows app"),
+    "windows-script":   (1, "windows", *WINDOWS, "Windows", "start script", "Download the Windows start script"),
+    # Space grey, since black vanishes against GitHub's dark theme.
+    "macos":            (1, "apple", "#6e6e73", "#ffffff", "macOS", "Universal", "Download for macOS"),
+    # Tux yellow, with dark ink for contrast.
+    "linux":            (1, "linux", "#fcc624", "#1b1b1b", "Linux", "x64", "Download for Linux"),
+    "linux-arm":        (1, None, "#fcc624", "#1b1b1b", "Linux", "ARM64", "Download for Linux on ARM"),
+    "linux-script":     (1, "linux", "#fcc624", "#1b1b1b", "Linux", "start script", "Download the Linux start script"),
     # The heading is the platform, since "Google Play" is too wide for it.
     "google-play":      (2, "google-play", "#01875f", "#ffffff", "Android", "Google Play", "Get it on Google Play"),
     "apk":              (2, "android", "#3ddc84", "#1b1b1b", "Android", "APK", "Download the Android app"),
-    "chrome":           (2, "chrome", "#1a73e8", "#ffffff", "Chrome", "Edge, Brave", "Download the extension for Chrome, Edge, Brave and Opera"),
-    "firefox":          (2, "firefox-browser", "#ff7139", "#1b1b1b", "Firefox", "Add-on", "Install the Firefox add-on"),
+    "chrome":           (3, "chrome", "#1a73e8", "#ffffff", "Chrome", "Edge, Brave", "Download the extension for Chrome, Edge, Brave and Opera"),
+    "firefox":          (3, "firefox-browser", "#ff7139", "#1b1b1b", "Firefox", "Add-on", "Install the Firefox add-on"),
 }
 # Joined to the button they belong to, in this order, rather than standing alone.
 SEGMENTS = {"windows": ("windows-arm", "windows-portable"), "linux": ("linux-arm",)}
@@ -246,7 +247,7 @@ def rows():
         present = [s for s in group if s in config.BUTTONS]
         if present and base not in config.BUTTONS:
             raise SystemExit("%s needs the %s button to join" % (present[0], base))
-    out = [[], [], []]
+    out = [[], [], [], []]
     for kind, spec in KINDS.items():
         if kind not in config.BUTTONS or kind in joined:
             continue
