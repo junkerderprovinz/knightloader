@@ -8,6 +8,9 @@ package hosterauth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -90,6 +93,26 @@ type DesiredLogin struct {
 	Host     string
 	Username string
 	Password string
+
+	// sum fingerprints this credential and pushed the one last handed to JD
+	// for the host, "" when this process has handed none.
+	sum, pushed string
+}
+
+// printKey keys the fingerprints, so the ones held in memory cannot be tested
+// against guessed passwords.
+var printKey = func() []byte {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return b
+}()
+
+func fingerprint(username, password string) string {
+	m := hmac.New(sha256.New, printKey)
+	m.Write([]byte(username))
+	m.Write([]byte{0})
+	m.Write([]byte(password))
+	return string(m.Sum(nil))
 }
 
 // rejectGrace is how long a JD account may sit at valid=false before Reconcile
@@ -167,6 +190,9 @@ type Reconciler struct {
 	mu        sync.Mutex
 	states    map[string]LoginState
 	firstFail map[string]time.Time // host -> when Reconcile first saw it present but invalid
+	// pushed is the fingerprint of the login JD holds for each host, so a
+	// changed password or username replaces the account JD already has.
+	pushed map[string]string
 	// active and hosters are what the last pass handed to routing, so a pass
 	// that hands over the same again calls no Reconciled.
 	active  map[string]bool
@@ -229,6 +255,10 @@ type Plan struct {
 // PluginFinder.assignHost before being stored (see jdclient.go), so a login
 // saved as rg.to comes back as rapidgator.net; compared as typed, it would
 // look missing on every pass and be added again each time.
+//
+// A host JD has under a login other than the stored one is replaced: its
+// account goes in Remove and the stored login in Add, so a corrected password
+// reaches JD.
 func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.Time, now time.Time) Plan {
 	byHost := map[string]jdAccount{}
 	for _, a := range actual {
@@ -241,7 +271,10 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 		wanted[h] = true
 		acc, present := byHost[h]
 		switch {
-		case !present:
+		case !present || replaced(d, acc):
+			if present {
+				p.Remove = append(p.Remove, acc.UUID)
+			}
 			p.Add = append(p.Add, d)
 			p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusQueued,
 				Detail: "waiting for JDownloader to accept this login", Code: codeAdding}
@@ -271,6 +304,18 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 	return p
 }
 
+// replaced reports whether JD holds a login for d's host other than d. What
+// this process pushed decides; after a restart only the username JD reports
+// can tell, and a password changed meanwhile goes unnoticed until it is saved
+// again.
+func replaced(d DesiredLogin, acc jdAccount) bool {
+	if d.pushed != "" {
+		return d.pushed != d.sum
+	}
+	return acc.InfoMap != nil && acc.InfoMap.Username != "" &&
+		!strings.EqualFold(strings.TrimSpace(acc.InfoMap.Username), strings.TrimSpace(d.Username))
+}
+
 // desired reads Store into the plain-credential rows plan needs, skipping
 // anything that no longer carries a secret and anything the user switched off.
 //
@@ -287,7 +332,8 @@ func (r *Reconciler) desired() []DesiredLogin {
 		if !r.enabled(h) {
 			continue
 		}
-		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password})
+		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password,
+			sum: fingerprint(cred.Username, cred.Password)})
 	}
 	return out
 }
@@ -326,19 +372,38 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 
 	now := time.Now()
 	r.mu.Lock()
+	for i := range desired {
+		desired[i].pushed = r.pushed[accountKey(desired[i].Host)]
+	}
 	p := plan(desired, actual, r.firstFail, now)
 	updateFirstFail(r.firstFail, p, now)
 	r.states = p.States
-	r.mu.Unlock()
-
-	for _, d := range p.Add {
-		if _, err := jd.addAccount(ctx, d.Host, d.Username, d.Password); err != nil {
-			log.Printf("hosterauth: adding %s to JD failed: %v", d.Host, err)
+	// Logins JD already holds keep their fingerprint; one being added gets
+	// it once JD has accepted it.
+	r.pushed = map[string]string{}
+	for _, d := range desired {
+		if !slices.ContainsFunc(p.Add, func(a DesiredLogin) bool { return a.Host == d.Host }) {
+			r.pushed[accountKey(d.Host)] = d.sum
 		}
 	}
+	r.mu.Unlock()
+
+	// Removed first, so a replaced login is gone before its successor arrives.
 	if len(p.Remove) > 0 {
 		if err := jd.removeAccounts(ctx, p.Remove); err != nil {
 			log.Printf("hosterauth: removing %d stale JD account(s) failed: %v", len(p.Remove), err)
+		}
+	}
+	for _, d := range p.Add {
+		ok, err := jd.addAccount(ctx, d.Host, d.Username, d.Password)
+		if err != nil {
+			log.Printf("hosterauth: adding %s to JD failed: %v", d.Host, err)
+			continue
+		}
+		if ok {
+			r.mu.Lock()
+			r.pushed[accountKey(d.Host)] = d.sum
+			r.mu.Unlock()
 		}
 	}
 	changed := r.setActive(p.States)
