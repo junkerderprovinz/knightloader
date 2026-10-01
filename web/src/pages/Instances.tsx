@@ -129,7 +129,11 @@ export function Instances() {
   }
 
   async function onRemove(n: string) {
-    await removeInstance(n);
+    try {
+      await removeInstance(n);
+    } catch (e: unknown) {
+      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail', 'action-failed');
+    }
     load();
   }
 
