@@ -105,6 +105,12 @@ func TestARemovedStartStaysRemovedWhenTheTaskStartsAgain(t *testing.T) {
 	if n := len(e.d.GetTasks()); n != 0 {
 		t.Errorf("the library holds %d task(s) while the only live start still resolves", n)
 	}
+
+	// Ended here rather than by the cleanup, which would open the second
+	// origin first and let a transfer write into the folder being removed.
+	e.Remove("t1", true)
+	again.open()
+	startOver(t, e)
 }
 
 // A task paused while its link resolves stays out of the library until it is
