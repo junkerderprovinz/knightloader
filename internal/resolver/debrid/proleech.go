@@ -273,7 +273,7 @@ func (p *ProLeech) Unlock(ctx context.Context, link string) (Direct, error) {
 		return Direct{}, errors.New("proleech: no direct link returned")
 	}
 	p.rememberChunks(link, int(looseInt(d.MaxChunks)))
-	return Direct{URL: d.Link, Name: d.Filename, Size: proleechSize(d.Size)}, nil
+	return Direct{URL: d.Link, Name: d.Filename, Size: textSize(d.Size)}, nil
 }
 
 // rememberChunks keeps the max_chunks of the latest unlock per hoster, since
@@ -345,7 +345,7 @@ func (p *ProLeech) Account(ctx context.Context) (AccountInfo, error) {
 			info.ExpiresAt = day.AddDate(0, 0, 1)
 		}
 	}
-	used, left := proleechSize(d.UsedToday), proleechSize(d.TrafficLeft)
+	used, left := textSize(d.UsedToday), textSize(d.TrafficLeft)
 	info.Traffic.UsedBytes = used
 	// The API names no cap and traffic_left is often 0, so a limit comes only
 	// from a positive traffic_left, sized so that exactly that much reads as left.
@@ -369,7 +369,7 @@ func proleechYes(raw json.RawMessage) bool {
 	return false
 }
 
-var proleechUnits = map[string]float64{
+var textUnits = map[string]float64{
 	"": 1, "B": 1, "BYTES": 1,
 	"KB": 1 << 10, "KIB": 1 << 10,
 	"MB": 1 << 20, "MIB": 1 << 20,
@@ -377,10 +377,10 @@ var proleechUnits = map[string]float64{
 	"TB": 1 << 40, "TIB": 1 << 40,
 }
 
-// proleechSize reads a byte count sent as a number, as digits or as text such
-// as "10.15 MB". Units step by 1024, as JD reads the same field, so text gives
-// an estimate until the download reports its own length.
-func proleechSize(raw json.RawMessage) int64 {
+// textSize reads a byte count sent as a number, as digits or as text such
+// as "10.15 MB". Units step by 1024, as JD reads ProLeech's sizes, so text
+// gives an estimate until the download reports its own length.
+func textSize(raw json.RawMessage) int64 {
 	var f float64
 	if json.Unmarshal(raw, &f) == nil {
 		return int64(f)
@@ -395,7 +395,7 @@ func proleechSize(raw json.RawMessage) int64 {
 		i = len(s)
 	}
 	v, err := strconv.ParseFloat(s[:i], 64)
-	mult, ok := proleechUnits[strings.ToUpper(strings.TrimSpace(s[i:]))]
+	mult, ok := textUnits[strings.ToUpper(strings.TrimSpace(s[i:]))]
 	if err != nil || !ok {
 		return 0
 	}

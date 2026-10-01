@@ -75,7 +75,7 @@ a restart, since the download keeps a magnet's file list once the swarm has
 sent it.
 
 **Through a debrid service**: when TorBox, Real-Debrid, AllDebrid,
-Premiumize.me or Debrid-Link ranks above "Built-in torrent client" on the Accounts
+Premiumize.me, Debrid-Link or Linksnappy ranks above "Built-in torrent client" on the Accounts
 page, that service fetches the torrent and the files come here over HTTP. The
 file selection counts there as well: Real-Debrid and Debrid-Link are told which
 files to fetch, and from the other services only those files come here. A
