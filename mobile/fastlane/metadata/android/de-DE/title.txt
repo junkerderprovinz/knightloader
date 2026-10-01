@@ -1,1 +1,1 @@
-KnightLoader Fernbedienung
+KnightLoader
