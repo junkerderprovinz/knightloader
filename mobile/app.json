@@ -27,7 +27,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.VIBRATE"
       ],
-      "versionCode": 10603
+      "versionCode": 10604
     },
     "web": {
       "favicon": "./assets/favicon.png"
