@@ -9,6 +9,34 @@ import (
 	"testing"
 )
 
+// A key file of the wrong length is moved aside, not overwritten, so the
+// credentials sealed under it can still be recovered from the backup.
+func TestADamagedKeyIsKeptBesideTheNewOne(t *testing.T) {
+	dir := t.TempDir()
+	damaged := []byte("not thirty-two bytes")
+	if err := os.WriteFile(filepath.Join(dir, ".keyring"), damaged, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Open(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	backups, err := filepath.Glob(filepath.Join(dir, ".keyring.damaged-*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(backups) != 1 {
+		t.Fatalf("backups = %v, want one copy of the damaged key", backups)
+	}
+	if got, _ := os.ReadFile(backups[0]); string(got) != string(damaged) {
+		t.Errorf("the backup holds %q, want the damaged key as it was", got)
+	}
+	if got, _ := os.ReadFile(filepath.Join(dir, ".keyring")); len(got) != 32 {
+		t.Errorf("the new key is %d bytes, want 32", len(got))
+	}
+}
+
 func TestSetGetRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Open(dir)
