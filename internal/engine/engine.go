@@ -432,7 +432,7 @@ func (e *Engine) Start(j Job) {
 		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
-			if e.proceed(j) {
+			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			}
 			return
@@ -443,13 +443,13 @@ func (e *Engine) Start(j Job) {
 		if err != nil {
 			// Report the name with the failure, so the app can pre-empt the
 			// collision on a retry.
-			if e.proceed(j) {
+			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
 			}
 			return
 		}
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
-		if !e.proceed(j) {
+		if !e.proceed(s, j) {
 			return
 		}
 		gid, err := e.d.Create(rr.ID)

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -16,9 +17,10 @@ import (
 // gatedOrigin serves body, but holds every request until open is called, so
 // a start stays in its resolve for as long as a test needs.
 type gatedOrigin struct {
-	url  string
-	gate chan struct{}
-	once sync.Once
+	url    string
+	gate   chan struct{}
+	once   sync.Once
+	served atomic.Int32
 }
 
 func newGatedOrigin(t *testing.T, body []byte) *gatedOrigin {
@@ -27,6 +29,7 @@ func newGatedOrigin(t *testing.T, body []byte) *gatedOrigin {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-o.gate
 		http.ServeContent(w, r, "f.bin", time.Time{}, bytes.NewReader(body))
+		o.served.Add(1)
 	}))
 	t.Cleanup(srv.Close)
 	t.Cleanup(o.open)
@@ -84,6 +87,23 @@ func TestATaskRemovedWhileResolvingIsNeverStarted(t *testing.T) {
 	}
 	if u.saw(core.StatusError) {
 		t.Error("a removed start reported a failure")
+	}
+}
+
+// A start begun again after a Remove takes the task's place, and the removed
+// one still resolving does not take the new one's for its own.
+func TestARemovedStartStaysRemovedWhenTheTaskStartsAgain(t *testing.T) {
+	e, o, _, _ := startResolving(t, bytes.Repeat([]byte("x"), 4096))
+
+	e.Remove("t1", true)
+	again := newGatedOrigin(t, []byte("again"))
+	e.Start(Job{TaskID: "t1", URL: again.url, Conns: 1})
+	o.open()
+	waitUntil(t, "the removed start's resolve being answered", func() bool { return o.served.Load() > 0 })
+	time.Sleep(300 * time.Millisecond)
+
+	if n := len(e.d.GetTasks()); n != 0 {
+		t.Errorf("the library holds %d task(s) while the only live start still resolves", n)
 	}
 }
 
