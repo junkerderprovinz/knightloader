@@ -327,16 +327,15 @@ export class RelayClient {
     switch (env.type) {
       case T_ANNOUNCE: {
         if (typeof data.instanceId !== 'string' || !data.instanceId) return;
-        // The same three cases relay.openAnnounce handles: a sealed identity
-        // that opens is used; an announce with no seal comes from an instance
-        // older than the seal, so its plaintext is read; a seal that does not
-        // open is a peer on another frame key, listed under its id with no name
-        // rather than hidden, because a roster that disagrees with the relay
+        // As in relay.openAnnounce, only a seal that opens names a sibling. The
+        // plaintext of an unsealed announce is whatever the sender claims, so
+        // that announce, like one whose seal does not open, is listed under its
+        // bare id rather than hidden: a roster that disagrees with the relay
         // hides the one symptom that lets anybody diagnose a key mismatch.
         const id =
-          typeof data.sealed === 'string' && data.sealed
-            ? (openIdentity(this.opts.frameKey, data.instanceId, data.sealed) ?? {})
-            : data;
+          (typeof data.sealed === 'string' && data.sealed
+            ? openIdentity(this.opts.frameKey, data.instanceId, data.sealed)
+            : null) ?? {};
         const sib: RelaySibling = {
           instanceId: data.instanceId,
           name: typeof id.name === 'string' ? id.name : '',
