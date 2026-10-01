@@ -37,6 +37,10 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed (Android app)
+
+- The store listings call the app only KnightLoader, in every language.
+
 ## [1.6.1] - 2026-10-01
 
 ### Added
