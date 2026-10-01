@@ -5,6 +5,7 @@ package app
 // outlives the list.
 
 import (
+	"cmp"
 	"log"
 	"os"
 	"path/filepath"
@@ -76,6 +77,10 @@ func holdOnBoot(resume string, queueWasLive bool) bool {
 // keptItsProgress reports whether a stored task's byte count still describes a
 // file on disk. JD downloads live on JD's machine and keep their count; a task
 // whose name is still its URL never resolved and has no file.
+//
+// A torrent counts while what it wrote is there, which for one of several
+// files is a folder. Losing its count would hand it to the ranked chain again
+// as if nothing had come in, away from the partial download.
 func (a *App) keptItsProgress(t *core.Task) bool {
 	if t.Loaded <= 0 {
 		return false
@@ -86,8 +91,17 @@ func (a *App) keptItsProgress(t *core.Task) bool {
 	if t.Name == "" || t.Name == t.URL {
 		return false
 	}
-	fi, err := os.Stat(filepath.Join(a.dirFor(t), t.Name))
-	return err == nil && !fi.IsDir() && fi.Size() > 0
+	if t.InfoHash != "" {
+		_, err := os.Stat(cmp.Or(t.File, filepath.Join(a.dirFor(t), t.Name)))
+		return err == nil
+	}
+	for _, dir := range []string{a.dirFor(t), a.workDirFor(t)} {
+		fi, err := os.Stat(filepath.Join(dir, t.Name))
+		if err == nil && !fi.IsDir() && fi.Size() > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // upkeepInterval is how often housekeeping runs. Everything it does is
