@@ -2,7 +2,7 @@
 // tiles: generate a phrase, or enter one that already exists, each opening a
 // window. Inside one it shows who else is there, and when nobody has come
 // after a minute it offers the two ways out, in the same two windows.
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, IconBadge, InfoBubble, LabelBadge, Modal, PasswordInput, SectionTitle } from '../../../components/ui';
 import {
@@ -45,6 +45,10 @@ type T = ReturnType<typeof useT>['t'];
 // The note about a missing password is put away per browser. Several
 // instances can share an origin behind one proxy, so the key carries the path.
 const NO_PASSWORD_DISMISSED = `kl.pairing.noPasswordHint.dismissed:${basePath()}`;
+
+// How far two polls may place the same join apart: joinedAgo is whole seconds,
+// and each answer is a request old by the time it is read.
+const JOIN_SLACK_MS = 5000;
 
 function noPasswordDismissed(): boolean {
   try {
@@ -302,6 +306,19 @@ export function PhraseCard({
     setCreatedHere(false);
     setConfirmLeave(false);
   }
+
+  // Words shown here belong to the group they were shown for. Another tab or
+  // an API client can leave it or start a new one, and the poll is the only
+  // sign: the group goes inactive, or its join moment moves.
+  const joinedAt = useRef<number | null>(null);
+  useEffect(() => {
+    const at = group.active ? Date.now() - group.joinedAgo * 1000 : null;
+    const before = joinedAt.current;
+    joinedAt.current = at;
+    if (before === null || (at !== null && Math.abs(at - before) < JOIN_SLACK_MS)) return;
+    forget();
+    setShown((s) => (s === 'words' ? null : s));
+  }, [group]);
 
   const create = () =>
     run(async () => {

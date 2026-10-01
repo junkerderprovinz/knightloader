@@ -175,6 +175,7 @@ export function RelayCard({
   const [howOpen, setHowOpen] = useState(false);
   const howId = useId();
   const editing = useRef(false);
+  const typed = useRef(0);
   const timer = useRef<number | null>(null);
 
   // The page reloads the relay every few seconds; that must not undo what is
@@ -204,19 +205,23 @@ export function RelayCard({
     }
   }
 
-  function pick(next: RelayMode) {
+  // A failed save leaves the server on its old mode, and the tabs go back to
+  // it, or the address typed next would be stored for a relay nobody uses.
+  async function pick(next: RelayMode) {
     setMode(next);
-    void save({ mode: next });
+    if (!(await save({ mode: next }))) setMode(relay.mode);
   }
 
   function typeUrl(v: string) {
     editing.current = true;
+    const n = ++typed.current;
     setUrl(v);
     setUrlError(null);
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
       void save({ url: v.trim() }).then(() => {
-        editing.current = false;
+        // Still typing: the stored address must not replace the newer text.
+        if (typed.current === n) editing.current = false;
       });
     }, 800);
   }
@@ -249,7 +254,7 @@ export function RelayCard({
         labelled
         label={t('relay.title')}
         active={mode}
-        onSelect={(id) => pick(id as RelayMode)}
+        onSelect={(id) => void pick(id as RelayMode)}
         items={MODES.map((m) => ({ id: m, label: t(COPY[m].name), icon: <RouteGlyph kind={m} /> }))}
       />
 
