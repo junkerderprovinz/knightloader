@@ -1672,6 +1672,7 @@ export const ja: Dict = {
   'quickadd.title': 'KnightLoaderに追加',
   'quickadd.manualLabel': 'リンク(または複数貼り付け、1行に1つ)',
   'quickadd.manualHint': 'ここにリンクを手で貼り付けるか、ブックマークレットや端末の共有メニューからこのページを開いてください。',
+  'quickadd.sharedHint': '届いた内容を確認してから、追加を押してください。',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': '追加',
   'quickadd.adding': '追加中…',

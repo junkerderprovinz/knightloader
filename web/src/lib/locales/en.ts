@@ -1991,12 +1991,13 @@ export const en = {
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.extensionTitle': 'Browser extension',
 
-  // /quickadd (pages/QuickAdd.tsx): the one page the bookmarklet, the browser
-  // extension and the PWA share target all land on.
+  // /quickadd (pages/QuickAdd.tsx): the page the bookmarklet and the PWA share
+  // target land on.
   'quickadd.title': 'Add to KnightLoader',
   'quickadd.manualLabel': 'Link (or paste several, one per line)',
   'quickadd.manualHint':
     'Paste a link by hand here, or open this page from the bookmarklet or your device’s Share menu.',
+  'quickadd.sharedHint': 'Check what came in, then press Add.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Add',
   'quickadd.adding': 'Adding…',

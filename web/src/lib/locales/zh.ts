@@ -1670,6 +1670,7 @@ export const zh: Dict = {
   'quickadd.title': '添加到 KnightLoader',
   'quickadd.manualLabel': '链接（或粘贴多个，每行一个）',
   'quickadd.manualHint': '在这里手动粘贴链接，或者通过书签小工具或设备的分享菜单打开这个页面。',
+  'quickadd.sharedHint': '先检查收到的内容，再点“添加”。',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': '添加',
   'quickadd.adding': '正在添加…',

@@ -1665,6 +1665,7 @@ export const ru: Dict = {
   'quickadd.title': 'Добавить в KnightLoader',
   'quickadd.manualLabel': 'Ссылка (или вставьте несколько, по одной в строке)',
   'quickadd.manualHint': 'Вставьте ссылку сюда вручную или откройте эту страницу через букмарклет или меню «Поделиться» вашего устройства.',
+  'quickadd.sharedHint': 'Проверьте, что пришло, затем нажмите «Добавить».',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Добавить',
   'quickadd.adding': 'Добавление…',

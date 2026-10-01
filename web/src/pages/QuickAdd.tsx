@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addLinksWithOptions, remove, type Task } from '../lib/api';
 import { useT } from '../lib/i18n';
@@ -6,10 +6,14 @@ import { Button, Card, Field, TextArea } from '../components/ui';
 import { IconDownloads } from '../lib/icons';
 
 /**
- * QuickAdd is the page a bookmarklet, the extension and a PWA share all open
+ * QuickAdd is the page the bookmarklet and a PWA share open
  * (lib/browserTools.ts). It sits outside <Layout> because the bookmarklet opens
  * it in a small window. AuthGate never navigates, so the query string survives
  * signing in.
+ *
+ * What arrives in the query string is only filled in, never sent on its own:
+ * any website can open this address in a signed-in browser, so the Add press
+ * is what tells a share from a drive-by.
  */
 
 type Phase = { kind: 'form' } | { kind: 'busy' } | { kind: 'done'; created: Task[] } | { kind: 'error'; message: string } | { kind: 'undone' };
@@ -31,28 +35,19 @@ export function QuickAdd() {
   // to a following line that starts lowercase.
   const shared = [url, text].filter(Boolean).join('\n\n');
 
-  const [phase, setPhase] = useState<Phase>({ kind: shared ? 'busy' : 'form' });
-  const [manual, setManual] = useState('');
+  const [phase, setPhase] = useState<Phase>({ kind: 'form' });
+  const [manual, setManual] = useState(shared);
   const isPopup = typeof window !== 'undefined' && !!window.opener;
 
-  const stage = useCallback(
-    async (blob: string) => {
-      setPhase({ kind: 'busy' });
-      try {
-        const created = await addLinksWithOptions(blob, { package: title || undefined }, apiBase);
-        setPhase(created.length ? { kind: 'done', created } : { kind: 'error', message: t('quickadd.none') });
-      } catch (e) {
-        setPhase({ kind: 'error', message: t('quickadd.failed', { error: String(e).replace(/^Error:\s*/, '') }) });
-      }
-    },
-    [title, t, apiBase],
-  );
-
-  // Submits once on open, so a bookmarklet takes one click.
-  useEffect(() => {
-    if (shared) void stage(shared);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  async function stage(blob: string) {
+    setPhase({ kind: 'busy' });
+    try {
+      const created = await addLinksWithOptions(blob, { package: title || undefined }, apiBase);
+      setPhase(created.length ? { kind: 'done', created } : { kind: 'error', message: t('quickadd.none') });
+    } catch (e) {
+      setPhase({ kind: 'error', message: t('quickadd.failed', { error: String(e).replace(/^Error:\s*/, '') }) });
+    }
+  }
 
   async function undo(created: Task[]) {
     // `remove` resolves on a 502 too, and with `?to=` the peer may have gone
@@ -84,16 +79,17 @@ export function QuickAdd() {
         <Card className="flex flex-col gap-4">
           {phase.kind === 'form' && (
             <>
-              <Field label={t('quickadd.manualLabel')} hint={t('quickadd.manualHint')}>
+              <Field label={t('quickadd.manualLabel')} hint={t(shared ? 'quickadd.sharedHint' : 'quickadd.manualHint')}>
                 <TextArea
                   rows={4}
-                  autoFocus
+                  autoFocus={!shared}
                   value={manual}
                   placeholder={t('quickadd.manualPlaceholder')}
                   onChange={(e) => setManual(e.target.value)}
                 />
               </Field>
-              <Button disabled={manual.trim() === ''} onClick={() => void stage(manual)}>
+              {/* Focused for a share, so Enter adds what came in. */}
+              <Button autoFocus={!!shared} disabled={manual.trim() === ''} onClick={() => void stage(manual)}>
                 {t('quickadd.add')}
               </Button>
             </>
