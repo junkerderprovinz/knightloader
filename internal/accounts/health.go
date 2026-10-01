@@ -182,5 +182,5 @@ func (t *Tracker) flushLocked() {
 	if err != nil {
 		return
 	}
-	_ = os.WriteFile(t.path, b, 0o600)
+	_ = writeAtomic(t.path, b)
 }
