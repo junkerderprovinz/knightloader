@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -28,6 +29,13 @@ type Linksnappy struct {
 	pass string
 	base string
 	hc   *http.Client
+
+	mu sync.Mutex
+	// loggedIn is when AUTHENTICATE last succeeded, zero once a torrent call
+	// has failed.
+	loggedIn time.Time
+	// started is the torrents START has been sent for (see start).
+	started map[string]bool
 }
 
 func NewLinksnappy(user, pass string) *Linksnappy {
@@ -36,7 +44,7 @@ func NewLinksnappy(user, pass string) *Linksnappy {
 	jar, _ := cookiejar.New(nil)
 	c := httpx.New(httpx.Options{Timeout: 30 * time.Second})
 	c.Jar = jar
-	return &Linksnappy{user: user, pass: pass, base: "https://linksnappy.com/api", hc: c}
+	return &Linksnappy{user: user, pass: pass, base: "https://linksnappy.com/api", hc: c, started: map[string]bool{}}
 }
 
 func (*Linksnappy) ID() string    { return "linksnappy" }
@@ -52,12 +60,23 @@ type lsEnvelope struct {
 
 // errText is the sentence the service sent, or "" when it reported no error.
 func (e lsEnvelope) errText() string {
+	return lsSentence(e.Error)
+}
+
+// lsSentence reads an error field, which is false or empty when there is no
+// error and a sentence when there is.
+func lsSentence(raw json.RawMessage) string {
 	var s string
-	if json.Unmarshal(e.Error, &s) == nil && strings.TrimSpace(s) != "" {
-		return s
+	if json.Unmarshal(raw, &s) == nil {
+		return strings.TrimSpace(s)
 	}
 	return ""
 }
+
+// lsError is a call the service refused, in its own words.
+type lsError struct{ path, msg string }
+
+func (e *lsError) Error() string { return "linksnappy " + e.path + ": " + e.msg }
 
 // get sends one GET. AUTHENTICATE takes the password in the query, the only
 // way the undocumented API is known to accept it, so errors leave the URL out.
@@ -70,6 +89,12 @@ func (l *Linksnappy) get(ctx context.Context, path string, q url.Values) ([]byte
 	if err != nil {
 		return nil, fmt.Errorf("linksnappy %s: %w", path, httpx.StripURL(err))
 	}
+	return l.send(req, path)
+}
+
+// send performs one request and reads the answer, leaving the URL out of
+// errors as get does.
+func (l *Linksnappy) send(req *http.Request, path string) ([]byte, error) {
 	req.Header.Set("Accept", "application/json")
 	resp, err := l.hc.Do(req)
 	if err != nil {
@@ -91,7 +116,7 @@ func (l *Linksnappy) envelope(ctx context.Context, path string, q url.Values, ou
 	}
 	if env.Status != "OK" {
 		if msg := env.errText(); msg != "" {
-			return fmt.Errorf("linksnappy %s: %s", path, msg)
+			return &lsError{path: path, msg: msg}
 		}
 		return fmt.Errorf("linksnappy %s: refused without a reason", path)
 	}
@@ -108,10 +133,16 @@ func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	if l.user == "" || l.pass == "" {
 		return errors.New("linksnappy: a username and a password are required")
 	}
-	return l.envelope(ctx, "/AUTHENTICATE", url.Values{
+	err := l.envelope(ctx, "/AUTHENTICATE", url.Values{
 		"username": {l.user},
 		"password": {l.pass},
 	}, nil)
+	if err == nil {
+		l.mu.Lock()
+		l.loggedIn = time.Now()
+		l.mu.Unlock()
+	}
+	return err
 }
 
 // Hosts asks /FILEHOSTS, a map keyed by domain whose entries carry Status as a

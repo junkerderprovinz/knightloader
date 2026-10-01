@@ -429,7 +429,7 @@ func TestProLeechPacerGivesBackTheSlotOfACancelledWait(t *testing.T) {
 	}
 }
 
-func TestProLeechSizeReadsNumbersDigitsAndText(t *testing.T) {
+func TestTextSizeReadsNumbersDigitsAndText(t *testing.T) {
 	cases := map[string]int64{
 		`12345`:       12345,
 		`"12345"`:     12345,
@@ -441,8 +441,8 @@ func TestProLeechSizeReadsNumbersDigitsAndText(t *testing.T) {
 		`null`:        0,
 	}
 	for raw, want := range cases {
-		if got := proleechSize(json.RawMessage(raw)); got != want {
-			t.Errorf("proleechSize(%s) = %d, want %d", raw, got, want)
+		if got := textSize(json.RawMessage(raw)); got != want {
+			t.Errorf("textSize(%s) = %d, want %d", raw, got, want)
 		}
 	}
 }

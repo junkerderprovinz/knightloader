@@ -39,6 +39,16 @@ release's tag.
 
 ### Added
 
+- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
+  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
+  `.torrent` files in place of the built-in torrent client. Rank it above
+  "Built-in torrent client" on the Accounts page and it takes them; the files
+  then come here over HTTP, one at a time. With "Send only cached torrents to
+  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
+  the torrent cached. A torrent the account already has is fetched from there
+  and never deleted. Linksnappy has no list of your downloads to read, so there
+  is no import from that account.
+  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
 - **The browser extension in the Chrome Web Store and Edge Add-ons.** Chrome,
   Brave, Opera and Vivaldi install it from the
   [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
