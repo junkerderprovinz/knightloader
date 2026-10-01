@@ -244,7 +244,7 @@ export const is: Dict = {
   'relay.e2eTip': 'Lykillinn kemur úr orðunum tólf og er áfram á tilvikunum þínum. Relayið sér aðeins fyrir hvaða tilvik skilaboð eru, hversu stór þau eru og hvenær þau berast. Það verður ekki dulkóðað í burtu. Ef þér líkar það ekki, rektu þitt eigið relay.',
   'relay.notConnected': 'Relay ekki aðgengilegt',
   'relay.sourcesTitle': 'Hvar þú færð relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Gámur úr Unraid Community Apps',
   'relay.containerFind': 'Leitaðu að {name} í Community Apps og settu það upp, eða ræstu það með þessari skipun:',
   'relay.containerCert': 'Með eigin léni sækir hann sér sjálfur vottorðið sitt.',

@@ -282,7 +282,7 @@ export const en = {
   'relay.e2eTip': 'The key comes from the twelve words and stays on your instances. The relay only sees which instance a message is for, how big it is and when it arrives. That cannot be encrypted away. If that bothers you, run your own relay.',
   'relay.notConnected': 'Relay not reachable',
   'relay.sourcesTitle': 'Where you get a relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container from the Unraid Community Apps',
   'relay.containerFind': 'Search the Community Apps for {name} and install it, or start it with this command:',
   'relay.containerCert': 'With its own domain it fetches its certificate itself.',

@@ -244,7 +244,7 @@ export const fa: Dict = {
   'relay.e2eTip': 'کلید از دوازده کلمه ساخته می‌شود و روی نمونه‌هایت می‌ماند. رله فقط می‌بیند پیام برای کدام نمونه است، چقدر بزرگ است و کی می‌رسد. این را نمی‌شود با رمزنگاری پنهان کرد. اگر این آزارت می‌دهد، رلهٔ خودت را اجرا کن.',
   'relay.notConnected': 'رله در دسترس نیست',
   'relay.sourcesTitle': 'از کجا رله بگیریم',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'کانتینری از Unraid Community Apps',
   'relay.containerFind': 'دنبال {name} در Community Apps بگرد و نصبش کن، یا با این فرمان اجرایش کن:',
   'relay.containerCert': 'با دامنهٔ خودش، خودش گواهی‌اش را می‌گیرد.',

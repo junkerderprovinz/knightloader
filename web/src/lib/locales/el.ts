@@ -244,7 +244,7 @@ export const el: Dict = {
   'relay.e2eTip': 'Το κλειδί προέρχεται από τις δώδεκα λέξεις και παραμένει στις εγκαταστάσεις σας. Ο αναμεταδότης βλέπει μόνο για ποια εγκατάσταση είναι ένα μήνυμα, πόσο μεγάλο είναι και πότε φτάνει. Αυτό δεν μπορεί να κρυπτογραφηθεί μακριά. Αν αυτό σας ενοχλεί, λειτουργήστε τον δικό σας αναμεταδότη.',
   'relay.notConnected': 'Ο αναμεταδότης δεν είναι προσβάσιμος',
   'relay.sourcesTitle': 'Από πού να αποκτήσετε αναμεταδότη',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Κοντέινερ από τις Unraid Community Apps',
   'relay.containerFind': 'Αναζητήστε το {name} στις Community Apps και εγκαταστήστε το, ή ξεκινήστε το με αυτή την εντολή:',
   'relay.containerCert': 'Με δικό του domain, αποκτά μόνο του το πιστοποιητικό του.',

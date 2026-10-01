@@ -259,7 +259,7 @@ export const de: Dict = {
   'relay.e2eTip': 'Der Schlüssel entsteht aus den zwölf Wörtern und bleibt auf deinen Instanzen. Das Relay sieht nur, für welche Instanz eine Nachricht ist, wie groß sie ist und wann sie kommt. Das lässt sich nicht wegverschlüsseln. Wenn dich das stört, nimm ein eigenes Relay.',
   'relay.notConnected': 'Relay nicht erreichbar',
   'relay.sourcesTitle': 'Woher du ein Relay bekommst',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container aus den Unraid Community Apps',
   'relay.containerFind': 'In den Community Apps nach {name} suchen und installieren, oder mit diesem Befehl starten:',
   'relay.containerCert': 'Mit eigener Domain holt er sich sein Zertifikat selbst.',

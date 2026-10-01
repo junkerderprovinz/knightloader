@@ -244,7 +244,7 @@ export const tr: Dict = {
   'relay.e2eTip': 'Anahtar on iki kelimeden gelir ve örneklerinde kalır. Röle yalnızca mesajın hangi örneğe ait olduğunu, ne kadar büyük olduğunu ve ne zaman ulaştığını görür. Bu şifreyle gizlenemez. Bu seni rahatsız ediyorsa, kendi röleni işlet.',
   'relay.notConnected': 'Röleye ulaşılamıyor',
   'relay.sourcesTitle': 'Röleyi nereden edinirsin',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': "Unraid Community Apps'ten konteyner",
   'relay.containerFind': "Community Apps'te {name} araması yap ve kur ya da şu komutla başlat:",
   'relay.containerCert': 'Kendi alan adıyla sertifikasını kendisi alır.',

@@ -244,7 +244,7 @@ export const bg: Dict = {
   'relay.e2eTip': 'Ключът произлиза от дванайсетте думи и остава на твоите инстанции. Препредавателят вижда само за коя инстанция е съобщението, колко голямо е и кога пристига. Това не може да се шифрова. Ако това те притеснява, пусни свой собствен препредавател.',
   'relay.notConnected': 'Препредавателят не е достъпен',
   'relay.sourcesTitle': 'Откъде да вземеш препредавател',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Контейнер от Unraid Community Apps',
   'relay.containerFind': 'Потърси {name} в Community Apps и го инсталирай, или го стартирай с тази команда:',
   'relay.containerCert': 'Със собствен домейн той сам си взема сертификата.',

@@ -244,7 +244,7 @@ export const eu: Dict = {
   'relay.e2eTip': 'Gakoa hamabi hitzetatik dator eta zure instantzietan geratzen da. Bitartekariak zein instantziarentzat den mezu bat, zein handia den eta noiz iristen den bakarrik ikusten du. Hori ezin da zifratuz desagerrarazi. Horrek axola badizu, erabili zeure bitartekaria.',
   'relay.notConnected': 'Bitartekaria ez dago eskuragarri',
   'relay.sourcesTitle': 'Non lortu bitartekari bat',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Unraid Community Apps-eko edukiontzia',
   'relay.containerFind': 'Bilatu {name} Community Apps-en eta instalatu, edo abiarazi komando honekin:',
   'relay.containerCert': 'Bere domeinu propioarekin, bere ziurtagiria bakarrik lortzen du.',

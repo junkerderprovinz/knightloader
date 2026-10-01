@@ -244,7 +244,7 @@ export const et: Dict = {
   'relay.e2eTip': 'Võti tekib kaheteistkümnest sõnast ja jääb su eksemplaridesse. Edastaja näeb ainult seda, millisele eksemplarile sõnum on mõeldud, kui suur see on ja millal see jõuab kohale. Seda ei saa ära krüpteerida. Kui see sind häirib, halda oma edastajat.',
   'relay.notConnected': 'Edastaja ei ole kättesaadav',
   'relay.sourcesTitle': 'Kust saada edastaja',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': "Konteiner Unraid Community Apps'ist",
   'relay.containerFind': "Otsi Community Apps'ist {name} ja paigalda see või käivita see selle käsuga:",
   'relay.containerCert': 'Oma domeeniga hangib see endale ise sertifikaadi.',

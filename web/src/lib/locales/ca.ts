@@ -244,7 +244,7 @@ export const ca: Dict = {
   'relay.e2eTip': 'La clau prové de les dotze paraules i es queda a les teves instàncies. El repetidor només veu per a quina instància és un missatge, quina mida té i quan arriba. Això no es pot xifrar. Si això et molesta, fes funcionar el teu propi repetidor.',
   'relay.notConnected': 'Repetidor no accessible',
   'relay.sourcesTitle': "D'on treure un repetidor",
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Contenidor de les Unraid Community Apps',
   'relay.containerFind': "Cerca {name} a les Community Apps i instal·la'l, o inicia'l amb aquesta ordre:",
   'relay.containerCert': 'Amb el seu propi domini, obté el seu certificat ell mateix.',

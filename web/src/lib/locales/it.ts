@@ -238,7 +238,7 @@ export const it: Dict = {
   'relay.e2eTip': 'La chiave viene dalle dodici parole e resta sulle tue istanze. Il relay vede solo per quale istanza è un messaggio, quanto è grande e quando arriva. Questo non si può cifrare via. Se ti dà fastidio, gestisci un tuo relay.',
   'relay.notConnected': 'Relay non raggiungibile',
   'relay.sourcesTitle': 'Dove trovare un relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container dalle Unraid Community Apps',
   'relay.containerFind': 'Cerca {name} nelle Community Apps e installalo, oppure avvialo con questo comando:',
   'relay.containerCert': 'Con un proprio dominio ottiene da solo il suo certificato.',

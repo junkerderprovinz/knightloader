@@ -246,7 +246,7 @@ export const no: Dict = {
   'relay.e2eTip': 'Nøkkelen kommer fra de tolv ordene og blir på instansene dine. Relayet ser bare hvilken instans en melding er til, hvor stor den er og når den kommer. Det kan ikke krypteres bort. Plager det deg, kjør ditt eget relay.',
   'relay.notConnected': 'Relayet er ikke tilgjengelig',
   'relay.sourcesTitle': 'Hvor du får et relay fra',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container fra Unraid Community Apps',
   'relay.containerFind': 'Søk i Community Apps etter {name} og installer den, eller start den med denne kommandoen:',
   'relay.containerCert': 'Med sitt eget domene henter den sertifikatet sitt selv.',

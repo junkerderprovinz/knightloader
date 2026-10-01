@@ -244,7 +244,7 @@ export const vi: Dict = {
   'relay.e2eTip': 'Khóa được tạo từ mười hai từ và ở lại trên các phiên bản của bạn. Relay chỉ thấy thông điệp dành cho phiên bản nào, kích thước bao nhiêu và đến lúc nào. Điều đó không thể mã hóa để giấu đi được. Nếu điều này khiến bạn lo ngại, hãy tự vận hành relay riêng.',
   'relay.notConnected': 'Không thể truy cập relay',
   'relay.sourcesTitle': 'Bạn lấy relay ở đâu',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Container từ Unraid Community Apps',
   'relay.containerFind': 'Tìm {name} trong Community Apps rồi cài đặt, hoặc khởi động nó bằng lệnh này:',
   'relay.containerCert': 'Với tên miền riêng, nó tự lấy chứng chỉ của mình.',

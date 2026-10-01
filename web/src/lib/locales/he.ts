@@ -246,7 +246,7 @@ export const he: Dict = {
   'relay.e2eTip': 'המפתח נובע משתים עשרה המילים ונשאר במופעים שלך. הממסר רואה רק לאיזה מופע הודעה מיועדת, מה הגודל שלה ומתי היא מגיעה. את זה אי אפשר להצפין. אם זה מפריע לך, הפעל ממסר משלך.',
   'relay.notConnected': 'הממסר לא נגיש',
   'relay.sourcesTitle': 'מאיפה מקבלים ממסר',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'מכולה מ-Unraid Community Apps',
   'relay.containerFind': 'חפש את {name} ב-Community Apps והתקן אותו, או הפעל אותו עם הפקודה הזו:',
   'relay.containerCert': 'עם דומיין משלו הוא מביא את האישור שלו בעצמו.',

@@ -244,7 +244,7 @@ export const lv: Dict = {
   'relay.e2eTip': 'Atslēga rodas no divpadsmit vārdiem un paliek jūsu instancēs. Relay redz tikai to, kurai instancei ziņojums paredzēts, cik liels tas ir un kad tas ienāk. To nevar aizšifrēt prom. Ja tas jūs traucē, uzturiet savu relay.',
   'relay.notConnected': 'Relay nav sasniedzams',
   'relay.sourcesTitle': 'Kur dabūt relay',
-  'relay.containerName': 'KnightLoader Relay',
+  'relay.containerName': 'ParleyPort',
   'relay.containerSub': 'Konteiners no Unraid Community Apps',
   'relay.containerFind': 'Meklējiet {name} Community Apps un instalējiet vai palaidiet ar šo komandu:',
   'relay.containerCert': 'Ar savu domēnu tas pats iegūst savu sertifikātu.',
