@@ -99,15 +99,16 @@ func TestRunnerSuspendLiftsAnOpenWindowAtOnce(t *testing.T) {
 	}
 	clock.waited(t)
 
-	r.Suspend(Suspension{On: true, Until: ts(3, 0, 0)})
+	until := ts(2, 23, 0).Add(45 * time.Second)
+	r.Suspend(Suspension{On: true, Until: until})
 	if got := <-applied; got != (State{}) {
 		t.Errorf("apply after Suspend = %+v, want the queue running", got)
 	}
-	if got := clock.waited(t); got != time.Hour {
-		t.Errorf("waited %s, want 1h; the pause comes back at midnight", got)
+	if got := clock.waited(t); got != 45*time.Second {
+		t.Errorf("waited %s, want 45s; the pause comes back when the suspension ends", got)
 	}
 
-	clock.advance(ts(3, 0, 0))
+	clock.advance(until)
 	if got := <-applied; got != (State{Paused: true}) {
 		t.Errorf("apply at the end of the suspension = %+v, want the pause back", got)
 	}
