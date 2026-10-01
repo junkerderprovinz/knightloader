@@ -1105,7 +1105,9 @@ func (a *App) stop(id string, requeue bool) {
 	wasActive := a.active[id]
 	delete(a.active, id)
 	t := a.tasks[id]
-	if t == nil {
+	// A task that is not transferring has nothing to stop, and pausing a
+	// finished one would let a later resume fetch it again over its own file.
+	if t == nil || (!wasActive && t.Status != core.StatusRunning && t.Status != core.StatusQueued) {
 		a.mu.Unlock()
 		return
 	}
@@ -1145,7 +1147,7 @@ func (a *App) stop(id string, requeue bool) {
 func (a *App) Resume(id string) {
 	a.mu.Lock()
 	t := a.tasks[id]
-	if t == nil || a.active[id] {
+	if t == nil || t.Status != core.StatusPaused || a.active[id] {
 		a.mu.Unlock()
 		return
 	}
