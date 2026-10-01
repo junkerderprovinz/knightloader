@@ -137,12 +137,21 @@ func (a *App) RunStartupCheckNow() startupcheck.Report {
 }
 
 func (a *App) startupInput(probe bool) startupcheck.Input {
-	return startupcheck.Input{
+	in := startupcheck.Input{
 		Data:    startupcheck.FolderTarget{ID: startupcheck.IDData, Dir: filepath.Clean(a.DataDir)},
 		Tools:   a.startupTools(),
 		Folders: a.startupFolders(),
 		Probe:   probe,
 	}
+	if kept, err := a.Settings.Unreadable(); err != nil {
+		if kept == "" {
+			// No copy could be written, so the file itself is the one
+			// place that still holds it until the next save.
+			kept = a.Settings.Path()
+		}
+		in.Settings = &startupcheck.UnreadableSettings{Kept: kept, Err: err}
+	}
+	return in
 }
 
 // startupFolders is every folder a download can end up in, as the disk report

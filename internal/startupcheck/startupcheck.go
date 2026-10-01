@@ -77,6 +77,9 @@ const (
 	IDFfprobe = "ffprobe"
 	IDFolder  = "folder"
 	IDClock   = "clock"
+	// IDSettings is the settings file the app could not read at load. The
+	// row is there only when that happened.
+	IDSettings = "settings"
 )
 
 // Why a folder row is in the list. The app owns these strings; they are here
@@ -119,6 +122,10 @@ const (
 	CodeUTCFallback    = "utcFallback"
 	CodeNoZoneDatabase = "noZoneDatabase"
 	CodeTZUnset        = "tzUnset"
+
+	// CodeUnreadable is a settings file that did not read as a whole, so
+	// what it held runs on defaults.
+	CodeUnreadable = "unreadable"
 )
 
 // Report states.
@@ -289,11 +296,22 @@ type Input struct {
 	Probe bool
 	// SkipClock leaves the clock row out. Only a test wants this.
 	SkipClock bool
+	// Settings, when set, is the settings file the app could not read at
+	// load. The app reads the file itself; this package only reports it.
+	Settings *UnreadableSettings
 
 	// Zero means the Default above.
 	ToolTimeout   time.Duration
 	FolderTimeout time.Duration
 	Total         time.Duration
+}
+
+// UnreadableSettings is a settings file that did not read as a whole.
+type UnreadableSettings struct {
+	// Kept is where the file as it was can be found: the copy the app made,
+	// or the file itself when no copy could be written.
+	Kept string
+	Err  error
 }
 
 // Run takes one whole reading. It never returns a partial report: every target
@@ -328,6 +346,13 @@ func Run(ctx context.Context, in Input) Report {
 			t.ID = IDData
 		}
 		rep.Checks = append(rep.Checks, folderRow(ctx, t, in.Probe, folderTimeout))
+	}
+	if s := in.Settings; s != nil {
+		c := Check{ID: IDSettings, Verdict: VerdictFail, Code: CodeUnreadable, Subject: s.Kept}
+		if s.Err != nil {
+			c.Err = clamp(s.Err.Error())
+		}
+		rep.Checks = append(rep.Checks, c)
 	}
 	for _, t := range in.Tools {
 		rep.Checks = append(rep.Checks, Tool(ctx, t, toolTimeout))

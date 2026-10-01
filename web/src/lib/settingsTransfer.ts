@@ -93,7 +93,34 @@ export function parseExport(text: string): SettingsExportDoc {
     );
   }
   if (!isPlainObject(raw.settings)) throw new Error('the file carries no settings');
-  return raw as unknown as SettingsExportDoc;
+  return { ...raw, settings: splitNavLabels(raw.settings) } as unknown as SettingsExportDoc;
+}
+
+/** The four settings an earlier build's one navLabels became. */
+const SPLIT_LABEL_KEYS = ['buttonLabels', 'sidebarLabels', 'tabLabels', 'bottomBarLabels'];
+
+/**
+ * splitNavLabels reads a file written before the label setting was split as if
+ * it carried the four keys navLabels became, as settings.PortableDoc does on
+ * the server. This build does not know navLabels, so without it the preview
+ * would have no row to offer the label choice in. Each key the file lacks takes
+ * the old mode, and so does a bottom bar set to "follow", the rule
+ * migrateLabels applies to a settings file.
+ */
+function splitNavLabels(s: Record<string, unknown>): Record<string, unknown> {
+  const mode = s.navLabels;
+  if (typeof mode !== 'string' || !['text', 'both', 'glyph', 'hover'].includes(mode)) return s;
+  const out = { ...s };
+  let changed = false;
+  for (const key of SPLIT_LABEL_KEYS) {
+    const v = s[key];
+    if (v == null || v === '' || (key === 'bottomBarLabels' && v === 'follow')) {
+      out[key] = mode;
+      changed = true;
+    }
+  }
+  if (changed) delete out.navLabels;
+  return out;
 }
 
 /**
@@ -151,8 +178,9 @@ export function diffRows(
  * asImported is the file's settings as the import writes them. The server reads
  * a value an earlier build wrote the way a restart reads that build's own
  * settings file (settings.PortableDoc.Migrated). This mirrors the migrations
- * that change a key such a file carries, migrateStall, migrateAutoStart and
- * migrateLabels. `defaults` is /api/settings/defaults' values.
+ * that change a key such a file carries, migrateStall and migrateAutoStart;
+ * parseExport has already split navLabels. `defaults` is
+ * /api/settings/defaults' values.
  */
 function asImported(s: Record<string, unknown>, defaults: Record<string, unknown>): Record<string, unknown> {
   const out = { ...s };
@@ -161,8 +189,9 @@ function asImported(s: Record<string, unknown>, defaults: Record<string, unknown
   if (s.stallReconnect == null && s.stallTimeout === 0) out.stallTimeout = defaults.stallTimeout;
   // A build without autoConfirm always started a batch that was confirmed.
   if (s.autoConfirm == null && typeof s.autoStart === 'boolean') out.autoStart = true;
-  // A bottom bar that followed the sidebar takes the mode the sidebar had.
-  if (s.bottomBarLabels === 'follow') out.bottomBarLabels = s.navLabels ?? defaults.bottomBarLabels;
+  // A bottom bar still set to follow had no sidebar mode to follow, and the
+  // server reads the value it does not know as the default.
+  if (s.bottomBarLabels === 'follow') out.bottomBarLabels = defaults.bottomBarLabels;
   return out;
 }
 
