@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 // bootFixture is a data directory with tasks in the store and settings saved,
@@ -158,6 +159,49 @@ func TestProgressWithoutBytesIsNotClaimed(t *testing.T) {
 	}
 	if got.Loaded != 0 {
 		t.Errorf("loaded = %d, want 0: the partial file is not there", got.Loaded)
+	}
+}
+
+// A torrent of several files writes into a folder, and its byte count
+// survives the restart while that folder is there; without it the torrent
+// would be routed again as if nothing of it had come in.
+func TestATorrentFolderKeepsItsProgress(t *testing.T) {
+	dl := t.TempDir()
+	root := filepath.Join(dl, "Pack")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "a.bin", 2048)
+	f := newBootFixture(t, nil, core.Task{
+		ID: "pack", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
+		InfoHash: "0123456789abcdef0123456789abcdef01234567", Name: "Pack", File: root,
+		Dir: dl, Resolver: "torrent", Status: core.StatusRunning, Size: 8192, Loaded: 2048,
+		Enabled: true,
+	})
+
+	got := taskOf(t, f.boot(t), "pack")
+	if got.Loaded != 2048 {
+		t.Errorf("loaded = %d, want the 2048 bytes in the torrent's folder", got.Loaded)
+	}
+}
+
+// A download that writes into the working folder keeps its count from the
+// partial file there.
+func TestAPartialFileInTheWorkingFolderKeepsItsProgress(t *testing.T) {
+	dl, work := t.TempDir(), t.TempDir()
+	staged := workdir.For(work, dl)
+	if err := os.MkdirAll(staged, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, staged, "big.bin", 2048)
+	f := newBootFixture(t, func(s *settings.Settings) { s.WorkDir = work }, core.Task{
+		ID: "staged", URL: "https://host.example/big.bin", Name: "big.bin",
+		Dir: dl, Status: core.StatusRunning, Size: 4096, Loaded: 2048, Enabled: true,
+	})
+
+	got := taskOf(t, f.boot(t), "staged")
+	if got.Loaded != 2048 {
+		t.Errorf("loaded = %d, want the 2048 bytes in the working folder", got.Loaded)
 	}
 }
 

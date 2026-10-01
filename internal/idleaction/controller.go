@@ -57,8 +57,9 @@ type Options struct {
 	// controller's own goroutine, so it must not block for long.
 	Fire func(Action)
 	// OnChange is called, on the controller's own goroutine or on whichever
-	// goroutine calls Cancel, whenever Armed changes - just armed, just
-	// disarmed, cancelled or fired. Optional; nil means nobody is told and a
+	// goroutine calls Cancel, whenever Armed changes (just armed, just
+	// disarmed, cancelled or fired) and when a running countdown starts over
+	// under a changed configuration. Optional; nil means nobody is told and a
 	// caller has to poll State instead.
 	OnChange func()
 	// Clock defaults to the wall clock.
@@ -111,6 +112,7 @@ type Controller struct {
 	settled  bool
 	armed    bool
 	action   Action
+	delay    int
 	fireAt   time.Time
 	everBusy bool
 	// forceArm is set by Refresh and read once, then cleared, by the next
@@ -279,6 +281,7 @@ func (c *Controller) tick() {
 	now := c.clock.Now()
 
 	var toFire Action
+	var rearmed bool
 	c.mu.Lock()
 	wasArmed := c.armed
 	switch {
@@ -301,9 +304,16 @@ func (c *Controller) tick() {
 		// configured", not "this stretch has been dealt with", so switching
 		// the action back on in the same stretch arms on the next tick.
 		c.armed = false
+	case c.armed && (cfg.Action != c.action || cfg.DelaySeconds != c.delay):
+		// Another action or delay was saved under a running countdown. It
+		// starts over under the new one, so the person who switched quit to
+		// pause gets the pause, with the full delay to read the banner.
+		c.action, c.delay = cfg.Action, cfg.DelaySeconds
+		c.fireAt = now.Add(time.Duration(cfg.DelaySeconds) * time.Second)
+		rearmed = true
 	case !c.armed && !c.settled && cfg.Action != ActionNone && (c.everBusy || forceArm):
 		c.armed = true
-		c.action = cfg.Action
+		c.action, c.delay = cfg.Action, cfg.DelaySeconds
 		c.fireAt = now.Add(time.Duration(cfg.DelaySeconds) * time.Second)
 	}
 	if c.armed && !now.Before(c.fireAt) {
@@ -311,7 +321,7 @@ func (c *Controller) tick() {
 		c.armed = false
 		c.settled = true
 	}
-	changed := wasArmed != c.armed
+	changed := wasArmed != c.armed || rearmed
 	c.mu.Unlock()
 
 	if toFire != "" {

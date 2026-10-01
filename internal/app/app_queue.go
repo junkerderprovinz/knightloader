@@ -263,7 +263,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	var live []*core.Task
 	for _, r := range targets {
 		if t := a.tasks[r.id]; t != nil {
-			a.queue = append(a.queue, r.id)
+			a.requeueRestartedLocked(r.id)
 			// Settling took it out of the mirror set; live again, it must block
 			// a second copy of its link.
 			a.dupes.Add(linkEntry(t))

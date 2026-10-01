@@ -588,3 +588,61 @@ func TestATorrentIsMarkedButNeverRestarted(t *testing.T) {
 	case <-time.After(200 * time.Millisecond):
 	}
 }
+
+// removeHookBackend runs onRemove inside Remove, for a test that needs
+// something to happen while the app waits on the backend there.
+type removeHookBackend struct {
+	onRemove func(id string)
+}
+
+func (removeHookBackend) Download(string, string, map[string]string, int) {}
+func (removeHookBackend) Pause(string)                                    {}
+func (removeHookBackend) Resume(string)                                   {}
+func (b removeHookBackend) Remove(id string, _ bool)                      { b.onRemove(id) }
+
+// pausedWhileRemoving checks that a task paused during its backend's Remove
+// stayed paused and out of the queue.
+func pausedWhileRemoving(t *testing.T, a *App, id string) {
+	t.Helper()
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if got := a.tasks[id].Status; got != core.StatusPaused {
+		t.Errorf("status = %q, want the pause made during the restart", got)
+	}
+	if slices.Contains(a.queue, id) || a.active[id] {
+		t.Error("the restart put the paused task back into the queue")
+	}
+}
+
+// A pause made while a stalled transfer's backend lets go of it holds: the
+// restart does not queue the task over it.
+func TestAPauseDuringAStallRestartHolds(t *testing.T) {
+	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
+	a.bmu.Lock()
+	a.debrid["stalled"] = removeHookBackend{onRemove: func(id string) { a.PauseTasks([]string{id}) }}
+	a.bmu.Unlock()
+	runningTask(a, "t1", 4096)
+	a.mu.Lock()
+	a.tasks["t1"].StalledSince = time.Now().Add(-5 * time.Minute)
+	a.mu.Unlock()
+
+	a.restartStalled("t1")
+
+	pausedWhileRemoving(t, a, "t1")
+}
+
+// The same for a restart by hand.
+func TestAPauseDuringARestartByHandHolds(t *testing.T) {
+	a, _ := stallApp(t, func(s *settings.Settings) { s.StallTimeout = 60 })
+	a.bmu.Lock()
+	a.debrid["stalled"] = removeHookBackend{onRemove: func(id string) { a.PauseTasks([]string{id}) }}
+	a.bmu.Unlock()
+	putTask(t, a, core.Task{
+		ID: "f1", URL: "https://" + stallHost + "/f1.bin", Name: "f1.bin",
+		Resolver: "stalled", Status: core.StatusError, Error: "gone", Enabled: true,
+	})
+
+	a.RestartTasks([]string{"f1"})
+
+	pausedWhileRemoving(t, a, "f1")
+}
