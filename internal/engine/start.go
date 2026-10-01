@@ -34,15 +34,15 @@ func (e *Engine) startEnded(taskID string, s *start) {
 	close(s.ready)
 }
 
-// proceed reports whether a start goes on to create its task or report its
-// failure. A start removed meanwhile ends silently, and one paused meanwhile
-// is parked for Resume to start again.
-func (e *Engine) proceed(j Job) bool {
+// proceed reports whether start s of j goes on to create its task or report
+// its failure. A start removed meanwhile ends silently, and one paused
+// meanwhile is parked for Resume to start again. It reads s rather than the
+// task's entry, which a start after a Remove has taken over.
+func (e *Engine) proceed(s *start, j Job) bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	s := e.starting[j.TaskID]
 	switch {
-	case s == nil || s.creating:
+	case s.creating:
 		return true
 	case s.removed:
 		return false

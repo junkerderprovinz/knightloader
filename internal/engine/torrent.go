@@ -68,7 +68,7 @@ func (e *Engine) startTorrent(j Job, s *start) {
 		opts := &base.Options{Path: j.writeDir(), SelectFiles: sel}
 		fail := func(err error) {
 			e.unplace(j.TaskID)
-			if e.proceed(j) {
+			if e.proceed(s, j) {
 				e.failStart(j, err)
 			}
 		}
@@ -139,7 +139,7 @@ func (e *Engine) startTorrent(j Job, s *start) {
 			}
 		}
 		e.emit(j.TaskID, u)
-		if !e.proceed(j) {
+		if !e.proceed(s, j) {
 			e.unplace(j.TaskID)
 			return
 		}
