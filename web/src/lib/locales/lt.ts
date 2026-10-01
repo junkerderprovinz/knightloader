@@ -1672,6 +1672,7 @@ export const lt: Dict = {
   'quickadd.title': 'Pridėti prie KnightLoader',
   'quickadd.manualLabel': 'Nuoroda (arba įklijuokite kelias, po vieną eilutėje)',
   'quickadd.manualHint': 'Įklijuok nuorodą čia rankiniu būdu arba atverk šį puslapį iš bookmarklet ar savo įrenginio bendrinimo meniu.',
+  'quickadd.sharedHint': 'Patikrink, kas atkeliavo, ir paspausk Pridėti.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Pridėti',
   'quickadd.adding': 'Pridedama…',

@@ -1672,6 +1672,7 @@ export const ca: Dict = {
   'quickadd.title': 'Afegeix a KnightLoader',
   'quickadd.manualLabel': 'Enllaç (o enganxa’n diversos, un per línia)',
   'quickadd.manualHint': 'Enganxa aquí un enllaç a mà, o obre aquesta pàgina des del bookmarklet o des del menú Comparteix del teu dispositiu.',
+  'quickadd.sharedHint': 'Comprova què ha arribat i després prem Afegeix.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Afegeix',
   'quickadd.adding': 'Afegint…',

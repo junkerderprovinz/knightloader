@@ -1674,6 +1674,7 @@ export const he: Dict = {
   'quickadd.title': 'הוסף ל-KnightLoader',
   'quickadd.manualLabel': 'קישור (או הדבק כמה, אחד בכל שורה)',
   'quickadd.manualHint': 'הדבק כאן קישור ידנית, או פתח את הדף הזה מה-Bookmarklet או מתפריט השיתוף של המכשיר שלך.',
+  'quickadd.sharedHint': 'בדוק מה הגיע, ואז לחץ על הוסף.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'הוסף',
   'quickadd.adding': 'מוסיף…',

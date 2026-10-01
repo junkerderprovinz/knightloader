@@ -1672,6 +1672,7 @@ export const fi: Dict = {
   'quickadd.title': 'Lisää KnightLoaderiin',
   'quickadd.manualLabel': 'Linkki (tai liitä useita, yksi riviä kohti)',
   'quickadd.manualHint': 'Liitä linkki tähän käsin tai avaa tämä sivu bookmarkletista tai laitteesi Jaa-valikosta.',
+  'quickadd.sharedHint': 'Tarkista, mitä tuli, ja paina sitten Lisää.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Lisää',
   'quickadd.adding': 'Lisätään…',

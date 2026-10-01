@@ -1672,6 +1672,7 @@ export const ko: Dict = {
   'quickadd.title': 'KnightLoader에 추가',
   'quickadd.manualLabel': '링크 (또는 여러 개 붙여넣기, 줄마다 하나씩)',
   'quickadd.manualHint': '여기에 링크를 직접 붙여넣거나, 북마클릿 또는 기기의 공유 메뉴에서 이 페이지를 여세요.',
+  'quickadd.sharedHint': '들어온 내용을 확인한 다음 추가를 누르세요.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': '추가',
   'quickadd.adding': '추가 중…',

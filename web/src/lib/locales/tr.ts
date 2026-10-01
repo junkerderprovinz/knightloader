@@ -1672,6 +1672,7 @@ export const tr: Dict = {
   'quickadd.title': "KnightLoader'a ekle",
   'quickadd.manualLabel': 'Bağlantı (veya birden fazlasını yapıştırın, satır başına bir tane)',
   'quickadd.manualHint': 'Buraya elle bir bağlantı yapıştır ya da bu sayfayı bookmarklet’ten veya cihazının Paylaş menüsünden aç.',
+  'quickadd.sharedHint': 'Gelenleri kontrol et, sonra Ekle’ye bas.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Ekle',
   'quickadd.adding': 'Ekleniyor…',

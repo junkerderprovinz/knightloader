@@ -1672,6 +1672,7 @@ export const gl: Dict = {
   'quickadd.title': 'Engadir a KnightLoader',
   'quickadd.manualLabel': 'Ligazón (ou pega varias, unha por liña)',
   'quickadd.manualHint': 'Pega aquí unha ligazón a man, ou abre esta páxina desde o bookmarklet ou desde o menú Compartir do teu dispositivo.',
+  'quickadd.sharedHint': 'Revisa o que chegou e despois preme Engadir.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Engadir',
   'quickadd.adding': 'Engadindo…',

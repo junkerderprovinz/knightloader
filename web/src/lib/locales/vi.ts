@@ -1672,6 +1672,7 @@ export const vi: Dict = {
   'quickadd.title': 'Thêm vào KnightLoader',
   'quickadd.manualLabel': 'Liên kết (hoặc dán nhiều liên kết, mỗi dòng một liên kết)',
   'quickadd.manualHint': 'Dán một liên kết bằng tay vào đây, hoặc mở trang này từ bookmarklet hay menu Chia sẻ của thiết bị bạn.',
+  'quickadd.sharedHint': 'Kiểm tra những gì vừa đến, rồi nhấn Thêm.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Thêm',
   'quickadd.adding': 'Đang thêm…',

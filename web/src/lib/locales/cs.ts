@@ -1673,6 +1673,7 @@ export const cs: Dict = {
   'quickadd.title': 'Přidat do KnightLoaderu',
   'quickadd.manualLabel': 'Odkaz (nebo vložte více, jeden na řádek)',
   'quickadd.manualHint': 'Vlož sem odkaz ručně, nebo tuhle stránku otevři z bookmarkletu či z nabídky Sdílet ve svém zařízení.',
+  'quickadd.sharedHint': 'Zkontroluj, co přišlo, a pak stiskni Přidat.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Přidat',
   'quickadd.adding': 'Přidává se…',

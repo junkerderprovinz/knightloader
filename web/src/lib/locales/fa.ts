@@ -1672,6 +1672,7 @@ export const fa: Dict = {
   'quickadd.title': 'افزودن به KnightLoader',
   'quickadd.manualLabel': 'پیوند (یا چند تا را بچسبانید، هر خط یکی)',
   'quickadd.manualHint': 'یک پیوند را اینجا دستی بچسبان، یا این صفحه را از بوک‌مارکلت یا منوی اشتراک‌گذاری دستگاهت باز کن.',
+  'quickadd.sharedHint': 'آنچه رسیده را بررسی کن، بعد افزودن را بزن.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'افزودن',
   'quickadd.adding': 'در حال افزودن…',

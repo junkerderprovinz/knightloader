@@ -1672,6 +1672,7 @@ export const hu: Dict = {
   'quickadd.title': 'Hozzáadás a KnightLoaderhez',
   'quickadd.manualLabel': 'Link (vagy illesszen be többet, soronként egyet)',
   'quickadd.manualHint': 'Illessz be ide kézzel egy linket, vagy nyisd meg ezt az oldalt a bookmarkletből vagy az eszközöd Megosztás menüjéből.',
+  'quickadd.sharedHint': 'Nézd át, mi érkezett, aztán nyomd meg a Hozzáadás gombot.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Hozzáadás',
   'quickadd.adding': 'Hozzáadás…',

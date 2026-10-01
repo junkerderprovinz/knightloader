@@ -1673,6 +1673,7 @@ export const ro: Dict = {
   'quickadd.title': 'Adaugă la KnightLoader',
   'quickadd.manualLabel': 'Link (sau lipește mai multe, unul pe rând)',
   'quickadd.manualHint': 'Lipește aici un link de mână sau deschide această pagină din bookmarklet ori din meniul Partajare al dispozitivului tău.',
+  'quickadd.sharedHint': 'Verifică ce a sosit, apoi apasă Adaugă.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Adaugă',
   'quickadd.adding': 'Se adaugă…',
