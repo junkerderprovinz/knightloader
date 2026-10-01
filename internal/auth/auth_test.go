@@ -68,6 +68,17 @@ func TestASignedOutSessionStaysSignedOutAfterARestart(t *testing.T) {
 	}
 }
 
+func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
+	g, _ := locked(t)
+	a, b := g.Issue(), g.Issue()
+	if err := g.Revoke(a); err != nil {
+		t.Fatal(err)
+	}
+	if !g.Valid(b) {
+		t.Error("signing out one session ended another issued in the same second")
+	}
+}
+
 func TestRevokeAllEndsEverySession(t *testing.T) {
 	g, dir := locked(t)
 	s := g.Issue()
