@@ -550,6 +550,34 @@ func TestAPollingClientCountsForTheGracePeriod(t *testing.T) {
 	}
 }
 
+type secretPayload struct{ Secret string }
+
+func (p secretPayload) Redacted() any { return secretPayload{Secret: "hidden"} }
+
+// A connection let in on a narrow token gets what the payload is willing to
+// show it, and everybody else gets the payload as it is.
+func TestARestrictedConnectionGetsTheRedactedForm(t *testing.T) {
+	h := New()
+	full, narrow := newFakeConn(), newFakeConn()
+	h.Add(full)
+	h.AddRestricted(narrow)
+	defer h.Remove(full)
+	defer h.Remove(narrow)
+
+	h.Broadcast("state", secretPayload{Secret: "C:/tools/sleep.exe"})
+	if got := recv(t, full, "full connection got no broadcast"); !bytes.Contains(got, []byte("sleep.exe")) {
+		t.Errorf("full connection got %s, want the payload as it is", got)
+	}
+	if got := recv(t, narrow, "restricted connection got no broadcast"); bytes.Contains(got, []byte("sleep.exe")) || !bytes.Contains(got, []byte("hidden")) {
+		t.Errorf("restricted connection got %s, want the redacted form", got)
+	}
+
+	h.SendTo(narrow, "state", secretPayload{Secret: "C:/tools/sleep.exe"})
+	if got := recv(t, narrow, "restricted connection got nothing from SendTo"); bytes.Contains(got, []byte("sleep.exe")) {
+		t.Errorf("SendTo gave the restricted connection %s, want the redacted form", got)
+	}
+}
+
 // A visibility frame racing the socket's close must not resurrect a client.
 func TestSetVisibleOnAnUnregisteredConnectionIsANoOp(t *testing.T) {
 	h := New()
