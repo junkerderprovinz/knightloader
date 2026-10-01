@@ -2,8 +2,10 @@
 // instance often sits on a LAN where "anyone who can reach the port" is not the
 // same as "anyone who should control the downloads".
 //
-// It is off until a password is set. Sessions are signed cookies rather than a server-side table,
-// so a restart does not log everyone out.
+// It is off until a password is set. Sessions are signed cookies rather than a
+// server-side table, so a restart does not log everyone out. The signature
+// covers a session epoch, which a password change or a sign-out everywhere
+// moves on, so every cookie issued before it stops working at once.
 package auth
 
 import (
@@ -46,7 +48,17 @@ type stored struct {
 	TOTP string `json:"totp,omitempty"`
 	// Recovery holds the HMACs of the unspent single-use codes.
 	Recovery []string `json:"recovery,omitempty"`
+	// Epoch is signed into every session. Zero signs the expiry alone, which
+	// keeps cookies issued before the epoch existed valid until it first moves.
+	Epoch uint64 `json:"epoch,omitempty"`
+	// Revoked maps the hash of each signed-out session to its expiry, so a
+	// copy of the cookie taken before the sign-out does not work either.
+	Revoked map[string]int64 `json:"revoked,omitempty"`
 }
+
+// maxRevoked bounds the list of signed-out sessions. Past it the epoch moves
+// on instead, which signs out every session rather than letting the file grow.
+const maxRevoked = 256
 
 // Guard holds the password, the second factor, and signs sessions.
 type Guard struct {
@@ -57,6 +69,8 @@ type Guard struct {
 	key      []byte
 	totp     string
 	recovery []string
+	epoch    uint64
+	revoked  map[string]int64
 	pending  *pending // never written to the file
 }
 
@@ -70,6 +84,8 @@ func Open(dir string) (*Guard, error) {
 			g.key, _ = hex.DecodeString(s.Key)
 			g.totp = s.TOTP
 			g.recovery = s.Recovery
+			g.epoch = s.Epoch
+			g.revoked = s.Revoked
 		}
 	}
 	if len(g.key) == 0 {
@@ -101,6 +117,9 @@ func (g *Guard) SetPassword(current, next string) error {
 	if next == "" {
 		g.mu.Lock()
 		g.hash = nil
+		// Otherwise a password set again later would bring back every
+		// unexpired cookie from before.
+		g.endSessionsLocked()
 		// The second factor hangs off the password and goes with it. Changing
 		// the password keeps it, since rotating one is no reason to re-enrol a
 		// phone.
@@ -119,6 +138,7 @@ func (g *Guard) SetPassword(current, next string) error {
 	}
 	g.mu.Lock()
 	g.hash = h
+	g.endSessionsLocked()
 	g.mu.Unlock()
 	return g.flush()
 }
@@ -137,24 +157,98 @@ func (g *Guard) Check(password string) bool {
 // Issue returns a session token valid for SessionTTL.
 func (g *Guard) Issue() string {
 	exp := strconv.FormatInt(time.Now().Add(SessionTTL).Unix(), 10)
-	return exp + "." + base64.RawURLEncoding.EncodeToString(g.sign(exp))
+	g.mu.RLock()
+	epoch := g.epoch
+	g.mu.RUnlock()
+	return exp + "." + base64.RawURLEncoding.EncodeToString(g.sign(sessionMessage(exp, epoch)))
 }
 
-// Valid reports whether a token is well-formed, correctly signed and unexpired.
+// Valid reports whether a token is well-formed, signed for the current epoch,
+// unexpired and not signed out.
 func (g *Guard) Valid(token string) bool {
+	_, ok := g.expiry(token)
+	return ok
+}
+
+// expiry is the Unix time a valid token runs out, and whether it is valid.
+func (g *Guard) expiry(token string) (int64, bool) {
 	exp, sig, ok := strings.Cut(token, ".")
 	if !ok {
-		return false
+		return 0, false
 	}
 	want, err := base64.RawURLEncoding.DecodeString(sig)
 	if err != nil {
-		return false
+		return 0, false
 	}
-	if subtle.ConstantTimeCompare(want, g.sign(exp)) != 1 {
-		return false
+	g.mu.RLock()
+	epoch := g.epoch
+	_, revoked := g.revoked[revocationKey(token)]
+	g.mu.RUnlock()
+	if revoked || subtle.ConstantTimeCompare(want, g.sign(sessionMessage(exp, epoch))) != 1 {
+		return 0, false
 	}
 	ts, err := strconv.ParseInt(exp, 10, 64)
-	return err == nil && time.Now().Unix() < ts
+	if err != nil || time.Now().Unix() >= ts {
+		return 0, false
+	}
+	return ts, true
+}
+
+// Revoke signs out one session. A token that is not valid anyway is left
+// alone, so only somebody holding a live session can add to the list.
+func (g *Guard) Revoke(token string) error {
+	exp, ok := g.expiry(token)
+	if !ok {
+		return nil
+	}
+	now := time.Now().Unix()
+	g.mu.Lock()
+	for k, until := range g.revoked {
+		if until <= now {
+			delete(g.revoked, k)
+		}
+	}
+	if len(g.revoked) >= maxRevoked {
+		g.endSessionsLocked()
+	} else {
+		if g.revoked == nil {
+			g.revoked = map[string]int64{}
+		}
+		g.revoked[revocationKey(token)] = exp
+	}
+	g.mu.Unlock()
+	return g.flush()
+}
+
+// RevokeAll signs out every session issued so far.
+func (g *Guard) RevokeAll() error {
+	g.mu.Lock()
+	g.endSessionsLocked()
+	g.mu.Unlock()
+	return g.flush()
+}
+
+// endSessionsLocked moves the epoch on. The revocation list only ever named
+// sessions of the old epoch, so it goes with it. Called with mu held.
+func (g *Guard) endSessionsLocked() {
+	g.epoch++
+	g.revoked = nil
+}
+
+// sessionMessage is what a session's signature covers.
+func sessionMessage(exp string, epoch uint64) string {
+	if epoch == 0 {
+		return exp
+	}
+	return exp + "." + strconv.FormatUint(epoch, 10)
+}
+
+// revocationKey names a session in the revocation list without storing the
+// cookie itself, which would be a working credential in the file until the
+// epoch moved.
+func revocationKey(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:16])
 }
 
 // DerivedID is a stable, unguessable identifier for this instance, derived
@@ -181,6 +275,8 @@ func (g *Guard) flush() error {
 		Key:      hex.EncodeToString(g.key),
 		TOTP:     g.totp,
 		Recovery: g.recovery,
+		Epoch:    g.epoch,
+		Revoked:  g.revoked,
 	}
 	g.mu.RUnlock()
 	b, err := json.MarshalIndent(s, "", "  ")
