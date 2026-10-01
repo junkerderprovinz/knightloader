@@ -15,11 +15,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Credential is one stored account's secret. The service's catalogue Kind
@@ -106,9 +110,24 @@ func Open(dir string) (*Store, error) {
 }
 
 func (s *Store) loadKey() error {
-	if b, err := os.ReadFile(s.keyPath); err == nil && len(b) == 32 {
+	b, err := os.ReadFile(s.keyPath)
+	if err == nil && len(b) == 32 {
 		s.key = b
 		return nil
+	}
+	if !errors.Is(err, fs.ErrNotExist) {
+		// Every stored credential is sealed under this key, so a damaged one
+		// is kept for whoever can repair it rather than overwritten.
+		why := fmt.Sprintf("it is %d bytes, not 32", len(b))
+		if err != nil {
+			why = err.Error()
+		}
+		backup := s.keyPath + ".damaged-" + time.Now().Format("20060102-150405")
+		if rerr := os.Rename(s.keyPath, backup); rerr != nil {
+			log.Printf("accounts: the credential key %s cannot be used (%s) and could not be moved aside: %v", s.keyPath, why, rerr)
+		} else {
+			log.Printf("accounts: the credential key %s cannot be used (%s); it is kept as %s, and stored credentials will not open until it is restored", s.keyPath, why, backup)
+		}
 	}
 	k := make([]byte, 32)
 	if _, err := rand.Read(k); err != nil {
