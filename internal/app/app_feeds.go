@@ -8,8 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
@@ -168,11 +170,24 @@ func (a *App) onFeedEntry(j feed.Job) {
 	a.spawn(func() { a.stageFeedJob(j) })
 }
 
+// feedScope is how far inside the network a crawl of a feed's entries may
+// reach: no further than the feed's own address. A feed URL that does not
+// parse keeps its entries on the open internet.
+func feedScope(source string) *httpx.Scope {
+	s := httpx.ScopePublic
+	if u, err := url.Parse(source); err == nil && u.Hostname() != "" {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		s = httpx.ScopeOfHost(ctx, u.Hostname())
+	}
+	return &s
+}
+
 // stageFeedJob stages one entry, applies the subscription's options and only
 // then starts anything, so the destination is set before a download picks
 // where to write.
 func (a *App) stageFeedJob(j feed.Job) {
-	ids := idsOf(a.addLinksFrom([]string{j.URL}, j.Package, OriginFeed, LinkBatchOptions{}))
+	ids := idsOf(a.addLinksFrom([]string{j.URL}, j.Package, OriginFeed, LinkBatchOptions{Within: feedScope(j.Source)}))
 	if len(ids) == 0 {
 		// Filtered or duplicate; not logged, or a filtered feed would log on
 		// every poll.

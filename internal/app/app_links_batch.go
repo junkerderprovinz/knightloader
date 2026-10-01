@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -42,6 +43,11 @@ type LinkBatchOptions struct {
 	// before the Packagizer runs and packagize overwrites whatever it has an
 	// opinion on.
 	Overrule bool
+	// Within caps how far inside the network a crawl of these links may reach.
+	// A feed sets it to the scope of its own address, since its entries are
+	// links the feed chose, not the user. Nil leaves each crawl at the scope
+	// of the link it starts from.
+	Within *httpx.Scope
 }
 
 // AddLinksWithOptions stages a batch like AddLinksFrom and then applies the

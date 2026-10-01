@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
@@ -215,7 +216,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		// A page that points at files becomes those files.
-		if crawled := a.crawl(u); len(crawled) > 0 {
+		if crawled := a.crawl(u, batch.Within); len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
 			for _, c := range crawled {
 				if c.URL == "" {
@@ -491,7 +492,7 @@ func commonStem(names []string) string {
 // crawl asks the page crawler what a link points at. It returns nothing when
 // crawling is off, the link is already a file, or the page yielded nothing;
 // the link is then staged as itself.
-func (a *App) crawl(u string) []crawler.Result {
+func (a *App) crawl(u string, within *httpx.Scope) []crawler.Result {
 	// A folder on the user's own server is expanded regardless of the Crawl
 	// setting, which is about fetching arbitrary web pages. A folder link
 	// cannot be downloaded as one file.
@@ -513,7 +514,11 @@ func (a *App) crawl(u string) []crawler.Result {
 	}
 	opt := crawlOptions(a.Settings.Get())
 	// Activity starts only here, after the cheap early returns.
-	ctx, cancel := context.WithTimeout(context.Background(), crawlBudget(opt))
+	base := context.Background()
+	if within != nil {
+		base = httpx.Confine(base, *within)
+	}
+	ctx, cancel := context.WithTimeout(base, crawlBudget(opt))
 	defer cancel()
 	// Registered with a stop handle, since a deep crawl can take minutes.
 	done := a.startActivityRun(ActivityCrawl, cancel)
