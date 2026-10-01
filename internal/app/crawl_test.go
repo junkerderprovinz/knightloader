@@ -3,12 +3,14 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -332,4 +334,54 @@ func lastShown(t *testing.T, a *App, fc *activityFakeConn, id string) core.Task 
 		}
 	}
 	return last
+}
+
+// probeCrawler fetches one address under the context the app hands it, the
+// way the real crawler follows a link the page chose.
+type probeCrawler struct {
+	target string
+	err    error
+}
+
+func (p *probeCrawler) Info() crawler.Info { return crawler.Info{ID: "probe"} }
+func (p *probeCrawler) Match(string) bool  { return true }
+func (p *probeCrawler) Crawl(ctx context.Context, _ string) ([]crawler.Result, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, p.target, nil)
+	resp, err := httpx.New(httpx.Options{}).Do(req)
+	if err == nil {
+		resp.Body.Close()
+	}
+	p.err = err
+	return nil, nil
+}
+
+// An entry of a feed on the internet cannot steer the crawl into the LAN, while
+// a link the user pasted still may.
+func TestAFeedEntryCrawlStaysAsFarOutAsTheFeed(t *testing.T) {
+	lan := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	defer lan.Close()
+
+	a := newCrawlApp(t, true)
+	probe := &probeCrawler{target: lan.URL}
+	a.Crawler = probe
+
+	public := httpx.ScopePublic
+	a.addLinksFrom([]string{"https://feed.example/entry"}, "", OriginFeed, LinkBatchOptions{Within: &public})
+	if !errors.Is(probe.err, httpx.ErrRefused) {
+		t.Fatalf("crawl from a public feed reached %s: err = %v", lan.URL, probe.err)
+	}
+
+	a.addLinksFrom([]string{"https://page.example/gallery"}, "", OriginPaste, LinkBatchOptions{})
+	if probe.err != nil {
+		t.Fatalf("a pasted link's crawl was refused: %v", probe.err)
+	}
+}
+
+func TestAFeedOnTheLANMayLeadIntoTheLAN(t *testing.T) {
+	if s := feedScope("http://192.168.1.20/rss"); *s != httpx.ScopeLocal {
+		t.Errorf("scope of a LAN feed = %v, want local", *s)
+	}
+	if s := feedScope("https://203.0.113.9/rss"); *s != httpx.ScopePublic {
+		t.Errorf("scope of a public feed = %v, want public", *s)
+	}
 }
