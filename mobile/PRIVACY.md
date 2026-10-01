@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader Android app
 
-Last updated: 28 September 2026. Applies to version 1.4.2 and later, until this
+Last updated: 1 October 2026. Applies to version 1.6.1 and later, until this
 date changes.
 
 ## The short version
@@ -16,9 +16,8 @@ with a key that only your own devices hold, so the relay passes it along without
 being able to read it. The relay does see that a phone is connected, from which
 IP address, and which instance a message is addressed to.
 
-Two features talk to someone else, and only when you use them: scanning a QR code
-uses Google's ML Kit, and some captchas load the captcha provider's page. Both are
-described below.
+One feature talks to someone else, and only when you use it: some captchas load
+the captcha provider's page. It is described below.
 
 ## What is stored on your phone
 
@@ -89,11 +88,8 @@ request.
 ### When you scan a QR code
 
 The QR code beside your phrase can be scanned instead of typing the words. The
-camera image is read on the phone by Google's ML Kit barcode scanner, and the app
-neither stores nor sends it. According to Google, ML Kit may send Google
-diagnostic and usage data, such as the phone model, Android version, the app's
-package name and version, a per-installation identifier and performance figures:
-https://developers.google.com/ml-kit/android-data-disclosure
+app reads the camera image on the phone with the free ZXing library, and neither
+stores nor sends it. No one else takes part.
 
 ### When you answer a captcha with a checkbox or challenge
 
