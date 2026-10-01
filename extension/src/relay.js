@@ -197,11 +197,10 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
     switch (frame?.type) {
       case RELAY_ANNOUNCE: {
         if (typeof d.instanceId !== 'string' || !d.instanceId) return;
-        // As in the Go and mobile ports: a seal that opens is used, no seal
-        // means an older instance with a plaintext identity, and a seal that
-        // does not open is a peer on another frame key, listed without a name
-        // so the mismatch stays visible.
-        let id = d;
+        // As in the Go port, only a seal that opens says who a peer is. The
+        // relay can write plaintext fields itself, so an announce without a
+        // seal, or with one that does not open, is listed as a bare id.
+        let id = {};
         if (typeof d.sealed === 'string' && d.sealed) {
           const plain = await relayOpen(frameKey, relayAnnounceAAD(d.instanceId), d.sealed);
           id = {};
