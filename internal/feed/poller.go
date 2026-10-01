@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // maxSeen is how many entry keys one subscription remembers. It must be at
@@ -342,6 +344,9 @@ func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
 	if err != nil {
 		return Feed{}, err
 	}
+	// A redirect is the publisher's choice, and must not take the request
+	// further into the network than the subscribed address.
+	req = req.WithContext(httpx.Confine(ctx, httpx.ScopeOfHost(ctx, req.URL.Hostname())))
 	// Some sites serve HTML to a client that accepts anything.
 	req.Header.Set("Accept", "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.9, */*;q=0.5")
 	resp, err := hc.Do(req)

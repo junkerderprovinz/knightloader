@@ -14,6 +14,7 @@
 package httpx
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -140,9 +141,10 @@ func New(o Options) *http.Client {
 // never sees a redirect.
 func NewTransport(o Options) *http.Transport {
 	o = o.withDefaults()
+	p := &proxies{}
 	return &http.Transport{
-		Proxy:                  o.Proxy,
-		DialContext:            dialer(o).DialContext,
+		Proxy:                  p.proxy(o.Proxy),
+		DialContext:            p.dial(dialer(o)),
 		ForceAttemptHTTP2:      true,
 		MaxIdleConns:           maxIdleConns,
 		MaxIdleConnsPerHost:    maxIdleConnsPerHost,
@@ -289,4 +291,15 @@ func (t *userAgentTransport) CloseIdleConnections() {
 	if c, ok := t.base.(interface{ CloseIdleConnections() }); ok {
 		c.CloseIdleConnections()
 	}
+}
+
+// StripURL returns the cause a *url.Error wraps, without the request URL its
+// text quotes. A caller whose URL carries a credential passes every transport
+// error through it before the error can reach a log line or a task row.
+func StripURL(err error) error {
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		return ue.Err
+	}
+	return err
 }
