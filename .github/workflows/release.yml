@@ -177,6 +177,18 @@ jobs:
             exit 1
           fi
 
+      # F-Droid scans the dex code for these class names and rejects the app for
+      # a mere reference, which a compileOnly dependency leaves behind.
+      - name: The APK names no ML Kit or Play services class
+        working-directory: mobile/android/app/build/outputs/apk/release
+        run: |
+          mkdir dex
+          unzip -q app-release.apk 'classes*.dex' -d dex
+          if grep -a -o -h -E 'Lcom/google/(mlkit|android/gms)/[A-Za-z0-9_/$]+;' dex/*.dex | sort -u | grep .; then
+            echo "::error::the APK refers to the Google classes above, so F-Droid will not take it. Find the dependency that compiles against them; check-free-scanner.mjs lists the known ones."
+            exit 1
+          fi
+
       # Not named knightloader-*, which publish reads as desktop bundles.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
