@@ -9,6 +9,7 @@ import { closeAllRelayClients, closeRelayClient } from '../api/relayClient';
 // mechanism, being meaningless without the list it points into.
 const LIST_KEY = 'knightloader-connections';
 const ACTIVE_KEY = 'knightloader-active-connection';
+const DEFAULT_KEY = 'knightloader-default-connection';
 
 export async function listConnections(): Promise<ServerConnection[]> {
   const raw = await SecureStore.getItemAsync(LIST_KEY);
@@ -51,6 +52,17 @@ function releaseRelayFor(removed: ServerConnection | undefined, remaining: Serve
   if (!stillUsed) closeRelayClient(removed.relayUrl, removed.relayKey);
 }
 
+// removeGroupConnections drops every connection into one group, which an
+// instance ends when it takes this phone out of the group.
+export async function removeGroupConnections(relayUrl: string, relayKey: string): Promise<void> {
+  const list = await listConnections();
+  const inGroup = (c: ServerConnection) => c.kind === 'relay' && c.relayUrl === relayUrl && c.relayKey === relayKey;
+  await saveList(list.filter((c) => !inGroup(c)));
+  closeRelayClient(relayUrl, relayKey);
+  const active = await getActiveConnectionId();
+  if (active && list.some((c) => c.id === active && inGroup(c))) await setActiveConnectionId(null);
+}
+
 // removeAllConnections is Settings' start-over action: every saved token gone
 // from this device in one step.
 export async function removeAllConnections(): Promise<void> {
@@ -69,6 +81,24 @@ export async function getActiveConnectionId(): Promise<string | null> {
 export async function setActiveConnectionId(id: string | null): Promise<void> {
   if (id) await SecureStore.setItemAsync(ACTIVE_KEY, id);
   else await SecureStore.deleteItemAsync(ACTIVE_KEY);
+}
+
+export async function getDefaultConnectionId(): Promise<string | null> {
+  return (await SecureStore.getItemAsync(DEFAULT_KEY)) || null;
+}
+
+export async function setDefaultConnectionId(id: string): Promise<void> {
+  await SecureStore.setItemAsync(DEFAULT_KEY, id);
+}
+
+/**
+ * loadDefaultConnection is the instance the app opens on and takes its look
+ * from: the one marked with the star, or the first in the list while none is,
+ * so removing the default hands the role to the next one.
+ */
+export async function loadDefaultConnection(): Promise<ServerConnection | null> {
+  const [list, id] = await Promise.all([listConnections(), getDefaultConnectionId()]);
+  return list.find((c) => c.id === id) ?? list[0] ?? null;
 }
 
 // loadActiveConnection resolves the saved pointer against the current list in

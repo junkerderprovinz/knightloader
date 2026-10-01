@@ -3271,4 +3271,10 @@ export const lt: Dict = {
   'rename.packageHint': 'Jei atsisiuntimų aplankas pavadintas pagal paketą, jis gauna naują pavadinimą kartu su jame jau esančiais failais, o dar vykstantys atsisiuntimai ten tęsiami. Pagal paketą pavadintas išpakuotų failų aplankas taip pat perkeliamas. Pavadinimas nėra kelias, todėl / ir \\ neleidžiami.',
   'rename.busy': 'Dalis šio paketo šiuo metu išpakuojama, perkeliama į savo aplanką arba įrašoma iš tiesioginės transliacijos. Bandyk dar kartą, kai tai baigsis.',
   'rename.notMoved': 'Aplanko „{name}“ nepavyko pervadinti, todėl niekas nepasikeitė. Galbūt kita programa laiko jame atidarytą failą. Uždaryk tą failą ir bandyk dar kartą.',
+  'instances.kind.extension': 'Naršyklės plėtinys',
+  'instances.remove': 'Šalinti',
+  'instances.removeAppConfirm': '{name} atsijungia nuo kiekvieno grupės egzemplioriaus. Bet kada gali vėl prisijungti su dvylika žodžių.',
+  'instances.removePeerConfirm': 'Nuoroda į {name} čia ištrinama. Ją galima vėl pridėti pagal jos adresą.',
+  'pairing.byAddress': 'Pagal adresą',
+  'instances.removeMemberConfirm': '{name} palieka grupę ir pamiršta dvylika žodžių. Juos ten įvedus iš naujo, ji bet kada vėl susiejama.',
 };

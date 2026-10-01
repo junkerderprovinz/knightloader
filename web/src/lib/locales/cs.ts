@@ -3281,4 +3281,10 @@ export const cs: Dict = {
   'rename.packageHint': 'Pokud je složka pro stahování pojmenovaná podle balíčku, dostane nový název i se soubory, které v ní už jsou, a stahování, která ještě běží, v ní pokračují. Složka s rozbalenými soubory pojmenovaná podle balíčku se přesune také. Název není cesta, takže / a \\ nejsou povoleny.',
   'rename.busy': 'Část tohoto balíčku se právě rozbaluje, přesouvá do své složky nebo nahrává z livestreamu. Zkus to znovu, až to skončí.',
   'rename.notMoved': 'Složku „{name}“ se nepodařilo přejmenovat, takže se nic nezměnilo. Možná v ní má jiný program otevřený soubor. Zavři ten soubor a zkus to znovu.',
+  'instances.kind.extension': 'Rozšíření prohlížeče',
+  'instances.remove': 'Odebrat',
+  'instances.removeAppConfirm': '{name} se odhlásí ze všech instancí ve skupině. Kdykoli se může znovu připojit pomocí dvanácti slov.',
+  'instances.removePeerConfirm': 'Odkaz na {name} se tady smaže. Znovu ho lze přidat podle jeho adresy.',
+  'pairing.byAddress': 'Podle adresy',
+  'instances.removeMemberConfirm': '{name} opustí skupinu a zapomene dvanáct slov. Jejich opětovným zadáním se kdykoli znovu spáruje.',
 };

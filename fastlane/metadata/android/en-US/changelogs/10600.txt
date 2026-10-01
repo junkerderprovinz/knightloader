@@ -1,0 +1,1 @@
+The QR scanner is free software and finds a code in about a second, also on a bright screen. The phone takes a name of its own under Settings > This device, and the app follows a default instance, marked with a star. The app is a new package: install it, pair it with your phrase, then remove the older copy. Update your instances to 1.6.0 at the same time.

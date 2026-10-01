@@ -3270,4 +3270,10 @@ export const sl: Dict = {
   'rename.packageHint': 'Če je mapa za prenose poimenovana po paketu, dobi novo ime skupaj z datotekami, ki so že v njej, prenosi, ki še potekajo, pa se tam nadaljujejo. Tudi mapa z razpakiranimi datotekami, poimenovana po paketu, se premakne. Ime ni pot, zato / in \\ nista dovoljena.',
   'rename.busy': 'Del tega paketa se ravno razpakira, premika v svojo mapo ali snema iz pretoka v živo. Poskusi znova, ko se to konča.',
   'rename.notMoved': 'Mape »{name}« ni bilo mogoče preimenovati, zato se ni nič spremenilo. Morda ima drug program v njej odprto datoteko. Zapri to datoteko in poskusi znova.',
+  'instances.kind.extension': 'Razširitev za brskalnik',
+  'instances.remove': 'Odstrani',
+  'instances.removeAppConfirm': '{name} se odjavi iz vsake instance v skupini. Kadar koli se lahko znova pridruži z dvanajstimi besedami.',
+  'instances.removePeerConfirm': 'Povezava z {name} se tukaj izbriše. Znova jo je mogoče dodati po njenem naslovu.',
+  'pairing.byAddress': 'Po naslovu',
+  'instances.removeMemberConfirm': '{name} zapusti skupino in pozabi dvanajst besed. Če jih tam znova vnese, se kadar koli znova seznani.',
 };

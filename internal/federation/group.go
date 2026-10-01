@@ -33,25 +33,34 @@ type GroupState struct {
 	// Apps is every phone seen in the group, by its relay id, so one that has
 	// gone away still has a card saying when it was last there.
 	Apps map[string]KnownApp `json:"apps,omitempty"`
+	// Removed is every phone taken out of the group, by relay id and when.
+	// Its calls are turned away; scanning the phrase again gives the app a
+	// new id, so it comes back as a new phone.
+	Removed map[string]time.Time `json:"removed,omitempty"`
 }
 
-// KnownApp is a phone that joined the group with the phrase.
+// KnownApp is a phone or a browser extension that joined the group with the
+// phrase.
 type KnownApp struct {
-	Name     string    `json:"name"`
-	LastSeen time.Time `json:"lastSeen"`
+	Name string `json:"name"`
+	// Deployment is "mobile" or "extension", what the client announced.
+	Deployment string    `json:"deployment,omitempty"`
+	LastSeen   time.Time `json:"lastSeen"`
 }
 
-// App is one phone of the group as the Instances page lists it.
+// App is one phone or browser extension of the group as the Instances page
+// lists it.
 type App struct {
-	ID        string
-	Name      string
-	Connected bool
-	LastSeen  time.Time
+	ID         string
+	Name       string
+	Deployment string
+	Connected  bool
+	LastSeen   time.Time
 }
 
-// appDeployment is what the Android app announces itself as, which tells it
-// from the browser extension, the other client that joins a group.
-const appDeployment = "mobile"
+// clientDeployments are the clients that join a group without being an
+// instance: the Android app and the browser extension.
+var clientDeployments = map[string]bool{"mobile": true, "extension": true}
 
 // lastSeenStep is how far a connected phone's last-seen time may lag before
 // it is written again, so an open page does not rewrite the file on every
@@ -107,11 +116,12 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	m.mu.Lock()
 	rt := m.rt
 	m.mu.Unlock()
-	connected := map[string]string{}
+	connected := map[string]relay.Announce{}
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
-			if sib.Client && sib.Deployment == appDeployment {
-				connected[sib.InstanceID] = relay.ClipName(sib.Name)
+			if sib.Client && clientDeployments[sib.Deployment] {
+				sib.Name = relay.ClipName(sib.Name)
+				connected[sib.InstanceID] = sib
 			}
 		}
 	}
@@ -122,16 +132,19 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	var err error
 	if !st.JoinedAt.IsZero() {
 		dirty := false
-		for id, name := range connected {
+		for id, sib := range connected {
+			if _, gone := st.Removed[id]; gone {
+				continue
+			}
 			known, ok := st.Apps[id]
-			if !ok || known.Name != name || now.Sub(known.LastSeen) >= lastSeenStep {
+			if !ok || known.Name != sib.Name || known.Deployment != sib.Deployment || now.Sub(known.LastSeen) >= lastSeenStep {
 				if st.Apps == nil {
 					st.Apps = map[string]KnownApp{}
 				}
 				if !ok && len(st.Apps) >= maxApps {
 					forgetStalestApp(st.Apps)
 				}
-				st.Apps[id] = KnownApp{Name: name, LastSeen: now}
+				st.Apps[id] = KnownApp{Name: sib.Name, Deployment: sib.Deployment, LastSeen: now}
 				dirty = true
 			}
 		}
@@ -142,7 +155,12 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	out := make([]App, 0, len(st.Apps))
 	for id, known := range st.Apps {
 		_, on := connected[id]
-		out = append(out, App{ID: id, Name: known.Name, Connected: on, LastSeen: known.LastSeen})
+		deployment := known.Deployment
+		if deployment == "" {
+			// An entry stored without a kind is a phone's.
+			deployment = "mobile"
+		}
+		out = append(out, App{ID: id, Name: known.Name, Deployment: deployment, Connected: on, LastSeen: known.LastSeen})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Connected != out[j].Connected {
@@ -164,6 +182,31 @@ func forgetStalestApp(apps map[string]KnownApp) {
 		}
 	}
 	delete(apps, stalest)
+}
+
+// RemoveApp takes phone id out of the group at now: its card goes and its
+// calls are turned away from then on.
+func (m *Manager) RemoveApp(id string, now time.Time) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	st := &m.group.state
+	if _, done := st.Removed[id]; done {
+		return nil
+	}
+	delete(st.Apps, id)
+	if st.Removed == nil {
+		st.Removed = map[string]time.Time{}
+	}
+	st.Removed[id] = now
+	return m.group.flushLocked()
+}
+
+// Removed reports whether phone id was taken out of the group.
+func (m *Manager) Removed(id string) bool {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	_, gone := m.group.state.Removed[id]
+	return gone
 }
 
 // Group reports where this instance stands in its group. anyone is whether

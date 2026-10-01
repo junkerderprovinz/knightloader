@@ -10,6 +10,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
+import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
 import {
@@ -41,6 +42,8 @@ export default function DownloadsScreen({
   onBackToOwn,
   onRemoveConnection,
   onOpenCaptchas,
+  isDefault = false,
+  onMakeDefault,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -51,6 +54,10 @@ export default function DownloadsScreen({
    *  there is nothing here to remove. */
   onRemoveConnection?: () => void;
   onOpenCaptchas: () => void;
+  /** Whether this is the instance the app opens on and takes its look from. */
+  isDefault?: boolean;
+  /** Undefined for a federation peer, for the same reason as above. */
+  onMakeDefault?: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, corners } = useAppearance();
@@ -175,8 +182,26 @@ export default function DownloadsScreen({
               On the overview it would sit on every row of a list somebody taps
               to open, which is a mis-tap waiting to happen.
 
-              It is the only badge on this side. Settings are not a property of
-              one instance, so the gear lives on the overview alone. */}
+              Settings are not a property of one instance, so the gear lives
+              on the overview alone. */}
+          {/* Filled while this is the default, so the badge says what the
+              instance is and a press on it changes nothing. */}
+          {!peer && onMakeDefault && (
+            <Tip
+              text={t('connections.default')}
+              label={isDefault ? undefined : t('connections.makeDefault')}
+              onPress={() => {
+                if (!isDefault) onMakeDefault();
+              }}
+            >
+              <IconBadge
+                symbol={isDefault ? '★' : '☆'}
+                accent={isDefault}
+                onPress={() => {}}
+                accessibilityLabel=""
+              />
+            </Tip>
+          )}
           {!peer && onRemoveConnection && (
             <IconBadge
               icon={<Trash color={c.textSub} />}

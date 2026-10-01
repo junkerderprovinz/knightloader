@@ -3262,4 +3262,10 @@ export const et: Dict = {
   'rename.packageHint': 'Kui allalaadimiste kaust on nimetatud paki järgi, saab see uue nime koos failidega, mis selles juba on, ja veel käivad allalaadimised jätkuvad seal. Ka paki järgi nimetatud lahtipakitud failide kaust liigub kaasa. Nimi ei ole tee, seega / ja \\ pole lubatud.',
   'rename.busy': 'Osa sellest pakist pakitakse parajasti lahti, viiakse oma kausta või salvestatakse otseülekandest. Proovi uuesti, kui see on lõppenud.',
   'rename.notMoved': 'Kausta „{name}“ ei õnnestunud ümber nimetada, seega midagi ei muutunud. Võib-olla hoiab mõni teine programm selles kaustas faili avatuna. Sulge see fail ja proovi uuesti.',
+  'instances.kind.extension': 'Brauserilaiendus',
+  'instances.remove': 'Eemalda',
+  'instances.removeAppConfirm': '{name} logitakse välja kõigist grupi eksemplaridest. See saab igal ajal uuesti liituda kaheteistkümne sõnaga.',
+  'instances.removePeerConfirm': 'Link seadmega {name} kustutatakse siin. Selle saab uuesti lisada aadressi järgi.',
+  'pairing.byAddress': 'Aadressi järgi',
+  'instances.removeMemberConfirm': '{name} lahkub grupist ja unustab kaksteist sõna. Nende uuesti sisestamine seob selle igal ajal uuesti.',
 };

@@ -3278,4 +3278,10 @@ export const ro: Dict = {
   'rename.packageHint': 'Dacă dosarul de descărcare poartă numele pachetului, primește noul nume împreună cu fișierele care sunt deja în el, iar descărcările care încă rulează continuă acolo. Un dosar cu fișiere dezarhivate care poartă numele pachetului se mută și el. Un nume nu este o cale, așa că / și \\ nu sunt permise.',
   'rename.busy': 'O parte din acest pachet se dezarhivează, se mută în dosarul său sau se înregistrează dintr-o transmisiune live. Încearcă din nou după ce se termină.',
   'rename.notMoved': 'Dosarul „{name}” nu a putut fi redenumit, așa că nu s-a schimbat nimic. Poate că alt program ține deschis un fișier din el. Închide acel fișier și încearcă din nou.',
+  'instances.kind.extension': 'Extensie de browser',
+  'instances.remove': 'Elimină',
+  'instances.removeAppConfirm': '{name} este deconectată din fiecare instanță a grupului. Se poate alătura din nou oricând cu cele douăsprezece cuvinte.',
+  'instances.removePeerConfirm': 'Legătura către {name} este ștearsă aici. Poate fi adăugată din nou după adresa sa.',
+  'pairing.byAddress': 'După adresă',
+  'instances.removeMemberConfirm': '{name} părăsește grupul și uită cele douăsprezece cuvinte. Reintroducerea lor acolo o asociază din nou oricând.',
 };

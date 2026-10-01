@@ -3273,4 +3273,10 @@ export const no: Dict = {
   'rename.packageHint': 'Hvis nedlastingsmappen er oppkalt etter pakken, får den det nye navnet sammen med filene som allerede ligger i den, og nedlastinger som fortsatt pågår, fortsetter der. En mappe med utpakkede filer som er oppkalt etter pakken, flytter også med. Et navn er ikke en sti, så / og \\ er ikke tillatt.',
   'rename.busy': 'En del av denne pakken pakkes ut, flyttes til mappen sin eller tas opp fra en livestrøm. Prøv igjen når det er ferdig.',
   'rename.notMoved': 'Mappen «{name}» kunne ikke få nytt navn, så ingenting er endret. Kanskje et annet program har en fil i den åpen. Lukk den filen og prøv igjen.',
+  'instances.kind.extension': 'Nettleserutvidelse',
+  'instances.remove': 'Fjern',
+  'instances.removeAppConfirm': '{name} blir logget ut av alle instanser i gruppen. Den kan bli med igjen når som helst med de tolv ordene.',
+  'instances.removePeerConfirm': 'Koblingen til {name} slettes her. Den kan legges til igjen via adressen sin.',
+  'pairing.byAddress': 'Via adresse',
+  'instances.removeMemberConfirm': '{name} forlater gruppen og glemmer de tolv ordene. Å skrive dem inn der igjen parer den på nytt når som helst.',
 };

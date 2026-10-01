@@ -3,30 +3,39 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Card, Button, IconBadge, LabelBadge } from './ui';
-import { IconContainer, IconDesktop, IconPhone, IconTrash } from '../lib/icons';
+import { Card, Button, LabelBadge } from './ui';
+import { IconBrowser, IconContainer, IconDesktop, IconPhone } from '../lib/icons';
 
 // What each kind of instance is drawn as, keyed by buildinfo.Deployment and by
-// "mobile", which the Android app announces itself as.
+// what the two clients announce themselves as, "mobile" and "extension".
 const KINDS: Record<string, { Glyph: typeof IconPhone; label: TranslationKey }> = {
   mobile: { Glyph: IconPhone, label: 'instances.kind.mobile' },
   desktop: { Glyph: IconDesktop, label: 'instances.kind.desktop' },
   container: { Glyph: IconContainer, label: 'instances.kind.container' },
+  extension: { Glyph: IconBrowser, label: 'instances.kind.extension' },
 };
 
 /**
- * KindGlyph says in front of a card's name what the instance is: the Android
- * app, the desktop app or the container. It is as tall as the name's capitals,
- * and a kind this build does not know, or a peer that never said, has none.
+ * KindBadge says beside the state badge what the instance is: the Android app,
+ * the desktop app or the container. A kind this build does not know, or a peer
+ * that never said, has none.
  */
-function KindGlyph({ deployment }: { deployment?: string }) {
+function KindBadge({ deployment }: { deployment?: string }) {
   const { t } = useT();
   const kind = deployment ? KINDS[deployment] : undefined;
   if (!kind) return null;
   const { Glyph } = kind;
+  const label = t(kind.label);
   return (
-    <span role="img" aria-label={t(kind.label)} data-kind={deployment} className="inline-flex shrink-0 text-carbon-textMuted">
-      <Glyph width="0.95em" height="0.95em" />
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      data-kind={deployment}
+      className="inline-flex h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 items-center justify-center rounded-[var(--radius-pill)]
+        bg-carbon-surface2 text-carbon-textSub"
+    >
+      <Glyph width={16} height={16} />
     </span>
   );
 }
@@ -56,7 +65,7 @@ interface Stats {
 }
 
 // usePeerStats polls one instance for its live figures.
-function usePeerStats(base: string): Stats | null {
+export function usePeerStats(base: string): Stats | null {
   const [stats, setStats] = useState<Stats | null>(null);
   useEffect(() => {
     let alive = true;
@@ -125,7 +134,6 @@ export function InstanceCard({
   address,
   base,
   onOpen,
-  onRemove,
   hue,
   isSelf = false,
   deployment,
@@ -138,7 +146,6 @@ export function InstanceCard({
   address: string;
   base: string;
   onOpen?: () => void;
-  onRemove?: () => void;
   /** The card's palette position; .glim-hue colours the whole subtree. */
   hue?: number;
   /** Marks the card of the instance being viewed. */
@@ -167,29 +174,16 @@ export function InstanceCard({
           <div className="flex flex-col gap-0.5">
             {/* The badges move under the name when both do not fit on one line. */}
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
-                <KindGlyph deployment={deployment} />
-                <span className="truncate">{name}</span>
-              </span>
+              <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
               {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
               <span className="ms-auto flex items-center gap-2">
+                <KindBadge deployment={deployment} />
                 <LabelBadge
                   label={state}
                   tip={refused ? t('instances.refusedByPassword') : undefined}
                   tone={online ? 'ok' : refused ? undefined : 'fail'}
                   hue={refused ? 3 : undefined}
                 />
-                {/* A lone glyph fills half its square badge (GlimStone rule 13). */}
-                {onRemove && (
-                  <IconBadge
-                    labelled
-                    hue={hue}
-                    icon={<IconTrash width={16} height={16} />}
-                    title={t('instances.removeTitle', { name })}
-                    aria-label={t('instances.removeTitle', { name })}
-                    onClick={onRemove}
-                  />
-                )}
               </span>
             </div>
 
@@ -216,16 +210,20 @@ export function InstanceCard({
   );
 }
 
-// AppCard shows a phone that joined the group with the phrase: the device
-// name, whether it is there now and when it last was. A phone serves no
-// downloads, so it has no figures and nothing to open.
+// AppCard shows a phone or browser extension that joined the group with the
+// phrase: its name, whether it is there now and when it last was. It serves no
+// downloads, so it has no figures and nothing to open; the pairing list is
+// where members are managed.
 export function AppCard({
   name,
+  deployment,
   connected,
   lastSeen,
   hue,
 }: {
   name: string;
+  /** "mobile" or "extension". */
+  deployment: string;
   connected: boolean;
   /** Unix seconds. */
   lastSeen: number;
@@ -238,11 +236,9 @@ export function AppCard({
         <CardLogo />
         <div className="flex min-w-0 flex-1 flex-col gap-1 p-7">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="flex min-w-0 items-center gap-1.5 font-semibold text-carbon-text">
-              <KindGlyph deployment="mobile" />
-              <span className="truncate">{name}</span>
-            </span>
+            <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
             <span className="ms-auto flex items-center gap-2">
+              <KindBadge deployment={deployment} />
               <LabelBadge
                 label={connected ? t('instances.connected') : t('instances.notConnected')}
                 tone={connected ? 'ok' : 'fail'}
@@ -254,6 +250,9 @@ export function AppCard({
           </div>
         </div>
       </div>
+      {/* The room an instance card's Open button takes, so the logo sits at
+          the same height on every card of a row. */}
+      <div aria-hidden="true" className="mx-5 mb-5 h-[var(--btn-h)] shrink-0" />
     </Card>
   );
 }

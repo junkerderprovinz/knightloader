@@ -2,16 +2,16 @@
   "expo": {
     "name": "KnightLoader",
     "slug": "knightloader-mobile",
-    "version": "1.5.0",
+    "version": "1.6.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.junkerderprovinz.knightloader"
+      "bundleIdentifier": "knightloader.halleluja.design"
     },
     "android": {
-      "package": "com.junkerderprovinz.knightloader",
+      "package": "knightloader.halleluja.design",
       "adaptiveIcon": {
         "backgroundImage": "./assets/android-icon-background.png",
         "backgroundColor": "#ffffff",
@@ -26,7 +26,8 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.VIBRATE"
-      ]
+      ],
+      "versionCode": 10603
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,19 +38,16 @@
         {
           "android": {
             "ndkVersion": "26.1.10909125",
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           }
         }
       ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz.",
-          "recordAudioAndroid": false
-        }
-      ],
       "expo-localization",
-      "./plugins/withReleaseSigning"
+      "./plugins/withReleaseSigning",
+      "./plugins/withKeptAppDir",
+      "./plugins/withGradleMemory"
     ]
   }
 }

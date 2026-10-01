@@ -352,7 +352,7 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a))
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
 
 	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
@@ -402,7 +402,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a))
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
@@ -464,7 +464,7 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 	jd, solvedWith := fakeJDWithHCaptcha(t)
 	t.Setenv("KL_JD", jd.URL)
 	a := testApp(t)
-	serve := relayProxyHandler(Handler(a))
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
 	// With a password set, a call the relay did not vouch for is a 401.
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
@@ -761,5 +761,62 @@ func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
 				t.Errorf("%s %s is forwarded; a group sibling must not start or stop an unpacking", method, path)
 			}
 		}
+	}
+}
+
+func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
+	t.Parallel()
+	_, a := testServer(t)
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	if status, body := serve(context.Background(), relay.ProxyCall{
+		Method: http.MethodGet, Path: "/api/tasks", From: "phone-gone",
+	}); status != http.StatusGone {
+		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
+	}
+	if status, body := serve(context.Background(), relay.ProxyCall{
+		Method: http.MethodGet, Path: "/api/tasks", From: "phone-kept",
+	}); status != http.StatusOK {
+		t.Fatalf("another phone = %d (%s), want 200", status, body)
+	}
+	if status, _ := serve(context.Background(), relay.ProxyCall{
+		Method: http.MethodDelete, Path: "/api/connect/apps/phone-other",
+	}); status != http.StatusNoContent {
+		t.Fatalf("a removal passed on by a sibling = %d, want 204", status)
+	}
+	if !a.Federation.Removed("phone-other") {
+		t.Fatal("the removal passed on by a sibling was not recorded")
+	}
+}
+
+func TestASiblingCanTakeThisInstanceOutOfTheGroup(t *testing.T) {
+	t.Parallel()
+	_, a := testServer(t)
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	if err := a.Accounts.Set(relay.SeedAccountService, strings.Repeat("ab", 16)); err != nil {
+		t.Fatal(err)
+	}
+	self := a.Settings.Get().InstanceID
+
+	if status, _ := serve(context.Background(), relay.ProxyCall{
+		Method: http.MethodDelete, Path: "/api/connect/members/" + self,
+	}); status != http.StatusNoContent {
+		t.Fatalf("a sibling removing this instance = %d, want 204", status)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret == "" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the instance kept its phrase after a sibling took it out of the group")
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }

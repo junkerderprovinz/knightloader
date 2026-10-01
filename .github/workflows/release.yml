@@ -114,21 +114,23 @@ jobs:
             exit 1
           fi
 
-      # Android orders updates by versionCode, so it is made from the version
-      # and rises with every release without anybody raising it by hand. The
-      # tag job has held app.json's version to the tag.
-      - name: versionCode from the version
+      # Android orders updates by versionCode, so it follows the version and
+      # rises with every release. F-Droid builds from the tag and reads both
+      # from app.json, so the file carries them rather than this run. The tag
+      # job has held app.json's version to the tag.
+      - name: versionCode follows the version
         run: |
           node -e '
-            const fs = require("fs");
-            const app = JSON.parse(fs.readFileSync("app.json", "utf8"));
-            const version = app.expo.version;
+            const app = require("./app.json").expo;
+            const version = app.version;
             if (!/^[0-9]+[.][0-9]+[.][0-9]+$/.test(version)) throw new Error(version + " is not an X.Y.Z version");
             const [major, minor, patch] = version.split(".").map(Number);
             if (minor > 99 || patch > 99) throw new Error(version + " does not fit versionCode = major*10000 + minor*100 + patch");
-            app.expo.android.versionCode = major * 10000 + minor * 100 + patch;
-            fs.writeFileSync("app.json", JSON.stringify(app, null, 2) + "\n");
-            console.log("version", version, "versionCode", app.expo.android.versionCode);
+            const code = major * 10000 + minor * 100 + patch;
+            if (app.android.versionCode !== code) {
+              throw new Error(`mobile/app.json has versionCode ${app.android.versionCode}, version ${version} needs ${code}`);
+            }
+            console.log("version", version, "versionCode", code);
           '
 
       # android/ is generated, not committed. The signing config comes from
@@ -172,6 +174,18 @@ jobs:
           echo "$certs"
           if printf '%s' "$certs" | grep -qi 'CN=Android Debug'; then
             echo "::error::this APK is signed with the public Android debug key. Every installed copy would be updatable by anyone, and the key cannot be changed later without an uninstall. Check the ANDROID_KEYSTORE_* secrets and mobile/plugins/withReleaseSigning.js."
+            exit 1
+          fi
+
+      # F-Droid scans the dex code for these class names and rejects the app for
+      # a mere reference, which a compileOnly dependency leaves behind.
+      - name: The APK names no ML Kit or Play services class
+        working-directory: mobile/android/app/build/outputs/apk/release
+        run: |
+          mkdir dex
+          unzip -q app-release.apk 'classes*.dex' -d dex
+          if grep -a -o -h -E 'Lcom/google/(mlkit|android/gms)/[A-Za-z0-9_/$]+;' dex/*.dex | sort -u | grep .; then
+            echo "::error::the APK refers to the Google classes above, so F-Droid will not take it. Find the dependency that compiles against them; check-free-scanner.mjs lists the known ones."
             exit 1
           fi
 

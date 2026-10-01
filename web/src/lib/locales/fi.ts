@@ -3272,4 +3272,10 @@ export const fi: Dict = {
   'rename.packageHint': 'Jos latauskansio on nimetty paketin mukaan, se saa uuden nimen yhdessä siinä jo olevien tiedostojen kanssa, ja vielä käynnissä olevat lataukset jatkuvat siellä. Myös paketin mukaan nimetty purettujen tiedostojen kansio siirtyy mukana. Nimi ei ole polku, joten / ja \\ eivät ole sallittuja.',
   'rename.busy': 'Osaa tästä paketista puretaan, siirretään sen kansioon tai tallennetaan livelähetyksestä. Yritä uudelleen, kun se on valmis.',
   'rename.notMoved': 'Kansiota ”{name}” ei voitu nimetä uudelleen, joten mitään ei muuttunut. Jokin toinen ohjelma saattaa pitää siinä olevaa tiedostoa auki. Sulje se tiedosto ja yritä uudelleen.',
+  'instances.kind.extension': 'Selainlaajennus',
+  'instances.remove': 'Poista',
+  'instances.removeAppConfirm': '{name} kirjataan ulos jokaisesta ryhmän instanssista. Se voi liittyä uudelleen milloin tahansa kahdellatoista sanalla.',
+  'instances.removePeerConfirm': 'Yhteys kohteeseen {name} poistetaan tästä. Sen voi lisätä uudelleen sen osoitteen avulla.',
+  'pairing.byAddress': 'Osoitteella',
+  'instances.removeMemberConfirm': '{name} poistuu ryhmästä ja unohtaa kaksitoista sanaa. Kun ne syöttää siellä uudelleen, se pariutuu jälleen milloin tahansa.',
 };

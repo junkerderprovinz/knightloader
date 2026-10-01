@@ -10,10 +10,12 @@ package api
 // give back what a person would type.
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -72,9 +74,11 @@ type groupMember struct {
 }
 
 type groupApp struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Connected bool   `json:"connected"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Deployment is "mobile" or "extension".
+	Deployment string `json:"deployment"`
+	Connected  bool   `json:"connected"`
 	// LastSeen is Unix seconds.
 	LastSeen int64 `json:"lastSeen"`
 }
@@ -198,6 +202,56 @@ func registerConnect(reg *Registry, a *app.App) {
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase)})
 		})
 
+	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
+		"take a phone out of the group on every instance of it - the phone drops its connections and comes back as a new one when the phrase is scanned again",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			if err := a.Federation.RemoveApp(id, time.Now()); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// A removal that arrived from a sibling is not passed on again.
+			if !fromRelayGroup(r) {
+				go passRemovalOn(a, id)
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
+	reg.Add(http.MethodDelete, "/api/connect/members/{id}",
+		"take another instance out of the group - it forgets the phrase and comes back when the phrase is entered there again",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			if id == a.Settings.Get().InstanceID {
+				// Only a sibling asks this of this instance; the own page leaves
+				// through DELETE /api/connect.
+				if !fromRelayGroup(r) {
+					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
+					return
+				}
+				// Answered before the relay socket closes under this request.
+				w.WriteHeader(http.StatusNoContent)
+				go func() {
+					if err := enterGroup(a, nil); err != nil {
+						log.Printf("connect: could not leave the group after a sibling removed this instance: %v", err)
+					}
+				}()
+				return
+			}
+			for _, m := range a.Federation.Members() {
+				if m.RelayID != id {
+					continue
+				}
+				_, status, err := a.Federation.Proxy(r.Context(), m.Name, http.MethodDelete, "/api/connect/members/"+url.PathEscape(id), nil)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadGateway)
+					return
+				}
+				w.WriteHeader(status)
+				return
+			}
+			http.Error(w, "no instance "+id+" is reachable in this group", http.StatusNotFound)
+		})
+
 	reg.Add(http.MethodDelete, "/api/connect",
 		"leave the group: forget this instance's connection secret and stop dialling the relay",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -263,7 +317,7 @@ func connectInfo(a *app.App) ConnectInfo {
 	apps := make([]groupApp, 0, len(known))
 	appThere := false
 	for _, p := range known {
-		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Connected: p.Connected, LastSeen: p.LastSeen.Unix()})
+		apps = append(apps, groupApp{ID: p.ID, Name: p.Name, Deployment: p.Deployment, Connected: p.Connected, LastSeen: p.LastSeen.Unix()})
 		appThere = appThere || p.Connected
 	}
 	st, err := a.Federation.Group(len(members) > 0 || appThere, now)
@@ -289,5 +343,18 @@ func connectInfo(a *app.App) ConnectInfo {
 		Apps:            apps,
 		JoinedAgo:       joinedAgo,
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
+	}
+}
+
+// passRemovalOn tells the other instances of the group that phone id is out.
+// One that is away misses it; the phone still learns it from this instance.
+func passRemovalOn(a *app.App, id string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	path := "/api/connect/apps/" + url.PathEscape(id)
+	for _, m := range a.Federation.Members() {
+		if _, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodDelete, path, nil); err != nil || status >= 300 {
+			log.Printf("connect: could not pass the removal of %s on to %s: status %d, %v", id, m.Name, status, err)
+		}
 	}
 }

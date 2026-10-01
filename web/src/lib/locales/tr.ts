@@ -3270,4 +3270,10 @@ export const tr: Dict = {
   'rename.packageHint': 'İndirme klasörü paketin adını taşıyorsa, içindeki dosyalarla birlikte yeni adı alır ve hâlâ süren indirmeler orada devam eder. Paketin adını taşıyan, ayıklanmış dosyaların bulunduğu bir klasör de onunla birlikte taşınır. Ad bir yol değildir, bu yüzden / ve \\ kullanılamaz.',
   'rename.busy': 'Bu paketin bir kısmı şu anda ayıklanıyor, klasörüne taşınıyor ya da bir canlı yayından kaydediliyor. Bu bittikten sonra yeniden dene.',
   'rename.notMoved': '“{name}” klasörü yeniden adlandırılamadı, bu yüzden hiçbir şey değişmedi. Başka bir program içindeki bir dosyayı açık tutuyor olabilir. O dosyayı kapat ve yeniden dene.',
+  'instances.kind.extension': 'Tarayıcı uzantısı',
+  'instances.remove': 'Kaldır',
+  'instances.removeAppConfirm': '{name}, gruptaki her örnekten çıkış yapar. On iki kelimeyle istediği zaman yeniden katılabilir.',
+  'instances.removePeerConfirm': '{name} bağlantısı burada silinir. Adresi üzerinden yeniden eklenebilir.',
+  'pairing.byAddress': 'Adrese göre',
+  'instances.removeMemberConfirm': '{name} grubu terk eder ve on iki kelimeyi unutur. Onları orada yeniden girmek, istediği zaman yeniden eşleştirir.',
 };

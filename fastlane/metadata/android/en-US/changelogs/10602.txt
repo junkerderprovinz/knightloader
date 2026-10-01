@@ -1,0 +1,1 @@
+The store texts and pictures moved to where F-Droid reads them, and every store lists the app simply as KnightLoader. Nothing changes inside the app.

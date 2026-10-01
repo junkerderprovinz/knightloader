@@ -31,6 +31,9 @@ export interface ProxyCall {
    *  so a relay cannot send a captured call again later. sealCall sets both. */
   id?: string;
   sent?: number;
+  /** This phone's relay id, so an instance can turn away a phone removed
+   *  from the group. */
+  from?: string;
 }
 
 /** Mirrors relay.ProxyResult. */

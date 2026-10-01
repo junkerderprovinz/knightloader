@@ -3802,6 +3802,8 @@ export interface GroupMember {
 export interface GroupApp {
   id: string;
   name: string;
+  /** "mobile" or "extension". */
+  deployment: string;
   connected: boolean;
   /** Unix seconds. */
   lastSeen: number;
@@ -3876,6 +3878,20 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
     body: JSON.stringify({ password }),
   });
   return json(r);
+}
+
+/** removeApp takes a phone or browser extension out of the group on every
+ *  instance of it; the phrase entered again brings it back as a new member. */
+export async function removeApp(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** removeMember takes another instance out of the group: it forgets the
+ *  phrase and comes back when the phrase is entered there again. */
+export async function removeMember(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
 }
 
 /** leaveConnect forgets the secret and stops dialling the relay. */

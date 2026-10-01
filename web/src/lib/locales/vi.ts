@@ -3271,4 +3271,10 @@ export const vi: Dict = {
   'rename.packageHint': 'Nếu thư mục tải về được đặt theo tên gói, thư mục đó sẽ nhận tên mới cùng với các tệp đã có trong đó, và các lượt tải còn đang chạy sẽ tiếp tục ở đó. Thư mục chứa các tệp đã giải nén được đặt theo tên gói cũng được chuyển theo. Tên không phải đường dẫn, nên không được dùng / và \\.',
   'rename.busy': 'Một phần của gói này đang được giải nén, chuyển vào thư mục của nó hoặc ghi lại từ một livestream. Hãy thử lại khi việc đó xong.',
   'rename.notMoved': 'Không thể đổi tên thư mục “{name}”, nên không có gì thay đổi. Có thể một chương trình khác đang mở một tệp trong đó. Hãy đóng tệp đó rồi thử lại.',
+  'instances.kind.extension': 'Tiện ích mở rộng trình duyệt',
+  'instances.remove': 'Gỡ bỏ',
+  'instances.removeAppConfirm': '{name} sẽ đăng xuất khỏi mọi phiên bản trong nhóm. Nó có thể tham gia lại bất kỳ lúc nào bằng mười hai từ đó.',
+  'instances.removePeerConfirm': 'Liên kết đến {name} bị xóa ở đây. Có thể thêm lại bằng địa chỉ của nó.',
+  'pairing.byAddress': 'Theo địa chỉ',
+  'instances.removeMemberConfirm': '{name} rời nhóm và quên mười hai từ đó. Nhập lại chúng ở đó sẽ ghép nối lại nó bất kỳ lúc nào.',
 };

@@ -28,7 +28,7 @@ describe('pairStage', () => {
   });
 
   it('counts a connected phone as somebody there', () => {
-    const phone = { id: 'p', name: 'Pixel 8', connected: true, lastSeen: 1 };
+    const phone = { id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 };
     expect(pairStage({ active: true, members: [], apps: [phone], memberSeen: true }, 500, false)).toBe('paired');
     expect(pairStage({ active: true, members: [], apps: [{ ...phone, connected: false }], memberSeen: true }, 500, false)).toBe('gone');
   });
