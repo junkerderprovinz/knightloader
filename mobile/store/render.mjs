@@ -1,4 +1,4 @@
-// Builds the Play and F-Droid images in mobile/fastlane/metadata/android from
+// Builds the Play and F-Droid images in fastlane/metadata/android from
 // the captures in mobile/store/captures/<locale>/: five phone screenshots at
 // 1080x1920 and the 1024x500 feature graphic. Each capture sits in a drawn
 // phone on the dark relief background, under a caption.
@@ -23,7 +23,8 @@ const { chromium } = require(`${execSync('npm root -g').toString().trim()}/playw
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mobile = dirname(here);
-const metadata = join(mobile, 'fastlane', 'metadata', 'android');
+// F-Droid reads the store texts only from fastlane/ at the repository root.
+const metadata = join(dirname(mobile), 'fastlane', 'metadata', 'android');
 
 const CAPTIONS = {
   'de-DE': {
