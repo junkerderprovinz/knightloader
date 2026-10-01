@@ -1623,7 +1623,7 @@ export const ms: Dict = {
   'settings.access.identity.namePlaceholder': 'cth. Pelayan rumah',
   'settings.access.identity.nameHint': 'Ditawarkan dahulu semasa berpasangan dan dalam kod QR di bawah, menggantikan apa sahaja nama yang diberikan oleh OS atau masa jalan bekas kepada mesin ini. Pilihan: biarkan kosong untuk terus menggunakan nama itu.',
   'settings.access.identity.domainsLabel': 'Domain yang diketahui',
-  'settings.access.identity.domainsHint': 'Setiap domain diingati secara automatik kali pertama permintaan tiba melaluinya, dan kekal disenaraikan di sini walaupun permintaan kemudian datang melalui IP LAN. Tambah domain secara manual jika ia sudah dikonfigurasikan tetapi belum ada permintaan yang masuk melaluinya. Satu alamat penuh setiap baris, cth. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader mengingati domain kali pertama seseorang log masuk melaluinya dan mengekalkannya dalam senarai ini, walaupun permintaan seterusnya datang melalui IP LAN. Tanpa kata laluan, ia hanya menjawab pada alamat IP sendiri, nama tempatan dan domain dalam senarai ini, jadi tambah domain anda sebelum membukanya melalui domain itu. Satu alamat penuh setiap baris, cth. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplikasi telefon',
   'settings.browsertools.phoneHint': 'Aplikasi KnightLoader untuk telefon Android. Ia memaparkan dan mengawal muat turun pada instans anda serta menghantar pautan kepadanya. APK itu ialah versi yang ditunjukkan di penjuru.',
   'settings.browsertools.storeAndroid': 'Google Play',

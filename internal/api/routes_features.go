@@ -508,12 +508,17 @@ var featureMu sync.Mutex
 
 // setFeature switches one module. Every branch changes state the subsystem
 // itself reads; no branch stores a flag of its own.
+//
+// The change goes in as a patch of the one field it touches, which the
+// settings store merges under its own lock. Writing back the whole document
+// read at the start would undo whatever another writer saved in between, a
+// category Sonarr just created among them.
 func setFeature(a *app.App, id string, on bool) error {
 	featureMu.Lock()
 	defer featureMu.Unlock()
-	// The stored settings, not the redacted ones a client was shown, so the
-	// router and proxy passwords survive this save.
-	next := a.Settings.Get()
+	// The stored settings, not the redacted ones a client was shown, so a
+	// sub-document patched whole keeps the router and proxy passwords.
+	cur := a.Settings.Get()
 
 	// A row can lose its switch at run time (no JD wired, no yt-dlp found);
 	// the table is the one place that knows.
@@ -529,12 +534,14 @@ func setFeature(a *app.App, id string, on bool) error {
 	}
 	nothing := func(text string) error { return &nothingParked{page: page, text: text} }
 
-	if on && parkSlotFilled(next, id) {
+	if on && parkSlotFilled(cur, id) {
 		// Set again since the switch went off, so the module already runs on
 		// that value, and what was parked before it must not replace it.
 		return forgetParked(a, id)
 	}
 
+	var key string
+	var value any
 	switch id {
 	case "cnl":
 		// A live listener rather than a setting, so it skips ApplySettings
@@ -543,103 +550,111 @@ func setFeature(a *app.App, id string, on bool) error {
 		return a.CnL.Toggle(on)
 
 	case "extraction":
-		next.Extract = on
+		key, value = "extract", on
 	case "crawler":
-		next.Crawl = on
+		key, value = "crawl", on
 	case "checksums":
-		next.VerifyChecksums = on
+		key, value = "verifyChecksums", on
 	case "downloadclient":
 		// The route re-reads the flag on every request, so clearing it closes
 		// the door on the next call.
-		next.DownloadClientAPI = on
+		key, value = "downloadClientApi", on
 	case "metrics":
-		next.Metrics = on
+		key, value = "metrics", on
 	case "keepawake":
-		next.KeepAwake = on
+		key, value = "keepAwake", on
 	case "packagizer":
-		next.Packagizer.Disabled = !on
+		set := cur.Packagizer
+		set.Disabled = !on
+		key, value = "packagizer", set
 	case "linkfilter":
-		next.LinkFilter.Disabled = !on
+		set := cur.LinkFilter
+		set.Disabled = !on
+		key, value = "linkFilter", set
 	case "connections", "federation", "jd", "ytdlp", "torrents", "captcha", "scripting", "eventprograms":
-		next.ModulesOff = switchModule(next.ModulesOff, id, on)
+		key, value = "modulesOff", switchModule(cur.ModulesOff, id, on)
 
 	case "watch":
+		key = "watchDir"
 		if !on {
-			if err := parkValue(a, id, next.WatchDir); err != nil {
+			if err := parkValue(a, id, cur.WatchDir); err != nil {
 				return err
 			}
-			next.WatchDir = ""
+			value = ""
 			break
 		}
 		var dir string
 		if !unparkValue(a, id, &dir) || strings.TrimSpace(dir) == "" {
 			return nothing("there is no watch folder to switch back on; set one on the Link collector page")
 		}
-		next.WatchDir = dir
+		value = dir
 
 	case "feeds":
+		key = "feeds"
 		if !on {
-			if err := parkValue(a, id, next.Feeds); err != nil {
+			if err := parkValue(a, id, cur.Feeds); err != nil {
 				return err
 			}
-			next.Feeds = nil
 			break
 		}
 		var subs []feed.Subscription
 		if !unparkValue(a, id, &subs) || len(subs) == 0 {
 			return nothing("there is no subscription to switch back on; add a feed on the Downloads page")
 		}
-		next.Feeds = subs
+		value = subs
 
 	case "eventtargets":
+		key = "eventTargets"
 		if !on {
-			if err := parkValue(a, id, next.EventTargets); err != nil {
+			if err := parkValue(a, id, cur.EventTargets); err != nil {
 				return err
 			}
-			next.EventTargets = nil
 			break
 		}
 		var targets []notify.Target
 		if !unparkValue(a, id, &targets) || len(targets) == 0 {
 			return nothing("there is no event target to switch back on; add one on the Automation page")
 		}
-		next.EventTargets = targets
+		value = targets
 
 	case "scheduler":
+		key = "schedule"
 		if !on {
-			if err := parkValue(a, id, next.Schedule); err != nil {
+			if err := parkValue(a, id, cur.Schedule); err != nil {
 				return err
 			}
-			next.Schedule = nil
 			break
 		}
 		var entries []schedule.Entry
 		if !unparkValue(a, id, &entries) || len(entries) == 0 {
 			return nothing("there is no timetable to switch back on; add a window on the Automation page")
 		}
-		next.Schedule = entries
+		value = entries
 
 	case "reconnect":
+		method := reconnect.MethodNone
 		if !on {
-			if err := parkValue(a, id, next.Reconnect.Method); err != nil {
+			if err := parkValue(a, id, cur.Reconnect.Method); err != nil {
 				return err
 			}
-			next.Reconnect.Method = reconnect.MethodNone
-			break
-		}
-		var method string
-		if !unparkValue(a, id, &method) || method == "" || method == reconnect.MethodNone {
+		} else if !unparkValue(a, id, &method) || method == "" || method == reconnect.MethodNone {
 			return nothing("there is no reconnect method to switch back on; pick one on the Network page")
 		}
-		next.Reconnect.Method = method
+		rc := cur.Reconnect
+		rc.Method = method
+		key, value = "reconnect", rc
 
 	default:
 		return fmt.Errorf("%s: %w", id, errNoSwitch)
 	}
 
-	// ApplySettings restarts the watcher, re-arms the timetable and recompiles
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	// PatchSettings restarts the watcher, re-arms the timetable and recompiles
 	// the rules; writing the store directly would leave them on the old value.
-	if _, err := a.ApplySettings(next); err != nil || !on {
+	if _, err := a.PatchSettings(map[string]json.RawMessage{key: raw}); err != nil || !on {
 		return err
 	}
 	// The parked value is in the settings again, so nothing is left waiting

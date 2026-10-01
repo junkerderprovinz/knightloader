@@ -1616,7 +1616,7 @@ export const pt: Dict = {
   'settings.access.identity.namePlaceholder': 'p. ex. Servidor doméstico',
   'settings.access.identity.nameHint': 'Oferecido primeiro ao emparelhar e no código QR abaixo, em vez do nome que o sistema operativo ou o runtime do contentor dá a esta máquina. Opcional: deixa em branco para continuar a usar esse nome.',
   'settings.access.identity.domainsLabel': 'Domínios conhecidos',
-  'settings.access.identity.domainsHint': 'Cada domínio é memorizado automaticamente na primeira vez que um pedido chega por ele, e continua listado aqui mesmo quando pedidos posteriores chegam antes pelo IP da LAN. Adiciona um domínio à mão se já estiver configurado mas ainda não tiver chegado nenhum pedido por ele. Um endereço completo por linha, p. ex. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'O KnightLoader memoriza um domínio na primeira vez que alguém inicia sessão através dele e mantém-no nesta lista, mesmo quando os pedidos seguintes chegam pelo IP da rede local. Sem palavra-passe, só responde no seu endereço IP, em nomes locais e nos domínios desta lista, por isso adicione o seu antes de o abrir por esse domínio. Um endereço completo por linha, p. ex. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplicação para telemóvel',
   'settings.browsertools.phoneHint': 'A aplicação KnightLoader para telemóveis Android. Mostra e controla as transferências nas tuas instâncias e envia-lhes links. O APK é a versão indicada no canto.',
   'settings.browsertools.storeAndroid': 'Google Play',

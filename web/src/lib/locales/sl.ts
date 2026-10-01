@@ -1624,7 +1624,7 @@ export const sl: Dict = {
   'settings.access.identity.namePlaceholder': 'npr. Domači strežnik',
   'settings.access.identity.nameHint': 'Ponudi se prvo pri seznanjanju in v kodi QR spodaj, namesto imena, ki ga temu računalniku slučajno da operacijski sistem ali izvajalno okolje vsebnika. Neobvezno: pusti prazno, da ostane to ime.',
   'settings.access.identity.domainsLabel': 'Znane domene',
-  'settings.access.identity.domainsHint': 'Vsaka domena se samodejno zapomni, ko prek nje prvič prispe zahteva, in ostane navedena tu, tudi ko poznejše zahteve prihajajo prek naslova IP v LAN. Domeno dodaj ročno, če je že nastavljena, a prek nje še ni prišla nobena zahteva. En poln naslov na vrstico, npr. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader si zapomni domeno, ko se prek nje nekdo prvič prijavi, in jo obdrži na tem seznamu, tudi ko poznejše zahteve prihajajo prek IP-naslova v LAN. Brez gesla odgovarja samo na svojem IP-naslovu, na lokalnih imenih in na domenah s tega seznama, zato dodaj svojo, preden ga odpreš prek nje. En poln naslov na vrstico, npr. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Aplikacija za telefon',
   'settings.browsertools.phoneHint': 'Aplikacija KnightLoader za telefone z Androidom. Prikazuje in upravlja prenose na tvojih instancah ter jim pošilja povezave. APK ima različico, prikazano v kotu.',
   'settings.browsertools.storeAndroid': 'Google Play',

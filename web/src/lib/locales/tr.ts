@@ -1623,7 +1623,7 @@ export const tr: Dict = {
   'settings.access.identity.namePlaceholder': 'örn. Ev sunucusu',
   'settings.access.identity.nameHint': 'Eşleştirmede ve aşağıdaki QR kodunda, işletim sisteminin ya da konteyner çalışma ortamının bu makineye verdiği ad yerine ilk olarak sunulur. İsteğe bağlı: o adı kullanmaya devam etmek için boş bırak.',
   'settings.access.identity.domainsLabel': 'Bilinen alan adları',
-  'settings.access.identity.domainsHint': 'Her alan adı, üzerinden ilk istek geldiğinde otomatik olarak hatırlanır ve sonraki istekler yerel ağ IP\'si üzerinden gelse bile burada listelenmeye devam eder. Zaten yapılandırılmış ama üzerinden henüz istek gelmemiş bir alan adını elle ekle. Satır başına tam bir adres, örn. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader bir alan adını, biri üzerinden ilk kez oturum açtığında hatırlar ve sonraki istekler yerel ağ IP’si üzerinden gelse bile burada listede tutar. Parola yokken yalnızca kendi IP adresinde, yerel adlarda ve bu listedeki alan adlarında yanıt verir; bu yüzden o alan adı üzerinden açmadan önce kendi alan adını buraya ekle. Satır başına tam bir adres, örn. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefon uygulaması',
   'settings.browsertools.phoneHint': 'Android telefonlar için KnightLoader uygulaması. Örneklerindeki indirmeleri gösterir, yönetir ve onlara bağlantı gönderir. APK, köşede gösterilen sürümdür.',
   'settings.browsertools.storeAndroid': 'Google Play',

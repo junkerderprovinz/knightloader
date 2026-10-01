@@ -1938,7 +1938,7 @@ export const en = {
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
   'settings.access.identity.nameHint': 'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional: leave it empty to keep using that name.',
   'settings.access.identity.domainsLabel': 'Known domains',
-  'settings.access.identity.domainsHint': 'Each domain is remembered automatically the first time a request arrives on it, and stays listed here even when later requests come in over the LAN IP instead. Add a domain by hand if it is already configured but no request has come in over it yet. One full address per line, e.g. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader remembers a domain the first time someone signs in through it and keeps it listed here, even when later requests come in over the LAN IP. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
 
   // Every other way to get KnightLoader: the phone app, the desktop app or a
   // server install, the bookmarklet, the MV3 browser extension and the PWA

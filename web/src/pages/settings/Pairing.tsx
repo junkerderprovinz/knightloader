@@ -17,9 +17,10 @@ export function Pairing() {
 }
 
 // IdentityCard holds an optional name and the domains this instance is known
-// by, both ordinary settings fields. Domains are recorded automatically when a
-// request arrives on one (routes_remote.go's rememberDomain); the box covers a
-// domain that has not been visited yet.
+// by, both ordinary settings fields. Domains are recorded automatically when
+// somebody signs in through one (routes_remote.go's learnDomain); the box covers
+// a domain nobody has signed in through yet, which an instance without a
+// password needs before it answers on that name at all.
 function IdentityCard() {
   const { t } = useT();
   const { cfg, patch } = useDraft();

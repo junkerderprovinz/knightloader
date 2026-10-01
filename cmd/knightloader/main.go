@@ -176,7 +176,7 @@ func main() {
 		}
 	}
 	buildinfo.DiscoveryEnabled = true
-	srv := &http.Server{Handler: api.Handler(a)}
+	srv := newServer(api.Handler(a))
 
 	serveErr := make(chan error, 1)
 	go func() {
@@ -228,6 +228,20 @@ func main() {
 		log.Printf("shutdown: not every in-flight request finished within %s: %v", shutdownGrace, err)
 	}
 	cancel()
+}
+
+// newServer bounds what a connection may hold without doing anything: the
+// headers have to arrive in time and an idle keep-alive is closed, so slow or
+// abandoned clients cannot pin a goroutine each. There is no ReadTimeout or
+// WriteTimeout, which would cut the live stream, a large upload and a file
+// being served.
+func newServer(h http.Handler) *http.Server {
+	return &http.Server{
+		Handler:           h,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       time.Minute,
+		MaxHeaderBytes:    64 << 10,
+	}
 }
 
 // runResetTwoFactor turns the second login factor off and exits, leaving the

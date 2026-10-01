@@ -78,18 +78,15 @@ func loginClientKey(r *http.Request) string {
 	return host
 }
 
-// blocked reports whether this caller is inside a cool-off. It refuses a
-// correct code too; letting one through would tell an attacker when a guess
-// was right.
-func (g *loginGate) blocked(r *http.Request) bool {
-	key := loginClientKey(r)
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	f := g.fails[key]
-	return f != nil && time.Now().Before(f.until)
-}
-
-func (g *loginGate) fail(r *http.Request) {
+// try takes one attempt from the caller's allowance and reports whether there
+// was one left. The attempt counts as a failure from the start and pass wipes
+// it on success: deciding and counting in one step under the lock is what
+// stops a burst of parallel requests from all passing the check before the
+// first of them has been counted.
+//
+// A caller inside a cool-off is refused even with the right answer; letting
+// one through would tell an attacker when a guess was right.
+func (g *loginGate) try(r *http.Request) bool {
 	key := loginClientKey(r)
 	now := time.Now()
 	g.mu.Lock()
@@ -100,14 +97,32 @@ func (g *loginGate) fail(r *http.Request) {
 		f = &loginFails{}
 		g.fails[key] = f
 	}
+	if now.Before(f.until) {
+		return false
+	}
 	f.seen = now
 	f.count++
 	if f.count >= loginFailBurst {
 		f.until = now.Add(loginCoolOff)
-		// The counter is not reset here. Each further failure inside the
-		// cool-off pushes the window out again, so a script that keeps hammering
-		// keeps the door shut on itself.
 		f.count = loginFailBurst
+	}
+	return true
+}
+
+// release gives back an attempt try took for a request that turned out not to
+// be a guess, such as the right password arriving without the code it still
+// needs.
+func (g *loginGate) release(r *http.Request) {
+	key := loginClientKey(r)
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	f := g.fails[key]
+	if f == nil || f.count == 0 {
+		return
+	}
+	f.count--
+	if f.count < loginFailBurst {
+		f.until = time.Time{}
 	}
 }
 

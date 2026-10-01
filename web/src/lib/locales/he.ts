@@ -1625,7 +1625,7 @@ export const he: Dict = {
   'settings.access.identity.namePlaceholder': 'לדוגמה: שרת ביתי',
   'settings.access.identity.nameHint': 'מוצע ראשון בזמן צימוד ובקוד ה-QR שלמטה, במקום השם שמערכת ההפעלה או סביבת הריצה של הקונטיינר נותנת במקרה למכונה הזו. אופציונלי: השאר ריק כדי להמשיך להשתמש בשם הזה.',
   'settings.access.identity.domainsLabel': 'דומיינים ידועים',
-  'settings.access.identity.domainsHint': 'כל דומיין נשמר אוטומטית בפעם הראשונה שמגיעה דרכו בקשה, ונשאר רשום כאן גם כשבקשות מאוחרות יותר מגיעות דרך כתובת ה-IP ברשת המקומית. הוסף דומיין ידנית אם הוא כבר מוגדר אבל עוד לא הגיעה דרכו אף בקשה. כתובת מלאה אחת בכל שורה, למשל https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader זוכר דומיין בפעם הראשונה שמישהו מתחבר דרכו ומשאיר אותו ברשימה כאן, גם כשבקשות מאוחרות יותר מגיעות דרך כתובת ה-IP ברשת המקומית. בלי סיסמה הוא עונה רק בכתובת ה-IP שלו, בשמות מקומיים ובדומיינים שברשימה הזו, אז הוסף את שלך לפני שאתה פותח אותו דרכו. כתובת מלאה אחת בכל שורה, למשל https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'אפליקציית טלפון',
   'settings.browsertools.phoneHint': 'אפליקציית KnightLoader לטלפונים עם Android. היא מציגה ומנהלת את ההורדות במופעים שלך ושולחת אליהם קישורים. ה-APK הוא הגרסה שמופיעה בפינה.',
   'settings.browsertools.storeAndroid': 'Google Play',
