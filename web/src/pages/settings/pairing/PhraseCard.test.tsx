@@ -205,6 +205,23 @@ describe('PhraseCard', () => {
     expect(row.slice(-2)).toEqual(['Close', 'Copy']);
   });
 
+  it('keeps the words across a poll of the same group and drops them once the group changes', async () => {
+    const calls = answer({ phrase: WORDS });
+    draw({ joinedAgo: 75, passwordSet: false });
+    await act(async () => tile('Nothing entered over there yet?').click());
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
+
+    draw({ joinedAgo: 76, passwordSet: false });
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
+
+    // Another tab left and generated a new phrase.
+    draw({ joinedAgo: 3, passwordSet: true });
+    expect(dialog()).toBeNull();
+    await act(async () => button('Show phrase').click());
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
+    expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
+  });
+
   it('lists this instance, the other instances and the phones, one row each', () => {
     draw({
       joinedAgo: 500,
