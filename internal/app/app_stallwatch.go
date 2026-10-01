@@ -262,9 +262,7 @@ func (a *App) restartStalled(id string) {
 	be.Remove(id, true)
 
 	a.mu.Lock()
-	if a.tasks[id] != nil && !slices.Contains(a.queue, id) {
-		a.queue = append(a.queue, id)
-	}
+	a.requeueRestartedLocked(id)
 	a.dispatchLocked()
 	// Copied after the dispatch, which may already have started or refused it.
 	var c taskCopy
@@ -278,4 +276,15 @@ func (a *App) restartStalled(id string) {
 	}
 	log.Printf("task %s stood still for %s and was started again (restart %d)", id, stalledFor, restarts)
 	a.publish(&c)
+}
+
+// requeueRestartedLocked puts a restarted task back in the wait queue once its
+// backend has let go of the old transfer. The lock was released for that, so a
+// pause or a start made in the meantime decides instead. Caller holds a.mu.
+func (a *App) requeueRestartedLocked(id string) {
+	t := a.tasks[id]
+	if t == nil || t.Status != core.StatusQueued || a.active[id] || slices.Contains(a.queue, id) {
+		return
+	}
+	a.queue = append(a.queue, id)
 }
