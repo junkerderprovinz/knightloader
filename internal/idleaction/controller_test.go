@@ -312,6 +312,43 @@ func TestSwitchingActionOffMidCountdownDisarms(t *testing.T) {
 	}
 }
 
+// Saving another action or delay during a countdown starts it over under the
+// new configuration, so what fires is what the settings page says.
+func TestChangingTheActionMidCountdownFiresTheNewOne(t *testing.T) {
+	h := newHarness(t)
+	h.setConfig(Config{Action: ActionQuit, DelaySeconds: 60})
+	h.c.tick()
+	h.setIdle(true)
+	h.c.tick()
+	if !h.c.State().Armed {
+		t.Fatal("did not arm")
+	}
+	changes := h.changeCount()
+
+	h.clock.advance(30 * time.Second)
+	h.setConfig(Config{Action: ActionPause, DelaySeconds: 90})
+	h.c.tick()
+	st := h.c.State()
+	if !st.Armed || st.Action != ActionPause {
+		t.Fatalf("armed %v with %q after the change, want armed with %q", st.Armed, st.Action, ActionPause)
+	}
+	if h.changeCount() == changes {
+		t.Error("nobody was told the countdown started over")
+	}
+
+	// The old deadline passes without anything firing.
+	h.clock.advance(time.Minute)
+	h.c.tick()
+	if fired := h.firedActions(); len(fired) != 0 {
+		t.Fatalf("fired %v on the old deadline", fired)
+	}
+	h.clock.advance(30 * time.Second)
+	h.c.tick()
+	if fired := h.firedActions(); len(fired) != 1 || fired[0] != ActionPause {
+		t.Fatalf("fired %v, want only %q", fired, ActionPause)
+	}
+}
+
 // On an ordinary boot the queue is idle before anyone has configured an
 // action, and stays idle past the moment the feature is switched on, so the
 // harness below never calls setIdle(false). A plain tick must not arm in that
