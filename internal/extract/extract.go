@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -578,10 +579,14 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 		return nil, err
 	}
 	defer dec.Close()
+	var packed int64
+	if fi, err := f.Stat(); err == nil {
+		packed = fi.Size()
+	}
 
 	// Peek rather than read: when the probe says "not a tar", those same bytes
 	// are still the beginning of the file we have to write out.
-	br := bufio.NewReaderSize(dec, tarProbeSize)
+	br := bufio.NewReaderSize(&cappedReader{r: dec, left: streamLimit(packed) + 1}, tarProbeSize)
 	head, _ := br.Peek(tarProbeSize)
 
 	res := &Result{Dir: dest, Volumes: []string{path}}
@@ -608,6 +613,52 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 	}
 	res.Files++
 	return res, nil
+}
+
+// ErrStreamTooLarge is a single compressed stream that unpacks to more than
+// streamLimit allows for its size.
+var ErrStreamTooLarge = errors.New("extract: the compressed file unpacks to far more than its size suggests")
+
+// A single compressed stream declares no size the way an archive's headers do,
+// so the readers cannot hold it to one. streamRatio stands in for that: deflate
+// tops out near 1032:1, so a real gzip never meets it, and bzip2, xz and zstd
+// only pass it on long runs of one byte, which a download made of them is not.
+// streamFloor keeps a small file from being held to a few megabytes. Both are
+// variables so tests can reach the limit without writing gigabytes.
+var (
+	streamRatio int64 = 1 << 14
+	streamFloor int64 = 64 << 20
+)
+
+// streamLimit is the most a stream of packed bytes may unpack to.
+func streamLimit(packed int64) int64 {
+	if packed > math.MaxInt64/streamRatio {
+		return math.MaxInt64 - 1
+	}
+	return max(packed*streamRatio, streamFloor)
+}
+
+// cappedReader fails once more than its limit has come through. It is handed
+// the limit plus one byte, so a stream that ends exactly at the limit still
+// reads to EOF.
+type cappedReader struct {
+	r    io.Reader
+	left int64
+}
+
+func (c *cappedReader) Read(p []byte) (int, error) {
+	if c.left <= 0 {
+		return 0, ErrStreamTooLarge
+	}
+	if int64(len(p)) > c.left {
+		p = p[:c.left]
+	}
+	n, err := c.r.Read(p)
+	c.left -= int64(n)
+	if c.left <= 0 {
+		return n, ErrStreamTooLarge
+	}
+	return n, err
 }
 
 // payloadName is the name a non-tar payload is written under: the archive name

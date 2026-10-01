@@ -3,6 +3,7 @@ package hosterauth
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -52,5 +53,26 @@ func TestQueryAccountsSendsNoPagingFields(t *testing.T) {
 	}
 	if strings.Contains(gesehen, "&") {
 		t.Errorf("the query has more than one parameter (%q); queryAccounts takes exactly one object", gesehen)
+	}
+}
+
+// A JD that cannot be reached is the ordinary failure, and its error goes to
+// the log and the diagnostics bundle. The login it was given must not.
+func TestAnUnreachableJDNeverEchoesTheLogin(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := ln.Addr().String()
+	ln.Close()
+
+	_, err = newJDClient("http://"+addr).addAccount(context.Background(), "rapidgator.net", "alice", "hunter2")
+	if err == nil {
+		t.Fatal("addAccount against a closed port succeeded")
+	}
+	for _, secret := range []string{"alice", "hunter2"} {
+		if strings.Contains(err.Error(), secret) {
+			t.Errorf("the error carries %q: %v", secret, err)
+		}
 	}
 }

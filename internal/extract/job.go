@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -237,6 +238,10 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 	// itself would otherwise be a job that never ends, and the depth cap alone
 	// would only make it end late.
 	seen := map[string]bool{}
+	// Files that were in a reused destination before the job wrote there. They
+	// belong to some other download, so the job neither opens nor disposes of
+	// them; it is only consulted once the written record has overflowed.
+	before := map[string]bool{}
 	queue := []step{{path: req.Path}}
 
 	for len(queue) > 0 {
@@ -258,6 +263,9 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 				return nil, err
 			}
 			out.Joined = append(out.Joined, joined)
+			if cur.depth > 0 {
+				parts = s.fresh(parts, before)
+			}
 			out.Volumes = append(out.Volumes, parts...)
 			// Joining is not a level: a set cut into pieces is one file, and
 			// charging it a level would cost the archive inside it its own.
@@ -293,6 +301,8 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		// the empty subfolders its entries were written into.
 		if missing(dest) {
 			s.own(dest)
+		} else {
+			filesIn(dest, before)
 		}
 		s.open(cur.path, cur.depth)
 		mark := s.recorded()
@@ -307,7 +317,11 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 			// the outer archive, which opened perfectly well.
 			return nil, fmt.Errorf("%s: %w", filepath.Base(cur.path), err)
 		}
-		out.Volumes = append(out.Volumes, res.Volumes...)
+		volumes := res.Volumes
+		if cur.depth > 0 {
+			volumes = s.fresh(volumes, before)
+		}
+		out.Volumes = append(out.Volumes, volumes...)
 		if out.Dir == "" {
 			out.Dir = res.Dir
 		}
@@ -316,28 +330,46 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		if cur.depth+1 >= depth {
 			continue
 		}
-		for _, p := range s.produced(res, cur.path, mark) {
+		for _, p := range s.produced(res, cur.path, mark, before) {
 			queue = append(queue, step{path: p, depth: cur.depth + 1})
 		}
 	}
 	return out, nil
 }
 
-// produced is what an archive left behind that is worth opening in turn.
-//
-// A container archive gets a folder of its own and everything under it is fair
-// game. A single compressed stream does not: gunzip leaves its payload beside
-// the archive, so res.Dir is the download folder, and walking that would pull
-// every unrelated archive next to it into a job the user started on one file.
-// For that case the only new file is the one this job just wrote, which is what
-// the written record is for.
-func (s *sink) produced(res *Result, archive string, mark int) []string {
-	if filepath.Clean(res.Dir) != filepath.Clean(filepath.Dir(archive)) {
-		return candidatesIn(res.Dir)
-	}
+// produced is what an archive left behind that is worth opening in turn: the
+// archives this job wrote, and nothing else in the folder. A single stream
+// unpacks into the download folder and an overwrite reuses a folder that may
+// hold another package's archives, so walking res.Dir would unpack and later
+// dispose of files that are not this job's. Past the record's cap a job with a
+// folder of its own walks it, minus what was there before.
+func (s *sink) produced(res *Result, archive string, mark int, before map[string]bool) []string {
 	var out []string
-	for _, p := range s.recordedFrom(mark) {
-		if Startable(filepath.Base(p)) {
+	if mark >= 0 && s.recorded() >= 0 {
+		for _, p := range s.recordedFrom(mark) {
+			if Startable(filepath.Base(p)) {
+				out = append(out, p)
+			}
+		}
+	} else if filepath.Clean(res.Dir) != filepath.Clean(filepath.Dir(archive)) {
+		for _, p := range candidatesIn(res.Dir) {
+			if !before[p] {
+				out = append(out, p)
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// fresh keeps the paths this job wrote. Past the record's cap that is
+// everything that was not already on disk when the job reached its folder.
+func (s *sink) fresh(paths []string, before map[string]bool) []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []string
+	for _, p := range paths {
+		if s.truncated && !before[p] || !s.truncated && slices.Contains(s.written, p) {
 			out = append(out, p)
 		}
 	}
@@ -358,8 +390,17 @@ func candidatesIn(dir string) []string {
 		}
 		return nil
 	})
-	sort.Strings(out)
 	return out
+}
+
+// filesIn adds every file under dir to set.
+func filesIn(dir string, set map[string]bool) {
+	_ = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() {
+			set[p] = true
+		}
+		return nil
+	})
 }
 
 // join concatenates a plain split set back into the file it was cut from, and

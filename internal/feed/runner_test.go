@@ -2,6 +2,7 @@ package feed
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // Every feed in these tests is served by an httptest server; nothing reaches
@@ -562,5 +565,16 @@ func TestARowThatCannotBePolledIsReportedAndTheRestStillRun(t *testing.T) {
 func TestARunnerWithoutASinkIsRefused(t *testing.T) {
 	if _, err := New(Options{Subscriptions: []Subscription{{URL: "https://example.invalid/rss.xml"}}}); err == nil {
 		t.Fatal("a runner with nowhere to put its entries was built")
+	}
+}
+
+// A feed on the LAN is a fine subscription, but its publisher's redirect must
+// not lead to a link-local address, where cloud metadata answers.
+func TestAFeedRedirectIntoLinkLocalIsRefused(t *testing.T) {
+	srv := httptest.NewServer(http.RedirectHandler("http://169.254.169.254/latest/meta-data/", http.StatusFound))
+	t.Cleanup(srv.Close)
+	_, err := fetch(context.Background(), httpx.New(httpx.Options{}), srv.URL)
+	if !errors.Is(err, httpx.ErrRefused) {
+		t.Errorf("fetch = %v, want the redirect refused", err)
 	}
 }
