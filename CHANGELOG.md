@@ -39,6 +39,10 @@ release's tag.
 
 ## [1.6.1] - 2026-10-01
 
+### Added
+
+- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
+
 ### Changed (Android app)
 
 - expo-camera is removed. With its barcode scanner switched off it still compiled against Google ML Kit and Play services, and F-Droid rejects an APK whose code names those classes. The scanner module declares the camera permission, the app asks through `PermissionsAndroid` and opens the app settings once Android stops asking. The release build fails when the APK names a `com.google.mlkit` or `com.google.android.gms` class, and `check-free-scanner.mjs` checks the lock file for expo-camera and ML Kit wrappers. `mobile/PRIVACY.md` describes the ZXing scanner, which sends nothing to anyone.
