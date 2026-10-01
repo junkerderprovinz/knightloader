@@ -1625,7 +1625,7 @@ export const ar: Dict = {
   'settings.access.identity.namePlaceholder': 'مثال: خادم المنزل',
   'settings.access.identity.nameHint': 'يُعرض أولًا عند الإقران وفي رمز QR أدناه، بدل الاسم الذي يصادف أن يطلقه نظام التشغيل أو بيئة تشغيل الحاوية على هذا الجهاز. اختياري: اتركه فارغًا لتواصل استخدام ذلك الاسم.',
   'settings.access.identity.domainsLabel': 'النطاقات المعروفة',
-  'settings.access.identity.domainsHint': 'كل نطاق يُتذكَّر تلقائيًا أول مرة يصل عبره طلب، ويبقى مدرجًا هنا حتى لو وصلت الطلبات اللاحقة عبر عنوان IP في الشبكة المحلية. أضف نطاقًا يدويًا إن كان مُعدًّا بالفعل ولم يصل عبره أي طلب بعد. عنوان كامل واحد في كل سطر، مثل https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'يتذكر KnightLoader النطاق أول مرة يسجّل فيها أحد الدخول عبره، ويبقيه مدرجًا هنا حتى لو وصلت الطلبات اللاحقة عبر عنوان IP في الشبكة المحلية. من دون كلمة مرور لا يستجيب إلا على عنوان IP الخاص به وعلى الأسماء المحلية وعلى النطاقات المدرجة هنا، لذا أضف نطاقك قبل أن تفتحه عبره. عنوان كامل واحد في كل سطر، مثل https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'تطبيق الهاتف',
   'settings.browsertools.phoneHint': 'تطبيق KnightLoader لهواتف Android. يعرض التنزيلات على نسخك ويتحكم فيها ويرسل إليها الروابط. وملف APK هو الإصدار الظاهر في الزاوية.',
   'settings.browsertools.storeAndroid': 'Google Play',

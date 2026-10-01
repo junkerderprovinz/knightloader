@@ -1623,7 +1623,7 @@ export const is: Dict = {
   'settings.access.identity.namePlaceholder': 't.d. Heimaþjónn',
   'settings.access.identity.nameHint': 'Boðið fyrst við pörun og í QR-kóðanum hér fyrir neðan, í stað þess heitis sem stýrikerfið eða gámaumhverfið gefur þessari vél. Valfrjálst: skildu reitinn eftir auðan til að halda áfram að nota það heiti.',
   'settings.access.identity.domainsLabel': 'Þekkt lén',
-  'settings.access.identity.domainsHint': 'Hvert lén er munað sjálfkrafa í fyrsta sinn sem beiðni berst í gegnum það, og það er áfram skráð hér jafnvel þótt síðari beiðnir berist í staðinn um staðarnets-IP-töluna. Bættu léni við handvirkt ef það er þegar uppsett en engin beiðni hefur enn borist í gegnum það. Eitt fullt vistfang í hverri línu, t.d. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader man lén í fyrsta sinn sem einhver skráir sig inn í gegnum það og heldur því á listanum hér, jafnvel þótt síðari beiðnir komi um IP-tölu staðarnetsins. Án lykilorðs svarar það aðeins á eigin IP-tölu, á staðbundnum nöfnum og á lénunum á þessum lista, svo bættu þínu léni við áður en þú opnar það í gegnum það. Eitt fullt vistfang í hverja línu, t.d. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Símaforrit',
   'settings.browsertools.phoneHint': 'KnightLoader-forritið fyrir Android-síma. Það sýnir og stýrir niðurhalinu á tilvikunum þínum og sendir þeim tengla. APK-skráin er útgáfan sem sýnd er í horninu.',
   'settings.browsertools.storeAndroid': 'Google Play',

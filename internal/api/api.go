@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"html"
 	"io"
 	"io/fs"
@@ -33,7 +34,7 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(sameOrigin(guard(a, reg, mux)))
+	h := withBasePath(knownHost(a, sameOrigin(guard(a, reg, mux))))
 
 	// A relay-proxied call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Wiring the relay and the peer
@@ -173,7 +174,8 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 
 // sameOrigin keeps other websites from driving this instance through the
 // visitor's browser. The UI is served from the same origin as the API, so no
-// cross-origin access is ever needed.
+// cross-origin access is ever needed. A site that points its own domain at
+// this address passes here; knownHost is what stops it.
 func sameOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) {
@@ -195,12 +197,13 @@ func originMatchesHost(origin, host string) bool {
 
 func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// No InsecureSkipVerify: the library then requires Origin to match Host,
-	// which is what stops another site from opening this socket.
+	// which with knownHost in front is what stops another site from opening
+	// this socket.
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return
 	}
-	OpenStream(a, c)
+	openStream(a, c, narrowToken(r))
 	defer func() {
 		a.Hub.Remove(c)
 		c.CloseNow()
@@ -217,8 +220,16 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 // OpenStream registers c with the hub as a live stream and queues what every
 // new stream starts with. The desktop window, which cannot open /api/ws, uses
 // it for the streams it carries over Wails events.
-func OpenStream(a *app.App, c hub.Conn) {
-	a.Hub.Add(c)
+func OpenStream(a *app.App, c hub.Conn) { openStream(a, c, false) }
+
+// openStream is OpenStream for a stream that gets only the redacted form of
+// what the settings hide when restricted is set.
+func openStream(a *app.App, c hub.Conn, restricted bool) {
+	if restricted {
+		a.Hub.AddRestricted(c)
+	} else {
+		a.Hub.Add(c)
+	}
 	// Queued through the hub rather than written to the socket, so a task
 	// event sent after Add cannot overtake the older snapshot. The activity
 	// snapshot gives a reconnecting client the current counters instead of
@@ -356,10 +367,33 @@ func writeRefusal(w http.ResponseWriter, status int, code, text string, params m
 	writeJSONStatus(w, status, out)
 }
 
+const (
+	// maxJSONBody bounds every JSON body. The decoder buffers a whole string
+	// token before it returns, so without a ceiling one request with a
+	// gigabyte-long value holds a gigabyte of memory. A settings document or
+	// a pasted list of links stays far below it.
+	maxJSONBody = 16 << 20
+	// maxAuthBody bounds the routes that read a body before anybody has signed
+	// in. A password, a code or a passkey assertion is a few hundred bytes.
+	maxAuthBody = 64 << 10
+)
+
 // decodeJSON reads a JSON body and answers 400 itself when it cannot. It
 // reports whether the body was usable.
 func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {
-	if err := json.NewDecoder(body(r)).Decode(v); err != nil {
+	return decodeJSONUpTo(w, r, v, maxJSONBody)
+}
+
+// decodeJSONUpTo is decodeJSON with a lower ceiling, for the routes anybody
+// can reach.
+func decodeJSONUpTo(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
+	err := json.NewDecoder(http.MaxBytesReader(w, io.NopCloser(body(r)), limit)).Decode(v)
+	var tooLarge *http.MaxBytesError
+	switch {
+	case errors.As(err, &tooLarge):
+		http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+		return false
+	case err != nil:
 		http.Error(w, "bad json", http.StatusBadRequest)
 		return false
 	}
@@ -380,7 +414,7 @@ func body(r *http.Request) io.Reader {
 // them". Those handlers treat an unreadable body like an empty one, which is
 // what makes a bare POST work.
 func decodeBody(r *http.Request, v any) error {
-	return json.NewDecoder(body(r)).Decode(v)
+	return json.NewDecoder(io.LimitReader(body(r), maxJSONBody)).Decode(v)
 }
 
 // requireIDs refuses a request that names no tasks, for the routes where

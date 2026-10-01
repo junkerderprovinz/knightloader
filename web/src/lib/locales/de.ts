@@ -1752,7 +1752,7 @@ export const de: Dict = {
   'settings.access.identity.namePlaceholder': 'z. B. Heimserver',
   'settings.access.identity.nameHint': 'Wird beim Pairing und im QR-Code unten zuerst angeboten, statt des Namens, den das Betriebssystem oder die Container-Laufzeitumgebung diesem Rechner gerade gibt. Optional: Lässt du das Feld leer, bleibt es bei diesem Namen.',
   'settings.access.identity.domainsLabel': 'Bekannte Domains',
-  'settings.access.identity.domainsHint': 'Jede Domain wird automatisch gemerkt, sobald die erste Anfrage darüber eintrifft, und bleibt hier stehen, auch wenn spätere Anfragen über die LAN-IP kommen. Eine Domain, die schon eingerichtet ist, über die aber noch keine Anfrage kam, trägst du von Hand ein. Eine vollständige Adresse pro Zeile, z. B. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader merkt sich eine Domain, sobald sich jemand zum ersten Mal darüber anmeldet, und lässt sie hier stehen, auch wenn spätere Anfragen über die LAN-IP kommen. Ohne Passwort antwortet KnightLoader nur auf seiner IP-Adresse, auf lokalen Namen und auf den Domains in dieser Liste. Trag deine Domain deshalb hier ein, bevor du KnightLoader darüber öffnest. Eine vollständige Adresse pro Zeile, z. B. https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Handy-App',
   'settings.browsertools.phoneHint': 'Die KnightLoader-App für Android-Handys. Sie zeigt und steuert die Downloads auf deinen Instanzen und schickt ihnen Links. Die APK ist die Version, die oben in der Ecke steht.',
   'settings.browsertools.storeAndroid': 'Google Play',

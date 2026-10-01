@@ -1623,7 +1623,7 @@ export const et: Dict = {
   'settings.access.identity.namePlaceholder': 'nt Kodune server',
   'settings.access.identity.nameHint': 'Pakutakse sidumisel ja allolevas QR-koodis esimesena, selle nime asemel, mille operatsioonisüsteem või konteineri käituskeskkond sellele masinale juhtub andma. Valikuline: jäta tühjaks, et seda nime edasi kasutada.',
   'settings.access.identity.domainsLabel': 'Teadaolevad domeenid',
-  'settings.access.identity.domainsHint': 'Iga domeen jäetakse automaatselt meelde, kui selle kaudu saabub esimene päring, ja see jääb siia loetletuks ka siis, kui hilisemad päringud tulevad hoopis LAN-i IP kaudu. Lisa domeen käsitsi, kui see on juba seadistatud, aga selle kaudu pole veel ühtegi päringut tulnud. Üks täielik aadress rea kohta, nt https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader jätab domeeni meelde, kui keegi selle kaudu esimest korda sisse logib, ja hoiab seda siin loendis ka siis, kui hilisemad päringud tulevad kohtvõrgu IP kaudu. Ilma paroolita vastab see ainult oma IP-aadressil, kohalikel nimedel ja selles loendis olevatel domeenidel, nii et lisa oma domeen enne, kui selle kaudu avad. Üks täielik aadress rea kohta, nt https://kl.example.com.',
   'settings.browsertools.phoneTitle': 'Telefonirakendus',
   'settings.browsertools.phoneHint': 'KnightLoaderi rakendus Android-telefonidele. See näitab ja juhib sinu eksemplaride allalaadimisi ning saadab neile linke. APK on see versioon, mis on nurgas näha.',
   'settings.browsertools.storeAndroid': 'Google Play',

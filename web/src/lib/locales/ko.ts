@@ -1623,7 +1623,7 @@ export const ko: Dict = {
   'settings.access.identity.namePlaceholder': '예: 홈 서버',
   'settings.access.identity.nameHint': '페어링할 때와 아래 QR 코드에서, OS나 컨테이너 런타임이 이 기기에 붙인 이름 대신 가장 먼저 제시됩니다. 선택 사항입니다. 비워 두면 그 이름을 계속 사용합니다.',
   'settings.access.identity.domainsLabel': '알려진 도메인',
-  'settings.access.identity.domainsHint': '각 도메인은 그 도메인으로 첫 요청이 들어올 때 자동으로 기억되며, 이후 요청이 LAN IP로 들어와도 여기에 계속 표시됩니다. 이미 설정했지만 아직 그 도메인으로 요청이 들어온 적이 없다면 직접 추가하세요. 한 줄에 전체 주소 하나씩 적습니다. 예: https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader는 누군가 어떤 도메인으로 처음 로그인할 때 그 도메인을 기억하고, 이후 요청이 LAN IP로 들어와도 여기 목록에 계속 남겨 둡니다. 비밀번호가 없으면 자신의 IP 주소, 로컬 이름, 이 목록의 도메인에서만 응답하므로, 그 도메인으로 열기 전에 여기에 추가하세요. 한 줄에 전체 주소 하나, 예: https://kl.example.com.',
   'settings.browsertools.phoneTitle': '휴대폰 앱',
   'settings.browsertools.phoneHint': 'Android 휴대폰용 KnightLoader 앱입니다. 인스턴스의 다운로드를 보여 주고 조작하며, 인스턴스에 링크를 보냅니다. APK는 모서리에 표시된 버전입니다.',
   'settings.browsertools.storeAndroid': 'Google Play',

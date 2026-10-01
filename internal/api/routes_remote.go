@@ -68,19 +68,11 @@ func registerRemoteAccess(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/remote-access",
 		"the addresses this instance actually answers requests on, whether a password protects them, and a QR code for the LAN case",
 		func(w http.ResponseWriter, r *http.Request) {
-			info, learned := remoteAccessInfo(a, r)
-			// A newly remembered domain can be the one the group is told.
-			if learned {
-				applyRelay(a)
-				reg.refreshDiscovery()
-			}
-			writeJSON(w, info)
+			writeJSON(w, remoteAccessInfo(a, r))
 		})
 }
 
-// remoteAccessInfo also reports whether it remembered the domain the request
-// arrived on.
-func remoteAccessInfo(a *app.App, r *http.Request) (RemoteAccessInfo, bool) {
+func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	info := RemoteAccessInfo{
 		Deployment:  buildinfo.Deployment,
 		PasswordSet: a.Auth.Enabled(),
@@ -88,18 +80,34 @@ func remoteAccessInfo(a *app.App, r *http.Request) (RemoteAccessInfo, bool) {
 	// The desktop build serves the handler through Wails' asset server and is
 	// reachable only over the relay.
 	if buildinfo.Deployment == "desktop" {
-		return info, false
+		return info
 	}
-	known := a.Settings.Get().KnownDomains
-	info.Addresses = remoteAddresses(r, known)
+	info.Addresses = remoteAddresses(r, a.Settings.Get().KnownDomains)
 	info.Exposed = !info.PasswordSet && (requestIsNonLoopback(r) || buildinfo.ListensWidely)
-	learned := rememberDomain(a, info.Addresses, known)
 	// Not simply Addresses[0], which is loopback whenever the admin views the
 	// page locally; a phone scanning that would reach its own loopback.
 	if addr, ok := preferredAddress(info.Addresses); ok {
 		info.QR = renderQR(addr)
 	}
-	return info, learned
+	return info
+}
+
+// learnDomain remembers the domain a sign-in arrived on and, when the list
+// changed, tells the group, whose address for this instance may be that domain.
+//
+// Only a sign-in or a newly set password teaches a domain. Both prove the
+// caller knows the password, and a browser cannot be made to send a Host it
+// did not resolve, so the name is one the owner really reached this instance
+// through. A read, which a narrow token or a page that rebound its own domain
+// to this address can make, records nothing.
+func learnDomain(a *app.App, reg *Registry, r *http.Request) {
+	if buildinfo.Deployment == "desktop" || r.Host == "" {
+		return
+	}
+	if rememberDomain(a, connectionAddress(r), a.Settings.Get().KnownDomains) {
+		applyRelay(a)
+		reg.refreshDiscovery()
+	}
 }
 
 // preferredAddress is the address worth putting into a QR code or pairing
@@ -125,16 +133,7 @@ func preferredAddress(addrs []ReachableAddress) (string, bool) {
 // IPv4 address of a local interface with the request's port and scheme. Each
 // carries the base path it is served under.
 func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	// A TLS-terminating reverse proxy talks plain HTTP to the container, so
-	// the header is the only sign the browser used https (as in
-	// requestOrigin).
-	if fwd := r.Header.Get("X-Forwarded-Proto"); fwd == "https" {
-		scheme = "https"
-	}
+	scheme := requestScheme(r)
 	var out []ReachableAddress
 	seen := map[string]bool{}
 	add := func(label, urlScheme, hostport, base string, loopback bool) {
@@ -142,7 +141,7 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 			return
 		}
 		seen[hostport] = true
-		out = append(out, ReachableAddress{Label: label, URL: urlScheme + "://" + hostport + base, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)})
+		out = append(out, reachable(label, urlScheme, hostport, base, loopback))
 	}
 
 	if r.Host != "" {
@@ -169,16 +168,38 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	return out
 }
 
-// rememberDomain saves the domain the request arrived on into
+// requestScheme is the scheme the browser used for r.
+func requestScheme(r *http.Request) string {
+	// A TLS-terminating reverse proxy talks plain HTTP to the container, so
+	// the header is the only sign the browser used https (as in
+	// requestOrigin).
+	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+		return "https"
+	}
+	return "http"
+}
+
+func reachable(label, scheme, hostport, base string, loopback bool) ReachableAddress {
+	return ReachableAddress{Label: label, URL: scheme + "://" + hostport + base, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)}
+}
+
+// connectionAddress is the address r arrived on, as remoteAddresses lists it
+// first.
+func connectionAddress(r *http.Request) ReachableAddress {
+	return reachable("this connection", requestScheme(r), r.Host, requestBasePath(r), isLoopbackHost(r.Host))
+}
+
+// rememberDomain saves addr, the address a request arrived on, into
 // Settings.KnownDomains, so it stays listed when later requests come in over
 // the LAN IP. It replaces an entry for the same scheme and host, which a new
-// base path has made stale and remoteAddresses would list in its place. addrs
-// is what remoteAddresses just built. It reports whether the list changed.
-func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) bool {
-	if len(addrs) == 0 || addrs[0].Label != "this connection" || addrs[0].Loopback || !addrs[0].Domain {
+// base path has made stale and remoteAddresses would list in its place. It
+// reports whether the stored list changed, which it does not once the list is
+// full and the settings drop the new entry.
+func rememberDomain(a *app.App, addr ReachableAddress, known []string) bool {
+	if addr.Loopback || !addr.Domain {
 		return false
 	}
-	current := addrs[0].URL
+	current := addr.URL
 	origin := originOf(current)
 	next := make([]string, 0, len(known)+1)
 	placed := false
@@ -199,8 +220,8 @@ func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) bool {
 	if err != nil {
 		return false
 	}
-	_, err = a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
-	return err == nil
+	applied, err := a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
+	return err == nil && !slices.Equal(applied.KnownDomains, known)
 }
 
 // originOf is a known domain without its path, "" for one without a scheme.
@@ -235,7 +256,10 @@ func isLoopbackHost(hostport string) bool {
 	if h, _, err := net.SplitHostPort(hostport); err == nil {
 		host = h
 	}
-	if host == "localhost" {
+	// Browsers resolve every name under localhost to the loopback address
+	// themselves (RFC 6761), which is also where the desktop window's
+	// wails.localhost points.
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
 		return true
 	}
 	ip := net.ParseIP(host)

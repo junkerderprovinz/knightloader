@@ -1622,7 +1622,7 @@ export const zh: Dict = {
   'settings.access.identity.namePlaceholder': '例如"家庭服务器"',
   'settings.access.identity.nameHint': '配对时和下方二维码里会优先提供这个名字，而不是操作系统或容器运行时恰好给这台机器起的名字。可选：留空则继续使用那个名字。',
   'settings.access.identity.domainsLabel': '已知域名',
-  'settings.access.identity.domainsHint': '每个域名在第一次有请求通过它到达时会被自动记住，即使之后的请求改从局域网 IP 进来，它也会继续列在这里。如果某个域名已经配置好，但还没有请求通过它进来过，就手动添加。每行一个完整地址，例如 https://kl.example.com。',
+  'settings.access.identity.domainsHint': '有人第一次通过某个域名登录时，KnightLoader 会记住这个域名，即使之后的请求改从局域网 IP 进来，它也会继续列在这里。未设置密码时，它只在自己的 IP 地址、本地名称和这个列表里的域名上应答，所以在通过你的域名打开它之前，先把域名加到这里。每行一个完整地址，例如 https://kl.example.com。',
   'settings.browsertools.phoneTitle': '手机应用',
   'settings.browsertools.phoneHint': '适用于 Android 手机的 KnightLoader 应用。它显示并操控你各个实例上的下载，也能给它们发送链接。APK 就是角落里显示的那个版本。',
   'settings.browsertools.storeAndroid': 'Google Play',

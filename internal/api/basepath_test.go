@@ -331,8 +331,13 @@ func TestAConfiguredBasePathOutranksTheProxyHeader(t *testing.T) {
 func TestRemoteAccessAddressesCarryTheBasePath(t *testing.T) {
 	requireContainerDeployment(t)
 	servedUnder(t, "/kl")
-	srv, _ := testServer(t)
+	srv, a := testServer(t)
 	defer srv.Close()
+	s := a.Settings.Get()
+	s.KnownDomains = []string{"https://example.com/kl"}
+	if _, err := a.Settings.Set(s); err != nil {
+		t.Fatal(err)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, srv.URL+"/kl/api/remote-access", nil)
 	if err != nil {
@@ -405,15 +410,10 @@ func TestMovingUnderABasePathReplacesTheDomainKnownAtTheRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, srv.URL+"/kl/api/remote-access", nil)
-	if err != nil {
-		t.Fatal(err)
+	if code := signInOn(t, a, srv.URL+"/kl", "example.com"); code != http.StatusOK {
+		t.Fatalf("signing in under /kl answered %d", code)
 	}
-	req.Host = "example.com"
-	req.Header.Set("X-Forwarded-Proto", "https")
-	if code := doJSON(t, req, nil); code != http.StatusOK {
-		t.Fatalf("GET /kl/api/remote-access answered %d", code)
-	}
+	unlock(t, a)
 	want := []string{"https://example.com/kl", "https://other.example.org"}
 	if got := a.Settings.Get().KnownDomains; !slices.Equal(got, want) {
 		t.Errorf("KnownDomains = %q, want %q", got, want)
