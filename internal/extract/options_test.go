@@ -312,3 +312,13 @@ func TestSubfolderOnlyAppliesUnderACollectFolder(t *testing.T) {
 		t.Errorf("baseDest = %q, want %q", collected, want)
 	}
 }
+
+func TestPackageNamedOnlyDotsStaysInsideTheCollectFolder(t *testing.T) {
+	root := filepath.FromSlash("/unpacked")
+	for _, name := range []string{"..", ".", " .. ", "...", ". ."} {
+		got := Options{Dest: root, Subfolder: true, Package: name}.baseDest("/dl/film.zip")
+		if want := filepath.Join(root, "film"); got != want {
+			t.Errorf("package %q: baseDest = %q, want %q", name, got, want)
+		}
+	}
+}

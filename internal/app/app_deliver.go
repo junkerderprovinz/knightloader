@@ -206,8 +206,7 @@ func unpackRoot(dest string, t *core.Task, subfolder bool) string {
 		return ""
 	}
 	if subfolder && t != nil {
-		// collide.SafeName, to match the path extract.Options builds itself.
-		if pkg := collide.SafeName(strings.TrimSpace(t.Package)); pkg != "" {
+		if pkg := extract.PackageDir(t.Package); pkg != "" {
 			return filepath.Join(dest, pkg)
 		}
 	}

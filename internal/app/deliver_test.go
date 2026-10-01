@@ -329,3 +329,15 @@ func TestNothingMovesWithoutBeingAskedTo(t *testing.T) {
 		t.Errorf("the archive was moved out of the folder it was downloaded into: %v", err)
 	}
 }
+
+func TestUnpackRootKeepsADotPackageInsideTheTarget(t *testing.T) {
+	dest := filepath.FromSlash("/unpacked")
+	for _, name := range []string{"..", ".", "..."} {
+		if got := unpackRoot(dest, &core.Task{Package: name}, true); got != dest {
+			t.Errorf("package %q: unpackRoot = %q, want %q", name, got, dest)
+		}
+	}
+	if got, want := unpackRoot(dest, &core.Task{Package: "Films"}, true), filepath.Join(dest, "Films"); got != want {
+		t.Errorf("unpackRoot = %q, want %q", got, want)
+	}
+}
