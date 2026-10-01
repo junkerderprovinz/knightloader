@@ -1672,6 +1672,7 @@ export const et: Dict = {
   'quickadd.title': 'Lisa KnightLoaderisse',
   'quickadd.manualLabel': 'Link (või kleebi mitu, üks reale)',
   'quickadd.manualHint': 'Kleebi siia link käsitsi või ava see leht bookmarkleti või oma seadme jagamismenüü kaudu.',
+  'quickadd.sharedHint': 'Vaata üle, mis saabus, ja vajuta siis Lisa.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Lisa',
   'quickadd.adding': 'Lisamine…',

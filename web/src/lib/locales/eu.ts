@@ -1672,6 +1672,7 @@ export const eu: Dict = {
   'quickadd.title': 'Gehitu KnightLoader-era',
   'quickadd.manualLabel': 'Esteka (edo itsatsi hainbat, bat lerroko)',
   'quickadd.manualHint': 'Itsatsi esteka bat eskuz hemen, edo ireki orri hau bookmarklet-etik edo zure gailuaren Partekatu menutik.',
+  'quickadd.sharedHint': 'Egiaztatu zer iritsi den, eta sakatu Gehitu.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Gehitu',
   'quickadd.adding': 'Gehitzen…',

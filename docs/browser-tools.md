@@ -26,7 +26,9 @@ cookie. So neither of them calls `/api/links` from where it runs: each opens a
 small window at `<this instance>/quickadd?...`, same-origin, where the ordinary
 session cookie (and the ordinary sign-in screen, if the instance is
 password-locked) applies exactly as if you had typed the address in yourself.
-`/quickadd` is what actually stages the link.
+`/quickadd` is what actually stages the link, and only once Add is pressed: it
+fills in what it was handed and waits, because any website can open that same
+address in a signed-in browser.
 
 This is also why neither needs a copy of the instance's password: they only
 ever need to know *where* the instance is, never a credential of their own.
@@ -94,12 +96,13 @@ queue is doing, and links to its web interface. It has no start or stop button:
 running the queue belongs to the web interface, the app and the desktop tray,
 and the extension only hands links over.
 
-Permissions: `activeTab`, `contextMenus`, `storage` (the phrase, a random
-browser ID, the default instance, the language, the appearance and whether to
-follow an instance's, the Click'n'Load switch and countdown, whether the pin
-hint was shown, and in session storage a send waiting for the popup),
-`scripting` and `declarativeNetRequest`. None of them asks for access to any
-website at install. `activeTab` is what lets the popup read the current tab's
+Permissions: `activeTab`, `contextMenus`, `storage` (the default instance,
+the language, the appearance and whether to follow an instance's, the
+Click'n'Load switch and countdown, whether the pin hint was shown, and in
+session storage a send waiting for the popup), `scripting` and
+`declarativeNetRequest`. The phrase is kept apart from these, in the
+extension's own IndexedDB, because the Click'n'Load content scripts can read
+`storage.local`. None of the permissions asks for access to any website at install. `activeTab` is what lets the popup read the current tab's
 address and title, and a right-click send the page title: both are a user's
 click on the extension, which grants access to that one tab until it
 navigates. The relay is a WebSocket, which needs no host permission.

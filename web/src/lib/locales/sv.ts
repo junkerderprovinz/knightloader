@@ -1673,6 +1673,7 @@ export const sv: Dict = {
   'quickadd.title': 'Lägg till i KnightLoader',
   'quickadd.manualLabel': 'Länk (eller klistra in flera, en per rad)',
   'quickadd.manualHint': 'Klistra in en länk för hand här, eller öppna den här sidan från bookmarkleten eller enhetens Dela-meny.',
+  'quickadd.sharedHint': 'Kontrollera vad som kom in och tryck sedan på Lägg till.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Lägg till',
   'quickadd.adding': 'Lägger till…',

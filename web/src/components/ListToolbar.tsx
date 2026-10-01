@@ -34,7 +34,7 @@ import {
   setQueue as armStopMark,
   setTaskOptions,
   startSeeding,
-  startTasks,
+  ok,
   stopSeeding,
   undoDelete,
 } from '../lib/api';
@@ -43,6 +43,7 @@ import { fmtBytes } from '../lib/format';
 import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
+import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
@@ -951,6 +952,7 @@ function taskMenuGroups({
   base,
   t,
   fail,
+  start,
   removal,
   queue,
   onOptions,
@@ -966,6 +968,8 @@ function taskMenuGroups({
   base: string;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   fail: (e: unknown) => void;
+  /** Starts collected links and reports what the start did. */
+  start: (ids: string[]) => void;
   removal: Removal;
   /** The priorities this server offers and where the stop mark currently sits. */
   queue: QueueVerbs;
@@ -985,7 +989,7 @@ function taskMenuGroups({
       id: 'start',
       label: t('task.start'),
       icon: <IconPlay width={14} height={14} />,
-      onSelect: () => void startTasks(ids, base),
+      onSelect: () => start(ids),
     });
   // Start admits staged links and can lift a manual halt. Start now puts the
   // waiting ones ahead of everything else and past the limit of concurrent
@@ -1034,20 +1038,20 @@ function taskMenuGroups({
       icon: <IconBolt />,
       // How many selected rows are waiting, when not all of them are.
       detail: waitingIds.length < chosen.length ? String(waitingIds.length) : undefined,
-      onSelect: () => void restartTasks(waitingIds, base),
+      onSelect: guard(async () => ok(await restartTasks(waitingIds, base))),
     });
   if (some((x) => x.status === 'done' || x.status === 'error'))
     transport.items.push({
       id: 'restart',
       label: t('task.restart'),
       icon: <IconRetry width={14} height={14} />,
-      onSelect: () => void restartTasks(ids, base),
+      onSelect: guard(async () => ok(await restartTasks(ids, base))),
     });
   transport.items.push({
     id: 'recheck',
     label: t('task.recheck'),
     icon: <IconSearch width={14} height={14} />,
-    onSelect: () => void recheckTasks(ids, base),
+    onSelect: guard(async () => ok(await recheckTasks(ids, base))),
   });
 
   const queueGroup = queueMenuGroup({ chosen, ids, base, t, fail, queue });
@@ -1196,6 +1200,7 @@ export function ListMenu({
   const { t } = useT();
   const { toast } = useToast();
   const fail = useCallback((e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail'), [t, toast]);
+  const start = useStartTasks();
   const cleanup = useCleanup(all);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
   // The rows being moved into a package right now. PackageMoveDialog is also
@@ -1340,6 +1345,7 @@ export function ListMenu({
         base,
         t,
         fail,
+        start: (ids) => void start(ids, base),
         removal,
         queue,
         onOptions: (focus) => setOptions({ tasks: chosen, focus }),

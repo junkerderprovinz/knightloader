@@ -1673,6 +1673,7 @@ export const hr: Dict = {
   'quickadd.title': 'Dodaj u KnightLoader',
   'quickadd.manualLabel': 'Poveznica (ili zalijepi više njih, po jedna u retku)',
   'quickadd.manualHint': 'Ovdje ručno zalijepi poveznicu ili otvori ovu stranicu iz bookmarkleta ili izbornika Dijeli na svom uređaju.',
+  'quickadd.sharedHint': 'Provjeri što je stiglo, pa pritisni Dodaj.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Dodaj',
   'quickadd.adding': 'Dodavanje…',

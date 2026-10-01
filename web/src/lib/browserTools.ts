@@ -1,6 +1,6 @@
-// The bookmarklet, and the /quickadd query contract shared by every way of
-// handing KnightLoader a link from outside: the bookmarklet, the browser
-// extension and the PWA share target (manifest.webmanifest's share_target
+// The bookmarklet, and the /quickadd query contract shared by the two ways of
+// handing KnightLoader a link from a browser without its extension: the
+// bookmarklet and the PWA share target (manifest.webmanifest's share_target
 // uses the same url/text/title names). pages/QuickAdd.tsx reads all three.
 
 /** The three fields a caller may hand /quickadd, always as query parameters. */

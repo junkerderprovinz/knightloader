@@ -1672,6 +1672,7 @@ export const ms: Dict = {
   'quickadd.title': 'Tambah ke KnightLoader',
   'quickadd.manualLabel': 'Pautan (atau tampal beberapa, satu setiap baris)',
   'quickadd.manualHint': 'Tampal pautan secara manual di sini, atau buka halaman ini daripada bookmarklet atau menu Kongsi pada peranti anda.',
+  'quickadd.sharedHint': 'Semak apa yang masuk, kemudian tekan Tambah.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Tambah',
   'quickadd.adding': 'Menambah…',

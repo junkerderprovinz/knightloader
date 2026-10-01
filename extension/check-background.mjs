@@ -9,8 +9,11 @@
  *      goes off when the scripting call fails, so a site never shows a button
  *      nothing catches. An update or a browser start applies the stored state
  *      again, since an update resets a ruleset's state.
- *   3. Leaving the group also removes the random browser ID, so the relay does
- *      not see the same member in another group.
+ *   3. The phrase stays out of storage.local, which content scripts can read:
+ *      it is written to the extension's IndexedDB, one found in storage.local
+ *      moves there, and leaving the group deletes it. Every relay session
+ *      joins under an id of its own, so two at once do not knock each other
+ *      off, and only an extension page can pick a send's target.
  *   4. Click'n'Load runs only with the optional site access: wanted without it
  *      stays off, granting or withdrawing it switches the scripts, the grant
  *      and the stored switch arriving together register nothing twice, and an
@@ -29,6 +32,50 @@ const fail = (why) => problems.push(why);
 function event() {
   const listeners = [];
   return { addListener: (f) => listeners.push(f), listeners };
+}
+
+/**
+ * fakeIndexedDB holds object stores in memory and answers the part of the API
+ * group.js uses: open with an upgrade, one store per transaction, get, put and
+ * delete, with the transaction completing after its request.
+ */
+function fakeIndexedDB() {
+  const stores = new Map();
+  const later = (f) => setTimeout(f, 0);
+  const indexedDB = {
+    open() {
+      const req = {};
+      later(() => {
+        const db = {
+          createObjectStore: (name) => stores.set(name, new Map()),
+          transaction: (name) => {
+            const data = stores.get(name);
+            const tx = {};
+            const run = (fn) => {
+              const r = {};
+              later(() => {
+                r.result = fn();
+                later(() => tx.oncomplete?.());
+              });
+              return r;
+            };
+            tx.objectStore = () => ({
+              get: (k) => run(() => data.get(k)),
+              put: (v, k) => run(() => data.set(k, v)),
+              delete: (k) => run(() => data.delete(k)),
+            });
+            return tx;
+          },
+          close() {},
+        };
+        req.result = db;
+        if (stores.size === 0) req.onupgradeneeded?.();
+        req.onsuccess?.();
+      });
+      return req;
+    },
+  };
+  return { indexedDB, stores };
 }
 
 function makeChrome({ withMenus, scriptingThrows = false, granted = true }) {
@@ -96,9 +143,9 @@ function makeChrome({ withMenus, scriptingThrows = false, granted = true }) {
   return { chrome, calls, store, access, live };
 }
 
-function load(chrome) {
+function load(chrome, idb = fakeIndexedDB()) {
   const ctx = vm.createContext({
-    chrome, console: { log() {}, warn() {}, error() {} }, setTimeout, clearTimeout,
+    chrome, indexedDB: idb.indexedDB, console: { log() {}, warn() {}, error() {} }, setTimeout, clearTimeout,
     crypto: globalThis.crypto, TextEncoder, TextDecoder, URL, navigator: { language: 'en-US', languages: ['en-US'] },
     btoa: (s) => Buffer.from(s, 'binary').toString('base64'), atob: (s) => Buffer.from(s, 'base64').toString('binary'),
     WebSocket: class {},
@@ -180,16 +227,36 @@ for (const stored of [false, undefined]) {
   }
 }
 
-// 3. Leaving forgets the browser ID.
+// 3. The phrase is kept where content scripts cannot read it.
 {
-  const { chrome, calls } = makeChrome({ withMenus: true });
-  const { ctx, error } = load(chrome);
+  const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+  const { chrome, calls, store } = makeChrome({ withMenus: true });
+  const idb = fakeIndexedDB();
+  const { ctx, error } = load(chrome, idb);
   if (error) fail(error);
   else {
-    await vm.runInContext('forgetGroup', ctx)();
-    for (const key of ['phrase', 'defaultInstance', 'selfId']) {
-      if (!calls.removed.includes(key)) fail(`forgetGroup() does not remove '${key}'`);
-    }
+    const run = (name) => vm.runInContext(name, ctx);
+    await run('writePhrase')(` ${PHRASE.toUpperCase()} `);
+    if ('phrase' in store) fail('writePhrase() puts the phrase into storage.local, which every content script can read');
+    if ((await run('readPhrase')()) !== PHRASE) fail('readPhrase() does not return the phrase writePhrase() stored');
+
+    await run('forgetGroup')();
+    if ((await run('readPhrase')()) !== '') fail('forgetGroup() leaves the phrase readable');
+    if (!calls.removed.includes('defaultInstance')) fail("forgetGroup() does not remove 'defaultInstance'");
+
+    store.phrase = PHRASE;
+    if ((await run('readPhrase')()) !== PHRASE) fail('readPhrase() loses a phrase found in storage.local');
+    if ('phrase' in store) fail('readPhrase() leaves a phrase found in storage.local where content scripts can read it');
+    if (idb.stores.get('secrets')?.get('phrase') !== PHRASE) fail('readPhrase() does not move a phrase found in storage.local into IndexedDB');
+
+    const ids = [run('sessionInstanceId')(), run('sessionInstanceId')()];
+    if (!ids.every((id) => /^[0-9a-f]{40}$/.test(id))) fail(`a relay session joins under ${JSON.stringify(ids)}, want 40 hex characters`);
+    if (ids[0] === ids[1]) fail('two relay sessions join under the same id, so the relay drops the first one');
+
+    let answered = false;
+    const message = { type: 'knightloader-send-to', target: 'a'.repeat(40), payload: { url: 'https://files.example/a' } };
+    for (const f of chrome.runtime.onMessage.listeners) f(message, { url: 'https://evil.example/' }, () => { answered = true; });
+    if (answered) fail('a content script on a website can pick the target of a send');
   }
 }
 
@@ -256,4 +323,4 @@ if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, leaving forgets the browser id, Click\'n\'Load follows the site access');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id, Click\'n\'Load follows the site access');

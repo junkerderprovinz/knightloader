@@ -300,3 +300,17 @@ export function foldAnswer(draft: Doc, answer: Doc, sent: Doc, before: Doc, keep
   }
   return out;
 }
+
+/**
+ * foldSent is the draft once a save of a few fields has come back: the
+ * server's answer for each field sent, unless the draft has moved on from what
+ * was sent. That edit stays for the next save, and every field the save did not
+ * send is left alone.
+ */
+export function foldSent(draft: Doc, answer: Doc, sent: Doc): Doc {
+  const out: Doc = { ...draft };
+  for (const k of Object.keys(sent)) {
+    if (same(draft[k], sent[k])) out[k] = answer[k];
+  }
+  return out;
+}

@@ -156,7 +156,6 @@ function paintHues() {
 
   // The queue readings arrive after the cards are drawn and are not awaited,
   // so sending never waits for them and still works if they fail.
-  void loadStatus();
   watchStatus();
   showCollector();
 })();
@@ -164,12 +163,12 @@ function paintHues() {
 /**
  * Keeps the status line live while the popup is open. A timer here rather than
  * an alarm in the service worker needs no "alarms" permission and stops with
- * the window. A tick is skipped while the previous fetch is still out, so a
- * slow relay cannot pile up requests.
+ * the window. A tick, the first one included, is skipped while the previous
+ * fetch is still out, so a slow relay cannot pile up requests.
  */
 function watchStatus() {
   let busy = false;
-  const iv = setInterval(async () => {
+  const tick = async () => {
     if (busy || document.hidden) return;
     busy = true;
     try {
@@ -177,7 +176,9 @@ function watchStatus() {
     } finally {
       busy = false;
     }
-  }, 2000);
+  };
+  void tick();
+  const iv = setInterval(tick, 2000);
   addEventListener('pagehide', () => clearInterval(iv), { once: true });
 }
 

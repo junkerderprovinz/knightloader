@@ -1672,6 +1672,7 @@ export const lv: Dict = {
   'quickadd.title': 'Pievienot KnightLoader',
   'quickadd.manualLabel': 'Saite (vai ielīmējiet vairākas, pa vienai rindā)',
   'quickadd.manualHint': 'Ielīmē saiti šeit ar roku vai atver šo lapu no bookmarklet vai no ierīces kopīgošanas izvēlnes.',
+  'quickadd.sharedHint': 'Pārbaudi, kas ienāca, un tad nospied Pievienot.',
   'quickadd.manualPlaceholder': 'https://example.com/file.zip',
   'quickadd.add': 'Pievienot',
   'quickadd.adding': 'Pievieno…',

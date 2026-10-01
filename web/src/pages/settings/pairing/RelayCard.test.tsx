@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -80,4 +80,57 @@ describe('RelayCard', () => {
     draw({ relayMode: 'off' }, { mode: 'off' });
     expect(state()).toBe('No relay');
   });
+
+  it('goes back to the stored mode when picking another one fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('the settings could not be saved', { status: 500 })));
+    draw({ active: true });
+    await act(async () => tab('Own relay').click());
+    expect(tab('Project relay').getAttribute('aria-selected')).toBe('true');
+    expect(host.querySelector('[data-testid="own-relay"]')).toBeNull();
+  });
+
+  it('keeps what is typed while an earlier address is being saved', async () => {
+    vi.useFakeTimers();
+    try {
+      const answers: ((body: RelayConfig) => void)[] = [];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          () =>
+            new Promise<Response>((resolve) => answers.push((body) => resolve(Response.json(body)))),
+        ),
+      );
+      act(() =>
+        root.render(
+          <I18nProvider>
+            <Stateful />
+          </I18nProvider>,
+        ),
+      );
+      const input = () => host.querySelector<HTMLInputElement>('#relay-address')!;
+      type(input(), 'https://relay.example');
+      await act(async () => vi.advanceTimersByTime(800));
+      type(input(), 'https://relay.example.org');
+      await act(async () => answers[0]({ ...relay, mode: 'own', relayUrl: 'https://relay.example' }));
+      expect(input().value).toBe('https://relay.example.org');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
+
+const tab = (name: string) => [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find((b) => b.textContent === name)!;
+
+/** RelayCard with the page's own state around it, so a save's answer reaches the card. */
+function Stateful() {
+  const [r, setR] = useState<RelayConfig>({ ...relay, mode: 'own' });
+  return <RelayCard group={{ ...group, active: true, relayMode: 'own' }} relay={r} onRelay={setR} />;
+}
+
+/** Types into a controlled input the way a keystroke does. */
+function type(el: HTMLInputElement, value: string) {
+  act(() => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, value);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
