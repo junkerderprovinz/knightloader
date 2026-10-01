@@ -192,6 +192,12 @@ func (s *NineKWSolver) pollAnswer(ctx context.Context, id string) (string, error
 			return "", fmt.Errorf("%w: %v", ErrTaskTaken, err)
 		}
 		answer, err := s.get(ctx, url.Values{"action": {"usercaptchacorrectdata"}, "id": {id}})
+		var status *nineKWStatus
+		if errors.As(err, &status) && status.code >= 500 {
+			// A front end that is briefly down; the captcha is paid for, and
+			// its answer is still to be had once 9kw is back.
+			continue
+		}
 		if err != nil {
 			return "", fmt.Errorf("%w: %w", ErrTaskTaken, err)
 		}
@@ -210,7 +216,7 @@ func (s *NineKWSolver) get(ctx context.Context, params url.Values) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("9kw %s: %w", action, err)
 	}
-	_, raw, _, err := roundTrip(s.hc, req)
+	status, raw, _, err := roundTrip(s.hc, req)
 	if err != nil {
 		var ue *url.Error
 		if errors.As(err, &ue) {
@@ -222,8 +228,18 @@ func (s *NineKWSolver) get(ctx context.Context, params url.Values) (string, erro
 	if r := nineKWRefusal(answer); r != nil {
 		return "", r
 	}
+	// The body of an error status is a page from 9kw's front end or a proxy
+	// in front of it, and handed on it would be typed into the captcha.
+	if status >= http.StatusBadRequest {
+		return "", fmt.Errorf("9kw %s: %w", action, &nineKWStatus{code: status})
+	}
 	return answer, nil
 }
+
+// nineKWStatus is an HTTP error status from 9kw.
+type nineKWStatus struct{ code int }
+
+func (e *nineKWStatus) Error() string { return fmt.Sprintf("HTTP %d", e.code) }
 
 func nineKWRefusal(answer string) *Refusal {
 	m := nineKWError.FindStringSubmatch(answer)

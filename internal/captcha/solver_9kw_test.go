@@ -214,3 +214,39 @@ func TestNineKWKeepsTheKeyOutOfTransportErrors(t *testing.T) {
 		t.Errorf("Balance = %v, want an error without the key", err)
 	}
 }
+
+// An error page from 9kw's front end is not the captcha's answer. A 5xx is
+// waited out, since the captcha is paid for; any other error status ends the
+// poll.
+func TestNineKWNeverTakesAnErrorPageForTheAnswer(t *testing.T) {
+	withFastPolling(t)
+	serve := func(pollStatus int) *NineKWSolver {
+		polls := 0
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				_, _ = w.Write([]byte("130875948"))
+				return
+			}
+			if polls++; polls == 1 {
+				w.WriteHeader(pollStatus)
+				_, _ = w.Write([]byte("<html><body>Bad Gateway</body></html>"))
+				return
+			}
+			_, _ = w.Write([]byte("VX32JGLK"))
+		}))
+		t.Cleanup(srv.Close)
+		n := NewNineKWSolver("the-key")
+		n.base = srv.URL
+		return n
+	}
+	challenge := imageChallenge(KindImage, "data:image/png;base64,aGVsbG8=", "")
+
+	got, err := serve(http.StatusBadGateway).Solve(context.Background(), challenge)
+	if err != nil || got != "VX32JGLK" {
+		t.Errorf("after a 502: Solve() = %q, %v, want the answer from the next poll", got, err)
+	}
+	got, err = serve(http.StatusNotFound).Solve(context.Background(), challenge)
+	if !errors.Is(err, ErrTaskTaken) || strings.Contains(got, "html") {
+		t.Errorf("after a 404: Solve() = %q, %v, want ErrTaskTaken and no answer", got, err)
+	}
+}
