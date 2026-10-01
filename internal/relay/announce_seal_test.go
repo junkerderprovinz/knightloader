@@ -9,13 +9,18 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/coder/websocket"
 )
 
 func TestAnnounceRoundTripsThroughTheSeal(t *testing.T) {
-	in := Announce{InstanceID: "alpha", Name: "BOTTICH", Deployment: "container", Client: true, Address: "https://kl.example.org"}
+	in := Announce{InstanceID: alphaID, Name: "BOTTICH", Deployment: "container", Client: true, Address: "https://kl.example.org"}
 
 	wire, err := sealAnnounce(testFrameKey, in)
 	if err != nil {
@@ -24,7 +29,7 @@ func TestAnnounceRoundTripsThroughTheSeal(t *testing.T) {
 	if wire.Name != "" || wire.Deployment != "" || wire.Client || wire.Address != "" {
 		t.Errorf("wire form still carries identity: %+v", wire)
 	}
-	if wire.InstanceID != "alpha" {
+	if wire.InstanceID != alphaID {
 		t.Errorf("wire form lost the routing field: %+v", wire)
 	}
 	if len(wire.Sealed) == 0 {
@@ -46,7 +51,7 @@ func TestAnnounceRoundTripsThroughTheSeal(t *testing.T) {
 // json tag produces.
 func TestTheSealedIdentityIsNotInTheEncodedFrame(t *testing.T) {
 	wire, err := sealAnnounce(testFrameKey, Announce{
-		InstanceID: "alpha",
+		InstanceID: alphaID,
 		Name:       "jdp-workstation",
 		Deployment: "desktop",
 		Address:    "https://kl.example.org",
@@ -63,7 +68,7 @@ func TestTheSealedIdentityIsNotInTheEncodedFrame(t *testing.T) {
 			t.Errorf("the encoded announce contains %q in the clear:\n%s", secret, frame)
 		}
 	}
-	if !bytes.Contains(frame, []byte("alpha")) {
+	if !bytes.Contains(frame, []byte(alphaID)) {
 		t.Errorf("the encoded announce lost the id the relay routes on:\n%s", frame)
 	}
 }
@@ -94,7 +99,7 @@ func TestTheLargestHelloFitsTheLimit(t *testing.T) {
 
 func TestAnAddressTooLongIsLeftOutRatherThanCut(t *testing.T) {
 	long := "https://" + strings.Repeat("a", MaxAddressBytes)
-	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: "alpha", Address: long})
+	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Address: long})
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
@@ -107,18 +112,18 @@ func TestAnAddressTooLongIsLeftOutRatherThanCut(t *testing.T) {
 // instance id: a relay that attaches the NAS's sealed name to another
 // connection gets a tag failure, not a machine listed under a false name.
 func TestARelayCannotMoveAnIdentityToAnotherInstance(t *testing.T) {
-	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: "alpha", Name: "the NAS"})
+	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Name: "the NAS"})
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
 
 	// A hostile relay forwards alpha's blob under bravo's id.
-	moved := Announce{InstanceID: "bravo", Sealed: wire.Sealed}
+	moved := Announce{InstanceID: bravoID, Sealed: wire.Sealed}
 	got := openAnnounce(testFrameKey, moved)
 	if got.Name != "" {
 		t.Errorf("a moved identity opened as %+v, want nothing usable", got)
 	}
-	if got.InstanceID != "bravo" {
+	if got.InstanceID != bravoID {
 		t.Errorf("the peer was dropped entirely (%+v); it should still be listed, just unnamed", got)
 	}
 }
@@ -126,7 +131,7 @@ func TestARelayCannotMoveAnIdentityToAnotherInstance(t *testing.T) {
 // TestAWrongFrameKeyLeavesThePeerListedButUnnamed keeps a peer on another frame
 // key visible, since hiding it would hide the symptom of the key mismatch.
 func TestAWrongFrameKeyLeavesThePeerListedButUnnamed(t *testing.T) {
-	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: "alpha", Name: "the NAS"})
+	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Name: "the NAS"})
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
@@ -136,7 +141,7 @@ func TestAWrongFrameKeyLeavesThePeerListedButUnnamed(t *testing.T) {
 	}
 
 	got := openAnnounce(other, wire)
-	if got.InstanceID != "alpha" {
+	if got.InstanceID != alphaID {
 		t.Errorf("the peer vanished: %+v", got)
 	}
 	if got.Name != "" {
@@ -144,18 +149,96 @@ func TestAWrongFrameKeyLeavesThePeerListedButUnnamed(t *testing.T) {
 	}
 }
 
-// TestAnAnnounceFromBeforeTheSealIsStillReadable covers a mixed-version group:
-// an older instance still sends its identity in the clear.
-func TestAnAnnounceFromBeforeTheSealIsStillReadable(t *testing.T) {
-	legacy := []byte(`{"instanceId":"alpha","name":"BOTTICH","deployment":"container"}`)
+// TestAnIdentitySentInTheClearIsIgnored: the relay can write an unsealed
+// announce for any id, so its name, address and client flag would let it list
+// a phishing address under a member's id or invent phones.
+func TestAnIdentitySentInTheClearIsIgnored(t *testing.T) {
+	plain := []byte(`{"instanceId":"` + nasID + `","name":"NAS","deployment":"mobile","client":true,"address":"https://login.example.net"}`)
 	var a Announce
-	if err := json.Unmarshal(legacy, &a); err != nil {
+	if err := json.Unmarshal(plain, &a); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
 	got := openAnnounce(testFrameKey, a)
-	if got.Name != "BOTTICH" || got.Deployment != "container" {
-		t.Errorf("an old peer read as %+v, want its plaintext identity", got)
+	if got.InstanceID != nasID || got.Name != "" || got.Deployment != "" || got.Client || got.Address != "" {
+		t.Errorf("an unsealed announce read as %+v, want only its bare id", got)
+	}
+}
+
+// hostileRelay accepts one client, reads its hello and sends it frames, as a
+// relay operator could. It returns the address to dial.
+func hostileRelay(t *testing.T, frames ...[]byte) string {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer func() { _ = c.CloseNow() }()
+		if _, _, err := c.Read(r.Context()); err != nil {
+			return
+		}
+		for _, f := range frames {
+			if err := c.Write(r.Context(), websocket.MessageText, f); err != nil {
+				return
+			}
+		}
+		_, _, _ = c.Read(r.Context())
+	}))
+	t.Cleanup(srv.Close)
+	return srv.URL
+}
+
+func sealedAnnounce(t *testing.T, a Announce) []byte {
+	t.Helper()
+	wire, err := sealAnnounce(testFrameKey, a)
+	if err != nil {
+		t.Fatalf("sealAnnounce: %v", err)
+	}
+	return frameOf(TypeAnnounce, wire)
+}
+
+func TestAnInstanceUnderAnIDOfAnotherShapeIsNotListed(t *testing.T) {
+	url := hostileRelay(t,
+		sealedAnnounce(t, Announce{InstanceID: "nas", Name: "NAS", Deployment: "container"}),
+		sealedAnnounce(t, Announce{InstanceID: "phone-1", Name: "Pixel", Deployment: "mobile", Client: true}),
+		sealedAnnounce(t, Announce{InstanceID: bravoID, Name: "Laptop", Deployment: "desktop"}),
+	)
+	c := startClient(t, strings.TrimPrefix(url, "http://"), "shared-relay-test-key-0123456789ab", alphaID, nil)
+	waitFor(t, "the last announce to arrive", func() bool {
+		for _, s := range c.Siblings() {
+			if s.InstanceID == bravoID {
+				return true
+			}
+		}
+		return false
+	})
+	var ids []string
+	for _, s := range c.Siblings() {
+		ids = append(ids, s.InstanceID)
+	}
+	if len(ids) != 2 || ids[0] != bravoID || ids[1] != "phone-1" {
+		t.Fatalf("siblings = %v, want the laptop and the phone; an instance has to carry an id shaped like one", ids)
+	}
+}
+
+func TestARelayCannotGrowTheSiblingListWithoutBound(t *testing.T) {
+	var frames [][]byte
+	id := func(i int) string { return fmt.Sprintf("%040x", i+1) }
+	for i := 0; i < maxClientsPerKey+10; i++ {
+		frames = append(frames, sealedAnnounce(t, Announce{InstanceID: id(i)}))
+	}
+	// Frames are handled in order, so once this one has, every announce has.
+	frames = append(frames, frameOf(TypePresence, Presence{InstanceID: id(0)}))
+	url := hostileRelay(t, frames...)
+
+	c := startClient(t, strings.TrimPrefix(url, "http://"), "shared-relay-test-key-0123456789ab", alphaID, nil)
+	waitFor(t, "the flood to be handled", func() bool {
+		sibs := c.Siblings()
+		return len(sibs) > 0 && sibs[0].InstanceID != id(0)
+	})
+	if got := len(c.Siblings()); got != maxClientsPerKey-1 {
+		t.Fatalf("%d siblings after the flood, want %d", got, maxClientsPerKey-1)
 	}
 }
 
@@ -165,8 +248,8 @@ func TestTwoRealClientsStillSeeEachOthersNames(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	const key = "shared-relay-test-key-0123456789ab"
 
-	alpha := startClient(t, addr, key, "alpha", nil)
-	bravo := startClient(t, addr, key, "bravo", nil)
+	alpha := startClient(t, addr, key, alphaID, nil)
+	bravo := startClient(t, addr, key, bravoID, nil)
 	waitFor(t, "alpha to connect", alpha.Connected)
 	waitFor(t, "bravo to connect", bravo.Connected)
 
@@ -181,8 +264,8 @@ func TestTwoRealClientsStillSeeEachOthersNames(t *testing.T) {
 			return false
 		}
 	}
-	waitFor(t, "alpha to see bravo by name", named(alpha, "bravo"))
-	waitFor(t, "bravo to see alpha by name", named(bravo, "alpha"))
+	waitFor(t, "alpha to see bravo by name", named(alpha, bravoID))
+	waitFor(t, "bravo to see alpha by name", named(bravo, alphaID))
 }
 
 // TestOpensAnIdentitySealedByTheMobilePort checks this package against the
@@ -209,7 +292,7 @@ func TestOpensAnIdentitySealedByTheMobilePort(t *testing.T) {
 		t.Errorf("opened %+v, want the phone's own announce", id)
 	}
 
-	if _, err := OpenIdentity(key, "nas", sealed); err == nil {
+	if _, err := OpenIdentity(key, nasID, sealed); err == nil {
 		t.Error("a mobile-sealed identity opened under an id it was not bound to")
 	}
 }
@@ -220,7 +303,7 @@ func TestAClientFlagSurvivesTheSeal(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	const key = "shared-relay-test-key-0123456789ab"
 
-	instance := startClient(t, addr, key, "nas", nil)
+	instance := startClient(t, addr, key, nasID, nil)
 	waitFor(t, "the instance to connect", instance.Connected)
 
 	phone, err := NewClient(ClientOptions{

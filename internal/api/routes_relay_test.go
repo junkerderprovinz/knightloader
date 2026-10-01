@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,6 +13,15 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+)
+
+// Member ids in the shape instances mint them, the only one a member is
+// listed under.
+var (
+	siblingID = strings.Repeat("5", 40)
+	officeID  = strings.Repeat("0", 40)
+	desktopID = strings.Repeat("d", 40)
 )
 
 // getRelayConfig and putRelayConfig are this file's request builders. The PUT
@@ -199,7 +209,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		URL:      relaySrv.URL,
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
-		Self:     relay.Announce{InstanceID: "sibling-1", Name: "Sibling", Deployment: "container"},
+		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -229,12 +239,12 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	}
 	// A relay peer's Name is its InstanceID; the announced name is
 	// DisplayName.
-	if len(list) != 1 || list[0].Name != "sibling-1" || list[0].DisplayName != "Sibling" || list[0].RelayID != "sibling-1" {
+	if len(list) != 1 || list[0].Name != siblingID || list[0].DisplayName != "Sibling" || list[0].RelayID != siblingID {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
 	// Outbound, addressed by the sibling's InstanceID.
-	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
+	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to sibling: %v", err)
 	}
@@ -571,7 +581,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
 	}
 
-	fixedSibling(t, srv.URL, key, "sibling-1")
+	fixedSibling(t, srv.URL, key, siblingID)
 
 	var list []struct {
 		Name        string `json:"name"`
@@ -589,11 +599,11 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	if len(list) != 1 || list[0].RelayID != "sibling-1" {
+	if len(list) != 1 || list[0].RelayID != siblingID {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
-	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
+	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to the sibling through our own relay: %v", err)
 	}
@@ -634,6 +644,50 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 	}
 	if len(stranger.Siblings()) != 0 {
 		t.Error("the stranger was shown siblings through a relay that refused its key")
+	}
+}
+
+// TestAServedRelayAdmitsTheInstancesPhraseGroup covers the setup the Pairing
+// page offers: a phrase group and the serve switch, with no relay key typed
+// in. Every member dials with the key derived from the phrase.
+func TestAServedRelayAdmitsTheInstancesPhraseGroup(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	secret, _, err := seedphrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+		t.Fatal(err)
+	}
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","mode":"own","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
+	}
+
+	member, err := relay.NewClient(relay.ClientOptions{
+		URL:      srv.URL,
+		Key:      relay.DeriveKey(secret),
+		FrameKey: relay.DeriveFrameKey(secret),
+		Self:     relay.Announce{InstanceID: siblingID, Name: "Member", Deployment: "desktop"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	member.Start()
+	defer member.Close()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		_, cfg := getRelayConfig(t, srv.URL)
+		if cfg.ServeClients == 2 && len(a.Federation.Members()) == 1 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("config = %+v, members %+v; want this instance and the other member both on the relay it serves", cfg, a.Federation.Members())
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
