@@ -162,10 +162,10 @@ repository, which is not ready to install yet (see the notice at the top).
 | File hoster links | ⚠️ through debrid or its own JDownloader | ✅ over a thousand plugins | ✅ hundreds of plugins | ❌ |
 | Premium hoster logins | ⚠️ used by that JDownloader | ✅ | ✅ | ❌ |
 | Video sites | ✅ every site yt-dlp reads | ✅ plugins for many | ⚠️ a few, such as YouTube | ❌ |
-| Torrents | ✅ built-in torrent client or through debrid, with file rules either way | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
+| Torrents | ✅ built-in torrent client or through debrid, with file rules either way; qBittorrent can take over the seeding | ❌ | ⚠️ through debrid or Transmission | ✅ through the debrid service |
 | Usenet | ⚠️ through TorBox or Premiumize.me | ⚠️ basic, no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize.me |
 | Click'n'Load | ✅ also to another machine | ✅ also through MyJDownloader | ⚠️ an addon, off by default | ❌ |
-| Browser extension | ✅ Chromium browsers and Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |
+| Browser extension | ✅ in the Chrome Web Store and Edge Add-ons, signed for Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ Android | ✅ Android, iOS from a third party | ✅ Android, on F-Droid | ❌ |
 | Captchas answered in the app or browser | ✅ | ✅ | ✅ | ➖ |
 | Captchas answered on the phone | ⚠️ picture and click only | ✅ | ✅ | ➖ |
@@ -179,13 +179,13 @@ repository, which is not ready to install yet (see the notice at the top).
 
 The others are ahead in places. JDownloader and pyLoad bring hoster plugins of
 their own, where KnightLoader leaves file hosters to a debrid service or to
-JDownloader. JDownloader downloads from Usenet by itself, and JDownloader and
-rdt-client ship stable releases.
+JDownloader. JDownloader also downloads from Usenet by itself.
 
 KnightLoader puts debrid services, JDownloader's hosters, torrents and yt-dlp
 behind one web interface. Its phone app, its browser extension and your other
 instances reach it from other networks with the twelve words, without an
-account.
+account. On the same network, your instances reach each other directly, without
+the relay.
 
 <br>
 
