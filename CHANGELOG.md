@@ -37,6 +37,12 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-10-01
+
+### Changed (Android app)
+
+- Buy Me a Coffee opens in the browser instead of an in-app web view, as F-Droid reviewers ask for author and donation pages. `CoffeeDonate.tsx` and its intro text are gone, and `mobile/PRIVACY.md` describes the button with the other links.
+
 ## [1.6.2] - 2026-10-01
 
 ### Changed (Android app)
