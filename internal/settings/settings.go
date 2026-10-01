@@ -8,12 +8,15 @@
 package settings
 
 import (
+	"bytes"
 	"encoding/json"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
@@ -838,21 +841,65 @@ type Store struct {
 	cur Settings
 	// autoUpdatePath is the file set by KeepAutoUpdateIn, or "".
 	autoUpdatePath string
+
+	// unreadable is why Load could not read settings.json, and backup where
+	// it kept a copy. Both are set only by Load.
+	unreadable error
+	backup     string
 }
 
 // Load reads settings.json from dir, falling back to defaults.
+//
+// A file that does not read as a whole is copied aside first, or the next save
+// would make the loss permanent. A cut-off file reads as nothing, while a value
+// of the wrong type costs only its own field, since encoding/json decodes
+// everything around it.
 func Load(dir string) (*Store, error) {
 	s := &Store{path: filepath.Join(dir, "settings.json"), cur: Defaults()}
 	if b, err := os.ReadFile(s.path); err == nil {
 		// Unmarshal over defaults so new fields keep their default value.
 		if err := json.Unmarshal(b, &s.cur); err != nil {
-			s.cur = Defaults()
-		} else {
-			s.cur = migrate(b, s.cur)
+			s.keepUnreadable(b, err)
 		}
+		s.cur = migrate(b, s.cur)
 	}
 	s.cur = sanitize(s.cur)
 	return s, nil
+}
+
+// unreadablePrefix starts the name of the copy keepUnreadable makes, beside
+// settings.json.
+const unreadablePrefix = "settings.json.unreadable-"
+
+// keepUnreadable copies a settings file Load could not read next to it, under
+// the time of the load, and says so in the log. A file that is still broken at
+// the next start already has its copy and gets no second one.
+func (s *Store) keepUnreadable(b []byte, cause error) {
+	s.unreadable = cause
+	dir := filepath.Dir(s.path)
+	earlier, _ := filepath.Glob(filepath.Join(dir, unreadablePrefix+"*"))
+	for _, p := range earlier {
+		if prev, err := os.ReadFile(p); err == nil && bytes.Equal(prev, b) {
+			s.backup = p
+			break
+		}
+	}
+	if s.backup == "" {
+		p := filepath.Join(dir, unreadablePrefix+time.Now().Format("20060102-150405"))
+		if err := os.WriteFile(p, b, 0o600); err != nil {
+			log.Printf("settings: %s could not be read (%v), and keeping a copy of it failed: %v", s.path, cause, err)
+			return
+		}
+		s.backup = p
+	}
+	log.Printf("settings: %s could not be read (%v); what it lost runs on defaults, and the file as it was is kept as %s", s.path, cause, s.backup)
+}
+
+// Unreadable reports the copy Load kept of a settings.json it could not read,
+// and why it could not. The error is nil when the file read cleanly or did not
+// exist, and the path is empty when no copy could be made.
+func (s *Store) Unreadable() (backup string, err error) {
+	return s.backup, s.unreadable
 }
 
 // Path is the settings file this store reads and writes, verbatim.
@@ -990,11 +1037,37 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 			return s.cur, err
 		}
 	}
-	if err := os.WriteFile(s.path, b, 0o600); err != nil {
+	if err := writeFileAtomic(s.path, b); err != nil {
 		return s.cur, err
 	}
 	s.cur = n
 	return n, nil
+}
+
+// writeFileAtomic replaces path with b through a synced temporary file in the
+// same folder. os.WriteFile truncates first, so a crash or a power cut in the
+// middle leaves a cut-off settings file, and Load can only fall back to
+// defaults for it.
+func writeFileAtomic(path string, b []byte) error {
+	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	_, err = f.Write(b)
+	if err == nil {
+		err = f.Sync()
+	}
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Rename(tmp, path)
+	}
+	if err != nil {
+		os.Remove(tmp)
+	}
+	return err
 }
 
 // ApplyPatch overlays patch's top-level keys onto base's own JSON encoding
