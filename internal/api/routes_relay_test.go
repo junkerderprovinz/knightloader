@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 )
 
 // Member ids in the shape instances mint them, the only one a member is
@@ -642,6 +644,50 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 	}
 	if len(stranger.Siblings()) != 0 {
 		t.Error("the stranger was shown siblings through a relay that refused its key")
+	}
+}
+
+// TestAServedRelayAdmitsTheInstancesPhraseGroup covers the setup the Pairing
+// page offers: a phrase group and the serve switch, with no relay key typed
+// in. Every member dials with the key derived from the phrase.
+func TestAServedRelayAdmitsTheInstancesPhraseGroup(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	secret, _, err := seedphrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Accounts.Set(relay.SeedAccountService, hex.EncodeToString(secret)); err != nil {
+		t.Fatal(err)
+	}
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","mode":"own","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
+	}
+
+	member, err := relay.NewClient(relay.ClientOptions{
+		URL:      srv.URL,
+		Key:      relay.DeriveKey(secret),
+		FrameKey: relay.DeriveFrameKey(secret),
+		Self:     relay.Announce{InstanceID: siblingID, Name: "Member", Deployment: "desktop"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	member.Start()
+	defer member.Close()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		_, cfg := getRelayConfig(t, srv.URL)
+		if cfg.ServeClients == 2 && len(a.Federation.Members()) == 1 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("config = %+v, members %+v; want this instance and the other member both on the relay it serves", cfg, a.Federation.Members())
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
