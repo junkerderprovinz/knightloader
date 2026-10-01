@@ -10,8 +10,8 @@ package logring
 //
 // Three rules this file is built around:
 //
-//  1. Nothing in here may log. The sink sits downstream of
-//     log.SetOutput(io.MultiWriter(os.Stderr, std)) and is called from inside
+//  1. Nothing in here may log. The sink sits downstream of the log package's
+//     output (see tee in logring.go) and is called from inside
 //     (*Ring).Write with the ring's mutex held, so a log.Printf from a failure
 //     path would re-enter that Write on the same goroutine and deadlock on a
 //     mutex it already holds. A write that cannot be made switches the sink
