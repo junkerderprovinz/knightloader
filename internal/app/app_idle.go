@@ -25,8 +25,22 @@ var idleActionClock idleaction.Clock
 // start or finish. Disabled links are subtracted so they cannot hold the
 // action off for ever, while paused tasks still count as work left.
 // A seeding torrent is StatusDone with a flag beside it, so Counters already
-// leaves it out.
+// leaves it out. A finished file still being checked or moved out of the
+// working folder, and a failed download with a retry to come, count as work:
+// quitting would strand the one and lose the other, since a boot does not
+// re-arm retries.
 func (a *App) queueIdleForAction() bool {
+	if a.delivering.Load() > 0 {
+		return false
+	}
+	a.mu.Lock()
+	for _, t := range a.tasks {
+		if a.retryPendingLocked(t) {
+			a.mu.Unlock()
+			return false
+		}
+	}
+	a.mu.Unlock()
 	c := a.Counters()
 	return c.Files == c.Disabled
 }
