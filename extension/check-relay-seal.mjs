@@ -5,7 +5,8 @@
 // The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
 // run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
 // src/relay.js is loaded as is, so the shipped code is what gets checked. The
-// last check holds a session to the order the relay sent its frames in.
+// last two checks hold a session to the order the relay sent its frames in and
+// to taking a peer's identity only from a seal that opens.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -183,6 +184,34 @@ const roster = await vm.runInContext(`((opts) => relaySession(opts, async ({ sib
 FakeSocket.answer = null;
 if (roster.some((s) => s.instanceId === gone)) {
   failures.push('an instance that announced itself and left at once is still offered: its presence frame was undone by the announce');
+}
+
+// 7. The relay can write an announce's plaintext fields itself, so only a seal
+//    that opens names a peer. An unsealed announce is a bare id: no name, and
+//    no client flag that would take a real instance off the target list.
+const forged = 'e'.repeat(40);
+FakeSocket.answer = (socket, frame) => {
+  if (frame.type !== 'hello') return;
+  socket.onmessage?.({
+    data: JSON.stringify({
+      type: 'announce',
+      data: { instanceId: forged, name: 'login-knightloader', deployment: 'mobile', client: true, address: 'https://login.evil' },
+    }),
+  });
+};
+const unsealed = await vm.runInContext(`((opts) => relaySession(opts, async ({ siblings }) => siblings))`, ctx)({
+  url: 'ws://relay.invalid/relay/connect',
+  key: 'a-key-long-enough-for-the-relay',
+  frameKey,
+  selfId: 'd'.repeat(40),
+  selfName: 'Browser',
+});
+FakeSocket.answer = null;
+const bare = unsealed.find((s) => s.instanceId === forged);
+if (!bare) {
+  failures.push('an unsealed announce took the peer off the list: its plaintext client flag was believed');
+} else if (bare.name !== '' || bare.deployment !== '') {
+  failures.push(`an unsealed announce was listed with the identity it claims in plaintext: ${JSON.stringify(bare)}`);
 }
 
 if (failures.length) {
