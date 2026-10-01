@@ -202,7 +202,23 @@ func (r *Ring) Since(after uint64, limit int) (out []Entry, dropped int, newest 
 var std = New(Capacity)
 
 func init() {
-	log.SetOutput(io.MultiWriter(os.Stderr, std))
+	log.SetOutput(tee{ring: std, console: os.Stderr})
+}
+
+// tee hands each line to the ring and then to the console, whose errors it
+// drops. A Windows desktop build is a GUI-subsystem program, and started from
+// Explorer or a shortcut it has no stderr handle at all, so every console write
+// fails. io.MultiWriter stops at the first error, and with the console in front
+// the ring and the log file would never see a line.
+type tee struct {
+	ring    io.Writer
+	console io.Writer
+}
+
+func (t tee) Write(p []byte) (int, error) {
+	n, err := t.ring.Write(p)
+	_, _ = t.console.Write(p)
+	return n, err
 }
 
 // Lines returns the process's recent log lines, oldest first.

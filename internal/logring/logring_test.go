@@ -1,6 +1,7 @@
 package logring
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -142,3 +143,25 @@ func TestDefaultTapCapturesStandardLog(t *testing.T) {
 		t.Errorf("log.Print(%q) did not reach logring.Lines(): %v", marker, lines)
 	}
 }
+
+// A Windows desktop build started from a shortcut has no console, so every
+// write to stderr fails. The line still has to reach the ring, and through it
+// the log file and the diagnostics bundle.
+func TestLinesReachTheRingWhenTheConsoleIsGone(t *testing.T) {
+	out, ok := log.Writer().(tee)
+	if !ok {
+		t.Fatalf("the log package writes to %T, want the ring's tee", log.Writer())
+	}
+	r := New(10)
+	out.ring = r
+	out.console = brokenConsole{}
+	log.New(out, "", 0).Print("written without a console")
+
+	if got := r.Lines(); len(got) != 1 || got[0] != "written without a console" {
+		t.Errorf("ring holds %q, want the line", got)
+	}
+}
+
+type brokenConsole struct{}
+
+func (brokenConsole) Write([]byte) (int, error) { return 0, errors.New("the handle is invalid") }
