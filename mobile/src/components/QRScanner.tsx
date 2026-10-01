@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
-import { useCameraPermissions } from 'expo-camera';
+import { useEffect, useRef, useState } from 'react';
+import { Linking, Modal, PermissionsAndroid, StyleSheet, View } from 'react-native';
 import { QrScannerView } from '../../modules/qr-scanner';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -14,29 +13,41 @@ import { Text } from './Text';
 // wants a QR code needs one decoded string back rather than a spot in the
 // navigation stack.
 //
-// The camera's own barcode scanner is Google's ML Kit, which is not free
-// software and keeps the app out of F-Droid. modules/qr-scanner reads the live
-// frames with ZXing instead.
+// modules/qr-scanner reads the live frames with ZXing. expo-camera stays out
+// of the app: even with its scanner switched off its code refers to Google's
+// ML Kit, and F-Droid's scanner rejects the APK for those references.
+const CAMERA = PermissionsAndroid.PERMISSIONS.CAMERA;
+
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
   const { c, accent, corners } = useAppearance();
   const { motion } = useMotion();
-  const [permission, requestPermission] = useCameraPermissions();
+  const [granted, setGranted] = useState<boolean | null>(null);
   // The component stays mounted across opens and closes, rendering null, so a
   // code reported once must not lock out the next opening.
   const reported = useRef(false);
   useEffect(() => {
-    if (visible) reported.current = false;
+    if (!visible) return;
+    reported.current = false;
+    PermissionsAndroid.check(CAMERA).then(setGranted);
   }, [visible]);
+
+  const requestPermission = async () => {
+    const result = await PermissionsAndroid.request(CAMERA);
+    // After a second refusal Android stops asking, so only its settings page
+    // can grant the camera.
+    if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) Linking.openSettings();
+    setGranted(result === PermissionsAndroid.RESULTS.GRANTED);
+  };
 
   if (!visible) return null;
 
   return (
     <Modal visible={visible} animationType={motion === 'off' ? 'none' : 'slide'} onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: c.bg }]}>
-        {!permission ? (
+        {granted === null ? (
           <View style={styles.center} />
-        ) : !permission.granted ? (
+        ) : !granted ? (
           <View style={styles.center}>
             <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
             <GlimButton hue={0} label={t('qr.grantAccess')} onPress={requestPermission} />

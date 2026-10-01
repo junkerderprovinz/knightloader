@@ -21,7 +21,6 @@ configurations.configureEach {
 }
 
 dependencies {
-  // The version expo-camera builds against, so both share one CameraX.
   def camerax = "1.6.0"
   implementation "androidx.camera:camera-core:${camerax}"
   implementation "androidx.camera:camera-camera2:${camerax}"
