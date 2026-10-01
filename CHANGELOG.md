@@ -37,9 +37,12 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-10-01
+
 ### Changed (Android app)
 
 - The store listings call the app only KnightLoader, in every language.
+- The fastlane metadata moved from `mobile/fastlane/` to `fastlane/` at the repository root, the only place F-Droid reads it from. `mobile/store/render.mjs` writes its pictures there.
 
 ## [1.6.1] - 2026-10-01
 
