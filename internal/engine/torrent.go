@@ -38,7 +38,7 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 // startTorrent is Start's torrent branch: resolve (for a magnet, wait on the
 // swarm), check where every file would land, then create the task. Start has
 // already called wg.Add for it.
-func (e *Engine) startTorrent(j Job) {
+func (e *Engine) startTorrent(j Job, s *start) {
 	if j.Seed {
 		e.mu.Lock()
 		e.seeds[j.TaskID] = &seedRun{from: j.SeedFrom, mark: j.SeedMark}
@@ -46,6 +46,7 @@ func (e *Engine) startTorrent(j Job) {
 	}
 	go func() {
 		defer e.wg.Done()
+		defer e.startEnded(j.TaskID, s)
 		// Compiled before the swarm is asked, so a broken rule costs no
 		// metadata fetch.
 		pick, err := j.FileRules.Compile()
@@ -64,7 +65,9 @@ func (e *Engine) startTorrent(j Job) {
 		opts := &base.Options{Path: j.writeDir(), SelectFiles: sel}
 		fail := func(err error) {
 			e.unplace(j.TaskID)
-			e.failStart(j, err)
+			if e.proceed(j) {
+				e.failStart(j, err)
+			}
 		}
 		if err := e.placeTorrent(j, opts); err != nil {
 			fail(err)
@@ -128,6 +131,10 @@ func (e *Engine) startTorrent(j Job) {
 			}
 		}
 		e.emit(j.TaskID, u)
+		if !e.proceed(j) {
+			e.unplace(j.TaskID)
+			return
+		}
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
 			fail(err)
