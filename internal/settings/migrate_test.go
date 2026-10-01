@@ -198,3 +198,40 @@ func TestAnImportedBarThatFollowsTakesTheSidebarsMode(t *testing.T) {
 		t.Errorf("bottomBarLabels = %s, want the sidebar's hover", s)
 	}
 }
+
+// An export written before the label split carries navLabels and none of the
+// four keys that replaced it. Read as the import reads it, the four keys are
+// there to be ticked and arrive as the mode the old file had.
+func TestAnExportFromBeforeTheSplitCarriesItsLabelsOver(t *testing.T) {
+	var doc PortableDoc
+	file := `{"kind":"knightloader-settings","version":"v1.5.0","settings":{"navLabels":"glyph","bottomBarLabels":"follow"}}`
+	if err := json.Unmarshal([]byte(file), &doc); err != nil {
+		t.Fatal(err)
+	}
+	patch := map[string]json.RawMessage{}
+	for _, k := range []string{"buttonLabels", "sidebarLabels", "tabLabels", "bottomBarLabels"} {
+		raw, ok := doc.Settings[k]
+		if !ok {
+			t.Fatalf("the document offers no %s to import", k)
+		}
+		patch[k] = raw
+	}
+	if _, ok := doc.Settings["navLabels"]; ok {
+		t.Error("navLabels is still in the document, so the import reports it as unknown")
+	}
+
+	got, err := ApplyPatch(Defaults(), doc.Migrated(patch))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for k, v := range map[string]string{
+		"buttonLabels":    got.ButtonLabels,
+		"sidebarLabels":   got.SidebarLabels,
+		"tabLabels":       got.TabLabels,
+		"bottomBarLabels": got.BottomBarLabels,
+	} {
+		if v != LabelsGlyph {
+			t.Errorf("%s = %q, want the old file's glyph", k, v)
+		}
+	}
+}

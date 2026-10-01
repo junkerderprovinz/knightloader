@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { SettingsExportDoc } from './api';
-import { diffRows } from './settingsTransfer';
+import { diffRows, parseExport } from './settingsTransfer';
 
 const schema = {
   values: { stallTimeout: 120, stallReconnect: true, autoStart: true, autoConfirm: false },
@@ -14,6 +14,14 @@ function exported(settings: Record<string, unknown>): SettingsExportDoc {
 
 function row(settings: Record<string, unknown>, stored: Record<string, unknown>, key: string) {
   const found = diffRows(exported(settings), stored, schema).find((r) => r.key === key);
+  if (!found) throw new Error(`no row for ${key}`);
+  return found;
+}
+
+/** parsedRow is row for a file read the way the import page reads it. */
+function parsedRow(settings: Record<string, unknown>, stored: Record<string, unknown>, key: string) {
+  const doc = parseExport(JSON.stringify(exported(settings)));
+  const found = diffRows(doc, stored, schema).find((r) => r.key === key);
   if (!found) throw new Error(`no row for ${key}`);
   return found;
 }
@@ -39,8 +47,17 @@ describe('the import preview', () => {
 
   it('takes over a bottom bar that followed the sidebar as the sidebar’s mode', () => {
     const settings = { navLabels: 'hover', bottomBarLabels: 'follow' };
-    expect(row(settings, { bottomBarLabels: 'hover' }, 'bottomBarLabels').same).toBe(true);
+    expect(parsedRow(settings, { bottomBarLabels: 'hover' }, 'bottomBarLabels').same).toBe(true);
     expect(row({ bottomBarLabels: 'glyph' }, { bottomBarLabels: 'both' }, 'bottomBarLabels').arrives).toBe('glyph');
+  });
+
+  it('offers the four label settings of a file written before the split', () => {
+    const settings = { navLabels: 'glyph' };
+    for (const key of ['buttonLabels', 'sidebarLabels', 'tabLabels', 'bottomBarLabels']) {
+      expect(parsedRow(settings, { [key]: 'both' }, key).arrives).toBe('glyph');
+    }
+    const doc = parseExport(JSON.stringify(exported(settings)));
+    expect(diffRows(doc, {}, schema).some((r) => r.key === 'navLabels')).toBe(false);
   });
 
   it('marks event programs whose command line stayed behind', () => {
