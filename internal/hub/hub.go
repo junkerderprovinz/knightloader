@@ -54,6 +54,17 @@ type client struct {
 	// visible is true while the viewer reports it can see the connection's
 	// page, see SetVisible. Guarded by the Hub's mu like subs.
 	visible bool
+
+	// restricted marks a connection that gets the Redacted form of a payload
+	// (see AddRestricted). Set before the client is registered and never
+	// changed.
+	restricted bool
+}
+
+// Redactor is a payload with parts a restricted connection must not see.
+// Redacted returns what such a connection gets in its place.
+type Redactor interface {
+	Redacted() any
 }
 
 // stop ends the writer goroutine. It is idempotent because both Remove and a
@@ -79,16 +90,23 @@ func New() *Hub { return &Hub{clients: map[Conn]*client{}, lastSeen: map[string]
 
 // Add registers a connection and starts the goroutine that writes to it.
 // Registering the same connection twice is a no-op.
-func (h *Hub) Add(c Conn) {
+func (h *Hub) Add(c Conn) { h.add(c, false) }
+
+// AddRestricted is Add for a connection let in on a narrow API token: every
+// payload that is a Redactor reaches it in its redacted form.
+func (h *Hub) AddRestricted(c Conn) { h.add(c, true) }
+
+func (h *Hub) add(c Conn, restricted bool) {
 	h.mu.Lock()
 	if _, ok := h.clients[c]; ok {
 		h.mu.Unlock()
 		return
 	}
 	cl := &client{
-		conn: c,
-		send: make(chan []byte, queueDepth),
-		quit: make(chan struct{}),
+		conn:       c,
+		send:       make(chan []byte, queueDepth),
+		quit:       make(chan struct{}),
+		restricted: restricted,
 	}
 	h.clients[c] = cl
 	h.mu.Unlock()
@@ -136,14 +154,17 @@ func Send(ctx context.Context, c Conn, typ string, data any) error {
 // reports false if the connection is not registered, or if its queue was full,
 // in which case the client is dropped exactly as it would be by Broadcast.
 func (h *Hub) SendTo(c Conn, typ string, data any) bool {
-	msg, err := json.Marshal(map[string]any{"type": typ, "data": data})
-	if err != nil {
-		return false
-	}
 	h.mu.Lock()
 	cl := h.clients[c]
 	h.mu.Unlock()
 	if cl == nil {
+		return false
+	}
+	if r, ok := data.(Redactor); ok && cl.restricted {
+		data = r.Redacted()
+	}
+	msg, err := json.Marshal(map[string]any{"type": typ, "data": data})
+	if err != nil {
 		return false
 	}
 	return h.enqueue(cl, msg)
@@ -157,6 +178,14 @@ func (h *Hub) Broadcast(typ string, data any) {
 	msg, err := json.Marshal(map[string]any{"type": typ, "data": data})
 	if err != nil {
 		return
+	}
+	// The redacted form is marshalled once too, and only for a payload that
+	// has one.
+	restrictedMsg := msg
+	if r, ok := data.(Redactor); ok {
+		if restrictedMsg, err = json.Marshal(map[string]any{"type": typ, "data": r.Redacted()}); err != nil {
+			return
+		}
 	}
 	h.mu.Lock()
 	// wants is decided in here, under the same lock subs is written under,
@@ -174,7 +203,11 @@ func (h *Hub) Broadcast(typ string, data any) {
 	// after this point, so one copy is enough. enqueue runs outside mu because
 	// a full queue makes it call Remove, which takes mu again.
 	for _, cl := range clients {
-		h.enqueue(cl, msg)
+		if cl.restricted {
+			h.enqueue(cl, restrictedMsg)
+		} else {
+			h.enqueue(cl, msg)
+		}
 	}
 }
 
