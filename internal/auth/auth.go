@@ -154,13 +154,15 @@ func (g *Guard) Check(password string) bool {
 	return bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
 }
 
-// Issue returns a session token valid for SessionTTL.
+// Issue returns a session token valid for SessionTTL. The random part keeps two
+// sessions issued in the same second apart, so signing out one leaves the
+// other alone.
 func (g *Guard) Issue() string {
-	exp := strconv.FormatInt(time.Now().Add(SessionTTL).Unix(), 10)
+	payload := strconv.FormatInt(time.Now().Add(SessionTTL).Unix(), 10) + "." + rand.Text()
 	g.mu.RLock()
 	epoch := g.epoch
 	g.mu.RUnlock()
-	return exp + "." + base64.RawURLEncoding.EncodeToString(g.sign(sessionMessage(exp, epoch)))
+	return payload + "." + base64.RawURLEncoding.EncodeToString(g.sign(sessionMessage(payload, epoch)))
 }
 
 // Valid reports whether a token is well-formed, signed for the current epoch,
@@ -170,12 +172,16 @@ func (g *Guard) Valid(token string) bool {
 	return ok
 }
 
-// expiry is the Unix time a valid token runs out, and whether it is valid.
+// expiry is the Unix time a valid token runs out, and whether it is valid. A
+// token is the expiry, a random part and the signature over both, or, issued
+// before the random part existed, the expiry and its signature alone.
 func (g *Guard) expiry(token string) (int64, bool) {
-	exp, sig, ok := strings.Cut(token, ".")
-	if !ok {
+	i := strings.LastIndexByte(token, '.')
+	if i < 0 {
 		return 0, false
 	}
+	payload, sig := token[:i], token[i+1:]
+	exp, _, _ := strings.Cut(payload, ".")
 	want, err := base64.RawURLEncoding.DecodeString(sig)
 	if err != nil {
 		return 0, false
@@ -184,7 +190,7 @@ func (g *Guard) expiry(token string) (int64, bool) {
 	epoch := g.epoch
 	_, revoked := g.revoked[revocationKey(token)]
 	g.mu.RUnlock()
-	if revoked || subtle.ConstantTimeCompare(want, g.sign(sessionMessage(exp, epoch))) != 1 {
+	if revoked || subtle.ConstantTimeCompare(want, g.sign(sessionMessage(payload, epoch))) != 1 {
 		return 0, false
 	}
 	ts, err := strconv.ParseInt(exp, 10, 64)
@@ -235,12 +241,14 @@ func (g *Guard) endSessionsLocked() {
 	g.revoked = nil
 }
 
-// sessionMessage is what a session's signature covers.
-func sessionMessage(exp string, epoch uint64) string {
+// sessionMessage is what a session's signature covers. The epoch goes after a
+// character the payload cannot hold, so no payload of one epoch reads as
+// another payload of a different one.
+func sessionMessage(payload string, epoch uint64) string {
 	if epoch == 0 {
-		return exp
+		return payload
 	}
-	return exp + "." + strconv.FormatUint(epoch, 10)
+	return payload + "|" + strconv.FormatUint(epoch, 10)
 }
 
 // revocationKey names a session in the revocation list without storing the
