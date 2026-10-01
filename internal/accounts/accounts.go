@@ -9,6 +9,7 @@
 package accounts
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -103,10 +104,39 @@ func Open(dir string) (*Store, error) {
 	if err := s.loadKey(); err != nil {
 		return nil, err
 	}
-	if b, err := os.ReadFile(s.dbPath); err == nil {
-		_ = json.Unmarshal(b, &s.data)
+	if err := s.load(); err != nil {
+		return nil, err
 	}
 	return s, nil
+}
+
+// load reads accounts.json. A file that cannot be parsed is set aside under a
+// new name before the store starts empty, so the next save cannot overwrite the
+// only copy of every credential. A file that cannot be read at all stops Open
+// for the same reason.
+func (s *Store) load() error {
+	b, err := os.ReadFile(s.dbPath)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("accounts: %w", err)
+	}
+	// An empty file holds nothing worth keeping.
+	if len(bytes.TrimSpace(b)) == 0 {
+		return nil
+	}
+	err = json.Unmarshal(b, &s.data)
+	if err == nil {
+		return nil
+	}
+	s.data = map[string]string{}
+	kept := s.dbPath + ".damaged-" + time.Now().UTC().Format("20060102-150405.000000000")
+	if rerr := os.Rename(s.dbPath, kept); rerr != nil {
+		return fmt.Errorf("accounts: %s cannot be read (%v) and cannot be set aside: %w", s.dbPath, err, rerr)
+	}
+	log.Printf("accounts: %s cannot be read (%v); it was kept as %s and every stored account has to be entered again", s.dbPath, err, kept)
+	return nil
 }
 
 func (s *Store) loadKey() error {
@@ -303,5 +333,38 @@ func (s *Store) flush() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(s.dbPath, b, 0o600)
+	return writeAtomic(s.dbPath, b)
+}
+
+// writeAtomic replaces path with data so that a crash at any point leaves the
+// old file or the new one, never a truncated mix: the bytes go to a temporary
+// file in the same folder, reach the disk, and only then take the name.
+func writeAtomic(path string, data []byte) error {
+	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*.tmp")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	defer os.Remove(tmp)
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		return err
+	}
+	// The rename itself lives in the folder. Windows cannot sync a folder,
+	// and there the rename is durable without it.
+	if d, err := os.Open(filepath.Dir(path)); err == nil {
+		_ = d.Sync()
+		d.Close()
+	}
+	return nil
 }

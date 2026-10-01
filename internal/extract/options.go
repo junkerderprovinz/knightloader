@@ -287,13 +287,24 @@ func (o Options) baseDest(path string) string {
 	dest := destDir(path)
 	if root := strings.TrimSpace(o.Dest); root != "" {
 		if o.Subfolder {
-			if pkg := collide.SafeName(strings.TrimSpace(o.Package)); pkg != "" {
+			if pkg := PackageDir(o.Package); pkg != "" {
 				root = filepath.Join(root, pkg)
 			}
 		}
 		dest = filepath.Join(root, filepath.Base(dest))
 	}
 	return filepath.Join(filepath.Dir(dest), collide.SafeName(filepath.Base(dest)))
+}
+
+// PackageDir is the folder a package gets under the collect folder, or "" when
+// its name leaves nothing usable. A name made only of dots and spaces would
+// name the collect folder itself or its parent rather than a folder inside it.
+func PackageDir(name string) string {
+	pkg := collide.SafeName(strings.TrimSpace(name))
+	if strings.Trim(pkg, ". ") == "" {
+		return ""
+	}
+	return pkg
 }
 
 // Dispose applies the disposal to files the caller has already decided may go.

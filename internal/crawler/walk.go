@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 const (
@@ -110,6 +112,10 @@ func (h HTML) CrawlDeep(ctx context.Context, raw string, opt Options) ([]Result,
 		seen:     map[string]bool{},
 		visited:  map[string]bool{},
 	}
+	// Every page after the seed, and every redirect, is an address some page
+	// chose. None of them may lead further into the network than the address
+	// the user entered.
+	ctx = httpx.Confine(ctx, httpx.ScopeOfHost(ctx, seed.Hostname()))
 	return w.run(ctx, seed)
 }
 

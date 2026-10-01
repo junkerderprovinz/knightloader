@@ -1,6 +1,7 @@
 package extract
 
 import (
+	"archive/tar"
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
@@ -519,4 +520,90 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// Overwrite unpacks into a folder that is already there, and another package's
+// archives in it are neither this job's to open nor its to dispose of.
+func TestAReusedFolderKeepsTheArchivesItAlreadyHeld(t *testing.T) {
+	dir := t.TempDir()
+	collect := filepath.Join(dir, "unpacked")
+	theirs := write(t, filepath.Join(collect, "release", "theirs.zip"), zipBytes(t, entry{"theirs.txt", []byte("theirs")}))
+	inner := zipBytes(t, entry{"mine.txt", []byte("mine")})
+	archive := write(t, filepath.Join(dir, "dl", "release.zip"), zipBytes(t, entry{"mine.zip", inner}))
+
+	out, err := Run(context.Background(), Request{Path: archive, Options: Options{Dest: collect}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Nested != 1 {
+		t.Errorf("Nested = %d, want only the archive this job wrote", out.Nested)
+	}
+	if exists(filepath.Join(collect, "release", "theirs")) {
+		t.Error("an archive that was already in the folder was unpacked")
+	}
+	for _, v := range out.Volumes {
+		if v == theirs {
+			t.Errorf("Volumes = %v, offers another package's archive for disposal", out.Volumes)
+		}
+	}
+	if body, err := os.ReadFile(filepath.Join(collect, "release", "mine", "mine.txt")); err != nil || string(body) != "mine" {
+		t.Errorf("the nested archive this job wrote was not unpacked: %q, %v", body, err)
+	}
+}
+
+// A compressed stream says nothing about its size up front, so a small one
+// that unpacks without end would fill the disk the downloads share.
+func TestACompressedStreamIsHeldToALimit(t *testing.T) {
+	ratio, floor := streamRatio, streamFloor
+	streamRatio, streamFloor = 2, 4096
+	t.Cleanup(func() { streamRatio, streamFloor = ratio, floor })
+
+	dir := t.TempDir()
+	var fits, bomb bytes.Buffer
+	gzipInto(t, &fits, make([]byte, 4096))
+	gzipInto(t, &bomb, make([]byte, 4097))
+	write(t, filepath.Join(dir, "fits.bin.gz"), fits.Bytes())
+	write(t, filepath.Join(dir, "bomb.bin.gz"), bomb.Bytes())
+
+	if _, err := Run(context.Background(), Request{Path: filepath.Join(dir, "fits.bin.gz")}); err != nil {
+		t.Fatalf("a stream that ends at the limit failed: %v", err)
+	}
+	_, err := Run(context.Background(), Request{Path: filepath.Join(dir, "bomb.bin.gz")})
+	if !errors.Is(err, ErrStreamTooLarge) {
+		t.Fatalf("err = %v, want ErrStreamTooLarge", err)
+	}
+	if exists(filepath.Join(dir, "bomb.bin")) {
+		t.Error("the payload that went past the limit was left on the disk")
+	}
+}
+
+func TestATarInsideAStreamIsHeldToTheSameLimit(t *testing.T) {
+	ratio, floor := streamRatio, streamFloor
+	streamRatio, streamFloor = 2, 4096
+	t.Cleanup(func() { streamRatio, streamFloor = ratio, floor })
+
+	var tarred bytes.Buffer
+	tw := tar.NewWriter(&tarred)
+	body := make([]byte, 8192)
+	if err := tw.WriteHeader(&tar.Header{Name: "big.bin", Mode: 0o644, Size: int64(len(body)), Typeflag: tar.TypeReg}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tw.Write(body); err != nil {
+		t.Fatal(err)
+	}
+	if err := tw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	var gz bytes.Buffer
+	gzipInto(t, &gz, tarred.Bytes())
+	write(t, filepath.Join(dir, "set.tar.gz"), gz.Bytes())
+
+	_, err := Run(context.Background(), Request{Path: filepath.Join(dir, "set.tar.gz")})
+	if !errors.Is(err, ErrStreamTooLarge) {
+		t.Fatalf("err = %v, want ErrStreamTooLarge", err)
+	}
+	if exists(filepath.Join(dir, "set")) {
+		t.Error("the folder of the refused tar was left on the disk")
+	}
 }

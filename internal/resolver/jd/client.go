@@ -65,7 +65,8 @@ func (c *Client) call(path string, params ...any) (json.RawMessage, error) {
 	}
 	resp, err := c.hc.Get(u)
 	if err != nil {
-		return nil, err
+		// The URL carries the parameters, links with their tokens among them.
+		return nil, fmt.Errorf("jd %s: %w", path, httpx.StripURL(err))
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)

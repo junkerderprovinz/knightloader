@@ -1,17 +1,23 @@
 package crawler
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // site serves a fixed set of HTML pages and records which paths were
@@ -369,5 +375,34 @@ func TestWalkFetchesAFileBehindAPageLink(t *testing.T) {
 	got := deepCrawl(t, srv.URL+"/index", Options{Depth: 2})
 	if want := []string{srv.URL + "/download.php?id=7"}; strings.Join(urls(got), ",") != strings.Join(want, ",") {
 		t.Errorf("found %v, want %v", urls(got), want)
+	}
+}
+
+// A page on the LAN may be crawled on purpose, but nothing it links to or
+// redirects to may reach a link-local address, where cloud metadata answers.
+func TestAWalkNeverReachesALinkLocalAddress(t *testing.T) {
+	metadata := "http://169.254.169.254/latest/meta-data/"
+	redirect := httptest.NewServer(http.RedirectHandler(metadata, http.StatusFound))
+	t.Cleanup(redirect.Close)
+	if _, err := (HTML{}).Crawl(context.Background(), redirect.URL); !errors.Is(err, httpx.ErrRefused) {
+		t.Errorf("a redirect to %s gave %v, want it refused", metadata, err)
+	}
+
+	var logged bytes.Buffer
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	s := newSite(t, map[string]string{
+		"/":      `<a href="` + metadata + `">sub</a><a href="/list/">list</a>`,
+		"/list/": `<a href="/a.zip">a</a>`,
+	})
+	got, err := HTML{}.CrawlDeep(context.Background(), s.srv.URL+"/", Options{Depth: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || !strings.HasSuffix(got[0].URL, "/a.zip") {
+		t.Errorf("results = %v, want the file on the LAN page", got)
+	}
+	if !strings.Contains(logged.String(), httpx.ErrRefused.Error()) {
+		t.Errorf("the link-local page was not refused; log:\n%s", logged.String())
 	}
 }

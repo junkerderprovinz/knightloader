@@ -91,11 +91,11 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jd %s: %w", path, httpx.StripURL(err))
 	}
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jd %s: %w", path, httpx.StripURL(err))
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
@@ -144,7 +144,8 @@ func (c *jdClient) queryAccounts(ctx context.Context) ([]jdAccount, error) {
 // which is why Reconcile treats a new account as queued (see rejectGrace).
 //
 // The credential appears in this call only, never in a log line, error or
-// return value; call's errors never echo their parameters.
+// return value; call's errors never echo their parameters, which is why it
+// strips the URL from a transport error.
 func (c *jdClient) addAccount(ctx context.Context, hoster, username, password string) (bool, error) {
 	data, err := c.call(ctx, "/accounts/addAccount", hoster, username, password)
 	if err != nil {

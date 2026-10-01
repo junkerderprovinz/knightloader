@@ -232,3 +232,76 @@ func TestTwoAccountsForOneServiceDoNotCollide(t *testing.T) {
 		t.Fatalf("after delete, alice = %+v, %v; want zero", got, err)
 	}
 }
+
+// A save replaces accounts.json rather than rewriting it, so a process killed
+// half way leaves the previous file whole. A hard link to the old file is the
+// witness: an in-place rewrite would change what it reads.
+func TestASaveReplacesTheFileInsteadOfRewritingIt(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Set("torbox", "first-key"); err != nil {
+		t.Fatal(err)
+	}
+	db := filepath.Join(dir, "accounts.json")
+	before, err := os.ReadFile(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	witness := filepath.Join(dir, "witness")
+	if err := os.Link(db, witness); err != nil {
+		t.Skipf("no hard links here: %v", err)
+	}
+	if err := s.Set("realdebrid", "second-key"); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := os.ReadFile(witness); string(got) != string(before) {
+		t.Error("the save rewrote accounts.json in place")
+	}
+	leftovers, _ := filepath.Glob(filepath.Join(dir, "accounts.json.*.tmp"))
+	if len(leftovers) != 0 {
+		t.Errorf("temporary files left behind: %v", leftovers)
+	}
+}
+
+// A file that cannot be parsed holds every credential the user has. It is set
+// aside before anything can overwrite it.
+func TestADamagedFileIsKeptAndNeverOverwritten(t *testing.T) {
+	dir := t.TempDir()
+	db := filepath.Join(dir, "accounts.json")
+	damaged := []byte(`{"torbox": "c2VhbGVk`)
+	if err := os.WriteFile(db, damaged, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Set("realdebrid", "new-key"); err != nil {
+		t.Fatal(err)
+	}
+	kept, _ := filepath.Glob(filepath.Join(dir, "accounts.json.damaged-*"))
+	if len(kept) != 1 {
+		t.Fatalf("set-aside copies = %v, want one", kept)
+	}
+	if got, _ := os.ReadFile(kept[0]); string(got) != string(damaged) {
+		t.Errorf("the set-aside copy reads %q, want the damaged file unchanged", got)
+	}
+}
+
+// An empty file is what an interrupted save used to leave. There is nothing in
+// it to keep, so it opens as an empty store without a copy.
+func TestAnEmptyFileOpensAsAnEmptyStore(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "accounts.json"), nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Open(dir); err != nil {
+		t.Fatal(err)
+	}
+	if kept, _ := filepath.Glob(filepath.Join(dir, "accounts.json.damaged-*")); len(kept) != 0 {
+		t.Errorf("an empty file was set aside as %v", kept)
+	}
+}
