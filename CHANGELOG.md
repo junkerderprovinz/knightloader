@@ -37,6 +37,80 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-10-01
+
+### Added
+
+- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
+  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
+  `.torrent` files in place of the built-in torrent client. Rank it above
+  "Built-in torrent client" on the Accounts page and it takes them; the files
+  then come here over HTTP, one at a time. With "Send only cached torrents to
+  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
+  the torrent cached. A torrent the account already has is fetched from there
+  and never deleted. Linksnappy has no list of your downloads to read, so there
+  is no import from that account.
+  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
+
+### Changed
+
+- **An instance without a password answers only on names it knows**: IP
+  addresses, `localhost`, names without a dot, `.local`, `.lan`, `.home.arpa`
+  and `.internal` names, its host name and the domains under Known domains.
+  Anything else gets 421, so a web page cannot drive it through DNS rebinding.
+  A domain is learned after a sign-in, never from a plain read. A valid API
+  token passes on any name.
+- **Sessions:** changing or removing the password signs out every other
+  browser, and signing out revokes that cookie, also across a restart.
+- **Sign-in:** the attempt limit counts before it checks, so parallel guesses
+  meet it too. Showing the phrase and changing the password share that limit,
+  and passkey sign-ins can no longer push out a passkey being set up.
+- **Limits:** every JSON body has a ceiling (64 KiB on the routes open without
+  sign-in), and the instance and the relay drop connections that send no
+  header within 10 seconds or sit idle for a minute.
+- **A read-only token** no longer sees event target secrets, feed addresses or
+  the end-of-queue program.
+- **Relay and pairing:** a member's name, address and kind come only from a
+  seal that opens, member ids must be 40 hex characters, a relay this instance
+  serves admits its own phrase group, its handshake limit counts the caller a
+  local proxy names, and a direct call on the LAN is read and checked before it
+  takes a slot.
+- **Crawls and feeds** reach no address further inside the network than the
+  one entered; a feed's entries stay at the feed's own scope.
+- **Hoster and debrid passwords** are stripped from transport errors, so they
+  stay out of logs, task rows and the diagnostics bundle.
+- **`settings.json`, `accounts.json` and the key file** are written through a
+  temporary file. A file that cannot be read is kept as a dated copy instead
+  of being replaced, and the start report names an unreadable settings file.
+- **Single-stream archives** (gz, bz2, xz) unpack to a bounded size.
+
+### Fixed
+
+- Pausing or removing a task while its link resolves holds; the transfer no
+  longer starts behind it. Pause and Resume leave finished and failed tasks
+  alone.
+- A multi-file torrent the built-in client had partly fetched keeps its
+  progress after a restart instead of going to a debrid service.
+- The end-of-queue action waits for files being checked or moved and for
+  pending retries, and a change during its countdown takes effect.
+- A package named `..` stays inside the download folder, and nested unpacking
+  leaves archives that were in a reused folder alone.
+- A failed or vanished TorBox web download ends the task, a changed hoster
+  login reaches JDownloader, and 9kw error pages are not taken for answers.
+- A torrent with no file selected is refused instead of fetching every file,
+  and a range refetch no longer splices in bytes from a different file.
+- The Windows desktop app records its log again.
+- Schedules catch up after the computer slept, and a halt by hand no longer
+  swallows the next resume window. A second update in one run on macOS keeps
+  the running app.
+- The quick-add page fills in the links and waits for Add.
+- The browser extension keeps the phrase where web pages cannot read it, gives
+  every session its own id, and handles relay frames in order.
+- The web interface reports failed starts and row actions, keeps a newer
+  colour pick made while a save was running, re-reads the label settings after
+  an import, forgets a revealed phrase when the group changes, and puts the
+  relay mode back after a failed save.
+
 ## [1.6.3] - 2026-10-01
 
 ### Changed (Android app)
@@ -73,16 +147,6 @@ release's tag.
 
 ### Added
 
-- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
-  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
-  `.torrent` files in place of the built-in torrent client. Rank it above
-  "Built-in torrent client" on the Accounts page and it takes them; the files
-  then come here over HTTP, one at a time. With "Send only cached torrents to
-  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
-  the torrent cached. A torrent the account already has is fetched from there
-  and never deleted. Linksnappy has no list of your downloads to read, so there
-  is no import from that account.
-  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
 - **The browser extension in the Chrome Web Store and Edge Add-ons.** Chrome,
   Brave, Opera and Vivaldi install it from the
   [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
