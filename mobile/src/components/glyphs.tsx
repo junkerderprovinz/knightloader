@@ -5,6 +5,7 @@
 // are carved with evenodd. The drawings come from:
 //   Streamline, free Core Solid (https://streamlinehq.com), CC BY 4.0
 //   Tabler Icons (https://tabler.io/icons), MIT
+//   Material Design Icons (https://pictogrammers.com/library/mdi/), Apache 2.0
 //   Simple Icons (https://simpleicons.org), CC0; the marks are trademarks, used only to name their owner
 // and the rest were drawn for GlimStone or KnightLoader.
 import Svg, { Path } from 'react-native-svg';
@@ -131,7 +132,7 @@ export function IconLink({ color, size = GLYPH_BOX, tight }: GlyphProps) {
   );
 }
 
-/** Information: BombVault's drawing. */
+/** Information: Streamline interface-essential/information-circle.svg. */
 export function IconInfo({ color, size = GLYPH_BOX, tight }: GlyphProps) {
   return (
     <Svg width={size} height={size} viewBox={frame('0 0 14 14', tight)} fill={color}>
@@ -217,6 +218,15 @@ export function IconPaste({ color, size = GLYPH_BOX, tight }: GlyphProps) {
   return (
     <Svg width={size} height={size} viewBox={frame('0 0 14 14', tight)} fill={color}>
       <Path fillRule="evenodd" d="M5.5 0c-0.55228 0 -1 0.447716 -1 1v0.5c0 0.55229 0.44772 1 1 1h3c0.55229 0 1 -0.44771 1 -1V1c0 -0.552285 -0.44771 -1 -1 -1h-3ZM2.75 1h0.5v0.5c0 1.24264 1.00736 2.25 2.25 2.25h3c1.24264 0 2.25 -1.00736 2.25 -2.25V1h0.5c0.8284 0 1.5 0.67157 1.5 1.5v10c0 0.8284 -0.6716 1.5 -1.5 1.5h-8.5c-0.82843 0 -1.5 -0.6716 -1.5 -1.5v-10c0 -0.82843 0.67157 -1.5 1.5 -1.5Z" clipRule="evenodd" />
+    </Svg>
+  );
+}
+
+/** Write to us, under the pointer or a finger: Material Design Icons email-open (Apache 2.0). */
+export function IconMailOpen({ color, size = GLYPH_BOX, tight }: GlyphProps) {
+  return (
+    <Svg width={size} height={size} viewBox={frame('2 0.32 20 20', tight)} fill={color}>
+      <Path d="M4,8L12,13L20,8V8L12,3L4,8V8M22,8V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V8C2,7.27 2.39,6.64 2.97,6.29L12,0.64L21.03,6.29C21.61,6.64 22,7.27 22,8Z" />
     </Svg>
   );
 }

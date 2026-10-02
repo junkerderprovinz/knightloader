@@ -22,7 +22,7 @@ const USED = [
   'IconRefresh', 'IconPlay', 'IconStop', 'IconPower', 'IconTrash', 'IconAdd', 'IconClose',
   'IconCopy', 'IconCheck', 'IconLink', 'IconInfo', 'IconBack', 'IconExpand',
   'IconCollapse', 'IconMail', 'IconGear', 'IconFolder', 'IconContainers', 'IconGithub',
-  'IconPaste',
+  'IconPaste', 'IconMailOpen',
 ];
 
 const LICENCES = [

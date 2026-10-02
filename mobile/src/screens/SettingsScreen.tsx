@@ -37,7 +37,15 @@ import IconBadge, {
   WindowsMark,
   ZipMark,
 } from '../components/IconBadge';
-import { IconBack, IconContainers, IconCopy, IconGithub, IconMail, IconTrash } from '../components/glyphs';
+import {
+  IconBack,
+  IconContainers,
+  IconCopy,
+  IconGithub,
+  IconMail,
+  IconMailOpen,
+  IconTrash,
+} from '../components/glyphs';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CryptoDonate } from '../components/CryptoDonate';
@@ -856,12 +864,14 @@ export default function SettingsScreen({
           />
           {/* The one button here that reaches the app's own authors, so it
               takes the accent and this card's rainbow position instead of a
-              vendor's colour. */}
+              vendor's colour. Its envelope opens while it is pressed. */}
           <ReadmeButton
             brand="house"
             hue={3}
             label={t('settings.aboutMail')}
-            mark={({ mark }) => <IconMail color={mark} size="100%" tight />}
+            mark={({ mark, lit }) =>
+              lit ? <IconMailOpen color={mark} size="100%" tight /> : <IconMail color={mark} size="100%" tight />
+            }
             // A plain mailto with the subject prefilled, so a mail arrives
             // saying which product it is about. No body, which would read as a
             // form to fill in rather than a message somebody writes.
