@@ -52,10 +52,12 @@ export function PlayerCard({
 
   // A probe still in flight gets no sentence, only a disabled button.
   const ready = !why && !!head?.ok;
-  // ServeContent measures a growing file when the stream opens, so seeking past
-  // that point fails and a fragmented MP4 with a trailing index plays nothing.
-  const partial = task.status !== 'done';
-  const note = why || (partial ? t('detail.playPartial') : '');
+  // A running download is streamed: the server fetches the part being played
+  // first, and a jump ahead waits for its bytes. Any other unfinished file
+  // plays only what is on disk, and past that point there is nothing.
+  let note = why;
+  if (!note && task.status === 'running') note = t('detail.playLive');
+  else if (!note && task.status !== 'done') note = t('detail.playPartial');
   const src = taskFileURL(task.id, base);
 
   return (

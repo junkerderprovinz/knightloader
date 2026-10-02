@@ -1354,6 +1354,7 @@ export const ro: Dict = {
   'columns.variant.auto': 'Automat',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Redă',
   'file.open': 'Deschide',
   'file.openNatively': 'Deschide cu aplicația implicită',
   'file.revealInFolder': 'Arată în folder',
@@ -2145,6 +2146,7 @@ export const ro: Dict = {
   'detail.play': 'Redă aici',
   'detail.playHint': 'Redă fișierul direct de pe această instanță, fără să îl descarce a doua oară. Până apeși pe redare nu se aduce nimic, iar fișierul rămâne unde este.',
   'detail.playPartial': 'Această descărcare nu este terminată. Se poate reda doar partea aflată deja pe disc, saltul dincolo de ea nu merge, iar unele fișiere nu redau absolut nimic până nu ajunge ultimul octet.',
+  'detail.playLive': 'Această descărcare încă rulează. Partea pe care o redai e adusă prima, așa că poți începe chiar acum. Dacă sari înainte, redarea așteaptă până ajunge partea aceea.',
   'detail.playUnsupported': 'Acest browser nu poate reda acest fișier. Deschide-l sau salvează-l în schimb din meniul cu clic dreapta.',
   'detail.playRemote': 'Aici se redau doar fișierele aflate pe această instanță. O altă instanță își predă fișierele dintr-o bucată și fără salt, iar cu asta un player nu se descurcă.',
   'detail.playNotLocal': 'Această descărcare a fost adusă de JDownloader, deci fișierul stă pe discul acelui proces, nu pe acesta.',

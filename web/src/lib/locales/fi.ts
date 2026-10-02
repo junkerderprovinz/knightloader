@@ -1353,6 +1353,7 @@ export const fi: Dict = {
   'columns.variant.auto': 'Automaattinen',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Toista',
   'file.open': 'Avaa',
   'file.openNatively': 'Avaa oletussovelluksella',
   'file.revealInFolder': 'Näytä kansiossa',
@@ -2137,6 +2138,7 @@ export const fi: Dict = {
   'detail.play': 'Toista tässä',
   'detail.playHint': 'Toistaa tiedoston suoraan tästä instanssista lataamatta sitä toista kertaa. Mitään ei haeta ennen kuin painat toistoa, ja tiedosto jää sinne, missä se on.',
   'detail.playPartial': 'Tämä lataus ei ole valmis. Toistaa voi vain sen osan, joka on jo levyllä, sen yli ei voi hypätä, eivätkä jotkin tiedostot toista mitään ennen kuin viimeinen tavu on paikallaan.',
+  'detail.playLive': 'Tämä lataus on vielä käynnissä. Toistamasi kohta haetaan ensin, joten voit aloittaa heti. Jos hyppäät eteenpäin, toisto odottaa, kunnes se kohta on saapunut.',
   'detail.playUnsupported': 'Tämä selain ei osaa toistaa tätä tiedostoa. Avaa tai tallenna se sen sijaan oikean napin valikosta.',
   'detail.playRemote': 'Täällä toistuvat vain tässä instanssissa olevat tiedostot. Toinen instanssi luovuttaa tiedostonsa yhtenä pötkönä ja ilman hyppimistä, eikä soitin tule sen kanssa toimeen.',
   'detail.playNotLocal': 'Tämän latauksen haki JDownloader, joten tiedosto on sen prosessin levyllä eikä tällä.',

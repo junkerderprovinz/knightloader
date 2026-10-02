@@ -1353,6 +1353,7 @@ export const et: Dict = {
   'columns.variant.auto': 'Automaatne',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Esita',
   'file.open': 'Ava',
   'file.openNatively': 'Ava vaikerakendusega',
   'file.revealInFolder': 'Näita kaustas',
@@ -2131,6 +2132,7 @@ export const et: Dict = {
   'detail.play': 'Esita siin',
   'detail.playHint': 'Esitab faili otse sellest eksemplarist, ilma seda teist korda alla laadimata. Enne kui sa esitamise nupule vajutad, ei tooda midagi, ja fail jääb sinna, kus ta on.',
   'detail.playPartial': 'See allalaadimine ei ole valmis. Esitada saab ainult seda osa, mis on juba kettal, sellest edasi hüpata ei saa, ja mõni fail ei esita üldse midagi, enne kui viimane bait kohal on.',
+  'detail.playLive': 'See allalaadimine käib veel. Osa, mida esitad, tuuakse esimesena, nii et saad kohe alustada. Kui hüppad edasi, ootab esitus, kuni see osa on kohal.',
   'detail.playUnsupported': 'See brauser ei oska seda faili esitada. Ava või salvesta ta selle asemel paremklõpsumenüüst.',
   'detail.playRemote': 'Esitada saab ainult selles eksemplaris olevaid faile. Teine eksemplar annab oma failid ühe tükina ja ilma hüppamiseta edasi, ja sellega mängija toime ei tule.',
   'detail.playNotLocal': 'Selle allalaadimise tõi JDownloader, seega asub fail selle protsessi kettal, mitte siinsel.',
