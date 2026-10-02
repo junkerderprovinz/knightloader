@@ -56,6 +56,20 @@ release's tag.
   every language, and the captcha card adds one with the same Add an account
   button as the cards above it.
 
+### Fixed
+
+- **The captcha accounts show their services' logos.** The marks for 2Captcha,
+  Anti-Captcha, CapMonster Cloud, CapSolver, 9kw.eu and DeathByCaptcha ship
+  with the page, because their sites give the instance no icon to fetch. 9kw.eu
+  and CapSolver sit on a light plate so they stay visible in the dark theme.
+- **Hoster icons no longer hold up the Accounts page.** An icon the instance
+  had not fetched yet kept its request open while the hoster's site answered,
+  for half a minute or longer when the site was down, and the browser queued
+  the page's other requests behind a few of those. The instance answers at
+  once and fetches the icon in the background, eight sites at a time, the page
+  asks again a few seconds later, and a site without an icon is remembered
+  across restarts. A hoster without an icon shows its first letter.
+
 ## [1.6.4] - 2026-10-01
 
 ### Added
