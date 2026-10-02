@@ -314,8 +314,7 @@ export const en = {
 
   'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild has the most movement.',
   'settings.notifications': 'Notifications',
-  'settings.notificationsHint':
-    'While one of your instances is downloading or waiting for a captcha, the app keeps its own connection to it, even after you close the app. Android shows a quiet notification for as long as that connection is open. It ends by itself once nothing is running, and the app starts it again when you open it or add a download.',
+  'settings.notificationsHint': 'KnightLoader tells you about captchas and downloads even when the app is closed. To do that it keeps its own connection to your instances, and Android shows a quiet notification while it does.',
   'settings.notifyCaptcha': 'A captcha is waiting',
   'settings.notifyFinished': 'A download finished',
   'settings.notifyFailed': 'A download failed',
@@ -326,7 +325,7 @@ export const en = {
   'notify.channelFailed': 'Failed downloads',
   'notify.channelWatch': 'Background connection',
   'notify.watchTitle': 'Watching your downloads',
-  'notify.watchText': 'This ends by itself once nothing is running.',
+  'notify.watchText': 'Tells you when a captcha waits or a download finishes or fails.',
   'notify.captchaTitle': 'Captcha waiting',
   'notify.captchaMany': '{n} captchas are waiting for an answer.',
   'notify.finishedTitle': 'Download finished',
@@ -335,6 +334,19 @@ export const en = {
   'notify.packagePartly': '{name}: {done} of {total} files done, {failed} failed.',
   'notify.failedTitle': 'Download failed',
   'notify.failedMany': '{n} downloads in {name} failed.',
+  'settings.notifyStay': 'Stay connected',
+  'settings.notifyStayHint': 'Keeps the connection open all the time, so a download that starts while the app is closed is noticed too. While nothing runs, the app looks once a minute. Switched off, the connection runs only while something downloads or a captcha waits, and ends two minutes after that.',
+  'settings.battery': 'Battery optimisation',
+  'settings.batteryOn': 'Android may pause the connection.',
+  'settings.batteryHint': 'To save battery, Android may pause KnightLoader in the background, and notifications then arrive late or not at all. Turn battery optimisation off for KnightLoader to keep them on time.',
+  'settings.batteryOpen': 'Open battery settings',
+  'settings.vendor': 'Background activity on {brand}',
+  'settings.vendorHint': '{brand} phones stop apps in the background by rules of their own. Allow KnightLoader to run in the background and to start by itself, or the notifications stop after a while.',
+  'settings.vendorOpen': 'Open {brand} settings',
+  'battery.askTitle': 'Keep notifications on time?',
+  'battery.askBody': 'To save battery, Android may pause KnightLoader in the background, and notifications then arrive late. On the next screen, find KnightLoader and turn battery optimisation off for it.',
+  'battery.askLater': 'Not now',
+  'battery.askOpen': 'Open settings',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

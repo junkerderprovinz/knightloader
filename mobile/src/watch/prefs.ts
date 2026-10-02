@@ -9,12 +9,24 @@ export interface NotifyPrefs {
   captcha: boolean;
   finished: boolean;
   failed: boolean;
+  /** Keep the connection open all the time rather than only while something
+   *  runs, so a download started elsewhere is noticed too. */
+  stay: boolean;
   /** Set once the app has put Android's permission question up by itself. A
    *  second time would be a prompt somebody already answered. */
   asked: boolean;
+  /** Set once the app has offered the way to battery optimisation. */
+  batteryAsked: boolean;
 }
 
-const DEFAULTS: NotifyPrefs = { captcha: true, finished: true, failed: true, asked: false };
+const DEFAULTS: NotifyPrefs = {
+  captcha: true,
+  finished: true,
+  failed: true,
+  stay: true,
+  asked: false,
+  batteryAsked: false,
+};
 
 export async function loadNotifyPrefs(): Promise<NotifyPrefs> {
   try {

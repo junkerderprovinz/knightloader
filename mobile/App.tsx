@@ -24,14 +24,14 @@ import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import { CaptchaWatch } from './src/components/CaptchaWatch';
 import { fetchAppearance, onRemovedFromGroup, setRainbowPalette } from './src/api/client';
 import { ConfirmDialog } from './src/components/ConfirmDialog';
-import { Scan } from './src/components/IconBadge';
+import { Gear, Scan } from './src/components/IconBadge';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { MotionProvider } from './src/theme/MotionContext';
 import { I18nProvider, useT } from './src/i18n/I18nContext';
 import { HouseFontReady } from './src/components/Text';
 import { HOUSE_FONTS, familyFor } from './src/theme/font';
-import { useOpenRequests, useWatch } from './src/watch/watch';
-import type { OpenRequest } from './modules/watch';
+import { onBatteryAsk, useOpenRequests, useWatch } from './src/watch/watch';
+import { KnightWatch, type OpenRequest } from './modules/watch';
 
 type RootStackParamList = {
   Connections: undefined;
@@ -99,6 +99,8 @@ function Shell() {
 
   useWatch(conn?.id ?? null);
   useOpenRequests(setOpening);
+  const [askBattery, setAskBattery] = useState(false);
+  useEffect(() => onBatteryAsk(() => setAskBattery(true)), []);
 
   useEffect(() => {
     if (!opening || loading || !navReady) return;
@@ -179,6 +181,19 @@ function Shell() {
         onConfirm={() => {
           setRemoved(false);
           nav.navigate('RelayConnect');
+        }}
+      />
+      <ConfirmDialog
+        visible={askBattery}
+        title={t('battery.askTitle')}
+        message={t('battery.askBody')}
+        cancelLabel={t('battery.askLater')}
+        confirmLabel={t('battery.askOpen')}
+        confirmIcon={(ink) => <Gear color={ink} />}
+        onCancel={() => setAskBattery(false)}
+        onConfirm={() => {
+          setAskBattery(false);
+          KnightWatch?.openBatterySettings();
         }}
       />
       <CaptchaWatch
