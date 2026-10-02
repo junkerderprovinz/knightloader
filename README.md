@@ -155,48 +155,39 @@ listed area by area under
 
 Every cell about another program comes from its own documentation, source code
 or forum as of autumn 2026. If one has changed, please open an issue.
-KnightLoader's column describes the code in this repository, which is not ready
-to install yet (see the notice at the top).
 
 | | **KnightLoader** | [JDownloader 2](https://jdownloader.org/) | [pyLoad](https://pyload.net/) | [rdt-client](https://github.com/rogerfar/rdt-client) |
 |---|:---:|:---:|:---:|:---:|
-| Stable release | ✅ | ✅ | ❌ pre-release | ✅ |
-| Open source | ✅ AGPL-3.0 | ⚠️ GPL-3.0, [partly closed](https://board.jdownloader.org/showthread.php?p=517795#post517795) | ✅ AGPL-3.0 | ✅ MIT |
-| No runtime to install | ✅ one Go binary | ⚠️ Java, bundled on Windows and macOS | ❌ Python 3.9+ | ❌ .NET 10 |
-| Web interface | ✅ | ⚠️ through MyJDownloader | ✅ | ✅ |
-| Desktop app | ✅ Windows, macOS, Linux | ✅ | ❌ | ❌ |
-| Languages | ✅ 42 | ✅ about 38 | ❌ English | ❌ English |
-| Own Docker image | ✅ amd64, arm64 | ⚠️ community | ⚠️ LinuxServer.io | ✅ amd64, arm64, armhf |
-| Reachable from outside without an account | ✅ twelve words | ❌ needs an account | ⚠️ expose it yourself | ⚠️ expose it yourself |
-| Several instances in one place | ✅ | ⚠️ through MyJDownloader | ❌ | ❌ |
-| Debrid services | ✅ several, ranked, per hoster | ✅ as multihosters | ✅ one plugin each | ✅ one of five |
-| File hoster links | ⚠️ through debrid or JDownloader | ✅ 1000+ plugins | ✅ hundreds of plugins | ❌ |
-| Premium hoster logins | ⚠️ through JDownloader | ✅ | ✅ | ❌ |
-| Reconnect | ✅ UPnP, recorder, script | ✅ UPnP, recorder, script | ⚠️ script only | ❌ |
-| Video sites | ✅ all yt-dlp sites | ✅ many plugins | ⚠️ a few | ❌ |
-| Torrents | ✅ built in or through debrid | ❌ | ⚠️ through debrid or Transmission | ✅ through debrid |
-| Usenet | ⚠️ through TorBox or Premiumize.me | ⚠️ no par2 repair | ⚠️ through TorBox | ⚠️ through TorBox or Premiumize.me |
-| Click'n'Load | ✅ also to another machine | ✅ | ⚠️ add-on, off by default | ❌ |
-| DLC, CCF, RSDF | ⚠️ through JDownloader | ✅ | ⚠️ partly through JDownloader's server | ❌ |
-| Watched folder | ✅ links, torrents, containers, NZBs | ⚠️ extension | ⚠️ add-on, off by default | ✅ torrents, NZBs |
-| Browser extension | ✅ Chrome, Edge, Firefox | ⚠️ none for current Chrome | ⚠️ third-party | ⚠️ third-party |
-| Phone app | ✅ Android | ✅ Android | ✅ Android | ❌ |
-| Captchas in the app or browser | ✅ | ✅ | ✅ | ➖ |
-| Captchas on the phone | ✅ | ✅ | ✅ | ➖ |
-| Paid captcha solvers | ✅ six services | ✅ | ✅ | ➖ |
-| Unpacking | ✅ built in | ✅ | ⚠️ calls unrar and 7z | ✅ |
-| Checksums (SFV, MD5, CRC) | ✅ | ✅ | ⚠️ add-on, off by default | ❌ |
-| Rules for links and packages | ✅ with a test box | ✅ Packagizer | ⚠️ words in the link | ⚠️ patterns, minimum size |
-| Scripts on events | ✅ JavaScript or a program | ✅ Event Scripter | ✅ | ⚠️ when a torrent finishes |
-| Sonarr and Radarr | ✅ as qBittorrent and SABnzbd | ❌ | ❌ | ✅ as qBittorrent and SABnzbd |
+| Stable release | ✅ | ✅ | ❌ | ✅ |
+| Open source | ✅ | ⚠️ [partly](https://board.jdownloader.org/showthread.php?p=517795#post517795) | ✅ | ✅ |
+| No runtime to install | ✅ | ⚠️ Java | ❌ Python | ❌ .NET |
+| Web interface | ✅ | ⚠️ online | ✅ | ✅ |
+| Desktop app | ✅ | ✅ | ❌ | ❌ |
+| Languages | 42 | ~38 | 1 | 1 |
+| Docker image | ✅ | ⚠️ community | ⚠️ community | ✅ |
+| Remote access without an account | ✅ | ❌ | ⚠️ DIY | ⚠️ DIY |
+| Several instances in one place | ✅ | ⚠️ account | ❌ | ❌ |
+| Debrid services | ✅ | ✅ | ✅ | ⚠️ one |
+| File hosters | ⚠️ via debrid | ✅ | ✅ | ❌ |
+| Premium hoster logins | ⚠️ via JD | ✅ | ✅ | ❌ |
+| Reconnect | ✅ | ✅ | ⚠️ script | ❌ |
+| Video sites | ✅ | ✅ | ⚠️ few | ❌ |
+| Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
+| Usenet | ⚠️ via debrid | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
+| Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
+| DLC, CCF, RSDF | ⚠️ via JD | ✅ | ⚠️ via JD | ❌ |
+| Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
+| Browser extension | ✅ | ⚠️ outdated | ⚠️ third-party | ⚠️ third-party |
+| Phone app | ✅ | ✅ | ✅ | ❌ |
+| Captchas by hand | ✅ | ✅ | ✅ | ➖ |
+| Paid captcha solvers | ✅ | ✅ | ✅ | ➖ |
+| Unpacking | ✅ | ✅ | ⚠️ needs unrar | ✅ |
+| Checksums | ✅ | ✅ | ⚠️ add-on | ❌ |
+| Link rules | ✅ | ✅ | ⚠️ basic | ⚠️ basic |
+| Event scripts | ✅ | ✅ | ✅ | ⚠️ one event |
+| Sonarr and Radarr | ✅ | ❌ | ❌ | ✅ |
 
-✅ yes · ⚠️ with a catch, named in the cell · ❌ no · ➖ not needed, the debrid service fetches everything
-
-JDownloader and pyLoad bring their own hoster plugins, where KnightLoader leaves
-file hosters to a debrid service or to JDownloader, and JDownloader downloads
-from Usenet by itself. KnightLoader puts debrid services, JDownloader's hosters,
-torrents and yt-dlp behind one web interface, and its app, its extension and
-your other instances reach it from anywhere with the twelve words.
+✅ yes · ⚠️ partly · ❌ no · ➖ not needed, the debrid service fetches everything
 
 <br>
 
