@@ -395,6 +395,9 @@ jobs:
       - name: Background
         run: node extension/check-background.mjs
 
+      - name: Download takeover and media
+        run: node extension/check-capture.mjs
+
       - name: Crypto window keyboard
         run: node extension/check-crypto-tab.mjs
 
