@@ -85,8 +85,13 @@ func (s *Store) recordFinished(t *core.Task) error {
 		   created_at=excluded.created_at, finished_at=excluded.finished_at`,
 		t.ID, t.URL, t.Name, t.Package, t.Host, t.Resolver, t.Size,
 		t.CreatedAt.UnixMilli(), t.FinishedAt.UnixMilli())
+	s.historyRev.Add(1)
 	return err
 }
+
+// HistoryRevision changes whenever the history may have changed, so a copy
+// built from History can be kept until it does.
+func (s *Store) HistoryRevision() uint64 { return s.historyRev.Load() }
 
 // History reports what this instance has fetched, newest first. A limit of
 // zero or less returns everything, as an export wants.
@@ -135,6 +140,9 @@ func (s *Store) TrimHistory(max int) (int, error) {
 		return 0, err
 	}
 	n, err := res.RowsAffected()
+	if n > 0 {
+		s.historyRev.Add(1)
+	}
 	return int(n), err
 }
 
@@ -142,6 +150,7 @@ func (s *Store) TrimHistory(max int) (int, error) {
 // empties the history as a side effect.
 func (s *Store) ClearHistory() error {
 	_, err := s.db.Exec(`DELETE FROM history`)
+	s.historyRev.Add(1)
 	return err
 }
 
