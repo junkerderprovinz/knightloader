@@ -173,7 +173,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Reconnect | ✅ | ✅ | ⚠️ script | ❌ |
 | Video sites | ✅ | ✅ | ⚠️ few | ❌ |
 | Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
-| Usenet | ⚠️ via debrid | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
+| Usenet | ⚠️ no repair yet | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
 | Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
 | DLC, CCF, RSDF | ⚠️ via JD | ✅ | ⚠️ via JD | ❌ |
 | Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
