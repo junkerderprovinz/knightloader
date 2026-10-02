@@ -39,6 +39,13 @@ release's tag.
 
 ## [1.6.6] - 2026-10-02
 
+### Changed
+
+- **The Apps page follows the README's order.** The server or desktop app
+  comes first, then the phone app and the browser extension, with the
+  bookmarklet last, and the phone app's own list puts the server before the
+  desktop app.
+
 ### Fixed
 
 - **Linksnappy fetches links under a hoster's other domains.** Linksnappy
