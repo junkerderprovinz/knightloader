@@ -1636,6 +1636,8 @@ export const lv: Dict = {
   'settings.browsertools.zipArchive': 'ZIP arhīvs',
   'settings.browsertools.dockerSub': 'Kopēt komandu',
   'settings.browsertools.unraidSub': 'Veidne',
+  'settings.browsertools.parleyportSub': 'Savs relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort ir relay, kas savieno tavas instances arī starp dažādiem tīkliem, un tu to vari darbināt pats. Ievadi tā adresi sadaļā Iestatījumi, Pārošana, un instances ar taviem divpadsmit vārdiem sazināsies caur tavu relay, nevis caur projekta relay. Klikšķis nokopē komandu, kas to palaiž:',
   'settings.browsertools.firefoxSub': 'Papildinājums',
   'settings.browsertools.installPwaLabel': 'Vai instalējiet šo lapu kā lietotni',
   'settings.browsertools.install': 'Instalēt',

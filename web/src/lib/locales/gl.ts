@@ -1636,6 +1636,8 @@ export const gl: Dict = {
   'settings.browsertools.zipArchive': 'Arquivo ZIP',
   'settings.browsertools.dockerSub': 'Copiar a orde',
   'settings.browsertools.unraidSub': 'Modelo',
+  'settings.browsertools.parleyportSub': 'Relé propio',
+  'settings.browsertools.parleyportHint': 'ParleyPort é o relé que conecta as túas instancias mesmo entre redes distintas, e podes executalo ti mesmo. Introduce o seu enderezo en Axustes, Emparellamento, e as instancias que comparten as túas doce palabras comunicaranse polo teu relé e non polo do proxecto. Un clic copia a orde que o inicia:',
   'settings.browsertools.firefoxSub': 'Complemento',
   'settings.browsertools.installPwaLabel': 'Ou instala esta páxina como unha aplicación',
   'settings.browsertools.install': 'Instalar',

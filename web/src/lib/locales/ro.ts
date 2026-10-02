@@ -1637,6 +1637,8 @@ export const ro: Dict = {
   'settings.browsertools.zipArchive': 'Arhivă ZIP',
   'settings.browsertools.dockerSub': 'Copiază comanda',
   'settings.browsertools.unraidSub': 'Șablon',
+  'settings.browsertools.parleyportSub': 'Relay propriu',
+  'settings.browsertools.parleyportHint': 'ParleyPort este relay-ul care conectează instanțele tale chiar și între rețele diferite, iar tu îl poți rula singur. Introdu adresa lui în Setări, Împerechere, iar instanțele cu cele douăsprezece cuvinte ale tale vor comunica prin relay-ul tău în loc de cel al proiectului. Un clic copiază comanda care îl pornește:',
   'settings.browsertools.firefoxSub': 'Supliment',
   'settings.browsertools.installPwaLabel': 'Sau instalează această pagină ca aplicație',
   'settings.browsertools.install': 'Instalează',

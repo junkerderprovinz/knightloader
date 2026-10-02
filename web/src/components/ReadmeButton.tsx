@@ -13,8 +13,8 @@ import { InfoBubble } from './ui';
 // the listing does not exist yet.
 
 // The brands index.css carries a tile colour for, each with its class:
-// GlimStone's own, this app's logo and the browsers it offers its extension
-// for.
+// GlimStone's own, this app's logo, its relay's and the browsers it offers its
+// extension for.
 const TILES = {
   windows: 'glim-tile-windows',
   apple: 'glim-tile-apple',
@@ -30,6 +30,7 @@ const TILES = {
   coffee: 'glim-tile-coffee',
   house: 'glim-tile-house',
   knightloader: 'kl-tile-knightloader',
+  parleyport: 'kl-tile-parleyport',
   chrome: 'kl-tile-chrome',
   edge: 'kl-tile-edge',
   brave: 'kl-tile-brave',

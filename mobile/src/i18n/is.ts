@@ -189,6 +189,8 @@ export const is: Dict = {
   'settings.appsCopied': 'Afritað',
   'settings.appsSource': 'Frumkóði',
   'settings.appsZip': 'ZIP-safn',
+  'settings.appsParleyportSub': 'Eigið relay',
+  'settings.appsParleyportHint': 'ParleyPort er relay sem tengir tilvikin þín saman, líka á milli ólíkra neta, og þú getur keyrt það á eigin vél. Sláðu inn vistfang þess í vefviðmótinu undir Stillingar, Pörun, þá tala tilvikin með orðunum tólf þínum saman í gegnum þitt relay í stað relay verkefnisins. Einn smellur afritar skipunina sem ræsir það:',
   'settings.appsExtension': 'Vafraviðbót',
   'settings.appsExtensionHint': 'Viðbótin sendir tengil, val eða opnu síðuna í KnightLoader-inn þinn, úr hægrismellivalmyndinni eða með hnappinum sínum á tækjastikunni. Chrome, Brave, Opera og Vivaldi setja hana upp úr Chrome Web Store en Edge úr Edge Add-ons.',
   'settings.appsSoon': 'Væntanlegt',

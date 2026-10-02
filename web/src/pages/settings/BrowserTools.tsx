@@ -17,6 +17,8 @@ import {
   KNIGHTLOADER_LIT_SVG,
   KNIGHTLOADER_SVG,
   LINUX_SVG,
+  PARLEYPORT_LIT_SVG,
+  PARLEYPORT_SVG,
   PLAY_SVG,
   UNRAID_SVG,
   WINDOWS_SVG,
@@ -26,6 +28,7 @@ import { BrandMark, ReadmeButton, type ReadmePart } from '../../components/Readm
 import { QRCode } from '../../components/QRCode';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 import { releaseTag } from './Help';
+import { RELAY_RUN_COMMAND } from './pairing/RelayCard';
 
 /**
  * BrowserTools is the Apps page (GlimStone's "The App tab"): every way to get
@@ -436,26 +439,22 @@ function DesktopCard() {
 
 /**
  * ServerCard offers the desktop app's reader a server install: Unraid's
- * Community Applications, the container image and the source code.
+ * Community Applications, the container image and the source code, and
+ * ParleyPort for those who run their own relay.
  */
 function ServerCard() {
   const { t } = useT();
   const soon = t('settings.browsertools.soon');
   const [version, setVersion] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [copies, setCopies] = useState(0);
   useEffect(() => {
     void fetchHealth()
       .then((h) => setVersion(h.version))
       .catch(() => {});
   }, []);
-  useEffect(() => {
-    if (!copied) return;
-    const id = setTimeout(() => setCopied(false), 1800);
-    return () => clearTimeout(id);
-  }, [copied]);
 
   const command = dockerRun();
+  const docker = useCopy(command);
+  const relay = useCopy(RELAY_RUN_COMMAND);
   // The source of the running version where it is a release, the newest
   // otherwise.
   const tag = releaseTag(version);
@@ -480,19 +479,14 @@ function ServerCard() {
           parts={[
             {
               name: 'Docker',
-              sub: copied ? t('common.copied') : t('settings.browsertools.dockerSub'),
-              onClick: () =>
-                void copyToClipboard(command).then((ok) => {
-                  if (!ok) return;
-                  setCopied(true);
-                  setCopies((n) => n + 1);
-                }),
+              sub: docker.copied ? t('common.copied') : t('settings.browsertools.dockerSub'),
+              onClick: docker.copy,
             },
           ]}
           mark={<BrandMark svg={DOCKER_SVG} />}
           markClass="glim-docker-mark"
-          note={copied}
-          confirm={copies}
+          note={docker.copied}
+          confirm={docker.copies}
           hint={
             <>
               <span className="block">{t('settings.browsertools.dockerHint')}</span>
@@ -508,9 +502,52 @@ function ServerCard() {
           parts={[{ name: t('settings.browsertools.sourceCode'), sub: t('settings.browsertools.zipArchive'), href: zip }]}
           mark={<BrandMark svg={ZIP_SVG} />}
         />
+        <ReadmeButton
+          brand="parleyport"
+          parts={[
+            {
+              name: 'ParleyPort',
+              sub: relay.copied ? t('common.copied') : t('settings.browsertools.parleyportSub'),
+              onClick: relay.copy,
+            },
+          ]}
+          mark={<BrandMark svg={PARLEYPORT_SVG} lit={PARLEYPORT_LIT_SVG} />}
+          note={relay.copied}
+          confirm={relay.copies}
+          hint={
+            <>
+              <span className="block">{t('settings.browsertools.parleyportHint')}</span>
+              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+                {RELAY_RUN_COMMAND}
+              </code>
+            </>
+          }
+          hintLabel={t('settings.browsertools.parleyportHint')}
+        />
       </div>
     </Card>
   );
+}
+
+/**
+ * useCopy copies a command on a click and says "Copied" on the button's second
+ * line for a moment after one; `copies` pulses the unit once per copy.
+ */
+function useCopy(text: string) {
+  const [copied, setCopied] = useState(false);
+  const [copies, setCopies] = useState(0);
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1800);
+    return () => clearTimeout(id);
+  }, [copied]);
+  const copy = () =>
+    void copyToClipboard(text).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setCopies((n) => n + 1);
+    });
+  return { copied, copies, copy };
 }
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';

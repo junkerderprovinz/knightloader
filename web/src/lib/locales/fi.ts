@@ -1636,6 +1636,8 @@ export const fi: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-arkisto',
   'settings.browsertools.dockerSub': 'Kopioi komento',
   'settings.browsertools.unraidSub': 'Malli',
+  'settings.browsertools.parleyportSub': 'Oma rele',
+  'settings.browsertools.parleyportHint': 'ParleyPort on rele, joka yhdistää instanssisi myös eri verkkojen välillä, ja voit ylläpitää sitä itse. Anna sen osoite kohdassa Asetukset, Pariliitos, niin kahdellatoista sanallasi yhdistetyt instanssit viestivät oman releesi kautta projektin releen sijaan. Napsautus kopioi komennon, joka käynnistää sen:',
   'settings.browsertools.firefoxSub': 'Lisäosa',
   'settings.browsertools.installPwaLabel': 'Tai asenna tämä sivu sovelluksena',
   'settings.browsertools.install': 'Asenna',

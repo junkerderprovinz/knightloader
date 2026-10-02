@@ -1636,6 +1636,8 @@ export const ja: Dict = {
   'settings.browsertools.zipArchive': 'ZIPアーカイブ',
   'settings.browsertools.dockerSub': 'コマンドをコピー',
   'settings.browsertools.unraidSub': 'テンプレート',
+  'settings.browsertools.parleyportSub': '自分のリレー',
+  'settings.browsertools.parleyportHint': 'ParleyPort は、異なるネットワーク上にあってもインスタンス同士をつなぐリレーで、自分で運用することもできます。そのアドレスを「設定」の「ペアリング」で入力すると、同じ12個の単語を共有するインスタンスはプロジェクトのリレーではなく自分のリレーを経由して通信します。クリックすると、それを起動するコマンドをコピーします:',
   'settings.browsertools.firefoxSub': 'アドオン',
   'settings.browsertools.installPwaLabel': 'またはこのページをアプリとしてインストール',
   'settings.browsertools.install': 'インストール',

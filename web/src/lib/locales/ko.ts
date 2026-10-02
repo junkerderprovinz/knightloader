@@ -1636,6 +1636,8 @@ export const ko: Dict = {
   'settings.browsertools.zipArchive': 'ZIP 압축 파일',
   'settings.browsertools.dockerSub': '명령 복사',
   'settings.browsertools.unraidSub': '템플릿',
+  'settings.browsertools.parleyportSub': '자체 릴레이',
+  'settings.browsertools.parleyportHint': 'ParleyPort는 서로 다른 네트워크에 있는 인스턴스도 연결하는 릴레이이며, 직접 운영할 수도 있습니다. 설정의 페어링에서 주소를 입력하면 같은 12개의 단어를 공유하는 인스턴스가 프로젝트 릴레이 대신 내 릴레이를 거쳐 통신합니다. 클릭하면 릴레이를 시작하는 명령이 복사됩니다:',
   'settings.browsertools.firefoxSub': '부가 기능',
   'settings.browsertools.installPwaLabel': '또는 이 페이지를 앱으로 설치',
   'settings.browsertools.install': '설치',

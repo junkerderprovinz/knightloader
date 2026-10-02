@@ -1636,6 +1636,8 @@ export const da: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-arkiv',
   'settings.browsertools.dockerSub': 'Kopiér kommando',
   'settings.browsertools.unraidSub': 'Skabelon',
+  'settings.browsertools.parleyportSub': 'Egen videresender',
+  'settings.browsertools.parleyportHint': 'ParleyPort er videresenderen, der forbinder dine instanser, også på tværs af forskellige netværk, og du kan selv køre den. Angiv dens adresse under Indstillinger, Parring, så taler instanserne med dine tolv ord gennem din videresender i stedet for projektets. Et klik kopierer kommandoen, der starter den:',
   'settings.browsertools.firefoxSub': 'Tilføjelse',
   'settings.browsertools.installPwaLabel': 'Eller installer denne side som en app',
   'settings.browsertools.install': 'Installér',

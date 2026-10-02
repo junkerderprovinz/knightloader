@@ -1637,6 +1637,8 @@ export const sv: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-arkiv',
   'settings.browsertools.dockerSub': 'Kopiera kommandot',
   'settings.browsertools.unraidSub': 'Mall',
+  'settings.browsertools.parleyportSub': 'Eget relä',
+  'settings.browsertools.parleyportHint': 'ParleyPort är reläet som kopplar ihop dina instanser även över olika nätverk, och du kan köra det själv. Ange dess adress under Inställningar, Parkoppling, så pratar instanserna med dina tolv ord via ditt relä i stället för projektets. Ett klick kopierar kommandot som startar det:',
   'settings.browsertools.firefoxSub': 'Tillägg',
   'settings.browsertools.installPwaLabel': 'Eller installera den här sidan som en app',
   'settings.browsertools.install': 'Installera',

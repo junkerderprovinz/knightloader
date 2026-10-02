@@ -189,6 +189,8 @@ export const ms: Dict = {
   'settings.appsCopied': 'Disalin',
   'settings.appsSource': 'Kod sumber',
   'settings.appsZip': 'Arkib ZIP',
+  'settings.appsParleyportSub': 'Relay sendiri',
+  'settings.appsParleyportHint': 'ParleyPort ialah relay yang menyambungkan instans anda walaupun dalam rangkaian berlainan, dan anda boleh menjalankannya sendiri. Masukkan alamatnya dalam antara muka web, di Tetapan, Gandingan, dan instans yang berkongsi dua belas perkataan anda akan berhubung melalui relay anda, bukan relay projek. Satu klik menyalin arahan yang memulakannya:',
   'settings.appsExtension': 'Sambungan pelayar',
   'settings.appsExtensionHint': 'Sambungan ini menghantar pautan, teks pilihan atau halaman yang dibuka kepada KnightLoader anda, daripada menu klik kanan atau butangnya pada bar alat. Chrome, Brave, Opera dan Vivaldi memasangnya daripada Chrome Web Store, Edge daripada Edge Add-ons.',
   'settings.appsSoon': 'Akan datang',

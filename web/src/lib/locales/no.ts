@@ -1638,6 +1638,8 @@ export const no: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-arkiv',
   'settings.browsertools.dockerSub': 'Kopier kommando',
   'settings.browsertools.unraidSub': 'Mal',
+  'settings.browsertools.parleyportSub': 'Eget relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort er relayet som kobler sammen instansene dine på tvers av nettverk, og du kan drifte det selv. Skriv inn adressen under Innstillinger, Paring, så snakker instansene med de tolv ordene dine via ditt relay i stedet for prosjektets. Et klikk kopierer kommandoen som starter det:',
   'settings.browsertools.firefoxSub': 'Tillegg',
   'settings.browsertools.installPwaLabel': 'Eller installer denne siden som en app',
   'settings.browsertools.install': 'Installer',

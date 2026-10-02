@@ -1629,6 +1629,8 @@ export const es: Dict = {
   'settings.browsertools.zipArchive': 'Archivo ZIP',
   'settings.browsertools.dockerSub': 'Copiar comando',
   'settings.browsertools.unraidSub': 'Plantilla',
+  'settings.browsertools.parleyportSub': 'Repetidor propio',
+  'settings.browsertools.parleyportHint': 'ParleyPort es el repetidor que conecta tus instancias incluso entre redes distintas, y puedes ejecutarlo tú mismo. Introduce su dirección en Ajustes, Emparejamiento, y las instancias que comparten tus doce palabras se comunicarán por tu repetidor y no por el del proyecto. Un clic copia el comando que lo arranca:',
   'settings.browsertools.firefoxSub': 'Complemento',
   'settings.browsertools.installPwaLabel': 'O instala esta página como una app',
   'settings.browsertools.install': 'Instalar',

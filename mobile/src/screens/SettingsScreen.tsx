@@ -36,6 +36,7 @@ import IconBadge, {
   Github,
   LinuxMark,
   MailMark,
+  ParleyPortMark,
   Paste,
   PayPal,
   Trash,
@@ -81,6 +82,11 @@ function sourceZip(version: string): string {
     ? `${REPO_URL}/archive/refs/tags/v${version}.zip`
     : `${REPO_URL}/archive/refs/heads/main.zip`;
 }
+
+// The web RelayCard's RELAY_RUN_COMMAND, which starts ParleyPort for a reverse
+// proxy in front.
+const RELAY_RUN_COMMAND =
+  'docker run -d --name parleyport -p 8760:8760 --restart unless-stopped junkerderprovinz/parleyport:latest';
 
 /** The web's server card's docker run on one line, in the phone's time zone. */
 function dockerRun(): string {
@@ -308,6 +314,12 @@ export default function SettingsScreen({
     const id = setTimeout(() => setDockerCopied(false), 1800);
     return () => clearTimeout(id);
   }, [dockerCopied]);
+  const [relayCopied, setRelayCopied] = useState(false);
+  useEffect(() => {
+    if (!relayCopied) return;
+    const id = setTimeout(() => setRelayCopied(false), 1800);
+    return () => clearTimeout(id);
+  }, [relayCopied]);
 
   return (
     <MovingScroll style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
@@ -744,6 +756,18 @@ export default function SettingsScreen({
             sub={t('settings.appsZip')}
             mark={({ mark }) => <ZipMark color={mark} />}
             onPress={() => Linking.openURL(sourceZip(Constants.expoConfig?.version ?? ''))}
+          />
+          <ReadmeButton
+            brand="parleyport"
+            label="ParleyPort"
+            sub={relayCopied ? t('settings.appsCopied') : t('settings.appsParleyportSub')}
+            hint={`${t('settings.appsParleyportHint')} ${RELAY_RUN_COMMAND}`}
+            mark={({ mark, lit }) => <ParleyPortMark lit={lit} color={mark} />}
+            onPress={() =>
+              void Clipboard.setStringAsync(RELAY_RUN_COMMAND)
+                .then(() => setRelayCopied(true))
+                .catch(() => undefined)
+            }
           />
         </View>
       </NotchCard>

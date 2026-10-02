@@ -1636,6 +1636,8 @@ export const ca: Dict = {
   'settings.browsertools.zipArchive': 'Arxiu ZIP',
   'settings.browsertools.dockerSub': 'Copia l’ordre',
   'settings.browsertools.unraidSub': 'Plantilla',
+  'settings.browsertools.parleyportSub': 'Repetidor propi',
+  'settings.browsertools.parleyportHint': 'ParleyPort és el repetidor que connecta les teves instàncies fins i tot entre xarxes diferents, i el pots fer funcionar tu mateix. Introdueix-ne l’adreça a Configuració, Aparellament, i les instàncies que comparteixen les teves dotze paraules es comunicaran pel teu repetidor i no pel del projecte. Un clic copia l’ordre que l’engega:',
   'settings.browsertools.firefoxSub': 'Complement',
   'settings.browsertools.installPwaLabel': 'O instal·la aquesta pàgina com una aplicació',
   'settings.browsertools.install': 'Instal·la',

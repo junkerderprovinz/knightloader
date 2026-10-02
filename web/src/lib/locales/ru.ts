@@ -1629,6 +1629,8 @@ export const ru: Dict = {
   'settings.browsertools.zipArchive': 'Архив ZIP',
   'settings.browsertools.dockerSub': 'Скопировать команду',
   'settings.browsertools.unraidSub': 'Шаблон',
+  'settings.browsertools.parleyportSub': 'Собственный Relay',
+  'settings.browsertools.parleyportHint': 'Relay ParleyPort соединяет ваши экземпляры даже в разных сетях, и его можно запустить у себя. Укажите его адрес на странице «Сопряжение» в разделе «Настройки», и экземпляры с вашими двенадцатью словами будут связываться через ваш relay, а не через relay проекта. По щелчку копируется команда, которая его запускает:',
   'settings.browsertools.firefoxSub': 'Дополнение',
   'settings.browsertools.installPwaLabel': 'Или установите эту страницу как приложение',
   'settings.browsertools.install': 'Установить',

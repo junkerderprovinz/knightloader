@@ -189,6 +189,8 @@ export const sk: Dict = {
   'settings.appsCopied': 'Skopírované',
   'settings.appsSource': 'Zdrojový kód',
   'settings.appsZip': 'Archív ZIP',
+  'settings.appsParleyportSub': 'Vlastný relay',
+  'settings.appsParleyportHint': 'ParleyPort je relay, ktorý prepojí tvoje inštancie aj naprieč rôznymi sieťami, a môžeš si ho prevádzkovať sám. Zadaj jeho adresu vo webovom rozhraní v časti Nastavenia, Párovanie a inštancie s tvojimi dvanástimi slovami budú potom komunikovať cez tvoj relay, nie cez relay projektu. Kliknutím skopíruješ príkaz, ktorý ho spustí:',
   'settings.appsExtension': 'Rozšírenie prehliadača',
   'settings.appsExtensionHint': 'Rozšírenie posiela odkaz, výber alebo otvorenú stránku do tvojho KnightLoadera, z ponuky pravého tlačidla alebo zo svojho tlačidla na paneli nástrojov. Chrome, Brave, Opera a Vivaldi ho inštalujú z Chrome Web Store, Edge z Edge Add-ons.',
   'settings.appsSoon': 'Čoskoro',

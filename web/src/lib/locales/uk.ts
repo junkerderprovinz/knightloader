@@ -1637,6 +1637,8 @@ export const uk: Dict = {
   'settings.browsertools.zipArchive': 'Архів ZIP',
   'settings.browsertools.dockerSub': 'Скопіювати команду',
   'settings.browsertools.unraidSub': 'Шаблон',
+  'settings.browsertools.parleyportSub': 'Власне реле',
+  'settings.browsertools.parleyportHint': "Реле ParleyPort з'єднує ваші екземпляри навіть у різних мережах, і його можна запустити в себе. Вкажіть його адресу на сторінці «Спарювання» у розділі «Налаштування», і екземпляри з вашими дванадцятьма словами зв'язуватимуться через ваше реле, а не через реле проєкту. Клацання копіює команду, яка його запускає:",
   'settings.browsertools.firefoxSub': 'Доповнення',
   'settings.browsertools.installPwaLabel': 'Або встановіть цю сторінку як застосунок',
   'settings.browsertools.install': 'Встановити',

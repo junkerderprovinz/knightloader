@@ -1636,6 +1636,8 @@ export const th: Dict = {
   'settings.browsertools.zipArchive': 'ไฟล์ ZIP',
   'settings.browsertools.dockerSub': 'คัดลอกคำสั่ง',
   'settings.browsertools.unraidSub': 'เทมเพลต',
+  'settings.browsertools.parleyportSub': 'รีเลย์ของตัวเอง',
+  'settings.browsertools.parleyportHint': 'ParleyPort คือรีเลย์ที่เชื่อมอินสแตนซ์ของคุณเข้าด้วยกัน แม้จะอยู่คนละเครือข่าย และคุณเปิดใช้เองได้ ใส่ที่อยู่ของมันในหน้าการจับคู่ของการตั้งค่า แล้วอินสแตนซ์ที่ใช้สิบสองคำของคุณจะคุยกันผ่านรีเลย์ของคุณแทนรีเลย์ของโครงการ คลิกเพื่อคัดลอกคำสั่งที่เริ่มรีเลย์นี้:',
   'settings.browsertools.firefoxSub': 'ส่วนเสริม',
   'settings.browsertools.installPwaLabel': 'หรือติดตั้งหน้านี้เป็นแอป',
   'settings.browsertools.install': 'ติดตั้ง',

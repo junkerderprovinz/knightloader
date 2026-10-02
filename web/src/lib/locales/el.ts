@@ -1636,6 +1636,8 @@ export const el: Dict = {
   'settings.browsertools.zipArchive': 'Αρχείο ZIP',
   'settings.browsertools.dockerSub': 'Αντιγραφή εντολής',
   'settings.browsertools.unraidSub': 'Πρότυπο',
+  'settings.browsertools.parleyportSub': 'Δικός σας αναμεταδότης',
+  'settings.browsertools.parleyportHint': 'Το ParleyPort είναι ο αναμεταδότης που συνδέει τις εγκαταστάσεις σου ακόμη και σε διαφορετικά δίκτυα, και μπορείς να τον τρέξεις μόνος σου. Βάλε τη διεύθυνσή του στις Ρυθμίσεις, Σύζευξη, και οι εγκαταστάσεις με τις δώδεκα λέξεις σου θα επικοινωνούν μέσω του δικού σου αναμεταδότη αντί για εκείνον του έργου. Ένα κλικ αντιγράφει την εντολή που τον ξεκινά:',
   'settings.browsertools.firefoxSub': 'Πρόσθετο',
   'settings.browsertools.installPwaLabel': 'Ή εγκαταστήστε αυτή τη σελίδα ως εφαρμογή',
   'settings.browsertools.install': 'Εγκατάσταση',

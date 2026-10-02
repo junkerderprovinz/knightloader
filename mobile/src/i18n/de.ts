@@ -286,6 +286,8 @@ export const de: Dict = {
   'settings.appsCopied': 'Kopiert',
   'settings.appsSource': 'Quellcode',
   'settings.appsZip': 'ZIP-Archiv',
+  'settings.appsParleyportSub': 'Eigenes Relay',
+  'settings.appsParleyportHint': 'ParleyPort ist das Relay, das deine Instanzen über verschiedene Netzwerke hinweg verbindet, und du kannst es selbst betreiben. Trag seine Adresse in der Weboberfläche unter Einstellungen, Kopplung ein, dann reden die Instanzen mit deinen zwölf Wörtern über dein Relay statt über das des Projekts. Ein Klick kopiert den Befehl, der es startet:',
   'settings.appsExtension': 'Browsererweiterung',
   'settings.appsExtensionHint': 'Die Erweiterung schickt einen Link, eine Auswahl oder die offene Seite an dein KnightLoader, per Rechtsklick oder über ihren Knopf in der Symbolleiste. Chrome, Brave, Opera und Vivaldi installieren sie aus dem Chrome Web Store, Edge aus Edge Add-ons.',
   'settings.appsSoon': 'Bald',

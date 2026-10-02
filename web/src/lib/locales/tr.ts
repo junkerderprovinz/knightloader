@@ -1636,6 +1636,8 @@ export const tr: Dict = {
   'settings.browsertools.zipArchive': 'ZIP arşivi',
   'settings.browsertools.dockerSub': 'Komutu kopyala',
   'settings.browsertools.unraidSub': 'Şablon',
+  'settings.browsertools.parleyportSub': 'Kendi rölen',
+  'settings.browsertools.parleyportHint': 'ParleyPort, örneklerini farklı ağlarda olsalar bile birbirine bağlayan röledir ve onu kendin çalıştırabilirsin. Adresini Ayarlar, Eşleştirme altında gir; on iki kelimeni paylaşan örnekler artık projenin rölesi yerine senin rölen üzerinden konuşur. Bir tıklama, onu başlatan komutu kopyalar:',
   'settings.browsertools.firefoxSub': 'Eklenti',
   'settings.browsertools.installPwaLabel': 'Veya bu sayfayı bir uygulama olarak yükleyin',
   'settings.browsertools.install': 'Yükle',

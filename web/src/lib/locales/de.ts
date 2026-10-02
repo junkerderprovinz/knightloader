@@ -1772,6 +1772,8 @@ export const de: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-Archiv',
   'settings.browsertools.dockerSub': 'Befehl kopieren',
   'settings.browsertools.unraidSub': 'Vorlage',
+  'settings.browsertools.parleyportSub': 'Eigenes Relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort ist das Relay, das deine Instanzen über verschiedene Netzwerke hinweg verbindet, und du kannst es selbst betreiben. Trag seine Adresse unter Einstellungen, Kopplung ein, dann reden die Instanzen mit deinen zwölf Wörtern über dein Relay statt über das des Projekts. Ein Klick kopiert den Befehl, der es startet:',
   'settings.browsertools.firefoxSub': 'Add-on',
   'settings.browsertools.installPwaLabel': 'Oder diese Seite als App installieren',
   'settings.browsertools.install': 'Installieren',

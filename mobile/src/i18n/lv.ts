@@ -189,6 +189,8 @@ export const lv: Dict = {
   'settings.appsCopied': 'Nokopēts',
   'settings.appsSource': 'Pirmkods',
   'settings.appsZip': 'ZIP arhīvs',
+  'settings.appsParleyportSub': 'Savs relay',
+  'settings.appsParleyportHint': 'ParleyPort ir relay, kas savieno tavas instances arī starp dažādiem tīkliem, un tu to vari darbināt pats. Ievadi tā adresi tīmekļa saskarnē, sadaļā Iestatījumi, Pārošana, un instances ar taviem divpadsmit vārdiem sazināsies caur tavu relay, nevis caur projekta relay. Klikšķis nokopē komandu, kas to palaiž:',
   'settings.appsExtension': 'Pārlūka paplašinājums',
   'settings.appsExtensionHint': 'Paplašinājums nosūta saiti, atlasi vai atvērto lapu uz tavu KnightLoader, no labā klikšķa izvēlnes vai ar savu pogu rīkjoslā. Chrome, Brave, Opera un Vivaldi to instalē no Chrome Web Store, Edge no Edge Add-ons.',
   'settings.appsSoon': 'Drīzumā',

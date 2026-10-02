@@ -189,6 +189,8 @@ export const cs: Dict = {
   'settings.appsCopied': 'Zkopírováno',
   'settings.appsSource': 'Zdrojový kód',
   'settings.appsZip': 'Archiv ZIP',
+  'settings.appsParleyportSub': 'Vlastní přeposílač',
+  'settings.appsParleyportHint': 'ParleyPort je přeposílač, který propojí tvoje instance i napříč různými sítěmi, a můžeš ho provozovat sám. Zadej jeho adresu ve webovém rozhraní v části Nastavení, Párování a instance s tvými dvanácti slovy pak budou komunikovat přes tvůj přeposílač, ne přes ten projektový. Kliknutím zkopíruješ příkaz, který ho spustí:',
   'settings.appsExtension': 'Rozšíření prohlížeče',
   'settings.appsExtensionHint': 'Rozšíření posílá odkaz, výběr nebo otevřenou stránku do tvého KnightLoaderu, z nabídky pravého tlačítka nebo ze svého tlačítka na panelu nástrojů. Chrome, Brave, Opera a Vivaldi ho instalují z Chrome Web Store, Edge z Edge Add-ons.',
   'settings.appsSoon': 'Brzy',

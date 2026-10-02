@@ -189,6 +189,8 @@ export const he: Dict = {
   'settings.appsCopied': 'הועתק',
   'settings.appsSource': 'קוד מקור',
   'settings.appsZip': 'ארכיון ZIP',
+  'settings.appsParleyportSub': 'ממסר עצמי',
+  'settings.appsParleyportHint': 'ParleyPort הוא הממסר שמחבר בין המופעים שלך גם ברשתות שונות, ואפשר להפעיל אותו בעצמך. הזן את הכתובת שלו בממשק האינטרנט, בהגדרות, תחת צימוד, והמופעים שחולקים את שתים עשרה המילים שלך יתקשרו דרך הממסר שלך במקום דרך הממסר של הפרויקט. לחיצה מעתיקה את הפקודה שמפעילה אותו:',
   'settings.appsExtension': 'הרחבת דפדפן',
   'settings.appsExtensionHint': 'ההרחבה שולחת קישור, בחירה או את הדף הפתוח ל-KnightLoader שלכם, מתפריט הלחיצה הימנית או מהכפתור שלה בסרגל הכלים. Chrome, Brave, Opera ו-Vivaldi מתקינים אותה מ-Chrome Web Store, ו-Edge מ-Edge Add-ons.',
   'settings.appsSoon': 'בקרוב',

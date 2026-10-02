@@ -1638,6 +1638,8 @@ export const ar: Dict = {
   'settings.browsertools.zipArchive': 'أرشيف ZIP',
   'settings.browsertools.dockerSub': 'نسخ الأمر',
   'settings.browsertools.unraidSub': 'قالب',
+  'settings.browsertools.parleyportSub': 'مُرحِّل خاص',
+  'settings.browsertools.parleyportHint': 'ParleyPort هو المُرحِّل الذي يربط مثيلاتك حتى عبر شبكات مختلفة، ويمكنك تشغيله بنفسك. أدخل عنوانه في الإعدادات، ضمن الاقتران، فتتواصل المثيلات التي تشترك في كلماتك الاثنتي عشرة عبر مُرحِّلك بدلًا من مُرحِّل المشروع. نقرة واحدة تنسخ الأمر الذي يشغّله:',
   'settings.browsertools.firefoxSub': 'إضافة',
   'settings.browsertools.installPwaLabel': 'أو ثبّت هذه الصفحة كتطبيق',
   'settings.browsertools.install': 'تثبيت',

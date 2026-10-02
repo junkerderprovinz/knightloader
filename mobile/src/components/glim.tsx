@@ -699,6 +699,7 @@ export function ReadmeButton({
       unraid: c.text,
       chrome: c.text,
       firefox: c.text,
+      parleyport: c.text,
     }[brand];
   }
   const press = usePress();

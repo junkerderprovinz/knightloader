@@ -1754,6 +1754,8 @@ body {
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
 /* The logo's gold, for the bookmarklet that carries it. 10.1:1. */
 .kl-tile-knightloader { --tile: #e6bc59; --tile-ink: #161616; }
+/* ParleyPort's logo shares the gold. 10.1:1. */
+.kl-tile-parleyport   { --tile: #e6bc59; --tile-ink: #161616; }
 /* The browsers the extension buttons offer: Chrome in the README button's
    blue, the others in the colour Simple Icons publishes for each. */
 .kl-tile-chrome    { --tile: #1a73e8; --tile-ink: #ffffff; } /* 4.5:1 */

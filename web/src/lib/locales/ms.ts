@@ -1636,6 +1636,8 @@ export const ms: Dict = {
   'settings.browsertools.zipArchive': 'Arkib ZIP',
   'settings.browsertools.dockerSub': 'Salin arahan',
   'settings.browsertools.unraidSub': 'Templat',
+  'settings.browsertools.parleyportSub': 'Relay sendiri',
+  'settings.browsertools.parleyportHint': 'ParleyPort ialah relay yang menyambungkan instans anda walaupun dalam rangkaian berlainan, dan anda boleh menjalankannya sendiri. Masukkan alamatnya di Tetapan, Gandingan, dan instans yang berkongsi dua belas perkataan anda akan berhubung melalui relay anda, bukan relay projek. Satu klik menyalin arahan yang memulakannya:',
   'settings.browsertools.firefoxSub': 'Add-on',
   'settings.browsertools.installPwaLabel': 'Atau pasang halaman ini sebagai aplikasi',
   'settings.browsertools.install': 'Pasang',

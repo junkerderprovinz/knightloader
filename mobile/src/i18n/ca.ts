@@ -189,6 +189,8 @@ export const ca: Dict = {
   'settings.appsCopied': 'Copiat',
   'settings.appsSource': 'Codi font',
   'settings.appsZip': 'Arxiu ZIP',
+  'settings.appsParleyportSub': 'Repetidor propi',
+  'settings.appsParleyportHint': 'ParleyPort és el repetidor que connecta les teves instàncies fins i tot entre xarxes diferents, i el pots fer funcionar tu mateix. Introdueix-ne l’adreça a la interfície web, a Configuració, Aparellament, i les instàncies que comparteixen les teves dotze paraules es comunicaran pel teu repetidor i no pel del projecte. Un clic copia l’ordre que l’engega:',
   'settings.appsExtension': 'Extensió de navegador',
   'settings.appsExtensionHint': 'L’extensió envia un enllaç, una selecció o la pàgina oberta al teu KnightLoader, des del menú del clic dret o des del seu botó a la barra d’eines. Chrome, Brave, Opera i Vivaldi la instal·len des de Chrome Web Store, i Edge des d’Edge Add-ons.',
   'settings.appsSoon': 'Aviat',

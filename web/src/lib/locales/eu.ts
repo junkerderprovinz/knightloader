@@ -1636,6 +1636,8 @@ export const eu: Dict = {
   'settings.browsertools.zipArchive': 'ZIP artxiboa',
   'settings.browsertools.dockerSub': 'Kopiatu komandoa',
   'settings.browsertools.unraidSub': 'Txantiloia',
+  'settings.browsertools.parleyportSub': 'Norberaren bitartekaria',
+  'settings.browsertools.parleyportHint': 'ParleyPort zure instantziak sare desberdinetan egon arren konektatzen dituen bitartekaria da, eta zuk zeuk exekuta dezakezu. Idatzi haren helbidea Ezarpenak, Parekatzea atalean, eta zure hamabi hitzak partekatzen dituzten instantziek zure bitartekariaren bidez hitz egingo dute, ez proiektuarenaren bidez. Klik batek hura abiarazten duen komandoa kopiatzen du:',
   'settings.browsertools.firefoxSub': 'Gehigarria',
   'settings.browsertools.installPwaLabel': 'Edo instalatu orri hau aplikazio gisa',
   'settings.browsertools.install': 'Instalatu',

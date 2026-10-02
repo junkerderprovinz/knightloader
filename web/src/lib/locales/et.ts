@@ -1636,6 +1636,8 @@ export const et: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-arhiiv',
   'settings.browsertools.dockerSub': 'Kopeeri käsk',
   'settings.browsertools.unraidSub': 'Mall',
+  'settings.browsertools.parleyportSub': 'Oma edastaja',
+  'settings.browsertools.parleyportHint': 'ParleyPort on edastaja, mis ühendab sinu eksemplarid ka eri võrkude vahel, ja sa saad seda ise käitada. Sisesta selle aadress jaotises Seaded, Sidumine, siis suhtlevad sinu kaheteistkümne sõnaga seotud eksemplarid projekti edastaja asemel sinu edastaja kaudu. Klõps kopeerib käsu, mis selle käivitab:',
   'settings.browsertools.firefoxSub': 'Lisand',
   'settings.browsertools.installPwaLabel': 'Või installi see leht rakendusena',
   'settings.browsertools.install': 'Paigalda',
