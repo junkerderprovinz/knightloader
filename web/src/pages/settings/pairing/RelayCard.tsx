@@ -33,11 +33,11 @@ const MODES: RelayMode[] = ['project', 'own', 'off'];
 const PLAINTEXT_RELAY = /^(ws|http):\/\//i;
 
 /**
- * The command that starts a relay. The relay keeps nothing across a restart,
- * which is why neither this nor Dockerfile.relay declares a volume.
+ * The command that starts ParleyPort in plain mode, for a reverse proxy in
+ * front. Only its domain mode keeps certificates, so this one needs no volume.
  */
 export const RELAY_RUN_COMMAND =
-  'docker run -d --name knightloader-relay -p 8760:8760 --restart unless-stopped ghcr.io/junkerderprovinz/knightloader-relay:latest';
+  'docker run -d --name parleyport -p 8760:8760 --restart unless-stopped junkerderprovinz/parleyport:latest';
 
 const COPY: Record<
   RelayMode,
