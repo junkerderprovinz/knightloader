@@ -12,7 +12,7 @@ go 1.26.6
 require (
 	github.com/coder/websocket v1.8.15
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/wailsapp/wails/v3 v3.0.0-beta.26
+	github.com/wailsapp/wails/v3 v3.0.0-beta.27
 	golang.org/x/sys v0.48.0
 )
 
@@ -55,8 +55,8 @@ require (
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dlclark/regexp2/v2 v2.5.2 // indirect
-	github.com/dop251/goja v0.0.0-20260917113740-793a2a65c13b // indirect
+	github.com/dlclark/regexp2/v2 v2.8.1 // indirect
+	github.com/dop251/goja v0.0.0-20261001174550-3ccc9c78af18 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -167,10 +167,10 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
-	modernc.org/libc v1.75.7 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.59.0 // indirect
+	modernc.org/sqlite v1.60.1 // indirect
 	rsc.io/qr v0.2.0 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
 )
