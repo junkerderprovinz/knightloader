@@ -40,54 +40,15 @@ func TestDebridServicesAreFilteredDespiteWWW(t *testing.T) {
 	}
 }
 
-// A hand-kept list fails silently when it stops matching, since a missing mark
-// looks like an ordinary host. This checks a sample of JD's spellings rather
-// than the exact set, which changes with JD's plugins.
-func TestMultihosterListStillMatchesJD(t *testing.T) {
-	// Names as JD's listPremiumHoster returns them, plus two ordinary hosts.
-	fromJD := []string{
-		"mega-debrid.eu", "zevera.com", "leechall.io", "simply-debrid.com", "deepbrid.com",
-		"ddownload.com", "rapidgator.net",
-	}
-	if got := multihosterCount(fromJD); got != 5 {
-		t.Errorf("%d of the sample marked as multihosters, want 5; the list has drifted from the names JD uses", got)
-	}
-	if IsMultihoster("ddownload.com") || IsMultihoster("rapidgator.net") {
-		t.Error("an ordinary file host is being marked as a multihoster")
-	}
-	// The normalisation through serviceKey.
-	for _, spelling := range []string{"www.zevera.com", "https://zevera.com/", "ZEVERA.COM"} {
-		if !IsMultihoster(spelling) {
-			t.Errorf("IsMultihoster(%q) is false; serviceKey is not normalising this spelling", spelling)
-		}
-	}
-}
-
-// A multihoster login is listed with the debrid accounts, so the row says which
-// it is; an ordinary hoster login stays unmarked.
-func TestAMultihosterLoginIsMarkedAsOne(t *testing.T) {
-	a := newQueueApp(t)
-	for _, host := range []string{"leechall.io", "ddownload.com"} {
-		if err := a.SetHosterLogin(host, "user", "secret"); err != nil {
-			t.Fatal(err)
-		}
-	}
-	marked := map[string]bool{}
-	for _, l := range a.HosterLogins() {
-		marked[l.Host] = l.Multihoster
-	}
-	if !marked["leechall.io"] || marked["ddownload.com"] {
-		t.Errorf("multihoster marks = %v, want leechall.io only", marked)
-	}
-}
-
-// The picker takes JD's list, leaves out the multihosters that have closed and
-// offers put.io, a storage service with its own files, as an ordinary hoster.
-func TestHosterPickerLeavesOutClosedMultihosters(t *testing.T) {
+// The picker takes JD's list and offers no multihoster: the closed ones and
+// LeechAll have no client here, and the others are debrid services of
+// KnightLoader's own. put.io, a storage service with its own files, is an
+// ordinary hoster.
+func TestHosterPickerOffersNoMultihoster(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/accounts/listPremiumHoster" {
 			_, _ = w.Write([]byte(`{"data":["dailyleech.com","www.multivip.net","debridplanet.com",` +
-				`"simply-debrid.com","put.io","leechall.io","ddownload.com"]}`))
+				`"simply-debrid.com","put.io","leechall.io","mydebrid.com","zevera.com","ddownload.com"]}`))
 			return
 		}
 		_, _ = w.Write([]byte(`{"data":null}`))
@@ -98,20 +59,17 @@ func TestHosterPickerLeavesOutClosedMultihosters(t *testing.T) {
 
 	offered := map[string]bool{}
 	for _, h := range a.HosterHosts(context.Background()) {
-		offered[h.ID] = h.Multihoster
+		offered[h.ID] = true
 	}
-	for _, closed := range []string{"dailyleech.com", "www.multivip.net", "debridplanet.com", "simply-debrid.com"} {
-		if _, ok := offered[closed]; ok {
-			t.Errorf("%s is offered although the service is closed", closed)
+	for _, multi := range []string{"dailyleech.com", "www.multivip.net", "debridplanet.com", "simply-debrid.com",
+		"leechall.io", "mydebrid.com", "zevera.com"} {
+		if offered[multi] {
+			t.Errorf("%s is offered as a hoster login", multi)
 		}
 	}
-	want := map[string]bool{"put.io": false, "leechall.io": true, "ddownload.com": false}
-	for host, multi := range want {
-		got, ok := offered[host]
-		if !ok {
+	for _, host := range []string{"put.io", "ddownload.com"} {
+		if !offered[host] {
 			t.Errorf("%s is missing from the picker", host)
-		} else if got != multi {
-			t.Errorf("%s multihoster = %v, want %v", host, got, multi)
 		}
 	}
 }
@@ -141,7 +99,7 @@ func TestEveryDebridServiceInTheCatalogueHasAClient(t *testing.T) {
 // picker, including CocoLeech, whose key page is on a subdomain.
 func TestNativeMultihostersLeaveTheHosterPicker(t *testing.T) {
 	skip := debridServiceDomains()
-	for _, host := range []string{"cocoleech.com", "deepbrid.com", "mega-debrid.eu", "premium.rpnet.biz", "zevera.com"} {
+	for _, host := range []string{"cocoleech.com", "deepbrid.com", "mega-debrid.eu", "mydebrid.com", "premium.rpnet.biz", "zevera.com"} {
 		if !skip[serviceKey(host)] {
 			t.Errorf("%s is still offered as a hoster login", host)
 		}

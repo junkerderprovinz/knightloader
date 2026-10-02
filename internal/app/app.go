@@ -558,6 +558,7 @@ func New(dataDir string) (*App, error) {
 	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
 
+	a.adoptJDDebridLogins()
 	a.rewireBackends()
 	a.applyWatchFolders(cfg.Get())
 	// At boot as well as on save, so an enabled log file is written from the

@@ -2,7 +2,8 @@
 // writes the credential into JD's account config through its Remote API, and
 // JD's hoster plugin performs the login; JD's own UI is never shown. The table
 // is AccountTable, shared with the debrid card; this file adds the JD status
-// badge and the host picker.
+// badge and the host picker. The picker offers no debrid service: KnightLoader
+// speaks to each of those itself.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -27,7 +28,7 @@ const POLL_MS = 8000;
 
 type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
-/** HosterLogins is the logins and the host list, loaded once for both cards. */
+/** HosterLogins is the logins and the host list. */
 export interface HosterLogins {
   logins: HosterLogin[] | null;
   hosts: HosterHost[];
@@ -99,20 +100,15 @@ export function useHosterLogins(onEnabledHosts?: (hosts: string) => void): Hoste
   return { logins, hosts, load, toggle, remove };
 }
 
-/**
- * hosterLoginRow is one login as an AccountTable row, for this card and for
- * the multihosters on the debrid card.
- */
-export function hosterLoginRow(
+/** hosterLoginRow is one login as an AccountTable row. */
+function hosterLoginRow(
   row: HosterLogin,
   actions: { onToggle: (v: boolean) => void; onEdit: () => void; onRemove: () => void },
-  via?: string,
 ): AccountRow {
   return {
     key: row.host,
     iconHost: row.host,
     label: row.host,
-    via,
     enabled: row.enabled,
     status: <HosterLoginStatusBadge login={row} />,
     tier: row.tier,
@@ -123,15 +119,14 @@ export function hosterLoginRow(
   };
 }
 
-/** HosterLoginSection is the hoster card: every login except the multihosters. */
+/** HosterLoginSection is the hoster card. */
 export function HosterLoginSection({ data }: { data: HosterLogins }) {
   const { t } = useT();
   const [dialog, setDialog] = useState<Dialog | null>(null);
   // The login awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
-  const rows = (data.logins ?? []).filter((l) => !l.multihoster);
-  const hosts = data.hosts.filter((h) => !h.multihoster);
+  const rows = data.logins ?? [];
   const hasRows = rows.length > 0;
 
   return (
@@ -174,10 +169,9 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
 
       {dialog && (
         <HosterLoginDialog
-          hosts={hosts}
-          existing={data.logins ?? []}
+          hosts={data.hosts}
+          existing={rows}
           editing={dialog.mode === 'edit' ? dialog.login : undefined}
-          hue={1}
           onClose={() => setDialog(null)}
           onSaved={data.load}
         />
@@ -186,7 +180,6 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
       {confirming && (
         <ConfirmRemoveLogin
           login={confirming}
-          hue={1}
           onCancel={() => setConfirming(null)}
           onConfirm={() => {
             setConfirming(null);
@@ -199,15 +192,12 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
 }
 
 /** ConfirmRemoveLogin asks first, since the stored password cannot be read back. */
-export function ConfirmRemoveLogin({
+function ConfirmRemoveLogin({
   login,
-  hue,
   onCancel,
   onConfirm,
 }: {
   login: HosterLogin;
-  /** The palette position of the card the login is listed on. */
-  hue: number;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -215,7 +205,7 @@ export function ConfirmRemoveLogin({
   return (
     <Modal
       title={t('accounts.remove')}
-      hue={hue}
+      hue={1}
       onClose={onCancel}
       footer={
         <>
@@ -285,25 +275,17 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
 // accounts.Redacted: sent back unchanged, it keeps the stored password.
 const REDACTED = '********';
 
-/**
- * HosterLoginDialog stores one login. `initial` opens it on a host already
- * picked elsewhere, as the debrid card does for a multihoster.
- */
-export function HosterLoginDialog({
+/** HosterLoginDialog stores one login. */
+function HosterLoginDialog({
   hosts,
   existing,
   editing,
-  initial,
-  hue,
   onClose,
   onSaved,
 }: {
   hosts: HosterHost[];
   existing: HosterLogin[];
   editing?: HosterLogin;
-  initial?: HosterHost;
-  /** The palette position of the card the window was opened from. */
-  hue: number;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -311,7 +293,7 @@ export function HosterLoginDialog({
   const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<HosterHost | null>(
-    editing ? { id: editing.host, label: editing.host } : (initial ?? null),
+    editing ? { id: editing.host, label: editing.host } : null,
   );
   const [username, setUsername] = useState(editing?.username ?? '');
   const [password, setPassword] = useState(editing ? REDACTED : '');
@@ -346,7 +328,7 @@ export function HosterLoginDialog({
   return (
     <Modal
       title={title}
-      hue={hue}
+      hue={1}
       onClose={onClose}
       footer={
         picked ? (
@@ -399,7 +381,7 @@ export function HosterLoginDialog({
       ) : (
         <div className="flex flex-col gap-4">
           {/* Only while adding from this list; an edit stays on its host. */}
-          {!editing && !initial && (
+          {!editing && (
             <Button
               kind="secondary"
               labelled

@@ -2467,10 +2467,6 @@ export async function testFeed(url: string, titleFilter = ''): Promise<FeedTest>
 export interface HosterHost {
   id: string;
   label: string;
-  /** A service that unlocks other hosts rather than hosting files. Absent when
-   *  false. The list is kept by hand on the server, because JDownloader's API
-   *  cannot say. */
-  multihoster?: boolean;
 }
 
 /**
@@ -2496,8 +2492,6 @@ export interface HosterLogin {
   expiry?: string;
   trafficLeft?: number;
   trafficMax?: number;
-  /** A multihoster's login, listed on the debrid card rather than the hoster card. */
-  multihoster?: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */

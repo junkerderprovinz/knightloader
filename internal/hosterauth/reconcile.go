@@ -81,10 +81,6 @@ type LoginState struct {
 	// TrafficLeft and TrafficMax are bytes, 0 when JD states neither.
 	TrafficLeft int64 `json:"trafficLeft,omitempty"`
 	TrafficMax  int64 `json:"trafficMax,omitempty"`
-
-	// Multihoster is set by internal/app like Host.Multihoster, so the page can
-	// list the login among the debrid accounts.
-	Multihoster bool `json:"multihoster,omitempty"`
 }
 
 // DesiredLogin is one row Store wants JD to have. The password travels only as
@@ -150,13 +146,6 @@ func Curated(host string) bool {
 type Host struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
-	// Multihoster marks a service that unlocks other hosts rather than hosting
-	// files itself. Filled in by internal/app from a list kept by hand, see
-	// app_multihoster.go.
-	//
-	// omitempty: only a handful of the hosts carry it, and an explicit
-	// `"multihoster":false` on every other row is noise on a long response.
-	Multihoster bool `json:"multihoster,omitempty"`
 }
 
 // Reconciler owns one App's hoster-login state: the desired side (Store) and

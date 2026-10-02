@@ -1410,9 +1410,8 @@ export const en = {
   'accounts.debrid.empty': 'No debrid accounts yet',
   'accounts.debrid.emptyHint': 'Add an account at one of the supported debrid services to unlock hoster links automatically.',
   'accounts.debrid.title': 'Debrid accounts',
-  'accounts.debrid.viaJD': 'through JDownloader',
   'accounts.debrid.hint':
-    'A debrid service is one paid account that unlocks many file hosters at once. KnightLoader sends it the link and downloads the direct link it gets back, at full speed and without waiting time or captchas. It is the recommended way, because the alternative is a separate premium account at every single hoster. A few services can only be reached through the built-in JDownloader, which then does the login; their rows say so.',
+    'A debrid service is one paid account that unlocks many file hosters at once. KnightLoader sends it the link and downloads the direct link it gets back, at full speed and without waiting time or captchas. It is the recommended way, because the alternative is a separate premium account at every single hoster.',
   'accounts.edit': 'Edit credential',
   'accounts.editCredentialTitle': 'Edit the credential for {service}',
   'accounts.enableAccount': 'Enable {account}',
