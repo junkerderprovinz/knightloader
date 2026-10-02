@@ -222,7 +222,7 @@ export const ro: Dict = {
   'relay.project': 'Relay de proiect',
   'relay.own': 'Relay propriu',
   'relay.off': 'Fără relay',
-  'relay.projectSentence': 'Proiectul rulează relay-ul la {host}, gratuit.',
+  'relay.projectSentence': 'Proiectul rulează ParleyPort la {host}, gratuit.',
   'relay.projectNeed': 'Nimic. Funcționează fără configurare.',
   'relay.projectSees': 'Pentru ce instanță este un mesaj, cât de mare este, când ajunge și adresele IP ale instanțelor tale.',
   'relay.projectAlt': 'Instanța A din rețeaua ta și instanța B din altă rețea, conectate prin relay-ul proiectului. Cheile există doar pe A și pe B.',

@@ -222,7 +222,7 @@ export const lv: Dict = {
   'relay.project': 'Projekta relay',
   'relay.own': 'Savs relay',
   'relay.off': 'Bez relay',
-  'relay.projectSentence': 'Projekts bez maksas uztur relay adresē {host}.',
+  'relay.projectSentence': 'Projekts bez maksas uztur ParleyPort adresē {host}.',
   'relay.projectNeed': 'Nekas. Tas darbojas bez iestatīšanas.',
   'relay.projectSees': 'Kurai instancei ziņojums paredzēts, cik liels tas ir, kad tas ienāk, un jūsu instanču IP adreses.',
   'relay.projectAlt': 'Instance A jūsu tīklā un instance B citā tīklā, savienotas caur projekta relay. Atslēgas ir tikai pie A un B.',

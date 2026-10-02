@@ -222,7 +222,7 @@ export const ja: Dict = {
   'relay.project': 'プロジェクトのリレー',
   'relay.own': '自分のリレー',
   'relay.off': 'リレーなし',
-  'relay.projectSentence': 'プロジェクトが{host}でリレーを無料で運用しています。',
+  'relay.projectSentence': 'プロジェクトが{host}でParleyPortを無料で運用しています。',
   'relay.projectNeed': '何も必要ありません。設定なしで動作します。',
   'relay.projectSees': 'メッセージがどのインスタンス宛か、サイズ、到着時刻、そしてインスタンスのIPアドレスです。',
   'relay.projectAlt': 'あなたのネットワーク内のインスタンスAと別のネットワークのインスタンスBが、プロジェクトのリレーを介して接続されています。鍵はAとBにのみあります。',

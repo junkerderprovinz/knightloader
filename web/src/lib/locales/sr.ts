@@ -222,7 +222,7 @@ export const sr: Dict = {
   'relay.project': 'Пројектни релеј',
   'relay.own': 'Сопствени релеј',
   'relay.off': 'Без релеја',
-  'relay.projectSentence': 'Пројекат бесплатно води релеј на {host}.',
+  'relay.projectSentence': 'Пројекат бесплатно води ParleyPort на {host}.',
   'relay.projectNeed': 'Ништа. Ради без подешавања.',
   'relay.projectSees': 'За коју је инстанцу порука, колика је, када стиже и IP адресе твојих инстанци.',
   'relay.projectAlt': 'Инстанца А у твојој мрежи и инстанца Б у другој мрежи, повезане преко пројектног релеја. Кључеви су само код А и Б.',

@@ -222,7 +222,7 @@ export const sk: Dict = {
   'relay.project': 'Relay projektu',
   'relay.own': 'Vlastný relay',
   'relay.off': 'Žiadny relay',
-  'relay.projectSentence': 'Projekt prevádzkuje relay na {host}, zadarmo.',
+  'relay.projectSentence': 'Projekt prevádzkuje ParleyPort na {host}, zadarmo.',
   'relay.projectNeed': 'Nič. Funguje bez nastavovania.',
   'relay.projectSees': 'Pre ktorú inštanciu je správa určená, aká je veľká, kedy príde a IP adresy vašich inštancií.',
   'relay.projectAlt': 'Inštancia A vo vašej sieti a inštancia B v inej sieti, prepojené cez relay projektu. Kľúče sú iba na A a B.',

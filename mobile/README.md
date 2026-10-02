@@ -96,7 +96,7 @@ when. They cannot read the frames: each proxy frame is sealed with AES-256-GCM
 under a second key derived from the same phrase (`src/api/relayFrame.ts`), so
 the relay sees which instance a frame is for and which request it answers, and
 nothing of its path or body. It never sees the phrase either: the instances
-and the phone send only a hash of it. Ours is at `relay.halleluja.design`; run
+and the phone send only a hash of it. Ours is at `parleyport.halleluja.design`; run
 your own if the metadata matters.
 
 The app announces itself to the relay with `client: true` (`relay.Announce`), so

@@ -30,10 +30,10 @@ const base: ConnectInfo = {
   active: true,
   connected: true,
   passwordSet: true,
-  relayUrl: 'wss://relay.halleluja.design/relay/connect',
+  relayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   selfHosted: false,
   relayMode: 'project',
-  projectRelayUrl: 'wss://relay.halleluja.design/relay/connect',
+  projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
   address: '',
   members: [],
@@ -184,7 +184,7 @@ describe('PhraseCard', () => {
     expect(host.textContent).toContain('Relay not reachable');
     const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'What to check')!;
     act(() => open.click());
-    expect(host.textContent).toContain('relay.halleluja.design');
+    expect(host.textContent).toContain('parleyport.halleluja.design');
   });
 
   it('points at the relay card when there is no relay', () => {
