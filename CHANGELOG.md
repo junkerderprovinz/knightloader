@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.5] - 2026-10-02
+
 ### Added
 
 - **MyDebrid.** KnightLoader talks to MyDebrid itself, with the username and
@@ -44,8 +46,19 @@ release's tag.
   how many connections each one allows and which have used up their daily
   allowance, and the Accounts page shows the plan and when it runs out.
   MyDebrid does not take torrents.
+- **ParleyPort on the Apps page.** The "On a server" card offers
+  [ParleyPort](https://github.com/junkerderprovinz/parleyport), the relay you
+  can run yourself, next to Unraid, Docker and the source code, in the web
+  interface and in the phone app. A click copies the command that starts it.
 
 ### Changed
+
+- **The relay is ParleyPort.** The project relay moved into its own project,
+  and instances, the phone app and the browser extension dial it at
+  `parleyport.halleluja.design`. The old address keeps answering for a while,
+  so installations that have not updated stay connected. The Own relay card
+  copies the command that starts ParleyPort, and the docs name it and its
+  `PARLEYPORT_DOMAIN` setting.
 
 - **KnightLoader talks to every debrid service itself.** The debrid card no
   longer lists multihosters reached through JDownloader, and the hoster login

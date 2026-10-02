@@ -1,0 +1,1 @@
+KnightLoader talks to MyDebrid itself, and pairing goes through the new ParleyPort relay.
