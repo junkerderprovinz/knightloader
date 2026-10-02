@@ -1317,6 +1317,10 @@ export const lv: Dict = {
   'intake.clipboardWatchHint': 'Katra saite, ko kaut kur nokopē, nonāk tieši savācējā, kamēr šī cilne ir atvērta un priekšplānā. Ctrl+V KnightLoader iekšienē darbojas vienmēr un to neprasa.',
   'intake.clipboardWatchUnavailable': 'Šeit nav pieejams: pārlūks ļauj lapai lasīt starpliktuvi tikai caur HTTPS vai localhost. Ctrl+V KnightLoader iekšienē darbojas jebkurā gadījumā.',
   'intake.clipboardWatchDenied': 'Starpliktuves uzraudzība izslēgta: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Katra saite, ko kaut kur nokopē, nonāk tieši savācējā, arī tad, kad KnightLoader ir paslēpts paziņojumu apgabalā. No starpliktuves tiek ņemtas tikai saites. Ctrl+V KnightLoader iekšienē darbojas vienmēr un to neprasa.',
+  'intake.clipboardWatchTarget': 'Sūtīt nokopētās saites uz',
+  'intake.clipboardWatchTargetHint': 'Šī instance vai cita no lapas Instances, piemēram, ar divpadsmit vārdiem sapārots NAS. Tiek sūtītas tikai saites, nekas cits no starpliktuves.',
+  'intake.clipboardWatchLimited': 'Wayland vidē KnightLoader redz starpliktuvi tikai tad, kad tā logs ir priekšā. Ja ir instalēts wl-clipboard, tas var to vērot fonā darbvirsmās, kas to atļauj, piemēram, KDE vai Sway. GNOME to neatļauj.',
 
   'collector.hosterPresetHint': 'Kurus {host} saišu variantus rāda savācējs un ar kādu formātu un kvalitāti sāk jaunās saites. Tiklīdz saite ir pārbaudīta, tā pārslēdzas uz savu celiņu, kas ir vistuvāk izvēlei. Saite bez šī video formāta saņem savu labāko video līdz šai kvalitātei, bet saitei bez šī audio formāta skaņa tiek konvertēta.',
   'activity.crawl': 'Lapu skenēšana',

@@ -1317,6 +1317,10 @@ export const tr: Dict = {
   'intake.clipboardWatchHint': 'Bu sekme açık ve önde olduğu sürece, nerede kopyalarsan kopyala her bağlantı doğrudan toplayıcıya gider. KnightLoader içinde Ctrl+V her zaman çalışır ve buna ihtiyaç duymaz.',
   'intake.clipboardWatchUnavailable': 'Burada kullanılamıyor: tarayıcı bir sayfanın panoyu okumasına yalnızca HTTPS üzerinden veya localhost\'ta izin verir. KnightLoader içinde Ctrl+V yine de çalışır.',
   'intake.clipboardWatchDenied': 'Pano izleme kapatıldı: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Nerede kopyalarsan kopyala her bağlantı, KnightLoader bildirim alanında gizliyken bile doğrudan toplayıcıya gider. Panodan yalnızca bağlantılar alınır. KnightLoader içinde Ctrl+V her zaman çalışır ve buna ihtiyaç duymaz.',
+  'intake.clipboardWatchTarget': 'Kopyalanan bağlantıların hedefi',
+  'intake.clipboardWatchTargetHint': 'Bu örnek ya da Örnekler sayfasındaki başka biri, örneğin on iki kelimeyle eşleştirilmiş bir NAS. Yalnızca bağlantılar gönderilir, panodan başka hiçbir şey gitmez.',
+  'intake.clipboardWatchLimited': 'Wayland\'de KnightLoader panoyu yalnızca penceresi öndeyken görür. wl-clipboard kuruluysa, buna izin veren masaüstlerinde (KDE ya da Sway gibi) panoyu arka planda izleyebilir. GNOME buna izin vermez.',
 
   'collector.hosterPresetHint': '{host} kaynaklı bağlantıların hangi varyantlarını toplayıcının gösterdiği ve yeni bağlantıların hangi biçim ve kaliteyle başladığı. Bir bağlantı kontrol edilince, kendi izlerinden en yakın olanına geçer. Bu video biçimi olmayan bir bağlantı bu kaliteye kadar en iyi videosunu alır, bu ses biçimi olmayan bir bağlantının sesi ise dönüştürülür.',
   'activity.crawl': 'Sayfalar taranıyor',

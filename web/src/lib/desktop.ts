@@ -8,6 +8,7 @@
 
 import { useEffect } from 'react';
 
+import type { WatchOutcome } from './clipboardWatch';
 import type { TranslationKey } from './i18n';
 
 /** Whether this page runs in the desktop app's window, which Wails serves from an origin of its own. */
@@ -273,6 +274,16 @@ export function openDesktopStream(h: StreamHandlers): LiveStream | null {
 export function onUpdateReady(callback: (version: string) => void): () => void {
   if (!isDesktop()) return () => {};
   return listen('updateReady', (version) => callback(String(version)));
+}
+
+/**
+ * onClipboardOutcome calls back with what the desktop app's clipboard watch
+ * did with a copied text, as clipOutcome in desktop/clipwatch.go sends it.
+ * Outside the desktop app nothing sends it, and nothing is set up.
+ */
+export function onClipboardOutcome(callback: (outcome: WatchOutcome) => void): () => void {
+  if (!isDesktop()) return () => {};
+  return listen('clipboardWatch', (outcome) => callback(outcome as WatchOutcome));
 }
 
 /** The tray menu's labels; TrayWords in desktop/config.go. */
