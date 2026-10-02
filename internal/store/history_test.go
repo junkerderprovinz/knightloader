@@ -308,3 +308,54 @@ func TestTrimHistoryKeepsTheNewest(t *testing.T) {
 		t.Errorf("TrimHistory(0) dropped %d (err %v), want it to leave the history alone", dropped, err)
 	}
 }
+
+// A copy of the history built at one revision is stale once a download
+// finishes, the history is trimmed or it is cleared, and fresh otherwise.
+func TestHistoryRevisionMovesWithEveryChangeToTheHistory(t *testing.T) {
+	s, err := Open(filepath.Join(t.TempDir(), "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	rev := s.HistoryRevision()
+	moved := func(what string) {
+		t.Helper()
+		now := s.HistoryRevision()
+		if now == rev {
+			t.Errorf("the revision stayed at %d after %s", rev, what)
+		}
+		rev = now
+	}
+
+	queued := core.Task{ID: "q", URL: "https://host.example/q.bin", Status: core.StatusQueued, CreatedAt: time.Now()}
+	if err := s.Save(&queued); err != nil {
+		t.Fatal(err)
+	}
+	if s.HistoryRevision() != rev {
+		t.Error("saving an unfinished download moved the revision")
+	}
+
+	for i := 0; i < 2; i++ {
+		done := core.Task{ID: fmt.Sprintf("d%d", i), URL: fmt.Sprintf("https://host.example/%d.bin", i),
+			Status: core.StatusDone, CreatedAt: time.Now()}
+		if err := s.Save(&done); err != nil {
+			t.Fatal(err)
+		}
+		moved("a download finished")
+	}
+	if _, err := s.TrimHistory(1); err != nil {
+		t.Fatal(err)
+	}
+	moved("a trim")
+	if _, err := s.TrimHistory(1); err != nil {
+		t.Fatal(err)
+	}
+	if s.HistoryRevision() != rev {
+		t.Error("a trim that dropped nothing moved the revision")
+	}
+	if err := s.ClearHistory(); err != nil {
+		t.Fatal(err)
+	}
+	moved("clearing the history")
+}

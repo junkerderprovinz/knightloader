@@ -679,6 +679,11 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		a.recordSkipped(u, m)
 		return nil
 	}
+	// After the list, so a link that is in both is noted once, as a copy of the
+	// row the user can see.
+	if v := a.downloadedVerdict(cand); v.Rejected {
+		return a.hold(cand, v, in, now, nil)
+	}
 
 	t := &core.Task{
 		URL:     u,
@@ -770,6 +775,10 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		if v.Rejected {
 			return a.hold(cand, v, in, now, nil)
 		}
+	}
+	// Again with the resolved name and size, which the mirror policy may need.
+	if v := a.downloadedVerdict(cand); v.Rejected {
+		return a.hold(cand, v, in, now, nil)
 	}
 	staged := a.finishStaging(t, cand)
 	// A HEAD probe for plain file links fills in size and availability while
@@ -911,10 +920,10 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	t.MatchedRules = e.Matched
 }
 
-// hold parks a link the filter refused in the holding area. It is a real task,
-// so it survives a restart and can be restored, but Skipped keeps it out of the
-// collector, the queue and the counters. Nothing is resolved, so a refused host
-// is never contacted.
+// hold parks a link the filter refused, or the download history already has,
+// in the holding area. It is a real task, so it survives a restart and can be
+// restored, but Skipped keeps it out of the collector, the queue and the
+// counters. Nothing is resolved, so a refused host is never contacted.
 //
 // A torrent is read from its own link, which asks nobody. It keeps its
 // trackers, so a tracker banned after a restore still stops it, and files, the
