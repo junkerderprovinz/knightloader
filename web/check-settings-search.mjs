@@ -50,6 +50,7 @@ const FILE_PAGES = [
   // The Help page's topics, plus the About card the General tab draws at its foot.
   { file: 'src/pages/settings/Help.tsx', pages: ['help', 'look'], titleTags: ['Topic'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
+  { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.
   { file: 'src/components/FreeDownloadsCard.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
