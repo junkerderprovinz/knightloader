@@ -25,20 +25,19 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/yenc"
 )
 
-// Server is one fake server. Its fields are set before the first connection.
+// Server is one fake server.
 type Server struct {
 	// Host and Port are where it listens.
 	Host string
 	Port int
-	// User and Pass, when User is set, are the only login it accepts, and it
-	// answers no article before one.
-	User, Pass string
 	// ClientTLS is what a client needs to trust a TLS server, nil otherwise.
 	ClientTLS *tls.Config
 
 	l net.Listener
 
 	mu       sync.Mutex
+	user     string
+	pass     string
 	articles map[string][]byte
 	damaged  map[string]int
 	dropNext int
@@ -91,6 +90,21 @@ func (s *Server) Close() {
 	for c := range s.conns {
 		_ = c.Close()
 	}
+}
+
+// SetLogin makes user and pass the only login the server accepts, and it
+// answers no article before one.
+func (s *Server) SetLogin(user, pass string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.user, s.pass = user, pass
+}
+
+// Login is the login SetLogin set.
+func (s *Server) Login() (user, pass string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.user, s.pass
 }
 
 // Add stores an article body under id, without angle brackets.
@@ -175,7 +189,8 @@ func (s *Server) session(c net.Conn) {
 		_ = w.Flush()
 	}
 	reply("200 nntptest ready")
-	authed := s.User == ""
+	wantUser, wantPass := s.Login()
+	authed := wantUser == ""
 	user := ""
 	for {
 		_ = c.SetReadDeadline(time.Now().Add(time.Minute))
@@ -201,7 +216,7 @@ func (s *Server) session(c net.Conn) {
 			user = arg
 			reply("381 password please")
 		case cmd == "AUTHINFO" && len(fields) == 3 && strings.EqualFold(fields[1], "PASS"):
-			if user == s.User && arg == s.Pass {
+			if user == wantUser && arg == wantPass {
 				authed = true
 				s.mu.Lock()
 				s.logins++

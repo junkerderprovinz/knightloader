@@ -23,7 +23,7 @@ func TestUsenetServerRoutes(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 	news := nntptest.New(t)
-	news.User, news.Pass = "reader", "secret"
+	news.SetLogin("reader", "secret")
 
 	send := func(method, path string, body any) (int, []byte) {
 		t.Helper()

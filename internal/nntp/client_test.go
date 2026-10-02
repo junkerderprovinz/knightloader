@@ -15,7 +15,8 @@ import (
 )
 
 func serverOf(s *nntptest.Server, level int) nntp.Server {
-	return nntp.Server{ID: s.Addr(), Host: s.Host, Port: s.Port, Connections: 2, Level: level, Username: s.User, Password: s.Pass}
+	user, pass := s.Login()
+	return nntp.Server{ID: s.Addr(), Host: s.Host, Port: s.Port, Connections: 2, Level: level, Username: user, Password: pass}
 }
 
 func part(n int) yenc.Part {
@@ -32,7 +33,7 @@ func fetch(t *testing.T, c *nntp.Client, id string) (yenc.Part, error) {
 
 func TestFetchDecodesWithLogin(t *testing.T) {
 	s := nntptest.New(t)
-	s.User, s.Pass = "reader", "secret"
+	s.SetLogin("reader", "secret")
 	s.AddPart("a@test", part(3))
 	c := nntp.NewClient([]nntp.Server{serverOf(s, 0)}, nil)
 	defer c.Close()
@@ -160,7 +161,7 @@ func TestDroppedConnectionIsReplaced(t *testing.T) {
 
 func TestWrongLogin(t *testing.T) {
 	s := nntptest.New(t)
-	s.User, s.Pass = "reader", "secret"
+	s.SetLogin("reader", "secret")
 	cfg := serverOf(s, 0)
 	cfg.Password = "wrong"
 	if err := nntp.Check(context.Background(), cfg); !errors.Is(err, nntp.ErrAuth) {
