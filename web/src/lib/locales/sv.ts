@@ -1053,6 +1053,9 @@ export const sv: Dict = {
 
   'settings.chunks': 'Anslutningar per nedladdning (0 = automatiskt)',
   'settings.chunksHint': 'Hur många anslutningar en nedladdning öppnar när inget mer specifikt gäller. En regel, eller en enskild nedladdning, kan ange sitt eget antal och går före det här. En värd som tål färre får ändå färre: en värdgräns kan bara sänka antalet, aldrig höja det. Vid 0 avgör appen. Fler än en handfull anslutningar ger ingenting hos en värd som begränsar per fil, och är ett säkert sätt att få ett konto flaggat.',
+  'settings.multiSource': 'Använd flera källor för en fil',
+  'settings.multiSourceHint':
+    'Om en fil finns på mer än ett ställe delas hämtningen upp mellan alla: samma länk upplåst av ett andra debrid-konto, eller en reservkopia från en annan filvärd som listan sparar. Varje källa får det antal anslutningar som ställts in ovan. Det hjälper när en tjänst begränsar hastigheten per länk eller per anslutning, och ändrar ingenting när en källa redan fyller din lina. Filer under 64 MiB hämtas alltid från en källa. En källa används bara om den anger samma storlek och skickar samma byte vid stickprovspunkter i filen; om en slutar halvvägs tar de andra över dess del. Av som standard: varje extra upplåsning drar trafik från det kontot, vissa tjänster räknar av hela filen redan vid upplåsningen, och vissa tjänsters villkor förbjuder nedladdning med två konton samtidigt.',
   'task.chunks': 'Anslutningar (0 = den globala inställningen)',
   'task.chunksHint': 'Hur många anslutningar just den här nedladdningen öppnar. Det går före den globala inställningen och varje regel som satt den, men aldrig före värden: en värd som tål färre får ändå färre. Vid 0 tas undantaget bort och antalet avgörs någon annanstans igen.',
   'columns.connection': 'Anslutning',

@@ -1053,6 +1053,9 @@ export const hu: Dict = {
 
   'settings.chunks': 'Kapcsolatok letöltésenként (0 = automatikus)',
   'settings.chunksHint': 'Hány kapcsolatot nyit egy letöltés, ha semmi pontosabb nem érvényes. Egy szabály vagy egyetlen letöltés megadhatja a saját számát, és az ezt felülírja. Az a tárhely, amelyik kevesebbet visel el, akkor is kevesebbet kap: a tárhely korlátja csak csökkenteni tudja a számot, növelni soha. 0 esetén az alkalmazás dönt. Egy maréknyinál több kapcsolat semmit sem hoz olyan tárhelyen, amelyik fájlonként korlátoz, viszont biztos módja annak, hogy egy fiókot megjelöljenek.',
+  'settings.multiSource': 'Több forrás használata egy fájlhoz',
+  'settings.multiSourceHint':
+    'Ha egy fájl több helyről is elérhető, a letöltés megoszlik közöttük: ugyanaz a link egy második debrid-fiókkal feloldva, vagy egy másik tárhelyről származó tartalék másolat, amelyet a lista megőriz. Minden forrás a fent beállított számú kapcsolatot kapja. Akkor segít, ha egy szolgáltatás egy link vagy egy kapcsolat sebességét korlátozza, és semmin sem változtat, ha már egy forrás is kitölti a vonaladat. A 64 MiB alatti fájlok mindig egy forrásból jönnek. Egy forrás csak akkor csatlakozik, ha ugyanazt a méretet jelenti, és a fájl mintavételi pontjain ugyanazokat a bájtokat küldi; ha az egyik félúton leáll, a többiek befejezik a részét. Alapból kikapcsolva: minden további feloldás az adott fiók forgalmát fogyasztja, egyes szolgáltatások már a feloldáskor a teljes fájlt elszámolják, és egyes szolgáltatások feltételei tiltják a két fiókkal egyszerre történő letöltést.',
   'task.chunks': 'Kapcsolatok (0 = a globális beállítás)',
   'task.chunksHint': 'Hány kapcsolatot nyit ez az egy letöltés. Felülírja a globális beállítást és minden szabályt, amelyik beállította, de a tárhelyet soha: az a tárhely, amelyik kevesebbet visel el, akkor is kevesebbet kap. 0 esetén a kivétel megszűnik, és a szám megint máshol dől el.',
   'columns.connection': 'Kapcsolat',
