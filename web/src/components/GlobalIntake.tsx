@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
-import { useClipboardWatch } from '../lib/useClipboardWatch';
-import { startClipboardWatch } from '../lib/clipboardWatch';
+import { useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
+import { startClipboardWatch, type WatchOutcome } from '../lib/clipboardWatch';
+import { isDesktop, onClipboardOutcome } from '../lib/desktop';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -18,6 +19,7 @@ export function GlobalIntake() {
   const { toast } = useToast();
   const { t } = useT();
   const [watch, setWatch] = useClipboardWatch();
+  const [target] = useClipboardWatchTarget();
 
   useEffect(() => {
     async function stageText(text: string) {
@@ -90,10 +92,12 @@ export function GlobalIntake() {
   }, [t, toast]);
 
   // The clipboard watch lives here because this component stays mounted across
-  // pages. A refused permission ends the watch instead of asking again.
+  // pages. A refused permission ends the watch instead of asking again. In the
+  // desktop app the watch runs in Go, and the page only shows what it did, so
+  // a link is not sent twice while the window has focus.
   useEffect(() => {
     if (!watch) return;
-    return startClipboardWatch((o) => {
+    const show = (o: WatchOutcome) => {
       switch (o.kind) {
         case 'staged':
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
@@ -108,9 +112,13 @@ export function GlobalIntake() {
         case 'failed':
           toast(t('list.failed', { error: o.reason }), 'fail');
           break;
+        case 'limited':
+          toast(t('intake.clipboardWatchLimited'), 'info');
+          break;
       }
-    });
-  }, [watch, setWatch, t, toast]);
+    };
+    return isDesktop() ? onClipboardOutcome(show) : startClipboardWatch(target, show);
+  }, [watch, setWatch, target, t, toast]);
 
   return null;
 }

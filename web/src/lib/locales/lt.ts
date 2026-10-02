@@ -1317,6 +1317,10 @@ export const lt: Dict = {
   'intake.clipboardWatchHint': 'Kiekviena bet kur nukopijuota nuoroda keliauja tiesiai į rinkiklį, kol ši kortelė atidaryta ir priekiniame plane. Ctrl+V KnightLoader viduje veikia visada ir to nereikalauja.',
   'intake.clipboardWatchUnavailable': 'Čia neprieinama: naršyklė leidžia puslapiui skaityti iškarpinę tik per HTTPS arba localhost. Ctrl+V KnightLoader viduje veikia bet kuriuo atveju.',
   'intake.clipboardWatchDenied': 'Iškarpinės stebėjimas išjungtas: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Kiekviena bet kur nukopijuota nuoroda keliauja tiesiai į rinkiklį, net kai KnightLoader paslėptas pranešimų srityje. Iš iškarpinės paimamos tik nuorodos. Ctrl+V KnightLoader viduje veikia visada ir to nereikalauja.',
+  'intake.clipboardWatchTarget': 'Nukopijuotas nuorodas siųsti į',
+  'intake.clipboardWatchTargetHint': 'Šis egzempliorius arba kitas iš puslapio Egzemplioriai, pavyzdžiui, dvylika žodžių susietas NAS. Siunčiamos tik nuorodos, nieko kito iš iškarpinės.',
+  'intake.clipboardWatchLimited': 'Wayland aplinkoje KnightLoader mato iškarpinę tik tol, kol jo langas yra priekyje. Įdiegus wl-clipboard, jis gali ją stebėti fone tose darbalaukio aplinkose, kurios tai leidžia, pavyzdžiui, KDE ar Sway. GNOME to neleidžia.',
 
   'collector.hosterPresetHint': 'Kuriuos {host} nuorodų variantus rodo rinkiklis ir kokiu formatu bei kokybe pradeda naujos nuorodos. Kai nuoroda patikrinta, ji persijungia į savo takelį, kuris artimiausias pasirinkimui. Nuoroda be šio vaizdo formato gauna savo geriausią vaizdo įrašą iki šios kokybės, o nuorodos be šio garso formato garsas konvertuojamas.',
   'activity.crawl': 'Puslapių nagrinėjimas',

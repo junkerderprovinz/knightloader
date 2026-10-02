@@ -164,6 +164,11 @@ type App struct {
 	// what to fix.
 	RequestSuspend func() error
 
+	// WatchesClipboard, set on the desktop build only, reports whether the
+	// desktop app watches the system clipboard for links right now; see
+	// desktop/clipwatch.go.
+	WatchesClipboard func() bool
+
 	// CnL is the Click'n'Load listener the embedding started, nil where it
 	// started none. The server and the desktop build both set it. Its switch is
 	// not persisted: KL_CNL is the deployment's decision, and switching the

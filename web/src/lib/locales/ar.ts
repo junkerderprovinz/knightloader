@@ -1319,6 +1319,10 @@ export const ar: Dict = {
   'intake.clipboardWatchHint': 'كل رابط تنسخه في أي مكان ينتقل مباشرة إلى المجمّع، ما دام هذا التبويب مفتوحًا وفي المقدمة. لصق Ctrl+V داخل KnightLoader يعمل دائمًا ولا يحتاج إلى هذا.',
   'intake.clipboardWatchUnavailable': 'غير متاح هنا: المتصفح يسمح للصفحة بقراءة الحافظة عبر HTTPS أو على localhost فقط. لصق Ctrl+V داخل KnightLoader يعمل على أي حال.',
   'intake.clipboardWatchDenied': 'تم إيقاف مراقبة الحافظة: {reason}',
+  'intake.clipboardWatchHintDesktop': 'كل رابط تنسخه في أي مكان ينتقل مباشرة إلى المجمّع، حتى عندما يكون KnightLoader مخفيًا في منطقة الإشعارات. لا يُؤخذ من الحافظة إلا الروابط. لصق Ctrl+V داخل KnightLoader يعمل دائمًا ولا يحتاج إلى هذا.',
+  'intake.clipboardWatchTarget': 'أرسل الروابط المنسوخة إلى',
+  'intake.clipboardWatchTargetHint': 'هذه النسخة أو نسخة أخرى من صفحة النُسخ، مثل NAS مقترن بالكلمات الاثنتي عشرة. تُرسل الروابط فقط، ولا شيء آخر من الحافظة.',
+  'intake.clipboardWatchLimited': 'على Wayland لا يرى KnightLoader الحافظة إلا ما دامت نافذته في المقدمة. مع تثبيت wl-clipboard يمكنه مراقبتها في الخلفية على أسطح المكتب التي تسمح بذلك، مثل KDE أو Sway. أما GNOME فلا يسمح بذلك.',
 
   'collector.hosterPresetHint': 'أي بدائل من روابط {host} يعرضها المُجمِّع، وبأي صيغة وجودة تبدأ الروابط الجديدة. وحين يُفحص الرابط، ينتقل إلى أقرب مسار من مساراته هو. والرابط الذي لا يملك صيغة الفيديو هذه يحصل على أفضل فيديو لديه حتى هذه الجودة، والذي لا يملك صيغة الصوت هذه يُحوَّل صوته.',
   'activity.crawl': 'فحص الصفحات',

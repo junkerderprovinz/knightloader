@@ -1317,6 +1317,10 @@ export const ms: Dict = {
   'intake.clipboardWatchHint': 'Setiap pautan yang kamu salin di mana-mana terus masuk ke pengumpul, selagi tab ini terbuka dan di hadapan. Ctrl+V dalam KnightLoader sentiasa berfungsi dan tidak memerlukan ini.',
   'intake.clipboardWatchUnavailable': 'Tidak tersedia di sini: pelayar hanya membenarkan halaman membaca papan keratan melalui HTTPS atau pada localhost. Ctrl+V dalam KnightLoader tetap berfungsi.',
   'intake.clipboardWatchDenied': 'Pemantauan papan keratan dimatikan: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Setiap pautan yang kamu salin di mana-mana terus masuk ke pengumpul, walaupun KnightLoader tersembunyi di kawasan pemberitahuan. Hanya pautan yang diambil daripada papan klip. Ctrl+V dalam KnightLoader sentiasa berfungsi dan tidak memerlukan ini.',
+  'intake.clipboardWatchTarget': 'Hantar pautan yang disalin ke',
+  'intake.clipboardWatchTargetHint': 'Instans ini atau instans lain di halaman Instance, contohnya NAS yang dipasangkan dengan dua belas perkataan. Hanya pautan dihantar, tiada apa-apa lagi daripada papan klip.',
+  'intake.clipboardWatchLimited': 'Di Wayland, KnightLoader hanya melihat papan klip selagi tetingkapnya di hadapan. Dengan wl-clipboard dipasang, ia boleh memantaunya di latar belakang pada desktop yang membenarkannya, seperti KDE atau Sway. GNOME tidak membenarkannya.',
 
   'collector.hosterPresetHint': 'Varian pautan dari {host} yang mana ditunjukkan oleh pengumpul, serta format dan kualiti permulaan pautan baharu. Sebaik sahaja pautan disemak, ia beralih kepada treknya sendiri yang paling hampir. Pautan tanpa format video ini mendapat video terbaiknya sehingga kualiti ini, dan bagi pautan tanpa format audio ini, audionya ditukar.',
   'activity.crawl': 'Mengimbas halaman',

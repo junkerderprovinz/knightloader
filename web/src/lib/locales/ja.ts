@@ -1317,6 +1317,10 @@ export const ja: Dict = {
   'intake.clipboardWatchHint': 'このタブが開いていて前面にある限り、どこでコピーしたリンクもそのままコレクターへ入ります。KnightLoader 内での Ctrl+V は常に使え、これを必要としません。',
   'intake.clipboardWatchUnavailable': 'ここでは使えません。ブラウザーがページにクリップボードの読み取りを許すのは HTTPS か localhost の場合だけです。KnightLoader 内での Ctrl+V はどちらにせよ使えます。',
   'intake.clipboardWatchDenied': 'クリップボードの監視を停止しました: {reason}',
+  'intake.clipboardWatchHintDesktop': 'KnightLoader が通知領域に隠れているときも、どこでコピーしたリンクもそのままコレクターへ入ります。クリップボードから取り出すのはリンクだけです。KnightLoader 内での Ctrl+V は常に使え、これを必要としません。',
+  'intake.clipboardWatchTarget': 'コピーしたリンクの送り先',
+  'intake.clipboardWatchTargetHint': 'このインスタンス、または「インスタンス」ページにある別のインスタンス（12 個の単語でペアリングした NAS など）。送るのはリンクだけで、クリップボードのほかの内容は送りません。',
+  'intake.clipboardWatchLimited': 'Wayland では、KnightLoader はウィンドウが前面にある間しかクリップボードを見られません。wl-clipboard を入れると、KDE や Sway など許可しているデスクトップではバックグラウンドで監視できます。GNOME は許可していません。',
 
   'collector.hosterPresetHint': '{host} のリンクのどのバリアントをコレクターに表示するか、また新しいリンクがどのフォーマットと画質で始まるかを決めます。リンクが確認されると、そのリンク自身のトラックのうち最も近いものに切り替わります。この動画フォーマットがないリンクは、この画質までで最良の動画を取得し、この音声フォーマットがないリンクは音声が変換されます。',
   'activity.crawl': 'ページを調査中',
