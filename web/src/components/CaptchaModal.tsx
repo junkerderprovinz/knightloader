@@ -18,7 +18,7 @@ import {
   type CaptchaWidgetPayload,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconClose, IconExpand, IconSchedules } from '../lib/icons';
+import { IconCaptchaTimer, IconClose, IconExpand } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -399,7 +399,7 @@ export function CaptchaModal() {
           {/* The forward button ends the row, so the clock goes first. */}
           {displayRemaining !== null && (
             <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
-              <IconSchedules width={12} height={12} />
+              <IconCaptchaTimer width={12} height={12} />
               {fmtCountdown(displayRemaining)}
             </span>
           )}

@@ -10,7 +10,7 @@ import {
   IconDownload,
   IconKey,
   IconPause,
-  IconSchedules,
+  IconQueued,
   IconUpload,
   IconWarning,
 } from '../lib/icons';
@@ -59,7 +59,7 @@ const toneText: Record<Tone, string> = {
 // leeching shares downloading's, since it is a download.
 const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
-  queued: IconSchedules,
+  queued: IconQueued,
   running: IconDownload,
   leeching: IconDownload,
   paused: IconPause,
@@ -89,7 +89,7 @@ function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; l
 export function StatusPill({ status }: { status: RowState }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
-  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconSchedules} label={t(s.key)} />;
+  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconQueued} label={t(s.key)} />;
 }
 
 /**

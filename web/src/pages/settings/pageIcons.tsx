@@ -2,20 +2,20 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 import {
   IconAccounts,
   IconArchive,
-  IconBolt,
   IconCaptcha,
-  IconClipboard,
   IconCollector,
   IconDiagnostics,
   IconDownload,
   IconFilter,
   IconFleet,
+  IconHealth,
   IconHelp,
   IconKeyboard,
   IconLink,
   IconModules,
   IconNetwork,
   IconSchedules,
+  IconSliders,
   IconTabAdvanced,
   IconTabApp,
   IconTabGeneral,
@@ -41,8 +41,9 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   network: IconNetwork,
   accounts: IconAccounts,
   instances: IconFleet,
-  // A clipboard: a template with fields to fill in.
-  resolvers: IconClipboard,
+  // Sliders, since the page tunes what yt-dlp fetches: quality, format and
+  // the rest.
+  resolvers: IconSliders,
   // Uploading is what torrents do that no other backend here does.
   torrents: IconUpload,
   captcha: IconCaptcha,
@@ -54,8 +55,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   pairing: IconLink,
   access: IconTabSecurity,
   advanced: IconTabAdvanced,
-  // A pulse, apart from the diagnostics bundle next to it.
-  health: IconBolt,
+  health: IconHealth,
   diagnostics: IconDiagnostics,
   help: IconHelp,
   shortcuts: IconKeyboard,

@@ -12,12 +12,12 @@ import { copyToClipboard } from '../../../lib/clipboard';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconCheckDrawn,
-  IconClipboard,
   IconCollapse,
   IconCopy,
   IconExpand,
   IconEye,
   IconEyeOff,
+  IconInfo,
   IconSearch,
   IconShieldOn,
 } from '../../../lib/icons';
@@ -262,7 +262,7 @@ export function RelayCard({
         <p className="text-sm text-carbon-textSub">
           {mode === 'project' ? t(copy.sentence, { host: hostOf(group.projectRelayUrl) }) : t(copy.sentence)}
         </p>
-        {copy.need && <Fact glyph={<IconClipboard />} label={t('relay.needLabel')} text={t(copy.need)} />}
+        {copy.need && <Fact glyph={<IconInfo />} label={t('relay.needLabel')} text={t(copy.need)} />}
       </div>
 
       {mode === 'own' && (

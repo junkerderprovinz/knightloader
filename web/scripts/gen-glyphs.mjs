@@ -21,7 +21,7 @@ const USED = [
   'IconEye', 'IconEyeOff', 'IconRefresh', 'IconUpload', 'IconDownload', 'IconSearch',
   'IconPlay', 'IconPause', 'IconStop', 'IconPower', 'IconTrash', 'IconTrashFiles',
   'IconAdd', 'IconClose', 'IconPencil', 'IconCopy', 'IconCheck', 'IconLink', 'IconKey',
-  'IconSignOut', 'IconHelp', 'IconMore', 'IconMenu', 'IconBack', 'IconForward',
+  'IconSignOut', 'IconInfo', 'IconHelp', 'IconMore', 'IconMenu', 'IconBack', 'IconForward',
   'IconLatest', 'IconFirst', 'IconMoveUp', 'IconMoveDown', 'IconExpand', 'IconCollapse',
   'IconFilter', 'IconPin', 'IconPriority', 'IconGrip', 'IconExternalLink', 'IconWarning',
   'IconBolt', 'IconShieldOn', 'IconCode', 'IconMoon', 'IconSun', 'IconGear',
@@ -30,6 +30,7 @@ const USED = [
   'IconApp', 'IconModules', 'IconCaptcha', 'IconContainers', 'IconGithub',
   'IconTabGeneral', 'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp',
   'IconSchedules', 'IconNotifications', 'IconSliders', 'IconDiagnostics', 'IconKeyboard',
+  'IconPaste', 'IconSort', 'IconFolderUp', 'IconHealth', 'IconQueued', 'IconCaptchaTimer',
 ];
 
 // The centre line IconCheckDrawn traces through IconCheck, in IconCheck's
@@ -43,6 +44,7 @@ const LICENCES = [
   [/^Streamline/, 'Streamline, free Core Solid (https://streamlinehq.com), CC BY 4.0'],
   [/^Font Awesome/, 'Font Awesome Free (https://fontawesome.com), CC BY 4.0'],
   [/^Tabler/, 'Tabler Icons (https://tabler.io/icons), MIT'],
+  [/^Material Design Icons/, 'Material Design Icons (https://pictogrammers.com/library/mdi/), Apache 2.0'],
   [/^Simple Icons/, 'Simple Icons (https://simpleicons.org), CC0; the marks are trademarks, used only to name their owner'],
   [/^reCAPTCHA/, "reCAPTCHA's mark, a trademark used only where a captcha is the subject"],
 ];

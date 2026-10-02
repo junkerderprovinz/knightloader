@@ -1,5 +1,5 @@
 import { Button } from './ui';
-import { IconBrowser, IconClipboard } from '../lib/icons';
+import { IconBrowser, IconPaste } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -54,7 +54,7 @@ export function LinkIntakeButtons() {
       <Button
         kind={watch ? 'primary' : 'secondary'}
         className="px-2.5 text-xs"
-        icon={<IconClipboard width={14} height={14} />}
+        icon={<IconPaste width={14} height={14} />}
         hint={WATCH_SUPPORTED ? t('intake.clipboardWatchHint') : t('intake.clipboardWatchUnavailable')}
         onClick={() => setWatch(!watch)}
         disabled={!WATCH_SUPPORTED}

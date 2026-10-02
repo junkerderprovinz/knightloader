@@ -148,12 +148,11 @@ import {
   IconFolder,
   IconFolderOpen,
   IconGear,
-  IconMoveDown,
-  IconMoveUp,
   IconPause,
   IconPlay,
   IconRefresh,
   IconSearch,
+  IconSort,
   IconTrash,
 } from '../lib/icons';
 
@@ -1346,8 +1345,11 @@ function Header({
               {/* One list can call a column something else; see CellContext's
                   `profile` for why that is one column and not two. */}
               <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
-              {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
-              {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
+              {sorted && (
+                <span className={`inline-flex shrink-0 ${sorted === 'desc' ? '-scale-y-100' : ''}`}>
+                  <IconSort width={11} height={11} />
+                </span>
+              )}
             </button>
 
             {/* Double-click gives a column its built-in width back, which is the

@@ -21,14 +21,6 @@ export const IconDesktop = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** A clipboard, clip and all, for pasting from it. Copying wears IconCopy. */
-export const IconClipboard = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base({ viewBox: '-0.167 -0.792 20.333 20.333', ...p })}>
-    <rect x="5" y="4.5" width="10" height="12.5" rx="1.5" />
-    <path opacity=".7" d="M7.5 3a1.25 1.25 0 0 1 1.25-1.25h2.5A1.25 1.25 0 0 1 12.5 3v1.75h-5V3Z" />
-  </svg>
-);
-
 /** IconShield is a plain shield for the parade in lib/toast.tsx, where at 11px
  *  any detail carved into it would blur. */
 export const IconShield = (p: SVGProps<SVGSVGElement>) => (
