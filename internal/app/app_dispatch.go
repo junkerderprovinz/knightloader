@@ -916,7 +916,7 @@ func (a *App) dispatchLocked() {
 		t.Mode = a.modeForLocked(t, t.Resolver)
 		// a.ctx, because a.mu is held: a hanging resolver must not keep the
 		// lock past shutdown.
-		result, err := res.Resolve(a.ctx, resolver.Request{URL: t.URL})
+		result, err := a.resolveLocked(res, t)
 		if err != nil {
 			t.Status = core.StatusError
 			// Classified from the error value, which is still available here.
@@ -1384,6 +1384,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.NextTry = time.Time{}
 		t.MaxTries = 0
 		t.StallRestarts = 0
+		// A browser's cookies were lent for this download alone.
+		delete(a.browserHeaders, id)
 		// Renamed before anything below builds a path from t.Name.
 		_ = a.renameFinishedLocked(t)
 		if a.stopMark == id {

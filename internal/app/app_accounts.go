@@ -184,6 +184,7 @@ func (a *App) rewireBackends() {
 		// Stored cookie jars, read on every spawn. Without this hook the
 		// backend would ignore saved jars.
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.Headers = a.browserHeadersFor
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude, Leave: a.claims.fileHoster})
 		// The source explains why this binary was chosen over the others.
