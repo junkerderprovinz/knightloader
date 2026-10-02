@@ -138,6 +138,17 @@ func TestFileRulesAndTrackerListsStartOff(t *testing.T) {
 	}
 }
 
+// A fresh install ties torrents to no interface, and a name pasted with the
+// spaces around it still names the interface.
+func TestTheTorrentInterfaceStartsAsAnyAndIsTrimmed(t *testing.T) {
+	if got := Defaults().Torrent.Interface; got != "" {
+		t.Errorf("Interface defaults to %q, want any", got)
+	}
+	if got := sanitizeTorrent(Settings{Torrent: Torrent{Interface: " wg0\n"}}).Torrent.Interface; got != "wg0" {
+		t.Errorf("sanitizeTorrent kept the interface as %q, want wg0", got)
+	}
+}
+
 // A textarea leaves blank lines behind, and a blank exclude pattern matches
 // every file. Patterns keep their spaces, which can be part of a match;
 // addresses do not.

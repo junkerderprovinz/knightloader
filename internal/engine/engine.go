@@ -208,10 +208,12 @@ type btProtocolConfig struct {
 	UploadLimit int64    `json:"uploadLimit"`
 	DisableDHT  bool     `json:"disableDht"`
 	DisablePEX  bool     `json:"disablePex"`
+	Interface   string   `json:"interface"`
 }
 
 // TorrentConfig is what the torrent client takes from the settings. The zero
-// value is any port, no seeding target, no upload limit, DHT and PEX on.
+// value is any port, no seeding target, no upload limit, DHT and PEX on, and
+// any network interface.
 type TorrentConfig struct {
 	Port        int
 	SeedRatio   float64
@@ -220,19 +222,22 @@ type TorrentConfig struct {
 	UploadLimit int64
 	DisableDHT  bool
 	DisablePEX  bool
+	// Interface is the network interface every torrent's traffic is tied to,
+	// empty for any. See TorrentNetwork.
+	Interface string
 }
 
 // SetTorrentConfig writes c into gopeed's bt protocol config; Trackers and
 // SeedKeep are passed through unchanged. Call it at boot and on every
 // settings save.
 //
-// The upload limit applies at once, to torrents already running too. The
-// seeding targets reach every torrent started afterwards, since gopeed reads
-// the config per task, and every torrent started only to seed, which the
-// engine stops itself (see seed.go). The port, DHT and PEX belong to the one
-// torrent client all torrents share: gopeed rebuilds it with the new values
-// when the save finds no torrent in the library, and otherwise once the last
-// one is gone.
+// The upload limit and the interface apply at once, to torrents already
+// running too. The seeding targets reach every torrent started afterwards,
+// since gopeed reads the config per task, and every torrent started only to
+// seed, which the engine stops itself (see seed.go). The port, DHT and PEX
+// belong to the one torrent client all torrents share: gopeed rebuilds it
+// with the new values when the save finds no torrent in the library, and
+// otherwise once the last one is gone.
 func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 	e.mu.Lock()
 	e.targets = seedTargets{ratio: c.SeedRatio, seconds: int64(c.SeedSeconds)}
@@ -250,6 +255,7 @@ func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 		next.UploadLimit = c.UploadLimit
 		next.DisableDHT = c.DisableDHT
 		next.DisablePEX = c.DisablePEX
+		next.Interface = c.Interface
 		if reflect.DeepEqual(next, bt) {
 			return false
 		}

@@ -82,6 +82,15 @@ type Torrent struct {
 	// PEXEnabled is the Peer Exchange half of the pair. See DHTEnabled.
 	PEXEnabled bool `json:"pexEnabled"`
 
+	// Interface is the network interface, by its system name, that the
+	// built-in client's traffic is tied to: peers, trackers and the DHT. Empty
+	// is any. While it is missing, down or has no address, the client sends
+	// and receives nothing and its torrents wait, a kill switch for a VPN
+	// interface such as wg0. Unlike Port it applies to running torrents at
+	// once. Torrents a debrid service fetches come over HTTP from the service
+	// and are not tied to it.
+	Interface string `json:"interface"`
+
 	// TorrentFileRules choose the files of a torrent nobody chose by hand. A
 	// category can carry its own in their place, see Category.TorrentFiles.
 	// Embedded, so its three fields sit directly in this block's JSON.
@@ -247,6 +256,7 @@ func sanitizeTorrent(n Settings) Settings {
 	t.ExtraTrackers = trimmedLines(t.ExtraTrackers)
 	t.BannedTrackers = trimmedLines(t.BannedTrackers)
 	t.TrackerListURL = strings.TrimSpace(t.TrackerListURL)
+	t.Interface = strings.TrimSpace(t.Interface)
 	// A client this build does not know seeds in the built-in one, as empty does.
 	if t.SeedIn != "" && t.SeedIn != SeedInQBittorrent {
 		t.SeedIn = SeedInBuiltIn

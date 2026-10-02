@@ -37,6 +37,18 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **Torrents can be tied to one network interface.** Settings, Torrents has a
+  Network interface field that lists the interfaces the system has, such as
+  `wg0` or `tun0` from a VPN. Peers, trackers and the DHT of the built-in
+  client then use only that interface, and while it is missing or down the
+  client sends and receives nothing, a kill switch like qBittorrent's. The
+  torrents wait without failing, the Overview's Torrents card says they are on
+  hold, and they carry on once the interface is back. A change applies to
+  running torrents at once. Torrents a debrid service fetches are not
+  affected. The default stays Any interface.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

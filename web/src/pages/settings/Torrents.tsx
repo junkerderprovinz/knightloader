@@ -19,15 +19,16 @@ import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
+import { InterfaceField } from './torrents/Interface';
 import { UploadLimitField } from './torrents/UploadLimit';
 
 /**
  * Torrents sets the seed target, transfer limit, port with its UPnP mapping,
- * DHT/PEX, the file selection, the trackers, and how torrents go through a
- * debrid service and where what it fetched seeds. settings.Torrent is a flat
- * group of fields but for its qBittorrent, so the page uses the shared draft
- * like Reconnect.tsx. lib/api.ts's Settings does not name `torrent`, so
- * readTorrent casts the way readReconnect does.
+ * network interface, DHT/PEX, the file selection, the trackers, and how
+ * torrents go through a debrid service and where what it fetched seeds.
+ * settings.Torrent is a flat group of fields but for its qBittorrent, so the
+ * page uses the shared draft like Reconnect.tsx. lib/api.ts's Settings does
+ * not name `torrent`, so readTorrent casts the way readReconnect does.
  */
 
 interface TorrentSettings {
@@ -37,6 +38,8 @@ interface TorrentSettings {
   port: number;
   dhtEnabled: boolean;
   pexEnabled: boolean;
+  /** The network interface torrents are tied to, empty for any. */
+  interface: string;
   minFileSize: number;
   // The server sends null for an empty list.
   includeFiles: string[] | null;
@@ -73,6 +76,7 @@ const DEFAULTS: TorrentSettings = {
   port: 0,
   dhtEnabled: true,
   pexEnabled: true,
+  interface: '',
   minFileSize: 0,
   includeFiles: [],
   excludeFiles: [],
@@ -177,6 +181,7 @@ export function Torrents() {
           />
         </Field>
         <PortMapPanel port={tr.port} />
+        <InterfaceField value={tr.interface} onValue={(name) => write({ interface: name })} />
       </Card>
 
       <Card hue={3} className="flex flex-col gap-4">
