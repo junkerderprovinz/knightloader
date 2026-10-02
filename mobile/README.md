@@ -220,9 +220,9 @@ it was answered or dropped elsewhere, unless this phone answered or skipped it
 itself. The banner then says so, as the web UI's toast does.
 
 **Notifications while the app is closed.** `modules/watch` is a small native
-module with an Android foreground service. While one of the saved instances is
-downloading or has a captcha waiting, the service runs one pass of
-`src/watch/watch.ts` as a headless JavaScript task, every 10 to 30 seconds. A
+module with an Android foreground service. The service runs one pass of
+`src/watch/watch.ts` as a headless JavaScript task: every 10 to 30 seconds
+while a download runs or a captcha waits, once a minute while nothing does. A
 pass reads `/api/tasks` and `/api/captcha?watch=0` from every saved instance,
 over the same direct or relay transport the screens use, and posts a
 notification for a captcha that arrived, a package or lone download that
@@ -231,16 +231,31 @@ the only way to hear about anything, and `watch=0` keeps a phone in a pocket
 from holding the captcha accounts back. Nothing here comes from Firebase or any
 other Google service.
 
-The service stops itself two minutes after the last busy look, or fifteen when
-an instance stopped answering while it was busy. Android does not let an app in
-the background start a foreground service, so the app starts it from the front:
-when it is opened, every 15 seconds while it is open and something is running,
-and when a download is added. A download that starts on the instance while the
-app is closed and the service is not running is therefore announced only after
-the app has been opened again. While it runs, the service holds a partial wake
-lock, because the handler that times the passes stops while the phone sleeps;
-the pace drops to one look every 30 seconds while nothing changes. The
-instance open on screen while the app is in front gets no notifications, since
+"Stay connected", on by default, keeps the service running for as long as an
+instance is saved, so a download that starts on the instance while the app is
+closed is noticed too. `WatchBoot` starts it again after a reboot and after an
+update of the app; both broadcasts are among the cases where Android 14 and 15
+still allow a foreground service from the background, and Android 15's list of
+types a boot receiver may not start leaves `specialUse` out. The app stores in
+native preferences whether that applies, since the receiver has no JavaScript to
+ask. With the setting off, the service stops itself two minutes after the last
+busy look, or fifteen when an instance stopped answering while it was busy, and
+the app starts it from the front: when it is opened, every 15 seconds while it
+is open and something is running, and when a download is added.
+
+While a download runs or a captcha waits, the service holds a partial wake lock
+and a handler times the passes, since that clock stops while the phone sleeps;
+the pace drops to one look every 30 seconds while nothing changes. While
+nothing runs, it lets go of the lock and an inexact alarm that is allowed while
+idle wakes the phone for the next look, so an idle phone sleeps between looks.
+The first time the service starts with "Stay connected", the app offers
+Android's battery optimisation list once, and the settings card keeps a button
+to it while the app is optimised. It opens the list rather than asking for the
+exemption directly, because REQUEST_IGNORE_BATTERY_OPTIMIZATIONS is a Google
+Play policy question and one build goes to both stores. On phones whose maker
+adds background rules of its own (Xiaomi, OnePlus, OPPO, vivo, Huawei, Samsung,
+Asus) the card also offers that maker's autostart or background page, falling
+back to the app's details. The instance open on screen while the app is in front gets no notifications, since
 its banner and its list already say it. The rules (what counts as news, when to
 stop, how fast to look) live in `src/watch/rules.ts`, which
 `check-watch.mjs` runs as they are.
