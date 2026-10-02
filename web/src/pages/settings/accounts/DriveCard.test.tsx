@@ -53,7 +53,7 @@ describe('DriveCard', () => {
       set.call(field, '100000');
       field.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    const last = patch.mock.calls.at(-1)?.[0] as { debridDrive: { refreshMinutes: number } } | undefined;
+    const last = patch.mock.calls[patch.mock.calls.length - 1]?.[0] as { debridDrive: { refreshMinutes: number } } | undefined;
     expect(last?.debridDrive.refreshMinutes).toBe(24 * 60);
   });
 
