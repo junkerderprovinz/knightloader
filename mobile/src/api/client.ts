@@ -539,6 +539,12 @@ export async function fetchCaptchas(conn: ServerConnection): Promise<CaptchaChal
   return (await request<CaptchaChallenge[] | null>(conn, '/api', `/captcha?watch=${watch}`)) ?? [];
 }
 
+/** The same list read without watching, for the background watch: a phone in
+ *  somebody's pocket must not hold the paid solvers back. */
+export async function fetchCaptchasUnwatched(conn: ServerConnection): Promise<CaptchaChallenge[]> {
+  return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha?watch=0')) ?? [];
+}
+
 /** Has the instance ask JD now instead of at its next check. */
 export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
   return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha/refresh', { method: 'POST', body: '{}' })) ?? [];

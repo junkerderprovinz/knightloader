@@ -1,0 +1,32 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Which notifications this phone wants, and whether it has asked Android for
+// the permission once already. Preferences rather than secrets, so
+// AsyncStorage.
+const KEY = 'knightloader-notifications';
+
+export interface NotifyPrefs {
+  captcha: boolean;
+  finished: boolean;
+  failed: boolean;
+  /** Set once the app has put Android's permission question up by itself. A
+   *  second time would be a prompt somebody already answered. */
+  asked: boolean;
+}
+
+const DEFAULTS: NotifyPrefs = { captcha: true, finished: true, failed: true, asked: false };
+
+export async function loadNotifyPrefs(): Promise<NotifyPrefs> {
+  try {
+    const raw = await AsyncStorage.getItem(KEY);
+    return raw ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<NotifyPrefs>) } : DEFAULTS;
+  } catch {
+    return DEFAULTS;
+  }
+}
+
+export async function saveNotifyPrefs(prefs: NotifyPrefs): Promise<void> {
+  await AsyncStorage.setItem(KEY, JSON.stringify(prefs));
+}
+
+export const anyKind = (p: NotifyPrefs): boolean => p.captcha || p.finished || p.failed;

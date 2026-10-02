@@ -313,6 +313,28 @@ export const en = {
   'settings.rainbowPaletteNoInstance': 'The palette belongs to the instance. With no connection there is nowhere to write a colour, so the positions keep the eight built-in ones.',
 
   'settings.motionHint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild has the most movement.',
+  'settings.notifications': 'Notifications',
+  'settings.notificationsHint':
+    'While one of your instances is downloading or waiting for a captcha, the app keeps its own connection to it, even after you close the app. Android shows a quiet notification for as long as that connection is open. It ends by itself once nothing is running, and the app starts it again when you open it or add a download.',
+  'settings.notifyCaptcha': 'A captcha is waiting',
+  'settings.notifyFinished': 'A download finished',
+  'settings.notifyFailed': 'A download failed',
+  'settings.notificationsBlocked': 'Android does not show notifications from KnightLoader.',
+  'settings.notificationsAllow': 'Allow notifications',
+  'notify.channelCaptcha': 'Captchas',
+  'notify.channelFinished': 'Finished downloads',
+  'notify.channelFailed': 'Failed downloads',
+  'notify.channelWatch': 'Background connection',
+  'notify.watchTitle': 'Watching your downloads',
+  'notify.watchText': 'This ends by itself once nothing is running.',
+  'notify.captchaTitle': 'Captcha waiting',
+  'notify.captchaMany': '{n} captchas are waiting for an answer.',
+  'notify.finishedTitle': 'Download finished',
+  'notify.packageFinishedTitle': 'Package finished',
+  'notify.packageDone': '{name}: all {n} files are done.',
+  'notify.packagePartly': '{name}: {done} of {total} files done, {failed} failed.',
+  'notify.failedTitle': 'Download failed',
+  'notify.failedMany': '{n} downloads in {name} failed.',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

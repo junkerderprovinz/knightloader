@@ -9,6 +9,7 @@ import { GlimButton } from '../components/glim';
 import { Cross, Plus } from '../components/IconBadge';
 import { InfoTip } from '../components/InfoTip';
 import { Text, TextInput } from '../components/Text';
+import { startWatch } from '../watch/watch';
 
 export default function AddDownloadScreen({
   conn,
@@ -39,6 +40,7 @@ export default function AddDownloadScreen({
     setError(null);
     try {
       await addLinks(conn, links, base);
+      void startWatch();
       onDone();
     } catch (err) {
       setError(err instanceof ApiError ? t('addDownload.errorServer', { message: errorText(t, err) }) : t('addDownload.errorGeneric'));
