@@ -47,7 +47,14 @@
       "expo-localization",
       "./plugins/withReleaseSigning",
       "./plugins/withKeptAppDir",
-      "./plugins/withGradleMemory"
+      "./plugins/withGradleMemory",
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": ["text/plain"],
+          "disableIOS": true
+        }
+      ]
     ]
   }
 }
