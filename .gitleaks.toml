@@ -41,10 +41,17 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # KL_TORBOX and kl_alldebrid and checks their values never reach it. Those
 # values stand for the service keys an instance may be started with, so they
 # read like secrets, and they are matched as literals too.
+#
+# internal/jdimport/jdimport_test.go checks that a key is taken from where each
+# JDownloader plugin keeps it. A TorBox key is the counting sequence above with
+# its dashes put back, and a ProLeech API key is 21 lower-case characters, the
+# shape the importer tells a key from a website password by.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
   '''0123456789abcdef''',
   '''KL_TORBOX=secret-key''',
   '''kl_alldebrid=other-secret''',
+  '''01234567-89ab-cdef-0123-456789abcdef''',
+  '''abcdefghij0123456789k''',
 ]
