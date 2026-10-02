@@ -68,6 +68,7 @@ nav:
   - What it does: features.md
   - Configuration: configuration.md
   - Getting links in: getting-links-in.md
+  - Moving over from JDownloader: from-jdownloader.md
   - "Click'n'Load": clicknload.md
   - Bookmarklet, extension and share target: browser-tools.md
   - Connecting instances and apps: connecting.md
