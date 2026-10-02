@@ -1053,6 +1053,9 @@ export const lt: Dict = {
 
   'settings.chunks': 'Ryšiai vienam atsisiuntimui (0 = automatiškai)',
   'settings.chunksHint': 'Kiek ryšių atveria vienas atsisiuntimas, kai negalioja nieko konkretesnio. Taisyklė arba atskiras atsisiuntimas gali nurodyti savo skaičių ir nusveria šitą. Talpykla, kuri pakenčia mažiau, vis tiek gaus mažiau: talpyklos riba skaičių gali tik sumažinti, niekada padidinti. Esant 0 sprendžia programa. Daugiau nei sauja ryšių talpykloje, kuri riboja pagal failą, nieko neduoda ir yra patikimas būdas paskyrai užsidirbti žymę.',
+  'settings.multiSource': 'Naudoti kelis šaltinius vienam failui',
+  'settings.multiSourceHint':
+    'Jei failą galima gauti iš kelių vietų, atsisiuntimas paskirstomas tarp jų visų: ta pati nuoroda, atrakinta antros debrid paskyros, arba atsarginė kopija iš kito failų talpintojo, kurią išsaugo sąrašas. Kiekvienas šaltinis gauna aukščiau nustatytą jungčių skaičių. Tai padeda, kai paslauga riboja vienos nuorodos ar vienos jungties greitį, ir nieko nekeičia, jei vienas šaltinis jau užpildo tavo liniją. Mažesni nei 64 MiB failai visada atsisiunčiami iš vieno šaltinio. Šaltinis prijungiamas tik tada, jei praneša tą patį dydį ir failo patikros taškuose siunčia tuos pačius baitus; jei vienas nutrūksta pusiaukelėje, kiti užbaigia jo dalį. Pagal numatymą išjungta: kiekvienas papildomas atrakinimas naudoja tos paskyros srautą, kai kurios paslaugos visą failą nuskaičiuoja jau atrakinant, o kai kurių paslaugų sąlygos draudžia siųstis dviem paskyromis vienu metu.',
   'task.chunks': 'Ryšiai (0 = bendras nustatymas)',
   'task.chunksHint': 'Kiek ryšių atveria būtent šis atsisiuntimas. Jis nusveria bendrą nustatymą ir bet kurią taisyklę, kuri jį nustatė, bet niekada ne talpyklą: talpykla, kuri pakenčia mažiau, vis tiek gaus mažiau. Esant 0 išimtis nuimama ir skaičius vėl sprendžiamas kitur.',
   'columns.connection': 'Ryšys',

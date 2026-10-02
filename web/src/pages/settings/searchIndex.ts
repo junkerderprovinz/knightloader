@@ -128,6 +128,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.maxConcurrent', hint: 'settings.maxConcurrentHint' },
         { key: 'settings.maxPerHost', hint: 'settings.maxPerHostHint' },
         { key: 'settings.chunks', hint: 'settings.chunksHint' },
+        { key: 'settings.multiSource', hint: 'settings.multiSourceHint' },
         { key: 'settings.globalSpeedLimit', hint: 'settings.speedHint' },
         { key: 'settings.maxRetries', hint: 'settings.maxRetriesHint' },
         { key: 'settings.resumeOnStart', hint: 'settings.resumeOnStartHint' },

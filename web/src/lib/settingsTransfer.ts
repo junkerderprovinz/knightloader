@@ -255,6 +255,7 @@ const GROUPS: Record<string, TransferGroup> = {
   maxPerHost: 'queue',
   speedLimit: 'queue',
   chunks: 'queue',
+  multiSource: 'queue',
   autoStart: 'queue',
   addAtTop: 'queue',
   onDupes: 'queue',

@@ -1053,6 +1053,9 @@ export const vi: Dict = {
 
   'settings.chunks': 'Số kết nối cho mỗi lượt tải (0 = tự động)',
   'settings.chunksHint': 'Một lượt tải mở bao nhiêu kết nối khi không có gì cụ thể hơn áp dụng. Một quy tắc, hoặc một lượt tải riêng lẻ, có thể nêu con số của mình và thắng con số này. Máy chủ chịu được ít hơn thì vẫn nhận ít hơn: giới hạn của máy chủ chỉ có thể hạ con số xuống, không bao giờ nâng lên. Với 0 thì ứng dụng tự quyết. Quá vài kết nối chẳng được gì trên máy chủ giới hạn theo từng tệp, và là cách chắc chắn để một tài khoản bị đánh dấu.',
+  'settings.multiSource': 'Dùng nhiều nguồn cho một tệp',
+  'settings.multiSourceHint':
+    'Nếu một tệp có thể lấy từ nhiều nơi, việc tải sẽ được chia cho tất cả: cùng liên kết được một tài khoản debrid thứ hai mở khóa, hoặc một bản sao dự phòng từ hoster khác mà danh sách giữ lại. Mỗi nguồn nhận số kết nối đặt ở trên. Điều này có ích khi dịch vụ giới hạn tốc độ của một liên kết hay một kết nối, và không thay đổi gì nếu một nguồn đã dùng hết đường truyền của bạn. Tệp dưới 64 MiB luôn lấy từ một nguồn. Một nguồn chỉ được thêm vào khi báo cùng kích thước và gửi cùng các byte tại những điểm lấy mẫu trong tệp; nếu một nguồn dừng giữa chừng, các nguồn còn lại tải nốt phần của nó. Tắt theo mặc định: mỗi lần mở khóa thêm tốn lưu lượng của tài khoản đó, một số dịch vụ tính cả tệp ngay khi mở khóa liên kết, và điều khoản của một số dịch vụ cấm tải bằng hai tài khoản cùng lúc.',
   'task.chunks': 'Kết nối (0 = thiết lập chung)',
   'task.chunksHint': 'Riêng lượt tải này mở bao nhiêu kết nối. Nó thắng thiết lập chung và mọi quy tắc đã đặt, nhưng không bao giờ thắng máy chủ: máy chủ chịu được ít hơn thì vẫn nhận ít hơn. Với 0 thì ngoại lệ bị gỡ và con số được quyết ở nơi khác trở lại.',
   'columns.connection': 'Kết nối',

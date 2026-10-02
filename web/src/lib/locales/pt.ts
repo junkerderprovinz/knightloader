@@ -1045,6 +1045,9 @@ export const pt: Dict = {
 
   'settings.chunks': 'Ligações por transferência (0 = automático)',
   'settings.chunksHint': 'Quantas ligações uma transferência abre quando nada mais específico se aplica. Uma regra, ou uma transferência isolada, pode indicar o seu próprio número e manda sobre este. Um anfitrião que tolera menos recebe menos à mesma: um limite do anfitrião só pode baixar o número, nunca aumentá-lo. Com 0 decide a aplicação. Além de uma mão-cheia de ligações não se ganha nada num anfitrião que limita por ficheiro, e é uma forma segura de marcar uma conta.',
+  'settings.multiSource': 'Usar várias fontes para um ficheiro',
+  'settings.multiSourceHint':
+    'Se um ficheiro puder vir de mais de um sítio, é repartido por todos: o mesmo link desbloqueado por uma segunda conta debrid, ou uma cópia de reserva de outro hoster que a lista guarda. Cada fonte recebe as ligações definidas acima. Ajuda quando um serviço limita a velocidade de um link ou de uma ligação, e não muda nada se uma só fonte já enche a tua linha. Ficheiros com menos de 64 MiB vêm sempre de uma só fonte. Uma fonte só entra se indicar o mesmo tamanho e enviar os mesmos bytes em pontos de amostra do ficheiro; se uma parar a meio, as outras terminam a parte dela. Desligado por predefinição: cada desbloqueio extra gasta o tráfego dessa conta, alguns serviços contam o ficheiro inteiro logo no desbloqueio e os termos de alguns serviços proíbem descarregar com duas contas ao mesmo tempo.',
   'task.chunks': 'Ligações (0 = a definição global)',
   'task.chunksHint': 'Quantas ligações esta transferência abre. Manda sobre a definição global e sobre qualquer regra que a tenha fixado, mas nunca sobre o anfitrião: um anfitrião que tolera menos recebe menos à mesma. Com 0 a exceção sai e o número volta a ser decidido fora.',
   'columns.connection': 'Ligação',

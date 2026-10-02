@@ -1129,6 +1129,9 @@ export const de: Dict = {
 
   'settings.chunks': 'Verbindungen pro Download (0 = automatisch)',
   'settings.chunksHint': 'Wie viele Verbindungen ein Download öffnet, wenn nichts Genaueres greift. Eine Regel oder ein einzelner Download kann eine eigene Zahl nennen und sticht diese hier. Ein Hoster, der weniger verträgt, bekommt trotzdem weniger: Ein Hoster-Limit kann die Zahl nur senken, nie erhöhen. Bei 0 entscheidet die App. Mehr als eine Handvoll Verbindungen bringt bei einem Hoster mit Limit pro Datei nichts und ist ein zuverlässiger Weg, ein Konto auffällig zu machen.',
+  'settings.multiSource': 'Mehrere Quellen für eine Datei nutzen',
+  'settings.multiSourceHint':
+    'Gibt es eine Datei an mehr als einer Stelle, wird sie auf alle verteilt: derselbe Link, von einem zweiten Debrid-Konto freigeschaltet, oder eine Ersatzkopie von einem anderen Hoster, die die Liste behält. Jede Quelle bekommt die oben eingestellten Verbindungen. Das hilft, wenn ein Dienst die Geschwindigkeit pro Link oder pro Verbindung deckelt, und ändert nichts, wenn schon eine Quelle deine Leitung füllt. Dateien unter 64 MiB kommen immer aus einer Quelle. Eine Quelle kommt nur dazu, wenn sie dieselbe Größe meldet und an Stichproben in der Datei dieselben Bytes schickt. Bricht eine mittendrin ab, holen die anderen ihren Teil. Standardmäßig aus: Jede zusätzliche Freischaltung kostet Traffic auf dem jeweiligen Konto, manche Dienste rechnen schon beim Freischalten die ganze Datei ab, und die Bedingungen mancher Dienste verbieten, mit zwei Konten gleichzeitig zu laden.',
   'task.chunks': 'Verbindungen (0 = die globale Einstellung)',
   'task.chunksHint': 'Wie viele Verbindungen dieser eine Download öffnet. Er sticht die globale Einstellung und jede Regel, die sie gesetzt hat, aber nie den Hoster: Ein Hoster, der weniger verträgt, bekommt trotzdem weniger. 0 nimmt die Ausnahme wieder zurück und gibt die Zahl ab.',
   'columns.connection': 'Verbindung',

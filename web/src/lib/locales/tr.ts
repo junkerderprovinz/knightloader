@@ -1053,6 +1053,9 @@ export const tr: Dict = {
 
   'settings.chunks': 'İndirme başına bağlantı (0 = otomatik)',
   'settings.chunksHint': 'Daha özel bir şey geçerli değilken bir indirmenin kaç bağlantı açacağı. Bir kural ya da tek bir indirme kendi sayısını verebilir ve bunu geçer. Daha azına dayanan bir sunucu yine de daha azını alır: sunucu sınırı sayıyı yalnızca düşürebilir, asla yükseltemez. 0 kararı uygulamaya bırakır. Bir avuçtan fazla bağlantı, dosya başına sınırlayan bir sunucuda hiçbir şey kazandırmaz ve bir hesabın işaretlenmesinin kesin yoludur.',
+  'settings.multiSource': 'Bir dosya için birden fazla kaynak kullan',
+  'settings.multiSourceHint':
+    'Bir dosya birden fazla yerden alınabiliyorsa indirme hepsine bölünür: ikinci bir debrid hesabının açtığı aynı bağlantı ya da listenin sakladığı, başka bir dosya barındırıcısından gelen yedek kopya. Her kaynak yukarıda ayarlanan bağlantı sayısını alır. Bir hizmet tek bir bağlantının ya da tek bir oturumun hızını sınırladığında işe yarar; tek kaynak hattınızı zaten dolduruyorsa hiçbir şey değiştirmez. 64 MiB altındaki dosyalar her zaman tek kaynaktan gelir. Bir kaynak yalnızca aynı boyutu bildirir ve dosyanın örnek noktalarında aynı baytları gönderirse eklenir; biri yarıda kesilirse diğerleri onun payını tamamlar. Varsayılan olarak kapalı: her ek kilit açma o hesabın trafiğini harcar, bazı hizmetler bağlantı açılır açılmaz dosyanın tamamını sayar ve bazı hizmetlerin koşulları iki hesapla aynı anda indirmeyi yasaklar.',
   'task.chunks': 'Bağlantılar (0 = genel ayar)',
   'task.chunksHint': 'Bu tek indirmenin kaç bağlantı açacağı. Genel ayarı ve onu belirleyen her kuralı geçer, ama sunucuyu asla: daha azına dayanan bir sunucu yine de daha azını alır. 0 istisnayı geri alır ve sayıyı yeniden dışarıya bırakır.',
   'columns.connection': 'Bağlantı',
