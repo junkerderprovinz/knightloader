@@ -90,6 +90,10 @@ export const lv: Dict = {
   'captcha.blockHoster': 'Šai sesijai arī vairs nejautāt par {host}',
   'captcha.blockEverywhere': 'Šai sesijai arī vairs nejautāt ne par vienu hosteru',
   'captcha.tooLate': 'Šī atbilde pienāca par vēlu.',
+  'captcha.testFor':
+    'Testa captcha no KnightLoader. Neviena lejupielāde to negaida. Ieraksti piecas rakstzīmes un redzēsi, vai tava atbilde ir pareiza.',
+  'captcha.testRight': 'Pareizi. Testa captcha bija {want}.',
+  'captcha.testWrong': 'Nepareizi. Testa captcha bija {want}, nevis {given}.',
   'captcha.timedOut': '{host} captcha beidzās laiks.',
   'captcha.resolvedElsewhere': '{host} captcha tika atrisināta citur.',
   'captcha.relayRefused': 'Šī instance ir pārāk veca, lai nodotu captcha lietotnei. Atjaunini tur KnightLoader.',

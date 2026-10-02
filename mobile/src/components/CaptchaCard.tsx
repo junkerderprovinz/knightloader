@@ -7,6 +7,7 @@ import {
   fmtCountdown,
   secondsLeft,
   solverStatus,
+  testNotice,
   widgetRuns,
   type ClickPoint,
   type Phrase,
@@ -58,7 +59,7 @@ export function CaptchaCard({
 }) {
   const { t } = useT();
   const { c, corners } = useAppearance();
-  const { settleHere } = useCaptchas();
+  const { settleHere, announce } = useCaptchas();
   const [answer, setAnswer] = useState('');
   const [points, setPoints] = useState<ClickPoint[]>([]);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
@@ -74,7 +75,7 @@ export function CaptchaCard({
   const vendor = kind === 'widget' ? (challenge.payload as CaptchaWidgetPayload | undefined)?.vendor : undefined;
   const vendorName = vendor ? (VENDOR_NAMES[vendor] ?? vendor) : '';
   const runs = kind === 'widget' && widgetRuns(challenge);
-  const line = challenge.prompt || (runs ? vendorName : '');
+  const line = challenge.test ? t('captcha.testFor') : challenge.prompt || (runs ? vendorName : '');
   const left = secondsLeft(challenge, now);
   // A widget the page cannot run is as far out of reach as an unknown kind.
   const unshown = kind === 'unsupported' || (kind === 'widget' && !runs);
@@ -105,8 +106,10 @@ export function CaptchaCard({
     setBusy(true);
     setError('');
     try {
-      const { stillValid } = await settleHere(challenge.id, () => answerCaptcha(conn, challenge.id, text));
+      const { stillValid, test } = await settleHere(challenge.id, () => answerCaptcha(conn, challenge.id, text));
       onSettled(stillValid ? undefined : t('captcha.tooLate'));
+      const said = testNotice(challenge, test);
+      if (said) announce(said);
     } catch (e) {
       setError(captchaErrorText(t, conn, e));
     } finally {

@@ -3036,10 +3036,25 @@ export const es: Dict = {
   'captcha.solverStopped': 'Ninguna cuenta de captcha pudo encargarse de este captcha.',
   'captcha.solverUnsupported': '{solver} no resuelve este tipo de captcha.',
   'captcha.solverRefused': '{solver} lo rechazó: {reason}',
+  'captcha.testFor':
+    'Un captcha de prueba de KnightLoader. Ninguna descarga lo espera. Escribe los cinco caracteres para ver si tu respuesta es correcta.',
+  'captcha.testRight': 'Correcto. El captcha de prueba decía {want}.',
+  'captcha.testWrong': 'Incorrecto. El captcha de prueba decía {want}, no {given}.',
+  'captcha.testSolverRight': '{solver} resolvió el captcha de prueba: {want}.',
+  'captcha.testSolverWrong': '{solver} falló el captcha de prueba: decía {want}, no {given}.',
   'settings.captcha.whenTitle': 'Cuándo empiezan las cuentas de captcha',
   'settings.captcha.onlyUnwatched': 'Solo cuando nadie está mirando',
   'settings.captcha.wait': 'Esperar una respuesta (segundos)',
   'settings.captcha.waitHint': 'Cuánto esperan las cuentas de captcha mientras alguien mira antes de tomar el relevo igualmente. Nunca esperan más de la mitad del tiempo que le queda al captcha, para que una cuenta de captcha aún tenga tiempo de responderlo. De 10 a 600 segundos.',
+  'settings.captcha.testTitle': 'Captcha de prueba',
+  'settings.captcha.test': 'Enviar un captcha de prueba',
+  'settings.captcha.testHint':
+    'Envía un captcha que dibuja el propio KnightLoader. Aparece en la ventana del captcha, en la app para móvil y en tus destinos de eventos igual que uno de un alojamiento, y en cuanto se responde ves si la respuesta era correcta. Ninguna descarga lo espera y no va a tus cuentas de captcha.',
+  'settings.captcha.testSolvers': 'Enviarlo también a las cuentas de captcha',
+  'settings.captcha.testSolversHint':
+    'Envía el mismo captcha de prueba también a tus cuentas de captcha, en el orden de arriba, para que veas si lo responden y aciertan. Lo cobran como cualquier otro captcha. Con «Solo cuando nadie está mirando» activado, primero te esperan a ti: cambia a otra pestaña o deja que se acabe la espera.',
+  'settings.captcha.testOff':
+    'Los captchas están desactivados. Vuelve a activar el módulo Captcha para enviar un captcha de prueba.',
   'captcha.solverStoppedTaken': '{solver} se encargó de este captcha, pero no envió ninguna respuesta.',
   'captcha.solverNotPassedOn': 'Puede que {solver} lo cobre igualmente, así que KnightLoader no lo envía además a otra cuenta de captcha. Todavía puedes responderlo tú.',
   'captcha.solverNoAnswer': '{solver} se encargó de él, pero no llegó ninguna respuesta.',

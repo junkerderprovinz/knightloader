@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type Account, type CatalogueService, fetchAccountCatalogue, fetchAccounts } from '../../lib/api';
-import { useT } from '../../lib/i18n';
 import {
+  type Account,
+  ApiError,
+  type CatalogueService,
+  createTestCaptcha,
+  fetchAccountCatalogue,
+  fetchAccounts,
+} from '../../lib/api';
+import { useT } from '../../lib/i18n';
+import { useToast } from '../../lib/toast';
+import {
+  Button,
   Card,
   ErrorCard,
   Field,
@@ -146,7 +155,55 @@ export function Captcha() {
           )}
         </Card>
       )}
+
+      <TestCaptchaCard hue={order.length > 0 ? 2 : 1} solvers={order.length > 0} />
     </div>
+  );
+}
+
+/**
+ * Puts up a test captcha, which arrives in the captcha window and the phone app
+ * like a real one; how the answer compared comes back as a toast from
+ * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
+ * to them only from the second button, which shows while one is enabled.
+ */
+function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  async function send(toSolvers: boolean) {
+    setBusy(true);
+    try {
+      await createTestCaptcha(toSolvers);
+    } catch (e) {
+      const off = e instanceof ApiError && e.code === 'captchaOff';
+      toast(off ? t('settings.captcha.testOff') : t('captcha.networkError'), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card hue={hue} className="flex flex-col gap-4">
+      <SectionTitle>{t('settings.captcha.testTitle')}</SectionTitle>
+      <div className="flex flex-wrap gap-2">
+        <Button kind="secondary" hue={0} disabled={busy} hint={t('settings.captcha.testHint')} onClick={() => void send(false)}>
+          {t('settings.captcha.test')}
+        </Button>
+        {solvers && (
+          <Button
+            kind="secondary"
+            hue={1}
+            disabled={busy}
+            hint={t('settings.captcha.testSolversHint')}
+            onClick={() => void send(true)}
+          >
+            {t('settings.captcha.testSolvers')}
+          </Button>
+        )}
+      </div>
+    </Card>
   );
 }
 

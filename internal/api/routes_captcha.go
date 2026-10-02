@@ -51,7 +51,7 @@ func registerCaptcha(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			stillValid, err := a.AnswerCaptcha(r.Context(), id, body.Text)
+			res, err := a.AnswerCaptcha(r.Context(), id, body.Text)
 			if err != nil {
 				if errors.Is(err, captcha.ErrJDNotConfigured) {
 					writeRefusal(w, http.StatusServiceUnavailable, "noJD", err.Error(), nil)
@@ -61,10 +61,29 @@ func registerCaptcha(reg *Registry, a *app.App) {
 				return
 			}
 			// Answered directly as well as broadcast, so the submitting
-			// browser learns at once whether the answer came too late.
-			writeJSON(w, struct {
-				StillValid bool `json:"stillValid"`
-			}{stillValid})
+			// browser learns at once whether the answer came too late, and
+			// for a test captcha whether it was right.
+			writeJSON(w, res)
+		})
+
+	reg.Add(http.MethodPost, "/api/captcha/test", "put up a test captcha, a picture of five characters this instance drew, which arrives and is answered like a real one and says whether the answer was right; it goes to the paid captcha accounts only with solvers set, since they bill it",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Solvers bool `json:"solvers"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			c, err := a.CreateTestCaptcha(body.Solvers)
+			if err != nil {
+				if errors.Is(err, app.ErrCaptchaOff) {
+					writeRefusal(w, http.StatusConflict, "captchaOff", err.Error(), nil)
+					return
+				}
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, c)
 		})
 
 	// The phone app reports on a path of its own, not with a parameter: an

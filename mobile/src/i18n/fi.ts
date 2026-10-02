@@ -90,6 +90,10 @@ export const fi: Dict = {
   'captcha.blockHoster': 'Älä myöskään enää kysy palvelulta {host} tällä istunnolla',
   'captcha.blockEverywhere': 'Älä myöskään enää kysy miltään hosterilta tällä istunnolla',
   'captcha.tooLate': 'Tuo vastaus saapui liian myöhään.',
+  'captcha.testFor':
+    'KnightLoaderin testi-captcha. Mikään lataus ei odota sitä. Kirjoita viisi merkkiä, niin näet, onko vastauksesi oikein.',
+  'captcha.testRight': 'Oikein. Testi-captchassa luki {want}.',
+  'captcha.testWrong': 'Väärin. Testi-captchassa luki {want}, ei {given}.',
   'captcha.timedOut': 'Kohteen {host} captcha aikakatkaistiin.',
   'captcha.resolvedElsewhere': 'Kohteen {host} captcha ratkaistiin muualla.',
   'captcha.relayRefused': 'Tämä instanssi on liian vanha välittämään captchoja sovellukselle. Päivitä KnightLoader siellä.',

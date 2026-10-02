@@ -90,6 +90,10 @@ export const fa: Dict = {
   'captcha.blockHoster': 'پرسیدن درباره {host} را هم برای این نشست متوقف کنید',
   'captcha.blockEverywhere': 'پرسیدن درباره هر هاستری را هم برای این نشست متوقف کنید',
   'captcha.tooLate': 'آن پاسخ خیلی دیر رسید.',
+  'captcha.testFor':
+    'یک کپچای آزمایشی از KnightLoader. هیچ دانلودی منتظرش نیست. پنج نویسه را بنویس تا ببینی پاسخت درست است یا نه.',
+  'captcha.testRight': 'درست است. در کپچای آزمایشی {want} نوشته شده بود.',
+  'captcha.testWrong': 'نادرست است. در کپچای آزمایشی {want} نوشته شده بود، نه {given}.',
   'captcha.timedOut': 'کپچای {host} منقضی شد.',
   'captcha.resolvedElsewhere': 'کپچای {host} در جای دیگری حل شد.',
   'captcha.relayRefused': 'این نمونه برای فرستادن کپچا به برنامه خیلی قدیمی است. KnightLoader را آنجا به‌روز کنید.',

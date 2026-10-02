@@ -90,6 +90,10 @@ export const he: Dict = {
   'captcha.blockHoster': 'גם להפסיק לשאול לגבי {host} בהפעלה זו',
   'captcha.blockEverywhere': 'גם להפסיק לשאול לגבי כל מארח בהפעלה זו',
   'captcha.tooLate': 'התשובה הזו הגיעה מאוחר מדי.',
+  'captcha.testFor':
+    'קאפצ׳ה לבדיקה מ-KnightLoader. אף הורדה לא מחכה לה. הקלד את חמשת התווים כדי לראות אם התשובה שלך נכונה.',
+  'captcha.testRight': 'נכון. בקאפצ׳ה לבדיקה היה כתוב {want}.',
+  'captcha.testWrong': 'לא נכון. בקאפצ׳ה לבדיקה היה כתוב {want}, לא {given}.',
   'captcha.timedOut': 'פג תוקף הקאפצ׳ה עבור {host}.',
   'captcha.resolvedElsewhere': 'הקאפצ׳ה עבור {host} נפתרה במקום אחר.',
   'captcha.relayRefused': 'המופע הזה ישן מדי כדי להעביר קאפצ׳ות לאפליקציה. עדכן שם את KnightLoader.',

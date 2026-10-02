@@ -264,7 +264,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 			if a.captchaSwitchedOff() {
 				return
 			}
-			if _, err := a.AnswerCaptcha(ctx, c.ID, text); err != nil {
+			if _, err := a.answerCaptcha(ctx, c.ID, text, s.label); err != nil {
 				log.Printf("captcha: %s answered %s but submitting it failed: %v", s.label, c.ID, err)
 			}
 			return

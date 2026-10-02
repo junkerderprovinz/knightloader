@@ -3,6 +3,7 @@ import type {
   CaptchaChallenge,
   CaptchaSolverRefusal,
   CaptchaSolverReport,
+  CaptchaTestResult,
   CaptchaWidgetPayload,
 } from './types';
 
@@ -92,10 +93,20 @@ export function departures(
     });
 }
 
-/** What the watch puts in its banner after one look. */
+/** What the watch puts in its banner after one look, or after this phone
+ *  answered a test captcha. */
 export interface CaptchaNotice {
-  kind: 'arrived' | 'timedOut' | 'resolved';
+  kind: 'arrived' | 'timedOut' | 'resolved' | 'testRight' | 'testWrong';
   challenge: CaptchaChallenge;
+  /** The drawn text and the answer, for a test captcha's result. */
+  test?: CaptchaTestResult;
+}
+
+/** The banner for this phone's answer to a test captcha, or null when the
+ *  answer was to a real one, whose card already said how it went. */
+export function testNotice(challenge: CaptchaChallenge, test: CaptchaTestResult | undefined): CaptchaNotice | null {
+  if (!test) return null;
+  return { kind: test.correct ? 'testRight' : 'testWrong', challenge, test };
 }
 
 /**

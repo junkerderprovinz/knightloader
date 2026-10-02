@@ -3,6 +3,7 @@ import {
   type AuthState,
   type CaptchaAbortScope,
   type CaptchaChallenge,
+  type CaptchaTestResult,
   type DirectConnection,
   type ExtractJob,
   type Instance,
@@ -546,8 +547,12 @@ export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaCh
 
 /** stillValid is JD's verdict on whether the answer arrived in time; trust it
  *  over the countdown on screen. */
-export async function answerCaptcha(conn: ServerConnection, id: string, text: string): Promise<{ stillValid: boolean }> {
-  return request<{ stillValid: boolean }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
+export async function answerCaptcha(
+  conn: ServerConnection,
+  id: string,
+  text: string,
+): Promise<{ stillValid: boolean; test?: CaptchaTestResult }> {
+  return request<{ stillValid: boolean; test?: CaptchaTestResult }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
     method: 'POST',
     body: JSON.stringify({ text }),
   });
