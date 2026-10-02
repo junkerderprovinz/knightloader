@@ -183,6 +183,17 @@ export async function addLinks(conn: ServerConnection, links: string[], base = '
   });
 }
 
+// addSharedText stages what another app shared, as the web UI's quick-add page
+// does: the server picks the links out of the text, and a title the sharing
+// app sent names the package. The relay forwards /api/links but not the
+// container and torrent uploads, which is why the share sheet offers no files.
+export async function addSharedText(conn: ServerConnection, text: string, title?: string): Promise<Task[]> {
+  return request<Task[]>(conn, '/api', '/links', {
+    method: 'POST',
+    body: JSON.stringify({ links: text, package: title || undefined }),
+  });
+}
+
 export async function setTasksEnabled(conn: ServerConnection, ids: string[], enabled: boolean, base = '/api'): Promise<void> {
   await request(conn, base, '/tasks/enabled', {
     method: 'POST',
