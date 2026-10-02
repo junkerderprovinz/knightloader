@@ -7,6 +7,10 @@
 // service that will take them, the per-account submit limit, the polling until
 // the service is done, and the resolver and backend for the file links that
 // come out of it (usenet://torbox/<job>/<file>/<name>).
+//
+// The user's own Usenet servers are one more account in the queue
+// (internal/usenet/local), whose files are fetched article by article here
+// rather than in a cloud first.
 package usenet
 
 import (
@@ -88,6 +92,11 @@ type File struct {
 	// and empty for a file at the top.
 	Dir  string
 	Size int64
+	// Link is the link the file is staged under when the service names one
+	// itself, and FileLink's otherwise.
+	Link string
+	// Held files are staged switched off, because only a repair needs them.
+	Held bool
 }
 
 // ErrBusy is a service declining to take an NZB for a while, because the
