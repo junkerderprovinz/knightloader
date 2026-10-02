@@ -276,9 +276,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
-	// How the tracker list named in the settings was fetched, which is part
-	// of the Torrents settings page.
-	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
+	// The interfaces to tie torrents to and how the tracker list named in the
+	// settings was fetched, both part of the Torrents settings page.
+	"GET /api/torrents/interfaces": apitoken.ScopeAdmin,
+	"GET /api/torrents/trackers":   apitoken.ScopeAdmin,
 
 	// Layout only: the buckets the instance keeps for itself are refused
 	// whatever the scope (serverBuckets).

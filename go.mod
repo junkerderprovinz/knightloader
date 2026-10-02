@@ -171,7 +171,8 @@ require (
 )
 
 // The gopeed fork applies the torrent upload limit to running torrents, lets
-// DHT and PEX be switched off, and fixes a panic when the torrent client is
-// closed right after it was built:
+// DHT and PEX be switched off, ties BitTorrent traffic to one network
+// interface (pkg/netbind), and fixes a panic when the torrent client is closed
+// right after it was built:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20260927183203-8919f1eb41f2
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261002213646-7fb82ba70c32

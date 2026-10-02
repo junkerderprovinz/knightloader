@@ -11,6 +11,7 @@ import (
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
+	"github.com/GopeedLab/gopeed/pkg/netbind"
 	gbt "github.com/GopeedLab/gopeed/pkg/protocol/bt"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -211,20 +212,40 @@ func (e *Engine) resolveTorrent(j Job, opts *base.Options) (*download.ResolveRes
 	}
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
-	select {
-	case a := <-ch:
-		if a.err != nil {
-			return nil, a.err
+	for {
+		select {
+		case a := <-ch:
+			if a.err != nil {
+				return nil, a.err
+			}
+			if a.rr == nil || a.rr.Res == nil {
+				return nil, fmt.Errorf("the torrent resolved to nothing")
+			}
+			return a.rr, nil
+		case <-timer.C:
+			if wait := metadataWaitLeft(netbind.Default.State(), timeout, time.Now()); wait > 0 {
+				timer.Reset(wait)
+				continue
+			}
+			return nil, fmt.Errorf("no peer sent this torrent's file list within %s", timeout)
+		case <-e.done:
+			return nil, fmt.Errorf("shutting down")
 		}
-		if a.rr == nil || a.rr.Res == nil {
-			return nil, fmt.Errorf("the torrent resolved to nothing")
-		}
-		return a.rr, nil
-	case <-timer.C:
-		return nil, fmt.Errorf("no peer sent this torrent's file list within %s", timeout)
-	case <-e.done:
-		return nil, fmt.Errorf("shutting down")
 	}
+}
+
+// metadataWaitLeft is how much longer a magnet whose metadata wait ran out
+// may wait. No peer can answer while the interface the client is tied to is
+// down, so a magnet waits however long that lasts and then gets its whole
+// timeout again.
+func metadataWaitLeft(st netbind.State, timeout time.Duration, now time.Time) time.Duration {
+	if !st.Up {
+		return timeout
+	}
+	if st.Interface == "" {
+		return 0
+	}
+	return max(0, timeout-now.Sub(st.Since))
 }
 
 // landingPaths is where each file of a resolved torrent would be written,
