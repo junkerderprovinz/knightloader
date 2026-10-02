@@ -372,8 +372,9 @@ func joinClasses(in []CleanupClass) string {
 }
 
 // containerAdder is a backend that can open an encrypted link container. Only
-// the shipped headless JD can, because the encrypted formats need a key issued
-// to registered clients.
+// the shipped headless JD can open a DLC, whose key is issued to registered
+// clients, and it is also the fallback for an RSDF or CCF that will not decode
+// here.
 type containerAdder interface {
 	AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
