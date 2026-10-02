@@ -10,11 +10,13 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/hostalias"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
@@ -358,14 +360,16 @@ func (r Resolver) HostCap(host string) int {
 	return hl.HostLimit(host)
 }
 
-// HostInSet reports whether host or any parent domain is in set.
+// HostInSet reports whether host or any parent domain is in set, under any
+// domain internal/hostalias knows the hoster by. A service may list a hoster
+// by a domain the links do not use, as Linksnappy lists mega.co.nz.
 func HostInSet(host string, set map[string]bool) bool {
 	if len(set) == 0 {
 		return false
 	}
 	host = strings.ToLower(strings.TrimPrefix(host, "www."))
 	for host != "" {
-		if set[host] {
+		if slices.ContainsFunc(hostalias.Names(host), func(name string) bool { return set[name] }) {
 			return true
 		}
 		i := strings.IndexByte(host, '.')

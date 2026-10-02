@@ -1,14 +1,17 @@
 // Package hostalias maps the alias domains of a file hoster onto the domain the
 // hoster is known by, such as rg.to onto rapidgator.net.
 //
-// JDownloader's host list and the curated login list name each hoster once,
-// by its main domain, while a link may use any domain the hoster answers
-// under. Most debrid services list the aliases themselves, so this table only
-// needs the hosters people link to under a second name. Each entry is taken
-// from the domains JDownloader's own plugin for that hoster accepts.
+// JDownloader's host list, the curated login list and some debrid services
+// name each hoster once, by one of its domains, while a link may use any
+// domain the hoster answers under. The table only needs the hosters people
+// link to under a second name. Each entry is taken from the domains
+// JDownloader's own plugin for that hoster accepts.
 package hostalias
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 var canonical = map[string]string{
 	"rg.to":           "rapidgator.net",
@@ -48,4 +51,24 @@ func Canonical(host string) string {
 		return main
 	}
 	return host
+}
+
+// aliases is canonical turned around: each main domain with its aliases.
+var aliases = func() map[string][]string {
+	m := map[string][]string{}
+	for alias, main := range canonical {
+		m[main] = append(m[main], alias)
+	}
+	for _, list := range m {
+		slices.Sort(list)
+	}
+	return m
+}()
+
+// Names returns every domain of the hoster host belongs to, main domain first,
+// normalised as Canonical does. A host the table does not know comes back
+// alone.
+func Names(host string) []string {
+	main := Canonical(host)
+	return append([]string{main}, aliases[main]...)
 }
