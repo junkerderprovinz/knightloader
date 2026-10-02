@@ -53,8 +53,8 @@ import {
   IconClose,
   IconFilter,
   IconPlay,
+  IconQueued,
   IconRefresh,
-  IconSchedules,
   IconSearch,
   IconTrash,
   IconWarning,
@@ -451,7 +451,7 @@ export function Collector() {
                 labelled={!glyphs}
                 hue={1}
                 active={filters.has('unchecked')}
-                icon={<IconSchedules width={16} height={16} />}
+                icon={<IconQueued width={16} height={16} />}
                 title={t('filter.unchecked')}
                 aria-label={t('filter.unchecked')}
                 onClick={() => narrowing.toggleFilter('unchecked')}

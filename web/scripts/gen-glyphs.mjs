@@ -31,6 +31,7 @@ const USED = [
   'IconTabGeneral', 'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp',
   'IconSchedules', 'IconNotifications', 'IconSliders', 'IconDiagnostics', 'IconKeyboard',
   'IconPaste', 'IconSort', 'IconFolderUp', 'IconHealth', 'IconQueued', 'IconCaptchaTimer',
+  'IconResolvers',
 ];
 
 // The centre line IconCheckDrawn traces through IconCheck, in IconCheck's

@@ -14,8 +14,8 @@ import {
   IconLink,
   IconModules,
   IconNetwork,
+  IconResolvers,
   IconSchedules,
-  IconSliders,
   IconTabAdvanced,
   IconTabApp,
   IconTabGeneral,
@@ -41,9 +41,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   network: IconNetwork,
   accounts: IconAccounts,
   instances: IconFleet,
-  // Sliders, since the page tunes what yt-dlp fetches: quality, format and
-  // the rest.
-  resolvers: IconSliders,
+  resolvers: IconResolvers,
   // Uploading is what torrents do that no other backend here does.
   torrents: IconUpload,
   captcha: IconCaptcha,
