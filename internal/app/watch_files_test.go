@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"sync"
@@ -201,5 +202,23 @@ func TestADroppedPlainContainerIsReadHere(t *testing.T) {
 	a.stageWatchJob(job)
 	if tasks := a.Tasks(); len(tasks) != 1 {
 		t.Fatalf("staged %d tasks, want the link in the list", len(tasks))
+	}
+}
+
+// sampleCCF is a CCF 1.0 holding https://host.example/one.bin.
+const sampleCCF = "b7732a47bf700eb6674cdeb6e3f49a208da4c42f4d174f63cb390b6a9545d142c3d3b3357c413e6c9eaccb9ea1af341c119e74d85b09724fcde11f5e4c0b15b822e8584c46f4e7fb0530ec69c697ca0afb8c2f934e41c95d7b3510b0a162599ede4bb664dd238f21d255c9c773d8344d5b3450b1ff477b30855633053bcf371a0d85278938f502425e1e3e674bdadc4aa80e7b493beb7a583b13743065fd26b6"
+
+func TestADroppedCCFIsReadHereWithoutJDownloader(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := newCrawlApp(t, false)
+	data, _ := hex.DecodeString(sampleCCF)
+	job := watch.Job{File: &watch.File{Name: "Links.ccf", Data: data}, Package: "Links"}
+	if err := a.checkWatchJob(job); err != nil {
+		t.Fatalf("a CCF that opens here was refused: %v", err)
+	}
+	a.stageWatchJob(job)
+	tasks := a.Tasks()
+	if len(tasks) != 1 || tasks[0].URL != "https://host.example/one.bin" || tasks[0].Origin != OriginWatch {
+		t.Fatalf("tasks = %+v, want the link inside the CCF, from the watched folder", tasks)
 	}
 }

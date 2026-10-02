@@ -89,8 +89,12 @@ func (a *App) stageWatchFile(f *watch.File, pkg string) {
 		links, err := container.Links(f.Name, f.Data)
 		switch {
 		case err == nil:
+			if k := container.Detect(f.Name, f.Data); k == container.KindRSDF || k == container.KindCCF {
+				log.Printf("dropped container %s: opened here as %s, %d links", f.Name, k, len(links))
+			}
 			a.stageWatchJob(watch.Job{URLs: links, Package: pkg})
 		case errors.Is(err, container.ErrNeedsBackend):
+			log.Printf("dropped container %s: handing it to JDownloader: %v", f.Name, err)
 			a.openWatchContainer(f, pkg)
 		default:
 			a.watchFileFailed(f, "container", err)
