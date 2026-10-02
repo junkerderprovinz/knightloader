@@ -319,6 +319,7 @@ var debridServices = []struct {
 	{"fakirdebrid", 43, byKey(func(k string) debrid.Service { return debrid.NewFakirDebrid(k) })},
 	{"megadebrid", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewMegaDebrid(u, p) })},
 	{"multiup", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewMultiUp(u, p) })},
+	{"mydebrid", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewMyDebrid(u, p) })},
 	{"neodebrid", 43, byLogin(func(u, p string) debrid.Service { return debrid.NewNeoDebrid(u, p) })},
 	// The API user and key, and the customer ID and key, are stored as username
 	// and password (accounts.Service.UserLabel).

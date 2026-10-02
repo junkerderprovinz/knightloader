@@ -25,9 +25,9 @@ the Accounts page. None of them is required.
 ## Services without a variable
 
 Linksnappy and the smaller multihosters (BestDebrid, CocoLeech, CoolDebrid,
-DebridItalia, Deepbrid, FakirDebrid, Mega-Debrid, MultiUp, NeoDebrid, ProLeech,
-RPNet and Zevera) are entered on the Accounts page only. Linksnappy,
-DebridItalia, Mega-Debrid, MultiUp and NeoDebrid take the login the website
-takes; ProLeech and RPNet take the two values their API page shows. The full
+DebridItalia, Deepbrid, FakirDebrid, Mega-Debrid, MultiUp, MyDebrid, NeoDebrid,
+ProLeech, RPNet and Zevera) are entered on the Accounts page only. Linksnappy,
+DebridItalia, Mega-Debrid, MultiUp, MyDebrid and NeoDebrid take the login the
+website takes; ProLeech and RPNet take the two values their API page shows. The full
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
