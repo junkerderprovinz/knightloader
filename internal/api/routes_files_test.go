@@ -8,12 +8,18 @@ package api
 // TestServeTaskFileSymlinkEscapeIs403).
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -266,5 +272,169 @@ func TestTaskFileStatusMapping(t *testing.T) {
 				t.Errorf("taskFileStatus(%v) = %d, want %d", c.err, got, c.want)
 			}
 		})
+	}
+}
+
+// playLink asks the play route for a link to task id's file.
+func playLink(t *testing.T, srvURL, id string) string {
+	t.Helper()
+	resp, err := http.Post(srvURL+"/api/tasks/"+id+"/play", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var body struct{ Path string }
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatalf("play route answered %d: %v", resp.StatusCode, err)
+	}
+	return body.Path
+}
+
+func getStatus(t *testing.T, u string) int {
+	t.Helper()
+	resp, err := http.Get(u)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+	return resp.StatusCode
+}
+
+// A media player the phone app opens sends no cookie and no token. The link
+// from the play route has to be enough for that one file, and for nothing
+// else.
+func TestAPlayLinkOpensItsFileOnALockedInstance(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
+	other := putFile(t, a, base, "other.mkv", []byte("other frames"))
+	link := playLink(t, srv.URL, id)
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := http.Get(srv.URL + link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK || string(body) != "frames" {
+		t.Fatalf("play link answered %d with %q, want 200 with the file", resp.StatusCode, body)
+	}
+
+	_, ticket, _ := strings.Cut(link, "?")
+	changed := link[:len(link)-1] + "A"
+	if strings.HasSuffix(link, "A") {
+		changed = link[:len(link)-1] + "B"
+	}
+	cases := map[string]string{
+		"another task's file":  "/api/tasks/" + other + "/file?" + ticket,
+		"another route":        "/api/tasks/" + id + "/torrent-files?" + ticket,
+		"a changed ticket":     changed,
+		"the file without one": "/api/tasks/" + id + "/file",
+	}
+	for name, path := range cases {
+		if got := getStatus(t, srv.URL+path); got != http.StatusUnauthorized {
+			t.Errorf("%s: answered %d, want 401", name, got)
+		}
+	}
+}
+
+func TestAnExpiredPlayLinkIsRefused(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	ticket := playTicket(id, time.Now().Add(-time.Minute))
+	if got := getStatus(t, srv.URL+"/api/tasks/"+id+"/file?ticket="+ticket); got != http.StatusUnauthorized {
+		t.Fatalf("an expired play link answered %d, want 401", got)
+	}
+}
+
+// stalledFile is a download whose bytes never arrive.
+type stalledFile struct{}
+
+func (stalledFile) Read([]byte) (int, error)       { select {} }
+func (stalledFile) Seek(int64, int) (int64, error) { return 0, nil }
+func (stalledFile) Close() error                   { return nil }
+func (stalledFile) ReadContext(ctx context.Context, _ []byte) (int, error) {
+	<-ctx.Done()
+	return 0, ctx.Err()
+}
+
+// lateFile is a download whose bytes arrive after a while.
+type lateFile struct {
+	*bytes.Reader
+	after time.Duration
+}
+
+func (f lateFile) Close() error { return nil }
+func (f lateFile) ReadContext(ctx context.Context, p []byte) (int, error) {
+	select {
+	case <-time.After(f.after):
+		return f.Read(p)
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
+}
+
+func TestAReadOfAStalledDownloadGivesUpAfterItsWait(t *testing.T) {
+	t.Parallel()
+	r := waitingReader{ctx: context.Background(), f: stalledFile{}, wait: 50 * time.Millisecond}
+	start := time.Now()
+	n, err := r.Read(make([]byte, 16))
+	if n != 0 || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("read = %d, %v; want nothing and a deadline", n, err)
+	}
+	if time.Since(start) < 50*time.Millisecond {
+		t.Fatal("the read gave up before its wait was over")
+	}
+}
+
+// A range of a file still downloading is answered with its bytes once they
+// arrive, rather than with whatever the disk holds there at the time.
+func TestARangeOfALateFileWaitsForItsBytes(t *testing.T) {
+	t.Parallel()
+	data := []byte("0123456789abcdefghij")
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f := lateFile{Reader: bytes.NewReader(data), after: 30 * time.Millisecond}
+		http.ServeContent(w, r, "", time.Time{}, waitingReader{ctx: r.Context(), f: f, wait: time.Second})
+	}))
+	defer srv.Close()
+	req, _ := http.NewRequest(http.MethodGet, srv.URL, nil)
+	req.Header.Set("Range", "bytes=10-14")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusPartialContent || string(body) != "abcde" {
+		t.Fatalf("range answered %d with %q, want 206 with abcde", resp.StatusCode, body)
+	}
+}
+
+func TestOnlyAudioAndVideoArePlayed(t *testing.T) {
+	t.Parallel()
+	for name, want := range map[string]bool{
+		"film.mkv": true, "song.FLAC": true, "cover.jpg": false, "notes.nfo": false, "setup.exe": false,
+	} {
+		if got := isMedia(name); got != want {
+			t.Errorf("isMedia(%q) = %v, want %v", name, got, want)
+		}
 	}
 }

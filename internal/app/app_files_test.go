@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -249,5 +250,93 @@ func TestSafeTaskFileSymlinkEscapeIsRefused(t *testing.T) {
 
 	if _, err := a.SafeTaskFile(task.ID); !errors.Is(err, ErrTaskFileEscape) {
 		t.Errorf("err = %v, want ErrTaskFileEscape", err)
+	}
+}
+
+// torrentTask stages a finished torrent of three files in its own folder
+// under base, the way the engine leaves one.
+func torrentTask(t *testing.T, a *App, base string) *core.Task {
+	t.Helper()
+	root := filepath.Join(base, "Show")
+	writeTestFile(t, filepath.Join(root, "S01"), "e01.mkv", []byte("episode one"))
+	writeTestFile(t, filepath.Join(root, "S01"), "e02.mkv", []byte("episode two, longer"))
+	writeTestFile(t, root, "info.nfo", []byte("notes"))
+	return putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Show",
+		Status: core.StatusDone, File: root,
+		TorrentFiles: []core.TorrentFile{
+			{Path: "S01/e01.mkv", Size: 11, Selected: true},
+			{Path: "S01/e02.mkv", Size: 19, Selected: true},
+			{Path: "info.nfo", Size: 5, Selected: false},
+		},
+	})
+}
+
+func isMKV(name string) bool { return filepath.Ext(name) == ".mkv" }
+
+func TestSafeTaskFileAtServesOneFileOfATorrent(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	got, err := a.SafeTaskFileAt(task.ID, 1)
+	if err != nil {
+		t.Fatalf("SafeTaskFileAt: %v", err)
+	}
+	if got.Name != "e02.mkv" || got.Size != int64(len("episode two, longer")) {
+		t.Errorf("got %s of %d bytes, want e02.mkv of the second episode's size", got.Name, got.Size)
+	}
+}
+
+func TestSafeTaskFileAtRefusesAFileTheTorrentDoesNotFetch(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	for _, index := range []int{2, 3} {
+		if _, err := a.SafeTaskFileAt(task.ID, index); !errors.Is(err, ErrTaskFileNoSuchFile) {
+			t.Errorf("file %d: err = %v, want ErrTaskFileNoSuchFile", index, err)
+		}
+	}
+}
+
+func TestSafeTaskFileAtRefusesATorrentPathOutOfItsFolder(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "elsewhere.mkv", []byte("not in the torrent"))
+	task := putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Show",
+		Status: core.StatusDone, File: filepath.Join(base, "Show"),
+		TorrentFiles: []core.TorrentFile{
+			{Path: "../elsewhere.mkv", Size: 18, Selected: true},
+			{Path: "e01.mkv", Size: 1, Selected: true},
+		},
+	})
+	if err := os.MkdirAll(filepath.Join(base, "Show"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.SafeTaskFileAt(task.ID, 0); !errors.Is(err, ErrTaskFileEscape) {
+		t.Errorf("err = %v, want ErrTaskFileEscape", err)
+	}
+}
+
+// Play on a torrent of several files means its largest selected video.
+func TestOpenTaskFilePicksTheLargestSelectedMediaFile(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	of, err := a.OpenTaskFile(task.ID, -1, isMKV)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	body, err := io.ReadAll(of.File)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if of.Name != "e02.mkv" || string(body) != "episode two, longer" || of.Live {
+		t.Errorf("opened %s (live %v) with %q, want the second episode from disk", of.Name, of.Live, body)
+	}
+}
+
+func TestOpenTaskFileOfATorrentWithoutMediaFindsNothing(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	if _, err := a.OpenTaskFile(task.ID, -1, func(string) bool { return false }); !errors.Is(err, ErrTaskFileNoBytes) {
+		t.Errorf("err = %v, want ErrTaskFileNoBytes for the torrent's folder", err)
 	}
 }
