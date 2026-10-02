@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
+  listConnections,
   loadActiveConnection,
   loadDefaultConnection,
   removeConnection,
@@ -29,6 +30,8 @@ import { MotionProvider } from './src/theme/MotionContext';
 import { I18nProvider, useT } from './src/i18n/I18nContext';
 import { HouseFontReady } from './src/components/Text';
 import { HOUSE_FONTS, familyFor } from './src/theme/font';
+import { useOpenRequests, useWatch } from './src/watch/watch';
+import type { OpenRequest } from './modules/watch';
 
 type RootStackParamList = {
   Connections: undefined;
@@ -87,6 +90,31 @@ function Shell() {
   const { t } = useT();
   // Set when an instance has taken this phone out of its group.
   const [removed, setRemoved] = useState(false);
+  // A tapped notification, held until the saved connection is read and the
+  // navigator is up, which on a cold start comes after the tap.
+  const [opening, setOpening] = useState<OpenRequest | null>(null);
+  const [navReady, setNavReady] = useState(false);
+  const connRef = useRef(conn);
+  connRef.current = conn;
+
+  useWatch(conn?.id ?? null);
+  useOpenRequests(setOpening);
+
+  useEffect(() => {
+    if (!opening || loading || !navReady) return;
+    setOpening(null);
+    void (async () => {
+      // The service's own notification names no instance and opens the one
+      // that is open already.
+      const target = opening.connection
+        ? (await listConnections()).find((c) => c.id === opening.connection)
+        : connRef.current;
+      if (!target) return;
+      setConn(target);
+      if (opening.open === 'captcha') nav.navigate('Captchas');
+      else nav.navigate('Downloads', {});
+    })();
+  }, [opening, loading, navReady, nav]);
 
   useEffect(() => {
     onRemovedFromGroup(() => {
@@ -160,7 +188,10 @@ function Shell() {
       >
         <NavigationContainer
           ref={nav}
-          onReady={() => setScreen(nav.getCurrentRoute()?.name)}
+          onReady={() => {
+            setScreen(nav.getCurrentRoute()?.name);
+            setNavReady(true);
+          }}
           onStateChange={() => setScreen(nav.getCurrentRoute()?.name)}
           theme={{
             dark,

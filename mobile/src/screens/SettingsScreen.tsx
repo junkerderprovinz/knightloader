@@ -50,6 +50,7 @@ import { CryptoDonate } from '../components/CryptoDonate';
 import ColorPicker from '../components/ColorPicker';
 import { Text, TextInput } from '../components/Text';
 import { MovingScroll } from '../components/Moving';
+import { NotificationsCard } from '../components/NotificationsCard';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
@@ -680,6 +681,9 @@ export default function SettingsScreen({
           }}
         />
       </NotchCard>
+
+      {/* Position 9 is the next free one, so no other card changes colour. */}
+      <NotificationsCard hue={9} />
 
       {/* The other ways to run KnightLoader, as the web interface's Apps page
           offers them, under its card names and hints and in the README's

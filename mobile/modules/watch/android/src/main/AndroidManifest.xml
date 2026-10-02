@@ -1,0 +1,22 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+  <application>
+    <!-- specialUse rather than dataSync: the service moves no files and has no
+         end of its own. It asks the person's self-hosted servers how their
+         downloads are doing, for as long as one of them is busy, and no push
+         service exists to tell it instead. Android 15 caps dataSync at six
+         hours a day, which a long download queue outlasts. -->
+    <service
+      android:name=".WatchService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Keeps a connection to the user's own self-hosted KnightLoader servers while one of them is downloading or waiting for a captcha, to notify about captchas that need an answer and downloads that finished or failed. Stops by itself once nothing is running. The servers are reached directly or through a relay, with no push service in between." />
+    </service>
+  </application>
+</manifest>
