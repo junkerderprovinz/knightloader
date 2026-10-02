@@ -81,7 +81,7 @@ type Job struct {
 }
 
 // ErrNoService is an NZB offered while no account can take one.
-var ErrNoService = errors.New("no TorBox or Premiumize.me account here can fetch an .nzb from Usenet")
+var ErrNoService = errors.New("no Usenet server, TorBox or Premiumize.me account here can fetch an .nzb")
 
 const (
 	defaultInterval = 5 * time.Second
@@ -737,6 +737,74 @@ func (m *Manager) stage(id string, files []File) {
 			j.Loaded, j.Speed = j.Size, 0
 		}
 	})
+}
+
+// Fallback takes back the staged job the account in slot knows as remote,
+// because its files could not be completed there, and offers it to the next
+// account that has not turned it down. The .nzb is read back from the account,
+// which therefore has to keep it (an NZB method). It returns the tasks the job
+// had become, which the caller removes with their files, and false, with the
+// job left as it is, when no other account is left to try.
+func (m *Manager) Fallback(slot, remote, reason string) ([]string, bool) {
+	m.stageMu.Lock()
+	defer m.stageMu.Unlock()
+	m.mu.Lock()
+	var j *Job
+	for _, c := range m.jobs {
+		if c.Service == slot && c.Remote == remote && c.State == StateStaged {
+			j = c
+			break
+		}
+	}
+	if j == nil {
+		m.mu.Unlock()
+		return nil, false
+	}
+	svc := m.serviceLocked(slot)
+	keeper, ok := svc.(interface {
+		NZB(id string) ([]byte, error)
+	})
+	trial := *j
+	trial.Refused = append(slices.Clone(j.Refused), slot)
+	if _, left := m.pickLocked(&trial); !ok || !left {
+		m.mu.Unlock()
+		return nil, false
+	}
+	id := j.ID
+	m.mu.Unlock()
+
+	data, err := keeper.NZB(remote)
+	if err == nil {
+		err = writeFile(m.nzbPath(id), data)
+	}
+	if err != nil {
+		log.Printf("usenet: %s could not be handed on from %s: %v", trial.Name, svc.Label(), err)
+		return nil, false
+	}
+	m.mu.Lock()
+	j, ok = m.jobs[id]
+	if !ok {
+		m.mu.Unlock()
+		_ = os.Remove(m.nzbPath(id))
+		return nil, false
+	}
+	ids := j.TaskIDs
+	j.State, j.Refused, j.Reason = StateWaiting, trial.Refused, reason
+	j.Service, j.Label, j.Remote, j.Taken = "", "", "", time.Time{}
+	j.TaskIDs, j.Loaded, j.Speed, j.Ended, j.Cleared = nil, 0, 0, time.Time{}, false
+	j.Attempts, j.RetryAt = 0, time.Time{}
+	m.saveLocked()
+	m.mu.Unlock()
+	log.Printf("usenet: %s goes to the next account: %s", trial.Name, reason)
+
+	ctx, cancel := context.WithTimeout(context.Background(), callTimeout)
+	defer cancel()
+	if err := svc.Delete(ctx, remote); err != nil {
+		log.Printf("usenet: %s's copy at %s could not be deleted: %v", trial.Name, svc.Label(), err)
+	}
+	m.notePending()
+	m.Kick()
+	return ids, true
 }
 
 // clear deletes the service's copy of a staged job once its tasks are done or

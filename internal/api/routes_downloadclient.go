@@ -8,11 +8,12 @@ package api
 // (routes_qbittorrent.go), which the same switch opens.
 //
 // Sonarr and Radarr only call addfile, uploading an .nzb they fetched
-// themselves. A real one goes to a TorBox or Premiumize.me account when one is
-// set up (internal/usenet), and its files come back as tasks once the service
-// has fetched them. Anything else is scanned for links, which suits a DDL
-// indexer whose "nzb" is really a link list or a container; a payload without
-// links is refused rather than faked. addurl is served too, for scripts.
+// themselves. A real one goes to the own Usenet servers or a TorBox or
+// Premiumize.me account (internal/usenet), and its files come back as tasks,
+// at once from the own servers and once a service has fetched them otherwise.
+// Anything else is scanned for links, which suits a DDL indexer whose "nzb" is
+// really a link list or a container; a payload without links is refused rather
+// than faked. addurl is served too, for scripts.
 //
 // The category a grab comes with is also the KnightLoader category it is
 // filed in, created on first use, so each app's downloads land in a folder of
@@ -32,6 +33,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -659,17 +661,26 @@ func (dc *downloadClient) views(r *http.Request, finished bool) []grabView {
 func (dc *downloadClient) stateLocked(grabs map[string]sabGrab) (live map[string]*core.Task, jobs map[string]usenet.Job, changed bool) {
 	jobs = map[string]usenet.Job{}
 	for id, g := range grabs {
-		if len(g.TaskIDs) > 0 || g.Job == "" {
+		if g.Job == "" {
 			continue
 		}
 		j, ok := dc.a.UsenetJob(g.Job)
 		switch {
 		case !ok:
 		case j.State == usenet.StateStaged:
-			g.TaskIDs = j.TaskIDs
-			grabs[id] = g
-			changed = true
+			if !slices.Equal(g.TaskIDs, j.TaskIDs) {
+				g.TaskIDs = j.TaskIDs
+				grabs[id] = g
+				changed = true
+			}
 		default:
+			// A job the own Usenet servers could not complete goes back to
+			// waiting for the next account, and the tasks it had are gone.
+			if len(g.TaskIDs) > 0 {
+				g.TaskIDs = nil
+				grabs[id] = g
+				changed = true
+			}
 			jobs[g.Job] = j
 		}
 	}
@@ -709,7 +720,7 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 	var seen, failed, done, running, extracting, paused int
 	for _, id := range g.TaskIDs {
 		t := live[id]
-		if t == nil {
+		if t == nil || app.HeldSpare(t) {
 			continue
 		}
 		seen++

@@ -1052,6 +1052,9 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
 	a.applyModuleSwitches(applied)
+	// The Usenet servers and the priority card that ranks them against the
+	// debrid services are both in the document.
+	a.rewireUsenet()
 	// The torrent module may be back on.
 	a.resumeSeeding()
 	a.mu.Lock()
