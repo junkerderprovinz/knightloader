@@ -112,6 +112,13 @@
     "whereUrl": "https://multiup.io/en/login"
   },
   {
+    "id": "mydebrid",
+    "label": "MyDebrid",
+    "kind": "usernamePassword",
+    "group": "debrid",
+    "whereUrl": "https://mydebrid.com/login"
+  },
+  {
     "id": "neodebrid",
     "label": "NeoDebrid",
     "kind": "usernamePassword",

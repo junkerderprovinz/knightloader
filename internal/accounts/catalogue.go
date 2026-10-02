@@ -89,6 +89,7 @@ var Catalogue = []Service{
 	{ID: "fakirdebrid", Label: "FakirDebrid", Kind: KindAPIKey, Group: GroupDebrid, WhereURL: "https://fakirdebrid.net/api/login.php"},
 	{ID: "megadebrid", Label: "Mega-Debrid", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://www.mega-debrid.eu/"},
 	{ID: "multiup", Label: "MultiUp", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://multiup.io/en/login"},
+	{ID: "mydebrid", Label: "MyDebrid", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://mydebrid.com/login"},
 	{ID: "neodebrid", Label: "NeoDebrid", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://neodebrid.com/login", UserLabel: FieldEmail},
 	{ID: "proleech", Label: "ProLeech", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://proleech.link/v2/jdownloader", UserLabel: FieldAPIUser, PassLabel: FieldAPIKey},
 	{ID: "rpnet", Label: "RPNet", Kind: KindUsernamePassword, Group: GroupDebrid, WhereURL: "https://premium.rpnet.biz/account", UserLabel: FieldCustomerID, PassLabel: FieldAPIKey},

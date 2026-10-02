@@ -37,6 +37,14 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **MyDebrid.** KnightLoader talks to MyDebrid itself, with the username and
+  password of your MyDebrid account. It reads which hosters MyDebrid supports,
+  how many connections each one allows and which have used up their daily
+  allowance, and the Accounts page shows the plan and when it runs out.
+  MyDebrid does not take torrents.
+
 ## [1.6.4] - 2026-10-01
 
 ### Added
