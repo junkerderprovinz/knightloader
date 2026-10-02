@@ -1,14 +1,16 @@
 # Privacy policy: KnightLoader Android app
 
-Last updated: 1 October 2026. Applies to version 1.6.1 and later, until this
-date changes.
+Last updated: 2 October 2026. Applies to the versions released since then, until
+this date changes.
 
 ## The short version
 
 The app is a remote control for KnightLoader instances that you run yourself. It
 shows what they are downloading and sends them the links and commands you give
-it. It has no accounts, no advertising and no analytics of its own, and it runs
-nothing in the background.
+it. It has no accounts, no advertising and no analytics of its own. While one of
+your instances is downloading or waiting for a captcha, the app keeps its own
+connection to them in the background so it can notify you, and it stops once
+nothing is running.
 
 It reaches your instances through a relay operated by the party named under "Who
 is responsible". What the app and your instances say to each other is encrypted
@@ -43,7 +45,8 @@ In the app's ordinary storage:
   group.
 - Your settings: the interface language if you chose one, the look (theme, corner
   shape, accent colour, rainbow mode, and whether to follow an instance's look),
-  and the motion level.
+  the motion level, which notifications you want, and whether the app has asked
+  for the notification permission yet.
 
 If you use Android's own backup, it may include the app's storage. The saved
 connections are encrypted with a key that stays in this phone's keystore and is
@@ -80,6 +83,12 @@ These travel through the relay, and only your instances can read them:
   counters, the captchas that are waiting, and its look if you follow it.
 - What you do in the app: links you add, starting or stopping the queue, switching
   links and packages on or off, removing packages, and your answers to captchas.
+
+While one of your instances is downloading or has a captcha waiting, the app also
+asks your instances for their download list and the waiting captchas every 10 to
+30 seconds in the background, even after you close it. It builds the
+notifications from the answers on the phone. No push service, Google's included,
+takes part.
 
 A connection saved by address in an older version of the app talks to that address
 directly, over HTTP or HTTPS as the address says, and sends its API token with each
@@ -119,9 +128,11 @@ The app makes no other network requests.
 | Camera | Scanning the QR code of your phrase. Asked for when you open the scanner and press "Allow access". |
 | Internet | Reaching the relay and your instances. |
 | Network state | Letting the app's libraries see whether the phone is online. |
+| Notifications | Telling you about a captcha that waits for an answer and a download that finished or failed. Asked for the first time a download is running while the app is open, and switchable per kind in Settings. |
+| Foreground service | Keeping the connection to your instances while one of them is busy. Android shows a quiet notification for as long as it runs, and it stops once nothing is running. |
+| Keep awake | Letting that connection look again while the screen is off. Held only while the foreground service runs. |
 
-The app asks for no notification, location, contacts, storage or microphone
-permission. It shows no notifications and does no work while it is closed.
+The app asks for no location, contacts, storage or microphone permission.
 
 ## What the app does not do
 

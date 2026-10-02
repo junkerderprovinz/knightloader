@@ -339,8 +339,12 @@ and cannot be explained.
   overview counts what waits on the others. A captcha that arrives while the
   app is in the background is announced when you come back to it, as long as
   Android has kept the app in memory. After Android has closed it, the card on
-  the downloads still shows what is waiting, but no banner comes up. The app
-  sends no notification while it is closed. While it watches, the instance
+  the downloads still shows what is waiting, but no banner comes up. While one
+  of your instances is downloading or has a captcha waiting, the app also keeps
+  its own connection in the background and posts a notification for a new
+  captcha, even when it is closed; **Notifications** in the app's settings
+  switches that off. The background connection does not count as watching.
+  While the app watches, the instance
   counts you as watching for the captchas the app can answer, which is every
   kind except a captcha service KnightLoader does not know. With **Only when
   nobody is watching** switched on on the Captcha settings page, the captcha
