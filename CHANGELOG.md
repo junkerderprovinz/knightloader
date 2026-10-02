@@ -49,12 +49,8 @@ release's tag.
 
 - **KnightLoader talks to every debrid service itself.** The debrid card no
   longer lists multihosters reached through JDownloader, and the hoster login
-  picker no longer offers them. A MyDebrid login you stored for JDownloader
-  becomes a MyDebrid account at the next start, switched on or off as it was.
-  LeechAll has no public API and its login asks for a captcha, so KnightLoader
-  has no client for it. Any other multihoster login you stored for JDownloader,
-  such as one for LeechAll, now shows under Hoster accounts, and JDownloader
-  keeps using it until you remove it.
+  picker no longer offers them. LeechAll has no public API and its login asks
+  for a captcha, so KnightLoader has no client for it.
 
 ## [1.6.4] - 2026-10-01
 
