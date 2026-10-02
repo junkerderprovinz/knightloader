@@ -7,6 +7,7 @@ repository.
 
 REPO = "knightloader"
 RELEASE = "https://github.com/junkerderprovinz/knightloader/releases/latest/download/"
+CHROME_WEB_STORE = "https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf"
 
 BUTTONS = {
     "windows": RELEASE + "knightloader-windows-amd64-installer.exe",
@@ -29,9 +30,13 @@ BUTTONS = {
     # address goes here once it exists.
     "google-play": None,
     "apk": RELEASE + "knightloader-android.apk",
-    # The Chrome Web Store listing, which Brave, Opera and Vivaldi install from
-    # too. Edge has a listing of its own, which the generator has no button for.
-    "chrome": "https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf",
+    # Brave, Opera and Vivaldi install from the Chrome Web Store, so their
+    # buttons lead to Chrome's listing. Edge has a listing of its own.
+    "chrome": CHROME_WEB_STORE,
+    "edge": "https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl",
+    "brave": CHROME_WEB_STORE,
+    "opera": CHROME_WEB_STORE,
+    "vivaldi": CHROME_WEB_STORE,
     # Firefox takes only an add-on Mozilla has signed, and the signed builds
     # come from the Firefox Add-ons listing. Its address goes here once the
     # listing is live.

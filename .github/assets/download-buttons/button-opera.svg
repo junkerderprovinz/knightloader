@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 245.3" width="841.9" height="245.3" role="img" aria-label="Install the extension for Chrome">
-  <title>Install the extension for Chrome</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 245.3" width="841.9" height="245.3" role="img" aria-label="Install the extension for Opera">
+  <title>Install the extension for Opera</title>
   <defs>
     <clipPath id="edge">
       <path d="M38.2,0 H803.7 A38.2,38.2 0 0 1 841.9,38.2 V207.1 A38.2,38.2 0 0 1 803.7,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z"/>
@@ -18,16 +18,16 @@
       7.44%   { transform: translateX(1120.3px); }
       100%     { transform: translateX(1120.3px); }
     }
-    .band { animation: pass 14.286s linear 6.930s infinite backwards; }
+    .band { animation: pass 14.286s linear 9.008s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .band { animation: none; opacity: 0; }
     }
   </style>
-  <path d="M38.2,0 H803.7 A38.2,38.2 0 0 1 841.9,38.2 V207.1 A38.2,38.2 0 0 1 803.7,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z" fill="#1a73e8"/>
-  <g transform="translate(160.0 56.65) scale(0.25781)" fill="#ffffff">
-    <path d="M0 256C0 209.4 12.47 165.6 34.27 127.1L144.1 318.3C166 357.5 207.9 384 256 384C270.3 384 283.1 381.7 296.8 377.4L220.5 509.6C95.9 492.3 0 385.3 0 256zM365.1 321.6C377.4 302.4 384 279.1 384 256C384 217.8 367.2 183.5 340.7 160H493.4C505.4 189.6 512 222.1 512 256C512 397.4 397.4 511.1 256 512L365.1 321.6zM477.8 128H256C193.1 128 142.3 172.1 130.5 230.7L54.19 98.47C101 38.53 174 0 256 0C350.8 0 433.5 51.48 477.8 128V128zM168 256C168 207.4 207.4 168 256 168C304.6 168 344 207.4 344 256C344 304.6 304.6 344 256 344C207.4 344 168 304.6 168 256z"/>
+  <path d="M38.2,0 H803.7 A38.2,38.2 0 0 1 841.9,38.2 V207.1 A38.2,38.2 0 0 1 803.7,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z" fill="#ff1b2d"/>
+  <g transform="translate(162.06 56.65) scale(0.25781)" fill="#ffffff">
+    <path d="M313.9 32.7c-170.2 0-252.6 223.8-147.5 355.1 36.5 45.4 88.6 75.6 147.5 75.6 36.3 0 70.3-11.1 99.4-30.4-43.8 39.2-101.9 63-165.3 63-3.9 0-8 0-11.9-.3C104.6 489.6 0 381.1 0 248 0 111 111 0 248 0h.8c63.1.3 120.7 24.1 164.4 63.1-29-19.4-63.1-30.4-99.3-30.4zm101.8 397.7c-40.9 24.7-90.7 23.6-132-5.8 56.2-20.5 97.7-91.6 97.7-176.6 0-84.7-41.2-155.8-97.4-176.6 41.8-29.2 91.2-30.3 132.9-5 105.9 98.7 105.5 265.7-1.2 364z"/>
   </g>
-  <text x="332" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="82" font-weight="700" fill="#ffffff">Chrome</text>
+  <text x="332" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="82" font-weight="700" fill="#ffffff">Opera</text>
   <text x="334" y="186" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="64" font-weight="400" fill="#ffffff" fill-opacity="0.9">Extension</text>
   <g clip-path="url(#edge)">
     <g class="band">

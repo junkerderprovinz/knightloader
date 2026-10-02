@@ -8,9 +8,14 @@ scale marks of different widths to one optical size.
 ## Source and licence
 
 **Font Awesome Free 6.7.2**, from <https://fontawesome.com>: Windows, Apple,
-Linux, Docker, Android, Google Play, Chrome and Firefox (`firefox-browser`) from
-the `brands` set, the ZIP (`file-zipper`) and the book (`book`) from the `solid` set. The icons are **CC BY 4.0**,
+Linux, Docker, Android, Google Play, Chrome, Edge, Brave, Opera and Firefox
+(`firefox-browser`) from the `brands` set, the ZIP (`file-zipper`) and the book (`book`) from the `solid` set. The icons are **CC BY 4.0**,
 which asks for attribution and nothing else. Copyright 2024 Fonticons, Inc.
+
+**Simple Icons 16.33.0** (`simple-icons/simple-icons`, <https://simpleicons.org>):
+Vivaldi, which Font Awesome does not have. Simple Icons lists it under
+**CC BY 4.0**, from Vivaldi's press kit (<https://vivaldi.com/press>).
+Copyright Vivaldi Technologies AS.
 
 **Dashboard Icons** (`homarr-labs/dashboard-icons`, <https://dashboardicons.com>):
 Unraid, its `unraid.svg` with the gradient left out, since the button draws it
@@ -23,7 +28,7 @@ Every platform mark here is a trademark of its owner. They are used the one way 
 trademark may be used without permission, which is to refer to the thing they
 name: each sits on a download button for that platform, unmodified, and nothing
 here claims endorsement by or affiliation with Microsoft, Apple, the Linux
-Foundation, Docker, Google, Mozilla or Lime Technology. The ZIP and the book are no one's marks; they stand for
+Foundation, Docker, Google, Mozilla, Brave Software, Opera, Vivaldi Technologies or Lime Technology. The ZIP and the book are no one's marks; they stand for
 the source archive and the manual.
 
 ## Adding one
