@@ -1,10 +1,12 @@
 package app
 
-// The site icon beside a hoster in the accounts list. Logos are not bundled:
-// they are other people's trademarks and go stale when a site redesigns. Each
+// The site icon beside a hoster in the accounts list. Hoster logos are not
+// bundled: there are hundreds, they are other people's trademarks and they go
+// stale when a site redesigns. Only the captcha services, whose sites give this
+// fetch nothing, have marks in the page (web/src/lib/serviceMarks.ts). Each
 // instance fetches the icon from the site itself, once, and keeps it on disk,
-// so the list of someone's hoster accounts is never handed to a third-party
-// icon service.
+// a miss included, so the list of someone's hoster accounts is never handed to
+// a third-party icon service.
 //
 // Candidates are the front page's own <link rel="icon"> hrefs, which may be on
 // another host (alldebrid.com keeps its icon on a CDN), the icons its web app
@@ -87,66 +89,134 @@ var iconTypes = map[string]string{
 	"image/svg+xml": "svg",
 }
 
-// HosterIcon returns a host's site icon and its content type, from disk when
-// it was fetched before and from the site otherwise. An error means there is
-// nothing to show, and the page falls back to a monogram.
-func (a *App) HosterIcon(ctx context.Context, host string) ([]byte, string, error) {
+// ErrIconPending means the icon has not been fetched yet. The fetch runs in
+// the background and its result is cached, so asking again a few seconds later
+// finds it. A request never waits for a site: a dead hoster's takes half a
+// minute to fail, and a browser opens only six connections to the instance, so
+// a list of hosters would queue the page's own requests behind them.
+var ErrIconPending = errors.New("icon: still being fetched")
+
+// iconSlots bounds the sites fetched at once, so scrolling through a few
+// hundred hosters does not open a few hundred connections.
+var iconSlots = make(chan struct{}, 8)
+
+// fetchHostIcon is fetchFavicon, a variable so tests can stand in for the
+// network.
+var fetchHostIcon = fetchFavicon
+
+// HosterIcon returns a host's site icon and its content type from what was
+// fetched before. ErrIconPending means the fetch has only just started; any
+// other error means there is nothing to show, and the page falls back to a
+// monogram.
+func (a *App) HosterIcon(host string) ([]byte, string, error) {
 	host = normaliseIconHost(host)
 	if host == "" {
 		return nil, "", errors.New("no host")
 	}
+	b, ct, known := a.cachedHosterIcon(host)
+	if !known {
+		a.fetchHosterIcon(host)
+		return nil, "", ErrIconPending
+	}
+	if b == nil {
+		return nil, "", errors.New("no icon")
+	}
+	return b, ct, nil
+}
 
+// cachedHosterIcon answers from memory or, after a restart, from the files an
+// earlier run wrote. known is false when the site has to be asked; a known
+// host without bytes is a remembered miss.
+func (a *App) cachedHosterIcon(host string) (body []byte, contentType string, known bool) {
 	a.iconMu.Lock()
 	if a.icons == nil {
 		a.icons = map[string]iconEntry{}
 	}
-	e, ok := a.icons[host]
-	a.iconMu.Unlock()
-	if ok && time.Since(e.at) < e.ttl() {
-		if e.missing {
-			return nil, "", errors.New("no icon")
-		}
-		if b, err := os.ReadFile(e.path); err == nil {
-			return b, e.contentType, nil
-		}
-		// The cached file is gone; fetch again.
-	}
-
-	dir := filepath.Join(a.DataDir, "icons")
-	if !ok {
-		// The index lives in memory, so after a restart the files written
-		// before it are found by name.
-		if b, ct, e, found := readCachedIcon(dir, host); found {
-			a.iconMu.Lock()
+	e, found := a.icons[host]
+	if !found {
+		if e, found = readCachedIcon(a.iconDir(), host); found {
 			a.icons[host] = e
-			a.iconMu.Unlock()
-			return b, ct, nil
 		}
 	}
+	a.iconMu.Unlock()
 
-	body, ct, err := fetchFavicon(ctx, host)
+	if !found || time.Since(e.at) >= e.ttl() {
+		return nil, "", false
+	}
+	switch {
+	case e.missing:
+		return nil, "", true
+	case e.body != nil:
+		return e.body, e.contentType, true
+	}
+	b, err := os.ReadFile(e.path)
 	if err != nil {
-		// A page closed while the icon was loading says nothing about the site.
-		if ctx.Err() == nil {
-			a.iconMu.Lock()
-			a.icons[host] = iconEntry{at: time.Now(), missing: true}
-			a.iconMu.Unlock()
-		}
-		return nil, "", err
+		// The cached file is gone; fetch again.
+		return nil, "", false
 	}
-
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		// The cache is an optimisation; serve the icon anyway.
-		return body, ct, nil
-	}
-	path := filepath.Join(dir, iconFileBase(host)+"."+iconTypes[ct])
-	if err := os.WriteFile(path, body, 0o644); err == nil {
-		a.iconMu.Lock()
-		a.icons[host] = iconEntry{at: time.Now(), path: path, contentType: ct}
-		a.iconMu.Unlock()
-	}
-	return body, ct, nil
+	return b, e.contentType, true
 }
+
+// fetchHosterIcon starts fetching host's icon unless that fetch is already
+// running, and returns a channel closed once the result is cached.
+func (a *App) fetchHosterIcon(host string) <-chan struct{} {
+	a.iconMu.Lock()
+	defer a.iconMu.Unlock()
+	if done, ok := a.iconFetches[host]; ok {
+		return done
+	}
+	if a.icons == nil {
+		a.icons = map[string]iconEntry{}
+	}
+	if a.iconFetches == nil {
+		a.iconFetches = map[string]chan struct{}{}
+	}
+	done := make(chan struct{})
+	a.iconFetches[host] = done
+	go func() {
+		iconSlots <- struct{}{}
+		body, ct, err := fetchHostIcon(context.Background(), host)
+		<-iconSlots
+		e := a.storeHosterIcon(host, body, ct, err)
+
+		a.iconMu.Lock()
+		a.icons[host] = e
+		delete(a.iconFetches, host)
+		a.iconMu.Unlock()
+		close(done)
+	}()
+	return done
+}
+
+// storeHosterIcon writes one fetch's outcome to disk, a miss as an empty
+// marker file so a restart does not send the next page to a dead site again.
+func (a *App) storeHosterIcon(host string, body []byte, contentType string, fetchErr error) iconEntry {
+	now := time.Now()
+	dir := a.iconDir()
+	base := filepath.Join(dir, iconFileBase(host))
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		// The cache is an optimisation; serve the outcome from memory.
+		if fetchErr != nil {
+			return iconEntry{at: now, missing: true}
+		}
+		return iconEntry{at: now, body: body, contentType: contentType}
+	}
+	if fetchErr != nil {
+		_ = os.WriteFile(base+iconMissExt, nil, 0o644)
+		return iconEntry{at: now, missing: true}
+	}
+	path := base + "." + iconTypes[contentType]
+	if err := os.WriteFile(path, body, 0o644); err != nil {
+		return iconEntry{at: now, body: body, contentType: contentType}
+	}
+	_ = os.Remove(base + iconMissExt)
+	return iconEntry{at: now, path: path, contentType: contentType}
+}
+
+func (a *App) iconDir() string { return filepath.Join(a.DataDir, "icons") }
+
+// iconMissExt names the marker a failed fetch leaves; its age is the failure's.
+const iconMissExt = ".miss"
 
 // iconFileBase is the cache file name for host, without the extension. It is
 // a hash because the host comes from an editable settings file and must not
@@ -156,33 +226,37 @@ func iconFileBase(host string) string {
 	return hex.EncodeToString(sum[:8])
 }
 
-// readCachedIcon returns host's icon from the files an earlier run wrote, when
-// one is younger than iconTTL. The extension gives the type back. A site that
-// changed its icon's type leaves two files, and the newer one is the icon.
-func readCachedIcon(dir, host string) ([]byte, string, iconEntry, bool) {
+// readCachedIcon returns what an earlier run found for host: the icon file or
+// the miss marker, whichever is newer, while it is younger than its TTL. The
+// extension gives the type back, so a site that changed its icon's type leaves
+// two files and the newer one is the icon.
+func readCachedIcon(dir, host string) (iconEntry, bool) {
 	base := filepath.Join(dir, iconFileBase(host))
 	var newest iconEntry
+	consider := func(e iconEntry, path string) {
+		info, err := os.Stat(path)
+		if err != nil || !info.ModTime().After(newest.at) {
+			return
+		}
+		e.at = info.ModTime()
+		if time.Since(e.at) < e.ttl() {
+			newest = e
+		}
+	}
 	for ct, ext := range iconTypes {
 		path := base + "." + ext
-		info, err := os.Stat(path)
-		if err != nil || time.Since(info.ModTime()) >= iconTTL || !info.ModTime().After(newest.at) {
-			continue
-		}
-		newest = iconEntry{at: info.ModTime(), path: path, contentType: ct}
+		consider(iconEntry{path: path, contentType: ct}, path)
 	}
-	if newest.path == "" {
-		return nil, "", iconEntry{}, false
-	}
-	b, err := os.ReadFile(newest.path)
-	if err != nil {
-		return nil, "", iconEntry{}, false
-	}
-	return b, newest.contentType, newest, true
+	consider(iconEntry{missing: true}, base+iconMissExt)
+	return newest, !newest.at.IsZero()
 }
 
+// iconEntry is what is known about one host's icon: a cached file, the bytes
+// themselves when the file could not be written, or that the site had none.
 type iconEntry struct {
 	at          time.Time
 	path        string
+	body        []byte
 	contentType string
 	missing     bool
 }
@@ -679,8 +753,9 @@ func icoLargestFrame(body []byte) int {
 	return best
 }
 
-// iconCache is embedded in App. The map is created on first use.
+// iconCache is embedded in App. The maps are created on first use.
 type iconCache struct {
-	iconMu sync.Mutex
-	icons  map[string]iconEntry
+	iconMu      sync.Mutex
+	icons       map[string]iconEntry
+	iconFetches map[string]chan struct{}
 }

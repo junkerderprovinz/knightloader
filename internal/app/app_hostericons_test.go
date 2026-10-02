@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"net"
@@ -458,17 +459,91 @@ func TestWellKnownIconPathsFollowTheFrontPageRedirect(t *testing.T) {
 	}
 }
 
-// TestAPageClosedMidFetchDoesNotHideTheIcon: a miss is remembered for hours,
-// and a browser that leaves the page cancels the icon requests it had open.
-func TestAPageClosedMidFetchDoesNotHideTheIcon(t *testing.T) {
+// stubIconFetch puts fetch in place of the network for one test.
+func stubIconFetch(t *testing.T, fetch func(context.Context, string) ([]byte, string, error)) {
+	t.Helper()
+	prev := fetchHostIcon
+	fetchHostIcon = fetch
+	t.Cleanup(func() { fetchHostIcon = prev })
+}
+
+func TestARequestDoesNotWaitForTheSite(t *testing.T) {
+	release := make(chan struct{})
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		<-release
+		return pngBytes(32, 32), "image/png", nil
+	})
 	a := &App{DataDir: t.TempDir()}
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	if _, _, err := a.HosterIcon(ctx, "example.org"); err == nil {
-		t.Fatal("HosterIcon found an icon with a cancelled context")
+
+	start := time.Now()
+	if _, _, err := a.HosterIcon("example.org"); !errors.Is(err, ErrIconPending) {
+		t.Fatalf("HosterIcon = %v, want ErrIconPending while the site has not answered", err)
 	}
-	if a.icons["example.org"].missing {
-		t.Error("a cancelled request was remembered as a site without an icon")
+	if took := time.Since(start); took > time.Second {
+		t.Errorf("HosterIcon waited %s for a site that had not answered", took)
+	}
+
+	done := a.fetchHosterIcon("example.org")
+	close(release)
+	<-done
+	if _, ct, err := a.HosterIcon("example.org"); err != nil || ct != "image/png" {
+		t.Errorf("HosterIcon after the fetch = %q, %v, want the cached PNG", ct, err)
+	}
+}
+
+func TestRequestsForOneHostShareOneFetch(t *testing.T) {
+	var calls atomic.Int32
+	release := make(chan struct{})
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		<-release
+		return pngBytes(32, 32), "image/png", nil
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	for range 5 {
+		_, _, _ = a.HosterIcon("example.org")
+	}
+	done := a.fetchHosterIcon("example.org")
+	close(release)
+	<-done
+	if n := calls.Load(); n != 1 {
+		t.Errorf("the site was asked %d times, want once", n)
+	}
+}
+
+func TestASiteWithoutAnIconIsNotAskedAgainAfterARestart(t *testing.T) {
+	var calls atomic.Int32
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		return nil, "", errors.New("connection refused")
+	})
+	dir := t.TempDir()
+
+	first := &App{DataDir: dir}
+	<-first.fetchHosterIcon("example.org")
+
+	restarted := &App{DataDir: dir}
+	if _, _, err := restarted.HosterIcon("example.org"); err == nil || errors.Is(err, ErrIconPending) {
+		t.Fatalf("HosterIcon = %v, want the remembered miss", err)
+	}
+	if n := calls.Load(); n != 1 {
+		t.Errorf("the site was asked %d times, want once across the restart", n)
+	}
+}
+
+func TestAMissOlderThanItsTTLIsTriedAgain(t *testing.T) {
+	dir := t.TempDir()
+	marker := filepath.Join(dir, iconFileBase("example.org")+iconMissExt)
+	if err := os.WriteFile(marker, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	stale := time.Now().Add(-iconMissTTL - time.Minute)
+	if err := os.Chtimes(marker, stale, stale); err != nil {
+		t.Fatal(err)
+	}
+	if e, found := readCachedIcon(dir, "example.org"); found {
+		t.Errorf("readCachedIcon = %+v, want nothing once the miss has expired", e)
 	}
 }
 
@@ -482,11 +557,11 @@ func TestAnIconFetchedBeforeARestartIsReadFromDisk(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, iconFileBase("example.org")+".png"), want, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	// A cancelled context makes any network fetch fail, so an answer can only
-	// come from the file.
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	got, ct, err := a.HosterIcon(ctx, "example.org")
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		t.Error("the site was asked for an icon stored on disk")
+		return nil, "", errors.New("unreachable")
+	})
+	got, ct, err := a.HosterIcon("example.org")
 	if err != nil {
 		t.Fatalf("HosterIcon = %v, want the stored icon", err)
 	}
@@ -511,9 +586,9 @@ func TestTheNewerOfTwoStoredIconsIsReadBack(t *testing.T) {
 	}
 	// Map order changes from run to run, so one lucky pass proves nothing.
 	for range 20 {
-		_, ct, _, found := readCachedIcon(dir, "example.org")
-		if !found || ct != "image/svg+xml" {
-			t.Fatalf("readCachedIcon = %q (found %v), want the newer SVG", ct, found)
+		e, found := readCachedIcon(dir, "example.org")
+		if !found || e.contentType != "image/svg+xml" {
+			t.Fatalf("readCachedIcon = %q (found %v), want the newer SVG", e.contentType, found)
 		}
 	}
 }

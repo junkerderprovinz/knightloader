@@ -2,11 +2,13 @@ package api
 
 // The site icon beside a hoster row (app_hostericons.go owns the fetching and
 // the cache). One route, GET only, and a 404 that the page is expected to
-// handle: a missing icon is the ordinary case, not an error worth a toast.
+// handle: a missing icon is the ordinary case, not an error worth a toast. A
+// 503 says the instance is still fetching it.
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -19,7 +21,15 @@ const iconCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 func registerHosterIcons(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/hosters/icon", "one host's own site icon, fetched by this instance and cached on disk",
 		func(w http.ResponseWriter, r *http.Request) {
-			body, ct, err := a.HosterIcon(r.Context(), r.URL.Query().Get("host"))
+			body, ct, err := a.HosterIcon(r.URL.Query().Get("host"))
+			if errors.Is(err, app.ErrIconPending) {
+				// The fetch goes on without this request; asking again soon
+				// finds the outcome cached.
+				w.Header().Set("Cache-Control", "no-store")
+				w.Header().Set("Retry-After", "5")
+				http.Error(w, "icon still being fetched", http.StatusServiceUnavailable)
+				return
+			}
 			if err != nil {
 				http.NotFound(w, r)
 				return
