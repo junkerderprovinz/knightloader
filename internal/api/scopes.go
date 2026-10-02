@@ -282,6 +282,12 @@ var routeScopes = map[string]apitoken.Scope{
 
 	// Layout only: the buckets the instance keeps for itself are refused
 	// whatever the scope (serverBuckets).
+	// The logins of the Usenet servers are credentials like the accounts'.
+	"GET /api/usenet/servers":         apitoken.ScopeAdmin,
+	"POST /api/usenet/servers":        apitoken.ScopeAdmin,
+	"DELETE /api/usenet/servers/{id}": apitoken.ScopeAdmin,
+	"POST /api/usenet/servers/test":   apitoken.ScopeAdmin,
+
 	"GET /api/uistate": apitoken.ScopeRead,
 	"PUT /api/uistate": apitoken.ScopeAdmin,
 	"GET /api/ws":      apitoken.ScopeRead,

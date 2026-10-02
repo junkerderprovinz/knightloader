@@ -516,6 +516,12 @@ type Settings struct {
 	// CrawlInclude.
 	MediaHooks []mediahook.Hook `json:"mediaHooks"`
 
+	// UsenetServers are the servers an .nzb is fetched from without a debrid
+	// service, see settings_usenet.go. The logins are sealed in accounts.Store.
+	// Empty, the default, leaves every .nzb to TorBox or Premiumize.me. No
+	// omitempty, see CrawlInclude.
+	UsenetServers []UsenetServer `json:"usenetServers"`
+
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
 	// the router, and neither should ever happen because a default said so.
@@ -1127,6 +1133,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeHostRules(n)
 	n = sanitizeCategories(n)
 	n = sanitizeMediaHooks(n)
+	n = sanitizeUsenet(n)
 	n = sanitizePaths(n)
 	n = sanitizeStaging(n)
 	n = sanitizeArchives(n)
