@@ -156,6 +156,8 @@ export const hi: Dict = {
   'task.mode.free': 'निःशुल्क',
   'task.mode.premium': 'प्रीमियम',
   'task.remote': '{service} पर लाया जा रहा है',
+  'task.play': 'चलाएँ',
+  'task.playFailed': 'प्लेयर नहीं खुला: {reason}',
   'task.enable': 'यह लिंक चालू करें',
   'task.disable': 'यह लिंक बंद करें',
   'settings.aboutTitle': 'KnightLoader के बारे में',

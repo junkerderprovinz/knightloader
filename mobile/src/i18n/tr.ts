@@ -156,6 +156,8 @@ export const tr: Dict = {
   'task.mode.free': 'Ücretsiz',
   'task.mode.premium': 'Premium',
   'task.remote': '{service} indiriyor',
+  'task.play': 'Oynat',
+  'task.playFailed': 'Oynatıcı açılmadı: {reason}',
   'task.enable': 'Bu bağlantıyı etkinleştir',
   'task.disable': 'Bu bağlantıyı devre dışı bırak',
   'settings.aboutTitle': 'KnightLoader hakkında',
