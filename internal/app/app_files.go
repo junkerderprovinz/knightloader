@@ -5,13 +5,18 @@ package app
 // exists only once.
 
 import (
+	"context"
 	"errors"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -33,6 +38,9 @@ var (
 	// ErrTaskFileEscape means the task's folder or file resolves outside where
 	// it is allowed to be.
 	ErrTaskFileEscape = errors.New("refused: this task's file does not resolve inside its own download folder")
+	// ErrTaskFileNoSuchFile is a file index the task's torrent does not have
+	// or does not fetch.
+	ErrTaskFileNoSuchFile = errors.New("the torrent has no such file, or it is not being downloaded")
 )
 
 // TaskFile is a task's file as it currently is on disk. Path has been checked
@@ -57,64 +65,195 @@ type TaskFile struct {
 //  4. The joined file, with every link resolved, must still be inside that
 //     folder, which catches a planted symlink.
 func (a *App) SafeTaskFile(id string) (TaskFile, error) {
-	a.mu.Lock()
-	t := a.tasks[id]
-	var snap core.Task
-	if t != nil {
-		snap = *t
+	return a.SafeTaskFileAt(id, -1)
+}
+
+// SafeTaskFileAt is SafeTaskFile for one file of a torrent, by its index in
+// the torrent, under the task's folder. A negative index is the task's own
+// file.
+func (a *App) SafeTaskFileAt(id string, index int) (TaskFile, error) {
+	snap, err := a.taskSnapshot(id)
+	if err != nil {
+		return TaskFile{}, err
 	}
-	a.mu.Unlock()
-	if t == nil {
-		return TaskFile{}, ErrTaskFileNotFound
+	at, err := a.fileTarget(&snap, index)
+	if err != nil {
+		return TaskFile{}, err
 	}
-	if !filesAreLocal(&snap) {
-		return TaskFile{}, ErrTaskFileNotLocal
-	}
-	name := filename(&snap)
-	if name == "" {
+	realFull, err := realpath.Resolve(at.path)
+	if err != nil {
 		return TaskFile{}, ErrTaskFileNoBytes
 	}
-	if !usableFilename(name) {
+	boundary := at.realDir
+	if at.inside != "" {
+		if boundary, err = realpath.Resolve(at.inside); err != nil {
+			return TaskFile{}, ErrTaskFileNoBytes
+		}
+		if !withinDir(at.realDir, boundary) {
+			return TaskFile{}, ErrTaskFileEscape
+		}
+	}
+	if !withinDir(boundary, realFull) {
 		return TaskFile{}, ErrTaskFileEscape
 	}
+	fi, err := os.Stat(realFull)
+	if err != nil || fi.IsDir() {
+		return TaskFile{}, ErrTaskFileNoBytes
+	}
+	return TaskFile{Name: at.name, Path: realFull, Size: fi.Size()}, nil
+}
 
-	dir := a.dirFor(&snap)
+func (a *App) taskSnapshot(id string) (core.Task, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	t := a.tasks[id]
+	if t == nil {
+		return core.Task{}, ErrTaskFileNotFound
+	}
+	snap := *t
+	snap.TorrentFiles = slices.Clone(t.TorrentFiles)
+	return snap, nil
+}
+
+// fileTarget is where a file of a task should be: its name, its path as
+// joined and not yet resolved, and the task's folder with every link
+// resolved. inside is the torrent's own folder for a file of a torrent of
+// several, which the file must not leave either.
+type fileTarget struct {
+	name, path, realDir, inside string
+}
+
+// fileTarget runs steps 1 to 3 of SafeTaskFile, which need nothing on disk
+// but the task's folder.
+func (a *App) fileTarget(snap *core.Task, index int) (fileTarget, error) {
+	if !filesAreLocal(snap) {
+		return fileTarget{}, ErrTaskFileNotLocal
+	}
+	name := filename(snap)
+	if name == "" {
+		return fileTarget{}, ErrTaskFileNoBytes
+	}
+	if !usableFilename(name) {
+		return fileTarget{}, ErrTaskFileEscape
+	}
+
+	dir := a.dirFor(snap)
 	full := filepath.Join(dir, name)
 	// The library saves a download beside a file that already has its name,
 	// and what sits under the task's name is then somebody else's file.
 	if snap.File != "" && sameDir(filepath.Dir(snap.File), dir) {
 		full = filepath.Join(dir, filepath.Base(snap.File))
 	}
+	var inside string
+	if index >= 0 {
+		if index >= len(snap.TorrentFiles) || !snap.TorrentFiles[index].Selected {
+			return fileTarget{}, ErrTaskFileNoSuchFile
+		}
+		// A torrent of one file is that file, and the paths of a larger one
+		// are inside its own folder.
+		rel := snap.TorrentFiles[index].Path
+		name = path.Base(rel)
+		if len(snap.TorrentFiles) > 1 {
+			inside = full
+			full = filepath.Join(full, filepath.FromSlash(rel))
+		}
+	}
 
 	realDir, err := realpath.Resolve(dir)
 	if err != nil {
-		return TaskFile{}, ErrTaskFileNoBytes
-	}
-	realFull, err := realpath.Resolve(full)
-	if err != nil {
-		return TaskFile{}, ErrTaskFileNoBytes
+		return fileTarget{}, ErrTaskFileNoBytes
 	}
 	roots, err := a.fileServeRoots(realDir)
 	if err != nil {
-		return TaskFile{}, ErrTaskFileEscape
+		return fileTarget{}, ErrTaskFileEscape
 	}
-	inRoots := false
 	for _, root := range roots {
 		if withinDir(root, realDir) {
-			inRoots = true
-			break
+			return fileTarget{name: name, path: full, realDir: realDir, inside: inside}, nil
 		}
 	}
-	if !inRoots || !withinDir(realDir, realFull) {
-		return TaskFile{}, ErrTaskFileEscape
-	}
-
-	fi, err := os.Stat(realFull)
-	if err != nil || fi.IsDir() {
-		return TaskFile{}, ErrTaskFileNoBytes
-	}
-	return TaskFile{Name: name, Path: realFull, Size: fi.Size()}, nil
+	return fileTarget{}, ErrTaskFileEscape
 }
+
+// StreamFile is a file the file route sends. ReadContext gives up when ctx
+// ends before the bytes are there, which only a download that is still
+// running can keep it waiting for.
+type StreamFile interface {
+	io.ReadSeekCloser
+	ReadContext(ctx context.Context, p []byte) (int, error)
+}
+
+// OpenedFile is a task's file opened for the file route.
+type OpenedFile struct {
+	Name string
+	File StreamFile
+	// Live is set when the bytes come from a download that is still running.
+	Live bool
+}
+
+// OpenTaskFile opens a file of a task for the file route. index picks a file
+// of a torrent; a negative one picks the task's own file or, in a torrent of
+// several files, the largest selected one that prefer accepts. While the
+// engine is still downloading the file its bytes come from the engine, which
+// fetches the part being read before the rest (see engine.Stream). Otherwise
+// they come from disk, through the checks of SafeTaskFile.
+func (a *App) OpenTaskFile(id string, index int, prefer func(name string) bool) (OpenedFile, error) {
+	snap, err := a.taskSnapshot(id)
+	if err != nil {
+		return OpenedFile{}, err
+	}
+	isTorrent := torrent.IsURI(snap.URL)
+	if index < 0 && isTorrent {
+		if len(snap.TorrentFiles) == 1 {
+			index = 0
+		} else {
+			index = pickFile(snap.TorrentFiles, prefer)
+		}
+	}
+	// A torrent's file is known by its index, and before the swarm has sent
+	// the list there is none.
+	if snap.Status == core.StatusRunning && (index >= 0 || !isTorrent) {
+		if e := a.runningOn(snap.Resolver); e != nil {
+			at, err := a.fileTarget(&snap, index)
+			if err != nil {
+				return OpenedFile{}, err
+			}
+			if r, err := e.Stream(id, max(index, 0)); err == nil {
+				return OpenedFile{Name: at.name, File: r, Live: true}, nil
+			}
+		}
+	}
+	tf, err := a.SafeTaskFileAt(id, index)
+	if err != nil {
+		return OpenedFile{}, err
+	}
+	// Opened by the path SafeTaskFileAt resolved and confirmed, and never
+	// joined again here.
+	f, err := os.Open(tf.Path)
+	if err != nil {
+		return OpenedFile{}, ErrTaskFileNoBytes
+	}
+	return OpenedFile{Name: tf.Name, File: diskFile{f}}, nil
+}
+
+// pickFile is the largest selected file that prefer accepts, or -1 for none.
+func pickFile(files []core.TorrentFile, prefer func(string) bool) int {
+	at := -1
+	for i, f := range files {
+		if !f.Selected || prefer == nil || !prefer(path.Base(f.Path)) {
+			continue
+		}
+		if at < 0 || f.Size > files[at].Size {
+			at = i
+		}
+	}
+	return at
+}
+
+// diskFile is a file on disk, whose reads have nothing to wait for.
+type diskFile struct{ *os.File }
+
+func (f diskFile) ReadContext(_ context.Context, p []byte) (int, error) { return f.Read(p) }
 
 // withinDir reports whether the resolved path p is dir or below it. It uses
 // filepath.Rel because a Windows path comparison must ignore case. internal/api

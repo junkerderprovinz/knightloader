@@ -168,6 +168,12 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+		// A media player opened from the phone app sends neither cookie nor
+		// token, only the link it was given.
+		if playTicketOpens(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 	})
 }
