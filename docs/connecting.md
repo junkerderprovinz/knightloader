@@ -370,8 +370,9 @@ That replaces the whole previous shape and everything that hung off it:
   is the credential. No window opens, no session cookie is involved, and the
   `sameOrigin` guard is not worked around, because it is not on that path.
 
-The site access the extension asks for at install time is for Click'n'Load and
-for nothing else; see `docs/browser-tools.md`.
+The extension asks for no site access at install time. Click'n'Load, taking
+over downloads and finding media each ask for it when switched on; see
+`docs/browser-tools.md`.
 
 ## API tokens and their rights
 
