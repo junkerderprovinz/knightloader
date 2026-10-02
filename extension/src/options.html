@@ -183,7 +183,13 @@
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
-      .cnlRefused { margin-top: 14px; }
+      .cnlRefused,
+      .captureRefused { margin-top: 14px; }
+      /* A list field takes the card's width under its label. */
+      .captureRules { margin-top: 2px; }
+      .captureField { margin-top: 14px; }
+      .captureField input { width: 100%; }
+      .captureRules select { min-width: 140px; }
       .aboutVersions {
         margin: 0;
         font-size: var(--text-dense);
@@ -389,7 +395,52 @@
       </div>
     </section>
 
+    <!-- Taking downloads over from the browser, and finding the media a page
+         plays. options-capture.js fills both cards; the rows under a switch go
+         with it. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 8">
+      <h2 class="glim-section-badge" id="takeoverHeading"></h2>
+      <button type="button" role="switch" aria-checked="false" id="takeoverEnabled" class="glim-switch">
+        <span class="glim-switch-label" id="takeoverToggle"></span>
+        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+      </button>
+      <div class="glim-unavailable captureRefused" id="takeoverRefused" hidden>
+        <span class="glim-unavailable-title" id="takeoverRefusedTitle"></span>
+        <span class="glim-unavailable-reason" id="takeoverRefusedReason"></span>
+      </div>
+      <div class="captureRules" id="takeoverRules">
+        <div class="captureField">
+          <label for="takeoverTypes" id="takeoverTypesLabel"></label>
+          <input id="takeoverTypes" type="text" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="glim-row">
+          <span class="glim-row-label" id="takeoverMinSizeLabel"></span>
+          <select id="takeoverMinSize" aria-labelledby="takeoverMinSizeLabel"></select>
+        </div>
+        <div class="captureField">
+          <label for="takeoverSkip" id="takeoverSkipLabel"></label>
+          <input id="takeoverSkip" type="text" autocomplete="off" spellcheck="false" placeholder="example.com, video.example.org" />
+        </div>
+        <div class="glim-row">
+          <span class="glim-row-label" id="takeoverBypassLabel"></span>
+          <select id="takeoverBypass" aria-labelledby="takeoverBypassLabel"></select>
+        </div>
+      </div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
+      <h2 class="glim-section-badge" id="mediaHeading"></h2>
+      <button type="button" role="switch" aria-checked="false" id="mediaEnabled" class="glim-switch">
+        <span class="glim-switch-label" id="mediaToggle"></span>
+        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+      </button>
+      <div class="glim-unavailable captureRefused" id="mediaRefused" hidden>
+        <span class="glim-unavailable-title" id="mediaRefusedTitle"></span>
+        <span class="glim-unavailable-reason" id="mediaRefusedReason"></span>
+      </div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 10">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the About card carries the ways to report. -->
@@ -400,7 +451,7 @@
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0).
          Each sentence has its buttons directly beneath it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 9">
+    <section class="glim-card glim-stagger-row" style="--row-i: 11">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -515,7 +566,9 @@
     <script src="disco.js"></script>
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
+    <script src="i18n-capture.js"></script>
     <script src="shared.js"></script>
+    <script src="capture.js"></script>
     <script src="wordlist.js"></script>
     <script src="phrase.js"></script>
     <script src="relay.js"></script>
@@ -525,5 +578,6 @@
     <script src="appMarks.js"></script>
     <script src="vendor/qrcode.js"></script>
     <script src="options.js"></script>
+    <script src="options-capture.js"></script>
   </body>
 </html>
