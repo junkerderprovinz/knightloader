@@ -13,18 +13,20 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   onto a share and the box picks it up, with its package name, destination and
   archive password. A `.torrent`, a container and an `.nzb` are taken too, and
   go where an upload of the same file would. A file that has been taken is
-  renamed to `.done`. One this instance cannot open, such as an encrypted
-  container with no JDownloader backend, stays where it is, and the log says
+  renamed to `.done`. One this instance cannot open, such as a `.dlc` with
+  no JDownloader backend, stays where it is, and the log says
   why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.
 - **A page**: paste one, and the files it links to are staged instead.
-- **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link list is
-  read on the spot. The encrypted formats cannot be opened by anyone offline,
-  because their key is issued to registered clients. They are handed to the
-  JDownloader backend, which has one. That backend is provisioned on first run
-  by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
-  no backend at all, a container is recognised and refused, with the missing
-  backend named as the reason.
+- **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link
+  list, an RSDF and a CCF are read on the spot, since the keys for RSDF and CCF
+  are built into every program that reads them. A DLC cannot be opened by
+  anyone offline, because its key is issued to registered clients, so it is
+  handed to the JDownloader backend, which has one. An RSDF or CCF that will
+  not open here goes the same way. That backend is provisioned on first run by
+  default (`KL_PROVISION_JD`), so this normally works with nothing set. With no
+  backend at all, a DLC is recognised and refused, with the missing backend
+  named as the reason.
 - **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
 - **Your debrid account**: what you add on the service's own website can come
   in by itself. See below.

@@ -175,7 +175,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
 | Usenet | ⚠️ via debrid | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
 | Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
-| DLC, CCF, RSDF | ⚠️ via JD | ✅ | ⚠️ via JD | ❌ |
+| DLC, CCF, RSDF | ⚠️ DLC via JD | ✅ | ⚠️ via JD | ❌ |
 | Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
 | Browser extension | ✅ | ⚠️ outdated | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ | ✅ | ✅ | ❌ |
@@ -331,7 +331,9 @@ The manual lives at
 
 ## 5. Contributing and license
 
-[AGPL-3.0](LICENSE). Own code; the name and branding are reserved.
+[AGPL-3.0](LICENSE). Own code, except that the RSDF and CCF readers follow
+[JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins. The name and
+branding are reserved.
 
 Built on [Gopeed](https://github.com/GopeedLab/gopeed) (download engine),
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media),

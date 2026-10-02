@@ -3,11 +3,13 @@ package api
 // Link containers: the .txt/.dlc/.ccf/.rsdf files people are handed instead of
 // links, and the .nzb, which goes to a Usenet-capable account.
 //
-// A plain list is parsed here and staged like any paste. An encrypted one is
-// not decrypted here and never will be: the key is issued by a service to
+// A plain list, an RSDF and a CCF are read here and staged like any paste,
+// since every program that reads RSDF and CCF has their keys built in. A DLC is
+// not decrypted here and never will be: its key is issued by a service to
 // registered clients, and borrowing somebody else's application key to pretend
-// to be their client is not something this project does. It goes to the headless
-// JDownloader backend, which has its own key and does this legitimately.
+// to be their client is not something this project does. It goes to the
+// headless JDownloader backend, which has its own key and does this
+// legitimately, and so does an RSDF or CCF that will not open here.
 //
 // Handing it over is the awkward part, and the shape of this file is entirely
 // about it. JD's API takes links, not files: a filesystem path would have to
@@ -21,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -165,7 +168,7 @@ func registerContainers(reg *Registry, a *app.App) {
 	relay := newContainerRelay()
 	relay.onCount = a.SetContainerActivity
 
-	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list is staged, an encrypted one goes to the JD backend, an .nzb to TorBox or Premiumize.me",
+	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list, RSDF or CCF is staged, a DLC goes to the JD backend, an .nzb to TorBox or Premiumize.me",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The cap is on the request, not on the part: without it the multipart
 			// reader will happily buffer whatever is sent before the size of the file
@@ -199,18 +202,23 @@ func registerContainers(reg *Registry, a *app.App) {
 				return
 			}
 			links, err := container.Links(name, data)
+			kind := container.Detect(name, data)
 			switch {
 			case err == nil:
+				if kind == container.KindRSDF || kind == container.KindCCF {
+					log.Printf("container %s: opened here as %s, %d links", name, kind, len(links))
+				}
 				created := a.AddLinksFrom(links, pkg, app.OriginContainer)
 				if created == nil {
 					created = []*core.Task{} // an empty result is [] for clients, never null
 				}
 				writeJSON(w, map[string]any{
-					"kind":    container.Detect(name, data),
+					"kind":    kind,
 					"links":   len(links),
 					"created": created,
 				})
 			case errors.Is(err, container.ErrNeedsBackend):
+				log.Printf("container %s: handing %s to JDownloader: %v", name, kind, err)
 				handToJD(w, r, a, relay, name, data, pkg)
 			default:
 				// Verbatim: the container package's errors say which check
