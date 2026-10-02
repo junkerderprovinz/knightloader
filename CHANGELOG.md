@@ -51,6 +51,10 @@ release's tag.
   longer lists multihosters reached through JDownloader, and the hoster login
   picker no longer offers them. LeechAll has no public API and its login asks
   for a captcha, so KnightLoader has no client for it.
+- **Captcha solvers are called captcha accounts.** The Accounts page, the
+  captcha settings, the captcha window and the phone app use the one name in
+  every language, and the captcha card adds one with the same Add an account
+  button as the cards above it.
 
 ## [1.6.4] - 2026-10-01
 

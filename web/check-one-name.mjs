@@ -13,6 +13,10 @@
 //                                 hold and release are not its names
 //   backends                      a row of the priority order is a backend, and a
 //                                 service is a debrid service
+//   captcha accounts              the keys for a paid captcha service, on the
+//                                 Accounts page, in the order on Settings,
+//                                 Captcha and in the captcha window alike; not
+//                                 "solver" or "Löser"
 //   das Token                     German takes the neuter, as "Leg eins an" does
 //   Ihr at a sentence start       reads as the formal "your" in a du interface
 //
@@ -83,6 +87,8 @@ const rules = [
   },
   { book: /en$/, keys: PRIORITY_ROW, words: /\bresolvers?\b|(?<!debrid )\bservices?\b/i, why: 'a row of the priority order is a backend' },
   { book: /de$/, keys: PRIORITY_ROW, words: /Resolver|(?<!Debrid-)\bDienst(e|en|es)?\b/, why: 'eine Zeile der Prioritätsreihenfolge ist ein Backend' },
+  { book: /en$/, words: /\bsolv(er|ers|ing service)\b/i, why: 'a paid captcha service is a captcha account' },
+  { book: /de$/, words: /Löser|Lösedienst/, why: 'ein bezahlter Captcha-Dienst ist ein Captcha-Konto' },
   {
     book: /de$/,
     words: /\b(der|den|Der|Den|Neuer|neuer|Dieser|dieser|Diesen|diesen|einen|keinen|jeden)\s+(API-)?Token\b/,

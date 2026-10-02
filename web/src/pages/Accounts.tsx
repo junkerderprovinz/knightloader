@@ -267,7 +267,7 @@ export function Accounts() {
               className="self-start"
               onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
             >
-              {t('accounts.captcha.add')}
+              {t('accounts.newAccount')}
             </Button>
           </>
         ) : (
@@ -283,7 +283,7 @@ export function Accounts() {
                 icon={<IconPlus width={16} height={16} />}
                 onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
               >
-                {t('accounts.captcha.add')}
+                {t('accounts.newAccount')}
               </Button>
             }
           />

@@ -1400,13 +1400,12 @@ export const en = {
   'accounts.trafficUnknown': 'This service reports no allowance.',
   'accounts.credentialFromEnv':
     'Set by the container’s {env} environment variable. Remove it there to change this.',
-  'accounts.captcha.title': 'Captcha solvers',
+  'accounts.captcha.title': 'Captcha accounts',
   'accounts.captcha.hint':
-    'A captcha solver is a paid service that answers a captcha before you are asked. Each one needs its own key, and none of these keys unlocks a download. Which solvers are tried, in what order and when, is set under Settings, Captcha.',
-  'accounts.captcha.empty': 'No captcha solvers yet',
-  'accounts.captcha.emptyHint': 'Add the key of a solving service here, then switch it on in the solver order under Settings, Captcha.',
-  'accounts.captcha.add': 'Add a solver',
-  'accounts.captcha.pick': 'Choose a captcha solver',
+    'A captcha account is your key for a paid service that answers a captcha before you are asked. Each service needs its own key, and none of these keys unlocks a download. Which captcha accounts are tried, in what order and when, is set under Settings, Captcha.',
+  'accounts.captcha.empty': 'No captcha accounts yet',
+  'accounts.captcha.emptyHint': 'Add your key for a captcha service here, then switch it on in the captcha account order under Settings, Captcha.',
+  'accounts.captcha.pick': 'Choose a captcha account',
   'accounts.debrid.empty': 'No debrid accounts yet',
   'accounts.debrid.emptyHint': 'Add an account at one of the supported debrid services to unlock hoster links automatically.',
   'accounts.debrid.title': 'Debrid accounts',
@@ -1519,16 +1518,16 @@ export const en = {
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
   'captcha.unsolvableTurnstile':
-    'KnightLoader shows a Cloudflare Turnstile challenge only in the phone app. Answer it there, or leave it to a solver from the Captcha settings. Cancel skips this captcha.',
-  'captcha.solverWaiting': 'A solver takes over in {time}.',
+    'KnightLoader shows a Cloudflare Turnstile challenge only in the phone app. Answer it there, or leave it to one of your captcha accounts. Cancel skips this captcha.',
+  'captcha.solverWaiting': 'A captcha account takes over in {time}.',
   'captcha.solverWaitingHint':
-    'You are watching, so the solvers wait for your answer first. Once this tab is in the background, this window is minimised or in the notification area, or the time runs out, the first solver in your order takes over.',
+    'You are watching, so the captcha accounts wait for your answer first. Once this tab is in the background, this window is minimised or in the notification area, or the time runs out, the first captcha account in your order takes over.',
   'captcha.solverSolving': '{solver} is solving this captcha.',
   'captcha.solverSolvingHint': 'You can still answer it yourself. Whichever answer arrives first is used.',
-  'captcha.solverStopped': 'No solver could take this captcha.',
+  'captcha.solverStopped': 'No captcha account could take this captcha.',
   'captcha.solverStoppedTaken': '{solver} took this captcha but sent no answer.',
   'captcha.solverNotPassedOn':
-    '{solver} may charge for it anyway, so KnightLoader does not send it to another solver as well. You can still answer it yourself.',
+    '{solver} may charge for it anyway, so KnightLoader does not send it to another captcha account as well. You can still answer it yourself.',
   'captcha.solverUnsupported': '{solver} does not solve this kind of captcha.',
   'captcha.solverNoAnswer': '{solver} took it, but no answer came back.',
   'captcha.solverGaveUp': '{solver} took it, then gave up: {reason}',
@@ -1538,23 +1537,23 @@ export const en = {
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
   'settings.captcha.title': 'Captcha',
-  'settings.captcha.orderTitle': 'Solver order',
+  'settings.captcha.orderTitle': 'Captcha account order',
   'settings.captcha.orderHint':
-    'Every enabled solver below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
-  'settings.captcha.orderEmpty': 'No solver is enabled, so every captcha comes straight to you.',
+    'Every enabled captcha account below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
+  'settings.captcha.orderEmpty': 'No captcha account is enabled, so every captcha comes straight to you.',
   'settings.captcha.enableSolver': 'Try {service} automatically',
   'settings.captcha.moveUp': 'Move up',
   'settings.captcha.moveDown': 'Move down',
   'settings.captcha.set': 'Key set',
   'settings.captcha.notSet': 'No key set',
   'settings.captcha.keys': 'Keys under Accounts',
-  'settings.captcha.whenTitle': 'When solvers start',
+  'settings.captcha.whenTitle': 'When captcha accounts start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
   'settings.captcha.onlyUnwatchedHint':
-    "Off: the solvers start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the solvers wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the notification area do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer. For a Cloudflare Turnstile only the phone app counts, since neither a browser tab nor the desktop app can show one. Once nobody is watching, or the time below runs out without an answer, the first solver in the order takes over.",
+    "Off: the captcha accounts start as soon as a captcha arrives, at the same time as the captcha window. On: while someone is watching, the captcha window comes first and the captcha accounts wait. Someone is watching while a browser tab with KnightLoader is in the foreground or the desktop app's window is on screen, and while the phone app has this instance open in the foreground or another app keeps reading its captcha list. A tab in the background and a window that is minimised or in the notification area do not count, and a closed page stops counting after a few seconds. The phone app counts only for the captchas it can answer. For a Cloudflare Turnstile only the phone app counts, since neither a browser tab nor the desktop app can show one. Once nobody is watching, or the time below runs out without an answer, the first captcha account in the order takes over.",
   'settings.captcha.wait': 'Wait for an answer (seconds)',
   'settings.captcha.waitHint':
-    'How long the solvers wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a solver still has time to answer it. From 10 to 600 seconds.',
+    'How long the captcha accounts wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a captcha account still has time to answer it. From 10 to 600 seconds.',
 
   // AddLinksForm.tsx's per-batch options: the destination, its recent-use
   // history, and the archive and link passwords.
@@ -1792,7 +1791,7 @@ export const en = {
 
   'settings.help.captcha.title': 'Captcha',
   'settings.help.captcha.body':
-    'When a hoster asks for a captcha, the automatic solvers you have configured are tried first, in the order you set. If none is configured, or none can solve it, the captcha is put in front of you instead of failing silently.',
+    'When a hoster asks for a captcha, the captcha accounts you have set up are tried first, in the order you set. If there is none, or none can solve it, the captcha is put in front of you instead of failing silently.',
   'settings.help.captcha.link': 'Open Captcha settings',
 
   'settings.help.after.title': 'After the download',
@@ -2604,7 +2603,7 @@ export const en = {
   'notifications.event.captchaFailed': 'Captcha failed',
   'notifications.event.captchaFailedHint': 'Nobody answered in time, or the answer did not get through. The download behind it stays where it is.',
   'notifications.event.captchaResolved': 'Captcha answered elsewhere',
-  'notifications.event.captchaResolvedHint': 'Somebody in another browser, or an automatic solver, answered it and the window closed by itself.',
+  'notifications.event.captchaResolvedHint': 'Somebody in another browser, or one of your captcha accounts, answered it and the window closed by itself.',
   'notifications.systemUnavailable': 'System notifications are not available here: your browser only offers them over HTTPS or on localhost. Everything on this card still shows in the app.',
   'notifications.systemBlocked': 'Your browser is blocking notifications for this address. Rows set to "System notification" show in the app instead until you allow them again in the site settings of your browser.',
   'notifications.systemNotGranted': 'The browser did not grant permission, so this event stays in the app. Pick "System notification" again to ask once more.',
@@ -2827,7 +2826,7 @@ export const en = {
   'failure.fileExists.line': 'A file named {file} is already in the folder.',
   'failure.fileExists.next': 'Move or rename that file, or change what happens to existing files in the settings, then choose Restart.',
   'failure.captcha.line': 'The host wants a captcha solved.',
-  'failure.captcha.next': 'Answer the captcha when it comes up, or set up a solver in the Captcha settings.',
+  'failure.captcha.next': 'Answer the captcha when it comes up, or add a captcha account on the Accounts page.',
   'failure.cancelled.line': 'The download was stopped before it finished.',
   'failure.cancelled.next': 'Start it again when you want it.',
   'failure.archiveDamaged.line': '{part} is damaged.',
