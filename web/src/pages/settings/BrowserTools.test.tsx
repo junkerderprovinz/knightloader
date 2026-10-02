@@ -109,6 +109,14 @@ describe('BrowserTools', () => {
       return [...host.querySelectorAll('button')].find((b) => b.textContent?.startsWith('ParleyPort'));
     }
 
+    it('orders the cards as the README orders its download rows', async () => {
+      await act(async () => root.render(<BrowserTools />));
+      const text = host.textContent!;
+      const at = ['On a server', 'Phone app', 'Browser extension', 'Bookmarklet'].map((title) => text.indexOf(title));
+      expect(at.every((i) => i >= 0)).toBe(true);
+      expect(at).toEqual([...at].sort((a, b) => a - b));
+    });
+
     it('offers ParleyPort on the server card', async () => {
       await act(async () => root.render(<BrowserTools />));
       expect(relayButton()?.textContent).toBe('ParleyPortOwn relay');

@@ -682,52 +682,12 @@ export default function SettingsScreen({
       </NotchCard>
 
       {/* The other ways to run KnightLoader, as the web interface's Apps page
-          offers them, under its card names and hints. This app is one of them
-          and is not offered here. Positions 6 to 8 are the next free ones, so
-          the cards around them keep their colours. */}
-      <NotchCard title={t('settings.appsDesktop')} hue={6} info={t('settings.appsDesktopHint')}>
-        <View style={styles.readmeRow}>
-          <ReadmeButton
-            brand="windows"
-            label="Windows"
-            sub="x64"
-            mark={({ mark }) => <WindowsMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.windows)}
-          />
-          <ReadmeButton
-            brand="windows"
-            label="ARM64"
-            sub="Windows"
-            mark={({ mark }) => <WindowsMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.windowsArm)}
-          />
-          <ReadmeButton
-            brand="apple"
-            label="macOS"
-            sub="Universal"
-            mark={({ mark }) => <AppleMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.macos)}
-          />
-          <ReadmeButton
-            brand="linux"
-            label="Linux"
-            sub="x64"
-            mark={({ mark }) => <LinuxMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.linux)}
-          />
-          <ReadmeButton
-            brand="linux"
-            label="ARM64"
-            sub="Linux"
-            mark={({ mark }) => <LinuxMark color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.linuxArm)}
-          />
-        </View>
-      </NotchCard>
-
-      {/* Unraid waits for KnightLoader's listing in Community Applications,
-          whose address becomes its onPress. */}
-      <NotchCard title={t('settings.appsServer')} hue={7} info={t('settings.appsServerHint')}>
+          offers them, under its card names and hints and in the README's
+          order. This app is one of them and is not offered here. Positions 6
+          to 8 are the next free ones, so the cards around them keep their
+          colours. Unraid waits for KnightLoader's listing in Community
+          Applications, whose address becomes its onPress. */}
+      <NotchCard title={t('settings.appsServer')} hue={6} info={t('settings.appsServerHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="unraid"
@@ -768,6 +728,46 @@ export default function SettingsScreen({
                 .then(() => setRelayCopied(true))
                 .catch(() => undefined)
             }
+          />
+        </View>
+      </NotchCard>
+
+      <NotchCard title={t('settings.appsDesktop')} hue={7} info={t('settings.appsDesktopHint')}>
+        <View style={styles.readmeRow}>
+          <ReadmeButton
+            brand="windows"
+            label="Windows"
+            sub="x64"
+            mark={({ mark }) => <WindowsMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.windows)}
+          />
+          <ReadmeButton
+            brand="windows"
+            label="ARM64"
+            sub="Windows"
+            mark={({ mark }) => <WindowsMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.windowsArm)}
+          />
+          <ReadmeButton
+            brand="apple"
+            label="macOS"
+            sub="Universal"
+            mark={({ mark }) => <AppleMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.macos)}
+          />
+          <ReadmeButton
+            brand="linux"
+            label="Linux"
+            sub="x64"
+            mark={({ mark }) => <LinuxMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.linux)}
+          />
+          <ReadmeButton
+            brand="linux"
+            label="ARM64"
+            sub="Linux"
+            mark={({ mark }) => <LinuxMark color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.linuxArm)}
           />
         </View>
       </NotchCard>

@@ -33,10 +33,10 @@ import { RELAY_RUN_COMMAND } from './pairing/RelayCard';
 /**
  * BrowserTools is the Apps page (GlimStone's "The App tab"): every way to get
  * KnightLoader that the reader is not already using, as the download buttons
- * of the README. The phone card stands everywhere, and the second card offers
- * the forms this build is not: the desktop app in a container, a server in the
- * desktop app. Below them come the bookmarklet and the browser extension,
- * which send links in from any page. The extension download is byte-identical
+ * of the README and in their order: server or desktop, phone, extension. The
+ * first card offers the form this build is not: the desktop app in a
+ * container, a server in the desktop app. The bookmarklet, which the README
+ * has no row for, comes last. The extension download is byte-identical
  * to the source, since it is set up with the connection phrase and holds no
  * address. The bookmarklet and the PWA share target land on /quickadd.
  */
@@ -138,49 +138,12 @@ export function BrowserTools() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PhoneCard />
       {/* Nothing until the build is known, so the card for the other form
           never flashes up first. */}
       {deployment === 'desktop' ? <ServerCard /> : deployment !== null && <DesktopCard />}
+      <PhoneCard />
 
       <Card hue={2} className="flex flex-col gap-4">
-        <SectionTitle
-          hint={
-            <ol className="list-decimal space-y-1 ps-4">
-              <li>{t('settings.browsertools.bookmarkletStep1')}</li>
-              <li>{t('settings.browsertools.bookmarkletStep2')}</li>
-              <li>{t('settings.browsertools.bookmarkletStep3')}</li>
-            </ol>
-          }
-        >
-          {t('settings.browsertools.bookmarkletTitle')}
-        </SectionTitle>
-        {/* A javascript: link, since only that can be dragged into a bookmarks
-            bar. Its text becomes the bookmark's name, so it has no second line, and
-            the logo is inline SVG because a drag that starts on an <img> takes
-            the picture instead of the link. */}
-        <div className="glim-readme-btn-rows">
-          <ReadmeButton
-            brand="knightloader"
-            parts={[
-              { name: 'KnightLoader', bookmarklet },
-              {
-                name: copied ? t('common.copied') : t('common.copy'),
-                onClick: () =>
-                  void copyToClipboard(bookmarklet).then((ok) => {
-                    if (!ok) return;
-                    setCopied(true);
-                    setCopies((n) => n + 1);
-                  }),
-              },
-            ]}
-            mark={<BrandMark svg={KNIGHTLOADER_SVG} lit={KNIGHTLOADER_LIT_SVG} />}
-            confirm={copies}
-          />
-        </div>
-      </Card>
-
-      <Card hue={3} className="flex flex-col gap-4">
         {extensionVersion && <ReleaseVersion version={extensionVersion} />}
         <SectionTitle>{t('settings.browsertools.extensionTitle')}</SectionTitle>
         {/* A button for every browser, though Brave, Opera and Vivaldi share
@@ -238,6 +201,43 @@ export function BrowserTools() {
           />
         </div>
       </Card>
+
+      <Card hue={3} className="flex flex-col gap-4">
+        <SectionTitle
+          hint={
+            <ol className="list-decimal space-y-1 ps-4">
+              <li>{t('settings.browsertools.bookmarkletStep1')}</li>
+              <li>{t('settings.browsertools.bookmarkletStep2')}</li>
+              <li>{t('settings.browsertools.bookmarkletStep3')}</li>
+            </ol>
+          }
+        >
+          {t('settings.browsertools.bookmarkletTitle')}
+        </SectionTitle>
+        {/* A javascript: link, since only that can be dragged into a bookmarks
+            bar. Its text becomes the bookmark's name, so it has no second line, and
+            the logo is inline SVG because a drag that starts on an <img> takes
+            the picture instead of the link. */}
+        <div className="glim-readme-btn-rows">
+          <ReadmeButton
+            brand="knightloader"
+            parts={[
+              { name: 'KnightLoader', bookmarklet },
+              {
+                name: copied ? t('common.copied') : t('common.copy'),
+                onClick: () =>
+                  void copyToClipboard(bookmarklet).then((ok) => {
+                    if (!ok) return;
+                    setCopied(true);
+                    setCopies((n) => n + 1);
+                  }),
+              },
+            ]}
+            mark={<BrandMark svg={KNIGHTLOADER_SVG} lit={KNIGHTLOADER_LIT_SVG} />}
+            confirm={copies}
+          />
+        </div>
+      </Card>
     </div>
   );
 }
@@ -255,7 +255,7 @@ function PhoneCard() {
   const soon = t('settings.browsertools.soon');
 
   return (
-    <Card hue={0} className="flex flex-col gap-4">
+    <Card hue={1} className="flex flex-col gap-4">
       <ReleaseVersion version={APP_VERSION} />
       <SectionTitle hint={t('settings.browsertools.phoneHint')}>{t('settings.browsertools.phoneTitle')}</SectionTitle>
       <div className="glim-readme-btn-rows">
@@ -408,7 +408,7 @@ function DesktopCard() {
   ];
 
   return (
-    <Card hue={1} className="flex flex-col gap-4">
+    <Card hue={0} className="flex flex-col gap-4">
       <SectionTitle
         hint={
           <>
@@ -463,7 +463,7 @@ function ServerCard() {
     : `${REPO_URL}/archive/refs/heads/main.zip`;
 
   return (
-    <Card hue={1} className="flex flex-col gap-4">
+    <Card hue={0} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.browsertools.serverHint')}>{t('settings.browsertools.serverTitle')}</SectionTitle>
       <div className="glim-readme-btn-rows">
         <ReadmeButton
