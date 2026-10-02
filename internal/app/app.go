@@ -49,6 +49,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -335,6 +336,9 @@ type App struct {
 	// chainFromLocked). A backend wired since is not among them. It is not
 	// stored: after a restart the backend that refused is asked once more.
 	fellBack map[string]map[string]bool
+	// browserHeaders holds the request headers a browser handed over with a
+	// download it gave up, by task id (see app_browserheaders.go). Memory only.
+	browserHeaders map[string]hostheaders.Set
 	// moving holds the tasks being taken off their old backend, by
 	// PinResolver or by a fallback down the chain (see handOnLocked).
 	// Dispatch leaves them where they are until that backend has let go, so

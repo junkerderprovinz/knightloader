@@ -23,6 +23,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -95,6 +96,11 @@ type intake struct {
 	// user's accounts, the import from an account and the Usenet queue. Every
 	// other entrance is refused such a link (see jobLink).
 	jobLinks bool
+
+	// headers are a browser's own request headers for the link, kept from
+	// the moment it is staged so the collector's probe already uses them
+	// (see app_browserheaders.go).
+	headers hostheaders.Set
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -206,9 +212,13 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			}
 			continue
 		}
+		// A link a browser hands over with its own headers is the file or
+		// stream it was fetching. Listed or crawled without that session, it
+		// would only show its login page.
+		handedOver := len(batch.Headers.Headers) > 0
 		// A playlist becomes its videos rather than one task. This is asked
 		// before the crawl, which only claims yt-dlp links by exclusion.
-		if pl, ok := a.ytdlpPlaylist(u); ok {
+		if pl, ok := a.ytdlpPlaylist(u); ok && !handedOver {
 			b := &bucket{title: pl.Title}
 			b.tasks = a.stagePlaylistEntries(u, pl, pkg, batch)
 			created = append(created, b.tasks...)
@@ -216,7 +226,11 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		// A page that points at files becomes those files.
-		if crawled := a.crawl(u, batch.Within); len(crawled) > 0 {
+		var crawled []crawler.Result
+		if !handedOver {
+			crawled = a.crawl(u, batch.Within)
+		}
+		if len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
 			for _, c := range crawled {
 				if c.URL == "" {
@@ -237,7 +251,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		if t := a.stage(u, "", 0, intake{
-			pkg: pkg, origin: origin,
+			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
@@ -772,6 +786,9 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 	staged := a.finishStaging(t, cand)
+	if staged != nil {
+		a.keepBrowserHeaders(in.headers, []string{staged.ID})
+	}
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {

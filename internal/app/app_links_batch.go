@@ -6,6 +6,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -48,6 +49,13 @@ type LinkBatchOptions struct {
 	// links the feed chose, not the user. Nil leaves each crawl at the scope
 	// of the link it starts from.
 	Within *httpx.Scope
+	// Source is the page the links were found on, as a crawl records it.
+	Source string
+	// Headers are a browser's own request headers for a link it was
+	// downloading (see BrowserHeaders). Such a link is staged as it is, with
+	// no crawl and no playlist listing, and the headers go with its download
+	// alone.
+	Headers hostheaders.Set
 }
 
 // AddLinksWithOptions stages a batch like AddLinksFrom and then applies the
@@ -69,6 +77,7 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 	// The form's values are for every row a yt-dlp link became, and so is the
 	// confirm below.
 	ids := a.withVariantFamilies(idsOf(created))
+	a.keepBrowserHeaders(opts.Headers, ids)
 
 	// Applied after staging, through the same route as the properties panel, so
 	// these win over whatever the Packagizer pass in finishStaging decided.

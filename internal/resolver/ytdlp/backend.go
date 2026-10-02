@@ -49,6 +49,11 @@ type Backend struct {
 	// task's Options.Cookies is on.
 	Cookies func(rawurl string) string
 
+	// Headers, when set, returns the request headers a browser handed over
+	// with a task for rawurl, or nil: Cookie, Referer and User-Agent (see
+	// browserArgs).
+	Headers func(taskID, rawurl string) map[string]string
+
 	// FFprobe is the binary Options.Measure reads a finished file with. Empty
 	// means "ffprobe" on PATH, which the container's ffmpeg package provides.
 	FFprobe string
@@ -175,21 +180,29 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 		target = stream.url
 		args = append(args, stream.args()...)
 	}
+	var sent map[string]string
+	if b.Headers != nil {
+		sent = b.Headers(taskID, url)
+	}
+	jar := ""
+	if opts.Cookies && b.Cookies != nil {
+		jar = b.Cookies(url)
+	}
+	jar = withBrowserCookies(jar, url, sent["Cookie"], time.Now())
 	// The cookie file lives exactly as long as yt-dlp: written before the
 	// spawn, removed by the deferred cleanup on every exit path.
-	if opts.Cookies && b.Cookies != nil {
-		if text := b.Cookies(url); text != "" {
-			path, cleanup, err := writeCookieFile("", text)
-			defer cleanup()
-			if err != nil {
-				// Fatal rather than running anonymously a task that was set
-				// up to be logged in.
-				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
-				return
-			}
-			args = append(args, "--cookies", path)
+	if jar != "" {
+		path, cleanup, err := writeCookieFile("", jar)
+		defer cleanup()
+		if err != nil {
+			// Fatal rather than running anonymously a task that was set up
+			// to be logged in.
+			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
+			return
 		}
+		args = append(args, "--cookies", path)
 	}
+	args = append(args, browserArgs(sent)...)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate applies per fragment connection, so the limit is

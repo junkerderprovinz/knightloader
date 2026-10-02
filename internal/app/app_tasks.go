@@ -442,6 +442,10 @@ func (a *App) analyze(id, rawurl string) {
 	if err != nil {
 		return
 	}
+	// Without the browser's cookies a link behind a login would read as gone.
+	for name, value := range a.browserHeadersFor(id, rawurl) {
+		req.Header.Set(name, value)
+	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
 	resp, err := a.Probe.Do(req)
 	if err != nil {
@@ -1006,6 +1010,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	delete(a.active, id)
 	delete(a.started, id)
 	delete(a.fellBack, id)
+	delete(a.browserHeaders, id)
 	delete(a.seedSaved, id)
 	a.tally.forget(id)
 	a.dequeueLocked(id)
