@@ -168,7 +168,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Remote access without an account | ✅ | ❌ | ⚠️ DIY | ⚠️ DIY |
 | Several instances in one place | ✅ | ⚠️ account | ❌ | ❌ |
 | Debrid services | ✅ | ✅ | ✅ | ⚠️ one |
-| File hosters | ⚠️ via debrid | ✅ | ✅ | ❌ |
+| File hosters | ⚠️ via debrid, JD | ✅ | ✅ | ❌ |
 | Premium hoster logins | ⚠️ via JD | ✅ | ✅ | ❌ |
 | Reconnect | ✅ | ✅ | ⚠️ script | ❌ |
 | Video sites | ✅ | ✅ | ⚠️ few | ❌ |
