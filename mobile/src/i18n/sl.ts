@@ -145,7 +145,7 @@ export const sl: Dict = {
   'settings.accent': 'Poudarek',
   'settings.rainbow': 'Mavrični način',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Dokler je mavrični način vklopljen, vsi barvni elementi skupaj drsijo skozi paleto, vsakih 2,4 sekunde za eno barvo naprej. Če je Gibanje nastavljeno na »Izklopljeno« ali je telefon nastavljen na manj gibanja, namesto tega preskakujejo od barve do barve.',
+  'settings.discoGlideHint': 'Dokler je mavrični način vklopljen, vsi barvni elementi skupaj drsijo skozi paleto, vsakih 2,4 sekunde za eno barvo naprej. Če je Animacija nastavljena na »Izklopljeno« ali je telefon nastavljen na manj gibanja, namesto tega preskakujejo od barve do barve.',
   'settings.problems': 'Težave?',
   'settings.problemsHint': 'Pošlji to zraven, ko kaj prijaviš. Prihrani en krog vprašanj, v njem pa ni ne naslova ne žetona.',
   'settings.problemsCopy': 'Kopiraj poročilo',
@@ -223,7 +223,7 @@ export const sl: Dict = {
   'relay.instancesTitle': 'Na tem releju',
   'relay.noInstances': 'Trenutno nobena instanca te skupine ni na spletu. Preveri frazo in ali teče vsaj ena instanca.',
 
-  'settings.motion': 'Gibanje',
+  'settings.motion': 'Animacija',
   'settings.motion.off': 'Izklopljeno',
   'settings.motion.subtle': 'Subtilno',
   'settings.motion.wild': 'Divje',

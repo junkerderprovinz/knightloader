@@ -175,7 +175,7 @@ export const de: Dict = {
   'settings.accent': 'Akzentfarbe',
   'settings.rainbow': 'Regenbogen-Modus',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Bewegung auf „Aus“ oder ist auf deinem Handy reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',
+  'settings.discoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Animation auf „Aus“ oder ist auf deinem Handy reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',
   'settings.problems': 'Probleme?',
   'settings.problemsHint': 'Schick das mit, wenn du etwas meldest. Das spart eine Runde Rückfragen, und es stehen weder Adresse noch Token drin.',
   'settings.problemsCopy': 'Bericht kopieren',
@@ -302,7 +302,7 @@ export const de: Dict = {
   'settings.rainbowPalette': 'Farbpalette',
   'settings.pickerDone': 'Fertig',
 
-  'settings.motion': 'Bewegung',
+  'settings.motion': 'Animation',
   'settings.motion.off': 'Aus',
   'settings.motion.subtle': 'Dezent',
   'settings.motion.wild': 'Wild',

@@ -145,7 +145,7 @@ export const da: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbuetilstand',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Mens regnbuetilstanden er slået til, glider alle farvede elementer samlet gennem paletten og skifter farve hvert 2,4 sekund. Står Bevægelse på „Fra“, eller er reduceret bevægelse slået til i telefonens indstillinger, springer de i stedet fra den ene farve til den næste.',
+  'settings.discoGlideHint': 'Mens regnbuetilstanden er slået til, glider alle farvede elementer samlet gennem paletten og skifter farve hvert 2,4 sekund. Står Animation på „Fra“, eller er reduceret bevægelse slået til i telefonens indstillinger, springer de i stedet fra den ene farve til den næste.',
   'settings.problems': 'Problemer?',
   'settings.problemsHint': 'Send det her med, når du melder noget. Det sparer en runde spørgsmål, og der er hverken adresse eller token i.',
   'settings.problemsCopy': 'Kopiér rapport',
@@ -223,7 +223,7 @@ export const da: Dict = {
   'relay.instancesTitle': 'På dette relæ',
   'relay.noInstances': 'Ingen instans i denne gruppe er online lige nu. Tjek sætningen, og at mindst én instans kører.',
 
-  'settings.motion': 'Bevægelse',
+  'settings.motion': 'Animation',
   'settings.motion.off': 'Fra',
   'settings.motion.subtle': 'Diskret',
   'settings.motion.wild': 'Vild',

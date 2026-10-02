@@ -145,7 +145,7 @@ export const pt: Dict = {
   'settings.accent': 'Destaque',
   'settings.rainbow': 'Modo arco-íris',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Enquanto o modo arco-íris estiver ligado, todos os elementos coloridos deslizam juntos pela paleta, uma cor a cada 2,4 segundos. Com «Movimento» em «Desativado», ou com a redução de movimento ligada nas definições do teu telemóvel, passa antes de uma cor para a seguinte aos saltos.',
+  'settings.discoGlideHint': 'Enquanto o modo arco-íris estiver ligado, todos os elementos coloridos deslizam juntos pela paleta, uma cor a cada 2,4 segundos. Com «Animação» em «Desativado», ou com a redução de movimento ligada nas definições do teu telemóvel, passa antes de uma cor para a seguinte aos saltos.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envia isto junto quando relatares algo. Poupa uma ronda de perguntas e não leva nem endereço nem token.',
   'settings.problemsCopy': 'Copiar relatório',
@@ -223,7 +223,7 @@ export const pt: Dict = {
   'relay.instancesTitle': 'Neste relay',
   'relay.noInstances': 'Neste momento não há nenhuma instância deste grupo online. Verifica a frase e se pelo menos uma instância está a correr.',
 
-  'settings.motion': 'Movimento',
+  'settings.motion': 'Animação',
   'settings.motion.off': 'Desativado',
   'settings.motion.subtle': 'Subtil',
   'settings.motion.wild': 'Intenso',

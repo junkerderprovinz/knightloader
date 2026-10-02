@@ -145,7 +145,7 @@ export const ko: Dict = {
   'settings.accent': '강조 색',
   'settings.rainbow': '무지개 모드',
   'settings.disco': '디스코',
-  'settings.discoGlideHint': '무지개 모드가 켜져 있는 동안 색이 있는 모든 요소가 함께 팔레트를 따라 부드럽게 바뀌며, 2.4초마다 한 색씩 넘어갑니다. 모션이 “끄기”이거나 휴대폰 설정에서 동작 줄이기가 켜져 있으면 부드럽게 바뀌지 않고 한 색에서 다음 색으로 바로 넘어갑니다.',
+  'settings.discoGlideHint': '무지개 모드가 켜져 있는 동안 색이 있는 모든 요소가 함께 팔레트를 따라 부드럽게 바뀌며, 2.4초마다 한 색씩 넘어갑니다. 애니메이션이 “끄기”이거나 휴대폰 설정에서 동작 줄이기가 켜져 있으면 부드럽게 바뀌지 않고 한 색에서 다음 색으로 바로 넘어갑니다.',
   'settings.problems': '문제가 있나요?',
   'settings.problemsHint': '무언가 보고할 때 이것을 함께 보내세요. 질문을 한 번 주고받는 수고를 덜어 주고, 주소나 토큰은 들어 있지 않습니다.',
   'settings.problemsCopy': '보고서 복사',
@@ -223,7 +223,7 @@ export const ko: Dict = {
   'relay.instancesTitle': '이 릴레이의 인스턴스',
   'relay.noInstances': '지금 이 그룹의 인스턴스가 하나도 온라인이 아닙니다. 문구와 인스턴스가 최소 하나 실행 중인지 확인하세요.',
 
-  'settings.motion': '모션',
+  'settings.motion': '애니메이션',
   'settings.motion.off': '끄기',
   'settings.motion.subtle': '은은하게',
   'settings.motion.wild': '거칠게',

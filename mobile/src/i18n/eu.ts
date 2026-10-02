@@ -145,7 +145,7 @@ export const eu: Dict = {
   'settings.accent': 'Azentua',
   'settings.rainbow': 'Ostadar modua',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Ostadar modua piztuta dagoen bitartean, elementu koloredun guztiak batera irristatzen dira paletan zehar, kolore bat 2,4 segundoro. Mugimendua Desaktibatuta badago, edo telefonoaren ezarpenetan mugimendu murriztua aktibatuta badago, kolorez kolore jauzi egiten du horren ordez.',
+  'settings.discoGlideHint': 'Ostadar modua piztuta dagoen bitartean, elementu koloredun guztiak batera irristatzen dira paletan zehar, kolore bat 2,4 segundoro. Animazioa Desaktibatuta badago, edo telefonoaren ezarpenetan mugimendu murriztua aktibatuta badago, kolorez kolore jauzi egiten du horren ordez.',
   'settings.problems': 'Arazoak?',
   'settings.problemsHint': 'Bidali hau zerbait jakinarazten duzunean. Galdera-txanda bat aurrezten du, eta ez du helbiderik ez tokenik.',
   'settings.problemsCopy': 'Kopiatu txostena',
@@ -223,7 +223,7 @@ export const eu: Dict = {
   'relay.instancesTitle': 'Erlai honetan',
   'relay.noInstances': 'Une honetan talde honetako instantziarik ez dago linean. Egiaztatu esaldia eta gutxienez instantzia bat martxan dagoela.',
 
-  'settings.motion': 'Mugimendua',
+  'settings.motion': 'Animazioa',
   'settings.motion.off': 'Desaktibatuta',
   'settings.motion.subtle': 'Diskretua',
   'settings.motion.wild': 'Bizia',

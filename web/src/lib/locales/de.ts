@@ -422,7 +422,7 @@ export const de: Dict = {
   'settings.rainbowRotate': 'Farbenrotation',
   'settings.rainbowRotateHint': 'Startfarbe der Palette durchmischen',
   'settings.rainbowDisco': 'Disco-Modus',
-  'settings.rainbowDiscoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Bewegung auf „Aus“ oder ist auf deinem System reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',
+  'settings.rainbowDiscoGlideHint': 'Solange der Regenbogen-Modus an ist, gleitet jedes farbige Element gemeinsam durch die Palette, alle 2,4 Sekunden eine Farbe weiter. Steht Animation auf „Aus“ oder ist auf deinem System reduzierte Bewegung eingestellt, springt es stattdessen von Farbe zu Farbe.',
   'settings.rainbowPalette': 'Palettenfarbe',
   'settings.rainbowPaletteLabel': 'Farbpalette',
   'settings.rainbowPaletteHint': 'Die acht Farben, die nach Position vergeben werden. Jede einzeln bearbeitbar.',
@@ -433,7 +433,7 @@ export const de: Dict = {
   'settings.motion.subtle': 'Dezent',
   'settings.motion.off': 'Aus',
   'settings.motion.hint': 'Aus schaltet jede nicht notwendige Animation ab; Dezent hält Einblendungen kurz; Wild bringt die meiste Bewegung.',
-  'settings.motion.title': 'Bewegung',
+  'settings.motion.title': 'Animation',
   'settings.rowHeight.title': 'Zeilenhöhe',
   'settings.rowHeight.hint':
     'Wie hoch eine Zeile unter Downloads und im Linksammler ist. Kompakt zeigt die meisten Zeilen auf einmal, wie JDownloader, und Bequem lässt mehr Platz um jede Zeile. Die Wahl gilt nur in diesem Browser.',

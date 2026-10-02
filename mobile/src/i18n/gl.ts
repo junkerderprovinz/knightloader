@@ -145,7 +145,7 @@ export const gl: Dict = {
   'settings.accent': 'Acento',
   'settings.rainbow': 'Modo arco da vella',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Mentres o modo arco da vella estea activado, todos os elementos de cor esvaran xuntos pola paleta, unha cor cada 2,4 segundos. Con Movemento en Desactivado, ou coa redución de movemento activada nos axustes do teléfono, salta dunha cor á seguinte.',
+  'settings.discoGlideHint': 'Mentres o modo arco da vella estea activado, todos os elementos de cor esvaran xuntos pola paleta, unha cor cada 2,4 segundos. Con Animación en Desactivado, ou coa redución de movemento activada nos axustes do teléfono, salta dunha cor á seguinte.',
   'settings.problems': 'Problemas?',
   'settings.problemsHint': 'Envía isto cando informes de algo. Aforra unha rolda de preguntas e non leva nin enderezo nin token.',
   'settings.problemsCopy': 'Copiar o informe',
@@ -223,7 +223,7 @@ export const gl: Dict = {
   'relay.instancesTitle': 'Neste relé',
   'relay.noInstances': 'Agora mesmo non hai ningunha instancia deste grupo en liña. Comproba a frase e que polo menos unha instancia estea a funcionar.',
 
-  'settings.motion': 'Movemento',
+  'settings.motion': 'Animación',
   'settings.motion.off': 'Desactivado',
   'settings.motion.subtle': 'Sutil',
   'settings.motion.wild': 'Intenso',

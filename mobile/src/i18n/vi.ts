@@ -145,7 +145,7 @@ export const vi: Dict = {
   'settings.accent': 'Màu nhấn',
   'settings.rainbow': 'Chế độ cầu vồng',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Khi chế độ cầu vồng đang bật, mọi phần tử có màu cùng lướt qua bảng màu, cứ 2,4 giây sang một màu. Nếu Chuyển động đặt là “Tắt”, hoặc cài đặt điện thoại của bạn bật giảm chuyển động, màu sẽ nhảy thẳng từ màu này sang màu kế tiếp.',
+  'settings.discoGlideHint': 'Khi chế độ cầu vồng đang bật, mọi phần tử có màu cùng lướt qua bảng màu, cứ 2,4 giây sang một màu. Nếu Hoạt ảnh đặt là “Tắt”, hoặc cài đặt điện thoại của bạn bật giảm chuyển động, màu sẽ nhảy thẳng từ màu này sang màu kế tiếp.',
   'settings.problems': 'Gặp vấn đề?',
   'settings.problemsHint': 'Hãy gửi kèm phần này khi bạn báo lỗi. Nó tiết kiệm một vòng hỏi đáp, và trong đó không có địa chỉ hay token.',
   'settings.problemsCopy': 'Sao chép báo cáo',
@@ -223,7 +223,7 @@ export const vi: Dict = {
   'relay.instancesTitle': 'Trên relay này',
   'relay.noInstances': 'Hiện không có phiên bản nào của nhóm này trực tuyến. Kiểm tra cụm từ và xem có ít nhất một phiên bản đang chạy không.',
 
-  'settings.motion': 'Chuyển động',
+  'settings.motion': 'Hoạt ảnh',
   'settings.motion.off': 'Tắt',
   'settings.motion.subtle': 'Nhẹ nhàng',
   'settings.motion.wild': 'Mạnh mẽ',

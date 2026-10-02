@@ -176,7 +176,7 @@ export const en = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Rainbow mode',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Motion set to Off, or reduced motion switched on in your phone’s settings, it steps from one colour to the next instead.',
+  'settings.discoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Animation set to Off, or reduced motion switched on in your phone’s settings, it steps from one colour to the next instead.',
   'settings.problems': 'Problems?',
   'settings.problemsHint': 'Send this along when you report something. It saves a round of questions, and it contains no address or token.',
   'settings.problemsCopy': 'Copy report',
@@ -303,7 +303,7 @@ export const en = {
   'settings.rainbowPalette': 'Colour palette',
   'settings.pickerDone': 'Done',
 
-  'settings.motion': 'Motion',
+  'settings.motion': 'Animation',
   'settings.motion.off': 'Off',
   'settings.motion.subtle': 'Subtle',
   'settings.motion.wild': 'Wild',

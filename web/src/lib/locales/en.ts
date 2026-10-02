@@ -448,7 +448,7 @@ export const en = {
   'settings.rainbowRotate': 'Colour rotation',
   'settings.rainbowRotateHint': 'Shuffle where the palette starts',
   'settings.rainbowDisco': 'Disco mode',
-  'settings.rainbowDiscoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Motion set to Off, or reduced motion turned on in your system, it steps from one colour to the next instead.',
+  'settings.rainbowDiscoGlideHint': 'While rainbow mode is on, every coloured element glides through the palette together, one colour every 2.4 seconds. With Animation set to Off, or reduced motion turned on in your system, it steps from one colour to the next instead.',
   'settings.rainbowPalette': 'Palette colour',
   'settings.rainbowPaletteLabel': 'Colour palette',
   'settings.rainbowPaletteHint': 'The eight colours handed out by position. Edit any of them individually.',
@@ -459,7 +459,7 @@ export const en = {
   'settings.motion.subtle': 'Subtle',
   'settings.motion.off': 'Off',
   'settings.motion.hint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Wild has the most motion.',
-  'settings.motion.title': 'Motion',
+  'settings.motion.title': 'Animation',
   'settings.rowHeight.title': 'Row height',
   'settings.rowHeight.hint':
     'How tall a row is in Downloads and in the link collector. Compact fits the most rows on the screen, as in JDownloader, and Comfortable leaves more room around each one. The choice is kept in this browser only.',

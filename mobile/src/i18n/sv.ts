@@ -145,7 +145,7 @@ export const sv: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regnbågsläge',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Medan regnbågsläget är på glider alla färgade element tillsammans genom paletten och byter färg var 2,4 sekund. Står Rörelse på ”Av”, eller är minskad rörelse påslagen i telefonens inställningar, hoppar de i stället från en färg till nästa.',
+  'settings.discoGlideHint': 'Medan regnbågsläget är på glider alla färgade element tillsammans genom paletten och byter färg var 2,4 sekund. Står Animation på ”Av”, eller är minskad rörelse påslagen i telefonens inställningar, hoppar de i stället från en färg till nästa.',
   'settings.problems': 'Problem?',
   'settings.problemsHint': 'Skicka med det här när du rapporterar något. Det sparar en runda frågor, och varken adress eller token finns med.',
   'settings.problemsCopy': 'Kopiera rapport',
@@ -223,7 +223,7 @@ export const sv: Dict = {
   'relay.instancesTitle': 'På det här relät',
   'relay.noInstances': 'Ingen instans i den här gruppen är online just nu. Kontrollera frasen och att minst en instans körs.',
 
-  'settings.motion': 'Rörelse',
+  'settings.motion': 'Animation',
   'settings.motion.off': 'Av',
   'settings.motion.subtle': 'Diskret',
   'settings.motion.wild': 'Vild',

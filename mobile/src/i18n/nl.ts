@@ -145,7 +145,7 @@ export const nl: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Regenboogmodus',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Zolang de regenboogmodus aan staat, glijden alle gekleurde elementen samen door het palet, elke 2,4 seconden een kleur verder. Staat Beweging op “Uit”, of staat in de instellingen van je telefoon minder beweging aan, dan springen ze in plaats daarvan van de ene kleur naar de volgende.',
+  'settings.discoGlideHint': 'Zolang de regenboogmodus aan staat, glijden alle gekleurde elementen samen door het palet, elke 2,4 seconden een kleur verder. Staat Animatie op “Uit”, of staat in de instellingen van je telefoon minder beweging aan, dan springen ze in plaats daarvan van de ene kleur naar de volgende.',
   'settings.problems': 'Problemen?',
   'settings.problemsHint': 'Stuur dit mee als je iets meldt. Dat scheelt een ronde vragen, en er staat geen adres of token in.',
   'settings.problemsCopy': 'Rapport kopiëren',
@@ -223,7 +223,7 @@ export const nl: Dict = {
   'relay.instancesTitle': 'Op deze relay',
   'relay.noInstances': 'Er is nu geen instantie uit deze groep online. Controleer de zin en of er minstens één instantie draait.',
 
-  'settings.motion': 'Beweging',
+  'settings.motion': 'Animatie',
   'settings.motion.off': 'Uit',
   'settings.motion.subtle': 'Subtiel',
   'settings.motion.wild': 'Wild',

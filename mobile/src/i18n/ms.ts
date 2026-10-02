@@ -145,7 +145,7 @@ export const ms: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Mod pelangi',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Semasa mod pelangi dihidupkan, setiap unsur berwarna meluncur bersama-sama melalui palet, satu warna setiap 2.4 saat. Jika Gerakan ditetapkan kepada Mati, atau pengurangan gerakan dihidupkan dalam tetapan telefon anda, ia melompat dari satu warna ke warna seterusnya.',
+  'settings.discoGlideHint': 'Semasa mod pelangi dihidupkan, setiap unsur berwarna meluncur bersama-sama melalui palet, satu warna setiap 2.4 saat. Jika Animasi ditetapkan kepada Mati, atau pengurangan gerakan dihidupkan dalam tetapan telefon anda, ia melompat dari satu warna ke warna seterusnya.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Hantar ini sekali apabila anda melaporkan sesuatu. Ia menjimatkan satu pusingan soalan, dan tiada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',
@@ -223,7 +223,7 @@ export const ms: Dict = {
   'relay.instancesTitle': 'Pada geganti ini',
   'relay.noInstances': 'Tiada tika dalam kumpulan ini dalam talian sekarang. Semak frasa itu, dan pastikan sekurang-kurangnya satu tika sedang berjalan.',
 
-  'settings.motion': 'Gerakan',
+  'settings.motion': 'Animasi',
   'settings.motion.off': 'Mati',
   'settings.motion.subtle': 'Halus',
   'settings.motion.wild': 'Dinamik',

@@ -145,7 +145,7 @@ export const tr: Dict = {
   'settings.accent': 'Vurgu',
   'settings.rainbow': 'Gökkuşağı modu',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Gökkuşağı modu açıkken her renkli öğe paletin içinde hep birlikte kayar, her 2,4 saniyede bir renk. Hareket “Kapalı” ise ya da telefonunun ayarlarında azaltılmış hareket açıksa, bunun yerine bir renkten ötekine atlar.',
+  'settings.discoGlideHint': 'Gökkuşağı modu açıkken her renkli öğe paletin içinde hep birlikte kayar, her 2,4 saniyede bir renk. Animasyon “Kapalı” ise ya da telefonunun ayarlarında azaltılmış hareket açıksa, bunun yerine bir renkten ötekine atlar.',
   'settings.problems': 'Sorun mu var?',
   'settings.problemsHint': 'Bir şey bildirirken bunu da gönder. Bir tur soruyu ortadan kaldırır ve içinde ne adres ne de token bulunur.',
   'settings.problemsCopy': 'Raporu kopyala',
@@ -223,7 +223,7 @@ export const tr: Dict = {
   'relay.instancesTitle': 'Bu rölede',
   'relay.noInstances': 'Şu anda bu gruptan hiçbir örnek çevrimiçi değil. İfadeyi ve en az bir örneğin çalıştığını kontrol et.',
 
-  'settings.motion': 'Hareket',
+  'settings.motion': 'Animasyon',
   'settings.motion.off': 'Kapalı',
   'settings.motion.subtle': 'İnce',
   'settings.motion.wild': 'Coşkulu',

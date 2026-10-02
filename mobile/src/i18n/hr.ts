@@ -145,7 +145,7 @@ export const hr: Dict = {
   'settings.accent': 'Naglasak',
   'settings.rainbow': 'Način rada duga',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Dok je dugin način uključen, svi obojeni elementi zajedno klize kroz paletu, svakih 2,4 sekunde jedna boja dalje. Ako je Pokret postavljen na „Isključeno” ili je telefon postavljen na manje kretanja, umjesto toga preskaču s boje na boju.',
+  'settings.discoGlideHint': 'Dok je dugin način uključen, svi obojeni elementi zajedno klize kroz paletu, svakih 2,4 sekunde jedna boja dalje. Ako je Animacija postavljena na „Isključeno” ili je telefon postavljen na manje kretanja, umjesto toga preskaču s boje na boju.',
   'settings.problems': 'Problemi?',
   'settings.problemsHint': 'Pošalji ovo kad nešto prijavljuješ. To štedi jedan krug pitanja, a u njemu nema ni adrese ni tokena.',
   'settings.problemsCopy': 'Kopiraj izvještaj',
@@ -223,7 +223,7 @@ export const hr: Dict = {
   'relay.instancesTitle': 'Na ovom releju',
   'relay.noInstances': 'Nijedna instanca ove grupe trenutačno nije na mreži. Provjeri frazu i radi li barem jedna instanca.',
 
-  'settings.motion': 'Pokret',
+  'settings.motion': 'Animacija',
   'settings.motion.off': 'Isključeno',
   'settings.motion.subtle': 'Suptilno',
   'settings.motion.wild': 'Divlje',

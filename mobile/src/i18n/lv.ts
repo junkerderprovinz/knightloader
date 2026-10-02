@@ -145,7 +145,7 @@ export const lv: Dict = {
   'settings.accent': 'Akcents',
   'settings.rainbow': 'Varavīksnes režīms',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Kamēr varavīksnes režīms ir ieslēgts, visi krāsainie elementi kopā slīd cauri paletei, viena krāsa ik pēc 2,4 sekundēm. Ja Kustība ir iestatīta uz „Izslēgts“ vai tālruņa iestatījumos ir ieslēgta samazināta kustība, krāsas tā vietā pārlec no vienas uz nākamo.',
+  'settings.discoGlideHint': 'Kamēr varavīksnes režīms ir ieslēgts, visi krāsainie elementi kopā slīd cauri paletei, viena krāsa ik pēc 2,4 sekundēm. Ja Animācija ir iestatīta uz „Izslēgts“ vai tālruņa iestatījumos ir ieslēgta samazināta kustība, krāsas tā vietā pārlec no vienas uz nākamo.',
   'settings.problems': 'Problēmas?',
   'settings.problemsHint': 'Nosūti to līdzi, kad par kaut ko ziņo. Tas ietaupa vienu jautājumu kārtu, un tajā nav ne adreses, ne piekļuves marķiera.',
   'settings.problemsCopy': 'Kopēt pārskatu',
@@ -223,7 +223,7 @@ export const lv: Dict = {
   'relay.instancesTitle': 'Šajā relejā',
   'relay.noInstances': 'Neviena šīs grupas instance pašlaik nav tiešsaistē. Pārbaudi frāzi un to, vai vismaz viena instance darbojas.',
 
-  'settings.motion': 'Kustība',
+  'settings.motion': 'Animācija',
   'settings.motion.off': 'Izslēgts',
   'settings.motion.subtle': 'Smalks',
   'settings.motion.wild': 'Mežonīgs',

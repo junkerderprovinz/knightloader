@@ -145,7 +145,7 @@ export const pl: Dict = {
   'settings.accent': 'Akcent',
   'settings.rainbow': 'Tryb tęczy',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Gdy tryb tęczy jest włączony, wszystkie kolorowe elementy razem płynnie przechodzą przez paletę, co 2,4 sekundy o jeden kolor dalej. Jeśli Ruch jest ustawiony na „Wyłączone” albo telefon jest ustawiony na ograniczenie ruchu, kolory zamiast tego przeskakują od jednego do następnego.',
+  'settings.discoGlideHint': 'Gdy tryb tęczy jest włączony, wszystkie kolorowe elementy razem płynnie przechodzą przez paletę, co 2,4 sekundy o jeden kolor dalej. Jeśli Animacja jest ustawiona na „Wyłączone” albo telefon jest ustawiony na ograniczenie ruchu, kolory zamiast tego przeskakują od jednego do następnego.',
   'settings.problems': 'Problemy?',
   'settings.problemsHint': 'Dołącz to, gdy coś zgłaszasz. Oszczędza to jedną rundę pytań i nie ma w tym ani adresu, ani tokenu.',
   'settings.problemsCopy': 'Kopiuj raport',
@@ -223,7 +223,7 @@ export const pl: Dict = {
   'relay.instancesTitle': 'Na tym przekaźniku',
   'relay.noInstances': 'Żadna instancja z tej grupy nie jest teraz online. Sprawdź frazę i to, czy działa przynajmniej jedna instancja.',
 
-  'settings.motion': 'Ruch',
+  'settings.motion': 'Animacja',
   'settings.motion.off': 'Wyłączone',
   'settings.motion.subtle': 'Subtelne',
   'settings.motion.wild': 'Dzikie',

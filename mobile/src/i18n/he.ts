@@ -145,7 +145,7 @@ export const he: Dict = {
   'settings.accent': 'צבע הדגשה',
   'settings.rainbow': 'מצב קשת',
   'settings.disco': 'דיסקו',
-  'settings.discoGlideHint': 'כל עוד מצב הקשת פועל, כל רכיב צבעוני גולש לאורך הלוח יחד עם כל השאר, צבע אחד כל 2.4 שניות. כש„תנועה” מוגדרת ל„כבוי”, או כשהפחתת תנועה מופעלת בהגדרות הטלפון שלך, הוא קופץ במקום זאת מצבע לצבע.',
+  'settings.discoGlideHint': 'כל עוד מצב הקשת פועל, כל רכיב צבעוני גולש לאורך הלוח יחד עם כל השאר, צבע אחד כל 2.4 שניות. כש„אנימציה” מוגדרת ל„כבוי”, או כשהפחתת תנועה מופעלת בהגדרות הטלפון שלך, הוא קופץ במקום זאת מצבע לצבע.',
   'settings.problems': 'בעיות?',
   'settings.problemsHint': 'שלחו את זה כשאתם מדווחים על משהו. זה חוסך סבב שאלות, ואין בו כתובת או טוקן.',
   'settings.problemsCopy': 'העתקת הדוח',
@@ -223,7 +223,7 @@ export const he: Dict = {
   'relay.instancesTitle': 'על הממסר הזה',
   'relay.noInstances': 'אף מופע בקבוצה הזו אינו מקוון כרגע. בדקו את הביטוי, ושלפחות מופע אחד פועל.',
 
-  'settings.motion': 'תנועה',
+  'settings.motion': 'אנימציה',
   'settings.motion.off': 'כבוי',
   'settings.motion.subtle': 'עדין',
   'settings.motion.wild': 'פראי',

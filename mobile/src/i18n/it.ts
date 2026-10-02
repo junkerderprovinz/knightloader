@@ -145,7 +145,7 @@ export const it: Dict = {
   'settings.accent': 'Accento',
   'settings.rainbow': 'Modalità arcobaleno',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Finché la modalità arcobaleno è attiva, tutti gli elementi colorati scorrono insieme lungo la tavolozza, un colore ogni 2,4 secondi. Con «Movimento» su «Disattivato», o con la riduzione del movimento attiva nelle impostazioni del telefono, passa invece da un colore al successivo a scatti.',
+  'settings.discoGlideHint': 'Finché la modalità arcobaleno è attiva, tutti gli elementi colorati scorrono insieme lungo la tavolozza, un colore ogni 2,4 secondi. Con «Animazione» su «Disattivato», o con la riduzione del movimento attiva nelle impostazioni del telefono, passa invece da un colore al successivo a scatti.',
   'settings.problems': 'Problemi?',
   'settings.problemsHint': 'Allega questo quando segnali qualcosa. Risparmia un giro di domande e non contiene né indirizzo né token.',
   'settings.problemsCopy': 'Copia il rapporto',
@@ -223,7 +223,7 @@ export const it: Dict = {
   'relay.instancesTitle': 'Su questo relay',
   'relay.noInstances': 'Al momento nessuna istanza di questo gruppo è online. Controlla la frase e che almeno un’istanza sia in funzione.',
 
-  'settings.motion': 'Movimento',
+  'settings.motion': 'Animazione',
   'settings.motion.off': 'Disattivato',
   'settings.motion.subtle': 'Sottile',
   'settings.motion.wild': 'Intenso',

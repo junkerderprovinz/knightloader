@@ -145,7 +145,7 @@ export const sk: Dict = {
   'settings.accent': 'Zvýraznenie',
   'settings.rainbow': 'Režim dúha',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Kým je zapnutý dúhový režim, všetky farebné prvky spolu plynulo prechádzajú paletou, každé 2,4 sekundy o jednu farbu ďalej. Keď je Pohyb nastavený na „Vypnuté“ alebo má telefón nastavené obmedzenie pohybu, preskakujú namiesto toho z farby na farbu.',
+  'settings.discoGlideHint': 'Kým je zapnutý dúhový režim, všetky farebné prvky spolu plynulo prechádzajú paletou, každé 2,4 sekundy o jednu farbu ďalej. Keď je Animácia nastavená na „Vypnuté“ alebo má telefón nastavené obmedzenie pohybu, preskakujú namiesto toho z farby na farbu.',
   'settings.problems': 'Problémy?',
   'settings.problemsHint': 'Prilož to, keď niečo hlásiš. Ušetrí to jedno kolo otázok a nie je v tom adresa ani token.',
   'settings.problemsCopy': 'Kopírovať hlásenie',
@@ -223,7 +223,7 @@ export const sk: Dict = {
   'relay.instancesTitle': 'Na tomto relé',
   'relay.noInstances': 'Žiadna inštancia tejto skupiny teraz nie je online. Skontroluj frázu a či beží aspoň jedna inštancia.',
 
-  'settings.motion': 'Pohyb',
+  'settings.motion': 'Animácia',
   'settings.motion.off': 'Vypnuté',
   'settings.motion.subtle': 'Jemné',
   'settings.motion.wild': 'Divoké',

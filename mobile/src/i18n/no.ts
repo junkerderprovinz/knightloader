@@ -145,7 +145,7 @@ export const no: Dict = {
   'settings.accent': 'Aksent',
   'settings.rainbow': 'Regnbuemodus',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Mens regnbuemodus er på, glir alle fargede elementer sammen gjennom paletten og bytter farge hvert 2,4 sekund. Står Bevegelse på «Av», eller er redusert bevegelse slått på i telefoninnstillingene, hopper de i stedet fra én farge til den neste.',
+  'settings.discoGlideHint': 'Mens regnbuemodus er på, glir alle fargede elementer sammen gjennom paletten og bytter farge hvert 2,4 sekund. Står Animasjon på «Av», eller er redusert bevegelse slått på i telefoninnstillingene, hopper de i stedet fra én farge til den neste.',
   'settings.problems': 'Problemer?',
   'settings.problemsHint': 'Send dette med når du melder fra om noe. Det sparer en runde med spørsmål, og verken adresse eller token står i det.',
   'settings.problemsCopy': 'Kopier rapport',
@@ -223,7 +223,7 @@ export const no: Dict = {
   'relay.instancesTitle': 'På dette reléet',
   'relay.noInstances': 'Ingen instans i denne gruppen er tilkoblet akkurat nå. Sjekk frasen, og at minst én instans kjører.',
 
-  'settings.motion': 'Bevegelse',
+  'settings.motion': 'Animasjon',
   'settings.motion.off': 'Av',
   'settings.motion.subtle': 'Diskret',
   'settings.motion.wild': 'Vill',

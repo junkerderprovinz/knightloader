@@ -145,7 +145,7 @@ export const ro: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mod curcubeu',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Cât timp modul curcubeu este pornit, toate elementele colorate alunecă împreună prin paletă, câte o culoare la fiecare 2,4 secunde. Dacă Mișcare stă pe Dezactivat sau dacă mișcarea redusă este activată în setările telefonului tău, sare în schimb de la o culoare la alta.',
+  'settings.discoGlideHint': 'Cât timp modul curcubeu este pornit, toate elementele colorate alunecă împreună prin paletă, câte o culoare la fiecare 2,4 secunde. Dacă Animație stă pe Dezactivat sau dacă mișcarea redusă este activată în setările telefonului tău, sare în schimb de la o culoare la alta.',
   'settings.problems': 'Probleme?',
   'settings.problemsHint': 'Trimite asta când raportezi ceva. Scutește o rundă de întrebări și nu conține nici adresă, nici token.',
   'settings.problemsCopy': 'Copiază raportul',
@@ -223,7 +223,7 @@ export const ro: Dict = {
   'relay.instancesTitle': 'Pe acest releu',
   'relay.noInstances': 'Nicio instanță din acest grup nu este online acum. Verifică fraza și dacă rulează cel puțin o instanță.',
 
-  'settings.motion': 'Mișcare',
+  'settings.motion': 'Animație',
   'settings.motion.off': 'Dezactivat',
   'settings.motion.subtle': 'Discret',
   'settings.motion.wild': 'Intens',

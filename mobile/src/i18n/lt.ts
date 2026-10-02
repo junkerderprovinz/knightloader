@@ -145,7 +145,7 @@ export const lt: Dict = {
   'settings.accent': 'Akcentas',
   'settings.rainbow': 'Vaivorykštės režimas',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Kol įjungtas vaivorykštės režimas, visi spalvoti elementai kartu slenka per paletę, po vieną spalvą kas 2,4 sekundės. Jei Judesys nustatytas į „Išjungta“ arba telefono nustatymuose įjungtas sumažintas judesys, spalvos vietoj to peršoka iš vienos į kitą.',
+  'settings.discoGlideHint': 'Kol įjungtas vaivorykštės režimas, visi spalvoti elementai kartu slenka per paletę, po vieną spalvą kas 2,4 sekundės. Jei Animacija nustatyta į „Išjungta“ arba telefono nustatymuose įjungtas sumažintas judesys, spalvos vietoj to peršoka iš vienos į kitą.',
   'settings.problems': 'Kilo problemų?',
   'settings.problemsHint': 'Atsiųsk tai kartu, kai apie ką nors pranešai. Taip sutaupomas vienas klausimų ratas, o jame nėra nei adreso, nei prieigos rakto.',
   'settings.problemsCopy': 'Kopijuoti ataskaitą',
@@ -223,7 +223,7 @@ export const lt: Dict = {
   'relay.instancesTitle': 'Šioje relėje',
   'relay.noInstances': 'Šiuo metu nė vienas šios grupės egzempliorius neprisijungęs. Patikrink frazę ir ar bent vienas egzempliorius veikia.',
 
-  'settings.motion': 'Judesys',
+  'settings.motion': 'Animacija',
   'settings.motion.off': 'Išjungta',
   'settings.motion.subtle': 'Subtilu',
   'settings.motion.wild': 'Laukinis',

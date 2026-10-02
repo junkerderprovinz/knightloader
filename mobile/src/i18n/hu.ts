@@ -145,7 +145,7 @@ export const hu: Dict = {
   'settings.accent': 'Kiemelőszín',
   'settings.rainbow': 'Szivárvány mód',
   'settings.disco': 'Diszkó',
-  'settings.discoGlideHint': 'Amíg a szivárvány mód be van kapcsolva, minden színes elem együtt siklik végig a palettán, 2,4 másodpercenként egy színnel. Ha a Mozgás „Ki” értékre van állítva, vagy a telefonod beállításaiban be van kapcsolva a csökkentett mozgás, akkor ehelyett színről színre ugrik.',
+  'settings.discoGlideHint': 'Amíg a szivárvány mód be van kapcsolva, minden színes elem együtt siklik végig a palettán, 2,4 másodpercenként egy színnel. Ha az Animáció „Ki” értékre van állítva, vagy a telefonod beállításaiban be van kapcsolva a csökkentett mozgás, akkor ehelyett színről színre ugrik.',
   'settings.problems': 'Gondok?',
   'settings.problemsHint': 'Küldd el ezt is, amikor bejelentesz valamit. Egy kérdezz-felelek kört megspórolsz vele, és sem cím, sem token nincs benne.',
   'settings.problemsCopy': 'Jelentés másolása',
@@ -223,7 +223,7 @@ export const hu: Dict = {
   'relay.instancesTitle': 'Ezen a relén',
   'relay.noInstances': 'Ennek a csoportnak jelenleg egyetlen példánya sincs online. Ellenőrizd a kifejezést, és hogy legalább egy példány fut-e.',
 
-  'settings.motion': 'Mozgás',
+  'settings.motion': 'Animáció',
   'settings.motion.off': 'Ki',
   'settings.motion.subtle': 'Visszafogott',
   'settings.motion.wild': 'Vad',

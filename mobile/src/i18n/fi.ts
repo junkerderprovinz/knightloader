@@ -145,7 +145,7 @@ export const fi: Dict = {
   'settings.accent': 'Korostusväri',
   'settings.rainbow': 'Sateenkaaritila',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Kun sateenkaaritila on päällä, kaikki värilliset elementit liukuvat yhdessä paletin läpi, yksi väri 2,4 sekunnin välein. Jos Liike-asetuksena on ”Pois” tai puhelimesi asetuksissa on vähennetty liike käytössä, värit vaihtuvat sen sijaan suoraan väristä toiseen.',
+  'settings.discoGlideHint': 'Kun sateenkaaritila on päällä, kaikki värilliset elementit liukuvat yhdessä paletin läpi, yksi väri 2,4 sekunnin välein. Jos Animaatio-asetuksena on ”Pois” tai puhelimesi asetuksissa on vähennetty liike käytössä, värit vaihtuvat sen sijaan suoraan väristä toiseen.',
   'settings.problems': 'Ongelmia?',
   'settings.problemsHint': 'Lähetä tämä mukana, kun ilmoitat jostakin. Se säästää yhden kysymyskierroksen, eikä siinä ole osoitetta eikä tokenia.',
   'settings.problemsCopy': 'Kopioi raportti',
@@ -223,7 +223,7 @@ export const fi: Dict = {
   'relay.instancesTitle': 'Tässä releessä',
   'relay.noInstances': 'Yksikään tämän ryhmän instanssi ei ole juuri nyt verkossa. Tarkista lause ja se, että ainakin yksi instanssi on käynnissä.',
 
-  'settings.motion': 'Liike',
+  'settings.motion': 'Animaatio',
   'settings.motion.off': 'Pois',
   'settings.motion.subtle': 'Hienovarainen',
   'settings.motion.wild': 'Villi',

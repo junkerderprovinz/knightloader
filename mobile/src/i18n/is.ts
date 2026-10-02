@@ -145,7 +145,7 @@ export const is: Dict = {
   'settings.accent': 'Áherslulitur',
   'settings.rainbow': 'Regnbogahamur',
   'settings.disco': 'Diskó',
-  'settings.discoGlideHint': 'Á meðan kveikt er á regnbogaham líða öll lituð atriði saman í gegnum litaspjaldið og skipta um lit á 2,4 sekúndna fresti. Sé Hreyfing stillt á „Slökkt“, eða kveikt á minni hreyfingu í stillingum símans, stökkva þau í staðinn frá einum lit yfir í þann næsta.',
+  'settings.discoGlideHint': 'Á meðan kveikt er á regnbogaham líða öll lituð atriði saman í gegnum litaspjaldið og skipta um lit á 2,4 sekúndna fresti. Sé Hreyfimynd stillt á „Slökkt“, eða kveikt á minni hreyfingu í stillingum símans, stökkva þau í staðinn frá einum lit yfir í þann næsta.',
   'settings.problems': 'Vandamál?',
   'settings.problemsHint': 'Sendu þetta með þegar þú tilkynnir eitthvað. Það sparar eina umferð af spurningum og hvorki vistfang né teikn eru í því.',
   'settings.problemsCopy': 'Afrita skýrslu',
@@ -223,7 +223,7 @@ export const is: Dict = {
   'relay.instancesTitle': 'Á þessum endurvarpa',
   'relay.noInstances': 'Ekkert tilvik í þessum hópi er tengt núna. Athugaðu setninguna og hvort að minnsta kosti eitt tilvik sé í gangi.',
 
-  'settings.motion': 'Hreyfing',
+  'settings.motion': 'Hreyfimynd',
   'settings.motion.off': 'Slökkt',
   'settings.motion.subtle': 'Fíngert',
   'settings.motion.wild': 'Villt',

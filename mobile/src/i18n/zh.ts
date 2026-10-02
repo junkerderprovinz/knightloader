@@ -145,7 +145,7 @@ export const zh: Dict = {
   'settings.accent': '强调色',
   'settings.rainbow': '彩虹模式',
   'settings.disco': '迪斯科',
-  'settings.discoGlideHint': '彩虹模式开启时，所有带颜色的元素会一起在调色板中平滑过渡，每 2.4 秒换一种颜色。如果“动效”设为“关闭”，或者手机设置里开启了减弱动态效果，就改为从一种颜色直接跳到下一种。',
+  'settings.discoGlideHint': '彩虹模式开启时，所有带颜色的元素会一起在调色板中平滑过渡，每 2.4 秒换一种颜色。如果“动画”设为“关闭”，或者手机设置里开启了减弱动态效果，就改为从一种颜色直接跳到下一种。',
   'settings.problems': '遇到问题？',
   'settings.problemsHint': '报告问题时把这段一起发来。这样可以省去一轮追问，而且其中不含地址或令牌。',
   'settings.problemsCopy': '复制报告',
@@ -223,7 +223,7 @@ export const zh: Dict = {
   'relay.instancesTitle': '此中继上的实例',
   'relay.noInstances': '这一组目前没有实例在线。请检查词语，并确认至少有一台实例正在运行。',
 
-  'settings.motion': '动效',
+  'settings.motion': '动画',
   'settings.motion.off': '关闭',
   'settings.motion.subtle': '轻微',
   'settings.motion.wild': '狂野',

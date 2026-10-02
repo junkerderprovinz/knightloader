@@ -145,7 +145,7 @@ export const id: Dict = {
   'settings.accent': 'Aksen',
   'settings.rainbow': 'Mode pelangi',
   'settings.disco': 'Disko',
-  'settings.discoGlideHint': 'Selama mode pelangi menyala, setiap elemen berwarna bergeser bersama melewati palet, satu warna setiap 2,4 detik. Jika Gerakan disetel ke Nonaktif, atau pengurangan gerakan dinyalakan di pengaturan ponsel, warnanya melompat dari satu warna ke warna berikutnya.',
+  'settings.discoGlideHint': 'Selama mode pelangi menyala, setiap elemen berwarna bergeser bersama melewati palet, satu warna setiap 2,4 detik. Jika Animasi disetel ke Nonaktif, atau pengurangan gerakan dinyalakan di pengaturan ponsel, warnanya melompat dari satu warna ke warna berikutnya.',
   'settings.problems': 'Ada masalah?',
   'settings.problemsHint': 'Kirimkan ini saat kamu melaporkan sesuatu. Ini menghemat satu putaran pertanyaan, dan tidak ada alamat atau token di dalamnya.',
   'settings.problemsCopy': 'Salin laporan',
@@ -223,7 +223,7 @@ export const id: Dict = {
   'relay.instancesTitle': 'Di relai ini',
   'relay.noInstances': 'Tidak ada instans di grup ini yang online sekarang. Periksa frasanya, dan pastikan setidaknya satu instans berjalan.',
 
-  'settings.motion': 'Gerakan',
+  'settings.motion': 'Animasi',
   'settings.motion.off': 'Nonaktif',
   'settings.motion.subtle': 'Halus',
   'settings.motion.wild': 'Dinamis',

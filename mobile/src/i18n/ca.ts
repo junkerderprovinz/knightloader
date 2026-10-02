@@ -145,7 +145,7 @@ export const ca: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mode arc de Sant Martí',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Mentre el mode arc de Sant Martí està activat, tots els elements de color llisquen junts per la paleta, un color cada 2,4 segons. Amb «Moviment» a «Desactivat», o amb la reducció de moviment activada a la configuració del teu telèfon, salta en canvi d’un color al següent.',
+  'settings.discoGlideHint': 'Mentre el mode arc de Sant Martí està activat, tots els elements de color llisquen junts per la paleta, un color cada 2,4 segons. Amb «Animació» a «Desactivat», o amb la reducció de moviment activada a la configuració del teu telèfon, salta en canvi d’un color al següent.',
   'settings.problems': 'Problemes?',
   'settings.problemsHint': "Envia això quan informis d'alguna cosa. Estalvia una ronda de preguntes i no conté ni adreça ni token.",
   'settings.problemsCopy': "Copia l'informe",
@@ -223,7 +223,7 @@ export const ca: Dict = {
   'relay.instancesTitle': 'En aquest relé',
   'relay.noInstances': 'Ara mateix no hi ha cap instància d’aquest grup en línia. Comprova la frase i que almenys una instància estigui funcionant.',
 
-  'settings.motion': 'Moviment',
+  'settings.motion': 'Animació',
   'settings.motion.off': 'Desactivat',
   'settings.motion.subtle': 'Subtil',
   'settings.motion.wild': 'Intens',

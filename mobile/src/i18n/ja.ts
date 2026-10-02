@@ -145,7 +145,7 @@ export const ja: Dict = {
   'settings.accent': 'アクセントカラー',
   'settings.rainbow': 'レインボーモード',
   'settings.disco': 'ディスコ',
-  'settings.discoGlideHint': 'レインボーモードがオンのあいだ、色の付いた要素はすべていっしょにパレットの中をなめらかに移り変わり、2.4 秒ごとに次の色へ進みます。モーションが「オフ」のとき、または端末の設定で視差効果を減らす設定がオンのときは、なめらかに移らず色から色へ切り替わります。',
+  'settings.discoGlideHint': 'レインボーモードがオンのあいだ、色の付いた要素はすべていっしょにパレットの中をなめらかに移り変わり、2.4 秒ごとに次の色へ進みます。アニメーションが「オフ」のとき、または端末の設定で視差効果を減らす設定がオンのときは、なめらかに移らず色から色へ切り替わります。',
   'settings.problems': '問題がありますか?',
   'settings.problemsHint': '何か報告するときはこれを添えてください。やり取りが1往復減り、アドレスもトークンも含まれていません。',
   'settings.problemsCopy': 'レポートをコピー',
@@ -223,7 +223,7 @@ export const ja: Dict = {
   'relay.instancesTitle': 'このリレー上のインスタンス',
   'relay.noInstances': 'このグループのインスタンスは現在どれもオンラインではありません。フレーズと、少なくとも1台が動いているかを確認してください。',
 
-  'settings.motion': 'モーション',
+  'settings.motion': 'アニメーション',
   'settings.motion.off': 'オフ',
   'settings.motion.subtle': '控えめ',
   'settings.motion.wild': 'ワイルド',

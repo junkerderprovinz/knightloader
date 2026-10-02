@@ -145,7 +145,7 @@ export const fr: Dict = {
   'settings.accent': 'Accent',
   'settings.rainbow': 'Mode arc-en-ciel',
   'settings.disco': 'Disco',
-  'settings.discoGlideHint': 'Tant que le mode arc-en-ciel est activé, chaque élément coloré glisse avec tous les autres à travers la palette, une couleur toutes les 2,4 secondes. Si « Mouvement » est réglé sur « Désactivé », ou si la réduction des animations est activée dans les réglages de votre téléphone, il passe plutôt d’une couleur à la suivante sans transition.',
+  'settings.discoGlideHint': 'Tant que le mode arc-en-ciel est activé, chaque élément coloré glisse avec tous les autres à travers la palette, une couleur toutes les 2,4 secondes. Si « Animation » est réglée sur « Désactivé », ou si la réduction des animations est activée dans les réglages de votre téléphone, il passe plutôt d’une couleur à la suivante sans transition.',
   'settings.problems': 'Un problème ?',
   'settings.problemsHint': 'Joignez ceci quand vous signalez quelque chose. Cela évite un aller-retour de questions, et ni adresse ni jeton n’y figurent.',
   'settings.problemsCopy': 'Copier le rapport',
@@ -223,7 +223,7 @@ export const fr: Dict = {
   'relay.instancesTitle': 'Sur ce relais',
   'relay.noInstances': 'Aucune instance de ce groupe n’est en ligne pour le moment. Vérifiez la phrase et qu’au moins une instance fonctionne.',
 
-  'settings.motion': 'Mouvement',
+  'settings.motion': 'Animation',
   'settings.motion.off': 'Désactivé',
   'settings.motion.subtle': 'Discret',
   'settings.motion.wild': 'Intense',
