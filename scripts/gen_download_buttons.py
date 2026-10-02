@@ -5,19 +5,21 @@ download_buttons.py beside it differs. It writes one SVG per button, a sprite
 holding them together with the donation buttons, and every button row in
 README.md.
 
-The rows are always the same four, in this order: the server (the Unraid
+The rows are always the same five, in this order: the server (the Unraid
 template, the container, the source and the manual), the desktop apps, the
-phone apps and the browser extensions. What a repository does not ship is left
-out.
+phone apps, the browser extensions and the house's companion apps. What a
+repository does not ship is left out.
 Windows on ARM and the portable build are segments of the Windows button, and
 Linux on ARM one of the Linux button, so the desktop row keeps to the four
-places a row has.
+places a row has. A row with more, such as six browsers, is cut into rows
+that hold as many buttons as each other, give or take one.
 
 Size and corner radius are the Buy Me a Coffee button's (841.9 by 245.3, rx
 38.2), so every button on the page has the same shape.
 
 The logos are the platforms' own marks from Font Awesome Free (CC BY 4.0 for the
-icons), and Unraid's from Dashboard Icons (Apache-2.0); see scripts/brand-paths/.
+icons), Vivaldi's from Simple Icons (CC BY 4.0) and Unraid's from Dashboard
+Icons (Apache-2.0); see scripts/brand-paths/.
 Each is a trademark of its owner, used unmodified and only to name the platform
 a button downloads for, with no claim of endorsement by or affiliation with its
 owner. The ZIP and the book are Font Awesome's file-zipper and book, nobody's
@@ -71,6 +73,7 @@ FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-se
 # brand file, background, ink, heading, second line, accessible name. The same
 # thing carries the same words in every README.
 WINDOWS = ("#0078d4", "#ffffff")
+COMPANIONS = 4
 KINDS = {
     # The middle of the orange in Unraid's logo, where white holds 3.4:1,
     # enough for type this large.
@@ -96,19 +99,32 @@ KINDS = {
     # The heading is the platform, since "Google Play" is too wide for it.
     "google-play":      (2, "google-play", "#01875f", "#ffffff", "Android", "Google Play", "Get it on Google Play"),
     "apk":              (2, "android", "#3ddc84", "#1b1b1b", "Android", "APK", "Download the Android app"),
-    "chrome":           (3, "chrome", "#1a73e8", "#ffffff", "Chrome", "Edge, Brave", "Download the extension for Chrome, Edge, Brave and Opera"),
-    "firefox":          (3, "firefox-browser", "#ff7139", "#1b1b1b", "Firefox", "Add-on", "Install the Firefox add-on"),
+    # One button per browser, in the colours of KnightLoader's browser tiles.
+    # White holds 3.3:1 on Brave's orange, about as much as on Unraid's, and
+    # more on the others. On Firefox's lighter orange it falls to 2.7:1, so
+    # that ink is dark.
+    "chrome":           (3, "chrome", "#1a73e8", "#ffffff", "Chrome", "Extension", "Install the extension for Chrome"),
+    "edge":             (3, "edge", "#0078d7", "#ffffff", "Edge", "Extension", "Install the extension for Edge"),
+    "brave":            (3, "brave", "#fb542b", "#ffffff", "Brave", "Extension", "Install the extension for Brave"),
+    "opera":            (3, "opera", "#ff1b2d", "#ffffff", "Opera", "Extension", "Install the extension for Opera"),
+    "vivaldi":          (3, "vivaldi", "#ef3939", "#ffffff", "Vivaldi", "Extension", "Install the extension for Vivaldi"),
+    "firefox":          (3, "firefox-browser", "#ff7139", "#1b1b1b", "Firefox", "Add-on", "Install the add-on for Firefox"),
+    # The house's own companions keep their logos in colour, on the dark ground
+    # of the README badges, where gold and steel both read.
+    "parleyport":       (COMPANIONS, "parleyport", "#1f2328", "#ffffff", "ParleyPort", "own relay", "Get ParleyPort, the relay for KnightLoader and BombVault"),
+    "bombvault-widget": (COMPANIONS, "bombvault-widget", "#1f2328", "#ffffff", "Widget", "Unraid plugin", "Get the BombVault Widget for the Unraid dashboard"),
 }
 # Joined to the button they belong to, in this order, rather than standing alone.
 SEGMENTS = {"windows": ("windows-arm", "windows-portable"), "linux": ("linux-arm",)}
 # A store listing that does not exist yet is drawn without a link.
 SOON = {
     "google-play": ("coming soon", "On Google Play soon"),
-    "firefox": ("coming soon", "The Firefox add-on, soon"),
+    "firefox": ("coming soon", "The add-on for Firefox, soon"),
     "unraid": ("coming soon", "In Unraid's Community Applications soon"),
 }
 # Links that may lead away from the repository.
-STORES = ("play.google.com", "chromewebstore.google.com", "addons.mozilla.org", "microsoftedge.microsoft.com", "unraid.net")
+STORES = ("play.google.com", "chromewebstore.google.com", "addons.mozilla.org", "microsoftedge.microsoft.com", "unraid.net",
+          "github.com/junkerderprovinz/parleyport", "github.com/junkerderprovinz/bombvault-widget")
 
 # The sheen is a tilted white band, clipped to each button, that appears to
 # travel along the whole row, the same band as the donation row's. Its numbers
@@ -126,6 +142,9 @@ RENDER_PX = 160.0
 # Two segments and the gap they replace make one button's place. Whole pixels,
 # so no browser rounds a hairline into the seams.
 SEGMENT_PX = 87.0
+# A row has four places, a segment taking half of one. Five buttons already
+# wrap in GitHub's 830px column and leave one alone below the rest.
+PLACES = 4
 
 SCALE = W / RENDER_PX              # canvas units per screen pixel
 SEGMENT_W = SEGMENT_PX * SCALE
@@ -178,7 +197,7 @@ TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 FULL_FACE = """  <g transform="translate({gx} {gy}) scale({scale})" fill="{ink}">
-    <path d="{path}"/>
+    {shape}
   </g>
   <text x="332" y="108" font-family="{font}" font-size="82" font-weight="700" fill="{ink}">{head}</text>
   <text x="334" y="186" font-family="{font}" font-size="64" font-weight="400" fill="{ink}" fill-opacity="0.9">{sub_text}</text>"""
@@ -247,7 +266,7 @@ def rows():
         present = [s for s in group if s in config.BUTTONS]
         if present and base not in config.BUTTONS:
             raise SystemExit("%s needs the %s button to join" % (present[0], base))
-    out = [[], [], [], []]
+    out = [[], [], [], [], []]
     for kind, spec in KINDS.items():
         if kind not in config.BUTTONS or kind in joined:
             continue
@@ -259,7 +278,20 @@ def rows():
         else:
             item = [Part(kind, href, W, "all")]
         out[spec[0]].append(item)
-    return [row for row in out if row]
+    return [part for items in out if items for part in split(items)]
+
+
+def split(items):
+    """A row as rows of at most PLACES, holding as many buttons as each other,
+    give or take one, the longer ones first."""
+    count = math.ceil(sum(1 + (len(parts) - 1) / 2 for parts in items) / PLACES)
+    size, extra = divmod(len(items), count)
+    out, at = [], 0
+    for i in range(count):
+        n = size + (i < extra)
+        out.append(items[at:at + n])
+        at += n
+    return out
 
 
 def outline(w, corners):
@@ -281,10 +313,30 @@ def outline(w, corners):
     return " ".join(d) + " Z"
 
 
+def logo(name):
+    """A logo kept in its own colours, from brand-paths/<name>.svg, and its viewBox.
+
+    Its classes become fill attributes and its ids go, because CSS and ids
+    inside the sprite are shared: a second logo's .cls-1 would repaint the first.
+    """
+    svg = io.open(os.path.join(BRANDS, name + ".svg"), encoding="utf-8").read()
+    box = re.search(r'viewBox="([^"]+)"', svg).group(1)
+    fills = dict(re.findall(r"\.([\w-]+)\s*\{\s*fill:\s*(#[0-9a-fA-F]+);?\s*\}", svg))
+    body = re.search(r"<svg\b[^>]*>(.*)</svg>", svg, re.S).group(1)
+    body = re.sub(r"<defs>.*?</defs>", "", body, flags=re.S)
+    body = re.sub(r'\s(?:id|data-name)="[^"]*"', "", body)
+    body = re.sub(r'class="([\w-]+)"', lambda m: 'fill="%s"' % fills[m.group(1)], body)
+    return re.sub(r"\s*\n\s*", "", body), box
+
+
 def brand(name):
-    """One mark: its path, and the scale and offsets that centre it in GLYPH."""
-    path = io.open(os.path.join(BRANDS, name + ".txt"), encoding="utf-8").read().strip()
-    box = io.open(os.path.join(BRANDS, name + ".box.txt"), encoding="utf-8").read().strip()
+    """One mark, a path in the button's ink or a logo in its own colours, and
+    the scale and offsets that centre it in GLYPH."""
+    if os.path.exists(os.path.join(BRANDS, name + ".svg")):
+        path, box = logo(name)
+    else:
+        path = io.open(os.path.join(BRANDS, name + ".txt"), encoding="utf-8").read().strip()
+        box = io.open(os.path.join(BRANDS, name + ".box.txt"), encoding="utf-8").read().strip()
     x, y, width, height = (float(n) for n in box.split())
     # Scaled by height so the marks share an optical size, then nudged right by
     # half the width they do not use, since Apple's mark is narrower. A mark
@@ -304,7 +356,8 @@ def button(part, delay, cycle):
     common = dict(font=FONT, ink=part.ink, head=part.head, sub_text=part.sub)
     if part.mark:
         path, scale, dx, dy = brand(part.mark)
-        face = FULL_FACE.format(gx=round(GX + dx, 2), gy=round(GY + dy, 2), scale=round(scale, 5), path=path, **common)
+        shape = path if path.startswith("<") else '<path d="%s"/>' % path
+        face = FULL_FACE.format(gx=round(GX + dx, 2), gy=round(GY + dy, 2), scale=round(scale, 5), shape=shape, **common)
     else:
         face = SEGMENT_FACE.format(divider=num(DIVIDER_W), h=H, mid=num(part.width / 2), **common)
     crossing = (part.width + 2 * CLEAR) / SCALE / SPEED
@@ -442,16 +495,16 @@ def row(items, nl, caption=None):
     return nl.join(lines) + nl
 
 
-def write_readme(text, downloads, donations):
+def write_readme(text, downloads, donations, caption_row):
     """Replace every marked block, each taking the line ending of its own marker.
 
     Both width and height are set, because the image's own proportions are the
     whole sprite's, not the button's.
     """
-    for opener, closer, table, caption in ((ROW_OPEN, ROW_CLOSE, downloads, CAPTION), (GIVE_OPEN, GIVE_CLOSE, donations, None)):
+    for opener, closer, table, caption, last in ((ROW_OPEN, ROW_CLOSE, downloads, CAPTION, caption_row),
+                                                 (GIVE_OPEN, GIVE_CLOSE, donations, None, 0)):
         for start, end in reversed(blocks(text, opener, closer)):
             nl = "\r\n" if text[start:].split("\n", 1)[0].endswith("\r") else "\n"
-            last = len(table) - 1
             body = "".join(row(items, nl, caption if i == last else None) for i, items in enumerate(table))
             text = text[:start] + opener + nl + body + text[end:]
     io.open(README, "w", encoding="utf-8", newline="").write(text)
@@ -550,7 +603,11 @@ def main():
     table_out = [[[(p.href, p.alt, next(place), p.width, H, p.px) for p in item] for item in items] for items in table]
     donations = [[[(href, alt, xs[len(parts) + i], gives[i][1], gives[i][2], GIVE_RENDER_PX)]
                   for i, (_s, href, alt) in enumerate(GIVE)]]
-    write_readme(readme, table_out, donations)
+    # The caption speaks of downloads, so it stays above the companion row,
+    # whose buttons lead to repositories.
+    caption_row = max((i for i, items in enumerate(table) if KINDS[items[0][0].kind][0] < COMPANIONS),
+                      default=len(table) - 1)
+    write_readme(readme, table_out, donations, caption_row)
 
 
 if __name__ == "__main__":
