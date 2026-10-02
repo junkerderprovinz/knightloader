@@ -189,7 +189,7 @@ can:
   over the relay), the network, or the vendor with its code. It also reports
   the failure on the phone's own path (`reportCaptchaUnanswerable`,
   `/api/captcha/{id}/unanswerable/phone`), and the phone's reads of the list
-  stop holding the paid solvers back for it. Once Refresh loads the widget
+  stop holding the captcha accounts back for it. Once Refresh loads the widget
   after all, the app withdraws the report (`widgetReport`, through
   `reportWidget` in `CaptchaWatch`). A challenge answered or dropped while
   the window opened closes it (a 404 with the code `gone`). An instance from
@@ -204,8 +204,8 @@ either transport, for the active connection only. The read names what this
 phone answers in `watch` (`WATCHED`): pictures, clicks and widgets, and
 `turnstile` to say that it runs a Turnstile as well, which an older app that
 names only the widget kind cannot. With "Only when nobody is watching" on, the
-instance holds the paid solvers back for those alone. A card
-shows what the solvers are doing (`solverStatus`), and leaves out the
+instance holds the captcha accounts back for those alone. A card
+shows what the captcha accounts are doing (`solverStatus`), and leaves out the
 explanation that assumes you can answer when the phone cannot. An instance forwards these
 routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
 an older one refuses them with a 403, which the screen words as "update

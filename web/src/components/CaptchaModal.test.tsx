@@ -50,7 +50,7 @@ describe('SolverStatus', () => {
       ],
     });
     expect(line).toBe('2Captcha took this captcha but sent no answer.');
-    expect(bubble).toContain('2Captcha may charge for it anyway, so KnightLoader does not send it to another solver');
+    expect(bubble).toContain('2Captcha may charge for it anyway, so KnightLoader does not send it to another captcha account');
     expect(bubble).toContain('Anti-Captcha does not solve this kind of captcha.');
     expect(bubble).toContain('2Captcha took it, but no answer came back.');
   });
@@ -74,7 +74,7 @@ describe('SolverStatus', () => {
         { solver: 'Anti-Captcha', code: 'failed', detail: 'anticaptcha createTask: dial tcp: connection refused' },
       ],
     });
-    expect(line).toBe('No solver could take this captcha.');
+    expect(line).toBe('No captcha account could take this captcha.');
     expect(bubble).toContain('2Captcha declined: no money left (ERROR_ZERO_BALANCE)');
     expect(bubble).toContain('Anti-Captcha could not be reached.');
     expect(bubble).not.toContain('dial tcp');

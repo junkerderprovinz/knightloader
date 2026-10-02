@@ -343,11 +343,11 @@ and cannot be explained.
   sends no notification while it is closed. While it watches, the instance
   counts you as watching for the captchas the app can answer, which is every
   kind except a captcha service KnightLoader does not know. With **Only when
-  nobody is watching** switched on on the Captcha settings page, the paid
-  solvers wait for your answer on those first, and a captcha the app cannot
+  nobody is watching** switched on on the Captcha settings page, the captcha
+  accounts wait for your answer on those first, and a captcha the app cannot
   answer does not wait for it. Nor does a widget captcha that will not load in
   the app, until Refresh loads it after all. The card
-  says what the solvers are doing, as the web UI's captcha window does.
+  says what the captcha accounts are doing, as the web UI's captcha window does.
 
 ## The browser extension
 

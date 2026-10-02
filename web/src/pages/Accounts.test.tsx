@@ -52,7 +52,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('lists a stored captcha solver key in its own section, apart from the debrid accounts', async () => {
+it('lists a stored captcha account in its own section, apart from the debrid accounts', async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
@@ -88,7 +88,7 @@ it('lists a stored captcha solver key in its own section, apart from the debrid 
       </I18nProvider>,
     ),
   );
-  const solvers = host.querySelector('[aria-label="Captcha solvers"]');
+  const solvers = host.querySelector('[aria-label="Captcha accounts"]');
   expect(solvers?.textContent).toContain('CapSolver');
   const debrid = host.querySelector('[aria-label="Debrid accounts"]');
   expect(debrid).toBeNull();
