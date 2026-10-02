@@ -29,8 +29,6 @@ export interface AccountRow {
   /** Whatever HosterIcon can reduce to a hostname: a bare host or a full URL. */
   iconHost: string;
   label: string;
-  /** How KnightLoader reaches the service when it is not direct, e.g. "through JDownloader". */
-  via?: string;
   enabled: boolean;
   /** The status badge, drawn by the card, since the two have different states. */
   status: ReactNode;
@@ -199,10 +197,7 @@ export function AccountTable({
               <td className="px-2 py-3 font-medium text-carbon-text">
                 <span className="inline-flex items-center gap-2">
                   <HosterIcon host={row.iconHost} />
-                  <span className="flex min-w-0 flex-col">
-                    {row.label}
-                    {row.via && <span className="text-[11px] font-normal text-carbon-textMuted">{row.via}</span>}
-                  </span>
+                  {row.label}
                 </span>
               </td>
               <td className="px-2 py-3">{row.status}</td>

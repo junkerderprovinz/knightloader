@@ -53,18 +53,17 @@ func (a *App) StartHosterAuth() {
 }
 
 // HosterHosts lists the hosts the "add a login" picker offers. Debrid services
-// are left out because they have their own card, and offering them in both
-// places invites configuring one service twice.
+// are left out because KnightLoader speaks to each of them itself, on the
+// debrid card, and a login handed to JD would route the same service a second
+// way.
 func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	skip := debridServiceDomains()
 	all := a.hosterAuth().Hosts(ctx)
 	out := make([]hosterauth.Host, 0, len(all))
 	for _, h := range all {
-		if skip[serviceKey(h.ID)] || closedMultihosters[serviceKey(h.ID)] {
+		if skip[serviceKey(h.ID)] || multihostersLeftOut[serviceKey(h.ID)] {
 			continue
 		}
-		// Marked rather than removed; see app_multihoster.go.
-		h.Multihoster = IsMultihoster(h.ID)
 		out = append(out, h)
 	}
 	return out
@@ -98,11 +97,7 @@ func debridServiceDomains() map[string]bool {
 // HosterLogins lists every stored hoster login with its sync status against
 // JD, never the password.
 func (a *App) HosterLogins() []hosterauth.LoginState {
-	states := a.hosterAuth().States()
-	for i := range states {
-		states[i].Multihoster = IsMultihoster(states[i].Host)
-	}
-	return states
+	return a.hosterAuth().States()
 }
 
 // SetHosterLogin stores one host's login and reconciles in the background, so
@@ -156,4 +151,75 @@ func (a *App) RemoveHosterLogin(host string) error {
 		}
 	})
 	return nil
+}
+
+// jdDebridLogins maps each multihoster whose JD login KnightLoader's own
+// client takes unchanged to that client's service id.
+var jdDebridLogins = map[string]string{
+	"mydebrid.com": "mydebrid",
+}
+
+// adoptJDDebridLogins turns a hoster login stored for one of jdDebridLogins
+// into an account of KnightLoader's own client, switched on or off as the
+// login was, and drops the login, so the next reconcile takes it out of JD
+// too. A login whose username already has an account there is dropped as a
+// duplicate. It runs at boot, before the backends are wired.
+func (a *App) adoptJDDebridLogins() {
+	logins := hosterauth.NewStore(a.Accounts)
+	for _, host := range logins.Hosts() {
+		service, ok := jdDebridLogins[serviceKey(host)]
+		if !ok {
+			continue
+		}
+		cred, err := logins.Get(host)
+		if err != nil || cred.Username == "" || cred.Password == "" {
+			continue
+		}
+		account, dup, ok := a.adoptionSlot(service, cred.Username)
+		if !ok {
+			log.Printf("hosterauth: the JDownloader login for %s is kept, both accounts it could move to hold other logins", host)
+			continue
+		}
+		if !dup {
+			login := accounts.Credential{Username: cred.Username, Password: cred.Password}
+			if err := a.Accounts.SetCredential(service, account, login); err != nil {
+				log.Printf("hosterauth: moving the login for %s to %s failed: %v", host, service, err)
+				continue
+			}
+			if !a.accountEnabled(hosterauth.Service, host) {
+				acctMetaMu.Lock()
+				m := a.loadAcctMetaLocked()
+				m[metaKey(service, account)] = acctMeta{Enabled: false}
+				a.saveAcctMetaLocked(m)
+				acctMetaMu.Unlock()
+			}
+		}
+		if err := logins.Remove(host); err != nil {
+			log.Printf("hosterauth: dropping the moved login for %s failed: %v", host, err)
+			continue
+		}
+		a.deleteAccountMeta(hosterauth.Service, host)
+		log.Printf("hosterauth: moved the JDownloader login for %s to the %s account", host, service)
+	}
+}
+
+// adoptionSlot picks where a login moved from JD goes: the default account
+// when it is free, else an account named after the username. dup reports that
+// one of the two already holds this username; ok is false when both hold
+// other logins.
+func (a *App) adoptionSlot(service, username string) (id string, dup, ok bool) {
+	for _, id := range []string{"", username} {
+		cred, err := a.Accounts.GetCredential(service, id)
+		switch {
+		case err != nil:
+			// Unreadable is not free: a save would overwrite it.
+			continue
+		case cred.IsZero():
+			return id, false, true
+		}
+		if strings.EqualFold(strings.TrimSpace(cred.Username), strings.TrimSpace(username)) {
+			return id, true, true
+		}
+	}
+	return "", false, false
 }

@@ -1,10 +1,10 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts and the multihosters reached through JD come first, hoster logins
-// below them and the captcha solvers' keys after that; the section follows the
-// catalogue's Group field, and every card draws an AccountTable. The Allow free
-// downloads switch comes under them, since whether a link may be fetched for
-// free is a question of which accounts there are.
+// accounts come first, hoster logins below them and the captcha solvers' keys
+// after that; the section follows the catalogue's Group field, and every card
+// draws an AccountTable. The Allow free downloads switch comes under them,
+// since whether a link may be fetched for free is a question of which accounts
+// there are.
 import {
   useCallback,
   useEffect,
@@ -18,8 +18,6 @@ import {
   type AccountCredential,
   type CatalogueService,
   type CredentialField,
-  type HosterHost,
-  type HosterLogin,
   type JDStatus,
   type ResolverInfo,
   type VerifyResult,
@@ -59,13 +57,7 @@ import {
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
-import {
-  ConfirmRemoveLogin,
-  HosterLoginDialog,
-  HosterLoginSection,
-  hosterLoginRow,
-  useHosterLogins,
-} from '../components/HosterLoginSection';
+import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import {
   IconAccounts,
   IconCaptcha,
@@ -108,10 +100,6 @@ export function Accounts() {
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
   const [loginHosts, setLoginHosts] = useState('');
   const hoster = useHosterLogins(setLoginHosts);
-  // A multihoster KnightLoader reaches only through JD: its login dialog, and
-  // the login awaiting removal.
-  const [jdDialog, setJdDialog] = useState<{ host?: HosterHost; editing?: HosterLogin } | null>(null);
-  const [jdConfirming, setJdConfirming] = useState<HosterLogin | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -198,19 +186,6 @@ export function Accounts() {
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
   const solverIds = new Set(catalogue.filter((s) => s.group === 'captchaSolver').map((s) => s.id));
   const solverRows = accounts.filter((a) => solverIds.has(a.service));
-  const jdLogins = (hoster.logins ?? []).filter((l) => l.multihoster);
-  const jdServices = hoster.hosts.filter((h) => h.multihoster && !jdLogins.some((l) => l.host === h.id));
-  const jdRows = jdLogins.map((row) =>
-    hosterLoginRow(
-      row,
-      {
-        onToggle: (v) => void hoster.toggle(row, v),
-        onEdit: () => setJdDialog({ editing: row }),
-        onRemove: () => setJdConfirming(row),
-      },
-      t('accounts.debrid.viaJD'),
-    ),
-  );
 
   const labelOf = (a: Account) => byId.get(a.service)?.label ?? a.service;
 
@@ -232,12 +207,11 @@ export function Accounts() {
         <SectionTitle hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
-        {debridRows.length + jdRows.length > 0 ? (
+        {debridRows.length > 0 ? (
           <>
             <AccountsTable
               label={t('accounts.debrid.title')}
               rows={debridRows}
-              extra={jdRows}
               importColumn
               {...tableProps}
             />
@@ -285,7 +259,7 @@ export function Accounts() {
         <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
           <>
-            <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} extra={[]} {...tableProps} />
+            <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
             <Button
               kind="secondary"
               hue={2}
@@ -340,37 +314,8 @@ export function Accounts() {
           initial={dialog.mode === 'edit' ? { service: dialog.service, account: dialog.account } : undefined}
           catalogue={catalogue}
           accounts={accounts}
-          jdServices={jdServices}
-          onPickJD={(host) => {
-            setDialog(null);
-            setJdDialog({ host });
-          }}
           onClose={() => setDialog(null)}
           onSaved={load}
-        />
-      )}
-
-      {jdDialog && (
-        <HosterLoginDialog
-          hosts={jdServices}
-          existing={hoster.logins ?? []}
-          editing={jdDialog.editing}
-          initial={jdDialog.host}
-          hue={0}
-          onClose={() => setJdDialog(null)}
-          onSaved={hoster.load}
-        />
-      )}
-
-      {jdConfirming && (
-        <ConfirmRemoveLogin
-          login={jdConfirming}
-          hue={0}
-          onCancel={() => setJdConfirming(null)}
-          onConfirm={() => {
-            setJdConfirming(null);
-            void hoster.remove(jdConfirming.host);
-          }}
         />
       )}
 
@@ -422,7 +367,6 @@ interface TableActions {
 function AccountsTable({
   label,
   rows,
-  extra,
   importColumn = false,
   catalogue,
   refreshing,
@@ -431,63 +375,60 @@ function AccountsTable({
   onImport,
   onRemove,
   onEdit,
-}: TableActions & { label: string; rows: Account[]; extra: AccountRow[]; importColumn?: boolean }) {
+}: TableActions & { label: string; rows: Account[]; importColumn?: boolean }) {
   const { t } = useT();
   return (
     <AccountTable
       label={label}
       importColumn={importColumn}
-      rows={[
-        ...rows.map((a): AccountRow => {
-          const svc = catalogue.get(a.service);
-          // A solver's key has no plan to renew; its row menu only checks it.
-          const renewable = svc?.group !== 'captchaSolver';
-          return {
-            key: a.id,
-            // The service's icon, from the host of its "where do I get a key" link.
-            iconHost: svc?.whereUrl ?? '',
-            label: svc?.label ?? a.service,
-            enabled: a.enabled,
-            status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
-            tier: a.tier,
-            expiry: a.expiry,
-            traffic: a.traffic,
-            onToggle: (v) => onToggle(a, v),
-            importing: a.canImport ? { on: a.import, onChange: (v) => onImport(a, v) } : undefined,
-            onEdit: () => onEdit(a),
-            // A credential from the container's environment cannot be removed here.
-            onRemove: a.fromEnv ? undefined : () => onRemove(a),
-            menu: [
-              {
-                id: 'actions',
-                items: [
-                  {
-                    id: 'refresh',
-                    label: t('accounts.refresh'),
-                    icon: <IconRetry width={16} height={16} />,
-                    onSelect: () => onRefresh(a),
-                  },
-                  ...(renewable
-                    ? [
-                        {
-                          id: 'renew',
-                          label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                          icon: <IconExternalLink width={16} height={16} />,
-                          // Only with an expiry and somewhere to renew.
-                          disabled: !a.expiry || !svc?.whereUrl,
-                          onSelect: () => {
-                            if (svc?.whereUrl) openExternal(svc.whereUrl);
-                          },
+      rows={rows.map((a): AccountRow => {
+        const svc = catalogue.get(a.service);
+        // A solver's key has no plan to renew; its row menu only checks it.
+        const renewable = svc?.group !== 'captchaSolver';
+        return {
+          key: a.id,
+          // The service's icon, from the host of its "where do I get a key" link.
+          iconHost: svc?.whereUrl ?? '',
+          label: svc?.label ?? a.service,
+          enabled: a.enabled,
+          status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
+          tier: a.tier,
+          expiry: a.expiry,
+          traffic: a.traffic,
+          onToggle: (v) => onToggle(a, v),
+          importing: a.canImport ? { on: a.import, onChange: (v) => onImport(a, v) } : undefined,
+          onEdit: () => onEdit(a),
+          // A credential from the container's environment cannot be removed here.
+          onRemove: a.fromEnv ? undefined : () => onRemove(a),
+          menu: [
+            {
+              id: 'actions',
+              items: [
+                {
+                  id: 'refresh',
+                  label: t('accounts.refresh'),
+                  icon: <IconRetry width={16} height={16} />,
+                  onSelect: () => onRefresh(a),
+                },
+                ...(renewable
+                  ? [
+                      {
+                        id: 'renew',
+                        label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                        icon: <IconExternalLink width={16} height={16} />,
+                        // Only with an expiry and somewhere to renew.
+                        disabled: !a.expiry || !svc?.whereUrl,
+                        onSelect: () => {
+                          if (svc?.whereUrl) openExternal(svc.whereUrl);
                         },
-                      ]
-                    : []),
-                ],
-              },
-            ],
-          };
-        }),
-        ...extra,
-      ]}
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          ],
+        };
+      })}
     />
   );
 }
@@ -539,8 +480,6 @@ function CredentialDialog({
   initial,
   catalogue,
   accounts,
-  jdServices,
-  onPickJD,
   onClose,
   onSaved,
 }: {
@@ -550,9 +489,6 @@ function CredentialDialog({
   initial?: { service: string; account: string };
   catalogue: CatalogueService[];
   accounts: Account[];
-  /** Multihosters reached through JD, offered beside the services KnightLoader speaks to itself. */
-  jdServices: HosterHost[];
-  onPickJD: (host: HosterHost) => void;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -661,8 +597,6 @@ function CredentialDialog({
       {!picked ? (
         <ServicePicker
           services={services}
-          jdServices={solver ? [] : jdServices}
-          onPickJD={onPickJD}
           hasDefault={hasDefault}
           onPick={(s) => {
             setPicked(s);
@@ -749,38 +683,23 @@ function CredentialDialog({
 
 function ServicePicker({
   services,
-  jdServices,
   hasDefault,
   onPick,
-  onPickJD,
 }: {
   services: CatalogueService[];
-  jdServices: HosterHost[];
   hasDefault: (id: string) => boolean;
   onPick: (s: CatalogueService) => void;
-  onPickJD: (host: HosterHost) => void;
 }) {
   const { t } = useT();
-  // One alphabetical list: which way a service is reached is a detail of the
-  // row, not a reason to look for it in a second place.
-  const entries = [
-    ...services.map((s) => ({
+  const entries = services
+    .map((s) => ({
       key: s.id,
       label: s.label,
       iconHost: s.whereUrl,
       pick: () => onPick(s),
-      jd: false,
       connected: hasDefault(s.id),
-    })),
-    ...jdServices.map((h) => ({
-      key: h.id,
-      label: h.label,
-      iconHost: h.id,
-      pick: () => onPickJD(h),
-      jd: true,
-      connected: false,
-    })),
-  ].sort((x, y) => x.label.localeCompare(y.label));
+    }))
+    .sort((x, y) => x.label.localeCompare(y.label));
   return (
     <div className="flex flex-col gap-3">
       <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
@@ -798,7 +717,6 @@ function ServicePicker({
                 {e.label}
               </span>
             </span>
-            {e.jd && <span className="glim-eyebrow shrink-0">{t('accounts.debrid.viaJD')}</span>}
             {e.connected && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}
           </button>
         ))}

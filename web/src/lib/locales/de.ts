@@ -1268,9 +1268,8 @@ export const de: Dict = {
   'accounts.debrid.empty': 'Noch keine Debrid-Konten',
   'accounts.debrid.emptyHint': 'Füge ein Konto bei einem der unterstützten Debrid-Dienste hinzu, um Hoster-Links automatisch freizuschalten.',
   'accounts.debrid.title': 'Debrid-Konten',
-  'accounts.debrid.viaJD': 'über JDownloader',
   'accounts.debrid.hint':
-    'Ein Debrid-Dienst ist ein bezahltes Konto, das viele Filehoster auf einmal freischaltet. KnightLoader schickt ihm den Link und lädt den direkten Link, den er zurückbekommt, mit voller Geschwindigkeit und ohne Wartezeit oder Captcha. Das ist der empfohlene Weg, denn sonst brauchst du bei jedem einzelnen Hoster ein eigenes Premium-Konto. Einige Dienste erreicht KnightLoader nur über den eingebauten JDownloader, der dann die Anmeldung übernimmt. Bei diesen Diensten steht das in der Zeile.',
+    'Ein Debrid-Dienst ist ein bezahltes Konto, das viele Filehoster auf einmal freischaltet. KnightLoader schickt ihm den Link und lädt den direkten Link, den er zurückbekommt, mit voller Geschwindigkeit und ohne Wartezeit oder Captcha. Das ist der empfohlene Weg, denn sonst brauchst du bei jedem einzelnen Hoster ein eigenes Premium-Konto.',
   'accounts.edit': 'Zugangsdaten bearbeiten',
   'accounts.editCredentialTitle': 'Zugangsdaten für {service} bearbeiten',
   'accounts.enableAccount': '{account} aktivieren',

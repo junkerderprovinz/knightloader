@@ -116,3 +116,37 @@ it('offers Allow free downloads on the Accounts page itself, not only on its set
   expect(patched).toEqual([{ premiumOnly: true }]);
   expect(toggle!.getAttribute('aria-checked')).toBe('false');
 });
+
+it('lists a multihoster login kept for JDownloader with the hoster accounts, not the debrid ones', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/accounts/catalogue') {
+        return reply([
+          { id: 'mydebrid', label: 'MyDebrid', kind: 'usernamePassword', group: 'debrid', whereUrl: 'https://mydebrid.com/login' },
+        ]);
+      }
+      if (url === '/api/hosterauth/logins') {
+        // An older server still sends the multihoster mark, which must not
+        // move the row.
+        return reply([{ host: 'leechall.io', username: 'knight', status: 'active', enabled: true, multihoster: true }]);
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <MemoryRouter>
+            <Accounts />
+          </MemoryRouter>
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  expect(host.querySelector('[aria-label="Hoster accounts"]')?.textContent).toContain('leechall.io');
+  expect(host.querySelector('[aria-label="Debrid accounts"]')).toBeNull();
+  expect(host.textContent).not.toContain('through JDownloader');
+});
