@@ -64,6 +64,10 @@ func TestEveryRouteDescribesItself(t *testing.T) {
 	outsideAPI := map[string]string{
 		"GET /relay/connect": "the relay socket has to sit where relay clients dial, which is the " +
 			"address itself plus /relay/connect, not under /api/",
+		"GET /dav/{path...}": "a WebDAV client shows the path of the share it was given to whoever set " +
+			"it up, and treats it as the top of the share",
+		"PROPFIND /dav/{path...}": "the listing half of the same share",
+		"OPTIONS /dav/{path...}":  "what a WebDAV client asks the share before it lists it",
 	}
 	reg := buildRegistry(t)
 	for _, r := range reg.Routes() {
@@ -118,6 +122,12 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +
 			"instance stores, and the route answers 404 while the switch is off, so an open route is " +
 			"not an open relay",
+		"GET /dav/{path...}": "rclone and the other WebDAV clients send an API token as a Bearer token " +
+			"or as a Basic password, and the session guard does not look outside /api/ anyway. The route " +
+			"checks that token and its read right itself on every request, on every instance including " +
+			"one with no password, and answers 404 while the debriddrive module is switched off",
+		"PROPFIND /dav/{path...}": "the listing half of the same drive; same credential, same switch",
+		"OPTIONS /dav/{path...}":  "the question a WebDAV client asks before it lists; same credential, same switch",
 		"POST /api/group/call": "a direct call from another member of the phrase group on the same " +
 			"network, which has no session here either. It is signed and sealed with keys derived " +
 			"from the phrase, refused when stale or replayed, answers 404 outside a group and reaches " +

@@ -673,6 +673,10 @@ type Settings struct {
 	// dependency this build embeds actually enforces.
 	Torrent Torrent `json:"torrent"`
 
+	// DebridDrive serves what is on the debrid accounts read-only over WebDAV.
+	// See settings_debriddrive.go.
+	DebridDrive DebridDrive `json:"debridDrive"`
+
 	// InstanceID, InstanceName and KnownDomains are this instance's own
 	// identity. See settings_identity.go for the sanitize hook and the three
 	// fields' own doc comments.
@@ -798,9 +802,10 @@ func Defaults() Settings {
 		// Both empty tables are load-bearing: an empty host table means every
 		// host keeps the global numbers, an empty reason table means every
 		// failure keeps the one backoff.
-		HostRules: map[string]HostRule{},
-		Retry:     RetryPolicy{ByReason: map[string]RetryRule{}},
-		Torrent:   defaultTorrent(),
+		HostRules:   map[string]HostRule{},
+		Retry:       RetryPolicy{ByReason: map[string]RetryRule{}},
+		Torrent:     defaultTorrent(),
+		DebridDrive: defaultDebridDrive(),
 		// The list is trimmed after a month and the history is not, so keeping
 		// the list from growing forever costs nobody the record of what they
 		// downloaded.
@@ -1147,6 +1152,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
 	n = sanitizeTorrent(n)
+	n = sanitizeDebridDrive(n)
 	n = sanitizeIdentity(n)
 	n = sanitizeRelay(n)
 	n.ModulesOff = cleanIDList(n.ModulesOff)
