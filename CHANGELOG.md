@@ -37,6 +37,20 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- The browser extension can take over downloads. Switched on in its options, a
+  download that fits your rules (file types, minimum size, sites to leave
+  alone) goes to your default instance with your cookies for that site, so
+  downloads behind a login work. Hold Alt, Shift or Ctrl while clicking to
+  keep one in the browser. If the hand-over fails, the browser keeps it.
+- The browser extension can list the video and audio a page plays, HLS and
+  DASH playlists included, and send any of them from the popup, with the page
+  it played on.
+- `POST /api/links` takes `source` and, for a single link, the browser's
+  `Cookie`, `Referer` and `User-Agent` in `headers`. They stay in memory for
+  that download only, never reach a log, and go when it finishes.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

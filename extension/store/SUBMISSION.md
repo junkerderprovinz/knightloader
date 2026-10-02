@@ -118,6 +118,12 @@ Edge shows it read-only):
 >   files are queued, with a button to open each one's web interface.
 > - Paste or drop several links (or a file that contains them) into the popup's
 >   collector and send them together.
+> - Optionally hand downloads over: a download that starts in the browser and
+>   fits your rules (file types, minimum size, sites to leave alone) goes to your
+>   instance instead, with your cookies for that site so downloads behind a login
+>   work. If the hand-over fails, the browser keeps the download.
+> - Optionally list the video and audio a page plays, HLS and DASH playlists
+>   included, and send any of them to your instance from the popup.
 >
 > Setting it up takes one step: enter the twelve-word connection phrase your
 > KnightLoader instances share. The extension stores no server address and no
@@ -132,7 +138,9 @@ Edge shows it read-only):
 > install it, and it reads the tab you are on only when you click its button or
 > use its right-click menu. Click'n'Load needs access to all websites, because its
 > buttons can be on any site. The extension asks for that access when you switch
-> Click'n'Load on, and gives it back when you switch it off.
+> Click'n'Load on, and gives it back when you switch it off. Taking over downloads
+> and listing media are off until you switch them on, and each asks for its own
+> permissions at that moment.
 
 **Categories**
 
@@ -228,6 +236,48 @@ required host permission; `<all_urls>` is only under `optional_host_permissions`
 > list is handed to the extension. Every other request passes through unchanged
 > and is not recorded. The jdcheck.js redirect needs the same access. Sending
 > pages and links does not use it; that goes through activeTab.
+>
+> Taking over downloads and listing media, both optional and off until the user
+> switches them on, ask for the same access: a download can come from any site,
+> and reading its cookies needs access to that site; a page's streams can come
+> from any host. While taking over downloads is on, a small content script notes
+> whether a modifier key was held when the user pressed a mouse button, so a
+> download started that way stays in the browser. The access is given back once
+> none of the three features uses it.
+
+`downloads` (optional permission)
+
+> Requested only when the user switches "Hand downloads to KnightLoader" on in the
+> options, and given back when they switch it off. The extension sees a download
+> start, checks it against the user's own rules (file types, minimum size, sites to
+> leave alone, a key that keeps it in the browser), holds it while the user's own
+> KnightLoader instance is asked to take the link, and cancels and erases it only
+> after the instance has it. If the hand-over fails, the download is released and
+> continues in the browser.
+
+`cookies` (optional permission)
+
+> Requested with taking over downloads or listing media, never at install. For the
+> one address being handed over, the extension reads the cookies the browser holds
+> for it and sends them, end-to-end encrypted, to the user's own instance, so a
+> download behind a login works there. The instance uses them for that download
+> only, keeps them in memory, and drops them when it finishes. Cookies from private
+> windows are never read.
+
+`notifications` (optional permission)
+
+> Requested with taking over downloads. Shows one short note naming the file and the
+> user's instance that took it, so the user knows why the browser's download
+> disappeared.
+
+`webRequest` (optional permission)
+
+> Requested only when the user switches "List video and audio streams" on, and
+> given back when they switch it off. The extension observes, without blocking or
+> changing anything, the address and content type of responses in the user's tabs
+> to find video, audio and HLS or DASH playlists. It keeps those for the open tab in
+> session storage so the toolbar popup can list them with a send button. Nothing is
+> sent until the user presses that button.
 
 `clipboardRead` (optional permission)
 
@@ -241,10 +291,10 @@ package; messages from the relay are data and are never executed.
 
 | Category | Why |
 | --- | --- |
-| Web history | The address and title of a page the user chooses to send, and the title of the page a link, image, selection or Click'n'Load batch is sent from. |
+| Web history | The address and title of a page the user chooses to send, and the title of the page a link, image, selection or Click'n'Load batch is sent from. With the optional features on: the address of a download handed over and the page it came from, and the addresses of the streams a tab played, kept in session storage. |
 | User activity | The Click'n'Load script checks, in the browser, where each request, form submission and link click in a page goes, to catch those aimed at 127.0.0.1:9666. Nothing else about them is kept or sent. |
 | Website content | Links, image addresses and selected text the user sends, links pasted or loaded into the popup's collector, and link lists from Click'n'Load buttons. |
-| Authentication information | The connection phrase is a credential. It stays in the browser, but a key derived from it is sent to the relay to join the user's group. |
+| Authentication information | The connection phrase is a credential. It stays in the browser, but a key derived from it is sent to the relay to join the user's group. With the optional features on, the cookies for a download or stream the user hands over go to the user's own instance, end-to-end encrypted, for that download only. |
 | Location | The IP address the relay receives on every connection. It is kept only after a failed relay handshake, in memory for rate limiting, and deleted within 61 minutes of that address's last failed attempt. |
 
 Everything the extension sends goes to the user's own instances, through a relay
