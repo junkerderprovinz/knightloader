@@ -37,6 +37,15 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed
+
+- **Glyphs** come from GlimStone's shared list, so a meaning has the same
+  drawing here as in the other GlimStone apps. The Captcha page shows the
+  reCAPTCHA mark, Security a shield, Network a Wi-Fi fan, and copy buttons two
+  sheets. Paste buttons keep the clipboard. The stop mark in the queue is the
+  stop square. In the browser extension, the reveal eye, the empty group list
+  and the popup's Collector tab use the same drawings.
+
 ## [1.6.4] - 2026-10-01
 
 ### Added
