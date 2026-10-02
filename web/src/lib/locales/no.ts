@@ -1355,6 +1355,7 @@ export const no: Dict = {
   'columns.variant.auto': 'Automatisk',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Spill av',
   'file.open': 'Åpne',
   'file.openNatively': 'Åpne med standardprogram',
   'file.revealInFolder': 'Vis i mappe',
@@ -2138,6 +2139,7 @@ export const no: Dict = {
   'detail.play': 'Spill av her',
   'detail.playHint': 'Spiller fila rett fra denne instansen, uten å laste den ned en gang til. Ingenting hentes før du trykker på avspilling, og fila blir liggende der den er.',
   'detail.playPartial': 'Denne nedlastingen er ikke ferdig. Bare den delen som allerede ligger på disken, lar seg spille, å hoppe forbi den går ikke, og noen filer spiller ingenting i det hele tatt før den siste byten er der.',
+  'detail.playLive': 'Denne nedlastingen pågår fortsatt. Delen du spiller av, hentes først, så du kan begynne med en gang. Hopper du fremover, venter avspillingen til den delen har kommet.',
   'detail.playUnsupported': 'Denne nettleseren kan ikke spille denne fila. Åpne eller lagre den fra høyreklikkmenyen i stedet.',
   'detail.playRemote': 'Bare filer på denne instansen kan spilles her. En annen instans leverer filene sine i ett stykke og uten at du kan hoppe i dem, og det kommer en avspiller ikke til rette med.',
   'detail.playNotLocal': 'Denne nedlastingen ble hentet av JDownloader, så fila ligger på disken til den prosessen og ikke på denne.',
