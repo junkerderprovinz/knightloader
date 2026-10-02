@@ -11,7 +11,7 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { happened } from '../../../lib/countdown';
 import { Button, Card, SectionTitle } from '../../../components/ui';
-import { IconRetry } from '../../../lib/icons';
+import { IconRefresh } from '../../../lib/icons';
 import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
 
 // The instance's own checks: the JDownloader sidecar, yt-dlp, the target
@@ -109,7 +109,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.selftest.hint')}
         right={
-          <Button onClick={() => void start()} disabled={busy} icon={<IconRetry width={16} height={16} />}>
+          <Button onClick={() => void start()} disabled={busy} icon={<IconRefresh width={16} height={16} />}>
             {busy ? t('settings.selftest.running') : t('settings.selftest.run')}
           </Button>
         }

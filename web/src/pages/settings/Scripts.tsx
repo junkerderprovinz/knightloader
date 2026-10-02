@@ -23,7 +23,7 @@ import { useResource } from '../../lib/useResource';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useTriggerLabel } from '../../lib/triggers';
-import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconCode, IconPlay, IconTrash } from '../../lib/icons';
 
 /**
  * ScriptsCard edits the event scripts run by internal/script, with syntax
@@ -120,7 +120,7 @@ export function ScriptsCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.scripts.add')}
           </Button>
         }

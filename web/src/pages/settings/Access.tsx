@@ -32,12 +32,12 @@ import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
+  IconAdd,
   IconCheck,
   IconCheckDrawn,
-  IconClipboard,
   IconClose,
+  IconCopy,
   IconKey,
-  IconPlus,
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
@@ -310,7 +310,7 @@ export function TokensSection() {
           <Button
             kind="secondary"
             hue={5}
-            icon={<IconPlus width={16} height={16} />}
+            icon={<IconAdd width={16} height={16} />}
             onClick={() => setShowCreate(true)}
           >
             {t('settings.access.tokens.new')}
@@ -393,7 +393,7 @@ export function TokensSection() {
               <IconBadge
                 labelled
                 hue={5}
-                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
                 title={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 aria-label={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 confirm={copies}

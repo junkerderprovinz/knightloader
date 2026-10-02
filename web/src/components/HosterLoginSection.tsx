@@ -18,7 +18,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconChevronStart, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
+import { IconAccounts, IconAdd, IconBack, IconClose, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -153,7 +153,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
         <Button
           kind="secondary"
           hue={1}
-          icon={<IconPlus width={16} height={16} />}
+          icon={<IconAdd width={16} height={16} />}
           className="self-start"
           onClick={() => setDialog({ mode: 'new' })}
         >
@@ -165,7 +165,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
           action={
-            <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
+            <Button kind="secondary" hue={1} icon={<IconAdd width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
               {t('accounts.newAccount')}
             </Button>
           }
@@ -403,7 +403,7 @@ export function HosterLoginDialog({
             <Button
               kind="secondary"
               labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
+              icon={<IconBack className="rtl:-scale-x-100" />}
               title={t('accounts.changeAccount')}
               onClick={() => setPicked(null)}
               className="self-start"

@@ -12,7 +12,7 @@ import { QRCode } from '../../../components/QRCode';
 import { ApiError, confirmTOTP, disableTOTP, setupTOTP, type TOTPEnrolment } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { IconCheckDrawn, IconClipboard, IconShieldCheck } from '../../../lib/icons';
+import { IconCheckDrawn, IconCopy, IconShieldOn } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 
 /**
@@ -134,7 +134,7 @@ export function TwoFactorCard({
             shake={shake}
             kind="secondary"
             hue={hue}
-            icon={<IconShieldCheck width={16} height={16} />}
+            icon={<IconShieldOn width={16} height={16} />}
             disabled={busy}
             hint={t('auth.twoFactor.beforeYouStart')}
             onClick={() => void begin()}
@@ -166,7 +166,7 @@ export function TwoFactorCard({
               <IconBadge
                 labelled
                 hue={hue}
-                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
                 title={copied ? t('common.copied') : t('common.copy')}
                 aria-label={copied ? t('common.copied') : t('common.copy')}
                 confirm={copies}
@@ -232,7 +232,7 @@ export function TwoFactorCard({
           <div className="flex items-center gap-3">
             <Button
               kind="ghost"
-              icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+              icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
               confirm={copies}
               onClick={() => void copy(step.codes.join('\n'))}
             >

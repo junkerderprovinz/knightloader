@@ -12,7 +12,7 @@ import {
   requestRestart,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import { IconClose, IconMoon, IconRefresh, IconSignOut, IconSun } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -241,7 +241,7 @@ function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onC
         }`}
         {...tipHoverProps}
       >
-        <IconRetry width={16} height={16} />
+        <IconRefresh width={16} height={16} />
       </button>
       {tip.node}
     </>
@@ -872,7 +872,7 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
           <Button
             hue={hue}
             kind="primary"
-            icon={<IconRetry width={16} height={16} />}
+            icon={<IconRefresh width={16} height={16} />}
             disabled={!data.canRestart || acting}
             onClick={() => setConfirmAction('restart')}
           >

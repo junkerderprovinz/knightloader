@@ -1463,8 +1463,8 @@ body {
     animation: kl-parade calc(var(--motion-content-dur) * 4) ease-in-out both;
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
-  /* Must come after .glim-check-draw, whose shorthand resets animation-delay. */
-  .kl-parade-check {
+  /* The checkmark waits for the shields to pass. */
+  .kl-parade-check .glim-check-draw {
     animation-delay: calc(var(--motion-content-dur) * 4);
   }
 }
@@ -1582,7 +1582,7 @@ body {
     animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
   /* The checkmark waits for the shields, as it does in the gate. */
-  :root[data-motion="storm"] .kl-parade-check {
+  :root[data-motion="storm"] .kl-parade-check .glim-check-draw {
     animation: glim-check-draw var(--motion-check-dur) ease-out calc(var(--motion-content-dur) * 4) both;
   }
 }

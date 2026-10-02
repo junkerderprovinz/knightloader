@@ -22,7 +22,7 @@ import {
   type PriorityChoice,
 } from '../../lib/api';
 import { RATE_UNITS, fmtSpeed } from '../../lib/format';
-import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { COLLISION_LABEL } from './Archives';
 import { useDraft, useFieldError } from './context';
@@ -276,7 +276,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.categories.listHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} disabled={full} onClick={add}>
+          <Button icon={<IconAdd width={16} height={16} />} disabled={full} onClick={add}>
             {t('settings.categories.add')}
           </Button>
         }
@@ -474,7 +474,7 @@ function CategoryRow({
         <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -483,7 +483,7 @@ function CategoryRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}

@@ -15,7 +15,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { StatusPill, rowState } from '../components/StatusPill';
 import { InstanceRow } from '../components/InstanceCard';
 import { TorrentCard } from '../components/TorrentCard';
-import { IconDownloads } from '../lib/icons';
+import { IconDownload } from '../lib/icons';
 
 export function Dashboard() {
   const { t } = useT();
@@ -83,7 +83,7 @@ export function Dashboard() {
         <Card hue={1} className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
-            <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
+            <EmptyState nested icon={<IconDownload width={26} height={26} />} title={t('overview.noDownloads')} />
           ) : (
             <div className="glim-well divide-y divide-carbon-border/60 p-0">
               {recent.map((x) => (

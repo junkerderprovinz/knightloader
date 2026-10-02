@@ -7,7 +7,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
 import { Tip } from './columns';
-import { IconRetry, IconTrash } from '../lib/icons';
+import { IconRefresh, IconTrash } from '../lib/icons';
 
 /**
  * FilteredLinks is the holding area for links a filter rule refused and
@@ -61,7 +61,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         <Button
           kind="ghost"
           className="px-2.5 text-xs"
-          icon={<IconRetry width={14} height={14} />}
+          icon={<IconRefresh width={14} height={14} />}
           disabled={busy}
           onClick={() => restore(held.map((h) => h.id))}
         >

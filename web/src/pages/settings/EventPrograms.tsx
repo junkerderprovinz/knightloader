@@ -10,7 +10,7 @@ import {
   type EventProgramStatus,
 } from '../../lib/eventprograms';
 import type { Placeholder } from '../../lib/eventtargets';
-import { IconPlus } from '../../lib/icons';
+import { IconAdd } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
 import { useDraft } from './context';
@@ -60,7 +60,7 @@ export function EventProgramsCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.eventPrograms.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.eventPrograms.add')}
           </Button>
         }

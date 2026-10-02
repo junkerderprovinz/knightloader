@@ -22,7 +22,7 @@ import {
 } from '../../../lib/api';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconClose, IconEdit, IconKey, IconPlus, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconKey, IconPencil, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 
 /** The refusals worded here. Any other shows the server's sentence. */
@@ -191,7 +191,7 @@ export function PasskeyCard({
                 <IconBadge
                   labelled
                   hue={hue}
-                  icon={<IconEdit width={16} height={16} />}
+                  icon={<IconPencil width={16} height={16} />}
                   disabled={busy}
                   title={t('auth.passkey.rename')}
                   aria-label={t('auth.passkey.rename')}
@@ -224,7 +224,7 @@ export function PasskeyCard({
               shake={shake}
               kind="secondary"
               hue={hue}
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               disabled={busy}
               onClick={() => setAdding(true)}
             >

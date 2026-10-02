@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState } from '../lib/api';
 import { Button } from './ui';
-import { IconClock, IconCode, IconMoon, IconPause, IconPower, IconWarning } from '../lib/icons';
+import { IconCode, IconMoon, IconPause, IconPower, IconSchedules, IconWarning } from '../lib/icons';
 import { fmtCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -184,7 +184,7 @@ export function IdleActionBanner() {
         className="glim-card glim-fade flex items-center gap-3 px-4 py-3 text-xs"
       >
         <span className="text-carbon-textMuted" aria-hidden="true">
-          {actionIcon[state.action ?? ''] ?? <IconClock width={15} height={15} />}
+          {actionIcon[state.action ?? ''] ?? <IconSchedules width={15} height={15} />}
         </span>
         <span className="flex flex-col gap-0.5">
           <span className="text-carbon-text">{t('idleAction.title')}</span>

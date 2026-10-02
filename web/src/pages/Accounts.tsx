@@ -68,13 +68,13 @@ import {
 } from '../components/HosterLoginSection';
 import {
   IconAccounts,
+  IconAdd,
+  IconBack,
   IconCaptcha,
-  IconChevronStart,
   IconClose,
-  IconGrip,
   IconExternalLink,
-  IconPlus,
-  IconRetry,
+  IconGrip,
+  IconRefresh,
   IconTrash,
 } from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
@@ -244,7 +244,7 @@ export function Accounts() {
             <Button
               kind="secondary"
               hue={0}
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               className="self-start"
               onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
             >
@@ -261,7 +261,7 @@ export function Accounts() {
               <Button
                 kind="secondary"
                 hue={0}
-                icon={<IconPlus width={16} height={16} />}
+                icon={<IconAdd width={16} height={16} />}
                 onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
               >
                 {t('accounts.newAccount')}
@@ -289,7 +289,7 @@ export function Accounts() {
             <Button
               kind="secondary"
               hue={2}
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               className="self-start"
               onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
             >
@@ -306,7 +306,7 @@ export function Accounts() {
               <Button
                 kind="secondary"
                 hue={2}
-                icon={<IconPlus width={16} height={16} />}
+                icon={<IconAdd width={16} height={16} />}
                 onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
               >
                 {t('accounts.captcha.add')}
@@ -464,7 +464,7 @@ function AccountsTable({
                   {
                     id: 'refresh',
                     label: t('accounts.refresh'),
-                    icon: <IconRetry width={16} height={16} />,
+                    icon: <IconRefresh width={16} height={16} />,
                     onSelect: () => onRefresh(a),
                   },
                   ...(renewable
@@ -676,7 +676,7 @@ function CredentialDialog({
             <Button
               kind="secondary"
               labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
+              icon={<IconBack className="rtl:-scale-x-100" />}
               title={t('accounts.changeAccount')}
               onClick={() => setPicked(null)}
               className="self-start"
@@ -911,7 +911,7 @@ function LadderGrip({
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
     >
-      <IconGrip width={14} height={16} />
+      <IconGrip width={16} height={16} />
     </button>
   );
 }

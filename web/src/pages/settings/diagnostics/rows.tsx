@@ -3,7 +3,7 @@ import type { SelfTestResult, SelfTestStatus } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { interpolate } from '../../../lib/interpolate';
 import { InfoBubble } from '../../../components/ui';
-import { IconCheck, IconClock, IconClose, IconHelp, IconWarning } from '../../../lib/icons';
+import { IconCheck, IconClose, IconHelp, IconSchedules, IconWarning } from '../../../lib/icons';
 
 // Self-test rows, drawn the same way whether the server or the browser
 // answered them, with the advice behind an (i). No prop here is called `label`
@@ -111,7 +111,7 @@ function StatusGlyph({ status }: { status: SelfTestStatus | 'pending' }) {
     case 'unknown':
       return <IconHelp {...size} className="shrink-0 text-statusInfo" />;
     case 'pending':
-      return <IconClock {...size} className="shrink-0 text-carbon-textMuted" />;
+      return <IconSchedules {...size} className="shrink-0 text-carbon-textMuted" />;
     default:
       return <span className="mt-0.5 size-3 shrink-0 rounded-full border border-carbon-border" />;
   }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { abortActivity, connectWS } from '../lib/api';
 import { fmtCountdown, goTimeMs, useCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconArchive, IconCaptcha, IconCheck, IconClose, IconDownloads, IconGlobe, IconSearch } from '../lib/icons';
+import { IconArchive, IconCaptcha, IconCheck, IconClose, IconDownload, IconNetwork, IconSearch } from '../lib/icons';
 import { Button, InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
@@ -53,7 +53,7 @@ function kindIcon(kind: ActivityKind): ReactElement {
   const p = { width: 13, height: 13 };
   switch (kind) {
     case 'crawl':
-      return <IconGlobe {...p} />;
+      return <IconNetwork {...p} />;
     case 'linkcheck':
       return <IconSearch {...p} />;
     case 'captcha':
@@ -63,7 +63,7 @@ function kindIcon(kind: ActivityKind): ReactElement {
     case 'container':
       return <IconArchive {...p} />;
     case 'usenet':
-      return <IconDownloads {...p} />;
+      return <IconDownload {...p} />;
   }
 }
 

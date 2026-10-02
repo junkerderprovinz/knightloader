@@ -12,7 +12,7 @@ import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useLabelMode } from '../lib/labelModes';
-import { IconBell } from '../lib/icons';
+import { IconNotifications } from '../lib/icons';
 import { fmtClock } from '../lib/format';
 import { useStagger } from '../lib/motion';
 import { TONE_DOT, useToast } from '../lib/toast';
@@ -281,10 +281,10 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
         style={hueVars(hue) as CSSProperties}
       >
         {bar ? (
-          <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />
+          <BarBody icon={<IconNotifications />} label={name} mode={mode} badge={unread} />
         ) : (
           <>
-            {mode !== 'text' && <IconBell />}
+            {mode !== 'text' && <IconNotifications />}
             <NavLabel label={name} mode={mode} />
             {/* Sidebar Item's badge, pinned to the corner in the centred modes so
                 the glyph stays centred. */}

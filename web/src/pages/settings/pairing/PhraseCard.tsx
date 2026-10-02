@@ -26,17 +26,17 @@ import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import {
+  IconAdd,
   IconBrowser,
   IconCheckDrawn,
-  IconChevronEnd,
-  IconClipboard,
   IconClose,
-  IconEdit,
+  IconCopy,
   IconEye,
-  IconInstances,
+  IconFleet,
+  IconForward,
+  IconPencil,
   IconPhone,
-  IconPlus,
-  IconRetry,
+  IconRefresh,
   IconSignOut,
   IconTrash,
   IconWarning,
@@ -172,7 +172,7 @@ function StateBadge({ on, t }: { on: boolean; t: T }) {
 function MemberRow({ m, action, t }: { m: GroupMember; action: ReactNode; t: T }) {
   return (
     <Row
-      glyph={<IconInstances />}
+      glyph={<IconFleet />}
       name={m.name || m.id}
       mark={m.direct ? t('pairing.direct') : t('pairing.viaRelay')}
       badge={<StateBadge on t={t} />}
@@ -186,7 +186,7 @@ function PeerRow({ p, action, t }: { p: Instance; action: ReactNode; t: T }) {
   const stats = usePeerStats(`/api/instances/${encodeURIComponent(p.name)}`);
   return (
     <Row
-      glyph={<IconInstances />}
+      glyph={<IconFleet />}
       name={p.displayName ?? p.name}
       mark={t('pairing.byAddress')}
       badge={<StateBadge on={stats?.online ?? false} t={t} />}
@@ -242,7 +242,7 @@ function RelayDownLine({ group, onRefresh, t }: { group: ConnectInfo; onRefresh:
           <Button kind="ghost" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
             {t('pairing.relayCheckOpen')}
           </Button>
-          <Button kind="secondary" icon={<IconRetry />} onClick={onRefresh}>
+          <Button kind="secondary" icon={<IconRefresh />} onClick={onRefresh}>
             {t('pairing.checkAgain')}
           </Button>
         </span>
@@ -562,7 +562,7 @@ export function PhraseCard({
   const copyButton = (
     <Button
       kind="secondary"
-      icon={copies > 0 ? <IconCheckDrawn /> : <IconClipboard />}
+      icon={copies > 0 ? <IconCheckDrawn /> : <IconCopy />}
       confirm={copies}
       onClick={() => void copy()}
     >
@@ -619,14 +619,14 @@ export function PhraseCard({
         {noPasswordNote}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Choice
-            glyph={<IconPlus />}
+            glyph={<IconAdd />}
             title={t('pairing.create')}
             sub={t('pairing.createSub')}
             disabled={busy}
             shake={shake}
             onClick={() => void create()}
           />
-          <Choice glyph={<IconEdit />} title={t('pairing.enter')} sub={t('pairing.enterSub')} onClick={() => setShown('enter')} />
+          <Choice glyph={<IconPencil />} title={t('pairing.enter')} sub={t('pairing.enterSub')} onClick={() => setShown('enter')} />
         </div>
       </>
     );
@@ -637,7 +637,7 @@ export function PhraseCard({
         {noPasswordNote}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Choice glyph={<IconEye />} title={t('pairing.notYetTitle')} sub={t('pairing.notYetBody')} onClick={openWords} />
-          <Choice glyph={<IconEdit />} title={t('pairing.twoTitle')} sub={t('pairing.twoBody')} onClick={() => setShown('join')} />
+          <Choice glyph={<IconPencil />} title={t('pairing.twoTitle')} sub={t('pairing.twoBody')} onClick={() => setShown('join')} />
         </div>
         {group.relayMode === 'off' && (
           <p className="text-sm text-carbon-textSub">
@@ -659,7 +659,7 @@ export function PhraseCard({
           <>
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-carbon-textMuted">
               {t('pairing.notFirst')}
-              <Button kind="secondary" icon={<IconEdit />} onClick={() => void leave(() => setShown('enter'))} disabled={busy}>
+              <Button kind="secondary" icon={<IconPencil />} onClick={() => void leave(() => setShown('enter'))} disabled={busy}>
                 {t('pairing.enter')}
               </Button>
             </div>
@@ -668,7 +668,7 @@ export function PhraseCard({
         )}
         <div className="flex flex-col gap-2">
           <ul className="flex flex-col gap-2" data-testid="members">
-            <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} badge={<StateBadge on t={t} />} />
+            <Row glyph={<IconFleet />} name={group.name} mark={t('instances.thisInstance')} badge={<StateBadge on t={t} />} />
             {group.members.map((m) => (
               <MemberRow
                 key={m.id}
@@ -791,7 +791,7 @@ function NextStep({ t }: { t: T }) {
   return (
     <div className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-[var(--radius-control)] bg-accentSoft px-4 py-3.5">
       <span className="row-span-2 grid h-7 w-7 place-items-center rounded-full bg-accent text-accentContrast">
-        <IconChevronEnd width={16} height={16} className="shrink-0 rtl:-scale-x-100" />
+        <IconForward width={16} height={16} className="shrink-0 rtl:-scale-x-100" />
       </span>
       <strong className="text-sm font-semibold text-carbon-text">{t('pairing.nextTitle')}</strong>
       <p className="text-sm text-carbon-textSub">
@@ -800,7 +800,7 @@ function NextStep({ t }: { t: T }) {
             <span key={i}>
               {i > 0 && (
                 <span className="mx-1 inline-block align-[-1px] text-carbon-textMuted">
-                  <IconChevronEnd width={12} height={12} className="shrink-0 rtl:-scale-x-100" />
+                  <IconForward width={12} height={12} className="shrink-0 rtl:-scale-x-100" />
                 </span>
               )}
               {step}

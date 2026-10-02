@@ -63,27 +63,26 @@ import {
   type MenuItem,
 } from './ContextMenu';
 import {
-  IconArrowDown,
-  IconArrowUp,
   IconBolt,
-  IconBottom,
   IconCheck,
-  IconChevronDown,
-  IconChevronUp,
   IconClose,
-  IconEdit,
+  IconCollapse,
+  IconExpand,
+  IconFirst,
   IconFolder,
   IconKey,
+  IconLatest,
   IconMore,
+  IconMoveDown,
+  IconMoveUp,
   IconPause,
+  IconPencil,
   IconPlay,
   IconPower,
   IconPriority,
-  IconRetry,
+  IconRefresh,
   IconSearch,
   IconStop,
-  IconStopMark,
-  IconTop,
   IconTrash,
   IconTrashFiles,
   IconUpload,
@@ -884,15 +883,15 @@ export function queueMenuGroup({
     queueGroup.items.push({
       id: 'move',
       label: t('menu.move'),
-      icon: <IconTop width={14} height={14} />,
+      icon: <IconFirst width={14} height={14} />,
       submenu: [
         {
           id: 'steps',
           items: [
-            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
-            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
-            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
-            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
+            { id: 'top', label: t('task.moveTop'), icon: <IconFirst width={14} height={14} />, onSelect: step('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconMoveUp width={14} height={14} />, onSelect: step('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconMoveDown width={14} height={14} />, onSelect: step('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconLatest width={14} height={14} />, onSelect: step('bottom') },
           ],
         },
       ],
@@ -933,7 +932,7 @@ export function queueMenuGroup({
     queueGroup.items.push({
       id: 'stopMark',
       label: t(armed ? 'queue.stopMarkOff' : 'queue.stopMark'),
-      icon: <IconStopMark />,
+      icon: <IconStop />,
       onSelect: () => void queue.mark(armed ? '' : only.id).catch(fail),
     });
   }
@@ -1044,7 +1043,7 @@ function taskMenuGroups({
     transport.items.push({
       id: 'restart',
       label: t('task.restart'),
-      icon: <IconRetry width={14} height={14} />,
+      icon: <IconRefresh width={14} height={14} />,
       onSelect: guard(async () => ok(await restartTasks(ids, base))),
     });
   transport.items.push({
@@ -1242,7 +1241,7 @@ export function ListMenu({
           {
             id: 'fold',
             label: t(isFolded ? 'task.expand' : 'task.collapse'),
-            icon: isFolded ? <IconChevronDown /> : <IconChevronUp />,
+            icon: isFolded ? <IconExpand /> : <IconCollapse />,
             onSelect: () => (isFolded ? list.onExpand([name]) : list.onCollapse([name])),
           },
         ],
@@ -1282,7 +1281,7 @@ export function ListMenu({
           id: 'collapseAll',
           label: t('menu.collapseAll'),
           detail: String(open.length),
-          icon: <IconChevronUp />,
+          icon: <IconCollapse />,
           onSelect: () => list.onCollapse(open),
         });
       if (folded.length > 0)
@@ -1290,7 +1289,7 @@ export function ListMenu({
           id: 'expandAll',
           label: t('menu.expandAll'),
           detail: String(folded.length),
-          icon: <IconChevronDown />,
+          icon: <IconExpand />,
           onSelect: () => list.onExpand(folded),
         });
       groups.push({ id: 'foldAll', items: fold });
@@ -1318,7 +1317,7 @@ export function ListMenu({
         id: 'rename',
         label: t('rename.menu'),
         detail: rename?.shortcut,
-        icon: <IconEdit />,
+        icon: <IconPencil />,
         onSelect: renameThis,
       });
     organise.push({

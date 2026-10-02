@@ -50,11 +50,11 @@ import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
 import {
   IconCheck,
-  IconClock,
   IconClose,
   IconFilter,
   IconPlay,
-  IconRetry,
+  IconRefresh,
+  IconSchedules,
   IconSearch,
   IconTrash,
   IconWarning,
@@ -451,7 +451,7 @@ export function Collector() {
                 labelled={!glyphs}
                 hue={1}
                 active={filters.has('unchecked')}
-                icon={<IconClock width={16} height={16} />}
+                icon={<IconSchedules width={16} height={16} />}
                 title={t('filter.unchecked')}
                 aria-label={t('filter.unchecked')}
                 onClick={() => narrowing.toggleFilter('unchecked')}
@@ -603,7 +603,7 @@ export function Collector() {
                   <IconBadge
                     labelled={!glyphs}
                     hue={3}
-                    icon={<IconRetry width={16} height={16} />}
+                    icon={<IconRefresh width={16} height={16} />}
                     title={t('collector.checkAll')}
                     aria-label={t('collector.checkAll')}
                     disabled={collected.length === 0}

@@ -14,7 +14,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '../components/ui';
 import { recordEvent, type EventSubject } from './eventLog';
-import { IconClose, IconShield } from './icons';
+import { IconCheckDrawn, IconClose, IconShield } from './icons';
 import { useT } from './i18n';
 import { NOTIFY_EVENTS, channelFor, showSystem } from './notify';
 import { useUIState } from './uistate';
@@ -69,7 +69,7 @@ const PARADE_WINDOW_MS = 12_000;
 const PARADE_SHIELDS = 5;
 
 // Parade draws the row of shields and then the checkmark, whose delay is the
-// length of the sweep. pathLength="1" lets .glim-check-draw draw the whole glyph.
+// length of the sweep.
 function Parade() {
   return (
     <>
@@ -84,17 +84,7 @@ function Parade() {
           </span>
         ))}
       </span>
-      <svg width={14} height={14} viewBox="0 0 20 20" className="shrink-0" aria-hidden focusable="false">
-        <path
-          className="glim-check-draw kl-parade-check"
-          pathLength="1"
-          d="M4.5 10.5 8.5 14.5 15.5 6"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <IconCheckDrawn width={14} height={14} className="shrink-0 kl-parade-check" />
     </>
   );
 }

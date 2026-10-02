@@ -11,7 +11,7 @@ import {
   ToggleRow,
 } from '../../../components/ui';
 import { Dropdown, type DropdownOption } from '../../../components/Dropdown';
-import { IconBolt, IconDownloads, IconPlus, IconRetry, IconTrash, IconWarning } from '../../../lib/icons';
+import { IconAdd, IconBolt, IconDownload, IconRefresh, IconTrash, IconWarning } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   fetchAccountCatalogue,
@@ -158,7 +158,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.hostRules.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.hostRules.add')}
           </Button>
         }
@@ -334,9 +334,9 @@ function HostRuleRow({
           )}
           {/* The overrides behind their fields' glyphs. A zero prints nothing,
               since it means "no opinion", not "none". */}
-          <Summary value={rule.maxPerHost} icon={<IconDownloads width={12} height={12} />} />
+          <Summary value={rule.maxPerHost} icon={<IconDownload width={12} height={12} />} />
           <Summary value={rule.chunks} icon={<IconBolt width={12} height={12} />} />
-          <Summary value={never ? 0 : retry.tries} icon={<IconRetry width={12} height={12} />} />
+          <Summary value={never ? 0 : retry.tries} icon={<IconRefresh width={12} height={12} />} />
         </button>
         <div className="flex items-center gap-1.5">
           <IconBadge

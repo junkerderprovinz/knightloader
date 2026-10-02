@@ -12,7 +12,7 @@ import {
 } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
-import { IconFilter, IconFolder, IconPlus, IconPriority, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconFilter, IconFolder, IconPriority, IconTrash } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -220,7 +220,7 @@ export function FeedsCard({ hue }: { hue: number }) {
           // A row added while the module is off would take the place of the
           // parked ones, so Add waits for the switch.
           !parked && (
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+            <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
               {t('settings.feeds.add')}
             </Button>
           )

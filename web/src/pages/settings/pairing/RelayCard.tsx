@@ -12,14 +12,14 @@ import { copyToClipboard } from '../../../lib/clipboard';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconCheckDrawn,
-  IconChevronDown,
-  IconChevronUp,
   IconClipboard,
+  IconCollapse,
+  IconCopy,
+  IconExpand,
   IconEye,
   IconEyeOff,
-  IconLock,
   IconSearch,
-  IconShieldCheck,
+  IconShieldOn,
 } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { LegendKey, LegendMessage, RouteDiagram, RouteGlyph } from './pairingArt';
@@ -143,7 +143,7 @@ function CommandLine({ t }: { t: T }) {
       </code>
       <IconBadge
         labelled
-        icon={copies > 0 ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+        icon={copies > 0 ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
         title={t('common.copy')}
         aria-label={t('common.copy')}
         confirm={copies}
@@ -279,7 +279,7 @@ export function RelayCard({
             >
               <Fact glyph={<IconSearch />} text={t('relay.containerFind', { name: t('relay.containerName') })} />
               <CommandLine t={t} />
-              <Fact glyph={<IconShieldCheck />} text={t('relay.containerCert')} />
+              <Fact glyph={<IconShieldOn />} text={t('relay.containerCert')} />
             </Source>
             <Source
               icon={<RouteGlyph kind="server" />}
@@ -300,7 +300,7 @@ export function RelayCard({
                 )}
               </div>
               <Fact
-                glyph={<IconShieldCheck />}
+                glyph={<IconShieldOn />}
                 text={
                   <>
                     {t('relay.instanceCert')} <InfoBubble tip={t('relay.instanceCertTip')} />
@@ -338,7 +338,7 @@ export function RelayCard({
       <div>
         <Button
           kind="secondary"
-          icon={howOpen ? <IconChevronUp /> : <IconChevronDown />}
+          icon={howOpen ? <IconCollapse /> : <IconExpand />}
           onClick={() => setHowOpen((v) => !v)}
           aria-expanded={howOpen}
           aria-controls={howId}
@@ -404,7 +404,7 @@ export function RelayCard({
             <h4 className="glim-eyebrow">{t('relay.encryptionTitle')}</h4>
             <p className="flex items-start gap-2.5 text-sm text-carbon-textSub">
               <span className="mt-0.5 shrink-0 text-accentInk [&>svg]:h-4 [&>svg]:w-4">
-                <IconLock />
+                <IconShieldOn />
               </span>
               <span>
                 {t('relay.e2e')} <InfoBubble tip={t('relay.e2eTip')} />

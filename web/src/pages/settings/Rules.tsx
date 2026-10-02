@@ -16,7 +16,7 @@ import {
   type Rule,
   type RuleSet,
 } from '../../components/RuleEditor';
-import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
 import { rejectionReason } from '../../lib/rejectionReason';
 import { useT } from '../../lib/i18n';
@@ -309,7 +309,7 @@ function RuleCards() {
               <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
                 {t('settings.rules.export')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.rules.add')}
               </Button>
             </div>
@@ -485,7 +485,7 @@ function RuleRow({
         <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -494,7 +494,7 @@ function RuleRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}
@@ -570,7 +570,7 @@ function TestBox({
     <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
             {t('settings.rules.testAdd')}
           </Button>
         }

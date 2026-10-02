@@ -11,7 +11,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
-import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconClose, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
@@ -121,7 +121,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
               <Button kind="secondary" onClick={() => setImporting(true)}>
                 {t('settings.connections.import')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.connections.add')}
               </Button>
             </div>
@@ -230,7 +230,7 @@ function ConnectionRow({
         <div className="flex items-center gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveUp')}
             aria-label={t('settings.connections.moveUp')}
@@ -239,7 +239,7 @@ function ConnectionRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveDown')}
             aria-label={t('settings.connections.moveDown')}
@@ -417,7 +417,7 @@ function TestPanel({ row }: { row: Connection }) {
             />
           </Field>
         </div>
-        <Button kind="secondary" onClick={run} disabled={busy} icon={<IconGlobe width={16} height={16} />}>
+        <Button kind="secondary" onClick={run} disabled={busy} icon={<IconNetwork width={16} height={16} />}>
           {busy ? t('settings.connections.testing') : t('settings.connections.test')}
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, SectionTitle } from '../../components/ui';
-import { IconPlus } from '../../lib/icons';
+import { IconAdd } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
   fetchEventTargets,
@@ -148,7 +148,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
           // A row added while the module is off would take the place of the
           // parked ones, so Add waits for the switch.
           !parked && (
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+            <Button icon={<IconAdd width={16} height={16} />} onClick={add}>
               {t('settings.eventTargets.add')}
             </Button>
           )

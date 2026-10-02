@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiError, json } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconArrowUp, IconCheck, IconClose, IconFolder, IconFolderPlus } from '../lib/icons';
+import { IconCheck, IconClose, IconFolder, IconFolderAdd, IconMoveUp } from '../lib/icons';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { Tabs } from './Tabs';
 
@@ -344,7 +344,7 @@ export function FolderPicker({
           type="button"
           kind="secondary"
           className="shrink-0"
-          icon={<IconArrowUp width={16} height={16} />}
+          icon={<IconMoveUp width={16} height={16} />}
           title={t('folders.up')}
           aria-label={t('folders.up')}
           disabled={!data?.parent}
@@ -450,7 +450,7 @@ export function FolderPicker({
             type="button"
             id={newId}
             kind="secondary"
-            icon={<IconFolderPlus width={16} height={16} />}
+            icon={<IconFolderAdd width={16} height={16} />}
             hint={t('folders.newFolderHint')}
             disabled={!data}
             onClick={() => setNaming(true)}

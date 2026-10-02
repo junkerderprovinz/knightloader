@@ -4,14 +4,14 @@ import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Card, Button, LabelBadge } from './ui';
-import { IconBrowser, IconContainer, IconDesktop, IconPhone } from '../lib/icons';
+import { IconBrowser, IconContainers, IconDesktop, IconPhone } from '../lib/icons';
 
 // What each kind of instance is drawn as, keyed by buildinfo.Deployment and by
 // what the two clients announce themselves as, "mobile" and "extension".
 const KINDS: Record<string, { Glyph: typeof IconPhone; label: TranslationKey }> = {
   mobile: { Glyph: IconPhone, label: 'instances.kind.mobile' },
   desktop: { Glyph: IconDesktop, label: 'instances.kind.desktop' },
-  container: { Glyph: IconContainer, label: 'instances.kind.container' },
+  container: { Glyph: IconContainers, label: 'instances.kind.container' },
   extension: { Glyph: IconBrowser, label: 'instances.kind.extension' },
 };
 

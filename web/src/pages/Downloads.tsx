@@ -52,14 +52,14 @@ import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../co
 import { useToast } from '../lib/toast';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
-  IconSearch,
-  IconDownloads,
   IconCheck,
   IconClose,
+  IconDownload,
   IconFilter,
   IconPause,
   IconPlay,
-  IconRetry,
+  IconRefresh,
+  IconSearch,
   IconTrash,
   IconTrashFiles,
 } from '../lib/icons';
@@ -618,7 +618,7 @@ export function Downloads() {
                   <IconBadge
                     labelled={!glyphs}
                     hue={3}
-                    icon={<IconRetry width={16} height={16} />}
+                    icon={<IconRefresh width={16} height={16} />}
                     title={t('task.restart')}
                     aria-label={t('task.restart')}
                     onClick={() => restartTasks(ids(), base)}
@@ -668,7 +668,7 @@ export function Downloads() {
                     <IconBadge
                       labelled={!glyphs}
                       hue={4}
-                      icon={<IconRetry width={16} height={16} />}
+                      icon={<IconRefresh width={16} height={16} />}
                       title={t('downloads.retryFailed')}
                       aria-label={t('downloads.retryFailed')}
                       onClick={retryFailed}
@@ -710,7 +710,7 @@ export function Downloads() {
         {list.length === 0 ? (
           <EmptyState
             fill
-            icon={<IconDownloads width={26} height={26} />}
+            icon={<IconDownload width={26} height={26} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
           />

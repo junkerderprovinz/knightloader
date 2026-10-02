@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
-import { IconChevronEnd } from '../../lib/icons';
+import { IconForward } from '../../lib/icons';
 import { useLabelMode } from '../../lib/labelModes';
 import { useShake } from '../../lib/useShake';
 import { useToast } from '../../lib/toast';
@@ -162,7 +162,7 @@ export function PageBadge({ page, title, onFollow }: { page: string; title: stri
       >
         {labelMode !== 'text' && (
           <span className="glim-btn-glyph">
-            {Glyph ? <Glyph aria-hidden /> : <IconChevronEnd aria-hidden className="rtl:-scale-x-100" />}
+            {Glyph ? <Glyph aria-hidden /> : <IconForward aria-hidden className="rtl:-scale-x-100" />}
           </span>
         )}
         {showText && <span className="whitespace-nowrap">{title}</span>}

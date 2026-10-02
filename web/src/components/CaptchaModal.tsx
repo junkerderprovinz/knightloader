@@ -18,7 +18,7 @@ import {
   type CaptchaWidgetPayload,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
+import { IconClose, IconExpand, IconSchedules } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -399,7 +399,7 @@ export function CaptchaModal() {
           {/* The forward button ends the row, so the clock goes first. */}
           {displayRemaining !== null && (
             <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
-              <IconClock width={12} height={12} />
+              <IconSchedules width={12} height={12} />
               {fmtCountdown(displayRemaining)}
             </span>
           )}
@@ -545,7 +545,7 @@ export function CaptchaModal() {
       <div className="flex flex-col items-start gap-2">
         <Button
           kind="secondary"
-          icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
+          icon={<IconExpand className={moreOpen ? 'rotate-180' : ''} />}
           aria-expanded={moreOpen}
           onClick={() => setMoreOpen((v) => !v)}
         >

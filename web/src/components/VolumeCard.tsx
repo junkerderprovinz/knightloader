@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { fetchVolumeCurve, type VolumeBucket, type VolumeCurve } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconDownloads } from '../lib/icons';
+import { IconDownload } from '../lib/icons';
 import { resolverLabel } from '../lib/resolverLabels';
 import { useResource } from '../lib/useResource';
 import { useShake } from '../lib/useShake';
@@ -231,7 +231,7 @@ export function VolumeCard({ hue }: { hue?: number }) {
       {data &&
         !failed &&
         (moved === 0 ? (
-          <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('volume.empty')} />
+          <EmptyState nested icon={<IconDownload width={26} height={26} />} title={t('volume.empty')} />
         ) : (
           <VolumeGraph labels={labels} series={series} label={t('volume.title')} />
         ))}

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addLinksWithOptions, remove, type Task } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { Button, Card, Field, TextArea } from '../components/ui';
-import { IconDownloads } from '../lib/icons';
+import { IconDownload } from '../lib/icons';
 
 /**
  * QuickAdd is the page the bookmarklet and a PWA share open
@@ -69,7 +69,7 @@ export function QuickAdd() {
     <div className="flex min-h-screen items-center justify-center bg-carbon-background p-6">
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
-          <IconDownloads width={20} height={20} className="text-accentInk" />
+          <IconDownload width={20} height={20} className="text-accentInk" />
           <span className="text-xl font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
 

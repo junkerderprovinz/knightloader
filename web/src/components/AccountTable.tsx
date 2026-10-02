@@ -7,7 +7,7 @@ import { IconBadge, InfoBubble, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
-import { IconSettings } from '../lib/icons';
+import { IconGear } from '../lib/icons';
 
 /**
  * AccountTraffic is an allowance in one of the three shapes services report:
@@ -230,7 +230,7 @@ export function AccountTable({
               <td className="px-2 py-3 text-end">
                 <IconBadge
                   hue={i}
-                  icon={<IconSettings width={16} height={16} />}
+                  icon={<IconGear width={16} height={16} />}
                   title={t('accounts.rowActions')}
                   aria-label={t('accounts.rowActions')}
                   onClick={(e) => {

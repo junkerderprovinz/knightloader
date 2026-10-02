@@ -11,12 +11,12 @@ import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { EventBell } from './EventBell';
 import {
-  IconDashboard,
-  IconCollector,
-  IconDownloads,
-  IconInstances,
   IconAccounts,
-  IconSettings,
+  IconCollector,
+  IconDashboard,
+  IconDownload,
+  IconFleet,
+  IconGear,
   IconSignOut,
 } from '../lib/icons';
 
@@ -292,9 +292,9 @@ export function Sidebar() {
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads before the collector, as in JDownloader. */}
         <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
-        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
         <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-        {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
+        {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconFleet />} />}
         {!hideAccounts && <Item to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 
@@ -318,7 +318,7 @@ export function Sidebar() {
             {signOutTip.node}
           </>
         )}
-        <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+        <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconGear />} />
       </div>
     </aside>
   );
@@ -478,13 +478,13 @@ function PhoneBar({
     // the document, where the rail is.
     <nav className="order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
       <BarItem to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
-      <BarItem to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+      <BarItem to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
       <BarItem to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-      {showInstances && <BarItem to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
+      {showInstances && <BarItem to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconFleet />} />}
       {showAccounts && <BarItem to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
       <EventBell hue={nextHue()} bar />
       {locked && <BarSignOut hue={nextHue()} mode={mode} />}
-      <BarItem to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+      <BarItem to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconGear />} />
     </nav>
   );
 }

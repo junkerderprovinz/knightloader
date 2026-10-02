@@ -16,7 +16,7 @@ import {
   type RefObject,
 } from 'react';
 import { useLabelMode, type LabelMode } from '../lib/labelModes';
-import { IconChevronDown } from '../lib/icons';
+import { IconExpand } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
 import { useReorder } from './dragLift';
 import { segmentLayout, type SegmentWidths } from './segmentLayout';
@@ -642,7 +642,7 @@ export function FoldChip({
             {count}
           </span>
         )}
-        <IconChevronDown />
+        <IconExpand />
       </button>
       {bubble.node}
       {menu.anchor && <ContextMenu anchor={menu.anchor} label={label} onClose={menu.close} groups={groups} />}

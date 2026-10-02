@@ -30,8 +30,8 @@ import {
   IconBolt,
   IconCheck,
   IconPower,
-  IconRetry,
-  IconStopMark,
+  IconRefresh,
+  IconStop,
   IconWarning,
   PriorityGlyph,
 } from '../lib/icons';
@@ -758,7 +758,7 @@ export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   // The server clears the mark as its download finishes, which on a peer's
   // list only the row itself reports.
   if (stopMark && items.some((x) => x.id === stopMark && x.status !== 'done'))
-    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentInk' });
+    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStop />, ink: 'text-accentInk' });
   if (items.every((x) => !!x.forced))
     marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentInk' });
   if (!switchShown && items.every((x) => !x.enabled))
@@ -879,7 +879,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
               waiting rather than activity. */}
           {retrying && (
             <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
-              <IconRetry width={11} height={11} />
+              <IconRefresh width={11} height={11} />
             </Tip>
           )}
         </div>
