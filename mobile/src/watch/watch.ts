@@ -10,7 +10,18 @@ import type { TranslationKey } from '../i18n/en';
 import { listConnections } from '../storage/connections';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { anyKind, loadNotifyPrefs, saveNotifyPrefs, type NotifyPrefs } from './prefs';
-import { FAST_MS, compare, isBusy, keepRunning, lookOf, nextDelay, noticeId, type Look, type News } from './rules';
+import {
+  FAST_MS,
+  compare,
+  isBusy,
+  keepRunning,
+  lookOf,
+  nextDelay,
+  noticeId,
+  stayAwake,
+  type Look,
+  type News,
+} from './rules';
 
 // The watch behind the app's notifications. Android's foreground service in
 // modules/watch runs one pass of it at a time as a headless task, and the app
@@ -70,17 +81,20 @@ export function watchPass(): Promise<boolean> {
 async function runPass(): Promise<boolean> {
   if (!KnightWatch) return false;
   const prefs = await loadNotifyPrefs();
+  const conns = await listConnections();
+  // Read by the boot receiver, which has no JavaScript to ask.
+  KnightWatch.autostart(anyKind(prefs) && prefs.stay && conns.length > 0);
   if (!anyKind(prefs)) return false;
   const t = await translator();
   nameChannels(t);
 
-  const conns = await listConnections();
   for (const id of watched.keys()) {
     if (!conns.some((c) => c.id === id)) watched.delete(id);
   }
   const front = AppState.currentState === 'active';
   let changed = false;
   let waiting = false;
+  let busy = false;
 
   await Promise.all(
     conns.map(async (conn) => {
@@ -108,15 +122,18 @@ async function runPass(): Promise<boolean> {
       const news = compare(w.look, tasks, captchas);
       w.look = lookOf(tasks, captchas);
       w.ok = true;
-      if (isBusy(tasks, captchas)) w.lastBusy = Date.now();
+      if (isBusy(tasks, captchas)) {
+        w.lastBusy = Date.now();
+        busy = true;
+      }
       if (news.changed) changed = true;
       if (captchas.length > 0) waiting = true;
       announce(conn, w, news, captchas, prefs, t, front && conn.id === onScreen);
     }),
   );
 
-  delay = nextDelay(delay, changed, waiting);
-  return keepRunning([...watched.values()], startedAt, Date.now());
+  delay = nextDelay(delay, changed, waiting, busy);
+  return keepRunning([...watched.values()], startedAt, Date.now(), prefs.stay);
 }
 
 // The instance open on screen while the app is in front says everything there,
@@ -201,7 +218,7 @@ export async function watchTask(): Promise<void> {
   // A pass that fails outright stops the service rather than keeping the phone
   // awake for a watch that cannot see anything.
   const keep = await watchPass().catch(() => false);
-  if (keep && KnightWatch.enabled()) KnightWatch.next(delay);
+  if (keep && KnightWatch.enabled()) KnightWatch.next(delay, stayAwake(delay));
   else KnightWatch.stop();
 }
 
@@ -265,8 +282,25 @@ export async function startWatch(): Promise<void> {
   nameChannels(t);
   startedAt = Date.now();
   delay = FAST_MS;
-  KnightWatch.next(delay);
+  KnightWatch.next(delay, true);
   KnightWatch.start(t('notify.watchTitle'), t('notify.watchText'));
+
+  const now = await loadNotifyPrefs();
+  if (now.stay && !now.batteryAsked && !KnightWatch.batteryExempt()) {
+    await saveNotifyPrefs({ ...now, batteryAsked: true });
+    batteryAsk?.();
+  }
+}
+
+let batteryAsk: (() => void) | null = null;
+
+/**
+ * onBatteryAsk registers what the app shows the one time it offers the way to
+ * battery optimisation: right after "Stay connected" first started the
+ * service, when it is clear what the setting is for.
+ */
+export function onBatteryAsk(handler: () => void): void {
+  batteryAsk = handler;
 }
 
 /** Stops the service, for the settings card when every kind is switched off. */
@@ -276,8 +310,9 @@ export function stopWatch(): void {
 
 /**
  * Keeps the watch going from the app in front: it tells the watch which
- * instance is on screen, and while the service is not running it looks every
- * CHECK_MS whether something is on the go and starts it if so.
+ * instance is on screen, and while the service is not running it starts it,
+ * at once with "Stay connected" on and otherwise as soon as a look every
+ * CHECK_MS finds something on the go.
  */
 export function useWatch(connectionOnScreen: string | null): void {
   useEffect(() => {
@@ -291,7 +326,11 @@ export function useWatch(connectionOnScreen: string | null): void {
       if (checking || AppState.currentState !== 'active' || KnightWatch?.running()) return;
       checking = true;
       try {
-        if ((await startable()) && (await watchPass().catch(() => false))) await startWatch();
+        if (!(await startable())) return;
+        // With "Stay connected" the service runs whatever the instances are
+        // doing; without it, only once a look finds something on the go.
+        const stay = (await loadNotifyPrefs()).stay && (await listConnections()).length > 0;
+        if (stay || (await watchPass().catch(() => false))) await startWatch();
       } finally {
         checking = false;
       }

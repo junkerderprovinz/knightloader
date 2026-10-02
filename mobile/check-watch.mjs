@@ -116,27 +116,36 @@ expect('seeding is not busy', w.isBusy([task('a', 'done', { seeding: true })], [
 
 // Keeping the service.
 const now = 10 * 60 * 60_000;
-expect('a fresh start keeps running', w.keepRunning([], now - 1000, now), true);
-expect('nothing busy stops it', w.keepRunning([{ lastBusy: 0, ok: true }], 0, now), false);
-expect('busy a moment ago keeps it', w.keepRunning([{ lastBusy: now - 30_000, ok: true }], 0, now), true);
-expect('idle past the grace stops it', w.keepRunning([{ lastBusy: now - w.GRACE_MS - 1, ok: true }], 0, now), false);
+expect('a fresh start keeps running', w.keepRunning([], now - 1000, now, false), true);
+expect('nothing busy stops it', w.keepRunning([{ lastBusy: 0, ok: true }], 0, now, false), false);
+expect('busy a moment ago keeps it', w.keepRunning([{ lastBusy: now - 30_000, ok: true }], 0, now, false), true);
+expect('idle past the grace stops it', w.keepRunning([{ lastBusy: now - w.GRACE_MS - 1, ok: true }], 0, now, false), false);
 expect(
   'an instance out of reach since it was busy keeps it longer',
-  w.keepRunning([{ lastBusy: now - w.GRACE_MS - 1, ok: false }], 0, now),
+  w.keepRunning([{ lastBusy: now - w.GRACE_MS - 1, ok: false }], 0, now, false),
   true,
 );
 expect(
   'but not for ever',
-  w.keepRunning([{ lastBusy: now - w.OFFLINE_GRACE_MS - 1, ok: false }], 0, now),
+  w.keepRunning([{ lastBusy: now - w.OFFLINE_GRACE_MS - 1, ok: false }], 0, now, false),
   false,
 );
 
+// Staying connected.
+expect('staying connected keeps it with nothing busy', w.keepRunning([{ lastBusy: 0, ok: true }], 0, now, true), true);
+expect('staying connected keeps it with an instance out of reach', w.keepRunning([{ lastBusy: 0, ok: false }], 0, now, true), true);
+expect('staying connected with no instance saved stops it', w.keepRunning([], 0, now, true), false);
+
 // Pace.
-expect('a change brings the pace back up', w.nextDelay(w.SLOW_MS, true, false), w.FAST_MS);
-expect('a waiting captcha keeps the pace up', w.nextDelay(w.SLOW_MS, false, true), w.FAST_MS);
+expect('a change brings the pace back up', w.nextDelay(w.SLOW_MS, true, false, true), w.FAST_MS);
+expect('a waiting captcha keeps the pace up', w.nextDelay(w.IDLE_MS, false, true, false), w.FAST_MS);
 let d = w.FAST_MS;
-for (let i = 0; i < 10; i++) d = w.nextDelay(d, false, false);
-expect('nothing moving slows to the slowest pace', d, w.SLOW_MS);
+for (let i = 0; i < 10; i++) d = w.nextDelay(d, false, false, true);
+expect('a download without news slows to the slowest busy pace', d, w.SLOW_MS);
+expect('nothing running waits at the idle pace', w.nextDelay(w.FAST_MS, false, false, false), w.IDLE_MS);
+expect('a download starting after idling looks again soon', w.nextDelay(w.IDLE_MS, false, false, true), w.SLOW_MS);
+expect('the busy paces keep the phone awake', [w.FAST_MS, w.SLOW_MS].map(w.stayAwake), [true, true]);
+expect('the idle pace leaves the wait to an alarm', w.stayAwake(w.IDLE_MS), false);
 
 // Notification ids.
 expect('the same parts give the same id', w.noticeId('captcha', 'x'), w.noticeId('captcha', 'x'));

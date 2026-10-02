@@ -108,16 +108,24 @@ export function compare(before: Look | null, tasks: Task[], captchas: CaptchaCha
   return { arrived, finished, failed, changed };
 }
 
-/** The pace while something changes or a captcha waits, and the slowest one. */
+/** The pace while something changes or a captcha waits, the slowest one while
+ *  a download runs, and the pace while nothing does. */
 export const FAST_MS = 10_000;
 export const SLOW_MS = 30_000;
+export const IDLE_MS = 60_000;
 
 /** How long to wait before the next look: soon after a change, then less and
- *  less often while nothing moves. */
-export function nextDelay(previous: number, changed: boolean, captchaWaiting: boolean): number {
+ *  less often while a download runs without news, and once a minute while
+ *  nothing runs at all. */
+export function nextDelay(previous: number, changed: boolean, captchaWaiting: boolean, busy: boolean): number {
   if (changed || captchaWaiting) return FAST_MS;
-  return Math.min(Math.round(previous * 1.5), SLOW_MS);
+  if (!busy) return IDLE_MS;
+  return Math.min(Math.max(Math.round(previous * 1.5), FAST_MS), SLOW_MS);
 }
+
+/** Whether the phone stays awake until the next look. A wait at the idle pace
+ *  is left to an alarm, which Android may hold back a little. */
+export const stayAwake = (delay: number): boolean => delay < IDLE_MS;
 
 /** How long the watch outlasts the last busy look: long enough for a queue to
  *  start its next link, and much longer for an instance that stopped answering
@@ -134,11 +142,13 @@ export interface Pulse {
 }
 
 /**
- * Whether the service keeps running. It also runs for GRACE_MS after it
- * started, because a download added from the phone is often still in the
- * collector or the queue at the first look.
+ * Whether the service keeps running. With "Stay connected" on it always does
+ * while there is an instance to watch. Otherwise it also runs for GRACE_MS
+ * after it started, because a download added from the phone is often still in
+ * the collector or the queue at the first look.
  */
-export function keepRunning(pulses: Pulse[], startedAt: number, now: number): boolean {
+export function keepRunning(pulses: Pulse[], startedAt: number, now: number, stay: boolean): boolean {
+  if (stay && pulses.length > 0) return true;
   if (now - startedAt < GRACE_MS) return true;
   return pulses.some((p) => p.lastBusy > 0 && now - p.lastBusy < (p.ok ? GRACE_MS : OFFLINE_GRACE_MS));
 }

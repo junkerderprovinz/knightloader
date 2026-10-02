@@ -57,8 +57,29 @@ class WatchModule : Module() {
       WatchService.running
     }
 
-    Function("next") { delayMs: Double ->
+    Function("next") { delayMs: Double, awake: Boolean ->
       WatchService.nextDelayMs = delayMs.toLong()
+      WatchService.nextAwake = awake
+    }
+
+    Function("autostart") { on: Boolean ->
+      WatchService.setAutostart(context, on)
+    }
+
+    Function("batteryExempt") {
+      Background.exempt(context)
+    }
+
+    Function("openBatterySettings") {
+      Background.openBatterySettings(appContext.currentActivity ?: context)
+    }
+
+    Function("vendor") {
+      Background.vendor()
+    }
+
+    Function("openVendorSettings") {
+      Background.openVendorSettings(appContext.currentActivity ?: context)
     }
 
     Function("notify") { notice: NoticeRecord ->

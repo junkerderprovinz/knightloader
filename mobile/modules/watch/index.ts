@@ -32,8 +32,18 @@ declare class KnightWatchModule extends NativeModule<{ onOpen: () => void }> {
   start(title: string, text: string): boolean;
   stop(): void;
   running(): boolean;
-  /** When the service runs the next pass, in milliseconds from the end of this one. */
-  next(delayMs: number): void;
+  /** When the service runs the next pass, in milliseconds from the end of this
+   *  one, and whether the phone stays awake until then or an alarm wakes it. */
+  next(delayMs: number, awake: boolean): void;
+  /** Whether a reboot or an update of the app starts the service again. */
+  autostart(on: boolean): void;
+  /** Whether Android leaves this app out of battery optimisation. */
+  batteryExempt(): boolean;
+  openBatterySettings(): void;
+  /** The maker whose own background rules this phone carries, or null. */
+  vendor(): string | null;
+  /** Opens that maker's background or autostart page, else the app's details. */
+  openVendorSettings(): void;
   notify(notice: Notice): void;
   cancel(id: number): void;
   /** Whether Android shows this app's notifications at all. */
