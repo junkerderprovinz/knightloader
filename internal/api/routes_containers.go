@@ -291,6 +291,8 @@ func sendNZB(w http.ResponseWriter, a *app.App, name string, data []byte, pkg st
 		"kind":     "nzb",
 		"handedTo": "usenet",
 		"service":  service,
+		// The own servers stage the files at once, so the upload says so.
+		"own": service == a.OwnUsenetServers().Label(),
 	})
 }
 
