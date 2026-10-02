@@ -42,9 +42,19 @@ release's tag.
 - **Glyphs** come from GlimStone's shared list, so a meaning has the same
   drawing here as in the other GlimStone apps. The Captcha page shows the
   reCAPTCHA mark, Security a shield, Network a Wi-Fi fan, and copy buttons two
-  sheets. Paste buttons keep the clipboard. The stop mark in the queue is the
-  stop square. In the browser extension, the reveal eye, the empty group list
-  and the popup's Collector tab use the same drawings.
+  sheets. Paste buttons show an empty clipboard. A sorted column shows one sort
+  glyph, turned upside down for descending order. The folder picker's Up button
+  shows a folder with an arrow, the Health page a heart with a pulse line, a
+  queued download an hourglass, the captcha countdown a clock and the Resolvers
+  page sliders. The stop mark in the queue is the stop square. In the browser
+  extension, the reveal eye, the paste button, the empty group list and the
+  popup's Collector tab use the same drawings.
+- **The Android app** draws its glyphs from the same list. Back, add, close,
+  play, stop, delete, power, the check mark, paste, connect, the folder, the
+  (i), the settings cog, the fold arrows and the colour reset look as they do in
+  the web UI. Copy buttons show two sheets instead of the clipboard. The
+  language picker's back arrow and tick are drawn glyphs rather than text
+  characters, and the GitHub, Docker and Email buttons use the standard marks.
 
 ## [1.6.4] - 2026-10-01
 
