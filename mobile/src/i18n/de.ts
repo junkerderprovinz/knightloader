@@ -253,6 +253,8 @@ export const de: Dict = {
     'Verschieb diesen Ordner oder benenn ihn um, oder änder „Wenn eine Datei schon da ist“ in den Archiv-Einstellungen der Weboberfläche, dann entpack das Archiv noch einmal.',
   'failure.unknown.line': 'KnightLoader kennt diesen Fehler nicht.',
   'failure.unknown.next': 'Versuch es noch einmal. Passiert es wieder, meld es zusammen mit dem, was das Backend gesagt hat.',
+  'task.play': 'Abspielen',
+  'task.playFailed': 'Der Player ließ sich nicht öffnen: {reason}',
   'task.enable': 'Diesen Link aktivieren',
   'task.disable': 'Diesen Link deaktivieren',
   'settings.aboutTitle': 'Über KnightLoader',

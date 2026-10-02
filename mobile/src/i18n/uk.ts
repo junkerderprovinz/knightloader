@@ -156,6 +156,8 @@ export const uk: Dict = {
   'task.mode.free': 'Безкоштовно',
   'task.mode.premium': 'Преміум',
   'task.remote': 'Завантажується в сервісі {service}',
+  'task.play': 'Відтворити',
+  'task.playFailed': 'Програвач не відкрився: {reason}',
   'task.enable': 'Увімкнути це посилання',
   'task.disable': 'Вимкнути це посилання',
   'settings.aboutTitle': 'Про KnightLoader',

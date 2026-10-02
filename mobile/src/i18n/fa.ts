@@ -156,6 +156,8 @@ export const fa: Dict = {
   'task.mode.free': 'رایگان',
   'task.mode.premium': 'ویژه',
   'task.remote': 'در حال دانلود در {service}',
+  'task.play': 'پخش',
+  'task.playFailed': 'پخش‌کننده باز نشد: {reason}',
   'task.enable': 'روشن کردن این پیوند',
   'task.disable': 'خاموش کردن این پیوند',
   'settings.aboutTitle': 'درباره KnightLoader',

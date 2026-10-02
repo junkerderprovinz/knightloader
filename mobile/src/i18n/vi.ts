@@ -156,6 +156,8 @@ export const vi: Dict = {
   'task.mode.free': 'Miễn phí',
   'task.mode.premium': 'Premium',
   'task.remote': 'Đang lấy trên {service}',
+  'task.play': 'Phát',
+  'task.playFailed': 'Trình phát không mở được: {reason}',
   'task.enable': 'Bật liên kết này',
   'task.disable': 'Tắt liên kết này',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',

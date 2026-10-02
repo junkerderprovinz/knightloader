@@ -156,6 +156,8 @@ export const fi: Dict = {
   'task.mode.free': 'Ilmainen',
   'task.mode.premium': 'Premium',
   'task.remote': 'Haetaan palvelussa {service}',
+  'task.play': 'Toista',
+  'task.playFailed': 'Soitin ei avautunut: {reason}',
   'task.enable': 'Kytke tämä linkki päälle',
   'task.disable': 'Kytke tämä linkki pois',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',

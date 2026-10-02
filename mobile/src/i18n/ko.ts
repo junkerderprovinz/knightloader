@@ -156,6 +156,8 @@ export const ko: Dict = {
   'task.mode.free': '무료',
   'task.mode.premium': '프리미엄',
   'task.remote': '{service}에서 가져오는 중',
+  'task.play': '재생',
+  'task.playFailed': '플레이어를 열지 못했습니다: {reason}',
   'task.enable': '이 링크 켜기',
   'task.disable': '이 링크 끄기',
   'settings.aboutTitle': 'KnightLoader 정보',

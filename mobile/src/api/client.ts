@@ -205,6 +205,17 @@ export async function fetchTorrentFiles(conn: ServerConnection, id: string, base
   return (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`)) ?? [];
 }
 
+// playURL is a link to task id's file that a media player opens without the
+// token, for twelve hours. While the download runs, the instance fetches the
+// part being played first. Only a direct connection has an address a player
+// can reach.
+export async function playURL(conn: DirectConnection, id: string): Promise<string> {
+  const { path } = await request<{ path: string }>(conn, '/api', `/tasks/${encodeURIComponent(id)}/play`, {
+    method: 'POST',
+  });
+  return conn.baseUrl + path;
+}
+
 // selectTorrentFiles makes `paths` the files a torrent fetches. A running
 // torrent carries on with them and keeps what it has.
 export async function selectTorrentFiles(

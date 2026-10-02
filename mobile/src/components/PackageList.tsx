@@ -22,6 +22,7 @@ import { useT } from '../i18n/I18nContext';
 import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
+import { hasSomethingToPlay, mediaKind } from '../api/play';
 
 /**
  * The task list, grouped into the packages the instance already put it in.
@@ -90,6 +91,7 @@ export default function PackageList({
   onLoadFiles,
   onSelectFiles,
   onSeeding,
+  onPlay,
   sections = [],
   unpacking,
 }: {
@@ -135,6 +137,9 @@ export default function PackageList({
    *  header offers the one its torrents are not doing, and a part's heading
    *  offers both for everything in it. */
   onSeeding?: (tasks: Task[], seed: boolean) => void;
+  /** Opens a link's file in a player app. The row offers it only for audio
+   *  and video with something to play (mediaKind, hasSomethingToPlay). */
+  onPlay?: (task: Task) => void;
 }) {
   const { t } = useT();
   const { c, corners, accentInk } = useAppearance();
@@ -237,6 +242,11 @@ export default function PackageList({
               index={r.index}
               unpack={unpackOf(r.task)}
               onSwitch={onSetEnabled && (() => scharf || onSetEnabled([r.task], !r.task.enabled))}
+              onPlay={
+                onPlay && mediaKind(r.task) && hasSomethingToPlay(r.task)
+                  ? () => scharf || onPlay(r.task)
+                  : undefined
+              }
               files={
                 onLoadFiles && hasTorrentFiles(r.task)
                   ? (hue) => (

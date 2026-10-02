@@ -156,6 +156,8 @@ export const hu: Dict = {
   'task.mode.free': 'Ingyenes',
   'task.mode.premium': 'Prémium',
   'task.remote': '{service} tölti le',
+  'task.play': 'Lejátszás',
+  'task.playFailed': 'A lejátszó nem nyílt meg: {reason}',
   'task.enable': 'Link bekapcsolása',
   'task.disable': 'Link kikapcsolása',
   'settings.aboutTitle': 'A KnightLoaderről',
