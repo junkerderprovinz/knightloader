@@ -1637,6 +1637,8 @@ export const cs: Dict = {
   'settings.browsertools.zipArchive': 'Archiv ZIP',
   'settings.browsertools.dockerSub': 'Kopírovat příkaz',
   'settings.browsertools.unraidSub': 'Šablona',
+  'settings.browsertools.parleyportSub': 'Vlastní přeposílač',
+  'settings.browsertools.parleyportHint': 'ParleyPort je přeposílač, který propojí tvoje instance i napříč různými sítěmi, a můžeš ho provozovat sám. Zadej jeho adresu v části Nastavení, Párování a instance s tvými dvanácti slovy pak budou komunikovat přes tvůj přeposílač, ne přes ten projektový. Kliknutím zkopíruješ příkaz, který ho spustí:',
   'settings.browsertools.firefoxSub': 'Doplněk',
   'settings.browsertools.installPwaLabel': 'Nebo nainstalujte tuto stránku jako aplikaci',
   'settings.browsertools.install': 'Nainstalovat',

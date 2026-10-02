@@ -1638,6 +1638,8 @@ export const he: Dict = {
   'settings.browsertools.zipArchive': 'ארכיון ZIP',
   'settings.browsertools.dockerSub': 'העתקת הפקודה',
   'settings.browsertools.unraidSub': 'תבנית',
+  'settings.browsertools.parleyportSub': 'ממסר עצמי',
+  'settings.browsertools.parleyportHint': 'ParleyPort הוא הממסר שמחבר בין המופעים שלך גם ברשתות שונות, ואפשר להפעיל אותו בעצמך. הזן את הכתובת שלו בהגדרות, תחת צימוד, והמופעים שחולקים את שתים עשרה המילים שלך יתקשרו דרך הממסר שלך במקום דרך הממסר של הפרויקט. לחיצה מעתיקה את הפקודה שמפעילה אותו:',
   'settings.browsertools.firefoxSub': 'תוסף',
   'settings.browsertools.installPwaLabel': 'או התקן דף זה כאפליקציה',
   'settings.browsertools.install': 'התקן',

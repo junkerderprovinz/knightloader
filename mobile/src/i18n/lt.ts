@@ -189,6 +189,8 @@ export const lt: Dict = {
   'settings.appsCopied': 'Nukopijuota',
   'settings.appsSource': 'Išeities kodas',
   'settings.appsZip': 'ZIP archyvas',
+  'settings.appsParleyportSub': 'Savas relay',
+  'settings.appsParleyportHint': 'ParleyPort yra relay, kuris sujungia tavo egzempliorius net per skirtingus tinklus, ir jį gali paleisti pats. Įvesk jo adresą žiniatinklio sąsajoje, skiltyje Nustatymai, Susiejimas, ir egzemplioriai su tavo dvylika žodžių bendraus per tavo relay, o ne per projekto. Spustelėjus nukopijuojama komanda, kuri jį paleidžia:',
   'settings.appsExtension': 'Naršyklės plėtinys',
   'settings.appsExtensionHint': 'Plėtinys siunčia nuorodą, pažymėtą tekstą arba atidarytą puslapį į tavo KnightLoader, iš dešiniojo pelės mygtuko meniu arba savo mygtuku įrankių juostoje. Chrome, Brave, Opera ir Vivaldi jį įdiegia iš Chrome Web Store, Edge iš Edge Add-ons.',
   'settings.appsSoon': 'Netrukus',

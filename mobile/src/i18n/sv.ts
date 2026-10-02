@@ -189,6 +189,8 @@ export const sv: Dict = {
   'settings.appsCopied': 'Kopierad',
   'settings.appsSource': 'Källkod',
   'settings.appsZip': 'ZIP-arkiv',
+  'settings.appsParleyportSub': 'Eget relä',
+  'settings.appsParleyportHint': 'ParleyPort är reläet som kopplar ihop dina instanser även över olika nätverk, och du kan köra det själv. Ange dess adress i webbgränssnittet under Inställningar, Parkoppling, så pratar instanserna med dina tolv ord via ditt relä i stället för projektets. Ett klick kopierar kommandot som startar det:',
   'settings.appsExtension': 'Webbläsartillägg',
   'settings.appsExtensionHint': 'Tillägget skickar en länk, en markering eller den öppna sidan till din KnightLoader, från högerklicksmenyn eller sin knapp i verktygsfältet. Chrome, Brave, Opera och Vivaldi installerar det från Chrome Web Store, Edge från Edge Add-ons.',
   'settings.appsSoon': 'Snart',

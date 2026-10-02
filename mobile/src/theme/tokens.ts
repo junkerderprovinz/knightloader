@@ -205,7 +205,8 @@ export type Brand =
   | 'docker'
   | 'zip'
   | 'chrome'
-  | 'firefox';
+  | 'firefox'
+  | 'parleyport';
 
 /**
  * Each brand's true colour and the ink measured on it. The same in both themes,
@@ -226,6 +227,8 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   zip: { fill: '#4d5562', ink: '#ffffff' },
   chrome: { fill: '#1a73e8', ink: '#ffffff' },
   firefox: { fill: '#ff7139', ink: '#ffffff' },
+  // ParleyPort's gold, which is KnightLoader's.
+  parleyport: { fill: '#e6bc59', ink: '#161616' },
 };
 
 /**

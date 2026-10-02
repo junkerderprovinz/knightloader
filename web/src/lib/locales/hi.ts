@@ -1636,6 +1636,8 @@ export const hi: Dict = {
   'settings.browsertools.zipArchive': 'ZIP आर्काइव',
   'settings.browsertools.dockerSub': 'कमांड कॉपी करें',
   'settings.browsertools.unraidSub': 'टेम्पलेट',
+  'settings.browsertools.parleyportSub': 'अपना रिले',
+  'settings.browsertools.parleyportHint': 'ParleyPort वह रिले है जो आपके इंस्टेंस को अलग-अलग नेटवर्क के पार भी जोड़ता है, और आप इसे खुद चला सकते हैं। सेटिंग्स में पेयरिंग के अंतर्गत इसका पता डालें, फिर आपके बारह शब्दों वाले इंस्टेंस प्रोजेक्ट के रिले की जगह आपके रिले से बात करेंगे। एक क्लिक वह कमांड कॉपी कर देता है जो इसे शुरू करती है:',
   'settings.browsertools.firefoxSub': 'ऐड-ऑन',
   'settings.browsertools.installPwaLabel': 'या इस पेज को ऐप के रूप में इंस्टॉल करें',
   'settings.browsertools.install': 'इंस्टॉल करें',

@@ -1636,6 +1636,8 @@ export const hu: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-archívum',
   'settings.browsertools.dockerSub': 'Parancs másolása',
   'settings.browsertools.unraidSub': 'Sablon',
+  'settings.browsertools.parleyportSub': 'Saját relay',
+  'settings.browsertools.parleyportHint': 'A ParleyPort az a relay, amely különböző hálózatokon át is összeköti a példányaidat, és saját magad is futtathatod. Add meg a címét a Beállítások, Párosítás oldalon, és a tizenkét szavaddal összekötött példányok a te relayeden keresztül beszélnek a projekté helyett. Egy kattintás kimásolja a parancsot, amely elindítja:',
   'settings.browsertools.firefoxSub': 'Kiegészítő',
   'settings.browsertools.installPwaLabel': 'Vagy telepítsd ezt az oldalt alkalmazásként',
   'settings.browsertools.install': 'Telepítés',

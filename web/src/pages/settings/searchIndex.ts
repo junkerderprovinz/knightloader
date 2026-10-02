@@ -1189,8 +1189,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.browsertools.serverTitle',
       hint: 'settings.browsertools.serverHint',
       rows: [],
-      also: ['settings.browsertools.sourceCode', 'settings.browsertools.dockerSub', 'settings.browsertools.unraidSub'],
-      body: ['settings.browsertools.dockerHint'],
+      also: [
+        'settings.browsertools.sourceCode',
+        'settings.browsertools.dockerSub',
+        'settings.browsertools.unraidSub',
+        'settings.browsertools.parleyportSub',
+      ],
+      body: ['settings.browsertools.dockerHint', 'settings.browsertools.parleyportHint'],
     },
     {
       title: 'settings.browsertools.bookmarkletTitle',

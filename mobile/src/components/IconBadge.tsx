@@ -641,6 +641,13 @@ export function ChromeMark({ lit, color }: { lit: boolean; color: string }) {
   return <Image source={require('../../assets/chrome-mark.png')} style={styles.fill} resizeMode="contain" />;
 }
 
+/** ParleyPort in its own colours, and in one ink while pressed, where its
+ *  arcs would vanish into the button's gold. */
+export function ParleyPortMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/parleyport-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/parleyport-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
 /** Firefox in its own colours. Its button has no listing to open yet, so it is
  *  never pressed and needs no one-ink version. */
 export function FirefoxMark() {

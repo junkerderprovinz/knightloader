@@ -1635,6 +1635,8 @@ export const zh: Dict = {
   'settings.browsertools.zipArchive': 'ZIP 压缩包',
   'settings.browsertools.dockerSub': '复制命令',
   'settings.browsertools.unraidSub': '模板',
+  'settings.browsertools.parleyportSub': '自建中继',
+  'settings.browsertools.parleyportHint': 'ParleyPort 是让你的实例即使处在不同网络也能相连的中继，你可以自己运行它。在“设置”的“配对”里填入它的地址，共用你这十二个单词的实例就会通过你自己的中继通信，而不是项目的中继。点一下即可复制启动它的命令：',
   'settings.browsertools.firefoxSub': '附加组件',
   'settings.browsertools.installPwaLabel': '或将此页面安装为应用',
   'settings.browsertools.install': '安装',

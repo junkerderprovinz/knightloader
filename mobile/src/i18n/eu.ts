@@ -189,6 +189,8 @@ export const eu: Dict = {
   'settings.appsCopied': 'Kopiatuta',
   'settings.appsSource': 'Iturburu-kodea',
   'settings.appsZip': 'ZIP artxiboa',
+  'settings.appsParleyportSub': 'Norberaren bitartekaria',
+  'settings.appsParleyportHint': 'ParleyPort zure instantziak sare desberdinetan egon arren konektatzen dituen bitartekaria da, eta zuk zeuk exekuta dezakezu. Idatzi haren helbidea web-interfazean, Ezarpenak, Parekatzea atalean, eta zure hamabi hitzak partekatzen dituzten instantziek zure bitartekariaren bidez hitz egingo dute, ez proiektuarenaren bidez. Klik batek hura abiarazten duen komandoa kopiatzen du:',
   'settings.appsExtension': 'Nabigatzaile-hedapena',
   'settings.appsExtensionHint': 'Hedapenak esteka bat, hautapen bat edo irekitako orria bidaltzen dizkio zure KnightLoader-i, eskuineko klikaren menutik edo tresna-barrako bere botoitik. Chrome, Brave, Opera eta Vivaldik Chrome Web Store-tik instalatzen dute, eta Edgek Edge Add-ons-etik.',
   'settings.appsSoon': 'Laster',

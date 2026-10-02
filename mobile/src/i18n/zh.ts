@@ -189,6 +189,8 @@ export const zh: Dict = {
   'settings.appsCopied': '已复制',
   'settings.appsSource': '源代码',
   'settings.appsZip': 'ZIP 压缩包',
+  'settings.appsParleyportSub': '自建中继',
+  'settings.appsParleyportHint': 'ParleyPort 是让你的实例即使处在不同网络也能相连的中继，你可以自己运行它。在网页界面“设置”的“配对”里填入它的地址，共用你这十二个单词的实例就会通过你自己的中继通信，而不是项目的中继。点一下即可复制启动它的命令：',
   'settings.appsExtension': '浏览器扩展',
   'settings.appsExtensionHint': '扩展可以通过右键菜单或工具栏按钮，把链接、选中的文字或当前页面发送到你的 KnightLoader。Chrome、Brave、Opera 和 Vivaldi 从 Chrome Web Store 安装它，Edge 从 Edge Add-ons 安装。',
   'settings.appsSoon': '即将推出',

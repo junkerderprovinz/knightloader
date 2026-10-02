@@ -1636,6 +1636,8 @@ export const fa: Dict = {
   'settings.browsertools.zipArchive': 'بایگانی ZIP',
   'settings.browsertools.dockerSub': 'کپی فرمان',
   'settings.browsertools.unraidSub': 'قالب',
+  'settings.browsertools.parleyportSub': 'رلهٔ شخصی',
+  'settings.browsertools.parleyportHint': 'ParleyPort رله‌ای است که نمونه‌های شما را حتی در شبکه‌های مختلف به هم وصل می‌کند، و می‌توانید خودتان اجرایش کنید. نشانی آن را در تنظیمات، بخش جفت‌سازی، وارد کنید تا نمونه‌هایی که دوازده کلمهٔ شما را دارند به‌جای رلهٔ پروژه از رلهٔ خودتان استفاده کنند. یک کلیک دستوری را که آن را راه می‌اندازد کپی می‌کند:',
   'settings.browsertools.firefoxSub': 'افزونه',
   'settings.browsertools.installPwaLabel': 'یا این صفحه را به‌عنوان یک برنامه نصب کنید',
   'settings.browsertools.install': 'نصب',

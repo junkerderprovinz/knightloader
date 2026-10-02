@@ -1636,6 +1636,8 @@ export const lt: Dict = {
   'settings.browsertools.zipArchive': 'ZIP archyvas',
   'settings.browsertools.dockerSub': 'Kopijuoti komandą',
   'settings.browsertools.unraidSub': 'Šablonas',
+  'settings.browsertools.parleyportSub': 'Savas relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort yra relay, kuris sujungia tavo egzempliorius net per skirtingus tinklus, ir jį gali paleisti pats. Įvesk jo adresą skiltyje Nustatymai, Susiejimas, ir egzemplioriai su tavo dvylika žodžių bendraus per tavo relay, o ne per projekto. Spustelėjus nukopijuojama komanda, kuri jį paleidžia:',
   'settings.browsertools.firefoxSub': 'Priedas',
   'settings.browsertools.installPwaLabel': 'Arba įdiekite šį puslapį kaip programėlę',
   'settings.browsertools.install': 'Įdiegti',

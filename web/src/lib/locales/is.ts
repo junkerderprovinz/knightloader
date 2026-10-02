@@ -1636,6 +1636,8 @@ export const is: Dict = {
   'settings.browsertools.zipArchive': 'ZIP-safn',
   'settings.browsertools.dockerSub': 'Afrita skipun',
   'settings.browsertools.unraidSub': 'Sniðmát',
+  'settings.browsertools.parleyportSub': 'Eigið relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort er relay sem tengir tilvikin þín saman, líka á milli ólíkra neta, og þú getur keyrt það á eigin vél. Sláðu inn vistfang þess undir Stillingar, Pörun, þá tala tilvikin með orðunum tólf þínum saman í gegnum þitt relay í stað relay verkefnisins. Einn smellur afritar skipunina sem ræsir það:',
   'settings.browsertools.firefoxSub': 'Viðbót',
   'settings.browsertools.installPwaLabel': 'Eða settu þessa síðu upp sem forrit',
   'settings.browsertools.install': 'Setja upp',

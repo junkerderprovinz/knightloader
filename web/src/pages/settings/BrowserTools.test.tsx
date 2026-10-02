@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { buildBookmarklet } from '../../lib/browserTools';
 import { BrowserTools } from './BrowserTools';
+import { RELAY_RUN_COMMAND } from './pairing/RelayCard';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -90,5 +91,34 @@ describe('BrowserTools', () => {
       'noopener,noreferrer',
     );
     expect(open).toHaveBeenCalledTimes(5);
+  });
+
+  describe('in the desktop app', () => {
+    beforeEach(() => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((url: string) =>
+          url.endsWith('/api/system/deployment')
+            ? Promise.resolve(new Response(JSON.stringify({ deployment: 'desktop' })))
+            : new Promise(() => {}),
+        ),
+      );
+    });
+
+    function relayButton() {
+      return [...host.querySelectorAll('button')].find((b) => b.textContent?.startsWith('ParleyPort'));
+    }
+
+    it('offers ParleyPort on the server card', async () => {
+      await act(async () => root.render(<BrowserTools />));
+      expect(relayButton()?.textContent).toBe('ParleyPortOwn relay');
+    });
+
+    it('copies the command that starts the relay', async () => {
+      await act(async () => root.render(<BrowserTools />));
+      await act(async () => relayButton()!.click());
+      expect(writeText).toHaveBeenCalledWith(RELAY_RUN_COMMAND);
+      expect(relayButton()?.textContent).toBe('ParleyPortCopied');
+    });
   });
 });

@@ -189,6 +189,8 @@ export const ro: Dict = {
   'settings.appsCopied': 'Copiat',
   'settings.appsSource': 'Cod sursă',
   'settings.appsZip': 'Arhivă ZIP',
+  'settings.appsParleyportSub': 'Relay propriu',
+  'settings.appsParleyportHint': 'ParleyPort este relay-ul care conectează instanțele tale chiar și între rețele diferite, iar tu îl poți rula singur. Introdu adresa lui în interfața web, în Setări, Împerechere, iar instanțele cu cele douăsprezece cuvinte ale tale vor comunica prin relay-ul tău în loc de cel al proiectului. Un clic copiază comanda care îl pornește:',
   'settings.appsExtension': 'Extensie de browser',
   'settings.appsExtensionHint': 'Extensia trimite un link, o selecție sau pagina deschisă către KnightLoader-ul tău, din meniul de clic dreapta sau din butonul ei din bara de instrumente. Chrome, Brave, Opera și Vivaldi o instalează din Chrome Web Store, Edge din Edge Add-ons.',
   'settings.appsSoon': 'În curând',

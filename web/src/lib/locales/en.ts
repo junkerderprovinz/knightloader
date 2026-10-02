@@ -1969,6 +1969,8 @@ export const en = {
   'settings.browsertools.zipArchive': 'ZIP archive',
   'settings.browsertools.dockerSub': 'Copy command',
   'settings.browsertools.unraidSub': 'Template',
+  'settings.browsertools.parleyportSub': 'Own relay',
+  'settings.browsertools.parleyportHint': "ParleyPort is the relay that connects your instances across networks, and you can run it yourself. Enter its address under Settings, Pairing, and the instances that share your twelve words talk through your relay instead of the project's. A click copies the command that starts it:",
   'settings.browsertools.firefoxSub': 'Add-on',
   'settings.browsertools.installPwaLabel': 'Or install this page as an app',
   'settings.browsertools.install': 'Install',

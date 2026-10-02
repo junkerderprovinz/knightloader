@@ -1637,6 +1637,8 @@ export const bg: Dict = {
   'settings.browsertools.zipArchive': 'ZIP архив',
   'settings.browsertools.dockerSub': 'Копирай командата',
   'settings.browsertools.unraidSub': 'Шаблон',
+  'settings.browsertools.parleyportSub': 'Собствен препредавател',
+  'settings.browsertools.parleyportHint': 'ParleyPort е препредавателят, който свързва инстанциите ти дори през различни мрежи, и можеш да го пуснеш сам. Въведи адреса му в Настройки, Сдвояване и инстанциите с твоите дванайсет думи ще говорят през твоя препредавател вместо през този на проекта. С едно щракване се копира командата, която го стартира:',
   'settings.browsertools.firefoxSub': 'Добавка',
   'settings.browsertools.installPwaLabel': 'Или инсталирай тази страница като приложение',
   'settings.browsertools.install': 'Инсталирай',

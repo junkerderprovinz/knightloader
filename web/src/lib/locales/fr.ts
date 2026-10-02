@@ -1629,6 +1629,8 @@ export const fr: Dict = {
   'settings.browsertools.zipArchive': 'Archive ZIP',
   'settings.browsertools.dockerSub': 'Copier la commande',
   'settings.browsertools.unraidSub': 'Modèle',
+  'settings.browsertools.parleyportSub': 'Relais personnel',
+  'settings.browsertools.parleyportHint': 'ParleyPort est le relais qui relie vos instances d’un réseau à l’autre, et vous pouvez le faire tourner vous-même. Saisissez son adresse dans Paramètres, Appairage : les instances qui partagent vos douze mots passent alors par votre relais au lieu de celui du projet. Un clic copie la commande qui le démarre :',
   'settings.browsertools.firefoxSub': 'Module',
   'settings.browsertools.installPwaLabel': 'Ou installez cette page comme application',
   'settings.browsertools.install': 'Installer',

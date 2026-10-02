@@ -1637,6 +1637,8 @@ export const sl: Dict = {
   'settings.browsertools.zipArchive': 'Arhiv ZIP',
   'settings.browsertools.dockerSub': 'Kopiraj ukaz',
   'settings.browsertools.unraidSub': 'Predloga',
+  'settings.browsertools.parleyportSub': 'Lastni relay',
+  'settings.browsertools.parleyportHint': 'ParleyPort je relay, ki poveže tvoje instance tudi med različnimi omrežji, in ga lahko poganjaš sam. Vnesi njegov naslov v razdelku Nastavitve, Seznanjanje in instance s tvojimi dvanajstimi besedami bodo komunicirale prek tvojega relaya namesto prek relaya projekta. Klik kopira ukaz, ki ga zažene:',
   'settings.browsertools.firefoxSub': 'Dodatek',
   'settings.browsertools.installPwaLabel': 'Ali namesti to stran kot aplikacijo',
   'settings.browsertools.install': 'Namesti',

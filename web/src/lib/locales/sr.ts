@@ -1637,6 +1637,8 @@ export const sr: Dict = {
   'settings.browsertools.zipArchive': 'ZIP архива',
   'settings.browsertools.dockerSub': 'Копирај команду',
   'settings.browsertools.unraidSub': 'Шаблон',
+  'settings.browsertools.parleyportSub': 'Сопствени релеј',
+  'settings.browsertools.parleyportHint': 'ParleyPort је релеј који повезује твоје инстанце и преко различитих мрежа, а можеш да га покренеш и сам. Унеси његову адресу у одељку Подешавања, Упаривање и инстанце са твојих дванаест речи разговараће преко твог релеја уместо преко релеја пројекта. Клик копира наредбу која га покреће:',
   'settings.browsertools.firefoxSub': 'Додатак',
   'settings.browsertools.installPwaLabel': 'Или инсталирајте ову страницу као апликацију',
   'settings.browsertools.install': 'Инсталирај',

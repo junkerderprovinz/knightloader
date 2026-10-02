@@ -1636,6 +1636,8 @@ export const vi: Dict = {
   'settings.browsertools.zipArchive': 'Tệp nén ZIP',
   'settings.browsertools.dockerSub': 'Sao chép lệnh',
   'settings.browsertools.unraidSub': 'Mẫu',
+  'settings.browsertools.parleyportSub': 'Relay riêng',
+  'settings.browsertools.parleyportHint': 'ParleyPort là relay kết nối các phiên bản của bạn, kể cả khi chúng ở các mạng khác nhau, và bạn có thể tự chạy nó. Nhập địa chỉ của nó trong Cài đặt, Ghép nối, rồi các phiên bản dùng chung mười hai từ của bạn sẽ liên lạc qua relay của bạn thay vì relay của dự án. Một cú nhấp sẽ sao chép lệnh khởi động nó:',
   'settings.browsertools.firefoxSub': 'Add-on',
   'settings.browsertools.installPwaLabel': 'Hoặc cài đặt trang này như một ứng dụng',
   'settings.browsertools.install': 'Cài đặt',

@@ -189,6 +189,8 @@ export const gl: Dict = {
   'settings.appsCopied': 'Copiado',
   'settings.appsSource': 'Código fonte',
   'settings.appsZip': 'Arquivo ZIP',
+  'settings.appsParleyportSub': 'Relé propio',
+  'settings.appsParleyportHint': 'ParleyPort é o relé que conecta as túas instancias mesmo entre redes distintas, e podes executalo ti mesmo. Introduce o seu enderezo na interface web, en Axustes, Emparellamento, e as instancias que comparten as túas doce palabras comunicaranse polo teu relé e non polo do proxecto. Un clic copia a orde que o inicia:',
   'settings.appsExtension': 'Extensión de navegador',
   'settings.appsExtensionHint': 'A extensión envía unha ligazón, unha selección ou a páxina aberta ao teu KnightLoader, desde o menú do clic dereito ou desde o seu botón na barra de ferramentas. Chrome, Brave, Opera e Vivaldi instálana desde Chrome Web Store, e Edge desde Edge Add-ons.',
   'settings.appsSoon': 'En breve',

@@ -189,6 +189,8 @@ export const uk: Dict = {
   'settings.appsCopied': 'Скопійовано',
   'settings.appsSource': 'Вихідний код',
   'settings.appsZip': 'Архів ZIP',
+  'settings.appsParleyportSub': 'Власне реле',
+  'settings.appsParleyportHint': "Реле ParleyPort з'єднує ваші екземпляри навіть у різних мережах, і його можна запустити в себе. Вкажіть його адресу у вебінтерфейсі на сторінці «Спарювання» у розділі «Налаштування», і екземпляри з вашими дванадцятьма словами зв'язуватимуться через ваше реле, а не через реле проєкту. Клацання копіює команду, яка його запускає:",
   'settings.appsExtension': 'Розширення браузера',
   'settings.appsExtensionHint': 'Розширення надсилає посилання, виділений текст або відкриту сторінку до вашого KnightLoader з контекстного меню або кнопкою на панелі інструментів. Chrome, Brave, Opera та Vivaldi встановлюють його з Chrome Web Store, а Edge з Edge Add-ons.',
   'settings.appsSoon': 'Незабаром',
