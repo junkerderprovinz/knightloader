@@ -370,6 +370,10 @@ type Job struct {
 	// mend.go). Nil asks URL again.
 	Relink func(ctx context.Context) (string, error)
 
+	// Sources asks for further links to the same file, for a transfer spread
+	// over several sources (see multisource.go). Nil fetches from URL alone.
+	Sources func(ctx context.Context) []string
+
 	// PassOnPlaylists is set for a link taken for a file by its look alone. A
 	// stream playlist arriving there fails the job as unsupported, so the app
 	// hands the link to the next backend. Only the first bytes tell, since a
@@ -424,12 +428,14 @@ func (e *Engine) Start(j Job) {
 	go func() {
 		defer e.wg.Done()
 		defer e.startEnded(j.TaskID, s)
+		reqExtra := &fhttp.ReqExtra{Method: "GET", Header: j.Headers}
 		req := &base.Request{
 			URL:   j.URL,
-			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+			Extra: reqExtra,
 			Proxy: requestProxy(j.Route),
 		}
-		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
+		optsExtra := &fhttp.OptsExtra{Connections: j.Conns}
+		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: optsExtra}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
 			if e.proceed(s, j) {
@@ -449,6 +455,13 @@ func (e *Engine) Start(j Job) {
 			return
 		}
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		// Like the name, read by the library only once Create starts the
+		// transfer. Resolve has already filled in the connection count, and
+		// each source gets that many.
+		if mirrors := e.vetSources(j, rr.Res); len(mirrors) > 0 {
+			reqExtra.Mirrors = mirrors
+			optsExtra.Connections *= 1 + len(mirrors)
+		}
 		if !e.proceed(s, j) {
 			return
 		}

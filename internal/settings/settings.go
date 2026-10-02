@@ -471,6 +471,14 @@ type Settings struct {
 	// task, and the dispatcher owns the fallback.
 	Chunks int `json:"chunks"`
 
+	// MultiSource spreads one file over the further sources KnightLoader can
+	// get for it: the same link unlocked by another debrid account, or a
+	// parked copy on another hoster (see app.App.sourcesLocked). It is off by
+	// default because an extra unlock spends that account's traffic, some
+	// services count the whole file at the unlock, and a service's terms may
+	// forbid using two accounts at once.
+	MultiSource bool `json:"multiSource"`
+
 	// HostRules is what one host may differ in: its own simultaneous-download
 	// ceiling, its own chunk count, its own retry backoff. Keyed by host
 	// pattern, see HostRuleFor for what matches.
