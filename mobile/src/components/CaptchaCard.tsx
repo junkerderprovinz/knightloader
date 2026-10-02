@@ -25,7 +25,7 @@ import { TYPE } from '../theme/tokens';
 import { useCaptchas } from './CaptchaWatch';
 import { CaptchaWidget } from './CaptchaWidget';
 import { GlimButton, NotchCard } from './glim';
-import { Check, Cross, Play } from './IconBadge';
+import { IconCheck, IconClose, IconPlay } from './glyphs';
 import { InfoTip } from './InfoTip';
 import { Text, TextInput } from './Text';
 
@@ -196,7 +196,7 @@ export function CaptchaCard({
           tone="quiet"
           grow
           label={t('captcha.cancel')}
-          icon={(ink) => <Cross color={ink} />}
+          icon={(ink) => <IconClose color={ink} />}
           disabled={busy}
           onPress={() => void skip('skip-once')}
         />
@@ -205,7 +205,7 @@ export function CaptchaCard({
             hue={hue}
             grow
             label={t('captcha.continue')}
-            icon={(ink) => <Check color={ink} />}
+            icon={(ink) => <IconCheck color={ink} />}
             busy={busy}
             disabled={!ready}
             onPress={submit}
@@ -216,7 +216,7 @@ export function CaptchaCard({
             hue={hue}
             grow
             label={t('captcha.solve')}
-            icon={(ink) => <Play color={ink} />}
+            icon={(ink) => <IconPlay color={ink} />}
             busy={busy}
             onPress={() => setSolving(true)}
           />

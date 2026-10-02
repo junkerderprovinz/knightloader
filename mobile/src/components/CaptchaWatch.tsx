@@ -14,7 +14,8 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { CardButton } from './glim';
-import IconBadge, { Cross } from './IconBadge';
+import IconBadge from './IconBadge';
+import { IconClose } from './glyphs';
 import { Text } from './Text';
 
 export interface CaptchaWatchState {
@@ -268,7 +269,7 @@ function Banner({
             <BannerText line={line} instance={instance} bar={bar} />
           </View>
         )}
-        <IconBadge icon={<Cross color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
+        <IconBadge icon={<IconClose color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
       </View>
     </Animated.View>
   );

@@ -5,6 +5,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimToggle } from './glim';
+import { IconCollapse, IconExpand } from './glyphs';
 import { Text } from './Text';
 
 /** Whether a task is a torrent whose files are worth listing: a single file
@@ -54,8 +55,7 @@ export function TorrentFiles({
         accessibilityLabel={t(open ? 'torrent.hideFiles' : 'torrent.showFiles')}
         style={styles.opener}
       >
-        {/* The package header's chevron, turned the same way. */}
-        <Text style={[styles.chevron, { color: c.textSub }, open && styles.chevronOpen]}>›</Text>
+        {open ? <IconCollapse color={c.textSub} size={12} /> : <IconExpand color={c.textSub} size={12} />}
         <Text style={[styles.count, { color: c.textMuted }]}>
           {t('instance.files', { n: task.torrentFileCount ?? 0 })}
         </Text>
@@ -100,8 +100,6 @@ export function TorrentFiles({
 const styles = StyleSheet.create({
   box: { marginTop: 6, gap: 6 },
   opener: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
-  chevron: { fontSize: 17, lineHeight: 20, width: 12, textAlign: 'center' },
-  chevronOpen: { transform: [{ rotate: '90deg' }] },
   count: { fontSize: TYPE.dense, ...NUM },
   file: { flexDirection: 'row', alignItems: 'center', gap: 12, marginStart: 20 },
   fileText: { flex: 1, minWidth: 0, gap: 4 },

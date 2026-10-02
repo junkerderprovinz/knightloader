@@ -3,6 +3,7 @@ import { Animated, Easing, Modal, Pressable, StyleSheet, View, useWindowDimensio
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
+import { IconInfo } from './glyphs';
 import { Text } from './Text';
 
 /**
@@ -45,7 +46,7 @@ export function InfoTip({ text, color, size = 15 }: { text: string; color?: stri
         accessibilityLabel={text}
         style={({ pressed }) => ({ opacity: pressed ? 1 : 0.8 })}
       >
-        <InfoGlyph color={color ?? c.textMuted} size={size} />
+        <IconInfo color={color ?? c.textMuted} size={size} />
       </Pressable>
       {at && <Bubble text={text} at={at} onClose={() => setAt(null)} />}
     </>
@@ -176,32 +177,6 @@ function Bubble({ text, at, onClose }: { text: string; at: Rect; onClose: () => 
         </Animated.View>
       </Pressable>
     </Modal>
-  );
-}
-
-/**
- * The (i) itself: a ring, a dot and a bar, drawn as a bare outline in the
- * neutral ink. It is the one glyph in the set that is not filled, because a
- * filled mark there would read as a control announcing activity it does not
- * have.
- */
-function InfoGlyph({ color, size }: { color: string; size: number }) {
-  const u = size / 16;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View
-        style={{
-          position: 'absolute',
-          width: 14 * u,
-          height: 14 * u,
-          borderRadius: 7 * u,
-          borderWidth: 1.3 * u,
-          borderColor: color,
-        }}
-      />
-      <View style={{ width: 1.8 * u, height: 1.8 * u, borderRadius: 0.9 * u, backgroundColor: color, marginTop: -1.4 * u }} />
-      <View style={{ width: 1.3 * u, height: 4.4 * u, borderRadius: 0.65 * u, backgroundColor: color, marginTop: 1.1 * u }} />
-    </View>
   );
 }
 

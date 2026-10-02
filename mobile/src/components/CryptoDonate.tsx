@@ -20,7 +20,7 @@ import { TYPE, inkFor } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../donate';
 import { GlimButton, NotchCard } from './glim';
-import { Cross, Paste } from './IconBadge';
+import { IconClose, IconCopy } from './glyphs';
 import { NoArrival } from './Moving';
 import { Text } from './Text';
 
@@ -146,7 +146,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
                     <GlimButton
                       hue={coinIndex}
                       label={copied ? t('settings.cryptoCopied') : t('settings.cryptoCopy')}
-                      icon={(ink) => <Paste color={ink} />}
+                      icon={(ink) => <IconCopy color={ink} />}
                       onPress={() => {
                         void Clipboard.setStringAsync(network.address)
                           .then(() => {
@@ -211,7 +211,7 @@ export function CryptoDonate({ visible, onClose }: { visible: boolean; onClose: 
               </ScrollView>
 
               <View style={styles.actions}>
-                <GlimButton tone="quiet" label={t('settings.donateClose')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+                <GlimButton tone="quiet" label={t('settings.donateClose')} icon={(ink) => <IconClose color={ink} />} onPress={onClose} />
               </View>
             </NotchCard>
           </Pressable>

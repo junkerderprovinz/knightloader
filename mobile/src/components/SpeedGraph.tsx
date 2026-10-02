@@ -8,10 +8,8 @@ import { Text } from './Text';
 /**
  * The download speed over the last minute, as bars, with both axes labelled.
  *
- * Bars from plain views rather than a charting library or an SVG path: this app
- * has no react-native-svg, and pulling a native module in for a sparkline would
- * mean a new prebuild and a new .apk story. A bar chart also leaves a gap where
- * a sample was zero rather than interpolating a line through it.
+ * Bars rather than a line: a bar chart leaves a gap where a sample was zero
+ * rather than interpolating a line through it.
  *
  * Scaled to the tallest sample in the window rather than to an absolute
  * ceiling: a home connection and a gigabit one both want to see their own

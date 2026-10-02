@@ -6,7 +6,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
-import { Cross, Plus } from '../components/IconBadge';
+import { IconAdd, IconClose } from '../components/glyphs';
 import { InfoTip } from '../components/InfoTip';
 import { Text, TextInput } from '../components/Text';
 
@@ -79,12 +79,12 @@ export default function AddDownloadScreen({
           shared button with its glyph. Cancel is quiet: a page has one accent
           button, and it is the one that adds. */}
       <View style={styles.actions}>
-        <GlimButton tone="quiet" grow label={t('addDownload.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onDone} />
+        <GlimButton tone="quiet" grow label={t('addDownload.cancel')} icon={(ink) => <IconClose color={ink} />} onPress={onDone} />
         <GlimButton
           hue={1}
           grow
           label={t('addDownload.button')}
-          icon={(ink) => <Plus color={ink} />}
+          icon={(ink) => <IconAdd color={ink} />}
           busy={busy}
           onPress={submit}
         />

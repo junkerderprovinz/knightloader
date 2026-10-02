@@ -4,7 +4,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
-import { Check } from './IconBadge';
+import { IconCheck } from './glyphs';
 import { TYPE } from '../theme/tokens';
 import { Text, TextInput } from './Text';
 
@@ -286,7 +286,7 @@ export default function ColorPicker({
                 paint it in a colour unrelated to the one being mixed. It is
                 still the same component at the same height and gap, only out of
                 the rotation. */}
-            <GlimButton label={t('settings.pickerDone')} icon={(ink) => <Check color={ink} />} onPress={onClose} />
+            <GlimButton label={t('settings.pickerDone')} icon={(ink) => <IconCheck color={ink} />} onPress={onClose} />
           </View>
         </Pressable>
       </Pressable>

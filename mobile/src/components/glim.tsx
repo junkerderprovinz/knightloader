@@ -4,6 +4,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { IconRefresh } from './glyphs';
 import { InfoTip, Tip } from './InfoTip';
 import { Arrive } from './Moving';
 import { Text } from './Text';
@@ -260,10 +261,7 @@ export function SwatchReset({ onPress, label }: { onPress: () => void; label: st
   return (
     <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={styles.swatchRing}>
       <View style={[styles.swatchGap, { ...corners.pill, backgroundColor: c.surface2 }]}>
-        {/* A counter-clockwise arrow, drawn as an open ring with a head, in the
-            same filled register as every other glyph. */}
-        <View style={[styles.resetRing, { borderColor: c.textSub, ...corners.pill }]} />
-        <View style={[styles.resetHead, { borderBottomColor: c.textSub }]} />
+        <IconRefresh color={c.textSub} size="72%" />
       </View>
     </TouchableOpacity>
   );
@@ -417,23 +415,8 @@ const styles = StyleSheet.create({
   swatchRing: { flex: 1, maxWidth: 32, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
   swatchGap: { width: '88%', height: '88%', alignItems: 'center', justifyContent: 'center' },
   swatchFill: { width: '86%', height: '86%' },
-  // The reset glyph: three quarters of a ring, plus a head on the open end.
-  resetRing: { width: '58%', height: '58%', borderWidth: 1.5, borderRightColor: 'transparent' },
   statusBadge: { paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
   statusText: { fontSize: TYPE.caption, fontWeight: '600', letterSpacing: 0.2 },
-  resetHead: {
-    position: 'absolute',
-    right: '18%',
-    top: '20%',
-    width: 0,
-    height: 0,
-    borderStyle: 'solid',
-    borderLeftWidth: 2.4,
-    borderRightWidth: 2.4,
-    borderBottomWidth: 4,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-  },
 });
 
 /**

@@ -14,7 +14,8 @@ import { useShake } from '../theme/MotionContext';
 import { NUM, TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from '../components/glim';
-import IconBadge, { Back, Connect, Paste, Scan, boxForInk } from '../components/IconBadge';
+import IconBadge, { Scan, boxForInk } from '../components/IconBadge';
+import { IconBack, IconLink, IconPaste } from '../components/glyphs';
 import { InfoTip } from '../components/InfoTip';
 import { MovingScroll } from '../components/Moving';
 import * as Clipboard from 'expo-clipboard';
@@ -224,7 +225,7 @@ export default function RelayConnectScreen({
           heading, ahead of the field it explains, rather than standing as a
           paragraph over it (GlimStone rule 8). */}
       <View style={styles.topBar}>
-        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<IconBack color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
         <InfoTip text={t('relay.hint')} />
       </View>
@@ -291,7 +292,7 @@ export default function RelayConnectScreen({
       <GlimButton
         hue={0}
         label={t('relay.pasteButton')}
-        icon={(ink) => <Paste color={ink} />}
+        icon={(ink) => <IconPaste color={ink} />}
         disabled={searching}
         onPress={async () => {
           setError(null);
@@ -304,7 +305,7 @@ export default function RelayConnectScreen({
       <GlimButton
         hue={1}
         label={t('relay.joinButton')}
-        icon={(ink) => <Connect color={ink} />}
+        icon={(ink) => <IconLink color={ink} />}
         busy={searching}
         disabled={!check.complete}
         // Wrapped rather than passed directly: onPress hands its handler the
@@ -352,7 +353,7 @@ export default function RelayConnectScreen({
           {sibs.length === 0 && !searching && (
             <View style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
               <View style={styles.emptyIcon}>
-                <Connect color={c.textMuted} size={boxForInk(26)} />
+                <IconLink color={c.textMuted} size={boxForInk(26)} />
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
             </View>

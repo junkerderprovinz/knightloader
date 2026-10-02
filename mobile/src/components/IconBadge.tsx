@@ -3,6 +3,7 @@ import { Image, StyleSheet, TouchableOpacity, View, type ImageStyle, type StyleP
 import { useAppearance } from '../theme/AppearanceContext';
 import { usePress } from '../theme/MotionContext';
 import { BTN_H } from '../theme/tokens';
+import { GLYPH_BOX, GLYPH_INK, IconAdd, IconPlay, IconStop, type GlyphProps } from './glyphs';
 import { Text } from './Text';
 
 // A small square glyph button: the "+" that opens Connect, the gear that opens
@@ -33,8 +34,8 @@ const BADGE = BTN_H;
  * house height lands on the first of those rather than extrapolating a third
  * pair. A proportion rather than a size, because a lone glyph has no text
  * beside it to be measured against. Beside a label a glyph is the label's size
- * instead (GLYPH_BOX below), since there the mark and its words have to read
- * as one control and neither may outweigh the other.
+ * instead (GLYPH_BOX), since there the mark and its words have to read as one
+ * control and neither may outweigh the other.
  *
  * One constant for both the drawn glyphs and the character fallback, or the two
  * arrive at different sizes in identical boxes.
@@ -42,15 +43,11 @@ const BADGE = BTN_H;
 const BADGE_INK = BADGE / 2;
 
 /**
- * What to ask a glyph for so its ink lands on `ink` points.
- *
- * A glyph's `size` is the box it is given and the drawn shape is smaller than
- * that (see GLYPH_EXTENT below), so a badge that wants 18 points of ink cannot
- * pass 18. A function rather than a constant, so changing how much of its box a
- * glyph fills carries through here instead of leaving a second number behind.
+ * What to ask a glyph for so its ink lands on `ink` points. A glyph's `size` is
+ * its box, and its ink fills GLYPH_INK of that.
  */
 export function boxForInk(ink: number): number {
-  return (ink * GLYPH_BOX) / GLYPH_EXTENT;
+  return ink / GLYPH_INK;
 }
 
 /**
@@ -65,10 +62,10 @@ export function boxForInk(ink: number): number {
  * its own box. A caller names the meaning and the box decides how big it is
  * drawn, so every badge in the app agrees without any of them being edited.
  */
-const SYMBOL_GLYPHS: Record<string, (p: { color: string; size?: number }) => ReactNode> = {
-  '+': Plus,
-  '▶': Play,
-  '■': Stop,
+const SYMBOL_GLYPHS: Record<string, (p: GlyphProps) => ReactNode> = {
+  '+': IconAdd,
+  '▶': IconPlay,
+  '■': IconStop,
 };
 
 export default function IconBadge({
@@ -82,8 +79,8 @@ export default function IconBadge({
    *  drawn glyph through SYMBOL_GLYPHS; a character with no glyph behind it
    *  yet is printed as text. Ignored when `icon` is given. */
   symbol?: string;
-  /** A drawn glyph, for anything the font cannot say plainly - see Trash. Its
-   *  `size` is set here, so a call site neither states one nor needs to. */
+  /** A drawn glyph, such as IconTrash. Its `size` is set here, so a call site
+   *  neither states one nor needs to. */
   icon?: ReactNode;
   onPress: () => void;
   accessibilityLabel: string;
@@ -130,8 +127,8 @@ export default function IconBadge({
 /**
  * Whatever the badge was given, drawn at the badge's own size.
  *
- * A caller hands over a finished element (`icon={<Trash color={...} />}`) or a
- * character (`symbol="+"`), and neither says how big the thing should be,
+ * A caller hands over a finished element (`icon={<IconTrash color={...} />}`)
+ * or a character (`symbol="+"`), and neither says how big the thing should be,
  * because the caller does not know what it is standing in. The size is applied
  * here, in the component that owns the square, so every call site lands on one
  * proportion without naming a number.
@@ -159,242 +156,16 @@ function drawGlyph(icon: ReactNode, symbol: string | undefined, color: string): 
   return null;
 }
 
-/* The glyphs, drawn from plain Views.
- *
- * Not emoji, which render in colour and differently on every platform, and not
- * an icon library: react-native-svg is a native module, so pulling one in for a
- * handful of shapes would mean a new prebuild and a new .apk story.
- *
- * One optical size for all of them. A glyph is asked for at `size` and draws to
- * GLYPH_EXTENT of it whatever shape it is, so three buttons in a column do not
- * wear three visibly different icons. Each glyph declares the extent of the
- * shape it draws in its own units and `unit()` scales those units to land on
- * GLYPH_EXTENT, which keeps the numbers inside a glyph readable as proportions
- * of that glyph: the bin is still 13 wide with a lid 1.5 tall.
- *
- * The box below is the default rather than the rule. A glyph beside a label
- * takes it; a glyph alone in a square is sized by that square through
- * boxForInk, because the proportion a lone glyph owes is to its frame. One
- * number serving both leaves a glyph correct beside a word and too small inside
- * a badge. */
-
 /**
- * The box a glyph is given, in points, when nothing else is said: its size
- * beside a label. Every labelled button here is the key control, where
- * GlimStone sets that glyph at 16 against the 14 of an ordinary button, so a
- * row of buttons reads as buttons and not as a row of icons.
+ * Scan: the four corner marks of a viewfinder. Nothing in the middle, because
+ * what goes in the middle is the thing being scanned. GlimStone has no glyph
+ * for scanning, so it is drawn here from Views, to the share of its box the
+ * standard glyphs fill.
  */
-const GLYPH_BOX = 16;
-
-/**
- * How much of that box the drawn shape fills, on its longest side, four fifths
- * of it. Below the box so a round shape and a square one look equally big
- * beside each other, and so a glyph never touches the edge of the badge it
- * sits in.
- */
-const GLYPH_EXTENT = 12.8;
-
-/**
- * The drawing unit for a glyph whose own longest side is `natural` units.
- *
- * `unit(size, 15)` for a shape laid out across a full 15-unit grid, `unit(size,
- * 11)` for one that only ever reaches 11 - both come out drawn at the same
- * height. Callers still pass a `size` in points and get a glyph that fits it.
- */
-function unit(size: number, natural: number): number {
-  return (size * GLYPH_EXTENT) / (GLYPH_BOX * natural);
-}
-
-/**
- * Back: a solid triangle pointing left.
- *
- * Not the "‹" character, a typographic quotation mark that renders at the
- * font's weight rather than the badge's and belongs to no icon set. Every glyph
- * in this language is a filled solid shape.
- */
-export function Back({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // The triangle stands 11 units tall in its own numbers below.
-  const u = unit(size, 11);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* An arrow assembled from parts, a rotated square for the head or two
-          bars meeting in a V with a shaft laid on, reads as an assembly at 15
-          points, because the eye sees the seams before it sees the arrow. A
-          triangle has no seams.
-
-          Drawn with a zero-size box and three borders, which is how a solid
-          polygon is made without a polygon primitive: no width or height,
-          transparent top and bottom borders, one coloured right border. The
-          result is a filled triangle rather than a drawn line, so the project's
-          rule against borders, which is about visible edges between surfaces,
-          still holds. */}
-      <View
-        style={{
-          width: 0,
-          height: 0,
-          borderStyle: 'solid',
-          borderTopWidth: 5.5 * u,
-          borderBottomWidth: 5.5 * u,
-          borderRightWidth: 8 * u,
-          borderTopColor: 'transparent',
-          borderBottomColor: 'transparent',
-          borderRightColor: color,
-          // The shape is 8 wide against a 15 box, so it sits 3.5 from either
-          // edge on its own. Nudged left so the point is centred rather than
-          // the bounding box, which would look pushed towards the flat side.
-          marginEnd: 1 * u,
-        }}
-      />
-    </View>
-  );
-}
-
-/**
- * Plus: add something. Two crossed bars.
- *
- * Shorter and thicker than the "+" character, which is the house rule for this
- * mark and for the X (GlimStone's glyph reference, rule 7): a cross drawn to
- * the full grid is long and thin, and looks oversized and weak at once. Ten
- * units of arm against 2.8 of bar reads as a mark.
- */
-export function Plus({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // The arms span 10 units of this glyph's own grid.
-  const u = unit(size, 10);
-  // Absolutely placed with no insets, so the parent's centring puts them both
-  // in the middle, the construction the gear's teeth use.
-  const bar = { position: 'absolute' as const, backgroundColor: color, borderRadius: 1.4 * u };
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={[bar, { width: 10 * u, height: 2.8 * u }]} />
-      <View style={[bar, { width: 2.8 * u, height: 10 * u }]} />
-    </View>
-  );
-}
-
-/**
- * Play: start the queue. The Back triangle, pointing the other way.
- *
- * The same numbers and the same construction, a zero-size box with two
- * transparent borders and one coloured one, because two separate drawings of
- * one shape drift apart the moment either is touched. Only the coloured edge
- * and the nudge change sides.
- */
-export function Play({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // The triangle stands 11 units tall, as Back's does.
-  const u = unit(size, 11);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View
-        style={{
-          width: 0,
-          height: 0,
-          borderStyle: 'solid',
-          borderTopWidth: 5.5 * u,
-          borderBottomWidth: 5.5 * u,
-          borderLeftWidth: 8 * u,
-          borderTopColor: 'transparent',
-          borderBottomColor: 'transparent',
-          borderLeftColor: color,
-          // Nudged so the point is centred rather than the bounding box, which
-          // would look pushed towards the flat side.
-          marginStart: 1 * u,
-        }}
-      />
-    </View>
-  );
-}
-
-/**
- * Stop: halt the queue. A filled square, the shared assortment's own answer for
- * "stop, abort".
- *
- * One of these is on screen at a time. The queue badge shows the offer that is
- * not already true, a triangle while the queue is halted and a square while it
- * runs, so the change is what tells them apart and the accessible label says
- * which in words.
- *
- * The language's pair rule does not apply here. It governs a two-option pair
- * drawn side by side with only the active one filled, where the silhouettes
- * carry the whole difference and a round shape against an angular one is the
- * pairing that survives 16 points; a play triangle beside a stop square is
- * named there as the failure of that test. If this control is ever rebuilt as
- * such a pair, the second segment needs a different silhouette, a power ring
- * against this triangle, rather than this square moved into it.
- */
-export function Stop({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // A square is as tall as it is wide, so its own grid is its extent.
-  const u = unit(size, 10);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 10 * u, height: 10 * u, backgroundColor: color, borderRadius: 1.2 * u }} />
-    </View>
-  );
-}
-
-/** Paste: a clipboard with its clip. Two filled rectangles and a bar, which is
- *  all a clipboard is at this size. */
-export function Paste({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Clip (2.6) plus board (12) less their overlap (1) = 13.6 units tall.
-  const u = unit(size, 13.6);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* The clip, overlapping the board's top edge. */}
-      <View
-        style={{
-          width: 6 * u,
-          height: 2.6 * u,
-          backgroundColor: color,
-          borderRadius: 0.8 * u,
-          marginBottom: -1 * u,
-          zIndex: 1,
-        }}
-      />
-      <View
-        style={{
-          width: 11 * u,
-          height: 12 * u,
-          backgroundColor: color,
-          borderRadius: 1.6 * u,
-        }}
-      />
-    </View>
-  );
-}
-
-/** Connect: a plug, drawn as a body with two pins. The one glyph that says
- *  "join something" without needing a word beside it. */
-export function Connect({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Pins (3.5) plus body (7) less their overlap (0.4) = 10.1 units tall.
-  const u = unit(size, 10.1);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ flexDirection: 'row', gap: 2 * u, marginBottom: -0.4 * u }}>
-        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
-        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
-      </View>
-      <View
-        style={{
-          width: 9 * u,
-          height: 7 * u,
-          backgroundColor: color,
-          borderBottomLeftRadius: 4.5 * u,
-          borderBottomRightRadius: 4.5 * u,
-          borderTopLeftRadius: 1 * u,
-          borderTopRightRadius: 1 * u,
-        }}
-      />
-    </View>
-  );
-}
-
-/** Scan: the four corner marks of a viewfinder. Nothing in the middle, because
- *  what goes in the middle is the thing being scanned. */
 export function Scan({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
   // The corner marks are pinned to the edges of their frame, so this one is
-  // sized by shrinking the frame rather than by scaling numbers inside it. The
-  // same GLYPH_EXTENT either way, reached the only way an edge-anchored shape
-  // can reach it.
-  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
+  // sized by shrinking the frame rather than by scaling numbers inside it.
+  const frame = size * GLYPH_INK;
   const u = frame / 15;
   const arm = { position: 'absolute' as const, backgroundColor: color };
   const ecke = (oben: boolean, links: boolean) => (
@@ -435,84 +206,6 @@ export function Scan({ color, size = GLYPH_BOX }: { color: string; size?: number
   );
 }
 
-/** A waste bin: handle, lid and a solid body. */
-export function Trash({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Handle (1.5+0.5), lid (1.5), gap (1) and body (9.5) = 14 units tall.
-  const u = unit(size, 14);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* handle */}
-      <View style={{ width: 5 * u, height: 1.5 * u, backgroundColor: color, marginBottom: 0.5 * u }} />
-      {/* lid */}
-      <View style={{ width: 13 * u, height: 1.5 * u, backgroundColor: color }} />
-      {/* A solid body: three uprights and a base is what a stroked bin glyph
-          draws, and a line-drawn glyph among filled badges is what the icon
-          rule rules out. The slots are gone rather than faked, because React
-          Native cannot punch a hole and a slot painted in the background colour
-          is wrong the moment the badge sits on a different surface. A bin at
-          15px reads from its silhouette. */}
-      <View
-        style={{
-          width: 10 * u,
-          height: 9.5 * u,
-          marginTop: 1 * u,
-          backgroundColor: color,
-          borderBottomLeftRadius: 1.5 * u,
-          borderBottomRightRadius: 1.5 * u,
-        }}
-      />
-    </View>
-  );
-}
-
-/**
- * The cog that opens Settings: Streamline's, the shared assortment's IconGear,
- * which stands for Settings and for nothing inside it.
- *
- * Its teeth and bevels are more than rotated bars can draw, so it is a white
- * bitmap tinted like the brand marks below, and the hole in its middle is a
- * real one rather than a disc painted in whatever colour is behind it.
- */
-export function Gear({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // A bitmap is sized by shrinking its frame, like the viewfinder's corner
-  // marks, because there are no units inside it to scale. With the ink reaching
-  // the canvas edge, `contain` would draw it to the full box while every
-  // hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
-  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Tinted source={require('../../assets/cog.png')} color={color} style={{ width: frame, height: frame }} />
-    </View>
-  );
-}
-
-/**
- * Disable and enable: the power mark, a ring open at the top with a stem
- * through the opening, the glyph the web interface puts on the same two verbs.
- *
- * `hole` paints the ring's inside and its opening, for the reason Gear gives.
- */
-export function Power({ color, hole, size = GLYPH_BOX }: { color: string; hole: string; size?: number }) {
-  const u = unit(size, 15);
-  const at = (left: number, top: number, width: number, height: number) => ({
-    position: 'absolute' as const,
-    left: left * u,
-    top: top * u,
-    width: width * u,
-    height: height * u,
-  });
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 15 * u, height: 15 * u }}>
-        <View style={[at(1, 2, 13, 13), { borderRadius: 6.5 * u, backgroundColor: color }]} />
-        <View style={[at(4, 5, 7, 7), { borderRadius: 3.5 * u, backgroundColor: hole }]} />
-        <View style={[at(5, 1, 5, 6), { backgroundColor: hole }]} />
-        <View style={[at(6.25, 0, 2.5, 8), { borderRadius: 1.25 * u, backgroundColor: color }]} />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   badge: {
     width: BADGE,
@@ -524,7 +217,6 @@ const styles = StyleSheet.create({
   // the thing inside it cannot change independently.
   symbol: { fontWeight: '700' },
   fill: { width: '100%', height: '100%' },
-  mailClosed: { top: '-8.5%' },
   // A size of its own although the insets would give one: a bundled image
   // brings its pixel size as a default, and that wins over the insets.
   layer: { position: 'absolute', top: 0, start: 0, width: '100%', height: '100%' },
@@ -532,10 +224,8 @@ const styles = StyleSheet.create({
 
 /**
  * A white bitmap tinted with the colour it is handed, which is what keeps an
- * Image in the theme. It draws what plain Views cannot: a logo, which is
- * recognised or it is not, so an approximation out of rounded rectangles would
- * be worse than none, and the cog above. Every mark is trimmed to its ink, so
- * its longer side fills the canvas.
+ * Image in the theme. It draws the brand marks GlimStone's glyph list has no
+ * entry for, each trimmed to its ink so its longer side fills the canvas.
  */
 function Tinted({ source, color, style }: { source: number; color: string; style: StyleProp<ImageStyle> }) {
   return <Image source={source} style={style} tintColor={color} resizeMode="contain" accessibilityIgnoresInvertColors />;
@@ -543,11 +233,6 @@ function Tinted({ source, color, style }: { source: number; color: string; style
 
 /* The marks on the About card's README buttons. Each fills the mark box the
  * button gives it, so the button and not the mark decides how big it is. */
-
-/** GitHub's own mark. */
-export function Github({ color }: { color: string }) {
-  return <Tinted source={require('../../assets/github-mark.png')} color={color} style={styles.fill} />;
-}
 
 /** PayPal's double P, from Simple Icons (CC0), as on the other two surfaces. */
 export function PayPal({ color }: { color: string }) {
@@ -579,27 +264,10 @@ export function CoffeeArt({ cup, words }: { cup: string; words: string }) {
   );
 }
 
-/**
- * The Email button's envelope, Material's `email` and `email-open`, open while
- * the button is pressed. Both were drawn in one box that leaves room for the
- * open flap, so the envelope does not jump when it opens.
- */
-export function MailMark({ open, color }: { open: boolean; color: string }) {
-  return (
-    <Tinted
-      source={open ? require('../../assets/mail-open.png') : require('../../assets/mail-closed.png')}
-      color={color}
-      // The closed envelope leaves the flap's room above it empty (21 of 124
-      // rows), so it is lifted by half of that to sit centred like the others.
-      style={open ? styles.fill : [styles.fill, styles.mailClosed]}
-    />
-  );
-}
-
 /* The Apps cards' marks, rendered from the ones the web interface's Apps page
- * draws: Windows, Apple, Docker and Unraid from Dashboard Icons, Tux and the browsers'
+ * draws: Windows, Apple and Unraid from Dashboard Icons, Tux and the browsers'
  * one-ink marks from Simple Icons (CC0), the ZIP from Font Awesome Free (CC BY
- * 4.0). */
+ * 4.0). Docker wears GlimStone's IconContainers. */
 
 export function WindowsMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/windows-mark.png')} color={color} style={styles.fill} />;
@@ -607,10 +275,6 @@ export function WindowsMark({ color }: { color: string }) {
 
 export function AppleMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/apple-mark.png')} color={color} style={styles.fill} />;
-}
-
-export function DockerMark({ color }: { color: string }) {
-  return <Tinted source={require('../../assets/docker-mark.png')} color={color} style={styles.fill} />;
 }
 
 /** Unraid in its own colours. Its button waits for the Community Applications
@@ -645,79 +309,4 @@ export function ChromeMark({ lit, color }: { lit: boolean; color: string }) {
  *  never pressed and needs no one-ink version. */
 export function FirefoxMark() {
   return <Image source={require('../../assets/firefox-mark.png')} style={styles.fill} resizeMode="contain" />;
-}
-
-/**
- * Cross: close, cancel, the way out of a window. The Plus turned a quarter,
- * built the same way from two filled bars, so the two marks match.
- */
-export function Cross({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Turned 45 degrees, the 10-unit arms reach about 9 units each way.
-  const u = unit(size, 9);
-  const bar = { position: 'absolute' as const, backgroundColor: color, borderRadius: 1.4 * u };
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 10 * u, height: 10 * u, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '45deg' }] }}>
-        <View style={[bar, { width: 10 * u, height: 2.8 * u }]} />
-        <View style={[bar, { width: 2.8 * u, height: 10 * u }]} />
-      </View>
-    </View>
-  );
-}
-
-/**
- * Check: done, confirmed. Two filled bars forming an L, turned an eighth
- * backwards, which is a check with real geometry rather than a thick stroke.
- */
-export function Check({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // The L is 11 across and 6 up; turned, it spans about 11.8 by 8.2 units, and
-  // the width is what fills the box.
-  const u = unit(size, 11.8);
-  const t = 2.8 * u;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View
-        style={{
-          width: 11 * u,
-          height: 6 * u,
-          // The turned L sits low in its own box, so it is lifted back to the
-          // middle of the glyph's.
-          marginTop: -2.2 * u,
-          transform: [{ rotate: '-45deg' }],
-        }}
-      >
-        <View style={{ position: 'absolute', start: 0, top: 0, bottom: 0, width: t, backgroundColor: color, borderRadius: 1.2 * u }} />
-        <View style={{ position: 'absolute', start: 0, end: 0, bottom: 0, height: t, backgroundColor: color, borderRadius: 1.2 * u }} />
-      </View>
-    </View>
-  );
-}
-
-/**
- * Folder: a tab and a body, which is all a folder is at this size.
- *
- * The empty package list's mark. A muted glyph at reduced opacity says what
- * would be there, and the words underneath say why it is not.
- */
-export function Folder({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Wider than it is tall (13 across against 2 + 9 less their 0.6 overlap), so
-  // the width fills the box.
-  const u = unit(size, 13);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 13 * u }}>
-        <View
-          style={{
-            width: 6 * u,
-            height: 2 * u,
-            marginBottom: -0.6 * u,
-            backgroundColor: color,
-            borderTopLeftRadius: 0.8 * u,
-            borderTopRightRadius: 0.8 * u,
-          }}
-        />
-        <View style={{ width: 13 * u, height: 9 * u, backgroundColor: color, borderRadius: 1.4 * u }} />
-      </View>
-    </View>
-  );
 }

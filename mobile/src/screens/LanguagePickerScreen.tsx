@@ -6,6 +6,7 @@ import { getLanguageOverride } from '../storage/languagePreference';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { Text } from '../components/Text';
+import { IconBack, IconCheck } from '../components/glyphs';
 import { CardButton } from '../components/glim';
 import { Arrive, MovingList } from '../components/Moving';
 
@@ -32,8 +33,9 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={[styles.back, { color: c.textMuted }]}>‹ {t('settings.title')}</Text>
+        <TouchableOpacity onPress={onBack} style={styles.back}>
+          <IconBack color={c.textMuted} size={TYPE.dense} />
+          <Text style={[styles.backLabel, { color: c.textMuted }]}>{t('settings.title')}</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: c.text }]}>{t('settings.language')}</Text>
       </View>
@@ -62,7 +64,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
               >
                 <Text style={styles.flag}>{item.flag}</Text>
                 <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
-                {isSelected && <Text style={[styles.check, { color: accentInk }]}>✓</Text>}
+                {isSelected && <IconCheck color={accentInk} size={TYPE.body} />}
               </CardButton>
             </Arrive>
           );
@@ -79,7 +81,8 @@ const styles = StyleSheet.create({
   topBar: { padding: 16, paddingTop: 56, gap: 4 },
   // Off the scale in theme/tokens.ts, like every other size on this screen:
   // 13 and 15 are rungs between dense and body that the table does not have.
-  back: { fontSize: TYPE.dense },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
+  backLabel: { fontSize: TYPE.dense },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   row: {
@@ -96,8 +99,4 @@ const styles = StyleSheet.create({
   // is why it stays a number while the heading beside it does not.
   flag: { fontSize: 20, width: 30 },
   rowLabel: { fontSize: TYPE.body, flex: 1 },
-  // The tick rides the row's own text size rather than a number of its own, so
-  // it sits on one line with the label and reads as part of it.
-
-  check: { fontSize: TYPE.body, fontWeight: '700' },
 });

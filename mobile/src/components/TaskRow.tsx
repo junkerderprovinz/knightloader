@@ -8,7 +8,8 @@ import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
 import { isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
 import { InfoTip } from './InfoTip';
-import IconBadge, { Power } from './IconBadge';
+import IconBadge from './IconBadge';
+import { IconPower } from './glyphs';
 import { Text } from './Text';
 
 // The debrid services that fetch torrents, by the resolver id the server sends.
@@ -284,7 +285,7 @@ export default function TaskRow({
           be parked on its own. */}
       {onSwitch && (
         <IconBadge
-          icon={<Power color={c.textSub} hole={c.surface2} />}
+          icon={<IconPower color={c.textSub} />}
           onPress={onSwitch}
           accessibilityLabel={t(task.enabled ? 'task.disable' : 'task.enable')}
         />

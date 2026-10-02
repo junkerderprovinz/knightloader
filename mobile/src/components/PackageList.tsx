@@ -12,7 +12,8 @@ import {
 } from '../api/taskState';
 import TaskRow, { STATE_KEYS, statusColor } from './TaskRow';
 import DragList, { type DragRow } from './DragList';
-import IconBadge, { Folder, Power, Trash } from './IconBadge';
+import IconBadge from './IconBadge';
+import { IconCollapse, IconExpand, IconFolder, IconPower, IconTrash } from './glyphs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { NotchLabel } from './glim';
 import { Arrive } from './Moving';
@@ -338,7 +339,7 @@ export default function PackageList({
           {/* The count is a badge of its own, as beside the web's card titles. */}
           <NotchLabel title={section.title} hue={section.hue} />
           <NotchLabel title={String(section.tasks.length)} hue={section.hue} />
-          <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
+          {auf ? <IconCollapse color={c.textSub} size={12} /> : <IconExpand color={c.textSub} size={12} />}
         </TouchableOpacity>
         {seeds.length > 0 && (
           <IconBadge
@@ -372,7 +373,7 @@ export default function PackageList({
         const stopped = onSeeding ? pkg.tasks.filter(seedingOff) : [];
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, ...corners.control }]}>
-            {/* The whole caption is the hit target, not the chevron: a folder
+            {/* The whole caption is the hit target, not the fold glyph: a folder
                 you open by hitting a 12-point glyph is a folder you miss. */}
             <TouchableOpacity
               style={styles.headerText}
@@ -383,9 +384,7 @@ export default function PackageList({
               accessibilityLabel={t(auf ? 'packages.collapse' : 'packages.expand')}
             >
               <View style={styles.headerTop}>
-                {/* Rotated rather than two glyphs: one character, one meaning,
-                    and the direction says which way it goes. */}
-                <Text style={[styles.chevron, { color: c.textSub }, auf && styles.chevronOpen]}>›</Text>
+                {auf ? <IconCollapse color={c.textSub} size={12} /> : <IconExpand color={c.textSub} size={12} />}
                 <Text style={[styles.headerName, { color: allOff ? c.textMuted : c.text }]} numberOfLines={1}>
                   {pkg.name || t('packages.loose')}
                 </Text>
@@ -418,7 +417,7 @@ export default function PackageList({
             </TouchableOpacity>
             {onSetEnabled && (
               <IconBadge
-                icon={<Power color={c.textSub} hole={c.surface2} />}
+                icon={<IconPower color={c.textSub} />}
                 onPress={() => scharf || onSetEnabled(pkg.tasks, allOff)}
                 accessibilityLabel={t(allOff ? 'packages.enable' : 'packages.disable')}
               />
@@ -448,7 +447,7 @@ export default function PackageList({
             )}
             {onDeletePackage && (
               <IconBadge
-                icon={<Trash color={c.textSub} />}
+                icon={<IconTrash color={c.textSub} />}
                 onPress={() => scharf || confirmDelete(pkg)}
                 accessibilityLabel={t('packages.delete')}
               />
@@ -479,7 +478,7 @@ export default function PackageList({
         empty={
           <Arrive style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
             <View style={styles.emptyGlyph}>
-              <Folder color={c.textMuted} size={44} />
+              <IconFolder color={c.textMuted} size={44} />
             </View>
             <Text style={[styles.emptyText, { color: c.textMuted }]}>{empty}</Text>
           </Arrive>
@@ -491,7 +490,7 @@ export default function PackageList({
         message={t('packages.deleteConfirmMessage', { n: confirming?.tasks.length ?? 0 })}
         cancelLabel={t('settings.cancel')}
         confirmLabel={t('packages.deleteConfirmButton')}
-        confirmIcon={(ink) => <Trash color={ink} />}
+        confirmIcon={(ink) => <IconTrash color={ink} />}
         onCancel={() => setConfirming(null)}
         onConfirm={() => {
           const pkg = confirming;
@@ -527,8 +526,6 @@ const styles = StyleSheet.create({
   heading: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18 },
   headingFold: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
-  chevron: { fontSize: 17, lineHeight: 20, width: 12, textAlign: 'center' },
-  chevronOpen: { transform: [{ rotate: '90deg' }] },
   // Body, off the table. 15 is not a step of the scale, and one 15 beside the
   // 14s around it is how a four-step scale grows a fifth step nobody chose.
   headerName: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },

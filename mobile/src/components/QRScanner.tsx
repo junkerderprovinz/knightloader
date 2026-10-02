@@ -6,7 +6,7 @@ import { useMotion } from '../theme/MotionContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { GlimButton } from './glim';
-import { Cross } from './IconBadge';
+import { IconClose } from './glyphs';
 import { Text } from './Text';
 
 // A full-screen modal scanner rather than a screen of its own: a caller that
@@ -79,7 +79,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
             than a pill in the corner. Quiet, because leaving is not what this
             window is for. */}
         <View style={styles.footer}>
-          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+          <GlimButton tone="quiet" label={t('qr.cancel')} icon={(ink) => <IconClose color={ink} />} onPress={onClose} />
         </View>
       </View>
     </Modal>

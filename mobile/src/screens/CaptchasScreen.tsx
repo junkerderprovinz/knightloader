@@ -5,7 +5,8 @@ import { expiryMs } from '../api/captcha';
 import type { ServerConnection } from '../api/types';
 import { CaptchaCard } from '../components/CaptchaCard';
 import { useCaptchas } from '../components/CaptchaWatch';
-import IconBadge, { Back, Check, boxForInk } from '../components/IconBadge';
+import IconBadge, { boxForInk } from '../components/IconBadge';
+import { IconBack, IconCheck } from '../components/glyphs';
 import { Arrive, MovingList } from '../components/Moving';
 import { Text } from '../components/Text';
 import { useT } from '../i18n/I18nContext';
@@ -59,7 +60,7 @@ export default function CaptchasScreen({ conn, onBack }: { conn: ServerConnectio
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<IconBack color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <View style={styles.titles}>
           <Text style={[styles.title, { color: c.text }]}>{t('captcha.screenTitle')}</Text>
           <Text style={[styles.instance, { color: c.textMuted }]} numberOfLines={1}>
@@ -93,7 +94,7 @@ export default function CaptchasScreen({ conn, onBack }: { conn: ServerConnectio
           loaded ? (
             <Arrive style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
               <View style={styles.emptyIcon}>
-                <Check color={c.textMuted} size={boxForInk(26)} />
+                <IconCheck color={c.textMuted} size={boxForInk(26)} />
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('captcha.empty')}</Text>
             </Arrive>

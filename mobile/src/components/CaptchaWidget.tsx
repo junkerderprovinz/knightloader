@@ -15,7 +15,8 @@ import { useMotion } from '../theme/MotionContext';
 import { TYPE, inkFor } from '../theme/tokens';
 import { useCaptchas } from './CaptchaWatch';
 import { GlimButton } from './glim';
-import IconBadge, { Cross } from './IconBadge';
+import IconBadge from './IconBadge';
+import { IconClose } from './glyphs';
 import { InfoTip } from './InfoTip';
 import { NoArrival } from './Moving';
 import { Text } from './Text';
@@ -153,7 +154,7 @@ export function CaptchaWidget({
                 </Text>
               ) : null}
             </View>
-            <IconBadge icon={<Cross color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
+            <IconBadge icon={<IconClose color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
           </View>
 
           {status === 'error' || status === 'unsolvable' ? (

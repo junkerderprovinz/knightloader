@@ -7,7 +7,8 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { contentMax, useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Connect, Gear, boxForInk } from '../components/IconBadge';
+import IconBadge, { boxForInk } from '../components/IconBadge';
+import { IconGear, IconLink } from '../components/glyphs';
 import SpeedGraph from '../components/SpeedGraph';
 import { CardButton, DefaultBadge, GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, fmtSpeed, type InstanceStats } from '../api/stats';
@@ -189,7 +190,7 @@ export default function ConnectionsScreen({
         <View style={styles.badgeRow}>
           <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
           <IconBadge
-            icon={<Gear color={c.textSub} />}
+            icon={<IconGear color={c.textSub} />}
             onPress={onOpenSettings}
             accessibilityLabel={t('settings.title')}
           />
@@ -407,7 +408,7 @@ export default function ConnectionsScreen({
           loaded ? (
             <Arrive style={[styles.empty, { backgroundColor: c.surface, ...corners.card }]}>
               <View style={styles.emptyIcon}>
-                <Connect color={c.textMuted} size={boxForInk(26)} />
+                <IconLink color={c.textMuted} size={boxForInk(26)} />
               </View>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
               <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />

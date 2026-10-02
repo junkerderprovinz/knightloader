@@ -9,7 +9,8 @@ import { useCaptchas } from '../components/CaptchaWatch';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Back, Trash } from '../components/IconBadge';
+import IconBadge from '../components/IconBadge';
+import { IconBack, IconTrash } from '../components/glyphs';
 import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtSpeed } from '../api/stats';
@@ -165,7 +166,7 @@ export default function DownloadsScreen({
         {/* The way out is a badge to the left of the name, as in Settings. A
             text button naming a destination is a second shape for the one
             meaning this app already draws one way. */}
-        <IconBadge icon={<Back color={c.textSub} />} onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<IconBack color={c.textSub} />} onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
         <View style={styles.topBarLeft}>
           <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
           {/* Only while it is not connected. Connected is the ordinary case, so
@@ -204,7 +205,7 @@ export default function DownloadsScreen({
           )}
           {!peer && onRemoveConnection && (
             <IconBadge
-              icon={<Trash color={c.textSub} />}
+              icon={<IconTrash color={c.textSub} />}
               onPress={onRemoveConnection}
               accessibilityLabel={t('connections.remove')}
             />

@@ -27,22 +27,17 @@ import {
 } from '../components/glim';
 import IconBadge, {
   AppleMark,
-  Back,
   BitcoinLetter,
   ChromeMark,
   CoffeeArt,
-  DockerMark,
   FirefoxMark,
-  Github,
   LinuxMark,
-  MailMark,
-  Paste,
   PayPal,
-  Trash,
   UnraidMark,
   WindowsMark,
   ZipMark,
 } from '../components/IconBadge';
+import { IconBack, IconContainers, IconCopy, IconGithub, IconMail, IconTrash } from '../components/glyphs';
 import { InfoTip } from '../components/InfoTip';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CryptoDonate } from '../components/CryptoDonate';
@@ -317,7 +312,7 @@ export default function SettingsScreen({
             points against the 44 both platforms' guidelines call the minimum.
             hitSlop is not the fix, since it widens the target invisibly while
             the thing on screen stays a hairline. */}
-        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<IconBack color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('settings.title')}</Text>
       </View>
 
@@ -729,7 +724,7 @@ export default function SettingsScreen({
             label="Docker"
             sub={dockerCopied ? t('settings.appsCopied') : t('settings.appsDockerSub')}
             hint={`${t('settings.appsDockerHint')} ${dockerRun()}`}
-            mark={({ mark }) => <DockerMark color={mark} />}
+            mark={({ mark }) => <IconContainers color={mark} size="100%" tight />}
             // A failed write leaves the label as it was; the command is still
             // in the (i).
             onPress={() =>
@@ -777,18 +772,13 @@ export default function SettingsScreen({
 
             The About card below carries both routes to reporting, so a third
             door here hard-wired to one of them would be a second answer to a
-            question that card answers. What this card is for is the report.
-
-            Paste, the clipboard glyph, rather than a pair of offset sheets:
-            this family already draws the clipboard for the relay screen's paste
-            button, and a near-identical mark for the opposite direction would
-            be two glyphs for one idea. */}
+            question that card answers. What this card is for is the report. */}
         <View style={styles.buttonRow}>
           <Animated.View style={kopiertStil}>
             <GlimButton
               hue={0}
               label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
-              icon={(ink) => <Paste color={ink} />}
+              icon={(ink) => <IconCopy color={ink} />}
               onPress={() => {
                 // Confirm only once the write has landed, so the label never
                 // claims a copy that did not happen.
@@ -861,17 +851,17 @@ export default function SettingsScreen({
           <ReadmeButton
             brand="github"
             label={t('settings.aboutGithub')}
-            mark={({ mark }) => <Github color={mark} />}
+            mark={({ mark }) => <IconGithub color={mark} size="100%" tight />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
           {/* The one button here that reaches the app's own authors, so it
               takes the accent and this card's rainbow position instead of a
-              vendor's colour. Its envelope opens while it is pressed. */}
+              vendor's colour. */}
           <ReadmeButton
             brand="house"
             hue={3}
             label={t('settings.aboutMail')}
-            mark={({ mark, lit }) => <MailMark open={lit} color={mark} />}
+            mark={({ mark }) => <IconMail color={mark} size="100%" tight />}
             // A plain mailto with the subject prefilled, so a mail arrives
             // saying which product it is about. No body, which would read as a
             // form to fill in rather than a message somebody writes.
@@ -932,7 +922,7 @@ export default function SettingsScreen({
         <GlimButton
           tone="quiet"
           label={t('settings.removeAllConnections')}
-          icon={(ink) => <Trash color={ink} />}
+          icon={(ink) => <IconTrash color={ink} />}
           onPress={() => setConfirmingRemoveAll(true)}
         />
       </NotchCard>
@@ -945,7 +935,7 @@ export default function SettingsScreen({
         message={t('settings.removeAllConfirmMessage')}
         cancelLabel={t('settings.cancel')}
         confirmLabel={t('settings.removeAllConfirmButton')}
-        confirmIcon={(ink) => <Trash color={ink} />}
+        confirmIcon={(ink) => <IconTrash color={ink} />}
         onCancel={() => setConfirmingRemoveAll(false)}
         onConfirm={async () => {
           setConfirmingRemoveAll(false);
