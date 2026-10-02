@@ -92,6 +92,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.advanced.mirrorPolicy', hint: 'settings.advanced.mirrorPolicyHint' },
         { key: 'settings.advanced.keepMirrors', hint: 'settings.advanced.keepMirrorsHint' },
         { key: 'settings.advanced.mirrorFailover', hint: 'settings.advanced.mirrorFailoverHint' },
+        { key: 'settings.advanced.rejectDownloaded', hint: 'settings.advanced.rejectDownloadedHint' },
       ],
     },
     {
