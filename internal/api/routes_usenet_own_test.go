@@ -84,7 +84,8 @@ func ownServerClient(t *testing.T, s *nntptest.Server, tune func(*settings.Setti
 			tune(c)
 		}
 	})
-	if err := a.SetUsenetLogin("main", s.User, s.Pass); err != nil {
+	user, pass := s.Login()
+	if err := a.SetUsenetLogin("main", user, pass); err != nil {
 		t.Fatal(err)
 	}
 	a.SetHalted(false)
@@ -108,7 +109,7 @@ func historyRow(t *testing.T, srv *httptest.Server, key string) map[string]any {
 func TestAnNZBFromSonarrIsFetchedFromTheOwnServer(t *testing.T) {
 	t.Parallel()
 	s := nntptest.New(t)
-	s.User, s.Pass = "reader", "secret"
+	s.SetLogin("reader", "secret")
 	episode, index, spare := newPosting("show.s01e01.mkv", 5500), newPosting("show.par2", 300), newPosting("show.vol00+01.par2", 900)
 	episode.post(s)
 	index.post(s)
