@@ -38,7 +38,7 @@ const group = {
   relayUrl: '',
   selfHosted: false,
   relayMode: 'project',
-  projectRelayUrl: 'wss://relay.halleluja.design/relay/connect',
+  projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
   address: '',
   members: [],

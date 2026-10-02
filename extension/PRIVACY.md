@@ -44,7 +44,7 @@ closes.
 
 ### To the relay
 
-The relay is `relay.halleluja.design`, on a server in Germany. Every connection
+The relay is `parleyport.halleluja.design`, on a server in Germany. Every connection
 to it carries:
 
 - A group key derived from your phrase with a one-way hash. It cannot be turned
