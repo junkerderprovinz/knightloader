@@ -37,6 +37,18 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Linksnappy fetches links under a hoster's other domains.** Linksnappy
+  names some hosters by a domain their links rarely use, such as mega.co.nz
+  for Mega and ddl.to for DDownload, and lists rg.to apart from Rapidgator.
+  KnightLoader matched only the names on the list, so a mega.nz, k2s.cc or
+  rg.to link looked like one no debrid account covers, and with premium only
+  switched on it waited for a premium account. Every debrid service now
+  matches a hoster by all the domains KnightLoader knows for it. KnightLoader
+  also logs in before it reads Linksnappy's list, as JDownloader does, and
+  leaves out a hoster the account cannot download from.
+
 ## [1.6.5] - 2026-10-02
 
 ### Added

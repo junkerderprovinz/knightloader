@@ -1,6 +1,9 @@
 package hostalias
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestCanonical(t *testing.T) {
 	for _, c := range []struct{ in, want string }{
@@ -18,6 +21,22 @@ func TestCanonical(t *testing.T) {
 	} {
 		if got := Canonical(c.in); got != c.want {
 			t.Errorf("Canonical(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestNamesListsEveryDomainOfTheHoster(t *testing.T) {
+	for _, c := range []struct {
+		in   string
+		want []string
+	}{
+		{"rg.to", []string{"rapidgator.net", "rapidgator.asia", "rg.to"}},
+		{"www.mega.co.nz", []string{"mega.nz", "mega.co.nz"}},
+		{"ddownload.com", []string{"ddownload.com", "ddl.to"}},
+		{"Example.com", []string{"example.com"}},
+	} {
+		if got := Names(c.in); !slices.Equal(got, c.want) {
+			t.Errorf("Names(%q) = %v, want %v", c.in, got, c.want)
 		}
 	}
 }

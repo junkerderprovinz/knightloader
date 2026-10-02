@@ -127,8 +127,8 @@ func (l *Linksnappy) envelope(ctx context.Context, path string, q url.Values, ou
 	return nil
 }
 
-// Authenticate logs in and keeps the session cookie. It is exported to verify
-// the credential, since the host list needs no account.
+// Authenticate logs in and keeps the session cookie. It is exported so that
+// saving an account checks the credential itself.
 func (l *Linksnappy) Authenticate(ctx context.Context) error {
 	if l.user == "" || l.pass == "" {
 		return errors.New("linksnappy: a username and a password are required")
@@ -146,23 +146,32 @@ func (l *Linksnappy) Authenticate(ctx context.Context) error {
 }
 
 // Hosts asks /FILEHOSTS, a map keyed by domain whose entries carry Status as a
-// string ("1" for up).
+// string ("1" for up) and sometimes the hoster's other domains as alias. It
+// logs in first, as JDownloader and pyLoad do, since only the account's own
+// list says through canDownload which hosts it may fetch from.
 func (l *Linksnappy) Hosts(ctx context.Context) (map[string]bool, error) {
+	if err := l.Authenticate(ctx); err != nil {
+		return nil, err
+	}
 	var hosts map[string]struct {
-		Status string `json:"Status"`
+		Status      string          `json:"Status"`
+		CanDownload json.RawMessage `json:"canDownload"`
+		Alias       []string        `json:"alias"`
 	}
 	if err := l.envelope(ctx, "/FILEHOSTS", nil, &hosts); err != nil {
 		return nil, err
 	}
 	set := map[string]bool{}
 	for domain, info := range hosts {
-		// An empty Status counts as up so a missing field cannot empty the
-		// routing table.
-		if info.Status == "0" {
+		// An empty Status or a missing canDownload counts as up, so a missing
+		// field cannot empty the routing table.
+		if info.Status == "0" || (len(info.CanDownload) > 0 && looseInt(info.CanDownload) != 1) {
 			continue
 		}
-		if d := NormalizeHost(domain); d != "" && strings.Contains(d, ".") {
-			set[d] = true
+		for _, name := range append([]string{domain}, info.Alias...) {
+			if d := NormalizeHost(name); d != "" && strings.Contains(d, ".") {
+				set[d] = true
+			}
 		}
 	}
 	if len(set) == 0 {

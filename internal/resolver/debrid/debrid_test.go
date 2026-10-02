@@ -456,6 +456,22 @@ func TestHostInSet(t *testing.T) {
 	}
 }
 
+// A service may list a hoster under a domain the links do not use, as
+// Linksnappy lists mega.co.nz and ddl.to.
+func TestHostInSetKnowsAHosterByEveryDomain(t *testing.T) {
+	set := map[string]bool{"mega.co.nz": true, "ddl.to": true, "keep2share.cc": true, "rapidgator.net": true}
+	for _, h := range []string{"mega.nz", "www.mega.nz", "ddownload.com", "k2s.cc", "rg.to", "dl3.rg.to"} {
+		if !HostInSet(h, set) {
+			t.Errorf("HostInSet(%q) = false, want true", h)
+		}
+	}
+	for _, h := range []string{"notrg.to", "nz", "co.nz"} {
+		if HostInSet(h, set) {
+			t.Errorf("HostInSet(%q) = true, want false", h)
+		}
+	}
+}
+
 // countingService unlocks every link to a direct URL of its own.
 type countingService struct {
 	mu      sync.Mutex

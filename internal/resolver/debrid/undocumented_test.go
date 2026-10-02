@@ -47,6 +47,69 @@ func TestLinksnappyHostsReadsTheMeasuredShape(t *testing.T) {
 	}
 }
 
+// The live list names Mega as mega.co.nz and gives rapidgator.net its alias in
+// a field of its own, while links use mega.nz, rg.to and k2s.cc.
+func TestLinksnappyClaimsLinksUnderAHostersOtherDomains(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":{
+			"rapidgator.net":{"Status":"1","Quota":"unlimited","alias":["rg.to"]},
+			"mega.co.nz":{"Status":"1","Quota":"unlimited"},
+			"keep2share.cc":{"Status":"1","Quota":16106127360}}}`)
+	}))
+	defer srv.Close()
+
+	hosts, err := newLinksnappyAt(srv.URL).Hosts(context.Background())
+	if err != nil {
+		t.Fatalf("Hosts: %v", err)
+	}
+	if !hosts["rg.to"] {
+		t.Errorf("Hosts left out the alias the service lists: %v", hosts)
+	}
+	r := Resolver{ServiceID: "linksnappy", Hosts: hosts}
+	for _, link := range []string{
+		"https://rg.to/file/0a1b2c/part1.rar.html",
+		"https://mega.nz/file/AbCdEf#key",
+		"https://k2s.cc/file/0a1b2c/part2.rar",
+	} {
+		if !r.Match(link) {
+			t.Errorf("Linksnappy does not claim %s", link)
+		}
+	}
+}
+
+// JDownloader asks for the host list with the session AUTHENTICATE sets, and
+// reads canDownload from it, a field the list without a session lacks.
+func TestLinksnappyHostsAsksWithTheSession(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/AUTHENTICATE") {
+			http.SetCookie(w, &http.Cookie{Name: "lslogin", Value: "s1", Path: "/"})
+			_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":"Logged in"}`)
+			return
+		}
+		if c, err := r.Cookie("lslogin"); err != nil || c.Value != "s1" {
+			_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":{
+				"rapidgator.net":{"Status":"1"}}}`)
+			return
+		}
+		_, _ = io.WriteString(w, `{"status":"OK","error":false,"return":{
+			"rapidgator.net":{"Status":"1","canDownload":1,"Usage":0},
+			"nitroflare.com":{"Status":"1","canDownload":1,"Usage":0},
+			"filenext.com":{"Status":"1","canDownload":0,"Usage":0}}}`)
+	}))
+	defer srv.Close()
+
+	hosts, err := newLinksnappyAt(srv.URL + "/api").Hosts(context.Background())
+	if err != nil {
+		t.Fatalf("Hosts: %v", err)
+	}
+	if !hosts["nitroflare.com"] {
+		t.Errorf("Hosts = %v, want the list the logged-in session gets", hosts)
+	}
+	if hosts["filenext.com"] {
+		t.Error("a host the account cannot download from was taken")
+	}
+}
+
 // "error" is false on success and a sentence on failure.
 func TestLinksnappyRefusalIsASentenceNotABool(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
