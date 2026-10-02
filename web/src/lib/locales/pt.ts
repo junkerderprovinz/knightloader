@@ -216,7 +216,7 @@ export const pt: Dict = {
   'relay.project': 'Relay do projeto',
   'relay.own': 'Relay próprio',
   'relay.off': 'Sem relay',
-  'relay.projectSentence': 'O projeto disponibiliza o relay em {host}, gratuitamente.',
+  'relay.projectSentence': 'O projeto disponibiliza ParleyPort em {host}, gratuitamente.',
   'relay.projectNeed': 'Nada. Funciona sem configuração.',
   'relay.projectSees': 'Para que instância é uma mensagem, qual é o seu tamanho, quando chega e os endereços IP das suas instâncias.',
   'relay.projectAlt': 'Instância A na sua rede e instância B noutra rede, ligadas através do relay do projeto. As chaves só estão em A e B.',

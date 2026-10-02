@@ -18,7 +18,7 @@ const CHECKSUM_BITS = (SECRET_LEN * 8) / 32; // BIP39's own rule
 
 /** relay.DefaultRelayURL. A fixed relay keeps the phrase at twelve words
  *  instead of a URL plus a key. */
-const DEFAULT_RELAY_URL = 'wss://relay.halleluja.design/relay/connect';
+const DEFAULT_RELAY_URL = 'wss://parleyport.halleluja.design/relay/connect';
 
 /** relay.keyDomain. Changing this string orphans every phrase in existence. */
 const KEY_DOMAIN = 'knightloader/relay/group-key/v1';

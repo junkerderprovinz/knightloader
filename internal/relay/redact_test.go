@@ -33,8 +33,8 @@ func TestRedactAddrsHidesAddressesAndKeepsTheMessage(t *testing.T) {
 		// certificate months later.
 		{"http: TLS handshake error from [address]: acme/autocert: missing server name\n",
 			"http: TLS handshake error from [address]: acme/autocert: missing server name\n"},
-		{"KnightLoader relay listening on :443 (https, wss://relay.halleluja.design/relay/connect)\n",
-			"KnightLoader relay listening on :443 (https, wss://relay.halleluja.design/relay/connect)\n"},
+		{"KnightLoader relay listening on :443 (https, wss://parleyport.halleluja.design/relay/connect)\n",
+			"KnightLoader relay listening on :443 (https, wss://parleyport.halleluja.design/relay/connect)\n"},
 	}
 	for _, c := range cases {
 		var buf bytes.Buffer

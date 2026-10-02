@@ -222,7 +222,7 @@ export const et: Dict = {
   'relay.project': 'Projekti edastaja',
   'relay.own': 'Oma edastaja',
   'relay.off': 'Edastajata',
-  'relay.projectSentence': 'Projekt haldab edastajat aadressil {host} tasuta.',
+  'relay.projectSentence': 'Projekt haldab ParleyPortit aadressil {host} tasuta.',
   'relay.projectNeed': 'Mitte midagi. Töötab ilma seadistuseta.',
   'relay.projectSees': 'Millisele eksemplarile sõnum on mõeldud, kui suur see on, millal see kohale jõuab ja su eksemplaride IP-aadressid.',
   'relay.projectAlt': 'Eksemplar A sinu võrgus ja eksemplar B teises võrgus, ühendatud projekti edastaja kaudu. Võtmed on ainult A-l ja B-l.',

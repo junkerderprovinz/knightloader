@@ -188,5 +188,5 @@ on its phone card, the one caller, so the event is captured in one place.
 There is no account, and no attempt to speak MyJDownloader's own vocabulary or
 protocol. The same ruling `/api/help` states for the API generally applies
 here. Sends reach the instances in your group through the project's relay
-(`relay.halleluja.design`), which forwards sealed messages it cannot read, and
+(`parleyport.halleluja.design`), which forwards sealed messages it cannot read, and
 there is nothing to sign into.

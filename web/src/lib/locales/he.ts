@@ -224,7 +224,7 @@ export const he: Dict = {
   'relay.project': 'ממסר הפרויקט',
   'relay.own': 'ממסר עצמי',
   'relay.off': 'בלי ממסר',
-  'relay.projectSentence': 'הפרויקט מפעיל את הממסר בכתובת {host}, בחינם.',
+  'relay.projectSentence': 'הפרויקט מפעיל את ParleyPort בכתובת {host}, בחינם.',
   'relay.projectNeed': 'כלום. הוא עובד בלי הגדרה.',
   'relay.projectSees': 'לאיזה מופע הודעה מיועדת, מה הגודל שלה, מתי היא מגיעה, וכתובות ה-IP של המופעים שלך.',
   'relay.projectAlt': 'מופע A ברשת שלך ומופע B ברשת אחרת, מחוברים דרך ממסר הפרויקט. המפתחות נמצאים רק ב-A וב-B.',

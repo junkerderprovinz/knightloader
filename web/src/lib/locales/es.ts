@@ -216,7 +216,7 @@ export const es: Dict = {
   'relay.project': 'Repetidor del proyecto',
   'relay.own': 'Repetidor propio',
   'relay.off': 'Sin repetidor',
-  'relay.projectSentence': 'El proyecto gestiona el repetidor en {host}, de forma gratuita.',
+  'relay.projectSentence': 'El proyecto gestiona ParleyPort en {host}, de forma gratuita.',
   'relay.projectNeed': 'Nada. Funciona sin configuración.',
   'relay.projectSees': 'Para qué instancia es un mensaje, cuánto pesa, cuándo llega y las direcciones IP de tus instancias.',
   'relay.projectAlt': 'La instancia A en tu red y la instancia B en otra red, conectadas a través del repetidor del proyecto. Las claves están solo en A y B.',

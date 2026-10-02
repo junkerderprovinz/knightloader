@@ -99,7 +99,7 @@ started a group of their own: it opens the window **Enter phrase** opens, and
 one. Without a relay the card
 adds that an instance on another network cannot find this one. With a relay
 that cannot be reached, one line says so and **What to check** lists it:
-outgoing HTTPS on port 443 to `relay.halleluja.design`, a firewall or DNS
+outgoing HTTPS on port 443 to `parleyport.halleluja.design`, a firewall or DNS
 filter, and for your own relay whether it runs and its address is right.
 
 Before the instance has a phrase it dials no relay, since the relay key comes
@@ -136,7 +136,7 @@ finds its sibling.
 `SHA-256("knightloader/relay/group-key/v1" || secret)`. The relay matches
 connections that present the same derived key and forwards frames between
 them; it has no account list, no registration step and no database. So whoever
-runs it (us at `relay.halleluja.design`, or you) cannot reconstruct anybody's
+runs it (us at `parleyport.halleluja.design`, or you) cannot reconstruct anybody's
 words.
 
 **And it cannot read what it forwards.** A *second* key comes out of the same
@@ -205,7 +205,7 @@ that carry the key and already know the address. The phrase is the shorter
 road to the same place; this one exists for anyone who wants to name the relay
 and the key themselves.
 
-There is an official relay, `wss://relay.halleluja.design/relay/connect`,
+There is an official relay, `wss://parleyport.halleluja.design/relay/connect`,
 which is what a phrase points at unless you override it, and running your own
 is a first-class option, not a fallback. Run [ParleyPort](https://github.com/junkerderprovinz/parleyport) anywhere both ends
 can reach, put the same key in both, done. Set `PARLEYPORT_DOMAIN` and it

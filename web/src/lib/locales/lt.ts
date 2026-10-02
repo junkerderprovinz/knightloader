@@ -222,7 +222,7 @@ export const lt: Dict = {
   'relay.project': 'Projekto relay',
   'relay.own': 'Savas relay',
   'relay.off': 'Be relay',
-  'relay.projectSentence': 'Projektas nemokamai valdo relay adresu {host}.',
+  'relay.projectSentence': 'Projektas nemokamai valdo ParleyPort adresu {host}.',
   'relay.projectNeed': 'Nieko. Veikia be jokio nustatymo.',
   'relay.projectSees': 'Kuriam egzemplioriui skirtas pranešimas, koks jo dydis, kada jis atkeliauja ir jūsų egzempliorių IP adresus.',
   'relay.projectAlt': 'Egzempliorius A jūsų tinkle ir egzempliorius B kitame tinkle, sujungti per projekto relay. Raktai yra tik pas A ir B.',

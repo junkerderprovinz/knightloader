@@ -222,7 +222,7 @@ export const tr: Dict = {
   'relay.project': 'Proje rölesi',
   'relay.own': 'Kendi rölen',
   'relay.off': 'Röle yok',
-  'relay.projectSentence': 'Proje, röleyi {host} adresinde ücretsiz olarak işletir.',
+  'relay.projectSentence': "Proje, ParleyPort'u {host} adresinde ücretsiz olarak işletir.",
   'relay.projectNeed': 'Hiçbir şey. Kurulum yapmadan çalışır.',
   'relay.projectSees': 'Mesajın hangi örneğe ait olduğunu, ne kadar büyük olduğunu, ne zaman ulaştığını ve örneklerinin IP adreslerini.',
   'relay.projectAlt': "Senin ağındaki A örneği ile başka bir ağdaki B örneği, proje rölesi üzerinden bağlanır. Anahtarlar yalnızca A ve B'de bulunur.",

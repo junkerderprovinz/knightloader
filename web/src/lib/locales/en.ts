@@ -260,7 +260,7 @@ export const en = {
   'relay.project': 'Project relay',
   'relay.own': 'Own relay',
   'relay.off': 'No relay',
-  'relay.projectSentence': 'The project runs the relay at {host}, free of charge.',
+  'relay.projectSentence': 'The project runs ParleyPort at {host}, free of charge.',
   'relay.projectNeed': 'Nothing. It works without setup.',
   'relay.projectSees': 'Which instance a message is for, how big it is, when it arrives, and the IP addresses of your instances.',
   'relay.projectAlt': 'Instance A in your network and instance B in another network, connected through the project relay. The keys are only on A and B.',

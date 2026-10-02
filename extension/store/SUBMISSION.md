@@ -28,7 +28,7 @@ skipped or reordered.
    them. Add one if a supervisory authority or a store ever asks for it. Accept
    Hetzner's data processing agreement in the Hetzner Cloud console if that has
    not been done.
-2. **Deploy the relay** built from the same commit to `relay.halleluja.design`.
+2. **Deploy the relay** built from the same commit to `parleyport.halleluja.design`.
    The policy describes the running relay: rate-limit entries deleted within 61
    minutes, no IP addresses in its log. Older relay builds do neither, and what
    they wrote stays in the journal after the deploy, so as root on the relay host:

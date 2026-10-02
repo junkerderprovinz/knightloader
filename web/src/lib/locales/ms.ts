@@ -222,7 +222,7 @@ export const ms: Dict = {
   'relay.project': 'Relay projek',
   'relay.own': 'Relay sendiri',
   'relay.off': 'Tiada relay',
-  'relay.projectSentence': 'Projek ini menjalankan relay di {host}, secara percuma.',
+  'relay.projectSentence': 'Projek ini menjalankan ParleyPort di {host}, secara percuma.',
   'relay.projectNeed': 'Tiada apa-apa. Ia berfungsi tanpa persediaan.',
   'relay.projectSees': 'Untuk instans mana sesuatu mesej itu ditujukan, saiznya, bila ia tiba dan alamat IP instans anda.',
   'relay.projectAlt': 'Instans A dalam rangkaian anda dan instans B dalam rangkaian lain, disambungkan melalui relay projek. Kunci hanya ada pada A dan B.',

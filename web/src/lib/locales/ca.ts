@@ -222,7 +222,7 @@ export const ca: Dict = {
   'relay.project': 'Repetidor del projecte',
   'relay.own': 'Repetidor propi',
   'relay.off': 'Sense repetidor',
-  'relay.projectSentence': 'El projecte fa funcionar el repetidor a {host}, gratuïtament.',
+  'relay.projectSentence': 'El projecte fa funcionar ParleyPort a {host}, gratuïtament.',
   'relay.projectNeed': 'Res. Funciona sense configuració.',
   'relay.projectSees': 'Per a quina instància és un missatge, quina mida té, quan arriba i les adreces IP de les teves instàncies.',
   'relay.projectAlt': 'La instància A a la teva xarxa i la instància B en una altra xarxa, connectades a través del repetidor del projecte. Les claus només hi són a A i B.',

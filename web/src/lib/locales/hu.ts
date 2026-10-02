@@ -222,7 +222,7 @@ export const hu: Dict = {
   'relay.project': 'Projekt-relay',
   'relay.own': 'Saját relay',
   'relay.off': 'Nincs relay',
-  'relay.projectSentence': 'A projekt ingyenesen üzemelteti a relayt a(z) {host} címen.',
+  'relay.projectSentence': 'A projekt ingyenesen üzemelteti a ParleyPortot a(z) {host} címen.',
   'relay.projectNeed': 'Semmi. Beállítás nélkül működik.',
   'relay.projectSees': 'Hogy melyik példánynak szól egy üzenet, mekkora, mikor érkezik, és a példányaid IP-címeit.',
   'relay.projectAlt': 'A hálózatodban lévő A példány és egy másik hálózatban lévő B példány, a projekt-relayen keresztül összekötve. A kulcsok csak A-nál és B-nél vannak.',
