@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.6] - 2026-10-02
+
 ### Fixed
 
 - **Linksnappy fetches links under a hoster's other domains.** Linksnappy
