@@ -56,8 +56,9 @@ function nameChannels(t: Translate): void {
 
 /**
  * One look at every saved instance, posting whatever is news. Answers whether
- * the service should keep running. Calls that overlap share one pass, since the
- * service and the app in front can ask at the same moment.
+ * something is on the go that the service should watch. Calls that overlap
+ * share one pass, since the service and the app in front can ask at the same
+ * moment.
  */
 export function watchPass(): Promise<boolean> {
   passing ??= runPass().finally(() => {
@@ -69,7 +70,7 @@ export function watchPass(): Promise<boolean> {
 async function runPass(): Promise<boolean> {
   if (!KnightWatch) return false;
   const prefs = await loadNotifyPrefs();
-  if (!anyKind(prefs) || !KnightWatch.enabled()) return false;
+  if (!anyKind(prefs)) return false;
   const t = await translator();
   nameChannels(t);
 
@@ -200,7 +201,7 @@ export async function watchTask(): Promise<void> {
   // A pass that fails outright stops the service rather than keeping the phone
   // awake for a watch that cannot see anything.
   const keep = await watchPass().catch(() => false);
-  if (keep) KnightWatch.next(delay);
+  if (keep && KnightWatch.enabled()) KnightWatch.next(delay);
   else KnightWatch.stop();
 }
 
@@ -218,6 +219,18 @@ async function mayNotify(prefs: NotifyPrefs): Promise<boolean> {
     if (answer !== PermissionsAndroid.RESULTS.GRANTED) return false;
   }
   return KnightWatch.enabled();
+}
+
+/**
+ * Whether the service could start at all: some kind of notification is wanted,
+ * and Android shows them or has not been asked yet. Without this the app in
+ * front would keep looking at its instances for a service that cannot run.
+ */
+async function startable(): Promise<boolean> {
+  if (!KnightWatch || Platform.OS !== 'android') return false;
+  const prefs = await loadNotifyPrefs();
+  if (!anyKind(prefs)) return false;
+  return KnightWatch.enabled() || (Platform.Version >= 33 && !prefs.asked);
 }
 
 /** askNotifications puts Android's question up again, for the settings card. */
@@ -278,7 +291,7 @@ export function useWatch(connectionOnScreen: string | null): void {
       if (checking || AppState.currentState !== 'active' || KnightWatch?.running()) return;
       checking = true;
       try {
-        if (await watchPass().catch(() => false)) await startWatch();
+        if ((await startable()) && (await watchPass().catch(() => false))) await startWatch();
       } finally {
         checking = false;
       }
