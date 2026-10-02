@@ -85,36 +85,6 @@ function glyph(d, size, box = '0 0 16 16', fill = 'currentColor') {
   svg.appendChild(path);
   return svg;
 }
-/**
- * The web UI's IconInstances (web/src/lib/icons.tsx), copied shape for shape so
- * "instances" looks the same everywhere. Used for the empty group list.
- */
-function instancesGlyph(size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('aria-hidden', 'true');
-  for (const [x, y, o] of [[2.5, 3, '.55'], [2.5, 12, '.55']]) {
-    const r = document.createElementNS(NS, 'rect');
-    r.setAttribute('x', String(x));
-    r.setAttribute('y', String(y));
-    r.setAttribute('width', '15');
-    r.setAttribute('height', '5');
-    r.setAttribute('rx', '1.5');
-    r.setAttribute('opacity', o);
-    svg.appendChild(r);
-  }
-  for (const cy of ['5.5', '14.5']) {
-    const c = document.createElementNS(NS, 'circle');
-    c.setAttribute('cx', '5.5');
-    c.setAttribute('cy', cy);
-    c.setAttribute('r', '1');
-    svg.appendChild(c);
-  }
-  return svg;
-}
 
 const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 // The same cross popup.js uses for its cancel.
@@ -147,36 +117,24 @@ const D_TRASH =
 const D_PASTE =
   'M4.1 2.8h7.8a1.6 1.6 0 0 1 1.6 1.6v8.8a1.6 1.6 0 0 1-1.6 1.6H4.1a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z' +
   'M5.8 1.2h4.4a.8.8 0 0 1 .8.8v1a.8.8 0 0 1-.8.8H5.8a.8.8 0 0 1-.8-.8V2a.8.8 0 0 1 .8-.8z';
+// GlimStone's IconEye, IconEyeOff and IconFleet, Streamline's
+// interface-essential/visible.svg, invisible-1.svg and hierarchy-2.svg (CC BY
+// 4.0), the glyphs the web UI wears for the same meanings.
+const D_EYE =
+  'M2.9327 3.49099C4.0559 2.68177 5.4556 2 7 2c1.54441 0 2.9441 0.68177 4.0673 1.49099 1.1273 0.81215 2.0197 1.78397 2.5599 2.4369l0.0045 0.00553c0.2413 0.3002 0.3683 0.68062 0.3683 1.06664 0 0.38601 -0.127 0.76644 -0.3683 1.06664l-0.0045 0.00553c-0.5402 0.65292 -1.4326 1.62475 -2.5599 2.43687 -1.1232 0.8092 -2.52289 1.491 -4.0673 1.491 -1.5444 0 -2.9441 -0.6818 -4.0673 -1.491C1.80544 9.69698 0.913028 8.72515 0.37279 8.07223L0.36828 8.0667C0.127025 7.7665 0 7.38607 0 7.00006c0 -0.38602 0.127025 -0.76644 0.36828 -1.06664l0.00451 -0.00553c0.540238 -0.65293 1.43265 -1.62475 2.55991 -2.4369ZM7 9.25c1.24264 0 2.25 -1.00736 2.25 -2.25S8.24264 4.75 7 4.75 4.75 5.75736 4.75 7 5.75736 9.25 7 9.25Z';
+const D_EYE_OFF =
+  'M0.263638 1.32434c-0.2928929 -0.2929 -0.2928929 -0.767771 0 -1.060664 0.292894 -0.2928929 0.767772 -0.2928929 1.060662 0L3.95291 2.89228c0.90784 -0.49884 1.93998 -0.85203 3.04708 -0.85203 1.53199 0 2.92043 0.67629 4.03461 1.479 1.1182 0.80562 2.0034 1.76963 2.5393 2.41731l0.0045 0.00548c0.2393 0.29779 0.3653 0.67515 0.3653 1.05806s-0.126 0.76028 -0.3653 1.05806l-0.0045 0.00549c-0.4886 0.59054 -1.2677 1.44407 -2.2489 2.20075l2.4114 2.4113c0.2929 0.2929 0.2929 0.7678 0 1.0607 -0.2929 0.2929 -0.7678 0.2929 -1.0607 0L0.263638 1.32434ZM9.01713 7.95651c0.13771 -0.2899 0.21477 -0.61419 0.21477 -0.95649 0 -1.23264 -0.99926 -2.2319 -2.23191 -2.2319 -0.34229 0 -0.66659 0.07705 -0.95649 0.21476l2.97363 2.97363ZM0.426074 5.93656c0.319448 -0.38609 0.763036 -0.88458 1.306096 -1.39491l7.10402 7.10405c-0.58062 0.1961 -1.19587 0.3143 -1.8362 0.3143 -1.53198 0 -2.92042 -0.6763 -4.03459 -1.479C1.8472 9.67534 0.961967 8.71133 0.426074 8.06365L0.4216 8.05816C0.182285 7.76038 0.0562814 7.38301 0.0562814 7.0001S0.182285 6.23983 0.4216 5.94204l0.004474 -0.00548Z';
+const D_FLEET =
+  'M6.5 0.5C5.67157 0.5 5 1.17157 5 2v1c0 0.74325 0.54057 1.36024 1.25 1.47926V6.25H3c-0.9665 0 -1.75 0.7835 -1.75 1.75v1.52074C0.540572 9.63976 0 10.2568 0 11v1c0 0.8284 0.671573 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V8c0 -0.13807 0.11193 -0.25 0.25 -0.25h3.25v1.77074C5.54057 9.63976 5 10.2568 5 11v1c0 0.8284 0.67157 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V7.75H11c0.1381 0 0.25 0.11193 0.25 0.25v1.52074C10.5406 9.63976 10 10.2568 10 11v1c0 0.8284 0.6716 1.5 1.5 1.5h1c0.8284 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.5406 -1.36024 -1.25 -1.47926V8c0 -0.9665 -0.7835 -1.75 -1.75 -1.75H7.75V4.47926C8.45943 4.36024 9 3.74325 9 3V2C9 1.17157 8.32843 0.5 7.5 0.5h-1Z';
+
 /**
- * The web UI's IconEye and IconEyeOff (web/src/lib/icons.tsx), copied shape for
- * shape so the reveal eye looks the same everywhere: an almond with the iris
- * cut out, and for the shown phrase the same almond at .55 behind a bar.
+ * standardGlyph draws one of GlimStone's glyphs, which sit on a 14-unit grid
+ * and carve their gaps with evenodd. The box leaves a sixth of it free on every
+ * side, so the ink fills three quarters of the box as it does in the web UI.
  */
-function eyeGlyph(off, size) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
-  svg.setAttribute('fill', 'currentColor');
-  svg.setAttribute('aria-hidden', 'true');
-  const eye = document.createElementNS(NS, 'path');
-  eye.setAttribute('fill-rule', 'evenodd');
-  eye.setAttribute(
-    'd',
-    'M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z' +
-      'M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z',
-  );
-  svg.appendChild(eye);
-  if (off) {
-    eye.setAttribute('opacity', '.55');
-    const bar = document.createElementNS(NS, 'rect');
-    bar.setAttribute('x', '9.1');
-    bar.setAttribute('width', '1.8');
-    bar.setAttribute('height', '20');
-    bar.setAttribute('rx', '0.9');
-    bar.setAttribute('transform', 'rotate(45 10 10)');
-    svg.appendChild(bar);
-  }
+function standardGlyph(d, size) {
+  const svg = glyph(d, size, '-2.333 -2.333 18.667 18.667');
+  svg.firstChild.setAttribute('fill-rule', 'evenodd');
   return svg;
 }
 
@@ -473,7 +431,7 @@ async function renderPinHint() {
 function renderPhraseEye() {
   const shown = phraseInput.type === 'text';
   // Half of .glim-eye's 28px box.
-  phraseEye.replaceChildren(eyeGlyph(shown, 14));
+  phraseEye.replaceChildren(standardGlyph(shown ? D_EYE_OFF : D_EYE, 14));
   const name = shown ? t('options.phraseHide') : t('options.phraseShow');
   phraseEye.setAttribute('aria-label', name);
   phraseEye.setAttribute('data-tip', name);
@@ -577,7 +535,7 @@ async function renderGroup() {
     // and without an action button, since connect and refresh sit right above.
     const empty = document.createElement('div');
     empty.className = 'emptyState glim-content-fade';
-    empty.appendChild(instancesGlyph(28));
+    empty.appendChild(standardGlyph(D_FLEET, 28));
     const title = document.createElement('span');
     title.textContent = t('options.groupEmpty');
     empty.appendChild(title);

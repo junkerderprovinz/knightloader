@@ -18,8 +18,8 @@ const paneSendEl = document.getElementById('paneSend');
  * Every button carries a filled glyph beside its label, 14px like the label's
  * text (GlimStone "Icon glyphs" and "The sidebar"), built with createElementNS
  * because Mozilla's linter, a release gate here, fails an innerHTML assignment
- * from a variable. `label()` sets text and glyph together. A glyph drawn in
- * two tones passes its paths as [d, opacity] pairs.
+ * from a variable. `label()` sets text and glyph together. Gaps are carved
+ * with evenodd, as GlimStone's glyphs draw them.
  */
 const NS = 'http://www.w3.org/2000/svg';
 function glyph(d, size = 14, box = '0 0 16 16') {
@@ -28,13 +28,11 @@ function glyph(d, size = 14, box = '0 0 16 16') {
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
-  for (const [part, opacity] of Array.isArray(d) ? d : [[d]]) {
-    const path = document.createElementNS(NS, 'path');
-    path.setAttribute('fill', 'currentColor');
-    path.setAttribute('d', part);
-    if (opacity !== undefined) path.setAttribute('opacity', String(opacity));
-    svg.appendChild(path);
-  }
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('fill-rule', 'evenodd');
+  path.setAttribute('d', d);
+  svg.appendChild(path);
   return svg;
 }
 // The cross is the plus rotated, so the two match.
@@ -49,14 +47,11 @@ const G_ADD_INSTANCE = 'M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 6h3v2H9v3H7V9H4V7h3
 // the glyphs above have.
 const G_FLEET =
   'M6.5 0.5C5.67157 0.5 5 1.17157 5 2v1c0 0.74325 0.54057 1.36024 1.25 1.47926V6.25H3c-0.9665 0 -1.75 0.7835 -1.75 1.75v1.52074C0.540572 9.63976 0 10.2568 0 11v1c0 0.8284 0.671573 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V8c0 -0.13807 0.11193 -0.25 0.25 -0.25h3.25v1.77074C5.54057 9.63976 5 10.2568 5 11v1c0 0.8284 0.67157 1.5 1.5 1.5h1c0.82843 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.54057 -1.36024 -1.25 -1.47926V7.75H11c0.1381 0 0.25 0.11193 0.25 0.25v1.52074C10.5406 9.63976 10 10.2568 10 11v1c0 0.8284 0.6716 1.5 1.5 1.5h1c0.8284 0 1.5 -0.6716 1.5 -1.5v-1c0 -0.7432 -0.5406 -1.36024 -1.25 -1.47926V8c0 -0.9665 -0.7835 -1.75 -1.75 -1.75H7.75V4.47926C8.45943 4.36024 9 3.74325 9 3V2C9 1.17157 8.32843 0.5 7.5 0.5h-1Z';
-const G_FLEET_BOX = '-1 -1 16 16';
-// The web sidebar's IconCollector (web/src/lib/icons.tsx), so the collector
-// wears one drawing in both places.
-const G_COLLECTOR = [
-  ['M3 5.5A1.5 1.5 0 0 1 4.5 4H8l1.6 2H16a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 16H4.5A1.5 1.5 0 0 1 3 14.5Z', 0.55],
-  ['M13 3.5h4v4h-2v-1.6l-4.4 4.4-1.4-1.4 4.4-4.4H13Z'],
-];
-const G_COLLECTOR_BOX = '0 0 20 20';
+const G_STANDARD_BOX = '-1 -1 16 16';
+// GlimStone's IconCollector, Streamline's mail/inbox-tray-1.svg (CC BY 4.0),
+// which the web sidebar wears for the collector too.
+const G_COLLECTOR =
+  'M7.75 0.76a0.75 0.75 0 0 0 -1.5 0v2.75H4.5a0.75 0.75 0 0 0 -0.53 1.28l2.5 2.5a0.748 0.748 0 0 0 1.06 0l2.5 -2.5a0.75 0.75 0 0 0 -0.53 -1.28H7.75V0.76ZM0.5 8.33a0.5 0.5 0 0 0 -0.5 0.5v3.67A1.5 1.5 0 0 0 1.5 14h11a1.5 1.5 0 0 0 1.5 -1.5V8.83a0.5 0.5 0 0 0 -0.5 -0.5h-2.973a1.5 1.5 0 0 0 -1.5 1.5c0 0.974 -0.976 1.732 -2.03 1.725 -1.024 -0.007 -1.97 -0.768 -1.97 -1.725a1.5 1.5 0 0 0 -1.5 -1.5H0.5Z';
 
 function label(btn, text, d) {
   btn.replaceChildren(glyph(d), document.createTextNode(text));
@@ -307,8 +302,8 @@ function renderTabs() {
   tabsEl.hidden = false;
   tabsEl.innerHTML = '';
   for (const [value, label, d, box] of [
-    ['send', t('popup.tabInstances'), G_FLEET, G_FLEET_BOX],
-    ['collector', t('popup.tabCollector'), G_COLLECTOR, G_COLLECTOR_BOX],
+    ['send', t('popup.tabInstances'), G_FLEET, G_STANDARD_BOX],
+    ['collector', t('popup.tabCollector'), G_COLLECTOR, G_STANDARD_BOX],
   ]) {
     const b = document.createElement('button');
     b.type = 'button';
