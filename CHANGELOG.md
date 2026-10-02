@@ -46,9 +46,13 @@ release's tag.
   glyph, turned upside down for descending order. The folder picker's Up button
   shows a folder with an arrow, the Health page a heart with a pulse line, a
   queued download an hourglass, the captcha countdown a clock and the Resolvers
-  page sliders. The stop mark in the queue is the stop square. In the browser
-  extension, the reveal eye, the paste button, the empty group list and the
-  popup's Collector tab use the same drawings.
+  page a clapperboard with a cog. The stop mark in the queue is the stop
+  square. In the browser extension, the reveal eye, the paste button, the empty
+  group list and the popup's Collector tab use the same drawings.
+- **The Email button's envelope opens** when you point at it in the web UI and
+  while you press it in the Android app. Self-test checks that have not
+  finished yet and the Collector's Unchecked filter show the same hourglass as a
+  queued download.
 - **The Android app** draws its glyphs from the same list. Back, add, close,
   play, stop, delete, power, the check mark, paste, connect, the folder, the
   (i), the settings cog, the fold arrows and the colour reset look as they do in
