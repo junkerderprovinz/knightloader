@@ -4,8 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CaptchaChallenge, CaptchaSolverReport } from '../lib/api';
-import { I18nProvider } from '../lib/i18n';
-import { CaptchaModal, SolverStatus } from './CaptchaModal';
+import { I18nProvider, useT } from '../lib/i18n';
+import { CaptchaModal, SolverStatus, testResultText } from './CaptchaModal';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -210,5 +210,68 @@ describe('CaptchaModal', () => {
     );
     expect(document.querySelector('iframe')).not.toBeNull();
     expect(calls).toEqual(['POST /api/captcha/w1/unanswerable']);
+  });
+});
+
+describe('a test captcha', () => {
+  const test: CaptchaChallenge = {
+    id: 'test-1',
+    source: 'test',
+    host: 'KnightLoader',
+    kind: 'image',
+    payload: { dataUrl: 'data:image/png;base64,iVBORw0KGgo=' },
+    expiresAt: new Date(Date.now() + 180_000).toISOString(),
+    test: true,
+  };
+
+  beforeEach(() => {
+    vi.stubGlobal('WebSocket', QuietSocket);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify([test]), { status: 200, headers: { 'Content-Type': 'application/json' } })),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('says it is a test no download waits on, not a hoster asking', async () => {
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <CaptchaModal />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => {});
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('A test captcha from KnightLoader. No download waits on it.');
+    expect(text).not.toContain('is asking for a captcha');
+  });
+
+  it('says whether the answer was right, and which captcha account gave it', async () => {
+    let said: string[] = [];
+    function Read() {
+      const { t } = useT();
+      said = [
+        testResultText(t, { correct: true, want: 'K7PQX', given: 'k7pqx' }),
+        testResultText(t, { correct: false, want: 'K7PQX', given: 'K7PQ' }),
+        testResultText(t, { correct: true, want: 'K7PQX', given: 'K7PQX', solver: '2Captcha' }),
+        testResultText(t, { correct: false, want: 'K7PQX', given: 'X7PQK', solver: '2Captcha' }),
+      ];
+      return null;
+    }
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <Read />
+        </I18nProvider>,
+      ),
+    );
+    expect(said).toEqual([
+      'Right. The test captcha said K7PQX.',
+      'Wrong. The test captcha said K7PQX, not K7PQ.',
+      '2Captcha solved the test captcha: K7PQX.',
+      '2Captcha got the test captcha wrong: it said K7PQX, not X7PQK.',
+    ]);
   });
 });

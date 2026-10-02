@@ -3036,10 +3036,25 @@ export const et: Dict = {
   'captcha.solverStopped': 'Ükski captcha konto ei saanud seda captchat üle võtta.',
   'captcha.solverUnsupported': '{solver} ei lahenda seda tüüpi captchasid.',
   'captcha.solverRefused': '{solver} keeldus: {reason}',
+  'captcha.testFor':
+    'Proovi-captcha KnightLoaderilt. Ükski allalaadimine ei oota seda. Kirjuta need viis märki ja näed, kas su vastus on õige.',
+  'captcha.testRight': 'Õige. Proovi-captchas oli {want}.',
+  'captcha.testWrong': 'Vale. Proovi-captchas oli {want}, mitte {given}.',
+  'captcha.testSolverRight': '{solver} lahendas proovi-captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} vastas proovi-captchale valesti: seal oli {want}, mitte {given}.',
   'settings.captcha.whenTitle': 'Millal captcha kontod alustavad',
   'settings.captcha.onlyUnwatched': 'Ainult siis, kui keegi ei vaata',
   'settings.captcha.wait': 'Oota vastust (sekundites)',
   'settings.captcha.waitHint': 'Kui kaua captcha kontod ootavad, kuni keegi vaatab, enne kui nad ikkagi üle võtavad. Nad ei oota kunagi kauem kui pool captchale jäänud ajast, et captcha konto jõuaks sellele veel vastata. 10 kuni 600 sekundit.',
+  'settings.captcha.testTitle': 'Proovi-captcha',
+  'settings.captcha.test': 'Saada proovi-captcha',
+  'settings.captcha.testHint':
+    'Saadab captcha, mille KnightLoader ise joonistab. See ilmub captcha aknasse, telefonirakendusse ja sinu sündmuste sihtkohtadesse nagu hostija oma, ja kui sellele on vastatud, näed, kas vastus oli õige. Ükski allalaadimine ei oota seda ja see ei lähe sinu captcha kontodele.',
+  'settings.captcha.testSolvers': 'Saada ka captcha kontodele',
+  'settings.captcha.testSolversHint':
+    'Saadab sama proovi-captcha ka sinu captcha kontodele, ülaltoodud järjekorras, et näeksid, kas nad vastavad ja õigesti. Nad võtavad selle eest tasu nagu iga teise captcha eest. Kui „Ainult siis, kui keegi ei vaata“ on sees, ootavad nad kõigepealt sind: mine teisele vahelehele või lase ooteajal lõppeda.',
+  'settings.captcha.testOff':
+    'Captchad on välja lülitatud. Lülita moodul Captcha uuesti sisse, et proovi-captchat saata.',
   'captcha.solverStoppedTaken': '{solver} võttis selle captcha üle, aga ei saatnud vastust.',
   'captcha.solverNotPassedOn': '{solver} võib selle eest ikkagi tasu võtta, seega ei saada KnightLoader seda lisaks teisele captcha kontole. Võid sellele ikka ise vastata.',
   'captcha.solverNoAnswer': '{solver} võttis selle üle, aga vastust tagasi ei tulnud.',

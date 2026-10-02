@@ -16,6 +16,7 @@ import {
   type CaptchaSolverReport,
   type CaptchaUnsupportedPayload,
   type CaptchaWidgetPayload,
+  type TestCaptchaResult,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
 import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
@@ -157,6 +158,14 @@ export function SolverStatus({
   );
 }
 
+/** What a test captcha's answer came to, naming the captcha account that gave
+ *  it. */
+export function testResultText(t: ReturnType<typeof useT>['t'], r: TestCaptchaResult): string {
+  const vars = { want: r.want, given: r.given, solver: r.solver ?? '' };
+  if (r.solver) return t(r.correct ? 'captcha.testSolverRight' : 'captcha.testSolverWrong', vars);
+  return t(r.correct ? 'captcha.testRight' : 'captcha.testWrong', vars);
+}
+
 export function CaptchaModal() {
   const { t, lang } = useT();
   const { toast } = useToast();
@@ -216,8 +225,11 @@ export function CaptchaModal() {
             return n;
           });
           // Solved, expired and aborted follow a click that already gave
-          // feedback; only a timeout or a resolution elsewhere needs a word.
-          if (r.reason === 'timedOut') {
+          // feedback; only a timeout or a resolution elsewhere needs a word,
+          // and a test captcha's result, whoever answered it.
+          if (r.test) {
+            toast(testResultText(t, r.test), r.test.correct ? 'ok' : 'fail', 'captcha-resolved');
+          } else if (r.reason === 'timedOut') {
             // 'info' styling, but a critical kind that quiet mode never hides:
             // the download is now stuck.
             toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
@@ -426,7 +438,7 @@ export function CaptchaModal() {
     >
       <div className="flex flex-col gap-1">
         <p className="text-sm text-carbon-text" dir="auto">
-          {t('captcha.forHost', { host: current.host || '?' })}
+          {current.test ? t('captcha.testFor') : t('captcha.forHost', { host: current.host || '?' })}
         </p>
         {current.prompt && (
           <p className="text-xs text-carbon-textSub" dir="auto">

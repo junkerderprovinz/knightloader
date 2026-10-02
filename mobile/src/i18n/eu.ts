@@ -90,6 +90,10 @@ export const eu: Dict = {
   'captcha.blockHoster': 'Utzi {host}(r)i ere galdetzeari saio honetan',
   'captcha.blockEverywhere': 'Utzi edozein ostalariri ere galdetzeari saio honetan',
   'captcha.tooLate': 'Erantzun hori berandu iritsi da.',
+  'captcha.testFor':
+    'KnightLoaderren proba-captcha bat. Ez du deskargarik zain. Idatzi bost karaktereak zure erantzuna zuzena den ikusteko.',
+  'captcha.testRight': 'Zuzena. Proba-captchak {want} zioen.',
+  'captcha.testWrong': 'Okerra. Proba-captchak {want} zioen, ez {given}.',
   'captcha.timedOut': '{host}(r)en captcha iraungi da.',
   'captcha.resolvedElsewhere': '{host}(r)en captcha beste nonbait ebatzi da.',
   'captcha.relayRefused': 'Instantzia hau zaharregia da captchak aplikaziora pasatzeko. Eguneratu KnightLoader han.',

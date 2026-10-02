@@ -770,6 +770,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
       ],
     },
+    {
+      title: 'settings.captcha.testTitle',
+      rows: [
+        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
+        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
+      ],
+    },
   ],
 
   automation: [

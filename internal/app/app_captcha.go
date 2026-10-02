@@ -39,6 +39,7 @@ const captchaCallTimeout = 15 * time.Second
 // captchaState is one App's captcha wiring.
 type captchaState struct {
 	source captcha.Source
+	tests  *captcha.TestSource
 	store  *captcha.Store
 
 	startOnce sync.Once
@@ -67,7 +68,7 @@ func (a *App) captchaStateFor() *captchaState {
 	defer captchaMu.Unlock()
 	st, ok := captchaReg[a]
 	if !ok {
-		st = &captchaState{store: captcha.NewStore()}
+		st = &captchaState{store: captcha.NewStore(), tests: captcha.NewTestSource()}
 		st.source = captcha.NewJDSource(jdBaseEnv, a.resolveJDTask)
 		st.paid.path = filepath.Join(a.DataDir, paidLedgerFile)
 		captchaReg[a] = st
@@ -114,6 +115,9 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		// Open prompts close and JD is not asked. JD keeps its challenges and
 		// gives up on those links itself once they expire.
 		for _, c := range st.store.List() {
+			if captcha.IsTest(c.ID) {
+				st.tests.Abort(c.ID)
+			}
 			a.settleCaptcha(c, "switchedOff")
 		}
 		a.setActivityGauge(ActivityCaptcha, 0)
@@ -125,18 +129,29 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		if !errors.Is(err, captcha.ErrJDNotConfigured) {
 			log.Printf("captcha: listing challenges failed (will retry): %v", err)
 		}
-		// A failed list is not "everything resolved"; clearing the store would
-		// close every open prompt.
-		return st.store.List()
+		// A failed list is not "everything resolved": the JD challenges stay
+		// as they were, or every open prompt would close. The test captchas
+		// do not depend on JD and still come and go.
+		list = list[:0]
+		for _, c := range st.store.List() {
+			if !captcha.IsTest(c.ID) {
+				list = append(list, c)
+			}
+		}
 	}
 
-	added, changed, removed := st.store.Sync(list)
+	added, changed, removed := st.store.Sync(append(list, st.tests.List()...))
+	if err != nil && len(added) == 0 && len(removed) == 0 {
+		return st.store.List()
+	}
 	for _, c := range added {
 		a.Hub.Broadcast("captcha", c)
 		// Fired on arrival only, or a script would be notified every two
 		// seconds while the challenge waits.
 		a.fireCaptchaPending(c)
-		a.spawn(func() { a.trySolveCaptchaAutomatically(c) })
+		if !captcha.IsTest(c.ID) || st.tests.ForSolvers(c.ID) {
+			a.spawn(func() { a.trySolveCaptchaAutomatically(c) })
+		}
 	}
 	for _, c := range changed {
 		a.Hub.Broadcast("captcha", c)
@@ -152,8 +167,8 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		a.settleCaptcha(c, reason)
 	}
 	current := st.store.List()
-	// Published only on success, so a failing poll does not rebroadcast an
-	// unchanged count.
+	// A failing poll returned above unless a test captcha came or went, so it
+	// does not rebroadcast an unchanged count.
 	a.setActivityGauge(ActivityCaptcha, len(current))
 	return current
 }
@@ -181,11 +196,16 @@ func (a *App) markCaptchaTasks(added []captcha.Challenge) {
 	}
 }
 
-// settleCaptcha ends one challenge: it removes it from the store (idempotent),
-// clears the task's Reason if it is still core.ReasonCaptcha, and broadcasts
-// how the challenge ended. It is called both right after an answer or abort
-// and when the poll finds the challenge gone.
+// settleCaptcha ends one challenge for reason, see endCaptcha.
 func (a *App) settleCaptcha(c captcha.Challenge, reason string) {
+	a.endCaptcha(c, CaptchaResolution{Reason: reason})
+}
+
+// endCaptcha ends one challenge: it removes it from the store (idempotent),
+// clears the task's Reason if it is still core.ReasonCaptcha, and broadcasts
+// end with c's id, task and host filled in. It is called both right after an
+// answer or abort and when the poll finds the challenge gone.
+func (a *App) endCaptcha(c captcha.Challenge, end CaptchaResolution) {
 	st := a.captchaStateFor()
 	st.store.Remove(c.ID)
 	st.unanswerableMu.Lock()
@@ -206,7 +226,8 @@ func (a *App) settleCaptcha(c captcha.Challenge, reason string) {
 	if pub != nil {
 		a.publish(pub)
 	}
-	a.Hub.Broadcast("captchaResolved", CaptchaResolution{ID: c.ID, TaskID: c.TaskID, Host: c.Host, Reason: reason})
+	end.ID, end.TaskID, end.Host = c.ID, c.TaskID, c.Host
+	a.Hub.Broadcast("captchaResolved", end)
 }
 
 // CaptchaResolution is broadcast as "captchaResolved" when a challenge ends.
@@ -219,6 +240,42 @@ type CaptchaResolution struct {
 	// captcha or JD module was switched off) or "resolved" (gone for a reason
 	// this session cannot tell).
 	Reason string `json:"reason"`
+	// Test is how a test captcha's answer compared, set when one was solved.
+	Test *TestCaptchaResult `json:"test,omitempty"`
+}
+
+// TestCaptchaResult is how an answer to a test captcha compares with the text
+// drawn in it.
+type TestCaptchaResult struct {
+	Correct bool `json:"correct"`
+	// Want is the text drawn in the picture.
+	Want string `json:"want"`
+	// Given is the answer as it arrived, without the spaces around it.
+	Given string `json:"given"`
+	// Solver is the captcha account that answered, by its catalogue label,
+	// and empty when a person did.
+	Solver string `json:"solver,omitempty"`
+}
+
+// ErrCaptchaOff is what CreateTestCaptcha answers while the captcha or JD
+// module is switched off, since no prompt would show the captcha then.
+var ErrCaptchaOff = errors.New("captchas are switched off on the Modules page")
+
+// CreateTestCaptcha draws a test captcha and publishes it at once, the way the
+// poll publishes one JD listed: to the windows, the phone app and the event
+// targets. solvers lets the paid solvers take it too, which they bill.
+func (a *App) CreateTestCaptcha(solvers bool) (captcha.Challenge, error) {
+	if a.captchaSwitchedOff() {
+		return captcha.Challenge{}, ErrCaptchaOff
+	}
+	st := a.captchaStateFor()
+	c, err := st.tests.New(solvers)
+	if err != nil {
+		return captcha.Challenge{}, err
+	}
+	a.ensureCaptchaPoller()
+	a.pollCaptchasOnce(st)
+	return c, nil
 }
 
 // CaptchaChallenges lists the challenges this session knows about. It reads
@@ -329,18 +386,47 @@ func (a *App) RefreshCaptchas(_ context.Context) []captcha.Challenge {
 	return a.pollCaptchasOnce(a.captchaStateFor())
 }
 
-// AnswerCaptcha submits text as the solution to id. stillValid is JD's own
-// verdict on whether the challenge was still live, which callers trust over
-// any client-side countdown.
-func (a *App) AnswerCaptcha(ctx context.Context, id, text string) (stillValid bool, err error) {
+// CaptchaAnswer is what became of an answer.
+type CaptchaAnswer struct {
+	// StillValid is the source's own verdict on whether the challenge was
+	// still live, which callers trust over any client-side countdown.
+	StillValid bool `json:"stillValid"`
+	// Test is set for a test captcha answered in time.
+	Test *TestCaptchaResult `json:"test,omitempty"`
+}
+
+// AnswerCaptcha submits text as a person's solution to id.
+func (a *App) AnswerCaptcha(ctx context.Context, id, text string) (CaptchaAnswer, error) {
+	return a.answerCaptcha(ctx, id, text, "")
+}
+
+// answerCaptcha submits text as the solution to id. solver is the captcha
+// account it came from, empty for a person, and is only reported for a test
+// captcha.
+func (a *App) answerCaptcha(ctx context.Context, id, text, solver string) (CaptchaAnswer, error) {
 	st := a.captchaStateFor()
 	ch, known := st.store.Get(id)
 
+	if captcha.IsTest(id) {
+		want, correct, live := st.tests.Check(id, text)
+		if !live {
+			if known {
+				a.settleCaptcha(ch, "expired")
+			}
+			return CaptchaAnswer{}, nil
+		}
+		res := &TestCaptchaResult{Correct: correct, Want: want, Given: strings.TrimSpace(text), Solver: solver}
+		if known {
+			a.endCaptcha(ch, CaptchaResolution{Reason: "solved", Test: res})
+		}
+		return CaptchaAnswer{StillValid: true, Test: res}, nil
+	}
+
 	cctx, cancel := context.WithTimeout(ctx, captchaCallTimeout)
 	defer cancel()
-	stillValid, err = st.source.Answer(cctx, id, text)
+	stillValid, err := st.source.Answer(cctx, id, text)
 	if err != nil {
-		return false, err
+		return CaptchaAnswer{}, err
 	}
 	if known {
 		reason := "expired"
@@ -349,7 +435,7 @@ func (a *App) AnswerCaptcha(ctx context.Context, id, text string) (stillValid bo
 		}
 		a.settleCaptcha(ch, reason)
 	}
-	return stillValid, nil
+	return CaptchaAnswer{StillValid: stillValid}, nil
 }
 
 // AbortCaptcha tells the source the user declined to answer id, at the given
@@ -358,10 +444,14 @@ func (a *App) AbortCaptcha(ctx context.Context, id string, scope captcha.AbortSc
 	st := a.captchaStateFor()
 	ch, known := st.store.Get(id)
 
-	cctx, cancel := context.WithTimeout(ctx, captchaCallTimeout)
-	defer cancel()
-	if err := st.source.Abort(cctx, id, scope); err != nil {
-		return err
+	if captcha.IsTest(id) {
+		st.tests.Abort(id)
+	} else {
+		cctx, cancel := context.WithTimeout(ctx, captchaCallTimeout)
+		defer cancel()
+		if err := st.source.Abort(cctx, id, scope); err != nil {
+			return err
+		}
 	}
 	if known {
 		a.settleCaptcha(ch, "aborted")

@@ -3044,10 +3044,25 @@ export const hu: Dict = {
   'captcha.solverStopped': 'Egyik captcha-fiók sem tudta átvenni ezt a captchát.',
   'captcha.solverUnsupported': '{solver} nem old meg ilyen fajta captchát.',
   'captcha.solverRefused': '{solver} elutasította: {reason}',
+  'captcha.testFor':
+    'Próba-captcha a KnightLoadertől. Egy letöltés sem vár rá. Írd be az öt karaktert, és meglátod, jó-e a válaszod.',
+  'captcha.testRight': 'Helyes. A próba-captchán ez állt: {want}.',
+  'captcha.testWrong': 'Hibás. A próba-captchán ez állt: {want}, nem {given}.',
+  'captcha.testSolverRight': '{solver} megoldotta a próba-captchát: {want}.',
+  'captcha.testSolverWrong': '{solver} rosszul oldotta meg a próba-captchát: {want} állt rajta, nem {given}.',
   'settings.captcha.whenTitle': 'Mikor indulnak a captcha-fiókok',
   'settings.captcha.onlyUnwatched': 'Csak ha senki sem nézi',
   'settings.captcha.wait': 'Várakozás válaszra (másodperc)',
   'settings.captcha.waitHint': 'Meddig várnak a captcha-fiókok, amíg valaki nézi, mielőtt mégis átveszik. Soha nem várnak tovább, mint a captcha hátralévő idejének a fele, hogy egy captcha-fióknak még legyen ideje megválaszolni. 10 és 600 másodperc között.',
+  'settings.captcha.testTitle': 'Próba-captcha',
+  'settings.captcha.test': 'Próba-captcha küldése',
+  'settings.captcha.testHint':
+    'Olyan captchát küld, amelyet a KnightLoader maga rajzol. Megjelenik a captcha-ablakban, a telefonos alkalmazásban és az eseménycéljaidnál, ahogy egy tárhely captchája, és amint megválaszolták, látod, hogy jó volt-e a válasz. Egy letöltés sem vár rá, és nem megy a captcha-fiókjaidhoz.',
+  'settings.captcha.testSolvers': 'Küldés a captcha-fiókoknak is',
+  'settings.captcha.testSolversHint':
+    'Ugyanazt a próba-captchát a captcha-fiókjaidnak is elküldi, a fenti sorrendben, hogy lásd, megválaszolják-e és jól-e. Úgy számlázzák, mint bármely más captchát. Ha a „Csak ha senki sem nézi” be van kapcsolva, először rád várnak: válts másik lapra, vagy hagyd lejárni a várakozási időt.',
+  'settings.captcha.testOff':
+    'A captchák ki vannak kapcsolva. Kapcsold vissza a Captcha modult, hogy próba-captchát küldhess.',
   'captcha.solverStoppedTaken': '{solver} átvette ezt a captchát, de nem küldött választ.',
   'captcha.solverNotPassedOn': '{solver} így is felszámolhatja, ezért a KnightLoader nem küldi el egy másik captcha-fióknak is. Te magad továbbra is válaszolhatsz rá.',
   'captcha.solverNoAnswer': '{solver} átvette, de nem jött vissza válasz.',
