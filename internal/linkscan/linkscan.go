@@ -24,7 +24,7 @@ var byteOrderMark = string(rune(0xFEFF))
 
 // schemes are the entrances this app can act on: the web, magnets, and the
 // own-server schemes the remotefs resolver claims. The slice's order does not
-// matter, since nextScheme checks every entry and the earliest match wins,
+// matter, since schemeFinder checks every entry and the earliest match wins,
 // which is also why "sftp://" is never cut down to the "ftp://" inside it.
 var schemes = []string{
 	"https://", "http://", "magnet:?",
@@ -176,9 +176,10 @@ func ContainsScheme(s string) bool {
 // scanTokens finds every scheme-anchored link on one line, in order.
 func scanTokens(line string) []string {
 	var out []string
+	next := newSchemeFinder(line)
 	pos := 0
 	for pos < len(line) {
-		start, schemeLen := nextScheme(line, pos)
+		start, schemeLen := next.from(pos)
 		if start < 0 {
 			break
 		}
@@ -198,18 +199,38 @@ func scanTokens(line string) []string {
 	return out
 }
 
-// nextScheme finds the earliest recognised scheme at or after from, folding
-// case: a site's own CnL button and a pasted mail signature both spell it
-// every which way.
-func nextScheme(s string, from int) (start, length int) {
+// schemeFinder finds the earliest recognised scheme at or after a position
+// that only moves forward, folding case: a site's own CnL button and a pasted
+// mail signature both spell it every which way.
+//
+// Each scheme's next match is kept until the scan passes it, so a line is
+// searched once per scheme rather than once per token. Searching the rest of
+// the line again for every token is quadratic in its length.
+type schemeFinder struct {
+	line string
+	// at holds each scheme's next match, or -1 once none is left.
+	at []int
+}
+
+func newSchemeFinder(line string) *schemeFinder {
+	f := &schemeFinder{line: line, at: make([]int, len(schemes))}
+	for i, sch := range schemes {
+		f.at[i] = indexFold(line, sch)
+	}
+	return f
+}
+
+func (f *schemeFinder) from(pos int) (start, length int) {
 	start = -1
-	for _, sch := range schemes {
-		i := indexFold(s[from:], sch)
-		if i < 0 {
-			continue
+	for i, sch := range schemes {
+		if f.at[i] >= 0 && f.at[i] < pos {
+			f.at[i] = -1
+			if j := indexFold(f.line[pos:], sch); j >= 0 {
+				f.at[i] = pos + j
+			}
 		}
-		if abs := from + i; start == -1 || abs < start {
-			start, length = abs, len(sch)
+		if at := f.at[i]; at >= 0 && (start == -1 || at < start) {
+			start, length = at, len(sch)
 		}
 	}
 	return start, length
