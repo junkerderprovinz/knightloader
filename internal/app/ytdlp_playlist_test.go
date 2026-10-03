@@ -57,7 +57,7 @@ func (b *fakePlaylistBackend) ProbePlaylist(_ context.Context, url string) (ytdl
 	return b.pl, nil
 }
 
-func (b *fakePlaylistBackend) ProbeTitle(_ context.Context, url string) (ytdlp.ProbeResult, error) {
+func (b *fakePlaylistBackend) ProbeTitle(_ context.Context, url string, _ map[string]string) (ytdlp.ProbeResult, error) {
 	b.mu.Lock()
 	b.probed = append(b.probed, url)
 	b.mu.Unlock()

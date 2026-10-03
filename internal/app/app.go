@@ -339,6 +339,10 @@ type App struct {
 	// browserHeaders holds the request headers a browser handed over with a
 	// download it gave up, by task id (see app_browserheaders.go). Memory only.
 	browserHeaders map[string]hostheaders.Set
+	// preflights holds, by task id, the start whose header preflight runs off
+	// the lock, and preflightSeq numbers those starts (see resolveLocked).
+	preflights   map[string]uint64
+	preflightSeq uint64
 	// moving holds the tasks being taken off their old backend, by
 	// PinResolver or by a fallback down the chain (see handOnLocked).
 	// Dispatch leaves them where they are until that backend has let go, so
@@ -1006,7 +1010,7 @@ type speedLimiter interface {
 // collector's HEAD probe (analyze). It is optional because other backends learn
 // the name from their progress stream once a download starts.
 type titleProber interface {
-	ProbeTitle(ctx context.Context, url string) (ytdlp.ProbeResult, error)
+	ProbeTitle(ctx context.Context, url string, sent map[string]string) (ytdlp.ProbeResult, error)
 }
 
 // ApplySettings persists new settings and applies what can change at runtime:

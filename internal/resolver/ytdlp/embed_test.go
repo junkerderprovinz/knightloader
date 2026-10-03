@@ -288,7 +288,7 @@ func TestRunReportsAGoneVideoWithoutStartingYtdlp(t *testing.T) {
 func TestTheProbeNamesTheStreamAfterThePage(t *testing.T) {
 	b := fakeYtdlpBackend(t, "stream")
 	b.Client = playmateSite(t, &fakePlaymate{title: "1000267652"})
-	res, err := b.ProbeTitle(context.Background(), playmateLink)
+	res, err := b.ProbeTitle(context.Background(), playmateLink, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
