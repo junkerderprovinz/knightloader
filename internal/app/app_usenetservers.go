@@ -37,6 +37,17 @@ func (a *App) SetUsenetLogin(id, username, password string) error {
 	return a.Accounts.SetCredential(settings.UsenetService, id, cred)
 }
 
+// UsenetLoginMissing reports whether a Usenet server has no login here, as
+// one taken over from another box's settings has.
+func (a *App) UsenetLoginMissing() bool {
+	for _, srv := range a.Settings.Get().UsenetServers {
+		if l := a.UsenetLogin(srv.ID); l.Username == "" && !l.HasPassword {
+			return true
+		}
+	}
+	return false
+}
+
 // RemoveUsenetLogin drops a server's sealed login.
 func (a *App) RemoveUsenetLogin(id string) error {
 	return a.Accounts.SetCredential(settings.UsenetService, id, accounts.Credential{})

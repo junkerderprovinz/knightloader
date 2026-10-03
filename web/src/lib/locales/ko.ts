@@ -3096,6 +3096,7 @@ export const ko: Dict = {
   'settings.downloads.keepAwakeHint': '다운로드가 진행되는 동안, 그리고 그 뒤에 검사, 압축 풀기, 이동, 이벤트 프로그램 전달이 이어지는 동안 컴퓨터는 절전 모드로 들어가지 않습니다. 다음 시도를 기다리는 다운로드도 포함됩니다. 화면은 꺼질 수 있습니다. 이 모든 일이 끝나면 다시 평소처럼 절전 모드로 들어갑니다.',
   'settings.transfer.incompleteEventPrograms': '이벤트 프로그램의 명령줄',
   'settings.transfer.incompleteQBittorrent': 'qBittorrent 비밀번호',
+  'settings.transfer.incompleteUsenet': 'Usenet 서버 로그인 정보',
   'settings.eventPrograms.argsHint': '한 줄에 하나씩. 각 줄은 변수가 채워진 채 하나의 인자로 프로그램에 전달되며, 어떤 셸도 이를 해석하지 않습니다. $( )나 ;가 들어간 파일 이름은 그 문자 그대로 도착합니다. .bat나 .cmd 파일은 각 인자를 따옴표에 싸서 받으므로, 거기서는 "%~1"로 읽으세요. 프로그램이 셸이라면 변수 대신 환경 변수를 "$KL_FILE"처럼 큰따옴표로 감싸 쓰세요. 그래야 셸이 파일 이름을 명령으로 읽지 않습니다.',
   'settings.eventPrograms.envHint': '실행할 때마다 이 변수들이 전달되며, 이벤트에 해당 값이 없으면 비어 있습니다. KL_FILE은 다운로드의 파일이고 KL_FOLDER는 그 파일이 있는 폴더입니다. 끝난 패키지의 경우 KL_FOLDER는 파일 대부분이 들어간 폴더이고, 풀린 압축 파일의 경우 압축을 푼 폴더입니다. 압축 풀기에 실패해도 프로그램이 시작되며, 이때 KL_EXTRACT_OK는 false입니다. 작업 폴더를 쓰면 끝난 다운로드나 패키지는 파일이 거기서 옮겨질 때까지 최대 15분 기다립니다. 이 인스턴스 자신의 KL_ 설정은 서비스 키를 포함해 절대 넘겨지지 않습니다.',
   'settings.eventPrograms.timeoutHint': '한 번의 실행이 중지되기 전까지 걸릴 수 있는 시간이며, 5초에서 3600초 사이입니다. 프로그램이 시작한 것도 함께 중지됩니다.',

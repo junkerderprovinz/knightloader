@@ -2702,6 +2702,7 @@ export const de: Dict = {
   'settings.transfer.incompleteArchives': 'die Archiv-Passwörter',
   'settings.transfer.incompleteEventPrograms': 'die Befehlszeilen der Ereignisprogramme',
   'settings.transfer.incompleteQBittorrent': 'das qBittorrent-Passwort',
+  'settings.transfer.incompleteUsenet': 'die Zugangsdaten der Usenet-Server',
   'settings.transfer.rulesUncompiled': '{n} Regeln sind mitgekommen, die dieser Build nicht übersetzen kann. Sie werden gespeichert und greifen nie. Sieh auf der Seite Regeln & Kategorien nach.',
   'settings.transfer.parseFailed': 'Das ist kein Einstellungs-Export: {reason}',
   'settings.transfer.tooNew': 'Diese Datei stammt von {version}, dieser Server läuft auf {running}. Aktualisiere erst den Server, dann spiel sie ein.',

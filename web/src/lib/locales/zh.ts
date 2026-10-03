@@ -3091,6 +3091,7 @@ export const zh: Dict = {
   'settings.downloads.keepAwakeHint': '下载进行中，以及下载完成后被检查、解压、移动或交给事件程序处理时，电脑都不会进入睡眠。等待下一次重试的下载也算在内。屏幕仍然可以关闭。这些都结束后，电脑又会照常睡眠。',
   'settings.transfer.incompleteEventPrograms': '事件程序的命令行',
   'settings.transfer.incompleteQBittorrent': 'qBittorrent 密码',
+  'settings.transfer.incompleteUsenet': 'Usenet 服务器的登录信息',
   'settings.eventPrograms.argsHint': '一行一个。每一行都作为一个参数交给程序，占位符会先被填好，而且没有 shell 会去解读它：含有 $( ) 或 ; 的文件名，到达时就是这些字符本身。.bat 或 .cmd 文件拿到的每个参数都带引号，所以在那里要用 "%~1" 来读。如果程序是 shell，就用环境变量代替占位符，并放在双引号里，比如 "$KL_FILE"，这样 shell 就不会把文件名当成命令来读。',
   'settings.eventPrograms.envHint': '每次运行都会得到这些变量，事件没有对应内容时就为空。KL_FILE 是下载的文件，KL_FOLDER 是它所在的文件夹。对于完成的包，KL_FOLDER 是它大部分文件去往的文件夹；对于解压后的压缩包，是它被解压到的文件夹。解压失败也会启动程序，此时 KL_EXTRACT_OK 为 false。如果你使用工作文件夹，完成的下载或包会等到它的文件从那里移出去，最多等 15 分钟。这个实例自己的 KL_ 设置，包括服务密钥，永远不会传下去。',
   'settings.eventPrograms.timeoutHint': '一次运行最多可以持续多久，超过就会被停止，范围是 5 到 3600 秒。程序自己启动的所有东西也会一起被停止。',
