@@ -340,6 +340,11 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		// yt-dlp announces differently.
 		return u
 	}
+	// The progress lines counted one stream at a time, and the app deletes a
+	// task's file only at the path and size the task recorded.
+	if fi, err := os.Stat(final); err == nil && fi.Mode().IsRegular() {
+		u.File, u.Size, u.Loaded = final, fi.Size(), fi.Size()
+	}
 	info, haveInfo := infoDict{}, false
 	if needsInfoJSON(o) {
 		path := infoJSONPath(final)
