@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
+import { readUIState } from '../lib/uistate';
 import { useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
 import { startClipboardWatch, type WatchOutcome } from '../lib/clipboardWatch';
 import { startLease } from '../lib/clipboardWatchers';
@@ -21,6 +22,16 @@ export function GlobalIntake() {
   const { t } = useT();
   const [watch, setWatch] = useClipboardWatch();
   const [target] = useClipboardWatchTarget();
+  // The target reads as this instance until the stored one arrives, and a
+  // watch started before that would lease here first and then move.
+  const [targetRead, setTargetRead] = useState(false);
+  useEffect(() => {
+    let live = true;
+    readUIState().then(() => live && setTargetRead(true));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
     async function stageText(text: string) {
@@ -105,7 +116,7 @@ export function GlobalIntake() {
   // watchers, held with the instance the links go to. Either way, another
   // device switching the watch off there ends it here.
   useEffect(() => {
-    if (!watch) return;
+    if (!watch || !targetRead) return;
     const stoppedElsewhere = () => {
       const { t, toast } = latest.current;
       setWatch(false);
@@ -142,7 +153,7 @@ export function GlobalIntake() {
       endWatch();
       endLease();
     };
-  }, [watch, setWatch, target]);
+  }, [watch, setWatch, target, targetRead]);
 
   return null;
 }
