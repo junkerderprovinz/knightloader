@@ -52,6 +52,12 @@ release's tag.
   pause or a removal now stops ffmpeg too. ffmpeg used to keep recording on its
   own, after a removal with files into the deleted file, and the removal waited
   until ffmpeg was done.
+- **Pausing or removing a media download works after an account change.**
+  Saving an account, switching JDownloader on or updating yt-dlp set up yt-dlp
+  again, and KnightLoader lost track of a download that was already running: a
+  pause or a removal did nothing, and the download finished without a row.
+  KnightLoader now keeps the same yt-dlp backend and only points it at the new
+  binary.
 - **Thumbnail, subtitle and description rows take their file with them.**
   Removed with their files, these rows left the .jpg, .srt or .description
   behind, and a video or audio row left its .nfo. KnightLoader now records the
