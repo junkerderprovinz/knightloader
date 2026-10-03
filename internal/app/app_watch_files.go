@@ -14,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/container"
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
@@ -120,6 +121,12 @@ func (a *App) openWatchContainer(f *watch.File, pkg string) {
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(f.Name)), ".")
 	links, err := adder.AddContainerFile(a.ctx, ext, f.Data, pkg, containerCrawlLimit)
+	if errors.Is(err, jd.ErrNoLinks) && container.Detect(f.Name, f.Data) != container.KindDLC {
+		// JD holds the same RSDF and CCF keys as this program, so a file
+		// that would not open here holds nothing JD could have dropped as a
+		// duplicate.
+		err = errJDCouldNotOpen
+	}
 	if err != nil {
 		// A shutdown leaves the file parked for the next start (see
 		// onWatchIntake), so it has not failed.
