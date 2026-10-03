@@ -46,6 +46,18 @@ release's tag.
   will not open here still goes to the JDownloader backend, and the log says
   which of the two opened it. A `.dlc` goes to JDownloader as before, because
   its key is only handed out to registered clients.
+- **The Android app takes shared links.** KnightLoader appears in Android's
+  share sheet. A link or text shared from YouTube, a browser or any other app
+  goes to the collector of the instance you tap, and the title the app sent
+  names the package. You tap even with only one instance paired, so no other
+  app can send links to your server on its own. Files are not offered, because
+  the relay does not forward container and torrent uploads.
+
+### Fixed
+
+- **Add links in the Android app says why a send failed.** When the request
+  never reached the instance, or a relay connection had to be added again, the
+  screen said only "Could not send the links." The reason follows it now.
 
 ## [1.6.6] - 2026-10-02
 
