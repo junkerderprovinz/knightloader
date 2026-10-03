@@ -56,21 +56,43 @@ func (a *App) downloadedVerdict(cand rules.Candidate) rules.Verdict {
 	}
 }
 
+// historyNeedsSize reports whether the history holds a file of the
+// candidate's name and only its unknown size decides whether this is that
+// file (see dedupe.Set.NeedsSize).
+func (a *App) historyNeedsSize(cand rules.Candidate) bool {
+	s := a.Settings.Get()
+	if !s.RejectDownloaded {
+		return false
+	}
+	d := &a.downloaded
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.fresh(a, dedupe.ParsePolicy(s.MirrorPolicy)) &&
+		d.set.NeedsSize(dedupe.Entry{URL: cand.URL, Name: cand.Filename, Size: cand.Filesize})
+}
+
 // match looks a candidate up in the history and reports the entry it repeats
 // with that download's finish time.
 func (d *downloadedIndex) match(a *App, p dedupe.Policy, e dedupe.Entry) (dedupe.Match, time.Time) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	rev := a.Store.HistoryRevision()
-	if !d.built || d.rev != rev || d.set.Policy() != p {
-		// Read before the build, so a write during it marks the copy stale.
-		d.rev = rev
-		if !d.build(a, p) {
-			return dedupe.Match{}, time.Time{}
-		}
+	if !d.fresh(a, p) {
+		return dedupe.Match{}, time.Time{}
 	}
 	m := d.set.Check(e)
 	return m, d.finished[m.Of.ID]
+}
+
+// fresh rebuilds the index when the history or the policy has changed since,
+// and reports whether it is usable. Caller holds d.mu.
+func (d *downloadedIndex) fresh(a *App, p dedupe.Policy) bool {
+	rev := a.Store.HistoryRevision()
+	if d.built && d.rev == rev && d.set.Policy() == p {
+		return true
+	}
+	// Read before the build, so a write during it marks the copy stale.
+	d.rev = rev
+	return d.build(a, p)
 }
 
 // build files the whole history, oldest first so that a URL downloaded twice

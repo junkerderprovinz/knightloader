@@ -44,7 +44,9 @@ release's tag.
   mirror policy, goes to the rejected links with the name and date of that
   download, so a feed or a second paste no longer fetches a file twice.
   Restore adds it anyway. The check is on by default and has a switch under
-  Settings > Link collector > Copies of the same file.
+  Settings > Link collector > Copies of the same file. A magnet is recognised
+  by its info hash, whatever name and trackers it carries, and a link
+  restored from the filter is still checked against the history.
 
 ## [1.6.6] - 2026-10-02
 

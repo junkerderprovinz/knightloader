@@ -344,6 +344,9 @@ type Set struct {
 	policy  Policy
 	byURL   map[string]record
 	buckets map[string][]string // signature key -> normalised URLs
+	// names counts the records per name key under PolicyFilenameAndSize,
+	// where a name alone matches nothing but tells NeedsSize a size could.
+	names map[string]int
 }
 
 // New returns an empty set that merges mirrors according to p. An
@@ -356,6 +359,7 @@ func New(p Policy) *Set {
 		policy:  p,
 		byURL:   make(map[string]record),
 		buckets: make(map[string][]string),
+		names:   make(map[string]int),
 	}
 }
 
@@ -378,7 +382,31 @@ func (s *Set) Add(e Entry) {
 	for _, sig := range r.sigs {
 		s.buckets[sig.key] = append(s.buckets[sig.key], u)
 	}
+	if k := s.nameKey(r); k != "" {
+		s.names[k]++
+	}
 	s.byURL[u] = r
+}
+
+// nameKey is the key names counts a record under, or "" when it is not
+// counted.
+func (s *Set) nameKey(r record) string {
+	if s.policy != PolicyFilenameAndSize {
+		return ""
+	}
+	return r.name.key()
+}
+
+// NeedsSize reports whether only the candidate's unknown size keeps it from
+// matching: the policy compares names and sizes, and the set holds a file of
+// that name. A caller that can learn the size cheaply should, before it
+// trusts a NotSeen from Check.
+func (s *Set) NeedsSize(cand Entry) bool {
+	if cand.Size > 0 {
+		return false
+	}
+	k := s.nameKey(newRecord(cand))
+	return k != "" && s.names[k] > 0
 }
 
 // Remove forgets a URL.
@@ -397,6 +425,12 @@ func (s *Set) remove(u string) {
 			delete(s.buckets, sig.key)
 		} else {
 			s.buckets[sig.key] = b
+		}
+	}
+	if k := s.nameKey(r); k != "" {
+		s.names[k]--
+		if s.names[k] <= 0 {
+			delete(s.names, k)
 		}
 	}
 	delete(s.byURL, u)
