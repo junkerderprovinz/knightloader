@@ -90,11 +90,11 @@ func (a *App) stageWatchFile(f *watch.File, pkg string) {
 		switch {
 		case err == nil:
 			if k := container.Detect(f.Name, f.Data); k == container.KindRSDF || k == container.KindCCF {
-				log.Printf("dropped container %s: opened here as %s, %d links", f.Name, k, len(links))
+				log.Printf("dropped container %q: opened here as %s, %d links", f.Name, k, len(links))
 			}
 			a.stageWatchJob(watch.Job{URLs: links, Package: pkg})
 		case errors.Is(err, container.ErrNeedsBackend):
-			log.Printf("dropped container %s: handing it to JDownloader: %v", f.Name, err)
+			log.Printf("dropped container %q: handing it to JDownloader: %v", f.Name, err)
 			a.openWatchContainer(f, pkg)
 		default:
 			a.watchFileFailed(f, "container", err)
@@ -124,10 +124,10 @@ func (a *App) openWatchContainer(f *watch.File, pkg string) {
 		return
 	}
 	created := a.AddResolvedLinksFrom(links, pkg, OriginWatch)
-	log.Printf("dropped container %s: %d links, %d staged", f.Name, len(links), len(created))
+	log.Printf("dropped container %q: %d links, %d staged", f.Name, len(links), len(created))
 }
 
 func (a *App) watchFileFailed(f *watch.File, kind string, err error) {
-	log.Printf("dropped file %s: %v", f.Name, err)
+	log.Printf("dropped file %q: %v", f.Name, err)
 	a.recordSkippedReason(f.Name, kind, err.Error())
 }
