@@ -37,6 +37,23 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **FTP, SFTP and WebDAV links are found in what you paste.** The link
+  scanner looked only for http, https and magnet links, so the paste box, text
+  files in a watched folder, link lists, the download-client endpoint and the
+  desktop app's clipboard watcher dropped every ftp://, ftps://, sftp://,
+  webdav:// and webdavs:// link without saying so. These links now reach the
+  account for your own server.
+- **Adding a downloaded link again leaves the finished copy alone.** When you
+  added a link you had already downloaded and gave it no package name, the new
+  copy's name check moved the finished copy into the new package, although its
+  file stayed in the old folder. Moving the new copy by hand did the same. Only
+  the rows of one yt-dlp link move together now.
+- **A link's size survives a restart.** The collector showed the size a link
+  check found but did not save it, so after a restart the link read as 0 bytes
+  and mirrors could not be matched on their size.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed
