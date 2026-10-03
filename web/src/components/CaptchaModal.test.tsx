@@ -323,6 +323,18 @@ describe('a test captcha', () => {
     expect(toasts.map((t) => t.message)).toEqual([wrong]);
   });
 
+  it('shows the result of another answer that settled the test first', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', { ...end, test: { correct: false, want: 'K7PQX', given: 'OTHER' } });
+      return new Response(JSON.stringify({ stillValid: false }), { status: 200 });
+    });
+    expect(toasts.map((t) => t.message)).toEqual([
+      'That answer arrived too late.',
+      'Wrong. The test captcha said K7PQX, not OTHER.',
+    ]);
+  });
+
   it('still says how a captcha account did when the socket brings it', async () => {
     await open();
     await instanceSays('captchaResolved', {

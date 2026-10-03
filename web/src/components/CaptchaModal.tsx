@@ -357,7 +357,13 @@ export function CaptchaModal() {
       if (test) {
         toast(testResultText(t, test), test.correct ? 'ok' : 'fail', 'captcha-resolved');
         if (!answering.current.get(id)) shownHere.current.add(id);
-      } else if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
+      } else if (!stillValid) {
+        toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
+        // Another answer settled the test first; its result came with the
+        // broadcast.
+        const held = answering.current.get(id);
+        if (held) toast(testResultText(t, held), held.correct ? 'ok' : 'fail', 'captcha-resolved');
+      }
       // The challenge leaves through the "captchaResolved" broadcast.
     } catch {
       const test = answering.current.get(id);
