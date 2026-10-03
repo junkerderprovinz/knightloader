@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -69,10 +68,15 @@ func registerClipWatch(reg *Registry, a *app.App) {
 			found := a.ClipWatch.Stop(id, time.Now())
 			// An extension whose default instance moved still holds a lease
 			// at the old one until it runs out, so a copy found here is no
-			// reason to leave the others alone. A peer asked on behalf of
-			// another does not ask the group again.
-			if r.URL.Query().Get("local") == "" && stopAtPeers(r.Context(), a, id) {
-				found = true
+			// reason to leave the others alone. The answer waits only until
+			// someone held the watcher; the peers still asking finish on their
+			// own. A peer asked on behalf of another does not ask the group
+			// again.
+			if r.URL.Query().Get("local") == "" {
+				held := stopAtPeers(context.WithoutCancel(r.Context()), a, id)
+				if !found {
+					found = <-held
+				}
 			}
 			if !found {
 				http.Error(w, "no clipboard watcher "+id+" in this group", http.StatusNotFound)
@@ -137,26 +141,31 @@ func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 	return out
 }
 
-// stopAtPeers asks every reachable peer at once to stop watcher id and reports
-// whether one of them held it. Asked one after another, a peer that does not
-// answer would use up the time of the ones after it.
-func stopAtPeers(ctx context.Context, a *app.App, id string) bool {
+// stopAtPeers asks every reachable peer at once to stop watcher id. The channel
+// yields true as soon as one of them held it, or false once all have answered
+// or run out of time. Asked one after another, a peer that does not answer
+// would use up the time of the ones after it.
+func stopAtPeers(ctx context.Context, a *app.App, id string) <-chan bool {
 	ctx, cancel := context.WithTimeout(ctx, peerWatchersWait)
-	defer cancel()
 	path := "/api/clipboard-watchers/" + url.PathEscape(id) + "/stop?local=1"
-	var found atomic.Bool
+	held := make(chan bool, 1)
+	var once sync.Once
 	var wg sync.WaitGroup
 	for _, p := range watcherPeers(a) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			if _, status, err := a.Federation.Proxy(ctx, p.Name, http.MethodPost, path, nil); err == nil && status == http.StatusNoContent {
-				found.Store(true)
+				once.Do(func() { held <- true })
 			}
 		}()
 	}
-	wg.Wait()
-	return found.Load()
+	go func() {
+		wg.Wait()
+		cancel()
+		once.Do(func() { held <- false })
+	}()
+	return held
 }
 
 // watcherPeers is the peers asked for their watchers, none while the Instances
