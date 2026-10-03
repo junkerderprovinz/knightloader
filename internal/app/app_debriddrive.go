@@ -41,11 +41,7 @@ func (a *App) driveAccounts() []debriddrive.Account {
 
 // DriveFolders names the account folders the debrid drive shows.
 func (a *App) DriveFolders() []string {
-	var out []string
-	for _, acct := range a.driveAccounts() {
-		out = append(out, acct.Name)
-	}
-	return out
+	return a.DebridDrive.Folders()
 }
 
 // driveFolder names an account's folder: the service, and the account id for
