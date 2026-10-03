@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"context"
 	cryptorand "crypto/rand"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -252,5 +255,52 @@ func TestAFileFromAFurtherSourceOfAnotherSizeComesFromItsOwnLinkAlone(t *testing
 	}
 	if n := other.ranged.Load(); n > 2 {
 		t.Errorf("the refused source answered %d ranged requests, want only the check", n)
+	}
+}
+
+// lockedBuffer is a log destination the vetting goroutines may share.
+type lockedBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *lockedBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *lockedBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
+}
+
+func captureLog(t *testing.T) *lockedBuffer {
+	t.Helper()
+	b := &lockedBuffer{}
+	log.SetOutput(b)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	return b
+}
+
+// A debrid link works for anybody who has it, so an unreachable one is
+// reported by its host alone.
+func TestAnUnreachableSourceIsLoggedWithoutItsLink(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 4<<20)
+	own := newMirrorSource(t, data)
+	e := vetEngine(t)
+	logged := captureLog(t)
+
+	e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering("http://127.0.0.1:1/dl/FURTHERSECRET/f.bin")}, ranged(len(data)))
+	e.vetSources(Job{TaskID: "t2", URL: "http://127.0.0.1:1/own/OWNSECRET/f.bin", Sources: offering(own.url())}, ranged(len(data)))
+
+	out := logged.String()
+	if !strings.Contains(out, "not used as a further source") || !strings.Contains(out, "its own link failed the check") {
+		t.Fatalf("the log does not report both failed checks:\n%s", out)
+	}
+	if strings.Contains(out, "SECRET") {
+		t.Fatalf("the log carries a link:\n%s", out)
 	}
 }

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // sourcesWait bounds asking for further links and checking them, which
@@ -132,17 +133,18 @@ func strongETag(tag string) bool {
 	return tag != "" && !strings.HasPrefix(tag, "W/")
 }
 
-// probeSource asks link for each sample.
+// probeSource asks link for each sample. Its errors leave the link out, since
+// they go to the log.
 func probeSource(ctx context.Context, client *http.Client, link, ua string, offsets []int64) (probe, error) {
 	u, err := url.Parse(link)
 	if err != nil {
-		return probe{}, err
+		return probe{}, httpx.StripURL(err)
 	}
 	p := probe{size: -1, host: u.Hostname()}
 	for _, off := range offsets {
 		b, size, etag, err := sample(ctx, client, link, ua, off)
 		if err != nil {
-			return probe{}, err
+			return probe{}, httpx.StripURL(err)
 		}
 		if p.size >= 0 && size != p.size {
 			return probe{}, errors.New("it changed its size between two requests")
