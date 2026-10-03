@@ -37,6 +37,12 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed
+
+- **The README invites testers.** The notice at the top says KnightLoader is
+  still in development and bugs can happen, and asks everyone to test it and
+  report what they find, with a link to the bug report form.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed
