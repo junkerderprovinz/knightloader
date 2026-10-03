@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -220,5 +222,60 @@ func TestADroppedCCFIsReadHereWithoutJDownloader(t *testing.T) {
 	tasks := a.Tasks()
 	if len(tasks) != 1 || tasks[0].URL != "https://host.example/one.bin" || tasks[0].Origin != OriginWatch {
 		t.Fatalf("tasks = %+v, want the link inside the CCF, from the watched folder", tasks)
+	}
+}
+
+// dropAndWatch drops a container into a fresh folder and watches it the way the
+// app does.
+func dropAndWatch(t *testing.T, a *App) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "Links.ccf")
+	if err := os.WriteFile(path, []byte("encrypted bytes"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	w, err := watch.New(watch.Options{
+		Folders: []watch.Folder{{Dir: dir}}, Interval: 10 * time.Millisecond,
+		OnJob: a.onWatchIntake, Check: a.checkWatchJob,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.Start()
+	t.Cleanup(func() { _ = w.Close() })
+	return path
+}
+
+func TestADroppedContainerIsRetiredOnceJDownloaderHasOpenedIt(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.bmu.Lock()
+	a.jd = &containerJD{}
+	a.bmu.Unlock()
+
+	path := dropAndWatch(t, a)
+	waitFor(t, "the container to be retired", func() bool {
+		_, err := os.Stat(path + ".done")
+		return err == nil
+	})
+	if n := len(a.Tasks()); n != 1 {
+		t.Errorf("staged %d tasks, want the link JD found", n)
+	}
+}
+
+func TestADroppedContainerOpenedDuringShutdownIsTakenAgainNextStart(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.bmu.Lock()
+	a.jd = &containerJD{}
+	a.bmu.Unlock()
+	a.cancel()
+
+	path := dropAndWatch(t, a)
+	waitFor(t, "the container to be handed over", func() bool { return len(a.Tasks()) == 1 })
+	a.wg.Wait()
+	if _, err := os.Stat(path + ".done"); err == nil {
+		t.Fatal("the container was retired although the process was going down mid-crawl")
+	}
+	if _, err := os.Stat(path + ".opening"); err != nil {
+		t.Errorf("the container is not parked for the next start: %v", err)
 	}
 }

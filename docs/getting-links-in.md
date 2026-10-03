@@ -13,7 +13,10 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   onto a share and the box picks it up, with its package name, destination and
   archive password. A `.torrent`, a container and an `.nzb` are taken too, and
   go where an upload of the same file would. A file that has been taken is
-  renamed to `.done`. One this instance cannot open, such as a `.dlc` with
+  renamed to `.done`. Until then a `.torrent`, a container or an `.nzb` carries
+  an `.opening` suffix, since JDownloader can take minutes to crawl a
+  container, and if the box restarts before it is done, the file is taken
+  again. One this instance cannot open, such as a `.dlc` with
   no JDownloader backend, stays where it is, and the log says
   why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.

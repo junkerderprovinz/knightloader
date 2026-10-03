@@ -64,11 +64,75 @@ func TestEveryNewTypeIsPickedUpAndRetired(t *testing.T) {
 	if n := rec.count(); n != len(names) {
 		t.Fatalf("handed over %d jobs, want one per file", n)
 	}
+	finish(rec)
 	for _, name := range names {
 		if _, err := os.Stat(filepath.Join(dir, name+".done")); err != nil {
 			t.Errorf("%s was not retired: %v", name, err)
 		}
 	}
+}
+
+// finish tells every whole file handed over that the app is done with it.
+func finish(rec *sink) {
+	for _, j := range rec.all() {
+		if j.File != nil {
+			j.File.Done()
+		}
+	}
+}
+
+func TestAWholeFileIsRetiredOnlyOnceTheAppIsDoneWithIt(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	path := filepath.Join(dir, "links.ccf")
+	write(t, path, "encrypted")
+
+	p.poll()
+	p.poll()
+	if n := rec.count(); n != 1 {
+		t.Fatalf("handed over %d jobs, want the container", n)
+	}
+	if _, err := os.Stat(path + ".done"); !os.IsNotExist(err) {
+		t.Fatal("the container was retired while it was still being opened")
+	}
+	p.poll()
+	if n := rec.count(); n != 1 {
+		t.Fatalf("handed over %d jobs, want the container once while it is being opened", n)
+	}
+
+	finish(rec)
+	if _, err := os.Stat(path + ".done"); err != nil {
+		t.Errorf("the container was not retired after it was opened: %v", err)
+	}
+}
+
+func TestAFileLeftHalfOpenedByAnEarlierRunIsTakenAgain(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	write(t, filepath.Join(dir, "links.ccf"+openingSuffix), "encrypted")
+
+	p.poll()
+	p.poll()
+	p.poll()
+	jobs := rec.all()
+	if len(jobs) != 1 || jobs[0].File == nil || jobs[0].File.Name != "links.ccf" {
+		t.Fatalf("handed over %+v, want the container the earlier run never finished", jobs)
+	}
+}
+
+func TestAFileBeingOpenedIsNotTakenAgainByAnotherPoller(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	write(t, filepath.Join(dir, "links.ccf"), "encrypted")
+	p.poll()
+	p.poll()
+
+	again := &sink{}
+	q := newPoller(dir, false, time.Hour, again.add)
+	q.poll()
+	q.poll()
+	q.poll()
+	if n := again.count(); n != 0 {
+		t.Errorf("a second poller took the container %d times while the first was opening it", n)
+	}
+	finish(rec)
 }
 
 func TestARefusedFileIsTakenOnceSomethingCanOpenIt(t *testing.T) {
@@ -106,6 +170,7 @@ func TestARefusedFileIsTakenOnceSomethingCanOpenIt(t *testing.T) {
 	if n := rec.count(); n != 1 {
 		t.Fatalf("handed over %d jobs after Retry, want the dropped file", n)
 	}
+	finish(rec)
 	if _, err := os.Stat(filepath.Join(dir, "Show.nzb.done")); err != nil {
 		t.Errorf("the file was not retired: %v", err)
 	}
