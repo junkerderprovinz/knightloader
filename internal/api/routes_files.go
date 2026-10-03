@@ -92,15 +92,26 @@ func registerFiles(reg *Registry, a *app.App) {
 			serveTaskFile(w, r, a, r.PathValue("id"))
 		})
 	reg.Add(http.MethodPost, "/api/tasks/{id}/play",
-		"a link to the task's file that a media player can open without the session or token, for twelve hours",
+		"a link to the task's file, or to the file of its torrent that plays, that a media player can open without the session or token, for twelve hours",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if _, err := a.SafeTaskFile(id); errors.Is(err, app.ErrTaskFileNotFound) || errors.Is(err, app.ErrTaskFileNotLocal) {
+			// Opened once to learn which file plays and to refuse what will
+			// not, before a player is handed a link it cannot use.
+			of, err := a.OpenTaskFile(id, -1)
+			if err != nil {
 				http.Error(w, err.Error(), taskFileStatus(err))
 				return
 			}
-			ticket := playTicket(id, time.Now().Add(playTicketTTL))
-			writeJSON(w, map[string]string{"path": "/api/tasks/" + id + "/file?ticket=" + ticket})
+			_ = of.File.Close()
+			file := ""
+			if of.Index >= 0 {
+				file = strconv.Itoa(of.Index)
+			}
+			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, time.Now().Add(playTicketTTL))
+			if file != "" {
+				path += "&file=" + file
+			}
+			writeJSON(w, map[string]string{"path": path})
 		})
 }
 
@@ -114,7 +125,7 @@ func serveTaskFile(w http.ResponseWriter, r *http.Request, a *app.App, id string
 		}
 		index = n
 	}
-	of, err := a.OpenTaskFile(id, index, isMedia)
+	of, err := a.OpenTaskFile(id, index)
 	if err != nil {
 		http.Error(w, err.Error(), taskFileStatus(err))
 		return
@@ -161,13 +172,6 @@ func (r waitingReader) Seek(offset int64, whence int) (int64, error) {
 	return r.f.Seek(offset, whence)
 }
 
-// isMedia reports whether name is served as audio or video, which is what
-// picks the file of a torrent that a play button means.
-func isMedia(name string) bool {
-	ct, inline := inlineType(name)
-	return inline && (strings.HasPrefix(ct, "audio/") || strings.HasPrefix(ct, "video/"))
-}
-
 // playKey signs the play links of this process; a restart ends them all.
 var playKey = sync.OnceValue(func() []byte {
 	key := make([]byte, 32)
@@ -176,16 +180,17 @@ var playKey = sync.OnceValue(func() []byte {
 })
 
 // playTicket is the credential in a play link: when it runs out, and a MAC
-// over that and the task.
-func playTicket(id string, until time.Time) string {
+// over that, the task and the link's ?file, empty for the task's own file.
+func playTicket(id, file string, until time.Time) string {
 	exp := strconv.FormatInt(until.Unix(), 36)
 	mac := hmac.New(sha256.New, playKey())
-	mac.Write([]byte(id + "\x00" + exp))
+	mac.Write([]byte(id + "\x00" + file + "\x00" + exp))
 	return exp + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
 
 // playTicketOpens reports whether r reads a task's file with a play link for
-// that task that has not run out. It opens that route and nothing else.
+// that task and that file that has not run out. It opens that route and
+// nothing else.
 func playTicketOpens(r *http.Request) bool {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
@@ -198,7 +203,8 @@ func playTicketOpens(r *http.Request) bool {
 	if !ok || id == "" || strings.Contains(id, "/") {
 		return false
 	}
-	ticket := r.URL.Query().Get("ticket")
+	q := r.URL.Query()
+	ticket := q.Get("ticket")
 	exp, _, ok := strings.Cut(ticket, ".")
 	if !ok {
 		return false
@@ -207,7 +213,7 @@ func playTicketOpens(r *http.Request) bool {
 	if err != nil || time.Now().Unix() > until {
 		return false
 	}
-	return hmac.Equal([]byte(ticket), []byte(playTicket(id, time.Unix(until, 0))))
+	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), time.Unix(until, 0))))
 }
 
 // inlineType is the Content-Type this route answers with and whether it goes
@@ -223,13 +229,16 @@ func inlineType(name string) (contentType string, inline bool) {
 }
 
 // taskFileStatus maps a SafeTaskFile refusal to the status a client can act
-// on: 404 for "there is nothing here yet", 400 for "not this app's file to
-// serve", 403 for the one refusal that means somebody's stored path tried to
-// leave its own folder.
+// on: 404 for "there is nothing here yet", 409 for a download that has to run
+// again first, 400 for "not this app's file to serve", 403 for the one refusal
+// that means somebody's stored path tried to leave its own folder.
 func taskFileStatus(err error) int {
 	switch {
-	case errors.Is(err, app.ErrTaskFileNotFound), errors.Is(err, app.ErrTaskFileNoBytes), errors.Is(err, app.ErrTaskFileNoSuchFile):
+	case errors.Is(err, app.ErrTaskFileNotFound), errors.Is(err, app.ErrTaskFileNoBytes), errors.Is(err, app.ErrTaskFileNoSuchFile),
+		errors.Is(err, app.ErrTaskFileNoMedia):
 		return http.StatusNotFound
+	case errors.Is(err, app.ErrTaskFileIncomplete):
+		return http.StatusConflict
 	case errors.Is(err, app.ErrTaskFileNotLocal):
 		return http.StatusBadRequest
 	case errors.Is(err, app.ErrTaskFileEscape):

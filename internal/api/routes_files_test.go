@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -263,6 +264,8 @@ func TestTaskFileStatusMapping(t *testing.T) {
 	}{
 		{"unknown task", app.ErrTaskFileNotFound, http.StatusNotFound},
 		{"nothing on disk yet", app.ErrTaskFileNoBytes, http.StatusNotFound},
+		{"a torrent without media", app.ErrTaskFileNoMedia, http.StatusNotFound},
+		{"a stopped download", app.ErrTaskFileIncomplete, http.StatusConflict},
 		{"not this app's file", app.ErrTaskFileNotLocal, http.StatusBadRequest},
 		{"escape", app.ErrTaskFileEscape, http.StatusForbidden},
 	}
@@ -359,7 +362,7 @@ func TestAnExpiredPlayLinkIsRefused(t *testing.T) {
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	ticket := playTicket(id, time.Now().Add(-time.Minute))
+	ticket := playTicket(id, "", time.Now().Add(-time.Minute))
 	if got := getStatus(t, srv.URL+"/api/tasks/"+id+"/file?ticket="+ticket); got != http.StatusUnauthorized {
 		t.Fatalf("an expired play link answered %d, want 401", got)
 	}
@@ -428,13 +431,45 @@ func TestARangeOfALateFileWaitsForItsBytes(t *testing.T) {
 	}
 }
 
-func TestOnlyAudioAndVideoArePlayed(t *testing.T) {
+// core.MediaKind decides which file of a torrent plays and whether the
+// interface offers Play, so it has to name exactly what this route serves as
+// audio or video.
+func TestMediaKindsAreWhatTheRouteServesAsAudioOrVideo(t *testing.T) {
 	t.Parallel()
-	for name, want := range map[string]bool{
-		"film.mkv": true, "song.FLAC": true, "cover.jpg": false, "notes.nfo": false, "setup.exe": false,
-	} {
-		if got := isMedia(name); got != want {
-			t.Errorf("isMedia(%q) = %v, want %v", name, got, want)
+	for ext, ct := range inlineTypes {
+		want := ""
+		if kind, _, _ := strings.Cut(ct, "/"); kind == "audio" || kind == "video" {
+			want = kind
+		}
+		if got := core.MediaKind("x" + ext); got != want {
+			t.Errorf("core.MediaKind(%q) = %q, want %q for %s", ext, got, want, ct)
+		}
+	}
+	for _, name := range []string{"song.FLAC", "film.MKV"} {
+		if core.MediaKind(name) == "" {
+			t.Errorf("%s is not taken for media", name)
+		}
+	}
+	if got := core.MediaKind("setup.exe"); got != "" {
+		t.Errorf("setup.exe is taken for %s", got)
+	}
+}
+
+// A link for one file of a torrent opens that file and no other, so sharing
+// the link to one episode does not open the whole season.
+func TestAPlayLinkOpensOnlyTheFileItWasMadeFor(t *testing.T) {
+	t.Parallel()
+	ticket := playTicket("t1", "1", time.Now().Add(time.Hour))
+	opens := func(query string) bool {
+		r := httptest.NewRequest(http.MethodGet, "/api/tasks/t1/file?ticket="+ticket+query, nil)
+		return playTicketOpens(r)
+	}
+	if !opens("&file=1") {
+		t.Fatal("the link does not open its own file")
+	}
+	for _, query := range []string{"", "&file=0", "&file=2", "&file=01"} {
+		if opens(query) {
+			t.Errorf("the link for file 1 opens %q", query)
 		}
 	}
 }

@@ -955,6 +955,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 			t.TorrentFileCount = len(md.Files)
 		}
 		t.TorrentFiles = files
+		t.TorrentMedia = core.TorrentMedia(files)
 	}
 	if v.Rule != "" {
 		// The rule as data, so clients need not parse it out of a sentence.
