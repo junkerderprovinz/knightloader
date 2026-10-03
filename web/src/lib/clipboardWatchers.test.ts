@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { deviceLabel, startLease, watcherId } from './clipboardWatchers';
 
@@ -75,6 +76,26 @@ describe('startLease', () => {
       { url: path, method: 'PUT' },
       { url: path, method: 'DELETE' },
     ]);
+  });
+
+  it('leaves when the tab closes', async () => {
+    const calls = stubFetch(false);
+    const end = startLease('', () => {});
+    await vi.waitFor(() => expect(calls).toHaveLength(1));
+    dispatchEvent(new Event('pagehide'));
+    expect(calls[1]).toEqual({ url: `/api/clipboard-watchers/${watcherId()}`, method: 'DELETE' });
+    end();
+  });
+
+  it('renews soon after another tab of this browser closed', async () => {
+    const calls = stubFetch(false);
+    const end = startLease('', () => {});
+    await vi.waitFor(() => expect(calls).toHaveLength(1));
+    const closing = new BroadcastChannel('knightloader.clipboardWatcher');
+    closing.postMessage('left');
+    await vi.waitFor(() => expect(calls.filter((c) => c.method === 'PUT')).toHaveLength(2), { timeout: 3_000 });
+    closing.close();
+    end();
   });
 
   it('reports a stop asked from another device', async () => {
