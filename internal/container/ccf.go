@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"html"
 	"math/bits"
 	"regexp"
@@ -55,7 +56,8 @@ func DecodeCCF(data []byte) ([]string, error) {
 		links = append(links, parseText(html.UnescapeString(string(m[1])))...)
 	}
 	if len(links) == 0 {
-		return nil, errors.New("the CCF decrypted to no links")
+		// JD holds the same keys, so it would find nothing either.
+		return nil, fmt.Errorf("%w: the CCF opens, but none of its entries is a link that can be downloaded", ErrEmpty)
 	}
 	return links, nil
 }
