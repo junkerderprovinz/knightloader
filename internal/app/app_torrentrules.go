@@ -116,15 +116,15 @@ func (a *App) TrackerListStatus() trackerlist.Status {
 // private torrent without its tracker would find no peer at all.
 //
 // A torrent restored from the holding area is past the lines that caught the
-// tracker it was held for, and only those, so a line added since still stops
-// it.
+// tracker it was held for, also when the history held it after that restore,
+// and only those, so a line added since still stops it.
 func trackerBan(t *core.Task, cfg settings.Torrent) rules.Verdict {
 	banned := cfg.BannedTrackers
 	if restoredLink(t) {
 		banned = slices.DeleteFunc(slices.Clone(banned), func(line string) bool {
 			return slices.ContainsFunc(t.Trackers, func(tr string) bool {
 				host, hit := torrent.Banned([]string{tr}, []string{line})
-				return hit && t.SkipReason == bannedBecause(host)
+				return hit && (t.SkipReason == bannedBecause(host) || t.SkipParams[waivedTrackerParam] == host)
 			})
 		})
 	}

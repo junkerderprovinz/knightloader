@@ -912,15 +912,25 @@ func heldByFilter(t *core.Task) bool {
 // restored past the filter, so that one restore from it waives both.
 const waivedFilterParam = "filterWaived"
 
+// waivedTrackerParam carries the banned tracker host a link was restored past
+// onto the history's hold of it, as waivedFilterParam carries the filter's
+// waiver.
+const waivedTrackerParam = "trackerWaived"
+
 // holdForHistoryLocked moves a link the history has to the rejected links. A
-// link restored past the filter takes that waiver along. Caller holds a.mu.
-func holdForHistoryLocked(t *core.Task, v rules.Verdict, pastFilter bool) {
+// link held by, or restored past, the filter or a banned tracker takes that
+// waiver along. Caller holds a.mu.
+func holdForHistoryLocked(t *core.Task, v rules.Verdict) {
 	params := maps.Clone(v.Params)
-	if pastFilter {
+	if t.SkipReason != "" {
 		if params == nil {
 			params = map[string]string{}
 		}
-		params[waivedFilterParam] = "true"
+		if t.SkipCode == skipBannedTracker {
+			params[waivedTrackerParam] = t.SkipParams["host"]
+		} else {
+			params[waivedFilterParam] = "true"
+		}
 	}
 	t.Skipped = true
 	t.SkipReason, t.SkipCode, t.SkipParams = v.Reason, v.Code, params
@@ -1065,9 +1075,9 @@ func (a *App) FilteredLinks() []*core.Task {
 
 // RestoreFiltered moves held links back into the collector with the filter
 // waived for them; an empty id list restores all. Without the waiver the
-// queue's final filter check would refuse the link again. A link the filter
-// held never met the history, so it does now, and one the history has stays
-// held, now for that reason.
+// queue's final filter check would refuse the link again. A link the filter or
+// a banned tracker held may never have met the history, so it does now, and
+// one the history has stays held, now for that reason.
 func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -1083,7 +1093,7 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 			continue
 		}
 		picked = append(picked, id)
-		if heldByFilter(t) {
+		if t.SkipCode != skipDownloaded {
 			pending[id] = candidateOf(t)
 		}
 	}
@@ -1103,8 +1113,8 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 		if t == nil || !t.Skipped {
 			continue
 		}
-		if v, ok := verdicts[id]; ok && heldByFilter(t) {
-			holdForHistoryLocked(t, v, true)
+		if v, ok := verdicts[id]; ok && t.SkipCode != skipDownloaded {
+			holdForHistoryLocked(t, v)
 		} else {
 			t.Skipped = false
 			// SkipReason stays as the record of the waiver.
