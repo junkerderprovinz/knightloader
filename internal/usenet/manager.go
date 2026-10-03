@@ -118,9 +118,9 @@ type Options struct {
 	Dir string
 	// Stage turns a finished job's files into tasks and returns their ids.
 	Stage func(Job, []File) ([]string, error)
-	// Finished reports whether every task is done or gone, after which the
-	// service's copy is deleted.
-	Finished func(taskIDs []string) bool
+	// Finished reports whether a staged job's tasks need the service's copy
+	// no more, after which it is deleted.
+	Finished func(Job) bool
 	// Done picks the tasks among taskIDs whose files are downloaded, which a
 	// job handed on to the next account keeps. Nil keeps none.
 	Done func(taskIDs []string) []string
@@ -826,15 +826,15 @@ func (m *Manager) Fallback(slot, remote, reason string) ([]string, bool) {
 	return ids, true
 }
 
-// clear deletes the service's copy of a staged job once its tasks are done or
-// gone, so the account does not fill up with downloads already on disk.
+// clear deletes the service's copy of a staged job once its tasks need it no
+// more, so the account does not fill up with downloads already on disk.
 func (m *Manager) clear(ctx context.Context) {
 	for _, id := range m.ids(StateStaged) {
 		if ctx.Err() != nil {
 			return
 		}
 		j, ok := m.Get(id)
-		if !ok || j.Cleared || m.o.Now().Before(j.RetryAt) || !m.o.Finished(j.TaskIDs) {
+		if !ok || j.Cleared || m.o.Now().Before(j.RetryAt) || !m.o.Finished(j) {
 			continue
 		}
 		svc := m.Service(j.Service)

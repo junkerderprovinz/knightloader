@@ -182,7 +182,7 @@ func (h *harness) open() *Manager {
 			}
 			return ids, nil
 		},
-		Finished: func(ids []string) bool { return h.finished(ids) },
+		Finished: func(j Job) bool { return h.finished(j.TaskIDs) },
 		Failed:   func(j Job) { h.failed = append(h.failed, j) },
 		Pending:  func(n int) { h.pending = append(h.pending, n) },
 		Now:      h.clock.Now,
@@ -734,7 +734,7 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 	m := New(Options{
 		Dir:      t.TempDir(),
 		Stage:    func(Job, []File) ([]string, error) { return nil, nil },
-		Finished: func([]string) bool { return false },
+		Finished: func(Job) bool { return false },
 		Taken: func(_, remote string) {
 			select {
 			case heard <- remote:

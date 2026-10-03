@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"path/filepath"
 	"slices"
@@ -92,7 +93,66 @@ func TestAHeldRecoveryVolumeKeepsItsJobOpen(t *testing.T) {
 	if !held {
 		t.Fatal("the recovery volume is not held, so this test proves nothing")
 	}
-	if a.tasksFinished([]string{"ep", "vol"}) {
+	if a.jobFinished(usenet.Job{Service: local.ResolverID, TaskIDs: []string{"ep", "vol"}}) {
 		t.Fatal("the job counts as finished, which deletes the .nzb the held volume is fetched from")
 	}
+}
+
+func TestAFinishedFileOfTheOwnServersKeepsItsNZBForARestart(t *testing.T) {
+	a := newCrawlApp(t, false)
+	own := a.usenetStateFor().own
+	job, err := own.Submit(context.Background(), "Show", []byte(droppedNZB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	a.tasks["ep"] = &core.Task{ID: "ep", URL: local.FileLink(job, 0, "show.mkv"), Name: "show.mkv", Status: core.StatusDone, Enabled: true}
+	a.tasks["tb"] = &core.Task{ID: "tb", URL: "https://store.example/show.mkv", Name: "show.mkv", Status: core.StatusDone, Enabled: true}
+	a.mu.Unlock()
+
+	if a.jobFinished(usenet.Job{Service: local.ResolverID, Remote: job, TaskIDs: []string{"ep"}}) {
+		t.Error("the own servers' job counts as finished while its file is listed, so a restart finds its .nzb deleted")
+	}
+	if !a.jobFinished(usenet.Job{Service: "torbox", Remote: "9", TaskIDs: []string{"tb"}}) {
+		t.Error("a TorBox job whose file is done keeps its copy on the account")
+	}
+	a.RestartTasks([]string{"ep"})
+	if got := statusOf(a, "ep"); got == core.StatusDone {
+		t.Error("a finished file whose .nzb is kept is not restarted")
+	}
+}
+
+func TestAFinishedFileWhoseNZBIsGoneIsNotRestarted(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.mu.Lock()
+	a.tasks["ep"] = &core.Task{ID: "ep", URL: local.FileLink("0123456789abcdef", 0, "show.mkv"), Name: "show.mkv", Status: core.StatusDone, Enabled: true}
+	a.mu.Unlock()
+	a.RestartTasks([]string{"ep"})
+	if got := statusOf(a, "ep"); got != core.StatusDone {
+		t.Errorf("the file is %s after a restart, want it left done: it cannot be fetched again", got)
+	}
+}
+
+func TestARemovalThatCanStillBeUndoneKeepsTheJob(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.mu.Lock()
+	a.tasks["tb"] = &core.Task{ID: "tb", URL: "https://store.example/show.mkv", Name: "show.mkv", Status: core.StatusQueued, Enabled: true}
+	a.mu.Unlock()
+	job := usenet.Job{Service: "torbox", Remote: "9", TaskIDs: []string{"tb"}}
+
+	if _, token := a.RemoveTasksUndoable([]string{"tb"}, false); token == "" {
+		t.Fatal("the removal cannot be undone, so this test proves nothing")
+	}
+	if a.jobFinished(job) {
+		t.Fatal("the job counts as finished during the undo window, so an undo brings back a task whose copy is deleted")
+	}
+}
+
+func statusOf(a *App, id string) core.Status {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if t := a.tasks[id]; t != nil {
+		return t.Status
+	}
+	return ""
 }

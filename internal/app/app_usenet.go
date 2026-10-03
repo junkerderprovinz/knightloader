@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/nzb"
@@ -61,7 +62,7 @@ func (a *App) usenetStateFor() *usenetState {
 		st.jobs = usenet.New(usenet.Options{
 			Dir:      filepath.Join(a.DataDir, "usenet"),
 			Stage:    a.stageUsenetFiles,
-			Finished: a.tasksFinished,
+			Finished: a.jobFinished,
 			Done:     a.usenetDone,
 			Failed:   a.usenetJobFailed,
 			Pending:  func(n int) { a.setActivityGauge(ActivityUsenet, n) },
@@ -392,18 +393,35 @@ func (a *App) usenetJobFailed(j usenet.Job) {
 	a.recordSkippedReason(j.Name+".nzb", "nzb", j.Reason)
 }
 
-// tasksFinished reports whether every task is done or gone, after which the
-// service's copy of a job can be deleted. A held recovery volume is neither:
-// it is fetched from the .nzb the own servers keep, once a repair needs it.
-func (a *App) tasksFinished(ids []string) bool {
+// jobFinished reports whether the service's copy of a job can be deleted:
+// every task is done or gone, and no undo can bring a removed one back. The
+// own servers' .nzb stays while any task is listed, since a restart or a held
+// recovery volume is fetched from it.
+func (a *App) jobFinished(j usenet.Job) bool {
+	own := j.Service == local.ResolverID
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	for _, id := range ids {
-		if t := a.tasks[id]; t != nil && t.Status != core.StatusDone {
+	now := time.Now()
+	for _, id := range j.TaskIDs {
+		t := a.tasks[id]
+		switch {
+		case t == nil:
+			if a.undoableUntilLocked(id).After(now) {
+				return false
+			}
+		case own, t.Status != core.StatusDone:
 			return false
 		}
 	}
 	return true
+}
+
+// nzbGoneLocked reports whether t is a file of the own Usenet servers whose
+// .nzb they no longer keep, as after its job went on to a debrid service.
+// Fetching it again would start by deleting the file it has. Caller holds
+// a.mu.
+func (a *App) nzbGoneLocked(t *core.Task) bool {
+	return local.Resolver{}.Match(t.URL) && !a.usenetStateFor().own.Keeps(t.URL)
 }
 
 // HeldSpare reports whether t is a par2 recovery volume from the own Usenet
