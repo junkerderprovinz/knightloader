@@ -301,3 +301,45 @@ func TestALinkRestoredFromTheFilterIsHeldOnceTheProbeFindsAMirror(t *testing.T) 
 			live.Skipped, live.SkipCode, live.Size)
 	}
 }
+
+// Whoever sent the link reads the answer as the verdict: the browser extension
+// drops its own download when the link is taken. A size the history needs is
+// learned before that answer, not after it.
+func TestAMirrorIsRejectedInTheAnswerWhenOnlyItsSizeWasMissing(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4096)
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 4096
+		return resp, nil
+	})
+
+	got := onlyTask(t, a.AddLinks([]string{"https://two.example/film.mkv?ref=1"}, ""))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the answer has the mirror as skipped=%v code=%q size=%d, want it rejected as downloaded",
+			got.Skipped, got.SkipCode, got.Size)
+	}
+}
+
+// A file the history does not know is not worth a wait at the paste box.
+func TestALinkTheHistoryCannotMatchIsAnsweredBeforeItsProbe(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4096)
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		<-release
+		return probeAnswer(req, http.StatusOK), nil
+	})
+
+	done := make(chan []*core.Task, 1)
+	go func() { done <- a.AddLinks([]string{"https://two.example/other.mkv"}, "") }()
+	select {
+	case got := <-done:
+		if onlyTask(t, got).Skipped {
+			t.Error("a file the history does not have was rejected")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the answer waited for the probe of a file the history does not have")
+	}
+}

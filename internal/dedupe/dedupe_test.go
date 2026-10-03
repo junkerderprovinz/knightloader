@@ -572,3 +572,26 @@ func BenchmarkCheck(b *testing.B) {
 		}
 	}
 }
+
+// Under filename-and-size a file of a known name waits on its size, and
+// nothing else does.
+func TestOnlyASizeTheSetCouldMatchIsNeeded(t *testing.T) {
+	have := Entry{ID: "1", URL: "https://one.example/film.mkv", Name: "film.mkv", Size: 4096}
+	s := seed(PolicyFilenameAndSize, have)
+	if !s.NeedsSize(Entry{URL: "https://two.example/x", Name: "Film.mkv"}) {
+		t.Error("a file of a name the set holds does not ask for its size")
+	}
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "other.mkv"}) {
+		t.Error("a file of a name the set does not hold asks for its size")
+	}
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv", Size: 10}) {
+		t.Error("a file whose size is known asks for it")
+	}
+	if seed(PolicyFilenameOnly, have).NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv"}) {
+		t.Error("filename-only asks for a size it never compares")
+	}
+	s.Remove(have.URL)
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv"}) {
+		t.Error("a removed file still makes its name ask for a size")
+	}
+}

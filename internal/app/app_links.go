@@ -785,7 +785,13 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
-		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
+		if a.historyNeedsSize(cand) {
+			// Waited for, so the answer to whoever sent the link already says
+			// whether the history has it rather than changing a moment later.
+			a.analyze(t.ID, result.DirectURL)
+		} else {
+			a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
+		}
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
