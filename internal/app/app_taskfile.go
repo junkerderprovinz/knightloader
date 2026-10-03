@@ -8,7 +8,9 @@ package app
 // recorded the same one and the file is still the size this task was writing.
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 // fileOfLocked is where t's file is: the path it recorded, or where its name
@@ -66,6 +69,8 @@ func namedBeside(t *core.Task) (string, bool) {
 type leftover struct {
 	path string
 	size int64
+	// sidecars describe the file and go with it (see ytdlp.Sidecars).
+	sidecars []string
 }
 
 // ownFileLocked returns t's recorded file as a leftover it may delete, or the
@@ -79,7 +84,15 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 			return leftover{}
 		}
 	}
-	return leftover{path: t.File, size: t.Size}
+	l := leftover{path: t.File, size: t.Size}
+	if t.Resolver == (ytdlp.Resolver{}).Info().ID {
+		kind, _ := variantDecode(t.Variant)
+		if kind == "" {
+			kind = ytdlp.VariantVideo
+		}
+		l.sidecars = ytdlp.Sidecars(kind, t.File)
+	}
+	return l
 }
 
 // intact reports whether the file at the leftover's path is still the one its
@@ -111,6 +124,12 @@ func (l leftover) drop(taskID string) {
 	}
 	if err := os.Remove(l.path); err != nil {
 		log.Printf("could not delete %s: %v%s", l.path, err, taskTag(taskID))
+		return
+	}
+	for _, s := range l.sidecars {
+		if err := os.Remove(s); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			log.Printf("could not delete %s: %v%s", s, err, taskTag(taskID))
+		}
 	}
 }
 

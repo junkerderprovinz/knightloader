@@ -44,6 +44,16 @@ release's tag.
   video and audio were merged, so a finished video stayed on disk when it was
   removed with its files. KnightLoader now records the merged file and its
   size, deletes it with the download, and shows the whole size on the row.
+- **Removing an unfinished media download with its files deletes what it
+  wrote.** A yt-dlp download that was still running or paused kept its .part
+  and .ytdl files, its fragments and its info file on disk after a removal
+  with files. KnightLoader now stops yt-dlp, waits for it to exit and deletes
+  them.
+- **Thumbnail, subtitle and description rows take their file with them.**
+  Removed with their files, these rows left the .jpg, .srt or .description
+  behind, and a video or audio row left its .nfo. KnightLoader now records the
+  file each of these rows wrote and deletes it, and the .nfo goes with its
+  video. A subtitle row that wrote several languages still keeps its files.
 
 ## [1.6.6] - 2026-10-02
 

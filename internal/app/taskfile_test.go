@@ -661,3 +661,37 @@ func TestADebridDownloadWhoseLinkExpiresIsFinishedFromAFreshUnlock(t *testing.T)
 		t.Error("the link was never unlocked again")
 	}
 }
+
+// The .nfo yt-dlp's video row writes beside its file describes that file and
+// goes with it. A thumbnail row of the same video shares the base name and
+// must not take the video's .nfo when it is removed.
+func TestRemovingAYtdlpVideoWithFilesTakesItsNFOAlong(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	video := fileBytes(t, filepath.Join(dir, "A Video.mkv"), 2048)
+	thumb := fileBytes(t, filepath.Join(dir, "A Video.jpg"), 512)
+	nfo := fileBytes(t, filepath.Join(dir, "A Video.nfo"), 300)
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "1", URL: "https://media.example/v", Name: "A Video.mkv", Resolver: "ytdlp", Status: core.StatusDone, Enabled: true, Size: 2048, File: video},
+		{ID: "2", URL: "https://media.example/v", Name: "A Video.jpg", Resolver: "ytdlp", Variant: "thumbnail", Status: core.StatusDone, Enabled: true, Size: 512, File: thumb},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+
+	a.Remove("2", true)
+	if fileExists(thumb) {
+		t.Error("the thumbnail survived a removal with files")
+	}
+	if !fileExists(nfo) {
+		t.Fatal("removing the thumbnail row deleted the video's .nfo")
+	}
+
+	a.Remove("1", true)
+	if fileExists(video) {
+		t.Error("the video survived a removal with files")
+	}
+	if fileExists(nfo) {
+		t.Error("the .nfo beside the video survived a removal with files")
+	}
+}
