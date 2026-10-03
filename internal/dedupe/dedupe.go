@@ -7,6 +7,8 @@
 package dedupe
 
 import (
+	"encoding/base32"
+	"encoding/hex"
 	"net/url"
 	"regexp"
 	"slices"
@@ -276,17 +278,34 @@ func normalizeURL(raw string) string {
 	if err != nil {
 		return raw
 	}
-	// Every field that tells magnets apart is case-insensitive, so folding
-	// the whole URI catches an upper-cased infohash without merging two
-	// torrents.
 	if u.Scheme == "magnet" {
-		return strings.ToLower(raw)
+		return magnetKey(u, raw)
 	}
 	u.Host = strings.ToLower(u.Host)
 	if p := u.Port(); (u.Scheme == "http" && p == "80") || (u.Scheme == "https" && p == "443") {
 		u.Host = strings.TrimSuffix(u.Host, ":"+p)
 	}
 	return u.String()
+}
+
+// magnetKey reduces a magnet to its info hash, since every site that lists a
+// torrent gives it a display name and trackers of its own. The hash is
+// case-insensitive and may be spelled in hex or base32. A magnet without a
+// v1 hash is folded whole, which catches its case at least.
+func magnetKey(u *url.URL, raw string) string {
+	for _, xt := range u.Query()["xt"] {
+		h, ok := strings.CutPrefix(strings.ToLower(xt), "urn:btih:")
+		if !ok {
+			continue
+		}
+		if len(h) == 32 {
+			if b, err := base32.StdEncoding.DecodeString(strings.ToUpper(h)); err == nil {
+				h = hex.EncodeToString(b)
+			}
+		}
+		return "magnet:?xt=urn:btih:" + h
+	}
+	return strings.ToLower(raw)
 }
 
 // signature is one bucket a record can be found in, with the signal a hit in

@@ -153,6 +153,16 @@ func TestURLIsFoldedOnlyWhereItIsCaseInsensitive(t *testing.T) {
 			want: Duplicate, about: "an infohash is case-insensitive in both its spellings",
 		},
 		{
+			name: "magnet from another site", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=Film&tr=udp%3A%2F%2Fone.example%3A80",
+			cand: "magnet:?dn=film.2024&xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567&tr=udp%3A%2F%2Ftwo.example%3A6969",
+			want: Duplicate, about: "the name and trackers are whatever the listing site chose; the info hash is the torrent",
+		},
+		{
+			name: "magnet in base32", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
+			cand: "magnet:?xt=urn:btih:AERUKZ4JVPG66AJDIVTYTK6N54ASGRLH",
+			want: Duplicate, about: "base32 is the other spelling of the same info hash",
+		},
+		{
 			name: "different magnet", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
 			cand: "magnet:?xt=urn:btih:fedcba9876543210fedcba9876543210fedcba98",
 			want: NotSeen, about: "a different infohash is a different torrent",
