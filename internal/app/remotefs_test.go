@@ -1,12 +1,18 @@
 package app
 
 import (
+	"bytes"
+	"log"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // The wiring tests for the remote-server resolver. The protocols themselves are
@@ -114,16 +120,57 @@ func TestRemoteServerAccountsAreReadPerHost(t *testing.T) {
 	}
 }
 
-func TestRemoteServerLinkWithAPasswordInItIsRefusedWithASentence(t *testing.T) {
-	// A password in a URL would be written to the task store in plain text and
-	// shown in the collector's URL column. The refusal reaches the row rather
-	// than only the log, or the link looks like a network failure.
-	a := newCrawlApp(t, true)
-	created := a.AddLinks([]string{"ftp://alice:hunter2@127.0.0.1:1/pub/x.iso"}, "")
-	if len(created) != 1 {
-		t.Fatalf("staged %d tasks, want the link itself with the reason on it", len(created))
+func TestRemoteServerLinkWithAPasswordInItIsKeptNowhere(t *testing.T) {
+	// A password in a URL would sit in the task list, the database and the log
+	// in plain text. The link is refused before any of them sees it, and the
+	// refusal is listed with the password masked, so the link does not just
+	// vanish.
+	const link = "ftp://alice:hunter2@127.0.0.1:1/pub/sample.iso"
+	var logged bytes.Buffer
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+
+	fromContainer := func(a *App) []*core.Task {
+		return a.AddResolvedLinksFrom([]resolver.Result{{DirectURL: link}}, "", OriginContainer)
 	}
-	if !strings.Contains(created[0].Error, "store it under Accounts") {
-		t.Errorf("error = %q, want it to point at the account store", created[0].Error)
+	for _, tc := range []struct {
+		name   string
+		filter bool
+		add    func(a *App) []*core.Task
+	}{
+		{"pasted", false, func(a *App) []*core.Task { return a.AddLinks([]string{link}, "") }},
+		{"from a container", false, fromContainer},
+		{"turned down by the link filter", true, fromContainer},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+				if tc.filter {
+					s.LinkFilter = rejectRule("sample files are not wanted here")
+				}
+			})
+			if created := tc.add(a); len(created) != 0 {
+				t.Fatalf("staged %d tasks, want the link refused", len(created))
+			}
+			stored, err := a.Store.All()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(stored) != 0 {
+				t.Errorf("the store holds %q, want nothing", stored[0].URL)
+			}
+			skipped := a.SkippedLinks()
+			if len(skipped) != 1 {
+				t.Fatalf("%d refusals listed, want the one", len(skipped))
+			}
+			if !strings.Contains(skipped[0].Reason, "store it under Accounts") {
+				t.Errorf("reason = %q, want it to point at the account store", skipped[0].Reason)
+			}
+			if strings.Contains(skipped[0].URL, "hunter2") {
+				t.Errorf("the refusal shows the password: %q", skipped[0].URL)
+			}
+		})
+	}
+	if strings.Contains(logged.String(), "hunter2") {
+		t.Errorf("the log holds the password:\n%s", logged.String())
 	}
 }
