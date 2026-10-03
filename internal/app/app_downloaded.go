@@ -96,7 +96,9 @@ func (d *downloadedIndex) fresh(a *App, p dedupe.Policy) bool {
 }
 
 // build files the whole history, oldest first so that a URL downloaded twice
-// names its latest download.
+// names its latest download. Every row is kept, since a second download of a
+// URL is often saved under a numbered name, and the first name still
+// identifies the file.
 func (d *downloadedIndex) build(a *App, p dedupe.Policy) bool {
 	entries, err := a.History(0)
 	if err != nil {
@@ -108,7 +110,7 @@ func (d *downloadedIndex) build(a *App, p dedupe.Policy) bool {
 	d.finished = make(map[string]time.Time, len(entries))
 	for i := len(entries) - 1; i >= 0; i-- {
 		e := entries[i]
-		d.set.Add(dedupe.Entry{ID: e.TaskID, URL: e.URL, Name: e.Name, Size: e.Size})
+		d.set.Keep(dedupe.Entry{ID: e.TaskID, URL: e.URL, Name: e.Name, Size: e.Size})
 		d.finished[e.TaskID] = e.FinishedAt
 	}
 	d.built = true

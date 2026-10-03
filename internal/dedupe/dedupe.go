@@ -341,9 +341,11 @@ func newRecord(e Entry) record {
 // It is not safe for concurrent use; build it under the lock that protects
 // the task list.
 type Set struct {
-	policy  Policy
-	byURL   map[string]record
-	buckets map[string][]string // signature key -> normalised URLs
+	policy Policy
+	// byURL holds the records filed under each normalised URL, the latest
+	// last: one after Add, as many as were kept after Keep.
+	byURL   map[string][]*record
+	buckets map[string][]*record // signature key -> records
 	// sizeless counts the records a candidate could match once its size is
 	// known, by what the policy compares besides the size (see NeedsSize).
 	sizeless map[string]int
@@ -357,8 +359,8 @@ func New(p Policy) *Set {
 	}
 	return &Set{
 		policy:   p,
-		byURL:    make(map[string]record),
-		buckets:  make(map[string][]string),
+		byURL:    make(map[string][]*record),
+		buckets:  make(map[string][]*record),
 		sizeless: make(map[string]int),
 	}
 }
@@ -366,7 +368,7 @@ func New(p Policy) *Set {
 // Policy is the policy this set was built with.
 func (s *Set) Policy() Policy { return s.policy }
 
-// Len is how many entries the set holds.
+// Len is how many URLs the set holds.
 func (s *Set) Len() int { return len(s.byURL) }
 
 // Add files an entry. Adding a URL the set already holds replaces the old
@@ -377,15 +379,28 @@ func (s *Set) Add(e Entry) {
 		return
 	}
 	s.remove(u)
+	s.file(u, e)
+}
+
+// Keep files an entry beside any the set holds for its URL, for a list such
+// as the download history, where one URL may have been saved under several
+// names. A Duplicate names the entry kept last.
+func (s *Set) Keep(e Entry) {
+	if u := normalizeURL(e.URL); u != "" {
+		s.file(u, e)
+	}
+}
+
+func (s *Set) file(u string, e Entry) {
 	r := newRecord(e)
 	r.sigs = s.signatures(r)
 	for _, sig := range r.sigs {
-		s.buckets[sig.key] = append(s.buckets[sig.key], u)
+		s.buckets[sig.key] = append(s.buckets[sig.key], &r)
 	}
 	if k, ok := s.sizelessKey(r); ok && len(r.sigs) > 0 {
 		s.sizeless[k]++
 	}
-	s.byURL[u] = r
+	s.byURL[u] = append(s.byURL[u], &r)
 }
 
 // sizelessKey is what the policy compares besides the size, which sizeless
@@ -419,24 +434,22 @@ func (s *Set) NeedsSize(cand Entry) bool {
 func (s *Set) Remove(rawURL string) { s.remove(normalizeURL(rawURL)) }
 
 func (s *Set) remove(u string) {
-	r, ok := s.byURL[u]
-	if !ok {
-		return
-	}
-	for _, sig := range r.sigs {
-		b := slices.DeleteFunc(s.buckets[sig.key], func(v string) bool { return v == u })
-		// Delete empty buckets so a long-lived set does not keep a key for
-		// every removed download.
-		if len(b) == 0 {
-			delete(s.buckets, sig.key)
-		} else {
-			s.buckets[sig.key] = b
+	for _, r := range s.byURL[u] {
+		for _, sig := range r.sigs {
+			b := slices.DeleteFunc(s.buckets[sig.key], func(v *record) bool { return v == r })
+			// Delete empty buckets so a long-lived set does not keep a key for
+			// every removed download.
+			if len(b) == 0 {
+				delete(s.buckets, sig.key)
+			} else {
+				s.buckets[sig.key] = b
+			}
 		}
-	}
-	if k, ok := s.sizelessKey(r); ok && len(r.sigs) > 0 {
-		s.sizeless[k]--
-		if s.sizeless[k] <= 0 {
-			delete(s.sizeless, k)
+		if k, ok := s.sizelessKey(*r); ok && len(r.sigs) > 0 {
+			s.sizeless[k]--
+			if s.sizeless[k] <= 0 {
+				delete(s.sizeless, k)
+			}
 		}
 	}
 	delete(s.byURL, u)
@@ -449,16 +462,15 @@ func (s *Set) Check(cand Entry) Match {
 		return Match{}
 	}
 	// The exact URL is checked first, whatever the policy.
-	if r, ok := s.byURL[u]; ok {
-		return Match{Verdict: Duplicate, Of: r.entry, Signal: SignalURL}
+	if rs := s.byURL[u]; len(rs) > 0 {
+		return Match{Verdict: Duplicate, Of: rs[len(rs)-1].entry, Signal: SignalURL}
 	}
 	c := newRecord(cand)
 	for _, sig := range s.signatures(c) {
 		// Only entries sharing this signature are compared, so a query costs
 		// one small bucket rather than the whole list.
-		for _, other := range s.buckets[sig.key] {
-			r := s.byURL[other]
-			if couldBeSameFile(c, r) {
+		for _, r := range s.buckets[sig.key] {
+			if couldBeSameFile(c, *r) {
 				return Match{Verdict: Mirror, Of: r.entry, Signal: sig.signal}
 			}
 		}
