@@ -1006,7 +1006,8 @@ func (b *Backend) Halt(taskID string) bool {
 // Remove stops the task's yt-dlp and forgets the task. With deleteFiles it
 // waits for the process to exit and deletes what the task's unfinished runs
 // wrote; the file of a finished download is the app's to delete, by the path
-// the task recorded.
+// the task recorded. Without deleteFiles the list of those files is kept,
+// since an undo can bring the task back to be removed with its files.
 func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Lock()
 	r := b.runs[taskID]
@@ -1017,17 +1018,18 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Unlock()
 	if r != nil {
 		r.cancel()
-		if deleteFiles {
-			<-r.ended
-		}
+	}
+	if !deleteFiles {
+		return
+	}
+	if r != nil {
+		<-r.ended
 	}
 	b.mu.Lock()
 	parts := b.parts[taskID]
 	delete(b.parts, taskID)
 	b.mu.Unlock()
-	if deleteFiles {
-		discard(taskID, parts)
-	}
+	discard(taskID, parts)
 }
 
 // remember notes a file a run of taskID wrote, for Remove.
