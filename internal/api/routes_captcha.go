@@ -76,8 +76,17 @@ func registerCaptcha(reg *Registry, a *app.App) {
 			}
 			c, err := a.CreateTestCaptcha(body.Solvers)
 			if err != nil {
-				if errors.Is(err, app.ErrCaptchaOff) {
-					writeRefusal(w, http.StatusConflict, "captchaOff", err.Error(), nil)
+				code := ""
+				switch {
+				case errors.Is(err, app.ErrCaptchaOff):
+					code = "captchaOff"
+				case errors.Is(err, app.ErrCaptchaJDOff):
+					code = "captchaJDOff"
+				case errors.Is(err, app.ErrNoCaptchaAccount):
+					code = "noCaptchaAccount"
+				}
+				if code != "" {
+					writeRefusal(w, http.StatusConflict, code, err.Error(), nil)
 					return
 				}
 				http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -164,3 +164,73 @@ func TestATestCaptchaGoesToTheCaptchaAccountsOnlyWhenSentToThem(t *testing.T) {
 		t.Error("the test captcha not sent to the captcha accounts was claimed for them")
 	}
 }
+
+// The Modules page lets the captcha module back on only once JD is, so the
+// refusal names JD.
+func TestATestCaptchaRefusedForJDBeingOffSaysSo(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(), ModulesOff: []string{"jd"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.CreateTestCaptcha(false); !errors.Is(err, ErrCaptchaJDOff) {
+		t.Errorf("CreateTestCaptcha with JD off = %v, want ErrCaptchaJDOff", err)
+	}
+}
+
+func TestNoTestCaptchaForTheCaptchaAccountsWhileNoneHasAKey(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(), CaptchaSolverOrder: []string{"2captcha"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.CreateTestCaptcha(true); !errors.Is(err, ErrNoCaptchaAccount) {
+		t.Errorf("CreateTestCaptcha for the accounts without a key = %v, want ErrNoCaptchaAccount", err)
+	}
+	if got := a.CaptchaChallenges(); len(got) != 0 {
+		t.Errorf("a test captcha nobody could take was put up: %+v", got)
+	}
+	if _, err := a.CreateTestCaptcha(false); err != nil {
+		t.Errorf("a test captcha for people only was refused: %v", err)
+	}
+}
+
+func TestAWaitingTestCaptchaLeavesTheCaptchaHealthAlone(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	t.Setenv("KL_JD", "http://127.0.0.1:1")
+
+	if _, err := a.CreateTestCaptcha(false); err != nil {
+		t.Fatal(err)
+	}
+	if row := a.captchaSubsystem(); row.State != StateOK || row.Remedy != "" {
+		t.Errorf("with only a test captcha waiting the captcha row reads %q with remedy %q, want %q", row.State, row.Remedy, StateOK)
+	}
+}
+
+// A download waits on a captcha that times out, but nothing waits on a test
+// one, so its end says what it was.
+func TestTheEndOfATestCaptchaSaysItWasATest(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	viewer := addViewer(t, a)
+
+	c, err := a.CreateTestCaptcha(false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.settleCaptcha(c, "timedOut")
+
+	waitFor(t, "the test captcha's end", func() bool { return broadcastOf(viewer, "captchaResolved", c.ID) })
+	for _, raw := range viewer.snapshot() {
+		var m struct {
+			Type string            `json:"type"`
+			Data CaptchaResolution `json:"data"`
+		}
+		if json.Unmarshal(raw, &m) == nil && m.Type == "captchaResolved" && m.Data.ID == c.ID && !m.Data.TestCaptcha {
+			t.Errorf("the test captcha ended as %+v, not marked as a test", m.Data)
+		}
+	}
+}
