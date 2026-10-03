@@ -44,9 +44,10 @@ func ParseBasePath(v string) (string, error) {
 			return "", fmt.Errorf("%q is not a plain path: use letters, digits and - . _ ~ between the slashes", v)
 		}
 		// Unprefixed requests are still served, so a prefix of /api would
-		// make /api/health mean two different things, and one of /relay would
-		// hide the /relay/connect a sibling on the LAN dials.
-		if i == 0 && (seg == "api" || seg == "relay") {
+		// make /api/health mean two different things, one of /relay would
+		// hide the /relay/connect a sibling on the LAN dials, and one of /dav
+		// the debrid drive.
+		if i == 0 && (seg == "api" || seg == "relay" || seg == "dav") {
 			return "", fmt.Errorf("a base path cannot begin with /%s, where this instance's own routes live", seg)
 		}
 	}
