@@ -193,6 +193,7 @@ export const es: Dict = {
   'settings.appsParleyportHint': 'ParleyPort es el repetidor que conecta tus instancias incluso entre redes distintas, y puedes ejecutarlo tú mismo. Introduce su dirección en la interfaz web, en Ajustes, Emparejamiento, y las instancias que comparten tus doce palabras se comunicarán por tu repetidor y no por el del proyecto. Un clic copia el comando que lo arranca:',
   'settings.appsExtension': 'Extensión de navegador',
   'settings.appsExtensionHint': 'La extensión envía un enlace, una selección o la página abierta a tu KnightLoader, desde el menú del clic derecho o desde su botón en la barra de herramientas. Chrome, Brave, Opera y Vivaldi la instalan desde Chrome Web Store, y Edge desde Edge Add-ons.',
+  'settings.appsExtensionSub': 'Extensión',
   'settings.appsSoon': 'Pronto',
   'settings.privacyPolicy': 'Política de privacidad',
   'settings.removeAllConnections': 'Eliminar todas las conexiones',

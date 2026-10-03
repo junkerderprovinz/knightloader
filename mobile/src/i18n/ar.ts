@@ -193,6 +193,7 @@ export const ar: Dict = {
   'settings.appsParleyportHint': 'ParleyPort هو المُرحِّل الذي يربط مثيلاتك حتى عبر شبكات مختلفة، ويمكنك تشغيله بنفسك. أدخل عنوانه في واجهة الويب، في الإعدادات، ضمن الاقتران، فتتواصل المثيلات التي تشترك في كلماتك الاثنتي عشرة عبر مُرحِّلك بدلًا من مُرحِّل المشروع. نقرة واحدة تنسخ الأمر الذي يشغّله:',
   'settings.appsExtension': 'إضافة المتصفح',
   'settings.appsExtensionHint': 'ترسل الإضافة رابطًا أو نصًا محددًا أو الصفحة المفتوحة إلى KnightLoader الخاص بك، من قائمة النقر بزر الفأرة الأيمن أو من زرها في شريط الأدوات. تثبّتها متصفحات Chrome وBrave وOpera وVivaldi من Chrome Web Store، ويثبّتها Edge من Edge Add-ons.',
+  'settings.appsExtensionSub': 'إضافة',
   'settings.appsSoon': 'قريبًا',
   'settings.privacyPolicy': 'سياسة الخصوصية',
   'settings.removeAllConnections': 'إزالة جميع الاتصالات',

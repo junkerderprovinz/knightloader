@@ -193,6 +193,7 @@ export const tr: Dict = {
   'settings.appsParleyportHint': 'ParleyPort, örneklerini farklı ağlarda olsalar bile birbirine bağlayan röledir ve onu kendin çalıştırabilirsin. Adresini web arayüzünde Ayarlar, Eşleştirme altında gir; on iki kelimeni paylaşan örnekler artık projenin rölesi yerine senin rölen üzerinden konuşur. Bir tıklama, onu başlatan komutu kopyalar:',
   'settings.appsExtension': 'Tarayıcı uzantısı',
   'settings.appsExtensionHint': 'Uzantı bir bağlantıyı, seçimi ya da açık sayfayı sağ tık menüsünden veya araç çubuğundaki düğmesinden KnightLoader’ına gönderir. Chrome, Brave, Opera ve Vivaldi onu Chrome Web Store’dan, Edge ise Edge Add-ons’tan yükler.',
+  'settings.appsExtensionSub': 'Uzantı',
   'settings.appsSoon': 'Yakında',
   'settings.privacyPolicy': 'Gizlilik politikası',
   'settings.removeAllConnections': 'Tüm bağlantıları kaldır',

@@ -193,6 +193,7 @@ export const nl: Dict = {
   'settings.appsParleyportHint': 'ParleyPort is de relay die je instanties ook over verschillende netwerken heen verbindt, en je kunt hem zelf draaien. Vul het adres in de webinterface in onder Instellingen, Koppeling, dan praten de instanties met jouw twaalf woorden via jouw relay in plaats van die van het project. Eén klik kopieert het commando dat hem start:',
   'settings.appsExtension': 'Browserextensie',
   'settings.appsExtensionHint': 'De extensie stuurt een link, een selectie of de geopende pagina naar je KnightLoader, via het rechtermuisknopmenu of haar knop in de werkbalk. Chrome, Brave, Opera en Vivaldi installeren haar uit de Chrome Web Store, Edge uit Edge Add-ons.',
+  'settings.appsExtensionSub': 'Extensie',
   'settings.appsSoon': 'Binnenkort',
   'settings.privacyPolicy': 'Privacybeleid',
   'settings.removeAllConnections': 'Alle verbindingen verwijderen',

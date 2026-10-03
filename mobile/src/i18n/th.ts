@@ -193,6 +193,7 @@ export const th: Dict = {
   'settings.appsParleyportHint': 'ParleyPort คือรีเลย์ที่เชื่อมอินสแตนซ์ของคุณเข้าด้วยกัน แม้จะอยู่คนละเครือข่าย และคุณเปิดใช้เองได้ ใส่ที่อยู่ของมันในเว็บอินเทอร์เฟซ ที่หน้าการจับคู่ของการตั้งค่า แล้วอินสแตนซ์ที่ใช้สิบสองคำของคุณจะคุยกันผ่านรีเลย์ของคุณแทนรีเลย์ของโครงการ คลิกเพื่อคัดลอกคำสั่งที่เริ่มรีเลย์นี้:',
   'settings.appsExtension': 'ส่วนขยายเบราว์เซอร์',
   'settings.appsExtensionHint': 'ส่วนขยายส่งลิงก์ ข้อความที่เลือก หรือหน้าที่เปิดอยู่ไปยัง KnightLoader ของคุณ จากเมนูคลิกขวาหรือปุ่มบนแถบเครื่องมือ Chrome, Brave, Opera และ Vivaldi ติดตั้งจาก Chrome Web Store ส่วน Edge ติดตั้งจาก Edge Add-ons',
+  'settings.appsExtensionSub': 'ส่วนขยาย',
   'settings.appsSoon': 'เร็ว ๆ นี้',
   'settings.privacyPolicy': 'นโยบายความเป็นส่วนตัว',
   'settings.removeAllConnections': 'ลบการเชื่อมต่อทั้งหมด',

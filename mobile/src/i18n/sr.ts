@@ -193,6 +193,7 @@ export const sr: Dict = {
   'settings.appsParleyportHint': 'ParleyPort је релеј који повезује твоје инстанце и преко различитих мрежа, а можеш да га покренеш и сам. Унеси његову адресу у веб интерфејсу, у одељку Подешавања, Упаривање, и инстанце са твојих дванаест речи разговараће преко твог релеја уместо преко релеја пројекта. Клик копира наредбу која га покреће:',
   'settings.appsExtension': 'Екстензија прегледача',
   'settings.appsExtensionHint': 'Екстензија шаље линк, изабрани текст или отворену страницу твом KnightLoader-у, из менија десног клика или својим дугметом на траци са алаткама. Chrome, Brave, Opera и Vivaldi је инсталирају из продавнице Chrome Web Store, а Edge из продавнице Edge Add-ons.',
+  'settings.appsExtensionSub': 'Екстензија',
   'settings.appsSoon': 'Ускоро',
   'settings.privacyPolicy': 'Политика приватности',
   'settings.removeAllConnections': 'Уклони све везе',

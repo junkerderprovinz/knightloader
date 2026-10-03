@@ -205,6 +205,10 @@ export type Brand =
   | 'docker'
   | 'zip'
   | 'chrome'
+  | 'edge'
+  | 'brave'
+  | 'opera'
+  | 'vivaldi'
   | 'firefox'
   | 'parleyport';
 
@@ -226,6 +230,10 @@ export const BRAND: Record<Brand, { fill: string; ink: string }> = {
   docker: { fill: '#1d63ed', ink: '#ffffff' },
   zip: { fill: '#4d5562', ink: '#ffffff' },
   chrome: { fill: '#1a73e8', ink: '#ffffff' },
+  edge: { fill: '#0078d7', ink: '#ffffff' },
+  brave: { fill: '#fb542b', ink: '#ffffff' },
+  opera: { fill: '#ff1b2d', ink: '#ffffff' },
+  vivaldi: { fill: '#ef3939', ink: '#ffffff' },
   firefox: { fill: '#ff7139', ink: '#ffffff' },
   // ParleyPort's gold, which is KnightLoader's.
   parleyport: { fill: '#e6bc59', ink: '#161616' },

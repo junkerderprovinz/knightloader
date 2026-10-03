@@ -193,6 +193,7 @@ export const ru: Dict = {
   'settings.appsParleyportHint': 'Relay ParleyPort соединяет ваши экземпляры даже в разных сетях, и его можно запустить у себя. Укажите его адрес в веб-интерфейсе на странице «Сопряжение» в разделе «Настройки», и экземпляры с вашими двенадцатью словами будут связываться через ваш relay, а не через relay проекта. По щелчку копируется команда, которая его запускает:',
   'settings.appsExtension': 'Расширение браузера',
   'settings.appsExtensionHint': 'Расширение отправляет ссылку, выделенный текст или открытую страницу в ваш KnightLoader из контекстного меню или по кнопке на панели инструментов. Chrome, Brave, Opera и Vivaldi устанавливают его из Chrome Web Store, а Edge из Edge Add-ons.',
+  'settings.appsExtensionSub': 'Расширение',
   'settings.appsSoon': 'Скоро',
   'settings.privacyPolicy': 'Политика конфиденциальности',
   'settings.removeAllConnections': 'Удалить все подключения',
