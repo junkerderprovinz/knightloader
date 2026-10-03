@@ -48,7 +48,10 @@ release's tag.
   wrote.** A yt-dlp download that was still running or paused kept its .part
   and .ytdl files, its fragments and its info file on disk after a removal
   with files. KnightLoader now stops yt-dlp, waits for it to exit and deletes
-  them.
+  them. When yt-dlp records through ffmpeg, as it does for a live stream, a
+  pause or a removal now stops ffmpeg too. ffmpeg used to keep recording on its
+  own, after a removal with files into the deleted file, and the removal waited
+  until ffmpeg was done.
 - **Thumbnail, subtitle and description rows take their file with them.**
   Removed with their files, these rows left the .jpg, .srt or .description
   behind, and a video or audio row left its .nfo. KnightLoader now records the
