@@ -1054,6 +1054,9 @@ export const ro: Dict = {
 
   'settings.chunks': 'Conexiuni pe descărcare (0 = automat)',
   'settings.chunksHint': 'Câte conexiuni deschide o descărcare când nu se aplică nimic mai precis. O regulă, sau o descărcare anume, poate spune propriul număr și trece peste acesta. O gazdă care tolerează mai puține tot mai puține primește: limita gazdei poate doar coborî numărul, niciodată să îl ridice. Cu 0 hotărăște aplicația. Peste o mână de conexiuni nu se câștigă nimic la o gazdă care limitează pe fișier și e o cale sigură ca un cont să fie marcat.',
+  'settings.multiSource': 'Folosește mai multe surse pentru un fișier',
+  'settings.multiSourceHint':
+    'Dacă un fișier poate veni din mai multe locuri, este împărțit între toate: același link deblocat de un al doilea cont debrid sau o copie de rezervă de la alt hoster pe care lista o păstrează. Se folosesc linkul propriu al fișierului și cel mult încă trei. Fiecare sursă primește numărul de conexiuni setat mai sus. Ajută când un serviciu limitează viteza unui link sau a unei conexiuni și nu schimbă nimic dacă o singură sursă îți umple deja linia. Fișierele sub 64 MiB vin mereu dintr-o singură sursă. O sursă se alătură doar dacă raportează aceeași dimensiune și trimite aceiași octeți în puncte de probă din fișier; dacă una se oprește la jumătate, celelalte îi termină partea. Dezactivat implicit: fiecare deblocare în plus consumă traficul acelui cont, unele servicii taxează tot fișierul încă de la deblocare, iar termenii unor servicii interzic descărcarea cu două conturi în același timp.',
   'task.chunks': 'Conexiuni (0 = setarea globală)',
   'task.chunksHint': 'Câte conexiuni deschide această singură descărcare. Trece peste setarea globală și peste orice regulă care a fixat-o, dar niciodată peste gazdă: o gazdă care tolerează mai puține tot mai puține primește. Cu 0 excepția dispare și numărul se hotărăște iar în altă parte.',
   'columns.connection': 'Conexiune',

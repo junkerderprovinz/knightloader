@@ -1053,6 +1053,9 @@ export const sl: Dict = {
 
   'settings.chunks': 'Povezave na prenos (0 = samodejno)',
   'settings.chunksHint': 'Koliko povezav odpre en prenos, kadar ne velja nič bolj določenega. Pravilo ali posamezen prenos lahko navede svoje število in prevlada nad tem. Gostitelj, ki jih prenese manj, jih vseeno dobi manj: omejitev gostitelja lahko število le zniža, nikoli zviša. Pri 0 odloči aplikacija. Več kot peščica povezav pri gostitelju, ki omejuje na datoteko, ne prinese nič in je zanesljiva pot do označenega računa.',
+  'settings.multiSource': 'Uporabi več virov za eno datoteko',
+  'settings.multiSourceHint':
+    'Če je datoteko mogoče dobiti z več mest, se razdeli med vse: ista povezava, ki jo odklene drug debrid račun, ali rezervna kopija z drugega gostitelja, ki jo seznam hrani. Uporabijo se lastna povezava datoteke in največ tri druge. Vsak vir dobi število povezav, nastavljeno zgoraj. Pomaga, ko storitev omejuje hitrost ene povezave ali enega priključka, in ne spremeni ničesar, ko en vir že zapolni vašo linijo. Datoteke pod 64 MiB vedno prihajajo iz enega vira. Vir se pridruži le, če javi enako velikost in na vzorčnih točkah v datoteki pošlje enake bajte; če se eden ustavi na pol poti, drugi dokončajo njegov del. Privzeto izklopljeno: vsako dodatno odklepanje porabi promet tega računa, nekatere storitve zaračunajo celotno datoteko že ob odklepanju, pogoji nekaterih storitev pa prepovedujejo prenos z dvema računoma hkrati.',
   'task.chunks': 'Povezave (0 = globalna nastavitev)',
   'task.chunksHint': 'Koliko povezav odpre prav ta prenos. Prevlada nad globalno nastavitvijo in nad vsakim pravilom, ki jo je nastavilo, nikoli pa nad gostiteljem: gostitelj, ki jih prenese manj, jih vseeno dobi manj. Pri 0 izjema odpade in število se spet odloči drugje.',
   'columns.connection': 'Povezava',

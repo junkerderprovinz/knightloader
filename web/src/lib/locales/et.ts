@@ -1053,6 +1053,9 @@ export const et: Dict = {
 
   'settings.chunks': 'Ühendusi allalaadimise kohta (0 = automaatne)',
   'settings.chunksHint': 'Mitu ühendust üks allalaadimine avab, kui midagi täpsemat ei kehti. Reegel või üksik allalaadimine võib nimetada oma arvu ja käib sellest üle. Majutaja, kes talub vähem, saab ikkagi vähem: majutaja piir saab arvu ainult langetada, mitte kunagi tõsta. Nulli korral otsustab rakendus. Rohkem kui peotäis ühendusi ei anna failipõhiselt piiraval majutajal midagi ja on kindel viis konto ära märkida.',
+  'settings.multiSource': 'Kasuta ühe faili jaoks mitut allikat',
+  'settings.multiSourceHint':
+    'Kui faili saab mitmest kohast, jagatakse allalaadimine nende kõigi vahel: sama link, mille avab teine debrid-konto, või varukoopia teiselt failimajutajalt, mida loend hoiab. Kasutatakse faili enda linki ja kuni kolme lisaallikat. Iga allikas saab ülal seatud arvu ühendusi. See aitab, kui teenus piirab ühe lingi või ühe ühenduse kiirust, ega muuda midagi, kui üks allikas juba täidab sinu liini. Alla 64 MiB failid tulevad alati ühest allikast. Allikas liitub ainult siis, kui see teatab sama suuruse ja saadab faili proovikohtades samad baidid; kui üks poole pealt katkeb, lõpetavad teised tema osa. Vaikimisi väljas: iga lisaavamine kulutab selle konto liiklust, mõni teenus arvestab kogu faili juba avamisel ja mõne teenuse tingimused keelavad laadida kahe kontoga korraga.',
   'task.chunks': 'Ühendused (0 = üldine säte)',
   'task.chunksHint': 'Mitu ühendust avab just see allalaadimine. See käib üle üldise sätte ja iga reegli, mis selle määras, aga mitte kunagi üle majutaja: majutaja, kes talub vähem, saab ikkagi vähem. Nulli korral erand kaob ja arv otsustatakse jälle mujal.',
   'columns.connection': 'Ühendus',
