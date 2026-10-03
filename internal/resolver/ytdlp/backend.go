@@ -225,6 +225,15 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	}
 	cmd := nowindow.CommandContext(ctx, b.bin, append(args, target)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
+	// yt-dlp records and merges through ffmpeg, which shares its output.
+	// Killing yt-dlp alone would leave ffmpeg writing, and the output open
+	// until ffmpeg is done, which on a live stream is never.
+	tree, err := newProcessTree(cmd)
+	if err != nil {
+		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
+	}
+	defer tree.close()
+	cmd.Cancel = tree.kill
 	if opts.Live.Enabled {
 		// A killed yt-dlp leaves a live recording as an unplayable .part; on
 		// an interrupt it finishes the fragment and runs its post-processors.
@@ -236,7 +245,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			discard := r.discard
 			b.mu.Unlock()
 			if discard {
-				return cmd.Process.Kill()
+				return tree.kill()
 			}
 			return cmd.Process.Signal(os.Interrupt)
 		}
@@ -255,6 +264,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		}
 		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
 	}
+	tree.started()
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning})
 
 	// What finish acts on: the file yt-dlp produced, the subtitle files it

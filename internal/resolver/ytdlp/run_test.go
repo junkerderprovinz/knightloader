@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,9 @@ const runHelperEnv = "KL_YTDLP_RUN_HELPER"
 // runHelperMain never returns: it plays whichever of the two programs the
 // argv it was given belongs to, then exits.
 func runHelperMain(mode string) {
+	if len(os.Args) == 3 && os.Args[1] == recordArg {
+		ffmpegRecorder(os.Args[2])
+	}
 	ytMode, probeMode, _ := strings.Cut(mode, ":")
 	// -print_format appears only in the ffprobe invocation.
 	for _, a := range os.Args[1:] {
@@ -131,6 +135,16 @@ func ytdlpHelper(mode string) {
 			fmt.Printf("KLP:{\"live\":\"True\",\"p\":{\"downloaded_bytes\":%d,\"speed\":1000.0}}\n", i*(256<<10))
 		}
 		time.Sleep(time.Second)
+	case "recording":
+		// A live stream handed to ffmpeg, which shares yt-dlp's output.
+		ffmpeg := exec.Command(os.Args[0], recordArg, final+".part")
+		ffmpeg.Stdout = os.Stdout
+		if err := ffmpeg.Start(); err != nil {
+			os.Exit(1)
+		}
+		fmt.Println("[download] Destination: " + final)
+		fmt.Println("KLP:" + `{"live":"True","p":{"downloaded_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}}`)
+		time.Sleep(time.Minute)
 	case "hang":
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
@@ -150,6 +164,22 @@ func ytdlpHelper(mode string) {
 					_ = os.WriteFile(filepath.Join(dir, "jar-seen.txt"), b, 0o644)
 				}
 			}
+		}
+	}
+	os.Exit(0)
+}
+
+// recordArg makes the helper play ffmpeg recording a stream into the path
+// after it.
+const recordArg = "-record-into"
+
+// ffmpegRecorder appends to the recording until it is killed. It opens the
+// file for every write, so a recording deleted under it comes back.
+func ffmpegRecorder(path string) {
+	for end := time.Now().Add(time.Minute); time.Now().Before(end); time.Sleep(10 * time.Millisecond) {
+		if f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644); err == nil {
+			_, _ = f.WriteString("frame")
+			_ = f.Close()
 		}
 	}
 	os.Exit(0)
@@ -727,5 +757,52 @@ func TestRemovingWithFilesFromTheFailureUpdateDoesNotWaitForItself(t *testing.T)
 	case <-removed:
 	case <-time.After(30 * time.Second):
 		t.Fatal("Remove called from the failure update never returned")
+	}
+}
+
+// yt-dlp records a live stream through ffmpeg, which shares its output. A
+// removal with files ends ffmpeg too, whether live mode is on or not, and does
+// not wait for it: a 24/7 stream never ends by itself, and an ffmpeg left
+// running writes into the recording that was just deleted.
+func TestRemovingARecordingWithFilesEndsItsFFmpegAtOnce(t *testing.T) {
+	for _, live := range []bool{true, false} {
+		name := "live mode off"
+		if live {
+			name = "live mode on"
+		}
+		t.Run(name, func(t *testing.T) {
+			t.Setenv(runHelperEnv, "recording:full")
+			dir := t.TempDir()
+			rec := &recorder{}
+			b := NewBackend(os.Args[0], dir, rec.add)
+			b.Options = func(string) Options { return Options{Live: Live{Enabled: live}} }
+			b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+			part := filepath.Join(dir, "A Video.mkv.part")
+			deadline := time.Now().Add(30 * time.Second)
+			for {
+				if _, err := os.Stat(part); err == nil && rec.last().Loaded > 0 {
+					break
+				}
+				if time.Now().After(deadline) {
+					t.Fatal("the recording never started")
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+
+			removed := make(chan struct{})
+			go func() {
+				b.Remove("task-1", true)
+				close(removed)
+			}()
+			select {
+			case <-removed:
+			case <-time.After(10 * time.Second):
+				t.Fatal("the removal waited for ffmpeg")
+			}
+			time.Sleep(200 * time.Millisecond)
+			if _, err := os.Stat(part); err == nil {
+				t.Error("ffmpeg went on recording into the deleted file")
+			}
+		})
 	}
 }
