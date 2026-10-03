@@ -107,7 +107,14 @@ func (a *App) WatchFolderMissing(dir string) bool {
 // onWatchIntake receives one job on the folder's polling goroutine and hands it
 // off, so the poll is not blocked while the links resolve.
 func (a *App) onWatchIntake(j watch.Job) {
-	a.spawn(func() { a.stageWatchJob(j) })
+	a.spawn(func() {
+		a.stageWatchJob(j)
+		// A crawl cut short by a shutdown says nothing about the file, so it
+		// stays parked and is taken again on the next start.
+		if j.File != nil && a.ctx.Err() == nil {
+			j.File.Done()
+		}
+	})
 }
 
 // stageWatchJob carries out one dropped job: stage the links, write on what the

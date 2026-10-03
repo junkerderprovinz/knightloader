@@ -2,7 +2,10 @@ package app
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -67,10 +70,10 @@ func (*containerJD) Download(string, string, map[string]string, int) {}
 func (*containerJD) Pause(string)                                    {}
 func (*containerJD) Resume(string)                                   {}
 func (*containerJD) Remove(string, bool)                             {}
-func (*containerJD) AddContainer(string, string, time.Duration) ([]resolver.Result, error) {
+func (*containerJD) AddContainer(context.Context, string, string, time.Duration) ([]resolver.Result, error) {
 	return nil, errors.New("a dropped container is not fetched from an address")
 }
-func (j *containerJD) AddContainerFile(ext string, data []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
+func (j *containerJD) AddContainerFile(_ context.Context, ext string, data []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	j.ext, j.data = ext, data
@@ -201,5 +204,118 @@ func TestADroppedPlainContainerIsReadHere(t *testing.T) {
 	a.stageWatchJob(job)
 	if tasks := a.Tasks(); len(tasks) != 1 {
 		t.Fatalf("staged %d tasks, want the link in the list", len(tasks))
+	}
+}
+
+// sampleCCF is a CCF 1.0 holding https://host.example/one.bin.
+const sampleCCF = "b7732a47bf700eb6674cdeb6e3f49a208da4c42f4d174f63cb390b6a9545d142c3d3b3357c413e6c9eaccb9ea1af341c119e74d85b09724fcde11f5e4c0b15b822e8584c46f4e7fb0530ec69c697ca0afb8c2f934e41c95d7b3510b0a162599ede4bb664dd238f21d255c9c773d8344d5b3450b1ff477b30855633053bcf371a0d85278938f502425e1e3e674bdadc4aa80e7b493beb7a583b13743065fd26b6"
+
+func TestADroppedCCFIsReadHereWithoutJDownloader(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := newCrawlApp(t, false)
+	data, _ := hex.DecodeString(sampleCCF)
+	job := watch.Job{File: &watch.File{Name: "Links.ccf", Data: data}, Package: "Links"}
+	if err := a.checkWatchJob(job); err != nil {
+		t.Fatalf("a CCF that opens here was refused: %v", err)
+	}
+	a.stageWatchJob(job)
+	tasks := a.Tasks()
+	if len(tasks) != 1 || tasks[0].URL != "https://host.example/one.bin" || tasks[0].Origin != OriginWatch {
+		t.Fatalf("tasks = %+v, want the link inside the CCF, from the watched folder", tasks)
+	}
+}
+
+// dropAndWatch drops a container into a fresh folder and watches it the way the
+// app does.
+func dropAndWatch(t *testing.T, a *App) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "Links.ccf")
+	if err := os.WriteFile(path, []byte("encrypted bytes"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	w, err := watch.New(watch.Options{
+		Folders: []watch.Folder{{Dir: dir}}, Interval: 10 * time.Millisecond,
+		OnJob: a.onWatchIntake, Check: a.checkWatchJob,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.Start()
+	t.Cleanup(func() { _ = w.Close() })
+	return path
+}
+
+func TestADroppedContainerIsRetiredOnceJDownloaderHasOpenedIt(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.bmu.Lock()
+	a.jd = &containerJD{}
+	a.bmu.Unlock()
+
+	path := dropAndWatch(t, a)
+	waitFor(t, "the container to be retired", func() bool {
+		_, err := os.Stat(path + ".done")
+		return err == nil
+	})
+	if n := len(a.Tasks()); n != 1 {
+		t.Errorf("staged %d tasks, want the link JD found", n)
+	}
+}
+
+// crawlingJD is a JD whose crawl of a container only ends with its context.
+type crawlingJD struct {
+	containerJD
+	started chan struct{}
+}
+
+func (j *crawlingJD) AddContainerFile(ctx context.Context, _ string, _ []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
+	close(j.started)
+	<-ctx.Done()
+	return nil, ctx.Err()
+}
+
+func TestAShutdownDoesNotWaitForAContainerCrawl(t *testing.T) {
+	a := newCrawlApp(t, false)
+	jd := &crawlingJD{started: make(chan struct{})}
+	a.bmu.Lock()
+	a.jd = jd
+	a.bmu.Unlock()
+
+	a.onWatchIntake(watch.Job{File: &watch.File{Name: "Links.CCF", Data: []byte("encrypted bytes")}, Package: "Links"})
+	select {
+	case <-jd.started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the container never reached JD")
+	}
+	closed := make(chan struct{})
+	go func() {
+		a.Close()
+		close(closed)
+	}()
+	select {
+	case <-closed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close is still waiting for JD to open the container")
+	}
+	if s := a.SkippedLinks(); len(s) != 0 {
+		t.Errorf("skipped = %+v; the container is taken again on the next start, so it has not failed", s)
+	}
+}
+
+func TestADroppedContainerOpenedDuringShutdownIsTakenAgainNextStart(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.bmu.Lock()
+	a.jd = &containerJD{}
+	a.bmu.Unlock()
+	a.cancel()
+
+	path := dropAndWatch(t, a)
+	waitFor(t, "the container to be handed over", func() bool { return len(a.Tasks()) == 1 })
+	a.wg.Wait()
+	if _, err := os.Stat(path + ".done"); err == nil {
+		t.Fatal("the container was retired although the process was going down mid-crawl")
+	}
+	if _, err := os.Stat(path + ".opening"); err != nil {
+		t.Errorf("the container is not parked for the next start: %v", err)
 	}
 }
