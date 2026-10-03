@@ -49,6 +49,15 @@ release's tag.
   running torrents at once. Torrents a debrid service fetches are not
   affected. The default stays Any interface.
 
+### Fixed
+
+- **Trackers stopped hearing from torrents once one was removed.** After any
+  torrent left the built-in client, the trackers got no more regular announces
+  for the other torrents until a new one was added, so their peer lists went
+  stale. Private torrents rely on these announces. The fault was in the torrent
+  library and is fixed in KnightLoader's copy of it, which also closes its
+  tracker sockets when the client shuts down.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed
