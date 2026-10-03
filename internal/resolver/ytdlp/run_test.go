@@ -806,3 +806,44 @@ func TestRemovingARecordingWithFilesEndsItsFFmpegAtOnce(t *testing.T) {
 		})
 	}
 }
+
+// A removal without files can be undone, and the row that comes back can then
+// be removed with its files.
+func TestRemovingWithFilesAfterAnUndoneRemovalStillTakesThePart(t *testing.T) {
+	t.Setenv(runHelperEnv, "partial:full")
+	dir := t.TempDir()
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.Options = func(string) Options { return Options{} }
+	b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+	deadline := time.Now().Add(30 * time.Second)
+	for rec.last().Loaded == 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("yt-dlp never reported progress")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	b.Remove("task-1", false)
+	for {
+		b.mu.Lock()
+		_, running := b.runs["task-1"]
+		b.mu.Unlock()
+		if !running {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the removed yt-dlp never exited")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	part := filepath.Join(dir, "A Video.f137.mp4.part")
+	if _, err := os.Stat(part); err != nil {
+		t.Fatalf("a removal without files deleted the .part: %v", err)
+	}
+
+	b.Remove("task-1", true)
+	if _, err := os.Stat(part); err == nil {
+		t.Error("the .part survived the removal with files")
+	}
+}
