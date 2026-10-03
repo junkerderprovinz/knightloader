@@ -1053,6 +1053,9 @@ export const da: Dict = {
 
   'settings.chunks': 'Forbindelser pr. download (0 = automatisk)',
   'settings.chunksHint': 'Hvor mange forbindelser én download åbner, når intet mere præcist gælder. En regel eller en enkelt download kan angive sit eget tal og går forud for dette. En vært, der tåler færre, får alligevel færre: en værtsgrænse kan kun sænke tallet, aldrig hæve det. Ved 0 bestemmer appen. Mere end en håndfuld forbindelser giver intet hos en vært, der begrænser pr. fil, og er en sikker måde at få en konto markeret på.',
+  'settings.multiSource': 'Brug flere kilder til én fil',
+  'settings.multiSourceHint':
+    'Hvis en fil findes mere end ét sted, fordeles hentningen på dem alle: det samme link låst op af en anden debrid-konto, eller en reservekopi fra en anden filvært, som listen gemmer. Filens eget link og op til tre mere bruges. Hver kilde får det antal forbindelser, der er sat ovenfor. Det hjælper, når en tjeneste begrænser hastigheden pr. link eller pr. forbindelse, og ændrer intet, når én kilde allerede fylder din linje. Filer under 64 MiB kommer altid fra én kilde. En kilde kommer kun med, hvis den oplyser samme størrelse og sender de samme bytes ved stikprøvepunkter i filen; stopper én halvvejs, henter de andre dens del. Slået fra som standard: hver ekstra oplåsning bruger trafik på den konto, nogle tjenester trækker hele filen allerede ved oplåsningen, og nogle tjenesters vilkår forbyder download med to konti på samme tid.',
   'task.chunks': 'Forbindelser (0 = den globale indstilling)',
   'task.chunksHint': 'Hvor mange forbindelser netop denne download åbner. Det går forud for den globale indstilling og for enhver regel, der har sat den, men aldrig forud for værten: en vært, der tåler færre, får alligevel færre. Ved 0 fjernes undtagelsen, og tallet bestemmes andetsteds igen.',
   'columns.connection': 'Forbindelse',

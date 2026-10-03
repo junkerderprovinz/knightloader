@@ -1052,6 +1052,7 @@ func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, h
 		// it is a file, and a playlist behind it goes on to yt-dlp.
 		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http" || t.Resolver == hostheaders.ResolverID,
 		RefusePages:     t.Resolver == "http",
+		Sources:         a.sourcesLocked(t, cfg),
 	}
 	if namedTakeover(t) {
 		job.Name = t.Name

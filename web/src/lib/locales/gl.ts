@@ -1053,6 +1053,9 @@ export const gl: Dict = {
 
   'settings.chunks': 'Conexións por descarga (0 = automático)',
   'settings.chunksHint': 'Cantas conexións abre unha descarga cando non se aplica nada máis concreto. Unha regra, ou unha descarga solta, pode indicar o seu propio número e manda sobre este. Un servidor que tolera menos recibe menos igualmente: un límite do servidor só pode baixar a cifra, nunca subila. Con 0 decide a aplicación. Pasar dun puñado de conexións non achega nada nun servidor que limita por ficheiro, e é un xeito seguro de que marquen unha conta.',
+  'settings.multiSource': 'Usar varias fontes para un ficheiro',
+  'settings.multiSourceHint':
+    'Se un ficheiro se pode obter de máis dun sitio, a descarga repártese entre todos: a mesma ligazón desbloqueada por unha segunda conta debrid, ou unha copia de reserva doutro aloxamento que a lista garda. Úsanse a ligazón do propio ficheiro e ata tres máis. Cada fonte recibe as conexións configuradas arriba. Axuda cando un servizo limita a velocidade dunha ligazón ou dunha conexión, e non cambia nada se unha soa fonte xa enche a túa liña. Os ficheiros de menos de 64 MiB veñen sempre dunha soa fonte. Unha fonte só se suma se informa do mesmo tamaño e envía os mesmos bytes en puntos de mostra do ficheiro; se unha se detén a medio camiño, as outras rematan a súa parte. Desactivado por defecto: cada desbloqueo extra gasta o tráfico desa conta, algúns servizos contan o ficheiro enteiro en canto se desbloquea a ligazón e as condicións dalgúns servizos prohiben descargar con dúas contas á vez.',
   'task.chunks': 'Conexións (0 = a configuración global)',
   'task.chunksHint': 'Cantas conexións abre esta descarga concreta. Manda sobre a configuración global e sobre calquera regra que a fixase, pero nunca sobre o servidor: un servidor que tolera menos recibe menos igualmente. Con 0 quítase a excepción e a cifra volve decidirse fóra.',
   'columns.connection': 'Conexión',

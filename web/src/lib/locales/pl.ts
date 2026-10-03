@@ -1045,6 +1045,9 @@ export const pl: Dict = {
 
   'settings.chunks': 'Połączenia na pobieranie (0 = automatycznie)',
   'settings.chunksHint': 'Iloma połączeniami rusza jedno pobieranie, gdy nic bardziej szczegółowego nie obowiązuje. Reguła albo pojedyncze pobieranie może podać własną liczbę i bije tę tutaj. Hoster, który znosi mniej, i tak dostanie mniej: limit hostera może liczbę tylko obniżyć, nigdy podnieść. Przy 0 decyduje aplikacja. Ponad kilka połączeń nic nie daje u hostera, który ogranicza na plik, a jest pewnym sposobem na oznaczenie konta.',
+  'settings.multiSource': 'Używaj kilku źródeł dla jednego pliku',
+  'settings.multiSourceHint':
+    'Jeśli plik da się pobrać z więcej niż jednego miejsca, jest dzielony między wszystkie: ten sam link odblokowany przez drugie konto debrid albo zapasowa kopia z innego hostingu, którą lista przechowuje. Używany jest własny link pliku i maksymalnie trzy inne. Każde źródło dostaje liczbę połączeń ustawioną wyżej. Pomaga, gdy usługa ogranicza prędkość jednego linku lub jednego połączenia, a nic nie zmienia, gdy jedno źródło już wypełnia twoje łącze. Pliki poniżej 64 MiB zawsze pochodzą z jednego źródła. Źródło dołącza tylko wtedy, gdy podaje ten sam rozmiar i wysyła te same bajty w punktach kontrolnych pliku; jeśli któreś przerwie w połowie, pozostałe dokończą jego część. Domyślnie wyłączone: każde dodatkowe odblokowanie zużywa transfer danego konta, niektóre usługi liczą cały plik już przy odblokowaniu, a regulaminy niektórych usług zabraniają pobierania na dwóch kontach naraz.',
   'task.chunks': 'Połączenia (0 = ustawienie globalne)',
   'task.chunksHint': 'Iloma połączeniami rusza to jedno pobieranie. Bije ustawienie globalne i każdą regułę, która je ustawiła, ale nigdy hostera: hoster, który znosi mniej, i tak dostanie mniej. Przy 0 wyjątek znika i liczba znów zapada gdzie indziej.',
   'columns.connection': 'Połączenie',

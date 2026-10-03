@@ -88,6 +88,13 @@ export function DownloadsSettings() {
           <MaxPerHostField value={cfg.maxPerHost} onValue={(maxPerHost) => patch({ maxPerHost })} />
           <ChunksField value={cfg.chunks} onValue={(chunks) => patch({ chunks })} />
         </div>
+        <ToggleRow
+          hue={0}
+          checked={cfg.multiSource ?? false}
+          onChange={(multiSource) => patch({ multiSource })}
+          label={t('settings.multiSource')}
+          hint={t('settings.multiSourceHint')}
+        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
           <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
