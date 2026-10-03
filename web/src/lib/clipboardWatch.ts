@@ -27,7 +27,9 @@ const POLL_MS = 1200;
 const REFUSALS_BEFORE_GIVING_UP = 3;
 
 /** Anything that could be a link. Loose, since the server does the parsing,
- *  but it keeps every copied word from becoming a request. */
+ *  but it keeps every copied word from becoming a request. The browser
+ *  extension's watch uses the same rule (extension/src/clipwatch.js), and
+ *  extension/check-clipwatch.mjs keeps the two alike. */
 const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftp:\/\/)\S+/i;
 
 export type WatchOutcome =

@@ -3,6 +3,7 @@ import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
 import { useClipboardWatch } from '../lib/useClipboardWatch';
 import { startClipboardWatch } from '../lib/clipboardWatch';
+import { startLease } from '../lib/clipboardWatchers';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -90,10 +91,16 @@ export function GlobalIntake() {
   }, [t, toast]);
 
   // The clipboard watch lives here because this component stays mounted across
-  // pages. A refused permission ends the watch instead of asking again.
+  // pages. A refused permission ends the watch instead of asking again. While
+  // it runs, the lease keeps it on the group's list of watchers, and another
+  // device switching it off there ends it here.
   useEffect(() => {
     if (!watch) return;
-    return startClipboardWatch((o) => {
+    const endLease = startLease(() => {
+      setWatch(false);
+      toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
+    });
+    const endWatch = startClipboardWatch((o) => {
       switch (o.kind) {
         case 'staged':
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
@@ -110,6 +117,10 @@ export function GlobalIntake() {
           break;
       }
     });
+    return () => {
+      endWatch();
+      endLease();
+    };
   }, [watch, setWatch, t, toast]);
 
   return null;
