@@ -442,8 +442,89 @@ func TestFilterExceptionsAndTheListSwitch(t *testing.T) {
 	if f[1].Accept || !f[1].Rule.Action.Reject {
 		t.Errorf("filter rule = %+v, want a reject", f[1])
 	}
-	want := rules.Condition{Field: rules.FieldFilesize, Op: rules.OpBetween, Min: 0, Max: 1000}
+	want := rules.Condition{Field: rules.FieldFilesize, Op: rules.OpBetween, Min: 1, Max: 1000}
 	if !reflect.DeepEqual(f[1].Rule.Conditions, []rules.Condition{want}) {
 		t.Errorf("size condition = %+v, want %+v", f[1].Rule.Conditions, want)
+	}
+}
+
+func TestASizeRangeFromZeroLeavesLinksOfUnknownSizeAlone(t *testing.T) {
+	t.Parallel()
+	m := mapOne(t, true, jdimporttest.Rule("samples", map[string]any{
+		"filesizeFilter": map[string]any{"enabled": true, "from": 0, "to": 1024, "matchType": "BETWEEN"},
+	}))
+	if m.Blocked != nil {
+		t.Fatalf("blocked: %s", m.Blocked.Text)
+	}
+	matcher, problems := rules.Compile(rules.Set{Rules: []rules.Rule{m.Rule}})
+	if len(problems) > 0 {
+		t.Fatal(problems)
+	}
+	if e := matcher.Apply(rules.Candidate{URL: "https://host.example/disc.iso"}); len(e.Matched) != 0 {
+		t.Error("a link whose size is not known yet was rejected; JDownloader tests the size only once it is known")
+	}
+	if e := matcher.Apply(rules.Candidate{URL: "https://host.example/sample.mkv", Filesize: 900}); len(e.Matched) == 0 {
+		t.Error("a 900 byte file should still match 0 to 1024 bytes")
+	}
+
+	exact := mapOne(t, true, jdimporttest.Rule("empty files", map[string]any{
+		"filesizeFilter": map[string]any{"enabled": true, "from": 0, "to": 0, "matchType": "BETWEEN"},
+	}))
+	if exact.Blocked == nil || exact.Blocked.Code != "ruleInvalid" {
+		t.Errorf("0 to 0 bytes: blocked = %+v; here it would match every link of unknown size", exact.Blocked)
+	}
+}
+
+func TestRuleListsWithAByteOrderMarkAreRead(t *testing.T) {
+	t.Parallel()
+	const bom = "\xef\xbb\xbf"
+	fsys := fstest.MapFS{}
+	for name, b := range jdimporttest.Files(t, jdimporttest.Config{
+		PackagizerOff: true,
+		Packagizer: []map[string]any{jdimporttest.Rule("p", map[string]any{
+			"matchAlwaysFilter": map[string]any{"enabled": true}, "packageName": "all",
+		})},
+	}) {
+		fsys[name] = &fstest.MapFile{Data: append([]byte(bom), b...)}
+	}
+	cfg, err := jdimport.Read(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Problems) > 0 {
+		t.Errorf("problems = %+v", cfg.Problems)
+	}
+	if len(cfg.Packagizer) != 1 {
+		t.Fatalf("packagizer = %+v, want the one rule", cfg.Packagizer)
+	}
+	if cfg.Packagizer[0].Enabled {
+		t.Error("the Packagizer switch file was off, so the rule must arrive switched off")
+	}
+}
+
+func TestAZipWithWindowsSeparatorsIsRead(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	for name, b := range jdimporttest.Files(t, jdimporttest.Config{Passwords: []string{"secret"}}) {
+		w, err := zw.Create(`JDownloader 2.0\cfg\` + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.Write(b)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := jdimport.Read(jdimport.ZipFS(zr))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(cfg.ArchivePasswords, []string{"secret"}) {
+		t.Errorf("ArchivePasswords = %q", cfg.ArchivePasswords)
 	}
 }

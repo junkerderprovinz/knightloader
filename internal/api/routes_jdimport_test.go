@@ -133,3 +133,34 @@ func TestJDImportReadsAFolderByItsPath(t *testing.T) {
 		t.Errorf("not a zip: %v", refusal)
 	}
 }
+
+func TestJDImportRefusesAPreviewNewerReadsPushedOut(t *testing.T) {
+	t.Parallel()
+	_, srv := jdImportServer(t)
+	install := t.TempDir()
+	jdimporttest.Write(t, install, jdimporttest.Config{Passwords: []string{"pw"}})
+	read := func() app.JDImportPreview {
+		b, _ := json.Marshal(map[string]string{"path": install})
+		resp, err := http.Post(srv.URL+"/api/jdimport/read", "application/json", bytes.NewReader(b))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var p app.JDImportPreview
+		decodeAnswer(t, resp, http.StatusOK, &p)
+		return p
+	}
+	first := read()
+	for range 4 {
+		read()
+	}
+	req, _ := json.Marshal(map[string]any{"token": first.Token, "ids": []string{"passwords"}})
+	resp, err := http.Post(srv.URL+"/api/jdimport/apply", "application/json", bytes.NewReader(req))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var refusal map[string]any
+	decodeAnswer(t, resp, http.StatusGone, &refusal)
+	if refusal["code"] != "jdimport.replaced" {
+		t.Errorf("refusal = %v", refusal)
+	}
+}

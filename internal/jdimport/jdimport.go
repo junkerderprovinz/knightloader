@@ -9,6 +9,7 @@
 package jdimport
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
@@ -232,4 +233,14 @@ func (c *Config) problem(file string, err error) {
 		Params: map[string]string{"file": file, "error": err.Error()},
 		Text:   fmt.Sprintf("%s could not be read: %v", file, err),
 	})
+}
+
+// ZipFS returns a zip of the folder as a file system. Windows PowerShell 5.1
+// writes backslashes into the entry names, which archive/zip does not split
+// on, so they are turned into slashes before the first Open.
+func ZipFS(zr *zip.Reader) fs.FS {
+	for _, f := range zr.File {
+		f.Name = strings.ReplaceAll(f.Name, `\`, "/")
+	}
+	return zr
 }

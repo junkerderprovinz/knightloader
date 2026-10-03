@@ -107,6 +107,10 @@ const jdPendingMax = 4
 // ErrJDImportExpired is returned for a token that is unknown or too old.
 var ErrJDImportExpired = errors.New("this preview has expired; read the folder again")
 
+// ErrJDImportReplaced is returned for a token whose preview newer reads pushed
+// out.
+var ErrJDImportReplaced = fmt.Errorf("only the %d newest previews are kept, and newer reads pushed this one out; read the folder again", jdPendingMax)
+
 // jdPlan is a preview with everything apply needs, the credentials included.
 type jdPlan struct {
 	created  time.Time
@@ -127,9 +131,11 @@ type jdAccountPlan struct {
 }
 
 type jdPackagePlan struct {
-	name       string
-	comment    string
-	password   string
+	name    string
+	comment string
+	// passwords are the package's archive passwords; the first goes on its
+	// links and every one into the global list.
+	passwords  []string
 	dlPassword string
 	urls       []string
 }
@@ -137,6 +143,9 @@ type jdPackagePlan struct {
 var (
 	jdPendingMu sync.Mutex
 	jdPending   = map[*App]map[string]*jdPlan{}
+	// jdReplaced holds when each pushed-out preview was read, until it would
+	// have expired anyway, so its token is refused for the right reason.
+	jdReplaced = map[*App]map[string]time.Time{}
 )
 
 // ReadJDImport reads a JDownloader cfg folder and returns what it would bring.
@@ -160,10 +169,20 @@ func (a *App) ReadJDImport(fsys fs.FS) (JDImportPreview, error) {
 		held = map[string]*jdPlan{}
 		jdPending[a] = held
 	}
+	replaced := jdReplaced[a]
+	if replaced == nil {
+		replaced = map[string]time.Time{}
+		jdReplaced[a] = replaced
+	}
 	now := time.Now()
 	for k, p := range held {
 		if now.Sub(p.created) > jdPendingTTL {
 			delete(held, k)
+		}
+	}
+	for k, created := range replaced {
+		if now.Sub(created) > jdPendingTTL {
+			delete(replaced, k)
 		}
 	}
 	for len(held) >= jdPendingMax {
@@ -173,6 +192,7 @@ func (a *App) ReadJDImport(fsys fs.FS) (JDImportPreview, error) {
 				oldest = k
 			}
 		}
+		replaced[oldest] = held[oldest].created
 		delete(held, oldest)
 	}
 	plan.created = now
@@ -193,6 +213,12 @@ func (a *App) takeJDPlan(token string) (*jdPlan, error) {
 	jdPendingMu.Lock()
 	defer jdPendingMu.Unlock()
 	p, ok := jdPending[a][token]
+	if created, gone := jdReplaced[a][token]; !ok && gone {
+		delete(jdReplaced[a], token)
+		if time.Since(created) <= jdPendingTTL {
+			return nil, ErrJDImportReplaced
+		}
+	}
 	if !ok || time.Since(p.created) > jdPendingTTL {
 		delete(jdPending[a], token)
 		return nil, ErrJDImportExpired
@@ -237,11 +263,7 @@ func (a *App) planJDImport(cfg *jdimport.Config) *jdPlan {
 		if len(links.URLs) == 0 {
 			item.Blocked = &jdimport.Reason{Code: "packageEmpty", Text: "Nothing in this package is left to download."}
 		} else {
-			pw := ""
-			if len(pkg.Passwords) > 0 {
-				pw = pkg.Passwords[0]
-			}
-			p.packages[id] = jdPackagePlan{name: pkg.Name, comment: pkg.Comment, password: pw, dlPassword: pkg.DownloadPassword, urls: links.URLs}
+			p.packages[id] = jdPackagePlan{name: pkg.Name, comment: pkg.Comment, passwords: pkg.Passwords, dlPassword: pkg.DownloadPassword, urls: links.URLs}
 			item.Ticked = true
 		}
 		items = append(items, item)
@@ -255,9 +277,9 @@ func (a *App) planJDImport(cfg *jdimport.Config) *jdPlan {
 func (a *App) planJDAccounts(p *jdPlan, in []jdimport.Account) []JDImportItem {
 	var items []JDImportItem
 	hosters := hosterauth.NewStore(a.Accounts)
-	// What this import has already claimed, so two JDownloader accounts never
-	// land in the same slot.
-	takenHost := map[string]bool{}
+	keep := hosterLoginsToKeep(in)
+	// What this import has already claimed, so two debrid accounts never land
+	// in the same slot.
 	takenSlot := map[string]bool{}
 	for i, acc := range in {
 		id := fmt.Sprintf("account:%d", i)
@@ -291,19 +313,14 @@ func (a *App) planJDAccounts(p *jdPlan, in []jdimport.Account) []JDImportItem {
 		}
 
 		item.Kind = "hoster"
-		switch {
-		case multihostersLeftOut[host]:
-			item.Blocked = &jdimport.Reason{Code: "noClient", Text: "KnightLoader has no client for this multihoster."}
-		case strings.TrimSpace(acc.User) == "" && acc.Password == "":
-			item.Blocked = &jdimport.Reason{Code: "noSecret", Text: "This account has neither a user name nor a password in JDownloader."}
-		case takenHost[host]:
-			item.Blocked = &jdimport.Reason{Code: "secondLogin", Text: "KnightLoader keeps one login per hoster, and an earlier account for this hoster is already in the list."}
+		item.Blocked = hosterLoginBlocked(host, acc)
+		if item.Blocked == nil && keep[host] != i {
+			item.Blocked = &jdimport.Reason{Code: "secondLogin", Text: "KnightLoader keeps one login per hoster, and another account for this hoster comes over instead."}
 		}
 		if item.Blocked != nil {
 			items = append(items, item)
 			continue
 		}
-		takenHost[host] = true
 		cred := accounts.Credential{Username: acc.User, Password: acc.Password}
 		prev, _ := hosters.Get(host)
 		item.Same = prev == cred
@@ -315,6 +332,36 @@ func (a *App) planJDAccounts(p *jdPlan, in []jdimport.Account) []JDImportItem {
 		items = append(items, item)
 	}
 	return items
+}
+
+// hosterLoginsToKeep picks, per hoster, the one account that can come over:
+// the first one switched on in JDownloader, or the first one at all when every
+// account of that hoster is off.
+func hosterLoginsToKeep(in []jdimport.Account) map[string]int {
+	keep := map[string]int{}
+	on := map[string]bool{}
+	for i, acc := range in {
+		host := hostalias.Canonical(acc.Host)
+		if _, debrid := jdimport.DebridService(host); debrid || hosterLoginBlocked(host, acc) != nil {
+			continue
+		}
+		if _, seen := keep[host]; !seen || (acc.Enabled && !on[host]) {
+			keep[host] = i
+			on[host] = acc.Enabled
+		}
+	}
+	return keep
+}
+
+// hosterLoginBlocked says why a hoster account cannot come over at all.
+func hosterLoginBlocked(host string, acc jdimport.Account) *jdimport.Reason {
+	switch {
+	case multihostersLeftOut[host]:
+		return &jdimport.Reason{Code: "noClient", Text: "KnightLoader has no client for this multihoster."}
+	case strings.TrimSpace(acc.User) == "" && acc.Password == "":
+		return &jdimport.Reason{Code: "noSecret", Text: "This account has neither a user name nor a password in JDownloader."}
+	}
+	return nil
 }
 
 // slotChars is what an account id taken from a user name may keep.
@@ -405,7 +452,7 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 				item.Same = true
 			} else {
 				p.rules[id] = m
-				item.Ticked = true
+				item.Ticked = m.Enabled
 			}
 		}
 		items = append(items, item)
@@ -437,15 +484,8 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 	}
 
 	patch, settingIDs, stops, err := a.jdSettingsPatch(plan, want)
-	if err == nil && len(patch) > 0 {
-		var preview settings.Settings
-		preview, err = settings.ApplyPatch(a.Settings.Get(), patch)
-		if err == nil && check != nil {
-			err = check(preview, patch)
-		}
-		if err == nil {
-			_, err = a.PatchSettings(patch)
-		}
+	if err == nil {
+		err = a.applyJDPatch(patch, check)
 	}
 	for _, id := range settingIDs {
 		if err != nil {
@@ -455,6 +495,17 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 		}
 	}
 	rep.FilterStops = err == nil && stops
+
+	// The folder is a path on JDownloader's machine, so it goes on its own and
+	// a path that does not fit here fails only itself.
+	if want["folder"] && plan.folder != "" && plan.folder != a.Settings.Get().DownloadDir {
+		dir, _ := json.Marshal(plan.folder)
+		if err := a.applyJDPatch(map[string]json.RawMessage{"downloadDir": dir}, check); err != nil {
+			fail("folder", err)
+		} else {
+			rep.Imported = append(rep.Imported, "folder")
+		}
+	}
 
 	hostersTouched, debridTouched := false, false
 	for _, item := range plan.preview.Items {
@@ -494,8 +545,12 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 		if !ok || !want[item.ID] {
 			continue
 		}
+		first := ""
+		if len(pkg.passwords) > 0 {
+			first = pkg.passwords[0]
+		}
 		created, err := a.AddLinksWithOptions(pkg.urls, pkg.name, OriginJDownloader, LinkBatchOptions{
-			Password:         pkg.password,
+			Password:         first,
 			DownloadPassword: pkg.dlPassword,
 			Comment:          pkg.comment,
 			Overrule:         pkg.comment != "",
@@ -505,14 +560,17 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 			fail(item.ID, err)
 			continue
 		}
+		if len(created) > 0 {
+			a.rememberPasswords(pkg.passwords)
+		}
 		rep.Links += len(created)
 		rep.Imported = append(rep.Imported, item.ID)
 	}
 	return rep, nil
 }
 
-// jdSettingsPatch builds the one settings patch the ticked passwords, folder
-// and rules make, and lists the items it carries. stops reports that the link
+// jdSettingsPatch builds the one settings patch the ticked passwords and rules
+// make, and lists the items it carries. stops reports that the link
 // filter has to stop at its first match for the imported exceptions to work.
 func (a *App) jdSettingsPatch(plan *jdPlan, want map[string]bool) (map[string]json.RawMessage, []string, bool, error) {
 	stored := a.Settings.Get()
@@ -533,12 +591,6 @@ func (a *App) jdSettingsPatch(plan *jdPlan, want map[string]bool) (map[string]js
 			return nil, nil, false, err
 		}
 		ids = append(ids, "passwords")
-	}
-	if want["folder"] && plan.folder != "" && plan.folder != stored.DownloadDir {
-		if err := put("downloadDir", plan.folder); err != nil {
-			return nil, nil, false, err
-		}
-		ids = append(ids, "folder")
 	}
 
 	var pkgRules []rules.Rule
@@ -585,4 +637,20 @@ func (a *App) jdSettingsPatch(plan *jdPlan, want map[string]bool) (map[string]js
 		}
 	}
 	return patch, ids, stops, nil
+}
+
+// applyJDPatch writes a settings patch after the same checks a save from the
+// settings page gets.
+func (a *App) applyJDPatch(patch map[string]json.RawMessage, check JDSettingsCheck) error {
+	if len(patch) == 0 {
+		return nil
+	}
+	preview, err := settings.ApplyPatch(a.Settings.Get(), patch)
+	if err == nil && check != nil {
+		err = check(preview, patch)
+	}
+	if err == nil {
+		_, err = a.PatchSettings(patch)
+	}
+	return err
 }
