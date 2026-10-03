@@ -273,9 +273,9 @@ func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 // is torn down. It is idempotent, since the app shuts down from more than one
 // place.
 //
-// The wait is capped at closeGrace. A resolve already inside the library
-// takes no context and cannot be interrupted; closing the library is what
-// releases it, and a shutdown that hung on one slow host would be worse.
+// The wait is capped at closeGrace. An HTTP resolve already inside the
+// library takes no context and cannot be interrupted; closing the library is
+// what releases it, and a shutdown that hung on one slow host would be worse.
 func (e *Engine) Close() error {
 	e.closeOnce.Do(func() {
 		e.mu.Lock()
@@ -667,7 +667,10 @@ func (e *Engine) Reconnect(taskID string) bool {
 // which a restart needs; tidying the list does not.
 func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.dropMend(taskID)
-	e.markStart(taskID, func(s *start) { s.removed = true })
+	e.markStart(taskID, func(s *start) {
+		s.removed = true
+		s.cancel()
+	})
 	e.mu.Lock()
 	delete(e.parked, taskID)
 	gid := e.toGopeed[taskID]

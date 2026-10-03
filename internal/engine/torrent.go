@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -18,8 +19,7 @@ import (
 )
 
 // defaultMetadataTimeout is how long a magnet may wait for the swarm to send
-// its metadata before the task fails. Resolve takes no context, so this bounds
-// the wait rather than cancelling the resolve.
+// its metadata before the task fails.
 const defaultMetadataTimeout = 2 * time.Minute
 
 var errNothingSelected = errors.New("no file of the torrent is selected")
@@ -90,7 +90,7 @@ func (e *Engine) startTorrent(j Job, s *start) {
 				return
 			}
 		}
-		rr, err := e.resolveTorrent(j, opts)
+		rr, err := e.resolveTorrent(s.ctx, j, opts)
 		if err != nil {
 			fail(err)
 			return
@@ -172,11 +172,11 @@ func (e *Engine) startTorrent(j Job, s *start) {
 	}()
 }
 
-// resolveTorrent waits on a resolve that cannot be cancelled. The resolve
-// runs on its own goroutine and this one gives up on the deadline or on
-// Close. Downloader.Close releases the abandoned goroutine, and its channel
-// is buffered so it never blocks on a result nobody reads.
-func (e *Engine) resolveTorrent(j Job, opts *base.Options) (*download.ResolveResult, error) {
+// resolveTorrent resolves under ctx, the start's, which ends once the start
+// gives up on the resolve and so takes the torrent out of the client. The
+// resolve runs on its own goroutine, whose channel is buffered so it never
+// blocks on a result nobody reads.
+func (e *Engine) resolveTorrent(ctx context.Context, j Job, opts *base.Options) (*download.ResolveResult, error) {
 	req := &base.Request{URL: j.URL, Proxy: requestProxy(j.Route)}
 	if len(j.Trackers) > 0 {
 		// The bt fetcher type-asserts its own extra type; an http one would
@@ -200,7 +200,7 @@ func (e *Engine) resolveTorrent(j Job, opts *base.Options) (*download.ResolveRes
 				ch <- answer{nil, fmt.Errorf("the torrent library refused this link: %v", r)}
 			}
 		}()
-		rr, err := e.d.Resolve(req, opts)
+		rr, err := e.d.ResolveContext(ctx, req, opts)
 		ch <- answer{rr, err}
 	}()
 

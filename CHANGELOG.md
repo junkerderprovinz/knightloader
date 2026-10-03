@@ -62,6 +62,11 @@ release's tag.
   came back before its trackers had been told it stopped, through a restart or
   an Undo, it sent them no more announces and got no peers from them. It now
   announces as a new torrent.
+- **A magnet removed while it waited for its file list stayed in the torrent
+  client.** It kept announcing to its trackers and held its sockets, and so did
+  a magnet whose wait ran out. While one was left over, the client never became
+  idle, so a new listening port did not take effect. Such a magnet now leaves
+  the client.
 - **The torrent client opened a piece completion database it never used.** It
   tried to create the file in its working folder, which in the container is
   not writable, so every start of the client logged a warning.
