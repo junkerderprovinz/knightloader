@@ -247,7 +247,7 @@ const KEY_STATE = {
   notSet: 'settings.captcha.notSet',
 } as const satisfies Record<KeyState, TranslationKey>;
 
-function SolverRow({
+export function SolverRow({
   svc,
   hue,
   enabled,
@@ -274,47 +274,52 @@ function SolverRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-2.5">
+      {/* Neither the name nor its link can be cut short, so where the card is
+          too narrow the key status and the actions wrap onto a line of their
+          own. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-sm text-carbon-text">{svc.label}</span>
           {svc.whereUrl && <LinkBadge href={svc.whereUrl} title={t('accounts.whereToFind')} />}
         </div>
 
-        <span
-          className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${state === 'set' ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
-          {t(KEY_STATE[state])}
-          {state === 'off' && <InfoBubble tip={t('settings.captcha.offHint')} />}
-        </span>
+        <div className="ms-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
+          <span
+            className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${state === 'set' ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
+            {t(KEY_STATE[state])}
+            {state === 'off' && <InfoBubble tip={t('settings.captcha.offHint')} />}
+          </span>
 
-        {/* `labelled` on every badge, so the actions follow the Beschriftung
-            setting like toolbar actions; the name column truncates instead. */}
-        <div className="flex shrink-0 items-center gap-0.5">
-          {enabled && (
-            <>
-              <IconBadge
-                labelled
-                icon={<IconArrowUp width={16} height={16} />}
-                hue={hue}
-                title={t('settings.captcha.moveUp')}
-                aria-label={t('settings.captcha.moveUp')}
-                disabled={position <= 0}
-                onClick={() => onMove(-1)}
-              />
-              <IconBadge
-                labelled
-                icon={<IconArrowDown width={16} height={16} />}
-                hue={hue}
-                title={t('settings.captcha.moveDown')}
-                aria-label={t('settings.captcha.moveDown')}
-                disabled={position < 0 || position >= count - 1}
-                onClick={() => onMove(1)}
-              />
-            </>
-          )}
+          {/* `labelled` on every badge, so the actions follow the Beschriftung
+              setting like toolbar actions. */}
+          <div className="flex flex-wrap items-center justify-end gap-0.5">
+            {enabled && (
+              <>
+                <IconBadge
+                  labelled
+                  icon={<IconArrowUp width={16} height={16} />}
+                  hue={hue}
+                  title={t('settings.captcha.moveUp')}
+                  aria-label={t('settings.captcha.moveUp')}
+                  disabled={position <= 0}
+                  onClick={() => onMove(-1)}
+                />
+                <IconBadge
+                  labelled
+                  icon={<IconArrowDown width={16} height={16} />}
+                  hue={hue}
+                  title={t('settings.captcha.moveDown')}
+                  aria-label={t('settings.captcha.moveDown')}
+                  disabled={position < 0 || position >= count - 1}
+                  onClick={() => onMove(1)}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </li>
