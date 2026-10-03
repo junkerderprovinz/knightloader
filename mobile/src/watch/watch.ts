@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { KnightWatch, type OpenRequest } from '../../modules/watch';
-import { ApiError, fetchCaptchasUnwatched, fetchTasks } from '../api/client';
+import { ApiError, fetchCaptchasUnwatched, fetchTasks, fetchWatch } from '../api/client';
 import { explainFailure } from '../api/taskError';
-import type { CaptchaChallenge, ServerConnection, Task } from '../api/types';
+import type { CaptchaChallenge, ServerConnection, WatchTask } from '../api/types';
 import { AVAILABLE, load } from '../i18n';
 import { detectDeviceLanguage, translate } from '../i18n/I18nContext';
 import type { TranslationKey } from '../i18n/en';
@@ -14,11 +14,13 @@ import {
   FAST_MS,
   compare,
   isBusy,
+  isMoving,
   keepRunning,
   lookOf,
   nextDelay,
   noticeId,
   stayAwake,
+  watchTaskOf,
   type Look,
   type News,
 } from './rules';
@@ -35,8 +37,17 @@ export const WATCH_TASK = 'KnightLoaderWatch';
 /** How often the app in front looks whether the service should start. */
 const CHECK_MS = 15_000;
 
+// A direct connection has no deadline of its own, and one look that never
+// answers would hold up every pass after it.
+const LOOK_TIMEOUT_MS = 20_000;
+
 interface Watched {
   look: Look | null;
+  /** The list under the tag the instance gave it, sent again only once it changes. */
+  tag: string;
+  tasks: WatchTask[];
+  /** Set for an instance from before GET /api/tasks/watch. */
+  full: boolean;
   lastBusy: number;
   ok: boolean;
   captchaShown: boolean;
@@ -49,6 +60,12 @@ let delay = FAST_MS;
 let startedAt = 0;
 let onScreen: string | null = null;
 let passing: Promise<boolean> | null = null;
+
+// What finished while nobody looked happened before the next look, as it did
+// before the first one, rather than news to announce all at once.
+function forget(): void {
+  watched.clear();
+}
 
 async function translator(): Promise<Translate> {
   const override = await getLanguageOverride().catch(() => null);
@@ -94,23 +111,25 @@ async function runPass(): Promise<boolean> {
   const front = AppState.currentState === 'active';
   let changed = false;
   let waiting = false;
-  let busy = false;
+  let moving = false;
 
   await Promise.all(
     conns.map(async (conn) => {
       let w = watched.get(conn.id);
       if (!w) {
-        w = { look: null, lastBusy: 0, ok: true, captchaShown: false };
+        w = { look: null, tag: '', tasks: [], full: false, lastBusy: 0, ok: true, captchaShown: false };
         watched.set(conn.id, w);
       }
-      let tasks: Task[];
+      let tasks: WatchTask[];
       let captchas: CaptchaChallenge[];
+      const abort = new AbortController();
+      const timer = setTimeout(() => abort.abort(), LOOK_TIMEOUT_MS);
       try {
         [tasks, captchas] = await Promise.all([
-          fetchTasks(conn),
+          tasksOf(conn, w, abort.signal),
           // An instance too old for the captcha routes refuses them; its
           // downloads are still worth watching.
-          fetchCaptchasUnwatched(conn).catch((e) => {
+          fetchCaptchasUnwatched(conn, abort.signal).catch((e) => {
             if (e instanceof ApiError) return [];
             throw e;
           }),
@@ -118,22 +137,41 @@ async function runPass(): Promise<boolean> {
       } catch {
         w.ok = false;
         return;
+      } finally {
+        clearTimeout(timer);
       }
       const news = compare(w.look, tasks, captchas);
       w.look = lookOf(tasks, captchas);
       w.ok = true;
-      if (isBusy(tasks, captchas)) {
-        w.lastBusy = Date.now();
-        busy = true;
-      }
+      if (isBusy(tasks, captchas)) w.lastBusy = Date.now();
+      if (isMoving(tasks, captchas)) moving = true;
       if (news.changed) changed = true;
-      if (captchas.length > 0) waiting = true;
+      // The quick pace is there to take the captcha notification down soon.
+      if (captchas.length > 0 && prefs.captcha) waiting = true;
       announce(conn, w, news, captchas, prefs, t, front && conn.id === onScreen);
     }),
   );
 
-  delay = nextDelay(delay, changed, waiting, busy);
+  delay = nextDelay(delay, changed, waiting, moving);
   return keepRunning([...watched.values()], startedAt, Date.now(), prefs.stay);
+}
+
+// The list since the last look, read in full only from an instance that has no
+// shorter way to say it.
+async function tasksOf(conn: ServerConnection, w: Watched, signal: AbortSignal): Promise<WatchTask[]> {
+  if (!w.full) {
+    try {
+      const list = await fetchWatch(conn, w.tag, signal);
+      if (!list.same) w.tasks = list.tasks ?? [];
+      w.tag = list.tag;
+      return w.tasks;
+    } catch (e) {
+      // 405 where a route for another method shares the path.
+      if (!(e instanceof ApiError) || (e.status !== 404 && e.status !== 405)) throw e;
+      w.full = true;
+    }
+  }
+  return (await fetchTasks(conn, '/api', signal)).map(watchTaskOf);
 }
 
 // The instance open on screen while the app is in front says everything there,
@@ -179,7 +217,7 @@ function announce(
         channel: 'finished',
         title: one ? t('notify.finishedTitle') : t('notify.packageFinishedTitle'),
         text: one
-          ? p.tasks[0].name || p.tasks[0].url
+          ? p.tasks[0].name
           : p.failed > 0
             ? t('notify.packagePartly', { name: p.name, done: p.done, total: p.total, failed: p.failed })
             : t('notify.packageDone', { name: p.name, n: p.total }),
@@ -193,10 +231,10 @@ function announce(
   if (prefs.failed) {
     for (const p of news.failed) {
       const task = p.tasks[0];
-      const name = task.name || task.url;
+      const name = task.name;
       const one = p.tasks.length === 1;
       const why = one
-        ? explainFailure(t, task, { part: name, file: name, path: task.dir || name, service: task.resolver })?.line
+        ? explainFailure(t, task, { part: name, file: name, path: task.dir || name, service: task.resolver ?? '' })?.line
         : undefined;
       KnightWatch.notify({
         id: noticeId('failed', conn.id, p.key),
@@ -218,8 +256,12 @@ export async function watchTask(): Promise<void> {
   // A pass that fails outright stops the service rather than keeping the phone
   // awake for a watch that cannot see anything.
   const keep = await watchPass().catch(() => false);
-  if (keep && KnightWatch.enabled()) KnightWatch.next(delay, stayAwake(delay));
-  else KnightWatch.stop();
+  if (keep && KnightWatch.enabled()) {
+    KnightWatch.next(delay, stayAwake(delay));
+    return;
+  }
+  KnightWatch.stop();
+  forget();
 }
 
 /**
@@ -303,9 +345,13 @@ export function onBatteryAsk(handler: () => void): void {
   batteryAsk = handler;
 }
 
-/** Stops the service, for the settings card when every kind is switched off. */
+/** Stops the service, for the settings card when every kind is switched off,
+ *  and keeps a restart of the phone from starting it again. */
 export function stopWatch(): void {
-  if (KnightWatch?.running()) KnightWatch.stop();
+  if (!KnightWatch) return;
+  KnightWatch.autostart(false);
+  if (KnightWatch.running()) KnightWatch.stop();
+  forget();
 }
 
 /**
@@ -338,7 +384,10 @@ export function useWatch(connectionOnScreen: string | null): void {
     void check();
     const timer = setInterval(check, CHECK_MS);
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') void check();
+      if (s !== 'active') return;
+      // Nothing looked while the app was away, unless the service did.
+      if (!KnightWatch?.running()) forget();
+      void check();
     });
     return () => {
       clearInterval(timer);
