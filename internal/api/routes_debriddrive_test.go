@@ -147,6 +147,43 @@ func TestTheDebridDriveNamesItsEntriesUnderTheBasePath(t *testing.T) {
 	}
 }
 
+func TestTheDebridDriveNamesItsEntriesAsTheClientAskedForThem(t *testing.T) {
+	servedUnder(t, "/kl")
+	a := testApp(t)
+	srv := httptest.NewServer(Handler(a))
+	t.Cleanup(srv.Close)
+	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := setFeature(a, "debriddrive", true); err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		path, forwarded, want string
+	}{
+		{"/dav/", "", "/dav/"},
+		{"/kl/dav/", "", "/kl/dav/"},
+		// A proxy that strips the prefix says so in the header.
+		{"/dav/", "/kl", "/kl/dav/"},
+	}
+	for _, c := range cases {
+		code, body := propfind(t, srv, c.path, func(r *http.Request) {
+			r.Header.Set("Authorization", "Bearer "+reader)
+			if c.forwarded != "" {
+				r.Header.Set("X-Forwarded-Prefix", c.forwarded)
+			}
+		})
+		if code != http.StatusMultiStatus {
+			t.Fatalf("PROPFIND %s answered %d", c.path, code)
+		}
+		if !strings.Contains(body, "<D:href>"+c.want+"</D:href>") {
+			t.Errorf("PROPFIND %s with X-Forwarded-Prefix %q does not name the root %s:\n%s", c.path, c.forwarded, c.want, body)
+		}
+	}
+}
+
 func TestTheDebridDriveRowSaysWhatIsMissing(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)

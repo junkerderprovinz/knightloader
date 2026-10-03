@@ -15,6 +15,11 @@ The drive answers WebDAV at `/dav/` on the address you open KnightLoader on,
 for example `http://192.168.1.10:8080/dav/`. Behind a reverse proxy that mounts
 KnightLoader under a path, the path comes first: `https://example.com/kl/dav/`.
 
+A proxy that strips the path before it passes the request on has to name the
+path in `X-Forwarded-Prefix`, as Traefik's StripPrefix does. Without it the
+drive cannot tell that request from one that reached it directly, and answers
+as it would at `/dav/`.
+
 ```text
 dav/
   TorBox/

@@ -16,6 +16,8 @@ package api
 
 import (
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -65,11 +67,28 @@ func serveDrive(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// The base path is off the request by now, and webdav names every entry
 	// by the path it was asked under, which the client compares with its own.
 	prefix := drivePrefix
-	if base := requestBasePath(r); base != "" {
+	if base := askedBasePath(r); base != "" {
 		prefix = base + drivePrefix
 		r = r.Clone(r.Context())
 		r.URL.Path = base + r.URL.Path
 		r.URL.RawPath = ""
 	}
 	a.DebridDrive.Serve(w, r, prefix)
+}
+
+// askedBasePath is the base path in front of the path the client asked for.
+// That is the base when the request carried it, and otherwise the proxy's
+// X-Forwarded-Prefix, since a request without it either reached the process
+// directly or came through a proxy that stripped it. requestBasePath cannot
+// tell those apart, and an rclone that asked for /dav/ drops entries named
+// under /kl/dav/.
+func askedBasePath(r *http.Request) string {
+	base := requestBasePath(r)
+	if base == "" {
+		return ""
+	}
+	if u, err := url.ParseRequestURI(r.RequestURI); err == nil && (u.Path == base || strings.HasPrefix(u.Path, base+"/")) {
+		return base
+	}
+	return forwardedBasePath(r)
 }
