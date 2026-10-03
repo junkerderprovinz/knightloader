@@ -55,8 +55,16 @@ release's tag.
   torrent left the built-in client, the trackers got no more regular announces
   for the other torrents until a new one was added, so their peer lists went
   stale. Private torrents rely on these announces. The fault was in the torrent
-  library and is fixed in KnightLoader's copy of it, which also closes its
-  tracker sockets when the client shuts down.
+  library and is fixed in KnightLoader's copy of it, which also tells the
+  trackers the torrents stopped and closes its tracker sockets when the client
+  shuts down.
+- **A torrent removed and added again quickly fell silent.** When a torrent
+  came back before its trackers had been told it stopped, through a restart or
+  an Undo, it sent them no more announces and got no peers from them. It now
+  announces as a new torrent.
+- **The torrent client opened a piece completion database it never used.** It
+  tried to create the file in its working folder, which in the container is
+  not writable, so every start of the client logged a warning.
 
 ## [1.6.6] - 2026-10-02
 
