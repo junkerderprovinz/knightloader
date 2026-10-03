@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -160,6 +161,31 @@ func TestAFileDroppedAgainUnderTheSameNameWaitsUntilTheFirstIsOpened(t *testing.
 		t.Fatalf("handed over %d jobs, want the second drop once the first is done", len(jobs))
 	}
 	jobs[1].File.Done()
+}
+
+func TestAFileLeftHalfOpenedBesideANewOneOfTheSameNameIsTakenToo(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	path := filepath.Join(dir, "links.ccf")
+	write(t, path+openingSuffix, "first")
+	write(t, path, "second drop")
+
+	for range 4 {
+		p.poll()
+	}
+	var got []string
+	for _, j := range rec.all() {
+		got = append(got, string(j.File.Data))
+	}
+	slices.Sort(got)
+	if !slices.Equal(got, []string{"first", "second drop"}) {
+		t.Fatalf("handed over %q, want the parked file and the new drop", got)
+	}
+	finish(rec)
+	for _, name := range []string{"links.ccf.done", "links (2).ccf.done"} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
 }
 
 func TestARefusedFileIsTakenOnceSomethingCanOpenIt(t *testing.T) {
