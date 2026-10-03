@@ -175,4 +175,10 @@ require (
 // interface (pkg/netbind), and fixes a panic when the torrent client is closed
 // right after it was built:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003032056-29c60940f20b
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003082901-1beba7865b76
+
+// The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
+// after a torrent is dropped, and closing the client closes its tracker
+// sockets.
+// https://github.com/junkerderprovinz/torrent/tree/knightloader
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003081852-a1f590161223
