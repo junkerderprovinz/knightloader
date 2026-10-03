@@ -92,6 +92,13 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/collector/skipped":        apitoken.ScopeControl,
 	"GET /api/collector/skipped":           apitoken.ScopeRead,
 
+	// A clipboard watcher only adds links; stopping another device's watch
+	// changes how work arrives.
+	"GET /api/clipboard-watchers":            apitoken.ScopeRead,
+	"PUT /api/clipboard-watchers/{id}":       apitoken.ScopeAdd,
+	"DELETE /api/clipboard-watchers/{id}":    apitoken.ScopeAdd,
+	"POST /api/clipboard-watchers/{id}/stop": apitoken.ScopeControl,
+
 	"DELETE /api/connect":              apitoken.ScopeAdmin,
 	"DELETE /api/connect/apps/{id}":    apitoken.ScopeAdmin,
 	"DELETE /api/connect/members/{id}": apitoken.ScopeAdmin,

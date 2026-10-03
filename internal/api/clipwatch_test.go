@@ -1,0 +1,190 @@
+package api
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
+)
+
+// watchingMember is a group member reached through the relay that holds one
+// clipboard watcher and records what it is asked.
+type watchingMember struct {
+	mu      sync.Mutex
+	watcher clipwatch.Watcher
+	stopped []string
+}
+
+func (m *watchingMember) Siblings() []relay.Announce {
+	return []relay.Announce{{InstanceID: desktopID, Name: "Workshop laptop", Deployment: "desktop"}}
+}
+func (m *watchingMember) Connected() bool { return true }
+func (m *watchingMember) Close() error    { return nil }
+func (m *watchingMember) Proxy(_ context.Context, target, method, path string, _ []byte, _ string) ([]byte, int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	switch {
+	case method == http.MethodGet && path == "/api/clipboard-watchers?local=1":
+		b, _ := json.Marshal([]clipwatch.Watcher{m.watcher})
+		return b, http.StatusOK, nil
+	case method == http.MethodPost && path == "/api/clipboard-watchers/"+m.watcher.ID+"/stop?local=1":
+		m.stopped = append(m.stopped, target)
+		return nil, http.StatusNoContent, nil
+	}
+	return nil, http.StatusNotFound, nil
+}
+
+func (m *watchingMember) stops() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return append([]string(nil), m.stopped...)
+}
+
+func listWatchers(t *testing.T, url string) []clipwatch.Watcher {
+	t.Helper()
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var list []clipwatch.Watcher
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		t.Fatal(err)
+	}
+	return list
+}
+
+func TestAWatcherRenewsAndLeaves(t *testing.T) {
+	t.Parallel()
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	code, body := postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/tab-1", map[string]string{"name": "Firefox, Linux", "kind": "web"})
+	if code != http.StatusOK || string(body) != "{\"stop\":false}\n" {
+		t.Fatalf("renewing = %d %s, want 200 with stop false", code, body)
+	}
+	list := listWatchers(t, srv.URL+"/api/clipboard-watchers?local=1")
+	if len(list) != 1 || list[0].ID != "tab-1" || list[0].Name != "Firefox, Linux" {
+		t.Fatalf("listed %+v, want the one watcher", list)
+	}
+
+	if code, _ := postJSON(t, http.MethodDelete, srv.URL+"/api/clipboard-watchers/tab-1", nil); code != http.StatusNoContent {
+		t.Fatalf("leaving = %d, want 204", code)
+	}
+	if list := listWatchers(t, srv.URL+"/api/clipboard-watchers?local=1"); len(list) != 0 {
+		t.Fatalf("after leaving the list is %+v", list)
+	}
+}
+
+func TestAWatcherOfAnUnknownKindIsRefused(t *testing.T) {
+	t.Parallel()
+	srv, _ := testServer(t)
+	defer srv.Close()
+	if code, _ := postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/x", map[string]string{"kind": "toaster"}); code != http.StatusBadRequest {
+		t.Fatalf("an unknown kind = %d, want 400", code)
+	}
+}
+
+func TestTheGroupListNamesEachWatchersInstance(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	a.Federation.SetRelay(&watchingMember{watcher: clipwatch.Watcher{ID: "desk", Name: "Workshop laptop", Kind: "desktop"}})
+	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "tab", Name: "Chrome, Windows", Kind: "web"}, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	list := listWatchers(t, srv.URL+"/api/clipboard-watchers")
+	if len(list) != 2 {
+		t.Fatalf("listed %+v, want this instance's watcher and the member's", list)
+	}
+	byID := map[string]clipwatch.Watcher{}
+	for _, w := range list {
+		byID[w.ID] = w
+	}
+	if byID["tab"].Instance != instanceDisplayName(a) {
+		t.Errorf("this instance's watcher sends to %q, want %q", byID["tab"].Instance, instanceDisplayName(a))
+	}
+	if byID["desk"].Instance != "Workshop laptop" {
+		t.Errorf("the member's watcher sends to %q, want the member's name", byID["desk"].Instance)
+	}
+
+	if local := listWatchers(t, srv.URL+"/api/clipboard-watchers?local=1"); len(local) != 1 || local[0].ID != "tab" {
+		t.Fatalf("?local=1 listed %+v, want this instance's watcher alone", local)
+	}
+}
+
+func TestStoppingAWatcherReachesTheMemberThatHoldsIt(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
+	a.Federation.SetRelay(member)
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping the member's watcher = %d, want 204", code)
+	}
+	if got := member.stops(); len(got) != 1 || got[0] != desktopID {
+		t.Fatalf("the member was asked %v, want one stop", got)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/nobody/stop", nil); code != http.StatusNotFound {
+		t.Fatalf("stopping a watcher nobody holds = %d, want 404", code)
+	}
+}
+
+func TestAStopAskedOfThisInstanceAloneIsNotPassedOn(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
+	a.Federation.SetRelay(member)
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop?local=1", nil); code != http.StatusNotFound {
+		t.Fatalf("a local stop for a watcher held elsewhere = %d, want 404", code)
+	}
+	if len(member.stops()) != 0 {
+		t.Fatal("a stop asked of this instance alone went on to the group")
+	}
+}
+
+func TestAStoppedWatcherLearnsItFromItsNextRenewal(t *testing.T) {
+	t.Parallel()
+	srv, _ := testServer(t)
+	defer srv.Close()
+	watcher := map[string]string{"name": "Edge, Windows", "kind": "extension"}
+	postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/ext", watcher)
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/ext/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping = %d, want 204", code)
+	}
+	if code, body := postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/ext", watcher); code != http.StatusOK || string(body) != "{\"stop\":true}\n" {
+		t.Fatalf("the next renewal = %d %s, want stop true", code, body)
+	}
+}
+
+func TestTheRelayForwardsTheClipboardWatcherCalls(t *testing.T) {
+	t.Parallel()
+	for _, c := range []struct {
+		method, path string
+		want         bool
+	}{
+		{http.MethodGet, "/api/clipboard-watchers", true},
+		{http.MethodGet, "/api/clipboard-watchers?local=1", true},
+		{http.MethodPut, "/api/clipboard-watchers/abc", true},
+		{http.MethodDelete, "/api/clipboard-watchers/abc", true},
+		{http.MethodPost, "/api/clipboard-watchers/abc/stop", true},
+		{http.MethodPost, "/api/clipboard-watchers", false},
+		{http.MethodGet, "/api/clipboard-watchers/abc", false},
+		{http.MethodPut, "/api/clipboard-watchers/", false},
+		{http.MethodPost, "/api/clipboard-watchers/abc/other", false},
+		{http.MethodPost, "/api/clipboard-watchers/abc/stop/more", false},
+	} {
+		if got := relayForwardable(c.method, c.path); got != c.want {
+			t.Errorf("relayForwardable(%s %s) = %v, want %v", c.method, c.path, got, c.want)
+		}
+	}
+}
