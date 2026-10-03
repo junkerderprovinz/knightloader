@@ -428,6 +428,46 @@ func TestAFileOfNoKnownTypeIsNotReadToTellItsType(t *testing.T) {
 	}
 }
 
+func TestABrowserGetsADriveFileToSaveRatherThanAPageToRun(t *testing.T) {
+	f := newFixture(t)
+	f.svc.mu.Lock()
+	page := f.svc.jobs["1"]
+	page.Files = []debrid.TorrentFile{
+		{ID: "m1", Path: "Some Movie/index.html", Size: int64(len(movie)), Held: true},
+		{ID: "e1", Path: "Some Movie/pic.svg", Size: int64(len(episode)), Held: true},
+		{ID: "e1", Path: "Some Movie/cover.png", Size: int64(len(episode)), Held: true},
+	}
+	f.svc.jobs["1"] = page
+	f.svc.mu.Unlock()
+
+	for _, p := range []string{"/dav/TorBox/Some Movie/index.html", "/dav/TorBox/Some Movie/pic.svg"} {
+		for _, method := range []string{http.MethodHead, http.MethodGet} {
+			resp := f.do(t, method, p, nil)
+			h := resp.Header
+			if resp.StatusCode != http.StatusOK {
+				t.Errorf("%s %s answered %s", method, p, resp.Status)
+			}
+			if got := h.Get("Content-Type"); got != "application/octet-stream" {
+				t.Errorf("%s %s answered the type %q, want application/octet-stream", method, p, got)
+			}
+			if got := h.Get("Content-Disposition"); got != "attachment" {
+				t.Errorf("%s %s answered Content-Disposition %q, want attachment", method, p, got)
+			}
+			if got := h.Get("X-Content-Type-Options"); got != "nosniff" {
+				t.Errorf("%s %s answered X-Content-Type-Options %q, want nosniff", method, p, got)
+			}
+			if got := h.Get("Content-Security-Policy"); !strings.Contains(got, "sandbox") || !strings.Contains(got, "default-src 'none'") {
+				t.Errorf("%s %s answered Content-Security-Policy %q, want a sandbox that loads nothing", method, p, got)
+			}
+		}
+	}
+
+	// A picture keeps its type, which a player may go by.
+	if got := f.do(t, http.MethodHead, "/dav/TorBox/Some Movie/cover.png", nil).Header.Get("Content-Type"); got != "image/png" {
+		t.Errorf("a picture answered the type %q, want image/png", got)
+	}
+}
+
 func TestALinkIsUnlockedAgainWhenItRunsOut(t *testing.T) {
 	f := newFixture(t)
 	read := func() []byte {

@@ -195,7 +195,10 @@ func (f *file) Close() error {
 }
 
 // info is a node as os.FileInfo. It answers the content type itself, from the
-// name, or webdav would read the start of every file a PROPFIND lists.
+// name, or webdav would read the start of every file a PROPFIND lists. Only
+// audio, video and pictures other than SVG keep their own type, which a player
+// may go by; everything else is application/octet-stream, so no file on an
+// account is ever taken for a page.
 type info struct{ n *node }
 
 func (i info) Name() string       { return i.n.name }
@@ -218,7 +221,9 @@ func (i info) Mode() fs.FileMode {
 }
 
 func (i info) ContentType(context.Context) (string, error) {
-	if t := mime.TypeByExtension(path.Ext(i.n.name)); t != "" {
+	t := mime.TypeByExtension(path.Ext(i.n.name))
+	kind, _, _ := strings.Cut(t, "/")
+	if (kind == "audio" || kind == "video" || kind == "image") && !strings.Contains(t, "xml") {
 		return t, nil
 	}
 	return "application/octet-stream", nil
@@ -287,7 +292,7 @@ func (d *Drive) get(h *webdav.Handler, w http.ResponseWriter, r *http.Request) {
 	if held.sent {
 		return
 	}
-	for _, k := range []string{"Accept-Ranges", "Content-Range", "ETag", "Last-Modified"} {
+	for _, k := range []string{"Accept-Ranges", "Content-Disposition", "Content-Range", "ETag", "Last-Modified"} {
 		w.Header().Del(k)
 	}
 	http.Error(w, failed.Error(), http.StatusBadGateway)
@@ -392,18 +397,25 @@ func (d *Drive) prepare(w http.ResponseWriter, r *http.Request, prefix string) b
 		http.Error(w, "the service could not be read: "+err.Error(), http.StatusBadGateway)
 		return false
 	case (r.Method == http.MethodGet || r.Method == http.MethodHead) && !s.node.dir:
+		if r.Method == http.MethodGet {
+			if _, err := d.link(ctx, s.acct, s.node); err != nil {
+				http.Error(w, s.acct.Name+" did not hand out the file: "+err.Error(), http.StatusBadGateway)
+				return false
+			}
+		}
 		// Without a type http.ServeContent reads the start of the file to
 		// guess one, which unlocks it for a HEAD and asks the download
 		// server twice for a range.
 		t, _ := info{s.node}.ContentType(ctx)
-		w.Header().Set("Content-Type", t)
-		if r.Method == http.MethodHead {
-			return true
-		}
-		if _, err := d.link(ctx, s.acct, s.node); err != nil {
-			http.Error(w, s.acct.Name+" did not hand out the file: "+err.Error(), http.StatusBadGateway)
-			return false
-		}
+		h := w.Header()
+		h.Set("Content-Type", t)
+		// Somebody else made what a download holds, and the one asking may be
+		// a browser that is logged in here and sends the token as its
+		// password. It gets the file to save, and one that shows it anyway
+		// runs it in a sandbox, with no origin and no script.
+		h.Set("Content-Disposition", "attachment")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Content-Security-Policy", "default-src 'none'; sandbox")
 	case r.Method == "PROPFIND" && s.node.dir && r.Header.Get("Depth") == "1":
 		if _, err := d.kids(ctx, s); err != nil {
 			http.Error(w, "the service could not be read: "+err.Error(), http.StatusBadGateway)

@@ -155,6 +155,10 @@ account and the reason, and writes the same reason to the log with the file's
 path. Neither contains the link, since an unlocked link is a credential in
 itself.
 
+A browser that opens a file on the drive gets it as a download and does not
+show it as a page. Otherwise a web page or SVG picture on one of your accounts
+could run its script on KnightLoader's address, where you may be logged in.
+
 ## Limits
 
 - The drive is read-only. Deleting or renaming a file is refused; delete a
