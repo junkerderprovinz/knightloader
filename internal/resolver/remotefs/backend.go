@@ -448,16 +448,20 @@ func (b *Backend) limit() int64 {
 }
 
 // finish moves the completed part file onto its real name and reports the name
-// it ended up with. collide.Handover reserves the name, so two downloads
-// finishing at once cannot both pick "film (2).mkv". Delegated backends never
-// receive the configured collision policy (see app.HonoursCollisionPolicy),
-// and Rename neither destroys an existing file nor stalls the queue.
+// it ended up with. The part file replaces the placeholder collide.Reserve
+// created there, so the name is never free for another download finishing at
+// the same moment. Delegated backends never receive the configured collision
+// policy (see app.HonoursCollisionPolicy), and Rename neither destroys an
+// existing file nor stalls the queue.
 func (b *Backend) finish(part, target string) (string, error) {
-	res, err := collide.Handover(target, collide.Rename)
+	res, err := collide.Reserve(target, collide.Rename)
 	if err != nil {
 		return "", fmt.Errorf("remotefs: %w", err)
 	}
+	// Windows does not replace a file that is still open.
+	_ = res.File.Close()
 	if err := os.Rename(part, res.Path); err != nil {
+		_ = os.Remove(res.Path)
 		return "", fmt.Errorf("remotefs: %w", err)
 	}
 	return res.Path, nil
