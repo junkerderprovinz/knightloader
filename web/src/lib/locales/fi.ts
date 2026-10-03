@@ -2140,6 +2140,7 @@ export const fi: Dict = {
   'detail.playPartial': 'Tämä lataus ei ole valmis. Toistaa voi vain sen osan, joka on jo levyllä, sen yli ei voi hypätä, eivätkä jotkin tiedostot toista mitään ennen kuin viimeinen tavu on paikallaan.',
   'detail.playLive': 'Tämä lataus on vielä käynnissä. Toistamasi kohta haetaan ensin, joten voit aloittaa heti. Jos hyppäät eteenpäin, toisto odottaa, kunnes se kohta on saapunut.',
   'detail.playStopped': 'Tämä lataus pysähtyi ennen kuin se valmistui. Käynnistä se uudelleen, niin voit toistaa tiedostoa latauksen aikana.',
+  'detail.playMending': 'Osaa tästä latauksesta haetaan uudelleen. Sen voi toistaa, kun se osa on perillä.',
   'detail.playUnsupported': 'Tämä selain ei osaa toistaa tätä tiedostoa. Avaa tai tallenna se sen sijaan oikean napin valikosta.',
   'detail.playRemote': 'Täällä toistuvat vain tässä instanssissa olevat tiedostot. Toinen instanssi luovuttaa tiedostonsa yhtenä pötkönä ja ilman hyppimistä, eikä soitin tule sen kanssa toimeen.',
   'detail.playNotLocal': 'Tämän latauksen haki JDownloader, joten tiedosto on sen prosessin levyllä eikä tällä.',

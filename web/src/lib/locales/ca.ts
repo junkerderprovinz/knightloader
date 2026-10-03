@@ -2135,6 +2135,7 @@ export const ca: Dict = {
   'detail.playPartial': 'Aquesta baixada no ha acabat. Només es pot reproduir la part que ja és al disc, saltar més enllà no funciona, i alguns fitxers no reprodueixen res de res fins que no hi és l’últim byte.',
   'detail.playLive': 'Aquesta baixada encara està en curs. La part que reprodueixes es baixa primer, així que pots començar ara mateix. Si saltes endavant, la reproducció espera fins que arriba aquella part.',
   'detail.playStopped': 'Aquesta baixada es va aturar abans d’acabar. Torna-la a iniciar per reproduir el fitxer mentre es baixa.',
+  'detail.playMending': 'Una part d’aquesta baixada s’està tornant a obtenir. Es podrà reproduir quan aquesta part hagi arribat.',
   'detail.playUnsupported': 'Aquest navegador no pot reproduir aquest fitxer. Obre’l o desa’l des del menú del botó dret.',
   'detail.playRemote': 'Aquí només es reprodueixen els fitxers d’aquesta instància. Una altra instància lliura els seus fitxers d’una peça i sense poder saltar, i amb això un reproductor no se’n surt.',
   'detail.playNotLocal': 'Aquesta baixada l’ha anat a buscar JDownloader, així que el fitxer és al disc d’aquell procés i no en aquest.',

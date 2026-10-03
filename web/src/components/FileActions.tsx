@@ -7,7 +7,7 @@ import { useToast } from '../lib/toast';
 import { isDesktop, openNatively, revealInFolder } from '../lib/desktop';
 import { type MenuGroup, type MenuItem } from './ContextMenu';
 import { IconApp, IconExternalLink, IconFolder, IconPlayFile } from '../lib/icons';
-import { playableAs } from './taskdetail/playable';
+import { playableTask } from './taskdetail/playable';
 
 /**
  * reachable reports whether a task has a file on this machine: an unresolved
@@ -26,8 +26,7 @@ export function reachable(t: Task): boolean {
  * nothing about its files.
  */
 export function playsAsMedia(t: Task): boolean {
-  if ((t.torrentFileCount ?? 0) > 1) return t.torrentMedia !== undefined;
-  return playableAs(t.name) !== null;
+  return playableTask(t) !== null;
 }
 
 /**

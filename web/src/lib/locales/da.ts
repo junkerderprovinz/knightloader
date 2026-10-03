@@ -2135,6 +2135,7 @@ export const da: Dict = {
   'detail.playPartial': 'Denne download er ikke færdig. Kun den del, der allerede ligger på disken, kan afspilles, du kan ikke springe længere frem, og nogle filer afspiller slet ingenting, før den sidste byte er der.',
   'detail.playLive': 'Denne download kører stadig. Den del, du afspiller, hentes først, så du kan gå i gang med det samme. Springer du frem, venter afspilningen, til den del er kommet.',
   'detail.playStopped': 'Denne download stoppede, før den var færdig. Start den igen for at afspille filen, mens den hentes.',
+  'detail.playMending': 'En del af denne download hentes igen. Den kan afspilles, når den del er kommet.',
   'detail.playUnsupported': 'Denne browser kan ikke afspille denne fil. Åbn eller gem den fra højreklik-menuen i stedet.',
   'detail.playRemote': 'Her kan kun filer på denne instans afspilles. En anden instans udleverer sine filer i ét stykke og uden at kunne springe, og det kan en afspiller ikke arbejde med.',
   'detail.playNotLocal': 'Denne download er hentet af JDownloader, så filen ligger på disken hos den proces og ikke på denne her.',

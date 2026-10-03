@@ -2132,6 +2132,7 @@ export const pt: Dict = {
   'detail.playPartial': 'Esta transferência não está concluída. Só se reproduz a parte que já está no disco, saltar para além dela não funciona, e alguns ficheiros não reproduzem nada enquanto não chegar o último byte.',
   'detail.playLive': 'Esta transferência ainda está a decorrer. A parte que reproduzes é obtida primeiro, por isso podes começar já. Se saltares para a frente, a reprodução espera até essa parte chegar.',
   'detail.playStopped': 'Esta transferência parou antes de terminar. Inicia-a de novo para reproduzires o ficheiro enquanto é transferido.',
+  'detail.playMending': 'Uma parte desta transferência está a ser obtida de novo. Poderás reproduzi-la quando essa parte chegar.',
   'detail.playUnsupported': 'Este navegador não consegue reproduzir este ficheiro. Abre-o ou guarda-o pelo menu do clique direito.',
   'detail.playRemote': 'Aqui só se reproduzem ficheiros desta instância. Outra instância entrega os seus ficheiros de uma só vez e sem saltos, e um leitor não consegue trabalhar assim.',
   'detail.playNotLocal': 'Esta transferência foi obtida pelo JDownloader, por isso o ficheiro está no disco desse processo e não neste.',

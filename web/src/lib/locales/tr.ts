@@ -2140,6 +2140,7 @@ export const tr: Dict = {
   'detail.playPartial': 'Bu indirme bitmedi. Yalnızca diskte hâlihazırda duran kısım oynatılabilir, onun ötesine atlamak çalışmaz ve bazı dosyalar son bayt gelene kadar hiçbir şey oynatmaz.',
   'detail.playLive': 'Bu indirme hâlâ sürüyor. Oynattığın kısım önce getirilir, yani hemen başlayabilirsin. İleri atlarsan oynatma o kısım gelene kadar bekler.',
   'detail.playStopped': 'Bu indirme bitmeden durdu. Dosyayı inerken oynatmak için indirmeyi yeniden başlat.',
+  'detail.playMending': 'Bu indirmenin bir kısmı yeniden alınıyor. O kısım gelince oynatılabilir.',
   'detail.playUnsupported': 'Bu tarayıcı bu dosyayı oynatamıyor. Bunun yerine sağ tık menüsünden aç ya da kaydet.',
   'detail.playRemote': 'Burada yalnızca bu örnekteki dosyalar oynatılır. Başka bir örnek dosyalarını tek parça hâlinde ve atlama olmadan verir, bir oynatıcı da bununla çalışamaz.',
   'detail.playNotLocal': 'Bu indirmeyi JDownloader getirdi, yani dosya bu diskte değil o sürecin diskinde duruyor.',

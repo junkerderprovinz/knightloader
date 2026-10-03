@@ -2139,6 +2139,7 @@ export const ms: Dict = {
   'detail.playPartial': 'Muat turun ini belum siap. Hanya bahagian yang sudah ada pada cakera boleh dimainkan, melompat melepasinya tidak akan menjadi, dan sesetengah fail tidak memainkan apa-apa langsung sebelum bait terakhir sampai.',
   'detail.playLive': 'Muat turun ini masih berjalan. Bahagian yang anda mainkan diambil dahulu, jadi anda boleh mula sekarang. Jika anda melompat ke hadapan, main balik menunggu sehingga bahagian itu tiba.',
   'detail.playStopped': 'Muat turun ini berhenti sebelum selesai. Mulakannya semula untuk memainkan fail semasa ia dimuat turun.',
+  'detail.playMending': 'Sebahagian muat turun ini sedang diambil semula. Ia boleh dimainkan sebaik bahagian itu tiba.',
   'detail.playUnsupported': 'Pelayar ini tidak dapat memainkan fail ini. Buka atau simpan ia melalui menu klik kanan sebaliknya.',
   'detail.playRemote': 'Hanya fail pada instans ini boleh dimainkan di sini. Instans lain menyerahkan failnya sekali gus dan tanpa lompatan, dan sebuah pemain tidak boleh bekerja dengan itu.',
   'detail.playNotLocal': 'JDownloader yang mengambil muat turun ini, jadi fail itu berada pada cakera proses tersebut dan bukan pada cakera ini.',
