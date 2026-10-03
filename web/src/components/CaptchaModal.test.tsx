@@ -277,6 +277,52 @@ describe('a test captcha', () => {
     expect(toasts.map((t) => t.message)).toEqual([wrong]);
   });
 
+  /** Types the answer and sends it, with `respond` standing in for the
+   *  instance's reply to it. */
+  async function answerWith(respond: () => Promise<Response>) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (init?.method === 'POST' && url.endsWith('/answer')) return respond();
+        return new Response(JSON.stringify([test]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }),
+    );
+    const input = document.querySelector<HTMLInputElement>('input')!;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'K7PQ');
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+    const go = [...document.querySelectorAll('button')].find((b) => b.textContent === 'Continue')!;
+    await act(async () => go.click());
+  }
+
+  const end = { id: test.id, host: test.host, reason: 'solved', test: result, testCaptcha: true };
+  const wrong = 'Wrong. The test captcha said K7PQX, not K7PQ.';
+  const lost = () => Promise.reject(new TypeError('Failed to fetch'));
+
+  it('shows the result the socket brought when the answer’s response is lost', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', end);
+      return lost();
+    });
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+  });
+
+  it('shows the result the socket brings after the answer’s response was lost', async () => {
+    await open();
+    await answerWith(lost);
+    await instanceSays('captchaResolved', end);
+    expect(toasts.map((t) => t.message)).toEqual(['Could not reach the server. Try again.', wrong]);
+  });
+
+  it('shows the result once when the socket brings it before the answer’s response', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', end);
+      return new Response(JSON.stringify({ stillValid: true, test: result }), { status: 200 });
+    });
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+  });
+
   it('still says how a captcha account did when the socket brings it', async () => {
     await open();
     await instanceSays('captchaResolved', {
