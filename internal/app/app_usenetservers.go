@@ -125,9 +125,8 @@ func (a *App) nntpClient() *nntp.Client {
 	if cur == nil {
 		cur = &nntpClient{servers: servers, c: nntp.NewClient(servers, a.Throttle)}
 		nntpClients[a] = cur
-	} else if !slices.Equal(cur.servers, servers) {
-		cur.c.SetServers(servers)
-		cur.servers = servers
+	} else {
+		cur.set(servers)
 	}
 	return cur.c
 }
@@ -139,10 +138,21 @@ func (a *App) refreshNNTPClient() {
 	servers := a.nntpServers()
 	nntpMu.Lock()
 	defer nntpMu.Unlock()
-	if cur := nntpClients[a]; cur != nil && !slices.Equal(cur.servers, servers) {
-		cur.c.SetServers(servers)
-		cur.servers = servers
+	if cur := nntpClients[a]; cur != nil {
+		cur.set(servers)
 	}
+}
+
+// set hands servers to the client. With none left the files under way go on
+// with the ones they have: a client without servers answers every article as
+// missing, which fails a file that would finish and hands its job on. Caller
+// holds nntpMu.
+func (n *nntpClient) set(servers []nntp.Server) {
+	if len(servers) == 0 || slices.Equal(n.servers, servers) {
+		return
+	}
+	n.c.SetServers(servers)
+	n.servers = servers
 }
 
 // usenetServersSet reports whether any server is switched on.
