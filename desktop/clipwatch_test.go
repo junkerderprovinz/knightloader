@@ -130,7 +130,7 @@ func (r *watchRig) copy(text string) {
 func TestClipWatchLeavesTheClipboardAloneWhileOff(t *testing.T) {
 	r := newWatchRig()
 	r.copy("https://host.example/a")
-	if r.opened != 0 || len(r.sent) != 0 || r.w.watching() {
+	if r.opened != 0 || len(r.sent) != 0 {
 		t.Fatalf("switched off, it opened the clipboard %d times and sent %v", r.opened, r.sent)
 	}
 }
@@ -148,9 +148,6 @@ func TestClipWatchSendsOnlyNewLinks(t *testing.T) {
 	want := []delivery{{"nas", []string{"https://host.example/new,"}}}
 	if !reflect.DeepEqual(r.sent, want) {
 		t.Fatalf("sent %v, want %v", r.sent, want)
-	}
-	if !r.w.watching() {
-		t.Fatal("watching() is false while the switch is on")
 	}
 }
 

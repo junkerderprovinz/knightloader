@@ -167,7 +167,6 @@ func main() {
 	// Wails reads the clipboard on the main thread, so the watch starts once
 	// the app runs.
 	clip := newClipWatch(a, wails.Clipboard.Text, func(o clipOutcome) { tray.emitTo("main", clipWatchEvent, o) })
-	a.WatchesClipboard = clip.watching
 	clipCtx, stopClip := context.WithCancel(context.Background())
 	wails.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		go clip.run(clipCtx)
