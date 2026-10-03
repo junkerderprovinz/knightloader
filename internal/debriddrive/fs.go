@@ -139,10 +139,10 @@ func (f *file) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// failureKey carries a GET's *error from Serve to the file it reads.
+// failureKey carries a GET's *error from get to the file it reads.
 type failureKey struct{}
 
-// note keeps the outcome of a read for Serve, which cannot see it otherwise:
+// note keeps the outcome of a read for get, which cannot see it otherwise:
 // http.ServeContent drops the error of its copy. A read that fails while the
 // client is still there sets it, and one that brings bytes clears it again.
 func (f *file) note(n int, err error) {
