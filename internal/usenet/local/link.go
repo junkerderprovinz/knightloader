@@ -19,6 +19,16 @@ func FileLink(job string, index int, name string) string {
 	return u.String()
 }
 
+// LinkName is the file name a link ends in, or "" for a link that is not one
+// of these.
+func LinkName(link string) string {
+	ref, err := parseLink(link)
+	if err != nil {
+		return ""
+	}
+	return ref.name
+}
+
 type fileRef struct {
 	job   string
 	index int

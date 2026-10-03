@@ -7,7 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 func TestStagingAJobAgainTakesTheTasksItBecame(t *testing.T) {
@@ -74,4 +76,23 @@ func TestAFailedNZBIsListedWithTheLinksThatDidNotMakeIt(t *testing.T) {
 		}
 		return false
 	})
+}
+
+// The own servers fetch a held recovery volume from the .nzb they keep, so a
+// job with one still held is not over once the rest is done.
+func TestAHeldRecoveryVolumeKeepsItsJobOpen(t *testing.T) {
+	a := newCrawlApp(t, false)
+	const job = "0123456789abcdef"
+	a.mu.Lock()
+	a.tasks["ep"] = &core.Task{ID: "ep", URL: local.FileLink(job, 0, "show.mkv"), Name: "show.mkv", Status: core.StatusDone, Enabled: true}
+	spare := &core.Task{ID: "vol", URL: local.FileLink(job, 1, "show.vol00+01.par2"), Name: "show.vol00+01.par2", Status: core.StatusQueued}
+	a.tasks["vol"] = spare
+	held := HeldSpare(spare)
+	a.mu.Unlock()
+	if !held {
+		t.Fatal("the recovery volume is not held, so this test proves nothing")
+	}
+	if a.tasksFinished([]string{"ep", "vol"}) {
+		t.Fatal("the job counts as finished, which deletes the .nzb the held volume is fetched from")
+	}
 }

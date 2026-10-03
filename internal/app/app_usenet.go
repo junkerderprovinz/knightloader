@@ -62,6 +62,7 @@ func (a *App) usenetStateFor() *usenetState {
 			Dir:      filepath.Join(a.DataDir, "usenet"),
 			Stage:    a.stageUsenetFiles,
 			Finished: a.tasksFinished,
+			Done:     a.usenetDone,
 			Failed:   a.usenetJobFailed,
 			Pending:  func(n int) { a.setActivityGauge(ActivityUsenet, n) },
 			Taken:    a.claimUsenetJob,
@@ -245,10 +246,14 @@ func (a *App) CancelUsenetJob(id string) []string {
 // file in a folder of the download keeps that folder under the package's, or
 // under the job's own folder when it has one.
 func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, error) {
+	kept := a.keptUsenetFiles(j.Kept)
 	links := make([]resolver.Result, 0, len(files))
 	dirOf := map[string]string{}
 	held := map[string]bool{}
 	for _, f := range files {
+		if _, ok := kept[f.Name]; ok {
+			continue
+		}
 		u := f.Link
 		if u == "" {
 			u = usenet.FileLink(j.Service, j.Remote, f)
@@ -285,11 +290,14 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	}
 	a.keepUsenetFolders(created, dirOf)
 
-	ids := make([]string, 0, len(links))
+	ids := make([]string, 0, len(links)+len(kept))
 	for _, l := range links {
 		if id := have[l.DirectURL]; id != "" {
 			ids = append(ids, id)
 		}
+	}
+	for _, id := range kept {
+		ids = append(ids, id)
 	}
 	var off []string
 	for _, t := range created {
@@ -308,6 +316,36 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	}
 	log.Printf("usenet: %s is ready at %s; %d of its %d files staged", j.Name, j.Label, len(ids), len(files))
 	return ids, nil
+}
+
+// keptUsenetFiles maps the file name of each task in ids that is still done
+// to its id. They are the files of a job handed on that the own servers had
+// finished.
+func (a *App) keptUsenetFiles(ids []string) map[string]string {
+	out := map[string]string{}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone {
+			if name := local.LinkName(t.URL); name != "" {
+				out[name] = id
+			}
+		}
+	}
+	return out
+}
+
+// usenetDone picks the tasks among ids whose files are downloaded.
+func (a *App) usenetDone(ids []string) []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var out []string
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 // taskIDsByURL finds the tasks already in the list for links, keyed by link.
@@ -354,13 +392,14 @@ func (a *App) usenetJobFailed(j usenet.Job) {
 	a.recordSkippedReason(j.Name+".nzb", "nzb", j.Reason)
 }
 
-// tasksFinished reports whether every task is done, gone or a held recovery
-// volume, after which the service's copy of a job can be deleted.
+// tasksFinished reports whether every task is done or gone, after which the
+// service's copy of a job can be deleted. A held recovery volume is neither:
+// it is fetched from the .nzb the own servers keep, once a repair needs it.
 func (a *App) tasksFinished(ids []string) bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	for _, id := range ids {
-		if t := a.tasks[id]; t != nil && t.Status != core.StatusDone && !HeldSpare(t) {
+		if t := a.tasks[id]; t != nil && t.Status != core.StatusDone {
 			return false
 		}
 	}
@@ -375,10 +414,15 @@ func HeldSpare(t *core.Task) bool {
 }
 
 // usenetIncomplete hands a job some of whose articles no own server has to the
-// next account, and removes the tasks it had become, files and all. It
-// reports false when no other account is left, and the file then fails.
+// next account, and removes the tasks it had become, files and all, but for
+// the finished ones: their files stay, and the next account's copies of them
+// are not staged. It reports false when no other account is left, and the
+// file then fails.
 func (a *App) usenetIncomplete(job string, missing int) bool {
 	reason := fmt.Sprintf("%d articles are on none of your Usenet servers", missing)
+	if missing == 1 {
+		reason = "1 article is on none of your Usenet servers"
+	}
 	ids, ok := a.usenetStateFor().jobs.Fallback(local.ResolverID, job, reason)
 	if !ok {
 		return false

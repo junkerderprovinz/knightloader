@@ -179,3 +179,112 @@ func TestAnNZBTheOwnServerCannotCompleteGoesToTorBox(t *testing.T) {
 	}
 	waitUntil(t, "the own server's tasks to be removed", func() bool { return len(a.Tasks()) == 0 })
 }
+
+// taskNamed waits for a task called name in the given state and returns it.
+func taskNamed(t *testing.T, a *app.App, name string, status core.Status) *core.Task {
+	t.Helper()
+	var found *core.Task
+	waitUntil(t, name+" to be "+string(status), func() bool {
+		for _, task := range a.Tasks() {
+			if task.Name == name && task.Status == status {
+				found = task
+				return true
+			}
+		}
+		return false
+	})
+	return found
+}
+
+func TestDeletingACopySavedUnderACountedNameKeepsTheOtherDownload(t *testing.T) {
+	t.Parallel()
+	s := nntptest.New(t)
+	film := newPosting("film.bin", 3000)
+	film.post(s)
+	a, _, _ := ownServerClient(t, s, func(c *settings.Settings) { c.SubfolderByPackage = false })
+
+	if _, err := a.AddNZB(app.NZB{Name: "Film", Package: "First", Data: nzbFor(film), Start: true}); err != nil {
+		t.Fatal(err)
+	}
+	taskNamed(t, a, "film.bin", core.StatusDone)
+	if _, err := a.AddNZB(app.NZB{Name: "Film", Package: "Second", Data: nzbFor(film), Start: true}); err != nil {
+		t.Fatal(err)
+	}
+	second := taskNamed(t, a, "film (2).bin", core.StatusDone)
+
+	a.RemoveTasks([]string{second.ID}, true)
+	dir := a.Settings.Get().DownloadDir
+	if _, err := os.Stat(filepath.Join(dir, "film (2).bin")); err == nil {
+		t.Error("the deleted download's own file is still there")
+	}
+	if got, err := os.ReadFile(filepath.Join(dir, "film.bin")); err != nil || !bytes.Equal(got, film.data) {
+		t.Fatalf("the other download's file holds %d bytes (%v), want it untouched", len(got), err)
+	}
+}
+
+func TestDeletingAfterARestartTakesTheFilesAndTheirPartFiles(t *testing.T) {
+	t.Parallel()
+	s := nntptest.New(t)
+	whole, broken := newPosting("whole.bin", 3000), newPosting("broken.bin", 4000)
+	whole.post(s)
+	broken.post(s, 2)
+	dir, downloads := t.TempDir(), t.TempDir()
+	open := func() *app.App {
+		a, err := app.New(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return a
+	}
+	a := open()
+	cfg := settings.Defaults()
+	cfg.DownloadDir, cfg.SubfolderByPackage, cfg.Crawl, cfg.Extract, cfg.MaxRetries = downloads, false, false, false, 0
+	cfg.UsenetServers = []settings.UsenetServer{{ID: "main", Host: s.Host, Port: s.Port, Connections: 4, Enabled: true}}
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+	a.SetHalted(false)
+	if _, err := a.AddNZB(app.NZB{Name: "Pair", Data: nzbFor(whole, broken), Start: true}); err != nil {
+		t.Fatal(err)
+	}
+	done := taskNamed(t, a, "whole.bin", core.StatusDone)
+	failed := taskNamed(t, a, "broken.bin", core.StatusError)
+	a.Close()
+
+	b := open()
+	t.Cleanup(func() { b.Close() })
+	b.RemoveTasks([]string{done.ID, failed.ID}, true)
+	for _, name := range []string{"whole.bin", "broken.bin.klpart", "broken.bin.klpart.segments"} {
+		if _, err := os.Stat(filepath.Join(downloads, name)); err == nil {
+			t.Errorf("%s is still on disk", name)
+		}
+	}
+}
+
+func TestAFileTheOwnServerFinishedStaysWhenTheJobGoesToTorBox(t *testing.T) {
+	t.Parallel()
+	s := nntptest.New(t)
+	episode, sample := newPosting("show.s01e01.mkv", 2000), newPosting("show.s01e01.sample.bin", 3000)
+	episode.post(s)
+	sample.post(s, 2)
+	fake := &torboxUsenet{}
+	fake.ready.Store(true)
+	// One download at a time, so the episode is whole before the sample
+	// hands the job on.
+	a, srv, key := ownServerClient(t, s, func(c *settings.Settings) { c.MaxConcurrent = 1 })
+	a.SetUsenetServices(a.OwnUsenetServers(), usenet.NewTorBox(fake.start(t).URL, "torbox", "tb-key"))
+
+	_, add := sabAddFile(t, srv, key, "Show.S01E01.nzb", "tv-sonarr", nzbFor(episode, sample))
+	nzoID := nzoIDOf(t, add)
+	row := historyRow(t, srv, key)
+	if row["nzo_id"] != nzoID || row["status"] != "Completed" {
+		t.Fatalf("history slot = %+v, want it completed", row)
+	}
+	got, err := os.ReadFile(filepath.Join(row["storage"].(string), "show.s01e01.mkv"))
+	if err != nil || !bytes.Equal(got, episode.data) {
+		t.Fatalf("the episode on disk holds %d bytes (%v), want the %d the own server sent", len(got), err, len(episode.data))
+	}
+	if tasks := a.Tasks(); len(tasks) != 1 || tasks[0].Name != episode.name {
+		t.Fatalf("tasks = %d, want only the episode the own server finished", len(tasks))
+	}
+}
