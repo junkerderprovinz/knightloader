@@ -508,6 +508,9 @@ jobs:
       - name: Captcha answers
         run: node check-captcha.mjs
 
+      - name: Shared links
+        run: node check-share.mjs
+
       - name: Failure wording
         run: node check-failures.mjs
 
