@@ -361,6 +361,34 @@ func TestARangeIsFetchedFromTheDownloadServer(t *testing.T) {
 	}
 }
 
+func TestAFileOfNoKnownTypeIsNotReadToTellItsType(t *testing.T) {
+	f := newFixture(t)
+	f.svc.mu.Lock()
+	f.svc.jobs["1"].Files[0].Path = "Some Movie/movie.klnotype"
+	f.svc.mu.Unlock()
+	p := "/dav/TorBox/Some Movie/movie.klnotype"
+
+	resp := f.do(t, http.MethodHead, p, nil)
+	if resp.StatusCode != http.StatusOK || resp.Header.Get("Content-Type") != "application/octet-stream" {
+		t.Errorf("HEAD answered %s with type %q, want 200 application/octet-stream", resp.Status, resp.Header.Get("Content-Type"))
+	}
+	if _, _, unlocks := f.svc.counts(); unlocks != 0 {
+		t.Errorf("HEAD unlocked the file %d times; only a read should", unlocks)
+	}
+
+	resp = f.do(t, http.MethodGet, p, map[string]string{"Range": "bytes=500-599"})
+	got, _ := io.ReadAll(resp.Body)
+	if !bytes.Equal(got, movie[500:600]) {
+		t.Errorf("the range read %q", got)
+	}
+	f.cdn.mu.Lock()
+	ranges := slices.Clone(f.cdn.ranges)
+	f.cdn.mu.Unlock()
+	if want := []string{"bytes=500-"}; !slices.Equal(ranges, want) {
+		t.Errorf("the download server was asked for %q, want %q", ranges, want)
+	}
+}
+
 func TestALinkIsUnlockedAgainWhenItRunsOut(t *testing.T) {
 	f := newFixture(t)
 	read := func() []byte {

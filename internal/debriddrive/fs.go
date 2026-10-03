@@ -338,7 +338,7 @@ func (w *noLocks) finish() {
 // the request may go on.
 func (d *Drive) prepare(w http.ResponseWriter, r *http.Request, prefix string) bool {
 	name, ok := strings.CutPrefix(r.URL.Path, prefix)
-	if !ok || r.Method == http.MethodHead {
+	if !ok {
 		return true
 	}
 	ctx := r.Context()
@@ -349,7 +349,15 @@ func (d *Drive) prepare(w http.ResponseWriter, r *http.Request, prefix string) b
 	case err != nil:
 		http.Error(w, "the service could not be read: "+err.Error(), http.StatusBadGateway)
 		return false
-	case r.Method == http.MethodGet && !s.node.dir:
+	case (r.Method == http.MethodGet || r.Method == http.MethodHead) && !s.node.dir:
+		// Without a type http.ServeContent reads the start of the file to
+		// guess one, which unlocks it for a HEAD and asks the download
+		// server twice for a range.
+		t, _ := info{s.node}.ContentType(ctx)
+		w.Header().Set("Content-Type", t)
+		if r.Method == http.MethodHead {
+			return true
+		}
 		if _, err := d.link(ctx, s.acct, s.node); err != nil {
 			http.Error(w, s.acct.Name+" did not hand out the file: "+err.Error(), http.StatusBadGateway)
 			return false
