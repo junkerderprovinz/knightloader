@@ -3,6 +3,7 @@ package debriddrive
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"mime"
@@ -122,6 +123,7 @@ func (f *file) Read(p []byte) (int, error) {
 		f.drop()
 		body, err := f.d.open(f.ctx, f.at.acct, f.at.node, f.pos)
 		if err != nil {
+			f.note(0, err)
 			return 0, err
 		}
 		f.body, f.bodyAt = body, f.pos
@@ -132,7 +134,25 @@ func (f *file) Read(p []byte) (int, error) {
 	if errors.Is(err, io.EOF) && f.pos < f.at.node.size {
 		err = io.ErrUnexpectedEOF
 	}
+	f.note(n, err)
 	return n, err
+}
+
+// failureKey carries a GET's *error from Serve to the file it reads.
+type failureKey struct{}
+
+// note keeps the outcome of a read for Serve, which cannot see it otherwise:
+// http.ServeContent drops the error of its copy. A read that fails while the
+// client is still there sets it, and one that brings bytes clears it again.
+func (f *file) note(n int, err error) {
+	failed, _ := f.ctx.Value(failureKey{}).(*error)
+	switch {
+	case failed == nil:
+	case err != nil && !errors.Is(err, io.EOF) && f.ctx.Err() == nil:
+		*failed = fmt.Errorf("%s: %w", f.at.acct.Name, err)
+	case n > 0:
+		*failed = nil
+	}
 }
 
 func (f *file) drop() {
@@ -206,15 +226,65 @@ func (d *Drive) Serve(w http.ResponseWriter, r *http.Request, prefix string) {
 		return
 	}
 	h := &webdav.Handler{Prefix: prefix, FileSystem: davFS{d}, LockSystem: d.locks}
-	h.ServeHTTP(w, r)
+	if r.Method != http.MethodGet {
+		h.ServeHTTP(w, r)
+		return
+	}
+	// http.ServeContent sends the status before its first read reaches the
+	// download server, so the status waits for the first byte, and a server
+	// in trouble gets a 502 instead of a 200 with nothing after it.
+	var failed error
+	held := &heldStatus{ResponseWriter: w}
+	h.ServeHTTP(held, r.WithContext(context.WithValue(r.Context(), failureKey{}, &failed)))
+	if failed == nil {
+		held.send()
+		return
+	}
+	d.logf("debrid drive: reading %q failed: %v", r.URL.Path, failed)
+	if held.sent {
+		return
+	}
+	for _, k := range []string{"Accept-Ranges", "Content-Range", "ETag", "Last-Modified"} {
+		w.Header().Del(k)
+	}
+	http.Error(w, failed.Error(), http.StatusBadGateway)
+}
+
+// heldStatus keeps the status back until the first byte of the body.
+type heldStatus struct {
+	http.ResponseWriter
+	code int
+	sent bool
+}
+
+func (h *heldStatus) WriteHeader(code int) {
+	if !h.sent {
+		h.code = code
+	}
+}
+
+func (h *heldStatus) Write(p []byte) (int, error) {
+	h.send()
+	return h.ResponseWriter.Write(p)
+}
+
+func (h *heldStatus) send() {
+	if h.sent {
+		return
+	}
+	h.sent = true
+	if h.code != 0 {
+		h.ResponseWriter.WriteHeader(h.code)
+	}
 }
 
 // prepare reads from the service what the request will need before webdav
 // starts its answer: the listing a PROPFIND shows, and the link a GET reads
 // from. webdav writes its status before it reads a folder or a file, so a
 // service in trouble would otherwise show as an empty folder or a download
-// that breaks off. What prepare read stays in memory for webdav to find. It
-// reports whether the request may go on.
+// that breaks off; the download server behind the link is Serve's to check.
+// What prepare read stays in memory for webdav to find. It reports whether
+// the request may go on.
 func (d *Drive) prepare(w http.ResponseWriter, r *http.Request, prefix string) bool {
 	name, ok := strings.CutPrefix(r.URL.Path, prefix)
 	if !ok || r.Method == http.MethodHead {

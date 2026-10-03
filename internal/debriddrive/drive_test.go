@@ -74,8 +74,10 @@ type fakeCDN struct {
 	*httptest.Server
 	files map[string][]byte
 
-	mu     sync.Mutex
-	dead   map[string]bool
+	mu   sync.Mutex
+	dead map[string]bool
+	// down answers every request with this status instead of the file.
+	down   int
 	ranges []string
 }
 
@@ -84,8 +86,12 @@ func newCDN(t *testing.T, files map[string][]byte) *fakeCDN {
 	c.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c.mu.Lock()
 		c.ranges = append(c.ranges, r.Header.Get("Range"))
-		dead := c.dead[r.URL.Query().Get("unlock")]
+		dead, down := c.dead[r.URL.Query().Get("unlock")], c.down
 		c.mu.Unlock()
+		if down != 0 {
+			http.Error(w, "busy", down)
+			return
+		}
 		if dead {
 			http.Error(w, "link expired", http.StatusForbidden)
 			return
@@ -396,6 +402,56 @@ func TestAFileTheServiceWillNotHandOutIsAnError(t *testing.T) {
 	b, _ := io.ReadAll(resp.Body)
 	if !strings.Contains(string(b), "the plan has run out") {
 		t.Errorf("the answer %q does not say why", b)
+	}
+}
+
+func TestADownloadServerInTroubleIsAnErrorRatherThanAnEmptyFile(t *testing.T) {
+	f := newFixture(t)
+	var logged []string
+	f.drive.logf = func(format string, args ...any) { logged = append(logged, fmt.Sprintf(format, args...)) }
+	read := func(rng string) (*http.Response, string) {
+		t.Helper()
+		h := map[string]string{}
+		if rng != "" {
+			h["Range"] = rng
+		}
+		resp := f.do(t, http.MethodGet, "/dav/TorBox/Some Movie/movie.mkv", h)
+		b, _ := io.ReadAll(resp.Body)
+		return resp, string(b)
+	}
+
+	f.cdn.mu.Lock()
+	f.cdn.down = http.StatusServiceUnavailable
+	f.cdn.mu.Unlock()
+	for _, rng := range []string{"", "bytes=100-"} {
+		resp, body := read(rng)
+		if resp.StatusCode != http.StatusBadGateway {
+			t.Errorf("a read with Range %q from a download server answering 503 answered %s, want 502", rng, resp.Status)
+		}
+		if resp.Header.Get("Content-Range") != "" || resp.Header.Get("ETag") != "" {
+			t.Errorf("the 502 kept the headers of the file: %v", resp.Header)
+		}
+		if !strings.Contains(body, "503") {
+			t.Errorf("the answer %q does not say why", body)
+		}
+	}
+
+	// A download server that cannot start part way answers a range with the
+	// whole file.
+	f.cdn.mu.Lock()
+	f.cdn.down = http.StatusOK
+	f.cdn.mu.Unlock()
+	if resp, body := read("bytes=100-"); resp.StatusCode != http.StatusBadGateway || !strings.Contains(body, "part way") {
+		t.Errorf("a range the download server cannot start answered %s %q, want 502 saying so", resp.Status, body)
+	}
+
+	if len(logged) != 3 {
+		t.Fatalf("the three failed reads logged %q", logged)
+	}
+	for _, line := range logged {
+		if !strings.Contains(line, "Some Movie/movie.mkv") || strings.Contains(line, "unlock=") {
+			t.Errorf("the log line %q should name the file and never the link", line)
+		}
 	}
 }
 

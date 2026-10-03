@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -68,6 +69,7 @@ type Drive struct {
 	locks    webdav.LockSystem
 	born     time.Time
 	now      func() time.Time
+	logf     func(format string, args ...any)
 
 	mu       sync.Mutex
 	lists    map[string]*cached[listing]
@@ -87,6 +89,7 @@ func New(accounts func() []Account, refresh func() time.Duration, client *http.C
 		locks:    webdav.NewMemLS(),
 		born:     time.Now(),
 		now:      time.Now,
+		logf:     log.Printf,
 		lists:    map[string]*cached[listing]{},
 		jobs:     map[string]*cached[*node]{},
 		links:    map[string]*cached[string]{},
