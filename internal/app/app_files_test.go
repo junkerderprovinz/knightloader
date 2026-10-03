@@ -363,6 +363,41 @@ func TestAPausedDownloadIsNotServedWithItsHoles(t *testing.T) {
 	}
 }
 
+// While a transfer the library finished short is being mended, the task runs
+// but the engine hands out no reader, and the file on disk has its full size.
+func TestARunningDownloadTheEngineCannotStreamIsNotServedWithItsHoles(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", make([]byte, 64))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/disc.iso", Name: "disc.iso",
+		Status: core.StatusRunning, Size: 64, Loaded: 48,
+	})
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileMending) {
+		t.Errorf("err = %v, want ErrTaskFileMending", err)
+	}
+}
+
+// A link that never started has nothing to play, which is not the same as a
+// download that stopped halfway.
+func TestALinkThatNeverStartedHasNothingToPlay(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	cases := []core.Task{
+		{URL: "https://host.example/disc.iso", Name: "disc.iso", Status: core.StatusCollected, Size: 64},
+		{URL: "https://host.example/disc.iso", Name: "disc.iso", Status: core.StatusQueued, Size: 64},
+		{
+			URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "film.mkv",
+			Status: core.StatusQueued, File: filepath.Join(base, "film.mkv"),
+			TorrentFiles: []core.TorrentFile{{Path: "film.mkv", Size: 64, Selected: true}},
+		},
+	}
+	for _, c := range cases {
+		task := putTask(t, a, c)
+		if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoBytes) {
+			t.Errorf("%s %s: err = %v, want ErrTaskFileNoBytes", c.Status, c.Name, err)
+		}
+	}
+}
+
 func TestAFinishedFileOfAStoppedDownloadIsServed(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	writeTestFile(t, base, "disc.iso", []byte("complete"))
@@ -387,6 +422,7 @@ func TestAnUnfinishedFileOfAPausedTorrentIsReportedAsStopped(t *testing.T) {
 	}
 	a.mu.Lock()
 	a.tasks[task.ID].Status = core.StatusPaused
+	a.tasks[task.ID].Loaded = 20
 	a.mu.Unlock()
 	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileIncomplete) {
 		t.Errorf("err = %v, want ErrTaskFileIncomplete", err)

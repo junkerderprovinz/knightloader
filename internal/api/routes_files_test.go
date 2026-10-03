@@ -266,6 +266,7 @@ func TestTaskFileStatusMapping(t *testing.T) {
 		{"nothing on disk yet", app.ErrTaskFileNoBytes, http.StatusNotFound},
 		{"a torrent without media", app.ErrTaskFileNoMedia, http.StatusNotFound},
 		{"a stopped download", app.ErrTaskFileIncomplete, http.StatusConflict},
+		{"a download being mended", app.ErrTaskFileMending, http.StatusServiceUnavailable},
 		{"not this app's file", app.ErrTaskFileNotLocal, http.StatusBadRequest},
 		{"escape", app.ErrTaskFileEscape, http.StatusForbidden},
 	}
