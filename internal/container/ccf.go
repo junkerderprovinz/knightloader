@@ -11,6 +11,7 @@ import (
 	"html"
 	"math/bits"
 	"regexp"
+	"strings"
 )
 
 // CCF came from CryptLoad and went through three schemes, all with keys built
@@ -53,13 +54,29 @@ func DecodeCCF(data []byte) ([]string, error) {
 	// next body onto it.
 	var links []string
 	for _, m := range ccfURL.FindAllSubmatch(plain, -1) {
-		links = append(links, parseText(html.UnescapeString(string(m[1])))...)
+		links = append(links, urlBodyLinks(html.UnescapeString(string(m[1])))...)
 	}
 	if len(links) == 0 {
 		// JD holds the same keys, so it would find nothing either.
 		return nil, fmt.Errorf("%w: the CCF opens, but none of its entries is a link that can be downloaded", ErrEmpty)
 	}
 	return links, nil
+}
+
+// urlBodyLinks reads the links in one <Url>. A line that starts with a link
+// is that link whole: the scanner ends a link at a space or a brace, as prose
+// needs, but in CryptLoad's XML both belong to the address.
+func urlBodyLinks(body string) []string {
+	var links []string
+	for _, line := range strings.Split(body, "\n") {
+		line = strings.TrimSpace(line)
+		found := parseText(line)
+		if len(found) == 1 && strings.HasPrefix(line, found[0]) {
+			found[0] = strings.ReplaceAll(line, " ", "%20")
+		}
+		links = append(links, found...)
+	}
+	return links
 }
 
 func decryptCCF(data []byte) ([]byte, bool) {

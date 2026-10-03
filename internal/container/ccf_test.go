@@ -166,3 +166,18 @@ func TestACCFThatOpensButHoldsNoLinkIsRefusedHere(t *testing.T) {
 		t.Errorf("Links = %v, want ErrEmpty: JDownloader opens it with the same keys and finds nothing either", err)
 	}
 }
+
+func TestACCFLinkKeepsTheSpacesAndBracesInIt(t *testing.T) {
+	doc := `<CryptLoad><Package>` +
+		`<Download><Url>https://example.com/files/a b.zip</Url></Download>` +
+		`<Download><Url>https://example.com/get?x=[1]&amp;y={2}</Url></Download>` +
+		`</Package></CryptLoad>`
+	links, err := Links("film.ccf", cbcEncrypt(t, ccf07Keys[0], []byte(doc)))
+	if err != nil {
+		t.Fatalf("Links: %v", err)
+	}
+	want := []string{"https://example.com/files/a%20b.zip", "https://example.com/get?x=[1]&y={2}"}
+	if !slices.Equal(links, want) {
+		t.Errorf("links = %q, want %q", links, want)
+	}
+}
