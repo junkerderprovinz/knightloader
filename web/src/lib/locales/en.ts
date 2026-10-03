@@ -3012,6 +3012,7 @@ export const en = {
   'settings.transfer.incompleteArchives': 'the archive passwords',
   'settings.transfer.incompleteEventPrograms': 'the command lines of the event programs',
   'settings.transfer.incompleteQBittorrent': 'the qBittorrent password',
+  'settings.transfer.incompleteUsenet': 'the Usenet server logins',
   'settings.transfer.rulesUncompiled': '{n} rules came over that this build cannot compile. They are saved but never fire. Look at the Rules & categories page.',
   'settings.transfer.parseFailed': 'This is not a settings export: {reason}',
   'settings.transfer.tooNew': 'This file was written by {version} and this server runs {running}. Update the server first, then import.',
