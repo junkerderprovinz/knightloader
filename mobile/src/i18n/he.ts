@@ -175,6 +175,8 @@ export const he: Dict = {
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
   'task.remote': 'בהורדה ב-{service}',
+  'task.play': 'הפעלה',
+  'task.playFailed': 'הנגן לא נפתח: {reason}',
   'task.enable': 'הפעלת הקישור',
   'task.disable': 'כיבוי הקישור',
   'settings.aboutTitle': 'על KnightLoader',

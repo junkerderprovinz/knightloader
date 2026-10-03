@@ -46,6 +46,7 @@ type TorrentFileView struct {
 func countTorrentFiles(t *core.Task) {
 	if len(t.TorrentFiles) > 0 {
 		t.TorrentFileCount = len(t.TorrentFiles)
+		t.TorrentMedia = core.TorrentMedia(t.TorrentFiles)
 		return
 	}
 	if !torrent.IsURI(t.URL) {
@@ -222,6 +223,7 @@ func (a *App) SelectTorrentFiles(id string, paths []string) ([]TorrentFileView, 
 	}
 	t.TorrentFiles = next
 	t.TorrentFileCount = len(next)
+	t.TorrentMedia = core.TorrentMedia(next)
 	t.Size = size
 	// What is here of the files still wanted, as far as the client said; its
 	// next reading replaces it.

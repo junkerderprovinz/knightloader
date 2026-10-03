@@ -175,6 +175,8 @@ export const sl: Dict = {
   'task.mode.free': 'Brezplačno',
   'task.mode.premium': 'Premium',
   'task.remote': 'Prenaša se v storitvi {service}',
+  'task.play': 'Predvajaj',
+  'task.playFailed': 'Predvajalnik se ni odprl: {reason}',
   'task.enable': 'Vklopi to povezavo',
   'task.disable': 'Izklopi to povezavo',
   'settings.aboutTitle': 'O KnightLoaderju',

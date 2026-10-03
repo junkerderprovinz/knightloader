@@ -175,6 +175,8 @@ export const nl: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ophalen bij {service}',
+  'task.play': 'Afspelen',
+  'task.playFailed': 'De speler ging niet open: {reason}',
   'task.enable': 'Deze link aanzetten',
   'task.disable': 'Deze link uitzetten',
   'settings.aboutTitle': 'Over KnightLoader',

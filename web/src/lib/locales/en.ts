@@ -1680,6 +1680,7 @@ export const en = {
   // Reaching a task's own file (components/FileActions.tsx). "Open" streams
   // it through the browser; the other two are desktop-only and carry their
   // reason in file.desktopOnly when they are shown disabled.
+  'file.play': 'Play',
   'file.open': 'Open',
   'file.openNatively': 'Open with default app',
   'file.revealInFolder': 'Show in folder',
@@ -2624,6 +2625,9 @@ export const en = {
   'detail.play': 'Play here',
   'detail.playHint': 'Plays the file straight off this instance, without downloading it a second time. Nothing is fetched until you press play, and the file stays where it is.',
   'detail.playPartial': 'This download is not finished. Only the part already on disk can play, jumping past it will not work, and some files play nothing at all until the last byte is there.',
+  'detail.playLive': 'This download is still running. The part you play is fetched first, so playback can start now. If you jump ahead, it waits until that part has arrived.',
+  'detail.playStopped': 'This download stopped before it finished. Start it again to play the file while it downloads.',
+  'detail.playMending': 'Part of this download is being fetched again. It plays once that part is back.',
   'detail.playUnsupported': 'This browser cannot play this file. Open or save it from the right-click menu instead.',
   'detail.playRemote': 'Only files on this instance play here. Another instance hands its files over in one piece and without jumping, which a player cannot work with.',
   'detail.playNotLocal': 'JDownloader fetched this download, so the file sits on that process\'s disk and not on this one.',

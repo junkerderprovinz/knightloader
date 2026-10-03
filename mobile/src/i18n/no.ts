@@ -175,6 +175,8 @@ export const no: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Henter hos {service}',
+  'task.play': 'Spill av',
+  'task.playFailed': 'Avspilleren åpnet seg ikke: {reason}',
   'task.enable': 'Slå på denne lenka',
   'task.disable': 'Slå av denne lenka',
   'settings.aboutTitle': 'Om KnightLoader',

@@ -175,6 +175,8 @@ export const ms: Dict = {
   'task.mode.free': 'Percuma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Mengambil di {service}',
+  'task.play': 'Main',
+  'task.playFailed': 'Pemain tidak dibuka: {reason}',
   'task.enable': 'Hidupkan pautan ini',
   'task.disable': 'Matikan pautan ini',
   'settings.aboutTitle': 'Perihal KnightLoader',

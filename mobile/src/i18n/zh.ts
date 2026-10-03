@@ -174,6 +174,8 @@ export const zh: Dict = {
   'task.mode.free': '免费',
   'task.mode.premium': '会员',
   'task.remote': '正在 {service} 上获取',
+  'task.play': '播放',
+  'task.playFailed': '播放器没有打开：{reason}',
   'task.enable': '启用此链接',
   'task.disable': '停用此链接',
   'settings.aboutTitle': '关于 KnightLoader',

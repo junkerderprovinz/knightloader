@@ -65,6 +65,9 @@ export interface Task {
   /** How many files a torrent has, once that is known. The files themselves
    *  are asked for when the row is opened (fetchTorrentFiles). */
   torrentFileCount?: number;
+  /** What Play opens in a torrent of several files: the largest selected
+   *  file that is audio or video. Absent when none of them is. */
+  torrentMedia?: 'audio' | 'video';
 }
 
 /** One unpacking, the part of internal/app's ExtractJob the list reads. */

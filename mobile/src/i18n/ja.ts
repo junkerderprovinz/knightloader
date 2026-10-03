@@ -174,6 +174,8 @@ export const ja: Dict = {
   'task.mode.free': '無料',
   'task.mode.premium': 'プレミアム',
   'task.remote': '{service} で取得中',
+  'task.play': '再生',
+  'task.playFailed': 'プレーヤーを開けませんでした: {reason}',
   'task.enable': 'このリンクを有効にする',
   'task.disable': 'このリンクを無効にする',
   'settings.aboutTitle': 'KnightLoader について',

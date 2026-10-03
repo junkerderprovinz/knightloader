@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { fetchListCards, fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
-import type { ExtractJob, Instance, QueueState, ServerConnection, Task } from '../api/types';
+import { isRelayConnection, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
+import { mediaKind } from '../api/media';
+import { openInPlayer } from '../api/play';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';
@@ -17,6 +19,7 @@ import {
   deleteTasks,
   errorText,
   fetchTorrentFiles,
+  playURL,
   reorderTasks,
   selectTorrentFiles,
   setSeeding,
@@ -410,6 +413,20 @@ export default function DownloadsScreen({
             /* the next tick brings it */
           });
         }}
+        // A player app reaches the instance by its address and nothing else: not
+        // through the relay, and not through the proxy that reaches a peer.
+        onPlay={
+          peer || isRelayConnection(conn)
+            ? undefined
+            : async (task) => {
+                setStartError('');
+                try {
+                  await openInPlayer(await playURL(conn, task.id), mediaKind(task) ?? 'video');
+                } catch (e) {
+                  setStartError(t('task.playFailed', { reason: errorText(t, e) }));
+                }
+              }
+        }
         onSeeding={async (links, seed) => {
           setStartError('');
           try {

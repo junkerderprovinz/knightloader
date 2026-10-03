@@ -175,6 +175,8 @@ export const gl: Dict = {
   'task.mode.free': 'Gratuíto',
   'task.mode.premium': 'Premium',
   'task.remote': 'Descargando en {service}',
+  'task.play': 'Reproducir',
+  'task.playFailed': 'O reprodutor non se abriu: {reason}',
   'task.enable': 'Activar esta ligazón',
   'task.disable': 'Desactivar esta ligazón',
   'settings.aboutTitle': 'Sobre KnightLoader',

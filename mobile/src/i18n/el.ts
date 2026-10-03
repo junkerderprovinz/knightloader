@@ -175,6 +175,8 @@ export const el: Dict = {
   'task.mode.free': 'Δωρεάν',
   'task.mode.premium': 'Premium',
   'task.remote': 'Λήψη στο {service}',
+  'task.play': 'Αναπαραγωγή',
+  'task.playFailed': 'Η εφαρμογή αναπαραγωγής δεν άνοιξε: {reason}',
   'task.enable': 'Ενεργοποίηση αυτού του συνδέσμου',
   'task.disable': 'Απενεργοποίηση αυτού του συνδέσμου',
   'settings.aboutTitle': 'Σχετικά με το KnightLoader',

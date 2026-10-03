@@ -175,6 +175,8 @@ export const et: Dict = {
   'task.mode.free': 'Tasuta',
   'task.mode.premium': 'Premium',
   'task.remote': 'Tuuakse teenuses {service}',
+  'task.play': 'Esita',
+  'task.playFailed': 'Mängija ei avanenud: {reason}',
   'task.enable': 'Lülita see link sisse',
   'task.disable': 'Lülita see link välja',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',

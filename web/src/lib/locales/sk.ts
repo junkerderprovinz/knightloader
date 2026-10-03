@@ -1360,6 +1360,7 @@ export const sk: Dict = {
   'columns.variant.auto': 'Automaticky',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Prehrať',
   'file.open': 'Otvoriť',
   'file.openNatively': 'Otvoriť predvolenou aplikáciou',
   'file.revealInFolder': 'Zobraziť v priečinku',
@@ -2156,6 +2157,9 @@ export const sk: Dict = {
   'detail.play': 'Prehrať tu',
   'detail.playHint': 'Prehrá súbor priamo z tejto inštancie, bez toho, aby sa sťahoval druhý raz. Kým nestlačíš prehrávanie, nič sa neťahá, a súbor zostáva tam, kde je.',
   'detail.playPartial': 'Toto sťahovanie nie je dokončené. Prehrať sa dá len tá časť, ktorá už je na disku, preskočiť za ňu nejde, a niektoré súbory neprehrajú vôbec nič, kým tam nie je posledný bajt.',
+  'detail.playLive': 'Toto sťahovanie ešte beží. Časť, ktorú prehrávaš, sa sťahuje ako prvá, takže môžeš začať hneď. Keď skočíš dopredu, prehrávanie počká, kým tá časť nedorazí.',
+  'detail.playStopped': 'Toto sťahovanie sa zastavilo skôr, než skončilo. Spusti ho znova a súbor môžeš prehrávať, kým sa sťahuje.',
+  'detail.playMending': 'Časť tohto sťahovania sa sťahuje znova. Prehrať ho pôjde, keď tá časť dorazí.',
   'detail.playUnsupported': 'Tento prehliadač tento súbor prehrať nevie. Otvor alebo ulož ho radšej cez kontextovú ponuku.',
   'detail.playRemote': 'Prehrávať sa tu dajú len súbory na tejto inštancii. Iná inštancia vydá svoje súbory vcelku a bez preskakovania, a s tým si prehrávač neporadí.',
   'detail.playNotLocal': 'Toto sťahovanie stiahol JDownloader, súbor teda leží na disku toho procesu a nie na tomto.',

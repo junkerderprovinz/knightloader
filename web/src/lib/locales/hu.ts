@@ -1360,6 +1360,7 @@ export const hu: Dict = {
   'columns.variant.auto': 'Automatikus',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Lejátszás',
   'file.open': 'Megnyitás',
   'file.openNatively': 'Megnyitás az alapértelmezett alkalmazással',
   'file.revealInFolder': 'Megjelenítés a mappában',
@@ -2145,6 +2146,9 @@ export const hu: Dict = {
   'detail.play': 'Lejátszás itt',
   'detail.playHint': 'Egyenesen erről a példányról játssza le a fájlt, anélkül hogy másodszor is letöltenéd. A lejátszás megnyomásáig semmit nem hozunk le, és a fájl ott marad, ahol van.',
   'detail.playPartial': 'Ez a letöltés még nincs kész. Csak az a rész játszható le, amelyik már a lemezen van, azon túlra ugrani nem lehet, és van olyan fájl, amelyik egyáltalán semmit nem játszik le, amíg az utolsó bájt meg nem érkezik.',
+  'detail.playLive': 'Ez a letöltés még fut. Az a rész jön le először, amit lejátszol, így már most belekezdhetsz. Ha előreugrasz, a lejátszás megvárja, amíg az a rész megérkezik.',
+  'detail.playStopped': 'Ez a letöltés leállt, mielőtt befejeződött volna. Indítsd el újra, és már letöltés közben lejátszhatod a fájlt.',
+  'detail.playMending': 'Ennek a letöltésnek egy része most újra letöltődik. Lejátszani akkor tudod, ha ez a rész megérkezett.',
   'detail.playUnsupported': 'Ez a böngésző nem tudja lejátszani ezt a fájlt. Nyisd meg vagy mentsd el helyette a jobbklikk menüből.',
   'detail.playRemote': 'Csak az ezen a példányon lévő fájlok játszhatók le itt. Egy másik példány egy darabban és ugrás nélkül adja át a fájljait, ezzel pedig egy lejátszó nem tud mit kezdeni.',
   'detail.playNotLocal': 'Ezt a letöltést a JDownloader hozta le, a fájl tehát annak a folyamatnak a lemezén van, nem ezen.',

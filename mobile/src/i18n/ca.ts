@@ -175,6 +175,8 @@ export const ca: Dict = {
   'task.mode.free': 'Gratuït',
   'task.mode.premium': 'Premium',
   'task.remote': 'Baixant a {service}',
+  'task.play': 'Reprodueix',
+  'task.playFailed': 'El reproductor no s’ha obert: {reason}',
   'task.enable': 'Activa aquest enllaç',
   'task.disable': 'Desactiva aquest enllaç',
   'settings.aboutTitle': 'Quant a KnightLoader',

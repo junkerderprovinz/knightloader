@@ -175,6 +175,8 @@ export const it: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'In download su {service}',
+  'task.play': 'Riproduci',
+  'task.playFailed': 'Il lettore non si è aperto: {reason}',
   'task.enable': 'Attiva questo link',
   'task.disable': 'Disattiva questo link',
   'settings.aboutTitle': 'Informazioni su KnightLoader',

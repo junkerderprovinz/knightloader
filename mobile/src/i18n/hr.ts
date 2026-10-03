@@ -175,6 +175,8 @@ export const hr: Dict = {
   'task.mode.free': 'Besplatno',
   'task.mode.premium': 'Premium',
   'task.remote': 'Preuzima se kod usluge {service}',
+  'task.play': 'Reproduciraj',
+  'task.playFailed': 'Player se nije otvorio: {reason}',
   'task.enable': 'Uključi ovu poveznicu',
   'task.disable': 'Isključi ovu poveznicu',
   'settings.aboutTitle': 'O KnightLoaderu',

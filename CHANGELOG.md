@@ -110,6 +110,22 @@ release's tag.
   protected container. The links wait in the collector and nothing starts.
   JDownloader's folder is only read. See
   [Moving over from JDownloader](docs/from-jdownloader.md).
+- **Play while downloading.** Play in the download list's right-click menu,
+  and a new Play button on a link in the phone app, open a video or song that
+  is still downloading. The browser plays it in a tab of its own, and the
+  phone hands it to a player app. KnightLoader then fetches that file in order
+  from the point being played, with the beginning and the end first, since
+  players look for a file's index there, while everything else downloads as
+  usual. For a torrent, the pieces just ahead of the player come first; a
+  direct download moves one of its connections to the part being played. The
+  player in a download's details can jump ahead now too. A jump waits until
+  that part has arrived, for up to a minute and a half per read. Once playback
+  stops or the file is complete, the download goes back to its usual order. In
+  a torrent of several files, Play opens the largest video or song among the
+  files it fetches, and a torrent without any gets no Play. A download that
+  stopped halfway has to run again before it plays. On the phone this needs a
+  direct connection to the instance, because a player app cannot go through
+  the relay.
 
 ## [1.6.6] - 2026-10-02
 
