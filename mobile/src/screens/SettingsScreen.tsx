@@ -743,8 +743,8 @@ export default function SettingsScreen({
           />
           <ReadmeButton
             brand="windows"
-            label="ARM64"
-            sub="Windows"
+            label="Windows"
+            sub="ARM64"
             mark={({ mark }) => <WindowsMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.windowsArm)}
           />
@@ -764,8 +764,8 @@ export default function SettingsScreen({
           />
           <ReadmeButton
             brand="linux"
-            label="ARM64"
-            sub="Linux"
+            label="Linux"
+            sub="ARM64"
             mark={({ mark }) => <LinuxMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.linuxArm)}
           />
