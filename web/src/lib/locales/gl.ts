@@ -2137,6 +2137,7 @@ export const gl: Dict = {
   'detail.playHint': 'Reproduce o ficheiro directamente desde esta instancia, sen descargalo unha segunda vez. Ata que non premas en reproducir non se trae nada, e o ficheiro queda onde está.',
   'detail.playPartial': 'Esta descarga non está rematada. Só se pode reproducir a parte que xa está no disco, non se pode saltar máis alá dela, e algúns ficheiros non reproducen nada mentres non estea aí o último byte.',
   'detail.playLive': 'Esta descarga aínda está en curso. A parte que reproduces descárgase primeiro, así que podes comezar xa. Se saltas cara adiante, a reprodución agarda a que chegue esa parte.',
+  'detail.playStopped': 'Esta descarga detívose antes de rematar. Iníciaa de novo para reproducir o ficheiro mentres se descarga.',
   'detail.playUnsupported': 'Este navegador non pode reproducir este ficheiro. Ábreo ou gárdao desde o menú do botón dereito.',
   'detail.playRemote': 'Aquí só se reproducen os ficheiros desta instancia. Outra instancia entrega os seus ficheiros dunha soa peza e sen poder saltar, e con iso un reprodutor non se apaña.',
   'detail.playNotLocal': 'Esta descarga tróuxoa JDownloader, así que o ficheiro está no disco dese proceso e non neste.',

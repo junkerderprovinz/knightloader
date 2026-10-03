@@ -2132,6 +2132,7 @@ export const it: Dict = {
   'detail.playHint': 'Riproduce il file direttamente da questa istanza, senza scaricarlo una seconda volta. Prima che tu prema Riproduci non viene recuperato nulla, e il file resta dov’è.',
   'detail.playPartial': 'Questo download non è finito. Si può riprodurre solo la parte già sul disco, saltare oltre non funziona, e certi file non riproducono proprio nulla finché non è arrivato l’ultimo byte.',
   'detail.playLive': 'Questo download è ancora in corso. La parte che riproduci viene scaricata per prima, quindi puoi cominciare subito. Se salti in avanti, la riproduzione aspetta che quella parte sia arrivata.',
+  'detail.playStopped': 'Questo download si è fermato prima di finire. Riavvialo per riprodurre il file mentre si scarica.',
   'detail.playUnsupported': 'Questo browser non può riprodurre questo file. Aprilo o salvalo invece dal menu del clic destro.',
   'detail.playRemote': 'Qui si riproducono solo i file di questa istanza. Un’altra istanza consegna i suoi file tutti d’un pezzo e senza salti, e con questo un lettore non riesce a lavorare.',
   'detail.playNotLocal': 'Questo download l’ha recuperato JDownloader, quindi il file si trova sul disco di quel processo e non su questo.',

@@ -2138,6 +2138,7 @@ export const lv: Dict = {
   'detail.playHint': 'Atskaņo failu tieši no šīs instances, to otrreiz nelejupielādējot. Līdz brīdim, kad nospied atskaņošanu, netiek atnests nekas, un fails paliek, kur bijis.',
   'detail.playPartial': 'Šī lejupielāde nav pabeigta. Atskaņot var tikai to daļu, kas jau ir diskā, tālāk pārlēkt neizdosies, un daži faili neatskaņo neko, kamēr nav klāt pēdējais baits.',
   'detail.playLive': 'Šī lejupielāde vēl notiek. Daļa, ko atskaņo, tiek ielādēta vispirms, tāpēc vari sākt uzreiz. Ja pārlec uz priekšu, atskaņošana gaida, līdz šī daļa ir klāt.',
+  'detail.playStopped': 'Šī lejupielāde apstājās, pirms tā bija pabeigta. Sāc to vēlreiz, lai atskaņotu failu, kamēr tas lejupielādējas.',
   'detail.playUnsupported': 'Šis pārlūks šo failu atskaņot nevar. Atver vai saglabā to labā klikšķa izvēlnē.',
   'detail.playRemote': 'Šeit atskaņojas tikai faili, kas ir šajā instancē. Cita instance savus failus izsniedz vienā gabalā un bez pārlēkšanas, ar to atskaņotājs netiek galā.',
   'detail.playNotLocal': 'Šo lejupielādi atnesa JDownloader, tāpēc fails ir uz tā procesa diska, nevis uz šī.',

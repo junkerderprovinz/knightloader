@@ -2149,6 +2149,7 @@ export const cs: Dict = {
   'detail.playHint': 'Přehraje soubor rovnou z téhle instance, bez toho, aby se stahoval podruhé. Než zmáčkneš přehrát, nic se nenačítá, a soubor zůstane, kde je.',
   'detail.playPartial': 'Tohle stahování není hotové. Přehrát jde jen ta část, která už leží na disku, skákat za ni nejde, a některé soubory nepřehrají vůbec nic, dokud tam není poslední bajt.',
   'detail.playLive': 'Tohle stahování ještě běží. Část, kterou přehráváš, se stahuje jako první, takže můžeš začít hned. Když skočíš dopředu, přehrávání počká, než ta část dorazí.',
+  'detail.playStopped': 'Tohle stahování se zastavilo dřív, než skončilo. Spusť ho znovu a soubor můžeš přehrávat, zatímco se stahuje.',
   'detail.playUnsupported': 'Tenhle prohlížeč tenhle soubor přehrát neumí. Otevři nebo ulož ho místo toho přes nabídku pravého tlačítka.',
   'detail.playRemote': 'Přehrávat se tu dají jen soubory na téhle instanci. Jiná instance předává své soubory vcelku a bez skákání, s tím si přehrávač neporadí.',
   'detail.playNotLocal': 'Tohle stahování vyzvedl JDownloader, soubor tedy leží na disku toho procesu, ne na tomhle.',

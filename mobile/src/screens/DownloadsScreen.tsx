@@ -3,7 +3,8 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 import { fetchListCards, fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
 import { isRelayConnection, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
-import { mediaKind, openInPlayer } from '../api/play';
+import { mediaKind } from '../api/media';
+import { openInPlayer } from '../api/play';
 import PackageList from '../components/PackageList';
 import { GlimButton, WellSelector } from '../components/glim';
 import { useCaptchas } from '../components/CaptchaWatch';

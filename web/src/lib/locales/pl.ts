@@ -2132,6 +2132,7 @@ export const pl: Dict = {
   'detail.playHint': 'Odtwarza plik prosto z tej instancji, bez pobierania go drugi raz. Zanim naciśniesz odtwarzanie, nic nie jest ściągane, a plik zostaje tam, gdzie jest.',
   'detail.playPartial': 'To pobranie nie jest ukończone. Odtworzyć da się tylko tę część, która już leży na dysku, przeskoczyć dalej się nie da, a niektóre pliki nie odtwarzają nic, dopóki nie ma ostatniego bajtu.',
   'detail.playLive': 'To pobieranie wciąż trwa. Część, którą odtwarzasz, jest pobierana najpierw, więc możesz zacząć od razu. Jeśli przeskoczysz dalej, odtwarzanie poczeka, aż ta część dotrze.',
+  'detail.playStopped': 'To pobieranie zatrzymało się przed końcem. Uruchom je ponownie, aby odtwarzać plik w trakcie pobierania.',
   'detail.playUnsupported': 'Ta przeglądarka nie potrafi odtworzyć tego pliku. Otwórz go albo zapisz z menu prawego przycisku myszy.',
   'detail.playRemote': 'Odtwarzać da się tylko pliki na tej instancji. Inna instancja wydaje swoje pliki w całości i bez przewijania, a z tym odtwarzacz sobie nie poradzi.',
   'detail.playNotLocal': 'To pobranie ściągnął JDownloader, więc plik leży na dysku tamtego procesu, a nie na tym.',
