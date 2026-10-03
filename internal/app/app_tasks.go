@@ -332,6 +332,9 @@ func (a *App) RecheckTasks(ids []string) {
 		// onto the task below; plain registry order would move a task back to
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
+		if t.BrowserFile {
+			res = a.fileResolverFor(t.URL, res)
+		}
 		if res == nil {
 			msg, code, params := a.unhandledError(t.URL, "no backend handles this link")
 			a.recordAvailability(t.ID, core.AvailOffline, core.ReasonUnsupported, msg, code, params)
@@ -355,7 +358,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// Most resolvers answer with the URL as a placeholder name (see the
 			// matching guard in stage), which must not replace a real name the task
 			// already picked up.
-			if result.Name != "" && result.Name != t.URL {
+			if result.Name != "" && result.Name != t.URL && !namedTakeover(live) {
 				live.Name = result.Name
 			}
 		}
@@ -443,7 +446,19 @@ func (a *App) analyze(id, rawurl string) {
 		return
 	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
-	resp, err := a.Probe.Do(req)
+	probe := a.Probe
+	// Without the browser's cookies a link behind a login would read as gone.
+	if set := a.browserHeaderSet(id); len(set.Headers) > 0 {
+		for name, value := range set.Attach(rawurl) {
+			req.Header.Set(name, value)
+		}
+		// The shared client strips only credentials on a redirect, while
+		// the Referer and the user agent are the browser's too.
+		if c, ok := probe.(*http.Client); ok {
+			probe = set.Client(c)
+		}
+	}
+	resp, err := probe.Do(req)
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
 		// reached.
@@ -514,7 +529,7 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersFor(id, rawurl))
 	if err != nil {
 		a.fileUnprobedMedia(id)
 		return
@@ -1002,6 +1017,10 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	if err := os.Rename(from, to); err != nil {
 		return refuse(fmt.Errorf("not renamed: %w", err))
 	}
+	if a.renamed == nil {
+		a.renamed = map[string]bool{}
+	}
+	a.renamed[t.ID] = true
 	t.Name = want
 	if t.File != "" {
 		t.File = to
@@ -1031,19 +1050,24 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
 	}
+	// After a rename the backend's record names the old path, which another
+	// download may have taken since; own deletes the file where it is.
+	backendFiles := deleteFiles && !a.renamed[id]
+	delete(a.renamed, id)
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
 	delete(a.active, id)
 	delete(a.started, id)
 	delete(a.fellBack, id)
+	delete(a.browserHeaders, id)
 	delete(a.seedSaved, id)
 	a.tally.forget(id)
 	a.dequeueLocked(id)
 	a.dispatchLocked()
 	a.mu.Unlock()
 	if t != nil {
-		a.backendFor(t.Resolver).Remove(id, deleteFiles)
+		a.backendFor(t.Resolver).Remove(id, backendFiles)
 		// The engine only deletes files of transfers it still knows, and it
 		// forgets them all on a restart.
 		own.drop(id)

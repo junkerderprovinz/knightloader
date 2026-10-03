@@ -1,14 +1,16 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 27 September 2026. Applies to version 1.4.0 and later, until this
+Last updated: 2 October 2026. Applies to version 1.4.0 and later, until this
 date changes.
 
 ## The short version
 
 The extension sends what you choose to send (a link, an image address, selected
 text, the current page, or links you paste, drop or load into its collector) to
-KnightLoader instances that you run yourself. It has no analytics, no advertising,
-no accounts and no tracking.
+KnightLoader instances that you run yourself. Two features, off until you switch
+them on, also hand browser downloads over to your instance and list the video
+and audio a page plays so you can send them. It has no analytics, no
+advertising, no accounts and no tracking.
 
 It reaches your instances through a relay operated by the party named under "Who
 is responsible". The relay passes messages along but cannot read them, because
@@ -28,6 +30,9 @@ profile. We back none of it up, and removing the extension removes all of it.
 - Settings: interface language, whether Click'n'Load interception is on, the
   Click'n'Load countdown length, and whether the "pin the extension" hint has
   been shown.
+- Whether taking over downloads and finding media are on, and the rules for
+  taking over downloads: the file types, the minimum size, the sites to leave
+  alone and the key that keeps a download in the browser.
 - Appearance: theme, corner shape, accent colour and rainbow palette, whether to
   follow an instance's appearance, and, while you follow one, a copy of your own
   appearance settings so they can be restored.
@@ -39,6 +44,11 @@ or the links and package name of a caught Click'n'Load button), which instance i
 the default, and the list of your instances with their names. The popup deletes
 that entry as soon as it reads it, and the browser clears session storage when it
 closes.
+
+While finding media is on, the session storage also holds, for each open tab, the
+address of the page and the addresses of the video and audio streams it loaded,
+up to 30 per tab. A new page in the tab starts its list afresh, closing the tab
+deletes it, and switching the feature off deletes all of them.
 
 ## What leaves your browser
 
@@ -82,6 +92,18 @@ These travel through the relay, and only your instances can read them:
   locally; only the links it contains are sent, never the file, under a fixed
   package name ("From the browser", in the extension's language) rather than a
   page title.
+- When taking over downloads is on and a download matches your rules: the
+  download's address, the cookies your browser holds for that address, the page
+  the download came from, your browser's user agent and the file name your
+  browser gave the download. Before that, the
+  extension asks your instances for their own web addresses, so a download from
+  one of them is never handed back. Your instance uses the cookies for that one
+  download, keeps them in memory only, never writes them to its database or its
+  log, and drops them when the download finishes or is removed.
+- When you send a stream from the popup's media list: the stream's address, the
+  page it played on and that page's title, the cookies your browser holds for the
+  stream's address, and your browser's user agent, under the same rules. Cookies
+  from a private window are never sent.
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, and a request for an instance's appearance settings
   if you chose to follow them.
@@ -127,6 +149,34 @@ the script until you reload it, but a button caught there is no longer sent
 anywhere. The same happens when you take the access away in the browser's own
 extension settings.
 
+## Taking over downloads
+
+This feature is off until you switch it on in the options, and switching it on asks
+your browser for access to downloads, cookies, notifications and all websites.
+
+When a download starts, the extension checks it against your rules in the
+browser. A download from this computer, your local network or a private window
+always stays in the browser, and so does one you start while holding the key you
+chose. A download that matches is held while your instance is asked, and only
+cancelled once the instance has the link. If anything fails, or the instance
+holds the link back as already downloaded or filtered, the browser carries on
+with it. A short notification says which instance took it.
+
+While the feature is on, a small script runs in every page. It notices when you
+press a mouse button while holding Alt, Shift, Ctrl or Cmd, and tells the extension
+which of those keys were held. It reads nothing else in the page.
+
+## Finding media
+
+This feature is off until you switch it on in the options, and switching it on asks
+your browser for access to all websites, the requests they make, and cookies.
+
+While it is on, the extension looks at the address and content type of the
+responses pages receive, in the browser, to pick out video, audio and HLS or DASH
+playlists. It keeps those in session storage as described above and ignores
+everything else. Nothing leaves the browser until you press a stream's send
+button in the popup.
+
 ## Permissions
 
 | Permission | Used for |
@@ -138,12 +188,18 @@ extension settings.
 | `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe while Click'n'Load is on. |
 | Access to all websites (optional) | Running the Click'n'Load script in pages that may carry a button, and answering the `jdcheck.js` probe. Asked for only when you switch Click'n'Load on, and given back when you switch it off. |
 | `clipboardRead` (optional) | Pasting your phrase with the paste button. Requested only when you press it, and read only then. |
+| `downloads` (optional) | Seeing a download start, holding it while your instance is asked, and cancelling it once the instance has it. Asked for when you switch taking over downloads on, and given back when you switch it off. |
+| `cookies` (optional) | Reading the cookies for the one address being handed over, so a download behind a login works on your instance. Asked for with taking over downloads or finding media. |
+| `notifications` (optional) | The short note that names the instance a download went to. Asked for with taking over downloads. |
+| `webRequest` (optional) | Seeing which video and audio streams a page loads. Asked for with finding media, and given back when you switch it off. |
+| Access to all websites (optional) | Also needed for the cookies of any download site and for the media a page loads. Kept while any of Click'n'Load, taking over downloads or finding media is on. |
 
 ## What the extension does not do
 
 - It has no analytics, telemetry or crash reporting.
 - It shows no advertising, and it does not sell data or share it with anyone.
-- It does not record your browsing history, and a page's address leaves your
+- It does not record your browsing history beyond the media list of each open tab
+  described above, and a page's address leaves your
   browser only when you send that page or something on it.
 - It runs no remote code. Everything the extension runs ships inside the package.
 
@@ -152,6 +208,8 @@ extension settings.
 - **See what is stored:** the options page shows your phrase (behind the eye
   button), your default instance and every setting.
 - **Switch Click'n'Load off** in the options, as described above.
+- **Switch taking over downloads or finding media off** in the options. Each gives
+  back the permissions no other feature still uses.
 - **Leave the group** with the bin button next to the phrase: the phrase, the
   default instance are deleted.
 - **Remove the extension** to delete everything it stored.
