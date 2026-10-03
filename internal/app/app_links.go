@@ -1251,6 +1251,11 @@ func (a *App) skipReason(m dedupe.Match) string {
 			}
 			return "the link filter has already rejected this link"
 		}
+		if torrent.IsMagnet(m.Of.URL) {
+			// Known by the info hash alone, so the two links may differ in name
+			// and trackers.
+			return "a magnet with the same info hash is already in the list"
+		}
 		return "the same link is already in the list"
 	}
 	name := m.Of.Name
