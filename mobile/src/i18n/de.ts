@@ -133,7 +133,7 @@ export const de: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Mindestens einen Link einfügen.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Die Links konnten nicht gesendet werden.',
+  'addDownload.errorSend': 'Die Links konnten nicht gesendet werden: {message}',
   'error.federationOff': 'Auf der verbundenen Instanz sind Partner-Instanzen ausgeschaltet, deshalb erreicht sie die anderen nicht.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',

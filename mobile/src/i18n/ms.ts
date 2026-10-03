@@ -112,7 +112,7 @@ export const ms: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Tampal sekurang-kurangnya satu pautan.',
   'addDownload.errorServer': 'Pelayan: {message}',
-  'addDownload.errorGeneric': 'Pautan tidak dapat dihantar.',
+  'addDownload.errorSend': 'Pautan tidak dapat dihantar: {message}',
   'error.federationOff': 'Instans rakan dimatikan pada instans yang anda sambungkan, jadi ia tidak dapat mencapai instans lain.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',

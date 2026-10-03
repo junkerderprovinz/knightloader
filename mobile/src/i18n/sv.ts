@@ -112,7 +112,7 @@ export const sv: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Klistra in minst en länk.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Kunde inte skicka länkarna.',
+  'addDownload.errorSend': 'Kunde inte skicka länkarna: {message}',
   'error.federationOff': 'Systerinstanser är avstängda på instansen du är ansluten till, så den når inte de andra.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',

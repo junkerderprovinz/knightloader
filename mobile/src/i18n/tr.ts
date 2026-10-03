@@ -112,7 +112,7 @@ export const tr: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'En az bir bağlantı yapıştırın.',
   'addDownload.errorServer': 'Sunucu: {message}',
-  'addDownload.errorGeneric': 'Bağlantılar gönderilemedi.',
+  'addDownload.errorSend': 'Bağlantılar gönderilemedi: {message}',
   'error.federationOff': 'Bağlı olduğun örnekte eş örnekler kapalı, bu yüzden o, diğerlerine ulaşamıyor.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',

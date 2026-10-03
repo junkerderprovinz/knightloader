@@ -112,7 +112,7 @@ export const pt: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Cole pelo menos um link.',
   'addDownload.errorServer': 'Servidor: {message}',
-  'addDownload.errorGeneric': 'Não foi possível enviar os links.',
+  'addDownload.errorSend': 'Não foi possível enviar os links: {message}',
   'error.federationOff': 'As instâncias parceiras estão desligadas na instância a que estás ligado, por isso ela não consegue chegar às outras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',

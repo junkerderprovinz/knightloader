@@ -112,7 +112,7 @@ export const fa: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'حداقل یک لینک جای‌گذاری کنید.',
   'addDownload.errorServer': 'سرور: {message}',
-  'addDownload.errorGeneric': 'ارسال لینک‌ها ممکن نشد.',
+  'addDownload.errorSend': 'ارسال لینک‌ها ممکن نشد: {message}',
   'error.federationOff': 'نمونه‌های همتا روی نمونه‌ای که به آن وصل هستید خاموش‌اند، پس این نمونه نمی‌تواند به بقیه برسد.',
   'addDownload.cancel': 'لغو',
   'addDownload.button': 'افزودن',

@@ -112,7 +112,7 @@ export const ar: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'الصق رابطًا واحدًا على الأقل.',
   'addDownload.errorServer': 'الخادم: {message}',
-  'addDownload.errorGeneric': 'تعذّر إرسال الروابط.',
+  'addDownload.errorSend': 'تعذّر إرسال الروابط: {message}',
   'error.federationOff': 'النسخ النظيرة مطفأة على النسخة التي أنت متصل بها، لذلك لا تستطيع الوصول إلى النسخ الأخرى.',
   'addDownload.cancel': 'إلغاء',
   'addDownload.button': 'إضافة',

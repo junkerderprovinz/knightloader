@@ -112,7 +112,7 @@ export const lt: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Įklijuokite bent vieną nuorodą.',
   'addDownload.errorServer': 'Serveris: {message}',
-  'addDownload.errorGeneric': 'Nepavyko išsiųsti nuorodų.',
+  'addDownload.errorSend': 'Nepavyko išsiųsti nuorodų: {message}',
   'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',

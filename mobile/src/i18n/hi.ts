@@ -112,7 +112,7 @@ export const hi: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'कम से कम एक लिंक पेस्ट करें।',
   'addDownload.errorServer': 'सर्वर: {message}',
-  'addDownload.errorGeneric': 'लिंक भेजे नहीं जा सके।',
+  'addDownload.errorSend': 'लिंक भेजे नहीं जा सके: {message}',
   'error.federationOff': 'जिस इंस्टेंस से आप जुड़े हैं, उस पर साथी इंस्टेंस बंद हैं, इसलिए वह दूसरों तक नहीं पहुँच सकता।',
   'addDownload.cancel': 'रद्द करें',
   'addDownload.button': 'जोड़ें',

@@ -112,7 +112,7 @@ export const sr: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Налепите бар једну везу.',
   'addDownload.errorServer': 'Сервер: {message}',
-  'addDownload.errorGeneric': 'Везе није било могуће послати.',
+  'addDownload.errorSend': 'Везе није било могуће послати: {message}',
   'error.federationOff': '„Сродни примерци“ су искључени на инстанци са којом си повезан, па она не може да дође до осталих.',
   'addDownload.cancel': 'Откажи',
   'addDownload.button': 'Додај',

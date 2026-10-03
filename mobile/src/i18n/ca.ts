@@ -112,7 +112,7 @@ export const ca: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Enganxa almenys un enllaç.',
   'addDownload.errorServer': 'Servidor: {message}',
-  'addDownload.errorGeneric': "No s'han pogut enviar els enllaços.",
+  'addDownload.errorSend': "No s'han pogut enviar els enllaços: {message}",
   'error.federationOff': 'Les instàncies germanes estan desactivades a la instància a la qual estàs connectat, així que no pot arribar a les altres.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',

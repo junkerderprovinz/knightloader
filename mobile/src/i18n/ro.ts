@@ -112,7 +112,7 @@ export const ro: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Lipește cel puțin un link.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Nu s-au putut trimite linkurile.',
+  'addDownload.errorSend': 'Nu s-au putut trimite linkurile: {message}',
   'error.federationOff': 'Instanțele partenere sunt dezactivate pe instanța la care ești conectat, deci aceasta nu le poate accesa pe celelalte.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',

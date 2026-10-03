@@ -112,7 +112,7 @@ export const bg: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Поставете поне една връзка.',
   'addDownload.errorServer': 'Сървър: {message}',
-  'addDownload.errorGeneric': 'Връзките не можаха да бъдат изпратени.',
+  'addDownload.errorSend': 'Връзките не можаха да бъдат изпратени: {message}',
   'error.federationOff': '„Сродни екземпляри“ са изключени на инстанцията, към която си свързан, затова тя не може да достигне останалите.',
   'addDownload.cancel': 'Отказ',
   'addDownload.button': 'Добави',

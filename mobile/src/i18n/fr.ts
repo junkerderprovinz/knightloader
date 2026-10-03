@@ -112,7 +112,7 @@ export const fr: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Collez au moins un lien.',
   'addDownload.errorServer': 'Serveur : {message}',
-  'addDownload.errorGeneric': 'Impossible d’envoyer les liens.',
+  'addDownload.errorSend': 'Impossible d’envoyer les liens : {message}',
   'error.federationOff': 'Les instances jumelées sont désactivées sur l’instance à laquelle vous êtes connecté : elle ne peut donc pas joindre les autres.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',

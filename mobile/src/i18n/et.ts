@@ -112,7 +112,7 @@ export const et: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Kleepige vähemalt üks link.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Linkide saatmine ebaõnnestus.',
+  'addDownload.errorSend': 'Linkide saatmine ebaõnnestus: {message}',
   'error.federationOff': 'Eksemplaril, millega oled ühendatud, on naabereksemplarid välja lülitatud, seega ei jõua see teisteni.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',

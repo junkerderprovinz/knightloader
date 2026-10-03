@@ -112,7 +112,7 @@ export const is: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Límdu að minnsta kosti einn tengil.',
   'addDownload.errorServer': 'Netþjónn: {message}',
-  'addDownload.errorGeneric': 'Ekki tókst að senda tenglana.',
+  'addDownload.errorSend': 'Ekki tókst að senda tenglana: {message}',
   'error.federationOff': 'Slökkt er á systurtilvikum á tilvikinu sem þú ert tengdur við, svo það nær ekki í hin.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
