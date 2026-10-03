@@ -120,6 +120,7 @@ export const eu: Dict = {
   'share.title': 'Gehitu KnightLoader-era',
   'share.hint': 'Beste aplikazio batetik partekatzen dituzun estekak biltzailera doaz, web interfazean itsatsi izan bazenitu bezala.',
   'share.pick': 'Zein instantziara bidali?',
+  'share.pickOne': 'Instantzia honetara bidali?',
   'share.adding': 'Gehitzen…',
   'share.added': '{name}(e)ko biltzailera gehitu da.',
   'share.addedCount': '{n} esteka gehitu dira {name}(e)ko biltzailera.',

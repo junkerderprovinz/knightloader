@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from 'react-native';
-import { addSharedText, ApiError, errorText } from '../api/client';
+import { addSharedText, errorText } from '../api/client';
 import type { ServerConnection } from '../api/types';
 import { listConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -23,9 +23,9 @@ type Phase =
   | { kind: 'error'; conn: ServerConnection; message: string };
 
 /**
- * Where text shared from another app lands. With one instance paired it goes
- * straight to that instance's collector, since the share sheet was the
- * confirmation; with several, a tap on one picks it.
+ * Where text shared from another app lands. Nothing is sent until an instance
+ * is tapped, also with only one paired: any app can open this screen with an
+ * explicit intent, so the share sheet may never have been shown.
  */
 export default function ShareScreen({
   text,
@@ -53,25 +53,15 @@ export default function ShareScreen({
         const created = await addSharedText(conn, text, title);
         setPhase({ kind: 'done', conn, count: created.length });
       } catch (err) {
-        const message = err instanceof ApiError ? errorText(t, err) : t('addDownload.errorGeneric');
-        setPhase({ kind: 'error', conn, message });
+        setPhase({ kind: 'error', conn, message: errorText(t, err) });
       }
     },
     [text, title, t],
   );
 
-  // Once per share. A rerun on a new `send`, which follows the language, would
-  // add the same links a second time.
-  const started = useRef(false);
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    listConnections().then((list) => {
-      if (list.length === 0) setPhase({ kind: 'unpaired' });
-      else if (list.length === 1) void send(list[0]);
-      else setPhase({ kind: 'pick', list });
-    });
-  }, [send]);
+    listConnections().then((list) => setPhase(list.length === 0 ? { kind: 'unpaired' } : { kind: 'pick', list }));
+  }, []);
 
   const result = (p: Extract<Phase, { kind: 'done' }>) => {
     if (p.count === 0) return t('share.none');
@@ -102,7 +92,7 @@ export default function ShareScreen({
 
       {phase.kind === 'pick' && (
         <>
-          <Text style={[styles.pick, { color: c.text }]}>{t('share.pick')}</Text>
+          <Text style={[styles.pick, { color: c.text }]}>{t(phase.list.length === 1 ? 'share.pickOne' : 'share.pick')}</Text>
           <ScrollView contentContainerStyle={styles.list}>
             {phase.list.map((conn) => (
               <Arrive key={conn.id}>

@@ -142,6 +142,7 @@ export const en = {
   'share.title': 'Add to KnightLoader',
   'share.hint': 'Links you share from another app go to the collector, as if you had pasted them into the web UI.',
   'share.pick': 'Which instance should get it?',
+  'share.pickOne': 'Send it to this instance?',
   'share.adding': 'Adding…',
   'share.added': 'Added to the collector on {name}.',
   'share.addedCount': 'Added {n} links to the collector on {name}.',

@@ -120,6 +120,7 @@ export const vi: Dict = {
   'share.title': 'Thêm vào KnightLoader',
   'share.hint': 'Liên kết bạn chia sẻ từ ứng dụng khác sẽ vào bộ thu thập, như thể bạn đã dán chúng vào giao diện web.',
   'share.pick': 'Gửi đến phiên bản nào?',
+  'share.pickOne': 'Gửi đến phiên bản này?',
   'share.adding': 'Đang thêm…',
   'share.added': 'Đã thêm vào bộ thu thập trên {name}.',
   'share.addedCount': 'Đã thêm {n} liên kết vào bộ thu thập trên {name}.',

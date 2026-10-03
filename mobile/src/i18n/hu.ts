@@ -120,6 +120,7 @@ export const hu: Dict = {
   'share.title': 'Hozzáadás a KnightLoaderhez',
   'share.hint': 'A más alkalmazásból megosztott linkek a gyűjtőbe kerülnek, mintha a webes felületen illesztetted volna be őket.',
   'share.pick': 'Melyik példány kapja meg?',
+  'share.pickOne': 'Ez a példány kapja meg?',
   'share.adding': 'Hozzáadás…',
   'share.added': 'Hozzáadva a(z) {name} gyűjtőjéhez.',
   'share.addedCount': '{n} link hozzáadva a(z) {name} gyűjtőjéhez.',

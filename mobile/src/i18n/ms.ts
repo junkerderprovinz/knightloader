@@ -120,6 +120,7 @@ export const ms: Dict = {
   'share.title': 'Tambah ke KnightLoader',
   'share.hint': 'Pautan yang anda kongsi daripada aplikasi lain masuk ke pengumpul, seolah-olah anda menampalnya dalam antara muka web.',
   'share.pick': 'Hantar ke tika yang mana?',
+  'share.pickOne': 'Hantar ke tika ini?',
   'share.adding': 'Menambah…',
   'share.added': 'Ditambah ke pengumpul pada {name}.',
   'share.addedCount': '{n} pautan ditambah ke pengumpul pada {name}.',

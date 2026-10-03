@@ -120,6 +120,7 @@ export const it: Dict = {
   'share.title': 'Aggiungi a KnightLoader',
   'share.hint': 'I link che condividi da un’altra app finiscono nel raccoglitore, come se li avessi incollati nell’interfaccia web.',
   'share.pick': 'A quale istanza mandarlo?',
+  'share.pickOne': 'Mandarlo a questa istanza?',
   'share.adding': 'Aggiunta in corso…',
   'share.added': 'Aggiunto al raccoglitore di {name}.',
   'share.addedCount': '{n} link aggiunti al raccoglitore di {name}.',

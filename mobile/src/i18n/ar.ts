@@ -120,6 +120,7 @@ export const ar: Dict = {
   'share.title': 'إضافة إلى KnightLoader',
   'share.hint': 'الروابط التي تشاركها من تطبيق آخر تذهب إلى المُجمِّع، كما لو أنك لصقتها في واجهة الويب.',
   'share.pick': 'إلى أي نسخة تريد إرسالها؟',
+  'share.pickOne': 'إرسالها إلى هذه النسخة؟',
   'share.adding': 'جارٍ الإضافة…',
   'share.added': 'أُضيف إلى المُجمِّع على {name}.',
   'share.addedCount': 'أُضيف {n} روابط إلى المُجمِّع على {name}.',

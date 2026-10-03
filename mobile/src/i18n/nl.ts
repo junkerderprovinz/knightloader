@@ -120,6 +120,7 @@ export const nl: Dict = {
   'share.title': 'Toevoegen aan KnightLoader',
   'share.hint': 'Links die je vanuit een andere app deelt, gaan naar de verzamelaar, alsof je ze in de webinterface had geplakt.',
   'share.pick': 'Naar welke instantie moet het?',
+  'share.pickOne': 'Moet het naar deze instantie?',
   'share.adding': 'Toevoegen…',
   'share.added': 'Toegevoegd aan de verzamelaar van {name}.',
   'share.addedCount': '{n} links toegevoegd aan de verzamelaar van {name}.',

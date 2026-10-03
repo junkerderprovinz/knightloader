@@ -120,6 +120,7 @@ export const lt: Dict = {
   'share.title': 'Pridėti į KnightLoader',
   'share.hint': 'Nuorodos, kuriomis dalijiesi iš kitos programos, patenka į rinktuvą, lyg būtum jas įklijavęs žiniatinklio sąsajoje.',
   'share.pick': 'Kuriam egzemplioriui siųsti?',
+  'share.pickOne': 'Siųsti šiam egzemplioriui?',
   'share.adding': 'Pridedama…',
   'share.added': 'Pridėta į {name} rinktuvą.',
   'share.addedCount': 'Į {name} rinktuvą pridėta nuorodų: {n}.',

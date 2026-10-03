@@ -120,6 +120,7 @@ export const no: Dict = {
   'share.title': 'Legg til i KnightLoader',
   'share.hint': 'Lenker du deler fra en annen app, havner i samleren, som om du hadde limt dem inn i nettgrensesnittet.',
   'share.pick': 'Hvilken instans skal få det?',
+  'share.pickOne': 'Skal denne instansen få det?',
   'share.adding': 'Legger til…',
   'share.added': 'Lagt til i samleren på {name}.',
   'share.addedCount': '{n} lenker lagt til i samleren på {name}.',

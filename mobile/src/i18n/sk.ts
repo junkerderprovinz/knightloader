@@ -120,6 +120,7 @@ export const sk: Dict = {
   'share.title': 'Pridať do KnightLoadera',
   'share.hint': 'Odkazy, ktoré zdieľaš z inej aplikácie, idú do zberača, akoby si ich vložil vo webovom rozhraní.',
   'share.pick': 'Do ktorej inštancie to poslať?',
+  'share.pickOne': 'Poslať to do tejto inštancie?',
   'share.adding': 'Pridáva sa…',
   'share.added': 'Pridané do zberača na {name}.',
   'share.addedCount': 'Do zberača na {name} pridané odkazy: {n}.',

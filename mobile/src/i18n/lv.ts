@@ -120,6 +120,7 @@ export const lv: Dict = {
   'share.title': 'Pievienot KnightLoader',
   'share.hint': 'Saites, ko kopīgo no citas lietotnes, nonāk vācējā, it kā tu tās būtu ielīmējis tīmekļa saskarnē.',
   'share.pick': 'Kurai instancei to sūtīt?',
+  'share.pickOne': 'Sūtīt to šai instancei?',
   'share.adding': 'Pievieno…',
   'share.added': 'Pievienots {name} vācējam.',
   'share.addedCount': '{name} vācējam pievienotas saites: {n}.',
