@@ -51,6 +51,10 @@ func registerJDImport(reg *Registry, a *app.App) {
 				writeRefusal(w, http.StatusGone, "jdimport.expired", err.Error(), nil)
 				return
 			}
+			if errors.Is(err, app.ErrJDImportReplaced) {
+				writeRefusal(w, http.StatusGone, "jdimport.replaced", err.Error(), nil)
+				return
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -79,7 +83,7 @@ func readJDImport(w http.ResponseWriter, r *http.Request, a *app.App) {
 			writeRefusal(w, http.StatusBadRequest, "jdimport.notZip", "this is not a zip file: "+err.Error(), nil)
 			return
 		}
-		fsys = zr
+		fsys = jdimport.ZipFS(zr)
 	} else {
 		var body struct {
 			Path string `json:"path"`
@@ -103,7 +107,7 @@ func readJDImport(w http.ResponseWriter, r *http.Request, a *app.App) {
 				return
 			}
 			defer zr.Close()
-			fsys = zr
+			fsys = jdimport.ZipFS(&zr.Reader)
 		}
 	}
 

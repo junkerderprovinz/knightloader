@@ -248,3 +248,137 @@ func TestADebridKeyAlreadyHereIsNotOverwritten(t *testing.T) {
 		t.Errorf("named account = %+v", got)
 	}
 }
+
+func TestAnEnabledAccountWinsTheHosterOverADisabledOneAboveIt(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Accounts: []jdimporttest.Account{
+		{Host: "katfile.com", User: "old", Password: "old-pw", Enabled: false},
+		{Host: "katfile.com", User: "new", Password: "new-pw", Enabled: true},
+	}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p.Items) != 2 {
+		t.Fatalf("items = %+v", p.Items)
+	}
+	old, cur := p.Items[0], p.Items[1]
+	if cur.Blocked != nil || !cur.Ticked {
+		t.Errorf("enabled account = %+v, want it ticked", cur)
+	}
+	if old.Blocked == nil || old.Blocked.Code != "secondLogin" {
+		t.Errorf("disabled account = %+v, want secondLogin", old)
+	}
+	if _, err := a.ApplyJDImport(p.Token, []string{cur.ID}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := hosterauth.NewStore(a.Accounts).Get("katfile.com"); got != (accounts.Credential{Username: "new", Password: "new-pw"}) {
+		t.Errorf("katfile login = %+v, want the enabled one", got)
+	}
+}
+
+func TestEveryArchivePasswordOfAPackageComesOver(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Packages: []jdimporttest.Package{
+		{Name: "Pack", Links: []jdimporttest.Link{
+			{URL: "https://host.example/a.rar", Name: "a.rar", Enabled: true, Properties: map[string]any{"PWLIST": []string{"first", "second"}}},
+		}},
+	}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	it := itemByName(t, p, JDGroupDownloads, "Pack")
+	if _, err := a.ApplyJDImport(p.Token, []string{it.ID}, nil); err != nil {
+		t.Fatal(err)
+	}
+	var task *core.Task
+	for _, x := range a.Tasks() {
+		if x.Origin == OriginJDownloader {
+			task = x
+		}
+	}
+	if task == nil || task.Password != "first" {
+		t.Fatalf("task = %+v, want the first password on it", task)
+	}
+	if got := strings.Join(a.Settings.Get().ArchivePasswords, ","); got != "first,second" {
+		t.Errorf("archive passwords = %q, want both of the package's", got)
+	}
+}
+
+func TestAFolderThatDoesNotFitHereFailsOnlyItself(t *testing.T) {
+	a, base := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{
+		Passwords:   []string{"pw"},
+		DownloadDir: "jdimp/Downloads",
+		Packagizer: []map[string]any{jdimporttest.Rule("mkv to films", map[string]any{
+			"filetypeFilter": map[string]any{"enabled": true, "matchType": "IS", "customs": "mkv"},
+			"packageName":    "Films",
+		})},
+	})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	for _, it := range p.Items {
+		ids = append(ids, it.ID)
+	}
+	check := func(preview settings.Settings, patch map[string]json.RawMessage) error {
+		return settings.CheckFolders(preview, func(key string) bool { _, ok := patch[key]; return ok })
+	}
+	rep, err := a.ApplyJDImport(p.Token, ids, check)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Failed) != 1 || rep.Failed[0].ID != "folder" {
+		t.Errorf("failed = %+v, want only the folder", rep.Failed)
+	}
+	if strings.Join(rep.Imported, ",") != "passwords,packagizer:0" {
+		t.Errorf("imported = %q, want the passwords and the rule", rep.Imported)
+	}
+	s := a.Settings.Get()
+	if s.DownloadDir != base || len(s.ArchivePasswords) != 1 || len(s.Packagizer.Rules) != 1 {
+		t.Errorf("settings: folder %q, passwords %q, rules %d", s.DownloadDir, s.ArchivePasswords, len(s.Packagizer.Rules))
+	}
+}
+
+func TestAPreviewPushedOutByNewerReadsSaysSo(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Passwords: []string{"pw"}})
+	first, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for range jdPendingMax {
+		if _, err := a.ReadJDImport(os.DirFS(dir)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := a.ApplyJDImport(first.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportReplaced) {
+		t.Fatalf("err = %v, want ErrJDImportReplaced", err)
+	}
+}
+
+func TestRulesSwitchedOffInJDownloaderComeUnticked(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	off := jdimporttest.Rule("mkv to films", map[string]any{
+		"filetypeFilter": map[string]any{"enabled": true, "matchType": "IS", "customs": "mkv"},
+		"packageName":    "Films",
+	})
+	off["enabled"] = false
+	jdimporttest.Write(t, dir, jdimporttest.Config{Packagizer: []map[string]any{off}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	it := itemByName(t, p, JDGroupPackagizer, "mkv to films")
+	if !it.Off || it.Ticked || it.Blocked != nil {
+		t.Errorf("rule = %+v, want offered off and unticked", it)
+	}
+}

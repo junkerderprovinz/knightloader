@@ -3715,7 +3715,8 @@ export async function readJDImportPath(path: string): Promise<JDImportPreview> {
 }
 
 /** applyJDImport takes over the ticked items of a preview. A preview older
- *  than half an hour is refused with the code "jdimport.expired". */
+ *  than half an hour is refused with the code "jdimport.expired", and one
+ *  that newer reads pushed out with "jdimport.replaced". */
 export async function applyJDImport(token: string, ids: string[]): Promise<JDImportReport> {
   return json(await post('/api/jdimport/apply', { token, ids }));
 }

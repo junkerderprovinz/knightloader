@@ -30,20 +30,21 @@ one stored here, and the download folder. Items that cannot come over are
 listed too, with the reason. Take over writes only what is switched on, and the
 card then says how much came over and lists what stayed behind and why.
 
-The preview stays valid for half an hour. The passwords stay on the server
-during that time and never reach the browser.
+The preview stays valid for half an hour. KnightLoader keeps the four newest
+previews, so a fifth read pushes out the oldest. The passwords stay on the
+server during that time and never reach the browser.
 
 ## What comes over, and how
 
 | From JDownloader | In KnightLoader |
 |---|---|
-| Hoster accounts | A hoster login on the Accounts page, which the built-in JDownloader backend then uses. KnightLoader keeps one login per hoster, so a second account for the same hoster stays behind. |
+| Hoster accounts | A hoster login on the Accounts page, which the built-in JDownloader backend then uses. KnightLoader keeps one login per hoster: the first account switched on in JDownloader comes over, and the other accounts for that hoster stay behind. |
 | Debrid and multihoster accounts | An account of KnightLoader's own client for that service. A service that already has an account here gets the imported one as a second, named account, so a key you already use is never overwritten. |
 | Packagizer rules | Packagizer rules, added after the ones you have. |
 | Link filter rules | Link filter rules. Exceptions go to the top, the filter rules to the bottom, and the filter is set to stop at the first rule that matches, so an exception keeps its links as it did in JDownloader. |
 | Extraction passwords | Added to the archive password list, without duplicates. |
-| Default download folder | The download folder, if you switch it on. It is a path on the machine JDownloader ran on, so check it exists here. |
-| Download list | Each package goes into the link collector with its name, comment and archive password, and waits there. Nothing starts until you start it. |
+| Default download folder | The download folder, if you switch it on. It is a path on the machine JDownloader ran on, so check it exists here. A path that does not fit this machine stays behind on its own. |
+| Download list | Each package goes into the link collector with its name, comment and archive password, and waits there. Nothing starts until you start it. A package with several archive passwords gets the first one, and all of them go into the archive password list. |
 
 An account or rule that is off in JDownloader arrives switched off. So do all
 Packagizer rules when the Packagizer as a whole was off.
@@ -75,10 +76,13 @@ These conditions have no counterpart here and keep the rule out:
 - "does not contain" or "does not equal" with a wildcard or a regular expression
   (a plain "does not contain" comes over)
 - a size outside a range, and "is not" of a file type
+- a size of exactly 0 bytes, which here looks the same as a size not known yet
 - a regular expression only Java can read, such as one with a lookbehind
 
 Plain text, wildcards and regular expressions keep JDownloader's matching:
-case does not matter unless the pattern says so. JDownloader's own built-in
+case does not matter unless the pattern says so. A size range that starts at
+0 bytes starts at 1 byte here, so a link whose size is not known yet does not
+match it, as in JDownloader. JDownloader's own built-in
 rules stay behind. The one that puts each package in its own folder is the
 switch "Put each package in its own subfolder" under Settings, Downloads.
 

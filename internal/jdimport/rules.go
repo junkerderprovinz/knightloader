@@ -123,13 +123,13 @@ func (c *Config) readRules(fsys fs.FS, dir, name, settingsFile, switchKey string
 		return nil
 	}
 	var out []JDRule
-	if err := json.Unmarshal(b, &out); err != nil {
+	if err := json.Unmarshal(jsonBytes(b), &out); err != nil {
 		c.problem(name, err)
 		return nil
 	}
 	if s, ok := c.readFile(fsys, dir, settingsFile); ok {
 		var m map[string]any
-		if json.Unmarshal(s, &m) == nil {
+		if json.Unmarshal(jsonBytes(s), &m) == nil {
 			if on, ok := m[switchKey].(bool); ok && !on {
 				for i := range out {
 					out[i].Enabled = false
@@ -364,12 +364,13 @@ func sizeCondition(f sizeFilter) (rules.Condition, *Reason) {
 		msg := fmt.Sprintf("the size range %d to %d bytes is empty", f.From, f.To)
 		return rules.Condition{}, reason("ruleInvalid", "KnightLoader cannot use this rule: "+msg, map[string]string{"error": msg})
 	}
-	// Max zero means no upper bound here, so JDownloader's 0..0 is an exact
-	// size.
+	// A size of 0 here is one not known yet, which JDownloader never tests, so
+	// a range has to start at 1 byte and an exact 0 cannot come over.
 	if f.To == 0 {
-		return rules.Condition{Field: rules.FieldFilesize, Op: rules.OpEquals, Value: "0"}, nil
+		msg := "a size of exactly 0 bytes looks the same here as a size not known yet"
+		return rules.Condition{}, reason("ruleInvalid", "KnightLoader cannot use this rule: "+msg, map[string]string{"error": msg})
 	}
-	return rules.Condition{Field: rules.FieldFilesize, Op: rules.OpBetween, Min: f.From, Max: f.To}, nil
+	return rules.Condition{Field: rules.FieldFilesize, Op: rules.OpBetween, Min: max(f.From, 1), Max: f.To}, nil
 }
 
 // hashExtensions are the checksum files behind JDownloader's hash box, which
