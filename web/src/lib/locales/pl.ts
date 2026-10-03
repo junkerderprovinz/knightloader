@@ -3047,6 +3047,10 @@ export const pl: Dict = {
   'settings.captcha.testSolversHint':
     'Wysyła tę samą captchę testową także do twoich kont captcha, w kolejności powyżej, żebyś zobaczył, czy na nią odpowiadają i czy trafnie. Liczą sobie za nią jak za każdą inną captchę. Gdy „Tylko gdy nikt nie patrzy” jest włączone, najpierw czekają na ciebie: przejdź do innej karty albo poczekaj, aż czas oczekiwania minie.',
   'settings.captcha.testOff': 'Captche są wyłączone. Włącz z powrotem moduł Captcha, żeby wysłać captchę testową.',
+  'settings.captcha.testJDOff':
+    'Captche przychodzą przez backend JDownloader, a ten jest wyłączony. Włącz go z powrotem, żeby wysłać captchę testową.',
+  'settings.captcha.testNoAccount':
+    'Żadne z twoich kont captcha nie może jej przyjąć. Włącz jedno powyżej i sprawdź na stronie Konta, czy ma klucz i jest włączone.',
   'captcha.solverStoppedTaken': '{solver} przejął tę captchę, ale nie wysłał odpowiedzi.',
   'captcha.solverNotPassedOn': '{solver} może i tak za nią policzyć, więc KnightLoader nie wysyła jej dodatkowo do innego konta captcha. Nadal możesz odpowiedzieć sam.',
   'captcha.solverNoAnswer': '{solver} ją przejął, ale nie wróciła żadna odpowiedź.',

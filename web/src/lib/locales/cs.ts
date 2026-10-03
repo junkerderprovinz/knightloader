@@ -3073,6 +3073,10 @@ export const cs: Dict = {
   'settings.captcha.testSolversHint':
     'Pošle stejnou zkušební captchu i na tvé účty captchy, v pořadí výše, abys viděl, jestli ji vyřeší a správně. Účtují si ji jako každou jinou captchu. Když je zapnuto „Jen když se nikdo nedívá“, čekají nejdřív na tebe: přepni na jinou kartu nebo nech čekání vypršet.',
   'settings.captcha.testOff': 'Captchy jsou vypnuté. Zapni znovu modul Captcha, abys mohl poslat zkušební captchu.',
+  'settings.captcha.testJDOff':
+    'Captchy chodí přes backend JDownloader a ten je vypnutý. Zapni ho znovu, abys mohl poslat zkušební captchu.',
+  'settings.captcha.testNoAccount':
+    'Žádný z tvých účtů captchy ji nemůže převzít. Zapni nahoře jeden a na stránce Účty zkontroluj, že má klíč a je zapnutý.',
   'captcha.solverStoppedTaken': '{solver} tuhle captchu převzal, ale neposlal odpověď.',
   'captcha.solverNotPassedOn': '{solver} si ji možná stejně naúčtuje, proto ji KnightLoader neposílá ještě dalšímu účtu captchy. Pořád na ni můžeš odpovědět sám.',
   'captcha.solverNoAnswer': '{solver} ji převzal, ale žádná odpověď se nevrátila.',

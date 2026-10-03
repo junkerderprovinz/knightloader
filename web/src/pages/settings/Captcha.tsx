@@ -7,7 +7,7 @@ import {
   fetchAccountCatalogue,
   fetchAccounts,
 } from '../../lib/api';
-import { useT } from '../../lib/i18n';
+import { type TranslationKey, useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
 import {
   Button,
@@ -156,16 +156,37 @@ export function Captcha() {
         </Card>
       )}
 
-      <TestCaptchaCard hue={order.length > 0 ? 2 : 1} solvers={order.length > 0} />
+      <TestCaptchaCard hue={order.length > 0 ? 2 : 1} solvers={canTakeATest(order, accounts)} />
     </div>
   );
+}
+
+/**
+ * canTakeATest reports whether one of the solvers in order would get a test
+ * captcha: it needs a key and must not be switched off on the Accounts page,
+ * as the instance's captchaSolvers decides.
+ */
+export function canTakeATest(order: string[], accounts: Account[]): boolean {
+  return order.some((id) => accounts.some((a) => a.service === id && a.account === '' && a.configured && a.enabled));
+}
+
+const TEST_REFUSALS: Partial<Record<string, TranslationKey>> = {
+  captchaOff: 'settings.captcha.testOff',
+  captchaJDOff: 'settings.captcha.testJDOff',
+  noCaptchaAccount: 'settings.captcha.testNoAccount',
+};
+
+/** testRefusal is the text that says why a test captcha did not go up. */
+export function testRefusal(e: unknown): TranslationKey {
+  return (e instanceof ApiError && TEST_REFUSALS[e.code ?? '']) || 'captcha.networkError';
 }
 
 /**
  * Puts up a test captcha, which arrives in the captcha window and the phone app
  * like a real one; how the answer compared comes back as a toast from
  * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
- * to them only from the second button, which shows while one is enabled.
+ * to them only from the second button, which shows while one of them could
+ * take it.
  */
 function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
   const { t } = useT();
@@ -177,8 +198,7 @@ function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
     try {
       await createTestCaptcha(toSolvers);
     } catch (e) {
-      const off = e instanceof ApiError && e.code === 'captchaOff';
-      toast(off ? t('settings.captcha.testOff') : t('captcha.networkError'), 'fail');
+      toast(t(testRefusal(e)), 'fail');
     } finally {
       setBusy(false);
     }

@@ -3063,6 +3063,10 @@ export const sv: Dict = {
   'settings.captcha.testSolversHint':
     'Skickar samma test-captcha till dina captcha-konton också, i ordningen ovan, så att du ser om de svarar och rätt. De tar betalt för den som för vilken captcha som helst. Med ”Bara när ingen tittar” påslaget väntar de först på dig: byt till en annan flik eller låt väntetiden gå ut.',
   'settings.captcha.testOff': 'Captchor är avstängda. Slå på modulen Captcha igen för att skicka en test-captcha.',
+  'settings.captcha.testJDOff':
+    'Captchor kommer via JDownloader-backend, och den är avstängd. Slå på den igen för att skicka en test-captcha.',
+  'settings.captcha.testNoAccount':
+    'Inget av dina captcha-konton kan ta emot den. Slå på ett ovan och kontrollera på sidan Konton att det har en nyckel och är påslaget.',
   'captcha.solverStoppedTaken': '{solver} tog den här captchan men skickade inget svar.',
   'captcha.solverNotPassedOn': '{solver} kan ta betalt för den ändå, så KnightLoader skickar den inte också till ett annat captcha-konto. Du kan fortfarande besvara den själv.',
   'captcha.solverNoAnswer': '{solver} tog den, men inget svar kom tillbaka.',

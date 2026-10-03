@@ -3047,6 +3047,10 @@ export const it: Dict = {
   'settings.captcha.testSolversHint':
     'Invia lo stesso captcha di prova anche ai tuoi account captcha, nell’ordine qui sopra, così vedi se rispondono e se indovinano. Lo fanno pagare come qualsiasi altro captcha. Con «Solo quando nessuno guarda» attivo, aspettano prima te: passa a un’altra scheda o lascia scadere l’attesa.',
   'settings.captcha.testOff': 'I captcha sono disattivati. Riattiva il modulo Captcha per inviare un captcha di prova.',
+  'settings.captcha.testJDOff':
+    'I captcha arrivano tramite il backend JDownloader, che è disattivato. Riattivalo per inviare un captcha di prova.',
+  'settings.captcha.testNoAccount':
+    'Nessuno dei tuoi account captcha può prenderlo. Attivane uno qui sopra e controlla nella pagina Account che abbia una chiave e sia attivo.',
   'captcha.solverStoppedTaken': '{solver} ha preso in carico questo captcha ma non ha mandato nessuna risposta.',
   'captcha.solverNotPassedOn': '{solver} potrebbe farlo pagare comunque, quindi KnightLoader non lo manda anche a un altro account captcha. Puoi ancora rispondere tu.',
   'captcha.solverNoAnswer': '{solver} l’ha preso in carico, ma non è tornata nessuna risposta.',

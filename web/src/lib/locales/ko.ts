@@ -3053,6 +3053,8 @@ export const ko: Dict = {
   'settings.captcha.testSolversHint':
     '같은 테스트 캡차를 위의 순서대로 캡차 계정에도 보내서, 답을 하는지 그리고 맞히는지 볼 수 있습니다. 다른 캡차처럼 요금이 청구됩니다. "아무도 보고 있지 않을 때만"이 켜져 있으면 먼저 사용자를 기다립니다. 다른 탭으로 옮기거나 대기 시간이 끝나게 두세요.',
   'settings.captcha.testOff': '캡차가 꺼져 있습니다. 테스트 캡차를 보내려면 캡차 모듈을 다시 켜세요.',
+  'settings.captcha.testJDOff': '캡차는 JDownloader 백엔드를 거쳐 오는데, 백엔드가 꺼져 있습니다. 테스트 캡차를 보내려면 다시 켜세요.',
+  'settings.captcha.testNoAccount': '어떤 캡차 계정도 이 캡차를 받을 수 없습니다. 위에서 하나를 켜고, 계정 페이지에서 키가 있고 켜져 있는지 확인하세요.',
   'captcha.solverStoppedTaken': '{solver}이(가) 이 캡차를 맡았지만 답을 보내지 않았습니다.',
   'captcha.solverNotPassedOn': '{solver}이(가) 그래도 요금을 청구할 수 있으므로, KnightLoader는 이것을 다른 캡차 계정에게 또 보내지 않습니다. 직접 답하는 것은 여전히 가능합니다.',
   'captcha.solverNoAnswer': '{solver}이(가) 맡았지만 답이 돌아오지 않았습니다.',

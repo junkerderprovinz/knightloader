@@ -3052,6 +3052,10 @@ export const fr: Dict = {
     'Envoie le même captcha de test à vos comptes captcha aussi, dans l’ordre ci-dessus, pour voir s’ils y répondent et juste. Ils le facturent comme n’importe quel captcha. Avec « Seulement quand personne ne regarde » activé, ils vous attendent d’abord : passez à un autre onglet ou laissez le délai s’écouler.',
   'settings.captcha.testOff':
     'Les captchas sont désactivés. Réactivez le module Captcha pour envoyer un captcha de test.',
+  'settings.captcha.testJDOff':
+    'Les captchas passent par le backend JDownloader, qui est désactivé. Réactivez-le pour envoyer un captcha de test.',
+  'settings.captcha.testNoAccount':
+    'Aucun de vos comptes captcha ne peut le prendre. Activez-en un ci-dessus et vérifiez sur la page Comptes qu’il a une clé et qu’il est activé.',
   'captcha.solverStoppedTaken': '{solver} a pris ce captcha mais n’a envoyé aucune réponse.',
   'captcha.solverNotPassedOn': '{solver} peut le facturer quand même : KnightLoader ne l’envoie donc pas en plus à un autre compte captcha. Vous pouvez toujours y répondre vous-même.',
   'captcha.solverNoAnswer': '{solver} l’a pris, mais aucune réponse n’est revenue.',

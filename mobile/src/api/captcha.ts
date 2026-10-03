@@ -109,6 +109,12 @@ export function testNotice(challenge: CaptchaChallenge, test: CaptchaTestResult 
   return { kind: test.correct ? 'testRight' : 'testWrong', challenge, test };
 }
 
+/** Whether the card offers to stop asking for the hoster or everywhere. A test
+ *  captcha has no hoster behind it, so either would only skip it. */
+export function offersToStopAsking(challenge: CaptchaChallenge): boolean {
+  return !challenge.test;
+}
+
 /**
  * The one thing worth a banner after a look at an instance, or null. A new
  * captcha comes first, since it asks for something. While the list is on

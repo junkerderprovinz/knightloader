@@ -3053,6 +3053,10 @@ export const pt: Dict = {
     'Envia o mesmo captcha de teste também para as tuas contas de captcha, pela ordem acima, para veres se o respondem e acertam. Cobram-no como qualquer outro captcha. Com «Só quando ninguém está a ver» ligado, esperam primeiro por ti: muda para outro separador ou deixa o tempo de espera acabar.',
   'settings.captcha.testOff':
     'Os captchas estão desligados. Volta a ligar o módulo Captcha para enviar um captcha de teste.',
+  'settings.captcha.testJDOff':
+    'Os captchas chegam pelo backend JDownloader, que está desligado. Volta a ligá-lo para enviar um captcha de teste.',
+  'settings.captcha.testNoAccount':
+    'Nenhuma das tuas contas de captcha o pode receber. Liga uma acima e confirma na página Contas que tem uma chave e está ligada.',
   'captcha.solverStoppedTaken': '{solver} ficou com este captcha, mas não enviou nenhuma resposta.',
   'captcha.solverNotPassedOn': '{solver} pode cobrá-lo na mesma, por isso o KnightLoader não o envia também a outra conta de captcha. Continuas a poder responder tu.',
   'captcha.solverNoAnswer': '{solver} ficou com ele, mas não veio nenhuma resposta.',

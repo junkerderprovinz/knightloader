@@ -3061,6 +3061,10 @@ export const gl: Dict = {
     'Envía o mesmo captcha de proba tamén ás túas contas de captcha, na orde de arriba, para que vexas se o responden e acertan. Cóbrano coma calquera outro captcha. Con «Só cando ninguén está mirando» activado, primeiro agárdante a ti: cambia a outra lapela ou deixa que remate a espera.',
   'settings.captcha.testOff':
     'Os captchas están desactivados. Volve activar o módulo Captcha para enviar un captcha de proba.',
+  'settings.captcha.testJDOff':
+    'Os captchas chegan polo backend JDownloader, que está desactivado. Volve activalo para enviar un captcha de proba.',
+  'settings.captcha.testNoAccount':
+    'Ningunha das túas contas de captcha pode collelo. Activa unha arriba e comproba na páxina Contas que ten unha chave e que está activada.',
   'captcha.solverStoppedTaken': '{solver} encargouse deste captcha, pero non enviou ningunha resposta.',
   'captcha.solverNotPassedOn': 'Pode que {solver} o cobre igualmente, así que KnightLoader non o envía tamén a outra conta de captcha. Aínda podes respondelo ti.',
   'captcha.solverNoAnswer': '{solver} encargouse del, pero non chegou ningunha resposta.',

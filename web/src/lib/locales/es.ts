@@ -3055,6 +3055,10 @@ export const es: Dict = {
     'Envía el mismo captcha de prueba también a tus cuentas de captcha, en el orden de arriba, para que veas si lo responden y aciertan. Lo cobran como cualquier otro captcha. Con «Solo cuando nadie está mirando» activado, primero te esperan a ti: cambia a otra pestaña o deja que se acabe la espera.',
   'settings.captcha.testOff':
     'Los captchas están desactivados. Vuelve a activar el módulo Captcha para enviar un captcha de prueba.',
+  'settings.captcha.testJDOff':
+    'Los captchas llegan a través del backend JDownloader, que está apagado. Vuelve a activarlo para enviar un captcha de prueba.',
+  'settings.captcha.testNoAccount':
+    'Ninguna de tus cuentas de captcha puede aceptarlo. Activa una arriba y comprueba en la página Cuentas que tiene una clave y está activada.',
   'captcha.solverStoppedTaken': '{solver} se encargó de este captcha, pero no envió ninguna respuesta.',
   'captcha.solverNotPassedOn': 'Puede que {solver} lo cobre igualmente, así que KnightLoader no lo envía además a otra cuenta de captcha. Todavía puedes responderlo tú.',
   'captcha.solverNoAnswer': '{solver} se encargó de él, pero no llegó ninguna respuesta.',

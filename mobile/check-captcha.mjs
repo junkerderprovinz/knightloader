@@ -116,6 +116,11 @@ expect('a wrong answer to a test captcha', notice(cap.testNotice(test, { correct
 });
 expect('an answer to a real captcha has no banner', cap.testNotice(early, undefined), null);
 
+// Stopping the questions for a hoster or everywhere would only skip a test
+// captcha, which has no hoster behind it.
+expect('a real captcha offers to stop asking', cap.offersToStopAsking(early), true);
+expect('a test captcha does not offer to stop asking', cap.offersToStopAsking(test), false);
+
 // JD's ClickedPoint for one point, MultiClickedPoint for several, in the
 // picture's own pixels whatever size the phone drew it at.
 expect('one point', JSON.parse(cap.clickAnswer([{ x: 0.5, y: 0.25 }], 300, 100)), { x: 150, y: 25 });

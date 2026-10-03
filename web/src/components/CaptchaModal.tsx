@@ -189,6 +189,10 @@ export function CaptchaModal() {
   // taken back when a widget loads, since another window's report is about a
   // window this one cannot see.
   const reported = useRef(new Set<string>());
+  // The test captchas answered in this window. Their result comes with the
+  // answer, which arrives even while the socket is down, so the broadcast
+  // need not show it a second time.
+  const answeredHere = useRef(new Set<string>());
 
   const current = useMemo(() => pickCurrent(challenges), [challenges]);
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
@@ -228,11 +232,14 @@ export function CaptchaModal() {
           // feedback; only a timeout or a resolution elsewhere needs a word,
           // and a test captcha's result, whoever answered it.
           if (r.test) {
-            toast(testResultText(t, r.test), r.test.correct ? 'ok' : 'fail', 'captcha-resolved');
+            if (!answeredHere.current.delete(r.id)) {
+              toast(testResultText(t, r.test), r.test.correct ? 'ok' : 'fail', 'captcha-resolved');
+            }
           } else if (r.reason === 'timedOut') {
             // 'info' styling, but a critical kind that quiet mode never hides:
-            // the download is now stuck.
-            toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
+            // the download is now stuck. Nothing waits on a test captcha.
+            const kind = r.testCaptcha ? 'captcha-resolved' : 'captcha-failed';
+            toast(t('captcha.timedOut', { host: r.host }), 'info', kind);
           } else if (r.reason === 'resolved') {
             toast(t('captcha.resolvedElsewhere', { host: r.host }), 'info', 'captcha-resolved');
           }
@@ -341,8 +348,10 @@ export function CaptchaModal() {
   async function handleContinue() {
     setBusy(true);
     try {
-      const { stillValid } = await answerCaptcha(current!.id, submitText());
-      if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
+      if (current!.test) answeredHere.current.add(current!.id);
+      const { stillValid, test } = await answerCaptcha(current!.id, submitText());
+      if (test) toast(testResultText(t, test), test.correct ? 'ok' : 'fail', 'captcha-resolved');
+      else if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
       // The challenge leaves through the "captchaResolved" broadcast.
     } catch {
       toast(t('captcha.networkError'), 'fail', 'captcha-failed');
@@ -554,26 +563,29 @@ export function CaptchaModal() {
         </p>
       )}
 
-      <div className="flex flex-col items-start gap-2">
-        <Button
-          kind="secondary"
-          icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen((v) => !v)}
-        >
-          {t('captcha.moreOptions')}
-        </Button>
-        {moreOpen && (
-          <div className="flex flex-col items-start gap-2">
-            <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
-              {t('captcha.blockHoster', { host: current.host || '?' })}
-            </Button>
-            <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
-              {t('captcha.blockEverywhere')}
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Stopping the questions for a hoster would only skip a test captcha. */}
+      {!current.test && (
+        <div className="flex flex-col items-start gap-2">
+          <Button
+            kind="secondary"
+            icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen((v) => !v)}
+          >
+            {t('captcha.moreOptions')}
+          </Button>
+          {moreOpen && (
+            <div className="flex flex-col items-start gap-2">
+              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
+                {t('captcha.blockHoster', { host: current.host || '?' })}
+              </Button>
+              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
+                {t('captcha.blockEverywhere')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </Modal>
   );
 }

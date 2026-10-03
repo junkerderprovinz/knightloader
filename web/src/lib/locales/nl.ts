@@ -3046,6 +3046,10 @@ export const nl: Dict = {
   'settings.captcha.testSolversHint':
     'Verstuurt dezelfde testcaptcha ook naar je captcha-accounts, in de volgorde hierboven, zodat je ziet of ze hem beantwoorden en goed. Ze rekenen hem af zoals elke andere captcha. Staat “Alleen als niemand meekijkt” aan, dan wachten ze eerst op jou: ga naar een ander tabblad of laat de wachttijd verlopen.',
   'settings.captcha.testOff': 'Captcha’s staan uit. Zet de module Captcha weer aan om een testcaptcha te versturen.',
+  'settings.captcha.testJDOff':
+    'Captcha’s komen binnen via de JDownloader-backend, en die staat uit. Zet hem weer aan om een testcaptcha te versturen.',
+  'settings.captcha.testNoAccount':
+    'Geen van je captcha-accounts kan hem aannemen. Zet er hierboven een aan en controleer op de pagina Accounts dat hij een sleutel heeft en aanstaat.',
   'captcha.solverStoppedTaken': '{solver} heeft deze captcha overgenomen, maar geen antwoord gestuurd.',
   'captcha.solverNotPassedOn': '{solver} rekent hem misschien toch aan, dus KnightLoader stuurt hem niet ook nog naar een andere captcha-account. Je kunt hem nog steeds zelf beantwoorden.',
   'captcha.solverNoAnswer': '{solver} heeft hem overgenomen, maar er kwam geen antwoord terug.',

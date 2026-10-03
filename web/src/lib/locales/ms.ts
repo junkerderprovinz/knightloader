@@ -3062,6 +3062,10 @@ export const ms: Dict = {
   'settings.captcha.testSolversHint':
     'Menghantar captcha ujian yang sama ke akaun captcha anda juga, mengikut susunan di atas, supaya anda dapat melihat sama ada mereka menjawabnya dan betul. Mereka mengenakan bayaran untuknya seperti captcha lain. Jika "Hanya apabila tiada sesiapa melihat" dihidupkan, mereka menunggu anda dahulu: tukar ke tab lain atau biarkan masa menunggu tamat.',
   'settings.captcha.testOff': 'Captcha dimatikan. Hidupkan semula modul Captcha untuk menghantar captcha ujian.',
+  'settings.captcha.testJDOff':
+    'Captcha datang melalui backend JDownloader, dan backend itu dimatikan. Hidupkan semula untuk menghantar captcha ujian.',
+  'settings.captcha.testNoAccount':
+    'Tiada akaun captcha anda yang boleh menerimanya. Hidupkan satu di atas, kemudian semak di halaman Akaun bahawa akaun itu ada kunci dan dihidupkan.',
   'captcha.solverStoppedTaken': '{solver} mengambil captcha ini tetapi tidak menghantar jawapan.',
   'captcha.solverNotPassedOn': '{solver} mungkin tetap mengenakan bayaran untuknya, jadi KnightLoader tidak menghantarnya kepada akaun captcha lain juga. Anda masih boleh menjawabnya sendiri.',
   'captcha.solverNoAnswer': '{solver} mengambilnya, tetapi tiada jawapan yang kembali.',

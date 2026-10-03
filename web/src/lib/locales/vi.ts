@@ -3063,6 +3063,10 @@ export const vi: Dict = {
   'settings.captcha.testSolversHint':
     'Gửi cùng captcha thử đó tới cả các tài khoản captcha của bạn, theo thứ tự ở trên, để bạn xem chúng có trả lời và trả lời đúng không. Chúng tính phí như với mọi captcha khác. Khi bật "Chỉ khi không ai đang xem", chúng sẽ chờ bạn trước: hãy chuyển sang thẻ khác hoặc để hết thời gian chờ.',
   'settings.captcha.testOff': 'Captcha đang tắt. Hãy bật lại mô-đun Captcha để gửi captcha thử.',
+  'settings.captcha.testJDOff':
+    'Captcha đến qua backend JDownloader, mà backend này đang tắt. Hãy bật lại để gửi captcha thử.',
+  'settings.captcha.testNoAccount':
+    'Không tài khoản captcha nào của bạn nhận được nó. Hãy bật một tài khoản ở trên và kiểm tra ở trang Tài khoản rằng nó có khóa và đang bật.',
   'captcha.solverStoppedTaken': '{solver} đã nhận captcha này nhưng không gửi câu trả lời.',
   'captcha.solverNotPassedOn': '{solver} có thể vẫn tính phí cho nó, nên KnightLoader không gửi nó thêm cho một tài khoản captcha khác. Bạn vẫn có thể tự trả lời.',
   'captcha.solverNoAnswer': '{solver} đã nhận nhưng không có câu trả lời nào quay về.',

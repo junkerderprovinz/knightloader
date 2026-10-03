@@ -5,6 +5,7 @@ import {
   answerableHere,
   clickAnswer,
   fmtCountdown,
+  offersToStopAsking,
   secondsLeft,
   solverStatus,
   testNotice,
@@ -226,25 +227,27 @@ export function CaptchaCard({
         )}
       </View>
 
-      <View style={styles.more}>
-        <GlimButton tone="quiet" label={t('captcha.moreOptions')} onPress={() => setMore((v) => !v)} />
-        {more && (
-          <>
-            <GlimButton
-              tone="quiet"
-              label={t('captcha.blockHoster', { host: challenge.host || '?' })}
-              disabled={busy}
-              onPress={() => void skip('blacklist-hoster')}
-            />
-            <GlimButton
-              tone="quiet"
-              label={t('captcha.blockEverywhere')}
-              disabled={busy}
-              onPress={() => void skip('blacklist-everywhere')}
-            />
-          </>
-        )}
-      </View>
+      {offersToStopAsking(challenge) && (
+        <View style={styles.more}>
+          <GlimButton tone="quiet" label={t('captcha.moreOptions')} onPress={() => setMore((v) => !v)} />
+          {more && (
+            <>
+              <GlimButton
+                tone="quiet"
+                label={t('captcha.blockHoster', { host: challenge.host || '?' })}
+                disabled={busy}
+                onPress={() => void skip('blacklist-hoster')}
+              />
+              <GlimButton
+                tone="quiet"
+                label={t('captcha.blockEverywhere')}
+                disabled={busy}
+                onPress={() => void skip('blacklist-everywhere')}
+              />
+            </>
+          )}
+        </View>
+      )}
 
       {solving && (
         <CaptchaWidget

@@ -3058,6 +3058,10 @@ export const eu: Dict = {
     'Proba-captcha bera zure captcha kontuetara ere bidaltzen du, goiko ordenan, erantzuten duten eta asmatzen duten ikus dezazun. Beste edozein captcha bezala kobratzen dute. «Inor begira ez dagoenean bakarrik» aktibatuta badago, lehenik zuri itxaroten dizute: aldatu beste fitxa batera edo utzi itxaronaldia amaitzen.',
   'settings.captcha.testOff':
     'Captchak desaktibatuta daude. Aktibatu berriro Captcha modulua proba-captcha bat bidaltzeko.',
+  'settings.captcha.testJDOff':
+    'Captchak JDownloader backendaren bidez datoz, eta itzalita dago. Aktibatu berriro proba-captcha bat bidaltzeko.',
+  'settings.captcha.testNoAccount':
+    'Zure captcha kontuetako batek ere ezin du hartu. Aktibatu bat goian, eta egiaztatu Kontuak orrian gakoa duela eta aktibatuta dagoela.',
   'captcha.solverStoppedTaken': '{solver}(e)k captcha hau hartu du, baina ez du erantzunik bidali.',
   'captcha.solverNotPassedOn': 'Baliteke {solver}(e)k hala ere kobratzea, beraz KnightLoaderrek ez dio beste captcha kontu bati ere bidaltzen. Zuk zeuk erantzun diezaiokezu oraindik.',
   'captcha.solverNoAnswer': '{solver}(e)k hartu du, baina ez da erantzunik itzuli.',

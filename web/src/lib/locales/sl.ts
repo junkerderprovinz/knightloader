@@ -3062,6 +3062,10 @@ export const sl: Dict = {
   'settings.captcha.testSolversHint':
     'Pošlje isto preizkusno captcho tudi tvojim računom captch, v vrstnem redu zgoraj, da vidiš, ali nanjo odgovorijo in pravilno. Zaračunajo jo kot vsako drugo captcho. Ko je vklopljeno »Samo ko nihče ne gleda«, najprej počakajo nate: preklopi na drug zavihek ali pusti, da čakanje poteče.',
   'settings.captcha.testOff': 'Captche so izklopljene. Znova vklopi modul Captcha, da pošlješ preizkusno captcho.',
+  'settings.captcha.testJDOff':
+    'Captche prihajajo prek zaledja JDownloader, ki je izklopljeno. Znova ga vklopi, da pošlješ preizkusno captcho.',
+  'settings.captcha.testNoAccount':
+    'Noben od tvojih računov captch je ne more prevzeti. Zgoraj vklopi enega in na strani Računi preveri, da ima ključ in je vklopljen.',
   'captcha.solverStoppedTaken': '{solver} je prevzel to captcho, a ni poslal odgovora.',
   'captcha.solverNotPassedOn': '{solver} jo morda vseeno zaračuna, zato je KnightLoader ne pošlje še drugemu računu captch. Še vedno lahko odgovoriš sam.',
   'captcha.solverNoAnswer': '{solver} jo je prevzel, a odgovor se ni vrnil.',
