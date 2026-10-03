@@ -72,11 +72,25 @@ func urlBodyLinks(body string) []string {
 		line = strings.TrimSpace(line)
 		found := parseText(line)
 		if len(found) == 1 && strings.HasPrefix(line, found[0]) {
-			found[0] = strings.ReplaceAll(line, " ", "%20")
+			found[0] = escapeRaw(line)
 		}
 		links = append(links, found...)
 	}
 	return links
+}
+
+// escapeRaw percent-encodes the bytes no request can carry raw, the space and
+// the control characters, and leaves the rest of the address as written.
+func escapeRaw(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if c := s[i]; c <= ' ' || c == 0x7f {
+			fmt.Fprintf(&b, "%%%02X", c)
+		} else {
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
 }
 
 func decryptCCF(data []byte) ([]byte, bool) {
