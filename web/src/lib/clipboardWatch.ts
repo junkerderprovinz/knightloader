@@ -1,23 +1,30 @@
 // The clipboard watch: while on, a link copied anywhere on the machine lands
-// in the collector, like JDownloader's clipboard observer.
+// in the collector, like JDownloader's clipboard observer. Only the links are
+// sent, to this instance or to the peer the target names.
 //
 // Reading needs navigator.clipboard.readText, which exists only in a secure
 // context, and there is no fallback for reading. On the usual plain-HTTP LAN
-// install WATCH_SUPPORTED is false and the switch explains why. Where it does
+// install the browser cannot watch and the switch explains why. Where it does
 // exist, Chrome asks for permission and refuses while the document is
 // unfocused, and Firefox refuses page scripts, so repeated refusals turn the
 // watch off.
 //
+// The desktop app watches from Go instead (desktop/clipwatch.go), also while
+// its window is hidden, and the page there only shows what it reports.
+//
 // Ctrl+V in the window works everywhere, through GlobalIntake.
-import { addLinks } from './api';
+import { addLinks, apiBase } from './api';
+import { isDesktop } from './desktop';
 
-/** Whether this origin can read the clipboard at all. It cannot change
+/** Whether this page can watch the clipboard at all. It cannot change
  *  without a reload. */
 export const WATCH_SUPPORTED =
-  typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
+  typeof window !== 'undefined' && (isDesktop() || !!navigator.clipboard?.readText);
 
-/** The remembered-field name, shared by the settings card and the collector's own button. */
+/** The interface-state fields desktop/clipwatch.go reads: the switch, which
+ *  only the desktop app keeps there (see useClipboardWatch), and the target. */
 export const WATCH_FIELD = 'clipboardWatch';
+export const TARGET_FIELD = 'clipboardWatchTarget';
 
 /** How often the clipboard is re-read while the window has focus. */
 const POLL_MS = 1200;
@@ -26,24 +33,44 @@ const POLL_MS = 1200;
  *  not focused" happens routinely between hasFocus() and the read. */
 const REFUSALS_BEFORE_GIVING_UP = 3;
 
-/** Anything that could be a link. Loose, since the server does the parsing,
- *  but it keeps every copied word from becoming a request. */
-const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftp:\/\/)\S+/i;
+/** A link is one of these schemes and more, at the start of the text or after
+ *  white space: the web, magnets, and the own servers internal/resolver/remotefs
+ *  fetches from. Loose, since the server does the parsing, but it keeps every
+ *  copied word from becoming a request. The browser extension's watch uses the
+ *  same rule (extension/src/clipwatch.js), and extension/check-clipwatch.mjs
+ *  keeps the two alike. */
+const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftps?:\/\/|sftp:\/\/|webdavs?:\/\/)\S+/i;
+
+/**
+ * clipboardLinks returns the links of a copied text, which is all the watch
+ * sends. clipboardWatch.cases.json holds desktop/clipwatch.go to the same
+ * rule.
+ */
+export function clipboardLinks(text: string): string[] {
+  const every = new RegExp(LOOKS_LIKE_A_LINK.source, 'gi');
+  return Array.from(text.matchAll(every), (m) => m[0].trim());
+}
 
 export type WatchOutcome =
   | { kind: 'staged'; n: number }
   | { kind: 'none' }
   | { kind: 'denied'; reason: string }
-  | { kind: 'failed'; reason: string };
+  | { kind: 'failed'; reason: string }
+  /** Only the desktop app on a Wayland session without wl-paste's watch
+   *  reports it: the clipboard is visible there only while the window has
+   *  focus. */
+  | { kind: 'limited' }
+  /** Only the desktop app reports it: another device switched its watch off. */
+  | { kind: 'stopped' };
 
 /**
  * startClipboardWatch polls the clipboard until the returned function is
  * called, reporting only when something happened. The first read is only
  * remembered, so switching the watch on does not import what was copied an
- * hour ago.
+ * hour ago. `target` is '' for this instance, otherwise a peer's name.
  */
-export function startClipboardWatch(onOutcome: (o: WatchOutcome) => void): () => void {
-  if (!WATCH_SUPPORTED) return () => {};
+export function startClipboardWatch(target: string, onOutcome: (o: WatchOutcome) => void): () => void {
+  if (!navigator.clipboard?.readText) return () => {};
 
   let stopped = false;
   let last: string | null = null;
@@ -80,10 +107,11 @@ export function startClipboardWatch(onOutcome: (o: WatchOutcome) => void): () =>
     if (trimmed === last) return schedule();
     last = trimmed;
 
-    if (!trimmed || !LOOKS_LIKE_A_LINK.test(trimmed)) return schedule();
+    const links = clipboardLinks(trimmed);
+    if (links.length === 0) return schedule();
 
     try {
-      const created = await addLinks(trimmed, '');
+      const created = await addLinks(links.join('\n'), '', apiBase(target));
       // A link already in the collector answers with an empty list; not a failure.
       onOutcome(created.length ? { kind: 'staged', n: created.length } : { kind: 'none' });
     } catch (e) {

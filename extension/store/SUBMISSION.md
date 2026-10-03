@@ -118,6 +118,10 @@ Edge shows it read-only):
 >   files are queued, with a button to open each one's web interface.
 > - Paste or drop several links (or a file that contains them) into the popup's
 >   collector and send them together.
+> - Watch the clipboard, if you switch it on: a link you copy anywhere goes to
+>   your default instance. Only the links leave the browser. When another of
+>   your devices already watches, the extension names it and offers to switch
+>   it off there.
 >
 > Setting it up takes one step: enter the twelve-word connection phrase your
 > KnightLoader instances share. The extension stores no server address and no
@@ -130,7 +134,8 @@ Edge shows it read-only):
 > encrypted, so the relay cannot read the links you send. There are no analytics,
 > no ads and no tracking. The extension asks for no website access when you
 > install it, and it reads the tab you are on only when you click its button or
-> use its right-click menu. Click'n'Load needs access to all websites, because its
+> use its right-click menu. It reads the clipboard only while you have the
+> clipboard watch switched on, after the browser asked you for that. Click'n'Load needs access to all websites, because its
 > buttons can be on any site. The extension asks for that access when you switch
 > Click'n'Load on, and gives it back when you switch it off.
 
@@ -195,7 +200,8 @@ Both dashboards ask the same questions. Each justification below is under the
 
 > Keeps the user's settings in the browser: the connection phrase, a random ID for
 > this browser within the user's group, the default instance, and interface
-> settings (language, theme, Click'n'Load on or off, countdown length). While a
+> settings (language, theme, Click'n'Load on or off, countdown length, clipboard
+> watch on or off). While a
 > send waits in the popup, it is held in session storage until the popup reads it.
 
 `scripting`
@@ -231,8 +237,29 @@ required host permission; `<all_urls>` is only under `optional_host_permissions`
 
 `clipboardRead` (optional permission)
 
-> Requested only when the user presses the paste button next to the phrase field,
-> to paste the twelve-word connection phrase. Not requested at install.
+> Not requested at install. Requested when the user presses the paste button next
+> to the phrase field, to paste the twelve-word connection phrase, or switches on
+> the clipboard watch in the options. While the watch is on, the extension reads
+> the clipboard about once a second; when the text contains links, those links
+> alone are sent to the user's own default instance, and the rest of the text
+> stays in the browser and is not kept. Switching the watch off stops the
+> reading.
+
+`offscreen`
+
+> Opens one hidden extension page, with the CLIPBOARD reason, while the user has
+> the clipboard watch switched on, and closes it when they switch it off. The
+> service worker has no document and cannot read the clipboard; the offscreen
+> page reads it and passes the links it finds to the service worker, which sends
+> them. It loads no remote content and shows nothing.
+
+`alarms`
+
+> One alarm a minute while the clipboard watch is on. It renews this browser's
+> entry on the list of clipboard watchers in the user's group, so another of
+> their devices can warn them before both watch at once, and it reopens the
+> clipboard reader if the browser closed it. The alarm is cleared when the watch
+> is switched off.
 
 **Remote code**: No, I am not using remote code. Every script ships in the
 package; messages from the relay are data and are never executed.
@@ -243,7 +270,7 @@ package; messages from the relay are data and are never executed.
 | --- | --- |
 | Web history | The address and title of a page the user chooses to send, and the title of the page a link, image, selection or Click'n'Load batch is sent from. |
 | User activity | The Click'n'Load script checks, in the browser, where each request, form submission and link click in a page goes, to catch those aimed at 127.0.0.1:9666. Nothing else about them is kept or sent. |
-| Website content | Links, image addresses and selected text the user sends, links pasted or loaded into the popup's collector, and link lists from Click'n'Load buttons. |
+| Website content | Links, image addresses and selected text the user sends, links pasted or loaded into the popup's collector, link lists from Click'n'Load buttons, and links the user copies while the clipboard watch is on. |
 | Authentication information | The connection phrase is a credential. It stays in the browser, but a key derived from it is sent to the relay to join the user's group. |
 | Location | The IP address the relay receives on every connection. It is kept only after a failed relay handshake, in memory for rate limiting, and deleted within 61 minutes of that address's last failed attempt. |
 
@@ -386,6 +413,11 @@ because the last line is what the field cuts.
 >   sees the group key and routing IDs, never the content.
 > - `wordlist.js` is the phrase word list and `i18n.js` holds 42 locales, which is
 >   why both are large.
+> - The clipboard watch reads the clipboard in Chromium through an offscreen
+>   document, which is why the manifest names the `offscreen` permission and
+>   `background.js` calls `chrome.offscreen`. Firefox ignores both: the call
+>   is skipped where `chrome.offscreen` does not exist, and the background page
+>   reads the clipboard itself, only while the user has the watch switched on.
 > - `vendor/qrcode.js` is the unmodified qrcode-generator 2.0.4 library
 >   (MIT, https://www.npmjs.com/package/qrcode-generator, `dist/qrcode.js`). The
 >   options page uses it to draw the donation addresses in `donate.js` as QR

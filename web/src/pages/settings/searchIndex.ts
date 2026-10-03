@@ -58,6 +58,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.module.cnl', hint: 'settings.linkIntake.cnlHint' },
         { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
+        { key: 'intake.clipboardWatchTarget', hint: 'intake.clipboardWatchTargetHint' },
         { key: 'settings.autoStart', hint: 'settings.autoStartHint' },
         { key: 'settings.module.watch', hint: 'settings.watchDirFilesHint' },
       ],
