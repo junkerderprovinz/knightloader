@@ -82,7 +82,34 @@ func ytdlpHelper(mode string) {
 	case "nosubs":
 		// A language the source lacks: exit 0 without a word.
 	case "subs":
-		fmt.Println("[info] Writing video subtitles to: " + filepath.Join(dir, "A Video.de.srt"))
+		sub := filepath.Join(dir, "A Video.de.srt")
+		_ = os.WriteFile(sub, []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + sub)
+	case "thumbnail":
+		// Fetched as webp, then converted to the jpg the row asked for.
+		webp := filepath.Join(dir, "A Video.webp")
+		_ = os.WriteFile(webp, []byte("webp"), 0o644)
+		fmt.Println("[info] Writing video thumbnail 41 to: " + webp)
+		_ = os.WriteFile(filepath.Join(dir, "A Video.jpg"), []byte("jpeg bytes"), 0o644)
+		_ = os.Remove(webp)
+		fmt.Printf("[ThumbnailsConvertor] Converting thumbnail \"%s\" to jpg\n", webp)
+	case "description":
+		desc := filepath.Join(dir, "A Video.description")
+		_ = os.WriteFile(desc, []byte("Line one.\nLine two.\n"), 0o644)
+		fmt.Println("[info] Writing video description to: " + desc)
+	case "partial":
+		// Part way through the video stream of a merged download, fetched in
+		// fragments, and staying there until it is killed.
+		info := filepath.Join(dir, "A Video.info.json")
+		stream := filepath.Join(dir, "A Video.f137.mp4")
+		_ = os.WriteFile(info, []byte(helperInfoJSON), 0o644)
+		fmt.Println("[info] Writing video metadata as JSON to: " + info)
+		fmt.Println("[download] Destination: " + stream)
+		for _, suffix := range []string{".part", ".ytdl", ".part-Frag3"} {
+			_ = os.WriteFile(stream+suffix, []byte("partial"), 0o644)
+		}
+		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(stream) + `"}`)
+		time.Sleep(time.Minute)
 	case "live":
 		// A stream with is_live on every line and no total. The interrupt is
 		// ignored so the result does not depend on whether the platform
@@ -587,5 +614,118 @@ func TestRecordingTellsALiveStreamFromADownload(t *testing.T) {
 				t.Error("Recording is still true once the recording has ended")
 			}
 		})
+	}
+}
+
+// The thumbnail, subtitle and description rows announce their file with
+// yt-dlp's "Writing" lines rather than a Destination, and a removal with files
+// deletes the file the task recorded.
+func TestRunReportsTheFileOfASidecarRow(t *testing.T) {
+	for _, tc := range []struct {
+		mode    string
+		variant Variant
+		file    string
+	}{
+		{"thumbnail:full", VariantThumbnail, "A Video.jpg"},
+		{"description:full", VariantDescription, "A Video.description"},
+		{"subs:full", VariantSubtitle, "A Video.de.srt"},
+	} {
+		t.Run(string(tc.variant), func(t *testing.T) {
+			dir, rec := runFake(t, tc.mode, Options{Variant: tc.variant, SubtitleLangs: "de", Embed: Embed{NFO: true}})
+			got := rec.last()
+			if got.Status != core.StatusDone {
+				t.Fatalf("last update = %+v, want Done", got)
+			}
+			want := filepath.Join(dir, tc.file)
+			fi, err := os.Stat(want)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got.File != want || got.Size != fi.Size() {
+				t.Errorf("File = %q, Size = %d, want %q of %d bytes", got.File, got.Size, want, fi.Size())
+			}
+			if _, err := os.Stat(nfoPath(want)); err == nil {
+				t.Error("a sidecar row wrote an NFO of its own")
+			}
+		})
+	}
+}
+
+// Nothing of an unfinished download is the app's to delete: the stream files,
+// their .part, .ytdl and fragment files and the info json are yt-dlp's, and
+// only the backend saw their names.
+func TestRemovingWithFilesTakesWhatAnUnfinishedDownloadWrote(t *testing.T) {
+	for _, paused := range []bool{false, true} {
+		name := "running"
+		if paused {
+			name = "paused"
+		}
+		t.Run(name, func(t *testing.T) {
+			t.Setenv(runHelperEnv, "partial:full")
+			dir := t.TempDir()
+			theirs := filepath.Join(dir, "Another Video.f137.mp4.part")
+			if err := os.WriteFile(theirs, []byte("someone else's"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			rec := &recorder{}
+			b := NewBackend(os.Args[0], dir, rec.add)
+			b.Options = func(string) Options { return Options{} }
+			b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+			deadline := time.Now().Add(30 * time.Second)
+			for rec.last().Loaded == 0 {
+				if time.Now().After(deadline) {
+					t.Fatal("yt-dlp never reported progress")
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+			if paused {
+				b.Pause("task-1")
+				for {
+					b.mu.Lock()
+					_, running := b.runs["task-1"]
+					b.mu.Unlock()
+					if !running {
+						break
+					}
+					if time.Now().After(deadline) {
+						t.Fatal("the paused yt-dlp never exited")
+					}
+					time.Sleep(10 * time.Millisecond)
+				}
+			}
+
+			b.Remove("task-1", true)
+
+			stream := filepath.Join(dir, "A Video.f137.mp4")
+			for _, f := range []string{stream + ".part", stream + ".ytdl", stream + ".part-Frag3", filepath.Join(dir, "A Video.info.json")} {
+				if _, err := os.Stat(f); err == nil {
+					t.Errorf("%s survived a removal with files", filepath.Base(f))
+				}
+			}
+			if _, err := os.Stat(theirs); err != nil {
+				t.Errorf("a file the task never wrote was deleted: %v", err)
+			}
+		})
+	}
+}
+
+// The app takes a task off a backend that gave up on its link from inside the
+// failure update, and a removal with files waits for the run to end.
+func TestRemovingWithFilesFromTheFailureUpdateDoesNotWaitForItself(t *testing.T) {
+	t.Setenv(runHelperEnv, "botcheck:full")
+	removed := make(chan struct{})
+	var b *Backend
+	b = NewBackend(os.Args[0], t.TempDir(), func(id string, u core.Update) {
+		if u.Status == core.StatusError {
+			b.Remove(id, true)
+			close(removed)
+		}
+	})
+	b.Options = func(string) Options { return Options{} }
+	b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+	select {
+	case <-removed:
+	case <-time.After(30 * time.Second):
+		t.Fatal("Remove called from the failure update never returned")
 	}
 }
