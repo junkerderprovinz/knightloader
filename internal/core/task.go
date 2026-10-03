@@ -438,7 +438,8 @@ type Task struct {
 	SkipReason string `json:"skipReason,omitempty"`
 	// SkipCode is SkipReason as a value, for an interface that words it in the
 	// reader's language, and SkipParams holds the values that wording needs.
-	// Empty for a reason somebody wrote. Neither is changed after it is set.
+	// Empty for a reason somebody wrote. Only a later hold replaces them, as
+	// when the history holds a link the user restored past the filter.
 	SkipCode   string            `json:"skipCode,omitempty"`
 	SkipParams map[string]string `json:"skipParams,omitempty"`
 	// Forced starts a task now, past the concurrency and per-host limits.

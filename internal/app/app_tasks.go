@@ -471,11 +471,12 @@ func (a *App) analyze(id, rawurl string) {
 
 // holdIfDownloaded asks the history again about a collected link whose size
 // was unknown at staging, which a mirror policy that compares sizes needs,
-// and moves the link to the rejected links when the history has the file.
+// and moves the link to the rejected links when the history has the file. A
+// link the user restored from the history's own hold is left alone.
 func (a *App) holdIfDownloaded(id string) {
 	a.mu.Lock()
 	t := a.tasks[id]
-	if t == nil || t.Skipped || restoredLink(t) || t.Status != core.StatusCollected {
+	if t == nil || t.Skipped || (restoredLink(t) && t.SkipCode == skipDownloaded) || t.Status != core.StatusCollected {
 		a.mu.Unlock()
 		return
 	}
@@ -492,8 +493,7 @@ func (a *App) holdIfDownloaded(id string) {
 		a.mu.Unlock()
 		return
 	}
-	t.Skipped = true
-	t.SkipReason, t.SkipCode, t.SkipParams = v.Reason, v.Code, v.Params
+	holdForHistoryLocked(t, v, filterWaived(t))
 	c := a.copyLocked(t)
 	a.mu.Unlock()
 	a.publish(&c)
