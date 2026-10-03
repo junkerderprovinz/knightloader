@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
@@ -82,5 +83,58 @@ func TestSanitizeIdentityCapsKnownDomains(t *testing.T) {
 func TestSanitizeIdentityEmptyStaysNonNil(t *testing.T) {
 	if got := sanitizeIdentity(Settings{}).KnownDomains; got == nil {
 		t.Error("KnownDomains = nil, want a non-nil empty slice so it always serialises as [], never JSON null")
+	}
+}
+
+// settings.json is written by the first save only, so until then the id has
+// to come back from somewhere else, or every restart joins the relay group and
+// the watcher list as a new device.
+func TestTheInstanceIDSurvivesARestartBeforeTheFirstSave(t *testing.T) {
+	for name, body := range map[string]string{
+		"fresh install":      "",
+		"file without an id": `{"speedLimit": 5000}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			if body != "" {
+				writeSettings(t, dir, body)
+			}
+			first, err := Load(dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			second, err := Load(dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if a, b := first.Get().InstanceID, second.Get().InstanceID; a == "" || a != b {
+				t.Errorf("InstanceID went from %q to %q across a restart", a, b)
+			}
+			if _, err := os.Stat(first.Path()); body == "" && !os.IsNotExist(err) {
+				t.Errorf("Load wrote %s, which says the instance has saved its settings: %v", first.Path(), err)
+			}
+		})
+	}
+}
+
+// Once settings.json holds an id, that one is the instance's, also after a
+// restore put another box's file in place.
+func TestTheSavedInstanceIDWinsOverTheEarlierOne(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Set(s.Get()); err != nil {
+		t.Fatal(err)
+	}
+	restored := "0123456789abcdef0123456789abcdef01234567"
+	writeSettings(t, dir, `{"instanceId": "`+restored+`"}`)
+	again, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := again.Get().InstanceID; got != restored {
+		t.Errorf("InstanceID = %q, want %q from settings.json", got, restored)
 	}
 }
