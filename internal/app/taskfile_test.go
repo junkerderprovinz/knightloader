@@ -3,12 +3,14 @@ package app
 import (
 	"bytes"
 	"context"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -724,5 +726,45 @@ func TestTheNFOTwoYtdlpRowsShareGoesWithTheLastOfThem(t *testing.T) {
 	a.Remove("1", true)
 	if fileExists(nfo) {
 		t.Error("the .nfo survived the removal of the last row that had it")
+	}
+}
+
+// lockedLog collects the standard logger's lines for a test, which other
+// goroutines may log to at the same time.
+type lockedLog struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (l *lockedLog) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.Write(p)
+}
+
+func (l *lockedLog) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.String()
+}
+
+// A thumbnail, subtitle or description row shows the extension of its kind
+// next to its name, so a file under that name and extension is under the
+// task's own name and gets no note in the log.
+func TestASidecarRowSavedUnderTheNameItShowsGetsNoNote(t *testing.T) {
+	logged := &lockedLog{}
+	prev := log.Writer()
+	log.SetOutput(logged)
+	t.Cleanup(func() { log.SetOutput(prev) })
+	dir := t.TempDir()
+	a := &App{}
+	a.recordFileLocked(&core.Task{ID: "thumb", URL: "https://media.example/v", Name: "A Video", Ext: "jpg"}, filepath.Join(dir, "A Video.jpg"))
+	a.recordFileLocked(&core.Task{ID: "other", URL: "https://media.example/w", Name: "B Video", Ext: "jpg"}, filepath.Join(dir, "B Video (1).jpg"))
+
+	if strings.Contains(logged.String(), "(task thumb)") {
+		t.Errorf("a row saved under the name it shows was logged as saved under another:\n%s", logged)
+	}
+	if !strings.Contains(logged.String(), "(task other)") {
+		t.Errorf("a row saved under another name than it shows was not logged:\n%s", logged)
 	}
 }

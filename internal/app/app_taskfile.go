@@ -193,13 +193,16 @@ func (l torrentLeftover) drop() {
 // recordFileLocked notes where a backend is writing t's bytes, and says so in
 // the task's log when that is not under the task's own name: the library
 // steps around a file that is already there and rewrites characters a file
-// name cannot hold. Caller holds a.mu.
+// name cannot hold. A yt-dlp row shows its extension apart from its name (see
+// core.Task.Ext), and a file under the name with that extension is under the
+// task's own name. Caller holds a.mu.
 func (a *App) recordFileLocked(t *core.Task, file string) {
 	if file == "" || file == t.File {
 		return
 	}
 	t.File = file
-	if t.Name != "" && t.Name != t.URL && filepath.Base(file) != t.Name {
+	base := filepath.Base(file)
+	if t.Name != "" && t.Name != t.URL && base != t.Name && (t.Ext == "" || base != t.Name+"."+t.Ext) {
 		log.Printf("this download is saved as %s rather than %s%s", file, t.Name, taskTag(t.ID))
 	}
 }
