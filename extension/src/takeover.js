@@ -66,7 +66,7 @@ async function takeOver(item, pause) {
     referrer: item.referrer,
     userAgent: navigator.userAgent,
   });
-  const inst = await handLinkOver({ url: item.url, source: item.referrer, headers }).catch(() => null);
+  const inst = await handLinkOver({ url: item.url, source: item.referrer, headers, file: downloadName(item) }).catch(() => null);
   if (!inst) {
     if (paused) await chrome.downloads.resume(item.id).catch(() => {});
     flashBadge('!', '#da1e28', 'takeover.kept');
@@ -98,8 +98,11 @@ async function cookiesFor(url, storeId) {
  * popup picked one, else the default. Resolves with the instance it went to,
  * or null when it did not arrive, which includes a link the instance already
  * had. A download from one of the group's own instances is never handed back.
+ * `file` is the name of a file the browser was downloading, so the instance
+ * fetches the link as that file and does not look for media behind it; a
+ * stream has none.
  */
-async function handLinkOver({ url, source, title, headers, target }) {
+async function handLinkOver({ url, source, title, headers, target, file }) {
   return withGroup(async ({ siblings, call }) => {
     if (siblings.length === 0) return null;
     if (await fromOwnInstance(url, siblings, call)) return null;
@@ -114,6 +117,7 @@ async function handLinkOver({ url, source, title, headers, target }) {
         origin: 'cnl',
         source: /^https?:\/\//i.test(source ?? '') ? source : '',
         headers,
+        ...(file === undefined ? {} : { file: true, name: file }),
       }),
     );
     if (res.status < 200 || res.status >= 300) return null;
@@ -123,7 +127,9 @@ async function handLinkOver({ url, source, title, headers, target }) {
     } catch {
       return null;
     }
-    if (!Array.isArray(created) || created.length === 0) return null;
+    // A link the instance held back, as already downloaded or by its filter,
+    // comes back as a skipped task, and the browser keeps that download.
+    if (!Array.isArray(created) || !created.some((task) => task && !task.skipped)) return null;
     return siblings.find((s) => s.instanceId === to) ?? null;
   });
 }

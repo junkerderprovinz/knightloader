@@ -198,6 +198,7 @@ for (const chromium of [true, false]) {
     if (!sent) { fail(`${where}: a matching download was never handed over`); continue; }
     if (sent.headers.Cookie !== 'session=abc; lang=de') fail(`${where}: the cookies for the download's host did not go along: ${JSON.stringify(sent.headers)}`);
     if (sent.headers.Referer !== 'https://files.example/thread' || sent.headers['User-Agent'] !== 'Mozilla/5.0 (Test)') fail(`${where}: Referer or User-Agent missing: ${JSON.stringify(sent.headers)}`);
+    if (sent.file !== 'film.mkv') fail(`${where}: the download went over without the browser's file name, so the instance may take it for a page: ${JSON.stringify(sent)}`);
     if (!calls.cancelled.includes(7) || !calls.erased.includes(7)) fail(`${where}: a download the instance took is still in the browser`);
     if (!calls.notified.some((m) => m.includes('film.mkv') && m.includes('NAS'))) fail(`${where}: the note does not name the file and the instance: ${JSON.stringify(calls.notified)}`);
     if (chromium && !suggested) fail('Chromium: the download was never released from the name step');
@@ -209,6 +210,35 @@ for (const chromium of [true, false]) {
     if (!chromium && !calls.resumed.includes(7)) fail('Firefox: after a failed hand-over the paused download was not resumed');
     if (!calls.badge.includes('!')) fail(`${where}: a failed hand-over says nothing`);
   }
+}
+
+// A link the instance holds back as already downloaded, or by its filter,
+// comes back as a skipped task and does not count as handed over.
+{
+  const ctx = load(makeChrome().chrome);
+  const nas = { instanceId: 'a'.repeat(40), name: 'NAS' };
+  let posted = null;
+  const answerWith = (tasks) => {
+    ctx.withGroup = async (work) => work({
+      siblings: [nas],
+      call: async (_to, _method, path, body) => {
+        if (path !== '/api/links') return { status: 200, body: '{}' };
+        posted = JSON.parse(body);
+        return { status: 200, body: JSON.stringify(tasks) };
+      },
+    });
+  };
+  const hand = vm.runInContext('handLinkOver', ctx);
+  const link = { url: 'https://files.example/get/film.mkv', headers: {} };
+  answerWith([{ id: '1', skipped: true, skipCode: 'downloaded' }]);
+  if (await hand(link)) fail('a link the instance only holds as already downloaded counted as handed over, so the browser drops its download');
+  answerWith([{ id: '1', skipped: true, skipCode: 'filterRule' }]);
+  if (await hand(link)) fail('a link the link filter held back counted as handed over');
+  answerWith([{ id: '1' }]);
+  if ((await hand(link))?.instanceId !== nas.instanceId) fail('a link the instance staged did not count as handed over');
+  if ('file' in posted || 'name' in posted) fail(`a stream was posted as a file: ${JSON.stringify(posted)}`);
+  await hand({ ...link, file: 'report.pdf' });
+  if (posted.file !== true || posted.name !== 'report.pdf') fail(`a download was not posted as the file the browser named: ${JSON.stringify(posted)}`);
 }
 
 // Switched off, nothing is touched.
@@ -239,6 +269,7 @@ for (const chromium of [true, false]) {
   if (!sent) fail('the popup could not send a stream');
   else {
     if (sent.headers.Referer !== msg.page || sent.source !== msg.page) fail(`a stream went without its page: ${JSON.stringify(sent)}`);
+    if (sent.file !== undefined) fail('a stream went over as a file, which keeps it from yt-dlp');
     if (sent.headers.Cookie !== 'session=abc; lang=de') fail(`a stream went without the cookies for its own address: ${JSON.stringify(sent.headers)}`);
     if (sent.target !== msg.target) fail('a stream did not go to the instance the popup picked');
   }
