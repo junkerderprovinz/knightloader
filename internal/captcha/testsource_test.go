@@ -3,6 +3,8 @@ package captcha
 import (
 	"bytes"
 	"encoding/base64"
+	"image"
+	"image/color"
 	"image/png"
 	"strings"
 	"testing"
@@ -111,5 +113,41 @@ func TestATestCaptchaIsAnImageThePromptsAndSolversCanUse(t *testing.T) {
 	}
 	if b := img.Bounds(); b.Dx() < 150 || b.Dy() < 50 {
 		t.Errorf("the picture is %dx%d, too small to read", b.Dx(), b.Dy())
+	}
+}
+
+func TestATestCaptchaHoldsNoTwoCharactersATiltTurnsIntoEachOther(t *testing.T) {
+	for _, pair := range []string{"0O", "1I", "IL", "2Z", "5S", "6G", "8B", "TJ", "VY", "KX", "HN", "HW", "MN", "MW", "NW"} {
+		if strings.ContainsRune(testAlphabet, rune(pair[0])) && strings.ContainsRune(testAlphabet, rune(pair[1])) {
+			t.Errorf("the alphabet holds both %c and %c", pair[0], pair[1])
+		}
+	}
+}
+
+func TestTheNoiseInATestCaptchaNeverCutsAStroke(t *testing.T) {
+	dark := func(c color.RGBA) bool { return int(c.R)+int(c.G)+int(c.B) < 3*0x70 }
+	for range 20 {
+		raw, err := drawTestCaptcha("HKMPR")
+		if err != nil {
+			t.Fatal(err)
+		}
+		img, err := png.Decode(bytes.NewReader(raw))
+		if err != nil {
+			t.Fatal(err)
+		}
+		rgba := img.(*image.RGBA)
+		b := rgba.Bounds()
+		for y := b.Min.Y + 1; y < b.Max.Y-1; y++ {
+			for x := b.Min.X + 1; x < b.Max.X-1; x++ {
+				if rgba.RGBAAt(x, y) != testNoise {
+					continue
+				}
+				across := dark(rgba.RGBAAt(x-1, y)) && dark(rgba.RGBAAt(x+1, y))
+				down := dark(rgba.RGBAAt(x, y-1)) && dark(rgba.RGBAAt(x, y+1))
+				if across || down {
+					t.Fatalf("a noise pixel at %d,%d sits inside a stroke", x, y)
+				}
+			}
+		}
 	}
 }
