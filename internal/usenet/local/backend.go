@@ -278,7 +278,9 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 
 // fetch downloads the articles the map lacks, on as many workers as the
 // client has connections, and reports how many no server had. An error is a
-// server that stayed unreachable.
+// server that stayed unreachable. A server given more connections meanwhile
+// gets more workers at the next progress report; one given fewer holds the
+// extra workers back in the client.
 func (b *Backend) fetch(ctx context.Context, taskID string, d *download) (int, error) {
 	client := b.client()
 	todo := d.pending()
@@ -298,45 +300,52 @@ func (b *Backend) fetch(ctx context.Context, taskID string, d *download) (int, e
 	}()
 
 	var (
-		mu       sync.Mutex
-		missing  int
-		fatal    error
-		finished = make(chan struct{})
-		wg       sync.WaitGroup
+		mu      sync.Mutex
+		missing int
+		fatal   error
+		// workers is how many were started, running how many have not
+		// returned yet. Only this goroutine touches either.
+		workers, running int
+		exited           = make(chan struct{})
 	)
-	for range max(min(client.Connections(), len(todo)), 1) {
-		wg.Go(func() {
-			for i := range queue {
-				switch err := b.fetchOne(ctx, client, d, i); {
-				case err == nil, ctx.Err() != nil:
-				case errors.Is(err, nntp.ErrMissing), errors.Is(err, nntp.ErrDamaged):
-					mu.Lock()
-					missing++
-					mu.Unlock()
-				default:
-					mu.Lock()
-					if fatal == nil {
-						fatal = err
-					}
-					mu.Unlock()
-					stop()
+	work := func() {
+		defer func() { exited <- struct{}{} }()
+		for i := range queue {
+			switch err := b.fetchOne(ctx, client, d, i); {
+			case err == nil, ctx.Err() != nil:
+			case errors.Is(err, nntp.ErrMissing), errors.Is(err, nntp.ErrDamaged):
+				mu.Lock()
+				missing++
+				mu.Unlock()
+			default:
+				mu.Lock()
+				if fatal == nil {
+					fatal = err
 				}
+				mu.Unlock()
+				stop()
 			}
-		})
+		}
 	}
-	go func() {
-		wg.Wait()
-		close(finished)
-	}()
+	grow := func() {
+		for ; workers < max(min(client.Connections(), len(todo)), 1); workers++ {
+			running++
+			go work()
+		}
+	}
+	grow()
 
 	tick := time.NewTicker(progressEvery)
 	defer tick.Stop()
 	last, lastBytes, lastSave := time.Now(), d.loaded(), time.Now()
 	for {
 		select {
-		case <-finished:
-			return missing, fatal
+		case <-exited:
+			if running--; running == 0 {
+				return missing, fatal
+			}
 		case now := <-tick.C:
+			grow()
 			loaded := d.loaded()
 			b.onUpdate(taskID, core.Update{
 				Status: core.StatusRunning, Size: d.size(), Loaded: loaded,
