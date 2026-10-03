@@ -112,7 +112,7 @@ export const lv: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Ielīmējiet vismaz vienu saiti.',
   'addDownload.errorServer': 'Serveris: {message}',
-  'addDownload.errorGeneric': 'Neizdevās nosūtīt saites.',
+  'addDownload.errorSend': 'Neizdevās nosūtīt saites: {message}',
   'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',

@@ -112,7 +112,7 @@ export const ko: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '링크를 하나 이상 붙여넣으세요.',
   'addDownload.errorServer': '서버: {message}',
-  'addDownload.errorGeneric': '링크를 전송하지 못했습니다.',
+  'addDownload.errorSend': '링크를 전송하지 못했습니다: {message}',
   'error.federationOff': '연결된 인스턴스에서 짝 인스턴스가 꺼져 있어서, 그 인스턴스가 다른 인스턴스에 닿지 못합니다.',
   'addDownload.cancel': '취소',
   'addDownload.button': '추가',

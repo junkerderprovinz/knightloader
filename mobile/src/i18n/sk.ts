@@ -112,7 +112,7 @@ export const sk: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Vložte aspoň jeden odkaz.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Odkazy sa nepodarilo odoslať.',
+  'addDownload.errorSend': 'Odkazy sa nepodarilo odoslať: {message}',
   'error.federationOff': 'Na inštancii, ku ktorej si pripojený, sú spriatelené inštancie vypnuté, takže sa k ostatným nedostane.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',

@@ -6,7 +6,8 @@
 // With one instance paired the screen still waits for its card to be tapped.
 // A failed send keeps the reason it failed with: a relay connection saved
 // before frames were sealed says to add it again, and a sentence that only
-// says the links were not sent leaves nothing to do about it.
+// says the links were not sent leaves nothing to do about it. The Add links
+// screen keeps the reason the same way.
 //
 // The sending app's title names the package. expo-share-intent reads it from
 // EXTRA_TITLE only, and browsers send it as EXTRA_SUBJECT, so
@@ -14,9 +15,9 @@
 // before the library sees the intent, on a cold start and on a new intent.
 // That part runs the plugin over the MainActivity.kt prebuild starts from.
 //
-// The check compiles ShareScreen.tsx with the Babel that Expo already installs
-// and renders it on a small stand-in for React and React Native, with the
-// saved connections and the call to the instance replaced.
+// The check compiles both screens with the Babel that Expo already installs
+// and renders them on a small stand-in for React and React Native, with the
+// saved connections and the calls to the instance replaced.
 //
 // Run by hand and by CI, from mobile/: `node check-share.mjs`
 import { execFileSync } from 'node:child_process';
@@ -100,6 +101,11 @@ const modules = {
       if (sendFails) throw sendFails;
       return [{ id: 't1' }];
     },
+    addLinks: async (conn, links) => {
+      sent.push({ conn: conn.id, links });
+      if (sendFails) throw sendFails;
+      return [{ id: 't1' }];
+    },
     // client.ts's errorText for an error with no code the app words itself.
     errorText: (_t, e) => (e instanceof Error ? e.message : String(e)),
   },
@@ -108,34 +114,38 @@ const modules = {
   '../theme/tokens': { TYPE: {} },
   '../i18n/I18nContext': { useT: () => ({ t }) },
   '../components/glim': { CardButton: 'CardButton', DefaultBadge: 'DefaultBadge', GlimButton: 'GlimButton' },
-  '../components/IconBadge': { Connect: 'Connect', Cross: 'Cross' },
+  '../components/IconBadge': { Connect: 'Connect', Cross: 'Cross', Plus: 'Plus' },
   '../components/InfoTip': { InfoTip: 'InfoTip' },
   '../components/Moving': { Arrive: 'Arrive' },
-  '../components/Text': { Text: 'Text' },
+  '../components/Text': { Text: 'Text', TextInput: 'TextInput' },
   '../../assets/android-icon-foreground.png': 1,
 };
 
 const babel = require('@babel/core');
-const { code } = babel.transformSync(readFileSync(join(here, 'src', 'screens', 'ShareScreen.tsx'), 'utf8'), {
-  filename: 'ShareScreen.tsx',
-  babelrc: false,
-  configFile: false,
-  presets: [[require.resolve('@babel/preset-typescript'), { isTSX: true, allExtensions: true }]],
-  plugins: [
-    [require.resolve('@babel/plugin-transform-react-jsx'), { runtime: 'automatic' }],
-    require.resolve('@babel/plugin-transform-modules-commonjs'),
-  ],
-});
-const screen = { exports: {} };
-new Function('require', 'module', 'exports', code)(
-  (name) => {
-    if (!(name in modules)) throw new Error(`ShareScreen.tsx imports ${name}, which this check has no stand-in for`);
-    return modules[name];
-  },
-  screen,
-  screen.exports,
-);
-const ShareScreen = screen.exports.default;
+function screen(file) {
+  const { code } = babel.transformSync(readFileSync(join(here, 'src', 'screens', file), 'utf8'), {
+    filename: file,
+    babelrc: false,
+    configFile: false,
+    presets: [[require.resolve('@babel/preset-typescript'), { isTSX: true, allExtensions: true }]],
+    plugins: [
+      [require.resolve('@babel/plugin-transform-react-jsx'), { runtime: 'automatic' }],
+      require.resolve('@babel/plugin-transform-modules-commonjs'),
+    ],
+  });
+  const mod = { exports: {} };
+  new Function('require', 'module', 'exports', code)(
+    (name) => {
+      if (!(name in modules)) throw new Error(`${file} imports ${name}, which this check has no stand-in for`);
+      return modules[name];
+    },
+    mod,
+    mod.exports,
+  );
+  return mod.exports.default;
+}
+const ShareScreen = screen('ShareScreen.tsx');
+const AddDownloadScreen = screen('AddDownloadScreen.tsx');
 
 /** Everything on screen: its words, and the controls that can be pressed. */
 function draw(node, out) {
@@ -150,13 +160,16 @@ function draw(node, out) {
   }
   const { type, props } = node;
   if (props.onPress) out.presses.push({ type, label: props.label, props });
+  if (props.onChangeText) out.fields.push(props);
   if (props.label) out.words.push(props.label);
   draw(props.children, out);
   return out;
 }
 
-/** Opens the screen for one share and lets it settle, the way a phone would. */
-async function open(paired) {
+const share = () => ShareScreen({ text: 'https://example.com/a.zip', title: 'A file', onOpen() {}, onConnect() {}, onClose() {} });
+
+/** Opens a screen and lets it settle, the way a phone would. */
+async function open(paired, view = share) {
   connections = paired;
   sent = [];
   cells = [];
@@ -165,10 +178,7 @@ async function open(paired) {
     do {
       dirty = false;
       at = 0;
-      shown = draw(ShareScreen({ text: 'https://example.com/a.zip', title: 'A file', onOpen() {}, onConnect() {}, onClose() {} }), {
-        words: [],
-        presses: [],
-      });
+      shown = draw(view(), { words: [], presses: [], fields: [] });
       const run = pending;
       pending = [];
       for (const f of run) f();
@@ -224,6 +234,25 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   const again = await open([home]);
   (await again.settle()).presses.find((p) => p.type === 'CardButton')?.props.onPress();
   if (!(await again.settle()).words.join(' ').includes('link filter refused it')) fail("a refused share drops the instance's own sentence");
+}
+
+{
+  const add = async (fails) => {
+    sendFails = fails;
+    const s = await open([], () => AddDownloadScreen({ conn: home, onDone() {} }));
+    (await s.settle()).fields[0]?.onChangeText('https://example.com/a.zip');
+    (await s.settle()).presses.find((p) => p.label === en['addDownload.button'])?.props.onPress();
+    const said = (await s.settle()).words.join(' ');
+    if (sent.length !== 1) fail(`Add links sent ${JSON.stringify(sent)}`);
+    return said;
+  };
+  const reason = 'relay: this connection predates encrypted frames - add it again with your phrase';
+  let said = await add(new Error(reason));
+  if (!said.includes(reason)) fail(`links the relay could not carry say "${said}" and drop the reason "${reason}"`);
+  said = await add(new TypeError('Network request failed'));
+  if (!said.includes('Network request failed')) fail(`links that never reached the instance say "${said}" and drop the reason`);
+  said = await add(new ApiError('link filter refused it', 400));
+  if (!said.includes('link filter refused it')) fail(`refused links say "${said}" and drop the instance's own sentence`);
 }
 
 {

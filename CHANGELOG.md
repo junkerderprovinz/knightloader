@@ -46,6 +46,12 @@ release's tag.
   app can send links to your server on its own. Files are not offered, because
   the relay does not forward container and torrent uploads.
 
+### Fixed
+
+- **Add links in the Android app says why a send failed.** When the request
+  never reached the instance, or a relay connection had to be added again, the
+  screen said only "Could not send the links." The reason follows it now.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

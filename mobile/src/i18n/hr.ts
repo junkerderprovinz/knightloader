@@ -112,7 +112,7 @@ export const hr: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Zalijepite barem jednu vezu.',
   'addDownload.errorServer': 'Poslužitelj: {message}',
-  'addDownload.errorGeneric': 'Veze nije moguće poslati.',
+  'addDownload.errorSend': 'Veze nije moguće poslati: {message}',
   'error.federationOff': 'Na instanci s kojom si povezan srodne instance su isključene, pa ona ne dopire do ostalih.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',

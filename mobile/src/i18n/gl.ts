@@ -112,7 +112,7 @@ export const gl: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Pega polo menos unha ligazón.',
   'addDownload.errorServer': 'Servidor: {message}',
-  'addDownload.errorGeneric': 'Non se puideron enviar as ligazóns.',
+  'addDownload.errorSend': 'Non se puideron enviar as ligazóns: {message}',
   'error.federationOff': 'As instancias irmás están desactivadas na instancia á que estás conectado, así que non pode chegar ás outras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',

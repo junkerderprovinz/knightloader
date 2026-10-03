@@ -112,7 +112,7 @@ export const el: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Επικολλήστε τουλάχιστον έναν σύνδεσμο.',
   'addDownload.errorServer': 'Διακομιστής: {message}',
-  'addDownload.errorGeneric': 'Δεν ήταν δυνατή η αποστολή των συνδέσμων.',
+  'addDownload.errorSend': 'Δεν ήταν δυνατή η αποστολή των συνδέσμων: {message}',
   'error.federationOff': 'Τα «Αδελφά στιγμιότυπα» είναι απενεργοποιημένα στο στιγμιότυπο με το οποίο είσαι συνδεδεμένος, οπότε δεν μπορεί να φτάσει στα άλλα.',
   'addDownload.cancel': 'Ακύρωση',
   'addDownload.button': 'Προσθήκη',

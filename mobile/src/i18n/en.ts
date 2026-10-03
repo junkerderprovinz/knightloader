@@ -134,7 +134,7 @@ export const en = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Paste at least one link.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Could not send the links.',
+  'addDownload.errorSend': 'Could not send the links: {message}',
   'error.federationOff': 'Peer instances are switched off on the instance you are connected to, so it cannot reach the others.',
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',

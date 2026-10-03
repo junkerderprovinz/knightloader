@@ -112,7 +112,7 @@ export const zh: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '请至少粘贴一个链接。',
   'addDownload.errorServer': '服务器：{message}',
-  'addDownload.errorGeneric': '无法发送链接。',
+  'addDownload.errorSend': '无法发送链接：{message}',
   'error.federationOff': '你连接的实例上关闭了“同伴实例”，所以它联系不到其他实例。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',

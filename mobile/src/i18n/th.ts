@@ -112,7 +112,7 @@ export const th: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'วางลิงก์อย่างน้อยหนึ่งลิงก์',
   'addDownload.errorServer': 'เซิร์ฟเวอร์: {message}',
-  'addDownload.errorGeneric': 'ไม่สามารถส่งลิงก์ได้',
+  'addDownload.errorSend': 'ไม่สามารถส่งลิงก์ได้: {message}',
   'error.federationOff': 'อินสแตนซ์คู่หูถูกปิดอยู่บนอินสแตนซ์ที่คุณเชื่อมต่อ อินสแตนซ์นั้นจึงติดต่ออินสแตนซ์อื่นไม่ได้',
   'addDownload.cancel': 'ยกเลิก',
   'addDownload.button': 'เพิ่ม',

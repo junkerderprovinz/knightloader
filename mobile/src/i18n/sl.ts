@@ -112,7 +112,7 @@ export const sl: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Prilepite vsaj eno povezavo.',
   'addDownload.errorServer': 'Strežnik: {message}',
-  'addDownload.errorGeneric': 'Povezav ni bilo mogoče poslati.',
+  'addDownload.errorSend': 'Povezav ni bilo mogoče poslati: {message}',
   'error.federationOff': 'Na primerku, s katerim si povezan, so sorodni primerki izklopljeni, zato drugih ne doseže.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',

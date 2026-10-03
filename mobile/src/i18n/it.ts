@@ -112,7 +112,7 @@ export const it: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Incolla almeno un link.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Impossibile inviare i link.',
+  'addDownload.errorSend': 'Impossibile inviare i link: {message}',
   'error.federationOff': 'Le istanze collegate sono disattivate sull’istanza a cui sei collegato, quindi non può raggiungere le altre.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',

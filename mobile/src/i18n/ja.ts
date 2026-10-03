@@ -112,7 +112,7 @@ export const ja: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': '少なくとも1つのリンクを貼り付けてください。',
   'addDownload.errorServer': 'サーバー: {message}',
-  'addDownload.errorGeneric': 'リンクを送信できませんでした。',
+  'addDownload.errorSend': 'リンクを送信できませんでした：{message}',
   'error.federationOff': '接続先のインスタンスで「連携インスタンス」がオフになっているため、ほかのインスタンスに届きません。',
   'addDownload.cancel': 'キャンセル',
   'addDownload.button': '追加',

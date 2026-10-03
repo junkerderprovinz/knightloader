@@ -112,7 +112,7 @@ export const cs: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Vložte alespoň jeden odkaz.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Odkazy se nepodařilo odeslat.',
+  'addDownload.errorSend': 'Odkazy se nepodařilo odeslat: {message}',
   'error.federationOff': 'Na instanci, ke které jsi připojený, jsou spřátelené instance vypnuté, takže se k ostatním nedostane.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',

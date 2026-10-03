@@ -112,7 +112,7 @@ export const vi: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Dán ít nhất một liên kết.',
   'addDownload.errorServer': 'Máy chủ: {message}',
-  'addDownload.errorGeneric': 'Không thể gửi các liên kết.',
+  'addDownload.errorSend': 'Không thể gửi các liên kết: {message}',
   'error.federationOff': '“Thực thể bạn” đang tắt trên phiên bản bạn đang kết nối, nên nó không liên lạc được với các phiên bản khác.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',

@@ -112,7 +112,7 @@ export const nl: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Plak ten minste één link.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Kon de links niet verzenden.',
+  'addDownload.errorSend': 'Kon de links niet verzenden: {message}',
   'error.federationOff': 'Gekoppelde instanties staan uit op de instantie waarmee je verbonden bent, dus die kan de andere niet bereiken.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',

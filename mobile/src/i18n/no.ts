@@ -112,7 +112,7 @@ export const no: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Lim inn minst én lenke.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Kunne ikke sende lenkene.',
+  'addDownload.errorSend': 'Kunne ikke sende lenkene: {message}',
   'error.federationOff': 'Søsterinstanser er slått av på instansen du er koblet til, så den når ikke de andre.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',

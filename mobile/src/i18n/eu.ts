@@ -112,7 +112,7 @@ export const eu: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Itsatsi esteka bat gutxienez.',
   'addDownload.errorServer': 'Zerbitzaria: {message}',
-  'addDownload.errorGeneric': 'Ezin izan dira estekak bidali.',
+  'addDownload.errorSend': 'Ezin izan dira estekak bidali: {message}',
   'error.federationOff': 'Konektatuta zauden instantzian kide diren instantziak itzalita daude, beraz ezin da besteetara iritsi.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',

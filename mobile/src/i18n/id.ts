@@ -112,7 +112,7 @@ export const id: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Tempelkan setidaknya satu tautan.',
   'addDownload.errorServer': 'Server: {message}',
-  'addDownload.errorGeneric': 'Tautan tidak dapat dikirim.',
+  'addDownload.errorSend': 'Tautan tidak dapat dikirim: {message}',
   'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',

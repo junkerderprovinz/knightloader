@@ -41,7 +41,8 @@ export default function AddDownloadScreen({
       await addLinks(conn, links, base);
       onDone();
     } catch (err) {
-      setError(err instanceof ApiError ? t('addDownload.errorServer', { message: errorText(t, err) }) : t('addDownload.errorGeneric'));
+      const message = errorText(t, err);
+      setError(t(err instanceof ApiError ? 'addDownload.errorServer' : 'addDownload.errorSend', { message }));
     } finally {
       setBusy(false);
     }

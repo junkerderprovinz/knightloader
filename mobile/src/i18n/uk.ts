@@ -112,7 +112,7 @@ export const uk: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Вставте принаймні одне посилання.',
   'addDownload.errorServer': 'Сервер: {message}',
-  'addDownload.errorGeneric': 'Не вдалося надіслати посилання.',
+  'addDownload.errorSend': 'Не вдалося надіслати посилання: {message}',
   'error.federationOff': 'На екземплярі, до якого ви підключені, вимкнено модуль «Сусідні примірники», тож він не може зв’язатися з іншими.',
   'addDownload.cancel': 'Скасувати',
   'addDownload.button': 'Додати',

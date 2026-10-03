@@ -112,7 +112,7 @@ export const es: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Pega al menos un enlace.',
   'addDownload.errorServer': 'Servidor: {message}',
-  'addDownload.errorGeneric': 'No se pudieron enviar los enlaces.',
+  'addDownload.errorSend': 'No se pudieron enviar los enlaces: {message}',
   'error.federationOff': 'Las instancias asociadas están desactivadas en la instancia a la que estás conectado, así que no puede llegar a las demás.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',

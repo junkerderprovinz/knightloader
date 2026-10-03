@@ -112,7 +112,7 @@ export const ru: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Вставьте хотя бы одну ссылку.',
   'addDownload.errorServer': 'Сервер: {message}',
-  'addDownload.errorGeneric': 'Не удалось отправить ссылки.',
+  'addDownload.errorSend': 'Не удалось отправить ссылки: {message}',
   'error.federationOff': 'На экземпляре, к которому вы подключены, выключен модуль «Соседние экземпляры», поэтому он не может связаться с остальными.',
   'addDownload.cancel': 'Отмена',
   'addDownload.button': 'Добавить',

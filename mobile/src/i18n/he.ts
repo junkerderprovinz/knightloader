@@ -112,7 +112,7 @@ export const he: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'הדביקו לפחות קישור אחד.',
   'addDownload.errorServer': 'שרת: {message}',
-  'addDownload.errorGeneric': 'לא ניתן היה לשלוח את הקישורים.',
+  'addDownload.errorSend': 'לא ניתן היה לשלוח את הקישורים: {message}',
   'error.federationOff': 'במופע שאתה מחובר אליו מופעים שכנים כבויים, ולכן הוא לא יכול להגיע לאחרים.',
   'addDownload.cancel': 'ביטול',
   'addDownload.button': 'הוספה',

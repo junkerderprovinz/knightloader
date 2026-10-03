@@ -112,7 +112,7 @@ export const fi: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Liitä vähintään yksi linkki.',
   'addDownload.errorServer': 'Palvelin: {message}',
-  'addDownload.errorGeneric': 'Linkkien lähettäminen epäonnistui.',
+  'addDownload.errorSend': 'Linkkien lähettäminen epäonnistui: {message}',
   'error.federationOff': 'Rinnakkaisinstanssit on kytketty pois instanssissa, johon olet yhteydessä, joten se ei tavoita muita.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',

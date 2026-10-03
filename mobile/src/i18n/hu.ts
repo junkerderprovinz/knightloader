@@ -112,7 +112,7 @@ export const hu: Dict = {
   'addDownload.placeholder': 'https://…',
   'addDownload.errorEmpty': 'Illessz be legalább egy linket.',
   'addDownload.errorServer': 'Szerver: {message}',
-  'addDownload.errorGeneric': 'Nem sikerült elküldeni a linkeket.',
+  'addDownload.errorSend': 'Nem sikerült elküldeni a linkeket: {message}',
   'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
