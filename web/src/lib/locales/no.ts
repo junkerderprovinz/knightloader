@@ -1287,6 +1287,9 @@ export const no: Dict = {
   'settings.captcha.moveDown': 'Flytt ned',
   'settings.captcha.set': 'Nøkkel angitt',
   'settings.captcha.notSet': 'Ingen nøkkel angitt',
+  'settings.captcha.off': 'Slått av',
+  'settings.captcha.offHint':
+    'Nøkkelen er angitt, men kontoen er slått av på siden Kontoer, så den får ingen captchaer, heller ikke en test-captcha.',
   'settings.captcha.keys': 'Nøkler under Kontoer',
   'collector.options': 'Alternativer',
   'collector.destination': 'Målmappe',

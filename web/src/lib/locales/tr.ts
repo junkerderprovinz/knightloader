@@ -1285,6 +1285,9 @@ export const tr: Dict = {
   'settings.captcha.moveDown': 'Aşağı taşı',
   'settings.captcha.set': 'Anahtar ayarlandı',
   'settings.captcha.notSet': 'Anahtar ayarlanmadı',
+  'settings.captcha.off': 'Kapalı',
+  'settings.captcha.offHint':
+    'Anahtar ayarlı, ancak hesap Hesaplar sayfasında kapalı; bu yüzden hiçbir captcha almıyor, test captchası bile.',
   'settings.captcha.keys': 'Anahtarlar Hesaplar altında',
   'collector.options': 'Seçenekler',
   'collector.destination': 'Hedef klasör',

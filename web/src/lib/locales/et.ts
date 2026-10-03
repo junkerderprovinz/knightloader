@@ -1285,6 +1285,9 @@ export const et: Dict = {
   'settings.captcha.moveDown': 'Liiguta alla',
   'settings.captcha.set': 'Võti seatud',
   'settings.captcha.notSet': 'Võti pole seatud',
+  'settings.captcha.off': 'Välja lülitatud',
+  'settings.captcha.offHint':
+    'Võti on seatud, aga konto on lehel Kontod välja lülitatud, nii et see ei saa ühtegi captchat, ka mitte testcaptchat.',
   'settings.captcha.keys': 'Võtmed jaotises Kontod',
   'collector.options': 'Valikud',
   'collector.destination': 'Sihtkaust',

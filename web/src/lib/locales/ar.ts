@@ -1287,6 +1287,9 @@ export const ar: Dict = {
   'settings.captcha.moveDown': 'حرّك لأسفل',
   'settings.captcha.set': 'تم ضبط المفتاح',
   'settings.captcha.notSet': 'لم يُضبط أي مفتاح',
+  'settings.captcha.off': 'متوقف',
+  'settings.captcha.offHint':
+    'المفتاح مضبوط، لكن الحساب متوقف في صفحة الحسابات، لذلك لا يستلم أي كابتشا، ولا حتى كابتشا الاختبار.',
   'settings.captcha.keys': 'المفاتيح في الحسابات',
   'collector.options': 'خيارات',
   'collector.destination': 'مجلد الوجهة',

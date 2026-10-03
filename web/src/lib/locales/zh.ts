@@ -1285,6 +1285,9 @@ export const zh: Dict = {
   'settings.captcha.moveDown': '下移',
   'settings.captcha.set': '密钥已设置',
   'settings.captcha.notSet': '未设置密钥',
+  'settings.captcha.off': '已关闭',
+  'settings.captcha.offHint':
+    '密钥已设置，但该账户在账户页面上已关闭，因此收不到任何验证码，测试验证码也收不到。',
   'settings.captcha.keys': '账户中的密钥',
   'collector.options': '选项',
   'collector.destination': '目标文件夹',

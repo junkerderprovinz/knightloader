@@ -1285,6 +1285,9 @@ export const hu: Dict = {
   'settings.captcha.moveDown': 'Le',
   'settings.captcha.set': 'Kulcs beállítva',
   'settings.captcha.notSet': 'Nincs beállítva kulcs',
+  'settings.captcha.off': 'Kikapcsolva',
+  'settings.captcha.offHint':
+    'A kulcs be van állítva, de a fiók ki van kapcsolva a Fiókok oldalon, ezért nem kap captchát, még tesztcaptchát sem.',
   'settings.captcha.keys': 'Kulcsok a Fiókok alatt',
   'collector.options': 'Lehetőségek',
   'collector.destination': 'Célmappa',

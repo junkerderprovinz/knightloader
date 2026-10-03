@@ -1285,6 +1285,9 @@ export const hr: Dict = {
   'settings.captcha.moveDown': 'Pomakni dolje',
   'settings.captcha.set': 'Ključ postavljen',
   'settings.captcha.notSet': 'Ključ nije postavljen',
+  'settings.captcha.off': 'Isključen',
+  'settings.captcha.offHint':
+    'Ključ je postavljen, ali račun je isključen na stranici Računi, pa ne dobiva nijednu captchu, čak ni probnu.',
   'settings.captcha.keys': 'Ključevi u Računima',
   'collector.options': 'Mogućnosti',
   'collector.destination': 'Odredišna mapa',

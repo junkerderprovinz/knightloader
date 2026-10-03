@@ -1285,6 +1285,9 @@ export const bg: Dict = {
   'settings.captcha.moveDown': 'Надолу',
   'settings.captcha.set': 'Ключът е зададен',
   'settings.captcha.notSet': 'Няма зададен ключ',
+  'settings.captcha.off': 'Изключен',
+  'settings.captcha.offHint':
+    'Ключът е зададен, но акаунтът е изключен на страницата „Акаунти“, затова не получава captcha, дори и тестова.',
   'settings.captcha.keys': 'Ключове в Акаунти',
   'collector.options': 'Опции',
   'collector.destination': 'Целева папка',

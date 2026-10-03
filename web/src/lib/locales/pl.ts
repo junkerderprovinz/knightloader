@@ -1277,6 +1277,9 @@ export const pl: Dict = {
   'settings.captcha.moveDown': 'W dół',
   'settings.captcha.set': 'Klucz ustawiony',
   'settings.captcha.notSet': 'Brak ustawionego klucza',
+  'settings.captcha.off': 'Wyłączone',
+  'settings.captcha.offHint':
+    'Klucz jest ustawiony, ale konto jest wyłączone na stronie Konta, więc nie dostaje żadnej captchy, nawet testowej.',
   'settings.captcha.keys': 'Klucze w Kontach',
   'collector.options': 'Opcje',
   'collector.destination': 'Miejsce docelowe',

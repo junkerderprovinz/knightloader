@@ -1285,6 +1285,9 @@ export const sk: Dict = {
   'settings.captcha.moveDown': 'Nadol',
   'settings.captcha.set': 'Kľúč nastavený',
   'settings.captcha.notSet': 'Kľúč nie je nastavený',
+  'settings.captcha.off': 'Vypnutý',
+  'settings.captcha.offHint':
+    'Kľúč je nastavený, ale účet je na stránke Účty vypnutý, takže nedostane žiadnu captchu, ani testovaciu.',
   'settings.captcha.keys': 'Kľúče v Účtoch',
   'collector.options': 'Možnosti',
   'collector.destination': 'Cieľový priečinok',

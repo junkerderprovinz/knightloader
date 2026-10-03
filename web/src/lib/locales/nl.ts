@@ -1277,6 +1277,9 @@ export const nl: Dict = {
   'settings.captcha.moveDown': 'Omlaag',
   'settings.captcha.set': 'Sleutel ingesteld',
   'settings.captcha.notSet': 'Geen sleutel ingesteld',
+  'settings.captcha.off': 'Uitgeschakeld',
+  'settings.captcha.offHint':
+    'De sleutel is ingesteld, maar het account staat uit op de pagina Accounts, dus het krijgt geen captcha’s, ook geen testcaptcha.',
   'settings.captcha.keys': 'Sleutels bij Accounts',
   'collector.options': 'Opties',
   'collector.destination': 'Bestemming',

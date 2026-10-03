@@ -1285,6 +1285,9 @@ export const el: Dict = {
   'settings.captcha.moveDown': 'Μετακίνηση κάτω',
   'settings.captcha.set': 'Το κλειδί έχει οριστεί',
   'settings.captcha.notSet': 'Δεν έχει οριστεί κλειδί',
+  'settings.captcha.off': 'Απενεργοποιημένος',
+  'settings.captcha.offHint':
+    'Το κλειδί έχει οριστεί, αλλά ο λογαριασμός είναι απενεργοποιημένος στη σελίδα Λογαριασμοί, οπότε δεν λαμβάνει κανένα captcha, ούτε δοκιμαστικό.',
   'settings.captcha.keys': 'Κλειδιά στους Λογαριασμούς',
   'collector.options': 'Επιλογές',
   'collector.destination': 'Φάκελος προορισμού',

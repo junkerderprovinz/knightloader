@@ -1285,6 +1285,9 @@ export const th: Dict = {
   'settings.captcha.moveDown': 'เลื่อนลง',
   'settings.captcha.set': 'ตั้งคีย์แล้ว',
   'settings.captcha.notSet': 'ยังไม่ได้ตั้งคีย์',
+  'settings.captcha.off': 'ปิดอยู่',
+  'settings.captcha.offHint':
+    'ตั้งคีย์ไว้แล้ว แต่บัญชีนี้ปิดอยู่ที่หน้าบัญชี จึงไม่ได้รับแคปช่าใดเลย แม้แต่แคปช่าทดสอบ',
   'settings.captcha.keys': 'คีย์อยู่ที่บัญชี',
   'collector.options': 'ตัวเลือก',
   'collector.destination': 'โฟลเดอร์ปลายทาง',

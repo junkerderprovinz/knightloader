@@ -1285,6 +1285,9 @@ export const fi: Dict = {
   'settings.captcha.moveDown': 'Siirrä alas',
   'settings.captcha.set': 'Avain asetettu',
   'settings.captcha.notSet': 'Avainta ei ole asetettu',
+  'settings.captcha.off': 'Pois päältä',
+  'settings.captcha.offHint':
+    'Avain on asetettu, mutta tili on Tilit-sivulla pois päältä, joten se ei saa yhtään captchaa, ei edes testicaptchaa.',
   'settings.captcha.keys': 'Avaimet kohdassa Tilit',
   'collector.options': 'Valinnat',
   'collector.destination': 'Kohdekansio',

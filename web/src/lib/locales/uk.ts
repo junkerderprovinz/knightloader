@@ -1285,6 +1285,9 @@ export const uk: Dict = {
   'settings.captcha.moveDown': 'Вниз',
   'settings.captcha.set': 'Ключ задано',
   'settings.captcha.notSet': 'Ключ не задано',
+  'settings.captcha.off': 'Вимкнено',
+  'settings.captcha.offHint':
+    'Ключ задано, але обліковий запис вимкнено на сторінці «Облікові записи», тому він не отримує капчі, навіть тестові.',
   'settings.captcha.keys': 'Ключі в Облікових записах',
   'collector.options': 'Параметри',
   'collector.destination': 'Цільова папка',

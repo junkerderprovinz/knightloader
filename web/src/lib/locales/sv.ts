@@ -1285,6 +1285,9 @@ export const sv: Dict = {
   'settings.captcha.moveDown': 'Flytta ned',
   'settings.captcha.set': 'Nyckel angiven',
   'settings.captcha.notSet': 'Ingen nyckel angiven',
+  'settings.captcha.off': 'Avstängt',
+  'settings.captcha.offHint':
+    'Nyckeln är angiven, men kontot är avstängt på sidan Konton, så det får inga captchor, inte ens en testcaptcha.',
   'settings.captcha.keys': 'Nycklar under Konton',
   'collector.options': 'Alternativ',
   'collector.destination': 'Målmapp',
