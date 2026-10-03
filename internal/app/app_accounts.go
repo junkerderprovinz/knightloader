@@ -772,15 +772,21 @@ func (a *App) accountLabel(service, account string) string {
 // SetAccountEnabled stores whether one account routes and rewires the backends
 // so it applies at once. It works for environment-supplied credentials too.
 func (a *App) SetAccountEnabled(service, account string, enabled bool) {
+	a.setAccountEnabledQuiet(service, account, enabled)
+	a.rewireBackends()
+}
+
+// setAccountEnabledQuiet stores the switch without rewiring, for a caller
+// that writes several accounts and rewires once at the end.
+func (a *App) setAccountEnabledQuiet(service, account string, enabled bool) {
 	acctMetaMu.Lock()
+	defer acctMetaMu.Unlock()
 	m := a.loadAcctMetaLocked()
 	key := metaKey(service, account)
 	meta := m[key]
 	meta.Enabled = enabled
 	m[key] = meta
 	a.saveAcctMetaLocked(m)
-	acctMetaMu.Unlock()
-	a.rewireBackends()
 }
 
 // SetAccountLabel stores one account's display label. It never rewires, so a
