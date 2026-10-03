@@ -1,6 +1,7 @@
 package debriddrive
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -226,13 +227,22 @@ func (d *Drive) Serve(w http.ResponseWriter, r *http.Request, prefix string) {
 		return
 	}
 	h := &webdav.Handler{Prefix: prefix, FileSystem: davFS{d}, LockSystem: d.locks}
-	if r.Method != http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
+		d.get(h, w, r)
+	case "PROPFIND":
+		nl := &noLocks{ResponseWriter: w}
+		h.ServeHTTP(nl, r)
+		nl.finish()
+	default:
 		h.ServeHTTP(w, r)
-		return
 	}
-	// http.ServeContent sends the status before its first read reaches the
-	// download server, so the status waits for the first byte, and a server
-	// in trouble gets a 502 instead of a 200 with nothing after it.
+}
+
+// get serves a file. http.ServeContent sends the status before its first
+// read reaches the download server, so the status waits for the first byte,
+// and a server in trouble gets a 502 instead of a 200 with nothing after it.
+func (d *Drive) get(h *webdav.Handler, w http.ResponseWriter, r *http.Request) {
 	var failed error
 	held := &heldStatus{ResponseWriter: w}
 	h.ServeHTTP(held, r.WithContext(context.WithValue(r.Context(), failureKey{}, &failed)))
@@ -278,11 +288,47 @@ func (h *heldStatus) send() {
 	}
 }
 
+// lockEntry is the lock webdav lists in every supportedlock, whatever its
+// LockSystem can do, and it refuses to run without one.
+var lockEntry = []byte(`<D:lockentry xmlns:D="DAV:"><D:lockscope><D:exclusive/></D:lockscope>` +
+	`<D:locktype><D:write/></D:locktype></D:lockentry>`)
+
+// noLocks takes lockEntry out of a PROPFIND's answer, which leaves each
+// supportedlock empty, as befits a class 1 share. An entry can be split
+// between two writes, so the end of one that could start it waits for the
+// next.
+type noLocks struct {
+	http.ResponseWriter
+	rest []byte
+}
+
+func (w *noLocks) Write(p []byte) (int, error) {
+	b := bytes.ReplaceAll(append(w.rest, p...), lockEntry, nil)
+	keep := 0
+	for k := min(len(b), len(lockEntry)-1); k > 0; k-- {
+		if bytes.HasSuffix(b, lockEntry[:k]) {
+			keep = k
+			break
+		}
+	}
+	w.rest = b[len(b)-keep:]
+	if _, err := w.ResponseWriter.Write(b[:len(b)-keep]); err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
+
+func (w *noLocks) finish() {
+	if len(w.rest) > 0 {
+		w.ResponseWriter.Write(w.rest)
+	}
+}
+
 // prepare reads from the service what the request will need before webdav
 // starts its answer: the listing a PROPFIND shows, and the link a GET reads
 // from. webdav writes its status before it reads a folder or a file, so a
 // service in trouble would otherwise show as an empty folder or a download
-// that breaks off; the download server behind the link is Serve's to check.
+// that breaks off; the download server behind the link is for get to check.
 // What prepare read stays in memory for webdav to find. It reports whether
 // the request may go on.
 func (d *Drive) prepare(w http.ResponseWriter, r *http.Request, prefix string) bool {

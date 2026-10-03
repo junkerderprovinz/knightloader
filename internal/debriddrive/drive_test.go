@@ -455,6 +455,40 @@ func TestADownloadServerInTroubleIsAnErrorRatherThanAnEmptyFile(t *testing.T) {
 	}
 }
 
+func TestTheDriveOffersNoLock(t *testing.T) {
+	f := newFixture(t)
+	for _, p := range []string{"/dav/", "/dav/TorBox/Some Movie/"} {
+		resp := f.do(t, "PROPFIND", p, map[string]string{"Depth": "1"})
+		b, _ := io.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusMultiStatus {
+			t.Fatalf("PROPFIND %s answered %s", p, resp.Status)
+		}
+		if bytes.Contains(b, []byte("lockentry")) {
+			t.Errorf("PROPFIND %s offers a lock on a share with nothing to lock:\n%s", p, b)
+		}
+		if !bytes.Contains(b, []byte("supportedlock")) {
+			t.Errorf("PROPFIND %s lost the supportedlock property, which should be there and empty:\n%s", p, b)
+		}
+	}
+	if dav := f.do(t, http.MethodOptions, "/dav/", nil).Header.Get("DAV"); dav != "1" {
+		t.Errorf("OPTIONS says DAV: %q, want class 1", dav)
+	}
+}
+
+func TestALockEntrySplitBetweenWritesIsStillTakenOut(t *testing.T) {
+	body := `<D:prop><D:supportedlock>` + string(lockEntry) + `</D:supportedlock><D:x>&lt;D:lock</D:x></D:prop><D:lockent`
+	rec := httptest.NewRecorder()
+	w := &noLocks{ResponseWriter: rec}
+	for i := range len(body) {
+		w.Write([]byte{body[i]})
+	}
+	w.finish()
+	want := `<D:prop><D:supportedlock></D:supportedlock><D:x>&lt;D:lock</D:x></D:prop><D:lockent`
+	if got := rec.Body.String(); got != want {
+		t.Errorf("one byte at a time gave\n%s\nwant\n%s", got, want)
+	}
+}
+
 func TestTheDriveIsReadOnly(t *testing.T) {
 	f := newFixture(t)
 	for _, method := range []string{http.MethodPut, http.MethodDelete, "MKCOL", "MOVE", "COPY", "PROPPATCH", "LOCK"} {
