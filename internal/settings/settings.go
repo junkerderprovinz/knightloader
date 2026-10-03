@@ -889,6 +889,7 @@ func Load(dir string) (*Store, error) {
 		}
 		s.cur = migrate(b, s.cur)
 	}
+	s.cur = loadInstanceID(dir, s.cur)
 	s.cur = sanitize(s.cur)
 	return s, nil
 }

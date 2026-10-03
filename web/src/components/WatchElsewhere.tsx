@@ -4,7 +4,7 @@ import { IconClose } from '../lib/icons';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useClipboardWatch } from '../lib/useClipboardWatch';
-import { listWatchers, stopWatcher, watcherId, type ClipboardWatcher } from '../lib/clipboardWatchers';
+import { listWatchers, ownWatcherIds, stopWatcher, type ClipboardWatcher } from '../lib/clipboardWatchers';
 
 const KIND_LABEL: Record<ClipboardWatcher['kind'], TranslationKey> = {
   web: 'intake.watcherKind.web',
@@ -29,8 +29,8 @@ export function useWatchSwitch(): { watch: boolean; flip: (on: boolean) => void;
     }
     let found: ClipboardWatcher[] = [];
     try {
-      const me = watcherId();
-      found = (await listWatchers()).filter((w) => w.id !== me);
+      const mine = await ownWatcherIds();
+      found = (await listWatchers()).filter((w) => !mine.includes(w.id));
     } catch {
       // Nobody to warn about is the better guess than refusing the switch.
     }
