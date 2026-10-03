@@ -279,16 +279,27 @@ func (w *clipWatch) keepLease(ctx context.Context, s clipSettings) (stopped bool
 
 // stop waits out a delivery or lease call under way, refuses any after it and
 // takes the watch off the list, where a closed app would otherwise stay until
-// its lease ran out.
+// its lease ran out. A stop another device asked for since the last renewal
+// switches the watch off instead.
 func (w *clipWatch) stop() {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.stopped = true
-	if !w.leased.IsZero() {
-		w.leased = time.Time{}
-		// The run's context has already ended; leave bounds its own wait.
-		w.leave(context.Background(), w.leasedTarget)
+	if w.leased.IsZero() {
+		return
 	}
+	w.leased = time.Time{}
+	// The run's context has already ended. One wait covers both calls, so a
+	// peer that does not answer holds up quitting for clipLeaseWait at most.
+	ctx, cancel := context.WithTimeout(context.Background(), clipLeaseWait)
+	defer cancel()
+	// Leaving drops a stop that waits there, and the switch would stay on for
+	// the next start, so the watch asks for it first.
+	if w.lease(ctx, w.leasedTarget) {
+		w.switchOff()
+		return
+	}
+	w.leave(ctx, w.leasedTarget)
 }
 
 // readClipSettings reads the switch and the target from the interface state

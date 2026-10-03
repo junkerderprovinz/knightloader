@@ -326,8 +326,22 @@ func TestClipWatchLeavesTheListWhenTheAppQuits(t *testing.T) {
 	}
 	// A round already under way when the app quits.
 	r.copy("")
-	if !reflect.DeepEqual(r.leases, []string{"nas"}) || len(r.leaves) != 1 {
-		t.Fatalf("after quitting it leased %v and left %v", r.leases, r.leaves)
+	if !reflect.DeepEqual(r.leases, []string{"nas", "nas"}) || len(r.leaves) != 1 {
+		t.Fatalf("leased %v and left %v, want a lease, one last renewal on quitting and nothing after", r.leases, r.leaves)
+	}
+}
+
+func TestClipWatchHearsAStopAskedBeforeTheAppQuits(t *testing.T) {
+	r := newWatchRig()
+	r.settings = clipSettings{On: true, Target: "nas"}
+	r.copy("")
+	r.stops["nas"] = true
+	r.w.stop()
+	if !r.switchedOff {
+		t.Fatal("quitting lost the stop waiting at nas, so the next start watches again")
+	}
+	if len(r.leaves) != 0 {
+		t.Fatalf("left %v after the renewal had already taken the watch off the list", r.leaves)
 	}
 }
 
