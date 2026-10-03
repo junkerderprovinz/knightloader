@@ -412,15 +412,24 @@ func (d *Drive) find(ctx context.Context, name string) (spot, error) {
 }
 
 // folders is every account in name order, named as its folder. The name goes
-// through segment like any other, since an account id may hold a slash, and an
-// account whose folder name is already taken is left out.
+// through segment like any other, since an account id may hold a slash. A
+// name segment leaves alone is handed out first, so an account is found under
+// the name it has, and one that is taken gets a number added.
 func (d *Drive) folders() []Account {
+	all := d.accounts()
+	sort.SliceStable(all, func(i, j int) bool {
+		return all[i].Name == segment(all[i].Name) && all[j].Name != segment(all[j].Name)
+	})
 	var out []Account
 	taken := map[string]bool{}
-	for _, a := range d.accounts() {
-		a.Name = segment(a.Name)
-		if a.Name == "" || taken[a.Name] {
+	for _, a := range all {
+		base := segment(a.Name)
+		if base == "" {
 			continue
+		}
+		a.Name = base
+		for n := 2; taken[a.Name]; n++ {
+			a.Name = base + " " + strconv.Itoa(n)
 		}
 		taken[a.Name] = true
 		out = append(out, a)

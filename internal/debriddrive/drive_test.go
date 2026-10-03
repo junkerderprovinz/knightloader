@@ -286,6 +286,27 @@ func TestAnAccountNameWithASlashIsOneFolder(t *testing.T) {
 	}
 }
 
+func TestAnAccountWhoseCleanedNameIsTakenGetsAFolderOfItsOwn(t *testing.T) {
+	f := newFixture(t)
+	f.drive.accounts = func() []Account {
+		return []Account{
+			{Slot: "torbox:dd/x", Name: "TorBox (dd/x)", Source: f.svc},
+			{Slot: "torbox:dd_x", Name: "TorBox (dd_x)", Source: f.svc},
+		}
+	}
+
+	want := map[string]string{"TorBox (dd_x)": "torbox:dd_x", "TorBox (dd_x) 2": "torbox:dd/x"}
+	if got := f.drive.Folders(); !slices.Equal(got, []string{"TorBox (dd_x)", "TorBox (dd_x) 2"}) {
+		t.Fatalf("Folders() = %q, want both accounts", got)
+	}
+	for name, slot := range want {
+		s, err := f.drive.find(context.Background(), name)
+		if err != nil || s.acct.Slot != slot {
+			t.Errorf("the folder %q serves %q (%v), want %q", name, s.acct.Slot, err, slot)
+		}
+	}
+}
+
 func TestAListingIsReadAgainOnlyAfterTheRefreshInterval(t *testing.T) {
 	f := newFixture(t)
 
@@ -542,8 +563,6 @@ func TestTheDriveIsReadOnly(t *testing.T) {
 			t.Errorf("%s answered %s, want 405", method, resp.Status)
 		}
 	}
-	// rclone takes a 405 to MKCOL for "the folder is already there" and
-	// reports the new folder as made.
 	if resp := f.do(t, "MKCOL", "/dav/TorBox/new folder/", nil); resp.StatusCode != http.StatusForbidden {
 		t.Errorf("MKCOL answered %s, want 403", resp.Status)
 	}
