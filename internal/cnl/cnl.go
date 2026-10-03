@@ -16,6 +16,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 )
 
 // Adder receives the links of a submission. passwords holds the archive
@@ -217,13 +219,15 @@ func passwordsOf(r *http.Request) []string {
 	return out
 }
 
+// splitLinks keeps the links of every scheme linkscan knows except magnet:
+// any page may post here, and a torrent would go on to share what it fetched.
 func splitLinks(s string) []string {
 	var out []string
 	for _, l := range strings.FieldsFunc(s, func(r rune) bool {
 		return r == '\n' || r == '\r' || r == ' ' || r == '\t'
 	}) {
 		l = strings.TrimSpace(l)
-		if strings.HasPrefix(l, "http://") || strings.HasPrefix(l, "https://") {
+		if linkscan.StartsWithScheme(l) && !strings.HasPrefix(strings.ToLower(l), "magnet:") {
 			out = append(out, l)
 		}
 	}
