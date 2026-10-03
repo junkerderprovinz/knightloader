@@ -332,6 +332,9 @@ func (a *App) RecheckTasks(ids []string) {
 		// onto the task below; plain registry order would move a task back to
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
+		if t.BrowserFile {
+			res = a.fileResolverFor(t.URL, res)
+		}
 		if res == nil {
 			msg, code, params := a.unhandledError(t.URL, "no backend handles this link")
 			a.recordAvailability(t.ID, core.AvailOffline, core.ReasonUnsupported, msg, code, params)
@@ -355,7 +358,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// Most resolvers answer with the URL as a placeholder name (see the
 			// matching guard in stage), which must not replace a real name the task
 			// already picked up.
-			if result.Name != "" && result.Name != t.URL {
+			if result.Name != "" && result.Name != t.URL && !namedTakeover(live) {
 				live.Name = result.Name
 			}
 		}

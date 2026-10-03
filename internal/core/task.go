@@ -576,6 +576,10 @@ type Task struct {
 	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
+	// BrowserFile says the link is a file a browser was downloading, which
+	// is fetched as a plain file on every start, and under the browser's
+	// name when it gave one (see app.LinkBatchOptions.File).
+	BrowserFile bool `json:"browserFile,omitempty"`
 	// ChangedAt is when this task last changed, for sorting by recent
 	// activity.
 	ChangedAt time.Time `json:"changedAt,omitempty"`

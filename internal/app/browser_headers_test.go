@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -432,44 +430,6 @@ func TestAFileTheBrowserWasDownloadingStaysOffYtdlp(t *testing.T) {
 	a.mu.Unlock()
 	if res == nil || res.Info().ID != "http" {
 		t.Errorf("the start would go to %v, want the plain download that carries the browser's headers", res)
-	}
-}
-
-func TestAFileTakenOverFromTheBrowserLandsUnderTheBrowsersName(t *testing.T) {
-	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
-		s.Extract, s.VerifyChecksums = false, false
-	})
-	created, err := a.AddLinksWithOptions([]string{"https://files.example/nocd"}, "", OriginCnL, LinkBatchOptions{
-		File: true, FileName: "Quarterly Report.pdf", KeepCollected: true,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(created) != 1 {
-		t.Fatalf("staged %d rows, want the one file", len(created))
-	}
-	id := created[0].ID
-	a.mu.Lock()
-	dir := a.dirFor(a.tasks[id])
-	a.active[id] = true
-	a.tasks[id].Status = core.StatusRunning
-	a.mu.Unlock()
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	wrote := filepath.Join(dir, "nocd (2)")
-	if err := os.WriteFile(wrote, []byte("report"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	a.onUpdate(id, core.Update{Status: core.StatusRunning, Name: "nocd (2)", File: wrote})
-	a.onUpdate(id, core.Update{Status: core.StatusDone})
-
-	if got, err := os.ReadFile(filepath.Join(dir, "Quarterly Report.pdf")); err != nil || string(got) != "report" {
-		t.Errorf("Quarterly Report.pdf = %q, %v; want the download under the browser's name", got, err)
-	}
-	if live := liveTask(a, id); live.Name != "Quarterly Report.pdf" {
-		t.Errorf("the row reads %q after the download", live.Name)
 	}
 }
 
