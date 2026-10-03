@@ -1258,9 +1258,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// The dispatcher decides what is running. A non-terminal update for a task
 	// that is not active is stale: JD's poller keeps reporting "running" for a
-	// moment after a pause. Done and error are facts about the file and always
-	// apply.
-	stale := u.Status != core.StatusDone && u.Status != core.StatusError && !a.active[id]
+	// moment after a pause. So is one that comes in while the app closes, when
+	// the engine pauses every transfer; saved, that pause would keep the task
+	// from coming back to the queue. Done and error are facts about the file
+	// and always apply.
+	a.closeMu.Lock()
+	closing := a.closing
+	a.closeMu.Unlock()
+	stale := u.Status != core.StatusDone && u.Status != core.StatusError && (!a.active[id] || closing)
 	if u.Name != "" {
 		t.Name = u.Name
 	}
