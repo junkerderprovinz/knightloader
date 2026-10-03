@@ -76,6 +76,52 @@ func TestTheDebridDriveOpensOnlyToATokenThatCanRead(t *testing.T) {
 	}
 }
 
+func TestTheDebridDriveRefusesWritesThroughTheRouteTable(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	srv := httptest.NewServer(Handler(a))
+	t.Cleanup(srv.Close)
+	_, reader, err := a.APITokens.CreateScoped("rclone", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	methods := []string{http.MethodPut, http.MethodDelete, http.MethodPost, http.MethodPatch, "MKCOL", "MOVE", "COPY",
+		"LOCK", "UNLOCK", "PROPPATCH", "TRACE"}
+	send := func(method string, auth bool) int {
+		t.Helper()
+		req, err := http.NewRequest(method, srv.URL+"/dav/somefile.txt", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if auth {
+			req.Header.Set("Authorization", "Bearer "+reader)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+
+	for _, m := range methods {
+		if code := send(m, true); code != http.StatusNotFound {
+			t.Errorf("%s answered %d while the drive is off, want 404", m, code)
+		}
+	}
+	if err := setFeature(a, "debriddrive", true); err != nil {
+		t.Fatal(err)
+	}
+	for _, m := range methods {
+		if code := send(m, false); code != http.StatusUnauthorized {
+			t.Errorf("%s answered %d to no credential, want 401", m, code)
+		}
+		if code := send(m, true); code != http.StatusMethodNotAllowed {
+			t.Errorf("%s answered %d, want 405", m, code)
+		}
+	}
+}
+
 func TestTheDebridDriveNamesItsEntriesUnderTheBasePath(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
