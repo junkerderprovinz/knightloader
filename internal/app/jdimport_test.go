@@ -346,7 +346,7 @@ func TestAFolderThatDoesNotFitHereFailsOnlyItself(t *testing.T) {
 	}
 }
 
-func TestAPreviewPushedOutByNewerReadsSaysSo(t *testing.T) {
+func TestAPreviewPushedOutByNewerReadsSaysSoOnEveryApply(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
 	dir := t.TempDir()
 	jdimporttest.Write(t, dir, jdimporttest.Config{Passwords: []string{"pw"}})
@@ -359,8 +359,10 @@ func TestAPreviewPushedOutByNewerReadsSaysSo(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if _, err := a.ApplyJDImport(first.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportReplaced) {
-		t.Fatalf("err = %v, want ErrJDImportReplaced", err)
+	for range 2 {
+		if _, err := a.ApplyJDImport(first.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportReplaced) {
+			t.Fatalf("err = %v, want ErrJDImportReplaced", err)
+		}
 	}
 }
 

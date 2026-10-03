@@ -213,11 +213,10 @@ func (a *App) takeJDPlan(token string) (*jdPlan, error) {
 	jdPendingMu.Lock()
 	defer jdPendingMu.Unlock()
 	p, ok := jdPending[a][token]
-	if created, gone := jdReplaced[a][token]; !ok && gone {
-		delete(jdReplaced[a], token)
-		if time.Since(created) <= jdPendingTTL {
-			return nil, ErrJDImportReplaced
-		}
+	// The marker stays until it ages out, so a second Apply from the same
+	// dialog gets the same answer.
+	if created, gone := jdReplaced[a][token]; !ok && gone && time.Since(created) <= jdPendingTTL {
+		return nil, ErrJDImportReplaced
 	}
 	if !ok || time.Since(p.created) > jdPendingTTL {
 		delete(jdPending[a], token)
