@@ -140,10 +140,11 @@ func Normalize(s Set) (Set, error) {
 			// log and the diagnostics bundle.
 			return Set{}, fmt.Errorf("hostheaders: the value of %s is %d characters, the limit is %d", name, len(value), MaxValueLen)
 		}
-		if strings.ContainsAny(value, "\r\n") {
+		if strings.ContainsFunc(value, isControl) {
 			// Refused rather than stripped: a line break is request splitting,
-			// and a silently repaired value is not what the user pasted.
-			return Set{}, fmt.Errorf("hostheaders: the value of %s contains a line break", name)
+			// net/http will not send any other control character either, and a
+			// silently repaired value is not what the user pasted.
+			return Set{}, fmt.Errorf("hostheaders: the value of %s contains a control character", name)
 		}
 		if _, seen := byName[name]; !seen {
 			order = append(order, name)
@@ -159,6 +160,12 @@ func Normalize(s Set) (Set, error) {
 		out.Headers = append(out.Headers, Header{Name: name, Value: byName[name]})
 	}
 	return out, nil
+}
+
+// isControl reports the characters a header value cannot carry: every ASCII
+// control character except the tab.
+func isControl(r rune) bool {
+	return (r < ' ' && r != '\t') || r == 0x7f
 }
 
 // canonicalName puts a header name into net/http's capitalisation and returns
