@@ -871,6 +871,9 @@ func (a *App) Close() error {
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()
+	// The own Usenet servers' files have no boot reconcile, so one that
+	// finishes during shutdown is saved as done here or downloaded again.
+	a.usenetStateFor().articles.Stop()
 	// The engine keeps its transfers in memory only, so seeding ends here,
 	// until the next start takes it up again.
 	a.endSeeding()
