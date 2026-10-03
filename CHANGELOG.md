@@ -49,10 +49,12 @@ release's tag.
   and .ytdl files, its fragments and its info file on disk after a removal
   with files. KnightLoader now stops yt-dlp, waits for it to exit and deletes
   them. This also works for a row brought back with Undo and then removed with
-  its files. When yt-dlp records through ffmpeg, as it does for a live stream,
-  a pause or a removal now stops ffmpeg too. ffmpeg used to keep recording on
-  its own, after a removal with files into the deleted file, and the removal
-  waited until ffmpeg was done.
+  its files, and after KnightLoader restarts. A file that another download
+  wrote too, such as the info file the video and audio rows of one link share,
+  is left for that download. When yt-dlp records through ffmpeg, as it does for
+  a live stream, a pause or a removal now stops ffmpeg too. ffmpeg used to keep
+  recording on its own, after a removal with files into the deleted file, and
+  the removal waited until ffmpeg was done.
 - **Pausing or removing a media download works after an account change.**
   Saving an account, switching JDownloader on or updating yt-dlp set up yt-dlp
   again, and KnightLoader lost track of a download that was already running: a

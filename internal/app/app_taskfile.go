@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -113,6 +114,21 @@ func sidecarsOf(t *core.Task) []string {
 		kind = ytdlp.VariantVideo
 	}
 	return ytdlp.Sidecars(kind, t.File)
+}
+
+// usedByOther reports whether a task other than id has path as its file or
+// among what yt-dlp wrote for it. Two downloads of one title write the same
+// names, and the video and the audio row of a link the same info file.
+func (a *App) usedByOther(id, path string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	same := func(p string) bool { return samePath(p, path) }
+	for other, t := range a.tasks {
+		if other != id && (same(t.File) || slices.ContainsFunc(t.WorkFiles, same)) {
+			return true
+		}
+	}
+	return false
 }
 
 // intact reports whether the file at the leftover's path is still the one its
