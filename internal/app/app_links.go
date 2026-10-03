@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/url"
 	"path"
 	"sort"
@@ -873,9 +874,33 @@ func restoredLink(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipRe
 
 // filterWaived reports a restored link the filter had held. The queue skips
 // its final filter check for such links. A link held for the history or a
-// banned tracker had passed the filter, so the filter still has its say.
+// banned tracker had passed the filter, so the filter still has its say,
+// unless the history held it only after the user restored it past the filter.
 func filterWaived(t *core.Task) bool {
-	return restoredLink(t) && t.SkipCode != skipDownloaded && t.SkipCode != skipBannedTracker
+	return restoredLink(t) && (heldByFilter(t) || t.SkipParams[waivedFilterParam] != "")
+}
+
+// heldByFilter reports whether the hold a link carries is the filter's.
+func heldByFilter(t *core.Task) bool {
+	return t.SkipCode != skipDownloaded && t.SkipCode != skipBannedTracker
+}
+
+// waivedFilterParam marks the history's hold of a link the user had already
+// restored past the filter, so that one restore from it waives both.
+const waivedFilterParam = "filterWaived"
+
+// holdForHistoryLocked moves a link the history has to the rejected links. A
+// link restored past the filter takes that waiver along. Caller holds a.mu.
+func holdForHistoryLocked(t *core.Task, v rules.Verdict, pastFilter bool) {
+	params := maps.Clone(v.Params)
+	if pastFilter {
+		if params == nil {
+			params = map[string]string{}
+		}
+		params[waivedFilterParam] = "true"
+	}
+	t.Skipped = true
+	t.SkipReason, t.SkipCode, t.SkipParams = v.Reason, v.Code, params
 }
 
 // packagize applies the Packagizer's answer to a task before it is staged.
@@ -1017,7 +1042,9 @@ func (a *App) FilteredLinks() []*core.Task {
 
 // RestoreFiltered moves held links back into the collector with the filter
 // waived for them; an empty id list restores all. Without the waiver the
-// queue's final filter check would refuse the link again.
+// queue's final filter check would refuse the link again. A link the filter
+// held never met the history, so it does now, and one the history has stays
+// held, now for that reason.
 func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -1026,13 +1053,39 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	all := len(ids) == 0
 
 	a.mu.Lock()
-	var freed []taskCopy
+	var picked []string
+	pending := map[string]rules.Candidate{}
 	for id, t := range a.tasks {
 		if !t.Skipped || !(all || want[id]) {
 			continue
 		}
-		t.Skipped = false
-		// SkipReason stays as the record of the waiver.
+		picked = append(picked, id)
+		if heldByFilter(t) {
+			pending[id] = candidateOf(t)
+		}
+	}
+	a.mu.Unlock()
+	// Asked outside the lock, since the history may have to be read from disk.
+	verdicts := map[string]rules.Verdict{}
+	for id, cand := range pending {
+		if v := a.downloadedVerdict(cand); v.Rejected {
+			verdicts[id] = v
+		}
+	}
+
+	a.mu.Lock()
+	var freed []taskCopy
+	for _, id := range picked {
+		t := a.tasks[id]
+		if t == nil || !t.Skipped {
+			continue
+		}
+		if v, ok := verdicts[id]; ok && heldByFilter(t) {
+			holdForHistoryLocked(t, v, true)
+		} else {
+			t.Skipped = false
+			// SkipReason stays as the record of the waiver.
+		}
 		freed = append(freed, a.copyLocked(t))
 	}
 	a.mu.Unlock()
@@ -1044,7 +1097,9 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 		c := &freed[i]
 		a.publish(c)
 		out = append(out, &c.Task)
-		restored = append(restored, c.ID)
+		if !c.Skipped {
+			restored = append(restored, c.ID)
+		}
 	}
 	// Held links were never resolved, so recheck them in the background.
 	if len(restored) > 0 {

@@ -244,3 +244,60 @@ func TestAMagnetFromTheHistoryIsRejectedUnderAnotherNameAndTrackers(t *testing.T
 		}
 	}
 }
+
+// The restore overrules the filter, which held the link, and not the history,
+// which never got to see it.
+func TestALinkRestoredFromTheFilterStillMeetsTheHistory(t *testing.T) {
+	a := historyApp(t, func(s *settings.Settings) { s.LinkFilter = rejectRule("sample files are not wanted here") })
+	downloadedBefore(t, a, "old", "https://host.example/sample.mkv", "sample.mkv", 4096)
+	held := onlyTask(t, a.AddLinks([]string{"https://host.example/sample.mkv"}, ""))
+	if held.SkipCode == skipDownloaded {
+		t.Fatal("the history held the link before the filter could")
+	}
+
+	got := onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the restored link came back as skipped=%v code=%q, want it held as downloaded", got.Skipped, got.SkipCode)
+	}
+}
+
+// Restored past both, the link is not refused by the filter at the queue.
+func TestALinkRestoredPastTheFilterAndTheHistoryIsNotRefusedAtTheQueue(t *testing.T) {
+	const reason = "sample files are not wanted here"
+	a := historyApp(t, func(s *settings.Settings) { s.LinkFilter = rejectRule(reason) })
+	downloadedBefore(t, a, "old", "https://host.example/sample.mkv", "sample.mkv", 4096)
+	held := onlyTask(t, a.AddLinks([]string{"https://host.example/sample.mkv"}, ""))
+	onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+
+	restored := onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+	if restored.Skipped {
+		t.Fatalf("the second restore left the link held: %s", restored.SkipReason)
+	}
+	a.StartTasks([]string{restored.ID})
+	if live := liveTask(a, restored.ID); strings.Contains(live.Error, reason) {
+		t.Errorf("the queue refused the link with the filter rule the user overruled (%q)", live.Error)
+	}
+}
+
+// A link restored past the filter whose HEAD finds the size of a file the
+// history has is held like any other.
+func TestALinkRestoredFromTheFilterIsHeldOnceTheProbeFindsAMirror(t *testing.T) {
+	a := historyApp(t, func(s *settings.Settings) { s.LinkFilter = rejectRule("sample files are not wanted here") })
+	downloadedBefore(t, a, "old", "https://one.example/sample.mkv", "sample.mkv", 4096)
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 4096
+		return resp, nil
+	})
+
+	const mirror = "https://two.example/sample.mkv?ref=1"
+	held := onlyTask(t, a.AddLinks([]string{mirror}, ""))
+	if restored := onlyTask(t, a.RestoreFiltered([]string{held.ID})); restored.Skipped {
+		t.Fatalf("the restore kept the link held before its size was known: %s", restored.SkipReason)
+	}
+	a.analyze(held.ID, mirror)
+	if live := liveTask(a, held.ID); !live.Skipped || live.SkipCode != skipDownloaded {
+		t.Errorf("the mirror stayed (skipped=%v, code=%q, size=%d), want it held as downloaded",
+			live.Skipped, live.SkipCode, live.Size)
+	}
+}
