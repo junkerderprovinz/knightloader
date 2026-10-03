@@ -34,9 +34,10 @@ type Server struct {
 	// asked only for what every server below it lacks, the way a block
 	// account fills the gaps of the main one.
 	Level int
-	// Optional servers are passed over while they cannot be reached. A server
-	// that is not optional holds an article back instead: it might have it,
-	// so the article is asked for again once the server is back.
+	// Optional servers are passed over while they cannot be reached, as long
+	// as another server answers. A server that is not optional holds an
+	// article back instead: it might have it, so the article is asked for
+	// again once the server is back.
 	Optional bool
 	// RetentionDays is how far back the server keeps articles, 0 for no
 	// limit. An older article is not asked of it.

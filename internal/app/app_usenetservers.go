@@ -6,6 +6,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"sync"
@@ -41,12 +42,37 @@ func (a *App) RemoveUsenetLogin(id string) error {
 	return a.Accounts.SetCredential(settings.UsenetService, id, accounts.Credential{})
 }
 
+// ErrUsenetAddressChanged is a form that keeps the stored password while it
+// names another address than the one the password was saved for.
+var ErrUsenetAddressChanged = errors.New("password: the server's address changed, so enter the password again")
+
+// StoredUsenetPassword is what a password of accounts.Redacted stands for in a
+// form for srv: the password stored for srv.ID. It goes only to the address it
+// was saved for, so a form that changed the host, the port or TLS gets
+// ErrUsenetAddressChanged instead.
+func (a *App) StoredUsenetPassword(srv settings.UsenetServer) (string, error) {
+	prev, _ := a.Accounts.GetCredential(settings.UsenetService, srv.ID)
+	if prev.Password == "" {
+		return "", nil
+	}
+	for _, stored := range a.Settings.Get().UsenetServers {
+		if stored.ID == srv.ID && stored.TLS == srv.TLS &&
+			nntpServer(stored, prev).Addr() == nntpServer(srv, prev).Addr() {
+			return prev.Password, nil
+		}
+	}
+	return "", ErrUsenetAddressChanged
+}
+
 // TestUsenetServer logs in to srv and asks it for an article, storing nothing.
-// A password of accounts.Redacted is the one stored for srv.ID.
+// A password of accounts.Redacted is the one stored for srv.ID, as
+// StoredUsenetPassword hands it out.
 func (a *App) TestUsenetServer(ctx context.Context, srv settings.UsenetServer, username, password string) error {
 	if password == accounts.Redacted {
-		prev, _ := a.Accounts.GetCredential(settings.UsenetService, srv.ID)
-		password = prev.Password
+		var err error
+		if password, err = a.StoredUsenetPassword(srv); err != nil {
+			return err
+		}
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -88,23 +114,22 @@ type nntpClient struct {
 	c       *nntp.Client
 }
 
-// nntpClient returns the client for the servers as they are set up,
-// building a new one when they have changed. Downloads that started on the
-// old one finish on it.
+// nntpClient returns the client, with the servers as they are set up. A change
+// to them goes into the one client every download shares, so the downloads
+// under way and the next ones count against the same connection limits.
 func (a *App) nntpClient() *nntp.Client {
 	servers := a.nntpServers()
 	nntpMu.Lock()
 	defer nntpMu.Unlock()
 	cur := nntpClients[a]
-	if cur != nil && slices.Equal(cur.servers, servers) {
-		return cur.c
+	if cur == nil {
+		cur = &nntpClient{servers: servers, c: nntp.NewClient(servers, a.Throttle)}
+		nntpClients[a] = cur
+	} else if !slices.Equal(cur.servers, servers) {
+		cur.c.SetServers(servers)
+		cur.servers = servers
 	}
-	if cur != nil {
-		cur.c.Close()
-	}
-	next := &nntpClient{servers: servers, c: nntp.NewClient(servers, a.Throttle)}
-	nntpClients[a] = next
-	return next.c
+	return cur.c
 }
 
 // usenetServersSet reports whether any server is switched on.

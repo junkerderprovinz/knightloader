@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -68,6 +69,12 @@ func registerUsenetServers(reg *Registry, a *app.App) {
 			if err := preview.ValidateUsenetServers(); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
+			}
+			if body.Password == accounts.Redacted {
+				if _, err := a.StoredUsenetPassword(srv); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 			// The login first: a sealed login no row names is inert, while a
 			// row without its login would be refused by the server.
@@ -148,7 +155,9 @@ func usenetServerRows(a *app.App) []usenetServerRow {
 // it left empty.
 func cleanUsenetServer(s settings.UsenetServer) settings.UsenetServer {
 	s.ID = settings.UsenetServerID(s.ID)
-	s.Host = strings.ToLower(strings.TrimSpace(s.Host))
+	if host := settings.UsenetHost(s.Host); host != "" {
+		s.Host = host
+	}
 	if s.Connections == 0 {
 		s.Connections = settings.DefaultUsenetConnections
 	}

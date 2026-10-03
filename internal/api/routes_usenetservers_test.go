@@ -90,3 +90,63 @@ func TestUsenetServerRoutes(t *testing.T) {
 		t.Fatalf("a second delete answered %d", code)
 	}
 }
+
+func TestTheStoredUsenetPasswordGoesOnlyToItsOwnAddress(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	reg := newRegistry()
+	registerUsenetServers(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	news, trap := nntptest.New(t), nntptest.New(t)
+	news.SetLogin("reader", "secret")
+	trap.SetLogin("reader", "secret")
+
+	post := func(path string, body map[string]any) (int, []byte) {
+		t.Helper()
+		raw, _ := json.Marshal(body)
+		resp, err := http.Post(srv.URL+path, "application/json", bytes.NewReader(raw))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		var b bytes.Buffer
+		_, _ = b.ReadFrom(resp.Body)
+		return resp.StatusCode, b.Bytes()
+	}
+	if code, out := post("/api/usenet/servers", map[string]any{
+		"id": "main", "host": news.Host, "port": news.Port, "enabled": true, "username": "reader", "password": "secret",
+	}); code != http.StatusOK {
+		t.Fatalf("save answered %d: %s", code, out)
+	}
+
+	for _, moved := range []map[string]any{
+		{"id": "main", "host": "localhost", "port": trap.Port, "username": "reader", "password": "********"},
+		{"id": "main", "host": news.Host, "port": trap.Port, "username": "reader", "password": "********"},
+		{"id": "main", "host": news.Host, "port": news.Port, "tls": true, "username": "reader", "password": "********"},
+	} {
+		if _, out := post("/api/usenet/servers/test", moved); !bytes.Contains(out, []byte(`"ok":false`)) {
+			t.Errorf("test with the placeholder for %v answered %s", moved, out)
+		}
+		if code, _ := post("/api/usenet/servers", moved); code != http.StatusBadRequest {
+			t.Errorf("save with the placeholder for %v answered %d", moved, code)
+		}
+	}
+	if trap.Logins() != 0 {
+		t.Fatal("the stored password was sent to another server")
+	}
+	if rows := a.Settings.Get().UsenetServers; len(rows) != 1 || rows[0].Port != news.Port || rows[0].TLS {
+		t.Fatalf("stored rows = %+v, want the first save untouched", rows)
+	}
+
+	// The same address keeps the stored password, for the test and the save.
+	same := map[string]any{"id": "main", "host": news.Host, "port": news.Port, "connections": 2, "username": "reader", "password": "********"}
+	if _, out := post("/api/usenet/servers/test", same); !bytes.Contains(out, []byte(`"ok":true`)) {
+		t.Fatalf("test of the stored login answered %s", out)
+	}
+	if code, out := post("/api/usenet/servers", same); code != http.StatusOK {
+		t.Fatalf("save answered %d: %s", code, out)
+	}
+}
