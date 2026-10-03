@@ -223,12 +223,17 @@ itself. The banner then says so, as the web UI's toast does.
 module with an Android foreground service. The service runs one pass of
 `src/watch/watch.ts` as a headless JavaScript task: every 10 to 30 seconds
 while a download runs or a captcha waits, once a minute while nothing does. A
-pass reads `/api/tasks` and `/api/captcha?watch=0` from every saved instance,
-over the same direct or relay transport the screens use, and posts a
+pass reads `/api/tasks/watch` and `/api/captcha?watch=0` from every saved
+instance, over the same direct or relay transport the screens use, and posts a
 notification for a captcha that arrived, a package or lone download that
-finished, and a download that failed. The relay carries no socket, so asking is
-the only way to hear about anything, and `watch=0` keeps a phone in a pocket
-from holding the captcha accounts back. Nothing here comes from Firebase or any
+finished, and a download that failed for good. A failure the instance retries by
+itself is no news yet. `/api/tasks/watch` sends each task's state without its
+progress, and given the tag of its last answer it sends only the tag until
+something changes, so a long history costs a few bytes a look. An instance from
+before that route is read through `/api/tasks`. A look that gets no answer
+within 20 seconds counts as one the instance missed. The relay carries no
+socket, so asking is the only way to hear about anything, and `watch=0` keeps a
+phone in a pocket from holding the captcha accounts back. Nothing here comes from Firebase or any
 other Google service.
 
 "Stay connected", on by default, keeps the service running for as long as an
@@ -241,13 +246,18 @@ native preferences whether that applies, since the receiver has no JavaScript to
 ask. With the setting off, the service stops itself two minutes after the last
 busy look, or fifteen when an instance stopped answering while it was busy, and
 the app starts it from the front: when it is opened, every 15 seconds while it
-is open and something is running, and when a download is added.
+is open and something is running, and when a download is added. Nothing is
+announced for what finished while nobody looked, after the service stopped or
+while the app was away without it: the next look starts over like the first.
 
 While a download runs or a captcha waits, the service holds a partial wake lock
 and a handler times the passes, since that clock stops while the phone sleeps;
 the pace drops to one look every 30 seconds while nothing changes. While
 nothing runs, it lets go of the lock and an inexact alarm that is allowed while
 idle wakes the phone for the next look, so an idle phone sleeps between looks.
+A download that stands still and a torrent a debrid service is still fetching
+count as nothing running here, since either can stay that way for hours, but
+with "Stay connected" off they still keep the service going.
 The first time the service starts with "Stay connected", the app offers
 Android's battery optimisation list once, and the settings card keeps a button
 to it while the app is optimised. It opens the list rather than asking for the

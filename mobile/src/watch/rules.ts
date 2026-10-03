@@ -2,30 +2,63 @@
 // stops, apart from React and the native module so check-watch.mjs can run the
 // rules in node. It imports nothing at run time for the same reason.
 
-import type { CaptchaChallenge, Task } from '../api/types';
+import type { CaptchaChallenge, Task, WatchTask } from '../api/types';
 
 /** The part of one look at an instance that the next look is compared with. */
 export interface Look {
-  /** Status by task id. */
+  /** State by task id: the status, or "retrying" for a failure with a retry
+   *  still to come. */
   status: Record<string, string>;
   /** The ids of the captchas that were waiting. */
   captchas: string[];
 }
 
-export function lookOf(tasks: Task[], captchas: CaptchaChallenge[]): Look {
+// A failure the instance retries by itself is not the end of the download, so
+// it is neither news nor a file that settles its package.
+const stateOf = (t: WatchTask): string => (t.status === 'error' && t.retrying ? 'retrying' : t.status);
+
+export function lookOf(tasks: WatchTask[], captchas: CaptchaChallenge[]): Look {
   const status: Record<string, string> = {};
-  for (const t of tasks) status[t.id] = t.status;
+  for (const t of tasks) status[t.id] = stateOf(t);
   return { status, captchas: captchas.map((ch) => ch.id) };
+}
+
+// Go's encoding/json writes a zero time.Time as year 1 rather than leaving it out.
+const happened = (iso?: string): boolean => !!iso && new Date(iso).getUTCFullYear() > 1;
+
+/** watchTaskOf reads a task from the full list the way GET /api/tasks/watch
+ *  sends it, for an instance from before that route. */
+export function watchTaskOf(t: Task): WatchTask {
+  return {
+    ...t,
+    name: t.name || t.url,
+    retrying: t.status === 'error' && happened(t.nextTry),
+    stalled: t.status === 'running' && happened(t.stalledSince),
+    remote: t.status === 'running' && !!t.remote,
+  };
 }
 
 /**
  * Whether an instance has something on the go that a notification could be
  * about. A queued link counts only once it runs: a queue held by a schedule or
- * by hand can wait for hours, and the service would keep the phone awake for
- * all of them. Seeding has no end and does not count either.
+ * by hand can wait for hours, and the service would run for all of them.
+ * Seeding has no end and does not count either.
  */
-export function isBusy(tasks: Task[], captchas: CaptchaChallenge[]): boolean {
+export function isBusy(tasks: WatchTask[], captchas: CaptchaChallenge[]): boolean {
   return captchas.length > 0 || tasks.some((t) => t.status === 'running' || t.status === 'extracting');
+}
+
+/**
+ * Whether what is on the go moves here, which is what keeps the phone awake
+ * between looks. A torrent a debrid service is still fetching and a download
+ * that stood still can stay that way for hours, and a look once a minute
+ * notices their end soon enough.
+ */
+export function isMoving(tasks: WatchTask[], captchas: CaptchaChallenge[]): boolean {
+  return (
+    captchas.length > 0 ||
+    tasks.some((t) => t.status === 'extracting' || (t.status === 'running' && !t.stalled && !t.remote))
+  );
 }
 
 /** A package, or a lone link, that news is about. */
@@ -35,7 +68,7 @@ export interface PackageNews {
   name: string;
   /** The tasks the news is about: every file of a finished package, or the
    *  ones that have just failed. */
-  tasks: Task[];
+  tasks: WatchTask[];
   /** The files of the package that count, and how they ended. */
   total: number;
   done: number;
@@ -53,11 +86,11 @@ export interface News {
   changed: boolean;
 }
 
-const packageKey = (t: Task): string => (t.package ? `p:${t.package}` : `t:${t.id}`);
+const packageKey = (t: WatchTask): string => (t.package ? `p:${t.package}` : `t:${t.id}`);
 
 // A disabled link never starts and a collected one waits for somebody to say
 // go, so neither holds a package back from being finished.
-const counts = (t: Task): boolean => t.enabled !== false && t.status !== 'collected';
+const counts = (t: WatchTask): boolean => t.enabled !== false && t.status !== 'collected';
 
 /**
  * What changed between two looks at the same instance. The first look has no
@@ -67,7 +100,7 @@ const counts = (t: Task): boolean => t.enabled !== false && t.status !== 'collec
  * A task the last look did not have counts as one that was still to come, so a
  * small file added and finished between two looks is still announced.
  */
-export function compare(before: Look | null, tasks: Task[], captchas: CaptchaChallenge[]): News {
+export function compare(before: Look | null, tasks: WatchTask[], captchas: CaptchaChallenge[]): News {
   if (!before) return { arrived: [], finished: [], failed: [], changed: false };
 
   const seen = new Set(before.captchas);
@@ -75,13 +108,13 @@ export function compare(before: Look | null, tasks: Task[], captchas: CaptchaCha
   const still = new Set(captchas.map((ch) => ch.id));
   const captchaGone = before.captchas.some((id) => !still.has(id));
 
-  const turned = (t: Task, to: string) => t.status === to && before.status[t.id] !== to;
+  const turned = (t: WatchTask, to: string) => stateOf(t) === to && before.status[t.id] !== to;
   let changed = arrived.length > 0 || captchaGone;
   const present = new Set<string>();
-  const groups = new Map<string, Task[]>();
+  const groups = new Map<string, WatchTask[]>();
   for (const t of tasks) {
     present.add(t.id);
-    if (before.status[t.id] !== t.status) changed = true;
+    if (before.status[t.id] !== stateOf(t)) changed = true;
     const key = packageKey(t);
     const list = groups.get(key);
     if (list) list.push(t);
@@ -94,8 +127,8 @@ export function compare(before: Look | null, tasks: Task[], captchas: CaptchaCha
   for (const [key, group] of groups) {
     const counted = group.filter(counts);
     const done = counted.filter((t) => t.status === 'done').length;
-    const errors = counted.filter((t) => t.status === 'error').length;
-    const name = group[0].package || group[0].name || group[0].url;
+    const errors = counted.filter((t) => stateOf(t) === 'error').length;
+    const name = group[0].package || group[0].name;
     const settled = counted.length > 0 && done + errors === counted.length;
     if (settled && done > 0 && counted.some((t) => turned(t, 'done') || turned(t, 'error'))) {
       finished.push({ key, name, tasks: counted, total: counted.length, done, failed: errors });
@@ -115,11 +148,11 @@ export const SLOW_MS = 30_000;
 export const IDLE_MS = 60_000;
 
 /** How long to wait before the next look: soon after a change, then less and
- *  less often while a download runs without news, and once a minute while
- *  nothing runs at all. */
-export function nextDelay(previous: number, changed: boolean, captchaWaiting: boolean, busy: boolean): number {
+ *  less often while a download moves without news, and once a minute while
+ *  nothing moves at all (isMoving). */
+export function nextDelay(previous: number, changed: boolean, captchaWaiting: boolean, moving: boolean): number {
   if (changed || captchaWaiting) return FAST_MS;
-  if (!busy) return IDLE_MS;
+  if (!moving) return IDLE_MS;
   return Math.min(Math.max(Math.round(previous * 1.5), FAST_MS), SLOW_MS);
 }
 
