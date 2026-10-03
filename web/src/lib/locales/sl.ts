@@ -2141,6 +2141,7 @@ export const sl: Dict = {
   'detail.playPartial': 'Ta prenos ni končan. Predvajati je mogoče le del, ki je že na disku, čez to ni mogoče skakati, nekatere datoteke pa ne zaigrajo ničesar, dokler ni tu zadnji bajt.',
   'detail.playLive': 'Ta prenos še teče. Del, ki ga predvajaš, se prenese najprej, zato lahko začneš takoj. Če skočiš naprej, predvajanje počaka, da ta del prispe.',
   'detail.playStopped': 'Ta prenos se je ustavil, preden se je končal. Znova ga zaženi, da boš datoteko predvajal med prenosom.',
+  'detail.playMending': 'Del tega prenosa se znova pridobiva. Predvajati ga boš lahko, ko ta del prispe.',
   'detail.playUnsupported': 'Ta brskalnik te datoteke ne zna predvajati. Odpri ali shrani jo raje prek menija na desni klik.',
   'detail.playRemote': 'Predvajati je mogoče le datoteke na tem primerku. Drug primerek svoje datoteke izroči v enem kosu in brez skakanja, s tem pa predvajalnik ne zna nič.',
   'detail.playNotLocal': 'Ta prenos je prinesel JDownloader, datoteka torej leži na disku tistega procesa in ne na tem.',

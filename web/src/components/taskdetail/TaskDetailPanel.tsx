@@ -49,8 +49,9 @@ export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string;
  * link and player cards. It skips peers, whose proxy reads up to 32 MB of the
  * reply, and links with no file yet.
  *
- * The effect depends on the id rather than the task, because useTasks replaces
- * the task object on every broadcast.
+ * The effect depends on the id and the status rather than the task, because
+ * useTasks replaces the task object on every broadcast. A new status can change
+ * the answer, as when a download starts or finishes a mend.
  */
 function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
   const [head, setHead] = useState<TaskFileHead | null>(null);
@@ -73,7 +74,7 @@ function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
     return () => {
       live = false;
     };
-  }, [task.id, base, worth]);
+  }, [task.id, task.status, base, worth]);
 
   return head;
 }

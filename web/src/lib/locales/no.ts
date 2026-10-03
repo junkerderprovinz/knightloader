@@ -2141,6 +2141,7 @@ export const no: Dict = {
   'detail.playPartial': 'Denne nedlastingen er ikke ferdig. Bare den delen som allerede ligger på disken, lar seg spille, å hoppe forbi den går ikke, og noen filer spiller ingenting i det hele tatt før den siste byten er der.',
   'detail.playLive': 'Denne nedlastingen pågår fortsatt. Delen du spiller av, hentes først, så du kan begynne med en gang. Hopper du fremover, venter avspillingen til den delen har kommet.',
   'detail.playStopped': 'Denne nedlastingen stoppet før den var ferdig. Start den igjen for å spille av filen mens den lastes ned.',
+  'detail.playMending': 'En del av denne nedlastingen hentes på nytt. Den kan spilles av når den delen er kommet.',
   'detail.playUnsupported': 'Denne nettleseren kan ikke spille denne fila. Åpne eller lagre den fra høyreklikkmenyen i stedet.',
   'detail.playRemote': 'Bare filer på denne instansen kan spilles her. En annen instans leverer filene sine i ett stykke og uten at du kan hoppe i dem, og det kommer en avspiller ikke til rette med.',
   'detail.playNotLocal': 'Denne nedlastingen ble hentet av JDownloader, så fila ligger på disken til den prosessen og ikke på denne.',

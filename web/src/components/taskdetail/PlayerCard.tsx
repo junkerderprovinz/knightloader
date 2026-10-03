@@ -3,7 +3,7 @@ import { isLocalBase, taskFileURL, type Task, type TaskFileHead } from '../../li
 import { useT } from '../../lib/i18n';
 import { reachable as taskFileReachable } from '../FileActions';
 import { Button, Card, ErrorCard, SectionTitle } from '../ui';
-import { playableAs } from './playable';
+import { playableTask } from './playable';
 
 /**
  * PlayerCard plays a task's audio or video file straight off the instance that
@@ -33,7 +33,7 @@ export function PlayerCard({
     setFailed('');
   }, [task.id, base]);
 
-  const media = playableAs(task.name);
+  const media = playableTask(task, head?.ok ? head.contentType : '');
   if (!media) return null;
 
   // A peer is ruled out first: the federation proxy drops the Range header,
@@ -45,16 +45,19 @@ export function PlayerCard({
   else if (!taskFileReachable(task))
     why = task.resolver === 'jd' ? t('detail.playNotLocal') : t('detail.playNoFile');
   else if (!media.supported) why = t('detail.playUnsupported');
-  // 404 is the ordinary state of a download that has not started, and 409 one
-  // that stopped halfway; 400 and 403 are the server declining, and 403 means
-  // a folder resolved outside the tree.
+  // 404 is the ordinary state of a download that has not started, 409 one
+  // that stopped halfway, and 503 one fetching a part that never arrived; 400
+  // and 403 are the server declining, and 403 means a folder resolved outside
+  // the tree.
   else if (head && !head.ok)
     why =
       head.status === 404
         ? t('detail.playNoFile')
         : head.status === 409
           ? t('detail.playStopped')
-          : t('detail.playRefused', { reason: String(head.status) });
+          : head.status === 503
+            ? t('detail.playMending')
+            : t('detail.playRefused', { reason: String(head.status) });
 
   // A probe still in flight gets no sentence, only a disabled button.
   const ready = !why && !!head?.ok;
