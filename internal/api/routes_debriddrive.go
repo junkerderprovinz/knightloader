@@ -79,9 +79,7 @@ func serveDrive(a *app.App, w http.ResponseWriter, r *http.Request) {
 // askedBasePath is the base path in front of the path the client asked for.
 // That is the base when the request carried it, and otherwise the proxy's
 // X-Forwarded-Prefix, since a request without it either reached the process
-// directly or came through a proxy that stripped it. requestBasePath cannot
-// tell those apart, and an rclone that asked for /dav/ drops entries named
-// under /kl/dav/.
+// directly or came through a proxy that stripped it.
 func askedBasePath(r *http.Request) string {
 	base := requestBasePath(r)
 	if base == "" {
