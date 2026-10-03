@@ -218,10 +218,10 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 		// carry leaves the backend what it holds of the task (see
 		// carriesOnLocked).
 		carry bool
-		// renamed keeps the backend off the files of its record, which a
-		// rename moved (see App.renamed). The new attempt drops the moved
-		// file as its own leftover.
-		renamed bool
+		// moved keeps the backend off the files of its record, which no
+		// longer names the task's file (see App.movedFiles). The new attempt
+		// drops the moved file as its own leftover.
+		moved bool
 	}
 	var targets []reset
 	for id, t := range a.tasks {
@@ -235,8 +235,8 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 		}
 		if restartable && (all || want[id]) {
 			carry := t.Status == core.StatusError && a.carriesOnLocked(t)
-			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry, a.renamed[id]})
-			delete(a.renamed, id)
+			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry, a.movedFiles[id]})
+			delete(a.movedFiles, id)
 			t.Status = core.StatusQueued
 			t.ClearFailure()
 			t.Loaded = 0
@@ -267,7 +267,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 	// Clear any leftover backend state before re-queuing.
 	for _, r := range targets {
 		if !r.carry {
-			r.be.Remove(r.id, !r.renamed)
+			r.be.Remove(r.id, !r.moved)
 		}
 	}
 

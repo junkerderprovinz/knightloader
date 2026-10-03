@@ -222,6 +222,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		seen[u] = true
+		// Before the folder listing below, which would log the link whole.
+		if a.refusesPasswordLink(u) {
+			continue
+		}
 		// Filtered here as well as in stage, because the crawl below would
 		// otherwise contact a host a rule told us to avoid.
 		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
@@ -734,7 +738,7 @@ func (s *stagedAt) next() time.Time {
 // sizeHint is a byte count the caller already knows, or 0. Like a known name,
 // it is not overwritten by a resolver's placeholder answer.
 func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
-	if a.refusesJobLink(u, in) {
+	if a.refusesJobLink(u, in) || a.refusesPasswordLink(u) {
 		return nil
 	}
 	// One local clock reading for CreatedAt and <jd:date>; UTC would shift
@@ -914,6 +918,27 @@ func (a *App) refusesJobLink(u string, in intake) bool {
 	return true
 }
 
+// refusesPasswordLink reports, and lists, a link to one of the user's own
+// servers with the password written into it. It is refused before anything
+// keeps it, since the task list, the database and the log would hold the
+// password in plain text; the listed link has the password masked.
+func (a *App) refusesPasswordLink(u string) bool {
+	if res := a.Registry.For(u); res == nil || res.Info().ID != remotefs.ResolverID {
+		return false
+	}
+	p, err := url.Parse(u)
+	if err != nil || p.User == nil {
+		return false
+	}
+	if _, set := p.User.Password(); !set {
+		return false
+	}
+	shown := p.Redacted()
+	log.Printf("%s not added: %v", shown, remotefs.ErrPasswordInLink)
+	a.recordSkippedReason(shown, "password", remotefs.ErrPasswordInLink.Error())
+	return true
+}
+
 // finishStaging applies the Packagizer and stages the task, or records the
 // link as already covered. The Packagizer runs before put, so a rule's folder
 // is in place before anything asks dirFor.
@@ -1067,9 +1092,9 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 // file rules. files is nil for anything else.
 //
 // A held link is a task too, which a restore sets free, so a link to a job on
-// an account is refused here as in stage.
+// an account or with a password in it is refused here as in stage.
 func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Time, files []core.TorrentFile) *core.Task {
-	if a.refusesJobLink(cand.URL, in) {
+	if a.refusesJobLink(cand.URL, in) || a.refusesPasswordLink(cand.URL) {
 		return nil
 	}
 	shown := rejection(v)
@@ -1259,8 +1284,9 @@ type SkippedLink struct {
 	// Kind is "duplicate" or "mirror" for a link the mirror set folded into one
 	// already in the list. The rest failed before that: "container" (a
 	// container or Click'n'Load that gave no links), "playlist" (entries left
-	// out of a playlist), "nzb" (an .nzb no Usenet service took or fetched) and
-	// "torrent" (a dropped .torrent that could not be read).
+	// out of a playlist), "nzb" (an .nzb no Usenet service took or fetched),
+	// "torrent" (a dropped .torrent that could not be read) and "password" (a
+	// link to an own server with its password in it).
 	Kind   string    `json:"kind"`
 	Reason string    `json:"reason"`
 	OfID   string    `json:"ofId,omitempty"`

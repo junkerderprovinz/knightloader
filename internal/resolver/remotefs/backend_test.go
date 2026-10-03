@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -187,6 +188,22 @@ func firstRune(b []byte) string {
 	return string(b[:1])
 }
 
+// arriving waits until a slowed transfer has written its first burst into
+// part, so a Halt finds it running.
+func arriving(t *testing.T, part string) {
+	t.Helper()
+	deadline := time.Now().Add(15 * time.Second)
+	for {
+		if fi, err := os.Stat(part); err == nil && fi.Size() >= 256<<10 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the transfer never got going")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
 // Halt stops a transfer without a failure reaching the app and returns once
 // the part file is closed, so it can be moved. Resume goes on from it in the
 // folder Dir names by then.
@@ -211,16 +228,7 @@ func TestBackendHaltsQuietlyAndResumesInTheNewFolder(t *testing.T) {
 
 	b.Download("t1", LinkOf(s.target("/pub/big.bin")), nil, 1)
 	part := filepath.Join(first, "big.bin"+partSuffix)
-	deadline := time.Now().Add(15 * time.Second)
-	for {
-		if fi, err := os.Stat(part); err == nil && fi.Size() >= 256<<10 {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("the transfer never got going")
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	arriving(t, part)
 	if !b.Halt("t1") {
 		t.Fatal("Halt found no transfer running")
 	}
@@ -263,5 +271,219 @@ func TestBackendHaltsQuietlyAndResumesInTheNewFolder(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Error("no restart reached the server, so the part file was fetched again from the start")
+	}
+}
+
+// byTask hands each download's updates to a recorder of its own.
+type byTask map[string]*recorder
+
+func (r byTask) update(id string, u core.Update) { r[id].update(id, u) }
+
+// sameNameTree serves a second, different film.mkv beside ftpTree's, as a
+// folder listing does for two subfolders that hold one name.
+func sameNameTree(size int) map[string]fakeNode {
+	tree := ftpTree()
+	tree["/pub/other"] = fakeNode{dir: true}
+	tree["/pub/other/film.mkv"] = fakeNode{data: bytes.Repeat([]byte("B"), size)}
+	return tree
+}
+
+// holds reports whether the file at path is exactly want.
+func holds(path string, want []byte) bool {
+	got, err := os.ReadFile(path)
+	return err == nil && bytes.Equal(got, want)
+}
+
+func TestRemovingADownloadSavedUnderANumberedNameDeletesThatFileAndNotTheNamedOne(t *testing.T) {
+	tree := sameNameTree(64)
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, rec.update)
+
+	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
+	first := rec["a"].wait(t)
+	b.Download("b", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
+	second := rec["b"].wait(t)
+
+	named := filepath.Join(dir, "film.mkv")
+	if first.Status != core.StatusDone || first.File != named {
+		t.Fatalf("first download = %+v, want it done at %s", first, named)
+	}
+	if second.Status != core.StatusDone || second.File == "" || second.File == named || filepath.Base(second.File) != second.Name {
+		t.Fatalf("second download = %+v, want it done under a numbered name it reports as its file", second)
+	}
+	if !holds(second.File, tree["/pub/other/film.mkv"].data) {
+		t.Fatalf("%s does not hold the second download", second.File)
+	}
+
+	b.Remove("b", true)
+
+	if !holds(named, tree["/pub/film.mkv"].data) {
+		t.Error("removing the second download took the first one's file")
+	}
+	if _, err := os.Stat(second.File); !os.IsNotExist(err) {
+		t.Error("the removed download's own file is still there")
+	}
+}
+
+func TestRemovingAFailedDownloadSparesAFinishedOneOfTheSameName(t *testing.T) {
+	s := newFakeFTP(t, "alice", "secret", ftpTree())
+	dir := t.TempDir()
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, rec.update)
+
+	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
+	if u := rec["a"].wait(t); u.Status != core.StatusDone {
+		t.Fatalf("first download = %+v, want it done", u)
+	}
+	b.Download("b", LinkOf(s.target("/pub/gone/film.mkv")), nil, 1)
+	if u := rec["b"].wait(t); u.Status != core.StatusError {
+		t.Fatalf("second download = %+v, want it failed", u)
+	}
+
+	// What a restart of the failed download does first.
+	b.Remove("b", true)
+
+	if _, err := os.Stat(filepath.Join(dir, "film.mkv")); err != nil {
+		t.Errorf("removing the failed download took the finished one's file: %v", err)
+	}
+}
+
+func TestRemovingAFinishedDownloadSparesThePartFileOfAnotherOfTheSameName(t *testing.T) {
+	tree := sameNameTree(1 << 20)
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	var limit atomic.Int64
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, rec.update)
+	b.RateLimit = limit.Load
+
+	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
+	if u := rec["a"].wait(t); u.Status != core.StatusDone {
+		t.Fatalf("first download = %+v, want it done", u)
+	}
+
+	limit.Store(64 << 10)
+	b.Download("b", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
+	part := filepath.Join(dir, "film.mkv"+partSuffix)
+	arriving(t, part)
+	if !b.Halt("b") {
+		t.Fatal("Halt found no transfer running")
+	}
+
+	b.Remove("a", true)
+
+	if _, err := os.Stat(part); err != nil {
+		t.Fatalf("removing the finished download took the part file of the one still arriving: %v", err)
+	}
+	limit.Store(0)
+	b.Resume("b")
+	second := rec["b"].wait(t)
+	if second.Status != core.StatusDone || !holds(second.File, tree["/pub/other/film.mkv"].data) {
+		t.Errorf("second download = %+v, want its own bytes in its file", second)
+	}
+}
+
+func TestTwoDownloadsOfTheSameNameAtOnceKeepTheirBytesApart(t *testing.T) {
+	tree := sameNameTree(1 << 20)
+	tree["/pub/film.mkv"] = fakeNode{data: bytes.Repeat([]byte("A"), 1<<20)}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, rec.update)
+	// Slow enough that both are still arriving when the other starts.
+	b.RateLimit = func() int64 { return 1 << 20 }
+
+	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
+	b.Download("b", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
+	first, second := rec["a"].wait(t), rec["b"].wait(t)
+
+	if first.Status != core.StatusDone || !holds(first.File, tree["/pub/film.mkv"].data) {
+		t.Errorf("first download = %+v, want its own bytes in its file", first)
+	}
+	if second.Status != core.StatusDone || !holds(second.File, tree["/pub/other/film.mkv"].data) {
+		t.Errorf("second download = %+v, want its own bytes in its file", second)
+	}
+}
+
+// A package rename moves a halted download's part file without the backend
+// hearing of it, so the path it has on record points where the file was.
+func TestADownloadOfTheSameNameLeavesAHaltedOnesPartFileAloneAfterItsFolderMoved(t *testing.T) {
+	tree := sameNameTree(1 << 20)
+	tree["/pub/film.mkv"] = fakeNode{data: bytes.Repeat([]byte("A"), 1<<20)}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	first, second := t.TempDir(), t.TempDir()
+	var mu sync.Mutex
+	dir := first
+	var limit atomic.Int64
+	limit.Store(64 << 10)
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), first, rec.update)
+	b.Dir = func(string) string {
+		mu.Lock()
+		defer mu.Unlock()
+		return dir
+	}
+	b.RateLimit = limit.Load
+
+	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
+	part := filepath.Join(first, "film.mkv"+partSuffix)
+	arriving(t, part)
+	if !b.Halt("a") {
+		t.Fatal("Halt found no transfer running")
+	}
+	if err := os.Rename(part, filepath.Join(second, "film.mkv"+partSuffix)); err != nil {
+		t.Fatal(err)
+	}
+	mu.Lock()
+	dir = second
+	mu.Unlock()
+	limit.Store(0)
+
+	b.Download("b", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
+	if u := rec["b"].wait(t); u.Status != core.StatusDone || !holds(u.File, tree["/pub/other/film.mkv"].data) {
+		t.Errorf("second download = %+v, want its own bytes in its file", u)
+	}
+	b.Resume("a")
+	if u := rec["a"].wait(t); u.Status != core.StatusDone || !holds(u.File, tree["/pub/film.mkv"].data) {
+		t.Errorf("first download = %+v, want its own bytes in its file", u)
+	}
+}
+
+func TestDownloadsFinishingAtOnceUnderOneNameEachKeepTheirFile(t *testing.T) {
+	b := NewBackend(Logins{}, Dialer{}, newStubEngine(), t.TempDir(), func(string, core.Update) {})
+	for round := range 20 {
+		dir := t.TempDir()
+		target := filepath.Join(dir, "film.mkv")
+		const n = 6
+		var wg sync.WaitGroup
+		saved := make([]string, n)
+		errs := make([]error, n)
+		for i := range n {
+			part := filepath.Join(dir, collide.Counted("film.mkv", i+2)+partSuffix)
+			if err := os.WriteFile(part, []byte{byte('a' + i)}, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				saved[i], errs[i] = b.finish(part, target)
+			}()
+		}
+		wg.Wait()
+		seen := map[string]bool{}
+		for i := range n {
+			if errs[i] != nil {
+				t.Fatalf("round %d: download %d did not finish: %v", round, i, errs[i])
+			}
+			if seen[saved[i]] {
+				t.Fatalf("round %d: two downloads were saved as %s", round, saved[i])
+			}
+			seen[saved[i]] = true
+			if !holds(saved[i], []byte{byte('a' + i)}) {
+				t.Fatalf("round %d: %s does not hold download %d", round, saved[i], i)
+			}
+		}
 	}
 }

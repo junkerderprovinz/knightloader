@@ -892,8 +892,8 @@ export interface SkippedLink {
   url: string;
   /**
    * "duplicate" or "mirror" for a link folded into one already in the list;
-   * "container", "playlist", "nzb" or "torrent" for one that failed before
-   * that. SkippedLink in internal/app lists what each means.
+   * "container", "playlist", "nzb", "torrent" or "password" for one that failed
+   * before that. SkippedLink in internal/app lists what each means.
    */
   kind: string;
   /** The sentence to show: what the match rests on, or why it failed. */

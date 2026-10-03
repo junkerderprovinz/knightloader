@@ -437,6 +437,13 @@ func (o Options) maxAttempts() int {
 	return DefaultMaxAttempts
 }
 
+// Counted is the file name Rename tries as its nth candidate for name, such as
+// "film (2).mkv" for n = 2.
+func Counted(name string, n int) string {
+	stem, ext := splitName(name)
+	return counted(stem, ext, n)
+}
+
 // counted builds the nth candidate name, clipped to maxBaseName so the writer
 // does not cut it to a name that was never reserved.
 func counted(stem, ext string, n int) string {

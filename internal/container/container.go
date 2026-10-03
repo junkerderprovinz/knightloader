@@ -191,9 +191,7 @@ func looksLikeLinks(data []byte) bool {
 	if len(head) > 8<<10 {
 		head = head[:8<<10]
 	}
-	s := strings.ToLower(string(head))
-	return strings.Contains(s, "http://") || strings.Contains(s, "https://") ||
-		strings.Contains(s, "magnet:?")
+	return linkscan.ContainsScheme(string(head))
 }
 
 // parseText pulls the links out of a text file with the scanner every other

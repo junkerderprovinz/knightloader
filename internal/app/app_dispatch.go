@@ -1277,13 +1277,19 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// The dispatcher decides what is running. A non-terminal update for a task
 	// that is not active is stale: JD's poller keeps reporting "running" for a
-	// moment after a pause. Done and error are facts about the file and always
-	// apply.
-	stale := u.Status != core.StatusDone && u.Status != core.StatusError && !a.active[id]
+	// moment after a pause. So is one that comes in while the app closes, when
+	// the engine pauses every transfer; saved, that pause would keep the task
+	// from coming back to the queue. Done and error are facts about the file
+	// and always apply.
+	a.closeMu.Lock()
+	closing := a.closing
+	a.closeMu.Unlock()
+	stale := u.Status != core.StatusDone && u.Status != core.StatusError && (!a.active[id] || closing)
 	if u.Name != "" {
 		t.Name = u.Name
 	}
-	if u.Size > 0 {
+	sizeLearned := u.Size > 0 && u.Size != t.Size
+	if sizeLearned {
 		t.Size = u.Size
 	}
 	// Facts about the disk, so a stale update still counts.
@@ -1588,9 +1594,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
 	// on every poll. A debrid job is saved with or without one, and so are the
-	// start and end of seeding, a torrent's file list, and now and then its
-	// upload figures, which a crash would otherwise take with it.
-	if u.Status != "" || u.Job != nil || seedingEnded || seedingBegan || seedFigures || filesKnown {
+	// start and end of seeding, a torrent's file list, a new size (a collected
+	// link's HEAD probe sends nothing else), and now and then its upload
+	// figures, which a crash would otherwise take with it.
+	if u.Status != "" || u.Job != nil || seedingEnded || seedingBegan || seedFigures || filesKnown || sizeLearned {
 		a.publish(&c)
 	} else {
 		a.show(&c)

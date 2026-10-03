@@ -356,12 +356,6 @@ type App struct {
 	// browserHeaders holds the request headers a browser handed over with a
 	// download it gave up, by task id (see app_browserheaders.go). Memory only.
 	browserHeaders map[string]hostheaders.Set
-	// renamed holds the finished downloads a rename moved off the path their
-	// backend recorded, where another download's file may have landed since.
-	// Their backend is not left to delete files by that record (see
-	// removeTask). Memory only, since the engine forgets its downloads on a
-	// restart. Built on first use.
-	renamed map[string]bool
 	// preflights holds, by task id, the start whose header preflight runs off
 	// the lock, and preflightSeq numbers those starts (see resolveLocked).
 	preflights   map[string]uint64
@@ -380,6 +374,13 @@ type App struct {
 	placing    map[string]int
 	handing    map[string]int
 	handed     *sync.Cond
+	// movedFiles holds the finished downloads whose file the app moved off the
+	// path their backend recorded: renamed, delivered, or moved with their
+	// package's folder. Another download may land on that path, so their
+	// backend does not delete files by that record (see removeTask). Memory
+	// only, since the backends forget the record on a restart. Built on first
+	// use.
+	movedFiles map[string]bool
 	// startNow holds the links "Start now" was pressed for, until their
 	// download ends or somebody pauses, resumes or removes them. They alone
 	// leave a stopped queue, as a forced start does in JDownloader. Forced

@@ -26,6 +26,7 @@ func TestDetect(t *testing.T) {
 	}{
 		{"plain link list", "links.txt", "https://example.com/a\nhttps://example.com/b", KindText},
 		{"magnet list", "links.txt", "magnet:?xt=urn:btih:deadbeef", KindText},
+		{"own-server list under a wrong name", "links.dat", "sftp://nas.lan/share/a.mkv", KindText},
 		{"text misnamed as a container", "links.dlc", "https://example.com/a", KindText},
 		{"real dlc shape", "film.dlc", fakeDLC(""), KindDLC},
 		{"broken dlc", "film.dlc", "<html>404 not found</html>", KindDLC},
@@ -119,6 +120,11 @@ func TestParseText(t *testing.T) {
 			"prose with no links",
 			"This archive contains the film in 2160p.",
 			nil,
+		},
+		{
+			"own-server links",
+			"ftp://files.example/a.zip\nwebdav://nas.lan/b.mkv",
+			[]string{"ftp://files.example/a.zip", "webdav://nas.lan/b.mkv"},
 		},
 	}
 	for _, tt := range tests {

@@ -288,3 +288,34 @@ func (plainResolver) Match(raw string) bool { return strings.Contains(raw, "plai
 func (plainResolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
+
+// The collector matches mirrors on name and size, and the size a HEAD found is
+// all a plain link has before it starts, so it has to outlive a restart.
+func TestAProbedSizeIsSaved(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 3 << 20
+		return resp, nil
+	})
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/sized.mkv", Name: "sized.mkv",
+		Status: core.StatusCollected, Enabled: true,
+	})
+
+	a.RecheckTasks([]string{task.ID})
+
+	saved, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range saved {
+		if s.ID == task.ID {
+			if s.Size != 3<<20 {
+				t.Errorf("saved size = %d, want the %d the probe found", s.Size, 3<<20)
+			}
+			return
+		}
+	}
+	t.Fatal("the probed task was never saved")
+}
