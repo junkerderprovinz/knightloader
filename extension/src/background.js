@@ -8,7 +8,7 @@
 // where importScripts does not exist; the manifest lists the dependencies there
 // instead.
 if (typeof importScripts === 'function') {
-  importScripts('shared.js', 'i18n.js', 'wordlist.js', 'phrase.js', 'relay.js', 'group.js', 'cnl.js');
+  importScripts('shared.js', 'i18n.js', 'wordlist.js', 'phrase.js', 'relay.js', 'group.js', 'cnl.js', 'clipwatch.js');
 }
 
 const MENU_PAGE = 'knightloader-send-page';
@@ -231,6 +231,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'knightloader-cnl') {
     void handleCnl(msg);
   }
+  // From the offscreen document that reads the clipboard. The links are pulled
+  // out again here, so only links can reach an instance whatever the message
+  // holds.
+  if (msg?.type === 'knightloader-clip' && fromPage) {
+    const links = clipLinks(msg.links);
+    if (links) void deliverClip(links);
+  }
+  if (msg?.type === 'knightloader-clip-refused' && fromPage) {
+    void clipRefused();
+  }
 });
 
 /**
@@ -404,3 +414,156 @@ function flashBadge(mark, colour, key, sticky) {
     // The action API can be missing during startup; the send itself is done.
   }
 }
+
+/** The alarm that renews the watch's lease and, in Firefox, wakes the page
+ *  that reads the clipboard. */
+const CLIP_ALARM = 'knightloader-clip';
+
+/** Stops the Firefox reader; null while it is not running. */
+let stopClipPoller = null;
+
+/**
+ * Starts or stops the clipboard watch to match its switch and permission
+ * (clipState in clipwatch.js). Calls run one after another, like applyCnl,
+ * since the switch and the permission change in two events.
+ */
+let clipQueue = Promise.resolve();
+function applyClip() {
+  clipQueue = clipQueue.catch(() => {}).then(async () => {
+    const { on } = await clipState();
+    if (on) {
+      await startClipReader();
+      chrome.alarms?.create(CLIP_ALARM, { periodInMinutes: 1 });
+    } else {
+      await stopClipReader();
+      await chrome.alarms?.clear(CLIP_ALARM);
+    }
+  });
+  return clipQueue;
+}
+
+async function startClipReader() {
+  if (chrome.offscreen) {
+    try {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['CLIPBOARD'],
+        justification: 'Reads the clipboard while the clipboard watch is on, to send copied links.',
+      });
+    } catch {
+      // There is one already; a browser allows only one per extension.
+    }
+    return;
+  }
+  if (stopClipPoller || typeof document === 'undefined') return;
+  // The hash of the last text read survives the page being unloaded, so a
+  // link copied while it slept is sent when it wakes, and an old one is not.
+  let remembered = null;
+  try {
+    ({ clipSeen: remembered = null } = await chrome.storage.session.get('clipSeen'));
+  } catch {
+    remembered = null;
+  }
+  stopClipPoller = startClipPoller({
+    remembered,
+    onLinks: (links) => void deliverClip(links),
+    onSeen: (hash) => void chrome.storage.session.set({ clipSeen: hash }).catch(() => {}),
+    onRefused: () => void clipRefused(),
+  });
+}
+
+async function stopClipReader() {
+  if (chrome.offscreen) {
+    try {
+      await chrome.offscreen.closeDocument();
+    } catch {
+      // None was open.
+    }
+    return;
+  }
+  stopClipPoller?.();
+  stopClipPoller = null;
+}
+
+/** The browser stopped handing out the clipboard. The switch goes off and the
+ *  options page says why. */
+async function clipRefused() {
+  await chrome.storage.local.set({ clipWatch: false, clipNotice: 'refused' });
+  notifyCnl('options.clipRefused');
+}
+
+/**
+ * deliverClip sends copied links to the default instance, the one a send goes
+ * to without asking, since nobody is there to pick one.
+ */
+async function deliverClip(links) {
+  if (!(await clipState()).on) return;
+  try {
+    const res = await withGroup(async ({ siblings, call }) => {
+      const target = defaultOf(siblings, await readDefaultTarget());
+      if (!target) return null;
+      return call(target, 'POST', '/api/links', JSON.stringify({ links, package: '' }));
+    });
+    if (!res) notifyCnl('send.noneOnline');
+    else if (res.status >= 200 && res.status < 300) flashBadge('✓', '#24a148', 'send.delivered');
+    else notifyCnl('send.refused');
+  } catch {
+    notifyCnl('send.relayFailed');
+  }
+}
+
+/**
+ * renewClipLease keeps this browser on the group's list of watchers, with the
+ * instance it sends to. When another device asked this watch to stop, the
+ * answer says so and the switch goes off. A failed round is tried again with
+ * the next alarm.
+ */
+async function renewClipLease() {
+  const id = await clipWatcherId();
+  try {
+    const stop = await withGroup(async ({ siblings, call }) => {
+      const target = defaultOf(siblings, await readDefaultTarget());
+      if (!target) return false;
+      const res = await call(target, 'PUT', clipWatcherPath(id), JSON.stringify({ name: clipDeviceLabel(), kind: 'extension' }));
+      if (res.status !== 200) return false;
+      return JSON.parse(res.body)?.stop === true;
+    });
+    if (stop) await chrome.storage.local.set({ clipWatch: false, clipNotice: 'stopped' });
+  } catch {
+    // The relay is out of reach; the next alarm tries again.
+  }
+}
+
+/** leaveClipLease takes this browser off the list. The lease may sit with an
+ *  instance that was the default before, so every instance is told. */
+async function leaveClipLease() {
+  const id = await clipWatcherId();
+  try {
+    await withGroup(({ siblings, call }) =>
+      Promise.all(siblings.map((s) => call(s.instanceId, 'DELETE', clipWatcherPath(id)).catch(() => null))),
+    );
+  } catch {
+    // The lease runs out by itself.
+  }
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes.clipWatch) return;
+  void applyClip();
+  if (changes.clipWatch.newValue === true) void renewClipLease();
+  else void leaveClipLease();
+});
+chrome.permissions.onAdded.addListener(() => void applyClip());
+chrome.permissions.onRemoved.addListener(() => void applyClip());
+chrome.runtime.onStartup?.addListener(() => void applyClip());
+chrome.runtime.onInstalled.addListener(() => void applyClip());
+
+chrome.alarms?.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== CLIP_ALARM) return;
+  await applyClip();
+  if ((await clipState()).on) await renewClipLease();
+});
+
+// Firefox reloads this page for any event after unloading it, and the reader
+// has to start again with it.
+void applyClip();

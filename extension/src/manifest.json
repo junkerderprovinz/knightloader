@@ -30,6 +30,7 @@
       "relay.js",
       "group.js",
       "cnl.js",
+      "clipwatch.js",
       "background.js"
     ]
   },
@@ -42,7 +43,9 @@
     "contextMenus",
     "storage",
     "scripting",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "alarms",
+    "offscreen"
   ],
   "optional_permissions": ["clipboardRead"],
   "optional_host_permissions": [

@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader browser extension
 
-Last updated: 27 September 2026. Applies to version 1.4.0 and later, until this
+Last updated: 2 October 2026. Applies to version 1.4.0 and later, until this
 date changes.
 
 ## The short version
@@ -26,8 +26,11 @@ profile. We back none of it up, and removing the extension removes all of it.
   runs on websites for Click'n'Load cannot read.
 - Which of your instances is the default target.
 - Settings: interface language, whether Click'n'Load interception is on, the
-  Click'n'Load countdown length, and whether the "pin the extension" hint has
-  been shown.
+  Click'n'Load countdown length, whether the clipboard watch is on and why it
+  last switched itself off, and whether the "pin the extension" hint has been
+  shown.
+- A random ID for this browser on your group's list of clipboard watchers,
+  created the first time you switch the watch on.
 - Appearance: theme, corner shape, accent colour and rainbow palette, whether to
   follow an instance's appearance, and, while you follow one, a copy of your own
   appearance settings so they can be restored.
@@ -39,6 +42,11 @@ or the links and package name of a caught Click'n'Load button), which instance i
 the default, and the list of your instances with their names. The popup deletes
 that entry as soon as it reads it, and the browser clears session storage when it
 closes.
+
+In Firefox, while the clipboard watch is on, session storage also holds a short
+checksum of the last text read from the clipboard, so the watch can tell a new
+copy from an old one after Firefox pauses the extension. The text itself is not
+stored.
 
 ## What leaves your browser
 
@@ -85,8 +93,25 @@ These travel through the relay, and only your instances can read them:
 - While the popup or options page is open: requests for your instances' queue
   status and web addresses, and a request for an instance's appearance settings
   if you chose to follow them.
+- While the clipboard watch is on (see below): the links in text you copy
+  anywhere on your computer, sent to your default instance. Once a minute, this
+  browser's watcher ID and a label for the browser and system, such as
+  "Firefox, Windows", so your other devices can tell you this browser is
+  watching. When you switch the watch on, a request for the group's list of
+  watchers and, if you choose to, a request to switch another device's watch
+  off.
 
 The extension makes no other network requests.
+
+## The clipboard watch
+
+The watch is off until you switch it on in the options, and your browser asks
+you then whether the extension may read the clipboard. While it is on, the
+extension reads the clipboard about once a second. Text that contains a link
+has its links sent to your default instance; the rest of that text, and any
+text without a link, stays in the browser and is not kept. Switching the watch
+off, or taking the clipboard permission away in the browser's settings, stops
+the reading.
 
 ## What happens inside the pages you visit
 
@@ -137,7 +162,9 @@ extension settings.
 | `scripting` | Adding and removing the Click'n'Load script. |
 | `declarativeNetRequest` | Answering the `127.0.0.1:9666/jdcheck.js` probe while Click'n'Load is on. |
 | Access to all websites (optional) | Running the Click'n'Load script in pages that may carry a button, and answering the `jdcheck.js` probe. Asked for only when you switch Click'n'Load on, and given back when you switch it off. |
-| `clipboardRead` (optional) | Pasting your phrase with the paste button. Requested only when you press it, and read only then. |
+| `clipboardRead` (optional) | Pasting your phrase with the paste button, and the clipboard watch. Requested when you press the button or switch the watch on. |
+| `offscreen` | In Chrome and Edge, a hidden extension page that reads the clipboard while the watch is on, since the background script cannot. |
+| `alarms` | Renewing this browser's place on the list of clipboard watchers once a minute, and in Firefox waking the watch after the browser paused it. |
 
 ## What the extension does not do
 
@@ -152,6 +179,8 @@ extension settings.
 - **See what is stored:** the options page shows your phrase (behind the eye
   button), your default instance and every setting.
 - **Switch Click'n'Load off** in the options, as described above.
+- **Switch the clipboard watch off** in the options, or from another device
+  when it asks whether to keep both.
 - **Leave the group** with the bin button next to the phrase: the phrase, the
   default instance are deleted.
 - **Remove the extension** to delete everything it stored.

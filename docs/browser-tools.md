@@ -99,8 +99,9 @@ and the extension only hands links over.
 Permissions: `activeTab`, `contextMenus`, `storage` (the default instance,
 the language, the appearance and whether to follow an instance's, the
 Click'n'Load switch and countdown, whether the pin hint was shown, and in
-session storage a send waiting for the popup), `scripting` and
-`declarativeNetRequest`. The phrase is kept apart from these, in the
+session storage a send waiting for the popup), `scripting`,
+`declarativeNetRequest`, and `offscreen` and `alarms` for the clipboard watch
+below. The phrase is kept apart from these, in the
 extension's own IndexedDB, because the Click'n'Load content scripts can read
 `storage.local`. None of the permissions asks for access to any website at install. `activeTab` is what lets the popup read the current tab's
 address and title, and a right-click send the page title: both are a user's
@@ -108,9 +109,29 @@ click on the extension, which grants access to that one tab until it
 navigates. The relay is a WebSocket, which needs no host permission.
 
 Two permissions are optional and asked for only when they are needed:
-`clipboardRead` for the paste button next to the phrase, and `<all_urls>` in
+`clipboardRead` for the paste button next to the phrase and for the clipboard
+watch, and `<all_urls>` in
 `optional_host_permissions`, which `scripting` and `declarativeNetRequest`
 need for one feature only:
+
+### The clipboard watch
+
+Switched on in the options, the extension reads the clipboard about once a
+second and sends the links in a newly copied text to the default instance, the
+way the web interface's watch does from its own tab. Both use one link rule
+(`extension/check-clipwatch.mjs` keeps them alike), and only the links leave the
+browser. Chromium reads in an offscreen document, since a service worker has no
+document; Firefox reads in its background page and wakes it with an alarm after
+it unloads the page.
+
+Every watcher in a group, the desktop app's, a web interface tab's and the
+extension's, renews a three-minute lease with the instance it sends to
+(`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). Switching a watch
+on asks for the group's list (`GET /api/clipboard-watchers`, which asks every
+member for its own), and when another device already watches, a window names
+it and offers to switch it off there (`POST /api/clipboard-watchers/{id}/stop`)
+or keep both. A stopped watcher hears it on its next renewal. Keeping both
+sends each link twice, and an instance turns away a link it already has.
 
 ### Click'n'Load, in the browser
 
