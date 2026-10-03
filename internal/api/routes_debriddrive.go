@@ -34,6 +34,10 @@ func registerDebridDrive(reg *Registry, a *app.App) {
 		"list a folder of the debrid drive as WebDAV does, one level at a time; same switch, same credential", serve)
 	reg.AddOpen(http.MethodOptions, drivePrefix+"/{path...}",
 		"tell a WebDAV client what the debrid drive answers to; same switch, same credential", serve)
+	// Without it a write would fall through to the interface and answer 200
+	// with its index page, which a client takes for success.
+	reg.AddOpen(AnyMethod, drivePrefix+"/{path...}",
+		"refuse every other method on the debrid drive, the writes among them, with 405; same switch, same credential", serve)
 }
 
 func serveDrive(a *app.App, w http.ResponseWriter, r *http.Request) {
