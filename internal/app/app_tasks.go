@@ -493,7 +493,7 @@ func (a *App) holdIfDownloaded(id string) {
 		a.mu.Unlock()
 		return
 	}
-	holdForHistoryLocked(t, v, filterWaived(t))
+	holdForHistoryLocked(t, v)
 	c := a.copyLocked(t)
 	a.mu.Unlock()
 	a.publish(&c)

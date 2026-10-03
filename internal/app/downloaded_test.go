@@ -399,3 +399,46 @@ func TestAMirrorIsRejectedInTheAnswerUnderTheSizeOnlyPolicy(t *testing.T) {
 			got.Skipped, got.SkipCode, got.Size)
 	}
 }
+
+// A banned tracker holds a torrent before the history is asked, so the
+// restore asks it.
+func TestATorrentRestoredFromTheBanStillMeetsTheHistory(t *testing.T) {
+	a := historyApp(t, nil)
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	downloadedBefore(t, a, "old", uri, "Pack", 900)
+	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
+	held, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if held == nil || held.SkipCode != skipBannedTracker {
+		t.Fatalf("the torrent came back as %+v, want it held for its tracker", held)
+	}
+
+	got := onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the restored torrent came back as skipped=%v code=%q, want it held as downloaded", got.Skipped, got.SkipCode)
+	}
+}
+
+// Restored past the ban and then the history, the torrent is not refused for
+// the tracker at the queue.
+func TestATorrentRestoredPastTheBanAndTheHistoryIsPastTheBan(t *testing.T) {
+	a := historyApp(t, nil)
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	downloadedBefore(t, a, "old", uri, "Pack", 900)
+	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
+	held, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+
+	restored := onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+	if restored.Skipped {
+		t.Fatalf("the second restore left the torrent held: %s", restored.SkipReason)
+	}
+	if v := trackerBan(restored, a.Settings.Get().Torrent); v.Rejected {
+		t.Errorf("the torrent is refused for the tracker the user overruled: %s", v.Reason)
+	}
+}
