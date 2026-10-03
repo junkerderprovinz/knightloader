@@ -1,11 +1,15 @@
 package app
 
 import (
+	"errors"
 	"log"
 	"strings"
+	"unicode"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -48,6 +52,20 @@ type LinkBatchOptions struct {
 	// links the feed chose, not the user. Nil leaves each crawl at the scope
 	// of the link it starts from.
 	Within *httpx.Scope
+	// Source is the page the links were found on, as a crawl records it.
+	Source string
+	// Headers are a browser's own request headers for a link it was
+	// downloading (see BrowserHeaders). Such a link is staged as it is, with
+	// no crawl and no playlist listing, and the headers go with its download
+	// alone.
+	Headers hostheaders.Set
+	// File says the link is a file a browser was downloading, and FileName
+	// is the name the browser gave it, one path segment, which the file is
+	// written under. Such a link is staged as it is and fetched as a plain
+	// file on every start, never by yt-dlp, which takes an address with no
+	// file extension for a page and saves whatever it finds there.
+	File     bool
+	FileName string
 }
 
 // AddLinksWithOptions stages a batch like AddLinksFrom and then applies the
@@ -61,6 +79,24 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 			return nil, err
 		}
 	}
+	if opts.FileName != "" {
+		if !opts.File {
+			return nil, errors.New("a file name comes with a file the browser was downloading")
+		}
+		// A control character, which only a script sends, becomes a space as
+		// in a rename, and a name too long for a file is cut the way the
+		// download library cuts it, so the row shows the name the file gets.
+		name, err := checkName("file", strings.Map(func(r rune) rune {
+			if unicode.IsControl(r) {
+				return ' '
+			}
+			return r
+		}, opts.FileName))
+		if err != nil {
+			return nil, err
+		}
+		opts.FileName = collide.SafeName(name)
+	}
 
 	created := a.addLinksFrom(urls, pkg, origin, opts)
 	if len(created) == 0 {
@@ -69,6 +105,7 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 	// The form's values are for every row a yt-dlp link became, and so is the
 	// confirm below.
 	ids := a.withVariantFamilies(idsOf(created))
+	a.keepBrowserHeaders(opts.Headers, ids)
 
 	// Applied after staging, through the same route as the properties panel, so
 	// these win over whatever the Packagizer pass in finishStaging decided.

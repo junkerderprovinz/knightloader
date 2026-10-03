@@ -8,7 +8,19 @@
 // where importScripts does not exist; the manifest lists the dependencies there
 // instead.
 if (typeof importScripts === 'function') {
-  importScripts('shared.js', 'i18n.js', 'wordlist.js', 'phrase.js', 'relay.js', 'group.js', 'cnl.js');
+  importScripts(
+    'shared.js',
+    'i18n.js',
+    'wordlist.js',
+    'phrase.js',
+    'relay.js',
+    'group.js',
+    'cnl.js',
+    'i18n-capture.js',
+    'capture.js',
+    'takeover.js',
+    'media.js',
+  );
 }
 
 const MENU_PAGE = 'knightloader-send-page';

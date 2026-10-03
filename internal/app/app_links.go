@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"path"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -95,6 +97,15 @@ type intake struct {
 	// user's accounts, the import from an account and the Usenet queue. Every
 	// other entrance is refused such a link (see jobLink).
 	jobLinks bool
+
+	// headers are a browser's own request headers for the link, kept from
+	// the moment it is staged so the collector's probe already uses them
+	// (see app_browserheaders.go).
+	headers hostheaders.Set
+
+	// file marks a link a browser was downloading as a file (see
+	// LinkBatchOptions.File).
+	file bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -199,16 +210,20 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		seen[u] = true
 		// Filtered here as well as in stage, because the crawl below would
 		// otherwise contact a host a rule told us to avoid.
-		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
+		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, intake{origin: origin}, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin, file: batch.File}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
 		}
+		// A link a browser hands over with its own headers is the file or
+		// stream it was fetching. Listed or crawled without that session, it
+		// would only show its login page.
+		handedOver := len(batch.Headers.Headers) > 0 || batch.File
 		// A playlist becomes its videos rather than one task. This is asked
 		// before the crawl, which only claims yt-dlp links by exclusion.
-		if pl, ok := a.ytdlpPlaylist(u); ok {
+		if pl, ok := a.ytdlpPlaylist(u); ok && !handedOver {
 			b := &bucket{title: pl.Title}
 			b.tasks = a.stagePlaylistEntries(u, pl, pkg, batch)
 			created = append(created, b.tasks...)
@@ -216,7 +231,11 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			continue
 		}
 		// A page that points at files becomes those files.
-		if crawled := a.crawl(u, batch.Within); len(crawled) > 0 {
+		var crawled []crawler.Result
+		if !handedOver {
+			crawled = a.crawl(u, batch.Within)
+		}
+		if len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
 			for _, c := range crawled {
 				if c.URL == "" {
@@ -236,8 +255,8 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			buckets = append(buckets, b)
 			continue
 		}
-		if t := a.stage(u, "", 0, intake{
-			pkg: pkg, origin: origin,
+		if t := a.stage(u, batch.FileName, 0, intake{
+			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
@@ -626,6 +645,49 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 	return chain[0]
 }
 
+// fileResolverFor returns the resolver for a file a browser was downloading:
+// the first in u's chain that fetches the address as it is and with the
+// browser's headers, or else fallback. yt-dlp would take an address with no
+// file extension for a page, and JD would fetch it without the browser's
+// session.
+func (a *App) fileResolverFor(u string, fallback resolver.Resolver) resolver.Resolver {
+	for _, res := range hostChain(a.Registry.All(u), u, a.Settings.Get()) {
+		if fetchesAsIs(res) {
+			return res
+		}
+	}
+	return fallback
+}
+
+// fileChain is the part of chain that fetches a file a browser was
+// downloading (see fileResolverFor), or chain itself when no backend in it
+// does.
+func fileChain(chain []resolver.Resolver) []resolver.Resolver {
+	files := slices.DeleteFunc(slices.Clone(chain), func(res resolver.Resolver) bool { return !fetchesAsIs(res) })
+	if len(files) == 0 {
+		return chain
+	}
+	return files
+}
+
+// fetchesAsIs reports whether res fetches an address as it is, with the
+// headers it came with.
+func fetchesAsIs(res resolver.Resolver) bool {
+	switch res.Info().ID {
+	case hostheaders.ResolverID, "direct", "http":
+		return true
+	}
+	return false
+}
+
+// namedTakeover reports whether t is a file a browser was downloading that
+// has a name: the browser's, or the one its last download took. The engine
+// writes the file under it, and a name read off the address does not replace
+// it.
+func namedTakeover(t *core.Task) bool {
+	return t.BrowserFile && filename(t) != ""
+}
+
 // stagedAt hands out the moments links enter the list, each one later than
 // the last. Dispatch starts links in CreatedAt order, and on Windows time.Now
 // moves in steps of about half a millisecond, so a batch staged within one
@@ -723,10 +785,14 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if cand.Filename != "" {
 		t.Name = cand.Filename
 	}
+	t.BrowserFile = in.file
 	if sizeHint > 0 {
 		t.Size = sizeHint
 	}
 	res := a.stagingResolverFor(u)
+	if in.file {
+		res = a.fileResolverFor(u, res)
+	}
 	if res == nil {
 		// Staged anyway, with the reason, so links never silently vanish.
 		t.Reason = core.ReasonUnsupported
@@ -743,7 +809,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	// Resolvers that do not know the name yet answer with the URL itself; that
 	// placeholder must not replace a name the link arrived with.
-	if result.Name != "" && result.Name != u {
+	if result.Name != "" && result.Name != u && !namedTakeover(t) {
 		t.Name = result.Name
 	}
 	if result.Size > 0 {
@@ -772,9 +838,12 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		}
 	}
 	staged := a.finishStaging(t, cand)
+	if staged != nil {
+		a.keepBrowserHeaders(in.headers, []string{staged.ID})
+	}
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
-	if staged != nil && res.Info().ID == "direct" {
+	if staged != nil && (res.Info().ID == "direct" || in.file && res.Info().ID == "http") {
 		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
@@ -949,6 +1018,7 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	if cand.Filename != "" {
 		t.Name = cand.Filename
 	}
+	t.BrowserFile = in.file
 	if torrent.IsURI(cand.URL) {
 		if md, err := (torrent.Resolver{}).Describe(cand.URL); err == nil {
 			t.InfoHash, t.Trackers = md.InfoHash, md.Trackers

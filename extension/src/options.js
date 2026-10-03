@@ -857,8 +857,9 @@ cnlEnabledEl.addEventListener('click', async () => {
   // The countdown row follows the switch at once.
   cnlCountdownRow.hidden = true;
   cnlRefused = false;
-  await chrome.storage.local.set({ cnlEnabled: false });
-  await chrome.permissions.remove(CNL_ACCESS);
+  // The access to all websites stays while taking over downloads or finding
+  // media still runs on it.
+  await releaseFeature('cnlEnabled');
   await renderCnl();
 });
 
