@@ -58,10 +58,10 @@ type LinkBatchOptions struct {
 	// alone.
 	Headers hostheaders.Set
 	// File says the link is a file a browser was downloading, and FileName
-	// is the name the browser gave it, one path segment, which the finished
-	// file is put under. Such a link is staged as it is and fetched as a
-	// plain file, never by yt-dlp, which takes an address with no file
-	// extension for a page and saves whatever it finds there.
+	// is the name the browser gave it, one path segment, which the file is
+	// written under. Such a link is staged as it is and fetched as a plain
+	// file on every start, never by yt-dlp, which takes an address with no
+	// file extension for a page and saves whatever it finds there.
 	File     bool
 	FileName string
 }

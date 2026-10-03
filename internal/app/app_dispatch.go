@@ -1040,10 +1040,11 @@ func (a *App) dispatchLocked() {
 }
 
 // engineJobLocked is t's transfer as the engine takes it: written into t's
-// folder, or its working folder, under the collision policy of t's category.
+// folder, or its working folder, under the collision policy of t's category,
+// and under the name a browser gave the file rather than the server's.
 // Caller holds a.mu.
 func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, headers map[string]string, conns int) engine.Job {
-	return engine.Job{
+	job := engine.Job{
 		TaskID: t.ID, URL: url, Headers: headers, Conns: conns,
 		Dir: a.dirFor(t), WorkDir: a.stagedDirFor(t),
 		Collision: collide.ParsePolicy(cfg.CollisionFor(t.Category)), MaxCollisionAttempts: cfg.CollisionMaxAttempts,
@@ -1052,6 +1053,10 @@ func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, h
 		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http" || t.Resolver == hostheaders.ResolverID,
 		RefusePages:     t.Resolver == "http",
 	}
+	if namedTakeover(t) {
+		job.Name = t.Name
+	}
+	return job
 }
 
 // defaultConns is the connection count when neither task, rule nor settings

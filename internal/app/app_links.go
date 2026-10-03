@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"path"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -209,9 +210,9 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		seen[u] = true
 		// Filtered here as well as in stage, because the crawl below would
 		// otherwise contact a host a rule told us to avoid.
-		cand := rules.Candidate{URL: u, Package: pkg, Added: a.stamps.next()}
+		cand := rules.Candidate{URL: u, Package: pkg, Filename: batch.FileName, Added: a.stamps.next()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.hold(cand, v, intake{origin: origin}, cand.Added, nil); t != nil {
+			if t := a.hold(cand, v, intake{origin: origin, file: batch.File}, cand.Added, nil); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -651,12 +652,40 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 // session.
 func (a *App) fileResolverFor(u string, fallback resolver.Resolver) resolver.Resolver {
 	for _, res := range hostChain(a.Registry.All(u), u, a.Settings.Get()) {
-		switch res.Info().ID {
-		case hostheaders.ResolverID, "direct", "http":
+		if fetchesAsIs(res) {
 			return res
 		}
 	}
 	return fallback
+}
+
+// fileChain is the part of chain that fetches a file a browser was
+// downloading (see fileResolverFor), or chain itself when no backend in it
+// does.
+func fileChain(chain []resolver.Resolver) []resolver.Resolver {
+	files := slices.DeleteFunc(slices.Clone(chain), func(res resolver.Resolver) bool { return !fetchesAsIs(res) })
+	if len(files) == 0 {
+		return chain
+	}
+	return files
+}
+
+// fetchesAsIs reports whether res fetches an address as it is, with the
+// headers it came with.
+func fetchesAsIs(res resolver.Resolver) bool {
+	switch res.Info().ID {
+	case hostheaders.ResolverID, "direct", "http":
+		return true
+	}
+	return false
+}
+
+// namedTakeover reports whether t is a file a browser was downloading that
+// has a name: the browser's, or the one its last download took. The engine
+// writes the file under it, and a name read off the address does not replace
+// it.
+func namedTakeover(t *core.Task) bool {
+	return t.BrowserFile && filename(t) != ""
 }
 
 // stagedAt hands out the moments links enter the list, each one later than
@@ -755,12 +784,8 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
-		if in.file {
-			// The engine names the file after the server's answer, so the
-			// browser's name is put on it once the bytes are in.
-			t.Filename = cand.Filename
-		}
 	}
+	t.BrowserFile = in.file
 	if sizeHint > 0 {
 		t.Size = sizeHint
 	}
@@ -784,7 +809,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	// Resolvers that do not know the name yet answer with the URL itself; that
 	// placeholder must not replace a name the link arrived with.
-	if result.Name != "" && result.Name != u {
+	if result.Name != "" && result.Name != u && !namedTakeover(t) {
 		t.Name = result.Name
 	}
 	if result.Size > 0 {
@@ -992,10 +1017,8 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
-		if in.file {
-			t.Filename = cand.Filename
-		}
 	}
+	t.BrowserFile = in.file
 	if torrent.IsURI(cand.URL) {
 		if md, err := (torrent.Resolver{}).Describe(cand.URL); err == nil {
 			t.InfoHash, t.Trackers = md.InfoHash, md.Trackers
