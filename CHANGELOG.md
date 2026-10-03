@@ -37,6 +37,38 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Removing a video download with its files deletes the video.** yt-dlp
+  never told KnightLoader which file it wrote or how large the file was once
+  video and audio were merged, so a finished video stayed on disk when it was
+  removed with its files. KnightLoader now records the merged file and its
+  size, deletes it with the download, and shows the whole size on the row.
+- **Removing an unfinished media download with its files deletes what it
+  wrote.** A yt-dlp download that was still running or paused kept its .part
+  and .ytdl files, its fragments and its info file on disk after a removal
+  with files. KnightLoader now stops yt-dlp, waits for it to exit and deletes
+  them. This also works for a row brought back with Undo and then removed with
+  its files, and after KnightLoader restarts. A file that another download
+  wrote too, such as the info file the video and audio rows of one link share,
+  is left for that download. When yt-dlp records through ffmpeg, as it does for
+  a live stream, a pause or a removal now stops ffmpeg too. ffmpeg used to keep
+  recording on its own, after a removal with files into the deleted file, and
+  the removal waited until ffmpeg was done.
+- **Pausing or removing a media download works after an account change.**
+  Saving an account, switching JDownloader on or updating yt-dlp set up yt-dlp
+  again, and KnightLoader lost track of a download that was already running: a
+  pause or a removal did nothing, and the download finished without a row.
+  KnightLoader now keeps the same yt-dlp backend and only points it at the new
+  binary.
+- **Thumbnail, subtitle and description rows take their file with them.**
+  Removed with their files, these rows left the .jpg, .srt or .description
+  behind, and a video or audio row left its .nfo. KnightLoader now records the
+  file each of these rows wrote, names the row after that file and deletes the
+  file with the row. The video and audio rows of a link share one .nfo, which
+  goes when the second of them is removed. A subtitle row that wrote several
+  languages still keeps its files.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

@@ -3,12 +3,14 @@ package app
 import (
 	"bytes"
 	"context"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -659,5 +661,173 @@ func TestADebridDownloadWhoseLinkExpiresIsFinishedFromAFreshUnlock(t *testing.T)
 	}
 	if svc.unlocks.Load() < 2 {
 		t.Error("the link was never unlocked again")
+	}
+}
+
+// The .nfo yt-dlp's video row writes beside its file describes that file and
+// goes with it. A thumbnail row of the same video shares the base name and
+// must not take the video's .nfo when it is removed.
+func TestRemovingAYtdlpVideoWithFilesTakesItsNFOAlong(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	video := fileBytes(t, filepath.Join(dir, "A Video.mkv"), 2048)
+	thumb := fileBytes(t, filepath.Join(dir, "A Video.jpg"), 512)
+	nfo := fileBytes(t, filepath.Join(dir, "A Video.nfo"), 300)
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "1", URL: "https://media.example/v", Name: "A Video.mkv", Resolver: "ytdlp", Status: core.StatusDone, Enabled: true, Size: 2048, File: video},
+		{ID: "2", URL: "https://media.example/v", Name: "A Video.jpg", Resolver: "ytdlp", Variant: "thumbnail", Status: core.StatusDone, Enabled: true, Size: 512, File: thumb},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+
+	a.Remove("2", true)
+	if fileExists(thumb) {
+		t.Error("the thumbnail survived a removal with files")
+	}
+	if !fileExists(nfo) {
+		t.Fatal("removing the thumbnail row deleted the video's .nfo")
+	}
+
+	a.Remove("1", true)
+	if fileExists(video) {
+		t.Error("the video survived a removal with files")
+	}
+	if fileExists(nfo) {
+		t.Error("the .nfo beside the video survived a removal with files")
+	}
+}
+
+// The video and the audio row of one link both write "<title>.nfo". Removing
+// one of them with its files leaves the .nfo to the other, and it goes with
+// the last of them.
+func TestTheNFOTwoYtdlpRowsShareGoesWithTheLastOfThem(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	video := fileBytes(t, filepath.Join(dir, "A Video.mkv"), 2048)
+	audio := fileBytes(t, filepath.Join(dir, "A Video.opus"), 512)
+	nfo := fileBytes(t, filepath.Join(dir, "A Video.nfo"), 300)
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "1", URL: "https://media.example/v", Name: "A Video.mkv", Resolver: "ytdlp", Status: core.StatusDone, Enabled: true, Size: 2048, File: video},
+		{ID: "2", URL: "https://media.example/v", Name: "A Video.opus", Resolver: "ytdlp", Variant: "audio", Status: core.StatusDone, Enabled: true, Size: 512, File: audio},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+
+	a.Remove("2", true)
+	if fileExists(audio) {
+		t.Error("the audio file survived a removal with files")
+	}
+	if !fileExists(nfo) {
+		t.Fatal("removing the audio row deleted the .nfo the video row still has")
+	}
+
+	a.Remove("1", true)
+	if fileExists(nfo) {
+		t.Error("the .nfo survived the removal of the last row that had it")
+	}
+}
+
+// yt-dlp names each file of a download once, as it writes it, and a restart
+// forgets the backend's list. A paused download removed with its files after
+// a restart still takes its stream with the .part, .ytdl and fragments, and
+// leaves the info file to the audio row of the same link, which wrote it too.
+func TestAYtdlpDownloadRemovedWithFilesAfterARestartTakesWhatItWrote(t *testing.T) {
+	data, dir := t.TempDir(), t.TempDir()
+	info := fileBytes(t, filepath.Join(dir, "A Video.info.json"), 64)
+	streams := map[string]string{
+		"video": filepath.Join(dir, "A Video.f137.mp4"),
+		"audio": filepath.Join(dir, "A Video.f251.webm"),
+	}
+	left := map[string][]string{}
+	for id, stream := range streams {
+		for _, suffix := range []string{".part", ".ytdl", ".part-Frag3"} {
+			left[id] = append(left[id], fileBytes(t, stream+suffix, 64))
+		}
+	}
+
+	a, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "video", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+		{ID: "audio", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Variant: "audio", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+	for id, stream := range streams {
+		a.onUpdate(id, core.Update{Status: core.StatusRunning, WorkFile: info})
+		a.onUpdate(id, core.Update{Status: core.StatusRunning, Name: filepath.Base(stream), WorkFile: stream})
+	}
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = b.Close() })
+	b.Remove("video", true)
+	for _, f := range left["video"] {
+		if fileExists(f) {
+			t.Errorf("%s survived the removal with files after a restart", filepath.Base(f))
+		}
+	}
+	for _, f := range append(left["audio"], info) {
+		if !fileExists(f) {
+			t.Errorf("removing the video row deleted %s, which the audio row still has", filepath.Base(f))
+		}
+	}
+
+	b.Remove("audio", true)
+	for _, f := range append(left["audio"], info) {
+		if fileExists(f) {
+			t.Errorf("%s survived the removal of the last row that had it", filepath.Base(f))
+		}
+	}
+}
+
+// lockedLog collects the standard logger's lines for a test, which other
+// goroutines may log to at the same time.
+type lockedLog struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (l *lockedLog) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.Write(p)
+}
+
+func (l *lockedLog) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.String()
+}
+
+// A thumbnail, subtitle or description row shows the extension of its kind
+// next to its name, so a file under that name and extension is under the
+// task's own name and gets no note in the log.
+func TestASidecarRowSavedUnderTheNameItShowsGetsNoNote(t *testing.T) {
+	logged := &lockedLog{}
+	prev := log.Writer()
+	log.SetOutput(logged)
+	t.Cleanup(func() { log.SetOutput(prev) })
+	dir := t.TempDir()
+	a := &App{}
+	a.recordFileLocked(&core.Task{ID: "thumb", URL: "https://media.example/v", Name: "A Video", Ext: "jpg"}, filepath.Join(dir, "A Video.jpg"))
+	a.recordFileLocked(&core.Task{ID: "other", URL: "https://media.example/w", Name: "B Video", Ext: "jpg"}, filepath.Join(dir, "B Video (1).jpg"))
+
+	if strings.Contains(logged.String(), "(task thumb)") {
+		t.Errorf("a row saved under the name it shows was logged as saved under another:\n%s", logged)
+	}
+	if !strings.Contains(logged.String(), "(task other)") {
+		t.Errorf("a row saved under another name than it shows was not logged:\n%s", logged)
 	}
 }

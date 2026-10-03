@@ -233,6 +233,9 @@ type Update struct {
 	// MagnetFiles is a magnet's file list, which comes with File once the
 	// swarm has sent it (see Task.MagnetFiles).
 	MagnetFiles []string
+	// WorkFile is a file yt-dlp wrote on its way to the task's file (see
+	// Task.WorkFiles).
+	WorkFile string
 	// TorrentFiles is every file of a torrent the built-in client has
 	// resolved, with the selection it runs with. It comes once, with the
 	// resolve, so a torrent whose files nobody chose by hand keeps the choice
@@ -477,6 +480,12 @@ type Task struct {
 	// earlier attempt this task's own to delete, and where the file is when
 	// the engine could not use Name. Empty when nothing local was written.
 	File string `json:"file,omitempty"`
+	// WorkFiles are what yt-dlp wrote for a download that has not finished:
+	// the streams it merges, which carry their .part and .ytdl files under
+	// the same names, and the files it wrote beside them. yt-dlp names each
+	// one once, so after a restart this is all that says what a removal with
+	// files deletes. A finished download has none. Not sent to the interface.
+	WorkFiles []string `json:"-"`
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
