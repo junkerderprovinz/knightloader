@@ -94,7 +94,8 @@ These travel through the relay, and only your instances can read them:
   page title.
 - When taking over downloads is on and a download matches your rules: the
   download's address, the cookies your browser holds for that address, the page
-  the download came from and your browser's user agent. Before that, the
+  the download came from, your browser's user agent and the file name your
+  browser gave the download. Before that, the
   extension asks your instances for their own web addresses, so a download from
   one of them is never handed back. Your instance uses the cookies for that one
   download, keeps them in memory only, never writes them to its database or its
@@ -157,8 +158,9 @@ When a download starts, the extension checks it against your rules in the
 browser. A download from this computer, your local network or a private window
 always stays in the browser, and so does one you start while holding the key you
 chose. A download that matches is held while your instance is asked, and only
-cancelled once the instance has the link. If anything fails, the browser carries
-on with it. A short notification says which instance took it.
+cancelled once the instance has the link. If anything fails, or the instance
+holds the link back as already downloaded or filtered, the browser carries on
+with it. A short notification says which instance took it.
 
 While the feature is on, a small script runs in every page. It notices when you
 press a mouse button while holding Alt, Shift, Ctrl or Cmd, and tells the extension
