@@ -10,7 +10,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -229,6 +231,28 @@ func TestRestartingOrRemovingATakeoverSparesAnotherTakeoverOfTheSameName(t *test
 
 			if !fileExists(second.File) {
 				t.Errorf("%s of the first download deleted the second one's %s", drop, second.File)
+			}
+		})
+	}
+}
+
+func TestABrowsersFileNameIsStagedAsTheDiskTakesIt(t *testing.T) {
+	long := strings.Repeat("報", 99) + ".pdf"
+	for name, tc := range map[string]struct {
+		in   string
+		want func(string) bool
+	}{
+		"a name longer than a file name may be": {long, func(got string) bool {
+			return len(got) <= len(collide.SafeName(long)) && strings.HasSuffix(got, ".pdf") && utf8.ValidString(got)
+		}},
+		"a line break":     {"report\n2026.pdf", func(got string) bool { return got == "report 2026.pdf" }},
+		"a NUL":            {"report\x002026.pdf", func(got string) bool { return got == "report 2026.pdf" }},
+		"an ordinary name": {"Quarterly Report.pdf", func(got string) bool { return got == "Quarterly Report.pdf" }},
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := takeoverApp(t, func(*settings.Settings) {})
+			if got := takeOver(t, a, "https://files.example/nocd", tc.in).Name; !tc.want(got) {
+				t.Errorf("staged as %q", got)
 			}
 		})
 	}

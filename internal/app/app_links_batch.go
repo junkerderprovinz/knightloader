@@ -4,7 +4,9 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"unicode"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
@@ -81,11 +83,19 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 		if !opts.File {
 			return nil, errors.New("a file name comes with a file the browser was downloading")
 		}
-		name, err := checkName("file", opts.FileName)
+		// A control character, which only a script sends, becomes a space as
+		// in a rename, and a name too long for a file is cut the way the
+		// download library cuts it, so the row shows the name the file gets.
+		name, err := checkName("file", strings.Map(func(r rune) rune {
+			if unicode.IsControl(r) {
+				return ' '
+			}
+			return r
+		}, opts.FileName))
 		if err != nil {
 			return nil, err
 		}
-		opts.FileName = name
+		opts.FileName = collide.SafeName(name)
 	}
 
 	created := a.addLinksFrom(urls, pkg, origin, opts)
