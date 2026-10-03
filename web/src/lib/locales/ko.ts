@@ -1320,6 +1320,10 @@ export const ko: Dict = {
   'intake.clipboardWatchHint': '이 탭이 열려 있고 앞에 있는 동안에는 어디서 복사한 링크든 곧바로 수집기로 들어갑니다. KnightLoader 안에서의 Ctrl+V는 항상 작동하며 이것이 필요 없습니다.',
   'intake.clipboardWatchUnavailable': '여기서는 사용할 수 없습니다. 브라우저는 HTTPS이거나 localhost일 때만 페이지의 클립보드 읽기를 허용합니다. KnightLoader 안에서의 Ctrl+V는 어느 쪽이든 작동합니다.',
   'intake.clipboardWatchDenied': '클립보드 감시를 껐습니다: {reason}',
+  'intake.clipboardWatchHintDesktop': 'KnightLoader가 알림 영역에 숨어 있을 때도 어디서 복사한 링크든 곧바로 수집기로 들어갑니다. 클립보드에서는 링크만 가져옵니다. KnightLoader 안에서의 Ctrl+V는 항상 작동하며 이것이 필요 없습니다.',
+  'intake.clipboardWatchTarget': '복사한 링크를 보낼 곳',
+  'intake.clipboardWatchTargetHint': '이 인스턴스 또는 인스턴스 페이지에 있는 다른 인스턴스(예: 12개의 단어로 페어링한 NAS). 링크만 보내며 클립보드의 다른 내용은 보내지 않습니다.',
+  'intake.clipboardWatchLimited': 'Wayland에서는 창이 앞에 있을 때만 KnightLoader가 클립보드를 볼 수 있습니다. wl-clipboard를 설치하면 KDE나 Sway처럼 이를 허용하는 데스크톱에서는 백그라운드에서 감시할 수 있습니다. GNOME은 허용하지 않습니다.',
 
   'collector.hosterPresetHint': '{host}의 링크에서 어떤 변형을 수집함에 보여 줄지, 그리고 새 링크가 어떤 형식과 화질로 시작할지 정합니다. 링크가 확인되면 그 링크 자신의 트랙 중 가장 가까운 것으로 바뀝니다. 이 동영상 형식이 없는 링크는 이 화질까지의 가장 좋은 동영상을 받고, 이 오디오 형식이 없는 링크는 오디오가 변환됩니다.',
   'activity.crawl': '페이지 확인 중',

@@ -1320,6 +1320,10 @@ export const sk: Dict = {
   'intake.clipboardWatchHint': 'Každý odkaz, ktorý niekde skopíruješ, ide rovno do zberača, kým je táto karta otvorená a v popredí. Ctrl+V v KnightLoaderi funguje vždy a nič z toho nepotrebuje.',
   'intake.clipboardWatchUnavailable': 'Tu nie je k dispozícii: prehliadač pustí stránku k schránke len cez HTTPS alebo na localhoste. Ctrl+V v KnightLoaderi funguje tak či tak.',
   'intake.clipboardWatchDenied': 'Sledovanie schránky vypnuté: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Každý odkaz, ktorý niekde skopíruješ, ide rovno do zberača, aj keď je KnightLoader skrytý v oblasti oznámení. Zo schránky sa berú iba odkazy. Ctrl+V v KnightLoaderi funguje vždy a nič z toho nepotrebuje.',
+  'intake.clipboardWatchTarget': 'Posielať skopírované odkazy do',
+  'intake.clipboardWatchTargetHint': 'Táto inštancia alebo iná zo stránky Inštancie, napríklad NAS spárovaný dvanástimi slovami. Posielajú sa iba odkazy, nič iné zo schránky.',
+  'intake.clipboardWatchLimited': 'Pod Waylandom vidí KnightLoader schránku iba vtedy, keď je jeho okno v popredí. S nainštalovaným wl-clipboard ju môže sledovať na pozadí v prostrediach, ktoré to dovoľujú, napríklad KDE alebo Sway. GNOME to nedovoľuje.',
 
   'collector.hosterPresetHint': 'Ktoré varianty odkazov z {host} zberač ukazuje a s akým formátom a kvalitou nové odkazy začínajú. Hneď ako je odkaz skontrolovaný, prepne sa na vlastnú stopu, ktorá je voľbe najbližšie. Odkaz bez tohto formátu videa dostane svoje najlepšie video až do tejto kvality a odkazu bez tohto formátu zvuku sa zvuk prevedie.',
   'activity.crawl': 'Prehľadávanie stránok',

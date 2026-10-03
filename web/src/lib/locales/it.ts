@@ -1312,6 +1312,10 @@ export const it: Dict = {
   'intake.clipboardWatchHint': 'Ogni link che copi da qualsiasi parte finisce dritto nel raccoglitore, finché questa scheda è aperta e in primo piano. Ctrl+V dentro KnightLoader funziona sempre e non ha bisogno di nulla di tutto questo.',
   'intake.clipboardWatchUnavailable': 'Qui non è disponibile: il browser lascia leggere gli appunti a una pagina solo via HTTPS o su localhost. Ctrl+V dentro KnightLoader funziona comunque.',
   'intake.clipboardWatchDenied': 'Controllo degli appunti disattivato: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Ogni link che copi da qualsiasi parte finisce dritto nel raccoglitore, anche quando KnightLoader è nascosto nell\'area di notifica. Dagli appunti vengono presi solo i link. Ctrl+V dentro KnightLoader funziona sempre, senza tutto questo.',
+  'intake.clipboardWatchTarget': 'Invia i link copiati a',
+  'intake.clipboardWatchTargetHint': 'Questa istanza o un\'altra della pagina Istanze, per esempio un NAS abbinato con le dodici parole. Vengono inviati solo i link, nient\'altro dagli appunti.',
+  'intake.clipboardWatchLimited': 'Su Wayland KnightLoader vede gli appunti solo mentre la sua finestra è in primo piano. Con wl-clipboard installato può controllarli in background sui desktop che lo permettono, come KDE o Sway. GNOME non lo permette.',
 
   'collector.hosterPresetHint': 'Quali varianti dei link da {host} mostra il raccoglitore, e con quale formato e qualità partono i nuovi link. Appena un link è verificato, passa alla propria traccia più vicina. Un link senza questo formato video riceve il suo video migliore fino a questa qualità, e a uno senza questo formato audio viene convertito l’audio.',
   'activity.crawl': 'Analisi delle pagine',

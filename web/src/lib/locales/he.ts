@@ -1322,6 +1322,10 @@ export const he: Dict = {
   'intake.clipboardWatchHint': 'כל קישור שתעתיק בכל מקום נכנס ישר לאוסף, כל עוד הלשונית הזאת פתוחה ובחזית. Ctrl+V בתוך KnightLoader עובד תמיד ולא צריך את זה.',
   'intake.clipboardWatchUnavailable': 'לא זמין כאן: הדפדפן מרשה לדף לקרוא את הלוח רק ב-HTTPS או ב-localhost. Ctrl+V בתוך KnightLoader עובד בכל מקרה.',
   'intake.clipboardWatchDenied': 'המעקב אחר הלוח כובה: {reason}',
+  'intake.clipboardWatchHintDesktop': 'כל קישור שתעתיק בכל מקום נכנס ישר לאוסף, גם כש-KnightLoader מוסתר באזור ההתראות. מלוח הגזירים נלקחים רק הקישורים. Ctrl+V בתוך KnightLoader עובד תמיד ולא צריך את זה.',
+  'intake.clipboardWatchTarget': 'לשלוח קישורים שהועתקו אל',
+  'intake.clipboardWatchTargetHint': 'המופע הזה או מופע אחר מדף המופעים, למשל NAS שצומד עם שתים עשרה המילים. נשלחים רק הקישורים, שום דבר אחר מלוח הגזירים.',
+  'intake.clipboardWatchLimited': 'ב-Wayland, KnightLoader רואה את לוח הגזירים רק כשהחלון שלו בחזית. כש-wl-clipboard מותקן הוא יכול לעקוב אחריו ברקע בסביבות שמאפשרות זאת, כמו KDE או Sway. GNOME לא מאפשר זאת.',
 
   'collector.hosterPresetHint': 'אילו גרסאות של הקישורים מ-{host} האוסף מציג, ובאיזה פורמט ובאיזו איכות קישורים חדשים מתחילים. ברגע שקישור נבדק, הוא עובר לרצועה שלו עצמו שהכי קרובה. קישור בלי פורמט הווידאו הזה מקבל את הווידאו הטוב ביותר שלו עד האיכות הזו, וקישור בלי פורמט השמע הזה מקבל את השמע שלו מומר.',
   'activity.crawl': 'סריקת דפים',

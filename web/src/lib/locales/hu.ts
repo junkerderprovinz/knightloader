@@ -1320,6 +1320,10 @@ export const hu: Dict = {
   'intake.clipboardWatchHint': 'Minden link, amit bárhol kimásolsz, egyenesen a gyűjtőbe kerül, amíg ez a lap nyitva van és előtérben. A Ctrl+V a KnightLoaderen belül mindig működik, és ehhez nincs szüksége semmire.',
   'intake.clipboardWatchUnavailable': 'Itt nem érhető el: a böngésző csak HTTPS-en vagy localhoston engedi egy oldalnak a vágólap olvasását. A Ctrl+V a KnightLoaderen belül így is működik.',
   'intake.clipboardWatchDenied': 'A vágólap figyelése kikapcsolva: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Minden link, amit bárhol kimásolsz, egyenesen a gyűjtőbe kerül, akkor is, ha a KnightLoader az értesítési területen rejtőzik. A vágólapról csak a linkek kerülnek át. A Ctrl+V a KnightLoaderen belül mindig működik, ehhez nincs szükség erre.',
+  'intake.clipboardWatchTarget': 'Kimásolt linkek küldése ide',
+  'intake.clipboardWatchTargetHint': 'Ez a példány vagy egy másik a Példányok oldalról, például egy NAS, amelyet a tizenkét szóval párosítottál. Csak a linkek mennek el, semmi más a vágólapról.',
+  'intake.clipboardWatchLimited': 'Waylanden a KnightLoader csak akkor látja a vágólapot, amikor az ablaka elöl van. Telepített wl-clipboarddal a háttérben is figyelheti azokon az asztali környezeteken, amelyek ezt engedik, például KDE-n vagy Sway-en. A GNOME ezt nem engedi.',
 
   'collector.hosterPresetHint': 'A(z) {host} linkjeinek mely változatait mutatja a gyűjtő, és milyen formátummal és minőséggel indulnak az új linkek. Ha egy link ellenőrizve van, átvált a saját sávjára, amelyik a legközelebb áll ehhez. Az a link, amelynek nincs ilyen videoformátuma, a legjobb videóját kapja eddig a minőségig, amelyiknek pedig nincs ilyen hangformátuma, annak a hangját átalakítjuk.',
   'activity.crawl': 'Oldalak átvizsgálása',

@@ -1312,6 +1312,10 @@ export const pl: Dict = {
   'intake.clipboardWatchHint': 'Każdy link, który gdziekolwiek skopiujesz, trafia prosto do kolektora, dopóki ta karta jest otwarta i na wierzchu. Ctrl+V wewnątrz KnightLoadera działa zawsze i tego nie potrzebuje.',
   'intake.clipboardWatchUnavailable': 'Tutaj niedostępne: przeglądarka pozwala stronie czytać schowek tylko przez HTTPS albo na localhoście. Ctrl+V wewnątrz KnightLoadera działa i tak.',
   'intake.clipboardWatchDenied': 'Obserwacja schowka wyłączona: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Każdy link, który gdziekolwiek skopiujesz, trafia prosto do kolektora, także gdy KnightLoader jest schowany w obszarze powiadomień. Ze schowka brane są tylko linki. Ctrl+V wewnątrz KnightLoadera działa zawsze i tego nie potrzebuje.',
+  'intake.clipboardWatchTarget': 'Wysyłaj skopiowane linki do',
+  'intake.clipboardWatchTargetHint': 'Ta instancja albo inna ze strony Instancje, na przykład NAS sparowany dwunastoma słowami. Wysyłane są tylko linki, nic więcej ze schowka.',
+  'intake.clipboardWatchLimited': 'Pod Waylandem KnightLoader widzi schowek tylko wtedy, gdy jego okno jest na wierzchu. Z zainstalowanym wl-clipboard może go śledzić w tle na pulpitach, które na to pozwalają, takich jak KDE czy Sway. GNOME na to nie pozwala.',
 
   'collector.hosterPresetHint': 'Które warianty linków z {host} pokazuje kolektor oraz z jakim formatem i jakością startują nowe linki. Gdy link zostanie sprawdzony, przełącza się na własną ścieżkę, która jest najbliżej tego wyboru. Link bez tego formatu wideo dostaje swoje najlepsze wideo do tej jakości, a w linku bez tego formatu audio dźwięk zostaje przekonwertowany.',
   'activity.crawl': 'Przeszukiwanie stron',

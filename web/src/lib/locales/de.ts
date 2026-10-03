@@ -1452,6 +1452,10 @@ export const de: Dict = {
   'intake.clipboardWatchHint': 'Jeder Link, den du irgendwo kopierst, landet direkt im Linksammler, solange dieser Tab offen und im Vordergrund ist. Strg+V in KnightLoader funktioniert immer und braucht das hier nicht.',
   'intake.clipboardWatchUnavailable': 'Hier nicht verfügbar: Der Browser lässt eine Seite die Zwischenablage nur über HTTPS oder auf localhost lesen. Strg+V in KnightLoader funktioniert trotzdem.',
   'intake.clipboardWatchDenied': 'Zwischenablage-Überwachung ausgeschaltet: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Jeder Link, den du irgendwo kopierst, landet direkt im Linksammler, auch wenn KnightLoader im Infobereich liegt. Aus der Zwischenablage werden nur die Links übernommen. Strg+V in KnightLoader funktioniert immer und braucht das hier nicht.',
+  'intake.clipboardWatchTarget': 'Kopierte Links senden an',
+  'intake.clipboardWatchTargetHint': 'Diese Instanz oder eine andere unter Instanzen, etwa ein NAS, das du mit den zwölf Wörtern gekoppelt hast. Gesendet werden nur die Links, sonst nichts aus der Zwischenablage.',
+  'intake.clipboardWatchLimited': 'Unter Wayland sieht KnightLoader die Zwischenablage nur, solange sein Fenster vorne ist. Mit installiertem wl-clipboard kann es im Hintergrund mitlesen, wo der Desktop das erlaubt, etwa unter KDE oder Sway. GNOME erlaubt es nicht.',
 
   'activity.crawl': 'Seiten durchsuchen',
   'activity.linkcheck': 'Links prüfen',

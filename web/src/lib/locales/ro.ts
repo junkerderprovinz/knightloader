@@ -1321,6 +1321,10 @@ export const ro: Dict = {
   'intake.clipboardWatchHint': 'Fiecare link pe care îl copiezi oriunde ajunge direct în colector, cât timp această filă e deschisă și în prim-plan. Ctrl+V în KnightLoader merge întotdeauna și nu are nevoie de asta.',
   'intake.clipboardWatchUnavailable': 'Nu e disponibil aici: browserul lasă o pagină să citească clipboardul doar prin HTTPS sau pe localhost. Ctrl+V în KnightLoader merge oricum.',
   'intake.clipboardWatchDenied': 'Monitorizarea clipboardului oprită: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Fiecare link pe care îl copiezi oriunde ajunge direct în colector, chiar și când KnightLoader stă ascuns în zona de notificare. Din clipboard se iau doar linkurile. Ctrl+V în KnightLoader merge întotdeauna și nu are nevoie de asta.',
+  'intake.clipboardWatchTarget': 'Trimite linkurile copiate la',
+  'intake.clipboardWatchTargetHint': 'Această instanță sau alta din pagina Instanțe, de exemplu un NAS asociat cu cele douăsprezece cuvinte. Se trimit doar linkurile, nimic altceva din clipboard.',
+  'intake.clipboardWatchLimited': 'Pe Wayland, KnightLoader vede clipboardul doar cât timp fereastra lui e în față. Cu wl-clipboard instalat îl poate urmări în fundal pe mediile care permit asta, cum ar fi KDE sau Sway. GNOME nu permite.',
 
   'collector.hosterPresetHint': 'Ce variante ale linkurilor de la {host} arată colectorul și cu ce format și calitate pornesc linkurile noi. După ce un link este verificat, trece pe pista proprie care se apropie cel mai mult. Un link fără acest format video primește cel mai bun video al lui până la această calitate, iar unui link fără acest format audio i se convertește sunetul.',
   'activity.crawl': 'Scanare pagini',

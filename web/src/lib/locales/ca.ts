@@ -1320,6 +1320,10 @@ export const ca: Dict = {
   'intake.clipboardWatchHint': 'Cada enllaç que copies a qualsevol lloc va directe al recol·lector, mentre aquesta pestanya estigui oberta i en primer pla. Ctrl+V dins de KnightLoader funciona sempre i no necessita res d\'això.',
   'intake.clipboardWatchUnavailable': 'Aquí no està disponible: el navegador només deixa que una pàgina llegeixi el porta-retalls per HTTPS o a localhost. Ctrl+V dins de KnightLoader funciona igualment.',
   'intake.clipboardWatchDenied': 'S\'ha desactivat la vigilància del porta-retalls: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Cada enllaç que copies a qualsevol lloc va directe al recol·lector, fins i tot amb KnightLoader amagat a l\'àrea de notificació. Del porta-retalls només se n\'agafen els enllaços. Ctrl+V dins de KnightLoader funciona sempre sense res d\'això.',
+  'intake.clipboardWatchTarget': 'Envia els enllaços copiats a',
+  'intake.clipboardWatchTargetHint': 'Aquesta instància o una altra de la pàgina Instàncies, per exemple un NAS aparellat amb les dotze paraules. Només s\'envien els enllaços, res més del porta-retalls.',
+  'intake.clipboardWatchLimited': 'A Wayland, KnightLoader només veu el porta-retalls mentre la seva finestra és al davant. Amb wl-clipboard instal·lat el pot vigilar en segon pla als escriptoris que ho permeten, com KDE o Sway. GNOME no ho permet.',
 
   'collector.hosterPresetHint': 'Quines variants dels enllaços de {host} mostra el col·lector, i amb quin format i qualitat comencen els enllaços nous. Un cop comprovat un enllaç, passa a la seva pròpia pista que més s’hi acosti. Un enllaç sense aquest format de vídeo rep el seu millor vídeo fins a aquesta qualitat, i a un sense aquest format d’àudio se li converteix l’àudio.',
   'activity.crawl': 'Anàlisi de pàgines',
