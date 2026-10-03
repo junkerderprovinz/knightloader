@@ -137,15 +137,15 @@ type clipWatch struct {
 
 	reader clipboardReader
 	last   string
+
+	// mu keeps a delivery or a lease call from overlapping stop, so none
+	// reaches the app after it has closed and stop sees the lease as held.
+	mu      sync.Mutex
+	stopped bool
 	// leased is when the lease was last renewed, zero while none is held, and
 	// leasedTarget the instance it is held with.
 	leased       time.Time
 	leasedTarget string
-
-	// mu keeps a delivery from overlapping stop, so none reaches the app
-	// after it has closed.
-	mu      sync.Mutex
-	stopped bool
 }
 
 func newClipWatch(a *app.App, read func() (string, bool), report func(clipOutcome)) *clipWatch {
@@ -184,27 +184,17 @@ func (w *clipWatch) run(ctx context.Context) {
 
 // step is one round of run. Switched off, the clipboard is not read at all.
 // The first read after switching on is only remembered, as on the page, so
-// what was copied an hour ago does not arrive. A lease renewal that says
-// another device asked the watch to stop switches it off.
+// what was copied an hour ago does not arrive.
 func (w *clipWatch) step(ctx context.Context) {
 	s := w.settings()
-	if !w.leased.IsZero() && (!s.On || s.Target != w.leasedTarget) {
-		w.leave(ctx, w.leasedTarget)
-		w.leased = time.Time{}
+	if w.keepLease(ctx, s) {
+		w.closeReader()
+		w.report(clipOutcome{Kind: "stopped"})
+		return
 	}
 	if !s.On {
 		w.closeReader()
 		return
-	}
-	if time.Since(w.leased) >= clipLeaseRenewal {
-		w.leased, w.leasedTarget = time.Now(), s.Target
-		if w.lease(ctx, s.Target) {
-			w.switchOff()
-			w.leased = time.Time{}
-			w.closeReader()
-			w.report(clipOutcome{Kind: "stopped"})
-			return
-		}
 	}
 	if w.reader == nil {
 		r, background := w.open()
@@ -256,11 +246,49 @@ func (w *clipWatch) closeReader() {
 	}
 }
 
-// stop waits out a delivery under way and refuses any after it.
+// keepLease holds the lease where s says, renewing it every clipLeaseRenewal,
+// and reports whether another device asked the watch to stop, which switches
+// it off.
+func (w *clipWatch) keepLease(ctx context.Context, s clipSettings) (stopped bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.stopped {
+		return false
+	}
+	if !w.leased.IsZero() && (!s.On || s.Target != w.leasedTarget) {
+		w.leased = time.Time{}
+		// Leaving drops a stop that waits there, so a watch that stays on
+		// asks for it first.
+		if s.On && w.lease(ctx, w.leasedTarget) {
+			w.switchOff()
+			return true
+		}
+		w.leave(ctx, w.leasedTarget)
+	}
+	if !s.On || time.Since(w.leased) < clipLeaseRenewal {
+		return false
+	}
+	w.leased, w.leasedTarget = time.Now(), s.Target
+	if !w.lease(ctx, s.Target) {
+		return false
+	}
+	w.switchOff()
+	w.leased = time.Time{}
+	return true
+}
+
+// stop waits out a delivery or lease call under way, refuses any after it and
+// takes the watch off the list, where a closed app would otherwise stay until
+// its lease ran out.
 func (w *clipWatch) stop() {
 	w.mu.Lock()
+	defer w.mu.Unlock()
 	w.stopped = true
-	w.mu.Unlock()
+	if !w.leased.IsZero() {
+		w.leased = time.Time{}
+		// The run's context has already ended; leave bounds its own wait.
+		w.leave(context.Background(), w.leasedTarget)
+	}
 }
 
 // readClipSettings reads the switch and the target from the interface state

@@ -108,14 +108,16 @@ type watchRig struct {
 	err        error
 	outcomes   []clipOutcome
 	// leases and leaves are the targets each lease call went to.
-	leases      []string
-	leaves      []string
-	stopAsked   bool
+	leases []string
+	leaves []string
+	// stops are the targets where another device asked the watch to stop. A
+	// renewal there hears it and a leave drops it, as in clipwatch.Registry.
+	stops       map[string]bool
 	switchedOff bool
 }
 
 func newWatchRig() *watchRig {
-	r := &watchRig{clip: &fakeClipboard{}, background: true, created: 1}
+	r := &watchRig{clip: &fakeClipboard{}, background: true, created: 1, stops: map[string]bool{}}
 	r.w = &clipWatch{
 		settings: func() clipSettings { return r.settings },
 		open: func() (clipboardReader, bool) {
@@ -130,9 +132,14 @@ func newWatchRig() *watchRig {
 		report: func(o clipOutcome) { r.outcomes = append(r.outcomes, o) },
 		lease: func(_ context.Context, target string) bool {
 			r.leases = append(r.leases, target)
-			return r.stopAsked
+			stop := r.stops[target]
+			delete(r.stops, target)
+			return stop
 		},
-		leave: func(_ context.Context, target string) { r.leaves = append(r.leaves, target) },
+		leave: func(_ context.Context, target string) {
+			r.leaves = append(r.leaves, target)
+			delete(r.stops, target)
+		},
 		switchOff: func() {
 			r.switchedOff = true
 			r.settings.On = false
@@ -261,8 +268,8 @@ func TestClipWatchMovesItsLeaseWithTheTarget(t *testing.T) {
 	r.copy("")
 	r.settings.Target = "nas"
 	r.copy("")
-	if !reflect.DeepEqual(r.leaves, []string{""}) || !reflect.DeepEqual(r.leases, []string{"", "nas"}) {
-		t.Fatalf("left %v and leased %v, want to leave this instance and lease with nas", r.leaves, r.leases)
+	if !reflect.DeepEqual(r.leaves, []string{""}) || !reflect.DeepEqual(r.leases, []string{"", "", "nas"}) {
+		t.Fatalf("left %v and leased %v, want a last renewal here, then to leave and lease with nas", r.leaves, r.leases)
 	}
 	r.settings.On = false
 	r.copy("")
@@ -273,7 +280,7 @@ func TestClipWatchMovesItsLeaseWithTheTarget(t *testing.T) {
 
 func TestClipWatchStopsWhenAnotherDeviceAsks(t *testing.T) {
 	r := newWatchRig()
-	r.stopAsked = true
+	r.stops[""] = true
 	r.settings.On = true
 	r.copy("")
 	r.copy("https://host.example/a")
@@ -288,6 +295,48 @@ func TestClipWatchStopsWhenAnotherDeviceAsks(t *testing.T) {
 	}
 	if len(r.leaves) != 0 {
 		t.Fatalf("a watch the list already dropped left it again: %v", r.leaves)
+	}
+}
+
+func TestClipWatchHearsAStopAskedBeforeTheTargetChanged(t *testing.T) {
+	r := newWatchRig()
+	r.settings.On = true
+	r.copy("")
+	r.stops[""] = true
+	r.settings.Target = "nas"
+	r.copy("https://host.example/a")
+	if !r.switchedOff {
+		t.Fatal("moving the lease to nas lost the stop waiting at this instance")
+	}
+	if len(r.sent) != 0 {
+		t.Fatalf("sent %v after the stop", r.sent)
+	}
+	if want := []clipOutcome{{Kind: "stopped"}}; !reflect.DeepEqual(r.outcomes, want) {
+		t.Fatalf("reported %v, want %v", r.outcomes, want)
+	}
+}
+
+func TestClipWatchLeavesTheListWhenTheAppQuits(t *testing.T) {
+	r := newWatchRig()
+	r.settings = clipSettings{On: true, Target: "nas"}
+	r.copy("")
+	r.w.stop()
+	if !reflect.DeepEqual(r.leaves, []string{"nas"}) {
+		t.Fatalf("quitting left %v, want nas", r.leaves)
+	}
+	// A round already under way when the app quits.
+	r.copy("")
+	if !reflect.DeepEqual(r.leases, []string{"nas"}) || len(r.leaves) != 1 {
+		t.Fatalf("after quitting it leased %v and left %v", r.leases, r.leaves)
+	}
+}
+
+func TestClipWatchQuitWhileOffLeavesNothing(t *testing.T) {
+	r := newWatchRig()
+	r.copy("")
+	r.w.stop()
+	if len(r.leaves) != 0 {
+		t.Fatalf("a watch that held no lease left %v", r.leaves)
 	}
 }
 
