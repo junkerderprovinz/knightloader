@@ -4,11 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
@@ -101,6 +107,11 @@ type watchRig struct {
 	created    int
 	err        error
 	outcomes   []clipOutcome
+	// leases and leaves are the targets each lease call went to.
+	leases      []string
+	leaves      []string
+	stopAsked   bool
+	switchedOff bool
 }
 
 func newWatchRig() *watchRig {
@@ -117,6 +128,15 @@ func newWatchRig() *watchRig {
 			return r.created, r.err
 		},
 		report: func(o clipOutcome) { r.outcomes = append(r.outcomes, o) },
+		lease: func(_ context.Context, target string) bool {
+			r.leases = append(r.leases, target)
+			return r.stopAsked
+		},
+		leave: func(_ context.Context, target string) { r.leaves = append(r.leaves, target) },
+		switchOff: func() {
+			r.switchedOff = true
+			r.settings.On = false
+		},
 	}
 	return r
 }
@@ -207,6 +227,148 @@ func TestClipWatchSendsNothingAfterStop(t *testing.T) {
 	r.copy("https://host.example/a")
 	if len(r.sent) != 0 {
 		t.Fatalf("sent %v after stop", r.sent)
+	}
+}
+
+func TestClipWatchHoldsALeaseWhileOn(t *testing.T) {
+	r := newWatchRig()
+	r.copy("https://host.example/a")
+	if len(r.leases) != 0 {
+		t.Fatalf("switched off, it leased %v", r.leases)
+	}
+	r.settings.On = true
+	r.copy("")
+	r.copy("https://host.example/b")
+	if !reflect.DeepEqual(r.leases, []string{""}) {
+		t.Fatalf("leased %v within a minute, want once with this instance", r.leases)
+	}
+	r.settings.On = false
+	r.copy("")
+	r.copy("")
+	if !reflect.DeepEqual(r.leaves, []string{""}) {
+		t.Fatalf("switching off left %v, want this instance once", r.leaves)
+	}
+	r.settings.On = true
+	r.copy("")
+	if len(r.leases) != 2 {
+		t.Fatalf("switching on again leased %v in all, want two", r.leases)
+	}
+}
+
+func TestClipWatchMovesItsLeaseWithTheTarget(t *testing.T) {
+	r := newWatchRig()
+	r.settings = clipSettings{On: true}
+	r.copy("")
+	r.settings.Target = "nas"
+	r.copy("")
+	if !reflect.DeepEqual(r.leaves, []string{""}) || !reflect.DeepEqual(r.leases, []string{"", "nas"}) {
+		t.Fatalf("left %v and leased %v, want to leave this instance and lease with nas", r.leaves, r.leases)
+	}
+	r.settings.On = false
+	r.copy("")
+	if !reflect.DeepEqual(r.leaves, []string{"", "nas"}) {
+		t.Fatalf("switching off left %v, want nas last", r.leaves)
+	}
+}
+
+func TestClipWatchStopsWhenAnotherDeviceAsks(t *testing.T) {
+	r := newWatchRig()
+	r.stopAsked = true
+	r.settings.On = true
+	r.copy("")
+	r.copy("https://host.example/a")
+	if !r.switchedOff {
+		t.Fatal("the page's switch stayed on")
+	}
+	if len(r.sent) != 0 || r.opened != 0 {
+		t.Fatalf("after the stop it opened the clipboard %d times and sent %v", r.opened, r.sent)
+	}
+	if want := []clipOutcome{{Kind: "stopped"}}; !reflect.DeepEqual(r.outcomes, want) {
+		t.Fatalf("reported %v, want %v", r.outcomes, want)
+	}
+	if len(r.leaves) != 0 {
+		t.Fatalf("a watch the list already dropped left it again: %v", r.leaves)
+	}
+}
+
+func TestSwitchClipOffKeepsThePagesOtherFields(t *testing.T) {
+	a := newClipApp(t)
+	doc := `{"columns":{"name":240},"clipboardWatch":true,"clipboardWatchTarget":"nas"}`
+	if err := a.SetUIState(store.UIStateKey, doc); err != nil {
+		t.Fatal(err)
+	}
+	if err := switchClipOff(a); err != nil {
+		t.Fatal(err)
+	}
+	if s := readClipSettings(a); s != (clipSettings{Target: "nas"}) {
+		t.Fatalf("read %+v", s)
+	}
+	raw, _ := a.UIState(store.UIStateKey)
+	var got map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(raw), &got); err != nil || string(got["columns"]) != `{"name":240}` {
+		t.Fatalf("the other fields became %s", raw)
+	}
+}
+
+func TestClipWatchLeasesWithThisInstance(t *testing.T) {
+	a := newClipApp(t)
+	if leaseClip(context.Background(), a, "") {
+		t.Fatal("a fresh lease was told to stop")
+	}
+	list := a.ClipWatch.List(time.Now())
+	if len(list) != 1 || list[0].Kind != "desktop" || list[0].ID != clipWatcher(a).ID {
+		t.Fatalf("listed %+v", list)
+	}
+	a.ClipWatch.Stop(list[0].ID, time.Now())
+	if !leaseClip(context.Background(), a, "") {
+		t.Fatal("the renewal after a stop did not say so")
+	}
+	leaseClip(context.Background(), a, "")
+	leaveClip(context.Background(), a, "")
+	if list := a.ClipWatch.List(time.Now()); len(list) != 0 {
+		t.Fatalf("after leaving, listed %+v", list)
+	}
+}
+
+func TestClipWatchLeasesWithThePeerItSendsTo(t *testing.T) {
+	var mu sync.Mutex
+	var calls []string
+	var kind string
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var b struct{ Kind string }
+		_ = json.Unmarshal(body, &b)
+		mu.Lock()
+		calls = append(calls, r.Method+" "+r.URL.Path)
+		if r.Method == http.MethodPut {
+			kind = b.Kind
+		}
+		mu.Unlock()
+		if r.Method == http.MethodPut {
+			_, _ = io.WriteString(w, `{"stop":true}`)
+		}
+	}))
+	defer peer.Close()
+	a := newClipApp(t)
+	if err := a.Federation.Add(federation.Instance{Name: "nas", URL: peer.URL}); err != nil {
+		t.Fatal(err)
+	}
+
+	if !leaseClip(context.Background(), a, "nas") {
+		t.Fatal("the peer's stop did not come through")
+	}
+	leaveClip(context.Background(), a, "nas")
+	path := "/api/clipboard-watchers/" + clipWatcher(a).ID
+	mu.Lock()
+	defer mu.Unlock()
+	if want := []string{"PUT " + path, "DELETE " + path}; !reflect.DeepEqual(calls, want) {
+		t.Fatalf("the peer was asked %v, want %v", calls, want)
+	}
+	if kind != "desktop" {
+		t.Fatalf("leased as %q, want desktop", kind)
+	}
+	if list := a.ClipWatch.List(time.Now()); len(list) != 0 {
+		t.Fatalf("this instance holds %+v, want nothing", list)
 	}
 }
 
