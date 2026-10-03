@@ -50,6 +50,11 @@ type File struct {
 	// Name is the file's name as it was dropped, extension included.
 	Name string
 	Data []byte
+
+	// held is where the poller parked the file until Done, empty for a File
+	// that did not come out of a watched folder.
+	held string
+	del  bool
 }
 
 // Job is one entry of an intake file: the links, and everything else that entry
