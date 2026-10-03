@@ -292,6 +292,10 @@ const (
 	SecretlessArchivePasswords = "archivePasswords"
 	SecretlessEventPrograms    = "eventPrograms.command"
 	SecretlessQBittorrent      = "torrent.qbittorrent.password"
+	// SecretlessUsenetServers is named by the import rather than by
+	// Secretless: the logins are sealed outside the document, so whether one
+	// is missing depends on the box that takes the servers over.
+	SecretlessUsenetServers = "usenetServers.login"
 )
 
 // Secretless names the keys in d that arrive without their password, or for

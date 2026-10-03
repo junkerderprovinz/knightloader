@@ -42,7 +42,7 @@ export function GlobalIntake() {
         if (r.handedTo === 'jd') {
           toast(t('container.handed', { file: file.name, n: r.expiresIn }), 'info');
         } else if (r.handedTo === 'usenet') {
-          toast(t('container.usenet', { file: file.name, service: r.service }), 'info');
+          toast(r.own ? t('container.usenetOwn', { file: file.name }) : t('container.usenet', { file: file.name, service: r.service }), 'info');
         } else if (r.created.length > 0) {
           toast(t('container.staged', { n: r.created.length, file: file.name }), 'ok');
         } else {

@@ -83,6 +83,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerEventPrograms(reg, a)
 	registerMediaHooks(reg, a)
 	registerDebridDrive(reg, a)
+	registerUsenetServers(reg, a)
 }
 
 // AnyMethod is the method of a route that forwards the request elsewhere and

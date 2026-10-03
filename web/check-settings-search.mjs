@@ -53,6 +53,8 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.
   { file: 'src/components/FreeDownloadsCard.tsx', pages: ['accounts'] },
+  // The Usenet servers card on the Accounts page.
+  { file: 'src/components/UsenetServersSection.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
   { file: 'src/pages/settings/access/', pages: ['access'] },

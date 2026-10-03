@@ -547,6 +547,11 @@ func (u *usenetAccount) sentCount() int {
 // one added there is imported.
 func TestAnNZBThisInstanceSentIsNeverImported(t *testing.T) {
 	fastImports(t, time.Millisecond)
+	// The account lists the new id from the moment it reports it, and the
+	// queue claims it right after. Two polls must not fit in between, which a
+	// minute apart they never do; a few milliseconds apart, a loaded machine
+	// lets them.
+	importPoll = 200 * time.Millisecond
 	site := &websiteAccount{}
 	a := importApp(t, site, false)
 	a.SetUsenetServices(&usenetAccount{site: site})

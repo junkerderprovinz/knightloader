@@ -43,6 +43,7 @@ import { fmtBytes } from '../lib/format';
 import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
+import { taskRefusal } from '../lib/taskRefusal';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
@@ -1199,7 +1200,10 @@ export function ListMenu({
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  const fail = useCallback((e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail'), [t, toast]);
+  const fail = useCallback(
+    (e: unknown) => toast(taskRefusal(e, t) ?? t('list.failed', { error: message(e) }), 'fail'),
+    [t, toast],
+  );
   const start = useStartTasks();
   const cleanup = useCleanup(all);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);

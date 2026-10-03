@@ -147,7 +147,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
       {hasRows ? (
         <Button
           kind="secondary"
-          hue={1}
+          hue={2}
           icon={<IconPlus width={16} height={16} />}
           className="self-start"
           onClick={() => setDialog({ mode: 'new' })}
@@ -160,7 +160,7 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
           action={
-            <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
+            <Button kind="secondary" hue={2} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
               {t('accounts.newAccount')}
             </Button>
           }
@@ -205,7 +205,7 @@ function ConfirmRemoveLogin({
   return (
     <Modal
       title={t('accounts.remove')}
-      hue={1}
+      hue={2}
       onClose={onCancel}
       footer={
         <>
@@ -328,7 +328,7 @@ function HosterLoginDialog({
   return (
     <Modal
       title={title}
-      hue={1}
+      hue={2}
       onClose={onClose}
       footer={
         picked ? (
