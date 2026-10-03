@@ -116,3 +116,51 @@ func TestStreamRefusesATransferBeingMended(t *testing.T) {
 		t.Fatalf("Stream while mending = %v, want ErrMending", err)
 	}
 }
+
+// A reader still open when the library finishes a transfer short stops where
+// the refused range begins. Those bytes are not on disk until the mend has
+// fetched them.
+func TestStreamReaderOpenWhenATransferEndsShortStopsAtTheMissingRange(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
+	}
+	o := newRefusingOrigin(t, 4<<20, -1)
+	o.pace = 5 * time.Millisecond
+	e, err := New(t.TempDir(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer e.Close()
+	// The fresh link never comes, so the mend leaves the range missing.
+	e.Start(Job{TaskID: "t1", URL: o.srv.URL + "/old", Conns: 2, Relink: func(ctx context.Context) (string, error) {
+		<-ctx.Done()
+		return "", ctx.Err()
+	}})
+
+	var r download.StreamReader
+	waitUntil(t, "the download opening for reading", func() bool {
+		r, err = e.Stream("t1", 0)
+		return err == nil
+	})
+	defer r.Close()
+	waitUntil(t, "the mend", func() bool {
+		e.mu.Lock()
+		defer e.mu.Unlock()
+		return e.mends["t1"] != nil
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var got []byte
+	buf := make([]byte, 64<<10)
+	for {
+		n, err := r.ReadContext(ctx, buf)
+		got = append(got, buf[:n]...)
+		if err != nil {
+			break
+		}
+	}
+	if len(got) >= len(o.data) || !bytes.Equal(got, o.data[:len(got)]) {
+		t.Fatalf("read %d of %d bytes, not all of them the file's; want the bytes before the refused range", len(got), len(o.data))
+	}
+}
