@@ -68,6 +68,14 @@ type fakeJDGrabber struct {
 	removedLinks []int64
 	removedPkgs  []int64
 	unscoped     int // queryLinks calls with neither filter
+
+	// jobs scripts queryLinkCrawlerJobs, one entry per call with the last one
+	// repeated: "busy", "idle", or "" for a job JD does not list. Nil answers
+	// 404, as a JD without the query does.
+	jobs     []string
+	jobCalls int
+	// onJobCall runs under mu after every queryLinkCrawlerJobs call.
+	onJobCall func(f *fakeJDGrabber)
 }
 
 func (f *fakeJDGrabber) linksFor(match func(grabPkg) bool) []grabLink {
@@ -128,6 +136,28 @@ func (f *fakeJDGrabber) handler() http.Handler {
 				return
 			}
 			_, _ = w.Write([]byte(`{"data":false}`))
+
+		case "/linkgrabberv2/queryLinkCrawlerJobs":
+			f.mu.Lock()
+			defer f.mu.Unlock()
+			if f.jobs == nil {
+				http.NotFound(w, r)
+				return
+			}
+			state := f.jobs[min(f.jobCalls, len(f.jobs)-1)]
+			f.jobCalls++
+			if f.onJobCall != nil {
+				f.onJobCall(f)
+			}
+			// JD leaves a false flag out.
+			switch state {
+			case "busy":
+				_, _ = w.Write([]byte(`{"data":[{"jobId":` + itoa(f.jobID) + `,"crawlerId":2,"crawling":true}]}`))
+			case "idle":
+				_, _ = w.Write([]byte(`{"data":[{"jobId":` + itoa(f.jobID) + `,"crawlerId":2}]}`))
+			default:
+				_, _ = w.Write([]byte(`{"data":[]}`))
+			}
 
 		case "/linkgrabberv2/queryLinks":
 			var params []struct {
@@ -435,5 +465,52 @@ func TestAContainerCrawlEndsWithItsContext(t *testing.T) {
 	}
 	if elapsed := time.Since(start); elapsed > 5*time.Second {
 		t.Errorf("AddContainerFile returned %v after its context ended", elapsed)
+	}
+}
+
+func TestAContainerJDOpensNothingIsGivenUpOnOnceItsCrawlEnds(t *testing.T) {
+	fastPoll(t)
+
+	for name, jobs := range map[string][]string{
+		"job still listed":     {"idle"},
+		"job let go of by JD":  {"", "busy", "idle", ""},
+		"job crawled a moment": {"busy", "busy", "idle"},
+	} {
+		f := &fakeJDGrabber{t: t, jobID: 9, jobs: jobs}
+		srv := httptest.NewServer(f.handler())
+		b := NewBackend(srv.URL, func(string, core.Update) {})
+		start := time.Now()
+		_, err := b.AddContainerFile(context.Background(), "ccf", []byte("garbage"), "MyPackage", time.Minute)
+		srv.Close()
+		if !errors.Is(err, ErrNoLinks) {
+			t.Errorf("%s: AddContainerFile = %v, want ErrNoLinks", name, err)
+		}
+		if elapsed := time.Since(start); elapsed > 5*time.Second {
+			t.Errorf("%s: gave up after %v, long after JD had finished the crawl", name, elapsed)
+		}
+	}
+}
+
+func TestAContainerCrawlJDIsStillOnIsWaitedFor(t *testing.T) {
+	fastPoll(t)
+
+	f := &fakeJDGrabber{t: t, jobID: 9, jobs: []string{"", "", "", "", "", "busy"}}
+	f.onJobCall = func(f *fakeJDGrabber) {
+		if f.jobCalls == 12 {
+			f.packages = []grabPkg{{uuid: 41, name: f.marker, ours: true, links: []grabLink{
+				{UUID: 401, URL: "https://mirror-a.example/late.rar", Name: "late.rar", PackageUUID: 41},
+			}}}
+		}
+	}
+	srv := httptest.NewServer(f.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	got, err := b.AddContainerFile(context.Background(), "dlc", []byte("payload"), "MyPackage", time.Minute)
+	if err != nil {
+		t.Fatalf("AddContainerFile: %v", err)
+	}
+	if len(got) != 1 || got[0].DirectURL != "https://mirror-a.example/late.rar" {
+		t.Errorf("harvested %+v, want the link the slow crawl found", got)
 	}
 }

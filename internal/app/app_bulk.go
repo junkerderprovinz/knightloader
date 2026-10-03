@@ -399,6 +399,9 @@ var ErrJDOff = errors.New(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
 		"\"JDownloader backend\" is switched off on the Modules page")
 
+// errJDCouldNotOpen is a container neither KnightLoader nor JD can read.
+var errJDCouldNotOpen = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
+
 // ContainerBackendConfigured reports whether a JD backend that can open an
 // encrypted container is wired, switched on or not. It is asked before an
 // upload is stored, so the upload can be refused with the reason.
@@ -434,7 +437,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		// use and already spent.
 		links = slices.DeleteFunc(links, func(r resolver.Result) bool { return isHandover(r.DirectURL, rawurl) })
 		if err == nil && len(links) == 0 {
-			err = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
+			err = errJDCouldNotOpen
 		}
 		if err != nil {
 			log.Printf("container %q: %v", name, err)

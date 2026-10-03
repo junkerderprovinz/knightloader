@@ -2,6 +2,7 @@ package jd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -195,6 +196,29 @@ func (b *Backend) AddContainerFile(ctx context.Context, ext string, data []byte,
 	return b.awaitContainerLinks(ctx, job, marker, timeout)
 }
 
+// ErrNoLinks is a container whose crawl JD finished without a link. JD says
+// nothing when it cannot read a container, or drops every link in it as one
+// it already has.
+var ErrNoLinks = errors.New("JDownloader found no links in this container. Either it is damaged, " +
+	"or JDownloader already has every link in it and silently dropped them: " +
+	"remove them from its link grabber and download list, then add the container again")
+
+// crawlEnded reports whether JD has finished the crawl of job. JD lets go of
+// a finished job after a few seconds, so a job it no longer lists has ended
+// once seen has been set; before that it may not have started. A JD without
+// the query never reports an end.
+func (b *Backend) crawlEnded(job int64, seen *bool) bool {
+	busy, listed, err := b.c.CrawlJob(job)
+	if err != nil {
+		return false
+	}
+	if listed {
+		*seen = true
+		return !busy
+	}
+	return *seen
+}
+
 // settleReadings is how many identical readings in a row count as a finished
 // crawl. An incremental crawler pauses between sub-crawls; one second into a
 // real DLC the package held 1 of its 11 links.
@@ -214,7 +238,8 @@ func (b *Backend) awaitContainerLinks(ctx context.Context, job int64, marker str
 
 	var pkgs []int64
 	var links []CrawledLink
-	settled := 0
+	settled, ended := 0, 0
+	jobSeen := false
 	probe := b.newJobFilterProbe()
 	for {
 		select {
@@ -243,6 +268,18 @@ func (b *Backend) awaitContainerLinks(ctx context.Context, job int64, marker str
 		}
 		if settled >= need {
 			break
+		}
+
+		// An empty grabber cannot tell a crawl still under way from one that
+		// opened nothing, so JD is asked about the job itself.
+		if len(found) == 0 && b.crawlEnded(job, &jobSeen) {
+			ended++
+		} else {
+			ended = 0
+		}
+		if ended >= settleReadings {
+			_ = b.c.RemoveCrawled(nil, pkgs)
+			return nil, ErrNoLinks
 		}
 
 		if time.Now().After(deadline) {

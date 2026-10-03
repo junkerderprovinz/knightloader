@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
 // echoJD cannot read the container either, and does what JD's crawler does
@@ -67,5 +69,35 @@ func TestTheHandoverAddressIsKnownWhateverTheCaseOfItsHost(t *testing.T) {
 	})
 	if tasks := a.Tasks(); len(tasks) != 0 {
 		t.Fatalf("staged %s, the handover address, as a link", tasks[0].URL)
+	}
+}
+
+// emptyJD finishes every crawl of a dropped container without a link.
+type emptyJD struct{ containerJD }
+
+func (*emptyJD) AddContainerFile(context.Context, string, []byte, string, time.Duration) ([]resolver.Result, error) {
+	return nil, jd.ErrNoLinks
+}
+
+func TestADroppedCCFOrRSDFJDFindsNothingInIsCalledDamaged(t *testing.T) {
+	for _, c := range []struct {
+		name, data string
+		want       error
+	}{
+		{"Links.CCF", "encrypted bytes", errJDCouldNotOpen},
+		{"Links.rsdf", "0a1b2c3d4e5f", errJDCouldNotOpen},
+		// JD holds the only DLC key, so JD may have dropped its links.
+		{"Links.dlc", strings.Repeat("QUJD", 30), jd.ErrNoLinks},
+	} {
+		a := newCrawlApp(t, false)
+		a.bmu.Lock()
+		a.jd = &emptyJD{}
+		a.bmu.Unlock()
+
+		a.stageWatchJob(watch.Job{File: &watch.File{Name: c.name, Data: []byte(c.data)}, Package: "Links"})
+		skipped := a.SkippedLinks()
+		if len(skipped) != 1 || skipped[0].Reason != c.want.Error() {
+			t.Errorf("%s: skipped = %+v, want the reason %q", c.name, skipped, c.want)
+		}
 	}
 }
