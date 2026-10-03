@@ -364,8 +364,9 @@ func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.P
 // downloads without being able to stop them would be half a connection. So do
 // the captcha routes: a captcha holds a download up, and the phone answers or
 // skips it, loads a widget challenge's page, and says when that will not
-// load. The rest is read-only apart from the appearance fields. Settings,
-// accounts, tokens, scripts and the phrase are not on the list.
+// load. The rest is read-only apart from the appearance fields and the
+// clipboard watchers. Settings, accounts, tokens, scripts and the phrase are
+// not on the list.
 func relayForwardable(method, path string) bool {
 	// The decision is about the route, not its query arguments.
 	if i := strings.IndexByte(path, '?'); i >= 0 {
@@ -388,6 +389,9 @@ func relayForwardable(method, path string) bool {
 	// by the instance the removal started on; taking an instance out reaches
 	// that instance, which then leaves.
 	if method == http.MethodDelete && (strings.HasPrefix(rest, "connect/apps/") || strings.HasPrefix(rest, "connect/members/")) {
+		return true
+	}
+	if relayClipWatchRoute(method, rest) {
 		return true
 	}
 	// Setting the appearance fields is less than a phrase holder can
@@ -430,6 +434,26 @@ func relayCaptchaRoute(method, rest string) bool {
 		return method == http.MethodGet
 	case "unanswerable/phone":
 		return method == http.MethodPost || method == http.MethodDelete
+	}
+	return false
+}
+
+// relayClipWatchRoute reports whether rest is one of the clipboard watcher
+// calls: the extension renews and drops its lease through the relay, and the
+// members list and stop one another's watchers.
+func relayClipWatchRoute(method, rest string) bool {
+	if rest == "clipboard-watchers" {
+		return method == http.MethodGet
+	}
+	parts := strings.Split(rest, "/")
+	if parts[0] != "clipboard-watchers" || len(parts) < 2 || parts[1] == "" {
+		return false
+	}
+	switch len(parts) {
+	case 2:
+		return method == http.MethodPut || method == http.MethodDelete
+	case 3:
+		return parts[2] == "stop" && method == http.MethodPost
 	}
 	return false
 }

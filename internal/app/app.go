@@ -30,6 +30,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
@@ -121,6 +122,10 @@ type App struct {
 	// Reconnector asks the router for a new public address, which is the only
 	// thing that lifts a hoster limit keyed to the one this box has.
 	Reconnector *reconnect.Reconnector
+
+	// ClipWatch is the clipboard watchers sending their links here, so a watch
+	// switched on anywhere in the group can name the others.
+	ClipWatch *clipwatch.Registry
 
 	// MediaHooks calls the address a category points at once a package filed
 	// there has finished and its files are in place (see app_mediahook.go).
@@ -442,6 +447,7 @@ func New(dataDir string) (*App, error) {
 		Registry:   resolver.NewRegistry(),
 		Settings:   cfg,
 		Federation: fed,
+		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
@@ -901,6 +907,9 @@ func (a *App) Close() error {
 	// until the next start takes it up again.
 	a.endSeeding()
 	a.saveTorrentTally(true)
+	if a.ClipWatch != nil {
+		a.ClipWatch.Close(time.Now())
+	}
 	if a.Engine != nil {
 		a.Engine.Close()
 	}

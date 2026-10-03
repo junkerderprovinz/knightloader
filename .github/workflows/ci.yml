@@ -70,10 +70,12 @@ jobs:
               - 'internal/api/routes_health.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
-            # The crypto window's list is held to the web UI's.
+            # The crypto window's list and the clipboard link rule are held to
+            # the web UI's.
             extension:
               - 'extension/**'
               - 'web/src/lib/donate.ts'
+              - 'web/src/lib/clipboardWatch.ts'
               - '.github/workflows/ci.yml'
             # check-relay-url.mjs reads its cases from internal/relay's tests,
             # and check-failures.mjs the failure codes.
@@ -398,6 +400,9 @@ jobs:
       - name: Download takeover and media
         run: node extension/check-capture.mjs
 
+      - name: Clipboard watch
+        run: node extension/check-clipwatch.mjs
+
       - name: Crypto window keyboard
         run: node extension/check-crypto-tab.mjs
 
@@ -407,9 +412,10 @@ jobs:
       - name: Every motion level declares every dial
         run: node extension/check-motion.mjs
 
-      # --self-hosted checks the package without AMO listing metadata. One code
-      # is skipped: a cross-browser manifest always declares both background
-      # forms.
+      # --self-hosted checks the package without AMO listing metadata. Two
+      # findings are skipped, both from one manifest serving every browser: it
+      # declares both background forms, and it uses Chromium's offscreen
+      # permission and API, which Firefox does not know and the code skips there.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -418,7 +424,8 @@ jobs:
             let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
               let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
               const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED"]);
-              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
+              const chromiumOnly = m => (m.code === "MANIFEST_PERMISSIONS" && /"offscreen"/.test(m.message)) || (m.code === "UNSUPPORTED_API" && /^offscreen\./.test(m.message));
+              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code) && !chromiumOnly(m));
               for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
               if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
               console.log("web-ext lint clean");
