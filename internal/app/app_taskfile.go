@@ -12,12 +12,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // fileOfLocked is where t's file is: the path it recorded, or where its name
@@ -149,6 +151,27 @@ func (l torrentLeftover) drop() {
 		}
 	}
 	engine.DeleteTorrentFiles(l.dir, l.root, paths)
+}
+
+// usenetPartLocked is the part file of a task from the own Usenet servers, for
+// deleting it with the task when their backend does not know the task, as
+// after a restart. A part file is named after the file, so one that another
+// task in the same folder would write too is left. Caller holds a.mu.
+func (a *App) usenetPartLocked(t *core.Task) string {
+	if !strings.HasPrefix(t.URL, local.ResolverID+"://") {
+		return ""
+	}
+	part := local.PartFile(a.dirFor(t), t.URL)
+	if part == "" {
+		return ""
+	}
+	for id, other := range a.tasks {
+		if id != t.ID && strings.HasPrefix(other.URL, local.ResolverID+"://") &&
+			samePath(local.PartFile(a.dirFor(other), other.URL), part) {
+			return ""
+		}
+	}
+	return part
 }
 
 // recordFileLocked notes where a backend is writing t's bytes, and says so in

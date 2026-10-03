@@ -892,3 +892,22 @@ func TestAJobWithNoAccountLeftStaysWithTheFirst(t *testing.T) {
 		t.Fatal("an unknown job was handed on")
 	}
 }
+
+func TestAJobThatFailsAfterAServiceTookItIsDeletedThere(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}}}
+	h := newHarness(t, svc)
+	h.m.o.Stage = func(Job, []File) ([]string, error) { return nil, nil }
+	j := h.add(t, "Dupe")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if got := h.job(t, j.ID); got.State != StateFailed {
+		t.Fatalf("job is %s, want failed with every file already in the list", got.State)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for svc.deletes() != 1 {
+		if time.Now().After(deadline) {
+			t.Fatal("the service's copy of the failed job was never deleted")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}

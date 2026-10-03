@@ -61,8 +61,7 @@ type Backend struct {
 	part map[string]string
 }
 
-// NewBackend builds a backend. client is asked at the start of each file, so
-// a change to the servers applies to the next file.
+// NewBackend builds a backend. client is asked at the start of each file.
 func NewBackend(files Files, client func() *nntp.Client, dir string, onUpdate func(string, core.Update)) *Backend {
 	return &Backend{
 		files: files, client: client, dir: dir, onUpdate: onUpdate, Wait: defaultWait,
@@ -114,7 +113,11 @@ func (b *Backend) Halt(taskID string) bool {
 	return true
 }
 
-func (b *Backend) Remove(taskID string, deleteFiles bool) {
+// Remove stops the task and deletes its part file and map, with or without
+// deleteFiles, or a later attempt at the same link would take them up. The
+// finished file is left to the app, which has it from Update.File: its name
+// may be a counted one, and the name the link gives can be another task's.
+func (b *Backend) Remove(taskID string, _ bool) {
 	b.mu.Lock()
 	r := b.runs[taskID]
 	part := b.part[taskID]
@@ -125,15 +128,25 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 		r.cancel()
 		<-r.ended
 	}
-	// The part file and its map always go, or a later attempt at the same
-	// link would take them up; the finished file only with deleteFiles.
 	if part != "" {
-		_ = os.Remove(part)
-		removeMap(part + mapSuffix)
-		if deleteFiles {
-			_ = os.Remove(part[:len(part)-len(reclaim.PartSuffix)])
-		}
+		RemovePart(part)
 	}
+}
+
+// PartFile is where the file behind link is written in dir until it is whole,
+// or "" for a link that is not one of these.
+func PartFile(dir, link string) string {
+	ref, err := parseLink(link)
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(dir, collide.SafeName(ref.name)+reclaim.PartSuffix)
+}
+
+// RemovePart deletes a part file and the segment map beside it.
+func RemovePart(part string) {
+	_ = os.Remove(part)
+	removeMap(part + mapSuffix)
 }
 
 func (b *Backend) launch(taskID, link string) {
@@ -191,7 +204,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		return
 	}
 	name := collide.SafeName(ref.name)
-	part := filepath.Join(dir, name+reclaim.PartSuffix)
+	part := PartFile(dir, link)
 	b.mu.Lock()
 	b.part[taskID] = part
 	b.mu.Unlock()
@@ -221,8 +234,12 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		if b.Incomplete != nil && b.Incomplete(ref.job, missing) {
 			return
 		}
+		verb := "are"
+		if missing == 1 {
+			verb = "is"
+		}
 		fail(core.Update{
-			Err:    fmt.Sprintf("%d of the %d articles of this file are on none of your Usenet servers", missing, len(file.Segments)),
+			Err:    fmt.Sprintf("%d of the %d articles of this file %s on none of your Usenet servers", missing, len(file.Segments), verb),
 			Reason: core.ReasonGone,
 		})
 		return
@@ -233,7 +250,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(core.Update{Err: err.Error()})
 		return
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: d.size(), Loaded: d.size()})
+	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: d.size(), Loaded: d.size(), File: final})
 }
 
 // fetch downloads the articles the map lacks, on as many workers as the
