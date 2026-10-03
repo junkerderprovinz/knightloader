@@ -344,9 +344,9 @@ type Set struct {
 	policy  Policy
 	byURL   map[string]record
 	buckets map[string][]string // signature key -> normalised URLs
-	// names counts the records per name key under PolicyFilenameAndSize,
-	// where a name alone matches nothing but tells NeedsSize a size could.
-	names map[string]int
+	// sizeless counts the records a candidate could match once its size is
+	// known, by what the policy compares besides the size (see NeedsSize).
+	sizeless map[string]int
 }
 
 // New returns an empty set that merges mirrors according to p. An
@@ -356,10 +356,10 @@ func New(p Policy) *Set {
 		p = DefaultPolicy
 	}
 	return &Set{
-		policy:  p,
-		byURL:   make(map[string]record),
-		buckets: make(map[string][]string),
-		names:   make(map[string]int),
+		policy:   p,
+		byURL:    make(map[string]record),
+		buckets:  make(map[string][]string),
+		sizeless: make(map[string]int),
 	}
 }
 
@@ -382,31 +382,37 @@ func (s *Set) Add(e Entry) {
 	for _, sig := range r.sigs {
 		s.buckets[sig.key] = append(s.buckets[sig.key], u)
 	}
-	if k := s.nameKey(r); k != "" {
-		s.names[k]++
+	if k, ok := s.sizelessKey(r); ok && len(r.sigs) > 0 {
+		s.sizeless[k]++
 	}
 	s.byURL[u] = r
 }
 
-// nameKey is the key names counts a record under, or "" when it is not
-// counted.
-func (s *Set) nameKey(r record) string {
-	if s.policy != PolicyFilenameAndSize {
-		return ""
+// sizelessKey is what the policy compares besides the size, which sizeless
+// counts records under. ok is false under a policy that compares no sizes,
+// and for a nameless record under filename-and-size.
+func (s *Set) sizelessKey(r record) (key string, ok bool) {
+	switch s.policy {
+	case PolicyFilenameAndSize:
+		key = r.name.key()
+		return key, key != ""
+	case PolicySizeOnly:
+		return "", true
 	}
-	return r.name.key()
+	return "", false
 }
 
 // NeedsSize reports whether only the candidate's unknown size keeps it from
-// matching: the policy compares names and sizes, and the set holds a file of
-// that name. A caller that can learn the size cheaply should, before it
-// trusts a NotSeen from Check.
+// matching: the policy compares sizes, and the set holds a file the candidate
+// could be, one of its name under filename-and-size and any under size-only.
+// A caller that can learn the size cheaply should, before it trusts a NotSeen
+// from Check.
 func (s *Set) NeedsSize(cand Entry) bool {
 	if cand.Size > 0 {
 		return false
 	}
-	k := s.nameKey(newRecord(cand))
-	return k != "" && s.names[k] > 0
+	k, ok := s.sizelessKey(newRecord(cand))
+	return ok && s.sizeless[k] > 0
 }
 
 // Remove forgets a URL.
@@ -427,10 +433,10 @@ func (s *Set) remove(u string) {
 			s.buckets[sig.key] = b
 		}
 	}
-	if k := s.nameKey(r); k != "" {
-		s.names[k]--
-		if s.names[k] <= 0 {
-			delete(s.names, k)
+	if k, ok := s.sizelessKey(r); ok && len(r.sigs) > 0 {
+		s.sizeless[k]--
+		if s.sizeless[k] <= 0 {
+			delete(s.sizeless, k)
 		}
 	}
 	delete(s.byURL, u)

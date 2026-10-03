@@ -595,3 +595,23 @@ func TestOnlyASizeTheSetCouldMatchIsNeeded(t *testing.T) {
 		t.Error("a removed file still makes its name ask for a size")
 	}
 }
+
+// Under size-only any file of unknown size could be one the set holds.
+func TestSizeOnlyNeedsTheSizeOfEveryFile(t *testing.T) {
+	have := Entry{ID: "1", URL: "https://one.example/film.mkv", Name: "film.mkv", Size: 4096}
+	cand := Entry{URL: "https://two.example/x", Name: "renamed.bin"}
+	s := seed(PolicySizeOnly, have)
+	if !s.NeedsSize(cand) {
+		t.Error("a file of unknown size does not ask for it")
+	}
+	if seed(PolicySizeOnly).NeedsSize(cand) {
+		t.Error("an empty set asks for a size")
+	}
+	if seed(PolicySizeOnly, Entry{URL: "https://one.example/a", Name: "a.bin"}).NeedsSize(cand) {
+		t.Error("a set whose files have no size asks for one it can never match")
+	}
+	s.Remove(have.URL)
+	if s.NeedsSize(cand) {
+		t.Error("a removed file still asks for a size")
+	}
+}
