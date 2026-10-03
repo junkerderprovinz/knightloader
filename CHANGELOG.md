@@ -37,6 +37,14 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Removing a video download with its files deletes the video.** yt-dlp
+  never told KnightLoader which file it wrote or how large the file was once
+  video and audio were merged, so a finished video stayed on disk when it was
+  removed with its files. KnightLoader now records the merged file and its
+  size, deletes it with the download, and shows the whole size on the row.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

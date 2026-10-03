@@ -70,11 +70,14 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + final)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
 	case "merge":
-		// Two half-streams, then the merged file that replaces them.
-		_ = os.WriteFile(final, []byte("bytes"), 0o644)
+		// Two half-streams, then the merged file that replaces them. The
+		// progress lines count only the stream being fetched.
+		audio := filepath.Join(dir, "A Video.f140.m4a")
+		_ = os.WriteFile(final, []byte("merged bytes"), 0o644)
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"), []byte(helperInfoJSON), 0o644)
 		fmt.Println("[download] Destination: " + filepath.Join(dir, "A Video.f137.mp4"))
-		fmt.Println("[download] Destination: " + filepath.Join(dir, "A Video.f140.m4a"))
+		fmt.Println("[download] Destination: " + audio)
+		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(audio) + `"}`)
 		fmt.Printf("[Merger] Merging formats into \"%s\"\n", final)
 	case "nosubs":
 		// A language the source lacks: exit 0 without a word.
@@ -225,6 +228,23 @@ func TestRunFindsTheMergedFileNotTheHalfStreams(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(dir, stray)); err == nil {
 			t.Errorf("an NFO was written beside a half-stream (%s)", stray)
 		}
+	}
+}
+
+// A removal with its files deletes the file the task recorded, and only while
+// it is still the size the task recorded.
+func TestRunReportsTheMergedFileAndItsSize(t *testing.T) {
+	dir, rec := runFake(t, "merge:full", Options{})
+	got := rec.last()
+	if got.Status != core.StatusDone {
+		t.Fatalf("last update = %+v, want Done", got)
+	}
+	final := filepath.Join(dir, "A Video.mkv")
+	if got.File != final {
+		t.Errorf("File = %q, want the merged file %q", got.File, final)
+	}
+	if got.Size != int64(len("merged bytes")) || got.Loaded != got.Size {
+		t.Errorf("Size = %d, Loaded = %d, want both to be the merged file's %d bytes", got.Size, got.Loaded, len("merged bytes"))
 	}
 }
 
