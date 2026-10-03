@@ -37,6 +37,15 @@ describe('reasonText', () => {
     );
   });
 
+  it('words a count of one in the singular', () => {
+    expect(reasonText(german, { code: 'linksOff', params: { n: '1' }, text: 'english' })).toBe(
+      '1 in JDownloader deaktivierter Link bleibt weg.',
+    );
+    expect(reasonText(german, { code: 'linksOff', params: { n: '3' }, text: 'english' })).toBe(
+      '3 in JDownloader deaktivierte Links bleiben weg.',
+    );
+  });
+
   it('keeps the server’s sentence for a code it has no words for', () => {
     expect(reasonText(german, { code: 'fromANewerServer', text: 'the server’s words' })).toBe('the server’s words');
   });
@@ -47,5 +56,9 @@ describe('itemName', () => {
     expect(itemName(german, { kind: 'passwords', name: '', count: 2, total: 5 })).toBe(
       '5 Archivpasswörter, 2 davon neu hier',
     );
+  });
+
+  it('names a single password in the singular', () => {
+    expect(itemName(german, { kind: 'passwords', name: '', count: 1, total: 1 })).toBe('1 Archivpasswort');
   });
 });
