@@ -6,7 +6,10 @@
 package clipwatch
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
+	"os"
 	"sort"
 	"sync"
 	"time"
@@ -62,11 +65,30 @@ type Registry struct {
 	// stopped holds the watchers asked to stop, by id, until they renew and
 	// learn it or their lease would have run out anyway.
 	stopped map[string]time.Time
+	// path is the file stopped is kept in, empty for a registry in memory.
+	path string
 }
 
-// New returns an empty registry.
+// New returns an empty registry that forgets everything when the process
+// ends.
 func New() *Registry {
 	return &Registry{live: map[string]entry{}, stopped: map[string]time.Time{}}
+}
+
+// Open returns a registry that keeps its pending stops in the file at path, so
+// a watcher still learns of its stop after this instance restarted. Each stop
+// read back runs for another Lease from now, since the watcher could not renew
+// while the instance was down. A missing or unreadable file starts empty.
+func Open(path string, now time.Time) *Registry {
+	r := New()
+	r.path = path
+	var ids []string
+	if b, err := os.ReadFile(path); err == nil && json.Unmarshal(b, &ids) == nil {
+		for _, id := range ids {
+			r.stopped[id] = now
+		}
+	}
+	return r
 }
 
 // Renew lists w until now plus Lease and reports whether it was asked to stop
@@ -84,6 +106,7 @@ func (r *Registry) Renew(w Watcher, now time.Time) (stop bool, err error) {
 	r.pruneLocked(now)
 	if _, asked := r.stopped[w.ID]; asked {
 		delete(r.stopped, w.ID)
+		r.saveLocked()
 		return true, nil
 	}
 	if _, known := r.live[w.ID]; !known && len(r.live) >= maxWatchers {
@@ -104,6 +127,7 @@ func (r *Registry) Stop(id string, now time.Time) bool {
 	}
 	delete(r.live, id)
 	r.stopped[id] = now
+	r.saveLocked()
 	return true
 }
 
@@ -112,7 +136,10 @@ func (r *Registry) Leave(id string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.live, id)
-	delete(r.stopped, id)
+	if _, asked := r.stopped[id]; asked {
+		delete(r.stopped, id)
+		r.saveLocked()
+	}
 }
 
 // List returns the watchers whose lease still runs at now, by name and then id.
@@ -139,10 +166,32 @@ func (r *Registry) pruneLocked(now time.Time) {
 			delete(r.live, id)
 		}
 	}
+	pruned := false
 	for id, at := range r.stopped {
 		if now.Sub(at) >= Lease {
 			delete(r.stopped, id)
+			pruned = true
 		}
+	}
+	if pruned {
+		r.saveLocked()
+	}
+}
+
+// saveLocked writes the pending stops to the registry's file. A stop that
+// cannot be written still works until the instance restarts.
+func (r *Registry) saveLocked() {
+	if r.path == "" {
+		return
+	}
+	ids := make([]string, 0, len(r.stopped))
+	for id := range r.stopped {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	b, _ := json.Marshal(ids)
+	if err := os.WriteFile(r.path, b, 0o600); err != nil {
+		log.Printf("clipwatch: keeping the pending stops: %v", err)
 	}
 }
 
