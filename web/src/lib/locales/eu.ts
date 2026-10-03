@@ -1285,6 +1285,9 @@ export const eu: Dict = {
   'settings.captcha.moveDown': 'Eraman behera',
   'settings.captcha.set': 'Gakoa ezarrita',
   'settings.captcha.notSet': 'Gakorik ez ezarrita',
+  'settings.captcha.off': 'Desaktibatuta',
+  'settings.captcha.offHint':
+    'Gakoa ezarrita dago, baina kontua desaktibatuta dago Kontuak orrian, beraz ez du captcharik jasotzen, ezta probakorik ere.',
   'settings.captcha.keys': 'Gakoak Kontuak atalean',
   'collector.options': 'Aukerak',
   'collector.destination': 'Helmugako karpeta',
@@ -3039,10 +3042,29 @@ export const eu: Dict = {
   'captcha.solverStopped': 'Ezein captcha kontuk ezin izan du captcha hau hartu.',
   'captcha.solverUnsupported': '{solver}(e)k ez du captcha mota hau ebazten.',
   'captcha.solverRefused': '{solver}(e)k ezetz esan du: {reason}',
+  'captcha.testFor':
+    'KnightLoaderren proba-captcha bat. Ez du deskargarik zain. Idatzi bost karaktereak zure erantzuna zuzena den ikusteko.',
+  'captcha.testRight': 'Zuzena. Proba-captchak {want} zioen.',
+  'captcha.testWrong': 'Okerra. Proba-captchak {want} zioen, ez {given}.',
+  'captcha.testSolverRight': '{solver}-ek proba-captcha ebatzi du: {want}.',
+  'captcha.testSolverWrong': '{solver}-ek proba-captcha gaizki ebatzi du: {want} zioen, ez {given}.',
   'settings.captcha.whenTitle': 'Noiz hasten diren captcha kontuak',
   'settings.captcha.onlyUnwatched': 'Inor begira ez dagoenean bakarrik',
   'settings.captcha.wait': 'Itxaron erantzun bati (segundoak)',
   'settings.captcha.waitHint': 'Norbait begira dagoen bitartean captcha kontuek zenbat itxaroten duten, hala ere hartu aurretik. Ez dute inoiz itxaroten captchari geratzen zaion denboraren erdia baino gehiago, captcha kontu batek erantzuteko astia izan dezan oraindik. 10etik 600 segundora.',
+  'settings.captcha.testTitle': 'Proba-captcha',
+  'settings.captcha.test': 'Bidali proba-captcha bat',
+  'settings.captcha.testHint':
+    'KnightLoaderrek berak marrazten duen captcha bat bidaltzen du. Captcharen leihoan, telefono-aplikazioan eta zure gertaeren helmugetan agertzen da ostatatzaile batena bezala, eta erantzuten denean ikusiko duzu erantzuna zuzena zen. Ez du deskargarik zain, eta ez da zure captcha kontuetara joaten.',
+  'settings.captcha.testSolvers': 'Bidali captcha kontuetara ere',
+  'settings.captcha.testSolversHint':
+    'Proba-captcha bera zure captcha kontuetara ere bidaltzen du, goiko ordenan, erantzuten duten eta asmatzen duten ikus dezazun. Beste edozein captcha bezala kobratzen dute. «Inor begira ez dagoenean bakarrik» aktibatuta badago, lehenik zuri itxaroten dizute: aldatu beste fitxa batera edo utzi itxaronaldia amaitzen.',
+  'settings.captcha.testOff':
+    'Captchak desaktibatuta daude. Aktibatu berriro Captcha modulua proba-captcha bat bidaltzeko.',
+  'settings.captcha.testJDOff':
+    'Captchak JDownloader backendaren bidez datoz, eta itzalita dago. Aktibatu berriro proba-captcha bat bidaltzeko.',
+  'settings.captcha.testNoAccount':
+    'Zure captcha kontuetako batek ere ezin du hartu. Aktibatu bat goian, eta egiaztatu Kontuak orrian gakoa duela eta aktibatuta dagoela.',
   'captcha.solverStoppedTaken': '{solver}(e)k captcha hau hartu du, baina ez du erantzunik bidali.',
   'captcha.solverNotPassedOn': 'Baliteke {solver}(e)k hala ere kobratzea, beraz KnightLoaderrek ez dio beste captcha kontu bati ere bidaltzen. Zuk zeuk erantzun diezaiokezu oraindik.',
   'captcha.solverNoAnswer': '{solver}(e)k hartu du, baina ez da erantzunik itzuli.',

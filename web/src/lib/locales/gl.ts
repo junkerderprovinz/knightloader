@@ -1285,6 +1285,9 @@ export const gl: Dict = {
   'settings.captcha.moveDown': 'Baixar',
   'settings.captcha.set': 'Chave configurada',
   'settings.captcha.notSet': 'Sen chave configurada',
+  'settings.captcha.off': 'Desactivada',
+  'settings.captcha.offHint':
+    'A chave está configurada, pero a conta está desactivada na páxina Contas, así que non recibe ningún captcha, nin sequera un de proba.',
   'settings.captcha.keys': 'Chaves en Contas',
   'collector.options': 'Opcións',
   'collector.destination': 'Cartafol de destino',
@@ -3042,10 +3045,29 @@ export const gl: Dict = {
   'captcha.solverStopped': 'Ningunha conta de captcha puido encargarse deste captcha.',
   'captcha.solverUnsupported': '{solver} non resolve este tipo de captcha.',
   'captcha.solverRefused': '{solver} rexeitouno: {reason}',
+  'captcha.testFor':
+    'Un captcha de proba de KnightLoader. Ningunha descarga o agarda. Escribe os cinco caracteres para ver se a túa resposta é correcta.',
+  'captcha.testRight': 'Correcto. O captcha de proba dicía {want}.',
+  'captcha.testWrong': 'Incorrecto. O captcha de proba dicía {want}, non {given}.',
+  'captcha.testSolverRight': '{solver} resolveu o captcha de proba: {want}.',
+  'captcha.testSolverWrong': '{solver} fallou o captcha de proba: dicía {want}, non {given}.',
   'settings.captcha.whenTitle': 'Cando empezan as contas de captcha',
   'settings.captcha.onlyUnwatched': 'Só cando ninguén está mirando',
   'settings.captcha.wait': 'Agardar unha resposta (segundos)',
   'settings.captcha.waitHint': 'Canto agardan as contas de captcha, mentres alguén mira, antes de tomar o relevo igualmente. Nunca agardan máis da metade do tempo que lle queda ao captcha, para que unha conta de captcha aínda teña tempo de respondelo. De 10 a 600 segundos.',
+  'settings.captcha.testTitle': 'Captcha de proba',
+  'settings.captcha.test': 'Enviar un captcha de proba',
+  'settings.captcha.testHint':
+    'Envía un captcha que debuxa o propio KnightLoader. Aparece na xanela do captcha, na aplicación para o teléfono e nos teus destinos de eventos coma un dun aloxamento, e en canto se responde ves se a resposta era correcta. Ningunha descarga o agarda e non vai ás túas contas de captcha.',
+  'settings.captcha.testSolvers': 'Envialo tamén ás contas de captcha',
+  'settings.captcha.testSolversHint':
+    'Envía o mesmo captcha de proba tamén ás túas contas de captcha, na orde de arriba, para que vexas se o responden e acertan. Cóbrano coma calquera outro captcha. Con «Só cando ninguén está mirando» activado, primeiro agárdante a ti: cambia a outra lapela ou deixa que remate a espera.',
+  'settings.captcha.testOff':
+    'Os captchas están desactivados. Volve activar o módulo Captcha para enviar un captcha de proba.',
+  'settings.captcha.testJDOff':
+    'Os captchas chegan polo backend JDownloader, que está desactivado. Volve activalo para enviar un captcha de proba.',
+  'settings.captcha.testNoAccount':
+    'Ningunha das túas contas de captcha pode collelo. Activa unha arriba e comproba na páxina Contas que ten unha chave e que está activada.',
   'captcha.solverStoppedTaken': '{solver} encargouse deste captcha, pero non enviou ningunha resposta.',
   'captcha.solverNotPassedOn': 'Pode que {solver} o cobre igualmente, así que KnightLoader non o envía tamén a outra conta de captcha. Aínda podes respondelo ti.',
   'captcha.solverNoAnswer': '{solver} encargouse del, pero non chegou ningunha resposta.',

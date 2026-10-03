@@ -90,6 +90,10 @@ export const ro: Dict = {
   'captcha.blockHoster': 'Oprește și întrebările pentru {host} în această sesiune',
   'captcha.blockEverywhere': 'Oprește și întrebările pentru orice hoster în această sesiune',
   'captcha.tooLate': 'Acel răspuns a ajuns prea târziu.',
+  'captcha.testFor':
+    'O captcha de test de la KnightLoader. Nicio descărcare nu o așteaptă. Scrie cele cinci caractere ca să vezi dacă răspunsul tău e corect.',
+  'captcha.testRight': 'Corect. Captcha de test arăta {want}.',
+  'captcha.testWrong': 'Greșit. Captcha de test arăta {want}, nu {given}.',
   'captcha.timedOut': 'O captcha pentru {host} a expirat.',
   'captcha.resolvedElsewhere': 'O captcha pentru {host} a fost rezolvată în altă parte.',
   'captcha.relayRefused': 'Această instanță este prea veche pentru a transmite captcha aplicației. Actualizează KnightLoader acolo.',

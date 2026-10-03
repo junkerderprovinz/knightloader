@@ -90,6 +90,10 @@ export const nl: Dict = {
   'captcha.blockHoster': 'Ook stoppen met vragen voor {host} deze sessie',
   'captcha.blockEverywhere': 'Ook stoppen met vragen voor elke hoster deze sessie',
   'captcha.tooLate': 'Dat antwoord kwam te laat aan.',
+  'captcha.testFor':
+    'Een testcaptcha van KnightLoader. Er wacht geen download op. Typ de vijf tekens om te zien of je antwoord klopt.',
+  'captcha.testRight': 'Goed. In de testcaptcha stond {want}.',
+  'captcha.testWrong': 'Fout. In de testcaptcha stond {want}, niet {given}.',
   'captcha.timedOut': 'Een captcha voor {host} is verlopen.',
   'captcha.resolvedElsewhere': 'Een captcha voor {host} is elders opgelost.',
   'captcha.relayRefused': 'Deze instantie is te oud om captcha’s aan de app door te geven. Werk KnightLoader daar bij.',

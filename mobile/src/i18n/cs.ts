@@ -90,6 +90,10 @@ export const cs: Dict = {
   'captcha.blockHoster': 'Také přestat ptát se na {host} po zbytek této relace',
   'captcha.blockEverywhere': 'Také přestat ptát se na jakéhokoli hostera po zbytek této relace',
   'captcha.tooLate': 'Tato odpověď dorazila příliš pozdě.',
+  'captcha.testFor':
+    'Zkušební captcha od KnightLoaderu. Nečeká na ni žádné stahování. Napiš těch pět znaků a uvidíš, jestli je tvá odpověď správná.',
+  'captcha.testRight': 'Správně. Ve zkušební captche stálo {want}.',
+  'captcha.testWrong': 'Špatně. Ve zkušební captche stálo {want}, ne {given}.',
   'captcha.timedOut': 'Captcha pro {host} vypršela.',
   'captcha.resolvedElsewhere': 'Captcha pro {host} byla vyřešena jinde.',
   'captcha.relayRefused': 'Tahle instance je moc stará na to, aby předávala captchy aplikaci. Aktualizuj na ní KnightLoader.',

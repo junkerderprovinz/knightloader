@@ -90,6 +90,10 @@ export const gl: Dict = {
   'captcha.blockHoster': 'Deixar de preguntar tamén por {host} nesta sesión',
   'captcha.blockEverywhere': 'Deixar de preguntar tamén por calquera aloxador nesta sesión',
   'captcha.tooLate': 'Esa resposta chegou demasiado tarde.',
+  'captcha.testFor':
+    'Un captcha de proba de KnightLoader. Ningunha descarga o agarda. Escribe os cinco caracteres para ver se a túa resposta é correcta.',
+  'captcha.testRight': 'Correcto. O captcha de proba dicía {want}.',
+  'captcha.testWrong': 'Incorrecto. O captcha de proba dicía {want}, non {given}.',
   'captcha.timedOut': 'Un captcha para {host} caducou.',
   'captcha.resolvedElsewhere': 'Un captcha para {host} resolveuse noutro lugar.',
   'captcha.relayRefused': 'Esta instancia é demasiado antiga para pasarlle captchas á aplicación. Actualiza KnightLoader nela.',

@@ -37,6 +37,15 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **A test captcha.** Settings, Captcha has a button that sends a captcha
+  KnightLoader draws itself. It arrives in the captcha window, the phone app
+  and at the event targets the way a hoster's captcha does, with the same
+  countdown, and the answer comes back as right or wrong. A second button,
+  shown while a captcha account is enabled with a key, sends it to the captcha
+  accounts as well, which charge for it. The first button never does.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

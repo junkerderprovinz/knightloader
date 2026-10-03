@@ -1287,6 +1287,9 @@ export const ar: Dict = {
   'settings.captcha.moveDown': 'حرّك لأسفل',
   'settings.captcha.set': 'تم ضبط المفتاح',
   'settings.captcha.notSet': 'لم يُضبط أي مفتاح',
+  'settings.captcha.off': 'متوقف',
+  'settings.captcha.offHint':
+    'المفتاح مضبوط، لكن الحساب متوقف في صفحة الحسابات، لذلك لا يستلم أي كابتشا، ولا حتى كابتشا الاختبار.',
   'settings.captcha.keys': 'المفاتيح في الحسابات',
   'collector.options': 'خيارات',
   'collector.destination': 'مجلد الوجهة',
@@ -3044,10 +3047,27 @@ export const ar: Dict = {
   'captcha.solverStopped': 'لم يستطع أي حساب كابتشا أن يتولى هذه الكابتشا.',
   'captcha.solverUnsupported': '{solver} لا يحلّ هذا النوع من الكابتشا.',
   'captcha.solverRefused': 'رفض {solver}: {reason}',
+  'captcha.testFor':
+    'كابتشا تجريبية من KnightLoader. لا ينتظرها أي تنزيل. اكتب الأحرف الخمسة لترى إن كانت إجابتك صحيحة.',
+  'captcha.testRight': 'صحيح. كانت الكابتشا التجريبية {want}.',
+  'captcha.testWrong': 'خطأ. كانت الكابتشا التجريبية {want} وليست {given}.',
+  'captcha.testSolverRight': 'حلّ {solver} الكابتشا التجريبية: {want}.',
+  'captcha.testSolverWrong': 'أخطأ {solver} في الكابتشا التجريبية: كانت {want} وليست {given}.',
   'settings.captcha.whenTitle': 'متى تبدأ حسابات الكابتشا',
   'settings.captcha.onlyUnwatched': 'فقط حين لا يشاهد أحد',
   'settings.captcha.wait': 'انتظار الجواب (ثوانٍ)',
   'settings.captcha.waitHint': 'كم تنتظر حسابات الكابتشا ما دام أحد يشاهد، قبل أن تتولاها على أي حال. ولا تنتظر أبدًا أكثر من نصف الوقت المتبقي للكابتشا، كي يبقى لحساب الكابتشا وقت للإجابة عنها. من 10 إلى 600 ثانية.',
+  'settings.captcha.testTitle': 'كابتشا تجريبية',
+  'settings.captcha.test': 'أرسل كابتشا تجريبية',
+  'settings.captcha.testHint':
+    'ترسل كابتشا يرسمها KnightLoader بنفسه. تظهر في نافذة الكابتشا وفي تطبيق الهاتف وعند أهداف الأحداث لديك كما تظهر كابتشا من موقع استضافة، وبعد الإجابة عنها ترى إن كانت الإجابة صحيحة. لا ينتظرها أي تنزيل، ولا تُرسل إلى حسابات الكابتشا لديك.',
+  'settings.captcha.testSolvers': 'أرسلها إلى حسابات الكابتشا أيضًا',
+  'settings.captcha.testSolversHint':
+    'ترسل الكابتشا التجريبية نفسها إلى حسابات الكابتشا لديك أيضًا، بالترتيب أعلاه، لترى إن كانت تجيب عنها وتصيب. تحتسب هذه الحسابات ثمنها كأي كابتشا أخرى. وإذا كان «فقط حين لا يشاهد أحد» مفعّلًا فإنها تنتظرك أولًا: انتقل إلى علامة تبويب أخرى أو دع وقت الانتظار ينتهي.',
+  'settings.captcha.testOff': 'الكابتشا متوقفة. شغّل وحدة الكابتشا من جديد لإرسال كابتشا تجريبية.',
+  'settings.captcha.testJDOff': 'تصل الكابتشا عبر خلفية JDownloader، وهي متوقفة. شغّلها من جديد لإرسال كابتشا تجريبية.',
+  'settings.captcha.testNoAccount':
+    'لا يستطيع أي من حسابات الكابتشا لديك استلامها. شغّل واحدًا منها أعلاه، ثم تحقّق في صفحة الحسابات من أن له مفتاحًا وأنه مفعّل.',
   'captcha.solverStoppedTaken': 'تولى {solver} هذه الكابتشا لكنه لم يرسل جوابًا.',
   'captcha.solverNotPassedOn': 'قد يتقاضى {solver} أجرها على أي حال، لذلك لا يرسلها KnightLoader إلى حساب كابتشا آخر أيضًا. وما زال بإمكانك أن تجيب عنها بنفسك.',
   'captcha.solverNoAnswer': 'تولاها {solver}، لكن لم يعد أي جواب.',

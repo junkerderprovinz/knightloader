@@ -1285,6 +1285,9 @@ export const hr: Dict = {
   'settings.captcha.moveDown': 'Pomakni dolje',
   'settings.captcha.set': 'Ključ postavljen',
   'settings.captcha.notSet': 'Ključ nije postavljen',
+  'settings.captcha.off': 'Isključen',
+  'settings.captcha.offHint':
+    'Ključ je postavljen, ali račun je isključen na stranici Računi, pa ne dobiva nijednu captchu, čak ni probnu.',
   'settings.captcha.keys': 'Ključevi u Računima',
   'collector.options': 'Mogućnosti',
   'collector.destination': 'Odredišna mapa',
@@ -3059,10 +3062,28 @@ export const hr: Dict = {
   'captcha.solverStopped': 'Nijedan račun captche nije mogao preuzeti ovu captchu.',
   'captcha.solverUnsupported': '{solver} ne rješava ovu vrstu captche.',
   'captcha.solverRefused': '{solver} je odbio: {reason}',
+  'captcha.testFor':
+    'Probna captcha od KnightLoadera. Nijedno preuzimanje ne čeka na nju. Upiši pet znakova i vidjet ćeš je li tvoj odgovor točan.',
+  'captcha.testRight': 'Točno. U probnoj captchi pisalo je {want}.',
+  'captcha.testWrong': 'Netočno. U probnoj captchi pisalo je {want}, a ne {given}.',
+  'captcha.testSolverRight': '{solver} je riješio probnu captchu: {want}.',
+  'captcha.testSolverWrong': '{solver} je pogriješio probnu captchu: pisalo je {want}, a ne {given}.',
   'settings.captcha.whenTitle': 'Kada počinju računi captche',
   'settings.captcha.onlyUnwatched': 'Samo kad nitko ne gleda',
   'settings.captcha.wait': 'Čekaj odgovor (sekunde)',
   'settings.captcha.waitHint': 'Koliko dugo računi captche čekaju dok netko gleda prije nego što ipak preuzmu. Nikad ne čekaju dulje od polovice vremena koje je captchi preostalo, kako bi račun captche još stigao odgovoriti. Od 10 do 600 sekundi.',
+  'settings.captcha.testTitle': 'Probna captcha',
+  'settings.captcha.test': 'Pošalji probnu captchu',
+  'settings.captcha.testHint':
+    'Šalje captchu koju KnightLoader sam nacrta. Pojavljuje se u prozoru captche, u aplikaciji za mobitel i kod tvojih ciljeva događaja kao captcha s hostinga, a čim netko odgovori, vidiš je li odgovor bio točan. Nijedno preuzimanje ne čeka na nju i ne ide tvojim računima captche.',
+  'settings.captcha.testSolvers': 'Pošalji je i računima captche',
+  'settings.captcha.testSolversHint':
+    'Šalje istu probnu captchu i tvojim računima captche, redoslijedom odozgo, da vidiš odgovaraju li na nju i pogađaju li. Naplaćuju je kao svaku drugu captchu. Kad je uključeno „Samo kad nitko ne gleda“, prvo čekaju tebe: prijeđi na drugu karticu ili pusti da vrijeme čekanja istekne.',
+  'settings.captcha.testOff': 'Captche su isključene. Ponovno uključi modul Captcha da pošalješ probnu captchu.',
+  'settings.captcha.testJDOff':
+    'Captche stižu preko pozadine JDownloader, a ona je isključena. Ponovno je uključi da pošalješ probnu captchu.',
+  'settings.captcha.testNoAccount':
+    'Nijedan tvoj račun captche ne može je preuzeti. Uključi jedan gore i na stranici Računi provjeri ima li ključ i je li uključen.',
   'captcha.solverStoppedTaken': '{solver} je preuzeo ovu captchu, ali nije poslao odgovor.',
   'captcha.solverNotPassedOn': '{solver} je možda ipak naplati, pa je KnightLoader ne šalje još i drugom računu captche. I dalje je možeš riješiti sam.',
   'captcha.solverNoAnswer': '{solver} ju je preuzeo, ali odgovor nije stigao.',
