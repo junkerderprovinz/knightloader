@@ -3063,6 +3063,10 @@ export const bg: Dict = {
   'settings.captcha.testSolversHint':
     'Изпраща същата тестова captcha и към твоите captcha акаунти, в реда отгоре, за да видиш дали я решават и дали вярно. Те я таксуват като всяка друга captcha. Ако „Само когато никой не гледа“ е включено, първо чакат теб: премини в друг раздел или остави времето за чакане да изтече.',
   'settings.captcha.testOff': 'Captcha е изключена. Включи отново модула Captcha, за да изпратиш тестова captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha идват през бекенда JDownloader, а той е изключен. Включи го отново, за да изпратиш тестова captcha.',
+  'settings.captcha.testNoAccount':
+    'Никой от твоите captcha акаунти не може да я поеме. Включи един отгоре и провери на страницата „Акаунти“, че има ключ и е включен.',
   'captcha.solverStoppedTaken': '{solver} пое тази captcha, но не изпрати отговор.',
   'captcha.solverNotPassedOn': '{solver} може все пак да я таксува, затова KnightLoader не я изпраща и на друг captcha акаунт. Все още можеш да отговориш и сам.',
   'captcha.solverNoAnswer': '{solver} я пое, но не се върна отговор.',

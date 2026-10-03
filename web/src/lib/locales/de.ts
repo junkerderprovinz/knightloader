@@ -1411,6 +1411,10 @@ export const de: Dict = {
     'Schickt dasselbe Test-Captcha auch an deine Captcha-Konten, in der Reihenfolge oben, damit du siehst, ob sie es beantworten und richtig lösen. Sie stellen es dir in Rechnung wie jedes andere Captcha. Ist „Nur wenn niemand zuschaut“ an, warten sie zuerst auf dich: Wechsle in einen anderen Tab oder lass die Wartezeit ablaufen.',
   'settings.captcha.testOff':
     'Captchas sind ausgeschaltet. Schalte das Modul Captcha wieder ein, um ein Test-Captcha zu senden.',
+  'settings.captcha.testJDOff':
+    'Captchas kommen über das JDownloader-Backend, und das ist ausgeschaltet. Schalte es wieder ein, um ein Test-Captcha zu senden.',
+  'settings.captcha.testNoAccount':
+    'Keins deiner Captcha-Konten kann es annehmen. Schalte oben eins ein und sieh auf der Seite Konten nach, ob es einen Schlüssel hat und eingeschaltet ist.',
   'collector.options': 'Optionen',
   'collector.destination': 'Zielordner',
   'collector.destinationRecent': 'Zuletzt verwendet',

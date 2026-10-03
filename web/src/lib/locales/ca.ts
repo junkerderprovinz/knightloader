@@ -3050,6 +3050,10 @@ export const ca: Dict = {
     'Envia el mateix captcha de prova també als teus comptes de captcha, en l’ordre de dalt, perquè vegis si el responen i l’encerten. El cobren com qualsevol altre captcha. Amb «Només quan no mira ningú» activat, primer t’esperen a tu: canvia a una altra pestanya o deixa que s’acabi l’espera.',
   'settings.captcha.testOff':
     'Els captchas estan desactivats. Torna a activar el mòdul Captcha per enviar un captcha de prova.',
+  'settings.captcha.testJDOff':
+    'Els captchas arriben pel rerefons JDownloader, que està desactivat. Torna’l a activar per enviar un captcha de prova.',
+  'settings.captcha.testNoAccount':
+    'Cap dels teus comptes de captcha no el pot agafar. Activa’n un a dalt i comprova a la pàgina Comptes que té una clau i que està activat.',
   'captcha.solverStoppedTaken': '{solver} s’ha fet càrrec d’aquest captcha, però no ha enviat cap resposta.',
   'captcha.solverNotPassedOn': 'Pot ser que {solver} el cobri igualment, així que KnightLoader no l’envia també a un altre compte de captcha. Encara el pots respondre tu.',
   'captcha.solverNoAnswer': '{solver} se n’ha fet càrrec, però no ha arribat cap resposta.',

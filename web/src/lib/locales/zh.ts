@@ -3048,6 +3048,8 @@ export const zh: Dict = {
   'settings.captcha.testSolversHint':
     '把同一个测试验证码也按上面的顺序发给你的验证码账户，让你看看它们会不会答、答得对不对。它们会像对待其他验证码一样收费。如果开着“仅在没人看着时”，它们会先等你：切到别的标签页，或者等等待时间结束。',
   'settings.captcha.testOff': '验证码已关闭。重新打开验证码模块后才能发送测试验证码。',
+  'settings.captcha.testJDOff': '验证码经由 JDownloader 后端传来，而它已关闭。重新打开它后才能发送测试验证码。',
+  'settings.captcha.testNoAccount': '你的验证码账户都接不了它。在上面打开一个，并在账户页面确认它有密钥且已开启。',
   'captcha.solverStoppedTaken': '{solver} 接手了这个验证码，但没有发回答案。',
   'captcha.solverNotPassedOn': '{solver} 可能照样会为它收费，所以 KnightLoader 不会再把它交给另一个验证码账户。你仍然可以自己回答。',
   'captcha.solverNoAnswer': '{solver} 接手了，但没有返回答案。',

@@ -2609,6 +2609,9 @@ export interface CaptchaResolution {
   reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'switchedOff' | 'resolved';
   /** How the answer to a test captcha compared, set when one was solved. */
   test?: TestCaptchaResult;
+  /** Set for a test captcha however it ended, so a timeout leaves no
+   *  download stuck. */
+  testCaptcha?: boolean;
 }
 
 /** app.TestCaptchaResult: an answer to a test captcha beside the text drawn
@@ -2657,7 +2660,9 @@ export async function answerCaptcha(
 /**
  * createTestCaptcha puts up a test captcha, which arrives like a real one.
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
- * with code 'captchaOff' means captchas are switched off on the Modules page.
+ * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off
+ * on the Modules page, or 'noCaptchaAccount' when no captcha account could
+ * take it.
  */
 export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {
   return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers }));

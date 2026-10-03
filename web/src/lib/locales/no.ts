@@ -3065,6 +3065,10 @@ export const no: Dict = {
   'settings.captcha.testSolversHint':
     'Sender den samme test-captchaen til captcha-kontoene dine også, i rekkefølgen over, så du ser om de svarer og svarer riktig. De tar betalt for den som for enhver annen captcha. Med «Bare når ingen ser på» slått på venter de først på deg: bytt til en annen fane, eller la ventetiden gå ut.',
   'settings.captcha.testOff': 'Captchaer er slått av. Slå modulen Captcha på igjen for å sende en test-captcha.',
+  'settings.captcha.testJDOff':
+    'Captchaer kommer gjennom JDownloader-backenden, og den er slått av. Slå den på igjen for å sende en test-captcha.',
+  'settings.captcha.testNoAccount':
+    'Ingen av captcha-kontoene dine kan ta den. Slå på én ovenfor, og sjekk på siden Kontoer at den har en nøkkel og er slått på.',
   'captcha.solverStoppedTaken': '{solver} tok denne captchaen, men sendte ikke noe svar.',
   'captcha.solverNotPassedOn': '{solver} kan ta betalt for den likevel, så KnightLoader sender den ikke i tillegg til en annen captcha-konto. Du kan fortsatt svare på den selv.',
   'captcha.solverNoAnswer': '{solver} tok den, men det kom ikke noe svar tilbake.',

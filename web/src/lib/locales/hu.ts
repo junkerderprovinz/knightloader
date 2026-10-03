@@ -3063,6 +3063,10 @@ export const hu: Dict = {
     'Ugyanazt a próba-captchát a captcha-fiókjaidnak is elküldi, a fenti sorrendben, hogy lásd, megválaszolják-e és jól-e. Úgy számlázzák, mint bármely más captchát. Ha a „Csak ha senki sem nézi” be van kapcsolva, először rád várnak: válts másik lapra, vagy hagyd lejárni a várakozási időt.',
   'settings.captcha.testOff':
     'A captchák ki vannak kapcsolva. Kapcsold vissza a Captcha modult, hogy próba-captchát küldhess.',
+  'settings.captcha.testJDOff':
+    'A captchák a JDownloader backenden keresztül érkeznek, és az ki van kapcsolva. Kapcsold vissza, hogy próba-captchát küldhess.',
+  'settings.captcha.testNoAccount':
+    'Egyik captcha-fiókod sem tudja fogadni. Kapcsolj be egyet fent, és nézd meg a Fiókok oldalon, hogy van-e kulcsa és be van-e kapcsolva.',
   'captcha.solverStoppedTaken': '{solver} átvette ezt a captchát, de nem küldött választ.',
   'captcha.solverNotPassedOn': '{solver} így is felszámolhatja, ezért a KnightLoader nem küldi el egy másik captcha-fióknak is. Te magad továbbra is válaszolhatsz rá.',
   'captcha.solverNoAnswer': '{solver} átvette, de nem jött vissza válasz.',

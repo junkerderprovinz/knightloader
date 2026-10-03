@@ -3062,6 +3062,8 @@ export const ja: Dict = {
   'settings.captcha.testSolversHint':
     '同じテスト用キャプチャをキャプチャアカウントにも上の順番で送り、回答して正解するかを確かめられます。ほかのキャプチャと同じく料金がかかります。「誰も見ていないときだけ」がオンなら、まずあなたの回答を待ちます。別のタブに切り替えるか、待ち時間が過ぎるまで待ってください。',
   'settings.captcha.testOff': 'キャプチャはオフになっています。テスト用キャプチャを送るには、キャプチャのモジュールをオンに戻してください。',
+  'settings.captcha.testJDOff': 'キャプチャは JDownloader バックエンド経由で届きますが、オフになっています。テスト用キャプチャを送るには、オンに戻してください。',
+  'settings.captcha.testNoAccount': 'どのキャプチャアカウントも受け取れません。上でいずれかをオンにし、アカウントのページでキーが設定され、オンになっていることを確認してください。',
   'captcha.solverStoppedTaken': '{solver} がこのキャプチャを引き受けましたが、回答を送ってきませんでした。',
   'captcha.solverNotPassedOn': '{solver} はそれでも料金を請求するかもしれないため、KnightLoader はこれを別のキャプチャアカウントには送りません。自分で答えることはできます。',
   'captcha.solverNoAnswer': '{solver} が引き受けましたが、回答は返ってきませんでした。',

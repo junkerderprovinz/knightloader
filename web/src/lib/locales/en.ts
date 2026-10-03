@@ -1568,6 +1568,10 @@ export const en = {
   'settings.captcha.testSolversHint':
     'Sends the same test captcha to your captcha accounts as well, in the order above, so you can see whether they answer it and get it right. They charge for it like for any other captcha. With Only when nobody is watching on, they wait for you first: switch to another tab, or let the wait run out.',
   'settings.captcha.testOff': 'Captchas are switched off. Switch the Captcha module back on to send a test captcha.',
+  'settings.captcha.testJDOff':
+    'Captchas come through the JDownloader backend, which is switched off. Switch it back on to send a test captcha.',
+  'settings.captcha.testNoAccount':
+    'None of your captcha accounts can take it. Switch one on above, then check on the Accounts page that it has a key and is switched on.',
 
   // AddLinksForm.tsx's per-batch options: the destination, its recent-use
   // history, and the archive and link passwords.

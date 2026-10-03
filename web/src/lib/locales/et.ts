@@ -3055,6 +3055,10 @@ export const et: Dict = {
     'Saadab sama proovi-captcha ka sinu captcha kontodele, ülaltoodud järjekorras, et näeksid, kas nad vastavad ja õigesti. Nad võtavad selle eest tasu nagu iga teise captcha eest. Kui „Ainult siis, kui keegi ei vaata“ on sees, ootavad nad kõigepealt sind: mine teisele vahelehele või lase ooteajal lõppeda.',
   'settings.captcha.testOff':
     'Captchad on välja lülitatud. Lülita moodul Captcha uuesti sisse, et proovi-captchat saata.',
+  'settings.captcha.testJDOff':
+    'Captchad tulevad JDownloaderi taustsüsteemi kaudu, mis on välja lülitatud. Lülita see uuesti sisse, et proovi-captchat saata.',
+  'settings.captcha.testNoAccount':
+    'Ükski sinu captcha konto ei saa seda vastu võtta. Lülita üks ülal sisse ja vaata lehel Kontod, et sellel on võti ja see on sisse lülitatud.',
   'captcha.solverStoppedTaken': '{solver} võttis selle captcha üle, aga ei saatnud vastust.',
   'captcha.solverNotPassedOn': '{solver} võib selle eest ikkagi tasu võtta, seega ei saada KnightLoader seda lisaks teisele captcha kontole. Võid sellele ikka ise vastata.',
   'captcha.solverNoAnswer': '{solver} võttis selle üle, aga vastust tagasi ei tulnud.',

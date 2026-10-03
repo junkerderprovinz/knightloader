@@ -3063,6 +3063,10 @@ export const lt: Dict = {
   'settings.captcha.testSolversHint':
     'Siunčia tą pačią bandomąją captcha ir tavo captcha paskyroms, aukščiau nurodyta tvarka, kad matytum, ar jos atsako ir teisingai. Jos ima mokestį kaip už bet kurią kitą captcha. Kai įjungta „Tik kai niekas nežiūri“, jos pirmiausia laukia tavęs: pereik į kitą kortelę arba leisk laukimo laikui baigtis.',
   'settings.captcha.testOff': 'Captcha išjungtos. Vėl įjunk modulį Captcha, kad galėtum siųsti bandomąją captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha ateina per JDownloader posistemę, o ji išjungta. Vėl ją įjunk, kad galėtum siųsti bandomąją captcha.',
+  'settings.captcha.testNoAccount':
+    'Nė viena tavo captcha paskyra negali jos priimti. Įjunk vieną aukščiau ir puslapyje Paskyros patikrink, ar ji turi raktą ir yra įjungta.',
   'captcha.solverStoppedTaken': '{solver} perėmė šią captcha, bet atsakymo neatsiuntė.',
   'captcha.solverNotPassedOn': '{solver} gali už ją vis tiek imti mokestį, todėl KnightLoader jos nesiunčia dar ir kitai captcha paskyrai. Vis tiek gali atsakyti pats.',
   'captcha.solverNoAnswer': '{solver} ją perėmė, bet atsakymas negrįžo.',

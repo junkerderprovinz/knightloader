@@ -3062,6 +3062,10 @@ export const tr: Dict = {
   'settings.captcha.testSolversHint':
     'Aynı deneme captcha’sını captcha hesaplarına da yukarıdaki sırayla gönderir; böylece yanıtlayıp yanıtlamadıklarını ve doğru bilip bilmediklerini görürsün. Diğer captcha’lar gibi bunun için de ücret alırlar. “Yalnızca kimse izlemiyorken” açıksa önce seni beklerler: başka bir sekmeye geç ya da bekleme süresinin dolmasını bekle.',
   'settings.captcha.testOff': 'Captcha’lar kapalı. Deneme captcha’sı göndermek için Captcha modülünü yeniden aç.',
+  'settings.captcha.testJDOff':
+    'Captcha’lar JDownloader arka ucu üzerinden gelir ve o kapalı. Deneme captcha’sı göndermek için onu yeniden aç.',
+  'settings.captcha.testNoAccount':
+    'Captcha hesaplarının hiçbiri bunu alamaz. Yukarıda birini aç ve Hesaplar sayfasında anahtarı olduğunu ve açık olduğunu kontrol et.',
   'captcha.solverStoppedTaken': '{solver} bu captchayı devraldı ama yanıt göndermedi.',
   'captcha.solverNotPassedOn': '{solver} bunun için yine de ücret alabilir, bu yüzden KnightLoader onu ayrıca başka bir captcha hesabına göndermez. Yine de kendin yanıtlayabilirsin.',
   'captcha.solverNoAnswer': '{solver} devraldı ama yanıt gelmedi.',

@@ -3065,6 +3065,10 @@ export const fi: Dict = {
     'Lähettää saman testi-captchan myös captcha-tileillesi, yllä olevassa järjestyksessä, jotta näet, vastaavatko ne ja oikein. Ne veloittavat siitä kuten mistä tahansa captchasta. Kun ”Vain kun kukaan ei seuraa” on päällä, ne odottavat ensin sinua: vaihda toiseen välilehteen tai anna odotusajan kulua loppuun.',
   'settings.captcha.testOff':
     'Captchat on kytketty pois. Kytke Captcha-moduuli takaisin päälle lähettääksesi testi-captchan.',
+  'settings.captcha.testJDOff':
+    'Captchat tulevat JDownloader-taustaosan kautta, ja se on kytketty pois. Kytke se takaisin päälle lähettääksesi testi-captchan.',
+  'settings.captcha.testNoAccount':
+    'Mikään captcha-tileistäsi ei voi ottaa sitä vastaan. Kytke yksi päälle yllä ja tarkista Tilit-sivulta, että sillä on avain ja että se on päällä.',
   'captcha.solverStoppedTaken': '{solver} otti tämän captchan, mutta ei lähettänyt vastausta.',
   'captcha.solverNotPassedOn': '{solver} saattaa laskuttaa siitä silti, joten KnightLoader ei lähetä sitä lisäksi toiselle captcha-tilille. Voit silti vastata siihen itse.',
   'captcha.solverNoAnswer': '{solver} otti sen, mutta vastausta ei tullut.',

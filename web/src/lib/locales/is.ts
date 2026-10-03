@@ -3059,6 +3059,10 @@ export const is: Dict = {
   'settings.captcha.testSolversHint':
     'Sendir sama prófunar-captcha líka til captcha-reikninganna þinna, í röðinni hér að ofan, svo þú sjáir hvort þeir svara því og rétt. Þeir rukka fyrir það eins og hvert annað captcha. Þegar „Aðeins þegar enginn fylgist með“ er á bíða þeir fyrst eftir þér: farðu í annan flipa eða láttu biðtímann renna út.',
   'settings.captcha.testOff': 'Slökkt er á captcha. Kveiktu aftur á Captcha-einingunni til að senda prófunar-captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha kemur í gegnum JDownloader-bakendann, og slökkt er á honum. Kveiktu aftur á honum til að senda prófunar-captcha.',
+  'settings.captcha.testNoAccount':
+    'Enginn af captcha-reikningunum þínum getur tekið við því. Kveiktu á einum hér fyrir ofan og athugaðu á síðunni Reikningar að hann sé með lykil og að kveikt sé á honum.',
   'captcha.solverStoppedTaken': '{solver} tók þetta captcha en sendi ekkert svar.',
   'captcha.solverNotPassedOn': '{solver} gæti samt rukkað fyrir það, svo KnightLoader sendir það ekki líka til annars captcha-reiknings. Þú getur samt svarað því sjálf(ur).',
   'captcha.solverNoAnswer': '{solver} tók það, en ekkert svar barst til baka.',

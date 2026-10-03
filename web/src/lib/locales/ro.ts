@@ -3070,6 +3070,10 @@ export const ro: Dict = {
   'settings.captcha.testSolversHint':
     'Trimite aceeași captcha de test și la conturile tale de captcha, în ordinea de mai sus, ca să vezi dacă îi răspund și corect. O taxează ca pe orice altă captcha. Cu „Doar când nu se uită nimeni” pornit, te așteaptă întâi pe tine: treci în altă filă sau lasă timpul de așteptare să treacă.',
   'settings.captcha.testOff': 'Captcha sunt oprite. Pornește din nou modulul Captcha ca să trimiți o captcha de test.',
+  'settings.captcha.testJDOff':
+    'Captcha vin prin backendul JDownloader, care este oprit. Pornește-l din nou ca să trimiți o captcha de test.',
+  'settings.captcha.testNoAccount':
+    'Niciunul dintre conturile tale de captcha nu o poate prelua. Pornește unul mai sus și verifică pe pagina Conturi că are o cheie și este pornit.',
   'captcha.solverStoppedTaken': '{solver} a preluat această captcha, dar nu a trimis niciun răspuns.',
   'captcha.solverNotPassedOn': '{solver} s-ar putea să o taxeze oricum, de aceea KnightLoader nu o trimite și altui cont de captcha. Poți în continuare să îi răspunzi tu.',
   'captcha.solverNoAnswer': '{solver} a preluat-o, dar nu a venit niciun răspuns.',

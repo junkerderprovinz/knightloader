@@ -3053,6 +3053,10 @@ export const lv: Dict = {
   'settings.captcha.testSolversHint':
     'Sūta to pašu testa captcha arī taviem captcha kontiem, augstāk norādītajā secībā, lai tu redzētu, vai tie atbild un pareizi. Tie par to iekasē maksu kā par jebkuru citu captcha. Ja „Tikai tad, kad neviens neskatās“ ir ieslēgts, tie vispirms gaida tevi: pārej uz citu cilni vai ļauj gaidīšanas laikam beigties.',
   'settings.captcha.testOff': 'Captcha ir izslēgtas. Ieslēdz atkal moduli Captcha, lai sūtītu testa captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha nāk caur JDownloader aizmuguri, un tā ir izslēgta. Ieslēdz to atkal, lai sūtītu testa captcha.',
+  'settings.captcha.testNoAccount':
+    'Neviens no taviem captcha kontiem to nevar pieņemt. Ieslēdz vienu augstāk un lapā Konti pārbaudi, vai tam ir atslēga un vai tas ir ieslēgts.',
   'captcha.solverStoppedTaken': '{solver} pārņēma šo captcha, bet atbildi nenosūtīja.',
   'captcha.solverNotPassedOn': '{solver} par to tik un tā var iekasēt maksu, tāpēc KnightLoader to nenosūta vēl citam captcha kontam. Tu joprojām vari uz to atbildēt pats.',
   'captcha.solverNoAnswer': '{solver} to pārņēma, bet atbilde neatnāca.',
