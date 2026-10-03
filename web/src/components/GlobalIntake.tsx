@@ -96,7 +96,8 @@ export function GlobalIntake() {
   // device switching it off there ends it here.
   useEffect(() => {
     if (!watch) return;
-    const endLease = startLease(() => {
+    // The watch sends to this instance, so the lease is held here.
+    const endLease = startLease('', () => {
       setWatch(false);
       toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
     });
