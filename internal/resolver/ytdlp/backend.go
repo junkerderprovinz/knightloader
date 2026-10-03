@@ -27,6 +27,7 @@ import (
 )
 
 type Backend struct {
+	// bin is guarded by mu, since SetBinary changes it while runs start.
 	bin string
 	dir string
 
@@ -104,11 +105,25 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 // seconds covers a cold PyInstaller start; tests shorten it.
 var availableTimeout = 10 * time.Second
 
+// SetBinary makes the runs started from now on use bin. A run already going
+// keeps the binary it started with.
+func (b *Backend) SetBinary(bin string) {
+	b.mu.Lock()
+	b.bin = bin
+	b.mu.Unlock()
+}
+
+func (b *Backend) binary() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.bin
+}
+
 // Available reports whether the yt-dlp binary runs.
 func (b *Backend) Available() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), availableTimeout)
 	defer cancel()
-	return nowindow.CommandContext(ctx, b.bin, "--version").Run() == nil
+	return nowindow.CommandContext(ctx, b.binary(), "--version").Run() == nil
 }
 
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
@@ -223,7 +238,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			args = append(args, "--limit-rate", fmt.Sprint(per))
 		}
 	}
-	cmd := nowindow.CommandContext(ctx, b.bin, append(args, target)...)
+	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, target)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	// yt-dlp records and merges through ffmpeg, which shares its output.
 	// Killing yt-dlp alone would leave ffmpeg writing, and the output open
@@ -618,7 +633,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		args = append(args, stream.args()...)
 		url = stream.url
 	}
-	cmd := nowindow.CommandContext(ctx, b.bin, append(args, url)...)
+	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
