@@ -81,6 +81,15 @@ release's tag.
   download with its files, or restarting it, then deleted whatever had landed
   there since, which could be another download's file. KnightLoader now
   deletes the moved file where it is and leaves the old place alone.
+- **Downloads from your own server delete only their own files.** An FTP or
+  SFTP download saved as "film (2).mkv" because "film.mkv" was already there
+  deleted "film.mkv" when you removed it with its files, and left its own file
+  behind. Removing or restarting one of them also deleted the part file of
+  another download of the same name that was still arriving. Two of them
+  running into one folder at once wrote into the same part file and mixed
+  their bytes, and when two finished at the same moment one could overwrite
+  the other. Each download now has its own part file and deletes only the file
+  it saved, and a moved one is deleted where it is now.
 
 ## [1.6.6] - 2026-10-02
 
