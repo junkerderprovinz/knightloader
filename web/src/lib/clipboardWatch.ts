@@ -16,9 +16,6 @@ import { addLinks } from './api';
 export const WATCH_SUPPORTED =
   typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
-/** The remembered-field name, shared by the settings card and the collector's own button. */
-export const WATCH_FIELD = 'clipboardWatch';
-
 /** How often the clipboard is re-read while the window has focus. */
 const POLL_MS = 1200;
 
