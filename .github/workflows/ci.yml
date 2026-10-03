@@ -86,11 +86,13 @@ jobs:
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either
-            # can break it.
+            # can break it, and its clipboard watch is tested against the web
+            # UI's cases.
             desktop:
               - 'desktop/**'
               - '**/*.go'
               - 'go.mod'
+              - 'web/src/lib/clipboardWatch.cases.json'
               - '.github/workflows/ci.yml'
             # check-docs-claims.mjs checks the documents against the sources,
             # so Go and web changes can falsify a claim too. desktop/go.mod is
