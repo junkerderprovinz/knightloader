@@ -20,11 +20,13 @@ import (
 )
 
 // mirrorSource serves data with ranges. From the request numbered failFrom
-// on, counting ranged requests from 1, it answers 410; zero never fails.
+// on, counting ranged requests from 1, it answers 410 and calls onFail; zero
+// never fails.
 type mirrorSource struct {
 	srv      *httptest.Server
 	data     []byte
 	failFrom int32
+	onFail   func()
 	etag     string
 
 	ranged atomic.Int32
@@ -41,6 +43,9 @@ func newMirrorSource(t *testing.T, data []byte) *mirrorSource {
 func (m *mirrorSource) serve(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Range") != "" {
 		if n := m.ranged.Add(1); m.failFrom > 0 && n >= m.failFrom {
+			if m.onFail != nil {
+				m.onFail()
+			}
 			w.WriteHeader(http.StatusGone)
 			return
 		}
@@ -240,6 +245,79 @@ func TestASourceFailingMidwayLeavesTheRestToTheOther(t *testing.T) {
 	if !bytes.Equal(got, data) {
 		t.Fatal("the file is not the one the source has")
 	}
+}
+
+// The job's connection count is the ceiling its own hoster agreed to, so the
+// connections of further sources that die must not move onto its link.
+func TestDeadSourcesLeaveTheOwnLinkItsConnectionCount(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	const conns = 2
+	var refused atomic.Bool
+	// over is how long the own link served more ranges at once than the job
+	// may open. A request the client dropped ends here a moment later than
+	// there, so a few milliseconds are noise; moved connections stay for
+	// seconds.
+	var (
+		mu        sync.Mutex
+		inFlight  int
+		over      time.Duration
+		overSince time.Time
+	)
+	own := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Range") != "" && refused.Load() {
+			mu.Lock()
+			if inFlight++; inFlight == conns+1 {
+				overSince = time.Now()
+			}
+			mu.Unlock()
+			defer func() {
+				mu.Lock()
+				if inFlight == conns+1 {
+					over += time.Since(overSince)
+				}
+				inFlight--
+				mu.Unlock()
+			}()
+		}
+		http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+	}))
+	t.Cleanup(own.Close)
+	var others []string
+	for range 3 {
+		m := newMirrorSource(t, data)
+		// The check, then 410.
+		m.failFrom = 3
+		m.onFail = func() { refused.Store(true) }
+		others = append(others, m.url())
+	}
+
+	last, got := runToEnd(t, Job{URL: own.URL + "/f.bin", Sources: offering(others...)})
+
+	if last.Status != core.StatusDone || !bytes.Equal(got, data) {
+		t.Fatalf("the download ended %q (%s) with %d bytes, want the file", last.Status, last.Err, len(got))
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if over > 200*time.Millisecond {
+		t.Fatalf("the own link served more than %d ranges at once for %v", conns, over)
+	}
+}
+
+// pacedWriter slows a response down, so the requests to one source overlap,
+// and stops it once the client is gone.
+type pacedWriter struct {
+	http.ResponseWriter
+	r *http.Request
+}
+
+func (w pacedWriter) Write(p []byte) (int, error) {
+	select {
+	case <-w.r.Context().Done():
+		return 0, w.r.Context().Err()
+	case <-time.After(25 * time.Millisecond):
+	}
+	return w.ResponseWriter.Write(p)
 }
 
 func TestAFileFromAFurtherSourceOfAnotherSizeComesFromItsOwnLinkAlone(t *testing.T) {

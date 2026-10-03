@@ -184,4 +184,4 @@ replace github.com/junkerderprovinz/knightloader => ../
 
 // The same gopeed fork as the server module, since a dependency's replace
 // does not reach this one.
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261002205906-80c3f0c08a9c
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003033102-4855ac16db57
