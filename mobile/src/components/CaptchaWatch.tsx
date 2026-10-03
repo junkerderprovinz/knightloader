@@ -58,12 +58,13 @@ const BANNER_MS = 6000;
  * answer from this phone, as the web UI's toasts do.
  *
  * Polled rather than streamed, since the relay carries no socket, and every
- * five seconds like the queue. The app runs nothing in the background and
- * holds no notification permission, so a captcha that arrives while it is away
- * is announced when it comes back to the front. The watch keeps its last look
- * across that, which is what makes such a captcha news, but only while Android
- * keeps the app in memory; a cold start has nothing to compare with. The other
- * saved instances are not watched, and show their count on the overview.
+ * five seconds like the queue. While the app is away, the background watch in
+ * src/watch posts a notification instead, and a captcha that arrived meanwhile
+ * also gets the banner once the app is back in front. The watch keeps its last
+ * look across that, which is what makes such a captcha news, but only while
+ * Android keeps the app in memory; a cold start has nothing to compare with.
+ * The other saved instances get no banner and show their count on the
+ * overview.
  */
 export function CaptchaWatch({
   conn,
@@ -257,7 +258,9 @@ function Banner({
     >
       {/* The close badge beside the pressable part rather than inside it: a
           touchable inside another is one element to TalkBack, and the badge
-          could not be reached on its own. */}
+          could not be reached on its own. The card's padding belongs to the
+          pressable part, so a tap anywhere but on the badge opens the list
+          instead of landing on a margin and leaving the banner to time out. */}
       <View style={[styles.banner, { backgroundColor: c.surface, ...corners.card }]}>
         {onOpen ? (
           <CardButton style={styles.open} onPress={onOpen} accessibilityLabel={line}>
@@ -268,7 +271,9 @@ function Banner({
             <BannerText line={line} instance={instance} bar={bar} />
           </View>
         )}
-        <IconBadge icon={<Cross color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
+        <View style={styles.close}>
+          <IconBadge icon={<Cross color={c.textSub} />} onPress={onClose} accessibilityLabel={t('captcha.close')} />
+        </View>
       </View>
     </Animated.View>
   );
@@ -301,16 +306,15 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 640,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
+    alignItems: 'stretch',
     elevation: 6,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
-  open: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  open: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
+  close: { justifyContent: 'center', paddingEnd: 14 },
   // A status family's solid, as a bar at the leading edge: the colour says how
   // urgent it is and the sentence says what.
   mark: { width: 4, alignSelf: 'stretch' },
