@@ -10,7 +10,6 @@ import (
 	"html"
 	"math/bits"
 	"regexp"
-	"strings"
 )
 
 // CCF came from CryptLoad and went through three schemes, all with keys built
@@ -48,11 +47,12 @@ func DecodeCCF(data []byte) ([]string, error) {
 	if !ok {
 		return nil, errors.New("no CCF key opens this file")
 	}
+	// Each <Url> goes through the scanner on its own: joined, the scanner
+	// would take one body's end for a mail client's line break and glue the
+	// next body onto it.
 	var links []string
 	for _, m := range ccfURL.FindAllSubmatch(plain, -1) {
-		if u := strings.TrimSpace(html.UnescapeString(string(m[1]))); u != "" {
-			links = append(links, u)
-		}
+		links = append(links, parseText(html.UnescapeString(string(m[1])))...)
 	}
 	if len(links) == 0 {
 		return nil, errors.New("the CCF decrypted to no links")
