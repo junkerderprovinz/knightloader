@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/webdav"
@@ -139,20 +140,45 @@ func (f *file) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// failureKey carries a GET's *error from get to the file it reads.
-type failureKey struct{}
+// outcomeKey carries a GET's outcome from get to the file it reads.
+type outcomeKey struct{}
 
-// note keeps the outcome of a read for get, which cannot see it otherwise:
-// http.ServeContent drops the error of its copy. A read that fails while the
-// client is still there sets it, and one that brings bytes clears it again.
+// outcome is what the reads of one GET came to, kept for get, which cannot
+// see it otherwise: http.ServeContent drops the error of its copy. A
+// multi-range answer reads on a goroutine of its own.
+type outcome struct {
+	mu  sync.Mutex
+	err error
+	// read is set once a read has brought bytes.
+	read bool
+}
+
+func (o *outcome) failure() error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return o.err
+}
+
+func (o *outcome) flowing() bool {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	return o.read
+}
+
+// note keeps the outcome of a read. A read that fails while the client is
+// still there sets the error, and one that brings bytes clears it again.
 func (f *file) note(n int, err error) {
-	failed, _ := f.ctx.Value(failureKey{}).(*error)
+	o, _ := f.ctx.Value(outcomeKey{}).(*outcome)
+	if o == nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	switch {
-	case failed == nil:
 	case err != nil && !errors.Is(err, io.EOF) && f.ctx.Err() == nil:
-		*failed = fmt.Errorf("%s: %w", f.at.acct.Name, err)
+		o.err = fmt.Errorf("%s: %w", f.at.acct.Name, err)
 	case n > 0:
-		*failed = nil
+		o.err, o.read = nil, true
 	}
 }
 
@@ -245,12 +271,14 @@ func (d *Drive) Serve(w http.ResponseWriter, r *http.Request, prefix string) {
 }
 
 // get serves a file. http.ServeContent sends the status before its first
-// read reaches the download server, so the status waits for the first byte,
-// and a server in trouble gets a 502 instead of a 200 with nothing after it.
+// read reaches the download server, so the answer waits for the first bytes
+// of the file, and a server in trouble gets a 502 instead of a 200 with
+// nothing after it.
 func (d *Drive) get(h *webdav.Handler, w http.ResponseWriter, r *http.Request) {
-	var failed error
-	held := &heldStatus{ResponseWriter: w}
-	h.ServeHTTP(held, r.WithContext(context.WithValue(r.Context(), failureKey{}, &failed)))
+	o := &outcome{}
+	held := &heldStatus{ResponseWriter: w, o: o}
+	h.ServeHTTP(held, r.WithContext(context.WithValue(r.Context(), outcomeKey{}, o)))
+	failed := o.failure()
 	if failed == nil {
 		held.send()
 		return
@@ -265,10 +293,14 @@ func (d *Drive) get(h *webdav.Handler, w http.ResponseWriter, r *http.Request) {
 	http.Error(w, failed.Error(), http.StatusBadGateway)
 }
 
-// heldStatus keeps the status back until the first byte of the body.
+// heldStatus keeps the answer back until a read has brought bytes of the
+// file. What is written before then waits with it, such as the header of a
+// multi-range answer's first part.
 type heldStatus struct {
 	http.ResponseWriter
+	o    *outcome
 	code int
+	held []byte
 	sent bool
 }
 
@@ -279,7 +311,13 @@ func (h *heldStatus) WriteHeader(code int) {
 }
 
 func (h *heldStatus) Write(p []byte) (int, error) {
-	h.send()
+	if !h.sent {
+		if !h.o.flowing() {
+			h.held = append(h.held, p...)
+			return len(p), nil
+		}
+		h.send()
+	}
 	return h.ResponseWriter.Write(p)
 }
 
@@ -290,6 +328,10 @@ func (h *heldStatus) send() {
 	h.sent = true
 	if h.code != 0 {
 		h.ResponseWriter.WriteHeader(h.code)
+	}
+	if len(h.held) > 0 {
+		h.ResponseWriter.Write(h.held)
+		h.held = nil
 	}
 }
 

@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -351,6 +353,22 @@ func TestARangeIsFetchedFromTheDownloadServer(t *testing.T) {
 		t.Errorf("the download server was asked for %q, want the file from the range's start", r)
 	}
 
+	resp = f.do(t, http.MethodGet, "/dav/TorBox/Some Movie/movie.mkv", map[string]string{"Range": "bytes=0-9,500-509"})
+	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if resp.StatusCode != http.StatusPartialContent || err != nil {
+		t.Fatalf("two ranges answered %s with type %q", resp.Status, resp.Header.Get("Content-Type"))
+	}
+	parts := multipart.NewReader(resp.Body, params["boundary"])
+	for _, want := range [][]byte{movie[0:10], movie[500:510]} {
+		part, err := parts.NextPart()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got, _ := io.ReadAll(part); !bytes.Equal(got, want) {
+			t.Errorf("a part of two ranges read %q, want %q", got, want)
+		}
+	}
+
 	resp = f.do(t, http.MethodGet, "/dav/TorBox/Some Movie/movie.mkv", nil)
 	got, _ = io.ReadAll(resp.Body)
 	if !bytes.Equal(got, movie) {
@@ -451,7 +469,7 @@ func TestADownloadServerInTroubleIsAnErrorRatherThanAnEmptyFile(t *testing.T) {
 	f.cdn.mu.Lock()
 	f.cdn.down = http.StatusServiceUnavailable
 	f.cdn.mu.Unlock()
-	for _, rng := range []string{"", "bytes=100-"} {
+	for _, rng := range []string{"", "bytes=100-", "bytes=0-9,500-509"} {
 		resp, body := read(rng)
 		if resp.StatusCode != http.StatusBadGateway {
 			t.Errorf("a read with Range %q from a download server answering 503 answered %s, want 502", rng, resp.Status)
@@ -473,8 +491,8 @@ func TestADownloadServerInTroubleIsAnErrorRatherThanAnEmptyFile(t *testing.T) {
 		t.Errorf("a range the download server cannot start answered %s %q, want 502 saying so", resp.Status, body)
 	}
 
-	if len(logged) != 3 {
-		t.Fatalf("the three failed reads logged %q", logged)
+	if len(logged) != 4 {
+		t.Fatalf("the four failed reads logged %q", logged)
 	}
 	for _, line := range logged {
 		if !strings.Contains(line, "Some Movie/movie.mkv") || strings.Contains(line, "unlock=") {
