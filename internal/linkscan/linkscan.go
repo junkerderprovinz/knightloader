@@ -22,12 +22,21 @@ import (
 // point rather than typed as a literal, which would be invisible in a diff.
 var byteOrderMark = string(rune(0xFEFF))
 
-// schemes are the entrances this app can act on. The slice's order does not
-// matter, since nextScheme checks all three and the earliest match wins. ftp
-// is absent because every resolver under internal/resolver refuses it, so
-// finding one here would only stage a task that fails later with a worse
-// error.
-var schemes = []string{"https://", "http://", "magnet:?"}
+// schemes are the entrances this app can act on: the web, magnets, and the
+// own-server schemes the remotefs resolver claims. The slice's order does not
+// matter, since nextScheme checks every entry and the earliest match wins,
+// which is also why "sftp://" is never cut down to the "ftp://" inside it.
+var schemes = []string{
+	"https://", "http://", "magnet:?",
+	"ftp://", "ftps://", "sftp://", "webdav://", "webdavs://",
+}
+
+// StartsWithScheme reports whether s begins with a scheme Extract looks for,
+// in any letter case.
+func StartsWithScheme(s string) bool {
+	_, ok := startsScheme(s)
+	return ok
+}
 
 // bareHost matches a line that is a domain and an optional path and nothing
 // else, the fallback for a paste that named a host with no scheme.
@@ -113,7 +122,7 @@ func logicalLines(blob string) []string {
 
 func continuesURL(prev, next string) bool {
 	prev = strings.TrimRight(prev, " \t")
-	if prev == "" || next == "" || !containsScheme(prev) {
+	if prev == "" || next == "" || !ContainsScheme(prev) {
 		return false
 	}
 	// A line that starts a scheme of its own is a new link. Without this,
@@ -153,7 +162,9 @@ func continuationStart(r rune) bool {
 	return isURLChar(r)
 }
 
-func containsScheme(s string) bool {
+// ContainsScheme reports whether a scheme Extract looks for appears anywhere
+// in s, in any letter case.
+func ContainsScheme(s string) bool {
 	for _, sch := range schemes {
 		if indexFold(s, sch) >= 0 {
 			return true
