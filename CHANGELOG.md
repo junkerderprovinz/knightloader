@@ -40,11 +40,32 @@ release's tag.
 ### Fixed
 
 - **FTP, SFTP and WebDAV links are found in what you paste.** The link
-  scanner looked only for http, https and magnet links, so the paste box, text
-  files in a watched folder, link lists, the download-client endpoint and the
-  desktop app's clipboard watcher dropped every ftp://, ftps://, sftp://,
-  webdav:// and webdavs:// link without saying so. These links now reach the
-  account for your own server.
+  scanner looked only for http, https and magnet links, and Click'n'Load took
+  only http and https, so the paste box, uploaded link lists, the
+  download-client endpoint and Click'n'Load dropped every ftp://, ftps://,
+  sftp://, webdav:// and webdavs:// link without saying so. These links now
+  reach the account for your own server.
+- **FTPS downloads work with vsftpd, ProFTPD and FileZilla Server.** These
+  servers accept a data connection only when it resumes the TLS session of the
+  login. KnightLoader opened a new one, so every ftps:// link to such a server
+  failed with "425 Cannot secure data connection".
+- **A password in a link to your own server is not saved.** A link like
+  sftp://name:password@host was refused only after it had been added, so the
+  password stayed in the task list, the database and the log in plain text.
+  The link is now turned away before anything keeps it, and the skipped links
+  show it with the password masked.
+- **A long line of links is read quickly.** Links pasted on one line with
+  spaces between them took time that grew with the square of the line's
+  length, close to a minute for 8,000 links. Such a line now takes a fraction
+  of a second.
+- **A link in a text file in a watched folder loses the punctuation around
+  it.** A `.txt` was split at spaces only, so a link at the end of a sentence
+  kept its full stop or comma and failed, and a link in brackets was not found
+  at all. Text files are now read the way the paste box reads them.
+- **A download running when KnightLoader stops comes back queued.** Shutting
+  down pauses every transfer, and now and then that pause was saved before the
+  database closed. The download then came back paused, and starting the queue
+  did not resume it.
 - **Adding a downloaded link again leaves the finished copy alone.** When you
   added a link you had already downloaded and gave it no package name, the new
   copy's name check moved the finished copy into the new package, although its
