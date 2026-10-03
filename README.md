@@ -34,22 +34,12 @@ Hosters, debrid services, torrents, Usenet, videos and streams: one download man
 
 <div align="center">
 
-> # ⚠️ Under development: please do not install this yet
+> # 🧪 In development: testers welcome
 >
-> **KnightLoader is not ready for anyone to run.** This repository is public so
-> the work can be followed and the browser extension can go through store
-> review.
+> **KnightLoader is still in development, so bugs can happen.**<br>
+> Everyone is invited to test it and report what they find.
 >
-> The releases, the container image and the downloads below exist so the builds
-> can be tested. KnightLoader is **not listed in Community Applications** yet. What
-> is here changes daily, including things that will break an existing setup without a migration path:
-> the storage format, the settings document, and the wire protocol instances
-> use to reach each other.
->
-> **If you install it now, expect to lose your configuration and your queue.**
-> Nothing here is supported, and no upgrade path is promised yet.
->
-> Watch the repository if you want to know when that changes.
+> **[Report a bug](https://github.com/junkerderprovinz/knightloader/issues/new/choose)**
 
 </div>
 
