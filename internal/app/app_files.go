@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -31,7 +32,8 @@ var (
 	// ErrTaskFileNotLocal is a task whose file lives in another process's
 	// filesystem, which is the JD backend (see filesAreLocal).
 	ErrTaskFileNotLocal = errors.New("this task's file was not downloaded by this app, so it cannot be reached from here")
-	// ErrTaskFileNoBytes is a task with nothing on disk yet. It is kept apart
+	// ErrTaskFileNoBytes is a task with nothing on disk yet, or a running
+	// download the engine has not yet handed to the library. It is kept apart
 	// from ErrTaskFileEscape because a link that has not started is not an
 	// attack.
 	ErrTaskFileNoBytes = errors.New("nothing has been downloaded yet")
@@ -49,8 +51,8 @@ var (
 	// it is complete.
 	ErrTaskFileIncomplete = errors.New("this download stopped before it finished; start it again to play the file while it downloads")
 	// ErrTaskFileMending is a running download whose file is not all there
-	// and which the engine does not stream, mostly because the ranges that
-	// never arrived are being fetched again.
+	// because the ranges that never arrived are being fetched again, which
+	// the engine does not stream.
 	ErrTaskFileMending = errors.New("part of this download is being fetched again, so it plays once that part is back")
 )
 
@@ -235,13 +237,19 @@ func (a *App) OpenTaskFile(id string, index int) (OpenedFile, error) {
 			if err != nil {
 				return OpenedFile{}, err
 			}
-			if r, err := e.Stream(id, max(index, 0)); err == nil {
+			r, err := e.Stream(id, max(index, 0))
+			if err == nil {
 				return OpenedFile{Name: at.name, File: r, Index: index, Live: true}, nil
 			}
 			// The engine gives an HTTP download's file its full size as it
-			// starts, so the ranges a mend is still fetching read as zeros.
+			// starts, so the ranges a mend is still fetching read as zeros,
+			// and so does a file left by an earlier attempt before the
+			// library has the transfer.
 			if !isTorrent && snap.Size > 0 && snap.Loaded < snap.Size {
-				return OpenedFile{}, ErrTaskFileMending
+				if errors.Is(err, engine.ErrMending) {
+					return OpenedFile{}, ErrTaskFileMending
+				}
+				return OpenedFile{}, ErrTaskFileNoBytes
 			}
 		}
 	}
