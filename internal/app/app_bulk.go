@@ -5,6 +5,7 @@ package app
 // the client does not have to refetch everything to find out.
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -378,7 +379,7 @@ func joinClasses(in []CleanupClass) string {
 // clients, and it is also the fallback for an RSDF or CCF that will not decode
 // here.
 type containerAdder interface {
-	AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddContainer(ctx context.Context, url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // containerCrawlLimit is how long the backend gets to open a container. A
@@ -427,7 +428,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	}
 	// a.spawn, so Close waits for the store writes below.
 	a.spawn(func() {
-		links, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
+		links, err := adder.AddContainer(a.ctx, rawurl, pkg, containerCrawlLimit)
 		// A container JD cannot read either comes back as the address it
 		// was fetched from, taken for a plain link. That address is single
 		// use and already spent.
@@ -464,7 +465,7 @@ func isHandover(link, handover string) bool {
 // payload inline. The payload only ever exists as a form field, so there is no
 // URL to hand over; the shipped JD's Deprecated API takes the bytes directly.
 type cryptedV1Adder interface {
-	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddCryptedV1(ctx context.Context, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // CryptedV1BackendConfigured reports whether Click'n'Load's addcrypted can be
@@ -499,7 +500,7 @@ func (a *App) AddContainerCnL(data []byte, pkg string) error {
 		return ErrNoContainerBackend
 	}
 	a.spawn(func() {
-		links, err := adder.AddCryptedV1(data, pkg, containerCrawlLimit)
+		links, err := adder.AddCryptedV1(a.ctx, data, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("addcrypted (v1): %v", err)
 			a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())

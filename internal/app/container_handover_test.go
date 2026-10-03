@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/url"
 	"strings"
 	"testing"
@@ -13,7 +14,7 @@ import (
 // then: it takes the address it fetched from for a plain link.
 type echoJD struct{ containerJD }
 
-func (*echoJD) AddContainer(url, _ string, _ time.Duration) ([]resolver.Result, error) {
+func (*echoJD) AddContainer(_ context.Context, url, _ string, _ time.Duration) ([]resolver.Result, error) {
 	return []resolver.Result{{DirectURL: url, Name: "tok.ccf"}}, nil
 }
 
@@ -42,7 +43,7 @@ func TestAContainerJDCannotOpenIsRecordedAsSkipped(t *testing.T) {
 // lower-cased.
 type lowerHostJD struct{ containerJD }
 
-func (*lowerHostJD) AddContainer(raw, _ string, _ time.Duration) ([]resolver.Result, error) {
+func (*lowerHostJD) AddContainer(_ context.Context, raw, _ string, _ time.Duration) ([]resolver.Result, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return nil, err

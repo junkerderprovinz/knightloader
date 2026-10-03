@@ -157,8 +157,9 @@ func (b *Backend) dropGrabberPackage(name string) {
 // url is an HTTP address serving the uploaded bytes, since JD usually runs in
 // another container and cannot read our paths. The links come back as
 // Results instead of being started in JD, so the link filter, packagizer and
-// duplicate check still apply to them.
-func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error) {
+// duplicate check still apply to them. The wait ends at timeout or when ctx
+// ends, whichever is first.
+func (b *Backend) AddContainer(ctx context.Context, url, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	// A marker of our own, so two containers opened into the same package
 	// cannot collide in JD's grabber.
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
@@ -169,20 +170,20 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 	if err != nil {
 		return nil, err
 	}
-	return b.awaitContainerLinks(job, marker, timeout)
+	return b.awaitContainerLinks(ctx, job, marker, timeout)
 }
 
 // AddCryptedV1 is AddContainer for a Click'n'Load v1 ("addcrypted")
 // submission, whose payload has no URL and goes to JD as inline content (see
 // Client.AddContainerData).
-func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
-	return b.AddContainerFile("dlc", data, packageName, timeout)
+func (b *Backend) AddCryptedV1(ctx context.Context, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
+	return b.AddContainerFile(ctx, "dlc", data, packageName, timeout)
 }
 
 // AddContainerFile is AddContainer for a container whose bytes are at hand,
 // such as one dropped into a watched folder. ext is its format, "dlc", "ccf"
 // or "rsdf", which JD reads the bytes as.
-func (b *Backend) AddContainerFile(ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
+func (b *Backend) AddContainerFile(ctx context.Context, ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
 	b.holdGrabber(marker)
 	defer b.releaseGrabber(marker)
@@ -191,7 +192,7 @@ func (b *Backend) AddContainerFile(ext string, data []byte, packageName string, 
 	if err != nil {
 		return nil, err
 	}
-	return b.awaitContainerLinks(job, marker, timeout)
+	return b.awaitContainerLinks(ctx, job, marker, timeout)
 }
 
 // settleReadings is how many identical readings in a row count as a finished
@@ -206,7 +207,7 @@ const settleReadings = 3
 // Client.AddContainerLinks). It counts as finished once its link count stays
 // unchanged for settleReadings rounds; JD's global isCollecting flag only
 // adds one confirming reading.
-func (b *Backend) awaitContainerLinks(job int64, marker string, timeout time.Duration) ([]resolver.Result, error) {
+func (b *Backend) awaitContainerLinks(ctx context.Context, job int64, marker string, timeout time.Duration) ([]resolver.Result, error) {
 	deadline := time.Now().Add(timeout)
 	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
@@ -216,7 +217,12 @@ func (b *Backend) awaitContainerLinks(job int64, marker string, timeout time.Dur
 	settled := 0
 	probe := b.newJobFilterProbe()
 	for {
-		<-tick.C
+		select {
+		case <-ctx.Done():
+			_ = b.c.RemoveCrawled(linkIDs(links), pkgs)
+			return nil, ctx.Err()
+		case <-tick.C:
+		}
 
 		found, foundPkgs, err := b.crawlOutput(job, marker, probe)
 		if err != nil {

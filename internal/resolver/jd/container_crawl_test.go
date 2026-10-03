@@ -3,6 +3,7 @@ package jd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -230,7 +231,7 @@ func TestAddContainerHarvestsPackagesJDNamedItself(t *testing.T) {
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
 	start := time.Now()
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatalf("AddContainer: %v (the container opened in JD; only finding it again failed)", err)
@@ -312,7 +313,7 @@ func TestAddContainerFallsBackToTheMarkerPackage(t *testing.T) {
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
 	start := time.Now()
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatalf("AddContainer: %v", err)
@@ -361,7 +362,7 @@ func TestAddContainerRefusesAJobFilterThatIsNotOne(t *testing.T) {
 	defer func() { <-done }()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	if err != nil {
 		t.Fatalf("AddContainer: %v", err)
 	}
@@ -391,7 +392,7 @@ func TestAddContainerStillReportsAContainerThatNeverOpened(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	if _, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 60*time.Millisecond); err == nil {
+	if _, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 60*time.Millisecond); err == nil {
 		t.Error("AddContainer reported success for a container JD never opened")
 	}
 }
@@ -414,5 +415,25 @@ func TestCheckLinksSettlesWhileJDCollectsSomethingElse(t *testing.T) {
 	}
 	if len(got) != 1 || got[0] != core.AvailOnline {
 		t.Errorf("verdicts = %v, want the one online verdict", got)
+	}
+}
+
+func TestAContainerCrawlEndsWithItsContext(t *testing.T) {
+	fastPoll(t)
+
+	f := &fakeJDGrabber{t: t, jobID: 1}
+	srv := httptest.NewServer(f.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(50*time.Millisecond, cancel)
+	start := time.Now()
+	_, err := b.AddContainerFile(ctx, "dlc", []byte("payload"), "MyPackage", time.Minute)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("AddContainerFile = %v, want the context's end", err)
+	}
+	if elapsed := time.Since(start); elapsed > 5*time.Second {
+		t.Errorf("AddContainerFile returned %v after its context ended", elapsed)
 	}
 }
