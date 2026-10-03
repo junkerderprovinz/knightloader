@@ -258,6 +258,26 @@ func TestANameThatWouldLeaveItsFolderIsNotUsed(t *testing.T) {
 	}
 }
 
+func TestAnAccountNameWithASlashIsOneFolder(t *testing.T) {
+	f := newFixture(t)
+	f.drive.accounts = func() []Account {
+		return []Account{
+			{Slot: "torbox:dd/x", Name: "TorBox (dd/x)", Source: f.svc},
+			{Slot: "torbox", Name: "TorBox", Source: f.svc},
+		}
+	}
+
+	if got, want := f.list(t, "/dav/"), []string{"/dav/TorBox (dd_x)/", "/dav/TorBox/"}; !slices.Equal(got, want) {
+		t.Errorf("the root lists %q, want %q", got, want)
+	}
+	if got := f.list(t, "/dav/TorBox (dd_x)/"); len(got) != 3 {
+		t.Errorf("the account with the slash lists %q, want its three downloads", got)
+	}
+	if got, want := f.drive.Folders(), []string{"TorBox", "TorBox (dd_x)"}; !slices.Equal(got, want) {
+		t.Errorf("Folders() = %q, want %q", got, want)
+	}
+}
+
 func TestAListingIsReadAgainOnlyAfterTheRefreshInterval(t *testing.T) {
 	f := newFixture(t)
 

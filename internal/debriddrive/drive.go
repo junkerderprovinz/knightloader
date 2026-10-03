@@ -373,7 +373,7 @@ func (d *Drive) find(ctx context.Context, name string) (spot, error) {
 	}
 	var acct Account
 	found := false
-	for _, a := range d.accounts() {
+	for _, a := range d.folders() {
 		if a.Name == parts[0] {
 			acct, found = a, true
 			break
@@ -408,6 +408,33 @@ func (d *Drive) find(ctx context.Context, name string) (spot, error) {
 	return spot{node: at, level: inDownload, acct: acct}, nil
 }
 
+// folders is every account in name order, named as its folder. The name goes
+// through segment like any other, since an account id may hold a slash, and an
+// account whose folder name is already taken is left out.
+func (d *Drive) folders() []Account {
+	var out []Account
+	taken := map[string]bool{}
+	for _, a := range d.accounts() {
+		a.Name = segment(a.Name)
+		if a.Name == "" || taken[a.Name] {
+			continue
+		}
+		taken[a.Name] = true
+		out = append(out, a)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+// Folders names the account folders at the top of the drive.
+func (d *Drive) Folders() []string {
+	var out []string
+	for _, a := range d.folders() {
+		out = append(out, a.Name)
+	}
+	return out
+}
+
 func (d *Drive) accountNode(a Account) *node {
 	return &node{name: a.Name, dir: true, mod: d.born}
 }
@@ -417,10 +444,9 @@ func (d *Drive) kids(ctx context.Context, s spot) ([]*node, error) {
 	switch s.level {
 	case atRoot:
 		var out []*node
-		for _, a := range d.accounts() {
+		for _, a := range d.folders() {
 			out = append(out, d.accountNode(a))
 		}
-		sort.Slice(out, func(i, j int) bool { return out[i].name < out[j].name })
 		return out, nil
 	case atAccount:
 		l, err := d.list(ctx, s.acct)
