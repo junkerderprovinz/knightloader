@@ -49,9 +49,12 @@ release's tag.
   direct download moves one of its connections to the part being played. The
   player in a download's details can jump ahead now too. A jump waits until
   that part has arrived, for up to a minute and a half per read. Once playback
-  stops or the file is complete, the download goes back to its usual order. On
-  the phone this needs a direct connection to the instance, because a player
-  app cannot go through the relay.
+  stops or the file is complete, the download goes back to its usual order. In
+  a torrent of several files, Play opens the largest video or song among the
+  files it fetches, and a torrent without any gets no Play. A download that
+  stopped halfway has to run again before it plays. On the phone this needs a
+  direct connection to the instance, because a player app cannot go through
+  the relay.
 
 ## [1.6.6] - 2026-10-02
 

@@ -2134,6 +2134,7 @@ export const eu: Dict = {
   'detail.playHint': 'Fitxategia zuzenean instantzia honetatik erreproduzitzen du, bigarren aldiz deskargatu gabe. Erreproduzitu sakatu arte ez da ezer ekartzen, eta fitxategia dagoen tokian geratzen da.',
   'detail.playPartial': 'Deskarga hau ez dago amaituta. Diskoan jada dagoen zatia bakarrik erreproduzi daiteke, hortik aurrera ezin da jauzi egin, eta fitxategi batzuek ez dute ezer erreproduzitzen azken bytea iritsi arte.',
   'detail.playLive': 'Deskarga hau oraindik martxan dago. Erreproduzitzen duzun zatia lehenik ekartzen da, beraz orain has zaitezke. Aurrera salto egiten baduzu, erreprodukzioak zati hori iritsi arte itxarongo du.',
+  'detail.playStopped': 'Deskarga hau amaitu aurretik gelditu zen. Abiarazi berriro fitxategia deskargatzen ari den bitartean erreproduzitzeko.',
   'detail.playUnsupported': 'Nabigatzaile honek ezin du fitxategi hau erreproduzitu. Ireki edo gorde ezazu eskuineko klikaren menutik.',
   'detail.playRemote': 'Instantzia honetako fitxategiak bakarrik erreproduzitzen dira hemen. Beste instantzia batek bere fitxategiak osorik eta jauzirik egin ezinik ematen ditu, eta erreproduzigailu batek ezin du horrekin lan egin.',
   'detail.playNotLocal': 'Deskarga hau JDownloader-ek ekarri du, beraz fitxategia prozesu horren diskoan dago eta ez honetan.',

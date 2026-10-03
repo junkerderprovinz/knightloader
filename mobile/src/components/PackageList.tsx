@@ -22,7 +22,7 @@ import { useT } from '../i18n/I18nContext';
 import { fmtBytes, fmtSpeed } from '../api/stats';
 import { Text } from './Text';
 import { TorrentFiles, hasTorrentFiles } from './TorrentFiles';
-import { hasSomethingToPlay, mediaKind } from '../api/play';
+import { hasSomethingToPlay, mediaKind } from '../api/media';
 
 /**
  * The task list, grouped into the packages the instance already put it in.

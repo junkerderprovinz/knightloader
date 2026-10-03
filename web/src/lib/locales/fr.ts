@@ -2127,6 +2127,7 @@ export const fr: Dict = {
   'detail.playHint': 'Lit le fichier directement depuis cette instance, sans le télécharger une deuxième fois. Rien n’est récupéré tant que vous n’avez pas lancé la lecture, et le fichier reste où il est.',
   'detail.playPartial': 'Ce téléchargement n’est pas terminé. Seule la partie déjà présente sur le disque peut être lue, il n’est pas possible d’aller au-delà, et certains fichiers ne lisent rien du tout tant que le dernier octet n’est pas là.',
   'detail.playLive': 'Ce téléchargement est toujours en cours. La partie que tu lis est récupérée en premier, tu peux donc commencer tout de suite. Si tu sautes plus loin, la lecture attend que cette partie soit arrivée.',
+  'detail.playStopped': 'Ce téléchargement s’est arrêté avant la fin. Relance-le pour lire le fichier pendant qu’il se télécharge.',
   'detail.playUnsupported': 'Ce navigateur ne peut pas lire ce fichier. Ouvrez-le ou enregistrez-le plutôt depuis le menu du clic droit.',
   'detail.playRemote': 'Seuls les fichiers de cette instance se lisent ici. Une autre instance transmet ses fichiers d’un seul tenant et sans possibilité de sauter, ce dont un lecteur ne peut rien faire.',
   'detail.playNotLocal': 'Ce téléchargement a été récupéré par JDownloader : le fichier se trouve donc sur le disque de ce processus et non sur celui-ci.',

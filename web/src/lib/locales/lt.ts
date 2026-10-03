@@ -2139,6 +2139,7 @@ export const lt: Dict = {
   'detail.playHint': 'Leidžia failą tiesiai iš šio egzemplioriaus, nesiunčiant jo antrą kartą. Kol nepaspaudi leisti, nieko neparsiunčiama, o failas lieka ten, kur yra.',
   'detail.playPartial': 'Šis atsisiuntimas nebaigtas. Leisti galima tik tą dalį, kuri jau yra diske, peršokti toliau nepavyks, o kai kurie failai nepaleidžia visai nieko, kol neatkeliauja paskutinis baitas.',
   'detail.playLive': 'Šis atsisiuntimas dar vyksta. Dalis, kurią leidi, parsiunčiama pirmiausia, tad gali pradėti iškart. Jei peršoksi į priekį, atkūrimas palauks, kol ta dalis atkeliaus.',
+  'detail.playStopped': 'Šis atsisiuntimas sustojo nepasibaigęs. Paleisk jį iš naujo, kad galėtum leisti failą, kol jis atsisiunčiamas.',
   'detail.playUnsupported': 'Ši naršyklė šio failo leisti negali. Atverk arba išsaugok jį per dešiniojo klavišo meniu.',
   'detail.playRemote': 'Čia leidžiami tik šio egzemplioriaus failai. Kitas egzempliorius savo failus atiduoda vientisai ir be šokinėjimo, o su tuo grotuvas nesusitvarko.',
   'detail.playNotLocal': 'Šį atsisiuntimą parsiuntė JDownloader, tad failas guli to proceso diske, o ne šiame.',

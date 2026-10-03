@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { type Task } from '../lib/api';
-import { playsAsMedia } from './FileActions';
+import { hasSomethingToPlay, playsAsMedia } from './FileActions';
 
 function task(over: Partial<Task>): Task {
   return {
@@ -35,8 +35,26 @@ describe('playsAsMedia', () => {
     expect(playsAsMedia(task({ name: 'cover.jpg' }))).toBe(false);
   });
 
-  it('offers Play for a torrent of several files, whatever it is called', () => {
-    expect(playsAsMedia(task({ name: 'Season 1', torrentFileCount: 12 }))).toBe(true);
+  it('offers Play for a torrent of several files when the server found media in it', () => {
+    expect(playsAsMedia(task({ name: 'Season 1', torrentFileCount: 12, torrentMedia: 'video' }))).toBe(true);
+    expect(playsAsMedia(task({ name: 'Album', torrentFileCount: 12, torrentMedia: 'audio' }))).toBe(true);
+  });
+
+  it('offers no Play for a torrent of several files without audio or video', () => {
+    expect(playsAsMedia(task({ name: 'Software Pack', torrentFileCount: 12 }))).toBe(false);
+    expect(playsAsMedia(task({ name: 'Folder.mkv', torrentFileCount: 3 }))).toBe(false);
     expect(playsAsMedia(task({ name: 'Season 1', torrentFileCount: 1 }))).toBe(false);
+  });
+});
+
+describe('hasSomethingToPlay', () => {
+  it('plays a running or a finished download', () => {
+    expect(hasSomethingToPlay(task({ status: 'running' }))).toBe(true);
+    expect(hasSomethingToPlay(task({ status: 'done', loaded: 10, size: 10 }))).toBe(true);
+  });
+
+  it('offers no Play for a download stopped halfway', () => {
+    expect(hasSomethingToPlay(task({ status: 'paused', loaded: 5, size: 10 }))).toBe(false);
+    expect(hasSomethingToPlay(task({ status: 'error', loaded: 5, size: 10 }))).toBe(false);
   });
 });

@@ -2139,6 +2139,7 @@ export const vi: Dict = {
   'detail.playHint': 'Phát tệp thẳng từ thực thể này, không phải tải nó về lần thứ hai. Trước khi bạn bấm phát thì không có gì được lấy về, và tệp vẫn nằm nguyên chỗ của nó.',
   'detail.playPartial': 'Lượt tải này chưa xong. Chỉ phát được phần đã nằm trên đĩa, nhảy quá phần đó thì không được, và một số tệp chẳng phát được gì cho tới khi byte cuối cùng về tới nơi.',
   'detail.playLive': 'Lượt tải này vẫn đang chạy. Phần bạn phát được tải trước, nên bạn có thể bắt đầu ngay. Nếu bạn tua tới, việc phát sẽ chờ cho đến khi phần đó về.',
+  'detail.playStopped': 'Lượt tải này đã dừng trước khi xong. Hãy bắt đầu lại để phát tệp trong lúc tải.',
   'detail.playUnsupported': 'Trình duyệt này không phát được tệp này. Hãy mở hoặc lưu nó qua menu chuột phải thay vì vậy.',
   'detail.playRemote': 'Chỉ các tệp nằm trên thực thể này mới phát được ở đây. Một thực thể khác giao tệp của nó nguyên một khối và không cho nhảy, thứ mà một trình phát không xoay xở được.',
   'detail.playNotLocal': 'Lượt tải này do JDownloader lấy về, nên tệp nằm trên đĩa của tiến trình đó chứ không phải trên đĩa này.',

@@ -21,11 +21,23 @@ export function reachable(t: Task): boolean {
 
 /**
  * playsAsMedia reports whether Play is offered for a task: its file is audio
- * or video, or it is a torrent of several files, of which the server plays the
- * largest selected one that is.
+ * or video, or for a torrent of several files, the server found one among
+ * them that is (torrentMedia). A torrent's name is its folder's, which says
+ * nothing about its files.
  */
 export function playsAsMedia(t: Task): boolean {
-  return playableAs(t.name) !== null || (t.torrentFileCount ?? 0) > 1;
+  if ((t.torrentFileCount ?? 0) > 1) return t.torrentMedia !== undefined;
+  return playableAs(t.name) !== null;
+}
+
+/**
+ * hasSomethingToPlay reports whether a task's file plays now. A running
+ * download is streamed, and a finished one is on disk. A stopped HTTP
+ * download's file already has its full size with holes where nothing has
+ * arrived, so the server refuses it.
+ */
+export function hasSomethingToPlay(t: Task): boolean {
+  return t.status === 'running' || t.status === 'done';
 }
 
 export function useFileMenu({ chosen, base, local }: { chosen: Task[]; base: string; local: boolean }): MenuGroup[] {
@@ -41,10 +53,9 @@ export function useFileMenu({ chosen, base, local }: { chosen: Task[]; base: str
   // The file opens in a tab of its own, where the browser's player streams it.
   // While the download runs, the server fetches the part being played first.
   // A peer's files pass through a proxy that neither streams nor seeks, so
-  // they get no entry, and neither does a file with nothing to play yet.
-  const started = task.status === 'running' || task.status === 'done' || task.loaded > 0;
+  // they get no entry, and neither does a file with nothing to play.
   const play: MenuItem[] =
-    local && started && playsAsMedia(task)
+    local && hasSomethingToPlay(task) && playsAsMedia(task)
       ? [
           {
             id: 'play',
