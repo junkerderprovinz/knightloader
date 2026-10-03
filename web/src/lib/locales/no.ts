@@ -44,6 +44,7 @@ export const no: Dict = {
   'task.startSeedingAllNone': 'Alle torrentene i dette kortet seeder allerede eller venter på å seede.',
   'task.start': 'Start',
   'task.restart': 'Start på nytt',
+  'task.restart.nzbGone': 'Kan ikke lastes ned på nytt fordi .nzb-filen er borte: {names}',
   'task.remove': 'Fjern',
   'task.left': 'igjen',
   'task.file': 'fil',

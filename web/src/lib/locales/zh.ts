@@ -42,6 +42,7 @@ export const zh: Dict = {
   'task.startSeedingAllNone': '此卡片中的所有种子都已在做种或等待做种。',
   'task.start': '开始',
   'task.restart': '重新开始',
+  'task.restart.nzbGone': '无法重新下载，因为 .nzb 已经不在了：{names}',
   'task.remove': '移除',
   'task.left': '剩余',
   'task.file': '个文件',

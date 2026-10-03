@@ -7,6 +7,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -75,7 +76,12 @@ func registerTasks(reg *Registry, a *app.App) {
 				Reasons []core.Reason `json:"reasons"`
 			}
 			_ = decodeBody(r, &body) // empty/absent = restart all errored
-			a.RestartTasksIn(body.Ids, body.Reasons)
+			if left := a.RestartTasksIn(body.Ids, body.Reasons); len(left) > 0 {
+				names := strings.Join(left, ", ")
+				writeRefusal(w, http.StatusConflict, "nzbGone",
+					"cannot be downloaded again because the .nzb is gone: "+names, map[string]string{"names": names})
+				return
+			}
 			w.WriteHeader(http.StatusNoContent)
 		})
 	reg.Add(http.MethodPost, "/api/tasks/recheck", "ask the hosts again whether these links are still there (no ids = the whole collector)",

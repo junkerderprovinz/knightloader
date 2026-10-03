@@ -42,6 +42,7 @@ export const lt: Dict = {
   'task.startSeedingAllNone': 'Visi šios kortelės torrentai jau sėja arba laukia sėjimo.',
   'task.start': 'Pradėti',
   'task.restart': 'Paleisti iš naujo',
+  'task.restart.nzbGone': 'Negalima atsisiųsti iš naujo, nes .nzb failo nebėra: {names}',
   'task.remove': 'Šalinti',
   'task.left': 'liko',
   'task.file': 'failas',

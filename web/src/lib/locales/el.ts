@@ -42,6 +42,7 @@ export const el: Dict = {
   'task.startSeedingAllNone': 'Κάθε torrent αυτής της κάρτας κάνει ήδη seeding ή περιμένει να κάνει seeding.',
   'task.start': 'Έναρξη',
   'task.restart': 'Επανεκκίνηση',
+  'task.restart.nzbGone': 'Δεν μπορεί να κατέβει ξανά, γιατί το .nzb δεν υπάρχει πια: {names}',
   'task.remove': 'Αφαίρεση',
   'task.left': 'απομένουν',
   'task.file': 'αρχείο',

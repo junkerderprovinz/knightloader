@@ -42,6 +42,7 @@ export const hi: Dict = {
   'task.startSeedingAllNone': 'इस कार्ड का हर टॉरेंट पहले से सीड कर रहा है या सीड करने की प्रतीक्षा में है।',
   'task.start': 'शुरू करें',
   'task.restart': 'फिर से शुरू',
+  'task.restart.nzbGone': 'फिर से डाउनलोड नहीं हो सकता, क्योंकि .nzb अब नहीं है: {names}',
   'task.remove': 'हटाएँ',
   'task.left': 'शेष',
   'task.file': 'फ़ाइल',

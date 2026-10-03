@@ -44,6 +44,7 @@ export const ar: Dict = {
   'task.startSeedingAllNone': 'كل تورنت في هذه البطاقة قيد البذر أو ينتظر البذر بالفعل.',
   'task.start': 'بدء',
   'task.restart': 'إعادة البدء',
+  'task.restart.nzbGone': 'لا يمكن تنزيله من جديد لأن ملف .nzb لم يعد موجودًا: {names}',
   'task.remove': 'إزالة',
   'task.left': 'متبقٍ',
   'task.file': 'ملف',

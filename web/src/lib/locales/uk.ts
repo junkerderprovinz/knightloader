@@ -42,6 +42,7 @@ export const uk: Dict = {
   'task.startSeedingAllNone': 'Усі торенти в цій картці вже роздаються або чекають на роздачу.',
   'task.start': 'Почати',
   'task.restart': 'Перезапустити',
+  'task.restart.nzbGone': 'Не можна завантажити знову, бо файлу .nzb більше немає: {names}',
   'task.remove': 'Прибрати',
   'task.left': 'залишилось',
   'task.file': 'файл',

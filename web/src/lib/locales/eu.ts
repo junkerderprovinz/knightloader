@@ -42,6 +42,7 @@ export const eu: Dict = {
   'task.startSeedingAllNone': 'Txartel honetako torrent guztiak seed egiten edo seed egiteko zain daude jada.',
   'task.start': 'Hasi',
   'task.restart': 'Berrabiarazi',
+  'task.restart.nzbGone': 'Ezin da berriro deskargatu, .nzb fitxategia jada ez dagoelako: {names}',
   'task.remove': 'Kendu',
   'task.left': 'falta',
   'task.file': 'fitxategi',

@@ -42,6 +42,7 @@ export const ro: Dict = {
   'task.startSeedingAllNone': 'Fiecare torrent din acest card face deja seed sau așteaptă să facă seed.',
   'task.start': 'Pornește',
   'task.restart': 'Repornește',
+  'task.restart.nzbGone': 'Nu se poate descărca din nou, pentru că fișierul .nzb nu mai există: {names}',
   'task.remove': 'Elimină',
   'task.left': 'rămas',
   'task.file': 'fișier',

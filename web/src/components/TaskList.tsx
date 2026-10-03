@@ -51,6 +51,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
 import { ROW_ESTIMATES, ROW_METRICS, useRowHeight } from '../lib/rowHeight';
 import { useToast } from '../lib/toast';
+import { taskRefusal } from '../lib/taskRefusal';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useUIState } from '../lib/uistate';
 import {
@@ -529,7 +530,9 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
   const send = (run: () => Promise<Response>) => () =>
     void run()
       .then(ok)
-      .catch((e: unknown) => toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail'));
+      .catch((e: unknown) =>
+        toast(taskRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail'),
+      );
   return (
     <div className={ACTIONS_CELL}>
       {collected && (

@@ -47,6 +47,7 @@ export const en = {
   'task.startSeedingAllNone': 'Every torrent in this card is already seeding or waiting to seed.',
   'task.start': 'Start',
   'task.restart': 'Restart',
+  'task.restart.nzbGone': 'Cannot be downloaded again because the .nzb is gone: {names}',
   'task.remove': 'Remove',
   'task.left': 'left',
   'task.file': 'file',

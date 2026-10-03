@@ -42,6 +42,7 @@ export const ca: Dict = {
   'task.startSeedingAllNone': 'Tots els torrents d’aquesta targeta ja fan seed o esperen per fer-ne.',
   'task.start': 'Inicia',
   'task.restart': 'Reinicia',
+  'task.restart.nzbGone': 'No es pot tornar a baixar perquè el .nzb ja no hi és: {names}',
   'task.remove': 'Elimina',
   'task.left': 'restant',
   'task.file': 'fitxer',

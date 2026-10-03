@@ -42,6 +42,7 @@ export const sv: Dict = {
   'task.startSeedingAllNone': 'Alla torrenter i det här kortet delar redan eller väntar på att dela.',
   'task.start': 'Starta',
   'task.restart': 'Starta om',
+  'task.restart.nzbGone': 'Kan inte laddas ner igen eftersom .nzb-filen är borta: {names}',
   'task.remove': 'Ta bort',
   'task.left': 'kvar',
   'task.file': 'fil',

@@ -42,6 +42,7 @@ export const lv: Dict = {
   'task.startSeedingAllNone': 'Visi šīs kartītes torrenti jau sēj vai gaida sēšanu.',
   'task.start': 'Sākt',
   'task.restart': 'Sākt no jauna',
+  'task.restart.nzbGone': 'Nevar lejupielādēt vēlreiz, jo .nzb vairs nav: {names}',
   'task.remove': 'Noņemt',
   'task.left': 'atlicis',
   'task.file': 'fails',

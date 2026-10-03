@@ -42,6 +42,7 @@ export const sk: Dict = {
   'task.startSeedingAllNone': 'Každý torrent na tejto karte už seeduje alebo čaká na seedovanie.',
   'task.start': 'Spustiť',
   'task.restart': 'Spustiť znova',
+  'task.restart.nzbGone': 'Nedá sa stiahnuť znova, lebo súbor .nzb už tu nie je: {names}',
   'task.remove': 'Odstrániť',
   'task.left': 'zostáva',
   'task.file': 'súbor',

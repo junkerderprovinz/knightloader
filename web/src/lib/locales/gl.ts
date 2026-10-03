@@ -42,6 +42,7 @@ export const gl: Dict = {
   'task.startSeedingAllNone': 'Todos os torrents desta tarxeta xa están facendo seed ou agardando para facelo.',
   'task.start': 'Iniciar',
   'task.restart': 'Reiniciar',
+  'task.restart.nzbGone': 'Non se pode descargar de novo porque o .nzb xa non está: {names}',
   'task.remove': 'Eliminar',
   'task.left': 'restante',
   'task.file': 'ficheiro',

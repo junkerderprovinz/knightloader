@@ -42,6 +42,7 @@ export const ko: Dict = {
   'task.startSeedingAllNone': '이 카드의 모든 토렌트가 이미 시드 중이거나 시드를 기다리고 있습니다.',
   'task.start': '시작',
   'task.restart': '다시 시작',
+  'task.restart.nzbGone': '.nzb 파일이 없어져서 다시 받을 수 없습니다: {names}',
   'task.remove': '제거',
   'task.left': '남음',
   'task.file': '개 파일',

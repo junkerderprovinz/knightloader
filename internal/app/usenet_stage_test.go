@@ -156,3 +156,14 @@ func statusOf(a *App, id string) core.Status {
 	}
 	return ""
 }
+
+func TestARestartNamesTheFinishedFilesItCannotFetchAgain(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.mu.Lock()
+	a.tasks["ep"] = &core.Task{ID: "ep", URL: local.FileLink("0123456789abcdef", 0, "show.mkv"), Name: "show.mkv", Status: core.StatusDone, Enabled: true}
+	a.tasks["other"] = &core.Task{ID: "other", URL: local.FileLink("0123456789abcdef", 1, "show.nfo"), Name: "show.nfo", Status: core.StatusDone, Enabled: true}
+	a.mu.Unlock()
+	if left := a.RestartTasksIn([]string{"ep"}, nil); !slices.Equal(left, []string{"show.mkv"}) {
+		t.Errorf("the restart reports %q as left alone, want the one file asked for", left)
+	}
+}

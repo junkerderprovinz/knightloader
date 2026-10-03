@@ -4,18 +4,23 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/nntp/nntptest"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 	"github.com/junkerderprovinz/knightloader/internal/yenc"
 )
 
@@ -286,5 +291,40 @@ func TestAFileTheOwnServerFinishedStaysWhenTheJobGoesToTorBox(t *testing.T) {
 	}
 	if tasks := a.Tasks(); len(tasks) != 1 || tasks[0].Name != episode.name {
 		t.Fatalf("tasks = %d, want only the episode the own server finished", len(tasks))
+	}
+}
+
+func TestRestartSaysWhyAFinishedFileWhoseNZBIsGoneStays(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	st, err := store.Open(filepath.Join(dir, "knightloader.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Save(&core.Task{
+		ID: "ep", URL: local.FileLink("0123456789abcdef", 0, "show.mkv"), Name: "show.mkv",
+		Status: core.StatusDone, CreatedAt: time.Now(), Enabled: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Close(); err != nil {
+		t.Fatal(err)
+	}
+	a, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	srv := httptest.NewServer(Handler(a))
+	t.Cleanup(srv.Close)
+
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/restart", map[string]any{"ids": []string{"ep"}})
+	var refusal struct {
+		Code   string            `json:"code"`
+		Params map[string]string `json:"params"`
+	}
+	_ = json.Unmarshal(body, &refusal)
+	if code != http.StatusConflict || refusal.Code != "nzbGone" || refusal.Params["names"] != "show.mkv" {
+		t.Errorf("restart = %d %s, want a refusal that names show.mkv", code, body)
 	}
 }

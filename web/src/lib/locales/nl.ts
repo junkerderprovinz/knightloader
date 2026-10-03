@@ -40,6 +40,7 @@ export const nl: Dict = {
   'task.startSeedingAllNone': 'Elke torrent in deze kaart is al aan het seeden of wacht op seeden.',
   'task.start': 'Starten',
   'task.restart': 'Opnieuw starten',
+  'task.restart.nzbGone': 'Kan niet opnieuw worden gedownload, want de .nzb is weg: {names}',
   'task.remove': 'Verwijderen',
   'task.left': 'resterend',
   'task.file': 'bestand',

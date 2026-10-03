@@ -42,6 +42,7 @@ export const bg: Dict = {
   'task.startSeedingAllNone': 'Всеки торент в тази карта вече сийдва или чака да сийдва.',
   'task.start': 'Старт',
   'task.restart': 'Рестарт',
+  'task.restart.nzbGone': 'Не може да се изтегли отново, защото .nzb файлът вече го няма: {names}',
   'task.remove': 'Премахни',
   'task.left': 'остават',
   'task.file': 'файл',
