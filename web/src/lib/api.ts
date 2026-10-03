@@ -933,7 +933,8 @@ export interface ApiOptions {
   mediaHookMethods?: string[];
 }
 
-/** A container that was a plain link list: parsed here and staged like any paste. */
+/** A container the server opened itself, a link list, an RSDF or a CCF, with
+ *  its links staged like any paste. */
 export interface ContainerStaged {
   kind: string;
   links: number;
