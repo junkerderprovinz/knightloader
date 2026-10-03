@@ -75,3 +75,21 @@ func TestAFailedNZBIsListedWithTheLinksThatDidNotMakeIt(t *testing.T) {
 		return false
 	})
 }
+
+func TestAnNZBNameWithLineBreaksStaysOnOneLine(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.SetUsenetServices(&readyService{})
+	for _, n := range []NZB{
+		{Name: "inj\nFORGED LINE\r\nx"},
+		{Name: "Show", Package: "inj\nFORGED LINE"},
+	} {
+		n.Data, n.Origin = []byte(droppedNZB), OriginContainer
+		job, err := a.AddNZB(n)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.ContainsAny(job.Name+job.Package, "\r\n") {
+			t.Errorf("job named %q in package %q, want both on one line", job.Name, job.Package)
+		}
+	}
+}
