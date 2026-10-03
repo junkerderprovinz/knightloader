@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"testing"
 	"time"
@@ -143,6 +144,21 @@ func TestUnreachableServer(t *testing.T) {
 	}
 }
 
+func TestAnArticleWaitsWhenNoOptionalServerAnswers(t *testing.T) {
+	down := nntptest.New(t)
+	down.Close()
+	optional := serverOf(down, 0)
+	optional.Optional = true
+	c := nntp.NewClient([]nntp.Server{optional}, nil)
+	defer c.Close()
+	if _, err := fetch(t, c, "gone@test"); !errors.Is(err, nntp.ErrUnavailable) {
+		t.Fatalf("with no server answering, the article is held back, got %v", err)
+	}
+	if err := c.Stat(context.Background(), "gone@test"); !errors.Is(err, nntp.ErrUnavailable) {
+		t.Fatalf("Stat with no server answering = %v, want ErrUnavailable", err)
+	}
+}
+
 func TestDroppedConnectionIsReplaced(t *testing.T) {
 	s := nntptest.New(t)
 	s.AddPart("a@test", part(1))
@@ -198,6 +214,48 @@ func TestConnectionLimitHolds(t *testing.T) {
 	if s.MaxOpen() > 3 {
 		t.Fatalf("%d connections were open at once, the limit is 3", s.MaxOpen())
 	}
+}
+
+func TestAServerChangedMidDownloadKeepsItsConnectionLimit(t *testing.T) {
+	s := nntptest.New(t)
+	for i := range 40 {
+		s.AddPart(fmt.Sprintf("%d@test", i), part(1+i%10))
+	}
+	cfg := serverOf(s, 0)
+	c := nntp.NewClient([]nntp.Server{cfg}, slowCopy{})
+	defer c.Close()
+	var wg sync.WaitGroup
+	for i := range 40 {
+		if i == 20 {
+			for s.MaxOpen() < cfg.Connections {
+				time.Sleep(time.Millisecond)
+			}
+			// What the accounts page saves when only the retention changes.
+			cfg.RetentionDays = 3000
+			c.SetServers([]nntp.Server{cfg})
+		}
+		wg.Go(func() {
+			if _, err := fetch(t, c, fmt.Sprintf("%d@test", i)); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	if s.MaxOpen() > cfg.Connections {
+		t.Fatalf("%d connections were open at once, the limit is %d", s.MaxOpen(), cfg.Connections)
+	}
+}
+
+// slowCopy takes a while over every article, so fetches overlap.
+type slowCopy struct{}
+
+func (slowCopy) Copy(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
+	n, err := io.Copy(dst, src)
+	select {
+	case <-ctx.Done():
+	case <-time.After(20 * time.Millisecond):
+	}
+	return n, err
 }
 
 func TestRetentionSkipsOldArticles(t *testing.T) {

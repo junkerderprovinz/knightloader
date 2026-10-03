@@ -109,6 +109,16 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "torrent.bannedTrackers",
 		},
 		{
+			name:  "a Usenet server whose host carries a path",
+			patch: `{"usenetServers":[{"id":"main","host":"news.example.com/x@y","connections":4,"enabled":true}]}`,
+			field: "usenetServers.0",
+		},
+		{
+			name:  "a Usenet server whose host carries a line break",
+			patch: `{"usenetServers":[{"id":"main","host":"news.example.com","connections":4},{"id":"block","host":"a.exa\nmple","connections":4}]}`,
+			field: "usenetServers.1",
+		},
+		{
 			name:  "a value of the wrong type",
 			patch: `{"reconnect":[]}`,
 			field: "reconnect",

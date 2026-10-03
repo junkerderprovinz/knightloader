@@ -309,6 +309,13 @@ func validateRows(s settings.Settings, named func(key string) bool) error {
 			}
 		}
 	}
+	// The accounts page's own route checks these too; a settings patch or an
+	// import would otherwise store a host that only fails once it is dialled.
+	if sent("usenetServers") {
+		if err := s.ValidateUsenetServers(); err != nil {
+			return err
+		}
+	}
 	if sent("categories", "packagizer") {
 		if err := s.ValidateCategories(); err != nil {
 			return err

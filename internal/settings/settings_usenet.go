@@ -7,6 +7,7 @@ package settings
 import (
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 )
 
@@ -60,13 +61,39 @@ func UsenetServerID(raw string) string {
 	return id
 }
 
+// UsenetHost turns raw into a host to dial, or "" when it cannot be one: a
+// name of letters, digits and - _ . or an IP address, IPv6 with or without
+// its brackets.
+func UsenetHost(raw string) string {
+	host := strings.ToLower(strings.TrimSpace(raw))
+	if inner, ok := strings.CutPrefix(host, "["); ok {
+		host, ok = strings.CutSuffix(inner, "]")
+		if !ok || net.ParseIP(host) == nil {
+			return ""
+		}
+	}
+	if net.ParseIP(host) != nil {
+		return host
+	}
+	if host == "" || len(host) > 253 {
+		return ""
+	}
+	for _, r := range host {
+		ok := r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.'
+		if !ok {
+			return ""
+		}
+	}
+	return host
+}
+
 // Validate reports the first thing wrong with one row, in words meant for the
 // form.
 func (s UsenetServer) Validate() error {
 	switch {
 	case UsenetServerID(s.ID) == "":
 		return errors.New("id: letters, digits and - _ . only, at most 64 characters")
-	case s.Host == "" || strings.ContainsAny(s.Host, " /\\@:"):
+	case UsenetHost(s.Host) == "":
 		return errors.New("host: the server's name without a port or scheme, such as news.example.com")
 	case s.Port < 0 || s.Port > 65535:
 		return errors.New("port: 1 to 65535, or empty for the usual one")
@@ -105,7 +132,7 @@ func sanitizeUsenet(n Settings) Settings {
 	seen := map[string]bool{}
 	for _, srv := range n.UsenetServers {
 		srv.ID = UsenetServerID(srv.ID)
-		srv.Host = strings.ToLower(strings.TrimSpace(srv.Host))
+		srv.Host = UsenetHost(srv.Host)
 		if srv.ID == "" || srv.Host == "" || seen[srv.ID] || len(out) == MaxUsenetServers {
 			continue
 		}
