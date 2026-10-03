@@ -12,7 +12,7 @@
 // (internal/clipwatch), so switching a watch on somewhere can name the others.
 
 /** The web interface's rule (LOOKS_LIKE_A_LINK), kept alike by check-clipwatch.mjs. */
-const CLIP_LINK_RULE = /(^|\s)(https?:\/\/|magnet:\?|ftp:\/\/)\S+/i;
+const CLIP_LINK_RULE = /(^|\s)(https?:\/\/|magnet:\?|ftps?:\/\/|sftp:\/\/|webdavs?:\/\/)\S+/i;
 
 /** How often the clipboard is read, the web interface's interval. */
 const CLIP_POLL_MS = 1200;

@@ -34,11 +34,12 @@ const POLL_MS = 1200;
 const REFUSALS_BEFORE_GIVING_UP = 3;
 
 /** A link is one of these schemes and more, at the start of the text or after
- *  white space. Loose, since the server does the parsing, but it keeps every
+ *  white space: the web, magnets, and the own servers internal/resolver/remotefs
+ *  fetches from. Loose, since the server does the parsing, but it keeps every
  *  copied word from becoming a request. The browser extension's watch uses the
  *  same rule (extension/src/clipwatch.js), and extension/check-clipwatch.mjs
  *  keeps the two alike. */
-const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftp:\/\/)\S+/i;
+const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftps?:\/\/|sftp:\/\/|webdavs?:\/\/)\S+/i;
 
 /**
  * clipboardLinks returns the links of a copied text, which is all the watch
