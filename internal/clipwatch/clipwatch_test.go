@@ -3,6 +3,7 @@ package clipwatch
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -138,5 +139,39 @@ func TestAWatcherCannotNameTheInstanceItself(t *testing.T) {
 	_, _ = r.Renew(Watcher{ID: "a", Kind: KindWeb, Instance: "somewhere"}, t0)
 	if got := r.List(t0)[0].Instance; got != "" {
 		t.Fatalf("the registry kept instance %q from the watcher", got)
+	}
+}
+
+func TestAStopOutlivesARestartOfTheInstance(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "clipwatch.json")
+	w := Watcher{ID: "a", Kind: KindExtension}
+	r := Open(path, t0)
+	_, _ = r.Renew(w, t0)
+	if !r.Stop("a", t0) {
+		t.Fatal("Stop did not find the watcher it holds")
+	}
+
+	// The instance was down for longer than a lease, so the watcher could not
+	// renew in between.
+	back := t0.Add(10 * time.Minute)
+	restarted := Open(path, back)
+	if stop, _ := restarted.Renew(w, back.Add(time.Minute)); !stop {
+		t.Fatal("the first renewal after the restart did not learn of the stop")
+	}
+	if stop, _ := Open(path, back.Add(2*time.Minute)).Renew(w, back.Add(2*time.Minute)); stop {
+		t.Fatal("a stop the watcher already learnt came back after another restart")
+	}
+}
+
+func TestAKeptStopRunsOutALeaseAfterTheRestart(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "clipwatch.json")
+	w := Watcher{ID: "a", Kind: KindWeb}
+	r := Open(path, t0)
+	_, _ = r.Renew(w, t0)
+	r.Stop("a", t0)
+
+	back := t0.Add(time.Hour)
+	if stop, _ := Open(path, back).Renew(w, back.Add(Lease)); stop {
+		t.Fatal("a stop nobody came for in a whole lease after the restart still reached the watcher")
 	}
 }

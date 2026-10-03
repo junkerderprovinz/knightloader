@@ -425,7 +425,7 @@ func New(dataDir string) (*App, error) {
 		Registry:   resolver.NewRegistry(),
 		Settings:   cfg,
 		Federation: fed,
-		ClipWatch:  clipwatch.New(),
+		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
