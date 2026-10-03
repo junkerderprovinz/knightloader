@@ -465,7 +465,38 @@ func (a *App) analyze(id, rawurl string) {
 	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	if resp.ContentLength > 0 {
 		a.onUpdate(id, core.Update{Size: resp.ContentLength})
+		a.holdIfDownloaded(id)
 	}
+}
+
+// holdIfDownloaded asks the history again about a collected link whose size
+// was unknown at staging, which a mirror policy that compares sizes needs,
+// and moves the link to the rejected links when the history has the file.
+func (a *App) holdIfDownloaded(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Skipped || restoredLink(t) || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	cand := candidateOf(t)
+	a.mu.Unlock()
+
+	v := a.downloadedVerdict(cand)
+	if !v.Rejected {
+		return
+	}
+	a.mu.Lock()
+	t = a.tasks[id]
+	if t == nil || t.Skipped || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	t.Skipped = true
+	t.SkipReason, t.SkipCode, t.SkipParams = v.Reason, v.Code, v.Params
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
 }
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's title and

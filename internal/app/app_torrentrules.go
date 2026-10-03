@@ -120,7 +120,7 @@ func (a *App) TrackerListStatus() trackerlist.Status {
 // it.
 func trackerBan(t *core.Task, cfg settings.Torrent) rules.Verdict {
 	banned := cfg.BannedTrackers
-	if filterWaived(t) {
+	if restoredLink(t) {
 		banned = slices.DeleteFunc(slices.Clone(banned), func(line string) bool {
 			return slices.ContainsFunc(t.Trackers, func(tr string) bool {
 				host, hit := torrent.Banned([]string{tr}, []string{line})

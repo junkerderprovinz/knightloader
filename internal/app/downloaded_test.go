@@ -1,9 +1,12 @@
 package app
 
 import (
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -121,8 +124,78 @@ func TestRestoringALinkTheHistoryRejectedAddsItAnyway(t *testing.T) {
 	if restored.Skipped || restored.Status != core.StatusCollected {
 		t.Errorf("restored as skipped=%v status=%q, want it in the collector", restored.Skipped, restored.Status)
 	}
-	if !filterWaived(restored) {
-		t.Error("the restored link carries no waiver, so the queue could refuse it again")
+}
+
+// The restore overrules the history, which held the link, and not the filter,
+// which never refused it.
+func TestALinkRestoredFromTheHistoryStillMeetsTheFilterAtTheQueue(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://host.example/sample.mkv", "sample.mkv", 4096)
+	held := onlyTask(t, a.AddLinks([]string{"https://host.example/sample.mkv"}, ""))
+	s := a.Settings.Get()
+	s.LinkFilter = rejectRule("sample files are not wanted here")
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	restored := onlyTask(t, a.RestoreFiltered([]string{held.ID}))
+	a.StartTasks([]string{restored.ID})
+	a.mu.Lock()
+	live := *a.tasks[restored.ID]
+	a.mu.Unlock()
+	if live.Status != core.StatusError || !strings.Contains(live.Error, "sample files are not wanted here") {
+		t.Errorf("the queue took the link as %q (%s), want the filter rule to refuse it", live.Status, live.Error)
+	}
+}
+
+func TestAnUploadedTorrentFromTheHistoryIsRejected(t *testing.T) {
+	a := historyApp(t, nil)
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	downloadedBefore(t, a, "old", uri, "Pack", 900)
+
+	got, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got == nil || !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the torrent came back as %+v, want it rejected as downloaded", got)
+	}
+}
+
+// A plain file link names no size until the collector's HEAD answers, and the
+// mirror policy compares sizes.
+func TestAMirrorIsRejectedOnceTheProbeFindsItsSize(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4096)
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 4096
+		return resp, nil
+	})
+
+	const mirror = "https://two.example/film.mkv?ref=1"
+	got := onlyTask(t, a.AddLinks([]string{mirror}, ""))
+	a.analyze(got.ID, mirror)
+	a.mu.Lock()
+	live := *a.tasks[got.ID]
+	a.mu.Unlock()
+	if !live.Skipped || live.SkipCode != skipDownloaded {
+		t.Errorf("the mirror stayed (skipped=%v, code=%q, size=%d), want it rejected as downloaded",
+			live.Skipped, live.SkipCode, live.Size)
+	}
+}
+
+func TestPastingALinkTheHistoryRejectedAgainNamesTheHistory(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://host.example/film.mkv", "film.mkv", 4096)
+	onlyTask(t, a.AddLinks([]string{"https://host.example/film.mkv"}, ""))
+
+	if again := a.AddLinks([]string{"https://host.example/film.mkv"}, ""); len(again) != 0 {
+		t.Fatalf("the second paste staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	if len(skipped) != 1 || skipped[0].Reason != "the download history has already rejected this link" {
+		t.Errorf("the skipped links are %+v, want the second paste explained by the history", skipped)
 	}
 }
 

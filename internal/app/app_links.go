@@ -867,10 +867,16 @@ func (a *App) filter(cand rules.Candidate) rules.Verdict {
 	return f.Check(cand)
 }
 
-// filterWaived reports a link the user restored against the filter: not held,
-// but still carrying the reason it was held for. The queue skips its
-// final filter check for such links.
-func filterWaived(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
+// restoredLink reports a link the user set free from the holding area: not
+// held, but still carrying the reason it was held for.
+func restoredLink(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
+
+// filterWaived reports a restored link the filter had held. The queue skips
+// its final filter check for such links. A link held for the history or a
+// banned tracker had passed the filter, so the filter still has its say.
+func filterWaived(t *core.Task) bool {
+	return restoredLink(t) && t.SkipCode != skipDownloaded && t.SkipCode != skipBannedTracker
+}
 
 // packagize applies the Packagizer's answer to a task before it is staged.
 // Only fields a rule set are applied. The rename action is not, since backends
@@ -1068,16 +1074,19 @@ func (a *App) ClearFiltered(ids []string) []string {
 	return a.RemoveTasks(doomed, false)
 }
 
-// heldLink reports whether a task id belongs to a held link. Caller must not
-// hold mu.
-func (a *App) heldLink(id string) bool {
+// heldLink reports whether a task id belongs to a held link, and the code it
+// was held with. Caller must not hold mu.
+func (a *App) heldLink(id string) (code string, held bool) {
 	if id == "" {
-		return false
+		return "", false
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	t := a.tasks[id]
-	return t != nil && t.Skipped
+	if t == nil || !t.Skipped {
+		return "", false
+	}
+	return t.SkipCode, true
 }
 
 // SkippedLink is a link or file that never became a task, kept so the
@@ -1145,7 +1154,13 @@ func (a *App) skipReason(m dedupe.Match) string {
 	if m.Verdict == dedupe.Duplicate {
 		// Rejected links sit apart from the collector's list, so say where the
 		// copy is.
-		if a.heldLink(m.Of.ID) {
+		if code, held := a.heldLink(m.Of.ID); held {
+			switch code {
+			case skipDownloaded:
+				return "the download history has already rejected this link"
+			case skipBannedTracker:
+				return "the banned trackers list has already rejected this torrent"
+			}
 			return "the link filter has already rejected this link"
 		}
 		return "the same link is already in the list"
