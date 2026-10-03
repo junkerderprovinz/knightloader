@@ -499,6 +499,9 @@ export interface Settings {
   /** Releases that parked sibling when the download it copies has finished
    *  failing. Does nothing without keepMirrors. */
   mirrorFailover: boolean;
+  /** Rejects a new link the download history already has: the same URL, or the
+   *  same file under mirrorPolicy. A restore adds it anyway. */
+  rejectDownloaded: boolean;
   /** How much the "already on the disk" pass trusts a file it did not see
    *  arrive: "checksum" | "record" | "size". */
   reclaimTrust: string;

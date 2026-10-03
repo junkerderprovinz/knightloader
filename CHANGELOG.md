@@ -37,6 +37,18 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **The duplicate check knows the download history.** A link this instance
+  has already downloaded, whether the same URL or the same file under the
+  mirror policy, goes to the rejected links with the name and date of that
+  download, so a feed or a second paste no longer fetches a file twice.
+  Restore adds it anyway. The check is on by default and has a switch under
+  Settings > Link collector > Copies of the same file. A magnet is recognised
+  by its info hash, whatever name and trackers it carries, and a link
+  restored past the filter or a banned tracker is still checked against the
+  history.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

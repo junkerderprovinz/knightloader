@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/url"
 	"path"
 	"sort"
@@ -95,6 +96,12 @@ type intake struct {
 	// user's accounts, the import from an account and the Usenet queue. Every
 	// other entrance is refused such a link (see jobLink).
 	jobLinks bool
+
+	// sizeProbes runs the probes of a batch's links whose size alone decides
+	// whether the history has them. The batch waits for the group before it
+	// answers, and the probes run side by side, so a slow host costs the
+	// answer one probe rather than one per link. Nil runs them in place.
+	sizeProbes *sync.WaitGroup
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -139,6 +146,8 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, in intake) []*core.T
 func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Task {
 	var created []*core.Task
 	var verdicts []verdict
+	var probes sync.WaitGroup
+	in.sizeProbes = &probes
 	seen := map[string]bool{}
 	b := &bucket{}
 	for _, l := range links {
@@ -164,6 +173,7 @@ func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Tas
 			created = append(created, t)
 		}
 	}
+	probes.Wait()
 	if strings.TrimSpace(in.pkg) == "" {
 		a.nameBucket(b)
 	}
@@ -191,6 +201,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 	// links are named after that page.
 	var buckets []*bucket
 	loose := &bucket{}
+	var probes sync.WaitGroup
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
 		if u == "" || seen[u] {
@@ -228,6 +239,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				if t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
+					sizeProbes: &probes,
 				}); t != nil {
 					b.tasks = append(b.tasks, t)
 					created = append(created, t)
@@ -239,11 +251,13 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, "", 0, intake{
 			pkg: pkg, origin: origin,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
+			sizeProbes: &probes,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
 		}
 	}
+	probes.Wait()
 
 	buckets = append(buckets, loose)
 
@@ -679,6 +693,11 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		a.recordSkipped(u, m)
 		return nil
 	}
+	// After the list, so a link that is in both is noted once, as a copy of the
+	// row the user can see.
+	if v := a.downloadedVerdict(cand); v.Rejected {
+		return a.hold(cand, v, in, now, nil)
+	}
 
 	t := &core.Task{
 		URL:     u,
@@ -771,11 +790,25 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 			return a.hold(cand, v, in, now, nil)
 		}
 	}
+	// Again with the resolved name and size, which the mirror policy may need.
+	if v := a.downloadedVerdict(cand); v.Rejected {
+		return a.hold(cand, v, in, now, nil)
+	}
 	staged := a.finishStaging(t, cand)
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
-		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
+		probe := func() { a.analyze(t.ID, result.DirectURL) }
+		switch {
+		case !a.historyNeedsSize(cand):
+			a.spawn(probe)
+		case in.sizeProbes != nil:
+			// Waited for, so the answer to whoever sent the link already says
+			// whether the history has it rather than changing a moment later.
+			in.sizeProbes.Go(probe)
+		default:
+			probe()
+		}
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
 		// exist as soon as the link appears.
@@ -858,10 +891,50 @@ func (a *App) filter(cand rules.Candidate) rules.Verdict {
 	return f.Check(cand)
 }
 
-// filterWaived reports a link the user restored against the filter: not held,
-// but still carrying the reason it was held for. The queue skips its
-// final filter check for such links.
-func filterWaived(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
+// restoredLink reports a link the user set free from the holding area: not
+// held, but still carrying the reason it was held for.
+func restoredLink(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
+
+// filterWaived reports a restored link the filter had held. The queue skips
+// its final filter check for such links. A link held for the history or a
+// banned tracker had passed the filter, so the filter still has its say,
+// unless the history held it only after the user restored it past the filter.
+func filterWaived(t *core.Task) bool {
+	return restoredLink(t) && (heldByFilter(t) || t.SkipParams[waivedFilterParam] != "")
+}
+
+// heldByFilter reports whether the hold a link carries is the filter's.
+func heldByFilter(t *core.Task) bool {
+	return t.SkipCode != skipDownloaded && t.SkipCode != skipBannedTracker
+}
+
+// waivedFilterParam marks the history's hold of a link the user had already
+// restored past the filter, so that one restore from it waives both.
+const waivedFilterParam = "filterWaived"
+
+// waivedTrackerParam carries the banned tracker host a link was restored past
+// onto the history's hold of it, as waivedFilterParam carries the filter's
+// waiver.
+const waivedTrackerParam = "trackerWaived"
+
+// holdForHistoryLocked moves a link the history has to the rejected links. A
+// link held by, or restored past, the filter or a banned tracker takes that
+// waiver along. Caller holds a.mu.
+func holdForHistoryLocked(t *core.Task, v rules.Verdict) {
+	params := maps.Clone(v.Params)
+	if t.SkipReason != "" {
+		if params == nil {
+			params = map[string]string{}
+		}
+		if t.SkipCode == skipBannedTracker {
+			params[waivedTrackerParam] = t.SkipParams["host"]
+		} else {
+			params[waivedFilterParam] = "true"
+		}
+	}
+	t.Skipped = true
+	t.SkipReason, t.SkipCode, t.SkipParams = v.Reason, v.Code, params
+}
 
 // packagize applies the Packagizer's answer to a task before it is staged.
 // Only fields a rule set are applied. The rename action is not, since backends
@@ -911,10 +984,10 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	t.MatchedRules = e.Matched
 }
 
-// hold parks a link the filter refused in the holding area. It is a real task,
-// so it survives a restart and can be restored, but Skipped keeps it out of the
-// collector, the queue and the counters. Nothing is resolved, so a refused host
-// is never contacted.
+// hold parks a link the filter refused, or the download history already has,
+// in the holding area. It is a real task, so it survives a restart and can be
+// restored, but Skipped keeps it out of the collector, the queue and the
+// counters. Nothing is resolved, so a refused host is never contacted.
 //
 // A torrent is read from its own link, which asks nobody. It keeps its
 // trackers, so a tracker banned after a restore still stops it, and files, the
@@ -1002,7 +1075,9 @@ func (a *App) FilteredLinks() []*core.Task {
 
 // RestoreFiltered moves held links back into the collector with the filter
 // waived for them; an empty id list restores all. Without the waiver the
-// queue's final filter check would refuse the link again.
+// queue's final filter check would refuse the link again. A link the filter or
+// a banned tracker held may never have met the history, so it does now, and
+// one the history has stays held, now for that reason.
 func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -1011,13 +1086,39 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	all := len(ids) == 0
 
 	a.mu.Lock()
-	var freed []taskCopy
+	var picked []string
+	pending := map[string]rules.Candidate{}
 	for id, t := range a.tasks {
 		if !t.Skipped || !(all || want[id]) {
 			continue
 		}
-		t.Skipped = false
-		// SkipReason stays as the record of the waiver.
+		picked = append(picked, id)
+		if t.SkipCode != skipDownloaded {
+			pending[id] = candidateOf(t)
+		}
+	}
+	a.mu.Unlock()
+	// Asked outside the lock, since the history may have to be read from disk.
+	verdicts := map[string]rules.Verdict{}
+	for id, cand := range pending {
+		if v := a.downloadedVerdict(cand); v.Rejected {
+			verdicts[id] = v
+		}
+	}
+
+	a.mu.Lock()
+	var freed []taskCopy
+	for _, id := range picked {
+		t := a.tasks[id]
+		if t == nil || !t.Skipped {
+			continue
+		}
+		if v, ok := verdicts[id]; ok && t.SkipCode != skipDownloaded {
+			holdForHistoryLocked(t, v)
+		} else {
+			t.Skipped = false
+			// SkipReason stays as the record of the waiver.
+		}
 		freed = append(freed, a.copyLocked(t))
 	}
 	a.mu.Unlock()
@@ -1029,7 +1130,9 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 		c := &freed[i]
 		a.publish(c)
 		out = append(out, &c.Task)
-		restored = append(restored, c.ID)
+		if !c.Skipped {
+			restored = append(restored, c.ID)
+		}
 	}
 	// Held links were never resolved, so recheck them in the background.
 	if len(restored) > 0 {
@@ -1059,16 +1162,19 @@ func (a *App) ClearFiltered(ids []string) []string {
 	return a.RemoveTasks(doomed, false)
 }
 
-// heldLink reports whether a task id belongs to a held link. Caller must not
-// hold mu.
-func (a *App) heldLink(id string) bool {
+// heldLink reports whether a task id belongs to a held link, and the code it
+// was held with. Caller must not hold mu.
+func (a *App) heldLink(id string) (code string, held bool) {
 	if id == "" {
-		return false
+		return "", false
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	t := a.tasks[id]
-	return t != nil && t.Skipped
+	if t == nil || !t.Skipped {
+		return "", false
+	}
+	return t.SkipCode, true
 }
 
 // SkippedLink is a link or file that never became a task, kept so the
@@ -1136,8 +1242,19 @@ func (a *App) skipReason(m dedupe.Match) string {
 	if m.Verdict == dedupe.Duplicate {
 		// Rejected links sit apart from the collector's list, so say where the
 		// copy is.
-		if a.heldLink(m.Of.ID) {
+		if code, held := a.heldLink(m.Of.ID); held {
+			switch code {
+			case skipDownloaded:
+				return "the download history has already rejected this link"
+			case skipBannedTracker:
+				return "the banned trackers list has already rejected this torrent"
+			}
 			return "the link filter has already rejected this link"
+		}
+		if torrent.IsMagnet(m.Of.URL) {
+			// Known by the info hash alone, so the two links may differ in name
+			// and trackers.
+			return "a magnet with the same info hash is already in the list"
 		}
 		return "the same link is already in the list"
 	}

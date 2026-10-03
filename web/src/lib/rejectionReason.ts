@@ -1,6 +1,8 @@
-// Why the link filter or the tracker ban rejected a link, as the upload line,
-// the rejected links, the task detail and the filter's dry run word it.
+// Why the link filter, the tracker ban or the download history rejected a link,
+// as the upload line, the rejected links, the task detail and the filter's dry
+// run word it.
 
+import { fmtDate } from './format';
 import type { TranslationKey } from './i18n';
 
 /** The codes internal/rules and internal/app send with a rejection's reason. */
@@ -8,6 +10,7 @@ const KEYS: Record<string, TranslationKey> = {
   bannedTracker: 'collector.filtered.reason.bannedTracker',
   filterRule: 'collector.filtered.reason.filterRule',
   filterRuleReason: 'collector.filtered.reason.filterRuleReason',
+  downloaded: 'collector.filtered.reason.downloaded',
 };
 
 /**
@@ -22,5 +25,8 @@ export function rejectionReason(
   english: string | undefined,
 ): string {
   const key = code ? KEYS[code] : undefined;
-  return key ? t(key, params) : (english ?? '');
+  if (!key) return english ?? '';
+  // The server sends the finish time as a timestamp, for the reader's own date format.
+  const vars = params?.finished ? { ...params, finished: fmtDate(params.finished) } : params;
+  return t(key, vars);
 }

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 
+import { fmtDate } from './format';
 import { interpolate } from './interpolate';
 import type { TranslationKey } from './i18n';
 import { de } from './locales/de';
@@ -24,6 +25,14 @@ describe('rejectionReason', () => {
     expect(rejectionReason(german, 'filterRuleReason', { reason: 'zu groß', rule: 'Grenze' }, own)).toBe(
       'zu groß (Linkfilter-Regel „Grenze“)',
     );
+  });
+
+  it('names the earlier download and dates it in the reader’s format', () => {
+    const finished = '2026-09-14T18:30:00+02:00';
+    const english = 'already downloaded as "film.mkv" on 2026-09-14';
+    const got = rejectionReason(german, 'downloaded', { name: 'film.mkv', finished }, english);
+    expect(got).toBe(`schon als „film.mkv“ am ${fmtDate(finished)} heruntergeladen`);
+    expect(got).not.toContain(finished);
   });
 
   it('keeps the server’s sentence for a code it has no words for, or none', () => {
