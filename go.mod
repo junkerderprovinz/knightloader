@@ -174,4 +174,4 @@ require (
 // DHT and PEX be switched off, fixes a panic when the torrent client is closed
 // right after it was built, and reads a file of a running task:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261002214342-2f11d03c1810
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003030621-dab1d998c178
