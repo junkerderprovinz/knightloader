@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -19,6 +20,8 @@ import (
 type Store struct {
 	db   *sql.DB
 	path string
+	// historyRev counts the writes to the history (see HistoryRevision).
+	historyRev atomic.Uint64
 }
 
 // migrations run in order, exactly once each. The database records how far it
