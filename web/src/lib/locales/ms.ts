@@ -42,6 +42,7 @@ export const ms: Dict = {
   'task.startSeedingAllNone': 'Semua torrent dalam kad ini sudah melakukan seed atau menunggu untuk seed.',
   'task.start': 'Mula',
   'task.restart': 'Mula semula',
+  'task.restart.nzbGone': 'Tidak boleh dimuat turun semula kerana .nzb sudah tiada: {names}',
   'task.remove': 'Buang',
   'task.left': 'lagi',
   'task.file': 'fail',

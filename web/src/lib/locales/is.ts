@@ -42,6 +42,7 @@ export const is: Dict = {
   'task.startSeedingAllNone': 'Allir torrentar á þessu spjaldi sá nú þegar eða bíða eftir að sá.',
   'task.start': 'Ræsa',
   'task.restart': 'Endurræsa',
+  'task.restart.nzbGone': 'Ekki hægt að sækja aftur því .nzb-skráin er horfin: {names}',
   'task.remove': 'Fjarlægja',
   'task.left': 'eftir',
   'task.file': 'skrá',

@@ -40,6 +40,7 @@ export const pt: Dict = {
   'task.startSeedingAllNone': 'Todos os torrents deste cartão já estão a fazer seed ou à espera de o fazer.',
   'task.start': 'Iniciar',
   'task.restart': 'Reiniciar',
+  'task.restart.nzbGone': 'Não é possível transferir de novo porque o .nzb já não existe: {names}',
   'task.remove': 'Remover',
   'task.left': 'em falta',
   'task.file': 'ficheiro',

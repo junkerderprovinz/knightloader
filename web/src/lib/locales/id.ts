@@ -42,6 +42,7 @@ export const id: Dict = {
   'task.startSeedingAllNone': 'Semua torrent di kartu ini sudah melakukan seed atau menunggu untuk seed.',
   'task.start': 'Mulai',
   'task.restart': 'Mulai ulang',
+  'task.restart.nzbGone': 'Tidak bisa diunduh lagi karena .nzb-nya sudah tidak ada: {names}',
   'task.remove': 'Hapus',
   'task.left': 'tersisa',
   'task.file': 'file',

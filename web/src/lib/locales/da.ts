@@ -42,6 +42,7 @@ export const da: Dict = {
   'task.startSeedingAllNone': 'Alle torrents i dette kort seeder allerede eller venter på at seede.',
   'task.start': 'Start',
   'task.restart': 'Start forfra',
+  'task.restart.nzbGone': 'Kan ikke hentes igen, fordi .nzb-filen er væk: {names}',
   'task.remove': 'Fjern',
   'task.left': 'tilbage',
   'task.file': 'fil',

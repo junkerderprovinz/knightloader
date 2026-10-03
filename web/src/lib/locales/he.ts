@@ -44,6 +44,7 @@ export const he: Dict = {
   'task.startSeedingAllNone': 'כל הטורנטים בכרטיס הזה כבר בהזרעה או ממתינים להזרעה.',
   'task.start': 'התחל',
   'task.restart': 'התחל מחדש',
+  'task.restart.nzbGone': 'אי אפשר להוריד שוב כי קובץ ה-.nzb כבר איננו: {names}',
   'task.remove': 'הסר',
   'task.left': 'נותרו',
   'task.file': 'קובץ',

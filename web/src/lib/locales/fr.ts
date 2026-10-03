@@ -40,6 +40,7 @@ export const fr: Dict = {
   'task.startSeedingAllNone': 'Tous les torrents de cette carte sont déjà en partage ou en attente de partage.',
   'task.start': 'Démarrer',
   'task.restart': 'Relancer',
+  'task.restart.nzbGone': 'Impossible de retélécharger, le .nzb n’est plus là : {names}',
   'task.remove': 'Supprimer',
   'task.left': 'restant',
   'task.file': 'fichier',

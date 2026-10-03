@@ -42,6 +42,7 @@ export const ja: Dict = {
   'task.startSeedingAllNone': 'このカードのトレントはすべてシード中かシード待ちです。',
   'task.start': '開始',
   'task.restart': 'やり直す',
+  'task.restart.nzbGone': '.nzb がもうないため、再ダウンロードできません: {names}',
   'task.remove': '削除',
   'task.left': '残り',
   'task.file': 'ファイル',

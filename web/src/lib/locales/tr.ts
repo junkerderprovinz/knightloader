@@ -42,6 +42,7 @@ export const tr: Dict = {
   'task.startSeedingAllNone': 'Bu karttaki tüm torrentler zaten seed ediliyor ya da seed edilmeyi bekliyor.',
   'task.start': 'Başlat',
   'task.restart': 'Yeniden başlat',
+  'task.restart.nzbGone': '.nzb artık olmadığı için yeniden indirilemiyor: {names}',
   'task.remove': 'Kaldır',
   'task.left': 'kaldı',
   'task.file': 'dosya',

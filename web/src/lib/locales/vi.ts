@@ -42,6 +42,7 @@ export const vi: Dict = {
   'task.startSeedingAllNone': 'Mọi torrent trong thẻ này đều đang seed hoặc đang chờ seed rồi.',
   'task.start': 'Bắt đầu',
   'task.restart': 'Chạy lại',
+  'task.restart.nzbGone': 'Không thể tải lại vì tệp .nzb không còn nữa: {names}',
   'task.remove': 'Gỡ bỏ',
   'task.left': 'còn lại',
   'task.file': 'tệp',

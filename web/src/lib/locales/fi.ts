@@ -42,6 +42,7 @@ export const fi: Dict = {
   'task.startSeedingAllNone': 'Tämän kortin jokainen torrent jakaa jo tai odottaa jakamista.',
   'task.start': 'Aloita',
   'task.restart': 'Aloita alusta',
+  'task.restart.nzbGone': 'Ei voi ladata uudelleen, koska .nzb-tiedosto on poissa: {names}',
   'task.remove': 'Poista',
   'task.left': 'jäljellä',
   'task.file': 'tiedosto',

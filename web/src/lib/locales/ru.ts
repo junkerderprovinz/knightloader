@@ -40,6 +40,7 @@ export const ru: Dict = {
   'task.startSeedingAllNone': 'Все торренты в этой карточке уже раздаются или ждут раздачи.',
   'task.start': 'Запустить',
   'task.restart': 'Перезапустить',
+  'task.restart.nzbGone': 'Нельзя скачать заново, потому что файла .nzb больше нет: {names}',
   'task.remove': 'Удалить',
   'task.left': 'осталось',
   'task.file': 'файл',

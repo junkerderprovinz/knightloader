@@ -42,6 +42,7 @@ export const th: Dict = {
   'task.startSeedingAllNone': 'ทอร์เรนต์ทุกรายการในการ์ดนี้กำลังซีดหรือรอซีดอยู่แล้ว',
   'task.start': 'เริ่ม',
   'task.restart': 'เริ่มใหม่',
+  'task.restart.nzbGone': 'ดาวน์โหลดใหม่ไม่ได้ เพราะไฟล์ .nzb ไม่มีแล้ว: {names}',
   'task.remove': 'นำออก',
   'task.left': 'เหลือ',
   'task.file': 'ไฟล์',

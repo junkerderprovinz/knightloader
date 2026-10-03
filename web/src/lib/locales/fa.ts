@@ -42,6 +42,7 @@ export const fa: Dict = {
   'task.startSeedingAllNone': 'همهٔ تورنت‌های این کارت از قبل در حال سید یا در انتظار سید هستند.',
   'task.start': 'شروع',
   'task.restart': 'شروع دوباره',
+  'task.restart.nzbGone': 'دوباره دانلود نمی‌شود، چون فایل .nzb دیگر نیست: {names}',
   'task.remove': 'حذف',
   'task.left': 'مانده',
   'task.file': 'فایل',

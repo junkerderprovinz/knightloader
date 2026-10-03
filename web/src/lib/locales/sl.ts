@@ -42,6 +42,7 @@ export const sl: Dict = {
   'task.startSeedingAllNone': 'Vsak torrent na tej kartici že seje ali čaka na sejanje.',
   'task.start': 'Zaženi',
   'task.restart': 'Zaženi znova',
+  'task.restart.nzbGone': 'Ni mogoče znova prenesti, ker datoteke .nzb ni več: {names}',
   'task.remove': 'Odstrani',
   'task.left': 'še',
   'task.file': 'datoteka',

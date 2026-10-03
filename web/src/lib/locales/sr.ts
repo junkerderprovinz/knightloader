@@ -42,6 +42,7 @@ export const sr: Dict = {
   'task.startSeedingAllNone': 'Сваки торент у овој картици већ сидује или чека сидовање.',
   'task.start': 'Покрени',
   'task.restart': 'Поново покрени',
+  'task.restart.nzbGone': 'Не може поново да се преузме јер .nzb више не постоји: {names}',
   'task.remove': 'Уклони',
   'task.left': 'преостало',
   'task.file': 'датотека',

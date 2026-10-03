@@ -45,6 +45,7 @@ export const de: Dict = {
   'task.startSeedingAllNone': 'Jeder Torrent in dieser Karte seedet schon oder wartet aufs Seeden.',
   'task.start': 'Starten',
   'task.restart': 'Neu starten',
+  'task.restart.nzbGone': 'Lässt sich nicht neu laden, weil die .nzb weg ist: {names}',
   'task.remove': 'Entfernen',
   'task.left': 'übrig',
   'task.file': 'Datei',

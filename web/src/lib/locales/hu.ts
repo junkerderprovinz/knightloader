@@ -42,6 +42,7 @@ export const hu: Dict = {
   'task.startSeedingAllNone': 'A kártya minden torrentje már seedel vagy seedelésre vár.',
   'task.start': 'Indítás',
   'task.restart': 'Újraindítás',
+  'task.restart.nzbGone': 'Nem tölthető le újra, mert a .nzb már nincs meg: {names}',
   'task.remove': 'Eltávolítás',
   'task.left': 'van hátra',
   'task.file': 'fájl',

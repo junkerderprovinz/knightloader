@@ -42,6 +42,7 @@ export const hr: Dict = {
   'task.startSeedingAllNone': 'Svaki torrent u ovoj kartici već seeda ili čeka seedanje.',
   'task.start': 'Pokreni',
   'task.restart': 'Pokreni ponovno',
+  'task.restart.nzbGone': 'Ne može se ponovno preuzeti jer .nzb više ne postoji: {names}',
   'task.remove': 'Ukloni',
   'task.left': 'preostalo',
   'task.file': 'datoteka',

@@ -42,6 +42,7 @@ export const et: Dict = {
   'task.startSeedingAllNone': 'Kõik selle kaardi torrentid juba levitavad või ootavad levitamist.',
   'task.start': 'Käivita',
   'task.restart': 'Alusta uuesti',
+  'task.restart.nzbGone': 'Uuesti alla laadida ei saa, sest .nzb-faili enam pole: {names}',
   'task.remove': 'Eemalda',
   'task.left': 'jäänud',
   'task.file': 'fail',
