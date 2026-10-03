@@ -1285,6 +1285,9 @@ export const fi: Dict = {
   'settings.captcha.moveDown': 'Siirrä alas',
   'settings.captcha.set': 'Avain asetettu',
   'settings.captcha.notSet': 'Avainta ei ole asetettu',
+  'settings.captcha.off': 'Pois päältä',
+  'settings.captcha.offHint':
+    'Avain on asetettu, mutta tili on Tilit-sivulla pois päältä, joten se ei saa yhtään captchaa, ei edes testicaptchaa.',
   'settings.captcha.keys': 'Avaimet kohdassa Tilit',
   'collector.options': 'Valinnat',
   'collector.destination': 'Kohdekansio',
@@ -3046,10 +3049,29 @@ export const fi: Dict = {
   'captcha.solverStopped': 'Yksikään captcha-tili ei voinut ottaa tätä captchaa.',
   'captcha.solverUnsupported': '{solver} ei ratkaise tämäntyyppisiä captchoja.',
   'captcha.solverRefused': '{solver} kieltäytyi: {reason}',
+  'captcha.testFor':
+    'KnightLoaderin testi-captcha. Mikään lataus ei odota sitä. Kirjoita viisi merkkiä, niin näet, onko vastauksesi oikein.',
+  'captcha.testRight': 'Oikein. Testi-captchassa luki {want}.',
+  'captcha.testWrong': 'Väärin. Testi-captchassa luki {want}, ei {given}.',
+  'captcha.testSolverRight': '{solver} ratkaisi testi-captchan: {want}.',
+  'captcha.testSolverWrong': '{solver} vastasi testi-captchaan väärin: siinä luki {want}, ei {given}.',
   'settings.captcha.whenTitle': 'Milloin captcha-tilit aloittavat',
   'settings.captcha.onlyUnwatched': 'Vain kun kukaan ei seuraa',
   'settings.captcha.wait': 'Odota vastausta (sekuntia)',
   'settings.captcha.waitHint': 'Kuinka kauan captcha-tilit odottavat, kun joku seuraa, ennen kuin ottavat captchan silti hoitaakseen. Ne eivät koskaan odota yli puolta captchan jäljellä olevasta ajasta, jotta captcha-tili ehtii vielä vastata siihen. 10:stä 600 sekuntiin.',
+  'settings.captcha.testTitle': 'Testi-captcha',
+  'settings.captcha.test': 'Lähetä testi-captcha',
+  'settings.captcha.testHint':
+    'Lähettää captchan, jonka KnightLoader piirtää itse. Se tulee captcha-ikkunaan, puhelinsovellukseen ja tapahtumakohteisiisi kuten palveluntarjoajan captcha, ja kun siihen on vastattu, näet, oliko vastaus oikein. Mikään lataus ei odota sitä, eikä se mene captcha-tileillesi.',
+  'settings.captcha.testSolvers': 'Lähetä myös captcha-tileille',
+  'settings.captcha.testSolversHint':
+    'Lähettää saman testi-captchan myös captcha-tileillesi, yllä olevassa järjestyksessä, jotta näet, vastaavatko ne ja oikein. Ne veloittavat siitä kuten mistä tahansa captchasta. Kun ”Vain kun kukaan ei seuraa” on päällä, ne odottavat ensin sinua: vaihda toiseen välilehteen tai anna odotusajan kulua loppuun.',
+  'settings.captcha.testOff':
+    'Captchat on kytketty pois. Kytke Captcha-moduuli takaisin päälle lähettääksesi testi-captchan.',
+  'settings.captcha.testJDOff':
+    'Captchat tulevat JDownloader-taustaosan kautta, ja se on kytketty pois. Kytke se takaisin päälle lähettääksesi testi-captchan.',
+  'settings.captcha.testNoAccount':
+    'Mikään captcha-tileistäsi ei voi ottaa sitä vastaan. Kytke yksi päälle yllä ja tarkista Tilit-sivulta, että sillä on avain ja että se on päällä.',
   'captcha.solverStoppedTaken': '{solver} otti tämän captchan, mutta ei lähettänyt vastausta.',
   'captcha.solverNotPassedOn': '{solver} saattaa laskuttaa siitä silti, joten KnightLoader ei lähetä sitä lisäksi toiselle captcha-tilille. Voit silti vastata siihen itse.',
   'captcha.solverNoAnswer': '{solver} otti sen, mutta vastausta ei tullut.',

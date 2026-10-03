@@ -1285,6 +1285,9 @@ export const sr: Dict = {
   'settings.captcha.moveDown': 'Помери доле',
   'settings.captcha.set': 'Кључ постављен',
   'settings.captcha.notSet': 'Кључ није постављен',
+  'settings.captcha.off': 'Искључен',
+  'settings.captcha.offHint':
+    'Кључ је постављен, али је налог искључен на страници Налози, па не добија ниједну captchu, чак ни пробну.',
   'settings.captcha.keys': 'Кључеви у Налозима',
   'collector.options': 'Опције',
   'collector.destination': 'Одредишна фасцикла',
@@ -3059,10 +3062,28 @@ export const sr: Dict = {
   'captcha.solverStopped': 'Ниједан captcha налог није могао да преузме ову captcha.',
   'captcha.solverUnsupported': '{solver} не решава ову врсту captcha.',
   'captcha.solverRefused': '{solver} је одбио: {reason}',
+  'captcha.testFor':
+    'Пробна captcha од KnightLoader-а. Ниједно преузимање је не чека. Укуцај пет знакова и видећеш да ли је твој одговор тачан.',
+  'captcha.testRight': 'Тачно. У пробној captcha је писало {want}.',
+  'captcha.testWrong': 'Нетачно. У пробној captcha је писало {want}, а не {given}.',
+  'captcha.testSolverRight': '{solver} је решио пробну captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} је погрешио пробну captcha: писало је {want}, а не {given}.',
   'settings.captcha.whenTitle': 'Када почињу captcha налози',
   'settings.captcha.onlyUnwatched': 'Само када нико не гледа',
   'settings.captcha.wait': 'Чекај одговор (секунде)',
   'settings.captcha.waitHint': 'Колико дуго captcha налози чекају док неко гледа пре него што ипак преузму. Никада не чекају дуже од половине времена које је captcha преостало, како би captcha налог још стигао да одговори. Од 10 до 600 секунди.',
+  'settings.captcha.testTitle': 'Пробна captcha',
+  'settings.captcha.test': 'Пошаљи пробну captcha',
+  'settings.captcha.testHint':
+    'Шаље captcha коју KnightLoader сам нацрта. Појављује се у прозору за captcha, у мобилној апликацији и код твојих одредишта догађаја као captcha са хостинга, а чим неко одговори, видиш да ли је одговор био тачан. Ниједно преузимање је не чека и не иде твојим captcha налозима.',
+  'settings.captcha.testSolvers': 'Пошаљи је и captcha налозима',
+  'settings.captcha.testSolversHint':
+    'Шаље исту пробну captcha и твојим captcha налозима, редоследом одозго, да видиш да ли одговарају и да ли тачно. Наплаћују је као сваку другу captcha. Кад је укључено „Само када нико не гледа“, прво чекају тебе: пређи на другу картицу или пусти да време чекања истекне.',
+  'settings.captcha.testOff': 'Captcha је искључена. Поново укључи модул Captcha да пошаљеш пробну captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha стиже преко позадине JDownloader, а она је искључена. Поново је укључи да пошаљеш пробну captcha.',
+  'settings.captcha.testNoAccount':
+    'Ниједан твој captcha налог не може да је преузме. Укључи један горе и на страници Налози провери да има кључ и да је укључен.',
   'captcha.solverStoppedTaken': '{solver} је преузео ову captcha, али није послао одговор.',
   'captcha.solverNotPassedOn': '{solver} је можда ипак наплати, зато је KnightLoader не шаље још и другом captcha налогу. И даље можеш сам да одговориш.',
   'captcha.solverNoAnswer': '{solver} ју је преузео, али одговор није стигао.',

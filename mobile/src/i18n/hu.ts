@@ -90,6 +90,10 @@ export const hu: Dict = {
   'captcha.blockHoster': 'Ebben a munkamenetben {host} esetén se kérdezz többé',
   'captcha.blockEverywhere': 'Ebben a munkamenetben egyik hoster esetén se kérdezz többé',
   'captcha.tooLate': 'Ez a válasz túl későn érkezett.',
+  'captcha.testFor':
+    'Próba-captcha a KnightLoadertől. Egy letöltés sem vár rá. Írd be az öt karaktert, és meglátod, jó-e a válaszod.',
+  'captcha.testRight': 'Helyes. A próba-captchán ez állt: {want}.',
+  'captcha.testWrong': 'Hibás. A próba-captchán ez állt: {want}, nem {given}.',
   'captcha.timedOut': 'A(z) {host} captchája lejárt.',
   'captcha.resolvedElsewhere': 'A(z) {host} captcháját máshol oldották meg.',
   'captcha.relayRefused': 'Ez a példány túl régi ahhoz, hogy captchákat adjon tovább az alkalmazásnak. Frissítsd ott a KnightLoadert.',

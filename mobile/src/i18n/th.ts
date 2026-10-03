@@ -90,6 +90,10 @@ export const th: Dict = {
   'captcha.blockHoster': 'หยุดถามเกี่ยวกับ {host} ในเซสชันนี้ด้วย',
   'captcha.blockEverywhere': 'หยุดถามเกี่ยวกับโฮสต์ใดๆ ในเซสชันนี้ด้วย',
   'captcha.tooLate': 'คำตอบนั้นมาถึงช้าเกินไป',
+  'captcha.testFor':
+    'แคปช่าทดสอบจาก KnightLoader ไม่มีการดาวน์โหลดใดรอแคปช่านี้ พิมพ์ตัวอักษรทั้งห้าตัวเพื่อดูว่าคำตอบของคุณถูกหรือไม่',
+  'captcha.testRight': 'ถูกต้อง แคปช่าทดสอบเขียนว่า {want}',
+  'captcha.testWrong': 'ผิด แคปช่าทดสอบเขียนว่า {want} ไม่ใช่ {given}',
   'captcha.timedOut': 'แคปช่าสำหรับ {host} หมดเวลาแล้ว',
   'captcha.resolvedElsewhere': 'แคปช่าสำหรับ {host} ได้รับการแก้ไขที่อื่นแล้ว',
   'captcha.relayRefused': 'อินสแตนซ์นี้เก่าเกินไปที่จะส่งแคปช่าต่อมาที่แอป อัปเดต KnightLoader ที่นั่น',

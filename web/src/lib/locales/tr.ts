@@ -1285,6 +1285,9 @@ export const tr: Dict = {
   'settings.captcha.moveDown': 'Aşağı taşı',
   'settings.captcha.set': 'Anahtar ayarlandı',
   'settings.captcha.notSet': 'Anahtar ayarlanmadı',
+  'settings.captcha.off': 'Kapalı',
+  'settings.captcha.offHint':
+    'Anahtar ayarlı, ancak hesap Hesaplar sayfasında kapalı; bu yüzden hiçbir captcha almıyor, test captchası bile.',
   'settings.captcha.keys': 'Anahtarlar Hesaplar altında',
   'collector.options': 'Seçenekler',
   'collector.destination': 'Hedef klasör',
@@ -3044,10 +3047,28 @@ export const tr: Dict = {
   'captcha.solverStopped': 'Hiçbir captcha hesabı bu captchayı devralamadı.',
   'captcha.solverUnsupported': '{solver} bu tür bir captchayı çözmüyor.',
   'captcha.solverRefused': '{solver} reddetti: {reason}',
+  'captcha.testFor':
+    'KnightLoader’dan bir deneme captcha’sı. Hiçbir indirme onu beklemiyor. Yanıtının doğru olup olmadığını görmek için beş karakteri yaz.',
+  'captcha.testRight': 'Doğru. Deneme captcha’sında {want} yazıyordu.',
+  'captcha.testWrong': 'Yanlış. Deneme captcha’sında {given} değil {want} yazıyordu.',
+  'captcha.testSolverRight': '{solver} deneme captcha’sını çözdü: {want}.',
+  'captcha.testSolverWrong': '{solver} deneme captcha’sını yanlış çözdü: {given} değil {want} yazıyordu.',
   'settings.captcha.whenTitle': 'Captcha hesapları ne zaman başlar',
   'settings.captcha.onlyUnwatched': 'Yalnızca kimse izlemiyorken',
   'settings.captcha.wait': 'Yanıt bekleme (saniye)',
   'settings.captcha.waitHint': 'Biri izlediği sürece captcha hesaplarının yine de devralmadan önce ne kadar bekleyeceği. Captchanın kalan süresinin yarısından fazla asla beklemezler, böylece bir captcha hesabının onu yanıtlamaya hâlâ vakti olur. 10 ile 600 saniye arası.',
+  'settings.captcha.testTitle': 'Deneme captcha’sı',
+  'settings.captcha.test': 'Deneme captcha’sı gönder',
+  'settings.captcha.testHint':
+    'KnightLoader’ın kendi çizdiği bir captcha gönderir. Bir barındırıcıdan gelen captcha gibi captcha penceresinde, telefon uygulamasında ve olay hedeflerinde görünür, yanıtlandığında da yanıtın doğru olup olmadığını görürsün. Hiçbir indirme onu beklemez ve captcha hesaplarına gitmez.',
+  'settings.captcha.testSolvers': 'Captcha hesaplarına da gönder',
+  'settings.captcha.testSolversHint':
+    'Aynı deneme captcha’sını captcha hesaplarına da yukarıdaki sırayla gönderir; böylece yanıtlayıp yanıtlamadıklarını ve doğru bilip bilmediklerini görürsün. Diğer captcha’lar gibi bunun için de ücret alırlar. “Yalnızca kimse izlemiyorken” açıksa önce seni beklerler: başka bir sekmeye geç ya da bekleme süresinin dolmasını bekle.',
+  'settings.captcha.testOff': 'Captcha’lar kapalı. Deneme captcha’sı göndermek için Captcha modülünü yeniden aç.',
+  'settings.captcha.testJDOff':
+    'Captcha’lar JDownloader arka ucu üzerinden gelir ve o kapalı. Deneme captcha’sı göndermek için onu yeniden aç.',
+  'settings.captcha.testNoAccount':
+    'Captcha hesaplarının hiçbiri bunu alamaz. Yukarıda birini aç ve Hesaplar sayfasında anahtarı olduğunu ve açık olduğunu kontrol et.',
   'captcha.solverStoppedTaken': '{solver} bu captchayı devraldı ama yanıt göndermedi.',
   'captcha.solverNotPassedOn': '{solver} bunun için yine de ücret alabilir, bu yüzden KnightLoader onu ayrıca başka bir captcha hesabına göndermez. Yine de kendin yanıtlayabilirsin.',
   'captcha.solverNoAnswer': '{solver} devraldı ama yanıt gelmedi.',
