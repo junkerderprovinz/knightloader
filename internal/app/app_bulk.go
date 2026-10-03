@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -426,15 +427,22 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	// a.spawn, so Close waits for the store writes below.
 	a.spawn(func() {
 		links, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
+		// A container JD cannot read either comes back as the address it
+		// was fetched from, taken for a plain link. That address is single
+		// use and already spent.
+		links = slices.DeleteFunc(links, func(r resolver.Result) bool { return r.DirectURL == rawurl })
+		if err == nil && len(links) == 0 {
+			err = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
+		}
 		if err != nil {
-			log.Printf("container %s: %v", name, err)
+			log.Printf("container %q: %v", name, err)
 			a.recordSkippedReason(name, "container", err.Error())
 			return
 		}
 		// The ordinary path, so the filter, Packagizer and duplicate check
 		// apply, keeping the names and sizes JD's crawl found.
 		created := a.AddResolvedLinksFrom(links, pkg, OriginContainer)
-		log.Printf("container %s: %d links, %d staged", name, len(links), len(created))
+		log.Printf("container %q: %d links, %d staged", name, len(links), len(created))
 	})
 	return nil
 }
