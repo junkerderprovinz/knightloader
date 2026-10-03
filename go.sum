@@ -300,6 +300,10 @@ github.com/junkerderprovinz/gopeed v0.0.0-20261003173839-4e2bccadd868 h1:0cigV14
 github.com/junkerderprovinz/gopeed v0.0.0-20261003173839-4e2bccadd868/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
 github.com/junkerderprovinz/gopeed v0.0.0-20261003172926-a5a527ca0856 h1:h3L0/aGOmO4ib6FhCfnaWwi4ZS8/SeEP+MFeHZYZIJ0=
 github.com/junkerderprovinz/gopeed v0.0.0-20261003172926-a5a527ca0856/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
+github.com/junkerderprovinz/gopeed v0.0.0-20261003181244-3e7420f0dcd5 h1:YqGhjYum8GKrI0IE1NBha0RxokHiprU/D6+DoXN0LU8=
+github.com/junkerderprovinz/gopeed v0.0.0-20261003181244-3e7420f0dcd5/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0 h1:Lzcui7TNXMRmMBrR4I0WG1hXvgxgdBVe6rudS5KZxO4=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
 github.com/kevinburke/ssh_config v1.2.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

@@ -1183,6 +1183,7 @@ func torrentConfig(t settings.Torrent) engine.TorrentConfig {
 		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
 		DisableDHT:  !t.DHTEnabled,
 		DisablePEX:  !t.PEXEnabled,
+		Interface:   t.Interface,
 	}
 }
 

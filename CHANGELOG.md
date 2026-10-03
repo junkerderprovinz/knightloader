@@ -135,6 +135,34 @@ release's tag.
   sends the same bytes at sample points in the file. It is off by default,
   because it helps only when a service caps one link or one connection, and
   every extra unlock uses that account's traffic.
+- **Torrents can be tied to one network interface.** Settings, Torrents has a
+  Network interface field that lists the interfaces the system has, such as
+  `wg0` or `tun0` from a VPN. Peers, trackers and the DHT of the built-in
+  client then use only that interface, and while it is missing or down the
+  client sends and receives nothing, a kill switch like qBittorrent's. The
+  torrents wait without failing, the Overview's Torrents card says they are on
+  hold, and they carry on once the interface is back. A change applies to
+  running torrents at once. Torrents a debrid service fetches are not
+  affected. The default stays Any interface.
+- **Trackers stopped hearing from torrents once one was removed.** After any
+  torrent left the built-in client, the trackers got no more regular announces
+  for the other torrents until a new one was added, so their peer lists went
+  stale. Private torrents rely on these announces. The fault was in the torrent
+  library and is fixed in KnightLoader's copy of it, which also tells the
+  trackers the torrents stopped and closes its tracker sockets when the client
+  shuts down.
+- **A torrent removed and added again quickly fell silent.** When a torrent
+  came back before its trackers had been told it stopped, through a restart or
+  an Undo, it sent them no more announces and got no peers from them. It now
+  announces as a new torrent.
+- **A magnet removed while it waited for its file list stayed in the torrent
+  client.** It kept announcing to its trackers and held its sockets, and so did
+  a magnet whose wait ran out. While one was left over, the client never became
+  idle, so a new listening port did not take effect. Such a magnet now leaves
+  the client.
+- **The torrent client opened a piece completion database it never used.** It
+  tried to create the file in its working folder, which in the container is
+  not writable, so every start of the client logged a warning.
 
 ## [1.6.6] - 2026-10-02
 
