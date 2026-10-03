@@ -37,6 +37,60 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **FTP, SFTP and WebDAV links are found in what you paste.** The link
+  scanner looked only for http, https and magnet links, and Click'n'Load took
+  only http and https, so the paste box, uploaded link lists, the
+  download-client endpoint and Click'n'Load dropped every ftp://, ftps://,
+  sftp://, webdav:// and webdavs:// link without saying so. These links now
+  reach the account for your own server.
+- **FTPS downloads work with vsftpd, ProFTPD and FileZilla Server.** These
+  servers accept a data connection only when it resumes the TLS session of the
+  login. KnightLoader opened a new one, so every ftps:// link to such a server
+  failed with "425 Cannot secure data connection".
+- **A password in a link to your own server is not saved.** A link like
+  sftp://name:password@host was refused only after it had been added, so the
+  password stayed in the task list, the database and the log in plain text.
+  The link is now turned away before anything keeps it, and the skipped links
+  show it with the password masked.
+- **A long line of links is read quickly.** Links pasted on one line with
+  spaces between them took time that grew with the square of the line's
+  length, close to a minute for 8,000 links. Such a line now takes a fraction
+  of a second.
+- **A link in a text file in a watched folder loses the punctuation around
+  it.** A `.txt` was split at spaces only, so a link at the end of a sentence
+  kept its full stop or comma and failed, and a link in brackets was not found
+  at all. Text files are now read the way the paste box reads them.
+- **A download running when KnightLoader stops comes back queued.** Shutting
+  down pauses every transfer, and now and then that pause was saved before the
+  database closed. The download then came back paused, and starting the queue
+  did not resume it.
+- **Adding a downloaded link again leaves the finished copy alone.** When you
+  added a link you had already downloaded and gave it no package name, the new
+  copy's name check moved the finished copy into the new package, although its
+  file stayed in the old folder. Moving the new copy by hand did the same. Only
+  the rows of one yt-dlp link move together now.
+- **A link's size survives a restart.** The collector showed the size a link
+  check found but did not save it, so after a restart the link read as 0 bytes
+  and mirrors could not be matched on their size.
+- **Removing or restarting a moved download leaves other files alone.** When
+  KnightLoader renamed a finished download, delivered it out of the working
+  folder or moved it with its package's renamed folder, the backend that
+  fetched it could still have it on record at the old place. Removing the
+  download with its files, or restarting it, then deleted whatever had landed
+  there since, which could be another download's file. KnightLoader now
+  deletes the moved file where it is and leaves the old place alone.
+- **Downloads from your own server delete only their own files.** An FTP or
+  SFTP download saved as "film (2).mkv" because "film.mkv" was already there
+  deleted "film.mkv" when you removed it with its files, and left its own file
+  behind. Removing or restarting one of them also deleted the part file of
+  another download of the same name that was still arriving. Two of them
+  running into one folder at once wrote into the same part file and mixed
+  their bytes, and when two finished at the same moment one could overwrite
+  the other. Each download now has its own part file and deletes only the file
+  it saved, and a moved one is deleted where it is now.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

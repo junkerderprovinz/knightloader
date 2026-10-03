@@ -31,10 +31,10 @@ func TestAPackageNothingHasStartedInTakesItsFolderAlong(t *testing.T) {
 	a, base := newPackageApp(t)
 	putTask(t, a, core.Task{ID: "a", URL: "https://host.example/a.bin", Name: "a.bin",
 		Package: "Old", Status: core.StatusCollected, Enabled: true})
-	putTask(t, a, core.Task{ID: "b", URL: "https://host.example/b.bin", Name: "b.bin",
+	b := putTask(t, a, core.Task{ID: "b", URL: "https://host.example/b.bin", Name: "b.bin",
 		Package: "Old", Status: core.StatusQueued, Enabled: false})
 	putTask(t, a, core.Task{ID: "b-audio", URL: "https://host.example/b.bin", Name: "b.bin",
-		Package: "Old", Status: core.StatusCollected, Enabled: true})
+		Package: "Old", Status: core.StatusCollected, Enabled: true, CreatedAt: b.CreatedAt})
 
 	got, err := a.RenamePackage([]string{"a", "b"}, "  New  ")
 	if err != nil {

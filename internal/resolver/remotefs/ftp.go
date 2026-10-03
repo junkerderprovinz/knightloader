@@ -39,9 +39,7 @@ func dialFTP(ctx context.Context, t Target, login Login) (FS, error) {
 		ftp.DialWithTimeout(ftpTimeout),
 	}
 	if t.TLS {
-		// ServerName is set explicitly so certificate checks use the host
-		// name.
-		cfg := &tls.Config{ServerName: t.Host, MinVersion: tls.VersionTLS12}
+		cfg := ftpTLSConfig(t.Host)
 		if t.ImplicitTLS {
 			opts = append(opts, ftp.DialWithTLS(cfg))
 		} else {
@@ -63,6 +61,19 @@ func dialFTP(ctx context.Context, t Target, login Login) (FS, error) {
 		return nil, ftpError(t, "/", err)
 	}
 	return &ftpFS{c: c}, nil
+}
+
+// ftpTLSConfig is the TLS setup of one FTPS login, which the library uses for
+// the control connection and every data connection. vsftpd, ProFTPD and
+// FileZilla Server by default accept a data connection only when it resumes
+// the control connection's session, so the config carries a session cache.
+// ServerName is set so certificate checks use the host name.
+func ftpTLSConfig(host string) *tls.Config {
+	return &tls.Config{
+		ServerName:         host,
+		MinVersion:         tls.VersionTLS12,
+		ClientSessionCache: tls.NewLRUClientSessionCache(1),
+	}
 }
 
 func (f *ftpFS) Close() error {
