@@ -382,3 +382,20 @@ func TestAPasteWaitsForItsSlowestProbeRatherThanForEachInTurn(t *testing.T) {
 		}
 	}
 }
+
+// Under size-only every link of unknown size could be a file the history has.
+func TestAMirrorIsRejectedInTheAnswerUnderTheSizeOnlyPolicy(t *testing.T) {
+	a := historyApp(t, func(s *settings.Settings) { s.MirrorPolicy = string(dedupe.PolicySizeOnly) })
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4321)
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 4321
+		return resp, nil
+	})
+
+	got := onlyTask(t, a.AddLinks([]string{"https://two.example/f/renamed.bin"}, ""))
+	if !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the answer has the mirror as skipped=%v code=%q size=%d, want it rejected as downloaded",
+			got.Skipped, got.SkipCode, got.Size)
+	}
+}
