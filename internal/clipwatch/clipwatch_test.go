@@ -95,6 +95,23 @@ func TestLeavingDropsAWatcherAndAnyPendingStop(t *testing.T) {
 	}
 }
 
+func TestPausingDropsAWatcherButKeepsAPendingStop(t *testing.T) {
+	r := New()
+	w := Watcher{ID: "a", Kind: KindWeb}
+	_, _ = r.Renew(w, t0)
+	r.Pause("a")
+	if got := ids(r.List(t0)); got != "" {
+		t.Fatalf("a paused watcher is still listed: %q", got)
+	}
+
+	_, _ = r.Renew(w, t0.Add(time.Second))
+	r.Stop("a", t0.Add(time.Second))
+	r.Pause("a")
+	if stop, _ := r.Renew(w, t0.Add(2*time.Second)); !stop {
+		t.Fatal("a watcher that paused and came back did not learn of the stop asked of it")
+	}
+}
+
 func TestTheListIsBoundedAndDropsTheStalest(t *testing.T) {
 	r := New()
 	for i := 0; i < maxWatchers; i++ {

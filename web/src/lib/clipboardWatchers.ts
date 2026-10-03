@@ -125,8 +125,8 @@ export function startLease(instance: string, onStopped: () => void): () => void 
     }
   };
   // keepalive lets the request outlive a tab that is closing.
-  const leave = () =>
-    void fetch(watcherPath(watcherId(), instance), { method: 'DELETE', keepalive: true }).catch(() => {});
+  const leave = (query = '') =>
+    void fetch(watcherPath(watcherId(), instance) + query, { method: 'DELETE', keepalive: true }).catch(() => {});
 
   // Every tab of the browser renews the one entry, so a tab that closes takes
   // it off the list for the others too. They put it back once its leave is
@@ -136,9 +136,11 @@ export function startLease(instance: string, onStopped: () => void): () => void 
     clearTimeout(rejoin);
     rejoin = setTimeout(() => void round(), REJOIN_MS);
   };
-  // A closing tab never gets to run the cleanup below.
+  // A closing tab never gets to run the cleanup below. The watch stays on in
+  // this browser, so a stop asked of it waits for the next renewal, from a
+  // tab still open or from this one reloaded.
   const onHide = () => {
-    leave();
+    leave('?pause=1');
     tabs.postMessage('left');
   };
   // A page restored from the back-forward cache left the list when it was

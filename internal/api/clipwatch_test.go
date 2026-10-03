@@ -168,6 +168,24 @@ func TestAStoppedWatcherLearnsItFromItsNextRenewal(t *testing.T) {
 	}
 }
 
+func TestATabThatReloadsStillLearnsOfAStop(t *testing.T) {
+	t.Parallel()
+	srv, _ := testServer(t)
+	defer srv.Close()
+	watcher := map[string]string{"name": "Firefox, Windows", "kind": "web"}
+	postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/tab", watcher)
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/tab/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping = %d, want 204", code)
+	}
+
+	if code, _ := postJSON(t, http.MethodDelete, srv.URL+"/api/clipboard-watchers/tab?pause=1", nil); code != http.StatusNoContent {
+		t.Fatalf("pausing = %d, want 204", code)
+	}
+	if code, body := postJSON(t, http.MethodPut, srv.URL+"/api/clipboard-watchers/tab", watcher); code != http.StatusOK || string(body) != "{\"stop\":true}\n" {
+		t.Fatalf("the renewal after the reload = %d %s, want stop true", code, body)
+	}
+}
+
 func TestTheRelayForwardsTheClipboardWatcherCalls(t *testing.T) {
 	t.Parallel()
 	for _, c := range []struct {
@@ -298,6 +316,15 @@ func TestAWatcherLeasesWithThePeerItSendsTo(t *testing.T) {
 	}
 	if got := renew(); got != "{\"stop\":true}\n" {
 		t.Fatalf("the renewal after the stop = %s, want stop true", got)
+	}
+
+	renew()
+	postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/web-1/stop", nil)
+	if code, _ := postJSON(t, http.MethodDelete, srv.URL+"/api/instances/nas/clipboard-watchers/web-1?pause=1", nil); code != http.StatusNoContent {
+		t.Fatalf("pausing at the peer = %d, want 204", code)
+	}
+	if got := renew(); got != "{\"stop\":true}\n" {
+		t.Fatalf("the renewal after pausing at the peer = %s, want stop true", got)
 	}
 
 	renew()
