@@ -189,10 +189,12 @@ export function CaptchaModal() {
   // taken back when a widget loads, since another window's report is about a
   // window this one cannot see.
   const reported = useRef(new Set<string>());
-  // The test captchas answered in this window. Their result comes with the
-  // answer, which arrives even while the socket is down, so the broadcast
-  // need not show it a second time.
-  const answeredHere = useRef(new Set<string>());
+  // A test captcha's result comes with the answer's response, which arrives
+  // even while the socket is down. The broadcast of a result shown that way
+  // is dropped, and one that comes while the answer is on its way is held in
+  // case the response is lost.
+  const answering = useRef(new Map<string, TestCaptchaResult | null>());
+  const shownHere = useRef(new Set<string>());
 
   const current = useMemo(() => pickCurrent(challenges), [challenges]);
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
@@ -232,7 +234,8 @@ export function CaptchaModal() {
           // feedback; only a timeout or a resolution elsewhere needs a word,
           // and a test captcha's result, whoever answered it.
           if (r.test) {
-            if (!answeredHere.current.delete(r.id)) {
+            if (answering.current.has(r.id)) answering.current.set(r.id, r.test);
+            else if (!shownHere.current.delete(r.id)) {
               toast(testResultText(t, r.test), r.test.correct ? 'ok' : 'fail', 'captcha-resolved');
             }
           } else if (r.reason === 'timedOut') {
@@ -347,15 +350,21 @@ export function CaptchaModal() {
 
   async function handleContinue() {
     setBusy(true);
+    const id = current!.id;
+    if (current!.test) answering.current.set(id, null);
     try {
-      if (current!.test) answeredHere.current.add(current!.id);
-      const { stillValid, test } = await answerCaptcha(current!.id, submitText());
-      if (test) toast(testResultText(t, test), test.correct ? 'ok' : 'fail', 'captcha-resolved');
-      else if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
+      const { stillValid, test } = await answerCaptcha(id, submitText());
+      if (test) {
+        toast(testResultText(t, test), test.correct ? 'ok' : 'fail', 'captcha-resolved');
+        if (!answering.current.get(id)) shownHere.current.add(id);
+      } else if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
       // The challenge leaves through the "captchaResolved" broadcast.
     } catch {
-      toast(t('captcha.networkError'), 'fail', 'captcha-failed');
+      const test = answering.current.get(id);
+      if (test) toast(testResultText(t, test), test.correct ? 'ok' : 'fail', 'captcha-resolved');
+      else toast(t('captcha.networkError'), 'fail', 'captcha-failed');
     } finally {
+      answering.current.delete(id);
       setBusy(false);
     }
   }
