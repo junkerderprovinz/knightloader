@@ -43,7 +43,10 @@ const clipLeaseWait = 10 * time.Second
 
 // linkSchemes are the starts a word needs to count as a link, as in the
 // page's LOOKS_LIKE_A_LINK.
-var linkSchemes = []string{"http://", "https://", "magnet:?", "ftp://"}
+var linkSchemes = []string{
+	"http://", "https://", "magnet:?",
+	"ftp://", "ftps://", "sftp://", "webdav://", "webdavs://",
+}
 
 // clipboardLinks returns the words of text that are links, in order. Words
 // are split on what a JavaScript \s matches, so the page and this side find
