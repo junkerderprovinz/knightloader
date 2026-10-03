@@ -290,16 +290,16 @@ func TestALinkRestoredFromTheFilterIsHeldOnceTheProbeFindsAMirror(t *testing.T) 
 		return resp, nil
 	})
 
-	const mirror = "https://two.example/sample.mkv?ref=1"
-	held := onlyTask(t, a.AddLinks([]string{mirror}, ""))
+	held := onlyTask(t, a.AddLinks([]string{"https://two.example/sample.mkv?ref=1"}, ""))
 	if restored := onlyTask(t, a.RestoreFiltered([]string{held.ID})); restored.Skipped {
 		t.Fatalf("the restore kept the link held before its size was known: %s", restored.SkipReason)
 	}
-	a.analyze(held.ID, mirror)
-	if live := liveTask(a, held.ID); !live.Skipped || live.SkipCode != skipDownloaded {
-		t.Errorf("the mirror stayed (skipped=%v, code=%q, size=%d), want it held as downloaded",
-			live.Skipped, live.SkipCode, live.Size)
-	}
+	// The restore's recheck learns the name and then the size, in the
+	// background.
+	waitFor(t, "the restored mirror held as downloaded", func() bool {
+		live := liveTask(a, held.ID)
+		return live.Skipped && live.SkipCode == skipDownloaded
+	})
 }
 
 // Whoever sent the link reads the answer as the verdict: the browser extension
