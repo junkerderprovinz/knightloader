@@ -94,6 +94,7 @@ func (a *App) rewireUsenet() {
 	} else {
 		a.Registry.Unregister(local.ResolverID)
 	}
+	a.refreshNNTPClient()
 	st := a.usenetStateFor()
 	usenetMu.Lock()
 	fixed := st.fixed

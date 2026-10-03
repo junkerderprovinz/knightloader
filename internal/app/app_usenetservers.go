@@ -132,6 +132,19 @@ func (a *App) nntpClient() *nntp.Client {
 	return cur.c
 }
 
+// refreshNNTPClient hands a saved change to the servers to the client, if
+// there is one yet. A download under way asks for the client only as it
+// starts, so this is how the change reaches its next article.
+func (a *App) refreshNNTPClient() {
+	servers := a.nntpServers()
+	nntpMu.Lock()
+	defer nntpMu.Unlock()
+	if cur := nntpClients[a]; cur != nil && !slices.Equal(cur.servers, servers) {
+		cur.c.SetServers(servers)
+		cur.servers = servers
+	}
+}
+
 // usenetServersSet reports whether any server is switched on.
 func (a *App) usenetServersSet() bool {
 	for _, srv := range a.Settings.Get().UsenetServers {
