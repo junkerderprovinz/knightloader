@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -55,10 +57,11 @@ type Backend struct {
 	// server is unreachable.
 	Wait time.Duration
 
-	mu   sync.Mutex
-	runs map[string]*runState
-	link map[string]string
-	part map[string]string
+	mu      sync.Mutex
+	runs    map[string]*runState
+	link    map[string]string
+	part    map[string]string
+	stopped bool
 }
 
 // NewBackend builds a backend. client is asked at the start of each file.
@@ -133,6 +136,21 @@ func (b *Backend) Remove(taskID string, _ bool) {
 	}
 }
 
+// Stop ends every transfer and returns once each has made its last report,
+// the done of a file that just finished included. Nothing starts after it.
+func (b *Backend) Stop() {
+	b.mu.Lock()
+	b.stopped = true
+	runs := slices.Collect(maps.Values(b.runs))
+	b.mu.Unlock()
+	for _, r := range runs {
+		r.cancel()
+	}
+	for _, r := range runs {
+		<-r.ended
+	}
+}
+
 // PartFile is where the file behind link is written in dir until it is whole,
 // or "" for a link that is not one of these.
 func PartFile(dir, link string) string {
@@ -153,6 +171,11 @@ func (b *Backend) launch(taskID, link string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	r := &runState{cancel: cancel, ended: make(chan struct{})}
 	b.mu.Lock()
+	if b.stopped {
+		b.mu.Unlock()
+		cancel()
+		return
+	}
 	prev := b.runs[taskID]
 	b.runs[taskID] = r
 	b.mu.Unlock()

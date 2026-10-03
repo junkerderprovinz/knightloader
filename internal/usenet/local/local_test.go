@@ -379,3 +379,40 @@ func (slowCopy) Copy(ctx context.Context, dst io.Writer, src io.Reader) (int64, 
 	}
 	return n, err
 }
+
+func TestStopWaitsForTheReportOfAFileThatJustFinished(t *testing.T) {
+	r := newRelease("f.bin", 9_000, 3_000)
+	s := nntptest.New(t)
+	r.post(s)
+	h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), r)
+	reporting, saved := make(chan struct{}), make(chan struct{})
+	be := NewBackend(h.svc, h.be.client, h.dir, func(id string, u core.Update) {
+		if id == "task" && u.Status == core.StatusDone {
+			close(reporting)
+			<-saved
+		}
+	})
+	be.Download("task", FileLink(h.job, 0, r.name), nil, 0)
+	<-reporting
+
+	stopped := make(chan struct{})
+	go func() {
+		be.Stop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+		t.Fatal("Stop returned while the finished file was still being reported")
+	case <-time.After(100 * time.Millisecond):
+	}
+	close(saved)
+	<-stopped
+
+	be.Download("again", FileLink(h.job, 0, r.name), nil, 0)
+	be.mu.Lock()
+	n := len(be.runs)
+	be.mu.Unlock()
+	if n != 0 {
+		t.Error("a download started after Stop")
+	}
+}
