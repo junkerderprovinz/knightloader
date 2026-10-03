@@ -16,9 +16,6 @@ import { addLinks } from './api';
 export const WATCH_SUPPORTED =
   typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
-/** The remembered-field name, shared by the settings card and the collector's own button. */
-export const WATCH_FIELD = 'clipboardWatch';
-
 /** How often the clipboard is re-read while the window has focus. */
 const POLL_MS = 1200;
 
@@ -27,7 +24,9 @@ const POLL_MS = 1200;
 const REFUSALS_BEFORE_GIVING_UP = 3;
 
 /** Anything that could be a link. Loose, since the server does the parsing,
- *  but it keeps every copied word from becoming a request. */
+ *  but it keeps every copied word from becoming a request. The browser
+ *  extension's watch uses the same rule (extension/src/clipwatch.js), and
+ *  extension/check-clipwatch.mjs keeps the two alike. */
 const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftp:\/\/)\S+/i;
 
 export type WatchOutcome =

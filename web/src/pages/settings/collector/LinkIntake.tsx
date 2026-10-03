@@ -1,7 +1,7 @@
 import { Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
-import { useClipboardWatch } from '../../../lib/useClipboardWatch';
+import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 import { SettingPathInput } from '../controls';
@@ -18,7 +18,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
-  const [watch, setWatch] = useClipboardWatch();
+  const { watch, flip, dialog } = useWatchSwitch();
 
   const cnl = features.modules.find((m) => m.id === 'cnl');
   const folderWatch = features.modules.find((m) => m.id === 'watch');
@@ -47,7 +47,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           label={t('intake.clipboardWatch')}
           hint={t('intake.clipboardWatchHint')}
           checked={watch}
-          onChange={setWatch}
+          onChange={flip}
         />
       ) : (
         <div className="flex flex-col gap-1">
@@ -60,6 +60,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           </span>
         </div>
       )}
+      {dialog}
 
       <ToggleRow
         hue={2}

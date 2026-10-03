@@ -1,5 +1,6 @@
 // The options page: the group this browser belongs to (group.js), the
-// language, the look, Click'n'Load, and a report for when something is wrong.
+// language, the look, Click'n'Load, the clipboard watch, and a report for
+// when something is wrong.
 //
 // As GlimStone asks, every explanation is an info bubble on a heading or label,
 // and every switch is a toggle rather than a checkbox.
@@ -57,6 +58,13 @@ const leaveConfirmTitleEl = document.getElementById('leaveConfirmTitle');
 const leaveConfirmMessageEl = document.getElementById('leaveConfirmMessage');
 const leaveConfirmCancelEl = document.getElementById('leaveConfirmCancel');
 const leaveConfirmCommitEl = document.getElementById('leaveConfirmCommit');
+const clipEnabledEl = document.getElementById('clipEnabled');
+const clipNoticeEl = document.getElementById('clipNotice');
+const clipElsewhereEl = document.getElementById('clipElsewhere');
+const clipElsewhereListEl = document.getElementById('clipElsewhereList');
+const clipElsewhereCancelEl = document.getElementById('clipElsewhereCancel');
+const clipElsewhereKeepEl = document.getElementById('clipElsewhereKeep');
+const clipElsewhereStopEl = document.getElementById('clipElsewhereStop');
 const problemsHeadingEl = document.getElementById('problemsHeading');
 const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
@@ -392,6 +400,15 @@ function applyStaticText() {
   document.getElementById('cnlAccessBody').textContent = t('options.cnlAccessBody');
   cnlAccessAllowEl.textContent = t('options.cnlAccessAllow');
   cnlAccessKeepOffEl.textContent = t('options.cnlAccessKeepOff');
+
+  document.getElementById('clipHeading').textContent = t('options.clipHeading');
+  document.getElementById('clipToggle').textContent = t('options.clipToggle');
+  glimSetInfo('clipHeading', `${t('options.clipSub')} ${t('options.clipAccessInfo')}`);
+  document.getElementById('clipElsewhereTitle').textContent = t('options.clipElsewhereTitle');
+  document.getElementById('clipElsewhereMessage').textContent = t('options.clipElsewhereBody');
+  clipElsewhereCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
+  clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
+  clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
   // Look and Colours have no heading bubble because their rows explain
   // themselves.
@@ -750,6 +767,7 @@ async function renderLanguagePicker() {
       await renderLanguagePicker();
       // renderCnl writes the countdown's texts, which applyStaticText does not.
       await renderCnl();
+      await renderClip();
       await renderAppearance();
       await renderGroup();
       void renderReport();
@@ -883,6 +901,197 @@ cnlAccessKeepOffEl.addEventListener('click', async () => {
 // The browser's own extension settings change the access too.
 chrome.permissions.onAdded.addListener(() => void renderCnl());
 chrome.permissions.onRemoved.addListener(() => void renderCnl());
+
+/**
+ * Devices whose watch could not be switched off from here, for the notice.
+ * Page state, like cnlRefused.
+ */
+let clipStopFailed = '';
+
+/**
+ * The switch shows whether the watch runs (clipState in clipwatch.js). Off,
+ * the notice says why when the reason is not the user's own click: the browser
+ * refused the clipboard, another device switched it off, or there is no group
+ * to send to. clipNotice in storage carries the first two from background.js.
+ */
+async function renderClip() {
+  const { wanted, on } = await clipState();
+  const { clipNotice } = await chrome.storage.local.get('clipNotice');
+  clipEnabledEl.setAttribute('aria-checked', String(on));
+  let title = '';
+  let reason = '';
+  if (on) {
+    if (clipStopFailed) {
+      title = t('options.clipToggle');
+      reason = t('options.clipElsewhereStopFailed', { device: clipStopFailed });
+    }
+  } else if (wanted || clipNotice === 'refused') {
+    title = t('options.clipRefusedTitle');
+    reason = t('options.clipRefused');
+  } else if (clipNotice === 'stopped') {
+    title = t('options.clipStoppedTitle');
+    reason = t('options.clipStopped');
+  } else if (clipNotice === 'noGroup') {
+    title = t('options.clipToggle');
+    reason = t('options.clipNoGroup', { card: t('options.groupHeading') });
+  }
+  document.getElementById('clipNoticeTitle').textContent = title;
+  document.getElementById('clipNoticeReason').textContent = reason;
+  clipNoticeEl.hidden = !reason;
+}
+
+clipEnabledEl.addEventListener('click', async () => {
+  if (clipEnabledEl.getAttribute('aria-checked') !== 'true') {
+    await turnClipOn();
+    return;
+  }
+  clipStopFailed = '';
+  await chrome.storage.local.set({ clipWatch: false, clipNotice: '' });
+  await renderClip();
+});
+
+/**
+ * Nothing may be awaited before the permission request, or the click stops
+ * counting as a gesture. With the permission and a group, the group is asked
+ * who else watches; when another device does, the window asks what to do.
+ */
+async function turnClipOn() {
+  let granted = false;
+  try {
+    granted = await chrome.permissions.request({ permissions: ['clipboardRead'] });
+  } catch {
+    granted = false;
+  }
+  if (!granted || !(await readPhrase())) {
+    await chrome.storage.local.set({ clipNotice: granted ? 'noGroup' : 'refused' });
+    await renderClip();
+    shake(clipEnabledEl);
+    clipNoticeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return;
+  }
+  clipEnabledEl.disabled = true;
+  let others = [];
+  try {
+    others = await clipOthers();
+  } catch {
+    // Nobody to warn about is the better guess than refusing the switch.
+    others = [];
+  }
+  clipEnabledEl.disabled = false;
+  if (others.length) {
+    openClipElsewhere(others);
+    return;
+  }
+  await switchClipOn();
+}
+
+async function switchClipOn() {
+  await chrome.storage.local.set({ clipWatch: true, clipNotice: '' });
+  await renderClip();
+}
+
+/** The other watchers in the group, as the default instance lists them. */
+async function clipOthers() {
+  const me = await clipWatcherId();
+  return withGroup(async ({ siblings, call }) => {
+    const target = defaultOf(siblings, await readDefaultTarget());
+    if (!target) return [];
+    const res = await call(target, 'GET', '/api/clipboard-watchers');
+    if (res.status !== 200) return [];
+    const list = JSON.parse(res.body);
+    return Array.isArray(list) ? list.filter((w) => w && typeof w.id === 'string' && w.id !== me) : [];
+  });
+}
+
+/** Asks each watcher to stop and returns the names of those that could not be reached. */
+async function stopClipOthers(others) {
+  const missed = new Set(others.map((w) => w.name || w.id));
+  try {
+    await withGroup(async ({ siblings, call }) => {
+      const target = defaultOf(siblings, await readDefaultTarget());
+      if (!target) return;
+      for (const w of others) {
+        const res = await call(target, 'POST', `${clipWatcherPath(w.id)}/stop`).catch(() => null);
+        if (res?.status === 204) missed.delete(w.name || w.id);
+      }
+    });
+  } catch {
+    // Every name stays in the list.
+  }
+  return [...missed];
+}
+
+/** clipKindLabel names a kind of watcher. The keys are written out for check-locales.mjs. */
+function clipKindLabel(kind) {
+  if (kind === 'desktop') return t('options.clipKind.desktop');
+  if (kind === 'web') return t('options.clipKind.web');
+  return t('options.clipKind.extension');
+}
+
+let clipPending = [];
+
+function openClipElsewhere(others) {
+  clipPending = others;
+  clipElsewhereListEl.replaceChildren(
+    ...others.map((w) => {
+      const li = document.createElement('li');
+      li.textContent = t('options.clipWatcherLine', {
+        device: w.name || w.id,
+        kind: clipKindLabel(w.kind),
+        instance: w.instance || '',
+      });
+      return li;
+    }),
+  );
+  clipElsewhereEl.hidden = false;
+  clipElsewhereCancelEl.focus();
+  document.addEventListener('keydown', onClipElsewhereKey);
+}
+
+function closeClipElsewhere() {
+  clipElsewhereEl.hidden = true;
+  document.removeEventListener('keydown', onClipElsewhereKey);
+  clipEnabledEl.focus();
+}
+
+/** Escape cancels and Tab cycles through the three buttons, as in the leave window. */
+function onClipElsewhereKey(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeClipElsewhere();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const stops = [clipElsewhereCancelEl, clipElsewhereKeepEl, clipElsewhereStopEl];
+  const at = stops.indexOf(document.activeElement);
+  event.preventDefault();
+  const next = event.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : at === stops.length - 1 ? 0 : at + 1;
+  stops[next].focus();
+}
+
+clipElsewhereCancelEl.addEventListener('click', () => closeClipElsewhere());
+clipElsewhereEl.addEventListener('click', (event) => {
+  if (event.target === clipElsewhereEl) closeClipElsewhere();
+});
+clipElsewhereKeepEl.addEventListener('click', async () => {
+  closeClipElsewhere();
+  await switchClipOn();
+});
+clipElsewhereStopEl.addEventListener('click', async () => {
+  clipElsewhereStopEl.disabled = true;
+  clipStopFailed = (await stopClipOthers(clipPending)).join(', ');
+  clipElsewhereStopEl.disabled = false;
+  closeClipElsewhere();
+  await switchClipOn();
+});
+
+// background.js switches the watch off when the browser refuses the clipboard
+// or another device asks it to stop.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && (changes.clipWatch || changes.clipNotice)) void renderClip();
+});
+chrome.permissions.onAdded.addListener(() => void renderClip());
+chrome.permissions.onRemoved.addListener(() => void renderClip());
 
 // Appearance: theme, corners, accent and the rainbow. appearance.js applies
 // them at the top of every page, and the look can also be taken from the
@@ -1642,6 +1851,7 @@ async function buildReport() {
     }
   }
   const cnl = await cnlState();
+  const clip = await clipState();
   // A switched-off feature, a withheld access, missing or stale scripts and an
   // unloaded redirect rule all look the same from outside, so the report lists
   // each script with its world and fallback, and the enabled rulesets.
@@ -1671,6 +1881,7 @@ async function buildReport() {
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
     `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
     `clicknload: ${cnl.on ? 'on' : cnl.wanted ? 'wanted, no site access' : 'off'}`,
+    `clipboard: ${clip.on ? 'watching' : clip.wanted ? 'wanted, no clipboard permission' : 'off'}`,
     `  scripts: ${registered}`,
     `  rules:   ${rules}`,
   ].join('\n');
@@ -1711,6 +1922,7 @@ copyReportBtn.addEventListener('click', async () => {
   applyStaticText();
   await renderLanguagePicker();
   await renderCnl();
+  await renderClip();
   await renderAppearance();
   renderAbout();
   await renderPinHint();
