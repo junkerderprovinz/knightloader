@@ -2521,6 +2521,7 @@ export const fi: Dict = {
   'settings.jdimport.pathMissing': 'Polussa {path} ei ole tiedostoa eikä kansiota tällä koneella.',
   'settings.jdimport.notZip': 'Tämä ei ole zip-tiedosto.',
   'settings.jdimport.expired': 'Tämä esikatselu on yli puoli tuntia vanha. Lue kansio uudelleen.',
+  'settings.jdimport.unknown': 'KnightLoaderilla ei ole enää tätä esikatselua. Se säilyttää esikatselun puoli tuntia ja menettää sen uudelleenkäynnistyksessä. Lue kansio uudelleen.',
   'settings.jdimport.replaced': 'KnightLoader pitää vain neljä uusinta esikatselua, ja uudemmat luvut ovat työntäneet tämän pois. Lue kansio uudelleen.',
   'settings.jdimport.previewTitle': 'Mitä JDownloaderista otetaan mukaan?',
   'settings.jdimport.previewFiles': 'Luettu kohteesta {files}',

@@ -2520,6 +2520,7 @@ export const id: Dict = {
   'settings.jdimport.pathMissing': 'Tidak ada berkas atau folder di {path} pada mesin ini.',
   'settings.jdimport.notZip': 'Itu bukan berkas zip.',
   'settings.jdimport.expired': 'Pratinjau ini sudah lebih dari setengah jam. Baca folder itu lagi.',
+  'settings.jdimport.unknown': 'KnightLoader tidak lagi menyimpan pratinjau ini. Pratinjau disimpan setengah jam dan hilang saat KnightLoader dimulai ulang. Baca folder itu lagi.',
   'settings.jdimport.replaced': 'KnightLoader hanya menyimpan empat pratinjau terbaru, dan pembacaan yang lebih baru telah menggeser pratinjau ini. Baca folder itu lagi.',
   'settings.jdimport.previewTitle': 'Apa yang perlu dipindahkan dari JDownloader?',
   'settings.jdimport.previewFiles': 'Dibaca dari {files}',

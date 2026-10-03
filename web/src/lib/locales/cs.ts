@@ -2530,6 +2530,7 @@ export const cs: Dict = {
   'settings.jdimport.pathMissing': 'Na {path} na tomto stroji není žádný soubor ani složka.',
   'settings.jdimport.notZip': 'To není zip.',
   'settings.jdimport.expired': 'Tento náhled je starší než půl hodiny. Načti složku znovu.',
+  'settings.jdimport.unknown': 'KnightLoader už tento náhled nemá. Náhled drží půl hodiny a při restartu ho ztratí. Načti složku znovu.',
   'settings.jdimport.replaced': 'KnightLoader si drží jen čtyři nejnovější náhledy a novější načtení tento vytlačila. Načti složku znovu.',
   'settings.jdimport.previewTitle': 'Co by mělo přejít z JDownloaderu?',
   'settings.jdimport.previewFiles': 'Načteno z {files}',

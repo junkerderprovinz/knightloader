@@ -51,6 +51,10 @@ func registerJDImport(reg *Registry, a *app.App) {
 				writeRefusal(w, http.StatusGone, "jdimport.expired", err.Error(), nil)
 				return
 			}
+			if errors.Is(err, app.ErrJDImportUnknown) {
+				writeRefusal(w, http.StatusGone, "jdimport.unknown", err.Error(), nil)
+				return
+			}
 			if errors.Is(err, app.ErrJDImportReplaced) {
 				writeRefusal(w, http.StatusGone, "jdimport.replaced", err.Error(), nil)
 				return

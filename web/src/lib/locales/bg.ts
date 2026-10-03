@@ -2520,6 +2520,7 @@ export const bg: Dict = {
   'settings.jdimport.pathMissing': 'На {path} на тази машина няма нито файл, нито папка.',
   'settings.jdimport.notZip': 'Това не е zip файл.',
   'settings.jdimport.expired': 'Тази визуализация е на повече от половин час. Прочети папката отново.',
+  'settings.jdimport.unknown': 'KnightLoader вече няма тази визуализация. Пази всяка визуализация половин час и я губи при рестарт. Прочети папката отново.',
   'settings.jdimport.replaced': 'KnightLoader пази само четирите най-нови визуализации, а по-новите четения изместиха тази. Прочети папката отново.',
   'settings.jdimport.previewTitle': 'Какво трябва да премине от JDownloader?',
   'settings.jdimport.previewFiles': 'Прочетено от {files}',

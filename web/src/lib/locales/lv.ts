@@ -2510,6 +2510,7 @@ export const lv: Dict = {
   'settings.jdimport.pathMissing': 'Šajā datorā {path} nav ne faila, ne mapes.',
   'settings.jdimport.notZip': 'Tas nav zip fails.',
   'settings.jdimport.expired': 'Šis priekšskatījums ir vecāks par pusstundu. Nolasi mapi vēlreiz.',
+  'settings.jdimport.unknown': 'KnightLoader vairs nav šī priekšskatījuma. Tas glabā priekšskatījumu pusstundu un pazaudē to pēc restartēšanas. Nolasi mapi vēlreiz.',
   'settings.jdimport.replaced': 'KnightLoader patur tikai četrus jaunākos priekšskatījumus, un jaunākas nolasīšanas šo ir izspiedušas. Nolasi mapi vēlreiz.',
   'settings.jdimport.previewTitle': 'Kam vajadzētu atnākt no JDownloader?',
   'settings.jdimport.previewFiles': 'Nolasīts no {files}',

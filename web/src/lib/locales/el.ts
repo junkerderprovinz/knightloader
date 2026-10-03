@@ -2519,6 +2519,7 @@ export const el: Dict = {
   'settings.jdimport.pathMissing': 'Δεν υπάρχει αρχείο ούτε φάκελος στο {path} σε αυτό το μηχάνημα.',
   'settings.jdimport.notZip': 'Αυτό δεν είναι αρχείο zip.',
   'settings.jdimport.expired': 'Αυτή η προεπισκόπηση είναι πάνω από μισή ώρα παλιά. Διάβασε ξανά τον φάκελο.',
+  'settings.jdimport.unknown': 'Το KnightLoader δεν έχει πια αυτή την προεπισκόπηση. Κρατά μια προεπισκόπηση για μισή ώρα και τη χάνει σε μια επανεκκίνηση. Διάβασε ξανά τον φάκελο.',
   'settings.jdimport.replaced': 'Το KnightLoader κρατά μόνο τις τέσσερις πιο πρόσφατες προεπισκοπήσεις, και νεότερες αναγνώσεις έβγαλαν αυτήν εκτός. Διάβασε ξανά τον φάκελο.',
   'settings.jdimport.previewTitle': 'Τι πρέπει να μεταφερθεί από το JDownloader;',
   'settings.jdimport.previewFiles': 'Διαβάστηκε από {files}',

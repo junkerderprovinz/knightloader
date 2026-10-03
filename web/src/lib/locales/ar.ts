@@ -2519,6 +2519,7 @@ export const ar: Dict = {
   'settings.jdimport.pathMissing': 'لا يوجد ملف ولا مجلد عند {path} على هذا الجهاز.',
   'settings.jdimport.notZip': 'هذا ليس ملف zip.',
   'settings.jdimport.expired': 'هذه المعاينة أقدم من نصف ساعة. اقرأ المجلد مرة أخرى.',
+  'settings.jdimport.unknown': 'لم تعد هذه المعاينة موجودة لدى KnightLoader. فهو يحتفظ بالمعاينة نصف ساعة ويفقدها عند إعادة التشغيل. اقرأ المجلد مرة أخرى.',
   'settings.jdimport.replaced': 'يحتفظ KnightLoader بأحدث أربع معاينات فقط، وقد أزاحت القراءات الأحدث هذه المعاينة. اقرأ المجلد مرة أخرى.',
   'settings.jdimport.previewTitle': 'ما الذي يجب أن ينتقل من JDownloader؟',
   'settings.jdimport.previewFiles': 'قُرئ من {files}',

@@ -2511,6 +2511,7 @@ export const et: Dict = {
   'settings.jdimport.pathMissing': 'Selles masinas ei ole asukohas {path} ei faili ega kausta.',
   'settings.jdimport.notZip': 'See ei ole zip-fail.',
   'settings.jdimport.expired': 'See eelvaade on üle poole tunni vana. Loe kaust uuesti.',
+  'settings.jdimport.unknown': 'KnightLoaderil pole seda eelvaadet enam. See hoiab eelvaadet pool tundi ja kaotab selle taaskäivitamisel. Loe kaust uuesti.',
   'settings.jdimport.replaced': 'KnightLoader hoiab alles ainult neli uusimat eelvaadet ja uuemad lugemised tõrjusid selle välja. Loe kaust uuesti.',
   'settings.jdimport.previewTitle': 'Mis peaks JDownloaderist üle tulema?',
   'settings.jdimport.previewFiles': 'Loetud failidest {files}',

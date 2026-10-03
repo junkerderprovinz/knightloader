@@ -184,6 +184,8 @@ function refusalText(t: ReturnType<typeof useT>['t'], e: unknown): string {
         return t('settings.jdimport.notZip');
       case 'jdimport.expired':
         return t('settings.jdimport.expired');
+      case 'jdimport.unknown':
+        return t('settings.jdimport.unknown');
       case 'jdimport.replaced':
         return t('settings.jdimport.replaced');
       case 'jdimport.pathMissing':

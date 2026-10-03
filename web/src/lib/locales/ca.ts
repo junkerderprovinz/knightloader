@@ -2506,6 +2506,7 @@ export const ca: Dict = {
   'settings.jdimport.pathMissing': 'No hi ha cap fitxer ni carpeta a {path} en aquesta màquina.',
   'settings.jdimport.notZip': 'Això no és un zip.',
   'settings.jdimport.expired': 'Aquesta previsualització té més de mitja hora. Torna a llegir la carpeta.',
+  'settings.jdimport.unknown': 'KnightLoader ja no té aquesta previsualització. En guarda una durant mitja hora i la perd en reiniciar-se. Torna a llegir la carpeta.',
   'settings.jdimport.replaced': 'KnightLoader només guarda les quatre previsualitzacions més noves, i lectures més recents han desplaçat aquesta. Torna a llegir la carpeta.',
   'settings.jdimport.previewTitle': 'Què hauria de venir des de JDownloader?',
   'settings.jdimport.previewFiles': 'Llegit des de {files}',

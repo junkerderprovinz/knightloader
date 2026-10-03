@@ -2520,6 +2520,7 @@ export const lt: Dict = {
   'settings.jdimport.pathMissing': 'Šiame kompiuteryje {path} nėra nei failo, nei aplanko.',
   'settings.jdimport.notZip': 'Tai ne zip failas.',
   'settings.jdimport.expired': 'Ši peržiūra senesnė nei pusvalandis. Nuskaityk aplanką iš naujo.',
+  'settings.jdimport.unknown': 'KnightLoader nebeturi šios peržiūros. Peržiūrą jis laiko pusvalandį ir praranda ją paleidus iš naujo. Nuskaityk aplanką iš naujo.',
   'settings.jdimport.replaced': 'KnightLoader laiko tik keturias naujausias peržiūras, o naujesni nuskaitymai šią išstūmė. Nuskaityk aplanką iš naujo.',
   'settings.jdimport.previewTitle': 'Kas turėtų atkeliauti iš JDownloader?',
   'settings.jdimport.previewFiles': 'Perskaityta iš {files}',

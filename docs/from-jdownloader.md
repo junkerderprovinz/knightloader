@@ -30,9 +30,10 @@ one stored here, and the download folder. Items that cannot come over are
 listed too, with the reason. Take over writes only what is switched on, and the
 card then says how much came over and lists what stayed behind and why.
 
-The preview stays valid for half an hour. KnightLoader keeps the four newest
-previews, so a fifth read pushes out the oldest. The passwords stay on the
-server during that time and never reach the browser.
+The preview stays valid for half an hour, or until KnightLoader restarts.
+KnightLoader keeps the four newest previews, so a fifth read pushes out the
+oldest. The passwords stay on the server during that time and never reach the
+browser.
 
 ## What comes over, and how
 

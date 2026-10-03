@@ -2534,6 +2534,7 @@ export const sr: Dict = {
   'settings.jdimport.pathMissing': 'На путањи {path} на овом рачунару нема ни фајла ни фасцикле.',
   'settings.jdimport.notZip': 'То није ZIP фајл.',
   'settings.jdimport.expired': 'Овај преглед је старији од пола сата. Учитај фасциклу поново.',
+  'settings.jdimport.unknown': 'KnightLoader више нема овај преглед. Преглед чува пола сата и губи га при поновном покретању. Учитај фасциклу поново.',
   'settings.jdimport.replaced': 'KnightLoader чува само четири најновија прегледа, а новија учитавања су истиснула овај. Учитај фасциклу поново.',
   'settings.jdimport.previewTitle': 'Шта треба да пређе из JDownloader-а?',
   'settings.jdimport.previewFiles': 'Учитано из {files}',

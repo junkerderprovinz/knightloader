@@ -2729,6 +2729,7 @@ export const de: Dict = {
   'settings.jdimport.pathMissing': 'Unter {path} gibt es auf diesem Rechner weder Datei noch Ordner.',
   'settings.jdimport.notZip': 'Das ist keine Zip-Datei.',
   'settings.jdimport.expired': 'Diese Vorschau ist älter als eine halbe Stunde. Lies den Ordner noch einmal ein.',
+  'settings.jdimport.unknown': 'KnightLoader hat diese Vorschau nicht mehr. Eine Vorschau bleibt eine halbe Stunde lang erhalten und geht bei einem Neustart verloren. Lies den Ordner noch einmal ein.',
   'settings.jdimport.replaced': 'KnightLoader behält nur die vier neuesten Vorschauen, und neuere haben diese verdrängt. Lies den Ordner noch einmal ein.',
   'settings.jdimport.previewTitle': 'Was soll von JDownloader mitkommen?',
   'settings.jdimport.previewFiles': 'Gelesen aus {files}',

@@ -2527,6 +2527,7 @@ export const ro: Dict = {
   'settings.jdimport.pathMissing': 'Pe acest calculator nu există nici fișier, nici dosar la {path}.',
   'settings.jdimport.notZip': 'Acela nu este un fișier zip.',
   'settings.jdimport.expired': 'Această previzualizare are mai mult de o jumătate de oră. Citește dosarul din nou.',
+  'settings.jdimport.unknown': 'KnightLoader nu mai are această previzualizare. Păstrează o previzualizare o jumătate de oră și o pierde la o repornire. Citește dosarul din nou.',
   'settings.jdimport.replaced': 'KnightLoader păstrează doar cele mai noi patru previzualizări, iar citiri mai noi au scos-o pe aceasta. Citește dosarul din nou.',
   'settings.jdimport.previewTitle': 'Ce ar trebui să vină din JDownloader?',
   'settings.jdimport.previewFiles': 'Citit din {files}',

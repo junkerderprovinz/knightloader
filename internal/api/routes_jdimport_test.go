@@ -86,7 +86,7 @@ func TestJDImportReadsAnUploadedZipAndAppliesIt(t *testing.T) {
 	}
 	var refusal map[string]any
 	decodeAnswer(t, resp, http.StatusGone, &refusal)
-	if refusal["code"] != "jdimport.expired" {
+	if refusal["code"] != "jdimport.unknown" {
 		t.Errorf("refusal = %v", refusal)
 	}
 }

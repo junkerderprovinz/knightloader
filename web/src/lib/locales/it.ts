@@ -2504,6 +2504,7 @@ export const it: Dict = {
   'settings.jdimport.pathMissing': "Non c'è nessun file né cartella in {path} su questa macchina.",
   'settings.jdimport.notZip': 'Questo non è un file zip.',
   'settings.jdimport.expired': "Questa anteprima ha più di mezz'ora. Rileggi la cartella.",
+  'settings.jdimport.unknown': "KnightLoader non ha più questa anteprima. Tiene un'anteprima per mezz'ora e la perde a ogni riavvio. Rileggi la cartella.",
   'settings.jdimport.replaced': 'KnightLoader tiene solo le quattro anteprime più recenti, e letture più nuove hanno scalzato questa. Rileggi la cartella.',
   'settings.jdimport.previewTitle': 'Cosa deve arrivare da JDownloader?',
   'settings.jdimport.previewFiles': 'Letto da {files}',

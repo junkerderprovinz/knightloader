@@ -2504,6 +2504,7 @@ export const pl: Dict = {
   'settings.jdimport.pathMissing': 'Na tym komputerze pod {path} nie ma ani pliku, ani folderu.',
   'settings.jdimport.notZip': 'To nie jest plik zip.',
   'settings.jdimport.expired': 'Ten podgląd ma więcej niż pół godziny. Wczytaj folder jeszcze raz.',
+  'settings.jdimport.unknown': 'KnightLoader nie ma już tego podglądu. Trzyma podgląd przez pół godziny i traci go przy ponownym uruchomieniu. Wczytaj folder jeszcze raz.',
   'settings.jdimport.replaced': 'KnightLoader trzyma tylko cztery najnowsze podglądy, a nowsze wczytania wyparły ten. Wczytaj folder jeszcze raz.',
   'settings.jdimport.previewTitle': 'Co ma przejść z JDownloadera?',
   'settings.jdimport.previewFiles': 'Wczytano z {files}',

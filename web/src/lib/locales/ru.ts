@@ -2499,6 +2499,7 @@ export const ru: Dict = {
   'settings.jdimport.pathMissing': 'По пути {path} на этом компьютере нет ни файла, ни папки.',
   'settings.jdimport.notZip': 'Это не ZIP-файл.',
   'settings.jdimport.expired': 'Этот предпросмотр старше получаса. Прочитайте папку ещё раз.',
+  'settings.jdimport.unknown': 'У KnightLoader больше нет этого предпросмотра. Он хранит предпросмотр полчаса и теряет его при перезапуске. Прочитайте папку ещё раз.',
   'settings.jdimport.replaced': 'KnightLoader хранит только четыре последних предпросмотра, и более новые чтения вытеснили этот. Прочитайте папку ещё раз.',
   'settings.jdimport.previewTitle': 'Что перенести из JDownloader?',
   'settings.jdimport.previewFiles': 'Прочитано из {files}',
