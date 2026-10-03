@@ -755,6 +755,11 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
+		if in.file {
+			// The engine names the file after the server's answer, so the
+			// browser's name is put on it once the bytes are in.
+			t.Filename = cand.Filename
+		}
 	}
 	if sizeHint > 0 {
 		t.Size = sizeHint
@@ -987,6 +992,9 @@ func (a *App) hold(cand rules.Candidate, v rules.Verdict, in intake, now time.Ti
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
+		if in.file {
+			t.Filename = cand.Filename
+		}
 	}
 	if torrent.IsURI(cand.URL) {
 		if md, err := (torrent.Resolver{}).Describe(cand.URL); err == nil {
