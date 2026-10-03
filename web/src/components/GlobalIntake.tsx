@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
 import { useClipboardWatch } from '../lib/useClipboardWatch';
@@ -90,6 +90,11 @@ export function GlobalIntake() {
     };
   }, [t, toast]);
 
+  // A ref, so the language arriving after the first render does not restart
+  // the watch, which would drop its lease and take it again.
+  const latest = useRef({ t, toast });
+  latest.current = { t, toast };
+
   // The clipboard watch lives here because this component stays mounted across
   // pages. A refused permission ends the watch instead of asking again. While
   // it runs, the lease keeps it on the group's list of watchers, and another
@@ -98,10 +103,12 @@ export function GlobalIntake() {
     if (!watch) return;
     // The watch sends to this instance, so the lease is held here.
     const endLease = startLease('', () => {
+      const { t, toast } = latest.current;
       setWatch(false);
       toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
     });
     const endWatch = startClipboardWatch((o) => {
+      const { t, toast } = latest.current;
       switch (o.kind) {
         case 'staged':
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
@@ -122,7 +129,7 @@ export function GlobalIntake() {
       endWatch();
       endLease();
     };
-  }, [watch, setWatch, t, toast]);
+  }, [watch, setWatch]);
 
   return null;
 }

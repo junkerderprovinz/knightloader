@@ -20,6 +20,13 @@ const RENEW_MS = 60_000;
 
 const ID_KEY = 'knightloader.clipboardWatcher';
 
+/** Where the tabs of this browser tell each other that one of them closed. */
+const TABS_CHANNEL = 'knightloader.clipboardWatcher';
+
+/** How long the other tabs wait before renewing after one closed, so its
+ *  keepalive leave reaches the instance first. */
+const REJOIN_MS = 1_000;
+
 let memoryId = '';
 
 /**
@@ -108,6 +115,7 @@ async function renew(instance: string): Promise<boolean> {
  */
 export function startLease(instance: string, onStopped: () => void): () => void {
   let ended = false;
+  let rejoin: ReturnType<typeof setTimeout> | undefined;
   const round = async () => {
     try {
       if ((await renew(instance)) && !ended) onStopped();
@@ -116,12 +124,40 @@ export function startLease(instance: string, onStopped: () => void): () => void 
       // next round gets through.
     }
   };
+  // keepalive lets the request outlive a tab that is closing.
+  const leave = () =>
+    void fetch(watcherPath(watcherId(), instance), { method: 'DELETE', keepalive: true }).catch(() => {});
+
+  // Every tab of the browser renews the one entry, so a tab that closes takes
+  // it off the list for the others too. They put it back once its leave is
+  // through.
+  const tabs = new BroadcastChannel(TABS_CHANNEL);
+  tabs.onmessage = () => {
+    clearTimeout(rejoin);
+    rejoin = setTimeout(() => void round(), REJOIN_MS);
+  };
+  // A closing tab never gets to run the cleanup below.
+  const onHide = () => {
+    leave();
+    tabs.postMessage('left');
+  };
+  // A page restored from the back-forward cache left the list when it was
+  // hidden.
+  const onShow = (e: PageTransitionEvent) => {
+    if (e.persisted) void round();
+  };
+  addEventListener('pagehide', onHide);
+  addEventListener('pageshow', onShow);
+
   void round();
   const timer = setInterval(() => void round(), RENEW_MS);
   return () => {
     ended = true;
     clearInterval(timer);
-    // keepalive lets the request outlive a tab that is closing.
-    void fetch(watcherPath(watcherId(), instance), { method: 'DELETE', keepalive: true }).catch(() => {});
+    clearTimeout(rejoin);
+    tabs.close();
+    removeEventListener('pagehide', onHide);
+    removeEventListener('pageshow', onShow);
+    leave();
   };
 }
