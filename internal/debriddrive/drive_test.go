@@ -491,10 +491,15 @@ func TestALockEntrySplitBetweenWritesIsStillTakenOut(t *testing.T) {
 
 func TestTheDriveIsReadOnly(t *testing.T) {
 	f := newFixture(t)
-	for _, method := range []string{http.MethodPut, http.MethodDelete, "MKCOL", "MOVE", "COPY", "PROPPATCH", "LOCK"} {
+	for _, method := range []string{http.MethodPut, http.MethodDelete, "MOVE", "COPY", "PROPPATCH", "LOCK"} {
 		if resp := f.do(t, method, "/dav/TorBox/Some Movie/movie.mkv", nil); resp.StatusCode != http.StatusMethodNotAllowed {
 			t.Errorf("%s answered %s, want 405", method, resp.Status)
 		}
+	}
+	// rclone takes a 405 to MKCOL for "the folder is already there" and
+	// reports the new folder as made.
+	if resp := f.do(t, "MKCOL", "/dav/TorBox/new folder/", nil); resp.StatusCode != http.StatusForbidden {
+		t.Errorf("MKCOL answered %s, want 403", resp.Status)
 	}
 	for _, depth := range []string{"", "infinity"} {
 		h := map[string]string{}

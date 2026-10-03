@@ -39,7 +39,7 @@ func registerDebridDrive(reg *Registry, a *app.App) {
 	// Without it a write would fall through to the interface and answer 200
 	// with its index page, which a client takes for success.
 	reg.AddOpen(AnyMethod, drivePrefix+"/{path...}",
-		"refuse every other method on the debrid drive, the writes among them, with 405; same switch, same credential", serve)
+		"refuse every other method on the debrid drive, the writes among them: MKCOL with 403, the rest with 405; same switch, same credential", serve)
 }
 
 func serveDrive(a *app.App, w http.ResponseWriter, r *http.Request) {

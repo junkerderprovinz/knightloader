@@ -116,8 +116,12 @@ func TestTheDebridDriveRefusesWritesThroughTheRouteTable(t *testing.T) {
 		if code := send(m, false); code != http.StatusUnauthorized {
 			t.Errorf("%s answered %d to no credential, want 401", m, code)
 		}
-		if code := send(m, true); code != http.StatusMethodNotAllowed {
-			t.Errorf("%s answered %d, want 405", m, code)
+		want := http.StatusMethodNotAllowed
+		if m == "MKCOL" {
+			want = http.StatusForbidden
+		}
+		if code := send(m, true); code != want {
+			t.Errorf("%s answered %d, want %d", m, code, want)
 		}
 	}
 }

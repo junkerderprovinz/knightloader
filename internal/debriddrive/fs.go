@@ -218,6 +218,11 @@ func (d *Drive) Serve(w http.ResponseWriter, r *http.Request, prefix string) {
 			http.Error(w, "the drive lists one folder at a time; send Depth: 0 or 1", http.StatusForbidden)
 			return
 		}
+	case "MKCOL":
+		// RFC 4918 9.3.1 keeps 405 for a folder that is already there, and
+		// rclone believes it.
+		http.Error(w, "the drive is read-only", http.StatusForbidden)
+		return
 	default:
 		w.Header().Set("Allow", allowed)
 		http.Error(w, "the drive is read-only", http.StatusMethodNotAllowed)
