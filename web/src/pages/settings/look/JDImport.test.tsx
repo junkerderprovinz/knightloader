@@ -70,6 +70,22 @@ async function takeOver() {
 
 const text = () => document.body.textContent ?? '';
 
+it('counts one password, one link and one left-out link in the singular', async () => {
+  await openPreview();
+  expect(text()).toContain('1 archive password');
+  expect(text()).not.toContain('1 archive passwords');
+  expect(text()).toContain('1 link');
+  expect(text()).not.toContain('1 links');
+  expect(text()).toContain('1 finished link is left out.');
+});
+
+it('says one link is waiting after the take-over', async () => {
+  await openPreview();
+  vi.mocked(applyJDImport).mockResolvedValue({ imported: ['package:0'], failed: [], links: 1, filterStops: false });
+  await takeOver();
+  expect(text()).toContain('1 link is waiting in the link collector.');
+});
+
 it('does not call a preview the server no longer holds half an hour old', async () => {
   await openPreview();
   vi.mocked(applyJDImport).mockRejectedValue(new ApiError('gone', 'jdimport.unknown', undefined, 410));

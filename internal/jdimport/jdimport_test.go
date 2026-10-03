@@ -184,6 +184,29 @@ func TestTheNewestDownloadListThatOpensIsRead(t *testing.T) {
 	}
 }
 
+func TestASingleLeftOutLinkIsCountedInTheSingular(t *testing.T) {
+	t.Parallel()
+	links := jdimport.PackageLinks(jdimport.Package{Links: []jdimport.Link{
+		{URL: "https://example.org/done", Enabled: true, Finished: true},
+		{URL: "https://example.org/off"},
+		{URL: "https://example.org/hidden", Enabled: true, Protected: true},
+		{Enabled: true},
+	}})
+	want := map[string]string{
+		"linksFinished":  "1 finished link is left out.",
+		"linksOff":       "1 link switched off in JDownloader is left out.",
+		"linksProtected": "1 link comes from a protected container whose address JDownloader keeps hidden. Add the container again.",
+		"linksInternal":  "1 link has an address only JDownloader's plugins understand and is left out.",
+	}
+	got := map[string]string{}
+	for _, n := range links.Notes {
+		got[n.Code] = n.Text
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("notes = %q, want %q", got, want)
+	}
+}
+
 func TestEveryDebridServiceKnightLoaderHasIsRecognised(t *testing.T) {
 	t.Parallel()
 	mapped := map[string]bool{}

@@ -20,7 +20,8 @@ const GROUP_LABEL = {
 
 /**
  * reasonText words a reason the server gave. A code this build has no
- * sentence for shows the server's English. The lists inside a reason, the
+ * sentence for shows the server's English, and a count of one takes the
+ * code's singular sentence where it has one. The lists inside a reason, the
  * field a placeholder sits in and the actions a rule loses, are translated
  * one name at a time.
  */
@@ -36,13 +37,16 @@ export function reasonText(t: T, r: JDImportReason): string {
       .join(', ');
   }
   if (r.code === 'ruleBuiltinPackageFolder') params.switch = t('settings.subfolderByPackage');
-  return t(key as TranslationKey, params);
+  const one = `${key}One`;
+  return t((params.n === '1' && one in en ? one : key) as TranslationKey, params);
 }
 
 /** itemName is how a row names its item; the password row has no name of its own. */
 export function itemName(t: T, it: { kind: string; name: string; count?: number; total?: number }): string {
   if (it.kind === 'passwords') {
-    return t('settings.jdimport.passwords', { n: it.total ?? 0, fresh: it.count ?? 0 });
+    return it.total === 1
+      ? t('settings.jdimport.passwordsOne')
+      : t('settings.jdimport.passwords', { n: it.total ?? 0, fresh: it.count ?? 0 });
   }
   return it.name;
 }
@@ -207,7 +211,11 @@ function Row({
         ) : (
           item.detail && <Sub>{item.detail}</Sub>
         )}
-        {item.kind === 'package' && !item.blocked && <Sub>{t('settings.jdimport.links', { n: item.count ?? 0 })}</Sub>}
+        {item.kind === 'package' && !item.blocked && (
+          <Sub>
+            {item.count === 1 ? t('settings.jdimport.linksOne') : t('settings.jdimport.links', { n: item.count ?? 0 })}
+          </Sub>
+        )}
         {item.slot && <Sub>{t('settings.jdimport.slot', { slot: item.slot })}</Sub>}
         {item.blocked && <Sub>{reasonText(t, item.blocked)}</Sub>}
         {item.notes?.map((n, i) => (

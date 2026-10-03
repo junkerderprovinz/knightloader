@@ -289,18 +289,27 @@ func PackageLinks(p Package) Links {
 			out.URLs = append(out.URLs, l.URL)
 		}
 	}
-	note := func(n int, code, text string) {
-		if n > 0 {
-			out.Notes = append(out.Notes, Reason{
-				Code:   code,
-				Params: map[string]string{"n": strconv.Itoa(n)},
-				Text:   fmt.Sprintf(text, n),
-			})
+	note := func(n int, code, one, many string) {
+		if n == 0 {
+			return
 		}
+		text := one
+		if n > 1 {
+			text = fmt.Sprintf(many, n)
+		}
+		out.Notes = append(out.Notes, Reason{Code: code, Params: map[string]string{"n": strconv.Itoa(n)}, Text: text})
 	}
-	note(finished, "linksFinished", "%d finished links are left out.")
-	note(off, "linksOff", "%d links switched off in JDownloader are left out.")
-	note(protected, "linksProtected", "%d links come from a protected container whose addresses JDownloader keeps hidden. Add the container again.")
-	note(internal, "linksInternal", "%d links have an address only JDownloader's plugins understand and are left out.")
+	note(finished, "linksFinished",
+		"1 finished link is left out.",
+		"%d finished links are left out.")
+	note(off, "linksOff",
+		"1 link switched off in JDownloader is left out.",
+		"%d links switched off in JDownloader are left out.")
+	note(protected, "linksProtected",
+		"1 link comes from a protected container whose address JDownloader keeps hidden. Add the container again.",
+		"%d links come from a protected container whose addresses JDownloader keeps hidden. Add the container again.")
+	note(internal, "linksInternal",
+		"1 link has an address only JDownloader's plugins understand and is left out.",
+		"%d links have an address only JDownloader's plugins understand and are left out.")
 	return out
 }
