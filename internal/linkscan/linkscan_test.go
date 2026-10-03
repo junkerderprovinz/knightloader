@@ -231,3 +231,32 @@ func TestTrimTokenDoesNotBlowUpOnAPathologicalBracketRun(t *testing.T) {
 		t.Errorf("trimToken of a long unmatched run = %q, want the one balanced pair kept", got)
 	}
 }
+
+func TestExtractKeepsOwnServerLinks(t *testing.T) {
+	in := "ftp://files.example/a.zip\n" +
+		"Mirror: sftp://nas.lan:2222/share/b.mkv, or ftps://files.example/c.iso\n" +
+		"webdav://nas.lan/d.tar webdavs://cloud.example/remote.php/dav/e.7z"
+	want := []string{
+		"ftp://files.example/a.zip",
+		"sftp://nas.lan:2222/share/b.mkv",
+		"ftps://files.example/c.iso",
+		"webdav://nas.lan/d.tar",
+		"webdavs://cloud.example/remote.php/dav/e.7z",
+	}
+	got := Extract(in)
+	if len(got) != len(want) {
+		t.Fatalf("Extract = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("link %d = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestAWrappedOwnServerLinkIsRejoined(t *testing.T) {
+	got := Extract("sftp://nas.lan/a/very/long/path/that/got/wrapped/\nby/the/mail/client.zip")
+	if len(got) != 1 || got[0] != "sftp://nas.lan/a/very/long/path/that/got/wrapped/by/the/mail/client.zip" {
+		t.Errorf("Extract = %v, want the two halves joined into one link", got)
+	}
+}
