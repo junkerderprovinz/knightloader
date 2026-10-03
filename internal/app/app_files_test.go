@@ -377,6 +377,39 @@ func TestARunningDownloadTheEngineCannotStreamIsNotServedWithItsHoles(t *testing
 	}
 }
 
+// A torrent whose name is taken in its folder lands in a folder made for it
+// there, and the folder under its name belongs to the other torrent.
+func TestATorrentInAFolderMadeForItPlaysItsOwnFile(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, filepath.Join(base, "Season"), "e02.mkv", []byte("the other torrent"))
+	root := filepath.Join(base, "Season.1", "Season")
+	files := []core.TorrentFile{
+		{Path: "e01.mkv", Size: 3, Selected: true},
+		{Path: "e02.mkv", Size: 17, Selected: true},
+	}
+	magnet := "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
+
+	paused := putTask(t, a, core.Task{URL: magnet, Name: "Season", Status: core.StatusPaused, File: root, TorrentFiles: files})
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if of, err := a.OpenTaskFile(paused.ID, -1); err == nil {
+		of.File.Close()
+		t.Fatal("a torrent with nothing in its own folder opened a file")
+	}
+
+	writeTestFile(t, root, "e02.mkv", []byte("this torrent's own"))
+	done := putTask(t, a, core.Task{URL: magnet, Name: "Season", Status: core.StatusDone, File: root, TorrentFiles: files})
+	of, err := a.OpenTaskFile(done.ID, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	if body, _ := io.ReadAll(of.File); string(body) != "this torrent's own" {
+		t.Errorf("played %q, want the torrent's own e02.mkv", body)
+	}
+}
+
 // A link that never started has nothing to play, which is not the same as a
 // download that stopped halfway.
 func TestALinkThatNeverStartedHasNothingToPlay(t *testing.T) {
