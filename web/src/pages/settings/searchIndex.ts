@@ -700,7 +700,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.torrents.portTitle',
-      rows: [{ key: 'settings.torrents.port', hint: 'settings.torrents.portHint' }],
+      rows: [
+        { key: 'settings.torrents.port', hint: 'settings.torrents.portHint' },
+        { key: 'settings.torrents.interface', hint: 'settings.torrents.interfaceHint' },
+      ],
       // The port's further paragraphs, and the (i) inside the mapping button.
       body: [
         'settings.torrents.clientApplyHint',
