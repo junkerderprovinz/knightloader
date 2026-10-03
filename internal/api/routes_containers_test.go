@@ -3,9 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -67,5 +71,44 @@ func TestAnRSDFIsOpenedHereWithoutJD(t *testing.T) {
 	}
 	if got.Kind != "rsdf" || got.Links != 2 || len(a.Tasks()) != 2 {
 		t.Errorf("answered %+v with %d tasks, want both links of the rsdf staged", got, len(a.Tasks()))
+	}
+}
+
+func TestAnUploadedFileNameCannotStartALogLineOfItsOwn(t *testing.T) {
+	var logged bytes.Buffer
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	a := testApp(t)
+	reg := newRegistry()
+	registerContainers(reg, a)
+	h := http.NewServeMux()
+	reg.attach(h, http.NotFoundHandler())
+
+	var form bytes.Buffer
+	mw := multipart.NewWriter(&form)
+	head := textproto.MIMEHeader{}
+	head.Set("Content-Disposition", `form-data; name="file"; filename*=UTF-8''inj%0AFORGED%20LINE%0Ax.rsdf`)
+	part, err := mw.CreatePart(head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write([]byte(sampleRSDF)); err != nil {
+		t.Fatal(err)
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/containers", &form)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("answered %d: %s", rec.Code, rec.Body.String())
+	}
+
+	for _, line := range strings.Split(strings.TrimSpace(logged.String()), "\n") {
+		if strings.HasPrefix(line, "FORGED") || strings.HasPrefix(line, "x.rsdf") {
+			t.Errorf("the file name began a log line of its own: %q", line)
+		}
 	}
 }

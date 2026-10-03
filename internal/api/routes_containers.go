@@ -206,7 +206,7 @@ func registerContainers(reg *Registry, a *app.App) {
 			switch {
 			case err == nil:
 				if kind == container.KindRSDF || kind == container.KindCCF {
-					log.Printf("container %s: opened here as %s, %d links", name, kind, len(links))
+					log.Printf("container %q: opened here as %s, %d links", name, kind, len(links))
 				}
 				created := a.AddLinksFrom(links, pkg, app.OriginContainer)
 				if created == nil {
@@ -218,7 +218,7 @@ func registerContainers(reg *Registry, a *app.App) {
 					"created": created,
 				})
 			case errors.Is(err, container.ErrNeedsBackend):
-				log.Printf("container %s: handing %s to JDownloader: %v", name, kind, err)
+				log.Printf("container %q: handing %s to JDownloader: %v", name, kind, err)
 				handToJD(w, r, a, relay, name, data, pkg)
 			default:
 				// Verbatim: the container package's errors say which check
