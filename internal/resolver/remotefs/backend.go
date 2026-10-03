@@ -63,7 +63,12 @@ type Backend struct {
 	mu   sync.Mutex
 	runs map[string]*runState
 	link map[string]string
-	part map[string]string
+	// part is the part file each task writes until its transfer finishes,
+	// and saved the file finish made of it. Remove deletes these and nothing
+	// else: another download of the same name can be writing dir/name.klpart
+	// or have finished as dir/name.
+	part  map[string]string
+	saved map[string]string
 	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
 	// Resume and Remove reach whoever holds the transfer.
 	engineTasks map[string]bool
@@ -75,6 +80,7 @@ func NewBackend(accounts Accounts, dialer Dialer, eng Downloader, dir string, on
 		runs:        map[string]*runState{},
 		link:        map[string]string{},
 		part:        map[string]string{},
+		saved:       map[string]string{},
 		engineTasks: map[string]bool{},
 	}
 }
@@ -152,17 +158,18 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	if r := b.runs[taskID]; r != nil {
 		r.cancel()
 	}
-	part := b.part[taskID]
+	part, saved := b.part[taskID], b.saved[taskID]
 	delete(b.link, taskID)
 	delete(b.part, taskID)
+	delete(b.saved, taskID)
 	b.mu.Unlock()
 	// The part file always goes, or a later attempt at the same link would
 	// resume from it; the finished file only with deleteFiles.
 	if part != "" {
 		_ = os.Remove(part)
-		if deleteFiles {
-			_ = os.Remove(strings.TrimSuffix(part, partSuffix))
-		}
+	}
+	if deleteFiles && saved != "" {
+		_ = os.Remove(saved)
 	}
 }
 
@@ -246,8 +253,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	// collide.SafeName gives the same name the engine would write and keeps a
 	// server-supplied "../../etc/passwd" inside the download directory.
 	name := collide.SafeName(Name(t))
-	part := filepath.Join(dir, name+partSuffix)
 	b.mu.Lock()
+	part := b.partLocked(taskID, dir, name)
 	b.part[taskID] = part
 	b.mu.Unlock()
 
@@ -297,7 +304,31 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(err)
 		return
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: remote.Size, Loaded: remote.Size, Speed: 0})
+	b.mu.Lock()
+	delete(b.part, taskID)
+	b.saved[taskID] = final
+	b.mu.Unlock()
+	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), File: final, Size: remote.Size, Loaded: remote.Size, Speed: 0})
+}
+
+// partLocked is the part file taskID writes in dir: the one it has been
+// writing, in whatever folder that went to, or else one whose name no other
+// task's part file has. Names are compared without their folder because a
+// package rename moves a paused task's part file away from the path on
+// record. Caller holds b.mu.
+func (b *Backend) partLocked(taskID, dir, name string) string {
+	if p := b.part[taskID]; p != "" {
+		return filepath.Join(dir, filepath.Base(p))
+	}
+	taken := map[string]bool{}
+	for _, p := range b.part {
+		taken[filepath.Base(p)] = true
+	}
+	part := name + partSuffix
+	for n := 2; taken[part]; n++ {
+		part = collide.Counted(name, n) + partSuffix
+	}
+	return filepath.Join(dir, part)
 }
 
 // partSize is how many bytes of this download are already on disk. A missing
