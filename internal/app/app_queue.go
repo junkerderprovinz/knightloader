@@ -218,7 +218,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	}
 	var targets []reset
 	for id, t := range a.tasks {
-		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all)
+		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all && !a.nzbGoneLocked(t))
 		if byReason && !wantReason[t.Reason] {
 			continue
 		}

@@ -122,6 +122,16 @@ func (s *Service) NZB(id string) ([]byte, error) {
 	return data, err
 }
 
+// Keeps reports whether the .nzb the file behind link comes from is stored.
+func (s *Service) Keeps(link string) bool {
+	ref, err := parseLink(link)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(s.path(ref.job))
+	return err == nil
+}
+
 // File returns one file of a job.
 func (s *Service) File(job string, index int) (nzb.File, error) {
 	n, err := s.load(job)
