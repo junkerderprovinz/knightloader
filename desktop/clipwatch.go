@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 	"unicode"
 
@@ -123,9 +122,6 @@ type clipWatch struct {
 	reader clipboardReader
 	last   string
 
-	// on mirrors the switch for app.App.WatchesClipboard.
-	on atomic.Bool
-
 	// mu keeps a delivery from overlapping stop, so none reaches the app
 	// after it has closed.
 	mu      sync.Mutex
@@ -164,7 +160,6 @@ func (w *clipWatch) run(ctx context.Context) {
 // what was copied an hour ago does not arrive.
 func (w *clipWatch) step(ctx context.Context) {
 	s := w.settings()
-	w.on.Store(s.On)
 	if !s.On {
 		w.closeReader()
 		return
@@ -219,15 +214,11 @@ func (w *clipWatch) closeReader() {
 	}
 }
 
-// watching reports whether the switch is on.
-func (w *clipWatch) watching() bool { return w.on.Load() }
-
 // stop waits out a delivery under way and refuses any after it.
 func (w *clipWatch) stop() {
 	w.mu.Lock()
 	w.stopped = true
 	w.mu.Unlock()
-	w.on.Store(false)
 }
 
 // readClipSettings reads the switch and the target from the interface state
