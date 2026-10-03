@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -440,5 +441,32 @@ func TestATorrentRestoredPastTheBanAndTheHistoryIsPastTheBan(t *testing.T) {
 	}
 	if v := trackerBan(restored, a.Settings.Get().Torrent); v.Rejected {
 		t.Errorf("the torrent is refused for the tracker the user overruled: %s", v.Reason)
+	}
+}
+
+// A link downloaded again is saved under a numbered name, and its first name
+// still counts.
+func TestTheHistoryKeepsEveryNameALinkWasSavedUnder(t *testing.T) {
+	a := historyApp(t, nil)
+	first := downloadedBefore(t, a, "first", "https://one.example/film.mkv", "film.mkv", 4096)
+	if err := a.Store.Save(&core.Task{
+		ID: "second", URL: "https://one.example/film.mkv", Name: "film (2).mkv", Size: 4096, Loaded: 4096,
+		Status: core.StatusDone, CreatedAt: first, FinishedAt: first.Add(time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range []string{"film.mkv", "film (2).mkv"} {
+		got := onlyTask(t, a.AddResolvedLinksFrom([]resolver.Result{
+			{DirectURL: "https://two.example/" + url.PathEscape(name), Name: name, Size: 4096},
+		}, "", OriginPaste))
+		if !got.Skipped || got.SkipCode != skipDownloaded {
+			t.Errorf("a mirror named %q was staged (skipped=%v, code=%q), want it rejected as downloaded",
+				name, got.Skipped, got.SkipCode)
+		}
+	}
+	got := onlyTask(t, a.AddLinks([]string{"https://one.example/film.mkv"}, ""))
+	if got.SkipParams["name"] != "film (2).mkv" {
+		t.Errorf("the link itself is rejected as %q, want its latest download", got.SkipParams["name"])
 	}
 }

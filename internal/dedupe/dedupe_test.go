@@ -615,3 +615,27 @@ func TestSizeOnlyNeedsTheSizeOfEveryFile(t *testing.T) {
 		t.Error("a removed file still asks for a size")
 	}
 }
+
+// Every name kept for one URL matches, and the URL itself names the entry
+// kept last.
+func TestEveryEntryKeptForOneURLMatches(t *testing.T) {
+	const u = "https://one.example/f"
+	s := New(PolicyFilenameAndSize)
+	s.Keep(Entry{ID: "1", URL: u, Name: "film.mkv", Size: 4096})
+	s.Keep(Entry{ID: "2", URL: u, Name: "film (2).mkv", Size: 4096})
+
+	for name, id := range map[string]string{"film.mkv": "1", "film (2).mkv": "2"} {
+		m := s.Check(Entry{URL: "https://two.example/f", Name: name, Size: 4096})
+		if m.Verdict != Mirror || m.Of.ID != id {
+			t.Errorf("a mirror named %q matched %+v, want entry %s", name, m, id)
+		}
+	}
+	if m := s.Check(Entry{URL: u}); m.Verdict != Duplicate || m.Of.ID != "2" {
+		t.Errorf("the URL matched %+v, want the entry kept last", m)
+	}
+	s.Remove(u)
+	if s.Len() != 0 || len(s.buckets) != 0 || len(s.sizeless) != 0 {
+		t.Errorf("after Remove the set holds %d URLs, %d buckets and %d sizeless keys, want none",
+			s.Len(), len(s.buckets), len(s.sizeless))
+	}
+}
