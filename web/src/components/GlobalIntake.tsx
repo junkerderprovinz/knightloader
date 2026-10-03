@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
-import { useClipboardWatch } from '../lib/useClipboardWatch';
-import { startClipboardWatch } from '../lib/clipboardWatch';
+import { useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
+import { startClipboardWatch, type WatchOutcome } from '../lib/clipboardWatch';
 import { startLease } from '../lib/clipboardWatchers';
+import { isDesktop, onClipboardOutcome } from '../lib/desktop';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -19,6 +20,7 @@ export function GlobalIntake() {
   const { toast } = useToast();
   const { t } = useT();
   const [watch, setWatch] = useClipboardWatch();
+  const [target] = useClipboardWatchTarget();
 
   useEffect(() => {
     async function stageText(text: string) {
@@ -96,18 +98,20 @@ export function GlobalIntake() {
   latest.current = { t, toast };
 
   // The clipboard watch lives here because this component stays mounted across
-  // pages. A refused permission ends the watch instead of asking again. While
-  // it runs, the lease keeps it on the group's list of watchers, and another
-  // device switching it off there ends it here.
+  // pages. A refused permission ends the watch instead of asking again. In the
+  // desktop app the watch runs in Go, which also holds its lease, and the page
+  // only shows what it did, so a link is not sent twice while the window has
+  // focus. In a browser the lease keeps this tab on the group's list of
+  // watchers, held with the instance the links go to. Either way, another
+  // device switching the watch off there ends it here.
   useEffect(() => {
     if (!watch) return;
-    // The watch sends to this instance, so the lease is held here.
-    const endLease = startLease('', () => {
+    const stoppedElsewhere = () => {
       const { t, toast } = latest.current;
       setWatch(false);
       toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
-    });
-    const endWatch = startClipboardWatch((o) => {
+    };
+    const show = (o: WatchOutcome) => {
       const { t, toast } = latest.current;
       switch (o.kind) {
         case 'staged':
@@ -123,13 +127,22 @@ export function GlobalIntake() {
         case 'failed':
           toast(t('list.failed', { error: o.reason }), 'fail');
           break;
+        case 'limited':
+          toast(t('intake.clipboardWatchLimited'), 'info');
+          break;
+        case 'stopped':
+          stoppedElsewhere();
+          break;
       }
-    });
+    };
+    if (isDesktop()) return onClipboardOutcome(show);
+    const endLease = startLease(target, stoppedElsewhere);
+    const endWatch = startClipboardWatch(target, show);
     return () => {
       endWatch();
       endLease();
     };
-  }, [watch, setWatch]);
+  }, [watch, setWatch, target]);
 
   return null;
 }
