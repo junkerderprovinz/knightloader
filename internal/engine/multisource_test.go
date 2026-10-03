@@ -336,6 +336,31 @@ func TestAFileFromAFurtherSourceOfAnotherSizeComesFromItsOwnLinkAlone(t *testing
 	}
 }
 
+// A 403 from the own link may only mean it takes no more connections, so
+// the ones it turns away wait for the further source rather than leave
+// their part of the file undone.
+func TestAnOwnLinkForbiddingRangesLeavesTheFileToTheFurtherSource(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	var ranges atomic.Int32
+	own := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// The check, then 403.
+		if r.Header.Get("Range") != "" && ranges.Add(1) > 2 {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+	}))
+	t.Cleanup(own.Close)
+	other := newMirrorSource(t, data)
+
+	last, got := runToEnd(t, Job{URL: own.URL + "/f.bin", Sources: offering(other.url())})
+
+	if last.Status != core.StatusDone || !bytes.Equal(got, data) {
+		t.Fatalf("the download ended %q (%s) with %d bytes, want the file", last.Status, last.Err, len(got))
+	}
+}
+
 // lockedBuffer is a log destination the vetting goroutines may share.
 type lockedBuffer struct {
 	mu  sync.Mutex
