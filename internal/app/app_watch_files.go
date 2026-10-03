@@ -4,6 +4,7 @@ package app
 // and an .nzb. Each goes where an upload of the same file would.
 
 import (
+	"context"
 	"errors"
 	"log"
 	"path/filepath"
@@ -24,7 +25,7 @@ var errNothingInNZB = errors.New("this file is neither an .nzb nor a list of lin
 // containerFileAdder is a backend that opens a container whose bytes are at
 // hand rather than behind an address.
 type containerFileAdder interface {
-	AddContainerFile(ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddContainerFile(ctx context.Context, ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // checkWatchJob refuses a dropped file this instance cannot open before the
@@ -118,9 +119,13 @@ func (a *App) openWatchContainer(f *watch.File, pkg string) {
 		return
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(f.Name)), ".")
-	links, err := adder.AddContainerFile(ext, f.Data, pkg, containerCrawlLimit)
+	links, err := adder.AddContainerFile(a.ctx, ext, f.Data, pkg, containerCrawlLimit)
 	if err != nil {
-		a.watchFileFailed(f, "container", err)
+		// A shutdown leaves the file parked for the next start (see
+		// onWatchIntake), so it has not failed.
+		if a.ctx.Err() == nil {
+			a.watchFileFailed(f, "container", err)
+		}
 		return
 	}
 	created := a.AddResolvedLinksFrom(links, pkg, OriginWatch)

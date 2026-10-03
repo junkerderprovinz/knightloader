@@ -109,9 +109,8 @@ func (a *App) WatchFolderMissing(dir string) bool {
 func (a *App) onWatchIntake(j watch.Job) {
 	a.spawn(func() {
 		a.stageWatchJob(j)
-		// A shutdown mid-crawl, which takes the bundled JD down with it, says
-		// nothing about the file, so it stays parked and is taken again on the
-		// next start.
+		// A crawl cut short by a shutdown says nothing about the file, so it
+		// stays parked and is taken again on the next start.
 		if j.File != nil && a.ctx.Err() == nil {
 			j.File.Done()
 		}

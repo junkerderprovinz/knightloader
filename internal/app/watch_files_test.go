@@ -70,10 +70,10 @@ func (*containerJD) Download(string, string, map[string]string, int) {}
 func (*containerJD) Pause(string)                                    {}
 func (*containerJD) Resume(string)                                   {}
 func (*containerJD) Remove(string, bool)                             {}
-func (*containerJD) AddContainer(string, string, time.Duration) ([]resolver.Result, error) {
+func (*containerJD) AddContainer(context.Context, string, string, time.Duration) ([]resolver.Result, error) {
 	return nil, errors.New("a dropped container is not fetched from an address")
 }
-func (j *containerJD) AddContainerFile(ext string, data []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
+func (j *containerJD) AddContainerFile(_ context.Context, ext string, data []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	j.ext, j.data = ext, data
@@ -259,6 +259,46 @@ func TestADroppedContainerIsRetiredOnceJDownloaderHasOpenedIt(t *testing.T) {
 	})
 	if n := len(a.Tasks()); n != 1 {
 		t.Errorf("staged %d tasks, want the link JD found", n)
+	}
+}
+
+// crawlingJD is a JD whose crawl of a container only ends with its context.
+type crawlingJD struct {
+	containerJD
+	started chan struct{}
+}
+
+func (j *crawlingJD) AddContainerFile(ctx context.Context, _ string, _ []byte, _ string, _ time.Duration) ([]resolver.Result, error) {
+	close(j.started)
+	<-ctx.Done()
+	return nil, ctx.Err()
+}
+
+func TestAShutdownDoesNotWaitForAContainerCrawl(t *testing.T) {
+	a := newCrawlApp(t, false)
+	jd := &crawlingJD{started: make(chan struct{})}
+	a.bmu.Lock()
+	a.jd = jd
+	a.bmu.Unlock()
+
+	a.onWatchIntake(watch.Job{File: &watch.File{Name: "Links.CCF", Data: []byte("encrypted bytes")}, Package: "Links"})
+	select {
+	case <-jd.started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the container never reached JD")
+	}
+	closed := make(chan struct{})
+	go func() {
+		a.Close()
+		close(closed)
+	}()
+	select {
+	case <-closed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close is still waiting for JD to open the container")
+	}
+	if s := a.SkippedLinks(); len(s) != 0 {
+		t.Errorf("skipped = %+v; the container is taken again on the next start, so it has not failed", s)
 	}
 }
 
