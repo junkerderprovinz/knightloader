@@ -272,8 +272,6 @@ func torrentTask(t *testing.T, a *App, base string) *core.Task {
 	})
 }
 
-func isMKV(name string) bool { return filepath.Ext(name) == ".mkv" }
-
 func TestSafeTaskFileAtServesOneFileOfATorrent(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	task := torrentTask(t, a, base)
@@ -319,7 +317,7 @@ func TestSafeTaskFileAtRefusesATorrentPathOutOfItsFolder(t *testing.T) {
 func TestOpenTaskFilePicksTheLargestSelectedMediaFile(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	task := torrentTask(t, a, base)
-	of, err := a.OpenTaskFile(task.ID, -1, isMKV)
+	of, err := a.OpenTaskFile(task.ID, -1)
 	if err != nil {
 		t.Fatalf("OpenTaskFile: %v", err)
 	}
@@ -328,15 +326,92 @@ func TestOpenTaskFilePicksTheLargestSelectedMediaFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if of.Name != "e02.mkv" || string(body) != "episode two, longer" || of.Live {
-		t.Errorf("opened %s (live %v) with %q, want the second episode from disk", of.Name, of.Live, body)
+	if of.Name != "e02.mkv" || of.Index != 1 || string(body) != "episode two, longer" || of.Live {
+		t.Errorf("opened %s (file %d, live %v) with %q, want the second episode from disk", of.Name, of.Index, of.Live, body)
 	}
 }
 
-func TestOpenTaskFileOfATorrentWithoutMediaFindsNothing(t *testing.T) {
+func TestOpenTaskFileOfATorrentWithoutMediaSaysSo(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	root := filepath.Join(base, "Album")
+	writeTestFile(t, root, "cover.jpg", []byte("art"))
+	writeTestFile(t, root, "notes.txt", []byte("notes"))
+	task := putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Album",
+		Status: core.StatusDone, File: root,
+		TorrentFiles: []core.TorrentFile{
+			{Path: "cover.jpg", Size: 3, Selected: true},
+			{Path: "notes.txt", Size: 5, Selected: true},
+		},
+	})
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoMedia) {
+		t.Errorf("err = %v, want ErrTaskFileNoMedia", err)
+	}
+}
+
+// The engine sizes an HTTP download's file in full when it starts, so the
+// file of a paused one is as long as the finished one and has holes.
+func TestAPausedDownloadIsNotServedWithItsHoles(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", make([]byte, 64))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/disc.iso", Name: "disc.iso",
+		Status: core.StatusPaused, Size: 64, Loaded: 32,
+	})
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileIncomplete) {
+		t.Errorf("err = %v, want ErrTaskFileIncomplete", err)
+	}
+}
+
+func TestAFinishedFileOfAStoppedDownloadIsServed(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", []byte("complete"))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/disc.iso", Name: "disc.iso",
+		Status: core.StatusError, Size: 8, Loaded: 8,
+	})
+	of, err := a.OpenTaskFile(task.ID, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	of.File.Close()
+}
+
+// A paused torrent keeps an unfinished file under another name, which reads
+// as stopped, not as a download that never began.
+func TestAnUnfinishedFileOfAPausedTorrentIsReportedAsStopped(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	task := torrentTask(t, a, base)
-	if _, err := a.OpenTaskFile(task.ID, -1, func(string) bool { return false }); !errors.Is(err, ErrTaskFileNoBytes) {
-		t.Errorf("err = %v, want ErrTaskFileNoBytes for the torrent's folder", err)
+	if err := os.Rename(filepath.Join(base, "Show", "S01", "e02.mkv"), filepath.Join(base, "Show", "S01", "e02.mkv.part")); err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	a.tasks[task.ID].Status = core.StatusPaused
+	a.mu.Unlock()
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileIncomplete) {
+		t.Errorf("err = %v, want ErrTaskFileIncomplete", err)
+	}
+	of, err := a.OpenTaskFile(task.ID, 0)
+	if err != nil {
+		t.Fatalf("the finished episode of the paused torrent: %v", err)
+	}
+	of.File.Close()
+}
+
+// A player still reading a finished file must not keep the rename and the
+// delivery that follow the download from moving it.
+func TestAFileBeingPlayedCanStillBeMoved(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	id := putTask(t, a, core.Task{
+		URL: "https://host.example/film.mkv", Name: "film.mkv", Status: core.StatusDone,
+	}).ID
+	writeTestFile(t, base, "film.mkv", []byte("frames"))
+	of, err := a.OpenTaskFile(id, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	if err := os.Rename(filepath.Join(base, "film.mkv"), filepath.Join(base, "renamed.mkv")); err != nil {
+		t.Fatalf("rename while the file is open: %v", err)
 	}
 }

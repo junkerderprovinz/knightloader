@@ -41,6 +41,12 @@ var (
 	// ErrTaskFileNoSuchFile is a file index the task's torrent does not have
 	// or does not fetch.
 	ErrTaskFileNoSuchFile = errors.New("the torrent has no such file, or it is not being downloaded")
+	// ErrTaskFileNoMedia is a torrent of several files with no audio or video
+	// among the ones it fetches, so there is nothing for Play to open.
+	ErrTaskFileNoMedia = errors.New("this torrent fetches no audio or video file")
+	// ErrTaskFileIncomplete is a download that stopped before it finished.
+	// Only a running one can be read before it is complete.
+	ErrTaskFileIncomplete = errors.New("this download stopped before it finished; start it again to play the file while it downloads")
 )
 
 // TaskFile is a task's file as it currently is on disk. Path has been checked
@@ -187,27 +193,29 @@ type StreamFile interface {
 type OpenedFile struct {
 	Name string
 	File StreamFile
+	// Index is the file of the torrent this is, or -1 for the task's own file.
+	Index int
 	// Live is set when the bytes come from a download that is still running.
 	Live bool
 }
 
 // OpenTaskFile opens a file of a task for the file route. index picks a file
 // of a torrent; a negative one picks the task's own file or, in a torrent of
-// several files, the largest selected one that prefer accepts. While the
-// engine is still downloading the file its bytes come from the engine, which
-// fetches the part being read before the rest (see engine.Stream). Otherwise
-// they come from disk, through the checks of SafeTaskFile.
-func (a *App) OpenTaskFile(id string, index int, prefer func(name string) bool) (OpenedFile, error) {
+// several files, the one Play opens (see core.PlayFile). While the engine is
+// still downloading the file its bytes come from the engine, which fetches
+// the part being read before the rest (see engine.Stream). Otherwise they
+// come from disk, through the checks of SafeTaskFile.
+func (a *App) OpenTaskFile(id string, index int) (OpenedFile, error) {
 	snap, err := a.taskSnapshot(id)
 	if err != nil {
 		return OpenedFile{}, err
 	}
 	isTorrent := torrent.IsURI(snap.URL)
-	if index < 0 && isTorrent {
-		if len(snap.TorrentFiles) == 1 {
-			index = 0
-		} else {
-			index = pickFile(snap.TorrentFiles, prefer)
+	if index < 0 && isTorrent && len(snap.TorrentFiles) == 1 {
+		index = 0
+	} else if index < 0 && isTorrent && len(snap.TorrentFiles) > 1 {
+		if index = core.PlayFile(snap.TorrentFiles); index < 0 {
+			return OpenedFile{}, ErrTaskFileNoMedia
 		}
 	}
 	// A torrent's file is known by its index, and before the swarm has sent
@@ -219,35 +227,31 @@ func (a *App) OpenTaskFile(id string, index int, prefer func(name string) bool) 
 				return OpenedFile{}, err
 			}
 			if r, err := e.Stream(id, max(index, 0)); err == nil {
-				return OpenedFile{Name: at.name, File: r, Live: true}, nil
+				return OpenedFile{Name: at.name, File: r, Index: index, Live: true}, nil
 			}
 		}
 	}
+	stopped := snap.Status != core.StatusRunning && snap.Status != core.StatusDone && snap.Status != core.StatusExtracting
+	// The engine gives an HTTP download's file its full size as it starts, so
+	// a stopped one reads as zeros wherever its bytes have not arrived.
+	if stopped && !isTorrent && snap.Size > 0 && snap.Loaded < snap.Size {
+		return OpenedFile{}, ErrTaskFileIncomplete
+	}
 	tf, err := a.SafeTaskFileAt(id, index)
+	// A torrent keeps a file under another name until it is complete.
+	if stopped && isTorrent && errors.Is(err, ErrTaskFileNoBytes) {
+		return OpenedFile{}, ErrTaskFileIncomplete
+	}
 	if err != nil {
 		return OpenedFile{}, err
 	}
 	// Opened by the path SafeTaskFileAt resolved and confirmed, and never
 	// joined again here.
-	f, err := os.Open(tf.Path)
+	f, err := openShared(tf.Path)
 	if err != nil {
 		return OpenedFile{}, ErrTaskFileNoBytes
 	}
-	return OpenedFile{Name: tf.Name, File: diskFile{f}}, nil
-}
-
-// pickFile is the largest selected file that prefer accepts, or -1 for none.
-func pickFile(files []core.TorrentFile, prefer func(string) bool) int {
-	at := -1
-	for i, f := range files {
-		if !f.Selected || prefer == nil || !prefer(path.Base(f.Path)) {
-			continue
-		}
-		if at < 0 || f.Size > files[at].Size {
-			at = i
-		}
-	}
-	return at
+	return OpenedFile{Name: tf.Name, File: diskFile{f}, Index: index}, nil
 }
 
 // diskFile is a file on disk, whose reads have nothing to wait for.

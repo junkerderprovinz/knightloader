@@ -1278,6 +1278,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if filesKnown {
 		t.TorrentFiles = u.TorrentFiles
 		t.TorrentFileCount = len(u.TorrentFiles)
+		t.TorrentMedia = core.TorrentMedia(u.TorrentFiles)
 	}
 	if u.Status != "" && !stale {
 		t.Status = u.Status
