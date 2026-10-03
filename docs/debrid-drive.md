@@ -145,9 +145,10 @@ download server refuses before then is unlocked again once. Every read asks
 the download server for the part it needs, so seeking in a film fetches from
 the new position instead of from the start.
 
-KnightLoader logs nothing about the drive. An unlocked link is a credential in
-itself, and the errors the drive answers with name the service and the reason,
-never the link.
+When the download server cannot deliver a file, the drive answers 502 with the
+account and the reason, and writes the same reason to the log with the file's
+path. Neither contains the link, since an unlocked link is a credential in
+itself.
 
 ## Limits
 
