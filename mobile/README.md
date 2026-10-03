@@ -219,20 +219,56 @@ in a row: a captcha that has gone after its deadline timed out, one gone before
 it was answered or dropped elsewhere, unless this phone answered or skipped it
 itself. The banner then says so, as the web UI's toast does.
 
-**No notification while the app is closed.** The app runs nothing in the
-background and asks for no notification permission, so a captcha that arrives
-while it is away is announced by the banner once it is back in front. That
-comparison needs the last look, which lives in memory: after Android has
-killed the app in the background, the first look has nothing to compare with
-and announces nothing, and the card on the downloads is what shows it. A
-captcha on another saved instance gets no banner either, only the count on the
-overview. A real notification needs two things this app does not have:
-`expo-notifications` with Android 13's `POST_NOTIFICATIONS` permission, and a
-way to hear about the captcha while asleep. Polling from the background is not that way, since
-Android runs a background task at most every fifteen minutes and a captcha can
-expire before the phone looks. It takes a push from the instance through FCM:
-a Firebase project for the app, and a route on the server where a phone
-registers its push token.
+**Notifications while the app is closed.** `modules/watch` is a small native
+module with an Android foreground service. The service runs one pass of
+`src/watch/watch.ts` as a headless JavaScript task: every 10 to 30 seconds
+while a download runs or a captcha waits, once a minute while nothing does. A
+pass reads `/api/tasks/watch` and `/api/captcha?watch=0` from every saved
+instance, over the same direct or relay transport the screens use, and posts a
+notification for a captcha that arrived, a package or lone download that
+finished, and a download that failed for good. A failure the instance retries by
+itself is no news yet. `/api/tasks/watch` sends each task's state without its
+progress, and given the tag of its last answer it sends only the tag until
+something changes, so a long history costs a few bytes a look. An instance from
+before that route is read through `/api/tasks`. A look that gets no answer
+within 20 seconds counts as one the instance missed. The relay carries no
+socket, so asking is the only way to hear about anything, and `watch=0` keeps a
+phone in a pocket from holding the captcha accounts back. Nothing here comes from Firebase or any
+other Google service.
+
+"Stay connected", on by default, keeps the service running for as long as an
+instance is saved, so a download that starts on the instance while the app is
+closed is noticed too. `WatchBoot` starts it again after a reboot and after an
+update of the app; both broadcasts are among the cases where Android 14 and 15
+still allow a foreground service from the background, and Android 15's list of
+types a boot receiver may not start leaves `specialUse` out. The app stores in
+native preferences whether that applies, since the receiver has no JavaScript to
+ask. With the setting off, the service stops itself two minutes after the last
+busy look, or fifteen when an instance stopped answering while it was busy, and
+the app starts it from the front: when it is opened, every 15 seconds while it
+is open and something is running, and when a download is added. Nothing is
+announced for what finished while nobody looked, after the service stopped or
+while the app was away without it: the next look starts over like the first.
+
+While a download runs or a captcha waits, the service holds a partial wake lock
+and a handler times the passes, since that clock stops while the phone sleeps;
+the pace drops to one look every 30 seconds while nothing changes. While
+nothing runs, it lets go of the lock and an inexact alarm that is allowed while
+idle wakes the phone for the next look, so an idle phone sleeps between looks.
+A download that stands still and a torrent a debrid service is still fetching
+count as nothing running here, since either can stay that way for hours, but
+with "Stay connected" off they still keep the service going.
+The first time the service starts with "Stay connected", the app offers
+Android's battery optimisation list once, and the settings card keeps a button
+to it while the app is optimised. It opens the list rather than asking for the
+exemption directly, because REQUEST_IGNORE_BATTERY_OPTIMIZATIONS is a Google
+Play policy question and one build goes to both stores. On phones whose maker
+adds background rules of its own (Xiaomi, OnePlus, OPPO, vivo, Huawei, Samsung,
+Asus) the card also offers that maker's autostart or background page, falling
+back to the app's details. The instance open on screen while the app is in front gets no notifications, since
+its banner and its list already say it. The rules (what counts as news, when to
+stop, how fast to look) live in `src/watch/rules.ts`, which
+`check-watch.mjs` runs as they are.
 
 ## Structure
 
@@ -254,6 +290,9 @@ registers its push token.
   the watch and its banner, one captcha's card, and the WebView window. See
   "Captchas" above. `react-native-webview` is a native module, so it needs a
   build of the app rather than an update over Expo Go's bundle.
+- `src/watch/` and `modules/watch/`: the background watch behind the
+  notifications, its rules, its settings and the foreground service that runs
+  it. See "Captchas" above.
 - `src/storage/connections.ts`: every saved connection plus which one is
   active, in the OS keychain.
 - `src/api/seedphrase.ts`: twelve words to the group key, entirely on the
@@ -441,9 +480,6 @@ project to point it at.
   client relies on reconnecting after the drop instead. In practice an open
   Downloads screen polls often enough to keep the link warm, and a backgrounded
   app reconnects when it comes back.
-- Notifications for captchas and finished downloads while the app is closed.
-  The desktop tray already has an attention mechanism for captchas
-  (`desktop/tray.go`); what the phone would need is under "Captchas" above.
 - reCAPTCHA and hCaptcha over the relay; see "Captchas" above for why.
 - Per-task actions beyond adding links: pause/resume/delete a single task
   exist on the server's `/api/tasks/*` routes but have no UI here yet; only
