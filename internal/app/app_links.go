@@ -101,6 +101,10 @@ type intake struct {
 	// the moment it is staged so the collector's probe already uses them
 	// (see app_browserheaders.go).
 	headers hostheaders.Set
+
+	// file marks a link a browser was downloading as a file (see
+	// LinkBatchOptions.File).
+	file bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -215,7 +219,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		// A link a browser hands over with its own headers is the file or
 		// stream it was fetching. Listed or crawled without that session, it
 		// would only show its login page.
-		handedOver := len(batch.Headers.Headers) > 0
+		handedOver := len(batch.Headers.Headers) > 0 || batch.File
 		// A playlist becomes its videos rather than one task. This is asked
 		// before the crawl, which only claims yt-dlp links by exclusion.
 		if pl, ok := a.ytdlpPlaylist(u); ok && !handedOver {
@@ -250,8 +254,8 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			buckets = append(buckets, b)
 			continue
 		}
-		if t := a.stage(u, "", 0, intake{
-			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers,
+		if t := a.stage(u, batch.FileName, 0, intake{
+			pkg: pkg, origin: origin, source: batch.Source, headers: batch.Headers, file: batch.File,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
@@ -640,6 +644,21 @@ func (a *App) stagingResolverFor(u string) resolver.Resolver {
 	return chain[0]
 }
 
+// fileResolverFor returns the resolver for a file a browser was downloading:
+// the first in u's chain that fetches the address as it is and with the
+// browser's headers, or else fallback. yt-dlp would take an address with no
+// file extension for a page, and JD would fetch it without the browser's
+// session.
+func (a *App) fileResolverFor(u string, fallback resolver.Resolver) resolver.Resolver {
+	for _, res := range hostChain(a.Registry.All(u), u, a.Settings.Get()) {
+		switch res.Info().ID {
+		case hostheaders.ResolverID, "direct", "http":
+			return res
+		}
+	}
+	return fallback
+}
+
 // stagedAt hands out the moments links enter the list, each one later than
 // the last. Dispatch starts links in CreatedAt order, and on Windows time.Now
 // moves in steps of about half a millisecond, so a batch staged within one
@@ -741,6 +760,9 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		t.Size = sizeHint
 	}
 	res := a.stagingResolverFor(u)
+	if in.file {
+		res = a.fileResolverFor(u, res)
+	}
 	if res == nil {
 		// Staged anyway, with the reason, so links never silently vanish.
 		t.Reason = core.ReasonUnsupported
@@ -791,7 +813,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	}
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
-	if staged != nil && res.Info().ID == "direct" {
+	if staged != nil && (res.Info().ID == "direct" || in.file && res.Info().ID == "http") {
 		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows

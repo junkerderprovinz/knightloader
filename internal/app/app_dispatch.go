@@ -916,7 +916,7 @@ func (a *App) dispatchLocked() {
 		t.Mode = a.modeForLocked(t, t.Resolver)
 		// a.ctx, because a.mu is held: a hanging resolver must not keep the
 		// lock past shutdown.
-		result, err := a.resolveLocked(res, t)
+		result, later, err := a.resolveLocked(res, t)
 		if err != nil {
 			t.Status = core.StatusError
 			// Classified from the error value, which is still available here.
@@ -1000,8 +1000,15 @@ func (a *App) dispatchLocked() {
 				own = leftover{}
 			}
 			a.beginHandoverLocked(id)
+			var seq uint64
+			if later != nil {
+				seq = a.beginPreflightLocked(id)
+			}
 			go func() {
 				defer a.endHandover(id)
+				if later != nil && !a.preflight(&job, later, seq) {
+					return
+				}
 				own.drop(id)
 				a.Engine.Start(job)
 			}()

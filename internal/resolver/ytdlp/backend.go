@@ -515,8 +515,20 @@ type ProbeResult struct {
 // --flat-playlist is not passed because it changes the answer for ordinary
 // single videos. A playlist URL therefore probes slowly and prints one object
 // per entry, of which firstLine takes the first.
-func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, error) {
+//
+// sent are the headers a browser handed over with the link, or nil; they go to
+// yt-dlp as they do for the download (see browserArgs).
+func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]string) (ProbeResult, error) {
 	args := []string{"--skip-download", "--no-warnings", "-j"}
+	if jar := withBrowserCookies("", url, sent["Cookie"], time.Now()); jar != "" {
+		path, cleanup, err := writeCookieFile("", jar)
+		defer cleanup()
+		if err != nil {
+			return ProbeResult{}, err
+		}
+		args = append(args, "--cookies", path)
+	}
+	args = append(args, browserArgs(sent)...)
 	stream, unwrapped, err := unwrap(ctx, b.client(), url)
 	if err != nil {
 		return ProbeResult{}, err

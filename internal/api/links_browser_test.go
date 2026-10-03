@@ -61,6 +61,19 @@ func TestAddLinksRefusesHeadersItCannotScope(t *testing.T) {
 			"links":   "https://files.example/a.zip",
 			"headers": map[string]string{"Cookie": handedCookie + "\r\nX-Injected: 1"},
 		},
+		"a control character": {
+			"links":   "https://files.example/a.zip",
+			"headers": map[string]string{"Cookie": handedCookie + "\x00"},
+		},
+		"a name that is no token": {
+			"links":   "https://files.example/a.zip",
+			"headers": map[string]string{"Authorization:": "Bearer " + handedCookie},
+		},
+		"a file as two links": {
+			"links": "https://files.example/a.zip\nhttps://files.example/b.zip",
+			"file":  true,
+			"name":  "a.zip",
+		},
 		"with passwords": {
 			"links":     "https://files.example/a.zip",
 			"passwords": []string{"pw"},

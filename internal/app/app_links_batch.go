@@ -56,6 +56,12 @@ type LinkBatchOptions struct {
 	// no crawl and no playlist listing, and the headers go with its download
 	// alone.
 	Headers hostheaders.Set
+	// File says the link is a file a browser was downloading, and FileName
+	// is the name the browser gave it. Such a link is staged as it is and
+	// fetched as a plain file, never by yt-dlp, which takes an address with
+	// no file extension for a page and saves whatever it finds there.
+	File     bool
+	FileName string
 }
 
 // AddLinksWithOptions stages a batch like AddLinksFrom and then applies the

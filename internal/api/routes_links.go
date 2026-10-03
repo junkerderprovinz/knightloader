@@ -16,7 +16,7 @@ import (
 
 func registerLinks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/links",
-		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only; returns the tasks created",
+		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, which entrance they arrived by, the page they came from, and for a single link the browser's Cookie, Referer and User-Agent, kept in memory for that download only, and whether that link is a file the browser was downloading, with its name; returns the tasks created",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Links   string `json:"links"` // newline-separated, like JD's paste box
@@ -46,6 +46,11 @@ func registerLinks(reg *Registry, a *app.App) {
 				// Headers are a browser's Cookie, Referer and User-Agent for
 				// a single link it hands over (see app.BrowserHeaders).
 				Headers map[string]string `json:"headers"`
+				// File says the single link is a file the browser was
+				// downloading, and Name is what the browser called it (see
+				// app.LinkBatchOptions.File).
+				File bool   `json:"file"`
+				Name string `json:"name"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -81,6 +86,10 @@ func registerLinks(reg *Registry, a *app.App) {
 				}
 				handedOver = set
 			}
+			if (body.File || body.Name != "") && (len(urls) != 1 || len(body.Passwords) > 0) {
+				http.Error(w, "a file comes as exactly one link and no passwords", http.StatusBadRequest)
+				return
+			}
 			var created []*core.Task
 			if len(body.Passwords) > 0 {
 				// Click'n'Load offers several candidate passwords rather than the
@@ -98,6 +107,8 @@ func registerLinks(reg *Registry, a *app.App) {
 					Overrule:         body.Overrule,
 					Source:           body.Source,
 					Headers:          handedOver,
+					File:             body.File,
+					FileName:         strings.TrimSpace(body.Name),
 				})
 				if err != nil {
 					// Usually a destination folder that was just typed and is

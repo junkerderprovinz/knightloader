@@ -442,12 +442,20 @@ func (a *App) analyze(id, rawurl string) {
 	if err != nil {
 		return
 	}
-	// Without the browser's cookies a link behind a login would read as gone.
-	for name, value := range a.browserHeadersFor(id, rawurl) {
-		req.Header.Set(name, value)
-	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
-	resp, err := a.Probe.Do(req)
+	probe := a.Probe
+	// Without the browser's cookies a link behind a login would read as gone.
+	if set := a.browserHeaderSet(id); len(set.Headers) > 0 {
+		for name, value := range set.Attach(rawurl) {
+			req.Header.Set(name, value)
+		}
+		// The shared client strips only credentials on a redirect, while
+		// the Referer and the user agent are the browser's too.
+		if c, ok := probe.(*http.Client); ok {
+			probe = set.Client(c)
+		}
+	}
+	resp, err := probe.Do(req)
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
 		// reached.
@@ -487,7 +495,7 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersFor(id, rawurl))
 	if err != nil {
 		a.fileUnprobedMedia(id)
 		return

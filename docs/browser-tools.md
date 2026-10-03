@@ -183,9 +183,12 @@ browser.
 
 A matching download goes to the default instance as `POST /api/links` with
 `headers` (the browser's cookies for that address, the Referer, the user
-agent) and `source`. Only after the instance answers with the created task is
-the browser's download cancelled and erased; any failure, including a link the
-instance already had, lets it carry on. A notification names the instance.
+agent), `source`, and `file` with the name the browser gave it. That marks the
+link as a file, so the instance fetches it as one even when its address has
+no file extension, rather than handing it to yt-dlp as a page. Only after the
+instance answers with the created task is the browser's download cancelled
+and erased; any failure, including a link the instance already had or its
+filter held back, lets it carry on. A notification names the instance.
 
 **Finding media** (`media.js`, `popup-media.js`) watches responses with
 `webRequest.onResponseStarted` and keeps, per tab in `storage.session`, the HLS
@@ -196,7 +199,7 @@ the stream's address; yt-dlp on the instance does the rest.
 
 **On the instance** the headers are checked and scoped by
 `app.BrowserHeaders`: only Cookie, Referer and User-Agent, only with a single
-link, no line breaks, and bound to that link's origin through
+link, no control characters, and bound to that link's origin through
 `hostheaders.Set`, which prints header names only. They live in memory beside
 the task, never in the task record or the store, and go when the download
 finishes or the task is removed; a restart drops them. A plain file goes

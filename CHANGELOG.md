@@ -43,13 +43,16 @@ release's tag.
   download that fits your rules (file types, minimum size, sites to leave
   alone) goes to your default instance with your cookies for that site, so
   downloads behind a login work. Hold Alt, Shift or Ctrl while clicking to
-  keep one in the browser. If the hand-over fails, the browser keeps it.
+  keep one in the browser. If the hand-over fails, or the instance holds the
+  link back as already downloaded or filtered, the browser keeps it.
 - The browser extension can list the video and audio a page plays, HLS and
   DASH playlists included, and send any of them from the popup, with the page
   it played on.
 - `POST /api/links` takes `source` and, for a single link, the browser's
   `Cookie`, `Referer` and `User-Agent` in `headers`. They stay in memory for
-  that download only, never reach a log, and go when it finishes.
+  that download only, never reach a log, and go when it finishes. `file` and
+  `name` mark that link as a file the browser was downloading, so it is
+  fetched as a plain file and never handed to yt-dlp.
 
 ## [1.6.6] - 2026-10-02
 

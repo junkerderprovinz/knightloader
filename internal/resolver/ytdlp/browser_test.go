@@ -1,6 +1,7 @@
 package ytdlp
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,6 +34,31 @@ func TestABrowsersCookiesJoinAStoredJar(t *testing.T) {
 	}
 	if got := withBrowserCookies(stored, "https://media.example/a.mp4", "", time.Unix(0, 0)); got != stored {
 		t.Errorf("without a browser cookie the stored jar changed to %q", got)
+	}
+}
+
+func TestTheTitleProbeCarriesTheBrowsersHeaders(t *testing.T) {
+	const secret = "s3cr3t-session"
+	b := fakeYtdlpBackend(t, "browser")
+	got, err := b.ProbeTitle(context.Background(), "https://media.example/live/index.m3u8", map[string]string{
+		"Cookie":     "sid=" + secret,
+		"Referer":    "https://site.example/watch/7",
+		"User-Agent": "Mozilla/5.0 (Test)",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	args, jar, _ := strings.Cut(got.Title, "\n")
+	for _, want := range []string{"--add-header Referer:https://site.example/watch/7", "--add-header User-Agent:Mozilla/5.0 (Test)", "--cookies"} {
+		if !strings.Contains(args, want) {
+			t.Errorf("the probe's arguments lack %q: %s", want, args)
+		}
+	}
+	if strings.Contains(args, secret) {
+		t.Error("the cookie value is on the command line")
+	}
+	if !strings.Contains(jar, "media.example\tFALSE\t/\tTRUE\t") || !strings.Contains(jar, "\tsid\t"+secret) {
+		t.Errorf("the probe's cookie file holds %q, want the browser's cookie for media.example", jar)
 	}
 }
 
