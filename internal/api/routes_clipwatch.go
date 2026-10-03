@@ -55,9 +55,13 @@ func registerClipWatch(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodDelete, "/api/clipboard-watchers/{id}",
-		"a clipboard watcher switched off where it runs",
+		"a clipboard watcher switched off where it runs; ?pause=1 for one that stays switched on but stops renewing for now, which keeps a stop asked of it",
 		func(w http.ResponseWriter, r *http.Request) {
-			a.ClipWatch.Leave(r.PathValue("id"))
+			if r.URL.Query().Get("pause") != "" {
+				a.ClipWatch.Pause(r.PathValue("id"))
+			} else {
+				a.ClipWatch.Leave(r.PathValue("id"))
+			}
 			w.WriteHeader(http.StatusNoContent)
 		})
 

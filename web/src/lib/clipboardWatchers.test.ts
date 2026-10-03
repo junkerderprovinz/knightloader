@@ -78,12 +78,12 @@ describe('startLease', () => {
     ]);
   });
 
-  it('leaves when the tab closes', async () => {
+  it('leaves when the tab closes but keeps a stop waiting for the next renewal', async () => {
     const calls = stubFetch(false);
     const end = startLease('', () => {});
     await vi.waitFor(() => expect(calls).toHaveLength(1));
     dispatchEvent(new Event('pagehide'));
-    expect(calls[1]).toEqual({ url: `/api/clipboard-watchers/${watcherId()}`, method: 'DELETE' });
+    expect(calls[1]).toEqual({ url: `/api/clipboard-watchers/${watcherId()}?pause=1`, method: 'DELETE' });
     end();
   });
 

@@ -142,6 +142,15 @@ func (r *Registry) Leave(id string) {
 	}
 }
 
+// Pause takes id off the list but keeps a stop asked of it, for a watcher still
+// switched on that stops renewing for a while, such as a web tab that reloads.
+// Its next renewal learns of the stop.
+func (r *Registry) Pause(id string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.live, id)
+}
+
 // Close drops the stops whose lease ran out by now. Pruning otherwise waits
 // for the next call, and a stop still on file when the instance stops gets a
 // fresh lease from Open.

@@ -118,7 +118,13 @@ func registerFederation(reg *Registry, a *app.App) {
 					return
 				}
 			}
-			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, "/api/"+rest, body)
+			target := "/api/" + rest
+			// The query is not forwarded, but a closing tab's lease call
+			// needs it to keep a stop waiting for the tab's next renewal.
+			if clipLeaseCall(r.Method, rest) && r.URL.Query().Get("pause") != "" {
+				target += "?pause=1"
+			}
+			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, target, body)
 			if err != nil {
 				http.Error(w, err.Error(), code)
 				return
