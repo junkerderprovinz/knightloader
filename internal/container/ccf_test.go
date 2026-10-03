@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"math/bits"
+	"net/url"
 	"slices"
 	"testing"
 )
@@ -179,5 +180,25 @@ func TestACCFLinkKeepsTheSpacesAndBracesInIt(t *testing.T) {
 	want := []string{"https://example.com/files/a%20b.zip", "https://example.com/get?x=[1]&y={2}"}
 	if !slices.Equal(links, want) {
 		t.Errorf("links = %q, want %q", links, want)
+	}
+}
+
+func TestACCFLinkWithAControlCharacterInItIsEscaped(t *testing.T) {
+	doc := "<CryptLoad><Package>" +
+		"<Download><Url>https://example.com/files/tab\there.zip</Url></Download>" +
+		"<Download><Url>https://example.com/files/v\vt\x00n\x1be\x7fd.zip</Url></Download>" +
+		"</Package></CryptLoad>"
+	links, err := Links("film.ccf", cbcEncrypt(t, ccf07Keys[0], []byte(doc)))
+	if err != nil {
+		t.Fatalf("Links: %v", err)
+	}
+	want := []string{"https://example.com/files/tab%09here.zip", "https://example.com/files/v%0Bt%00n%1Be%7Fd.zip"}
+	if !slices.Equal(links, want) {
+		t.Errorf("links = %q, want %q", links, want)
+	}
+	for _, l := range links {
+		if _, err := url.Parse(l); err != nil {
+			t.Errorf("%q is staged but is no address: %v", l, err)
+		}
 	}
 }
