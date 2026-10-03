@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"slices"
 	"sort"
 	"strings"
@@ -430,7 +431,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		// A container JD cannot read either comes back as the address it
 		// was fetched from, taken for a plain link. That address is single
 		// use and already spent.
-		links = slices.DeleteFunc(links, func(r resolver.Result) bool { return r.DirectURL == rawurl })
+		links = slices.DeleteFunc(links, func(r resolver.Result) bool { return isHandover(r.DirectURL, rawurl) })
 		if err == nil && len(links) == 0 {
 			err = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
 		}
@@ -445,6 +446,18 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		log.Printf("container %q: %d links, %d staged", name, len(links), len(created))
 	})
 	return nil
+}
+
+// isHandover reports whether a link JD found is the address it fetched the
+// container from. JD lower-cases the host, and the single-use token is in the
+// path, so the path alone tells.
+func isHandover(link, handover string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+	h, err := url.Parse(handover)
+	return err == nil && u.Path == h.Path
 }
 
 // cryptedV1Adder is a backend that accepts a Click'n'Load v1 ("addcrypted")
