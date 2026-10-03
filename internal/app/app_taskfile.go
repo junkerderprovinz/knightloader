@@ -74,25 +74,45 @@ type leftover struct {
 }
 
 // ownFileLocked returns t's recorded file as a leftover it may delete, or the
-// zero value when another task recorded the same path. Caller holds a.mu.
+// zero value when another task recorded the same path. A sidecar another
+// task's file has as well, such as the .nfo the video and the audio row of one
+// link share, stays for that task. Caller holds a.mu.
 func (a *App) ownFileLocked(t *core.Task) leftover {
 	if t.File == "" {
 		return leftover{}
 	}
+	shared := map[string]bool{}
 	for id, other := range a.tasks {
-		if id != t.ID && samePath(other.File, t.File) {
+		if id == t.ID {
+			continue
+		}
+		if samePath(other.File, t.File) {
 			return leftover{}
+		}
+		for _, s := range sidecarsOf(other) {
+			shared[filepath.Clean(s)] = true
 		}
 	}
 	l := leftover{path: t.File, size: t.Size}
-	if t.Resolver == (ytdlp.Resolver{}).Info().ID {
-		kind, _ := variantDecode(t.Variant)
-		if kind == "" {
-			kind = ytdlp.VariantVideo
+	for _, s := range sidecarsOf(t) {
+		if !shared[filepath.Clean(s)] {
+			l.sidecars = append(l.sidecars, s)
 		}
-		l.sidecars = ytdlp.Sidecars(kind, t.File)
 	}
 	return l
+}
+
+// sidecarsOf lists the files that describe t's recorded file (see
+// ytdlp.Sidecars).
+func sidecarsOf(t *core.Task) []string {
+	if t.File == "" || t.Resolver != (ytdlp.Resolver{}).Info().ID {
+		return nil
+	}
+	kind, _ := variantDecode(t.Variant)
+	if kind == "" {
+		kind = ytdlp.VariantVideo
+	}
+	return ytdlp.Sidecars(kind, t.File)
 }
 
 // intact reports whether the file at the leftover's path is still the one its

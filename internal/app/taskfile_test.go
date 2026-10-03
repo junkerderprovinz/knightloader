@@ -695,3 +695,34 @@ func TestRemovingAYtdlpVideoWithFilesTakesItsNFOAlong(t *testing.T) {
 		t.Error("the .nfo beside the video survived a removal with files")
 	}
 }
+
+// The video and the audio row of one link both write "<title>.nfo". Removing
+// one of them with its files leaves the .nfo to the other, and it goes with
+// the last of them.
+func TestTheNFOTwoYtdlpRowsShareGoesWithTheLastOfThem(t *testing.T) {
+	a, dir := newRuleApp(t, func(*settings.Settings, string) {})
+	video := fileBytes(t, filepath.Join(dir, "A Video.mkv"), 2048)
+	audio := fileBytes(t, filepath.Join(dir, "A Video.opus"), 512)
+	nfo := fileBytes(t, filepath.Join(dir, "A Video.nfo"), 300)
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "1", URL: "https://media.example/v", Name: "A Video.mkv", Resolver: "ytdlp", Status: core.StatusDone, Enabled: true, Size: 2048, File: video},
+		{ID: "2", URL: "https://media.example/v", Name: "A Video.opus", Resolver: "ytdlp", Variant: "audio", Status: core.StatusDone, Enabled: true, Size: 512, File: audio},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+
+	a.Remove("2", true)
+	if fileExists(audio) {
+		t.Error("the audio file survived a removal with files")
+	}
+	if !fileExists(nfo) {
+		t.Fatal("removing the audio row deleted the .nfo the video row still has")
+	}
+
+	a.Remove("1", true)
+	if fileExists(nfo) {
+		t.Error("the .nfo survived the removal of the last row that had it")
+	}
+}
