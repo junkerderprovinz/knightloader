@@ -78,7 +78,7 @@ func (a *App) rewireBackends() {
 	// Whether yt-dlp runs is known before the debrid services are wired, since
 	// it decides which of their hosts they claim.
 	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
-	yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate)
+	yb := a.ytdlpBackend(ytbin)
 	ytdlpRunning := yb.Available()
 	// Streaming sites a debrid service also lists stay with yt-dlp while it
 	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows
@@ -171,20 +171,6 @@ func (a *App) rewireBackends() {
 	// binary to use (see ResolveYtdlp).
 	var newYtdlp backend
 	if ytdlpRunning {
-		// yt-dlp meters itself, so it gets its share of the budget
-		// (app_budget.go), read live so schedule windows apply.
-		yb.RateLimit = a.budget.ytdlpLimit
-		yb.Dir = a.taskDir
-		// Read on every spawn so settings changes apply without a restart. The
-		// instance defaults are combined with the task's own Variant (see
-		// expandYtdlpVariants and variantOptions).
-		yb.Options = func(taskID string) ytdlp.Options {
-			return a.ytdlpOptionsForTask(taskID)
-		}
-		// Stored cookie jars, read on every spawn. Without this hook the
-		// backend would ignore saved jars.
-		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
-		yb.Headers = a.browserHeadersFor
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude, Leave: a.claims.fileHoster})
 		// The source explains why this binary was chosen over the others.
@@ -290,6 +276,34 @@ func (a *App) rewireBackends() {
 	a.refreshPremiumHolds()
 	// An account switched off or removed stops being followed.
 	a.applyAccountImports()
+}
+
+// ytdlpBackend returns the app's one yt-dlp backend, set to start bin from
+// now on.
+func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.ytdlpRuns == nil {
+		yb := ytdlp.NewBackend(bin, a.dlDir, a.onUpdate)
+		// yt-dlp meters itself, so it gets its share of the budget
+		// (app_budget.go), read live so schedule windows apply.
+		yb.RateLimit = a.budget.ytdlpLimit
+		yb.Dir = a.taskDir
+		// Read on every spawn so settings changes apply without a restart. The
+		// instance defaults are combined with the task's own Variant (see
+		// expandYtdlpVariants and variantOptions).
+		yb.Options = func(taskID string) ytdlp.Options {
+			return a.ytdlpOptionsForTask(taskID)
+		}
+		// Stored cookie jars, read on every spawn. Without this hook the
+		// backend would ignore saved jars.
+		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.Headers = a.browserHeadersFor
+		yb.InUse = a.usedByOther
+		a.ytdlpRuns = yb
+	}
+	a.ytdlpRuns.SetBinary(bin)
+	return a.ytdlpRuns
 }
 
 // debridServices are the one-shot debrid services, in routing order. Every one

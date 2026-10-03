@@ -8,10 +8,13 @@ package app
 // recorded the same one and the file is still the size this task was writing.
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -19,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
@@ -68,20 +72,65 @@ func namedBeside(t *core.Task) (string, bool) {
 type leftover struct {
 	path string
 	size int64
+	// sidecars describe the file and go with it (see ytdlp.Sidecars).
+	sidecars []string
 }
 
 // ownFileLocked returns t's recorded file as a leftover it may delete, or the
-// zero value when another task recorded the same path. Caller holds a.mu.
+// zero value when another task recorded the same path. A sidecar another
+// task's file has as well, such as the .nfo the video and the audio row of one
+// link share, stays for that task. Caller holds a.mu.
 func (a *App) ownFileLocked(t *core.Task) leftover {
 	if t.File == "" {
 		return leftover{}
 	}
+	shared := map[string]bool{}
 	for id, other := range a.tasks {
-		if id != t.ID && samePath(other.File, t.File) {
+		if id == t.ID {
+			continue
+		}
+		if samePath(other.File, t.File) {
 			return leftover{}
 		}
+		for _, s := range sidecarsOf(other) {
+			shared[filepath.Clean(s)] = true
+		}
 	}
-	return leftover{path: t.File, size: t.Size}
+	l := leftover{path: t.File, size: t.Size}
+	for _, s := range sidecarsOf(t) {
+		if !shared[filepath.Clean(s)] {
+			l.sidecars = append(l.sidecars, s)
+		}
+	}
+	return l
+}
+
+// sidecarsOf lists the files that describe t's recorded file (see
+// ytdlp.Sidecars).
+func sidecarsOf(t *core.Task) []string {
+	if t.File == "" || t.Resolver != (ytdlp.Resolver{}).Info().ID {
+		return nil
+	}
+	kind, _ := variantDecode(t.Variant)
+	if kind == "" {
+		kind = ytdlp.VariantVideo
+	}
+	return ytdlp.Sidecars(kind, t.File)
+}
+
+// usedByOther reports whether a task other than id has path as its file or
+// among what yt-dlp wrote for it. Two downloads of one title write the same
+// names, and the video and the audio row of a link the same info file.
+func (a *App) usedByOther(id, path string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	same := func(p string) bool { return samePath(p, path) }
+	for other, t := range a.tasks {
+		if other != id && (same(t.File) || slices.ContainsFunc(t.WorkFiles, same)) {
+			return true
+		}
+	}
+	return false
 }
 
 // intact reports whether the file at the leftover's path is still the one its
@@ -113,6 +162,12 @@ func (l leftover) drop(taskID string) {
 	}
 	if err := os.Remove(l.path); err != nil {
 		log.Printf("could not delete %s: %v%s", l.path, err, taskTag(taskID))
+		return
+	}
+	for _, s := range l.sidecars {
+		if err := os.Remove(s); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			log.Printf("could not delete %s: %v%s", s, err, taskTag(taskID))
+		}
 	}
 }
 
@@ -177,13 +232,16 @@ func (a *App) usenetPartLocked(t *core.Task) string {
 // recordFileLocked notes where a backend is writing t's bytes, and says so in
 // the task's log when that is not under the task's own name: the library
 // steps around a file that is already there and rewrites characters a file
-// name cannot hold. Caller holds a.mu.
+// name cannot hold. A yt-dlp row shows its extension apart from its name (see
+// core.Task.Ext), and a file under the name with that extension is under the
+// task's own name. Caller holds a.mu.
 func (a *App) recordFileLocked(t *core.Task, file string) {
 	if file == "" || file == t.File {
 		return
 	}
 	t.File = file
-	if t.Name != "" && t.Name != t.URL && filepath.Base(file) != t.Name {
+	base := filepath.Base(file)
+	if t.Name != "" && t.Name != t.URL && base != t.Name && (t.Ext == "" || base != t.Name+"."+t.Ext) {
 		log.Printf("this download is saved as %s rather than %s%s", file, t.Name, taskTag(t.ID))
 	}
 }

@@ -224,6 +224,10 @@ type App struct {
 
 	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
+	// ytdlpRuns is the one yt-dlp backend, which ytdlp is while the binary
+	// runs. Every rewire keeps it, since the downloads it started are paused
+	// and removed through it.
+	ytdlpRuns *ytdlp.Backend
 	// torbox is the default TorBox account's backend, nil unless configured.
 	// Every TorBox account is also in debrid under its slot id, which
 	// backendFor reads first, so this only answers for a task recorded as the
