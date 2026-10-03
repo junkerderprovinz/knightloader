@@ -172,13 +172,14 @@ require (
 
 // The gopeed fork applies the torrent upload limit to running torrents, lets
 // DHT and PEX be switched off, ties BitTorrent traffic to one network
-// interface (pkg/netbind), and fixes a panic when the torrent client is closed
-// right after it was built:
+// interface (pkg/netbind), lets a torrent's resolve be given up on
+// (ResolveContext), and fixes a panic when the torrent client is closed right
+// after it was built:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003082901-1beba7865b76
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003181244-3e7420f0dcd5
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
-// after a torrent is dropped, and closing the client closes its tracker
-// sockets.
+// after a torrent is dropped or added again, and closing the client sends the
+// stopped announces before it closes its tracker sockets.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003081852-a1f590161223
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0
