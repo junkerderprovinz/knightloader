@@ -135,6 +135,33 @@ func TestAFileBeingOpenedIsNotTakenAgainByAnotherPoller(t *testing.T) {
 	finish(rec)
 }
 
+func TestAFileDroppedAgainUnderTheSameNameWaitsUntilTheFirstIsOpened(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	path := filepath.Join(dir, "links.ccf")
+	write(t, path, "first")
+	p.poll()
+	p.poll()
+
+	write(t, path, "second drop")
+	p.poll()
+	p.poll()
+	p.poll()
+	if n := rec.count(); n != 1 {
+		t.Fatalf("handed over %d jobs, want the second file held back while the first is opened", n)
+	}
+	if held, err := os.ReadFile(path + openingSuffix); err != nil || string(held) != "first" {
+		t.Fatalf("the parked file holds %q (%v), want the first drop", held, err)
+	}
+
+	rec.all()[0].File.Done()
+	p.poll()
+	jobs := rec.all()
+	if len(jobs) != 2 || string(jobs[1].File.Data) != "second drop" {
+		t.Fatalf("handed over %d jobs, want the second drop once the first is done", len(jobs))
+	}
+	jobs[1].File.Done()
+}
+
 func TestARefusedFileIsTakenOnceSomethingCanOpenIt(t *testing.T) {
 	dir := t.TempDir()
 	rec := &sink{}

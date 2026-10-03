@@ -158,6 +158,12 @@ func (p *poller) poll() {
 			seen[name] = cur
 			continue
 		}
+		if _, busy := opening.Load(filepath.Join(p.dir, name) + openingSuffix); busy {
+			// A file of this name is still being opened, and parking this one
+			// would put it in that one's place. It waits for the next poll.
+			seen[name] = cur
+			continue
+		}
 		if prev.bad || cur.size > sizeCap(name) {
 			// Already known to be unusable at these exact bytes. Keep the
 			// verdict so we do not re-read it on every single poll, and leave
