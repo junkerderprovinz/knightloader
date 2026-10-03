@@ -339,6 +339,12 @@ type App struct {
 	// browserHeaders holds the request headers a browser handed over with a
 	// download it gave up, by task id (see app_browserheaders.go). Memory only.
 	browserHeaders map[string]hostheaders.Set
+	// renamed holds the finished downloads a rename moved off the path their
+	// backend recorded, where another download's file may have landed since.
+	// Their backend is not left to delete files by that record (see
+	// removeTask). Memory only, since the engine forgets its downloads on a
+	// restart. Built on first use.
+	renamed map[string]bool
 	// preflights holds, by task id, the start whose header preflight runs off
 	// the lock, and preflightSeq numbers those starts (see resolveLocked).
 	preflights   map[string]uint64
