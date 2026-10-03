@@ -2511,6 +2511,7 @@ export const ko: Dict = {
   'settings.jdimport.pathMissing': '이 컴퓨터의 {path}에는 파일도 폴더도 없습니다.',
   'settings.jdimport.notZip': '그것은 zip 파일이 아닙니다.',
   'settings.jdimport.expired': '이 미리보기는 30분이 넘었습니다. 폴더를 다시 읽어 주세요.',
+  'settings.jdimport.unknown': 'KnightLoader에 이 미리보기가 더 이상 없습니다. 미리보기는 30분 동안 보관되고 다시 시작하면 사라집니다. 폴더를 다시 읽어 주세요.',
   'settings.jdimport.replaced': 'KnightLoader는 최신 미리보기 네 개만 보관하며, 더 새로운 읽기 때문에 이 미리보기는 밀려났습니다. 폴더를 다시 읽어 주세요.',
   'settings.jdimport.previewTitle': 'JDownloader에서 무엇을 가져올까요?',
   'settings.jdimport.previewFiles': '{files}에서 읽음',

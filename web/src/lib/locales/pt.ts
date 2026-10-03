@@ -2509,6 +2509,7 @@ export const pt: Dict = {
   'settings.jdimport.pathMissing': 'Não há ficheiro nem pasta em {path} nesta máquina.',
   'settings.jdimport.notZip': 'Isso não é um ficheiro zip.',
   'settings.jdimport.expired': 'Esta pré-visualização tem mais de meia hora. Lê a pasta outra vez.',
+  'settings.jdimport.unknown': 'O KnightLoader já não tem esta pré-visualização. Guarda uma pré-visualização durante meia hora e perde-a ao reiniciar. Lê a pasta outra vez.',
   'settings.jdimport.replaced': 'O KnightLoader só guarda as quatro pré-visualizações mais recentes, e leituras mais novas afastaram esta. Lê a pasta outra vez.',
   'settings.jdimport.previewTitle': 'O que deve vir do JDownloader?',
   'settings.jdimport.previewFiles': 'Lido a partir de {files}',

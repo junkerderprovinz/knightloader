@@ -2508,6 +2508,7 @@ export const fr: Dict = {
   'settings.jdimport.pathMissing': 'Il n’y a ni fichier ni dossier à {path} sur cette machine.',
   'settings.jdimport.notZip': 'Ce n’est pas un fichier zip.',
   'settings.jdimport.expired': 'Cet aperçu a plus d’une demi-heure. Relisez le dossier.',
+  'settings.jdimport.unknown': 'KnightLoader n’a plus cet aperçu. Il garde un aperçu une demi-heure et le perd lors d’un redémarrage. Relisez le dossier.',
   'settings.jdimport.replaced': 'KnightLoader ne garde que les quatre aperçus les plus récents, et des lectures plus récentes ont écarté celui-ci. Relisez le dossier.',
   'settings.jdimport.previewTitle': 'Que faut-il récupérer de JDownloader ?',
   'settings.jdimport.previewFiles': 'Lu depuis {files}',

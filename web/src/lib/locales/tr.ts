@@ -2519,6 +2519,7 @@ export const tr: Dict = {
   'settings.jdimport.pathMissing': 'Bu makinede {path} konumunda ne bir dosya ne de bir klasör var.',
   'settings.jdimport.notZip': 'Bu bir ZIP dosyası değil.',
   'settings.jdimport.expired': 'Bu önizleme yarım saatten daha eski. Klasörü yeniden oku.',
+  'settings.jdimport.unknown': "KnightLoader'da bu önizleme artık yok. Bir önizlemeyi yarım saat saklar ve yeniden başlatmada kaybeder. Klasörü yeniden oku.",
   'settings.jdimport.replaced': 'KnightLoader yalnızca en yeni dört önizlemeyi tutar ve daha yeni okumalar bunu dışarı itti. Klasörü yeniden oku.',
   'settings.jdimport.previewTitle': "JDownloader'dan ne aktarılsın?",
   'settings.jdimport.previewFiles': '{files} konumundan okundu',

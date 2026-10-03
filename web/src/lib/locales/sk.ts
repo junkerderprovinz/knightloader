@@ -2530,6 +2530,7 @@ export const sk: Dict = {
   'settings.jdimport.pathMissing': 'Na ceste {path} nie je na tomto počítači ani súbor, ani priečinok.',
   'settings.jdimport.notZip': 'To nie je ZIP súbor.',
   'settings.jdimport.expired': 'Tento náhľad je starší ako pol hodiny. Načítaj priečinok znova.',
+  'settings.jdimport.unknown': 'KnightLoader už tento náhľad nemá. Náhľad drží pol hodiny a pri reštarte ho stratí. Načítaj priečinok znova.',
   'settings.jdimport.replaced': 'KnightLoader si drží len štyri najnovšie náhľady a novšie načítania tento vytlačili. Načítaj priečinok znova.',
   'settings.jdimport.previewTitle': 'Čo má prejsť z JDownloaderu?',
   'settings.jdimport.previewFiles': 'Načítané z {files}',

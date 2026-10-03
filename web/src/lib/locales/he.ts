@@ -2538,6 +2538,7 @@ export const he: Dict = {
   'settings.jdimport.pathMissing': 'אין קובץ או תיקייה בנתיב {path} במחשב הזה.',
   'settings.jdimport.notZip': 'זה לא קובץ ZIP.',
   'settings.jdimport.expired': 'התצוגה המקדימה הזו ישנה מחצי שעה. קרא את התיקייה שוב.',
+  'settings.jdimport.unknown': 'התצוגה המקדימה הזו כבר לא נמצאת ב-KnightLoader. הוא שומר תצוגה מקדימה חצי שעה ומאבד אותה בהפעלה מחדש. קרא את התיקייה שוב.',
   'settings.jdimport.replaced': 'KnightLoader שומר רק את ארבע התצוגות המקדימות החדשות ביותר, וקריאות חדשות יותר דחקו את זו החוצה. קרא את התיקייה שוב.',
   'settings.jdimport.previewTitle': 'מה צריך לעבור מ-JDownloader?',
   'settings.jdimport.previewFiles': 'נקרא מתוך {files}',

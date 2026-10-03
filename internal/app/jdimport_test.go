@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -216,8 +217,8 @@ func TestAJDImportPreviewCanBeAppliedOnce(t *testing.T) {
 	if _, err := a.ApplyJDImport(p.Token, []string{"passwords"}, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := a.ApplyJDImport(p.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportExpired) {
-		t.Fatalf("second apply: err = %v, want ErrJDImportExpired", err)
+	if _, err := a.ApplyJDImport(p.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportUnknown) {
+		t.Fatalf("second apply: err = %v, want ErrJDImportUnknown", err)
 	}
 }
 
@@ -363,6 +364,43 @@ func TestAPreviewPushedOutByNewerReadsSaysSoOnEveryApply(t *testing.T) {
 		if _, err := a.ApplyJDImport(first.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportReplaced) {
 			t.Fatalf("err = %v, want ErrJDImportReplaced", err)
 		}
+	}
+}
+
+func TestAPreviewReadBeforeARestartIsNotCalledOld(t *testing.T) {
+	before, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Passwords: []string{"pw"}})
+	p, err := before.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	after, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	if _, err := after.ApplyJDImport(p.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportUnknown) {
+		t.Fatalf("err = %v, want ErrJDImportUnknown", err)
+	}
+}
+
+func TestAPreviewOlderThanHalfAnHourSaysSoOnEveryApply(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Passwords: []string{"pw"}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	jdPendingMu.Lock()
+	jdPending[a][p.Token].created = time.Now().Add(-jdPendingTTL - time.Minute)
+	jdPendingMu.Unlock()
+	for range 2 {
+		if _, err := a.ApplyJDImport(p.Token, []string{"passwords"}, nil); !errors.Is(err, ErrJDImportExpired) {
+			t.Fatalf("err = %v, want ErrJDImportExpired", err)
+		}
+	}
+	jdPendingMu.Lock()
+	defer jdPendingMu.Unlock()
+	if held := jdPending[a][p.Token]; held != nil && len(held.passwords) > 0 {
+		t.Errorf("the refused preview still holds its passwords: %q", held.passwords)
 	}
 }
 

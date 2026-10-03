@@ -2516,6 +2516,7 @@ export const is: Dict = {
   'settings.jdimport.pathMissing': 'Það er hvorki skrá né mappa á {path} á þessari vél.',
   'settings.jdimport.notZip': 'Þetta er ekki ZIP-skrá.',
   'settings.jdimport.expired': 'Þessi forskoðun er orðin meira en hálftíma gömul. Lestu möppuna aftur.',
+  'settings.jdimport.unknown': 'KnightLoader hefur ekki lengur þessa forskoðun. Það geymir forskoðun í hálftíma og glatar henni við endurræsingu. Lestu möppuna aftur.',
   'settings.jdimport.replaced': 'KnightLoader geymir aðeins fjórar nýjustu forskoðanirnar, og nýrri lestrar hafa ýtt þessari út. Lestu möppuna aftur.',
   'settings.jdimport.previewTitle': 'Hvað ætti að koma yfir frá JDownloader?',
   'settings.jdimport.previewFiles': 'Lesið úr {files}',

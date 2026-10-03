@@ -2519,6 +2519,7 @@ export const sl: Dict = {
   'settings.jdimport.pathMissing': 'Na poti {path} na tem računalniku ni ne datoteke ne mape.',
   'settings.jdimport.notZip': 'To ni datoteka ZIP.',
   'settings.jdimport.expired': 'Ta predogled je starejši od pol ure. Znova preberi mapo.',
+  'settings.jdimport.unknown': 'KnightLoader tega predogleda nima več. Predogled hrani pol ure in ga ob ponovnem zagonu izgubi. Znova preberi mapo.',
   'settings.jdimport.replaced': 'KnightLoader hrani le štiri najnovejše predoglede, novejša branja pa so ta predogled izrinila. Znova preberi mapo.',
   'settings.jdimport.previewTitle': 'Kaj naj pride iz JDownloaderja?',
   'settings.jdimport.previewFiles': 'Prebrano iz {files}',

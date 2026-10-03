@@ -2519,6 +2519,7 @@ export const ms: Dict = {
   'settings.jdimport.pathMissing': 'Tiada fail atau folder di {path} pada komputer ini.',
   'settings.jdimport.notZip': 'Itu bukan fail zip.',
   'settings.jdimport.expired': 'Pratonton ini sudah lebih setengah jam lama. Baca folder itu sekali lagi.',
+  'settings.jdimport.unknown': 'KnightLoader tidak lagi menyimpan pratonton ini. Pratonton disimpan selama setengah jam dan hilang apabila KnightLoader dimulakan semula. Baca folder itu sekali lagi.',
   'settings.jdimport.replaced': 'KnightLoader hanya menyimpan empat pratonton terbaharu, dan bacaan yang lebih baharu telah menolak pratonton ini keluar. Baca folder itu sekali lagi.',
   'settings.jdimport.previewTitle': 'Apa yang patut dibawa daripada JDownloader?',
   'settings.jdimport.previewFiles': 'Dibaca daripada {files}',

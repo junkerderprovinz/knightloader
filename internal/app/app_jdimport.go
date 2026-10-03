@@ -104,8 +104,12 @@ const jdPendingTTL = 30 * time.Minute
 // jdPendingMax bounds how many previews are held at once; the oldest goes.
 const jdPendingMax = 4
 
-// ErrJDImportExpired is returned for a token that is unknown or too old.
+// ErrJDImportExpired is returned for a token whose preview is too old.
 var ErrJDImportExpired = errors.New("this preview has expired; read the folder again")
+
+// ErrJDImportUnknown is returned for a token this process does not hold: one
+// already applied, one read before a restart, or one dropped after expiring.
+var ErrJDImportUnknown = errors.New("this preview is no longer held here, for example after a restart; read the folder again")
 
 // ErrJDImportReplaced is returned for a token whose preview newer reads pushed
 // out.
@@ -213,13 +217,22 @@ func (a *App) takeJDPlan(token string) (*jdPlan, error) {
 	jdPendingMu.Lock()
 	defer jdPendingMu.Unlock()
 	p, ok := jdPending[a][token]
-	// The marker stays until it ages out, so a second Apply from the same
-	// dialog gets the same answer.
-	if created, gone := jdReplaced[a][token]; !ok && gone && time.Since(created) <= jdPendingTTL {
+	if !ok {
+		// The marker stays until it ages out, so a second Apply from the same
+		// dialog gets the same answer.
+		created, gone := jdReplaced[a][token]
+		switch {
+		case !gone:
+			return nil, ErrJDImportUnknown
+		case time.Since(created) > jdPendingTTL:
+			return nil, ErrJDImportExpired
+		}
 		return nil, ErrJDImportReplaced
 	}
-	if !ok || time.Since(p.created) > jdPendingTTL {
-		delete(jdPending[a], token)
+	if time.Since(p.created) > jdPendingTTL {
+		// Emptied rather than removed, so the credentials go at once and a
+		// second Apply still hears that the preview is too old.
+		jdPending[a][token] = &jdPlan{created: p.created}
 		return nil, ErrJDImportExpired
 	}
 	delete(jdPending[a], token)

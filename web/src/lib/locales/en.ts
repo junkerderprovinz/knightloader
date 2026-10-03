@@ -3010,6 +3010,7 @@ export const en = {
   'settings.jdimport.pathMissing': 'There is no file or folder at {path} on this machine.',
   'settings.jdimport.notZip': 'That is not a zip file.',
   'settings.jdimport.expired': 'This preview is more than half an hour old. Read the folder again.',
+  'settings.jdimport.unknown': 'KnightLoader no longer has this preview. It keeps a preview for half an hour and loses it on a restart. Read the folder again.',
   'settings.jdimport.replaced': 'KnightLoader keeps only the four newest previews, and newer reads pushed this one out. Read the folder again.',
   'settings.jdimport.previewTitle': 'What should come over from JDownloader?',
   'settings.jdimport.previewFiles': 'Read from {files}',

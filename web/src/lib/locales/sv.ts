@@ -2520,6 +2520,7 @@ export const sv: Dict = {
   'settings.jdimport.pathMissing': 'Det finns varken en fil eller en mapp vid {path} på den här maskinen.',
   'settings.jdimport.notZip': 'Det är inte en ZIP-fil.',
   'settings.jdimport.expired': 'Den här förhandsvisningen är äldre än en halvtimme. Läs in mappen igen.',
+  'settings.jdimport.unknown': 'KnightLoader har inte längre den här förhandsvisningen. Den sparar en förhandsvisning i en halvtimme och förlorar den vid en omstart. Läs in mappen igen.',
   'settings.jdimport.replaced': 'KnightLoader sparar bara de fyra senaste förhandsvisningarna, och nyare inläsningar har trängt undan den här. Läs in mappen igen.',
   'settings.jdimport.previewTitle': 'Vad ska flyttas över från JDownloader?',
   'settings.jdimport.previewFiles': 'Inläst från {files}',

@@ -2520,6 +2520,7 @@ export const hi: Dict = {
   'settings.jdimport.pathMissing': 'इस मशीन पर {path} पर कोई फ़ाइल या फ़ोल्डर नहीं है।',
   'settings.jdimport.notZip': 'यह ZIP फ़ाइल नहीं है।',
   'settings.jdimport.expired': 'यह पूर्वावलोकन आधे घंटे से ज़्यादा पुराना है। फ़ोल्डर फिर से पढ़ें।',
+  'settings.jdimport.unknown': 'KnightLoader के पास अब यह पूर्वावलोकन नहीं है। वह पूर्वावलोकन आधे घंटे तक रखता है और रीस्टार्ट पर खो देता है। फ़ोल्डर फिर से पढ़ें।',
   'settings.jdimport.replaced': 'KnightLoader सिर्फ़ चार सबसे नए पूर्वावलोकन रखता है, और नई रीडिंग ने इसे बाहर कर दिया है। फ़ोल्डर फिर से पढ़ें।',
   'settings.jdimport.previewTitle': 'JDownloader से क्या लाया जाए?',
   'settings.jdimport.previewFiles': '{files} से पढ़ा गया',

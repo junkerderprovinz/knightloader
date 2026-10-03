@@ -2534,6 +2534,7 @@ export const hr: Dict = {
   'settings.jdimport.pathMissing': 'Na {path} na ovom računalu nema ni datoteke ni mape.',
   'settings.jdimport.notZip': 'To nije zip datoteka.',
   'settings.jdimport.expired': 'Ovaj pregled stariji je od pola sata. Ponovno učitaj mapu.',
+  'settings.jdimport.unknown': 'KnightLoader više nema ovaj pregled. Pregled čuva pola sata i gubi ga pri ponovnom pokretanju. Ponovno učitaj mapu.',
   'settings.jdimport.replaced': 'KnightLoader čuva samo četiri najnovija pregleda, a novija učitavanja istisnula su ovaj. Ponovno učitaj mapu.',
   'settings.jdimport.previewTitle': 'Što bi trebalo doći iz JDownloadera?',
   'settings.jdimport.previewFiles': 'Učitano iz {files}',

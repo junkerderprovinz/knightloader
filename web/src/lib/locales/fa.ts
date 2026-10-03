@@ -2509,6 +2509,7 @@ export const fa: Dict = {
   'settings.jdimport.pathMissing': 'روی این دستگاه در {path} نه پرونده‌ای هست و نه پوشه‌ای.',
   'settings.jdimport.notZip': 'آن یک فایل zip نیست.',
   'settings.jdimport.expired': 'این پیش‌نمایش بیش از نیم‌ساعت قدمت دارد. پوشه را دوباره بخوان.',
+  'settings.jdimport.unknown': 'KnightLoader دیگر این پیش‌نمایش را ندارد. هر پیش‌نمایش را نیم‌ساعت نگه می‌دارد و با راه‌اندازی دوباره از دستش می‌دهد. پوشه را دوباره بخوان.',
   'settings.jdimport.replaced': 'KnightLoader فقط چهار پیش‌نمایش تازه‌تر را نگه می‌دارد و خواندن‌های جدیدتر این یکی را بیرون کرده‌اند. پوشه را دوباره بخوان.',
   'settings.jdimport.previewTitle': 'چه چیزی باید از JDownloader بیاید؟',
   'settings.jdimport.previewFiles': 'خوانده‌شده از {files}',

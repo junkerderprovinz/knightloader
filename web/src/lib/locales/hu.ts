@@ -2519,6 +2519,7 @@ export const hu: Dict = {
   'settings.jdimport.pathMissing': 'Ezen a gépen nincs fájl vagy mappa itt: {path}.',
   'settings.jdimport.notZip': 'Ez nem zip fájl.',
   'settings.jdimport.expired': 'Ez az előnézet több mint fél órája készült. Olvasd be újra a mappát.',
+  'settings.jdimport.unknown': 'A KnightLoadernek már nincs meg ez az előnézet. Egy előnézetet fél óráig őriz meg, és újraindításkor elveszíti. Olvasd be újra a mappát.',
   'settings.jdimport.replaced': 'A KnightLoader csak a négy legújabb előnézetet tartja meg, és az újabb beolvasások kiszorították ezt. Olvasd be újra a mappát.',
   'settings.jdimport.previewTitle': 'Mi kerüljön át a JDownloaderből?',
   'settings.jdimport.previewFiles': 'Beolvasva innen: {files}',

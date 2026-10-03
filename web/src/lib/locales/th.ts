@@ -2519,6 +2519,7 @@ export const th: Dict = {
   'settings.jdimport.pathMissing': 'ไม่มีไฟล์หรือโฟลเดอร์ที่ {path} บนเครื่องนี้',
   'settings.jdimport.notZip': 'นั่นไม่ใช่ไฟล์ ZIP',
   'settings.jdimport.expired': 'การแสดงตัวอย่างนี้เก่ากว่าครึ่งชั่วโมงแล้ว ให้อ่านโฟลเดอร์อีกครั้ง',
+  'settings.jdimport.unknown': 'KnightLoader ไม่มีการแสดงตัวอย่างนี้แล้ว โดยจะเก็บการแสดงตัวอย่างไว้ครึ่งชั่วโมง และจะหายไปเมื่อเริ่มระบบใหม่ ให้อ่านโฟลเดอร์อีกครั้ง',
   'settings.jdimport.replaced': 'KnightLoader เก็บไว้เฉพาะการแสดงตัวอย่างสี่รายการล่าสุด และการอ่านที่ใหม่กว่าได้ดันรายการนี้ออกไปแล้ว ให้อ่านโฟลเดอร์อีกครั้ง',
   'settings.jdimport.previewTitle': 'ควรย้ายอะไรมาจาก JDownloader บ้าง',
   'settings.jdimport.previewFiles': 'อ่านจาก {files}',

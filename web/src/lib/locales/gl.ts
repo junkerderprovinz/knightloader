@@ -2517,6 +2517,7 @@ export const gl: Dict = {
   'settings.jdimport.pathMissing': 'En {path} non hai nin ficheiro nin cartafol nesta máquina.',
   'settings.jdimport.notZip': 'Iso non é un ficheiro zip.',
   'settings.jdimport.expired': 'Esta vista previa ten máis de media hora. Le o cartafol de novo.',
+  'settings.jdimport.unknown': 'KnightLoader xa non ten esta vista previa. Garda unha vista previa durante media hora e pérdea ao reiniciarse. Le o cartafol de novo.',
   'settings.jdimport.replaced': 'KnightLoader só garda as catro vistas previas máis novas, e lecturas máis recentes desprazaron esta. Le o cartafol de novo.',
   'settings.jdimport.previewTitle': 'Que debería vir de JDownloader?',
   'settings.jdimport.previewFiles': 'Lido desde {files}',

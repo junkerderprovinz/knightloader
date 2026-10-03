@@ -2520,6 +2520,7 @@ export const ja: Dict = {
   'settings.jdimport.pathMissing': 'このマシンの {path} にはファイルもフォルダーもありません。',
   'settings.jdimport.notZip': 'それは zip ファイルではありません。',
   'settings.jdimport.expired': 'このプレビューは30分以上前のものです。フォルダーをもう一度読み込んでください。',
+  'settings.jdimport.unknown': 'KnightLoaderにはこのプレビューがもうありません。プレビューは30分間保持され、再起動すると失われます。フォルダーをもう一度読み込んでください。',
   'settings.jdimport.replaced': 'KnightLoaderは最新の4件のプレビューだけを保持します。新しい読み込みによってこのプレビューは押し出されました。フォルダーをもう一度読み込んでください。',
   'settings.jdimport.previewTitle': 'JDownloaderから何を取り込みますか?',
   'settings.jdimport.previewFiles': '{files} から読み込み',

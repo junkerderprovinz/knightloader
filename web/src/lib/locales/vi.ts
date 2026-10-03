@@ -2520,6 +2520,7 @@ export const vi: Dict = {
   'settings.jdimport.pathMissing': 'Không có tệp hay thư mục nào tại {path} trên máy này.',
   'settings.jdimport.notZip': 'Đó không phải là tệp nén ZIP.',
   'settings.jdimport.expired': 'Bản xem trước này đã quá nửa giờ. Hãy đọc lại thư mục.',
+  'settings.jdimport.unknown': 'KnightLoader không còn bản xem trước này. Nó giữ một bản xem trước trong nửa giờ và mất bản đó khi khởi động lại. Hãy đọc lại thư mục.',
   'settings.jdimport.replaced': 'KnightLoader chỉ giữ bốn bản xem trước mới nhất, và các lần đọc mới hơn đã đẩy bản này ra. Hãy đọc lại thư mục.',
   'settings.jdimport.previewTitle': 'Nên chuyển gì từ JDownloader sang?',
   'settings.jdimport.previewFiles': 'Đã đọc từ {files}',

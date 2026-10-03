@@ -2506,6 +2506,7 @@ export const zh: Dict = {
   'settings.jdimport.pathMissing': '这台机器上的 {path} 既没有文件，也没有文件夹。',
   'settings.jdimport.notZip': '那不是一个 ZIP 文件。',
   'settings.jdimport.expired': '这份预览已经超过半小时了，请重新读取文件夹。',
+  'settings.jdimport.unknown': 'KnightLoader 里已经没有这份预览了。预览只保留半小时，重启后也会丢失。请重新读取文件夹。',
   'settings.jdimport.replaced': 'KnightLoader 只保留最新的四份预览，更新的读取已经把这份挤掉了，请重新读取文件夹。',
   'settings.jdimport.previewTitle': '要从 JDownloader 迁移哪些内容？',
   'settings.jdimport.previewFiles': '读取自 {files}',

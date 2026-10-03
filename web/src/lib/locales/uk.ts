@@ -2520,6 +2520,7 @@ export const uk: Dict = {
   'settings.jdimport.pathMissing': "За шляхом {path} на цьому комп'ютері немає ні файлу, ні теки.",
   'settings.jdimport.notZip': 'Це не ZIP-файл.',
   'settings.jdimport.expired': 'Цей попередній перегляд старший за пів години. Прочитайте теку ще раз.',
+  'settings.jdimport.unknown': 'У KnightLoader більше немає цього попереднього перегляду. Він зберігає попередній перегляд пів години й утрачає його під час перезапуску. Прочитайте теку ще раз.',
   'settings.jdimport.replaced': 'KnightLoader зберігає лише чотири найновіші попередні перегляди, і новіші читання витіснили цей. Прочитайте теку ще раз.',
   'settings.jdimport.previewTitle': 'Що перенести з JDownloader?',
   'settings.jdimport.previewFiles': 'Прочитано з {files}',

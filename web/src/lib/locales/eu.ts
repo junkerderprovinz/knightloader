@@ -2514,6 +2514,7 @@ export const eu: Dict = {
   'settings.jdimport.pathMissing': 'Makina honetan ez dago fitxategirik ez karpetarik {path} helbidean.',
   'settings.jdimport.notZip': 'Hori ez da zip bat.',
   'settings.jdimport.expired': 'Aurrebista hau ordu erdi baino zaharragoa da. Irakurri karpeta berriro.',
+  'settings.jdimport.unknown': 'KnightLoaderrek ez du aurrebista hau jada. Aurrebista bat ordu erdiz gordetzen du, eta berrabiaraztean galdu egiten du. Irakurri karpeta berriro.',
   'settings.jdimport.replaced': 'KnightLoaderrek lau aurrebista berrienak bakarrik gordetzen ditu, eta irakurketa berriagoek hau kanporatu dute. Irakurri karpeta berriro.',
   'settings.jdimport.previewTitle': 'Zer etorri behar du JDownloaderetik?',
   'settings.jdimport.previewFiles': '{files}(e)tik irakurrita',

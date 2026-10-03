@@ -2503,6 +2503,7 @@ export const nl: Dict = {
   'settings.jdimport.pathMissing': 'Op deze computer bestaat geen bestand of map op {path}.',
   'settings.jdimport.notZip': 'Dat is geen zipbestand.',
   'settings.jdimport.expired': 'Deze voorvertoning is ouder dan een half uur. Lees de map opnieuw in.',
+  'settings.jdimport.unknown': 'KnightLoader heeft deze voorvertoning niet meer. Het bewaart een voorvertoning een half uur en verliest die bij een herstart. Lees de map opnieuw in.',
   'settings.jdimport.replaced': 'KnightLoader bewaart alleen de vier nieuwste voorvertoningen, en nieuwere leesacties hebben deze verdrongen. Lees de map opnieuw in.',
   'settings.jdimport.previewTitle': 'Wat moet er overkomen vanuit JDownloader?',
   'settings.jdimport.previewFiles': 'Gelezen uit {files}',
