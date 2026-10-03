@@ -16,12 +16,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
 	"unicode"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
@@ -32,8 +35,14 @@ const clipWatchEvent = "clipboardWatch"
 // clipPollInterval matches the page's POLL_MS.
 const clipPollInterval = 1200 * time.Millisecond
 
+// clipLeaseRenewal matches the page's RENEW_MS.
+const clipLeaseRenewal = time.Minute
+
+// clipLeaseWait bounds a lease call to a peer, which holds up the polling.
+const clipLeaseWait = 10 * time.Second
+
 // linkSchemes are the starts a word needs to count as a link, as in the
-// page's LINK_WORD.
+// page's LOOKS_LIKE_A_LINK.
 var linkSchemes = []string{"http://", "https://", "magnet:?", "ftp://"}
 
 // clipboardLinks returns the words of text that are links, in order. Words
@@ -118,9 +127,20 @@ type clipWatch struct {
 	open    func() (r clipboardReader, background bool)
 	deliver func(ctx context.Context, target string, links []string) (int, error)
 	report  func(clipOutcome)
+	// lease keeps the watch on the list of clipboard watchers of the instance
+	// target names and reports whether another device asked it to stop;
+	// leave takes it off that list.
+	lease func(ctx context.Context, target string) (stop bool)
+	leave func(ctx context.Context, target string)
+	// switchOff turns the page's switch off.
+	switchOff func()
 
 	reader clipboardReader
 	last   string
+	// leased is when the lease was last renewed, zero while none is held, and
+	// leasedTarget the instance it is held with.
+	leased       time.Time
+	leasedTarget string
 
 	// mu keeps a delivery from overlapping stop, so none reaches the app
 	// after it has closed.
@@ -136,6 +156,13 @@ func newClipWatch(a *app.App, read func() (string, bool), report func(clipOutcom
 			return deliverLinks(ctx, a, target, links)
 		},
 		report: report,
+		lease:  func(ctx context.Context, target string) bool { return leaseClip(ctx, a, target) },
+		leave:  func(ctx context.Context, target string) { leaveClip(ctx, a, target) },
+		switchOff: func() {
+			if err := switchClipOff(a); err != nil {
+				log.Printf("desktop: clipboard watch: switching off: %v", err)
+			}
+		},
 	}
 }
 
@@ -157,12 +184,27 @@ func (w *clipWatch) run(ctx context.Context) {
 
 // step is one round of run. Switched off, the clipboard is not read at all.
 // The first read after switching on is only remembered, as on the page, so
-// what was copied an hour ago does not arrive.
+// what was copied an hour ago does not arrive. A lease renewal that says
+// another device asked the watch to stop switches it off.
 func (w *clipWatch) step(ctx context.Context) {
 	s := w.settings()
+	if !w.leased.IsZero() && (!s.On || s.Target != w.leasedTarget) {
+		w.leave(ctx, w.leasedTarget)
+		w.leased = time.Time{}
+	}
 	if !s.On {
 		w.closeReader()
 		return
+	}
+	if time.Since(w.leased) >= clipLeaseRenewal {
+		w.leased, w.leasedTarget = time.Now(), s.Target
+		if w.lease(ctx, s.Target) {
+			w.switchOff()
+			w.leased = time.Time{}
+			w.closeReader()
+			w.report(clipOutcome{Kind: "stopped"})
+			return
+		}
 	}
 	if w.reader == nil {
 		r, background := w.open()
@@ -233,6 +275,86 @@ func readClipSettings(a *app.App) clipSettings {
 		return clipSettings{}
 	}
 	return s
+}
+
+// clipWatcher is how the watch appears on a list of clipboard watchers, named
+// the way the group names this instance.
+func clipWatcher(a *app.App) clipwatch.Watcher {
+	cfg := a.Settings.Get()
+	name := cfg.InstanceName
+	if name == "" {
+		name, _ = os.Hostname()
+	}
+	return clipwatch.Watcher{ID: "desktop-" + cfg.InstanceID, Name: name, Kind: clipwatch.KindDesktop}
+}
+
+func clipWatcherPath(id string) string {
+	return "/api/clipboard-watchers/" + url.PathEscape(id)
+}
+
+// leaseClip renews the watch's lease with this instance, or with the peer
+// named target, and reports whether another device asked it to stop. A
+// renewal that fails counts as no stop; the next one tries again.
+func leaseClip(ctx context.Context, a *app.App, target string) bool {
+	me := clipWatcher(a)
+	if target == "" {
+		stop, err := a.ClipWatch.Renew(me, time.Now())
+		if err != nil {
+			log.Printf("desktop: clipboard watch: %v", err)
+		}
+		return stop
+	}
+	if a.ModuleOff("federation") {
+		return false
+	}
+	body, _ := json.Marshal(map[string]string{"name": me.Name, "kind": me.Kind})
+	ctx, cancel := context.WithTimeout(ctx, clipLeaseWait)
+	defer cancel()
+	resp, code, err := a.Federation.Proxy(ctx, target, http.MethodPut, clipWatcherPath(me.ID), body)
+	if err != nil || code != http.StatusOK {
+		return false
+	}
+	var answer struct {
+		Stop bool `json:"stop"`
+	}
+	return json.Unmarshal(resp, &answer) == nil && answer.Stop
+}
+
+// leaveClip takes the watch off the list it was leased on. A peer that does
+// not hear it drops the lease once it runs out.
+func leaveClip(ctx context.Context, a *app.App, target string) {
+	id := clipWatcher(a).ID
+	if target == "" {
+		a.ClipWatch.Leave(id)
+		return
+	}
+	if a.ModuleOff("federation") {
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, clipLeaseWait)
+	defer cancel()
+	_, _, _ = a.Federation.Proxy(ctx, target, http.MethodDelete, clipWatcherPath(id), nil)
+}
+
+// switchClipOff turns the switch off in the interface state and leaves the
+// page's other fields as they are.
+func switchClipOff(a *app.App) error {
+	doc := map[string]json.RawMessage{}
+	raw, err := a.UIState(store.UIStateKey)
+	if err != nil {
+		return err
+	}
+	if raw != "" {
+		if err := json.Unmarshal([]byte(raw), &doc); err != nil {
+			return err
+		}
+	}
+	doc["clipboardWatch"] = json.RawMessage("false")
+	out, err := json.Marshal(doc)
+	if err != nil {
+		return err
+	}
+	return a.SetUIState(store.UIStateKey, string(out))
 }
 
 // deliverLinks stages links on this instance, or on the peer named target,
