@@ -1317,6 +1317,10 @@ export const vi: Dict = {
   'intake.clipboardWatchHint': 'Mọi liên kết bạn sao chép ở bất cứ đâu đều vào thẳng bộ thu, miễn là thẻ này đang mở và ở phía trước. Ctrl+V bên trong KnightLoader luôn hoạt động và không cần đến điều này.',
   'intake.clipboardWatchUnavailable': 'Không dùng được ở đây: trình duyệt chỉ cho một trang đọc bảng nhớ tạm qua HTTPS hoặc trên localhost. Ctrl+V bên trong KnightLoader vẫn hoạt động.',
   'intake.clipboardWatchDenied': 'Đã tắt theo dõi bảng nhớ tạm: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Mọi liên kết bạn sao chép ở bất cứ đâu đều vào thẳng bộ thu, kể cả khi KnightLoader đang ẩn trong khu thông báo. Chỉ các liên kết được lấy từ bảng nhớ tạm. Ctrl+V bên trong KnightLoader luôn hoạt động và không cần đến điều này.',
+  'intake.clipboardWatchTarget': 'Gửi liên kết đã sao chép đến',
+  'intake.clipboardWatchTargetHint': 'Phiên bản này hoặc một phiên bản khác trong trang Phiên bản, ví dụ một NAS đã ghép đôi bằng mười hai từ. Chỉ các liên kết được gửi đi, không gì khác từ bảng nhớ tạm.',
+  'intake.clipboardWatchLimited': 'Trên Wayland, KnightLoader chỉ thấy bảng nhớ tạm khi cửa sổ của nó ở phía trước. Khi đã cài wl-clipboard, nó có thể theo dõi ở chế độ nền trên những môi trường cho phép, như KDE hoặc Sway. GNOME không cho phép.',
 
   'collector.hosterPresetHint': 'Bộ thu thập hiển thị những biến thể nào của các liên kết từ {host}, và liên kết mới bắt đầu với định dạng và chất lượng nào. Khi một liên kết đã được kiểm tra, nó chuyển sang bản riêng của nó gần nhất với lựa chọn này. Một liên kết không có định dạng video này sẽ nhận video tốt nhất tới mức chất lượng này, còn một liên kết không có định dạng âm thanh này sẽ được chuyển đổi âm thanh.',
   'activity.crawl': 'Đang quét trang',
