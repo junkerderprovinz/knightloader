@@ -227,3 +227,20 @@ func TestTheCheckFollowsTheHistoryAsItChanges(t *testing.T) {
 		t.Errorf("a cleared history still rejected a link: %s", got.SkipReason)
 	}
 }
+
+// Every site that lists a torrent names it and picks trackers its own way.
+func TestAMagnetFromTheHistoryIsRejectedUnderAnotherNameAndTrackers(t *testing.T) {
+	for _, uri := range []string{
+		"magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=Pack.2026&tr=udp%3A%2F%2Ftwo.example%3A6969",
+		"magnet:?xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567",
+	} {
+		a := historyApp(t, nil)
+		downloadedBefore(t, a, "old",
+			"magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=Pack&tr=udp%3A%2F%2Fone.example%3A6969",
+			"Pack", 900)
+		got := onlyTask(t, a.AddLinks([]string{uri}, ""))
+		if !got.Skipped || got.SkipCode != skipDownloaded {
+			t.Errorf("%s was staged (skipped=%v, code=%q), want it rejected as downloaded", uri, got.Skipped, got.SkipCode)
+		}
+	}
+}
