@@ -163,9 +163,10 @@ that server might have it. A server with a retention in days is not asked for
 older articles.
 
 When some articles are on none of your servers, the release goes to the next
-account in the priority order, TorBox or Premiumize.me, if you have one: its
-downloads from your servers are removed and the service fetches the whole
-`.nzb` instead. Without such an account the file fails, and the error names
+account in the priority order, TorBox or Premiumize.me, if you have one. Files
+your servers have already finished stay where they are and are not fetched
+again. The other downloads from your servers are removed, and the service
+fetches those files instead. Without such an account the file fails, and the error names
 how many articles are missing. Damaged downloads are not repaired with par2
 yet. The par2 recovery files of a release are listed but switched off, with a
 note that they load only when needed, and they do not count as unfinished.
