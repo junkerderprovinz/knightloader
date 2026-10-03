@@ -681,6 +681,29 @@ func TestRunReportsTheFileOfASidecarRow(t *testing.T) {
 	}
 }
 
+// yt-dlp names the file after the title with the characters a file name cannot
+// hold replaced, and the media rows take that name from the progress lines.
+// The thumbnail, subtitle and description rows have none and take it from the
+// file once they finish, without the extension the row shows for its kind.
+func TestASidecarRowIsNamedAfterTheFileItWrote(t *testing.T) {
+	for _, tc := range []struct {
+		mode    string
+		variant Variant
+		name    string
+	}{
+		{"thumbnail:full", VariantThumbnail, "A Video"},
+		{"description:full", VariantDescription, "A Video"},
+		{"subs:full", VariantSubtitle, "A Video.de"},
+	} {
+		t.Run(string(tc.variant), func(t *testing.T) {
+			_, rec := runFake(t, tc.mode, Options{Variant: tc.variant, SubtitleLangs: "de"})
+			if got := rec.last(); got.Status != core.StatusDone || got.Name != tc.name {
+				t.Errorf("last update = %+v, want Done named %q", got, tc.name)
+			}
+		})
+	}
+}
+
 // Nothing of an unfinished download is the app's to delete: the stream files,
 // their .part, .ytdl and fragment files and the info json are yt-dlp's, and
 // only the backend saw their names.

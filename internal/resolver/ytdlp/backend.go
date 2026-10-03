@@ -408,8 +408,11 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		u.File, u.Size, u.Loaded = final, fi.Size(), fi.Size()
 	}
 	if o.Variant != VariantVideo && o.Variant != VariantAudio {
-		// The NFO and the measurement describe media, and an info json
-		// beside a thumbnail is the video row's.
+		// The row is named after its file, as the media rows are by their
+		// progress lines, and shows the extension of its kind next to the
+		// name (see core.Task.Ext). The NFO and the measurement describe
+		// media, and an info json beside a thumbnail is the video row's.
+		u.Name = strings.TrimSuffix(filepath.Base(final), filepath.Ext(final))
 		return u
 	}
 	info, haveInfo := infoDict{}, false
