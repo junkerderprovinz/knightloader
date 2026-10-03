@@ -14,7 +14,8 @@ import (
 	"time"
 
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/gofont/gobold"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -31,9 +32,10 @@ const TestTTL = 3 * time.Minute
 
 const testIDPrefix = "test-"
 
-// testAlphabet leaves out the characters a small picture turns into one
-// another: 0 and O, 1, I and L, 2 and Z, 5 and S, 6 and G, 8 and B.
-const testAlphabet = "ACDEFHJKMNPRTUVWXY3479"
+// testAlphabet leaves out the characters a tilted letter turns into one
+// another: 0 and O, 1, I and L, 2 and Z, 5 and S, 6 and G, 8 and B, T and J,
+// V and Y, K and X, and N and W beside H and M.
+const testAlphabet = "ACDEFHKMPRTUV3479"
 
 const testLength = 5
 
@@ -139,51 +141,66 @@ func (s *TestSource) Abort(id string) {
 	s.mu.Unlock()
 }
 
-// drawTestCaptcha renders text in the 7x13 bitmap font, scales it up through a
-// wave so the letters bend, and scatters dots and lines over it. The noise is
-// lighter than the ink, so a person reads it at once and an OCR pass still has
-// some work to do.
+// testFont is the face the test captchas are set in: a bold sans whose letters
+// keep apart when tilted.
+var testFont = sync.OnceValues(func() (*opentype.Font, error) { return opentype.Parse(gobold.TTF) })
+
+// The test captcha's size in pixels. The captcha window shows it as it is and
+// the phone app at up to twice that, so the letters are drawn at a size both
+// read without zooming.
+const (
+	testWidth    = 300
+	testHeight   = 100
+	testFontSize = 60
+	testCell     = 96
+)
+
+// testNoise is the colour of the dots and lines under a test captcha's ink.
+var testNoise = color.RGBA{0xc4, 0xbe, 0xb2, 0xff}
+
+// drawTestCaptcha sets text in a bold face, turns each character a little and
+// shifts it up or down, bends the line through a gentle wave and puts dots and
+// lines under the ink. The noise never cuts a stroke, so a person reads it at
+// once while an OCR pass still has some work to do.
 func drawTestCaptcha(text string) ([]byte, error) {
-	const scale = 4
-	face := basicfont.Face7x13
-	small := image.NewAlpha(image.Rect(0, 0, 9*len(text)+6, 19))
-	d := font.Drawer{Dst: small, Src: image.Opaque, Face: face}
-	for i, r := range text {
-		d.Dot = fixed.P(3+9*i, 14+mrand.IntN(4)-2)
-		d.DrawString(string(r))
+	f, err := testFont()
+	if err != nil {
+		return nil, err
+	}
+	face, err := opentype.NewFace(f, &opentype.FaceOptions{Size: testFontSize, DPI: 72, Hinting: font.HintingNone})
+	if err != nil {
+		return nil, err
+	}
+	defer face.Close()
+
+	img := image.NewRGBA(image.Rect(0, 0, testWidth, testHeight))
+	ground := color.RGBA{0xf4, 0xf1, 0xea, 0xff}
+	for i := 0; i < len(img.Pix); i += 4 {
+		copy(img.Pix[i:i+4], []byte{ground.R, ground.G, ground.B, ground.A})
 	}
 
-	b := small.Bounds()
-	w, h := b.Dx()*scale, b.Dy()*scale
-	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	ground := color.RGBA{0xf4, 0xf1, 0xea, 0xff}
+	for range testWidth * testHeight / 50 {
+		img.SetRGBA(mrand.IntN(testWidth), mrand.IntN(testHeight), testNoise)
+	}
+	for range 3 {
+		y0, y1 := mrand.IntN(testHeight), mrand.IntN(testHeight)
+		for x := range testWidth {
+			y := y0 + (y1-y0)*x/testWidth
+			img.SetRGBA(x, y, testNoise)
+			img.SetRGBA(x, y+1, testNoise)
+		}
+	}
+
 	inks := []color.RGBA{{0x1f, 0x3a, 0x5f, 0xff}, {0x5a, 0x1f, 0x3a, 0xff}, {0x23, 0x4d, 0x2a, 0xff}, {0x3b, 0x2a, 0x1a, 0xff}}
 	ink := inks[mrand.IntN(len(inks))]
-	ampX, ampY := 3+mrand.Float64()*2, 2+mrand.Float64()*2
-	phaseX, phaseY := mrand.Float64()*2*math.Pi, mrand.Float64()*2*math.Pi
-	for y := range h {
-		for x := range w {
-			sx := (float64(x) + ampX*math.Sin(float64(y)/9+phaseX)) / scale
-			sy := (float64(y) + ampY*math.Sin(float64(x)/14+phaseY)) / scale
-			if small.AlphaAt(int(sx), int(sy)).A > 0x80 {
-				img.SetRGBA(x, y, ink)
-			} else {
-				img.SetRGBA(x, y, ground)
-			}
-		}
-	}
-
-	noise := color.RGBA{0x9a, 0x94, 0x8a, 0xff}
-	for range w * h / 40 {
-		img.SetRGBA(mrand.IntN(w), mrand.IntN(h), noise)
-	}
-	for range 4 {
-		y0, y1 := mrand.IntN(h), mrand.IntN(h)
-		for x := range w {
-			y := y0 + (y1-y0)*x/w
-			img.SetRGBA(x, y, noise)
-			img.SetRGBA(x, y+1, noise)
-		}
+	amp, phase := 1.5+mrand.Float64(), mrand.Float64()*2*math.Pi
+	pitch := float64(testWidth-24) / float64(len(text))
+	for i, r := range text {
+		glyph := drawGlyph(face, r)
+		angle := (mrand.Float64()*2 - 1) * 0.2
+		cx := 12 + pitch*(float64(i)+0.5) + mrand.Float64()*4 - 2
+		cy := testHeight/2 + mrand.Float64()*10 - 5
+		stamp(img, glyph, ink, cx, cy, angle, amp, phase)
 	}
 
 	var buf bytes.Buffer
@@ -191,4 +208,58 @@ func drawTestCaptcha(text string) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// drawGlyph sets r centred on a square testCell pixels wide.
+func drawGlyph(face font.Face, r rune) *image.Alpha {
+	cell := image.NewAlpha(image.Rect(0, 0, testCell, testCell))
+	bounds, _ := font.BoundString(face, string(r))
+	mid := fixed.Point26_6{X: (bounds.Min.X + bounds.Max.X) / 2, Y: (bounds.Min.Y + bounds.Max.Y) / 2}
+	d := font.Drawer{Dst: cell, Src: image.Opaque, Face: face}
+	d.Dot = fixed.P(testCell/2, testCell/2).Sub(mid)
+	d.DrawString(string(r))
+	return cell
+}
+
+// stamp paints glyph onto img centred at cx, cy, turned by angle radians and
+// shifted sideways by a wave of amp pixels, blending its edges into what is
+// underneath.
+func stamp(img *image.RGBA, glyph *image.Alpha, ink color.RGBA, cx, cy, angle, amp, phase float64) {
+	sin, cos := math.Sincos(angle)
+	half := float64(testCell) / 2
+	for y := int(cy - half); y < int(cy+half); y++ {
+		for x := int(cx - half); x < int(cx+half); x++ {
+			if !(image.Point{x, y}).In(img.Rect) {
+				continue
+			}
+			dx := float64(x) - cx + amp*math.Sin(float64(y)/15+phase)
+			dy := float64(y) - cy
+			a := sampleAlpha(glyph, cos*dx+sin*dy+half, -sin*dx+cos*dy+half)
+			if a == 0 {
+				continue
+			}
+			under := img.RGBAAt(x, y)
+			img.SetRGBA(x, y, color.RGBA{
+				R: mix(under.R, ink.R, a),
+				G: mix(under.G, ink.G, a),
+				B: mix(under.B, ink.B, a),
+				A: 0xff,
+			})
+		}
+	}
+}
+
+// sampleAlpha reads glyph at a point between pixels, weighing the four around
+// it, so a turned letter keeps smooth edges.
+func sampleAlpha(glyph *image.Alpha, x, y float64) float64 {
+	x0, y0 := math.Floor(x-0.5), math.Floor(y-0.5)
+	fx, fy := x-0.5-x0, y-0.5-y0
+	at := func(px, py float64) float64 { return float64(glyph.AlphaAt(int(px), int(py)).A) / 0xff }
+	top := at(x0, y0)*(1-fx) + at(x0+1, y0)*fx
+	bottom := at(x0, y0+1)*(1-fx) + at(x0+1, y0+1)*fx
+	return top*(1-fy) + bottom*fy
+}
+
+func mix(under, over uint8, a float64) uint8 {
+	return uint8(float64(under)*(1-a) + float64(over)*a + 0.5)
 }
