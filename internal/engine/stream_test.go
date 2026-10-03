@@ -112,7 +112,7 @@ func TestStreamRefusesATaskTheEngineDoesNotRun(t *testing.T) {
 func TestStreamRefusesATransferBeingMended(t *testing.T) {
 	e, _ := eventEngine(t)
 	e.mends["t1"] = &mend{}
-	if _, err := e.Stream("t1", 0); !errors.Is(err, ErrNotStreaming) {
-		t.Fatalf("Stream while mending = %v, want ErrNotStreaming", err)
+	if _, err := e.Stream("t1", 0); !errors.Is(err, ErrMending) {
+		t.Fatalf("Stream while mending = %v, want ErrMending", err)
 	}
 }

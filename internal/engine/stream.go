@@ -6,10 +6,15 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/download"
 )
 
-// ErrNotStreaming is a task whose bytes the engine does not hand out while it
-// downloads: one it does not run, or a finished transfer whose missing ranges
-// are being fetched again, which the library already calls complete.
-var ErrNotStreaming = errors.New("the engine is not downloading this task")
+var (
+	// ErrNotStreaming is a task whose bytes the engine does not hand out
+	// while it downloads, because it does not run it or has not yet handed it
+	// to the library.
+	ErrNotStreaming = errors.New("the engine is not downloading this task")
+	// ErrMending is a finished transfer whose missing ranges are being
+	// fetched again, which the library already calls complete.
+	ErrMending = errors.New("part of this download is being fetched again")
+)
 
 // Stream opens a file of a task the engine runs, for reading before the
 // transfer has finished: file is the index of a torrent's file and 0 for
@@ -22,7 +27,10 @@ func (e *Engine) Stream(taskID string, file int) (download.StreamReader, error) 
 	gid := e.toGopeed[taskID]
 	_, mending := e.mends[taskID]
 	e.mu.Unlock()
-	if gid == "" || mending {
+	switch {
+	case mending:
+		return nil, ErrMending
+	case gid == "":
 		return nil, ErrNotStreaming
 	}
 	return e.d.Stream(gid, file)

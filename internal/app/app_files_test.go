@@ -1,13 +1,21 @@
 package app
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -363,17 +371,87 @@ func TestAPausedDownloadIsNotServedWithItsHoles(t *testing.T) {
 	}
 }
 
-// While a transfer the library finished short is being mended, the task runs
-// but the engine hands out no reader, and the file on disk has its full size.
-func TestARunningDownloadTheEngineCannotStreamIsNotServedWithItsHoles(t *testing.T) {
+// A download runs before the engine has handed it to the library, and the
+// file of an earlier attempt has holes. That is nothing to play yet, and no
+// part of it is being fetched again.
+func TestARunningDownloadNotYetHandedToTheLibraryHasNothingToPlay(t *testing.T) {
 	a, base := newFilesTestApp(t)
 	writeTestFile(t, base, "disc.iso", make([]byte, 64))
+	for _, loaded := range []int64{0, 48} {
+		task := putTask(t, a, core.Task{
+			URL: "https://host.example/disc.iso", Name: "disc.iso",
+			Status: core.StatusRunning, Size: 64, Loaded: loaded,
+		})
+		if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoBytes) {
+			t.Errorf("%d bytes loaded: err = %v, want ErrTaskFileNoBytes", loaded, err)
+		}
+	}
+}
+
+// While a transfer the library finished short is being mended, the task runs
+// but the engine hands out no reader, and the file on disk has its full size.
+func TestADownloadBeingMendedPlaysOnceTheMissingPartIsBack(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races inside itself in a real transfer")
+	}
+	data := make([]byte, 4<<20)
+	for i := range data {
+		data[i] = byte(i % 251)
+	}
+	// The link refuses the second half, as one that expired part way does,
+	// and the fresh link the mend gets never answers. The pace keeps the
+	// first connection busy until the second has been refused.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/disc.iso" {
+			<-r.Context().Done()
+			return
+		}
+		lo, hi := 0, len(data)-1
+		rg, ranged := strings.CutPrefix(r.Header.Get("Range"), "bytes=")
+		if ranged {
+			if _, err := fmt.Sscanf(rg, "%d-%d", &lo, &hi); err != nil || lo >= len(data)/2 {
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", lo, hi, len(data)))
+		}
+		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
+		if ranged {
+			w.WriteHeader(http.StatusPartialContent)
+		}
+		for off := lo; off <= hi; off += 32 << 10 {
+			if _, err := w.Write(data[off:min(off+32<<10, hi+1)]); err != nil {
+				return
+			}
+			w.(http.Flusher).Flush()
+			time.Sleep(5 * time.Millisecond)
+		}
+	}))
+	// Closed after the app, whose engine ends the request that never answers.
+	t.Cleanup(srv.Close)
+
+	a, base := newFilesTestApp(t)
 	task := putTask(t, a, core.Task{
-		URL: "https://host.example/disc.iso", Name: "disc.iso",
-		Status: core.StatusRunning, Size: 64, Loaded: 48,
+		URL: srv.URL + "/disc.iso", Name: "disc.iso", Status: core.StatusRunning, Size: int64(len(data)),
 	})
-	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileMending) {
-		t.Errorf("err = %v, want ErrTaskFileMending", err)
+	a.runningOn(task.Resolver).Start(engine.Job{
+		TaskID: task.ID, URL: task.URL, Conns: 2, Dir: base,
+		Relink: func(context.Context) (string, error) { return srv.URL + "/fresh/disc.iso", nil },
+	})
+	deadline := time.Now().Add(15 * time.Second)
+	for {
+		of, err := a.OpenTaskFile(task.ID, -1)
+		if err == nil {
+			of.File.Close()
+		}
+		if errors.Is(err, ErrTaskFileMending) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("err = %v, want ErrTaskFileMending once the mend has begun", err)
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 

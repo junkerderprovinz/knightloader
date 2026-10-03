@@ -51,11 +51,13 @@ export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string;
  *
  * The effect depends on the id and the status rather than the task, because
  * useTasks replaces the task object on every broadcast. A new status can change
- * the answer, as when a download starts or finishes a mend.
+ * the answer, as when a download starts or finishes a mend, and so can the
+ * first bytes, since a download runs before the server can stream it.
  */
 function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
   const [head, setHead] = useState<TaskFileHead | null>(null);
   const worth = isLocalBase(base) && taskFileReachable(task);
+  const started = task.loaded > 0;
 
   useEffect(() => {
     if (!worth) {
@@ -74,7 +76,7 @@ function useTaskFileHead(task: Task, base: string): TaskFileHead | null {
     return () => {
       live = false;
     };
-  }, [task.id, task.status, base, worth]);
+  }, [task.id, task.status, started, base, worth]);
 
   return head;
 }
