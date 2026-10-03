@@ -216,6 +216,32 @@ func TestConnectionLimitHolds(t *testing.T) {
 	}
 }
 
+func TestOverlappingFetchesKeepTheirConnections(t *testing.T) {
+	s := nntptest.New(t)
+	s.SetLogin("reader", "secret")
+	for i := range 400 {
+		s.AddPart(fmt.Sprintf("%d@test", i), part(1+i%10))
+	}
+	cfg := serverOf(s, 0)
+	cfg.Connections = 4
+	c := nntp.NewClient([]nntp.Server{cfg}, nil)
+	defer c.Close()
+	var wg sync.WaitGroup
+	for i := range 400 {
+		wg.Go(func() {
+			if _, err := fetch(t, c, fmt.Sprintf("%d@test", i)); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	// Every connection hung up and dialled again logs in once more, and for a
+	// moment the provider still counts the old one against the limit.
+	if s.Logins() > cfg.Connections {
+		t.Fatalf("%d logins for %d connections", s.Logins(), cfg.Connections)
+	}
+}
+
 func TestAServerChangedMidDownloadKeepsItsConnectionLimit(t *testing.T) {
 	s := nntptest.New(t)
 	for i := range 40 {

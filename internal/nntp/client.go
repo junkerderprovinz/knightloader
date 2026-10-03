@@ -403,12 +403,14 @@ func (p *pool) get(ctx context.Context, now func() time.Time) (*conn, bool, erro
 	return c, true, err
 }
 
-// put keeps c for the next fetch, unless the line is retired or keeping it
-// would leave more open than the limit, which a lowered one does for a while.
-// The caller still counts as busy.
+// put keeps c for the next fetch, unless the line is retired or more fetches
+// are busy than a lowered limit allows, the caller among them. The idle
+// connections stay out of that sum: a fetch that has just put its connection
+// back, or is about to take one, still counts as busy, and counting it twice
+// would hang up connections the limit has room for.
 func (l *line) put(c *conn) {
 	l.mu.Lock()
-	if l.retired || len(l.idle)+l.busy > l.limit {
+	if l.retired || l.busy > l.limit {
 		l.mu.Unlock()
 		c.close()
 		return
