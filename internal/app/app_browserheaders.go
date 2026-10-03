@@ -125,6 +125,11 @@ func (a *App) preflight(job *engine.Job, later resolver.Resolver, seq uint64) bo
 	current := a.preflights[job.TaskID] == seq
 	if current {
 		delete(a.preflights, job.TaskID)
+		if !a.active[job.TaskID] {
+			// The engine never got the job, so a resume has nothing there to
+			// resume and has to start the task afresh.
+			delete(a.started, job.TaskID)
+		}
 	}
 	current = current && a.active[job.TaskID]
 	a.mu.Unlock()
