@@ -296,8 +296,8 @@ github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/u
 github.com/jtolds/gls v4.2.1+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
-github.com/junkerderprovinz/gopeed v0.0.0-20261003030621-dab1d998c178 h1:LlZs8oxu1fxRDFVDOnJ42J7yN0KAIS8K5JnUIUt/Asg=
-github.com/junkerderprovinz/gopeed v0.0.0-20261003030621-dab1d998c178/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
+github.com/junkerderprovinz/gopeed v0.0.0-20261003173839-4e2bccadd868 h1:0cigV14R7nykYQlhuL2UavYtBX+vajDbvhPCn1/8yHg=
+github.com/junkerderprovinz/gopeed v0.0.0-20261003173839-4e2bccadd868/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
 github.com/kevinburke/ssh_config v1.2.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
