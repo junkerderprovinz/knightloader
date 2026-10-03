@@ -729,6 +729,69 @@ func TestTheNFOTwoYtdlpRowsShareGoesWithTheLastOfThem(t *testing.T) {
 	}
 }
 
+// yt-dlp names each file of a download once, as it writes it, and a restart
+// forgets the backend's list. A paused download removed with its files after
+// a restart still takes its stream with the .part, .ytdl and fragments, and
+// leaves the info file to the audio row of the same link, which wrote it too.
+func TestAYtdlpDownloadRemovedWithFilesAfterARestartTakesWhatItWrote(t *testing.T) {
+	data, dir := t.TempDir(), t.TempDir()
+	info := fileBytes(t, filepath.Join(dir, "A Video.info.json"), 64)
+	streams := map[string]string{
+		"video": filepath.Join(dir, "A Video.f137.mp4"),
+		"audio": filepath.Join(dir, "A Video.f251.webm"),
+	}
+	left := map[string][]string{}
+	for id, stream := range streams {
+		for _, suffix := range []string{".part", ".ytdl", ".part-Frag3"} {
+			left[id] = append(left[id], fileBytes(t, stream+suffix, 64))
+		}
+	}
+
+	a, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "video", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+		{ID: "audio", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Variant: "audio", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+	for id, stream := range streams {
+		a.onUpdate(id, core.Update{Status: core.StatusRunning, WorkFile: info})
+		a.onUpdate(id, core.Update{Status: core.StatusRunning, Name: filepath.Base(stream), WorkFile: stream})
+	}
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = b.Close() })
+	b.Remove("video", true)
+	for _, f := range left["video"] {
+		if fileExists(f) {
+			t.Errorf("%s survived the removal with files after a restart", filepath.Base(f))
+		}
+	}
+	for _, f := range append(left["audio"], info) {
+		if !fileExists(f) {
+			t.Errorf("removing the video row deleted %s, which the audio row still has", filepath.Base(f))
+		}
+	}
+
+	b.Remove("audio", true)
+	for _, f := range append(left["audio"], info) {
+		if fileExists(f) {
+			t.Errorf("%s survived the removal of the last row that had it", filepath.Base(f))
+		}
+	}
+}
+
 // lockedLog collects the standard logger's lines for a test, which other
 // goroutines may log to at the same time.
 type lockedLog struct {

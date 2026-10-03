@@ -61,12 +61,17 @@ type Backend struct {
 	// Nil uses a client of the package's own.
 	Client *http.Client
 
+	// InUse, when set, reports whether a task other than taskID still has
+	// path. Remove leaves such a file where it is.
+	InUse func(taskID, path string) bool
+
 	mu   sync.Mutex
 	runs map[string]*runState
 	url  map[string]string // for resume
 	// parts is every file a task's runs said they wrote, kept across a pause
 	// until the task finishes, so a removal with files finds what an
-	// unfinished download left (see Remove).
+	// unfinished download left (see Remove). Each one also goes to the task
+	// as Update.WorkFile, which is what is left of the list after a restart.
 	parts map[string][]string
 }
 
@@ -325,12 +330,13 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		if name, ok := finishedFile(line); ok {
 			final = name
 			b.remember(taskID, name)
-			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name)})
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name), WorkFile: name})
 			continue
 		}
 		if path, ok := wroteFile(line); ok {
 			written = append(written, path)
 			b.remember(taskID, path)
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
 		}
 		if wroteSubtitle(line) {
 			subFiles++
@@ -1032,7 +1038,7 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	parts := b.parts[taskID]
 	delete(b.parts, taskID)
 	b.mu.Unlock()
-	discard(taskID, parts)
+	Discard(taskID, parts, b.InUse)
 }
 
 // remember notes a file a run of taskID wrote, for Remove.
@@ -1044,11 +1050,15 @@ func (b *Backend) remember(taskID, path string) {
 	}
 }
 
-// discard deletes each file an unfinished download wrote together with its
-// .part, its .ytdl progress file, its fragments and the .temp copy a
-// post-processor writes beside it.
-func discard(taskID string, paths []string) {
+// Discard deletes each file an unfinished download of taskID wrote together
+// with its .part, its .ytdl progress file, its fragments and the .temp copy a
+// post-processor writes beside it. A file inUse reports as another task's
+// stays, and so do its .part and the rest.
+func Discard(taskID string, paths []string, inUse func(taskID, path string) bool) {
 	for _, p := range paths {
+		if inUse != nil && inUse(taskID, p) {
+			continue
+		}
 		gone := append([]string{p, p + ".part", p + ".ytdl", tempPath(p)}, fragmentFiles(p)...)
 		for _, f := range gone {
 			if err := os.Remove(f); err != nil && !errors.Is(err, fs.ErrNotExist) {

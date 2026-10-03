@@ -298,6 +298,7 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		// Stored cookie jars, read on every spawn. Without this hook the
 		// backend would ignore saved jars.
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.InUse = a.usedByOther
 		a.ytdlpRuns = yb
 	}
 	a.ytdlpRuns.SetBinary(bin)

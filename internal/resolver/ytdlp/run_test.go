@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -868,5 +869,62 @@ func TestRemovingWithFilesAfterAnUndoneRemovalStillTakesThePart(t *testing.T) {
 	b.Remove("task-1", true)
 	if _, err := os.Stat(part); err == nil {
 		t.Error("the .part survived the removal with files")
+	}
+}
+
+// startPartial starts the helper's unfinished download as task-1 and returns
+// once it has reported progress.
+func startPartial(t *testing.T, b *Backend, rec *recorder) {
+	t.Helper()
+	b.Options = func(string) Options { return Options{} }
+	b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+	deadline := time.Now().Add(30 * time.Second)
+	for rec.last().Loaded == 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("yt-dlp never reported progress")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+// The backend's list of what a download wrote is gone after a restart, so the
+// task is told of each file as yt-dlp names it.
+func TestEveryFileAnUnfinishedDownloadWritesGoesToItsTask(t *testing.T) {
+	t.Setenv(runHelperEnv, "partial:full")
+	dir := t.TempDir()
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	startPartial(t, b, rec)
+	t.Cleanup(func() { b.Remove("task-1", true) })
+
+	var told []string
+	for _, u := range rec.all() {
+		if u.WorkFile != "" {
+			told = append(told, u.WorkFile)
+		}
+	}
+	want := []string{filepath.Join(dir, "A Video.info.json"), filepath.Join(dir, "A Video.f137.mp4")}
+	if !slices.Equal(told, want) {
+		t.Errorf("the task was told of %q, want %q", told, want)
+	}
+}
+
+// The video and the audio row of a link write the same info json, and a
+// removal with files leaves it while the other row still has it.
+func TestRemovingWithFilesLeavesWhatAnotherTaskStillHas(t *testing.T) {
+	t.Setenv(runHelperEnv, "partial:full")
+	dir := t.TempDir()
+	info := filepath.Join(dir, "A Video.info.json")
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.InUse = func(taskID, path string) bool { return taskID == "task-1" && path == info }
+	startPartial(t, b, rec)
+
+	b.Remove("task-1", true)
+	if _, err := os.Stat(info); err != nil {
+		t.Errorf("the info json another task still has was deleted: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "A Video.f137.mp4.part")); err == nil {
+		t.Error("the .part survived a removal with files")
 	}
 }
