@@ -176,7 +176,7 @@ func newFixture(t *testing.T) *fixture {
 
 func (f *fixture) do(t *testing.T, method, p string, header map[string]string) *http.Response {
 	t.Helper()
-	req, err := http.NewRequest(method, f.srv.URL+p, nil)
+	req, err := http.NewRequest(method, f.srv.URL+(&url.URL{Path: p}).EscapedPath(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -275,34 +275,54 @@ func TestAnAccountNameWithASlashIsOneFolder(t *testing.T) {
 		}
 	}
 
-	if got, want := f.list(t, "/dav/"), []string{"/dav/TorBox (dd_x)/", "/dav/TorBox/"}; !slices.Equal(got, want) {
+	if got, want := f.list(t, "/dav/"), []string{"/dav/TorBox (dd%2Fx)/", "/dav/TorBox/"}; !slices.Equal(got, want) {
 		t.Errorf("the root lists %q, want %q", got, want)
 	}
-	if got := f.list(t, "/dav/TorBox (dd_x)/"); len(got) != 3 {
+	if got := f.list(t, "/dav/TorBox (dd%2Fx)/"); len(got) != 3 {
 		t.Errorf("the account with the slash lists %q, want its three downloads", got)
 	}
-	if got, want := f.drive.Folders(), []string{"TorBox", "TorBox (dd_x)"}; !slices.Equal(got, want) {
+	if got, want := f.drive.Folders(), []string{"TorBox", "TorBox (dd%2Fx)"}; !slices.Equal(got, want) {
 		t.Errorf("Folders() = %q, want %q", got, want)
 	}
 }
 
-func TestAnAccountWhoseCleanedNameIsTakenGetsAFolderOfItsOwn(t *testing.T) {
+func TestAnAccountFolderNamesItsAccountAndKeepsItWhenAnotherComesOrGoes(t *testing.T) {
 	f := newFixture(t)
-	f.drive.accounts = func() []Account {
-		return []Account{
-			{Slot: "torbox:dd/x", Name: "TorBox (dd/x)", Source: f.svc},
-			{Slot: "torbox:dd_x", Name: "TorBox (dd_x)", Source: f.svc},
-		}
+	all := []Account{
+		{Slot: "torbox:dd_x", Name: "TorBox (dd_x)", Source: f.svc},
+		{Slot: "torbox:dd/x", Name: "TorBox (dd/x)", Source: f.svc},
+		{Slot: `torbox:dd\x`, Name: `TorBox (dd\x)`, Source: f.svc},
+		{Slot: "torbox:dd%2Fx", Name: "TorBox (dd%2Fx)", Source: f.svc},
+	}
+	want := map[string]string{
+		"TorBox (dd_x)":     "torbox:dd_x",
+		"TorBox (dd%2Fx)":   "torbox:dd/x",
+		"TorBox (dd%5Cx)":   `torbox:dd\x`,
+		"TorBox (dd%252Fx)": "torbox:dd%2Fx",
 	}
 
-	want := map[string]string{"TorBox (dd_x)": "torbox:dd_x", "TorBox (dd_x) 2": "torbox:dd/x"}
-	if got := f.drive.Folders(); !slices.Equal(got, []string{"TorBox (dd_x)", "TorBox (dd_x) 2"}) {
-		t.Fatalf("Folders() = %q, want both accounts", got)
-	}
-	for name, slot := range want {
-		s, err := f.drive.find(context.Background(), name)
-		if err != nil || s.acct.Slot != slot {
-			t.Errorf("the folder %q serves %q (%v), want %q", name, s.acct.Slot, err, slot)
+	for _, gone := range []string{"", "torbox:dd/x", "torbox:dd_x"} {
+		f.drive.accounts = func() []Account {
+			return slices.DeleteFunc(slices.Clone(all), func(a Account) bool { return a.Slot == gone })
+		}
+		var folders []string
+		for name, slot := range want {
+			if slot != gone {
+				folders = append(folders, name)
+			}
+		}
+		slices.Sort(folders)
+		if got := f.drive.Folders(); !slices.Equal(got, folders) {
+			t.Errorf("with %q gone the folders are %q, want %q", gone, got, folders)
+		}
+		for name, slot := range want {
+			if slot == gone {
+				continue
+			}
+			s, err := f.drive.find(context.Background(), name)
+			if err != nil || s.acct.Slot != slot {
+				t.Errorf("with %q gone the folder %q serves %q (%v), want %q", gone, name, s.acct.Slot, err, slot)
+			}
 		}
 	}
 }

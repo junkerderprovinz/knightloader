@@ -411,31 +411,33 @@ func (d *Drive) find(ctx context.Context, name string) (spot, error) {
 	return spot{node: at, level: inDownload, acct: acct}, nil
 }
 
-// folders is every account in name order, named as its folder. The name goes
-// through segment like any other, since an account id may hold a slash. A
-// name segment leaves alone is handed out first, so an account is found under
-// the name it has, and one that is taken gets a number added.
+// folders is every account in name order, named as its folder.
 func (d *Drive) folders() []Account {
-	all := d.accounts()
-	sort.SliceStable(all, func(i, j int) bool {
-		return all[i].Name == segment(all[i].Name) && all[j].Name != segment(all[j].Name)
-	})
 	var out []Account
-	taken := map[string]bool{}
-	for _, a := range all {
-		base := segment(a.Name)
-		if base == "" {
-			continue
-		}
-		a.Name = base
-		for n := 2; taken[a.Name]; n++ {
-			a.Name = base + " " + strconv.Itoa(n)
-		}
-		taken[a.Name] = true
+	for _, a := range d.accounts() {
+		a.Name = folderName(a.Name)
 		out = append(out, a)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
+}
+
+// folderName makes an account's name the name of its folder. The account id
+// in it was typed by a person and may hold a slash, so what a path segment
+// cannot carry is written as %XX, and so is % itself. Two accounts never share
+// a folder that way, and a folder keeps its name when another account comes
+// or goes, which segment's underscore could not promise.
+func folderName(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '%' || c == '/' || c == '\\' || c < 0x20 || c == 0x7f {
+			fmt.Fprintf(&b, "%%%02X", c)
+			continue
+		}
+		b.WriteByte(c)
+	}
+	return b.String()
 }
 
 // Folders names the account folders at the top of the drive.
