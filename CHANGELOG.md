@@ -52,7 +52,8 @@ release's tag.
   `Cookie`, `Referer` and `User-Agent` in `headers`. They stay in memory for
   that download only, never reach a log, and go when it finishes. `file` and
   `name` mark that link as a file the browser was downloading, so it is
-  fetched as a plain file and never handed to yt-dlp.
+  fetched as a plain file, never handed to yt-dlp, and saved under the
+  browser's name.
 
 ## [1.6.6] - 2026-10-02
 

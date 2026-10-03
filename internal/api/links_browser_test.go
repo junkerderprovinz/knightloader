@@ -74,6 +74,15 @@ func TestAddLinksRefusesHeadersItCannotScope(t *testing.T) {
 			"file":  true,
 			"name":  "a.zip",
 		},
+		"a name without a file": {
+			"links": "https://files.example/a.zip",
+			"name":  "a.zip",
+		},
+		"a name with a folder in it": {
+			"links": "https://files.example/a.zip",
+			"file":  true,
+			"name":  "../a.zip",
+		},
 		"with passwords": {
 			"links":     "https://files.example/a.zip",
 			"passwords": []string{"pw"},

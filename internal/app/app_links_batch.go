@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"log"
 	"strings"
 
@@ -57,9 +58,10 @@ type LinkBatchOptions struct {
 	// alone.
 	Headers hostheaders.Set
 	// File says the link is a file a browser was downloading, and FileName
-	// is the name the browser gave it. Such a link is staged as it is and
-	// fetched as a plain file, never by yt-dlp, which takes an address with
-	// no file extension for a page and saves whatever it finds there.
+	// is the name the browser gave it, one path segment, which the finished
+	// file is put under. Such a link is staged as it is and fetched as a
+	// plain file, never by yt-dlp, which takes an address with no file
+	// extension for a page and saves whatever it finds there.
 	File     bool
 	FileName string
 }
@@ -74,6 +76,16 @@ func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin,
 		if err := settings.Validate("the folder for this batch", dir); err != nil {
 			return nil, err
 		}
+	}
+	if opts.FileName != "" {
+		if !opts.File {
+			return nil, errors.New("a file name comes with a file the browser was downloading")
+		}
+		name, err := checkName("file", opts.FileName)
+		if err != nil {
+			return nil, err
+		}
+		opts.FileName = name
 	}
 
 	created := a.addLinksFrom(urls, pkg, origin, opts)

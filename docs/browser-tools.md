@@ -185,10 +185,11 @@ A matching download goes to the default instance as `POST /api/links` with
 `headers` (the browser's cookies for that address, the Referer, the user
 agent), `source`, and `file` with the name the browser gave it. That marks the
 link as a file, so the instance fetches it as one even when its address has
-no file extension, rather than handing it to yt-dlp as a page. Only after the
-instance answers with the created task is the browser's download cancelled
-and erased; any failure, including a link the instance already had or its
-filter held back, lets it carry on. A notification names the instance.
+no file extension, rather than handing it to yt-dlp as a page, and the
+finished file is renamed to the browser's name. Only after the instance
+answers with the created task is the browser's download cancelled and erased;
+any failure, including a link the instance already had or its filter held
+back, lets it carry on. A notification names the instance.
 
 **Finding media** (`media.js`, `popup-media.js`) watches responses with
 `webRequest.onResponseStarted` and keeps, per tab in `storage.session`, the HLS
