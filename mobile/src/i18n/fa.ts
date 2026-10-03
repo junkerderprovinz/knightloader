@@ -214,6 +214,7 @@ export const fa: Dict = {
   'settings.appsParleyportHint': 'ParleyPort رله‌ای است که نمونه‌های شما را حتی در شبکه‌های مختلف به هم وصل می‌کند، و می‌توانید خودتان اجرایش کنید. نشانی آن را در رابط وب، در تنظیمات، بخش جفت‌سازی، وارد کنید تا نمونه‌هایی که دوازده کلمهٔ شما را دارند به‌جای رلهٔ پروژه از رلهٔ خودتان استفاده کنند. یک کلیک دستوری را که آن را راه می‌اندازد کپی می‌کند:',
   'settings.appsExtension': 'افزونهٔ مرورگر',
   'settings.appsExtensionHint': 'افزونه یک پیوند، متن انتخاب‌شده یا صفحهٔ باز را از منوی کلیک راست یا دکمه‌اش در نوار ابزار به KnightLoader شما می‌فرستد. Chrome، Brave، Opera و Vivaldi آن را از Chrome Web Store نصب می‌کنند و Edge از Edge Add-ons.',
+  'settings.appsExtensionSub': 'افزونه',
   'settings.appsSoon': 'به‌زودی',
   'settings.privacyPolicy': 'سیاست حریم خصوصی',
   'settings.removeAllConnections': 'حذف همه اتصال‌ها',

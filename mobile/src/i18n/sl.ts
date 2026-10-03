@@ -214,6 +214,7 @@ export const sl: Dict = {
   'settings.appsParleyportHint': 'ParleyPort je relay, ki poveže tvoje instance tudi med različnimi omrežji, in ga lahko poganjaš sam. Vnesi njegov naslov v spletnem vmesniku, v razdelku Nastavitve, Seznanjanje, in instance s tvojimi dvanajstimi besedami bodo komunicirale prek tvojega relaya namesto prek relaya projekta. Klik kopira ukaz, ki ga zažene:',
   'settings.appsExtension': 'Razširitev brskalnika',
   'settings.appsExtensionHint': 'Razširitev pošlje povezavo, izbor ali odprto stran v tvoj KnightLoader, iz menija desnega klika ali s svojim gumbom v orodni vrstici. Chrome, Brave, Opera in Vivaldi jo namestijo iz Chrome Web Store, Edge pa iz Edge Add-ons.',
+  'settings.appsExtensionSub': 'Razširitev',
   'settings.appsSoon': 'Kmalu',
   'settings.privacyPolicy': 'Pravilnik o zasebnosti',
   'settings.removeAllConnections': 'Odstrani vse povezave',

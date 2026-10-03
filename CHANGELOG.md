@@ -53,6 +53,12 @@ release's tag.
   app can send links to your server on its own. Files are not offered, because
   the relay does not forward container and torrent uploads.
 
+### Changed
+
+- **The README invites testers.** The notice at the top says KnightLoader is
+  still in development and bugs can happen, and asks everyone to test it and
+  report what they find, with a link to the bug report form.
+
 ### Fixed
 
 - **Add links in the Android app says why a send failed.** When the request

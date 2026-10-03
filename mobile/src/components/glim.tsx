@@ -698,6 +698,10 @@ export function ReadmeButton({
       // Drawn in their own colours at rest; the value reaches no mark.
       unraid: c.text,
       chrome: c.text,
+      edge: c.text,
+      brave: c.text,
+      opera: c.text,
+      vivaldi: c.text,
       firefox: c.text,
       parleyport: c.text,
     }[brand];

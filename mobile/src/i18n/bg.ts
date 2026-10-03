@@ -214,6 +214,7 @@ export const bg: Dict = {
   'settings.appsParleyportHint': 'ParleyPort е препредавателят, който свързва инстанциите ти дори през различни мрежи, и можеш да го пуснеш сам. Въведи адреса му в уеб интерфейса, в Настройки, Сдвояване, и инстанциите с твоите дванайсет думи ще говорят през твоя препредавател вместо през този на проекта. С едно щракване се копира командата, която го стартира:',
   'settings.appsExtension': 'Разширение за браузър',
   'settings.appsExtensionHint': 'Разширението изпраща връзка, избран текст или отворената страница към твоя KnightLoader, от менюто с десен бутон или от бутона си в лентата с инструменти. Chrome, Brave, Opera и Vivaldi го инсталират от Chrome Web Store, а Edge от Edge Add-ons.',
+  'settings.appsExtensionSub': 'Разширение',
   'settings.appsSoon': 'Скоро',
   'settings.privacyPolicy': 'Политика за поверителност',
   'settings.removeAllConnections': 'Премахване на всички връзки',
