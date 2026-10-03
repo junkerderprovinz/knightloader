@@ -149,12 +149,13 @@ minute. A change applies to running torrents at once.
 With an interface set, trackers and web seeds skip any proxy, because a proxy
 would reach them outside the interface. A client that starts with an interface
 set also leaves out UPnP port mapping and WebRTC peers, which open connections
-of their own; turning the setting on while torrents run leaves those two as
-they are until the client starts again. Host names of trackers and DHT nodes
-are still looked up through the system's resolver. On Linux before 5.7 the
-container needs `CAP_NET_RAW` to tie a socket to the interface itself, and
-without it sockets are bound to the interface's address only. Torrents a
-debrid service fetches are not affected: they come over HTTP from the service.
+of their own, and IPv4 or IPv6 if the interface has no address of that kind. If
+you turn the setting on or pick another interface while torrents run, these
+stay as they are until the client starts again. Host names of trackers and DHT
+nodes are still looked up through the system's resolver. On Linux before 5.7
+the container needs `CAP_NET_RAW` to tie a socket to the interface itself, and
+without it sockets are bound to the interface's address only. Torrents a debrid
+service fetches are not affected: they come over HTTP from the service.
 
 ## Usenet
 

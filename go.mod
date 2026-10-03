@@ -175,4 +175,4 @@ require (
 // interface (pkg/netbind), and fixes a panic when the torrent client is closed
 // right after it was built:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261002213646-7fb82ba70c32
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003032056-29c60940f20b

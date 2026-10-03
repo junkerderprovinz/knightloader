@@ -129,10 +129,12 @@ func TestATorrentStopsWhileItsInterfaceIsMissingAndFinishesOnceItIsBack(t *testi
 }
 
 // A magnet started while its interface is missing reaches no peer, and waits
-// rather than failing when its metadata timeout runs out.
+// rather than failing when its metadata timeout runs out, with a UDP tracker
+// as without one.
 func TestAMagnetDoesNotFailWhileItsInterfaceIsMissing(t *testing.T) {
 	requireTorrentClient(t)
 	_, magnet := seedTorrent(t, "Film", []seedFile{{"Film.mkv", 48 << 10}})
+	_, tracked := seedTorrent(t, "Clip", []seedFile{{"Clip.mkv", 48 << 10}})
 	dir, err := os.MkdirTemp("", "kl-bt-iface-*")
 	if err != nil {
 		t.Fatal(err)
@@ -151,11 +153,14 @@ func TestAMagnetDoesNotFailWhileItsInterfaceIsMissing(t *testing.T) {
 	e.SetMetadataTimeout(time.Second)
 
 	e.Start(Job{TaskID: "held", URL: magnet, Dir: dir})
+	e.Start(Job{TaskID: "udp", URL: tracked + "&tr=udp%3A%2F%2F127.0.0.1%3A1%2Fannounce", Dir: dir})
 	time.Sleep(4 * time.Second)
-	switch status, _, errText := b.last("held"); status {
-	case core.StatusError:
-		t.Fatalf("the magnet failed while its interface was missing: %s", errText)
-	case core.StatusRunning, core.StatusDone:
-		t.Fatalf("the magnet is %q with its interface missing; a peer sent its file list", status)
+	for _, id := range []string{"held", "udp"} {
+		switch status, _, errText := b.last(id); status {
+		case core.StatusError:
+			t.Fatalf("%s: the magnet failed while its interface was missing: %s", id, errText)
+		case core.StatusRunning, core.StatusDone:
+			t.Fatalf("%s: the magnet is %q with its interface missing; a peer sent its file list", id, status)
+		}
 	}
 }
