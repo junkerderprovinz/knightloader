@@ -35,7 +35,10 @@ dav/
 ```
 
 Each account is a folder named after its service, with the account's id in
-brackets for a second account at the same service. Each download on the
+brackets for a second account at the same service. A slash or backslash in the
+id is written as `%2F` or `%5C`, and a percent sign as `%25`. That way every
+account gets its own folder, and the folder keeps its name when another
+account is added or removed. Each download on the
 account is a folder named after the download, holding its files. When two
 downloads share a name, the older one keeps it and the newer one has the
 service's id added in square brackets, so a path never moves when something
