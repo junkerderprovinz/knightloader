@@ -67,25 +67,37 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	a.publishTasks(copies)
 }
 
-// sharingLinksLocked returns the tasks named by ids and every task that shares
-// a link with one of them, oldest first. The rows of one yt-dlp link are one
-// folder on disk, so they move together although staging hands back only the
-// first. Caller holds a.mu.
+// sharingLinksLocked returns the tasks named by ids and their variant
+// families, oldest first. The rows of one yt-dlp link are one folder on disk,
+// so they move together although staging hands back only the first. Caller
+// holds a.mu.
 func (a *App) sharingLinksLocked(ids []string) []*core.Task {
-	links := map[string]bool{}
+	type family struct {
+		url     string
+		created int64
+	}
+	named := map[family]bool{}
 	for _, id := range ids {
 		if t := a.tasks[id]; t != nil {
-			links[t.URL] = true
+			named[family{t.URL, t.CreatedAt.UnixNano()}] = true
 		}
 	}
 	var members []*core.Task
 	for _, t := range a.tasks {
-		if links[t.URL] {
+		if named[family{t.URL, t.CreatedAt.UnixNano()}] {
 			members = append(members, t)
 		}
 	}
 	sortByAge(members)
 	return members
+}
+
+// sameFamily reports whether two tasks are rows of one staged link: the
+// variant rows of a yt-dlp link share its URL and its staging time. The same
+// URL pasted again later is a link of its own, and its rows must not move a
+// copy an earlier batch already downloaded into another folder.
+func sameFamily(a, b *core.Task) bool {
+	return a.URL == b.URL && a.CreatedAt.Equal(b.CreatedAt)
 }
 
 // keepFoldersLocked pins members to the folder each downloads to, by writing
@@ -177,11 +189,11 @@ func (a *App) setTaskName(id, name string) {
 	t.Name = name
 	c := a.copyLocked(t)
 
-	// Variant siblings share this task's exact URL, and nothing else does. They
-	// take the same name and package so the family stays in one folder.
+	// Variant siblings take the same name and package so the family stays in
+	// one folder.
 	var siblings []taskCopy
 	for _, other := range a.tasks {
-		if other == t || other.URL != t.URL {
+		if other == t || !sameFamily(other, t) {
 			continue
 		}
 		if other.Name == other.URL {
@@ -229,9 +241,9 @@ func packageIsStillAGuess(t *core.Task) bool {
 	return guess != "" && t.Package == guess
 }
 
-// setPackageLocked files t in pkg, and with it every task sharing t's exact URL
-// (its variant siblings), and returns every task it touched for the caller to
-// save and broadcast.
+// setPackageLocked files t in pkg, and with it its variant siblings
+// (sameFamily), and returns every task it touched for the caller to save and
+// broadcast.
 //
 // The five rows of one video must share one package to be one folder on disk.
 // The siblings are created after a bucket is assembled, so they are in nobody's
@@ -241,7 +253,7 @@ func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string) []*
 	t.Package = pkg
 	out := []*core.Task{t}
 	for _, other := range tasks {
-		if other != t && other.URL == t.URL {
+		if other != t && sameFamily(other, t) {
 			other.Package = pkg
 			out = append(out, other)
 		}
@@ -275,10 +287,10 @@ func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
 		if other == t || other.Package != t.Package {
 			continue
 		}
-		// A row with t's exact URL is a variant sibling, not a member of a
-		// resolved batch. Once a probe has named the whole family, counting
-		// siblings would have every row veto every other's rename.
-		if other.URL == t.URL {
+		// A variant sibling is not a member of a resolved batch. Once a probe
+		// has named the whole family, counting siblings would have every row
+		// veto every other's rename.
+		if sameFamily(other, t) {
 			continue
 		}
 		if other.Name != other.URL {
