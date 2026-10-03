@@ -165,6 +165,15 @@ func (a *App) recordFileLocked(t *core.Task, file string) {
 	}
 }
 
+// noteMovedLocked records that the app moved the finished file of task id off
+// the path its backend wrote it to (see App.movedFiles). Caller holds a.mu.
+func (a *App) noteMovedLocked(id string) {
+	if a.movedFiles == nil {
+		a.movedFiles = map[string]bool{}
+	}
+	a.movedFiles[id] = true
+}
+
 // setPathLocked is where a set of parts is opened from: its first part's name,
 // in the folder that part was written to, since every later part is looked
 // for by name beside it. A set of one is opened from its file, whatever that

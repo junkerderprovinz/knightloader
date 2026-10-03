@@ -983,6 +983,7 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	if err := os.Rename(from, to); err != nil {
 		return refuse(fmt.Errorf("not renamed: %w", err))
 	}
+	a.noteMovedLocked(t.ID)
 	t.Name = want
 	if t.File != "" {
 		t.File = to
@@ -1012,6 +1013,10 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
 	}
+	// A moved file is deleted where it is, by own and landed; the backend's
+	// record names the old path, which another download may have taken since.
+	backendFiles := deleteFiles && !a.movedFiles[id]
+	delete(a.movedFiles, id)
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
@@ -1024,7 +1029,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	a.dispatchLocked()
 	a.mu.Unlock()
 	if t != nil {
-		a.backendFor(t.Resolver).Remove(id, deleteFiles)
+		a.backendFor(t.Resolver).Remove(id, backendFiles)
 		// The engine only deletes files of transfers it still knows, and it
 		// forgets them all on a restart.
 		own.drop(id)
