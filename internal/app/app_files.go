@@ -44,9 +44,14 @@ var (
 	// ErrTaskFileNoMedia is a torrent of several files with no audio or video
 	// among the ones it fetches, so there is nothing for Play to open.
 	ErrTaskFileNoMedia = errors.New("this torrent fetches no audio or video file")
-	// ErrTaskFileIncomplete is a download that stopped before it finished.
-	// Only a running one can be read before it is complete.
+	// ErrTaskFileIncomplete is a download that stopped before it finished,
+	// after it had fetched something. Only a running one can be read before
+	// it is complete.
 	ErrTaskFileIncomplete = errors.New("this download stopped before it finished; start it again to play the file while it downloads")
+	// ErrTaskFileMending is a running download whose file is not all there
+	// and which the engine does not stream, mostly because the ranges that
+	// never arrived are being fetched again.
+	ErrTaskFileMending = errors.New("part of this download is being fetched again, so it plays once that part is back")
 )
 
 // TaskFile is a task's file as it currently is on disk. Path has been checked
@@ -229,18 +234,27 @@ func (a *App) OpenTaskFile(id string, index int) (OpenedFile, error) {
 			if r, err := e.Stream(id, max(index, 0)); err == nil {
 				return OpenedFile{Name: at.name, File: r, Index: index, Live: true}, nil
 			}
+			// The engine gives an HTTP download's file its full size as it
+			// starts, so the ranges a mend is still fetching read as zeros.
+			if !isTorrent && snap.Size > 0 && snap.Loaded < snap.Size {
+				return OpenedFile{}, ErrTaskFileMending
+			}
 		}
 	}
 	stopped := snap.Status != core.StatusRunning && snap.Status != core.StatusDone && snap.Status != core.StatusExtracting
-	// The engine gives an HTTP download's file its full size as it starts, so
-	// a stopped one reads as zeros wherever its bytes have not arrived.
+	incomplete := ErrTaskFileIncomplete
+	if snap.Loaded == 0 {
+		incomplete = ErrTaskFileNoBytes
+	}
+	// The same full size makes a stopped one read as zeros wherever its bytes
+	// have not arrived.
 	if stopped && !isTorrent && snap.Size > 0 && snap.Loaded < snap.Size {
-		return OpenedFile{}, ErrTaskFileIncomplete
+		return OpenedFile{}, incomplete
 	}
 	tf, err := a.SafeTaskFileAt(id, index)
 	// A torrent keeps a file under another name until it is complete.
 	if stopped && isTorrent && errors.Is(err, ErrTaskFileNoBytes) {
-		return OpenedFile{}, ErrTaskFileIncomplete
+		return OpenedFile{}, incomplete
 	}
 	if err != nil {
 		return OpenedFile{}, err

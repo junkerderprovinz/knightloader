@@ -230,8 +230,9 @@ func inlineType(name string) (contentType string, inline bool) {
 
 // taskFileStatus maps a SafeTaskFile refusal to the status a client can act
 // on: 404 for "there is nothing here yet", 409 for a download that has to run
-// again first, 400 for "not this app's file to serve", 403 for the one refusal
-// that means somebody's stored path tried to leave its own folder.
+// again first, 503 for one that plays once it has fetched a missing part, 400
+// for "not this app's file to serve", 403 for the one refusal that means
+// somebody's stored path tried to leave its own folder.
 func taskFileStatus(err error) int {
 	switch {
 	case errors.Is(err, app.ErrTaskFileNotFound), errors.Is(err, app.ErrTaskFileNoBytes), errors.Is(err, app.ErrTaskFileNoSuchFile),
@@ -239,6 +240,8 @@ func taskFileStatus(err error) int {
 		return http.StatusNotFound
 	case errors.Is(err, app.ErrTaskFileIncomplete):
 		return http.StatusConflict
+	case errors.Is(err, app.ErrTaskFileMending):
+		return http.StatusServiceUnavailable
 	case errors.Is(err, app.ErrTaskFileNotLocal):
 		return http.StatusBadRequest
 	case errors.Is(err, app.ErrTaskFileEscape):
