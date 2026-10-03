@@ -183,3 +183,37 @@ func TestATestCaptchaIsRefusedWhileCaptchasAreSwitchedOff(t *testing.T) {
 		t.Errorf("POST /api/captcha/test with captchas off answered %d %q, want 409 captchaOff", rec.Code, rec.Body.String())
 	}
 }
+
+func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		off      []string
+		order    []string
+		body     string
+		wantCode string
+	}{
+		{name: "JD off", off: []string{"jd"}, body: `{}`, wantCode: "captchaJDOff"},
+		{name: "JD and captchas off", off: []string{"jd", "captcha"}, body: `{}`, wantCode: "captchaJDOff"},
+		{name: "no captcha account with a key", order: []string{"2captcha"}, body: `{"solvers":true}`, wantCode: "noCaptchaAccount"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := testApp(t)
+			s := a.Settings.Get()
+			s.ModulesOff, s.CaptchaSolverOrder = tc.off, tc.order
+			if _, err := a.ApplySettings(s); err != nil {
+				t.Fatal(err)
+			}
+			reg := newRegistry()
+			registerCaptcha(reg, a)
+			mux := http.NewServeMux()
+			reg.attach(mux, http.NotFoundHandler())
+
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/api/captcha/test", strings.NewReader(tc.body)))
+			var got struct{ Code string }
+			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != tc.wantCode {
+				t.Errorf("POST /api/captcha/test answered %d %q, want 409 %s", rec.Code, rec.Body.String(), tc.wantCode)
+			}
+		})
+	}
+}

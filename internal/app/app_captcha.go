@@ -226,7 +226,7 @@ func (a *App) endCaptcha(c captcha.Challenge, end CaptchaResolution) {
 	if pub != nil {
 		a.publish(pub)
 	}
-	end.ID, end.TaskID, end.Host = c.ID, c.TaskID, c.Host
+	end.ID, end.TaskID, end.Host, end.TestCaptcha = c.ID, c.TaskID, c.Host, c.Test
 	a.Hub.Broadcast("captchaResolved", end)
 }
 
@@ -242,6 +242,9 @@ type CaptchaResolution struct {
 	Reason string `json:"reason"`
 	// Test is how a test captcha's answer compared, set when one was solved.
 	Test *TestCaptchaResult `json:"test,omitempty"`
+	// TestCaptcha marks the end of a test captcha however it ended, so a
+	// timeout does not read as a download left stuck.
+	TestCaptcha bool `json:"testCaptcha,omitempty"`
 }
 
 // TestCaptchaResult is how an answer to a test captcha compares with the text
@@ -257,16 +260,29 @@ type TestCaptchaResult struct {
 	Solver string `json:"solver,omitempty"`
 }
 
-// ErrCaptchaOff is what CreateTestCaptcha answers while the captcha or JD
-// module is switched off, since no prompt would show the captcha then.
-var ErrCaptchaOff = errors.New("captchas are switched off on the Modules page")
+// The refusals of CreateTestCaptcha. With the captcha or JD module off no
+// prompt would show the captcha, and the Modules page lets the captcha module
+// back on only once JD is.
+var (
+	ErrCaptchaOff   = errors.New("captchas are switched off on the Modules page")
+	ErrCaptchaJDOff = errors.New("captchas come through JDownloader, which is switched off on the Modules page")
+	// ErrNoCaptchaAccount refuses a test for the captcha accounts while none
+	// of them could take it: none is enabled with a key, or the account is
+	// switched off.
+	ErrNoCaptchaAccount = errors.New("no captcha account is enabled with a key")
+)
 
 // CreateTestCaptcha draws a test captcha and publishes it at once, the way the
 // poll publishes one JD listed: to the windows, the phone app and the event
 // targets. solvers lets the paid solvers take it too, which they bill.
 func (a *App) CreateTestCaptcha(solvers bool) (captcha.Challenge, error) {
-	if a.captchaSwitchedOff() {
+	switch {
+	case a.ModuleOff("jd"):
+		return captcha.Challenge{}, ErrCaptchaJDOff
+	case a.ModuleOff("captcha"):
 		return captcha.Challenge{}, ErrCaptchaOff
+	case solvers && len(a.captchaSolvers()) == 0:
+		return captcha.Challenge{}, ErrNoCaptchaAccount
 	}
 	st := a.captchaStateFor()
 	c, err := st.tests.New(solvers)
