@@ -62,8 +62,9 @@ release's tag.
 - **Thumbnail, subtitle and description rows take their file with them.**
   Removed with their files, these rows left the .jpg, .srt or .description
   behind, and a video or audio row left its .nfo. KnightLoader now records the
-  file each of these rows wrote and deletes it, and the .nfo goes with its
-  video. A subtitle row that wrote several languages still keeps its files.
+  file each of these rows wrote and deletes it with the row. The video and
+  audio rows of a link share one .nfo, which goes when the second of them is
+  removed. A subtitle row that wrote several languages still keeps its files.
 
 ## [1.6.6] - 2026-10-02
 
