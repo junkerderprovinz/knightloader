@@ -416,3 +416,34 @@ func TestStopWaitsForTheReportOfAFileThatJustFinished(t *testing.T) {
 		t.Error("a download started after Stop")
 	}
 }
+
+func TestMoreConnectionsReachAFileUnderWay(t *testing.T) {
+	r := newRelease("f.bin", 300_000, 3_000)
+	s := nntptest.New(t)
+	r.post(s)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	client := nntp.NewClient([]nntp.Server{cfg}, slowCopy{})
+	h := newHarness(t, client, r)
+	h.be.Download("task", FileLink(h.job, 0, r.name), nil, 0)
+	for u := range h.updates {
+		if u.Loaded > 0 {
+			break
+		}
+	}
+
+	cfg.Connections = 5
+	client.SetServers([]nntp.Server{cfg})
+	for {
+		u := <-h.updates
+		if u.Status == core.StatusError {
+			t.Fatal(u.Err)
+		}
+		if u.Status == core.StatusDone {
+			break
+		}
+	}
+	if got := s.MaxOpen(); got != 5 {
+		t.Errorf("the file used at most %d connections after the server allowed 5", got)
+	}
+}
