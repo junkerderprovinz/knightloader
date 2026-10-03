@@ -6,6 +6,7 @@ package watch
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -233,21 +234,46 @@ func (f *File) Done() {
 }
 
 // reopen gives back a file a previous process parked and never finished, so it
-// is taken again.
+// is taken again. A file dropped under its name in the meantime keeps that
+// name, and the parked one moves beside it.
 func (p *poller) reopen(name string) {
 	held := filepath.Join(p.dir, name)
 	if _, ok := opening.Load(held); ok {
 		return
 	}
 	orig := strings.TrimSuffix(held, openingSuffix)
-	if _, err := os.Lstat(orig); err == nil {
-		return
+	back := orig
+	if exists(orig) {
+		back = besideName(orig)
 	}
-	if err := os.Rename(held, orig); err != nil {
+	if err := os.Rename(held, back); err != nil {
 		log.Printf("intake file %q was left half opened and could not be put back: %v", name, err)
 		return
 	}
+	if back != orig {
+		log.Printf("intake file %q was left half opened and is taken again as %q, since a new file has its name",
+			filepath.Base(orig), filepath.Base(back))
+		return
+	}
 	log.Printf("intake file %q was left half opened and is taken again", filepath.Base(orig))
+}
+
+// besideName is the first free "name (n).ext" next to path, in the style
+// downloads are renamed in.
+func besideName(path string) string {
+	ext := filepath.Ext(path)
+	stem := strings.TrimSuffix(path, ext)
+	for n := 2; ; n++ {
+		cand := fmt.Sprintf("%s (%d)%s", stem, n, ext)
+		if !exists(cand) && !exists(cand+openingSuffix) {
+			return cand
+		}
+	}
+}
+
+func exists(path string) bool {
+	_, err := os.Lstat(path)
+	return err == nil
 }
 
 // consume parses one file and retires it. A link list is retired before its
