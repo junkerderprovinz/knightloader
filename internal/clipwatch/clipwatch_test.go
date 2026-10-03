@@ -175,3 +175,17 @@ func TestAKeptStopRunsOutALeaseAfterTheRestart(t *testing.T) {
 		t.Fatal("a stop nobody came for in a whole lease after the restart still reached the watcher")
 	}
 }
+
+func TestAStopThatRanOutBeforeTheInstanceClosedIsNotKept(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "clipwatch.json")
+	w := Watcher{ID: "a", Kind: KindExtension}
+	r := Open(path, t0)
+	_, _ = r.Renew(w, t0)
+	r.Stop("a", t0)
+	r.Close(t0.Add(Lease + time.Second))
+
+	back := t0.Add(time.Hour)
+	if stop, _ := Open(path, back).Renew(w, back); stop {
+		t.Fatal("a stop whose lease ran out while the instance was up came back after the restart")
+	}
+}

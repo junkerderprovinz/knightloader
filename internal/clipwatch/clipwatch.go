@@ -142,6 +142,15 @@ func (r *Registry) Leave(id string) {
 	}
 }
 
+// Close drops the stops whose lease ran out by now. Pruning otherwise waits
+// for the next call, and a stop still on file when the instance stops gets a
+// fresh lease from Open.
+func (r *Registry) Close(now time.Time) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.pruneLocked(now)
+}
+
 // List returns the watchers whose lease still runs at now, by name and then id.
 func (r *Registry) List(now time.Time) []Watcher {
 	r.mu.Lock()
