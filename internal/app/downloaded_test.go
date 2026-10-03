@@ -1,8 +1,11 @@
 package app
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -341,5 +344,41 @@ func TestALinkTheHistoryCannotMatchIsAnsweredBeforeItsProbe(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("the answer waited for the probe of a file the history does not have")
+	}
+}
+
+// The probes a paste waits for run side by side, so a slow host costs the
+// answer one probe rather than one per link.
+func TestAPasteWaitsForItsSlowestProbeRatherThanForEachInTurn(t *testing.T) {
+	a := historyApp(t, nil)
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4096)
+	const links = 3
+	var mu sync.Mutex
+	arrived := 0
+	all := make(chan struct{})
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		mu.Lock()
+		if arrived++; arrived == links {
+			close(all)
+		}
+		mu.Unlock()
+		select {
+		case <-all:
+		case <-time.After(2 * time.Second):
+			return nil, errors.New("the other probes never started")
+		}
+		resp := probeAnswer(req, http.StatusOK)
+		resp.ContentLength = 4096
+		return resp, nil
+	})
+
+	var urls []string
+	for i := range links {
+		urls = append(urls, fmt.Sprintf("https://mirror%d.example/film.mkv", i))
+	}
+	for _, got := range a.AddLinks(urls, "") {
+		if !got.Skipped || got.SkipCode != skipDownloaded {
+			t.Errorf("%s was answered as skipped=%v code=%q, want it rejected as downloaded", got.URL, got.Skipped, got.SkipCode)
+		}
 	}
 }

@@ -96,6 +96,12 @@ type intake struct {
 	// user's accounts, the import from an account and the Usenet queue. Every
 	// other entrance is refused such a link (see jobLink).
 	jobLinks bool
+
+	// sizeProbes runs the probes of a batch's links whose size alone decides
+	// whether the history has them. The batch waits for the group before it
+	// answers, and the probes run side by side, so a slow host costs the
+	// answer one probe rather than one per link. Nil runs them in place.
+	sizeProbes *sync.WaitGroup
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -140,6 +146,8 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, in intake) []*core.T
 func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Task {
 	var created []*core.Task
 	var verdicts []verdict
+	var probes sync.WaitGroup
+	in.sizeProbes = &probes
 	seen := map[string]bool{}
 	b := &bucket{}
 	for _, l := range links {
@@ -165,6 +173,7 @@ func (a *App) stageResolvedLinks(links []resolver.Result, in intake) []*core.Tas
 			created = append(created, t)
 		}
 	}
+	probes.Wait()
 	if strings.TrimSpace(in.pkg) == "" {
 		a.nameBucket(b)
 	}
@@ -192,6 +201,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 	// links are named after that page.
 	var buckets []*bucket
 	loose := &bucket{}
+	var probes sync.WaitGroup
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
 		if u == "" || seen[u] {
@@ -229,6 +239,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				if t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
+					sizeProbes: &probes,
 				}); t != nil {
 					b.tasks = append(b.tasks, t)
 					created = append(created, t)
@@ -240,11 +251,13 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		if t := a.stage(u, "", 0, intake{
 			pkg: pkg, origin: origin,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment, category: batch.Category,
+			sizeProbes: &probes,
 		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
 		}
 	}
+	probes.Wait()
 
 	buckets = append(buckets, loose)
 
@@ -785,12 +798,16 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// A HEAD probe for plain file links fills in size and availability while
 	// the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
-		if a.historyNeedsSize(cand) {
+		probe := func() { a.analyze(t.ID, result.DirectURL) }
+		switch {
+		case !a.historyNeedsSize(cand):
+			a.spawn(probe)
+		case in.sizeProbes != nil:
 			// Waited for, so the answer to whoever sent the link already says
 			// whether the history has it rather than changing a moment later.
-			a.analyze(t.ID, result.DirectURL)
-		} else {
-			a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
+			in.sizeProbes.Go(probe)
+		default:
+			probe()
 		}
 	} else if staged != nil && res.Info().ID == "ytdlp" {
 		// Local map writes and a save, so it runs inline and the variant rows
