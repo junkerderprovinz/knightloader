@@ -1345,6 +1345,7 @@ export const es: Dict = {
   'columns.variant.auto': 'Automático',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Reproducir',
   'file.open': 'Abrir',
   'file.openNatively': 'Abrir con la aplicación predeterminada',
   'file.revealInFolder': 'Mostrar en la carpeta',
@@ -2129,6 +2130,9 @@ export const es: Dict = {
   'detail.play': 'Reproducir aquí',
   'detail.playHint': 'Reproduce el archivo directamente desde esta instancia, sin descargarlo por segunda vez. No se trae nada hasta que pulsas reproducir, y el archivo se queda donde está.',
   'detail.playPartial': 'Esta descarga no ha terminado. Solo se puede reproducir la parte que ya está en el disco, saltar más allá no funciona, y algunos archivos no reproducen nada hasta que está el último byte.',
+  'detail.playLive': 'Esta descarga sigue en curso. La parte que reproduces se descarga primero, así que puedes empezar ya. Si saltas hacia delante, la reproducción espera a que llegue esa parte.',
+  'detail.playStopped': 'Esta descarga se detuvo antes de terminar. Vuelve a iniciarla para reproducir el archivo mientras se descarga.',
+  'detail.playMending': 'Una parte de esta descarga se está volviendo a obtener. Se podrá reproducir cuando esa parte haya llegado.',
   'detail.playUnsupported': 'Este navegador no puede reproducir este archivo. Ábrelo o guárdalo desde el menú del clic derecho.',
   'detail.playRemote': 'Aquí solo se reproducen los archivos de esta instancia. Otra instancia entrega sus archivos de una pieza y sin saltos, y con eso un reproductor no puede trabajar.',
   'detail.playNotLocal': 'Esta descarga la trajo JDownloader, así que el archivo está en el disco de ese proceso y no en este.',

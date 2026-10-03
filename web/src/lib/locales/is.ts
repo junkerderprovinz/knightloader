@@ -1353,6 +1353,7 @@ export const is: Dict = {
   'columns.variant.auto': 'Sjálfvirkt',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Spila',
   'file.open': 'Opna',
   'file.openNatively': 'Opna með sjálfgefnu forriti',
   'file.revealInFolder': 'Sýna í möppu',
@@ -2136,6 +2137,9 @@ export const is: Dict = {
   'detail.play': 'Spila hér',
   'detail.playHint': 'Spilar skrána beint af þessu tilviki, án þess að sækja hana í annað sinn. Ekkert er sótt fyrr en þú ýtir á spila, og skráin verður áfram þar sem hún er.',
   'detail.playPartial': 'Þetta niðurhal er ekki búið. Aðeins sá hluti sem þegar liggur á disknum spilast, ekki er hægt að stökkva fram fyrir hann, og sumar skrár spila alls ekkert fyrr en síðasta bætið er komið.',
+  'detail.playLive': 'Þetta niðurhal er enn í gangi. Sá hluti sem þú spilar er sóttur fyrst, svo þú getur byrjað strax. Ef þú hoppar fram bíður spilunin þar til sá hluti er kominn.',
+  'detail.playStopped': 'Þetta niðurhal stöðvaðist áður en því lauk. Ræstu það aftur til að spila skrána á meðan hún hleðst niður.',
+  'detail.playMending': 'Hluti af þessu niðurhali er sóttur aftur. Það er hægt að spila það þegar sá hluti er kominn.',
   'detail.playUnsupported': 'Þessi vafri getur ekki spilað þessa skrá. Opnaðu hana eða vistaðu í staðinn úr hægrismelltu valmyndinni.',
   'detail.playRemote': 'Aðeins skrár á þessu tilviki spilast hér. Annað tilvik réttir sínar skrár í einu lagi og án þess að hægt sé að stökkva um, og spilari ræður ekki við það.',
   'detail.playNotLocal': 'JDownloader sótti þetta niðurhal, skráin liggur því á disknum hjá því ferli en ekki á þessum hér.',

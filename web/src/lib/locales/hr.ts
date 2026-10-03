@@ -1353,6 +1353,7 @@ export const hr: Dict = {
   'columns.variant.auto': 'Automatski',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Reproduciraj',
   'file.open': 'Otvori',
   'file.openNatively': 'Otvori zadanom aplikacijom',
   'file.revealInFolder': 'Prikaži u mapi',
@@ -2151,6 +2152,9 @@ export const hr: Dict = {
   'detail.play': 'Reproduciraj ovdje',
   'detail.playHint': 'Reproducira datoteku ravno s ove instance, bez drugog preuzimanja. Dok ne pritisneš reprodukciju, ništa se ne dohvaća, a datoteka ostaje ondje gdje jest.',
   'detail.playPartial': 'Ovo preuzimanje nije gotovo. Reproducirati se može samo dio koji već leži na disku, preskakanje dalje od njega ne radi, a neke datoteke ne sviraju baš ništa dok posljednji bajt nije tu.',
+  'detail.playLive': 'Ovo preuzimanje još traje. Dio koji reproduciraš dohvaća se prvi, pa možeš odmah početi. Ako skočiš naprijed, reprodukcija čeka dok taj dio ne stigne.',
+  'detail.playStopped': 'Ovo preuzimanje zaustavilo se prije kraja. Pokreni ga ponovno da bi reproducirao datoteku dok se preuzima.',
+  'detail.playMending': 'Dio ovog preuzimanja ponovno se dohvaća. Moći ćeš ga reproducirati čim taj dio stigne.',
   'detail.playUnsupported': 'Ovaj preglednik ne može reproducirati ovu datoteku. Otvori je ili spremi preko izbornika desnog klika.',
   'detail.playRemote': 'Ovdje se reproduciraju samo datoteke na ovoj instanci. Druga instanca svoje datoteke predaje u komadu i bez preskakanja, a s time reproduktor ne može raditi.',
   'detail.playNotLocal': 'Ovo je preuzimanje dohvatio JDownloader, pa datoteka leži na disku tog procesa, a ne na ovome.',

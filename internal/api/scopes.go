@@ -263,6 +263,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/tasks/{id}":             apitoken.ScopeControl,
 	"GET /api/tasks/{id}/file":           apitoken.ScopeRead,
 	"POST /api/tasks/{id}/pause":         apitoken.ScopeControl,
+	"POST /api/tasks/{id}/play":          apitoken.ScopeRead,
 	"POST /api/tasks/{id}/resume":        apitoken.ScopeControl,
 	"GET /api/tasks/{id}/torrent-files":  apitoken.ScopeRead,
 	"POST /api/tasks/{id}/torrent-files": apitoken.ScopeControl,

@@ -1353,6 +1353,7 @@ export const sv: Dict = {
   'columns.variant.auto': 'Automatiskt',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Spela upp',
   'file.open': 'Öppna',
   'file.openNatively': 'Öppna med standardprogram',
   'file.revealInFolder': 'Visa i mapp',
@@ -2137,6 +2138,9 @@ export const sv: Dict = {
   'detail.play': 'Spela upp här',
   'detail.playHint': 'Spelar filen direkt från den här instansen, utan att ladda ner den en andra gång. Inget hämtas förrän du trycker på spela upp, och filen ligger kvar där den ligger.',
   'detail.playPartial': 'Den här nedladdningen är inte klar. Bara den del som redan ligger på disken går att spela upp, att hoppa förbi den fungerar inte, och vissa filer spelar ingenting alls förrän sista byten är på plats.',
+  'detail.playLive': 'Den här nedladdningen pågår fortfarande. Delen du spelar upp hämtas först, så du kan börja direkt. Hoppar du framåt väntar uppspelningen tills den delen har kommit.',
+  'detail.playStopped': 'Den här nedladdningen stoppades innan den var klar. Starta den igen för att spela upp filen medan den laddas ner.',
+  'detail.playMending': 'En del av den här nedladdningen hämtas igen. Den går att spela upp när den delen har kommit.',
   'detail.playUnsupported': 'Den här webbläsaren kan inte spela upp den här filen. Öppna eller spara den via högerklicksmenyn i stället.',
   'detail.playRemote': 'Bara filer på den här instansen går att spela upp här. En annan instans lämnar sina filer i ett stycke och utan att kunna hoppa, och det klarar ingen spelare.',
   'detail.playNotLocal': 'JDownloader hämtade den här nedladdningen, så filen ligger på den processens disk och inte på den här.',

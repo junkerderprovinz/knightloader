@@ -1345,6 +1345,7 @@ export const nl: Dict = {
   'columns.variant.auto': 'Automatisch',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Afspelen',
   'file.open': 'Openen',
   'file.openNatively': 'Openen met standaardprogramma',
   'file.revealInFolder': 'Tonen in map',
@@ -2129,6 +2130,9 @@ export const nl: Dict = {
   'detail.play': 'Hier afspelen',
   'detail.playHint': 'Speelt het bestand rechtstreeks van deze instantie af, zonder het een tweede keer te downloaden. Er wordt niets opgehaald tot je op afspelen drukt, en het bestand blijft staan waar het staat.',
   'detail.playPartial': 'Deze download is niet klaar. Alleen het deel dat al op de schijf staat kan afspelen, verder vooruitspringen gaat niet, en sommige bestanden spelen helemaal niets af tot de laatste byte binnen is.',
+  'detail.playLive': 'Deze download loopt nog. Het deel dat je afspeelt wordt eerst opgehaald, dus je kunt meteen beginnen. Spring je vooruit, dan wacht het afspelen tot dat deel binnen is.',
+  'detail.playStopped': 'Deze download is gestopt voordat hij klaar was. Start hem opnieuw om het bestand af te spelen terwijl het binnenkomt.',
+  'detail.playMending': 'Een deel van deze download wordt opnieuw opgehaald. Afspelen kan zodra dat deel binnen is.',
   'detail.playUnsupported': 'Deze browser kan dit bestand niet afspelen. Open of bewaar het in plaats daarvan via het rechtermuisknopmenu.',
   'detail.playRemote': 'Hier spelen alleen bestanden van deze instantie af. Een andere instantie geeft haar bestanden in één stuk door en zonder springen, en daar kan een speler niet mee overweg.',
   'detail.playNotLocal': 'Deze download is door JDownloader opgehaald, dus het bestand ligt op de schijf van dat proces en niet op deze.',

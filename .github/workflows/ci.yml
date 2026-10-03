@@ -514,6 +514,9 @@ jobs:
       - name: Row and package words
         run: node check-task-state.mjs
 
+      - name: Play buttons
+        run: node check-play.mjs
+
       - name: Free QR scanner
         run: node check-free-scanner.mjs
 
