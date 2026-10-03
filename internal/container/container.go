@@ -115,6 +115,9 @@ func Links(name string, data []byte) ([]string, error) {
 		return links, nil
 	case KindCCF:
 		links, err := DecodeCCF(data)
+		if errors.Is(err, ErrEmpty) {
+			return nil, err
+		}
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrNeedsBackend, err)
 		}

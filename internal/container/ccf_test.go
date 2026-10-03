@@ -154,3 +154,15 @@ func TestCCFNoKeyOpensGoesToTheBackend(t *testing.T) {
 		}
 	}
 }
+
+func TestACCFThatOpensButHoldsNoLinkIsRefusedHere(t *testing.T) {
+	doc := `<?xml version="1.0"?><CryptLoad><Package name="Film">` +
+		`<Download><Url>file:///etc/passwd</Url></Download>` +
+		`<Download><Url>javascript:alert(1)</Url></Download>` +
+		`<Download><Url>not a url at all</Url></Download>` +
+		`</Package></CryptLoad>`
+	_, err := Links("film.ccf", cbcEncrypt(t, ccf07Keys[0], []byte(doc)))
+	if errors.Is(err, ErrNeedsBackend) || !errors.Is(err, ErrEmpty) {
+		t.Errorf("Links = %v, want ErrEmpty: JDownloader opens it with the same keys and finds nothing either", err)
+	}
+}
