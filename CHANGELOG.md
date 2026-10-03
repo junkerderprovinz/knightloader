@@ -74,6 +74,13 @@ release's tag.
 - **A link's size survives a restart.** The collector showed the size a link
   check found but did not save it, so after a restart the link read as 0 bytes
   and mirrors could not be matched on their size.
+- **Removing or restarting a moved download leaves other files alone.** When
+  KnightLoader renamed a finished download, delivered it out of the working
+  folder or moved it with its package's renamed folder, the backend that
+  fetched it could still have it on record at the old place. Removing the
+  download with its files, or restarting it, then deleted whatever had landed
+  there since, which could be another download's file. KnightLoader now
+  deletes the moved file where it is and leaves the old place alone.
 
 ## [1.6.6] - 2026-10-02
 
