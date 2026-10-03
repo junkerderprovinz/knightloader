@@ -881,6 +881,9 @@ func (a *App) Close() error {
 	// until the next start takes it up again.
 	a.endSeeding()
 	a.saveTorrentTally(true)
+	if a.ClipWatch != nil {
+		a.ClipWatch.Close(time.Now())
+	}
 	if a.Engine != nil {
 		a.Engine.Close()
 	}
