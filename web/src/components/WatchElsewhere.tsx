@@ -68,13 +68,11 @@ function WatchElsewhereDialog({
 
   async function stopThere() {
     setBusy(true);
-    for (const w of others) {
-      try {
-        await stopWatcher(w.id);
-      } catch {
-        toast(t('intake.watchElsewhereStopFailed', { device: w.name }), 'fail');
-      }
-    }
+    // All at once, since each stop can wait on a peer that does not answer.
+    const results = await Promise.allSettled(others.map((w) => stopWatcher(w.id)));
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') toast(t('intake.watchElsewhereStopFailed', { device: others[i].name }), 'fail');
+    });
     setBusy(false);
     onDecided();
   }

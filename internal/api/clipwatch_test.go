@@ -257,9 +257,7 @@ func TestAStopReachesTheMemberEvenWhenThisInstanceHoldsAStaleLease(t *testing.T)
 	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/ext/stop", nil); code != http.StatusNoContent {
 		t.Fatalf("stopping = %d, want 204", code)
 	}
-	if got := member.stops(); len(got) != 1 {
-		t.Fatalf("the member holding the live lease was asked %v, want one stop", got)
-	}
+	waitUntil(t, "the member holding the live lease to be asked to stop", func() bool { return len(member.stops()) == 1 })
 }
 
 func TestAWatcherLeasesWithThePeerItSendsTo(t *testing.T) {
@@ -350,5 +348,25 @@ func TestTheWatcherListAndStopLeaveThePeersAloneWhileInstancesIsOff(t *testing.T
 	}
 	if got := member.stops(); len(got) != 0 {
 		t.Fatalf("the peer was asked to stop %v while the Instances module is off", got)
+	}
+}
+
+func TestAStopAnswersWithoutWaitingForAPeerThatDoesNotAnswer(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	a.Federation.SetRelay(&twoMembers{zebraLive: true})
+	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "tab", Kind: "web"}, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, id := range []string{"tab", "desk"} {
+		start := time.Now()
+		if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/"+id+"/stop", nil); code != http.StatusNoContent {
+			t.Fatalf("stopping %s = %d %s, want 204", id, code, body)
+		}
+		if took := time.Since(start); took >= peerWatchersWait/2 {
+			t.Errorf("stopping %s took %v, waiting on the member that does not answer", id, took)
+		}
 	}
 }
