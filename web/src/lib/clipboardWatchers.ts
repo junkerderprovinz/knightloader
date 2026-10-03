@@ -2,7 +2,7 @@
 // browser extension, the desktop app) renews a lease with the instance it sends
 // to, and an instance lists the whole group's, so switching a watch on can name
 // the devices already watching and offer to stop them.
-import { json, ok } from './api';
+import { apiBase, json, ok } from './api';
 
 export type WatcherKind = 'web' | 'extension' | 'desktop';
 
@@ -78,7 +78,7 @@ export function deviceLabel(ua: string = navigator.userAgent): string {
   return system ? `${browser}, ${system}` : browser;
 }
 
-const watcherPath = (id: string) => `/api/clipboard-watchers/${encodeURIComponent(id)}`;
+const watcherPath = (id: string, instance = '') => `${apiBase(instance)}/clipboard-watchers/${encodeURIComponent(id)}`;
 
 /** listWatchers is every clipboard watcher in the group, this browser's included. */
 export async function listWatchers(): Promise<ClipboardWatcher[]> {
@@ -90,8 +90,8 @@ export async function stopWatcher(id: string): Promise<void> {
   await ok(await fetch(`${watcherPath(id)}/stop`, { method: 'POST' }));
 }
 
-async function renew(): Promise<boolean> {
-  const r = await fetch(watcherPath(watcherId()), {
+async function renew(instance: string): Promise<boolean> {
+  const r = await fetch(watcherPath(watcherId(), instance), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: deviceLabel(), kind: 'web' }),
@@ -101,14 +101,16 @@ async function renew(): Promise<boolean> {
 
 /**
  * startLease keeps this tab's watch listed until the returned function is
- * called, which takes it off the list. onStopped runs when another device
+ * called, which takes it off the list. The lease is held by `instance`, the
+ * one the watch sends its links to ('' for this one), so that is where the
+ * group finds it and where a stop waits. onStopped runs when another device
  * asked this watch to stop.
  */
-export function startLease(onStopped: () => void): () => void {
+export function startLease(instance: string, onStopped: () => void): () => void {
   let ended = false;
   const round = async () => {
     try {
-      if ((await renew()) && !ended) onStopped();
+      if ((await renew(instance)) && !ended) onStopped();
     } catch {
       // The watch keeps running; it is only missing from the list until the
       // next round gets through.
@@ -120,6 +122,6 @@ export function startLease(onStopped: () => void): () => void {
     ended = true;
     clearInterval(timer);
     // keepalive lets the request outlive a tab that is closing.
-    void fetch(watcherPath(watcherId()), { method: 'DELETE', keepalive: true }).catch(() => {});
+    void fetch(watcherPath(watcherId(), instance), { method: 'DELETE', keepalive: true }).catch(() => {});
   };
 }

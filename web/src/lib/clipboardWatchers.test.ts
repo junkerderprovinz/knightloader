@@ -57,7 +57,7 @@ describe('startLease', () => {
     vi.useFakeTimers();
     const calls = stubFetch(false);
     const stopped = vi.fn();
-    const end = startLease(stopped);
+    const end = startLease('', stopped);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(calls.filter((c) => c.method === 'PUT')).toHaveLength(2);
     end();
@@ -65,10 +65,22 @@ describe('startLease', () => {
     expect(stopped).not.toHaveBeenCalled();
   });
 
+  it('renews and leaves at the instance the watch sends to', async () => {
+    const calls = stubFetch(false);
+    const end = startLease('nas', () => {});
+    await vi.waitFor(() => expect(calls).toHaveLength(1));
+    end();
+    const path = `/api/instances/nas/clipboard-watchers/${watcherId()}`;
+    expect(calls).toEqual([
+      { url: path, method: 'PUT' },
+      { url: path, method: 'DELETE' },
+    ]);
+  });
+
   it('reports a stop asked from another device', async () => {
     stubFetch(true);
     const stopped = vi.fn();
-    const end = startLease(stopped);
+    const end = startLease('', stopped);
     await vi.waitFor(() => expect(stopped).toHaveBeenCalledOnce());
     end();
   });

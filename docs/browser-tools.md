@@ -126,12 +126,17 @@ it unloads the page.
 
 Every watcher in a group, the desktop app's, a web interface tab's and the
 extension's, renews a three-minute lease with the instance it sends to
-(`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). Switching a watch
-on asks for the group's list (`GET /api/clipboard-watchers`, which asks every
-member for its own), and when another device already watches, a window names
-it and offers to switch it off there (`POST /api/clipboard-watchers/{id}/stop`)
-or keep both. A stopped watcher hears it on its next renewal. Keeping both
-sends each link twice, and an instance turns away a link it already has.
+(`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). A page whose links go
+to a peer of the instance serving it renews there, through
+`/api/instances/{name}/clipboard-watchers/{id}`. Switching a watch on asks for
+the group's list (`GET /api/clipboard-watchers`, which asks every member and
+every instance added by address for its own), and when another device already
+watches, a window names it and offers to switch it off there
+(`POST /api/clipboard-watchers/{id}/stop`, sent to all of them at once) or keep
+both. A stopped watcher hears it on its next renewal, even if its instance
+restarted in between. Keeping both sends each link twice, and an instance turns
+away a link it already has. The web interface keeps its switch in the browser,
+so two browsers on one instance each have their own.
 
 ### Click'n'Load, in the browser
 
