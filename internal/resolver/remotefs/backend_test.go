@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -447,5 +448,42 @@ func TestADownloadOfTheSameNameLeavesAHaltedOnesPartFileAloneAfterItsFolderMoved
 	b.Resume("a")
 	if u := rec["a"].wait(t); u.Status != core.StatusDone || !holds(u.File, tree["/pub/film.mkv"].data) {
 		t.Errorf("first download = %+v, want its own bytes in its file", u)
+	}
+}
+
+func TestDownloadsFinishingAtOnceUnderOneNameEachKeepTheirFile(t *testing.T) {
+	b := NewBackend(Logins{}, Dialer{}, newStubEngine(), t.TempDir(), func(string, core.Update) {})
+	for round := range 20 {
+		dir := t.TempDir()
+		target := filepath.Join(dir, "film.mkv")
+		const n = 6
+		var wg sync.WaitGroup
+		saved := make([]string, n)
+		errs := make([]error, n)
+		for i := range n {
+			part := filepath.Join(dir, collide.Counted("film.mkv", i+2)+partSuffix)
+			if err := os.WriteFile(part, []byte{byte('a' + i)}, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				saved[i], errs[i] = b.finish(part, target)
+			}()
+		}
+		wg.Wait()
+		seen := map[string]bool{}
+		for i := range n {
+			if errs[i] != nil {
+				t.Fatalf("round %d: download %d did not finish: %v", round, i, errs[i])
+			}
+			if seen[saved[i]] {
+				t.Fatalf("round %d: two downloads were saved as %s", round, saved[i])
+			}
+			seen[saved[i]] = true
+			if !holds(saved[i], []byte{byte('a' + i)}) {
+				t.Fatalf("round %d: %s does not hold download %d", round, saved[i], i)
+			}
+		}
 	}
 }
