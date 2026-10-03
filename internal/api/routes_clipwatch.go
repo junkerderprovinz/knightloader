@@ -1,7 +1,7 @@
 package api
 
 // The clipboard watchers of the group. Each watcher renews a lease with the
-// instance it sends to; listing asks every member for its own, so switching a
+// instance it sends to; listing asks every peer for its own, so switching a
 // watch on in one place can name the devices already watching and offer to
 // stop them.
 
@@ -11,21 +11,23 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 )
 
-// memberWatchersWait bounds how long a listing waits for the other members. A
-// warning that comes late is worth less than one that leaves out a member
+// peerWatchersWait bounds how long a listing or a stop waits for the peers. A
+// warning that comes late is worth less than one that leaves out a peer
 // that is slow to answer.
-const memberWatchersWait = 5 * time.Second
+const peerWatchersWait = 5 * time.Second
 
 func registerClipWatch(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/clipboard-watchers",
-		"the clipboard watchers of the group, this instance's and every reachable member's; ?local=1 for this instance's alone",
+		"the clipboard watchers of the group, this instance's and every reachable peer's; ?local=1 for this instance's alone",
 		func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Query().Get("local") != "" {
 				writeJSON(w, a.ClipWatch.List(time.Now()))
@@ -64,9 +66,12 @@ func registerClipWatch(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			found := a.ClipWatch.Stop(id, time.Now())
-			// A member asked on behalf of another does not ask the group again.
-			if !found && r.URL.Query().Get("local") == "" {
-				found = stopAtMembers(r.Context(), a, id)
+			// An extension whose default instance moved still holds a lease
+			// at the old one until it runs out, so a copy found here is no
+			// reason to leave the others alone. A peer asked on behalf of
+			// another does not ask the group again.
+			if r.URL.Query().Get("local") == "" && stopAtPeers(r.Context(), a, id) {
+				found = true
 			}
 			if !found {
 				http.Error(w, "no clipboard watcher "+id+" in this group", http.StatusNotFound)
@@ -76,9 +81,10 @@ func registerClipWatch(reg *Registry, a *app.App) {
 		})
 }
 
-// groupWatchers is this instance's watchers and every reachable member's, each
-// named with the instance it sends to. A member that does not answer in time,
-// or runs a version without watchers, adds nothing.
+// groupWatchers is this instance's watchers and every reachable peer's, each
+// named with the instance it sends to. A peer that does not answer in time,
+// or runs a version without watchers, adds nothing. Peers added by address
+// are asked too, since a watcher leases with the instance it sends to.
 func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 	self := instanceDisplayName(a)
 	out := a.ClipWatch.List(time.Now())
@@ -86,16 +92,16 @@ func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 		out[i].Instance = self
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, memberWatchersWait)
+	ctx, cancel := context.WithTimeout(ctx, peerWatchersWait)
 	defer cancel()
-	members := a.Federation.Members()
-	answers := make([][]clipwatch.Watcher, len(members))
+	peers := a.Federation.List()
+	answers := make([][]clipwatch.Watcher, len(peers))
 	var wg sync.WaitGroup
-	for i, m := range members {
+	for i, p := range peers {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			body, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodGet, "/api/clipboard-watchers?local=1", nil)
+			body, status, err := a.Federation.Proxy(ctx, p.Name, http.MethodGet, "/api/clipboard-watchers?local=1", nil)
 			if err != nil || status != http.StatusOK {
 				return
 			}
@@ -103,9 +109,9 @@ func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 			if json.Unmarshal(body, &list) != nil {
 				return
 			}
-			name := m.DisplayName
+			name := p.DisplayName
 			if name == "" {
-				name = m.Name
+				name = p.Name
 			}
 			for j := range list {
 				list[j].Instance = name
@@ -130,17 +136,31 @@ func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 	return out
 }
 
-// stopAtMembers asks every reachable member to stop watcher id and reports
-// whether one of them held it.
-func stopAtMembers(ctx context.Context, a *app.App, id string) bool {
-	ctx, cancel := context.WithTimeout(ctx, memberWatchersWait)
+// stopAtPeers asks every reachable peer at once to stop watcher id and reports
+// whether one of them held it. Asked one after another, a peer that does not
+// answer would use up the time of the ones after it.
+func stopAtPeers(ctx context.Context, a *app.App, id string) bool {
+	ctx, cancel := context.WithTimeout(ctx, peerWatchersWait)
 	defer cancel()
 	path := "/api/clipboard-watchers/" + url.PathEscape(id) + "/stop?local=1"
-	found := false
-	for _, m := range a.Federation.Members() {
-		if _, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodPost, path, nil); err == nil && status == http.StatusNoContent {
-			found = true
-		}
+	var found atomic.Bool
+	var wg sync.WaitGroup
+	for _, p := range a.Federation.List() {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if _, status, err := a.Federation.Proxy(ctx, p.Name, http.MethodPost, path, nil); err == nil && status == http.StatusNoContent {
+				found.Store(true)
+			}
+		}()
 	}
-	return found
+	wg.Wait()
+	return found.Load()
+}
+
+// clipLeaseCall reports whether rest, an API path without its /api/, is a
+// clipboard watcher renewing or dropping its lease.
+func clipLeaseCall(method, rest string) bool {
+	id, ok := strings.CutPrefix(rest, "clipboard-watchers/")
+	return ok && id != "" && !strings.Contains(id, "/") && (method == http.MethodPut || method == http.MethodDelete)
 }

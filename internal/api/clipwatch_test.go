@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
@@ -185,6 +187,147 @@ func TestTheRelayForwardsTheClipboardWatcherCalls(t *testing.T) {
 	} {
 		if got := relayForwardable(c.method, c.path); got != c.want {
 			t.Errorf("relayForwardable(%s %s) = %v, want %v", c.method, c.path, got, c.want)
+		}
+	}
+}
+
+// twoMembers is a group of two members reached through the relay: Aardvark,
+// which never answers, and Zebra, which holds watcher "desk".
+type twoMembers struct {
+	mu        sync.Mutex
+	zebraLive bool
+}
+
+var (
+	aardvarkID = strings.Repeat("a", 40)
+	zebraID    = strings.Repeat("e", 40)
+)
+
+func (m *twoMembers) Siblings() []relay.Announce {
+	return []relay.Announce{{InstanceID: aardvarkID, Name: "Aardvark"}, {InstanceID: zebraID, Name: "Zebra"}}
+}
+func (m *twoMembers) Connected() bool { return true }
+func (m *twoMembers) Close() error    { return nil }
+func (m *twoMembers) Proxy(ctx context.Context, target, method, path string, _ []byte, _ string) ([]byte, int, error) {
+	if target == aardvarkID {
+		<-ctx.Done()
+		return nil, http.StatusBadGateway, ctx.Err()
+	}
+	if ctx.Err() != nil {
+		return nil, http.StatusBadGateway, ctx.Err()
+	}
+	if method == http.MethodPost && path == "/api/clipboard-watchers/desk/stop?local=1" {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		m.zebraLive = false
+		return nil, http.StatusNoContent, nil
+	}
+	return nil, http.StatusNotFound, nil
+}
+
+func TestAMemberThatDoesNotAnswerDoesNotHideTheOneHoldingTheWatcher(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	members := &twoMembers{zebraLive: true}
+	a.Federation.SetRelay(members)
+
+	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping Zebra's watcher behind a silent Aardvark = %d %s, want 204", code, body)
+	}
+	members.mu.Lock()
+	defer members.mu.Unlock()
+	if members.zebraLive {
+		t.Fatal("Zebra was never asked to stop its watcher")
+	}
+}
+
+func TestAStopReachesTheMemberEvenWhenThisInstanceHoldsAStaleLease(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	member := &watchingMember{watcher: clipwatch.Watcher{ID: "ext", Kind: "extension"}}
+	a.Federation.SetRelay(member)
+	// The extension renewed here before its default instance moved to the
+	// member.
+	if _, err := a.ClipWatch.Renew(clipwatch.Watcher{ID: "ext", Kind: "extension"}, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/ext/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping = %d, want 204", code)
+	}
+	if got := member.stops(); len(got) != 1 {
+		t.Fatalf("the member holding the live lease was asked %v, want one stop", got)
+	}
+}
+
+func TestAWatcherLeasesWithThePeerItSendsTo(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	nasSrv, nas := testServer(t)
+	defer nasSrv.Close()
+	if err := a.Federation.Add(federation.Instance{Name: "nas", URL: nasSrv.URL}); err != nil {
+		t.Fatal(err)
+	}
+	watcher := map[string]string{"name": "Firefox, Windows", "kind": "web"}
+	renew := func() string {
+		t.Helper()
+		code, body := postJSON(t, http.MethodPut, srv.URL+"/api/instances/nas/clipboard-watchers/web-1", watcher)
+		if code != http.StatusOK {
+			t.Fatalf("renewing at the peer = %d %s, want 200", code, body)
+		}
+		return string(body)
+	}
+
+	if got := renew(); got != "{\"stop\":false}\n" {
+		t.Fatalf("the first renewal at the peer = %s, want stop false", got)
+	}
+	if list := nas.ClipWatch.List(time.Now()); len(list) != 1 || list[0].ID != "web-1" {
+		t.Fatalf("the peer the links go to holds %+v, want the watcher", list)
+	}
+	if list := a.ClipWatch.List(time.Now()); len(list) != 0 {
+		t.Fatalf("the instance serving the page holds %+v, want nothing", list)
+	}
+	list := listWatchers(t, srv.URL+"/api/clipboard-watchers")
+	if len(list) != 1 || list[0].Instance != "nas" {
+		t.Fatalf("the group list is %+v, want the watcher sending to nas", list)
+	}
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/web-1/stop", nil); code != http.StatusNoContent {
+		t.Fatalf("stopping the watcher held by the peer = %d, want 204", code)
+	}
+	if got := renew(); got != "{\"stop\":true}\n" {
+		t.Fatalf("the renewal after the stop = %s, want stop true", got)
+	}
+
+	renew()
+	if code, _ := postJSON(t, http.MethodDelete, srv.URL+"/api/instances/nas/clipboard-watchers/web-1", nil); code != http.StatusNoContent {
+		t.Fatalf("leaving at the peer = %d, want 204", code)
+	}
+	if list := nas.ClipWatch.List(time.Now()); len(list) != 0 {
+		t.Fatalf("after leaving the peer still holds %+v", list)
+	}
+}
+
+func TestOnlyTheLeaseCallsOfTheWatchersAreForwardedToAPeer(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	nasSrv, _ := testServer(t)
+	defer nasSrv.Close()
+	if err := a.Federation.Add(federation.Instance{Name: "nas", URL: nasSrv.URL}); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct{ method, rest string }{
+		{http.MethodGet, "clipboard-watchers"},
+		{http.MethodPost, "clipboard-watchers/web-1/stop"},
+		{http.MethodPut, "clipboard-watchers/web-1/more"},
+		{http.MethodGet, "clipboard-watchers/web-1"},
+	} {
+		if code, _ := postJSON(t, c.method, srv.URL+"/api/instances/nas/"+c.rest, map[string]string{"kind": "web"}); code != http.StatusForbidden {
+			t.Errorf("%s %s through the peer forward = %d, want 403", c.method, c.rest, code)
 		}
 	}
 }
