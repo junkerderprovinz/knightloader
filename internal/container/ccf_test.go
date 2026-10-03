@@ -115,6 +115,23 @@ func TestCCFOpensWithoutTheBackend(t *testing.T) {
 	}
 }
 
+func TestCCFKeepsOnlyWhatTheLinkScannerAccepts(t *testing.T) {
+	doc := `<CryptLoad><Package>` +
+		`<Download><Url>file:///etc/passwd</Url></Download>` +
+		`<Download><Url>javascript:alert(1)</Url></Download>` +
+		"<Download><Url>https://a.example/x\nhttps://b.example/y</Url></Download>" +
+		`<Download><Url>not a url at all</Url></Download>` +
+		`</Package></CryptLoad>`
+	links, err := Links("film.ccf", cbcEncrypt(t, ccf07Keys[0], []byte(doc)))
+	if err != nil {
+		t.Fatalf("Links: %v", err)
+	}
+	want := []string{"https://a.example/x", "https://b.example/y"}
+	if !slices.Equal(links, want) {
+		t.Errorf("links = %q, want %q", links, want)
+	}
+}
+
 func TestCCF3DropsThePaddingOfItsLastBlock(t *testing.T) {
 	for _, plain := range []string{cryptLoadXML, cryptLoadXML[:128]} {
 		got := decryptCCF3(writeCCF3(42, []byte(plain)))
