@@ -120,6 +120,7 @@ export const ko: Dict = {
   'share.title': 'KnightLoader에 추가',
   'share.hint': '다른 앱에서 공유한 링크는 웹 UI에 붙여 넣은 것처럼 수집기로 들어갑니다.',
   'share.pick': '어느 인스턴스로 보낼까요?',
+  'share.pickOne': '이 인스턴스로 보낼까요?',
   'share.adding': '추가하는 중…',
   'share.added': '{name}의 수집기에 추가했습니다.',
   'share.addedCount': '{name}의 수집기에 링크 {n}개를 추가했습니다.',

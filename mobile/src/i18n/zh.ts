@@ -120,6 +120,7 @@ export const zh: Dict = {
   'share.title': '添加到 KnightLoader',
   'share.hint': '从其他应用分享的链接会进入收集器，就像你在网页界面里粘贴的一样。',
   'share.pick': '要发送到哪个实例？',
+  'share.pickOne': '要发送到这个实例吗？',
   'share.adding': '正在添加…',
   'share.added': '已添加到 {name} 的收集器。',
   'share.addedCount': '已向 {name} 的收集器添加 {n} 个链接。',

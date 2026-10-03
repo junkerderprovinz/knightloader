@@ -120,6 +120,7 @@ export const he: Dict = {
   'share.title': 'הוספה ל-KnightLoader',
   'share.hint': 'קישורים שאתה משתף מאפליקציה אחרת עוברים לאספן, כאילו הדבקת אותם בממשק הווב.',
   'share.pick': 'לאיזה מופע לשלוח?',
+  'share.pickOne': 'לשלוח למופע הזה?',
   'share.adding': 'מוסיף…',
   'share.added': 'נוסף לאספן ב-{name}.',
   'share.addedCount': '{n} קישורים נוספו לאספן ב-{name}.',

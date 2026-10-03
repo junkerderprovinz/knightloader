@@ -120,6 +120,7 @@ export const ja: Dict = {
   'share.title': 'KnightLoader に追加',
   'share.hint': 'ほかのアプリから共有したリンクは、Web UI に貼り付けたときと同じようにコレクターに入ります。',
   'share.pick': 'どのインスタンスに送りますか?',
+  'share.pickOne': 'このインスタンスに送りますか?',
   'share.adding': '追加中…',
   'share.added': '{name} のコレクターに追加しました。',
   'share.addedCount': '{name} のコレクターに {n} 件のリンクを追加しました。',

@@ -120,6 +120,7 @@ export const hr: Dict = {
   'share.title': 'Dodaj u KnightLoader',
   'share.hint': 'Veze koje dijeliš iz druge aplikacije idu u sakupljač, kao da si ih zalijepio u web sučelje.',
   'share.pick': 'Kojoj instanci to poslati?',
+  'share.pickOne': 'Poslati to ovoj instanci?',
   'share.adding': 'Dodavanje…',
   'share.added': 'Dodano u sakupljač na {name}.',
   'share.addedCount': 'U sakupljač na {name} dodano je veza: {n}.',

@@ -120,6 +120,7 @@ export const sv: Dict = {
   'share.title': 'Lägg till i KnightLoader',
   'share.hint': 'Länkar du delar från en annan app hamnar i insamlaren, som om du hade klistrat in dem i webbgränssnittet.',
   'share.pick': 'Vilken instans ska få det?',
+  'share.pickOne': 'Ska den här instansen få det?',
   'share.adding': 'Lägger till…',
   'share.added': 'Tillagt i insamlaren på {name}.',
   'share.addedCount': '{n} länkar tillagda i insamlaren på {name}.',

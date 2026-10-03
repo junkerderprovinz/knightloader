@@ -120,6 +120,7 @@ export const cs: Dict = {
   'share.title': 'Přidat do KnightLoaderu',
   'share.hint': 'Odkazy, které sdílíš z jiné aplikace, jdou do sběrače, jako bys je vložil ve webovém rozhraní.',
   'share.pick': 'Do které instance to poslat?',
+  'share.pickOne': 'Poslat to do této instance?',
   'share.adding': 'Přidávání…',
   'share.added': 'Přidáno do sběrače na {name}.',
   'share.addedCount': 'Do sběrače na {name} přidáno odkazů: {n}.',

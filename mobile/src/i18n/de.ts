@@ -141,6 +141,7 @@ export const de: Dict = {
   'share.title': 'Zu KnightLoader hinzufügen',
   'share.hint': 'Links, die du aus einer anderen App teilst, kommen in den Sammler, als hättest du sie in der Weboberfläche eingefügt.',
   'share.pick': 'An welche Instanz soll es gehen?',
+  'share.pickOne': 'Soll es an diese Instanz gehen?',
   'share.adding': 'Wird hinzugefügt…',
   'share.added': 'Zum Sammler auf {name} hinzugefügt.',
   'share.addedCount': '{n} Links zum Sammler auf {name} hinzugefügt.',

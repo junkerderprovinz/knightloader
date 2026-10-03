@@ -120,6 +120,7 @@ export const fi: Dict = {
   'share.title': 'Lisää KnightLoaderiin',
   'share.hint': 'Toisesta sovelluksesta jakamasi linkit menevät kerääjään, kuin olisit liittänyt ne verkkokäyttöliittymään.',
   'share.pick': 'Mihin instanssiin se lähetetään?',
+  'share.pickOne': 'Lähetetäänkö se tähän instanssiin?',
   'share.adding': 'Lisätään…',
   'share.added': 'Lisätty instanssin {name} kerääjään.',
   'share.addedCount': '{n} linkkiä lisätty instanssin {name} kerääjään.',

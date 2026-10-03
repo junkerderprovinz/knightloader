@@ -120,6 +120,7 @@ export const tr: Dict = {
   'share.title': "KnightLoader'a ekle",
   'share.hint': 'Başka bir uygulamadan paylaştığın bağlantılar, web arayüzüne yapıştırmışsın gibi toplayıcıya gider.',
   'share.pick': 'Hangi örneğe gönderilsin?',
+  'share.pickOne': 'Bu örneğe gönderilsin mi?',
   'share.adding': 'Ekleniyor…',
   'share.added': '{name} üzerindeki toplayıcıya eklendi.',
   'share.addedCount': '{name} üzerindeki toplayıcıya {n} bağlantı eklendi.',

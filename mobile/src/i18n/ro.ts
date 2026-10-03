@@ -120,6 +120,7 @@ export const ro: Dict = {
   'share.title': 'Adaugă în KnightLoader',
   'share.hint': 'Linkurile pe care le partajezi din altă aplicație ajung în colector, ca și cum le-ai fi lipit în interfața web.',
   'share.pick': 'Cărei instanțe să-i fie trimis?',
+  'share.pickOne': 'Să fie trimis acestei instanțe?',
   'share.adding': 'Se adaugă…',
   'share.added': 'Adăugat în colectorul de pe {name}.',
   'share.addedCount': 'Au fost adăugate {n} linkuri în colectorul de pe {name}.',

@@ -120,6 +120,7 @@ export const th: Dict = {
   'share.title': 'เพิ่มไปยัง KnightLoader',
   'share.hint': 'ลิงก์ที่คุณแชร์จากแอปอื่นจะเข้าไปที่ตัวเก็บ เหมือนกับที่คุณวางลิงก์ในเว็บ UI',
   'share.pick': 'จะส่งไปยังอินสแตนซ์ไหน?',
+  'share.pickOne': 'ส่งไปยังอินสแตนซ์นี้ไหม?',
   'share.adding': 'กำลังเพิ่ม…',
   'share.added': 'เพิ่มไปยังตัวเก็บของ {name} แล้ว',
   'share.addedCount': 'เพิ่ม {n} ลิงก์ไปยังตัวเก็บของ {name} แล้ว',

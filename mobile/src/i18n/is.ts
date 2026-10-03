@@ -120,6 +120,7 @@ export const is: Dict = {
   'share.title': 'Bæta við KnightLoader',
   'share.hint': 'Tenglar sem þú deilir úr öðru forriti fara í safnarann, eins og þú hefðir límt þá inn í vefviðmótið.',
   'share.pick': 'Hvaða tilvik á að fá það?',
+  'share.pickOne': 'Á þetta tilvik að fá það?',
   'share.adding': 'Bætir við…',
   'share.added': 'Bætt í safnarann á {name}.',
   'share.addedCount': '{n} tenglum bætt í safnarann á {name}.',

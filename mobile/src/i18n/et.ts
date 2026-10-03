@@ -120,6 +120,7 @@ export const et: Dict = {
   'share.title': 'Lisa KnightLoaderisse',
   'share.hint': 'Lingid, mida jagad teisest rakendusest, lähevad kogujasse, nagu oleksid need veebiliideses kleepinud.',
   'share.pick': 'Millisele eksemplarile see saata?',
+  'share.pickOne': 'Kas saata see sellele eksemplarile?',
   'share.adding': 'Lisamine…',
   'share.added': 'Lisatud eksemplari {name} kogujasse.',
   'share.addedCount': 'Eksemplari {name} kogujasse lisati {n} linki.',

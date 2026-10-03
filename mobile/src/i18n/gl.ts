@@ -120,6 +120,7 @@ export const gl: Dict = {
   'share.title': 'Engadir a KnightLoader',
   'share.hint': 'As ligazóns que compartes desde outra app van ao colector, coma se as pegases na interface web.',
   'share.pick': 'A que instancia o envías?',
+  'share.pickOne': 'Envíalo a esta instancia?',
   'share.adding': 'Engadindo…',
   'share.added': 'Engadido ao colector de {name}.',
   'share.addedCount': 'Engadíronse {n} ligazóns ao colector de {name}.',
