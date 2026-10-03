@@ -11,6 +11,7 @@
  *   4. The background sends links only from an extension page, pulls them out
  *      of the message again, sends them to the default instance, and switches
  *      the watch off when a renewal says another device asked it to stop.
+ *   5. A new start of the background leaves the renewal alarm as it runs.
  *
  * Run by CI and by hand: `node extension/check-clipwatch.mjs`.
  */
@@ -108,7 +109,7 @@ function event() {
 
 const TARGET = 'a'.repeat(40);
 
-function background({ stopAnswer = false } = {}) {
+function background({ stopAnswer = false, alarms = new Map() } = {}) {
   const store = { clipWatch: true, clipWatcherId: 'ext-test' };
   const calls = [];
   const chrome = {
@@ -130,7 +131,12 @@ function background({ stopAnswer = false } = {}) {
     scripting: { getRegisteredContentScripts: async () => [], registerContentScripts: async () => {}, unregisterContentScripts: async () => {} },
     declarativeNetRequest: { updateEnabledRulesets: async () => {} },
     offscreen: { createDocument: async () => {}, closeDocument: async () => {} },
-    alarms: { create() {}, clear: async () => {}, onAlarm: event() },
+    alarms: {
+      get: async (name) => alarms.get(name),
+      create: (name, info) => alarms.set(name, { name, ...info, created: (alarms.get(name)?.created ?? 0) + 1 }),
+      clear: async (name) => alarms.delete(name),
+      onAlarm: event(),
+    },
   };
   const ctx = vm.createContext({
     chrome, setTimeout, clearTimeout, console: { log() {}, warn() {}, error() {} }, crypto: globalThis.crypto,
@@ -183,9 +189,22 @@ function background({ stopAnswer = false } = {}) {
   if (store.clipWatch !== false || store.clipNotice !== 'stopped') fail('a renewal answered with stop left the watch on or did not say why');
 }
 
+
+// The browser starts the background again and again, often more than once a
+// minute. Each start must leave the renewal alarm running, not set it back.
+{
+  const alarms = new Map();
+  for (let start = 0; start < 3; start++) {
+    background({ alarms });
+    await new Promise((r) => setTimeout(r, 30));
+  }
+  const made = alarms.get('knightloader-clip')?.created ?? 0;
+  if (made !== 1) fail(`three starts of the background created the renewal alarm ${made} times, want once`);
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`- ${p}`);
   console.error(`${problems.length} problem(s)`);
   process.exit(1);
 }
-console.log('ok: one link rule in both places, only links leave, the poller sends each new link once and gives up after refusals, only extension pages can send, a stop from elsewhere switches the watch off');
+console.log('ok: one link rule in both places, only links leave, the poller sends each new link once and gives up after refusals, only extension pages can send, a stop from elsewhere switches the watch off, a restart of the background keeps the renewal alarm');
