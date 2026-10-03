@@ -18,6 +18,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
 // peerWatchersWait bounds how long a listing or a stop waits for the peers. A
@@ -94,7 +95,7 @@ func groupWatchers(ctx context.Context, a *app.App) []clipwatch.Watcher {
 
 	ctx, cancel := context.WithTimeout(ctx, peerWatchersWait)
 	defer cancel()
-	peers := a.Federation.List()
+	peers := watcherPeers(a)
 	answers := make([][]clipwatch.Watcher, len(peers))
 	var wg sync.WaitGroup
 	for i, p := range peers {
@@ -145,7 +146,7 @@ func stopAtPeers(ctx context.Context, a *app.App, id string) bool {
 	path := "/api/clipboard-watchers/" + url.PathEscape(id) + "/stop?local=1"
 	var found atomic.Bool
 	var wg sync.WaitGroup
-	for _, p := range a.Federation.List() {
+	for _, p := range watcherPeers(a) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -156,6 +157,15 @@ func stopAtPeers(ctx context.Context, a *app.App, id string) bool {
 	}
 	wg.Wait()
 	return found.Load()
+}
+
+// watcherPeers is the peers asked for their watchers, none while the Instances
+// module is off, since it then contacts no peer at all.
+func watcherPeers(a *app.App) []federation.Instance {
+	if a.ModuleOff("federation") {
+		return nil
+	}
+	return a.Federation.List()
 }
 
 // clipLeaseCall reports whether rest, an API path without its /api/, is a

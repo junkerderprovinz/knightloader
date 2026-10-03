@@ -331,3 +331,24 @@ func TestOnlyTheLeaseCallsOfTheWatchersAreForwardedToAPeer(t *testing.T) {
 		}
 	}
 }
+
+func TestTheWatcherListAndStopLeaveThePeersAloneWhileInstancesIsOff(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	member := &watchingMember{watcher: clipwatch.Watcher{ID: "desk", Kind: "desktop"}}
+	a.Federation.SetRelay(member)
+	if err := setFeature(a, "federation", false); err != nil {
+		t.Fatal(err)
+	}
+
+	if list := listWatchers(t, srv.URL+"/api/clipboard-watchers"); len(list) != 0 {
+		t.Fatalf("listed %+v while the Instances module is off, want no peer's watcher", list)
+	}
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/clipboard-watchers/desk/stop", nil); code != http.StatusNotFound {
+		t.Fatalf("stopping a peer's watcher while the Instances module is off = %d, want 404", code)
+	}
+	if got := member.stops(); len(got) != 0 {
+		t.Fatalf("the peer was asked to stop %v while the Instances module is off", got)
+	}
+}
