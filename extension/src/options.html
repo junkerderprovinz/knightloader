@@ -183,7 +183,9 @@
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
-      .cnlRefused { margin-top: 14px; }
+      .cnlRefused,
+      .clipNotice { margin-top: 14px; }
+      .clipWatchers { margin: 0 0 10px; padding-left: 18px; color: var(--carbon-text); }
       .aboutVersions {
         margin: 0;
         font-size: var(--text-dense);
@@ -389,7 +391,22 @@
       </div>
     </section>
 
+    <!-- The clipboard watch (clipwatch.js). The notice says why the switch
+         fell back: the browser refused the clipboard, another device switched
+         this watch off, or there is no group to send to. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 8">
+      <h2 class="glim-section-badge" id="clipHeading">Clipboard</h2>
+      <button type="button" role="switch" aria-checked="false" id="clipEnabled" class="glim-switch">
+        <span class="glim-switch-label" id="clipToggle"></span>
+        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+      </button>
+      <div class="glim-unavailable clipNotice" id="clipNotice" hidden>
+        <span class="glim-unavailable-title" id="clipNoticeTitle"></span>
+        <span class="glim-unavailable-reason" id="clipNoticeReason"></span>
+      </div>
+    </section>
+
+    <section class="glim-card glim-stagger-row" style="--row-i: 9">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the About card carries the ways to report. -->
@@ -400,7 +417,7 @@
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0).
          Each sentence has its buttons directly beneath it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 9">
+    <section class="glim-card glim-stagger-row" style="--row-i: 10">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -456,6 +473,28 @@
         <div class="glim-modal-actions">
           <button id="leaveConfirmCancel" class="secondary" type="button"></button>
           <button id="leaveConfirmCommit" class="secondary" type="button"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asked when the watch goes on while another device already watches:
+         the devices, what keeping both means, and the three answers. Built
+         like #leaveConfirm. -->
+    <div id="clipElsewhere" class="glim-modal-backdrop" hidden>
+      <div
+        class="glim-card glim-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="clipElsewhereTitle"
+        aria-describedby="clipElsewhereMessage"
+      >
+        <h2 class="glim-section-badge" id="clipElsewhereTitle"></h2>
+        <ul class="clipWatchers" id="clipElsewhereList"></ul>
+        <p class="glim-modal-message" id="clipElsewhereMessage"></p>
+        <div class="glim-modal-actions">
+          <button id="clipElsewhereCancel" class="secondary" type="button"></button>
+          <button id="clipElsewhereKeep" class="secondary" type="button"></button>
+          <button id="clipElsewhereStop" type="button"></button>
         </div>
       </div>
     </div>
@@ -520,6 +559,7 @@
     <script src="phrase.js"></script>
     <script src="relay.js"></script>
     <script src="group.js"></script>
+    <script src="clipwatch.js"></script>
     <script src="tooltip.js"></script>
     <script src="donate.js"></script>
     <script src="appMarks.js"></script>
