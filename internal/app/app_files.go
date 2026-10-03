@@ -151,9 +151,13 @@ func (a *App) fileTarget(snap *core.Task, index int) (fileTarget, error) {
 	dir := a.dirFor(snap)
 	full := filepath.Join(dir, name)
 	// The library saves a download beside a file that already has its name,
-	// and what sits under the task's name is then somebody else's file.
+	// and what sits under the task's name is then somebody else's file. A
+	// torrent whose name is taken goes one level deeper, into a folder made
+	// for it there.
 	if snap.File != "" && sameDir(filepath.Dir(snap.File), dir) {
 		full = filepath.Join(dir, filepath.Base(snap.File))
+	} else if snap.File != "" && torrent.IsURI(snap.URL) && sameDir(filepath.Dir(filepath.Dir(snap.File)), dir) {
+		full = snap.File
 	}
 	var inside string
 	if index >= 0 {
