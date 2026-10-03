@@ -1552,6 +1552,9 @@ export const en = {
   'settings.captcha.moveDown': 'Move down',
   'settings.captcha.set': 'Key set',
   'settings.captcha.notSet': 'No key set',
+  'settings.captcha.off': 'Switched off',
+  'settings.captcha.offHint':
+    'The key is set, but the account is switched off on the Accounts page, so it gets no captchas, not even a test captcha.',
   'settings.captcha.keys': 'Keys under Accounts',
   'settings.captcha.whenTitle': 'When captcha accounts start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',

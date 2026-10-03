@@ -1286,6 +1286,9 @@ export const ro: Dict = {
   'settings.captcha.moveDown': 'Mută mai jos',
   'settings.captcha.set': 'Cheie setată',
   'settings.captcha.notSet': 'Nicio cheie setată',
+  'settings.captcha.off': 'Oprit',
+  'settings.captcha.offHint':
+    'Cheia este setată, dar contul este oprit pe pagina Conturi, așa că nu primește niciun captcha, nici măcar unul de test.',
   'settings.captcha.keys': 'Chei în Conturi',
   'collector.options': 'Opțiuni',
   'collector.destination': 'Folder de destinație',

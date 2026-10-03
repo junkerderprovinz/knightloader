@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { type Account, ApiError } from '../../lib/api';
-import { canTakeATest, testRefusal } from './Captcha';
+import { canTakeATest, keyState, testRefusal } from './Captcha';
 
 function account(service: string, configured: boolean, enabled: boolean): Account {
   return { service, account: '', configured, enabled } as Account;
@@ -14,6 +14,15 @@ describe('the test captcha for the captcha accounts', () => {
     expect(canTakeATest(['2captcha'], [account('2captcha', true, false)])).toBe(false);
     expect(canTakeATest([], [account('2captcha', true, true)])).toBe(false);
     expect(canTakeATest(['anticaptcha', '2captcha'], [account('2captcha', true, true)])).toBe(true);
+  });
+});
+
+describe('a captcha account row', () => {
+  it('says the account is switched off rather than that its key is set', () => {
+    expect(keyState('2captcha', [account('2captcha', true, false)])).toBe('off');
+    expect(keyState('2captcha', [account('2captcha', true, true)])).toBe('set');
+    expect(keyState('2captcha', [account('2captcha', false, false)])).toBe('notSet');
+    expect(keyState('2captcha', [])).toBe('notSet');
   });
 });
 

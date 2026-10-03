@@ -1285,6 +1285,9 @@ export const lt: Dict = {
   'settings.captcha.moveDown': 'Žemyn',
   'settings.captcha.set': 'Raktas nustatytas',
   'settings.captcha.notSet': 'Raktas nenustatytas',
+  'settings.captcha.off': 'Išjungta',
+  'settings.captcha.offHint':
+    'Raktas nustatytas, bet paskyra išjungta puslapyje Paskyros, todėl ji negauna jokių captcha, net ir bandomosios.',
   'settings.captcha.keys': 'Raktai skiltyje Paskyros',
   'collector.options': 'Parinktys',
   'collector.destination': 'Paskirties aplankas',

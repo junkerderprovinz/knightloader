@@ -1277,6 +1277,9 @@ export const ru: Dict = {
   'settings.captcha.moveDown': 'Вниз',
   'settings.captcha.set': 'Ключ задан',
   'settings.captcha.notSet': 'Ключ не задан',
+  'settings.captcha.off': 'Выключен',
+  'settings.captcha.offHint':
+    'Ключ задан, но аккаунт выключен на странице «Аккаунты», поэтому он не получает капчи, даже тестовые.',
   'settings.captcha.keys': 'Ключи в разделе Аккаунты',
   'collector.options': 'Параметры',
   'collector.destination': 'Папка назначения',

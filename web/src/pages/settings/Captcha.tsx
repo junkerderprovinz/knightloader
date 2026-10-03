@@ -15,6 +15,7 @@ import {
   ErrorCard,
   Field,
   IconBadge,
+  InfoBubble,
   LinkBadge,
   LoadingCard,
   NumberInput,
@@ -118,7 +119,7 @@ export function Captcha() {
               position={order.indexOf(svc.id)}
               count={order.length}
               last={i === rows.length - 1}
-              configured={accounts.some((a) => a.service === svc.id && a.account === '' && a.configured)}
+              state={keyState(svc.id, accounts)}
               onToggle={(on) => setEnabled(svc.id, on)}
               onMove={(by) => move(svc.id, by)}
             />
@@ -167,7 +168,20 @@ export function Captcha() {
  * as the instance's captchaSolvers decides.
  */
 export function canTakeATest(order: string[], accounts: Account[]): boolean {
-  return order.some((id) => accounts.some((a) => a.service === id && a.account === '' && a.configured && a.enabled));
+  return order.some((id) => keyState(id, accounts) === 'set');
+}
+
+type KeyState = 'set' | 'off' | 'notSet';
+
+/**
+ * keyState says how the solver's account stands on the Accounts page. A key
+ * on a switched-off account counts as off, since the instance hands that
+ * account nothing.
+ */
+export function keyState(id: string, accounts: Account[]): KeyState {
+  const a = accounts.find((x) => x.service === id && x.account === '' && x.configured);
+  if (!a) return 'notSet';
+  return a.enabled ? 'set' : 'off';
 }
 
 const TEST_REFUSALS: Partial<Record<string, TranslationKey>> = {
@@ -227,6 +241,12 @@ function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
   );
 }
 
+const KEY_STATE = {
+  set: 'settings.captcha.set',
+  off: 'settings.captcha.off',
+  notSet: 'settings.captcha.notSet',
+} as const satisfies Record<KeyState, TranslationKey>;
+
 function SolverRow({
   svc,
   hue,
@@ -234,7 +254,7 @@ function SolverRow({
   position,
   count,
   last,
-  configured,
+  state,
   onToggle,
   onMove,
 }: {
@@ -246,8 +266,7 @@ function SolverRow({
   position: number;
   count: number;
   last: boolean;
-  /** Whether the solver's key is set on the Accounts page. */
-  configured: boolean;
+  state: KeyState;
   onToggle: (on: boolean) => void;
   onMove: (by: number) => void;
 }) {
@@ -264,10 +283,11 @@ function SolverRow({
         </div>
 
         <span
-          className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${configured ? 'text-statusOk' : 'text-carbon-textMuted'}`}
+          className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
         >
-          <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${configured ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
-          {configured ? t('settings.captcha.set') : t('settings.captcha.notSet')}
+          <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${state === 'set' ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
+          {t(KEY_STATE[state])}
+          {state === 'off' && <InfoBubble tip={t('settings.captcha.offHint')} />}
         </span>
 
         {/* `labelled` on every badge, so the actions follow the Beschriftung

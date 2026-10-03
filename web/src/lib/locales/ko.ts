@@ -1285,6 +1285,9 @@ export const ko: Dict = {
   'settings.captcha.moveDown': '아래로',
   'settings.captcha.set': '키 설정됨',
   'settings.captcha.notSet': '설정된 키 없음',
+  'settings.captcha.off': '꺼짐',
+  'settings.captcha.offHint':
+    '키는 설정되어 있지만 계정 페이지에서 이 계정이 꺼져 있어 캡차를 받지 않습니다. 테스트 캡차도 마찬가지입니다.',
   'settings.captcha.keys': '계정의 키',
   'collector.options': '옵션',
   'collector.destination': '대상 폴더',

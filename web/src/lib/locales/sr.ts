@@ -1285,6 +1285,9 @@ export const sr: Dict = {
   'settings.captcha.moveDown': 'Помери доле',
   'settings.captcha.set': 'Кључ постављен',
   'settings.captcha.notSet': 'Кључ није постављен',
+  'settings.captcha.off': 'Искључен',
+  'settings.captcha.offHint':
+    'Кључ је постављен, али је налог искључен на страници Налози, па не добија ниједну captchu, чак ни пробну.',
   'settings.captcha.keys': 'Кључеви у Налозима',
   'collector.options': 'Опције',
   'collector.destination': 'Одредишна фасцикла',

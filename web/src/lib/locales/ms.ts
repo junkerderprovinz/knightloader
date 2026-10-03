@@ -1285,6 +1285,9 @@ export const ms: Dict = {
   'settings.captcha.moveDown': 'Alih ke bawah',
   'settings.captcha.set': 'Kunci ditetapkan',
   'settings.captcha.notSet': 'Kunci belum ditetapkan',
+  'settings.captcha.off': 'Dimatikan',
+  'settings.captcha.offHint':
+    'Kunci sudah ditetapkan, tetapi akaun ini dimatikan di halaman Akaun, jadi ia tidak menerima sebarang captcha, termasuk captcha ujian.',
   'settings.captcha.keys': 'Kunci di Akaun',
   'collector.options': 'Pilihan',
   'collector.destination': 'Folder destinasi',

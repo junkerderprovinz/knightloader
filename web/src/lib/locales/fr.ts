@@ -1277,6 +1277,9 @@ export const fr: Dict = {
   'settings.captcha.moveDown': 'Descendre',
   'settings.captcha.set': 'Clé définie',
   'settings.captcha.notSet': 'Aucune clé définie',
+  'settings.captcha.off': 'Désactivé',
+  'settings.captcha.offHint':
+    'La clé est définie, mais le compte est désactivé sur la page Comptes : il ne reçoit donc aucun captcha, pas même un captcha de test.',
   'settings.captcha.keys': 'Clés dans Comptes',
   'collector.options': 'Options',
   'collector.destination': 'Destination',

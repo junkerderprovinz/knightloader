@@ -1285,6 +1285,9 @@ export const id: Dict = {
   'settings.captcha.moveDown': 'Turunkan',
   'settings.captcha.set': 'Kunci disetel',
   'settings.captcha.notSet': 'Kunci belum disetel',
+  'settings.captcha.off': 'Mati',
+  'settings.captcha.offHint':
+    'Kuncinya sudah disetel, tetapi akunnya dimatikan di halaman Akun, jadi akun itu tidak menerima captcha apa pun, termasuk captcha uji.',
   'settings.captcha.keys': 'Kunci di Akun',
   'collector.options': 'Opsi',
   'collector.destination': 'Folder tujuan',

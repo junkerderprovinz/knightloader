@@ -1277,6 +1277,9 @@ export const it: Dict = {
   'settings.captcha.moveDown': 'Sposta giù',
   'settings.captcha.set': 'Chiave impostata',
   'settings.captcha.notSet': 'Nessuna chiave impostata',
+  'settings.captcha.off': 'Disattivato',
+  'settings.captcha.offHint':
+    'La chiave è impostata, ma l’account è disattivato nella pagina Account, quindi non riceve alcun captcha, nemmeno quello di prova.',
   'settings.captcha.keys': 'Chiavi in Account',
   'collector.options': 'Opzioni',
   'collector.destination': 'Destinazione',

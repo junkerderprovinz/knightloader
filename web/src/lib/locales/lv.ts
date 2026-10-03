@@ -1285,6 +1285,9 @@ export const lv: Dict = {
   'settings.captcha.moveDown': 'Pārvietot lejup',
   'settings.captcha.set': 'Atslēga iestatīta',
   'settings.captcha.notSet': 'Atslēga nav iestatīta',
+  'settings.captcha.off': 'Izslēgts',
+  'settings.captcha.offHint':
+    'Atslēga ir iestatīta, bet konts lapā Konti ir izslēgts, tāpēc tas nesaņem nevienu captcha, pat ne testa captcha.',
   'settings.captcha.keys': 'Atslēgas sadaļā Konti',
   'collector.options': 'Opcijas',
   'collector.destination': 'Mērķa mape',

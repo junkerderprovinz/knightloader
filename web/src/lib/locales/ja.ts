@@ -1285,6 +1285,9 @@ export const ja: Dict = {
   'settings.captcha.moveDown': '下へ',
   'settings.captcha.set': 'キー設定済み',
   'settings.captcha.notSet': 'キー未設定',
+  'settings.captcha.off': 'オフ',
+  'settings.captcha.offHint':
+    'キーは設定されていますが、アカウントのページでこのアカウントがオフになっているため、キャプチャは届きません。テスト用キャプチャも同様です。',
   'settings.captcha.keys': 'アカウントのキー',
   'collector.options': 'オプション',
   'collector.destination': '保存先フォルダー',

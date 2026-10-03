@@ -1285,6 +1285,9 @@ export const is: Dict = {
   'settings.captcha.moveDown': 'Færa niður',
   'settings.captcha.set': 'Lykill stilltur',
   'settings.captcha.notSet': 'Enginn lykill stilltur',
+  'settings.captcha.off': 'Slökkt',
+  'settings.captcha.offHint':
+    'Lykillinn er stilltur, en slökkt er á reikningnum á síðunni Reikningar, svo hann fær engar captcha-þrautir, ekki einu sinni prófunar-captcha.',
   'settings.captcha.keys': 'Lyklar í Reikningar',
   'collector.options': 'Valkostir',
   'collector.destination': 'Áfangamappa',

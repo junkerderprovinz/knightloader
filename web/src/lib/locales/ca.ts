@@ -1285,6 +1285,9 @@ export const ca: Dict = {
   'settings.captcha.moveDown': 'Mou avall',
   'settings.captcha.set': 'Clau configurada',
   'settings.captcha.notSet': 'Sense clau configurada',
+  'settings.captcha.off': 'Desactivat',
+  'settings.captcha.offHint':
+    'La clau està configurada, però el compte està desactivat a la pàgina Comptes, així que no rep cap captcha, ni tan sols un de prova.',
   'settings.captcha.keys': 'Claus a Comptes',
   'collector.options': 'Opcions',
   'collector.destination': 'Carpeta de destinació',

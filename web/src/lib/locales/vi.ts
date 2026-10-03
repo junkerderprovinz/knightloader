@@ -1285,6 +1285,9 @@ export const vi: Dict = {
   'settings.captcha.moveDown': 'Xuống',
   'settings.captcha.set': 'Đã đặt khóa',
   'settings.captcha.notSet': 'Chưa đặt khóa',
+  'settings.captcha.off': 'Đã tắt',
+  'settings.captcha.offHint':
+    'Khóa đã được đặt, nhưng tài khoản đang tắt ở trang Tài khoản, nên nó không nhận captcha nào, kể cả captcha thử.',
   'settings.captcha.keys': 'Khóa trong Tài khoản',
   'collector.options': 'Tùy chọn',
   'collector.destination': 'Thư mục đích',

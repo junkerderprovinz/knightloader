@@ -1285,6 +1285,9 @@ export const fa: Dict = {
   'settings.captcha.moveDown': 'پایین',
   'settings.captcha.set': 'کلید تنظیم شده',
   'settings.captcha.notSet': 'کلیدی تنظیم نشده',
+  'settings.captcha.off': 'خاموش',
+  'settings.captcha.offHint':
+    'کلید تنظیم شده، اما این حساب در صفحهٔ حساب‌ها خاموش است، پس هیچ کپچایی نمی‌گیرد، حتی کپچای آزمایشی.',
   'settings.captcha.keys': 'کلیدها در حساب‌ها',
   'collector.options': 'گزینه‌ها',
   'collector.destination': 'پوشهٔ مقصد',

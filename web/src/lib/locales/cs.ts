@@ -1285,6 +1285,9 @@ export const cs: Dict = {
   'settings.captcha.moveDown': 'Dolů',
   'settings.captcha.set': 'Klíč nastaven',
   'settings.captcha.notSet': 'Klíč není nastaven',
+  'settings.captcha.off': 'Vypnuto',
+  'settings.captcha.offHint':
+    'Klíč je nastaven, ale účet je na stránce Účty vypnutý, takže nedostane žádnou captchu, ani testovací.',
   'settings.captcha.keys': 'Klíče v Účtech',
   'collector.options': 'Možnosti',
   'collector.destination': 'Cílová složka',

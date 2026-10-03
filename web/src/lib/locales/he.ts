@@ -1287,6 +1287,9 @@ export const he: Dict = {
   'settings.captcha.moveDown': 'הורד',
   'settings.captcha.set': 'המפתח הוגדר',
   'settings.captcha.notSet': 'לא הוגדר מפתח',
+  'settings.captcha.off': 'כבוי',
+  'settings.captcha.offHint':
+    'המפתח מוגדר, אבל החשבון כבוי בעמוד חשבונות, ולכן הוא לא מקבל קאפצ׳ות, אפילו לא קאפצ׳ת בדיקה.',
   'settings.captcha.keys': 'מפתחות בחשבונות',
   'collector.options': 'אפשרויות',
   'collector.destination': 'תיקיית יעד',

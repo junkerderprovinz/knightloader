@@ -1285,6 +1285,9 @@ export const eu: Dict = {
   'settings.captcha.moveDown': 'Eraman behera',
   'settings.captcha.set': 'Gakoa ezarrita',
   'settings.captcha.notSet': 'Gakorik ez ezarrita',
+  'settings.captcha.off': 'Desaktibatuta',
+  'settings.captcha.offHint':
+    'Gakoa ezarrita dago, baina kontua desaktibatuta dago Kontuak orrian, beraz ez du captcharik jasotzen, ezta probakorik ere.',
   'settings.captcha.keys': 'Gakoak Kontuak atalean',
   'collector.options': 'Aukerak',
   'collector.destination': 'Helmugako karpeta',

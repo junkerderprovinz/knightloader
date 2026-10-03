@@ -1396,6 +1396,9 @@ export const de: Dict = {
   'settings.captcha.moveDown': 'Nach unten',
   'settings.captcha.set': 'Schlüssel gesetzt',
   'settings.captcha.notSet': 'Kein Schlüssel gesetzt',
+  'settings.captcha.off': 'Ausgeschaltet',
+  'settings.captcha.offHint':
+    'Der Schlüssel ist gesetzt, aber das Konto ist auf der Seite Konten ausgeschaltet. Es bekommt deshalb keine Captchas, auch kein Test-Captcha.',
   'settings.captcha.keys': 'Schlüssel unter Konten',
   'settings.captcha.whenTitle': 'Wann die Captcha-Konten starten',
   'settings.captcha.onlyUnwatched': 'Nur wenn niemand zuschaut',

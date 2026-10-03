@@ -1285,6 +1285,9 @@ export const hi: Dict = {
   'settings.captcha.moveDown': 'नीचे ले जाएँ',
   'settings.captcha.set': 'कुंजी सेट है',
   'settings.captcha.notSet': 'कोई कुंजी सेट नहीं है',
+  'settings.captcha.off': 'बंद',
+  'settings.captcha.offHint':
+    'कुंजी सेट है, लेकिन खाता खाते पेज पर बंद है, इसलिए उसे कोई कैप्चा नहीं मिलता, टेस्ट कैप्चा भी नहीं।',
   'settings.captcha.keys': 'खाते में कुंजियाँ',
   'collector.options': 'विकल्प',
   'collector.destination': 'गंतव्य फ़ोल्डर',
