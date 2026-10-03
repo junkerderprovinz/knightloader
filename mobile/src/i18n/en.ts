@@ -291,6 +291,7 @@ export const en = {
   'settings.appsParleyportHint': "ParleyPort is the relay that connects your instances across networks, and you can run it yourself. Enter its address in the web UI under Settings, Pairing, and the instances that share your twelve words talk through your relay instead of the project's. A click copies the command that starts it:",
   'settings.appsExtension': 'Browser extension',
   'settings.appsExtensionHint': 'The extension sends a link, a selection or the page you are on to your KnightLoader, from the right-click menu or its toolbar button. Chrome, Brave, Opera and Vivaldi install it from the Chrome Web Store, Edge from Edge Add-ons.',
+  'settings.appsExtensionSub': 'Extension',
   'settings.appsSoon': 'Soon',
   'settings.privacyPolicy': 'Privacy policy',
   'settings.removeAllConnections': 'Remove all connections',

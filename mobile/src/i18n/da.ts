@@ -193,6 +193,7 @@ export const da: Dict = {
   'settings.appsParleyportHint': 'ParleyPort er videresenderen, der forbinder dine instanser, også på tværs af forskellige netværk, og du kan selv køre den. Angiv dens adresse i webgrænsefladen under Indstillinger, Parring, så taler instanserne med dine tolv ord gennem din videresender i stedet for projektets. Et klik kopierer kommandoen, der starter den:',
   'settings.appsExtension': 'Browserudvidelse',
   'settings.appsExtensionHint': 'Udvidelsen sender et link, en markering eller den åbne side til din KnightLoader, fra højrekliksmenuen eller dens knap på værktøjslinjen. Chrome, Brave, Opera og Vivaldi installerer den fra Chrome Web Store, Edge fra Edge Add-ons.',
+  'settings.appsExtensionSub': 'Udvidelse',
   'settings.appsSoon': 'Snart',
   'settings.privacyPolicy': 'Privatlivspolitik',
   'settings.removeAllConnections': 'Fjern alle forbindelser',

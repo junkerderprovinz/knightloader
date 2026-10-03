@@ -193,6 +193,7 @@ export const pl: Dict = {
   'settings.appsParleyportHint': 'ParleyPort to relay, który łączy twoje instancje także między różnymi sieciami, i możesz go uruchomić u siebie. Wpisz jego adres w interfejsie webowym, w sekcji Ustawienia, Parowanie, a instancje z twoimi dwunastoma słowami będą się łączyć przez twój relay zamiast przez relay projektu. Kliknięcie kopiuje polecenie, które go uruchamia:',
   'settings.appsExtension': 'Rozszerzenie przeglądarki',
   'settings.appsExtensionHint': 'Rozszerzenie wysyła link, zaznaczenie albo otwartą stronę do twojego KnightLoadera, z menu prawego przycisku myszy albo swoim przyciskiem na pasku narzędzi. Chrome, Brave, Opera i Vivaldi instalują je z Chrome Web Store, Edge z Edge Add-ons.',
+  'settings.appsExtensionSub': 'Rozszerzenie',
   'settings.appsSoon': 'Wkrótce',
   'settings.privacyPolicy': 'Polityka prywatności',
   'settings.removeAllConnections': 'Usuń wszystkie połączenia',

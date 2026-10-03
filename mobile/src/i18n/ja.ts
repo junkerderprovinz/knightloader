@@ -193,6 +193,7 @@ export const ja: Dict = {
   'settings.appsParleyportHint': 'ParleyPort は、異なるネットワーク上にあってもインスタンス同士をつなぐリレーで、自分で運用することもできます。そのアドレスを Web UI の「設定」の「ペアリング」で入力すると、同じ12個の単語を共有するインスタンスはプロジェクトのリレーではなく自分のリレーを経由して通信します。クリックすると、それを起動するコマンドをコピーします:',
   'settings.appsExtension': 'ブラウザー拡張機能',
   'settings.appsExtensionHint': '拡張機能は、右クリックメニューまたはツールバーのボタンから、リンク、選択したテキスト、開いているページを KnightLoader に送ります。Chrome、Brave、Opera、Vivaldi では Chrome Web Store から、Edge では Edge Add-ons からインストールします。',
+  'settings.appsExtensionSub': '拡張機能',
   'settings.appsSoon': '近日公開',
   'settings.privacyPolicy': 'プライバシーポリシー',
   'settings.removeAllConnections': 'すべての接続を削除',
