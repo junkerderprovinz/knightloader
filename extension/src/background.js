@@ -433,7 +433,11 @@ function applyClip() {
     const { on } = await clipState();
     if (on) {
       await startClipReader();
-      chrome.alarms?.create(CLIP_ALARM, { periodInMinutes: 1 });
+      // Creating an alarm that exists starts its minute over, and this runs
+      // whenever the browser wakes the background, which can be more often.
+      if (chrome.alarms && !(await chrome.alarms.get(CLIP_ALARM))) {
+        chrome.alarms.create(CLIP_ALARM, { periodInMinutes: 1 });
+      }
     } else {
       await stopClipReader();
       await chrome.alarms?.clear(CLIP_ALARM);
