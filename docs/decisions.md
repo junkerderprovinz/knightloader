@@ -227,3 +227,28 @@ every container restart. That is the whole reason "the folder is there" and "thi
 instance can write in it" are two separate claims in the report rather than one:
 a row that said "ok" without saying which would be claiming a test it did not
 run.
+
+## Usenet: pure Go, without the par2 binary
+
+**Built:** an NNTP client, a yEnc decoder and an `.nzb` reader of KnightLoader's
+own, and next a par2 check and repair in Go as well.
+
+**Not built:** downloading through a library that needs cgo, or repairing with
+the `par2` program.
+
+The release is one static binary built with `CGO_ENABLED=0`, for every
+platform the desktop app ships on, and the container has no package manager
+to install anything into. The fastest Go NNTP pool, javi11/nntppool, decodes
+yEnc through rapidyenc, which needs cgo, or Go 1.27 with an experiment switched
+on; the other NNTP libraries have no pool. A protocol of a handful of commands
+and an encoding of a page of rules cost less to own than that dependency.
+
+par2cmdline-turbo is the fastest repair there is, but it is a C++ program under
+the GPL that would have to ship for every platform and be kept current, the
+way yt-dlp is, for a step most downloads never need. The Go libraries either
+hold every block in memory (akalin/gopar, its issue 10) or are too young or
+carry no licence, so the repair is written here, streaming, with gopar's
+GF(2^16) arithmetic taken over with its notice. Until it is done a download
+with missing articles goes to a debrid account when there is one, and
+otherwise fails with the count, which is what the README's "no repair yet"
+says.

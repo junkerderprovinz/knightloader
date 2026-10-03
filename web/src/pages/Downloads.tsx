@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { type Instance, type Task, pause, resume, restartTasks, fetchInstances } from '../lib/api';
+import { type Instance, type Task, ok, pause, resume, restartTasks, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useT } from '../lib/i18n';
@@ -50,6 +50,7 @@ import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { useToast } from '../lib/toast';
+import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconSearch,
@@ -621,7 +622,16 @@ export function Downloads() {
                     icon={<IconRetry width={16} height={16} />}
                     title={t('task.restart')}
                     aria-label={t('task.restart')}
-                    onClick={() => restartTasks(ids(), base)}
+                    onClick={() =>
+                      void restartTasks(ids(), base)
+                        .then(ok)
+                        .catch((e: unknown) =>
+                          toast(
+                            taskRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }),
+                            'fail',
+                          ),
+                        )
+                    }
                   />
                   <IconBadge
                     labelled={!glyphs}

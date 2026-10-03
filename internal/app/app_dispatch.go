@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // modeForLocked reports whether a task routed to resolverID goes out on an
@@ -780,9 +781,12 @@ func (a *App) dispatchLocked() {
 		// A captcha-blocked task is normally active, not queued; this guards
 		// against a requeue handing JD the same link twice.
 		if !t.Enabled || a.captchaWaitingLocked(id) {
-			if !t.Enabled {
+			switch {
+			case HeldSpare(t):
+				waiting[id] = core.WaitingSpare
+			case !t.Enabled:
 				waiting[id] = core.WaitingDisabled
-			} else {
+			default:
 				waiting[id] = core.WaitingCaptcha
 			}
 			rest = append(rest, id)
@@ -1193,6 +1197,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.ytdlp
 	case resolverID == usenet.ResolverID:
 		return a.usenetStateFor().files
+	case resolverID == local.ResolverID:
+		return a.usenetStateFor().articles
 	default:
 		return a.Engine
 	}

@@ -182,7 +182,7 @@ func (h *harness) open() *Manager {
 			}
 			return ids, nil
 		},
-		Finished: func(ids []string) bool { return h.finished(ids) },
+		Finished: func(j Job) bool { return h.finished(j.TaskIDs) },
 		Failed:   func(j Job) { h.failed = append(h.failed, j) },
 		Pending:  func(n int) { h.pending = append(h.pending, n) },
 		Now:      h.clock.Now,
@@ -734,7 +734,7 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 	m := New(Options{
 		Dir:      t.TempDir(),
 		Stage:    func(Job, []File) ([]string, error) { return nil, nil },
-		Finished: func([]string) bool { return false },
+		Finished: func(Job) bool { return false },
 		Taken: func(_, remote string) {
 			select {
 			case heard <- remote:
@@ -827,5 +827,87 @@ func TestIsNZBTellsARealNZBFromALinkList(t *testing.T) {
 		if got := IsNZB([]byte(c.data)); got != c.want {
 			t.Errorf("%s: IsNZB = %v, want %v", c.name, got, c.want)
 		}
+	}
+}
+
+// keeper is an account that keeps the .nzb of each job, as the own servers do.
+type keeper struct {
+	*fakeService
+	nzbs map[string][]byte
+}
+
+func (k *keeper) Submit(ctx context.Context, name string, data []byte) (string, error) {
+	id, err := k.fakeService.Submit(ctx, name, data)
+	if err == nil {
+		k.nzbs[id] = data
+	}
+	return id, err
+}
+
+func (k *keeper) NZB(id string) ([]byte, error) { return k.nzbs[id], nil }
+
+func TestAJobTheFirstAccountCannotCompleteGoesToTheNext(t *testing.T) {
+	own := &keeper{&fakeService{slot: "nntp", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.r00"}}}}, map[string][]byte{}}
+	debrid := &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}}
+	h := newHarness(t, own, debrid)
+	j := h.add(t, "Show")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	staged := h.job(t, j.ID)
+	if staged.State != StateStaged || staged.Service != "nntp" {
+		t.Fatalf("job = %+v, want it staged from the own servers", staged)
+	}
+
+	ids, ok := h.m.Fallback("nntp", staged.Remote, "3 articles are missing")
+	if !ok || !slices.Equal(ids, staged.TaskIDs) {
+		t.Fatalf("Fallback = %v, %v; want the job's tasks %v", ids, ok, staged.TaskIDs)
+	}
+	if own.deletes() != 1 {
+		t.Fatal("the own servers' copy of the .nzb is kept after the job went on")
+	}
+	h.m.round(context.Background())
+	moved := h.job(t, j.ID)
+	if moved.State != StateFetching || moved.Service != "torbox" || len(moved.TaskIDs) != 0 {
+		t.Fatalf("job = %+v, want it taken by TorBox", moved)
+	}
+	if !slices.Contains(moved.Refused, "nntp") {
+		t.Fatalf("the own servers are not marked as having given up: %v", moved.Refused)
+	}
+}
+
+func TestAJobWithNoAccountLeftStaysWithTheFirst(t *testing.T) {
+	own := &keeper{&fakeService{slot: "nntp", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.r00"}}}}, map[string][]byte{}}
+	h := newHarness(t, own)
+	j := h.add(t, "Show")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	staged := h.job(t, j.ID)
+	if _, ok := h.m.Fallback("nntp", staged.Remote, "missing"); ok {
+		t.Fatal("a job was taken back with nowhere to go")
+	}
+	if got := h.job(t, j.ID); got.State != StateStaged || own.deletes() != 0 {
+		t.Fatalf("job = %+v after a refused fallback", got)
+	}
+	if _, ok := h.m.Fallback("nntp", "unknown", "missing"); ok {
+		t.Fatal("an unknown job was handed on")
+	}
+}
+
+func TestAJobThatFailsAfterAServiceTookItIsDeletedThere(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}}}
+	h := newHarness(t, svc)
+	h.m.o.Stage = func(Job, []File) ([]string, error) { return nil, nil }
+	j := h.add(t, "Dupe")
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if got := h.job(t, j.ID); got.State != StateFailed {
+		t.Fatalf("job is %s, want failed with every file already in the list", got.State)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for svc.deletes() != 1 {
+		if time.Now().After(deadline) {
+			t.Fatal("the service's copy of the failed job was never deleted")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -190,11 +191,16 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 	// Counted after the apply, so these are the rules that just arrived.
 	problems := a.RuleProblems()
 
+	incomplete := incompleteFor(req.Document, applied)
+	if slices.Contains(applied, "usenetServers") && a.UsenetLoginMissing() {
+		incomplete = append(incomplete, settings.SecretlessUsenetServers)
+	}
+
 	writeJSON(w, importResult{
 		Applied:      applied,
 		Skipped:      skipped,
 		Unknown:      unknown,
-		Incomplete:   incompleteFor(req.Document, applied),
+		Incomplete:   incomplete,
 		RuleProblems: len(problems.Packagizer) + len(problems.LinkFilter),
 		Settings:     settingsBody(a, current),
 	})

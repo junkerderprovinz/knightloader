@@ -28,6 +28,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // Tasks returns a snapshot sorted oldest-first.
@@ -996,6 +997,12 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
+	var part string
+	if t != nil {
+		// The own Usenet servers' backend deletes a part file with or without
+		// deleteFiles, as long as it knows the task.
+		part = a.usenetPartLocked(t)
+	}
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
@@ -1017,6 +1024,9 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart.
 		own.drop(id)
 		landed.drop()
+		if part != "" {
+			local.RemovePart(part)
+		}
 		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).

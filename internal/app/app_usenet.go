@@ -1,34 +1,47 @@
 package app
 
-// Usenet through a debrid service. An .nzb from Sonarr or Radarr, the upload
-// button or a drop folder goes to a TorBox or Premiumize.me account
-// (internal/usenet). Once the service has fetched and unpacked it, each file
-// becomes an ordinary task in the NZB's package, which the engine downloads
-// into that package's folder.
+// Usenet. An .nzb from Sonarr or Radarr, the upload button or a drop folder
+// goes to the first account on the priority card that takes it
+// (internal/usenet): the user's own Usenet servers or a TorBox or
+// Premiumize.me account. A service fetches and unpacks it first, and each
+// file it hands back becomes an ordinary task the engine downloads. With the
+// own servers each file of the .nzb is a task at once, whose articles
+// internal/usenet/local fetches; a job they cannot complete goes on to the
+// next account.
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/nzb"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
-// ErrNZBNeedsUsenet is a real .nzb on an instance with no account that can
-// fetch it from Usenet. It is refused rather than read for links: the only
-// address in it is its XML namespace.
+// ErrNZBNeedsUsenet is a real .nzb on an instance with nothing that can fetch
+// it from Usenet. It is refused rather than read for links: the only address
+// in it is its XML namespace.
 var ErrNZBNeedsUsenet = errors.New(
-	"an .nzb is fetched from Usenet through a TorBox or Premiumize.me account, and none here can do that")
+	"an .nzb needs a Usenet server, or a TorBox or Premiumize.me account, and none is set up here")
 
-// usenetState is one App's NZB queue and the backend its files download
+// usenetState is one App's NZB queue and the backends its files download
 // through.
 type usenetState struct {
 	jobs  *usenet.Manager
 	files *usenet.Files
+	// own keeps the .nzb of each job the own servers took, and articles
+	// downloads their files.
+	own      *local.Service
+	articles *local.Backend
 	// fixed is set once SetUsenetServices has put services in place, which
 	// rewireUsenet then leaves alone.
 	fixed bool
@@ -49,24 +62,39 @@ func (a *App) usenetStateFor() *usenetState {
 		st.jobs = usenet.New(usenet.Options{
 			Dir:      filepath.Join(a.DataDir, "usenet"),
 			Stage:    a.stageUsenetFiles,
-			Finished: a.tasksFinished,
+			Finished: a.jobFinished,
+			Done:     a.usenetDone,
 			Failed:   a.usenetJobFailed,
 			Pending:  func(n int) { a.setActivityGauge(ActivityUsenet, n) },
 			Taken:    a.claimUsenetJob,
 		})
 		st.files = usenet.NewFiles(engineHandoff{a.Engine, a}, st.jobs.Service, a.onUpdate)
+		st.own = local.NewService(filepath.Join(a.DataDir, "usenet", "own"))
+		st.articles = local.NewBackend(st.own, a.nntpClient, a.dlDir, a.onUpdate)
+		st.articles.Dir = a.taskDir
+		st.articles.Incomplete = a.usenetIncomplete
 		usenetReg[a] = st
 	}
 	return st
 }
 
-// rewireUsenet offers NZBs to the stored TorBox accounts and then the
-// Premiumize.me ones, TorBox first since Usenet is part of its plans. It runs
-// with every rewireBackends.
+// rewireUsenet offers NZBs to the own Usenet servers, the stored TorBox
+// accounts and the Premiumize.me ones, in the order the priority card ranks
+// the three. It runs with every rewireBackends and every saved settings
+// document, since the card and the servers are both kept there.
 func (a *App) rewireUsenet() {
-	// It claims only the links a finished job was staged under, so it is
-	// registered whether or not an account is set up.
+	// Both claim only the links a job's files were staged under, so they are
+	// registered whether or not anything is set up. The own servers' resolver
+	// is also their row on the priority card, so it is there only with a
+	// server switched on.
 	a.Registry.Register(usenet.Resolver{})
+	ownServers := a.usenetServersSet()
+	if ownServers {
+		a.Registry.Register(local.Resolver{})
+	} else {
+		a.Registry.Unregister(local.ResolverID)
+	}
+	a.refreshNNTPClient()
 	st := a.usenetStateFor()
 	usenetMu.Lock()
 	fixed := st.fixed
@@ -75,6 +103,9 @@ func (a *App) rewireUsenet() {
 		return
 	}
 	var services []usenet.Service
+	if ownServers {
+		services = append(services, st.own)
+	}
 	for _, acct := range a.routedAccounts("torbox") {
 		if acct.cred.APIKey != "" {
 			services = append(services, usenet.NewTorBox(usenet.TorBoxAPI, resolver.SlotID("torbox", acct.account), acct.cred.APIKey))
@@ -85,7 +116,34 @@ func (a *App) rewireUsenet() {
 			services = append(services, usenet.NewPremiumize(usenet.PremiumizeAPI, resolver.SlotID("premiumize", acct.account), acct.cred.APIKey))
 		}
 	}
+	order := a.Settings.Get().ResolverOrder
+	slices.SortStableFunc(services, func(x, y usenet.Service) int {
+		return usenetRank(y.Slot(), order) - usenetRank(x.Slot(), order)
+	})
 	a.setUsenetServices(st, services)
+}
+
+// usenetRank is where the priority card puts the service behind slot, ranked
+// as dynamicPrio ranks the resolvers: a hand-arranged order first, the
+// resolvers' own priorities otherwise, the own servers above TorBox above
+// Premiumize.me.
+func usenetRank(slot string, order []string) int {
+	service, _ := resolver.SplitSlot(slot)
+	if i := slices.Index(order, service); i >= 0 {
+		return orderBase - i
+	}
+	switch service {
+	case local.ResolverID:
+		return local.Resolver{}.Info().Prio
+	case "torbox":
+		return torbox.Resolver{}.Info().Prio
+	}
+	for _, s := range debridServices {
+		if s.id == service {
+			return s.prio
+		}
+	}
+	return 0
 }
 
 // SetUsenetServices puts services in place of the ones built from the stored
@@ -97,6 +155,12 @@ func (a *App) SetUsenetServices(services ...usenet.Service) {
 	st.fixed = true
 	usenetMu.Unlock()
 	a.setUsenetServices(st, services)
+}
+
+// OwnUsenetServers is the account the own Usenet servers are in the queue, for
+// a test that hands SetUsenetServices a list with them in it.
+func (a *App) OwnUsenetServers() usenet.Service {
+	return a.usenetStateFor().own
 }
 
 // setUsenetServices hands the queue its accounts. When the first account able
@@ -115,6 +179,15 @@ func (a *App) setUsenetServices(st *usenetState, services []usenet.Service) {
 func (a *App) startUsenet() {
 	jobs := a.usenetStateFor().jobs
 	a.spawn(func() { jobs.Run(a.ctx) })
+	a.spawn(func() {
+		<-a.ctx.Done()
+		nntpMu.Lock()
+		if c := nntpClients[a]; c != nil {
+			c.c.Close()
+			delete(nntpClients, a)
+		}
+		nntpMu.Unlock()
+	})
 }
 
 // UsenetService names the service an NZB would be offered to first, and
@@ -175,12 +248,21 @@ func (a *App) CancelUsenetJob(id string) []string {
 // file in a folder of the download keeps that folder under the package's, or
 // under the job's own folder when it has one.
 func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, error) {
+	kept := a.keptUsenetFiles(j.Kept)
 	links := make([]resolver.Result, 0, len(files))
 	dirOf := map[string]string{}
+	held := map[string]bool{}
 	for _, f := range files {
-		u := usenet.FileLink(j.Service, j.Remote, f)
+		if _, ok := kept[f.Name]; ok {
+			continue
+		}
+		u := f.Link
+		if u == "" {
+			u = usenet.FileLink(j.Service, j.Remote, f)
+		}
 		links = append(links, resolver.Result{DirectURL: u, Name: f.Name, Size: f.Size})
 		dirOf[u] = f.Dir
+		held[u] = f.Held
 	}
 
 	// A restart between staging and the job list's save offers the same files
@@ -210,12 +292,22 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	}
 	a.keepUsenetFolders(created, dirOf)
 
-	ids := make([]string, 0, len(links))
+	ids := make([]string, 0, len(links)+len(kept))
 	for _, l := range links {
 		if id := have[l.DirectURL]; id != "" {
 			ids = append(ids, id)
 		}
 	}
+	for _, id := range kept {
+		ids = append(ids, id)
+	}
+	var off []string
+	for _, t := range created {
+		if held[t.URL] {
+			off = append(off, t.ID)
+		}
+	}
+	a.SetEnabled(off, false)
 	started := idsOf(created)
 	if j.Start {
 		// StartTasks rather than by hand, so a queue halted by hand stays
@@ -226,6 +318,36 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	}
 	log.Printf("usenet: %s is ready at %s; %d of its %d files staged", j.Name, j.Label, len(ids), len(files))
 	return ids, nil
+}
+
+// keptUsenetFiles maps the file name of each task in ids that is still done
+// to its id. They are the files of a job handed on that the own servers had
+// finished.
+func (a *App) keptUsenetFiles(ids []string) map[string]string {
+	out := map[string]string{}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone {
+			if name := local.LinkName(t.URL); name != "" {
+				out[name] = id
+			}
+		}
+	}
+	return out
+}
+
+// usenetDone picks the tasks among ids whose files are downloaded.
+func (a *App) usenetDone(ids []string) []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var out []string
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone {
+			out = append(out, id)
+		}
+	}
+	return out
 }
 
 // taskIDsByURL finds the tasks already in the list for links, keyed by link.
@@ -272,15 +394,60 @@ func (a *App) usenetJobFailed(j usenet.Job) {
 	a.recordSkippedReason(j.Name+".nzb", "nzb", j.Reason)
 }
 
-// tasksFinished reports whether every task is done or gone, after which the
-// service's copy of a job can be deleted.
-func (a *App) tasksFinished(ids []string) bool {
+// jobFinished reports whether the service's copy of a job can be deleted:
+// every task is done or gone, and no undo can bring a removed one back. The
+// own servers' .nzb stays while any task is listed, since a restart or a held
+// recovery volume is fetched from it.
+func (a *App) jobFinished(j usenet.Job) bool {
+	own := j.Service == local.ResolverID
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	for _, id := range ids {
-		if t := a.tasks[id]; t != nil && t.Status != core.StatusDone {
+	now := time.Now()
+	for _, id := range j.TaskIDs {
+		t := a.tasks[id]
+		switch {
+		case t == nil:
+			if a.undoableUntilLocked(id).After(now) {
+				return false
+			}
+		case own, t.Status != core.StatusDone:
 			return false
 		}
 	}
+	return true
+}
+
+// nzbGoneLocked reports whether t is a file of the own Usenet servers whose
+// .nzb they no longer keep, as after its job went on to a debrid service.
+// Fetching it again would start by deleting the file it has. Caller holds
+// a.mu.
+func (a *App) nzbGoneLocked(t *core.Task) bool {
+	return local.Resolver{}.Match(t.URL) && !a.usenetStateFor().own.Keeps(t.URL)
+}
+
+// HeldSpare reports whether t is a par2 recovery volume from the own Usenet
+// servers that is held back, switched off until a repair needs it. It is not
+// a download that failed or waits, so nothing that sums up a job counts it.
+func HeldSpare(t *core.Task) bool {
+	return !t.Enabled && t.Status != core.StatusDone && strings.HasPrefix(t.URL, local.ResolverID+"://") && nzb.IsRecoveryVolume(t.Name)
+}
+
+// usenetIncomplete hands a job some of whose articles no own server has to the
+// next account, and removes the tasks it had become, files and all, but for
+// the finished ones: their files stay, and the next account's copies of them
+// are not staged. It reports false when no other account is left, and the
+// file then fails.
+func (a *App) usenetIncomplete(job string, missing int) bool {
+	reason := fmt.Sprintf("%d articles are on none of your Usenet servers", missing)
+	if missing == 1 {
+		reason = "1 article is on none of your Usenet servers"
+	}
+	ids, ok := a.usenetStateFor().jobs.Fallback(local.ResolverID, job, reason)
+	if !ok {
+		return false
+	}
+	// Apart from the caller, which is one of these tasks' downloads and
+	// returns once it has its answer.
+	a.spawn(func() { a.RemoveTasks(ids, true) })
 	return true
 }

@@ -233,6 +233,34 @@ func TestImportNamesTheSecretsThatDidNotTravel(t *testing.T) {
 	}
 }
 
+func TestImportNamesUsenetServersThatArriveWithoutALogin(t *testing.T) {
+	t.Parallel()
+	src := settings.Defaults()
+	src.UsenetServers = []settings.UsenetServer{{ID: "main", Host: "news.example.invalid", Port: 563, TLS: true, Connections: 8, Enabled: true}}
+	doc, err := settings.Portable(src, true, "v0.0.1", "container", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, srv := transferServer(t)
+	res := postImport(t, srv, doc, []string{"usenetServers"})
+	if !contains(res.Applied, "usenetServers") {
+		t.Fatalf("applied = %v, the servers did not arrive", res.Applied)
+	}
+	if !contains(res.Incomplete, settings.SecretlessUsenetServers) {
+		t.Errorf("incomplete = %v; the server arrives switched on without its login and nothing says so", res.Incomplete)
+	}
+
+	a, srv := transferServer(t)
+	if err := a.SetUsenetLogin("main", "reader", "secret"); err != nil {
+		t.Fatal(err)
+	}
+	res = postImport(t, srv, doc, []string{"usenetServers"})
+	if contains(res.Incomplete, settings.SecretlessUsenetServers) {
+		t.Errorf("incomplete = %v on a box that holds the server's login", res.Incomplete)
+	}
+}
+
 // TestImportKeepsThisBoxIdentity checks at the route that a hand-edited
 // document cannot give this box another instance id.
 func TestImportKeepsThisBoxIdentity(t *testing.T) {
