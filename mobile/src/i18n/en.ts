@@ -28,6 +28,7 @@ export const en = {
   'phrase.errChecksum': "All twelve words exist, but they don't fit together. Compare them with your instance: one is mistyped, or two are swapped.",
   'phrase.errUnknownWord': 'Word {position} ("{word}") is not on the word list.',
   'phrase.errWordCount': 'That is {count} words. It needs exactly twelve.',
+  'relay.errInsecureRelay': 'This code names the relay {address}. The app only connects to a relay at a wss:// address.',
   'phrase.wordCount': '{n} of 12 words',
   'relay.instancesTitle': 'On this relay',
   'relay.noInstances': 'Nothing in this group is online right now. Check the phrase, and that at least one instance is running.',
@@ -140,6 +141,7 @@ export const en = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorSend': 'Could not send the links: {message}',
   'error.federationOff': 'Peer instances are switched off on the instance you are connected to, so it cannot reach the others.',
+  'error.addAgain': 'This connection was saved by an older version of the app and no longer works. Remove it and connect again with the twelve words.',
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',
 

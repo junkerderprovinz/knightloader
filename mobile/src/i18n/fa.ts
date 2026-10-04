@@ -118,6 +118,7 @@ export const fa: Dict = {
   'addDownload.errorServer': 'سرور: {message}',
   'addDownload.errorSend': 'ارسال لینک‌ها ممکن نشد: {message}',
   'error.federationOff': 'نمونه‌های همتا روی نمونه‌ای که به آن وصل هستید خاموش‌اند، پس این نمونه نمی‌تواند به بقیه برسد.',
+  'error.addAgain': 'این اتصال را نسخهٔ قدیمی‌تری از برنامه ذخیره کرده و دیگر کار نمی‌کند. آن را حذف کنید و دوباره با دوازده کلمه وصل شوید.',
   'addDownload.cancel': 'لغو',
   'addDownload.button': 'افزودن',
 
@@ -241,6 +242,7 @@ export const fa: Dict = {
   'phrase.errChecksum': 'هر دوازده واژه وجود دارند، اما با هم جور درنمی‌آیند. آن‌ها را با نمونهٔ خود مقایسه کنید: یکی اشتباه تایپ شده، یا دو تا جابه‌جا شده‌اند.',
   'phrase.errUnknownWord': 'کلمهٔ {position} («{word}») در فهرست کلمه‌ها نیست.',
   'phrase.errWordCount': 'این {count} کلمه است. باید دقیقاً دوازده‌تا باشد.',
+  'relay.errInsecureRelay': 'این کد رلهٔ {address} را نام می‌برد. برنامه فقط به رله‌ای با نشانی wss:// وصل می‌شود.',
   'phrase.wordCount': '{n} از ۱۲ کلمه',
   'relay.instancesTitle': 'روی این رله',
   'relay.noInstances': 'هم‌اکنون هیچ نمونه‌ای از این گروه آنلاین نیست. عبارت را بررسی کنید و اینکه دست‌کم یک نمونه در حال اجراست.',

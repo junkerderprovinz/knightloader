@@ -118,6 +118,7 @@ export const is: Dict = {
   'addDownload.errorServer': 'Netþjónn: {message}',
   'addDownload.errorSend': 'Ekki tókst að senda tenglana: {message}',
   'error.federationOff': 'Slökkt er á systurtilvikum á tilvikinu sem þú ert tengdur við, svo það nær ekki í hin.',
+  'error.addAgain': 'Eldri útgáfa forritsins vistaði þessa tengingu og hún virkar ekki lengur. Fjarlægðu hana og tengstu aftur með orðunum tólf.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 
@@ -241,6 +242,7 @@ export const is: Dict = {
   'phrase.errChecksum': 'Öll tólf orðin eru til, en þau passa ekki saman. Berðu þau saman við tilvikið þitt: eitt er vitlaust slegið inn, eða tvö hafa víxlast.',
   'phrase.errUnknownWord': 'Orð {position} („{word}“) er ekki á orðalistanum.',
   'phrase.errWordCount': 'Það eru {count} orð. Það þurfa að vera nákvæmlega tólf.',
+  'relay.errInsecureRelay': 'Þessi kóði tilgreinir endurvarpann {address}. Forritið tengist aðeins endurvarpa með wss://-vistfangi.',
   'phrase.wordCount': '{n} af 12 orðum',
   'relay.instancesTitle': 'Á þessum endurvarpa',
   'relay.noInstances': 'Ekkert tilvik í þessum hópi er tengt núna. Athugaðu setninguna og hvort að minnsta kosti eitt tilvik sé í gangi.',

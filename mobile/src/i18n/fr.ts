@@ -118,6 +118,7 @@ export const fr: Dict = {
   'addDownload.errorServer': 'Serveur : {message}',
   'addDownload.errorSend': 'Impossible d’envoyer les liens : {message}',
   'error.federationOff': 'Les instances jumelées sont désactivées sur l’instance à laquelle vous êtes connecté : elle ne peut donc pas joindre les autres.',
+  'error.addAgain': 'Cette connexion a été enregistrée par une ancienne version de l’application et ne fonctionne plus. Supprimez-la et reconnectez-vous avec les douze mots.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 
@@ -241,6 +242,7 @@ export const fr: Dict = {
   'phrase.errChecksum': 'Les douze mots existent tous, mais ils ne vont pas ensemble. Comparez-les avec votre instance : un mot est mal saisi, ou deux sont inversés.',
   'phrase.errUnknownWord': 'Le mot {position} (« {word} ») ne fait pas partie de la liste de mots.',
   'phrase.errWordCount': 'Cela fait {count} mots. Il en faut exactement douze.',
+  'relay.errInsecureRelay': 'Ce code indique le relais {address}. L’application ne se connecte qu’à un relais dont l’adresse commence par wss://.',
   'phrase.wordCount': '{n} sur 12 mots',
   'relay.instancesTitle': 'Sur ce relais',
   'relay.noInstances': 'Aucune instance de ce groupe n’est en ligne pour le moment. Vérifiez la phrase et qu’au moins une instance fonctionne.',

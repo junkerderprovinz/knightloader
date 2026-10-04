@@ -118,6 +118,7 @@ export const sl: Dict = {
   'addDownload.errorServer': 'Strežnik: {message}',
   'addDownload.errorSend': 'Povezav ni bilo mogoče poslati: {message}',
   'error.federationOff': 'Na primerku, s katerim si povezan, so sorodni primerki izklopljeni, zato drugih ne doseže.',
+  'error.addAgain': 'To povezavo je shranila starejša različica aplikacije in ne deluje več. Odstrani jo in se znova poveži z dvanajstimi besedami.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 
@@ -241,6 +242,7 @@ export const sl: Dict = {
   'phrase.errChecksum': 'Vseh dvanajst besed obstaja, a skupaj se ne izidejo. Primerjaj jih s svojo instanco: ena je napačno vtipkana, ali pa sta dve zamenjani.',
   'phrase.errUnknownWord': 'Beseda {position} („{word}“) ni na seznamu besed.',
   'phrase.errWordCount': 'To je {count} besed. Potrebnih je natanko dvanajst.',
+  'relay.errInsecureRelay': 'Ta koda navaja rele {address}. Aplikacija se poveže samo z relejem na naslovu wss://.',
   'phrase.wordCount': '{n} od 12 besed',
   'relay.instancesTitle': 'Na tem releju',
   'relay.noInstances': 'Trenutno nobena instanca te skupine ni na spletu. Preveri frazo in ali teče vsaj ena instanca.',

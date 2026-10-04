@@ -118,6 +118,7 @@ export const id: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorSend': 'Tautan tidak dapat dikirim: {message}',
   'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
+  'error.addAgain': 'Sambungan ini disimpan oleh versi aplikasi yang lebih lama dan tidak berfungsi lagi. Hapus, lalu sambungkan lagi dengan dua belas kata.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 
@@ -241,6 +242,7 @@ export const id: Dict = {
   'phrase.errChecksum': 'Kedua belas kata semuanya ada, tetapi tidak cocok satu sama lain. Bandingkan dengan instance Anda: satu kata salah ketik, atau dua kata tertukar.',
   'phrase.errUnknownWord': 'Kata {position} (“{word}”) bukan bagian dari daftar kata.',
   'phrase.errWordCount': 'Itu {count} kata. Dibutuhkan tepat dua belas.',
+  'relay.errInsecureRelay': 'Kode ini menyebut relai {address}. Aplikasi hanya tersambung ke relai dengan alamat wss://.',
   'phrase.wordCount': '{n} dari 12 kata',
   'relay.instancesTitle': 'Di relai ini',
   'relay.noInstances': 'Tidak ada instans di grup ini yang online sekarang. Periksa frasanya, dan pastikan setidaknya satu instans berjalan.',

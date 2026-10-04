@@ -118,6 +118,7 @@ export const gl: Dict = {
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorSend': 'Non se puideron enviar as ligazóns: {message}',
   'error.federationOff': 'As instancias irmás están desactivadas na instancia á que estás conectado, así que non pode chegar ás outras.',
+  'error.addAgain': 'Esta conexión gardouna unha versión anterior da app e xa non funciona. Elimínaa e volve conectar coas doce palabras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 
@@ -241,6 +242,7 @@ export const gl: Dict = {
   'phrase.errChecksum': 'As doce palabras existen todas, pero non encaixan entre si. Compáraas coa túa instancia: unha está mal escrita, ou dúas están trocadas.',
   'phrase.errUnknownWord': 'A palabra {position} («{word}») non está na lista de palabras.',
   'phrase.errWordCount': 'Iso son {count} palabras. Precísanse exactamente doce.',
+  'relay.errInsecureRelay': 'Este código indica o relé {address}. A app só se conecta a un relé cun enderezo wss://.',
   'phrase.wordCount': '{n} de 12 palabras',
   'relay.instancesTitle': 'Neste relé',
   'relay.noInstances': 'Agora mesmo non hai ningunha instancia deste grupo en liña. Comproba a frase e que polo menos unha instancia estea a funcionar.',

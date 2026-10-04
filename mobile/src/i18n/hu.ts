@@ -118,6 +118,7 @@ export const hu: Dict = {
   'addDownload.errorServer': 'Szerver: {message}',
   'addDownload.errorSend': 'Nem sikerült elküldeni a linkeket: {message}',
   'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
+  'error.addAgain': 'Ezt a kapcsolatot az alkalmazás egy régebbi verziója mentette, és már nem működik. Távolítsd el, és csatlakozz újra a tizenkét szóval.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 
@@ -241,6 +242,7 @@ export const hu: Dict = {
   'phrase.errChecksum': 'Mind a tizenkét szó létezik, de nem illenek össze. Hasonlítsd össze őket a példányoddal: az egyik el van gépelve, vagy kettő fel van cserélve.',
   'phrase.errUnknownWord': 'A(z) {position}. szó („{word}”) nem szerepel a szólistán.',
   'phrase.errWordCount': 'Ez {count} szó. Pontosan tizenkettőre van szükség.',
+  'relay.errInsecureRelay': 'Ez a kód a(z) {address} relét adja meg. Az alkalmazás csak wss:// címen elérhető reléhez csatlakozik.',
   'phrase.wordCount': '{n}/12 szó',
   'relay.instancesTitle': 'Ezen a relén',
   'relay.noInstances': 'Ennek a csoportnak jelenleg egyetlen példánya sincs online. Ellenőrizd a kifejezést, és hogy legalább egy példány fut-e.',

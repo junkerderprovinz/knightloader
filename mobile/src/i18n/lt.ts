@@ -118,6 +118,7 @@ export const lt: Dict = {
   'addDownload.errorServer': 'Serveris: {message}',
   'addDownload.errorSend': 'Nepavyko išsiųsti nuorodų: {message}',
   'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
+  'error.addAgain': 'Šį ryšį išsaugojo senesnė programėlės versija, ir jis nebeveikia. Pašalink jį ir prisijunk iš naujo su dvylika žodžių.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 
@@ -241,6 +242,7 @@ export const lt: Dict = {
   'phrase.errChecksum': 'Visi dvylika žodžių egzistuoja, bet kartu jie netinka. Palygink juos su savo egzemplioriumi: vienas įvestas neteisingai arba du sukeisti vietomis.',
   'phrase.errUnknownWord': 'Žodis {position} („{word}“) nėra žodžių sąraše.',
   'phrase.errWordCount': 'Tai {count} žodžiai. Reikia lygiai dvylikos.',
+  'relay.errInsecureRelay': 'Šis kodas nurodo relę {address}. Programėlė jungiasi tik prie relės wss:// adresu.',
   'phrase.wordCount': '{n} iš 12 žodžių',
   'relay.instancesTitle': 'Šioje relėje',
   'relay.noInstances': 'Šiuo metu nė vienas šios grupės egzempliorius neprisijungęs. Patikrink frazę ir ar bent vienas egzempliorius veikia.',

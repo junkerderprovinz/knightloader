@@ -118,6 +118,7 @@ export const lv: Dict = {
   'addDownload.errorServer': 'Serveris: {message}',
   'addDownload.errorSend': 'Neizdevās nosūtīt saites: {message}',
   'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
+  'error.addAgain': 'Šo savienojumu saglabāja vecāka lietotnes versija, un tas vairs nedarbojas. Noņem to un savienojies vēlreiz ar divpadsmit vārdiem.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 
@@ -241,6 +242,7 @@ export const lv: Dict = {
   'phrase.errChecksum': 'Visi divpadsmit vārdi ir īsti, bet kopā tie nesader. Salīdzini tos ar savu instanci: viens ir uzrakstīts nepareizi, vai divi ir samainīti vietām.',
   'phrase.errUnknownWord': 'Vārds {position} („{word}“) nav vārdu sarakstā.',
   'phrase.errWordCount': 'Tie ir {count} vārdi. Vajag tieši divpadsmit.',
+  'relay.errInsecureRelay': 'Šis kods norāda releju {address}. Lietotne savienojas tikai ar releju, kura adrese sākas ar wss://.',
   'phrase.wordCount': '{n} no 12 vārdiem',
   'relay.instancesTitle': 'Šajā relejā',
   'relay.noInstances': 'Neviena šīs grupas instance pašlaik nav tiešsaistē. Pārbaudi frāzi un to, vai vismaz viena instance darbojas.',

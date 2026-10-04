@@ -118,6 +118,7 @@ export const he: Dict = {
   'addDownload.errorServer': 'שרת: {message}',
   'addDownload.errorSend': 'לא ניתן היה לשלוח את הקישורים: {message}',
   'error.federationOff': 'במופע שאתה מחובר אליו מופעים שכנים כבויים, ולכן הוא לא יכול להגיע לאחרים.',
+  'error.addAgain': 'החיבור הזה נשמר בגרסה ישנה יותר של האפליקציה ואינו פועל עוד. הסירו אותו והתחברו מחדש עם שתים עשרה המילים.',
   'addDownload.cancel': 'ביטול',
   'addDownload.button': 'הוספה',
 
@@ -241,6 +242,7 @@ export const he: Dict = {
   'phrase.errChecksum': 'כל שתים עשרה המילים קיימות, אבל הן לא מתאימות זו לזו. השוו אותן למופע שלכם: מילה אחת הוקלדה בטעות, או ששתיים הוחלפו.',
   'phrase.errUnknownWord': 'המילה {position} (“{word}”) אינה ברשימת המילים.',
   'phrase.errWordCount': 'יש כאן {count} מילים. צריך בדיוק שתים עשרה.',
+  'relay.errInsecureRelay': 'הקוד הזה מציין את הממסר {address}. האפליקציה מתחברת רק לממסר בכתובת wss://.',
   'phrase.wordCount': '{n} מתוך 12 מילים',
   'relay.instancesTitle': 'על הממסר הזה',
   'relay.noInstances': 'אף מופע בקבוצה הזו אינו מקוון כרגע. בדקו את הביטוי, ושלפחות מופע אחד פועל.',

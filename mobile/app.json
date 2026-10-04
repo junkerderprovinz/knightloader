@@ -2,7 +2,7 @@
   "expo": {
     "name": "KnightLoader",
     "slug": "knightloader-mobile",
-    "version": "1.6.6",
+    "version": "1.6.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.VIBRATE"
       ],
-      "versionCode": 10606
+      "versionCode": 10607
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,7 +38,6 @@
         {
           "android": {
             "ndkVersion": "26.1.10909125",
-            "usesCleartextTraffic": true,
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
           }

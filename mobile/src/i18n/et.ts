@@ -118,6 +118,7 @@ export const et: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorSend': 'Linkide saatmine ebaõnnestus: {message}',
   'error.federationOff': 'Eksemplaril, millega oled ühendatud, on naabereksemplarid välja lülitatud, seega ei jõua see teisteni.',
+  'error.addAgain': 'Selle ühenduse salvestas rakenduse vanem versioon ja see ei tööta enam. Eemalda see ja ühenda uuesti kaheteistkümne sõnaga.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 
@@ -241,6 +242,7 @@ export const et: Dict = {
   'phrase.errChecksum': 'Kõik kaksteist sõna on olemas, aga need ei sobi kokku. Võrdle neid oma eksemplariga: üks on valesti kirjutatud või kaks on omavahel vahetatud.',
   'phrase.errUnknownWord': 'Sõna {position} („{word}“) ei ole sõnaloendis.',
   'phrase.errWordCount': 'See on {count} sõna. Vaja on täpselt kaksteist.',
+  'relay.errInsecureRelay': 'See kood nimetab releed {address}. Rakendus ühendub ainult wss://-aadressiga releega.',
   'phrase.wordCount': '{n}/12 sõna',
   'relay.instancesTitle': 'Selles relees',
   'relay.noInstances': 'Ükski selle rühma eksemplar ei ole praegu võrgus. Kontrolli fraasi ja seda, et vähemalt üks eksemplar töötab.',

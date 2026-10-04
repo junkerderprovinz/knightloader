@@ -1,5 +1,6 @@
 import {
   isRelayConnection,
+  needsAddingAgain,
   type AuthState,
   type CaptchaAbortScope,
   type CaptchaChallenge,
@@ -51,6 +52,7 @@ function refusal(body: string, status: number): ApiError {
 // The refusals this app words itself. The rest show the server's sentence.
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
+  addAgain: 'error.addAgain',
 };
 
 /** errorText is what a failed call shows: translated where the code is known. */
@@ -71,6 +73,11 @@ export function errorText(t: (key: TranslationKey) => string, e: unknown): strin
 // connection reaches the same routes with the same code, federation prefix
 // included.
 export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
+  // Said plainly, at the one place that can tell, instead of a call that
+  // times out or a transport error that names nothing.
+  if (needsAddingAgain(conn)) {
+    throw new ApiError('this connection has to be added again with the phrase', 0, 'addAgain');
+  }
   const { status, body, statusText } = isRelayConnection(conn)
     ? await relayRequest(conn, base + path, init)
     : await httpRequest(conn, base + path, init);
@@ -113,14 +120,7 @@ export function onRemovedFromGroup(handler: () => void): void {
 // host. The token travels in the frame's own authorization field rather than a
 // header, because the frame is all there is - see relay.ProxyRequest.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  if (!isRelayConnection(conn)) throw new Error('relayRequest called with a direct connection');
-  // A connection saved before frames were sealed has no frame key, and there
-  // is nothing to fall back to: an unsealed frame is one every instance now
-  // ignores, so the call would time out with no reason given. Said plainly
-  // instead, once, at the only place that can tell.
-  if (!conn.relayFrameKey) {
-    throw new Error('relay: this connection predates encrypted frames - add it again with your phrase');
-  }
+  if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
   const client = relayClientFor({
     url: conn.relayUrl,
     key: conn.relayKey,
@@ -369,7 +369,9 @@ export function liveTasks(
   onError?: (err: unknown) => void,
   onJobs?: (jobs: ExtractJob[]) => void
 ): LiveTasks {
-  const streamable = !isRelayConnection(conn) && base === '/api';
+  // A connection that has to be added again polls, so it fails with the
+  // reason each cycle rather than retrying a socket nothing will open.
+  const streamable = !isRelayConnection(conn) && base === '/api' && !needsAddingAgain(conn);
   return streamable
     ? subscribeTasks(conn, onSnapshot, onError, onJobs)
     : pollTasks(conn, base, onSnapshot, onError, onJobs);

@@ -118,6 +118,7 @@ export const sr: Dict = {
   'addDownload.errorServer': 'Сервер: {message}',
   'addDownload.errorSend': 'Везе није било могуће послати: {message}',
   'error.federationOff': '„Сродни примерци“ су искључени на инстанци са којом си повезан, па она не може да дође до осталих.',
+  'error.addAgain': 'Ову везу је сачувала старија верзија апликације и више не ради. Уклони је и повежи се поново са дванаест речи.',
   'addDownload.cancel': 'Откажи',
   'addDownload.button': 'Додај',
 
@@ -241,6 +242,7 @@ export const sr: Dict = {
   'phrase.errChecksum': 'Свих дванаест речи постоји, али заједно се не слажу. Упореди их са својом инстанцом: једна је погрешно откуцана, или су две замењене.',
   'phrase.errUnknownWord': 'Реч {position} („{word}”) није на листи речи.',
   'phrase.errWordCount': 'То је {count} речи. Потребно је тачно дванаест.',
+  'relay.errInsecureRelay': 'Овај код наводи релеј {address}. Апликација се повезује само са релејем на wss:// адреси.',
   'phrase.wordCount': '{n} од 12 речи',
   'relay.instancesTitle': 'На овом релеју',
   'relay.noInstances': 'Ниједна инстанца ове групе тренутно није на мрежи. Провери фразу и да ли ради бар једна инстанца.',

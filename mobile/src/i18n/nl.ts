@@ -118,6 +118,7 @@ export const nl: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorSend': 'Kon de links niet verzenden: {message}',
   'error.federationOff': 'Gekoppelde instanties staan uit op de instantie waarmee je verbonden bent, dus die kan de andere niet bereiken.',
+  'error.addAgain': 'Deze verbinding is opgeslagen door een oudere versie van de app en werkt niet meer. Verwijder hem en maak opnieuw verbinding met de twaalf woorden.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 
@@ -241,6 +242,7 @@ export const nl: Dict = {
   'phrase.errChecksum': 'Alle twaalf woorden bestaan, maar samen kloppen ze niet. Vergelijk ze met je instantie: een is verkeerd getypt, of twee zijn verwisseld.',
   'phrase.errUnknownWord': 'Woord {position} (“{word}”) staat niet op de woordenlijst.',
   'phrase.errWordCount': 'Dat zijn {count} woorden. Er moeten er precies twaalf zijn.',
+  'relay.errInsecureRelay': 'Deze code noemt de relay {address}. De app maakt alleen verbinding met een relay op een wss://-adres.',
   'phrase.wordCount': '{n} van de 12 woorden',
   'relay.instancesTitle': 'Op deze relay',
   'relay.noInstances': 'Er is nu geen instantie uit deze groep online. Controleer de zin en of er minstens één instantie draait.',

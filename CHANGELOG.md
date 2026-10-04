@@ -53,12 +53,6 @@ release's tag.
   app can send links to your server on its own. Files are not offered, because
   the relay does not forward container and torrent uploads.
 
-### Changed
-
-- **The README invites testers.** The notice at the top says KnightLoader is
-  still in development and bugs can happen, and asks everyone to test it and
-  report what they find, with a link to the bug report form.
-
 ### Fixed
 
 - **Add links in the Android app says why a send failed.** When the request
@@ -270,6 +264,27 @@ release's tag.
   their bytes, and when two finished at the same moment one could overwrite
   the other. Each download now has its own part file and deletes only the file
   it saved, and a moved one is deleted where it is now.
+
+## [1.6.7] - 2026-10-04
+
+### Changed
+
+- **The phone app follows an instance's own relay.** An instance set to its
+  own relay puts that relay's address in the QR code beside the twelve words,
+  on a line under them, and the app pairs there when it scans the code. The
+  app takes the address only if it starts with `wss://`. Typed words still pair
+  on the project relay, and on the project relay the code is the twelve words
+  alone, as before. An older app refuses a code that names a relay, because it
+  counts thirteen words.
+- **The phone app sends nothing unencrypted.** It no longer allows plain HTTP
+  at all. A connection saved by address before 1.5.0 that points at an
+  `http://` address says it has to be added again with the twelve words,
+  instead of failing with a network error.
+- **The README invites testers.** The warning not to install KnightLoader is
+  gone, and the README links to the bug report form instead.
+- **The README names the logo's licence.** The logo is licensed under AGPL-3.0-only
+  like the code, and the KnightLoader name and logo stay trademarks, so a fork
+  needs a name and logo of its own.
 
 ## [1.6.6] - 2026-10-02
 

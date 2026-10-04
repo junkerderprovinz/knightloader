@@ -118,6 +118,7 @@ export const sv: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorSend': 'Kunde inte skicka länkarna: {message}',
   'error.federationOff': 'Systerinstanser är avstängda på instansen du är ansluten till, så den når inte de andra.',
+  'error.addAgain': 'Den här anslutningen sparades av en äldre version av appen och fungerar inte längre. Ta bort den och anslut igen med de tolv orden.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 
@@ -241,6 +242,7 @@ export const sv: Dict = {
   'phrase.errChecksum': 'Alla tolv ord finns, men de passar inte ihop. Jämför dem med din instans: ett är felstavat, eller två har bytt plats.',
   'phrase.errUnknownWord': 'Ord {position} (”{word}”) finns inte på ordlistan.',
   'phrase.errWordCount': 'Det är {count} ord. Det behövs exakt tolv.',
+  'relay.errInsecureRelay': 'Den här koden anger reläet {address}. Appen ansluter bara till ett relä på en wss://-adress.',
   'phrase.wordCount': '{n} av 12 ord',
   'relay.instancesTitle': 'På det här relät',
   'relay.noInstances': 'Ingen instans i den här gruppen är online just nu. Kontrollera frasen och att minst en instans körs.',

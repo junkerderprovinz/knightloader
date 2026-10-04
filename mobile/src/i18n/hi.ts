@@ -118,6 +118,7 @@ export const hi: Dict = {
   'addDownload.errorServer': 'सर्वर: {message}',
   'addDownload.errorSend': 'लिंक भेजे नहीं जा सके: {message}',
   'error.federationOff': 'जिस इंस्टेंस से आप जुड़े हैं, उस पर साथी इंस्टेंस बंद हैं, इसलिए वह दूसरों तक नहीं पहुँच सकता।',
+  'error.addAgain': 'यह कनेक्शन ऐप के पुराने संस्करण ने सहेजा था और अब काम नहीं करता। इसे हटाएँ और बारह शब्दों से फिर से जोड़ें।',
   'addDownload.cancel': 'रद्द करें',
   'addDownload.button': 'जोड़ें',
 
@@ -241,6 +242,7 @@ export const hi: Dict = {
   'phrase.errChecksum': 'सभी बारह शब्द मौजूद हैं, लेकिन वे आपस में मेल नहीं खाते। इन्हें अपने इंस्टेंस से मिलाकर देखें: एक ग़लत टाइप हुआ है, या दो अदल-बदल गए हैं।',
   'phrase.errUnknownWord': 'शब्द {position} (“{word}”) शब्द सूची में नहीं है।',
   'phrase.errWordCount': 'इसमें {count} शब्द हैं। इसमें ठीक बारह होने चाहिए।',
+  'relay.errInsecureRelay': 'यह कोड रिले {address} बताता है। ऐप केवल wss:// पते वाले रिले से जुड़ता है।',
   'phrase.wordCount': '12 में से {n} शब्द',
   'relay.instancesTitle': 'इस रिले पर',
   'relay.noInstances': 'इस समूह का कोई इंस्टेंस अभी ऑनलाइन नहीं है। वाक्यांश जाँचें, और कि कम से कम एक इंस्टेंस चल रहा हो।',

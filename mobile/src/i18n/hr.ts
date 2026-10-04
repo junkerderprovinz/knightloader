@@ -118,6 +118,7 @@ export const hr: Dict = {
   'addDownload.errorServer': 'Poslužitelj: {message}',
   'addDownload.errorSend': 'Veze nije moguće poslati: {message}',
   'error.federationOff': 'Na instanci s kojom si povezan srodne instance su isključene, pa ona ne dopire do ostalih.',
+  'error.addAgain': 'Ovu je vezu spremila starija verzija aplikacije i više ne radi. Ukloni je i ponovno se poveži s dvanaest riječi.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 
@@ -241,6 +242,7 @@ export const hr: Dict = {
   'phrase.errChecksum': 'Svih dvanaest riječi postoji, ali ne uklapaju se zajedno. Usporedi ih sa svojom instancom: jedna je pogrešno upisana ili su dvije zamijenjene.',
   'phrase.errUnknownWord': 'Riječ {position} („{word}”) nije na popisu riječi.',
   'phrase.errWordCount': 'To je {count} riječi. Treba ih točno dvanaest.',
+  'relay.errInsecureRelay': 'Ovaj kod navodi relej {address}. Aplikacija se povezuje samo s relejem na wss:// adresi.',
   'phrase.wordCount': '{n} od 12 riječi',
   'relay.instancesTitle': 'Na ovom releju',
   'relay.noInstances': 'Nijedna instanca ove grupe trenutačno nije na mreži. Provjeri frazu i radi li barem jedna instanca.',
