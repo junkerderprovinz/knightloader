@@ -10,10 +10,12 @@ Was du damit machst
 
 Zum Verbinden tippst du die zwölf Wörter der Verbindungsphrase ein, die dein KnightLoader anzeigt, oder du scannst ihren QR-Code. Alle Instanzen der Gruppe erscheinen dann auf einmal. Du brauchst dafür kein Konto, keine Adresse und keinen offenen Port.
 
-Die App erreicht deine Instanzen über ein Relay. Anfragen und Antworten zwischen App und Instanzen sind Ende-zu-Ende verschlüsselt, mit einem Schlüssel aus deiner Phrase. Das Relay reicht sie weiter, kann sie aber nicht lesen. Werbung zeigt die App keine.
+Die App erreicht deine Instanzen über ein Relay. Das Standard-Relay parleyport.halleluja.design betreibt der Entwickler. Nutzt deine Instanz ein eigenes ParleyPort-Relay, folgt ihm die App, sobald du den QR-Code der Instanz scannst. Anfragen und Antworten zwischen App und Instanzen sind Ende-zu-Ende verschlüsselt, mit einem Schlüssel aus deiner Phrase. Das Relay reicht sie weiter, kann sie aber nicht lesen. Werbung zeigt die App keine.
 
 Du brauchst eine laufende KnightLoader-Instanz. KnightLoader ist kostenlos und quelloffen unter der AGPL-3.0: https://github.com/junkerderprovinz/knightloader
 
 KnightLoader ist noch in einem frühen Stadium und ändert sich schnell. Ein Update deiner Instanz kann auch ein Update der App verlangen. Probleme meldest du am besten auf GitHub.
+
+Löst du ein Captcha, lädt die App das Widget des jeweiligen Dienstes (reCAPTCHA, hCaptcha oder Cloudflare Turnstile) in einer Webansicht.
 
 Die Kamera nutzt die App nur, um den QR-Code deiner Phrase zu scannen.
