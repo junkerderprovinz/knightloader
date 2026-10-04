@@ -13,6 +13,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
@@ -74,7 +75,20 @@ func (a *App) historyNeedsSize(cand rules.Candidate) bool {
 // asSaved is the candidate under the name its file would be saved as, which
 // is the name the history keeps.
 func asSaved(cand rules.Candidate) dedupe.Entry {
-	return dedupe.Entry{URL: cand.URL, Name: collide.SafeName(cand.Filename), Size: cand.Filesize}
+	return dedupe.Entry{URL: historyURL(cand.URL), Name: collide.SafeName(cand.Filename), Size: cand.Filesize}
+}
+
+// historyURL spells an uploaded .torrent as a magnet of its info hash, so the
+// history knows a torrent whether it came as a file or as a magnet.
+func historyURL(u string) string {
+	if !torrent.IsURI(u) || torrent.IsMagnet(u) {
+		return u
+	}
+	md, err := (torrent.Resolver{}).Describe(u)
+	if err != nil {
+		return u
+	}
+	return "magnet:?xt=urn:btih:" + md.InfoHash
 }
 
 // match looks a candidate up in the history and reports the entry it repeats
@@ -116,7 +130,7 @@ func (d *downloadedIndex) build(a *App, p dedupe.Policy) bool {
 	d.finished = make(map[string]time.Time, len(entries))
 	for i := len(entries) - 1; i >= 0; i-- {
 		e := entries[i]
-		d.set.Keep(dedupe.Entry{ID: e.TaskID, URL: e.URL, Name: e.Name, Size: e.Size})
+		d.set.Keep(dedupe.Entry{ID: e.TaskID, URL: historyURL(e.URL), Name: e.Name, Size: e.Size})
 		d.finished[e.TaskID] = e.FinishedAt
 	}
 	d.built = true
