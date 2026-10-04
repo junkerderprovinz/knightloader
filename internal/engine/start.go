@@ -1,5 +1,7 @@
 package engine
 
+import "context"
+
 // A start resolves its link before the library has a task for it, and a
 // magnet can take minutes to name its files. Pause and Remove find no task to
 // act on in that time, so they leave a mark on the start instead, and the
@@ -8,8 +10,12 @@ package engine
 // start is one Start between its call and the task's creation in the library.
 // ready is closed when it ends either way. creating is set once the marks have
 // been read; from then on Pause and Remove wait for ready and find the task.
+// ctx ends with the start or on its Remove, and the library then drops a
+// torrent resolved under it that was not created.
 type start struct {
 	ready    chan struct{}
+	ctx      context.Context
+	cancel   context.CancelFunc
 	torrent  bool
 	creating bool
 	paused   bool
@@ -18,6 +24,7 @@ type start struct {
 
 func (e *Engine) beginStart(j Job, torrent bool) *start {
 	s := &start{ready: make(chan struct{}), torrent: torrent}
+	s.ctx, s.cancel = context.WithCancel(e.ctx)
 	e.mu.Lock()
 	e.starting[j.TaskID] = s
 	e.mu.Unlock()
@@ -31,6 +38,7 @@ func (e *Engine) startEnded(taskID string, s *start) {
 		delete(e.starting, taskID)
 	}
 	e.mu.Unlock()
+	s.cancel()
 	close(s.ready)
 }
 

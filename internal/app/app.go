@@ -886,9 +886,6 @@ func (a *App) Close() error {
 	// Pending media hook calls are dropped rather than flushed: their files
 	// were never moved into place.
 	a.stopMediaHooks()
-	if a.proxy != nil {
-		_ = a.proxy.Close()
-	}
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()
@@ -901,6 +898,11 @@ func (a *App) Close() error {
 	a.saveTorrentTally(true)
 	if a.Engine != nil {
 		a.Engine.Close()
+	}
+	// After the engine, whose closing torrent client still reaches HTTP
+	// trackers through it to announce stopped.
+	if a.proxy != nil {
+		_ = a.proxy.Close()
 	}
 	return a.Store.Close()
 }
@@ -1187,6 +1189,7 @@ func torrentConfig(t settings.Torrent) engine.TorrentConfig {
 		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
 		DisableDHT:  !t.DHTEnabled,
 		DisablePEX:  !t.PEXEnabled,
+		Interface:   t.Interface,
 	}
 }
 

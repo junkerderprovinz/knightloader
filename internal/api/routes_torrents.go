@@ -24,6 +24,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/qbittorrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -51,6 +52,17 @@ func registerTorrents(reg *Registry, a *app.App) {
 		"the public tracker list the torrent settings name: how many trackers it gave, when, and why the last fetch failed",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.TrackerListStatus())
+		})
+
+	reg.Add(http.MethodGet, "/api/torrents/interfaces",
+		"the network interfaces the built-in torrent client can be tied to, with their addresses and whether torrents could use each now",
+		func(w http.ResponseWriter, r *http.Request) {
+			ifs, err := engine.NetInterfaces()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, map[string]any{"interfaces": ifs})
 		})
 
 	reg.Add(http.MethodPost, "/api/torrents/qbittorrent/test",

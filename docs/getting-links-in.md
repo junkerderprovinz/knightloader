@@ -134,6 +134,34 @@ that caught it, not past one added afterwards. It is refused rather than
 stripped of that tracker: the rest of the torrent would still announce the same
 info hash, and a private torrent without its tracker finds no peers.
 
+**Network interface** under Settings, Torrents ties the built-in torrent client
+to one interface, such as `wg0` or `tun0` from a VPN, the way qBittorrent's
+"Network interface" setting does. Peers, trackers and the DHT then use that
+interface only. Every socket is bound to its address, and on Linux, macOS and
+Windows to the interface itself as well, so the system cannot route it out
+another way. The list offers the interfaces the system has, with their
+addresses, and "Any interface", which is the default.
+
+KnightLoader looks at the interface every two seconds. While it is missing,
+down or has no address, the client sends and receives nothing: open
+connections are closed, no peer is dialled and no tracker is asked. The
+torrents keep their place and what they have, the Overview's Torrents card
+says they are on hold, and a magnet link that waits for its file list does not
+run out of time meanwhile. Once the interface is back, the peers each torrent
+knew are dialled again, and trackers and the DHT bring the rest within about a
+minute. A change applies to running torrents at once.
+
+With an interface set, trackers and web seeds skip any proxy, because a proxy
+would reach them outside the interface. A client that starts with an interface
+set also leaves out UPnP port mapping and WebRTC peers, which open connections
+of their own, and IPv4 or IPv6 if the interface has no address of that kind. If
+you turn the setting on or pick another interface while torrents run, these
+stay as they are until the client starts again. Host names of trackers and DHT
+nodes are still looked up through the system's resolver. On Linux before 5.7
+the container needs `CAP_NET_RAW` to tie a socket to the interface itself, and
+without it sockets are bound to the interface's address only. Torrents a debrid
+service fetches are not affected: they come over HTTP from the service.
+
 ## Usenet
 
 An `.nzb` is fetched from your own Usenet servers, or by a debrid service that

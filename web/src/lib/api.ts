@@ -1720,6 +1720,10 @@ export interface TorrentOverview {
   ratio: number;
   /** Go marshals an empty slice as null. */
   top: TorrentUploader[] | null;
+  /** The network interface the torrent settings tie torrents to, absent for any. */
+  interface?: string;
+  /** That interface is missing or down, so every torrent of the built-in client waits. */
+  interfaceDown?: boolean;
 }
 
 export async function fetchTorrentOverview(): Promise<TorrentOverview> {
