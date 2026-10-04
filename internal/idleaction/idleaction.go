@@ -47,8 +47,8 @@ const (
 
 	// ActionSuspend asks the operating system to put this machine to sleep
 	// through internal/app.App.RequestSuspend, nil everywhere except the
-	// desktop build (desktop/power.go). A container's process is PID 1 in its
-	// own namespace and cannot reach the host's power state, so the container
+	// desktop build (desktop/power.go). A container's process runs in its own
+	// namespace and cannot reach the host's power state, so the container
 	// answer is ActionCommand pointed at something that can.
 	ActionSuspend Action = "suspend"
 )

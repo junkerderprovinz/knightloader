@@ -368,6 +368,15 @@ release's tag.
 
 - The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
 
+- **Subtitles are saved as .srt when the site only has WebVTT.** A subtitle
+  row showed .srt but kept the site's .vtt file when the site had no .srt, and
+  the log said the download was saved under another name. KnightLoader now
+  converts the subtitles to .srt.
+- **Stopped media downloads leave no zombie ffmpeg in the container.** Every
+  pause or removal of a yt-dlp download that ran ffmpeg left a zombie process
+  behind until the container restarted. The image now starts KnightLoader
+  under tini, which reaps them.
+
 ### Changed (Android app)
 
 - Buy Me a Coffee opens in the browser instead of an in-app web view, as F-Droid reviewers ask for author and donation pages. `CoffeeDonate.tsx` and its intro text are gone, and `mobile/PRIVACY.md` describes the button with the other links.

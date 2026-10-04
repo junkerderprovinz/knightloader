@@ -341,6 +341,20 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		if wroteSubtitle(line) {
 			subFiles++
 		}
+		if opts.Variant == VariantSubtitle {
+			if from, to, ok := convertedSubtitle(line); ok {
+				if final == from {
+					final = to
+				}
+				for i, w := range written {
+					if w == from {
+						written[i] = to
+					}
+				}
+				b.remember(taskID, to)
+				b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: to})
+			}
+		}
 	}
 	scanErr := sc.Err()
 	err = cmd.Wait()
@@ -560,6 +574,22 @@ func sidecarFile(v Variant, written []string) string {
 		return ""
 	}
 	return written[len(written)-1]
+}
+
+// convertedSubtitle reads the line --convert-subs prints after writing the srt
+// copy of a subtitle file and deleting the original, the only line that names
+// the file.
+func convertedSubtitle(line string) (from, to string, ok bool) {
+	const prefix = "Deleting original file "
+	i := strings.Index(line, prefix)
+	if i < 0 {
+		return "", "", false
+	}
+	from, ok = strings.CutSuffix(strings.TrimSpace(line[i+len(prefix):]), " (pass -k to keep)")
+	if !ok || from == "" {
+		return "", "", false
+	}
+	return from, strings.TrimSuffix(from, filepath.Ext(from)) + ".srt", true
 }
 
 // wroteSubtitle recognises yt-dlp announcing a written subtitle file, the
@@ -817,8 +847,9 @@ func buildArgs(dir string, o Options) []string {
 			langs = DefaultSubtitleLangs
 		}
 		// srt instead of the site's default (usually vtt), so every player
-		// reads it and the extension is known.
-		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt")
+		// reads it and the extension is known. --sub-format is only a
+		// preference, so a source without srt is converted.
+		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt", "--convert-subs", "srt")
 		if o.SubtitleAuto {
 			args = append(args, "--write-auto-subs")
 		}
