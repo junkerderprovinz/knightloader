@@ -1216,10 +1216,18 @@ func (a *App) SetAccountCredential(service, account string, cred accounts.Creden
 	return nil
 }
 
+// errCheckedOnDownload answers a check of a login to the user's own server.
+// The account names the host but not whether it speaks FTP, SFTP or WebDAV,
+// so only a download from it can tell whether the login works.
+var errCheckedOnDownload = errors.New("accounts: a login to your own server is checked when a download from it starts")
+
 // checkCredential asks a service whether cred works, storing nothing. It backs
 // both VerifyCredential and TestAccount. A captcha solver is asked for its
 // balance, which costs nothing, and unlocks no hosts.
 func checkCredential(ctx context.Context, service string, cred accounts.Credential) (ok bool, hosts int, err error) {
+	if s, known := accounts.Lookup(service); known && s.Group == accounts.GroupRemoteServer {
+		return false, 0, errCheckedOnDownload
+	}
 	if s := captchaSolverFor(service, cred); s != nil {
 		if _, err := s.Balance(ctx); err != nil {
 			return false, 0, err
@@ -1311,6 +1319,10 @@ func (a *App) TestAccount(service, account string) AccountState {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	ok, hosts, err := checkCredential(ctx, service, cred)
+	if errors.Is(err, errCheckedOnDownload) {
+		st.Detail = err.Error()
+		return st
+	}
 	if err != nil {
 		st.Detail = err.Error()
 		a.reportAccountFailure(service, account, classify(failure{err: err, text: err.Error()}), err.Error())
