@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -163,7 +164,17 @@ func main() {
 	})
 	tray.attach(wails, window)
 
+	// Wails reads the clipboard on the main thread, so the watch starts once
+	// the app runs.
+	clip := newClipWatch(a, wails.Clipboard.Text, func(o clipOutcome) { tray.emitTo("main", clipWatchEvent, o) })
+	clipCtx, stopClip := context.WithCancel(context.Background())
+	wails.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		go clip.run(clipCtx)
+	})
+
 	wails.OnShutdown(func() {
+		stopClip()
+		clip.stop()
 		hubBridge.stop()
 		stopUpdates()
 		up.stop()

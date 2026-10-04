@@ -1333,6 +1333,10 @@ export const is: Dict = {
   'intake.clipboardWatchHint': 'Hver tengill sem þú afritar hvar sem er fer beint í safnarann, svo lengi sem þessi flipi er opinn og í forgrunni. Ctrl+V inni í KnightLoader virkar alltaf og þarf ekkert af þessu.',
   'intake.clipboardWatchUnavailable': 'Ekki í boði hér: vafrinn leyfir síðu aðeins að lesa klippiborðið yfir HTTPS eða á localhost. Ctrl+V inni í KnightLoader virkar hvort sem er.',
   'intake.clipboardWatchDenied': 'Slökkt á eftirliti með klippiborði: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Hver tengill sem þú afritar hvar sem er fer beint í safnarann, líka þegar KnightLoader er falið á tilkynningasvæðinu. Aðeins tenglarnir eru teknir af klippiborðinu. Ctrl+V inni í KnightLoader virkar alltaf og þarf ekkert af þessu.',
+  'intake.clipboardWatchTarget': 'Senda afritaða tengla til',
+  'intake.clipboardWatchTargetHint': 'Þetta tilvik eða annað á síðunni Tilvik, til dæmis NAS sem var parað með orðunum tólf. Aðeins tenglarnir eru sendir, ekkert annað af klippiborðinu.',
+  'intake.clipboardWatchLimited': 'Á Wayland sér KnightLoader klippiborðið aðeins meðan glugginn er fremst. Með wl-clipboard uppsett getur það fylgst með því í bakgrunni á skjáborðum sem leyfa það, eins og KDE eða Sway. GNOME leyfir það ekki.',
 
   'collector.hosterPresetHint': 'Hvaða afbrigði tengla frá {host} safnarinn sýnir, og með hvaða sniði og gæðum nýir tenglar byrja. Þegar tengill hefur verið athugaður skiptir hann yfir á þá rás sína sem kemst næst. Tengill án þessa myndsniðs fær sitt besta myndband upp að þessum gæðum, og hljóð tengils án þessa hljóðsniðs er umbreytt.',
   'activity.crawl': 'Skannar síður',

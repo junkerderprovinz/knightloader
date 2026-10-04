@@ -1325,6 +1325,10 @@ export const nl: Dict = {
   'intake.clipboardWatchHint': 'Elke link die je ergens kopieert gaat rechtstreeks de verzamelaar in, zolang dit tabblad open is en op de voorgrond. Ctrl+V binnen KnightLoader werkt altijd en heeft dit niet nodig.',
   'intake.clipboardWatchUnavailable': 'Hier niet beschikbaar: de browser laat een pagina het klembord alleen lezen via HTTPS of op localhost. Ctrl+V binnen KnightLoader werkt hoe dan ook.',
   'intake.clipboardWatchDenied': 'Klembordbewaking uitgeschakeld: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Elke link die je ergens kopieert gaat rechtstreeks de verzamelaar in, ook als KnightLoader in het systeemvak zit. Alleen de links worden van het klembord gehaald. Ctrl+V binnen KnightLoader werkt altijd en heeft dit niet nodig.',
+  'intake.clipboardWatchTarget': 'Gekopieerde links sturen naar',
+  'intake.clipboardWatchTargetHint': 'Deze instantie of een andere onder Instanties, bijvoorbeeld een NAS die met de twaalf woorden is gekoppeld. Alleen de links worden verstuurd, verder niets van het klembord.',
+  'intake.clipboardWatchLimited': 'Onder Wayland ziet KnightLoader het klembord alleen zolang zijn venster vooraan staat. Met wl-clipboard geïnstalleerd kan het op de achtergrond meekijken op desktops die dat toestaan, zoals KDE of Sway. GNOME staat het niet toe.',
 
   'collector.hosterPresetHint': 'Welke varianten van de links van {host} de verzamelaar toont, en met welk formaat en welke kwaliteit nieuwe links beginnen. Zodra een link is gecontroleerd, schakelt hij over naar zijn eigen spoor dat het dichtst in de buurt komt. Een link zonder dit videoformaat krijgt zijn beste video tot deze kwaliteit, en bij een link zonder dit audioformaat wordt de audio omgezet.',
   'activity.crawl': 'Pagina’s doorzoeken',

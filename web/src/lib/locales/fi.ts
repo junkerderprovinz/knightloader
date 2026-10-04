@@ -1333,6 +1333,10 @@ export const fi: Dict = {
   'intake.clipboardWatchHint': 'Jokainen missä tahansa kopioimasi linkki menee suoraan kerääjään, kunhan tämä välilehti on auki ja edustalla. Ctrl+V KnightLoaderin sisällä toimii aina eikä tarvitse tätä.',
   'intake.clipboardWatchUnavailable': 'Ei käytettävissä täällä: selain antaa sivun lukea leikepöytää vain HTTPS:n yli tai localhostissa. Ctrl+V KnightLoaderin sisällä toimii silti.',
   'intake.clipboardWatchDenied': 'Leikepöydän tarkkailu kytketty pois: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Jokainen missä tahansa kopioimasi linkki menee suoraan kerääjään, myös kun KnightLoader on piilossa ilmoitusalueella. Leikepöydältä otetaan vain linkit. Ctrl+V KnightLoaderin sisällä toimii aina eikä tarvitse tätä.',
+  'intake.clipboardWatchTarget': 'Kopioitujen linkkien kohde',
+  'intake.clipboardWatchTargetHint': 'Tämä instanssi tai jokin muu Instanssit-sivulta, esimerkiksi kahdellatoista sanalla yhdistetty NAS. Vain linkit lähetetään, ei mitään muuta leikepöydältä.',
+  'intake.clipboardWatchLimited': 'Waylandissa KnightLoader näkee leikepöydän vain, kun sen ikkuna on edessä. Kun wl-clipboard on asennettu, se voi seurata leikepöytää taustalla työpöydillä, jotka sallivat sen, kuten KDE:ssä tai Swayssa. GNOME ei salli sitä.',
 
   'collector.hosterPresetHint': 'Mitkä versiot palvelun {host} linkeistä kerääjä näyttää ja millä muodolla ja laadulla uudet linkit alkavat. Kun linkki on tarkistettu, se vaihtaa omaan raitaansa, joka on lähimpänä valintaa. Linkki, jolla ei ole tätä videomuotoa, saa parhaan videonsa tähän laatuun asti, ja linkin, jolla ei ole tätä äänimuotoa, ääni muunnetaan.',
   'activity.crawl': 'Sivujen läpikäynti',

@@ -1325,6 +1325,10 @@ export const pt: Dict = {
   'intake.clipboardWatchHint': 'Cada link que copies em qualquer sítio vai direto para o coletor, enquanto este separador estiver aberto e em primeiro plano. Ctrl+V dentro do KnightLoader funciona sempre e não precisa disto.',
   'intake.clipboardWatchUnavailable': 'Aqui não está disponível: o navegador só deixa uma página ler a área de transferência por HTTPS ou em localhost. Ctrl+V dentro do KnightLoader funciona à mesma.',
   'intake.clipboardWatchDenied': 'Vigilância da área de transferência desligada: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Cada link que copies em qualquer sítio vai direto para o coletor, mesmo com o KnightLoader escondido na área de notificação. Da área de transferência só são tirados os links. Ctrl+V dentro do KnightLoader funciona sempre sem nada disto.',
+  'intake.clipboardWatchTarget': 'Enviar os links copiados para',
+  'intake.clipboardWatchTargetHint': 'Esta instância ou outra da página Instâncias, por exemplo um NAS emparelhado com as doze palavras. Só os links são enviados, mais nada da área de transferência.',
+  'intake.clipboardWatchLimited': 'No Wayland, o KnightLoader só vê a área de transferência enquanto a janela dele está em primeiro plano. Com o wl-clipboard instalado consegue vigiá-la em segundo plano nos ambientes que o permitem, como KDE ou Sway. O GNOME não o permite.',
 
   'collector.hosterPresetHint': 'Que variantes dos links de {host} o coletor mostra, e com que formato e qualidade começam os links novos. Assim que um link é verificado, passa para a faixa própria que mais se aproxima. Um link sem este formato de vídeo recebe o seu melhor vídeo até esta qualidade, e um sem este formato de áudio tem o áudio convertido.',
   'activity.crawl': 'A analisar páginas',

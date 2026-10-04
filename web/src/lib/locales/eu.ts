@@ -1333,6 +1333,10 @@ export const eu: Dict = {
   'intake.clipboardWatchHint': 'Edonon kopiatzen duzun esteka oro zuzenean biltzailera doa, fitxa hau irekita eta aurrean dagoen bitartean. KnightLoader barruko Ctrl+V beti dabil eta ez du hau behar.',
   'intake.clipboardWatchUnavailable': 'Hemen ez dago erabilgarri: nabigatzaileak HTTPS bidez edo localhost-en soilik uzten dio orri bati arbela irakurtzen. KnightLoader barruko Ctrl+V hala ere dabil.',
   'intake.clipboardWatchDenied': 'Arbelaren zaintza itzalita: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Edonon kopiatzen duzun esteka oro zuzenean biltzailera doa, baita KnightLoader jakinarazpen-eremuan ezkutatuta dagoenean ere. Arbeletik estekak bakarrik hartzen dira. KnightLoader barruko Ctrl+V beti dabil eta ez du hau behar.',
+  'intake.clipboardWatchTarget': 'Kopiatutako esteken helmuga',
+  'intake.clipboardWatchTargetHint': 'Instantzia hau edo Instantziak orriko beste bat, adibidez hamabi hitzekin parekatutako NAS bat. Estekak bakarrik bidaltzen dira, arbeleko beste ezer ez.',
+  'intake.clipboardWatchLimited': 'Wayland-en, KnightLoader-ek leihoa aurrean dagoen bitartean bakarrik ikusten du arbela. wl-clipboard instalatuta, atzeko planoan zain dezake hori baimentzen duten mahaigainetan, KDE edo Sway kasu. GNOMEk ez du baimentzen.',
 
   'collector.hosterPresetHint': '{host} ostalariko esteken zein aldaera erakusten dituen biltzaileak, eta esteka berriak zein formatu eta kalitaterekin hasten diren. Esteka bat egiaztatu ondoren, bere pistarik hurbilenera aldatzen da. Bideo-formatu hau ez duen esteka batek bere bideorik onena jasotzen du kalitate honetaraino, eta audio-formatu hau ez duenari audioa bihurtu egiten zaio.',
   'activity.crawl': 'Orriak arakatzen',
