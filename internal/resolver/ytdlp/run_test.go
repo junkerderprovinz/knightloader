@@ -17,7 +17,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 // runHelperEnv carries two modes at once, "<yt-dlp mode>:<ffprobe mode>",
@@ -90,17 +92,27 @@ func ytdlpHelper(mode string) {
 		sub := filepath.Join(dir, "A Video.de.srt")
 		_ = os.WriteFile(sub, []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
 		fmt.Println("[info] Writing video subtitles to: " + sub)
-	case "vttsubs":
+	case "vttsubs", "vttsubs2":
 		// A source with WebVTT only, converted by --convert-subs, in the
 		// order and wording yt-dlp 2026.08.19 prints.
-		vtt := filepath.Join(dir, "A Video.de.vtt")
-		_ = os.WriteFile(vtt, []byte("WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHallo\n"), 0o644)
-		fmt.Println("[info] Writing video subtitles to: " + vtt)
-		fmt.Println("[download] Destination: " + vtt)
+		langs := []string{"de"}
+		if mode == "vttsubs2" {
+			langs = []string{"en", "de"}
+		}
+		var vtts []string
+		for _, lang := range langs {
+			vtt := filepath.Join(dir, "A Video."+lang+".vtt")
+			_ = os.WriteFile(vtt, []byte("WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHallo\n"), 0o644)
+			fmt.Println("[info] Writing video subtitles to: " + vtt)
+			fmt.Println("[download] Destination: " + vtt)
+			vtts = append(vtts, vtt)
+		}
 		fmt.Println("[SubtitlesConvertor] Converting subtitles")
-		_ = os.WriteFile(filepath.Join(dir, "A Video.de.srt"), []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
-		_ = os.Remove(vtt)
-		fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
+		for _, vtt := range vtts {
+			_ = os.WriteFile(strings.TrimSuffix(vtt, ".vtt")+".srt", []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
+			_ = os.Remove(vtt)
+			fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
+		}
 	case "thumbnail":
 		// Fetched as webp, then converted to the jpg the row asked for.
 		webp := filepath.Join(dir, "A Video.webp")
@@ -726,6 +738,94 @@ func TestASubtitleRowFromAWebVTTSourceReportsTheSrtItWasConvertedTo(t *testing.T
 	if got.Status != core.StatusDone || got.File != want || got.Name != "A Video.de" {
 		t.Errorf("last update = %+v, want Done with File %q named %q", got, want, "A Video.de")
 	}
+}
+
+// A subtitle row of several languages writes a file for each, and the row
+// carries all of them, so a removal with files finds every one.
+func TestASubtitleRowOfSeveralLanguagesReportsEveryFileItWrote(t *testing.T) {
+	dir, rec := runFake(t, "vttsubs2:full", Options{Variant: VariantSubtitle, SubtitleLangs: "en,de"})
+	got := rec.last()
+	en, de := filepath.Join(dir, "A Video.en.srt"), filepath.Join(dir, "A Video.de.srt")
+	if got.Status != core.StatusDone || got.File != de || !slices.Equal(got.OtherFiles, []string{en}) {
+		t.Errorf("last update = %+v, want Done with File %q and %q beside it", got, de, en)
+	}
+	for _, f := range []string{en, de} {
+		if _, err := os.Stat(f); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+// runSubtitleBeside runs a subtitle row for de into a folder that already
+// holds "A Video.de.srt" from another source, under policy.
+func runSubtitleBeside(t *testing.T, policy collide.Policy) (string, *recorder) {
+	t.Helper()
+	t.Setenv(runHelperEnv, "subs:full")
+	dir := t.TempDir()
+	theirs := filepath.Join(dir, "A Video.de.srt")
+	if err := os.WriteFile(theirs, []byte("another source"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.Options = func(string) Options { return Options{Variant: VariantSubtitle, SubtitleLangs: "de"} }
+	b.Placing = func(string) workdir.Options { return workdir.Options{Policy: policy} }
+	b.run("task-1", "https://example.invalid/watch?v=x")
+	return theirs, rec
+}
+
+// folderHolds fails the test unless dir holds exactly names.
+func folderHolds(t *testing.T, dir string, names ...string) {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, e := range entries {
+		got = append(got, e.Name())
+	}
+	slices.Sort(got)
+	slices.Sort(names)
+	if !slices.Equal(got, names) {
+		t.Errorf("the folder holds %q, want %q", got, names)
+	}
+}
+
+func TestASubtitleRowIsRenamedAroundASubtitleFileFromAnotherSource(t *testing.T) {
+	theirs, rec := runSubtitleBeside(t, collide.Rename)
+	dir := filepath.Dir(theirs)
+	want := filepath.Join(dir, "A Video.de (2).srt")
+	if got := rec.last(); got.Status != core.StatusDone || got.File != want {
+		t.Errorf("last update = %+v, want Done with File %q", got, want)
+	}
+	if b, _ := os.ReadFile(theirs); string(b) != "another source" {
+		t.Errorf("the other source's subtitle file now holds %q", b)
+	}
+	folderHolds(t, dir, "A Video.de.srt", "A Video.de (2).srt")
+}
+
+func TestASubtitleRowUnderSkipLeavesASubtitleFileFromAnotherSource(t *testing.T) {
+	theirs, rec := runSubtitleBeside(t, collide.Skip)
+	got := rec.last()
+	if got.Status != core.StatusError || got.Code != core.CodeFileExists || got.File != "" {
+		t.Errorf("last update = %+v, want an error with code %q and no file", got, core.CodeFileExists)
+	}
+	if b, _ := os.ReadFile(theirs); string(b) != "another source" {
+		t.Errorf("the other source's subtitle file now holds %q", b)
+	}
+	folderHolds(t, filepath.Dir(theirs), "A Video.de.srt")
+}
+
+func TestASubtitleRowUnderOverwriteReplacesTheFileOfTheSameName(t *testing.T) {
+	theirs, rec := runSubtitleBeside(t, collide.Overwrite)
+	if got := rec.last(); got.Status != core.StatusDone || got.File != theirs {
+		t.Errorf("last update = %+v, want Done with File %q", got, theirs)
+	}
+	if b, _ := os.ReadFile(theirs); string(b) == "another source" {
+		t.Error("the subtitle file was not replaced")
+	}
+	folderHolds(t, filepath.Dir(theirs), "A Video.de.srt")
 }
 
 // Nothing of an unfinished download is the app's to delete: the stream files,
