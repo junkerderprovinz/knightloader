@@ -12,6 +12,8 @@
  *      of the message again, sends them to the default instance, and switches
  *      the watch off when a renewal says another device asked it to stop.
  *   5. A new start of the background leaves the renewal alarm as it runs.
+ *   6. Click'n'Load and the popup's collector take the links the watch takes.
+ *      Click'n'Load leaves magnets out, as splitLinks in internal/cnl does.
  *
  * Run by CI and by hand: `node extension/check-clipwatch.mjs`.
  */
@@ -202,9 +204,29 @@ function background({ stopAnswer = false, alarms = new Map() } = {}) {
   if (made !== 1) fail(`three starts of the background created the renewal alarm ${made} times, want once`);
 }
 
+// 6. Click'n'Load and the popup's collector.
+{
+  const ctx = context();
+  vm.runInContext(source('cnl.js'), ctx, { filename: 'cnl.js' });
+  const popup = source('popup.js');
+  const linksIn = popup.match(/function linksIn\([\s\S]*?\n}\n/)?.[0];
+  if (!linksIn) fail('could not find linksIn in popup.js');
+  else vm.runInContext(linksIn, ctx, { filename: 'popup.js' });
+  const own = ['https://a.example/1', 'ftp://h/2', 'ftps://h/3', 'sftp://h/4', 'webdav://h/5', 'webdavs://h/6', 'HTTP://h/7'];
+  const magnet = 'magnet:?xt=urn:btih:abc';
+  const text = `${own.slice(0, 3).join(' ')}\n${own.slice(3).join('\t')} ${magnet} notes xhttps://glued.example ftp://h/2`;
+  const cnl = vm.runInContext('splitCnlLinks', ctx)(text);
+  if (cnl.join('|') !== [...own, 'ftp://h/2'].join('|')) fail(`splitCnlLinks kept ${JSON.stringify(cnl)}, want ${JSON.stringify([...own, 'ftp://h/2'])}`);
+  if (linksIn) {
+    const got = vm.runInContext('linksIn', ctx)(text);
+    const want = [...own, magnet];
+    if (got.join('|') !== want.join('|')) fail(`the collector kept ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`- ${p}`);
   console.error(`${problems.length} problem(s)`);
   process.exit(1);
 }
-console.log('ok: one link rule in both places, only links leave, the poller sends each new link once and gives up after refusals, only extension pages can send, a stop from elsewhere switches the watch off, a restart of the background keeps the renewal alarm');
+console.log("ok: one link rule in both places, only links leave, the poller sends each new link once and gives up after refusals, only extension pages can send, a stop from elsewhere switches the watch off, a restart of the background keeps the renewal alarm, Click'n'Load and the collector take the watch's links");
