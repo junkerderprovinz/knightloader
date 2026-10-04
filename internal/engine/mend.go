@@ -92,6 +92,9 @@ type layoutStore struct {
 	// files is the last per-file reading of every torrent watched, by the
 	// library's task id; nil until the first save.
 	files map[string][]int64
+	// kept writes paused transfers to disk for after a restart; nil keeps
+	// none (see resume.go).
+	kept *keptTransfers
 }
 
 // savedLayoutBucket is the library's name for the bucket it saves a task's
@@ -110,6 +113,9 @@ func (s *layoutStore) Put(bucket, key string, v any) error {
 			}
 		}
 		s.mu.Unlock()
+	}
+	if s.kept != nil {
+		s.kept.put(bucket, key, v)
 	}
 	return s.Storage.Put(bucket, key, v)
 }
@@ -341,14 +347,7 @@ func (e *Engine) fetch(ctx context.Context, client *http.Client, f *os.File, url
 	if err != nil {
 		return err
 	}
-	for k, v := range m.job.Headers {
-		req.Header.Set(k, v)
-	}
-	if req.Header.Get("User-Agent") == "" {
-		if ua := e.userAgent(); ua != "" {
-			req.Header.Set("User-Agent", ua)
-		}
-	}
+	e.setHeaders(req, m.job.Headers)
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", g.from, g.to))
 	// Given up when nothing arrives for a while; a server can take a request
 	// and then say nothing.
@@ -481,6 +480,19 @@ func (e *Engine) mendClient(j Job) *http.Client {
 		DialContext:         (&net.Dialer{Timeout: 15 * time.Second}).DialContext,
 		TLSHandshakeTimeout: 15 * time.Second,
 	}}
+}
+
+// setHeaders gives req the job's headers, and the library's user agent where
+// they name none, as the library's own requests would carry.
+func (e *Engine) setHeaders(req *http.Request, headers map[string]string) {
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	if req.Header.Get("User-Agent") == "" {
+		if ua := e.userAgent(); ua != "" {
+			req.Header.Set("User-Agent", ua)
+		}
+	}
 }
 
 // userAgent is the one the library sends, from its HTTP protocol config.
