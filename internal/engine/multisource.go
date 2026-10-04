@@ -68,6 +68,11 @@ func (e *Engine) vetSources(j Job, res *base.Resource) []string {
 	client := e.mendClient(j)
 	defer client.CloseIdleConnections()
 	ua := e.userAgent()
+	for k, v := range j.Headers {
+		if strings.EqualFold(k, "User-Agent") {
+			ua = v
+		}
+	}
 	offsets := sampleOffsets(res.Size)
 
 	own, err := probeSource(ctx, client, j.URL, ua, offsets)

@@ -3351,6 +3351,8 @@ export const zh: Dict = {
   'failure.unreachable.next': '检查这台机器的网络连接和链接，然后再试一次。',
   'failure.timeout.line': '服务器不再回应了。',
   'failure.timeout.next': '再试一次。如果一直这样，可能是网盘负载过高，或者连接不稳定。',
+  'failure.connectionClosed.line': '服务器没有回应就关闭了连接。',
+  'failure.connectionClosed.next': '稍后再试。如果一直这样，服务器很可能在拒绝下载程序，用浏览器或许仍能拿到文件。',
   'failure.diskFull.line': '磁盘满了。',
   'failure.diskFull.next': '在存放文件的那块磁盘上腾出空间，然后再试一次。',
   'failure.noPermission.line': 'KnightLoader 没有权限访问 {path}。',

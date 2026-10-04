@@ -242,6 +242,35 @@ func TestForwardGivesUpOnAServerThatSendsNoHeaders(t *testing.T) {
 	}
 }
 
+// A plain HTTP server that hangs up without answering reaches the client as a
+// hang-up, as it does through the tunnel, and not as the proxy's own 502.
+func TestForwardHangsUpWhenTheServerHungUp(t *testing.T) {
+	origin := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		panic(http.ErrAbortHandler)
+	}))
+	defer origin.Close()
+
+	px, err := Start(throttle.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer px.Close()
+
+	pu, err := url.Parse("http://" + px.Addr())
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{Proxy: http.ProxyURL(pu)}}
+	resp, err := c.Get(origin.URL)
+	if err == nil {
+		resp.Body.Close()
+		t.Fatalf("got %s, want the connection closed", resp.Status)
+	}
+	if !errors.Is(err, io.EOF) {
+		t.Fatalf("err = %v, want EOF", err)
+	}
+}
+
 // A plain HTTP server that sends its headers and then goes quiet has those
 // headers passed on at once. Held back until the first body bytes, they leave
 // the client waiting for headers, which it does without a limit, rather than

@@ -3365,6 +3365,8 @@ export const ja: Dict = {
   'failure.unreachable.next': 'このマシンのインターネット接続とリンクを確認してから、もう一度試してください。',
   'failure.timeout.line': 'サーバーが応答しなくなりました。',
   'failure.timeout.next': 'もう一度試してください。何度も起きる場合は、ホスターが混み合っているか、接続が不安定なのかもしれません。',
+  'failure.connectionClosed.line': 'サーバーが応答せずに接続を切りました。',
+  'failure.connectionClosed.next': 'しばらくしてからもう一度試してください。何度も起きる場合は、サーバーがダウンロードソフトを拒否している可能性が高く、ブラウザーなら取得できるかもしれません。',
   'failure.diskFull.line': 'ディスクがいっぱいです。',
   'failure.diskFull.next': 'ファイルの保存先のドライブに空きを作ってから、もう一度試してください。',
   'failure.noPermission.line': 'KnightLoader には {path} へのアクセスが許可されていません。',

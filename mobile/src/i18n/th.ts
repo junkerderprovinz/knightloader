@@ -274,6 +274,8 @@ export const th: Dict = {
   'failure.unreachable.next': 'ตรวจการเชื่อมต่ออินเทอร์เน็ตของอินสแตนซ์และตรวจลิงก์ แล้วลองอีกครั้ง',
   'failure.timeout.line': 'เซิร์ฟเวอร์หยุดตอบสนอง',
   'failure.timeout.next': 'ลองอีกครั้ง ถ้ายังเกิดซ้ำ โฮสต์อาจรับภาระมากเกินไปหรือการเชื่อมต่อไม่เสถียร',
+  'failure.connectionClosed.line': 'เซิร์ฟเวอร์ปิดการเชื่อมต่อโดยไม่ตอบกลับ',
+  'failure.connectionClosed.next': 'ลองใหม่ภายหลัง ถ้ายังเกิดซ้ำ เซิร์ฟเวอร์อาจปฏิเสธโปรแกรมดาวน์โหลด และเบราว์เซอร์อาจยังดาวน์โหลดไฟล์ได้',
   'failure.diskFull.line': 'ดิสก์เต็ม',
   'failure.diskFull.next': 'เพิ่มพื้นที่ว่างบนไดรฟ์ที่ไฟล์จะไปเก็บ แล้วลองอีกครั้ง',
   'failure.noPermission.line': 'KnightLoader ไม่มีสิทธิ์เข้าถึง {path}',

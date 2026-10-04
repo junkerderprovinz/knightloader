@@ -3364,6 +3364,8 @@ export const is: Dict = {
   'failure.unreachable.next': 'Athugaðu nettengingu þessarar vélar og tengilinn, og reyndu svo aftur.',
   'failure.timeout.line': 'Þjónninn hætti að svara.',
   'failure.timeout.next': 'Reyndu aftur. Ef þetta gerist ítrekað gæti hýsillinn verið ofhlaðinn eða tengingin óstöðug.',
+  'failure.connectionClosed.line': 'Þjónninn lokaði tengingunni án þess að svara.',
+  'failure.connectionClosed.next': 'Reyndu aftur síðar. Ef þetta gerist ítrekað hafnar þjónninn líklega niðurhalsforritum, og vafri gæti samt náð í skrána.',
   'failure.diskFull.line': 'Diskurinn er fullur.',
   'failure.diskFull.next': 'Losaðu pláss á drifinu sem skrárnar fara á, og reyndu svo aftur.',
   'failure.noPermission.line': 'KnightLoader hefur ekki aðgang að {path}.',

@@ -159,6 +159,7 @@ var textReasons = []struct {
 	{"no such host", core.ReasonNetwork},
 	{"connection refused", core.ReasonNetwork},
 	{"connection reset", core.ReasonNetwork},
+	{"closed the connection", core.ReasonNetwork}, // the download engine
 	{"network is unreachable", core.ReasonNetwork},
 	{"deadline exceeded", core.ReasonNetwork},
 	{"timeout", core.ReasonNetwork},
@@ -238,6 +239,9 @@ func codeFor(f failure, r core.Reason) (core.ErrorCode, map[string]string) {
 	case core.ReasonNetwork:
 		if f.status == 408 || timedOut(f.err, low) {
 			return core.CodeTimeout, nil
+		}
+		if strings.Contains(low, "closed the connection") {
+			return core.CodeConnectionClosed, nil
 		}
 	case core.ReasonAuth:
 		if containsAny(low, premiumPhrases) {

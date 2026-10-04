@@ -3366,6 +3366,8 @@ export const gl: Dict = {
   'failure.unreachable.next': 'Comproba a conexión a internet deste equipo e a ligazón, e téntao de novo.',
   'failure.timeout.line': 'O servidor deixou de responder.',
   'failure.timeout.next': 'Téntao de novo. Se segue a pasar, pode que o aloxador estea sobrecargado ou que a conexión sexa inestable.',
+  'failure.connectionClosed.line': 'O servidor pechou a conexión sen responder.',
+  'failure.connectionClosed.next': 'Téntao de novo máis tarde. Se segue a pasar, seguramente o servidor rexeita os programas de descarga, e pode que un navegador si obteña o ficheiro.',
   'failure.diskFull.line': 'O disco está cheo.',
   'failure.diskFull.next': 'Libera espazo na unidade á que van os ficheiros e téntao de novo.',
   'failure.noPermission.line': 'KnightLoader non ten permiso para acceder a {path}.',

@@ -274,6 +274,8 @@ export const ca: Dict = {
   'failure.unreachable.next': 'Comprova la connexió a internet de la instància i l’enllaç, i torna-ho a provar.',
   'failure.timeout.line': 'El servidor ha deixat de respondre.',
   'failure.timeout.next': 'Torna-ho a provar. Si continua passant, potser l’allotjador està sobrecarregat o la connexió és inestable.',
+  'failure.connectionClosed.line': 'El servidor ha tancat la connexió sense respondre.',
+  'failure.connectionClosed.next': 'Torna-ho a provar més tard. Si continua passant, probablement el servidor rebutja els programes de baixada, i potser un navegador sí que obté el fitxer.',
   'failure.diskFull.line': 'El disc és ple.',
   'failure.diskFull.next': 'Allibera espai a la unitat on van els fitxers, i torna-ho a provar.',
   'failure.noPermission.line': 'KnightLoader no té permís per accedir a {path}.',

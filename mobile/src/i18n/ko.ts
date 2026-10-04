@@ -273,6 +273,8 @@ export const ko: Dict = {
   'failure.unreachable.next': '인스턴스의 인터넷 연결과 링크를 확인한 다음 다시 시도하세요.',
   'failure.timeout.line': '서버가 응답을 멈췄습니다.',
   'failure.timeout.next': '다시 시도하세요. 계속 이러면 호스터가 과부하 상태이거나 연결이 불안정한 것일 수 있습니다.',
+  'failure.connectionClosed.line': '서버가 응답 없이 연결을 끊었습니다.',
+  'failure.connectionClosed.next': '잠시 후 다시 시도하세요. 계속 이러면 서버가 다운로드 프로그램을 거부하는 것일 수 있으며, 브라우저로는 파일을 받을 수 있을지도 모릅니다.',
   'failure.diskFull.line': '디스크가 가득 찼습니다.',
   'failure.diskFull.next': '파일이 저장되는 드라이브에 공간을 확보한 다음 다시 시도하세요.',
   'failure.noPermission.line': 'KnightLoader는 {path}에 접근할 수 없습니다.',

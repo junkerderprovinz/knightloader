@@ -5,11 +5,14 @@ package engine
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"net"
+	"net/url"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +22,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
@@ -434,15 +438,7 @@ func (e *Engine) Start(j Job) {
 	go func() {
 		defer e.wg.Done()
 		defer e.startEnded(j.TaskID, s)
-		reqExtra := &fhttp.ReqExtra{Method: "GET", Header: j.Headers}
-		req := &base.Request{
-			URL:   j.URL,
-			Extra: reqExtra,
-			Proxy: requestProxy(j.Route),
-		}
-		optsExtra := &fhttp.OptsExtra{Connections: j.Conns}
-		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: optsExtra}
-		rr, err := e.d.Resolve(req, opts)
+		rr, req, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -465,8 +461,8 @@ func (e *Engine) Start(j Job) {
 		// transfer. Resolve has already filled in the connection count, and
 		// each source gets that many.
 		if mirrors := e.vetSources(j, rr.Res); len(mirrors) > 0 {
-			reqExtra.Mirrors = mirrors
-			optsExtra.Connections *= 1 + len(mirrors)
+			req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
+			opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
 		}
 		if !e.proceed(s, j) {
 			return
@@ -482,6 +478,61 @@ func (e *Engine) Start(j Job) {
 		e.jobs[j.TaskID] = j
 		e.mu.Unlock()
 	}()
+}
+
+// errHungUp stands in for the bare EOF a server that hangs up leaves behind.
+var errHungUp = errors.New("the server closed the connection")
+
+// resolve asks the library about j's link. Some servers hang up at once on the
+// browser agent the library sends by default, so a link that hangs up is asked
+// once more as KnightLoader, and j keeps that agent for the task's later
+// requests. An agent the caller set is kept either way.
+func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+	rr, req, opts, err := e.resolveAs(*j)
+	if err == nil || !httpx.HungUp(err) {
+		return rr, req, opts, err
+	}
+	if !hasUserAgent(j.Headers) {
+		ours := *j
+		ours.Headers = make(map[string]string, len(j.Headers)+1)
+		maps.Copy(ours.Headers, j.Headers)
+		ours.Headers["User-Agent"] = httpx.UserAgent()
+		rr, req, opts, err = e.resolveAs(ours)
+		if err == nil {
+			*j = ours
+			return rr, req, opts, nil
+		}
+		if !httpx.HungUp(err) {
+			return rr, req, opts, err
+		}
+	}
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		return nil, nil, nil, &url.Error{Op: ue.Op, URL: ue.URL, Err: errHungUp}
+	}
+	return nil, nil, nil, errHungUp
+}
+
+// resolveAs also returns the request and options, which the library keeps and
+// reads again when Create starts the transfer.
+func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+	req := &base.Request{
+		URL:   j.URL,
+		Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+		Proxy: requestProxy(j.Route),
+	}
+	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
+	rr, err := e.d.Resolve(req, opts)
+	return rr, req, opts, err
+}
+
+func hasUserAgent(h map[string]string) bool {
+	for k := range h {
+		if strings.EqualFold(k, "User-Agent") {
+			return true
+		}
+	}
+	return false
 }
 
 // place applies the collision policy to the resolved resource, writes the

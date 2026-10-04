@@ -3367,6 +3367,8 @@ export const tr: Dict = {
   'failure.unreachable.next': 'Bu makinenin internet erişimini ve bağlantıyı denetle, sonra yeniden dene.',
   'failure.timeout.line': 'Sunucu yanıt vermeyi bıraktı.',
   'failure.timeout.next': 'Yeniden dene. Tekrar tekrar oluyorsa hoster aşırı yüklü ya da bağlantı kararsız olabilir.',
+  'failure.connectionClosed.line': 'Sunucu yanıt vermeden bağlantıyı kapattı.',
+  'failure.connectionClosed.next': 'Daha sonra yeniden dene. Tekrar tekrar oluyorsa sunucu büyük olasılıkla indirme programlarını geri çeviriyor, bir tarayıcı ise dosyayı yine de alabilir.',
   'failure.diskFull.line': 'Disk dolu.',
   'failure.diskFull.next': 'Dosyaların gittiği sürücüde yer aç, sonra yeniden dene.',
   'failure.noPermission.line': 'KnightLoader\'ın {path} konumuna erişme izni yok.',

@@ -3366,6 +3366,8 @@ export const ar: Dict = {
   'failure.unreachable.next': 'تحقّق من اتصال هذا الجهاز بالإنترنت ومن الرابط، ثم حاول مرة أخرى.',
   'failure.timeout.line': 'توقّف الخادم عن الرد.',
   'failure.timeout.next': 'حاول مرة أخرى. إن تكرّر ذلك، فربما كان المستضيف مثقلًا أو الاتصال غير مستقر.',
+  'failure.connectionClosed.line': 'أغلق الخادم الاتصال دون أن يرد.',
+  'failure.connectionClosed.next': 'حاول لاحقًا. إن تكرّر ذلك، فالأرجح أن الخادم يرفض برامج التنزيل، وقد ينجح المتصفح في جلب الملف.',
   'failure.diskFull.line': 'القرص ممتلئ.',
   'failure.diskFull.next': 'أفرغ مساحة على القرص الذي تُحفظ عليه الملفات، ثم حاول مرة أخرى.',
   'failure.noPermission.line': 'لا يُسمح لـKnightLoader بالوصول إلى {path}.',
